@@ -2946,5 +2946,21 @@
   "landing_story_body": "Tekst van ons verhaal",
   "landing_save_success": "Startpagina opgeslagen",
   "landing_save_failed": "Opslaan van de startpagina is mislukt",
-  "nav_install_app": "App installeren"
+  "nav_install_app": "App installeren",
+  "step_review": "Controleer je keuzes",
+  "step_drinks": "Drankje toevoegen",
+  "step_back": "Vorige stap",
+  "step_progress": "Aanpassingsstappen",
+  "step_n_of_m": "Stap {{current}} van {{total}}: {{title}}",
+  "step_done": "klaar",
+  "step_continue": "Doorgaan",
+  "step_skip": "Overslaan",
+  "step_nothing_selected": "Geen",
+  "step_change": "Wijzigen",
+  "step_change_named": "{{title}} wijzigen",
+  "step_blocked_variation": "Kies een optie om door te gaan.",
+  "step_blocked_sauces": "Kies de vereiste sauzen om door te gaan.",
+  "step_blocked_section": "Maak de vereiste keuze om door te gaan.",
+  "step_sides": "Bijgerechten & drankjes",
+  "step_drinks_hint": "Wordt als apart artikel aan je winkelwagen toegevoegd."
 }

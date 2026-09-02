@@ -1,0 +1,73 @@
+/* One step's content. The entry animation is direction-aware from a single declaration: `--dir`
+   (globals.css) carries the sign of the inline axis and `var()` resolves inside `@keyframes`, so
+   ltr and rtl share one animation name instead of two that can drift apart. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: stepEnter 0.26s ease-out;
+}
+
+/* Holds the dialog's height steady across steps of very different length, so advancing does not
+   make the footer jump up the screen under the guest's thumb. Not a fixed height: a long ingredient
+   list still grows and the modal body scrolls it, exactly as it does today. */
+.steady {
+  min-height: 14rem;
+}
+
+.enterFromEnd {
+  --step-slide: 28px;
+}
+
+.enterFromStart {
+  --step-slide: -28px;
+}
+
+@keyframes stepEnter {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--dir, 1) * var(--step-slide, 28px)));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin: 0;
+  /* Inherits the body font rather than reading `--modal-title-font`: that is the modal SHELL's
+     token (see `modalChrome.test.ts`), and a step heading is body content, not the dialog's title. */
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  outline: none; /* focus is moved here programmatically on a step change; the panel is the cue */
+}
+
+.required {
+  color: var(--feedback-danger);
+  font-weight: 700;
+}
+
+.hint {
+  margin: -0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

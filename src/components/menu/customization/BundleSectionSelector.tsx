@@ -18,6 +18,12 @@ interface BundleSectionSelectorProps {
   onToggleOption: (section: MenuSection, itemId: string) => void;
   onToggleExpanded: (sectionId: string, itemId: string) => void;
   onCustomizationChange: (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => void;
+  /**
+   * Withhold the visible `<legend>`. The guided flow's step panel already carries the section name
+   * and its required marker; a second copy inside the fieldset reads as a nested group. The
+   * fieldset keeps an `aria-label` in that case, so the grouping is still named for assistive tech.
+   */
+  hideLegend?: boolean;
 }
 
 /**
@@ -34,6 +40,7 @@ export default function BundleSectionSelector({
   onToggleOption,
   onToggleExpanded,
   onCustomizationChange,
+  hideLegend = false,
 }: Readonly<BundleSectionSelectorProps>) {
   const { t } = useTranslation();
 
@@ -77,17 +84,23 @@ export default function BundleSectionSelector({
   }
 
   return (
-    <fieldset className={styles.section} aria-describedby={minSelectionError ? errorId : undefined}>
-      <legend className={styles.legend}>
-        <span className={styles.name}>
-          {section.name}
-          {section.isRequired && (
-            <span className={styles.required} aria-label={t('required')}>
-              *
-            </span>
-          )}
-        </span>
-      </legend>
+    <fieldset
+      className={styles.section}
+      aria-label={hideLegend ? section.name : undefined}
+      aria-describedby={minSelectionError ? errorId : undefined}
+    >
+      {!hideLegend && (
+        <legend className={styles.legend}>
+          <span className={styles.name}>
+            {section.name}
+            {section.isRequired && (
+              <span className={styles.required} aria-label={t('required')}>
+                *
+              </span>
+            )}
+          </span>
+        </legend>
+      )}
 
       {section.description && <p className={styles.description}>{section.description}</p>}
 

@@ -2946,5 +2946,21 @@
   "landing_story_body": "Hikâye metni",
   "landing_save_success": "Açılış sayfası kaydedildi",
   "landing_save_failed": "Açılış sayfası kaydedilemedi",
-  "nav_install_app": "Uygulamayı Yükle"
+  "nav_install_app": "Uygulamayı Yükle",
+  "step_review": "Seçimlerinizi gözden geçirin",
+  "step_drinks": "İçecek ekleyin",
+  "step_back": "Önceki adım",
+  "step_progress": "Özelleştirme adımları",
+  "step_n_of_m": "Adım {{current}} / {{total}}: {{title}}",
+  "step_done": "tamamlandı",
+  "step_continue": "Devam",
+  "step_skip": "Atla",
+  "step_nothing_selected": "Yok",
+  "step_change": "Değiştir",
+  "step_change_named": "{{title}} bölümünü değiştir",
+  "step_blocked_variation": "Devam etmek için bir seçenek seçin.",
+  "step_blocked_sauces": "Devam etmek için gerekli sosları seçin.",
+  "step_blocked_section": "Devam etmek için gerekli seçimi yapın.",
+  "step_sides": "Yan ürün ve içecek",
+  "step_drinks_hint": "Sepetinize ayrı bir ürün olarak eklenir."
 }

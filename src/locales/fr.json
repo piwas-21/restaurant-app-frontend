@@ -2946,5 +2946,21 @@
   "landing_story_body": "Texte de notre histoire",
   "landing_save_success": "Page d'accueil enregistrée",
   "landing_save_failed": "Échec de l'enregistrement de la page d'accueil",
-  "nav_install_app": "Installer l'application"
+  "nav_install_app": "Installer l'application",
+  "step_review": "Vérifiez vos choix",
+  "step_drinks": "Ajouter une boisson",
+  "step_back": "Étape précédente",
+  "step_progress": "Étapes de personnalisation",
+  "step_n_of_m": "Étape {{current}} sur {{total}} : {{title}}",
+  "step_done": "terminé",
+  "step_continue": "Continuer",
+  "step_skip": "Passer",
+  "step_nothing_selected": "Aucun",
+  "step_change": "Modifier",
+  "step_change_named": "Modifier {{title}}",
+  "step_blocked_variation": "Veuillez choisir une option pour continuer.",
+  "step_blocked_sauces": "Veuillez choisir les sauces requises pour continuer.",
+  "step_blocked_section": "Veuillez faire la sélection requise pour continuer.",
+  "step_sides": "Accompagnements et boissons",
+  "step_drinks_hint": "Ajouté comme article distinct dans votre panier."
 }

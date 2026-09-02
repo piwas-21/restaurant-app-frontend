@@ -4,8 +4,11 @@
  * `includeMenus` opts into a mixed list, and an explicit `type` always wins over it.
  */
 export interface ProductTypeQuery {
-  /** A `ProductType` enum NAME (e.g. 'Menu'). Query-string enum binding is by name. */
-  type?: 'Menu';
+  /**
+   * A `ProductType` enum NAME (e.g. 'Menu'). Query-string enum binding is by NAME, not by the
+   * camelCase `[EnumMember]` value the responses carry — `Beverage`, never `beverage`.
+   */
+  type?: 'Menu' | 'Beverage';
   /** Opt into a mixed list of items AND Menu bundles. Ignored when `type` is set. */
   includeMenus?: boolean;
   /**

@@ -2946,5 +2946,21 @@
   "landing_story_body": "Testo della nostra storia",
   "landing_save_success": "Pagina iniziale salvata",
   "landing_save_failed": "Salvataggio della pagina iniziale non riuscito",
-  "nav_install_app": "Installa app"
+  "nav_install_app": "Installa app",
+  "step_review": "Rivedi le tue scelte",
+  "step_drinks": "Aggiungi una bevanda",
+  "step_back": "Passaggio precedente",
+  "step_progress": "Passaggi di personalizzazione",
+  "step_n_of_m": "Passaggio {{current}} di {{total}}: {{title}}",
+  "step_done": "completato",
+  "step_continue": "Continua",
+  "step_skip": "Salta",
+  "step_nothing_selected": "Nessuno",
+  "step_change": "Modifica",
+  "step_change_named": "Modifica {{title}}",
+  "step_blocked_variation": "Scegli un’opzione per continuare.",
+  "step_blocked_sauces": "Scegli le salse richieste per continuare.",
+  "step_blocked_section": "Effettua la selezione richiesta per continuare.",
+  "step_sides": "Contorni e bevande",
+  "step_drinks_hint": "Aggiunto come articolo separato nel carrello."
 }

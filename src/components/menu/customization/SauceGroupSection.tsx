@@ -19,6 +19,12 @@ interface SauceGroupSectionProps {
   onSelectionChange: (selected: string[]) => void;
   onQuantityChange: (ingredientId: string, quantity: number) => void;
   currentLanguage: string;
+  /**
+   * `disclosure` (default) is the collapsed group the scrolling sheet needs. `plain` is the guided
+   * flow's own step: already the only thing on screen, so it renders open with no header to press
+   * and no summary line — the panel's heading says what this is.
+   */
+  variant?: 'disclosure' | 'plain';
 }
 
 /**
@@ -77,9 +83,12 @@ export default function SauceGroupSection({
   onSelectionChange,
   onQuantityChange,
   currentLanguage,
+  variant = 'disclosure',
 }: Readonly<SauceGroupSectionProps>) {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isPlain = variant === 'plain';
+  const [isOpen, setIsOpen] = useState(false);
+  const isExpanded = isPlain || isOpen;
   const domId = useId();
 
   const sauces = ingredients
@@ -160,21 +169,23 @@ export default function SauceGroupSection({
 
   return (
     <fieldset className={styles.group} aria-describedby={isExpanded && hint ? `${domId}-hint` : undefined}>
-      <legend className={styles.legend}>
-        <button
-          type="button"
-          className={styles.header}
-          onClick={() => setIsExpanded((open) => !open)}
-          aria-expanded={isExpanded}
-          aria-controls={`${domId}-panel`}
-        >
-          <span className={styles.headerText}>
-            <span className={styles.title}>{t('sauces')}</span>
-            <span className={styles.summary}>{summary}</span>
-          </span>
-          {isExpanded ? <ChevronUp size={20} aria-hidden="true" /> : <ChevronDown size={20} aria-hidden="true" />}
-        </button>
-      </legend>
+      {!isPlain && (
+        <legend className={styles.legend}>
+          <button
+            type="button"
+            className={styles.header}
+            onClick={() => setIsOpen((open) => !open)}
+            aria-expanded={isExpanded}
+            aria-controls={`${domId}-panel`}
+          >
+            <span className={styles.headerText}>
+              <span className={styles.title}>{t('sauces')}</span>
+              <span className={styles.summary}>{summary}</span>
+            </span>
+            {isExpanded ? <ChevronUp size={20} aria-hidden="true" /> : <ChevronDown size={20} aria-hidden="true" />}
+          </button>
+        </legend>
+      )}
 
       {isExpanded && (
         <div className={styles.panel} id={`${domId}-panel`}>

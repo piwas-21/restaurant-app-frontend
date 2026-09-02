@@ -2,6 +2,7 @@ import type { DetailedProduct } from '@/types/menu';
 import { firstActiveVariationId } from './baseProductVisibility';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import type { SelectedSide } from './linePrice';
+import type { ProductLineInput } from '@/hooks/menu/useLinePrice';
 
 /**
  * The pure open-state rules for the product body of the customization sheet (menu-bundles redesign
@@ -43,5 +44,38 @@ export function buildInitialSheetState(detail: DetailedProduct): InitialSheetSta
     // no visible radio. Load-bearing since Track F / F2 — with the base row hidden, a null start
     // is an add the server refuses.
     selectedVariationId: firstActiveVariationId(detail.variations),
+  };
+}
+
+/** What the guest has chosen so far — the mutable half of the price input. */
+export interface SheetSelection {
+  quantity: number;
+  selectedVariationId: string | null;
+  selectedIngredients: string[];
+  ingredientQuantities: Record<string, number>;
+  selectedSideItems: SelectedSide[];
+}
+
+/**
+ * The product line's price input, assembled in one place.
+ *
+ * Lifted out of `useItemCustomizationSheet` so the mapping from a payload to the money-path input
+ * is pure and readable next to the seeding rules it mirrors — every field here has a counterpart in
+ * `buildInitialSheetState`, and a field added to one and forgotten in the other is exactly how a
+ * live total comes to disagree with what the server charges.
+ */
+export function toLinePriceInput(product: DetailedProduct | null, selection: SheetSelection): ProductLineInput {
+  return {
+    kind: 'product',
+    basePrice: product?.basePrice ?? 0,
+    quantity: selection.quantity,
+    variations: product?.variations,
+    selectedVariationId: selection.selectedVariationId,
+    ingredients: product?.detailedIngredients,
+    selectedIngredientIds: selection.selectedIngredients,
+    ingredientQuantities: selection.ingredientQuantities,
+    sauceIncludedFree: product?.sauceIncludedFree ?? 0,
+    sides: product?.suggestedSideItems,
+    selectedSides: selection.selectedSideItems,
   };
 }

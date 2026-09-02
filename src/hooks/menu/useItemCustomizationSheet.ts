@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { getProductById } from '@/services/menuService';
-import { buildInitialSheetState, hasCustomizationOptions } from '@/utils/itemSheetState';
+import { buildInitialSheetState, hasCustomizationOptions, toLinePriceInput } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
@@ -18,6 +18,8 @@ interface UseItemCustomizationSheetArgs {
   onBundleDetected?: (bundle: MenuBundleItem) => void;
   /** Fired after a successful add — the menu page uses it to animate the cart button. */
   onAdded?: () => void;
+  /** Commits the drinks step's own basket lines, AFTER this line was accepted (§3.4). */
+  onLineAdded?: () => Promise<void>;
 }
 
 /**
@@ -27,7 +29,11 @@ interface UseItemCustomizationSheetArgs {
  * straight to the cart without opening (the "Add to Order" fast path) — UNLESS the caller passes
  * `forceSheet` (the "Details"/title affordances), which always opens the sheet to view the item.
  */
-export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItemCustomizationSheetArgs = {}) {
+export function useItemCustomizationSheet({
+  onBundleDetected,
+  onAdded,
+  onLineAdded,
+}: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { i18n } = useTranslation();
   const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
@@ -119,19 +125,8 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
   // just showed (Track F/F3) — including the fall back to the plain `Product.Description`.
   const description = product ? localizedDescription(product, currentLanguage) : undefined;
 
-  const linePrice = useLinePrice({
-    kind: 'product',
-    basePrice: product?.basePrice ?? 0,
-    quantity,
-    variations: product?.variations,
-    selectedVariationId,
-    ingredients: product?.detailedIngredients,
-    selectedIngredientIds: selectedIngredients,
-    ingredientQuantities,
-    sauceIncludedFree: product?.sauceIncludedFree ?? 0,
-    sides: product?.suggestedSideItems,
-    selectedSides: selectedSideItems,
-  });
+  const selection = { quantity, selectedVariationId, selectedIngredients, ingredientQuantities, selectedSideItems };
+  const linePrice = useLinePrice(toLinePriceInput(product, selection));
 
   const addToCart = useCallback(async () => {
     // Guard the money-path add against double submission (rapid clicks / Enter key).
@@ -147,6 +142,8 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
         ingredientQuantities,
         selectedSideItems,
       });
+      // Strictly after: a rejected line must not leave a lone drink behind in the basket.
+      await onLineAdded?.();
       close();
       notifyAdded(product);
     } catch (error) {
@@ -161,6 +158,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
     isSubmitting,
     notifyAdded,
     notifyAddFailed,
+    onLineAdded,
     product,
     quantity,
     selectedIngredients,

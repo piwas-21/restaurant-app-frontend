@@ -2946,5 +2946,21 @@
   "landing_story_body": "Texto de nuestra historia",
   "landing_save_success": "Página de inicio guardada",
   "landing_save_failed": "No se pudo guardar la página de inicio",
-  "nav_install_app": "Instalar aplicación"
+  "nav_install_app": "Instalar aplicación",
+  "step_review": "Revisa tus elecciones",
+  "step_drinks": "Añadir una bebida",
+  "step_back": "Paso anterior",
+  "step_progress": "Pasos de personalización",
+  "step_n_of_m": "Paso {{current}} de {{total}}: {{title}}",
+  "step_done": "completado",
+  "step_continue": "Continuar",
+  "step_skip": "Omitir",
+  "step_nothing_selected": "Ninguno",
+  "step_change": "Cambiar",
+  "step_change_named": "Cambiar {{title}}",
+  "step_blocked_variation": "Elige una opción para continuar.",
+  "step_blocked_sauces": "Elige las salsas requeridas para continuar.",
+  "step_blocked_section": "Realiza la selección requerida para continuar.",
+  "step_sides": "Acompañamientos y bebidas",
+  "step_drinks_hint": "Se añade como artículo independiente a tu cesta."
 }

@@ -147,3 +147,38 @@
   background-color: var(--brand-primary);
   color: var(--text-on-primary);
 }
+
+/* ---------- blocked, but still navigable (§9.10 refuses the ADD, not the reading) ---------- */
+
+/* The reason and the way out on one row, with Continue trailing it. `.footer` is still what
+   `MenuCardAvailability` is handed as its style bag, so the notice keeps its own layout. */
+.blockedFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+/* Secondary on purpose: nothing here can be ordered, so it must not read like the primary action
+   the guest is looking for. */
+.blockedContinue {
+  /* Always its own row: `MenuCardAvailability` wraps the reason and the switch in a `width: 100%`
+     container of its own, so this can never share their line. Pushed to the trailing edge to sit
+     under the switch rather than opposite it. */
+  margin-inline-start: auto;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.blockedContinue:hover,
+.blockedContinue:focus-visible {
+  background-color: var(--surface-secondary);
+}

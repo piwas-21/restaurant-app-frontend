@@ -2946,5 +2946,21 @@
   "landing_story_body": "Our-story text",
   "landing_save_success": "Landing page saved",
   "landing_save_failed": "Failed to save the landing page",
-  "nav_install_app": "Install app"
+  "nav_install_app": "Install app",
+  "step_review": "Review your choices",
+  "step_drinks": "Add a drink",
+  "step_back": "Previous step",
+  "step_progress": "Customization steps",
+  "step_n_of_m": "Step {{current}} of {{total}}: {{title}}",
+  "step_done": "done",
+  "step_continue": "Continue",
+  "step_skip": "Skip",
+  "step_nothing_selected": "None",
+  "step_change": "Change",
+  "step_change_named": "Change {{title}}",
+  "step_blocked_variation": "Please choose an option to continue.",
+  "step_blocked_sauces": "Please choose the required sauces to continue.",
+  "step_blocked_section": "Please make the required selection to continue.",
+  "step_sides": "Add sides & drinks",
+  "step_drinks_hint": "Added as its own item in your basket."
 }

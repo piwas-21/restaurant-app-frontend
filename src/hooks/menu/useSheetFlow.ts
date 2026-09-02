@@ -52,10 +52,10 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   const [drinksAtOpen, setDrinksAtOpen] = useState(hasDrinks);
   const withDrinks = drinksAtOpen && product !== null && offersGenericDrinks(product);
 
-  const steps = useMemo(
-    () => (isBundle ? buildBundleSteps(sections) : product ? buildProductSteps(product, withDrinks) : []),
-    [isBundle, sections, product, withDrinks],
-  );
+  const steps = useMemo(() => {
+    if (isBundle) return buildBundleSteps(sections);
+    return product ? buildProductSteps(product, withDrinks) : [];
+  }, [isBundle, sections, product, withDrinks]);
 
   // The sauce gate's two inputs. Read off the PRODUCT's own rule, which is the same carrier
   // `SauceGroupSection` prices from — a second reading here is how a step comes to gate on a

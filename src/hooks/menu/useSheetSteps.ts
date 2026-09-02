@@ -70,8 +70,10 @@ export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetK
     (next: number) => {
       cancelAutoAdvance();
       setDirection((current) => {
-        const forward = next > clampedIndex;
-        return forward ? 'forward' : next < clampedIndex ? 'back' : current;
+        if (next > clampedIndex) return 'forward';
+        // Unchanged on a no-op jump: the panel is not moving, so it must not replay an entry
+        // animation from a side it never left.
+        return next < clampedIndex ? 'back' : current;
       });
       setIndex(next);
       setFurthest((seen) => Math.max(seen, next));

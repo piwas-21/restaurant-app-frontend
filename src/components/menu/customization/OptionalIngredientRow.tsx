@@ -36,6 +36,7 @@ export default function OptionalIngredientRow({
 }: Readonly<OptionalIngredientRowProps>) {
   const maxQuantity = ingredient.maxQuantity || 1;
   const showQuantityControls = isSelected && maxQuantity > 1;
+  const priceMarker = priceMarkerFor(ingredient, isSelected);
 
   return (
     <div className={styles.ingredientItemWrapper}>
@@ -47,16 +48,7 @@ export default function OptionalIngredientRow({
             {name}
           </span>
           {isChoiceMember && <ChoiceGroupIndicator kind="badge" />}
-          {ingredient.price > 0 && (
-            <span className={styles.ingredientPrice}>
-              {ingredient.isIncludedInBasePrice
-                ? isSelected
-                  ? '' // Already in base price, no indicator needed
-                  : `-${formatPlainCurrency(ingredient.price)}` // Deducted when deselected
-                : `+${formatPlainCurrency(ingredient.price)}`}{' '}
-              {/* Added when selected */}
-            </span>
-          )}
+          {ingredient.price > 0 && <span className={styles.ingredientPrice}>{priceMarker} </span>}
         </div>
       </label>
 
@@ -82,4 +74,14 @@ export default function OptionalIngredientRow({
       )}
     </div>
   );
+}
+
+/**
+ * What the row says about money. Three cases, and the middle one is the surprising one: an
+ * ingredient already paid for in the base price shows nothing while it is ticked, and a REFUND when
+ * the guest removes it.
+ */
+function priceMarkerFor(ingredient: ProductIngredient, isSelected: boolean): string {
+  if (!ingredient.isIncludedInBasePrice) return `+${formatPlainCurrency(ingredient.price)}`;
+  return isSelected ? '' : `-${formatPlainCurrency(ingredient.price)}`;
 }

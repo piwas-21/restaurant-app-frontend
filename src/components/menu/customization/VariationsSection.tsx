@@ -35,6 +35,8 @@ interface VariationsSectionProps {
    * is the same degrade the server's guard applies.
    */
   hideBaseProduct?: boolean;
+  /** Drop the section's own `<h3>` — the guided flow's step panel already carries the heading. */
+  headless?: boolean;
 }
 
 export default function VariationsSection({
@@ -45,6 +47,7 @@ export default function VariationsSection({
   currentLanguage,
   productName,
   hideBaseProduct = false,
+  headless = false,
 }: VariationsSectionProps) {
   const { t } = useTranslation();
 
@@ -65,7 +68,7 @@ export default function VariationsSection({
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t('select_variation')}</h3>
+      {!headless && <h3 className={styles.sectionTitle}>{t('select_variation')}</h3>}
       <div className={styles.variationsList}>
         {/* Default/No variation option. Withheld when the product is a folder of variations rather
             than a dish of its own ("Günün tatlısı" offers Revani | Sütlaç, not itself). Hiding it

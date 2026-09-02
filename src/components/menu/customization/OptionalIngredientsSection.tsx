@@ -5,6 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import SauceGroupSection from './SauceGroupSection';
 import ChoiceGroupIndicator from './ChoiceGroupIndicator';
+import OptionalIngredientRow from './OptionalIngredientRow';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { exclusiveSiblingIds, siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupCarrier } from '@/types/menu';
@@ -23,6 +24,14 @@ interface OptionalIngredientsSectionProps {
    * minimum, no cap, nothing free", which is exactly how sauces priced before S6.
    */
   sauceGroup?: SauceGroupCarrier;
+  /** Drop the section's own `<h3>` — the guided flow's step panel already carries the heading. */
+  headless?: boolean;
+  /**
+   * Render the sauces group inline (default). The guided flow gives sauces their own step and
+   * mounts `SauceGroupSection` itself, so it switches this off; otherwise the group would appear in
+   * two steps at once, each able to undo the other.
+   */
+  includeSauces?: boolean;
 }
 
 export default function OptionalIngredientsSection({
@@ -33,6 +42,8 @@ export default function OptionalIngredientsSection({
   onQuantityChange,
   currentLanguage,
   sauceGroup,
+  headless = false,
+  includeSauces = true,
 }: OptionalIngredientsSectionProps) {
   const { t } = useTranslation();
 
@@ -52,7 +63,7 @@ export default function OptionalIngredientsSection({
       .map((ingredient) => ingredient.id),
   );
   const hasChoiceIngredients = choiceIngredientIds.size > 0;
-  const hasSauces = ingredients.some((ing) => ing.isActive && isSauce(ing));
+  const hasSauces = includeSauces && ingredients.some((ing) => ing.isActive && isSauce(ing));
 
   if (activeIngredients.length === 0 && !hasSauces) {
     return null;
@@ -128,7 +139,7 @@ export default function OptionalIngredientsSection({
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t('customize_ingredients')}</h3>
+      {!headless && <h3 className={styles.sectionTitle}>{t('customize_ingredients')}</h3>}
 
       {/* Default Ingredients (always included, can be excluded) */}
       {defaultIngredients.length > 0 && (
@@ -163,62 +174,18 @@ export default function OptionalIngredientsSection({
           <h4 className={styles.groupTitle}>{t('ingredient_optional')}</h4>
           {hasChoiceIngredients && <ChoiceGroupIndicator kind="note" />}
           <div className={styles.ingredientList}>
-            {optionalIngredients.map((ingredient) => {
-              const isSelected = selectedIngredients.includes(ingredient.id);
-              const maxQty = ingredient.maxQuantity || 1;
-              const showQuantityControls = isSelected && maxQty > 1;
-              const currentQty = ingredientQuantities[ingredient.id] || 1;
-
-              return (
-                <div key={ingredient.id} className={styles.ingredientItemWrapper}>
-                  <label className={styles.ingredientItem}>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleToggle(ingredient.id, ingredient.isOptional)}
-                      className={styles.checkbox}
-                    />
-                    <div className={styles.ingredientInfo}>
-                      <span dir="auto" className={styles.ingredientName}>
-                        {getIngredientName(ingredient)}
-                      </span>
-                      {choiceIngredientIds.has(ingredient.id) && <ChoiceGroupIndicator kind="badge" />}
-                      {ingredient.price > 0 && (
-                        <span className={styles.ingredientPrice}>
-                          {ingredient.isIncludedInBasePrice
-                            ? isSelected
-                              ? '' // Already in base price, no indicator needed
-                              : `-${formatPlainCurrency(ingredient.price)}` // Deducted when deselected
-                            : `+${formatPlainCurrency(ingredient.price)}`}{' '}
-                          {/* Added when selected */}
-                        </span>
-                      )}
-                    </div>
-                  </label>
-
-                  {showQuantityControls && (
-                    <div className={styles.quantityControls}>
-                      <button
-                        type="button"
-                        className={styles.quantityBtn}
-                        onClick={(e) => handleQuantityChange(e, ingredient.id, -1, maxQty)}
-                      >
-                        -
-                      </button>
-                      <span className={styles.quantityValue}>{currentQty}</span>
-                      <button
-                        type="button"
-                        className={styles.quantityBtn}
-                        onClick={(e) => handleQuantityChange(e, ingredient.id, 1, maxQty)}
-                        disabled={currentQty >= maxQty}
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {optionalIngredients.map((ingredient) => (
+              <OptionalIngredientRow
+                key={ingredient.id}
+                ingredient={ingredient}
+                name={getIngredientName(ingredient)}
+                isSelected={selectedIngredients.includes(ingredient.id)}
+                isChoiceMember={choiceIngredientIds.has(ingredient.id)}
+                quantity={ingredientQuantities[ingredient.id] || 1}
+                onToggle={() => handleToggle(ingredient.id, ingredient.isOptional)}
+                onQuantityChange={(event, change, max) => handleQuantityChange(event, ingredient.id, change, max)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -226,15 +193,17 @@ export default function OptionalIngredientsSection({
       {/* Inside this section, deliberately, and not beside it in `ProductSheetBody`: a bundle option
           mounts THIS component directly (`BundleOptionRow`), so a sauces group placed here reaches
           the bundle body for free and can never drift from the product one. */}
-      <SauceGroupSection
-        ingredients={ingredients}
-        rule={toSauceGroupRule(sauceGroup)}
-        selectedIngredients={selectedIngredients}
-        ingredientQuantities={ingredientQuantities}
-        onSelectionChange={onSelectionChange}
-        onQuantityChange={onQuantityChange}
-        currentLanguage={currentLanguage}
-      />
+      {includeSauces && (
+        <SauceGroupSection
+          ingredients={ingredients}
+          rule={toSauceGroupRule(sauceGroup)}
+          selectedIngredients={selectedIngredients}
+          ingredientQuantities={ingredientQuantities}
+          onSelectionChange={onSelectionChange}
+          onQuantityChange={onQuantityChange}
+          currentLanguage={currentLanguage}
+        />
+      )}
     </div>
   );
 }

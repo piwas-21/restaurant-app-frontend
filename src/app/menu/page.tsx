@@ -162,8 +162,16 @@ export default function MenuPage() {
 
       {/* Same switch handler as the cards: the sheet refuses an add the card refused (§9.10), and
           the way out has to reach the page's follow-up instance to open its modal. */}
-      <ItemCustomizationSheet controller={sheet.product} onSwitchOrderType={switchOrderTypeFromCard} />
-      <ItemCustomizationSheet controller={sheet.bundle} onSwitchOrderType={switchOrderTypeFromCard} />
+      <ItemCustomizationSheet
+        controller={sheet.product}
+        onSwitchOrderType={switchOrderTypeFromCard}
+        drinks={sheet.drinks}
+      />
+      <ItemCustomizationSheet
+        controller={sheet.bundle}
+        onSwitchOrderType={switchOrderTypeFromCard}
+        drinks={sheet.drinks}
+      />
 
       <FloatingCartButton
         itemCount={cart.itemCount}

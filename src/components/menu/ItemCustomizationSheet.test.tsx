@@ -47,6 +47,15 @@ function controller(availability?: unknown): SheetController & { close: jest.Moc
     description: '',
     quantity: 1,
     setQuantity: jest.fn(),
+    // The flow reads these off whichever controller is open; a product with nothing to choose
+    // derives ZERO steps, which is the shape this suite's guard cases run against.
+    selectedVariationId: null,
+    selectedIngredients: [],
+    ingredientQuantities: {},
+    selectedSideItems: [],
+    specialInstructions: '',
+    setSpecialInstructions: jest.fn(),
+    currentLanguage: 'en',
     linePrice: { total: 12, base: 12, extras: 0 },
     addToCart,
     close: jest.fn(),
@@ -60,6 +69,9 @@ function bundleController(availability?: unknown): SheetController {
     product: undefined,
     bundle: { id: 'b1', name: 'Lunch Combo', availability },
     sections: [],
+    selectedOptions: [],
+    visibleErrors: [],
+    expandedOptionKey: null,
   } as unknown as SheetController;
 }
 

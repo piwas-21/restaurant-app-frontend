@@ -11,7 +11,7 @@ import {
   type SelectedBundleOption,
 } from '@/utils/linePrice';
 
-interface ProductLineArgs {
+export interface ProductLineInput {
   kind: 'product';
   basePrice: number;
   quantity: number;
@@ -34,7 +34,7 @@ interface BundleLineArgs {
   selectedOptions: readonly SelectedBundleOption[];
 }
 
-export type UseLinePriceArgs = ProductLineArgs | BundleLineArgs;
+export type UseLinePriceArgs = ProductLineInput | BundleLineArgs;
 
 export interface LinePrice {
   /** Price of a single line unit (before the quantity multiplier). */

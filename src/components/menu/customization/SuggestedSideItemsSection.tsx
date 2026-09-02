@@ -9,6 +9,8 @@ interface SuggestedSideItemsSectionProps {
   selectedSideItems: Array<{ id: string; quantity: number }>;
   onSelectionChange: (selected: Array<{ id: string; quantity: number }>) => void;
   currentLanguage: string;
+  /** Passed straight through — see `SuggestedSideItemGroup`. */
+  variant?: 'disclosure' | 'plain';
 }
 
 /** Optional drinks, desserts and accompaniments, partitioned without changing their basket payload. */
@@ -16,6 +18,7 @@ export default function SuggestedSideItemsSection({
   sideItems,
   selectedSideItems,
   onSelectionChange,
+  variant,
 }: Readonly<SuggestedSideItemsSectionProps>) {
   if (!sideItems.length) return null;
 
@@ -44,6 +47,7 @@ export default function SuggestedSideItemsSection({
       selectedSideItems={selectedSideItems}
       onAdd={handleAdd}
       onRemove={handleRemove}
+      variant={variant}
     />
   ));
 }

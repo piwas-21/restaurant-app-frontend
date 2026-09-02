@@ -374,8 +374,6 @@ Key rules:
 
 ## Testing
 
-See `docs/TEST-COVERAGE-PLAN.md` for full strategy.
-
 - **Jest** for unit/integration tests, **Playwright** for E2E
 - Coverage target: 80%+ overall
 - Enable `collectCoverage: true` in `jest.config.js`

@@ -4,8 +4,9 @@
 > are **one renderer**. This is the map of that code: what lives where, the rules
 > that are load-bearing, and the traps that have already cost time.
 >
-> The *why* — evidence, owner decisions, the design in full — is the workspace plan:
-> [`docs/plans/FLOOR-PLAN-REVAMP-PLAN.md`](../../docs/plans/FLOOR-PLAN-REVAMP-PLAN.md).
+> The *why* — evidence, owner decisions, the design in full — was the workspace
+> FLOOR-PLAN-REVAMP plan, complete and deleted; it lives in git history, and the
+> `FLOOR-PLAN-REVAMP §x` tags throughout the code point into it.
 > This file is for someone about to change the code.
 
 ---

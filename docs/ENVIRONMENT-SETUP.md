@@ -41,34 +41,33 @@ The base URL for serving images and assets.
    npm run dev
    ```
 
-### For Production Deployment
+### For Production
 
-The production environment variables are already configured in `.env.production` and the Kubernetes ConfigMap.
+**There is nothing to run.** `NEXT_PUBLIC_*` values are baked into the JavaScript bundle at
+**image build time**, and the only thing that builds a production image is
+`.github/workflows/build-image.yml`, which passes them as Docker build args:
 
-1. **Build Docker Image with Production Environment**:
-   ```bash
-   ./build-production.sh
-   ```
+```yaml
+NEXT_PUBLIC_API_URL=https://www.rumirestaurant.ch
+NEXT_PUBLIC_IMAGE_BASE_URL=https://www.rumirestaurant.ch
+```
 
-   This script will:
-   - Load variables from `.env.production`
-   - Build the Docker image with the correct environment variables
-   - Push to Docker Hub
+A merge to `main` publishes `:latest` and `deploy.yml` rolls the prod box. Staging bakes
+`STAGING_PUBLIC_URL` the same way; a **per-tenant** image bakes that tenant's own domain from the
+registry (`build-tenant-image.yml`), which is why a tenant frontend is *rebuilt* rather than pulled
+when its domain changes.
 
-2. **Deploy to Kubernetes**:
-   ```bash
-   kubectl apply -f k8s/eks-deployment.yaml
-   ```
-
-   The ConfigMap in `k8s/eks-deployment.yaml` contains the production environment variables.
+`.env.production` is still live — Next reads it automatically for a production build, and CI's
+bundle-size job keys its cache on it — but nothing deploys *from* it.
 
 ## How It Works
 
-### During Development (`npm run dev`)
-Next.js automatically loads environment variables from `.env.local`.
+### During development (`npm run dev`)
+Next.js loads `.env.local`, falling back to `.env`.
 
-### During Docker Build
-The Dockerfile accepts build arguments:
+### During the Docker build
+The Dockerfile takes the values as build arguments and freezes them into the bundle:
+
 ```dockerfile
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_IMAGE_BASE_URL
@@ -76,43 +75,37 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_IMAGE_BASE_URL=${NEXT_PUBLIC_IMAGE_BASE_URL}
 ```
 
-### In Kubernetes
-The ConfigMap injects environment variables into the container:
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: rumi-app-config
-data:
-  NEXT_PUBLIC_API_URL: "https://rumirestaurant.ch/api"
-  NEXT_PUBLIC_IMAGE_BASE_URL: "https://www.rumirestaurant.ch"
-```
+### At runtime
+Nothing reads them. Caddy on the box routes `/api/*` and `/uploads/*` to the backend and everything
+else to the frontend container — see `deploy/Caddyfile`, which is the only description of that
+routing that is kept in step with the machine it runs on.
 
-## Important Notes
+## Important notes
 
-⚠️ **Environment variables with `NEXT_PUBLIC_` prefix are embedded into the JavaScript bundle at build time**, not runtime. This means:
+⚠️ **`NEXT_PUBLIC_*` is embedded at BUILD time, not runtime.** So:
 
-1. You must rebuild the Docker image when changing production environment variables
-2. The Kubernetes ConfigMap values are used during the Docker build process
-3. For runtime configuration, consider using a different approach (API endpoints, server-side env vars)
+1. Changing a production value means **rebuilding the image**, not restarting a container.
+2. A tenant's frontend image must be rebuilt when its domain changes — a restart does nothing.
+3. Anything that must vary at runtime cannot be a `NEXT_PUBLIC_*` variable; it has to come from an
+   API response or a server component.
 
 ## Troubleshooting
 
-### Backend API not accessible in production
+### The API is not reachable in production
 
-Check:
-1. Ingress is routing `/api` to the backend service
-2. Backend pods are running: `kubectl get pods -n rumi-test`
-3. Test the API: `curl https://rumirestaurant.ch/api/[endpoint]`
+1. Check what the bundle was actually built with: `GET /api/frontend/version` reports the commit and
+   build time of both services — the fastest way to tell a stale image from a wrong URL.
+2. Check Caddy is routing `/api/*` to the backend: `deploy/Caddyfile`, and `docker logs deploy-caddy-1`
+   on the box.
+3. `curl https://www.rumirestaurant.ch/api/version`.
 
-### Environment variables not updating
+### A changed environment variable has not taken effect
 
-Remember to:
-1. Rebuild the Docker image: `./build-production.sh`
-2. Update Kubernetes deployment: `kubectl rollout restart deployment/rumi-restaurant-web -n rumi-test`
+It never will without a rebuild — see the note above. Merge to `main` (or dispatch
+`build-image.yml`), then confirm on `/api/frontend/version` rather than on a workflow's exit code.
 
-## Additional Resources
+## Additional resources
 
-- [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)
-- [Docker Build Arguments](https://docs.docker.com/engine/reference/builder/#arg)
-- [Kubernetes ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
+- [Next.js environment variables](https://nextjs.org/docs/app/guides/environment-variables)
+- [Docker build arguments](https://docs.docker.com/engine/reference/builder/#arg)
+- `deploy/DEPLOYMENT.md` — the canonical deploy + rollback runbook

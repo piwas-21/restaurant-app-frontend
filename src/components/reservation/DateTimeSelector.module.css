@@ -16,29 +16,13 @@
   gap: 0.5rem;
   overflow-x: auto;
   padding-bottom: 0.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-gold-500) rgba(244, 196, 48, 0.1);
 }
 
-/* Webkit browsers (Chrome, Safari, Edge) */
-.dateSelector::-webkit-scrollbar {
-  height: 8px;
-}
-
-.dateSelector::-webkit-scrollbar-track {
-  background: rgba(244, 196, 48, 0.1);
-  border-radius: 4px;
-}
-
-.dateSelector::-webkit-scrollbar-thumb {
-  background: var(--color-gold-500);
-  border-radius: 4px;
-  transition: background 0.2s ease;
-}
-
-.dateSelector::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gold-600);
-}
+/* The date rail's horizontal scrollbar is the app's own now (globals.css), not a gold one written
+   here. The reservation pages ARE gold-accented, but a scrollbar is chrome — it says where you are
+   — and this was the only bar in the app painted in an accent colour, so the same control looked
+   like a different control depending on which screen you were on. Dropping it also takes two raw
+   `rgba(244, 196, 48, …)` literals out of a module (§5). */
 
 .dateButton {
   min-width: 60px;

@@ -998,3 +998,60 @@ img {
     box-sizing: border-box;
   }
 }
+
+/* ─── Scrollbars ────────────────────────────────────────────────────────────────────────────────
+   The app's own scrollbar, applied ONCE and inherited by everything.
+
+   `scrollbar-color` is an INHERITED property, and that is why the colour needs no shared component
+   and no per-module import: declaring it on `:root` hands the same thumb to every scroll container
+   in the tree, present and future, including ones inside CSS Modules that know nothing about this
+   file. That is the "automatically global" the design asked for, and it is a property of the CSS
+   spec rather than a convention anyone has to remember.
+
+   `scrollbar-width` is NOT inherited, which is measured rather than assumed: with it declared only
+   on `:root`, `getComputedStyle` on the customization sheet's own scroll container read
+   `scrollbar-color: rgb(196,196,196)` — correct — and `scrollbar-width: auto`. So on Windows and
+   Linux the sheet would have kept the OS's full ~17px trough in our colour, i.e. half a fix. It is
+   therefore declared on `*` too. `thin`, not `auto`: `auto` IS that OS default.
+
+   The `::-webkit-` block underneath is NOT a duplicate. It is for Safari, which has never
+   implemented the standard properties. Chromium ≥121 supports both and prefers the standard ones,
+   so the two do not fight. It is scoped to `*` because the pseudo-element does not inherit — the
+   one place where "declare once" is not available and every element has to be named.
+
+   Anything that wants NO scrollbar keeps opting out locally with `scrollbar-width: none` plus
+   `::-webkit-scrollbar { display: none }`, which is what CategoryNav, MenuFilterRail and the craft
+   category nav already do; a more specific rule wins over these regardless of order. */
+:root {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* `*` carries zero specificity, so a module that sets `scrollbar-width: none` to HIDE its bar
+   (CategoryNav, MenuFilterRail, CraftCategoryNav, RestaurantSettingsPage) still wins. */
+* {
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: var(--scrollbar-thumb);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* The corner where a vertical and a horizontal bar meet. Left unpainted it draws the OS default
+   square, which is the one piece of native chrome that survives everything above. */
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}

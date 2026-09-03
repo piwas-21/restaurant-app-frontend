@@ -114,24 +114,9 @@ html[data-theme='dark'] .dropdownContainer {
 
 /* Dark mode considerations */
 
-/* Scrollbar styling */
-.dropdownMenu::-webkit-scrollbar {
-  width: 4px;
-}
-
-.dropdownMenu::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dropdownMenu::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 4px;
-}
-
-.dropdownMenu::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-color);
-}
-
+/* Scrollbar: the app's own, from globals.css. This file used to hand-pick its own widths and
+   colours; four components did, and ~290 stylesheets did not, so the same panel looked native on
+   one screen and designed on another. */
 /* Scroll Indicator */
 .scrollIndicator {
   position: absolute;

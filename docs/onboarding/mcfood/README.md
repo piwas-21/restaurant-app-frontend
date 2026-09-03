@@ -149,13 +149,25 @@ could order.
 it** (write-then-rename, so a crash cannot leave half a file), and a record and its **image**
 resume independently — keyed together, a crash during an upload left that record permanently
 image-less. **A dry run writes no state at all**, which is what makes the two-command recipe
-above safe: it used to poison the default state file, so the real run skipped all 168 requests
+above safe: it used to poison the default state file, so the real run skipped every request
 and reported success against an empty tenant.
 
-Verified against a stub API, not by inspection: a full run makes 168 requests (16 category
-creates + 16 `PUT` image + 68 product creates + 68 `POST` image); a complete re-run makes **0**;
-and a run killed at product 20 left state at 16/19/35 and resumed with exactly 49 creates —
-19 + 49 = 68, no duplicates.
+Verified against a stub API, not by inspection:
+
+|                       |                                                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| full run              | **303** requests — 16 categories + 16 `PUT` category image + 124 product creates (57 mainItem, 11 beverage, 22 component, 34 menu) + 102 images + 45 `PUT` menuDefinition |
+| complete re-run       | **0** requests                                                                                                                                                            |
+| killed at request 150 | state `16/22/44/0/8/59`; resumed with **154**, and 149 + 154 = 303 — the clean run's exact total, **no duplicates**                                                       |
+| dry run               | writes **no** state file                                                                                                                                                  |
+
+The 45 `menuDefinition` updates are **34** bundles carrying `Plat` + a drink or meat choice,
+and **11** existing dishes that needed a choice step of their own (Tacos and LIBANAISE
+1/2/3 Viande, Assiette Mixte, Galette, the three Menu Enfant).
+
+Order is the contract, and each step needs the one before it: categories → components (a
+section cannot point at a product that does not exist) → products → menus (a `Plat` section
+wraps a dish that must already exist).
 
 **What none of that checks is the server's own validation.** `map.mjs --verify`'s price check is
 a real oracle — their absolute price is a number it did not compute — but the content, string and

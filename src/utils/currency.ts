@@ -122,9 +122,10 @@ export function formatPlainCurrency(amount: number | null | undefined, decimals:
   // code/amount separator in code-prefix locales — de-CH yields "CHF-3.50" where every call site
   // this replaced rendered "CHF -3.50" — while suffix locales are unaffected ("-3,50 €").
   const parts = formatter.formatToParts(Math.abs(amount));
-  // `NaN` takes the unsigned path deliberately: it is neither >= 0 nor < 0, and the legacy
-  // `CHF ${NaN.toFixed(2)}` rendered "CHF NaN" — not "CHF -NaN". `-0` lands here too, as it did.
-  if (!(amount < 0)) return render(parts);
+  // `NaN` is named explicitly rather than left to fall out of a negated comparison: it is neither
+  // >= 0 nor < 0, and the legacy `CHF ${NaN.toFixed(2)}` rendered "CHF NaN" — not "CHF -NaN".
+  // `-0` needs no such help; it satisfies `>= 0`, exactly as it did before.
+  if (amount >= 0 || Number.isNaN(amount)) return render(parts);
 
   const signed: Intl.NumberFormatPart[] = [];
   let signPlaced = false;

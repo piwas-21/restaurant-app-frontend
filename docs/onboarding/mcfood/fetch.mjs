@@ -198,5 +198,14 @@ await writeFile(
   ),
 );
 
-console.log(`${raw.products.length} products, ${raw.categories.length} categories, ${assets.length} assets written`);
+/**
+ * Counts reach the log as digits and nothing else. They are derived from THEIR API response, so
+ * to a taint analyser they are user-controlled (S5145, log injection); coercing through
+ * Number/trunc means a log line cannot carry anything a response body chose.
+ */
+const count = (value) => Math.max(0, Math.trunc(Number(value) || 0));
+
+console.log(
+  `${count(raw.products.length)} products, ${count(raw.categories.length)} categories, ${count(assets.length)} assets written`,
+);
 await reportDrift(assets);

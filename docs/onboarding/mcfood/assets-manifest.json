@@ -1,0 +1,761 @@
+{
+  "source": "https://mcdoner-orchamps.fr",
+  "fetchedAt": "2026-09-03",
+  "count": 94,
+  "totalBytes": 31283511,
+  "distinctContent": 73,
+  "assets": [
+    {
+      "objectPath": "/api/storage/objects/uploads/da901117-3689-4955-a6f6-74e5d7d949e0",
+      "file": "categories/81-sandwiches.jpg",
+      "format": "jpg",
+      "bytes": 147055,
+      "sha256": "fa8b78286b1f9e535d0765360e3a001c0f9e0643b7ce912de58a6563d8360768",
+      "roles": ["category:81:SANDWICHES"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/cc9e8e87-ff62-4051-8dc6-28ce19a5a42e",
+      "file": "categories/82-tacos.png",
+      "format": "png",
+      "bytes": 1989502,
+      "sha256": "26aa03b8891c278a84fa0c9dcd75d23ea07581bcf2b1b13d01780da549bc48b4",
+      "roles": ["category:82:TACOS"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/0ca46a36-d7c3-4640-9133-3b4204c10e9d",
+      "file": "categories/83-nos-galettes.jpg",
+      "format": "jpg",
+      "bytes": 104464,
+      "sha256": "5cac234a27a3d7037201cde7a973c2af2b0a1b21eed9ab0ffed3b7334eef596a",
+      "roles": ["category:83:NOS GALETTES"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/479b0193-e152-45a9-b9e5-6ccf30d9aef2",
+      "file": "categories/84-hamburger.jpg",
+      "format": "jpg",
+      "bytes": 163588,
+      "sha256": "7b5cc962d9add2d8c5471252ae2e2ca8abc9da3cfa2c051627b273bee8f56543",
+      "roles": ["category:84:HAMBURGER"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/20767bf9-a898-43bf-b692-1cc92995951e",
+      "file": "categories/85-assiettes.jpg",
+      "format": "jpg",
+      "bytes": 140395,
+      "sha256": "39f2047f465c441f7d2cfc43752b893418dd3afdde39c5b591faffd3fb8e85c4",
+      "roles": ["category:85:ASSIETTES"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/c3de1e41-5d4a-4ef7-a9a2-a4c5f304f73c",
+      "file": "categories/86-menu-enfant.jpg",
+      "format": "jpg",
+      "bytes": 101337,
+      "sha256": "2d1eb410c3d64a867c80378970799e3bdf007add5533708eb90f827b63cdb98f",
+      "roles": ["category:86:Menu Enfant"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/87d6132b-6ec2-44fc-be06-f4ed140a1c67",
+      "file": "categories/87-texmex.png",
+      "format": "png",
+      "bytes": 726617,
+      "sha256": "10b1752e398e6234eafa43232b0d04d54ab8e345d2273cf567bcd7f5c5ee996a",
+      "roles": ["category:87:TEXMEX"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/25fe42ec-0be0-4ba6-b7b4-5092a0d814c2",
+      "file": "categories/88-doner-box.webp",
+      "format": "webp",
+      "bytes": 77696,
+      "sha256": "84b652e3144bcc7cdf45fbd87dad94e5efb9fa2ed94f6cd3da8a8b4430170a49",
+      "roles": ["category:88:DONER BOX"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/df5f7452-24f4-4532-93a1-e78fab7d2c14",
+      "file": "categories/89-panini.jpg",
+      "format": "jpg",
+      "bytes": 78562,
+      "sha256": "c0f772b001f26ef7cd1899e6b4ed3383c3910f1ef0b040109c8e0ae4800f9cf4",
+      "roles": ["category:89:PANINI"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/b12bfad6-889b-45a0-b98a-78a1fcd4eb9a",
+      "file": "categories/90-frites.jpg",
+      "format": "jpg",
+      "bytes": 53953,
+      "sha256": "9bc30f4d16c9a8268dc2b73f478389715f56ca356fa6a0962635f199119114c4",
+      "roles": ["category:90:FRITES"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/ce35dc25-079b-4c96-8986-42ce61ed91c2",
+      "file": "categories/91-viande.jpg",
+      "format": "jpg",
+      "bytes": 73637,
+      "sha256": "38dfbc013cc85057025aa968a86fc37d4e50c9501e8f1c45db6e1fd81bc80275",
+      "roles": ["category:91:VIANDE"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/410881cb-17fd-47e0-be8a-2f35d9efb31b",
+      "file": "categories/92-boulgour.jpg",
+      "format": "jpg",
+      "bytes": 74245,
+      "sha256": "0e6bff4d218d67f501b6fad6d252b7d682fc11cf9ec8a0d4faff6878d1137e10",
+      "roles": ["category:92:BOULGOUR"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/53a073d2-e817-41d0-a5e9-3812cad96d19",
+      "file": "categories/93-desserts.jpg",
+      "format": "jpg",
+      "bytes": 97187,
+      "sha256": "f209bee820c112d354433f266c698ac76fe37d1a6a1b34b652ad7807bdc0c95d",
+      "roles": ["category:93:DESSERTS"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/2cc8175c-3413-4bc3-9886-46b1d82e6d58",
+      "file": "categories/94-boissons.jpg",
+      "format": "jpg",
+      "bytes": 3698,
+      "sha256": "bc059f4e74ed1b924dba6ab08f6fbd4ed5a6e39d1d5495b11a20b63b5a933ea3",
+      "roles": ["category:94:BOISSONS"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/8ad5298f-643f-42d5-8227-a5ab2f37e4f5",
+      "file": "categories/95-nos-salades.jpg",
+      "format": "jpg",
+      "bytes": 151435,
+      "sha256": "76546f7506765c9871faa301a4365053241deaa7c75036c9f3f5dac44de6fe1e",
+      "roles": ["category:95:NOS SALADES"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/e813558d-f2e0-4735-834f-af117ae990b8",
+      "file": "categories/96-libanaise-nouveaute.jpg",
+      "format": "jpg",
+      "bytes": 137756,
+      "sha256": "86043844e7660b2e5d7ff4ac778c401d774a2985a2ee48a1f2723a15f2f2eb60",
+      "roles": ["category:96:LIBANAISE NOUVEAUTE"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6294e9df-533c-4253-b57f-eeaf2cc01bf9",
+      "file": "hero/hero-desktop-6294e9df.jpg",
+      "format": "jpg",
+      "bytes": 117307,
+      "sha256": "aa495427c29c36080b19d37d86875cd17cd0205f26d7e338e9782aaed59c3524",
+      "roles": ["hero-desktop"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/19185731-bf48-4ead-aeea-22972c5e1f55",
+      "file": "hero/hero-mobile-19185731.png",
+      "format": "png",
+      "bytes": 2742968,
+      "sha256": "ba6c0f68514c0fe6fac5f6a58ccaa3fa181bbbf461556dfbc69629108f45e75d",
+      "roles": ["hero-mobile"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6452dc2b-f2a8-437b-937d-9dcc195a79ac",
+      "file": "hero/hero-mobile-6452dc2b.png",
+      "format": "png",
+      "bytes": 2419041,
+      "sha256": "bb5c8d92ec1ebe871e24e9f21d771ed4486dc3f49ff2e740fb60b97a9e0cb269",
+      "roles": ["hero-mobile"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/7910f271-8af5-4c78-ba8d-95cd8fd6d00e",
+      "file": "hero/hero-mobile-7910f271.png",
+      "format": "png",
+      "bytes": 2790653,
+      "sha256": "a922842df1ccc3c3240796ab137b81958400e8b0b1749363efa8ee5c804797d7",
+      "roles": ["hero-mobile"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/bf86b9c3-4f4c-4204-ad1d-550ca7bb8dc2",
+      "file": "hero/hero-mobile-bf86b9c3.png",
+      "format": "png",
+      "bytes": 2405207,
+      "sha256": "5fd9abb6b1d4415424d4ce9aa6042104d7f310bb13ca0af3006dd134c513a8d9",
+      "roles": ["hero-mobile"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/f5377227-f65b-4577-8a02-8361063ae142",
+      "file": "logo/logo.png",
+      "format": "png",
+      "bytes": 2077580,
+      "sha256": "e588eb0256471d643548e487ccf5168e50390da6c09d4dec44f934e42b8b0352",
+      "roles": ["logo"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/a59df3de-4391-4f32-ad0b-ad0edd3ace0f",
+      "file": "products/394-cordon-bleu.jpg",
+      "format": "jpg",
+      "bytes": 165126,
+      "sha256": "635ad4bdff4af372a75299cb916abd65329bc9169c6d9ab72677cf6ca17d471a",
+      "roles": ["product:394:Cordon Bleu"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/d56ac780-6be5-4ccc-8e21-691422383117",
+      "file": "products/395-kebab.jpg",
+      "format": "jpg",
+      "bytes": 147055,
+      "sha256": "fa8b78286b1f9e535d0765360e3a001c0f9e0643b7ce912de58a6563d8360768",
+      "roles": ["product:395:Kebab"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/7143d847-9943-44c5-9037-101a036b6fbb",
+      "file": "products/396-kofte.jpg",
+      "format": "jpg",
+      "bytes": 162982,
+      "sha256": "0933fd549dfad88c58a83b47c10298506190e2258c3a3188a3b1e42a439b5700",
+      "roles": ["product:396:Kofte"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/0f8ed590-00da-48b7-b8e2-83768e361c76",
+      "file": "products/397-durum.jpg",
+      "format": "jpg",
+      "bytes": 104464,
+      "sha256": "5cac234a27a3d7037201cde7a973c2af2b0a1b21eed9ab0ffed3b7334eef596a",
+      "roles": ["product:397:Durum"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/95aa26aa-c8ee-4fbf-a658-1c4a0f82c849",
+      "file": "products/398-poulet.jpg",
+      "format": "jpg",
+      "bytes": 162789,
+      "sha256": "2da5ff9c19c38b88e210f7611474cf8516959976a7fe372161b4def538b6f731",
+      "roles": ["product:398:Poulet"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/79355478-0661-45d3-8323-8db61c918745",
+      "file": "products/399-americain.jpg",
+      "format": "jpg",
+      "bytes": 117307,
+      "sha256": "aa495427c29c36080b19d37d86875cd17cd0205f26d7e338e9782aaed59c3524",
+      "roles": ["product:399:Americain"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/a4f381e4-6cdb-4313-99bf-a51e2729a701",
+      "file": "products/400-falafel.jpg",
+      "format": "jpg",
+      "bytes": 163397,
+      "sha256": "6f0ce2fd5cdf66d742697189d6723931673718c886ef58b234e8405361abecd5",
+      "roles": ["product:400:Falafel"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/c3e9a202-f5ca-415b-8e85-cda1d114af72",
+      "file": "products/401-tacos-1-viande.png",
+      "format": "png",
+      "bytes": 567872,
+      "sha256": "2b690b2939a2cddabfc746cfc1f6984e7f75d9badbd69881335ab9af3ad896c4",
+      "roles": ["product:401:Tacos 1 Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/43afea1f-8e63-49fe-923d-9ec01920f362",
+      "file": "products/402-tacos-2-viande.jpg",
+      "format": "jpg",
+      "bytes": 161906,
+      "sha256": "251811a782f8da744090b7652366507a6ec536714fd0d3e6076d0520d38c14c4",
+      "roles": ["product:402:Tacos 2 Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/e68e2278-9b8c-41f2-823c-5402d157f661",
+      "file": "products/403-tacos-3-viande.jpg",
+      "format": "jpg",
+      "bytes": 166144,
+      "sha256": "c0e19f77d25a8222be7c587ae6f8722a5407b15854484dfc097946124ab610b8",
+      "roles": ["product:403:Tacos 3 Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/20797ff9-64ed-4d8c-9b10-b9eee4192566",
+      "file": "products/404-galette.jpg",
+      "format": "jpg",
+      "bytes": 104464,
+      "sha256": "5cac234a27a3d7037201cde7a973c2af2b0a1b21eed9ab0ffed3b7334eef596a",
+      "roles": ["product:404:Galette"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/87fe4b0e-4016-4bda-8342-33b331ea026d",
+      "file": "products/405-menu-galette.jpg",
+      "format": "jpg",
+      "bytes": 104464,
+      "sha256": "5cac234a27a3d7037201cde7a973c2af2b0a1b21eed9ab0ffed3b7334eef596a",
+      "roles": ["product:405:Menu Galette"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/3a062c8f-8ce0-4f7b-8c5b-a6b58f32ffcc",
+      "file": "products/406-maxi-cheese.jpg",
+      "format": "jpg",
+      "bytes": 163588,
+      "sha256": "7b5cc962d9add2d8c5471252ae2e2ca8abc9da3cfa2c051627b273bee8f56543",
+      "roles": ["product:406:Maxi Cheese"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/0a1078f0-199e-4fe7-9ddf-f5a15b66dc2e",
+      "file": "products/407-mega-cheese.jpg",
+      "format": "jpg",
+      "bytes": 163588,
+      "sha256": "7b5cc962d9add2d8c5471252ae2e2ca8abc9da3cfa2c051627b273bee8f56543",
+      "roles": ["product:407:Mega Cheese"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/df21b981-a12a-426c-aadc-abbb3c4bcfab",
+      "file": "products/408-chicken-burger.jpg",
+      "format": "jpg",
+      "bytes": 157689,
+      "sha256": "5cd3f7954dc8da426a0120f0e8ad9c706c09a48e4838f5b9d344710b97972cb2",
+      "roles": ["product:408:Chicken Burger"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/8b24e9f4-53b1-4d58-84ca-ccb9db9fbfbb",
+      "file": "products/409-tower-burger.jpg",
+      "format": "jpg",
+      "bytes": 200357,
+      "sha256": "e4703875158ecfee068905ffdb2755a29a8043ef9879f7c93236eeb067db885e",
+      "roles": ["product:409:Tower Burger"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/c972f7a5-1520-4824-9fc4-6db1d664ecd9",
+      "file": "products/410-bap-s-burger.jpg",
+      "format": "jpg",
+      "bytes": 190802,
+      "sha256": "29ad6b493064a492e585772dff4b470e9bcfb87d796c43bcbc841ed408e87d1d",
+      "roles": ["product:410:Bap's Burger"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/c57e93ec-5a02-4af5-9653-2d02e7ae3b39",
+      "file": "products/411-assiette-kebab.jpg",
+      "format": "jpg",
+      "bytes": 144332,
+      "sha256": "9ce45f06504b144d92264fffc55a0461ce3b1d48002d55cd3ade17131662ca29",
+      "roles": ["product:411:Assiette Kebab"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/d74d51d5-021f-4a06-a993-558630176884",
+      "file": "products/412-assiette-steak.jpg",
+      "format": "jpg",
+      "bytes": 152681,
+      "sha256": "7b3866ee0ded307cf03e626c3db039fc8945b120063fe6f9e58a085bd70af2ff",
+      "roles": ["product:412:Assiette Steak"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/fb641249-0235-480c-a407-00e54a32df1e",
+      "file": "products/413-assiette-mixte.jpg",
+      "format": "jpg",
+      "bytes": 176207,
+      "sha256": "5b3bb615293c01a1be4777d3f9bd15bd379326775232868b2fd6bac05ef92472",
+      "roles": ["product:413:Assiette Mixte"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/dbee15c4-9572-4391-b545-cac6702a1c0b",
+      "file": "products/414-assiette-merguez.jpg",
+      "format": "jpg",
+      "bytes": 165770,
+      "sha256": "f7859e2a6037a3457121cb0cd7321a46a791d9aeb1cfe983257f6d76ec13f862",
+      "roles": ["product:414:Assiette Merguez"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6f1c305f-53b5-4815-9381-8ad8b2b43b4f",
+      "file": "products/415-assiette-kofte.jpg",
+      "format": "jpg",
+      "bytes": 152681,
+      "sha256": "7b3866ee0ded307cf03e626c3db039fc8945b120063fe6f9e58a085bd70af2ff",
+      "roles": ["product:415:Assiette Kofte"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/56373f75-5f5f-4d0f-a2c7-1339236351a0",
+      "file": "products/416-assiette-cordon-bleu.jpg",
+      "format": "jpg",
+      "bytes": 142919,
+      "sha256": "e95c8b276243dca0922580bc9fda9aadec10386becae0b9ab1320cd3ff90bed6",
+      "roles": ["product:416:Assiette Cordon Bleu"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/045bf141-fd99-4a19-af1f-62b9dcc1c1a1",
+      "file": "products/417-assiette-brochette-poulet.jpg",
+      "format": "jpg",
+      "bytes": 175361,
+      "sha256": "d9d061144fc35cac21d0f1605a60d1be7f733d862f023d2c1e9f694aa39a4fa9",
+      "roles": ["product:417:Assiette Brochette Poulet"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/d584ee9d-3195-4e8e-9655-175062309dc7",
+      "file": "products/418-assiette-falafel.jpg",
+      "format": "jpg",
+      "bytes": 179112,
+      "sha256": "1ae017b75b61d63648bd9bca3fc175599c94dfa5b6e1da2a38f623382f2e9725",
+      "roles": ["product:418:Assiette Falafel"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/230edcb0-6956-46e2-aa81-2a6411e6cd93",
+      "file": "products/419-menu-enfant-kebab.png",
+      "format": "png",
+      "bytes": 863500,
+      "sha256": "7f1d4598017d3ed5ded406bb615b35c5dd47770eea88122fecca9c8675b7b496",
+      "roles": ["product:419:Menu Enfant Kebab"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/f8c4256d-4f91-42a9-8986-9fa1315e1456",
+      "file": "products/420-menu-enfant-hamburger.jpg",
+      "format": "jpg",
+      "bytes": 101337,
+      "sha256": "2d1eb410c3d64a867c80378970799e3bdf007add5533708eb90f827b63cdb98f",
+      "roles": ["product:420:Menu Enfant Hamburger"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/f50b6421-d5c4-44a9-8c7e-0f3ae05bc77f",
+      "file": "products/421-menu-enfant-nuggets.jpg",
+      "format": "jpg",
+      "bytes": 93811,
+      "sha256": "81f4539295c9d221b86c2b4d12cc087d10efed68cd9e3ef81dafe5bc287b1509",
+      "roles": ["product:421:Menu Enfant Nuggets"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/4ed30ffd-00c9-45cd-b7f6-dd8777ddb959",
+      "file": "products/422-6-x-mozza-stick.jpg",
+      "format": "jpg",
+      "bytes": 41693,
+      "sha256": "34cd4fb08d4ddbac79236183ee3cde55fa93042595a75dfdcd2ac1e2988a30cd",
+      "roles": ["product:422:6 X Mozza Stick"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/dfaec47c-46e6-48be-9375-8ad12cfba8f6",
+      "file": "products/423-6-x-nuggets.avif",
+      "format": "avif",
+      "bytes": 21079,
+      "sha256": "dcefe9cc78426f88db813b9671642cb5b411cd8956d7334a569792bbf5e5c315",
+      "roles": ["product:423:6 X Nuggets"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/4a26ca3e-4739-474c-ab80-b43633f9b978",
+      "file": "products/424-6-x-onion-rings.jpg",
+      "format": "jpg",
+      "bytes": 22309,
+      "sha256": "18d1966401551eefbfa88bc37e802ba3a4154b062b839541e8ebc4e1e37f977f",
+      "roles": ["product:424:6 X Onion Rings"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/15d29d6b-6bd7-4459-8691-a3a03829f6ba",
+      "file": "products/425-4-x-tenders.png",
+      "format": "png",
+      "bytes": 726617,
+      "sha256": "10b1752e398e6234eafa43232b0d04d54ab8e345d2273cf567bcd7f5c5ee996a",
+      "roles": ["product:425:4 X Tenders"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/9ffe2cb2-1a3e-4e76-b8e4-7baf68016d02",
+      "file": "products/426-5-x-wings.png",
+      "format": "png",
+      "bytes": 70054,
+      "sha256": "4181fe499e3027e102c3661ed3aceda7d445e1dd1beaded42baa566889dad4ec",
+      "roles": ["product:426:5 X WINGS"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/4ccaf156-01b3-4345-b448-5ae958871bb3",
+      "file": "products/427-doner-box.webp",
+      "format": "webp",
+      "bytes": 77696,
+      "sha256": "84b652e3144bcc7cdf45fbd87dad94e5efb9fa2ed94f6cd3da8a8b4430170a49",
+      "roles": ["product:427:Doner Box"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/33ae2009-cc36-47eb-bd5e-4e85f16e0866",
+      "file": "products/428-panini-3-fromage.jpg",
+      "format": "jpg",
+      "bytes": 163379,
+      "sha256": "5ab1c39a31db81fdb4115b44d3903a255734c246154488e3d3e42d832fc64da3",
+      "roles": ["product:428:Panini 3 Fromage"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/58b0c9ba-3a9c-4493-88d6-b399b6dcfced",
+      "file": "products/429-panini-kebab.jpg",
+      "format": "jpg",
+      "bytes": 169056,
+      "sha256": "09205ad1b2611adb8e44db22be1bdc7a8a7116860af091a093378f415fe32875",
+      "roles": ["product:429:Panini Kebab"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/fb24d8fe-adcb-46da-8a73-4781b1be51b1",
+      "file": "products/430-panini-steak.jpg",
+      "format": "jpg",
+      "bytes": 175004,
+      "sha256": "339fac1849c7a48f8d14ccac1c7afe21f5a888ff53a53632261ef0dde7cc562d",
+      "roles": ["product:430:Panini Steak"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/1860720f-5220-40a3-be21-bc853f338102",
+      "file": "products/431-panini-poulet.jpg",
+      "format": "jpg",
+      "bytes": 178692,
+      "sha256": "9c4b3333490375996d923e5e236b9a49ae6440d8222d5fffd1f27b84ada99649",
+      "roles": ["product:431:Panini Poulet"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/b65f556f-bdee-4bb2-a43f-0a3cb74e328e",
+      "file": "products/432-panini-thon.jpg",
+      "format": "jpg",
+      "bytes": 172369,
+      "sha256": "0ad276baefc2f65977cb43a13ecdbe5a13f22cc068199b62637a821de53da844",
+      "roles": ["product:432:Panini Thon"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6d4356f4-5bc8-4352-b734-e59391f4301e",
+      "file": "products/433-petite-frites.jpg",
+      "format": "jpg",
+      "bytes": 60808,
+      "sha256": "e78fe292a729cd00fc44fbe85b626cc9834454d7ad9f46f83ed731edb14dd8a5",
+      "roles": ["product:433:Petite Frites"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/75f59444-d819-40e7-a976-079d30e1565b",
+      "file": "products/434-moyenne-frites.jpg",
+      "format": "jpg",
+      "bytes": 84766,
+      "sha256": "1b98c2059a819ea880d60090cc0d495c2c12a7e388976a2985bddcb6e57acf08",
+      "roles": ["product:434:Moyenne Frites"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6d8147a2-5f90-4cfb-ae2c-0e4924e0e0ab",
+      "file": "products/435-grande-frites.jpg",
+      "format": "jpg",
+      "bytes": 105913,
+      "sha256": "0f0da5a0c53a6273dace600b90c4ed48823329fae87570f811e3ca4cc07e3ee2",
+      "roles": ["product:435:Grande Frites"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/80d0c646-00b6-4af9-85ff-58408de9a03c",
+      "file": "products/436-petite-viande.jpg",
+      "format": "jpg",
+      "bytes": 73637,
+      "sha256": "38dfbc013cc85057025aa968a86fc37d4e50c9501e8f1c45db6e1fd81bc80275",
+      "roles": ["product:436:Petite Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/4301c371-03fc-46a4-a73e-87116ab9349b",
+      "file": "products/437-moyenne-viande.jpg",
+      "format": "jpg",
+      "bytes": 73637,
+      "sha256": "38dfbc013cc85057025aa968a86fc37d4e50c9501e8f1c45db6e1fd81bc80275",
+      "roles": ["product:437:Moyenne Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/7c2a8153-604b-4951-9a17-f2d7a7b4cdee",
+      "file": "products/438-grande-viande.jpg",
+      "format": "jpg",
+      "bytes": 73637,
+      "sha256": "38dfbc013cc85057025aa968a86fc37d4e50c9501e8f1c45db6e1fd81bc80275",
+      "roles": ["product:438:Grande Viande"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/6f0d7a15-d260-4f1b-8bd1-321fe1546754",
+      "file": "products/439-petite-boulgour.jpg",
+      "format": "jpg",
+      "bytes": 74245,
+      "sha256": "0e6bff4d218d67f501b6fad6d252b7d682fc11cf9ec8a0d4faff6878d1137e10",
+      "roles": ["product:439:Petite Boulgour"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/3093fcd2-a011-40b0-92c7-0263fd0c7b7f",
+      "file": "products/440-moyenne-boulgour.jpg",
+      "format": "jpg",
+      "bytes": 74245,
+      "sha256": "0e6bff4d218d67f501b6fad6d252b7d682fc11cf9ec8a0d4faff6878d1137e10",
+      "roles": ["product:440:Moyenne Boulgour"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/5c1a5bc6-0854-4175-9e4d-1723d218775c",
+      "file": "products/441-grande-boulgour.jpg",
+      "format": "jpg",
+      "bytes": 74245,
+      "sha256": "0e6bff4d218d67f501b6fad6d252b7d682fc11cf9ec8a0d4faff6878d1137e10",
+      "roles": ["product:441:Grande Boulgour"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/5b3c6682-4fd8-45ed-919e-3e66c5553df9",
+      "file": "products/442-tiramisu.jpg",
+      "format": "jpg",
+      "bytes": 97187,
+      "sha256": "f209bee820c112d354433f266c698ac76fe37d1a6a1b34b652ad7807bdc0c95d",
+      "roles": ["product:442:Tiramisu"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/7e486efc-2990-41ed-871f-53622bd01db2",
+      "file": "products/443-tarte-a-daim.jpg",
+      "format": "jpg",
+      "bytes": 109082,
+      "sha256": "6e1f01fc6deddd274dfa27ae078c6f7776ca316f302ead90252e1c549d17a63b",
+      "roles": ["product:443:Tarte a Daim"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/5356f7a4-8973-4873-9dec-3e6a03125946",
+      "file": "products/444-tarte-caramel.png",
+      "format": "png",
+      "bytes": 299718,
+      "sha256": "04ed1a1d2dacc2488fb1f690c13afcaed6345fdf55724d70a0f12c9f1396744c",
+      "roles": ["product:444:Tarte Caramel"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/67e13829-3ed2-47a9-9d94-d54649368e6a",
+      "file": "products/445-coca-cola-33cl.png",
+      "format": "png",
+      "bytes": 67084,
+      "sha256": "b5f5db96b30877f625208bb26c9ce46503bd3a813742087032b506e6d3643dfb",
+      "roles": ["product:445:Coca Cola 33cl"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/a574ec2c-fd53-49ff-8dda-e32e9342ed8b",
+      "file": "products/446-coca-coca-cherry-33cl.png",
+      "format": "png",
+      "bytes": 70221,
+      "sha256": "d909c40bf700edc8ed8c5d7e22ab89e318371c0821428c2583dce897cd5aaf54",
+      "roles": ["product:446:Coca Coca Cherry 33cl"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/cf3c39ad-f350-40ba-b287-69f246288923",
+      "file": "products/447-coca-cola-zero.png",
+      "format": "png",
+      "bytes": 77162,
+      "sha256": "438f18af14695e217829f96e26b668f63dbba1864039a25e99fd4257ce827e29",
+      "roles": ["product:447:Coca Cola Zero"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/0aaa992e-f7f7-4bbb-8ac3-1f9f38a25908",
+      "file": "products/448-fanta-orange.png",
+      "format": "png",
+      "bytes": 74016,
+      "sha256": "6916f1429e907e3ae464bf595479a8b06f3bd7f979059f4e2fbd600cdc8388c6",
+      "roles": ["product:448:Fanta Orange"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/90aa36e1-8617-445e-af1f-9ff1a34bd0f5",
+      "file": "products/449-ice-tea.png",
+      "format": "png",
+      "bytes": 98740,
+      "sha256": "fe97858966b9d12a24a5bb2903cfdf7bc8439c3f1725290d26f640a4dbccdb93",
+      "roles": ["product:449:Ice Tea"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/b1fadc53-72be-4c52-8118-d7a73504167f",
+      "file": "products/450-oasis.png",
+      "format": "png",
+      "bytes": 107221,
+      "sha256": "f504b6fb834a0c08999f9b9fc82d4c36d0a75cfa36d2c405dbd64f53cc2c6dbf",
+      "roles": ["product:450:Oasis"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/ff5b7851-5c85-4e49-84a1-8245feb8bd42",
+      "file": "products/451-oasis-pomme-cassis.png",
+      "format": "png",
+      "bytes": 93757,
+      "sha256": "10dccc3070ac2575ecaef57f7f0e08fa2b0cc4dbd4dc233cc147597b93c51380",
+      "roles": ["product:451:Oasis Pomme Cassis"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/5c493aae-5101-428c-b123-f97cd9bd3805",
+      "file": "products/452-hawaii.png",
+      "format": "png",
+      "bytes": 87562,
+      "sha256": "0a9131c931ad06641d10b49d04aa0873fa5a4b5296186f9eb48f717c2e030572",
+      "roles": ["product:452:Hawaii"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/7896d4a0-6db1-4b2f-8f7d-ebd4ef964410",
+      "file": "products/453-sprite.png",
+      "format": "png",
+      "bytes": 94481,
+      "sha256": "f20ec1b5eb32e21a3c6e3f1dc32d295875401cea0e4c62d00e25a403fe70fbc4",
+      "roles": ["product:453:Sprite"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/29809cbf-1cd4-4cde-9ae5-87274a65eb74",
+      "file": "products/454-perrier.png",
+      "format": "png",
+      "bytes": 113496,
+      "sha256": "32fad291783b7c5ddd705af7ad657b39d72f7a09edb927b9cf1e6dd8a737bd50",
+      "roles": ["product:454:Perrier"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/4eeb777d-cbdb-47c6-9ed2-bbd3d56eed5c",
+      "file": "products/455-eau-50cl.webp",
+      "format": "webp",
+      "bytes": 30546,
+      "sha256": "5047fe5a4244f73d610f5f3adc73162455b63aba222167a85442187a4cd448b0",
+      "roles": ["product:455:Eau 50cl"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/f875f75c-5d0a-429f-ae98-20ffaf3a546b",
+      "file": "products/456-ayran.png",
+      "format": "png",
+      "bytes": 132018,
+      "sha256": "d31df7b75ea7a95964271509bfbc1bc43e864656003093ea5149b03ddaaf8549",
+      "roles": ["product:456:Ayran"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/d108ec45-7774-4f87-b4cc-3bb92c3fa15f",
+      "file": "products/457-red-bull.png",
+      "format": "png",
+      "bytes": 101969,
+      "sha256": "66c3d24153402ece787f09d3d6c42d8a29dd7056d34303f8ccc263cfff9027a1",
+      "roles": ["product:457:Red Bull"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/df741193-a550-4132-9ebd-fd66349e87b5",
+      "file": "products/458-salade-cesar.jpg",
+      "format": "jpg",
+      "bytes": 151435,
+      "sha256": "76546f7506765c9871faa301a4365053241deaa7c75036c9f3f5dac44de6fe1e",
+      "roles": ["product:458:Salade Cesar"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/28f5b292-6ff5-4d94-a8b5-c9a3b9e8a283",
+      "file": "products/459-salade-chevre-chaud.jpg",
+      "format": "jpg",
+      "bytes": 172259,
+      "sha256": "e60defdb2b4051b5cf04dcd072f024532a78297978a4c9c16608e808079f49bf",
+      "roles": ["product:459:Salade Chèvre Chaud"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/5c95abfe-0608-4aaf-9f02-43fe7a8fe2d6",
+      "file": "products/460-libanaise-1-viande.jpg",
+      "format": "jpg",
+      "bytes": 166144,
+      "sha256": "c0e19f77d25a8222be7c587ae6f8722a5407b15854484dfc097946124ab610b8",
+      "roles": ["product:460:LIBANAISE 1 VIANDE"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/c7b05b79-7169-464f-a5fa-77a30ec369ed",
+      "file": "products/461-libanaise-2-viande.jpg",
+      "format": "jpg",
+      "bytes": 161906,
+      "sha256": "251811a782f8da744090b7652366507a6ec536714fd0d3e6076d0520d38c14c4",
+      "roles": ["product:461:LIBANAISE 2 VIANDE"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/929552f6-7775-4476-8c3e-46285a78ec7d",
+      "file": "products/462-libanaise-3-viande.webp",
+      "format": "webp",
+      "bytes": 491984,
+      "sha256": "c96865ee7b761be0f7440abd972c34eee3e1b0f8245358dcca38c2991a48a110",
+      "roles": ["product:462:LIBANAISE 3 VIANDE"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/2742ed34-6e6e-46e6-a437-4a17755d06f5",
+      "file": "site-garnish/2742ed34.png",
+      "format": "png",
+      "bytes": 1311294,
+      "sha256": "bf7b1f7275d948287baaa7072d292d6c95dc8004abf3f0a6994c70c3b1e131f1",
+      "roles": ["site-garnish"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/29499c12-6adf-4065-a86d-1a8edcd08124",
+      "file": "site-garnish/29499c12.png",
+      "format": "png",
+      "bytes": 1084783,
+      "sha256": "dd9fbdcb6e7f144e42df8a9f2537dbc8971aee8a84d34abf9e733140bcb6d998",
+      "roles": ["site-garnish"]
+    },
+    {
+      "objectPath": "/api/storage/objects/uploads/a30667fd-a506-4ffa-9531-7ac66611313a",
+      "file": "site-garnish/a30667fd.png",
+      "format": "png",
+      "bytes": 1550777,
+      "sha256": "3ceeb457c3c0ad1d4099e89d2c69606a28398ea03a9acb7563b2b0aa160adffa",
+      "roles": ["site-garnish"]
+    }
+  ]
+}

@@ -1,7 +1,13 @@
 /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
    Craft renders the Dine In / Takeaway / Delivery choice as letterpress
    paper-tab toggles, the active one terracotta (Prompt 11). */
+/* The group is a `fieldset` since #684 (Sonar S6819: a fieldset+legend IS the grouping semantic).
+   `min-width: 0` because a fieldset's UA default is `min-width: min-content`, which stops a grid
+   or flex child from shrinking below its widest label — the one piece of fieldset chrome that is
+   not overridden by the properties this rule already sets. */
 .group {
+  min-width: 0;
+  margin: 0;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;

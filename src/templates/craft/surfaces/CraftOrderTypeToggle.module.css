@@ -3,7 +3,12 @@
    expects (group/button/active/icon/label/skeleton), craft styling. Tokens only —
    no raw hex (CLAUDE.md §5). */
 
+/* See the classic toggle: a `fieldset` since #684, so its UA border/padding/min-width are cleared
+   here — craft's group deliberately draws no border of its own. */
 .group {
+  min-width: 0;
+  margin: 0;
+  border: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;

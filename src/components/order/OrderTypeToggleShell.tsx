@@ -69,7 +69,7 @@ export default function OrderTypeToggleShell({
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
-  const groupRef = useRef<HTMLDivElement>(null);
+  const groupRef = useRef<HTMLFieldSetElement>(null);
   /** The last signal this actually SERVICED — not the last it was told about. See below. */
   const servicedRef = useRef(0);
 
@@ -102,13 +102,18 @@ export default function OrderTypeToggleShell({
   }
 
   return (
-    <div
+    /*
+     * `fieldset` + `legend`, not a `div` with `role="group"` and an `aria-label` (Sonar S6819, and
+     * the same call `LibraryPickerToolbar` already records). A fieldset's implicit role IS `group`
+     * and the legend IS its accessible name, so nothing that queries `getByRole('group', { name:
+     * /order type/i })` — the e2e suites do — sees any difference.
+     */
+    <fieldset
       ref={groupRef}
-      role="group"
-      aria-label={t('order_type', 'Order type')}
       className={`${styles.group} ${focusSignal > 0 ? (styles.needsChoice ?? '') : ''}`.trim()}
       aria-describedby={focusSignal > 0 ? blockerHintId : undefined}
     >
+      <legend className="sr-only">{t('order_type', 'Order type')}</legend>
       {enabled.map((type) => {
         const isActive = state.orderType === type;
         return (
@@ -124,7 +129,7 @@ export default function OrderTypeToggleShell({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 

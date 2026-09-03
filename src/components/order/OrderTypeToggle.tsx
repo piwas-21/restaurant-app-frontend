@@ -26,7 +26,7 @@ interface OrderTypeToggleProps {
  */
 // Memoized so the `useCallback`-stabilised `onPick` from CartContents (PR #74
 // review) actually prevents this child from re-rendering on parent re-renders.
-function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId }: OrderTypeToggleProps) {
+function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId }: Readonly<OrderTypeToggleProps>) {
   return (
     <OrderTypeToggleShell onPick={onPick} styles={styles} focusSignal={focusSignal} blockerHintId={blockerHintId} />
   );

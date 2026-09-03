@@ -47,8 +47,37 @@ const PRODUCT_TYPE = { main: 'mainItem', beverage: 'beverage', sauce: 'sauce', m
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-/** Their option/group names carry admin shorthand and typos; `decisions.json` renames them. */
-const rename = (decisions, name) => decisions.renameOptions[name] ?? name;
+/**
+ * Their option name -> the INGREDIENT it is about.
+ *
+ * OWNER RULING: there are no "Sans X" records. A removal is not something to add; it is the
+ * ingredient, marked optional and included in the base price, which the guest unticks. So
+ * `Sans Salade` is the ingredient `Salade`, and `- Sans Emmentale` and `+ Salade` are too.
+ * Emitting a row literally named "Sans Salade" would show a checkbox the guest ticks in order
+ * NOT to have something — a double negative on every product on the carte.
+ *
+ * Prefixes are stripped only for groups flagged `stripPrefix` (never for sauces, whose names
+ * are already the thing). Renames apply AFTER, so `decisions.renameOptions` is keyed on the
+ * ingredient rather than on their punctuation.
+ */
+const PREFIXES = [/^-\s+/, /^Sans\s+/i, /^\+\s+/];
+
+const ingredientName = (decisions, raw, strip) => {
+  let name = raw.trim();
+  if (strip) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const prefix of PREFIXES) {
+        if (prefix.test(name)) {
+          name = name.replace(prefix, '').trim();
+          changed = true;
+        }
+      }
+    }
+  }
+  return decisions.renameOptions[name] ?? name;
+};
 
 const isDropped = (decisions, groupId, optionName) => Object.hasOwn(decisions.dropOptions, `${groupId}:${optionName}`);
 
@@ -107,7 +136,38 @@ const sauceRuleFor = (decisions, groupIds) => {
  * Nothing in this catalogue is a pick-exactly-one ingredient set. If one ever appears, the
  * key must be the source GROUP ID, never a display name.
  */
-const ingredientsFor = (decisions, groupIds, groups) => {
+/**
+ * Collapse rows that name the same ingredient, and say which won.
+ *
+ * Stripping the prefixes makes `Sans Salade` (group 80, in the recipe) and `+ Salade`
+ * (group 82, a free addition) the SAME ingredient — measured: 5 ingredients across 6
+ * products. They cannot both stand: two `Salade` rows on one product is a menu bug, and
+ * offering to add something the dish already contains is the contradiction, not the removal.
+ *
+ * **The included row wins.** Appearing in a removal list is evidence the ingredient is in the
+ * dish, and one optional-and-included row already gives the guest both directions — leave it
+ * on to have it, untick to remove. The merge is REPORTED by `--verify`, never silent.
+ */
+const dedupeIngredients = (rows, merges, productName) => {
+  const byName = new Map();
+  for (const row of rows) {
+    const key = row.name.toLowerCase();
+    const seen = byName.get(key);
+    if (!seen) {
+      byName.set(key, row);
+      continue;
+    }
+    const winner = seen.isIncludedInBasePrice ? seen : row;
+    const loser = seen.isIncludedInBasePrice ? row : seen;
+    merges.push(
+      `${productName}: "${row.name}" appeared twice — kept the included row, dropped the ${loser.price > 0 ? `${loser.price} paid` : 'free'} one`,
+    );
+    byName.set(key, winner);
+  }
+  return [...byName.values()].map((row, index) => ({ ...row, displayOrder: index }));
+};
+
+const ingredientsFor = (decisions, groupIds, groups, merges = [], productName = '') => {
   const out = [];
   let displayOrder = 0;
   for (const id of groupIds) {
@@ -124,7 +184,7 @@ const ingredientsFor = (decisions, groupIds, groups) => {
     if (!source) throw new Error(`modifier group ${id} is referenced but absent from the dataset`);
     for (const option of source.options) {
       if (isDropped(decisions, id, option.name)) continue;
-      const name = rename(decisions, option.name);
+      const name = ingredientName(decisions, option.name, decision.stripPrefix === true);
       out.push({
         name,
         isOptional: decision.isOptional,
@@ -139,7 +199,7 @@ const ingredientsFor = (decisions, groupIds, groups) => {
       });
     }
   }
-  return out;
+  return dedupeIngredients(out, merges, productName);
 };
 
 /**
@@ -192,7 +252,7 @@ const buildCategories = (dataset) =>
     },
   }));
 
-const buildProducts = (dataset, decisions) => {
+const buildProducts = (dataset, decisions, merges = []) => {
   const out = [];
   for (const category of dataset.menu) {
     for (const item of category.items) {
@@ -226,7 +286,7 @@ const buildProducts = (dataset, decisions) => {
           hideBaseProduct: (item.sizes ?? []).length > 1,
           variations: variationsFor(item),
           suggestedSideItemIds: [],
-          detailedIngredients: ingredientsFor(decisions, groupIds, dataset.modifierGroups),
+          detailedIngredients: ingredientsFor(decisions, groupIds, dataset.modifierGroups, merges, item.name),
           content: content(item.name, item.description),
           ...sauceRuleFor(decisions, groupIds),
         },
@@ -312,11 +372,13 @@ const unconfirmedInUse = (dataset, decisions) => {
 export const build = async ({ datasetPath, decisionsPath }) => {
   const dataset = JSON.parse(await readFile(datasetPath ?? path.join(HERE, 'dataset.json'), 'utf8'));
   const decisions = JSON.parse(await readFile(decisionsPath ?? path.join(HERE, 'decisions.json'), 'utf8'));
+  const merges = [];
   return {
     dataset,
     decisions,
     categories: buildCategories(dataset),
-    products: buildProducts(dataset, decisions),
+    products: buildProducts(dataset, decisions, merges),
+    merges,
   };
 };
 
@@ -419,6 +481,38 @@ const verifyExclusionGroups = (products) => {
   return failures;
 };
 
+/**
+ * No product may name the same ingredient twice. This is the assertion behind the prefix
+ * strip: `Sans Salade` and `+ Salade` collapse to one `Salade`, and if the collapse ever
+ * stops working the duplicate is a visible menu bug rather than a silent one.
+ */
+const verifyNoDuplicateIngredients = (products) => {
+  const failures = [];
+  for (const product of products) {
+    const seen = new Map();
+    for (const ingredient of product.body.detailedIngredients) {
+      const key = ingredient.name.toLowerCase();
+      if (seen.has(key)) failures.push(`${product.body.name}: "${ingredient.name}" appears twice`);
+      seen.set(key, true);
+    }
+  }
+  return failures;
+};
+
+/** Nothing a guest reads may still be phrased as a removal — the ruling this mapping rests on. */
+const verifyNoNegatedNames = (products) => {
+  const negated = /^(sans|no)\s/i;
+  const failures = [];
+  for (const product of products) {
+    for (const ingredient of product.body.detailedIngredients) {
+      if (negated.test(ingredient.name)) {
+        failures.push(`${product.body.name}: "${ingredient.name}" is still phrased as a removal`);
+      }
+    }
+  }
+  return failures;
+};
+
 const main = async () => {
   const argv = process.argv.slice(2);
   const flag = (name) => argv.includes(name);
@@ -427,7 +521,7 @@ const main = async () => {
     return i === -1 ? undefined : argv[i + 1];
   };
 
-  const { dataset, decisions, categories, products } = await build({});
+  const { dataset, decisions, categories, products, merges } = await build({});
   const pending = unconfirmedInUse(dataset, decisions);
   const unbuilt = unbuiltBundlesInUse(dataset, decisions);
 
@@ -437,6 +531,8 @@ const main = async () => {
     const contentFailures = verifyContent(products);
     const sauceFailures = verifySauces(products);
     const exclusionFailures = verifyExclusionGroups(products);
+    const duplicateFailures = verifyNoDuplicateIngredients(products);
+    const negatedFailures = verifyNoNegatedNames(products);
     const variations = products.reduce((n, p) => n + p.body.variations.length, 0);
     const ingredients = products.reduce((n, p) => n + p.body.detailedIngredients.length, 0);
     const sauced = products.filter((p) => p.body.sauceMin > 0).length;
@@ -451,6 +547,10 @@ const main = async () => {
     console.log(`product ingredients        ${ingredients}`);
     console.log(`products with a sauce rule ${sauced}`);
     console.log(`  …of which sauce rows      ${sauceRows}`);
+    if (merges.length) {
+      console.log(`\nmerged duplicate ingredients (${merges.length}) — the included row won:`);
+      for (const line of merges) console.log(`  ${line}`);
+    }
     console.log('');
     const report = (label, failures) =>
       console.log(failures.length ? `FAIL ${label}\n  ${failures.join('\n  ')}` : `ok   ${label}`);
@@ -459,6 +559,8 @@ const main = async () => {
     report(`every guest string carries all ${LANGS.length} languages, description included`, contentFailures);
     report('every product with a sauce RULE carries the sauce ROWS to satisfy it', sauceFailures);
     report('no ingredient is marked mutually exclusive', exclusionFailures);
+    report('no product names the same ingredient twice', duplicateFailures);
+    report('no guest-facing ingredient is still phrased as a removal', negatedFailures);
     report(
       'every modifier group in use has a CONFIRMED meaning',
       pending.map((p) => `${p} is unconfirmed — decisions.json`),
@@ -473,7 +575,9 @@ const main = async () => {
       stringFailures.length +
       contentFailures.length +
       sauceFailures.length +
-      exclusionFailures.length;
+      exclusionFailures.length +
+      duplicateFailures.length +
+      negatedFailures.length;
     if (failed || pending.length || unbuilt.length) process.exit(1);
     console.log('\nmap: all checks passed');
     return;

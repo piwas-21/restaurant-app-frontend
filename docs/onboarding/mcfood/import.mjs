@@ -457,6 +457,68 @@ const importMenus = async ({
   }
 };
 
+/**
+ * One product's creation. A dish carrying sections is created through the MENU command — the
+ * products endpoint refuses `type: menu` — and the caller then restores the ingredients and
+ * sauce rule that command cannot express.
+ */
+const createOneProduct = async ({ call, product, key, categoryId, componentIds, productIds, state, stateFile }) => {
+  if ((product.sections ?? []).length) {
+    const { id, sectionCount } = await createMenuBundle({ call, owner: product, categoryId, componentIds, productIds });
+    await remember(stateFile, state, 'products', key, id);
+    await remember(stateFile, state, 'sections', `product:${key}`, sectionCount);
+    console.log(`  menu-dish ${product.body.name} -> ${id}`);
+    return id;
+  }
+  const created = await call('POST', '/api/Products', {
+    json: { ...product.body, categoryIds: [categoryId], primaryCategoryId: categoryId },
+  });
+  await remember(stateFile, state, 'products', key, created.id);
+  console.log(`  product ${product.body.name} -> ${created.id}`);
+  return created.id;
+};
+
+/** Create-or-resume one product, then its extras and its image — each resuming separately. */
+const importOneProduct = async ({
+  call,
+  product,
+  key,
+  categoryIds,
+  componentIds,
+  productIds,
+  state,
+  stateFile,
+  assets,
+  missingAssets,
+}) => {
+  const categoryId = categoryIds[String(product.source.categoryId)];
+  if (!categoryId) {
+    throw new Error(`product ${key} names category ${product.source.categoryId}, which was not created`);
+  }
+  const productId =
+    state.products[key] ??
+    (await createOneProduct({ call, product, key, categoryId, componentIds, productIds, state, stateFile }));
+
+  if ((product.sections ?? []).length && !state.sections[`extras:${key}`]) {
+    const did = await restoreProductExtras({ call, owner: product, productId, categoryId, componentIds, productIds });
+    if (did) await remember(stateFile, state, 'sections', `extras:${key}`, true);
+  }
+
+  if (product.source.image && !state.images[`product:${key}`]) {
+    await uploadImage(
+      call,
+      'POST',
+      `/api/Products/${productId}/images`,
+      assetPath(assets, product.source.image),
+      'Image',
+      { IsPrimary: true, SortOrder: 0 },
+      missingAssets,
+    );
+    await remember(stateFile, state, 'images', `product:${key}`, true);
+  }
+  return productId;
+};
+
 const importProducts = async ({
   call,
   products,
@@ -476,53 +538,18 @@ const importProducts = async ({
 
   for (const product of [...plain, ...sectioned]) {
     const key = String(product.source.id);
-    const categoryId = categoryIds[String(product.source.categoryId)];
-    if (!categoryId) {
-      throw new Error(`product ${key} names category ${product.source.categoryId}, which was not created`);
-    }
-    const isMenu = (product.sections ?? []).length > 0;
-
-    let productId = state.products[key];
-    if (!productId) {
-      if (isMenu) {
-        const { id, sectionCount } = await createMenuBundle({
-          call,
-          owner: product,
-          categoryId,
-          componentIds,
-          productIds,
-        });
-        productId = id;
-        await remember(stateFile, state, 'products', key, productId);
-        await remember(stateFile, state, 'sections', `product:${key}`, sectionCount);
-      } else {
-        const created = await call('POST', '/api/Products', {
-          json: { ...product.body, categoryIds: [categoryId], primaryCategoryId: categoryId },
-        });
-        productId = created.id;
-        await remember(stateFile, state, 'products', key, productId);
-      }
-      console.log(`  ${isMenu ? 'menu-dish' : 'product'} ${product.body.name} -> ${productId}`);
-    }
-    productIds[key] = productId;
-
-    if (isMenu && !state.sections[`extras:${key}`]) {
-      const did = await restoreProductExtras({ call, owner: product, productId, categoryId, componentIds, productIds });
-      if (did) await remember(stateFile, state, 'sections', `extras:${key}`, true);
-    }
-
-    if (product.source.image && !state.images[`product:${key}`]) {
-      await uploadImage(
-        call,
-        'POST',
-        `/api/Products/${productId}/images`,
-        assetPath(assets, product.source.image),
-        'Image',
-        { IsPrimary: true, SortOrder: 0 },
-        missingAssets,
-      );
-      await remember(stateFile, state, 'images', `product:${key}`, true);
-    }
+    productIds[key] = await importOneProduct({
+      call,
+      product,
+      key,
+      categoryIds,
+      componentIds,
+      productIds,
+      state,
+      stateFile,
+      assets,
+      missingAssets,
+    });
   }
   return productIds;
 };

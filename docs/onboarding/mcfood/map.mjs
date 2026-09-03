@@ -159,9 +159,8 @@ const dedupeIngredients = (rows, merges, productName) => {
     }
     const winner = seen.isIncludedInBasePrice ? seen : row;
     const loser = seen.isIncludedInBasePrice ? row : seen;
-    merges.push(
-      `${productName}: "${row.name}" appeared twice — kept the included row, dropped the ${loser.price > 0 ? `${loser.price} paid` : 'free'} one`,
-    );
+    const dropped = loser.price > 0 ? `${loser.price} paid` : 'free';
+    merges.push(`${productName}: "${row.name}" appeared twice — kept the included row, dropped the ${dropped} one`);
     byName.set(key, winner);
   }
   return [...byName.values()].map((row, index) => ({ ...row, displayOrder: index }));
@@ -436,21 +435,36 @@ const buildProducts = (dataset, decisions, merges = []) => {
  * quietly dropping out of the mapping again, which is how the drink step went missing on
  * all 29 "Menu X" the first time.
  */
+/** One line per unbuilt group, naming a few of the products that would lose the step. */
+const describeUnbuilt = (id, items, decisions) => {
+  const { sourceName } = decisions.modifierGroups[id];
+  const shown = items.slice(0, 3).join(', ');
+  const more = items.length > 3 ? ' …' : '';
+  return `group ${id} (${sourceName}) on ${items.length}: ${shown}${more}`;
+};
+
+/**
+ * Every bundle group a surviving product references, product-level and size-level alike.
+ *
+ * EVERY reference, not just the governing list: a menu-only step like group 79 (`Boissons`)
+ * hangs off the PRODUCT and off the "Menu X" size, never off the default one — so a
+ * governing-list-only sweep reports it as absent and would certify a catalogue whose entire
+ * drink step is missing.
+ */
+const bundleGroupsReferencedBy = (item, decisions) => {
+  const referenced = new Set([
+    ...(item.modifierGroupIds ?? []),
+    ...(item.sizes ?? []).flatMap((size) => size.modifierGroupIds ?? []),
+  ]);
+  return [...referenced].filter((id) => groupOf(decisions, id).target === 'bundle');
+};
+
 export const unbuiltBundlesInUse = (dataset, decisions, built = null) => {
   const used = new Map();
   for (const category of dataset.menu) {
     for (const item of category.items) {
       if (Object.hasOwn(decisions.dropProducts, String(item.sourceId))) continue;
-      // EVERY reference, not just the governing list. A menu-only step like group 79
-      // (`Boissons`) hangs off the PRODUCT and off the "Menu X" size, never off the
-      // default one — so a governing-list-only sweep reports it as absent and would
-      // certify a catalogue whose entire drink step is missing.
-      const referenced = [
-        ...(item.modifierGroupIds ?? []),
-        ...(item.sizes ?? []).flatMap((size) => size.modifierGroupIds ?? []),
-      ];
-      for (const id of new Set(referenced)) {
-        if (groupOf(decisions, id).target !== 'bundle') continue;
+      for (const id of bundleGroupsReferencedBy(item, decisions)) {
         if (built?.has(String(id))) continue;
         used.set(String(id), [...(used.get(String(id)) ?? []), item.name]);
       }
@@ -458,11 +472,7 @@ export const unbuiltBundlesInUse = (dataset, decisions, built = null) => {
   }
   return (
     [...used.entries()]
-      .map(([id, items]) => {
-        const { sourceName } = decisions.modifierGroups[id];
-        const shown = items.slice(0, 3).join(', ');
-        return `group ${id} (${sourceName}) on ${items.length}: ${shown}${items.length > 3 ? ' …' : ''}`;
-      })
+      .map(([id, items]) => describeUnbuilt(id, items, decisions))
       // A compare function, not a bare .sort(): the default coerces to string and sorts by
       // UTF-16 code unit, so "group 10" would come before "group 9" in a list a human reads
       // to decide what is still unconfirmed. localeCompare with numeric ordering keeps the
@@ -712,22 +722,27 @@ const verifyNoNegatedNames = (products) => {
  * "choose your drink" with no drinks. That is the same failure the unbuilt-bundle refusal
  * exists for, one layer down, so it gets the same treatment: an assertion, not a hope.
  */
+const sectionFailures = (ownerName, section, have) => {
+  const where = `${ownerName}/${section.name}`;
+  const out = [];
+  if (!section.name) out.push(`${ownerName}: a section has no name`);
+  if (!section.componentRefs.length) out.push(`${where}: no options`);
+  if (section.minSelection > section.maxSelection) {
+    out.push(`${where}: min ${section.minSelection} > max ${section.maxSelection}`);
+  }
+  for (const ref of section.componentRefs) {
+    if (!have.has(ref)) out.push(`${where}: no component "${ref}"`);
+  }
+  return out;
+};
+
 const verifySections = (products, menus, components) => {
   const have = new Set(components.map((c) => `${c.source.family}:${c.source.name.toLowerCase()}`));
   const productIds = new Set(products.map((p) => p.source.id));
   const failures = [];
   for (const owner of [...products, ...menus]) {
     for (const section of owner.sections ?? []) {
-      if (!section.name) failures.push(`${owner.body.name}: a section has no name`);
-      if (!section.componentRefs.length) {
-        failures.push(`${owner.body.name}/${section.name}: no options`);
-      }
-      for (const ref of section.componentRefs) {
-        if (!have.has(ref)) failures.push(`${owner.body.name}/${section.name}: no component "${ref}"`);
-      }
-      if (section.minSelection > section.maxSelection) {
-        failures.push(`${owner.body.name}/${section.name}: min ${section.minSelection} > max ${section.maxSelection}`);
-      }
+      failures.push(...sectionFailures(owner.body.name, section, have));
     }
   }
   for (const menu of menus) {
@@ -753,14 +768,72 @@ const verifyMenuPrices = (menus) => {
  * No product may be priced at or below zero — the server refuses it, and the refusal arrives
  * mid-import after earlier records are already created.
  */
-const verifyPrices2 = (products, menus, components) => {
+const verifyPositivePrices = (products, menus, components) => {
   const failures = [];
   for (const item of [...products, ...menus, ...components]) {
-    if (!(item.body.basePrice > 0)) {
+    // `<= 0` rather than `!(> 0)`: the same set, said once. NaN cannot reach here — every
+    // basePrice is produced by round2() over a number from their API.
+    if (item.body.basePrice <= 0) {
       failures.push(`${item.body.name}: basePrice ${item.body.basePrice} — the server requires > 0`);
     }
   }
   return failures;
+};
+
+/**
+ * The self-check, whole. Split out of `main` so the entry point is argument handling and
+ * nothing else — and because this is the part a reader comes here to read.
+ */
+const runVerify = ({ categories, components, products, menus, merges, pending, unbuilt }) => {
+  const variations = products.reduce((n, p) => n + p.body.variations.length, 0);
+  const ingredients = products.reduce((n, p) => n + p.body.detailedIngredients.length, 0);
+  const sauced = products.filter((p) => p.body.sauceMin > 0).length;
+  const sauceRows = products.reduce(
+    (n, p) => n + p.body.detailedIngredients.filter((i) => i.kind === 'sauce').length,
+    0,
+  );
+  const sectioned = [...products, ...menus].filter((p) => (p.sections ?? []).length);
+
+  console.log(`categories                 ${categories.length}`);
+  console.log(`products                   ${products.length}`);
+  console.log(`menu bundles (type=menu)   ${menus.length}`);
+  console.log(`hidden components          ${components.length}`);
+  console.log(`products carrying sections ${sectioned.length}`);
+  console.log(`variations                 ${variations}`);
+  console.log(`product ingredients        ${ingredients}`);
+  console.log(`products with a sauce rule ${sauced}`);
+  console.log(`  …of which sauce rows      ${sauceRows}`);
+  if (merges.length) {
+    console.log(`\nmerged duplicate ingredients (${merges.length}) — the included row won:`);
+    for (const line of merges) console.log(`  ${line}`);
+  }
+  console.log('');
+
+  const checks = [
+    ['every variation re-derives to THEIR absolute price', verifyPrices(products)],
+    ['no admin shorthand or dotless ı reaches a guest string', verifyStrings(products)],
+    [`every guest string carries all ${LANGS.length} languages, description included`, verifyContent(products)],
+    ['every product with a sauce RULE carries the sauce ROWS to satisfy it', verifySauces(products)],
+    ['no ingredient is marked mutually exclusive', verifyExclusionGroups(products)],
+    ['no product names the same ingredient twice', verifyNoDuplicateIngredients(products)],
+    ['no guest-facing ingredient is still phrased as a removal', verifyNoNegatedNames(products)],
+    ['every bundle section resolves to real components and a real dish', verifySections(products, menus, components)],
+    ["every menu's price is THEIR absolute price", verifyMenuPrices(menus)],
+    ['every product has a basePrice > 0 (the server refuses 0)', verifyPositivePrices(products, menus, components)],
+    ['every modifier group in use has a CONFIRMED meaning', pending.map((x) => `${x} is unconfirmed — decisions.json`)],
+    [
+      'every modifier group in use is BUILT by this file',
+      unbuilt.map((x) => `${x} — target "bundle", not implemented yet`),
+    ],
+  ];
+  let failed = 0;
+  for (const [label, failures] of checks) {
+    failed += failures.length;
+    console.log(failures.length ? `FAIL ${label}\n  ${failures.join('\n  ')}` : `ok   ${label}`);
+  }
+  if (failed) return false;
+  console.log('\nmap: all checks passed');
+  return true;
 };
 
 const main = async () => {
@@ -779,73 +852,8 @@ const main = async () => {
   const unbuilt = unbuiltBundlesInUse(dataset, decisions, built);
 
   if (flag('--verify')) {
-    const priceFailures = verifyPrices(products);
-    const stringFailures = verifyStrings(products);
-    const contentFailures = verifyContent(products);
-    const sauceFailures = verifySauces(products);
-    const exclusionFailures = verifyExclusionGroups(products);
-    const duplicateFailures = verifyNoDuplicateIngredients(products);
-    const negatedFailures = verifyNoNegatedNames(products);
-    const sectionFailures = verifySections(products, menus, components);
-    const menuPriceFailures = verifyMenuPrices(menus);
-    const positiveFailures = verifyPrices2(products, menus, components);
-    const variations = products.reduce((n, p) => n + p.body.variations.length, 0);
-    const ingredients = products.reduce((n, p) => n + p.body.detailedIngredients.length, 0);
-    const sauced = products.filter((p) => p.body.sauceMin > 0).length;
-    const sauceRows = products.reduce(
-      (n, p) => n + p.body.detailedIngredients.filter((i) => i.kind === 'sauce').length,
-      0,
-    );
-
-    const sectioned = [...products, ...menus].filter((p) => (p.sections ?? []).length);
-    console.log(`categories                 ${categories.length}`);
-    console.log(`products                   ${products.length}`);
-    console.log(`menu bundles (type=menu)   ${menus.length}`);
-    console.log(`hidden components          ${components.length}`);
-    console.log(`products carrying sections ${sectioned.length}`);
-    console.log(`variations                 ${variations}`);
-    console.log(`product ingredients        ${ingredients}`);
-    console.log(`products with a sauce rule ${sauced}`);
-    console.log(`  …of which sauce rows      ${sauceRows}`);
-    if (merges.length) {
-      console.log(`\nmerged duplicate ingredients (${merges.length}) — the included row won:`);
-      for (const line of merges) console.log(`  ${line}`);
-    }
-    console.log('');
-    const report = (label, failures) =>
-      console.log(failures.length ? `FAIL ${label}\n  ${failures.join('\n  ')}` : `ok   ${label}`);
-    report('every variation re-derives to THEIR absolute price', priceFailures);
-    report('no admin shorthand or dotless ı reaches a guest string', stringFailures);
-    report(`every guest string carries all ${LANGS.length} languages, description included`, contentFailures);
-    report('every product with a sauce RULE carries the sauce ROWS to satisfy it', sauceFailures);
-    report('no ingredient is marked mutually exclusive', exclusionFailures);
-    report('no product names the same ingredient twice', duplicateFailures);
-    report('no guest-facing ingredient is still phrased as a removal', negatedFailures);
-    report('every bundle section resolves to real components and a real dish', sectionFailures);
-    report("every menu's price is THEIR absolute price", menuPriceFailures);
-    report('every product has a basePrice > 0 (the server refuses 0)', positiveFailures);
-    report(
-      'every modifier group in use has a CONFIRMED meaning',
-      pending.map((p) => `${p} is unconfirmed — decisions.json`),
-    );
-    report(
-      'every modifier group in use is BUILT by this file',
-      unbuilt.map((p) => `${p} — target "bundle", not implemented yet`),
-    );
-
-    const failed =
-      priceFailures.length +
-      stringFailures.length +
-      contentFailures.length +
-      sauceFailures.length +
-      exclusionFailures.length +
-      duplicateFailures.length +
-      negatedFailures.length +
-      sectionFailures.length +
-      menuPriceFailures.length +
-      positiveFailures.length;
-    if (failed || pending.length || unbuilt.length) process.exit(1);
-    console.log('\nmap: all checks passed');
+    const ok = runVerify({ categories, components, products, menus, merges, pending, unbuilt });
+    if (!ok) process.exit(1);
     return;
   }
 

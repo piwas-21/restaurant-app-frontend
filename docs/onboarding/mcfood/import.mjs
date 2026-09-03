@@ -331,7 +331,8 @@ const resolveRef = (ref, componentIds, productIds, where) => {
   // `componentIds` stays keyed `family:name`, WITHOUT the namespace — that is also the key in the
   // state file, and rekeying it would make every in-flight import resume as if nothing were done.
   const key = rest.join(':');
-  const id = kind === 'component' ? componentIds[key] : kind === 'product' ? productIds[key] : undefined;
+  const table = { component: componentIds, product: productIds }[kind];
+  const id = table?.[key];
   if (!id) throw new Error(`${where} refers to ${ref}, which was not created`);
   return id;
 };

@@ -227,7 +227,7 @@ const rowFlags = (decision, kind, id) => {
   if (kind === 'sauce') return { isOptional: true, isIncludedInBasePrice: false };
   for (const field of ['isOptional', 'isIncludedInBasePrice']) {
     if (typeof decision[field] !== 'boolean') {
-      throw new Error(
+      throw new TypeError(
         `modifier group ${id} emits ingredient rows but its ${field} is ${decision[field]} — ` +
           'declare it explicitly in decisions.json; an absent flag reads as false and preselects the row',
       );
@@ -595,61 +595,59 @@ const buildProducts = (dataset, decisions, { drinks, carriers }) => {
   const out = [];
   const carrierOf = new Map(carriers.map((carrier) => [carrier.productId, carrier]));
   for (const { category, item } of eachItem(dataset, decisions)) {
-    {
-      const groupIds = governingGroupIds(item);
-      const bundleGroups = bundleGroupsIn(decisions, groupIds);
-      const sections = bundleGroups.map((id) => sectionFor(decisions, id, drinks));
-      const carrier = carrierOf.get(item.sourceId) ?? null;
-      const variations = variationsFor(decisions, item);
-      out.push({
-        source: {
-          id: item.sourceId,
-          categoryId: category.sourceId,
-          image: item.image,
-          absolutePrices: (item.sizes ?? []).map((s) => ({ name: s.name, price: s.price })),
-        },
-        body: {
-          name: item.name,
-          description: item.description,
-          basePrice: round2(item.price),
-          isActive: item.isActive,
-          isAvailable: !item.isSoldOut,
-          isSpecial: false,
-          preparationTimeMinutes: 0,
-          // A choice step only exists on a MenuDefinition, and UpdateProductCommand only
-          // honours one when Type is `menu`. So a dish that asks "which meat?" IS a menu in
-          // our model, even though their data calls it an ordinary product.
-          type: sections.length ? PRODUCT_TYPE.menu : typeOf(decisions, category),
-          kitchenType: 'None',
-          ingredients: null,
-          allergens: null,
-          displayOrder: item.sortOrder ?? 0,
-          categoryIds: [],
-          primaryCategoryId: null,
-          // Their model is N sizes with exactly one default, so the unsized "base" row is
-          // not a thing a guest may order. Left false, the 29 sized products each show a
-          // third option priced identically to their default size.
-          //
-          // Derived from the EMITTED variations, never from the source size count. Those were the
-          // same number until the `Menu …` sizes became bundles and left the variation list —
-          // after which 24 products carried the flag with nothing left to sell instead.
-          // `isBaseRowHidden` degrades that back to false on client and server, so nothing was
-          // unorderable; it is a lie stored in the catalogue and shown ticked in the admin.
-          hideBaseProduct: variations.length > 0,
-          variations,
-          suggestedSideItemIds: [],
-          // A dish carrying sections is `type: menu`, and a menu's own ingredients and sauce rule
-          // are DEAD DATA — see `buildComponents`. Its recipe lives on the carrier instead.
-          detailedIngredients: carrier ? [] : ingredientsFor(decisions, groupIds, dataset.modifierGroups),
-          content: content(item.name, item.description),
-          ...(carrier ? { sauceMin: 0, sauceMax: null, sauceIncludedFree: 0 } : sauceRuleFor(decisions, groupIds)),
-        },
-        // The one-item `Plat` section import.mjs prepends. A sectioned dish points at its recipe
-        // carrier; an ordinary product has no Plat of its own.
-        platRef: carrier ? componentRef('dish', carrier.name) : undefined,
-        sections,
-      });
-    }
+    const groupIds = governingGroupIds(item);
+    const bundleGroups = bundleGroupsIn(decisions, groupIds);
+    const sections = bundleGroups.map((id) => sectionFor(decisions, id, drinks));
+    const carrier = carrierOf.get(item.sourceId) ?? null;
+    const variations = variationsFor(decisions, item);
+    out.push({
+      source: {
+        id: item.sourceId,
+        categoryId: category.sourceId,
+        image: item.image,
+        absolutePrices: (item.sizes ?? []).map((s) => ({ name: s.name, price: s.price })),
+      },
+      body: {
+        name: item.name,
+        description: item.description,
+        basePrice: round2(item.price),
+        isActive: item.isActive,
+        isAvailable: !item.isSoldOut,
+        isSpecial: false,
+        preparationTimeMinutes: 0,
+        // A choice step only exists on a MenuDefinition, and UpdateProductCommand only
+        // honours one when Type is `menu`. So a dish that asks "which meat?" IS a menu in
+        // our model, even though their data calls it an ordinary product.
+        type: sections.length ? PRODUCT_TYPE.menu : typeOf(decisions, category),
+        kitchenType: 'None',
+        ingredients: null,
+        allergens: null,
+        displayOrder: item.sortOrder ?? 0,
+        categoryIds: [],
+        primaryCategoryId: null,
+        // Their model is N sizes with exactly one default, so the unsized "base" row is
+        // not a thing a guest may order. Left false, the 29 sized products each show a
+        // third option priced identically to their default size.
+        //
+        // Derived from the EMITTED variations, never from the source size count. Those were the
+        // same number until the `Menu …` sizes became bundles and left the variation list —
+        // after which 24 products carried the flag with nothing left to sell instead.
+        // `isBaseRowHidden` degrades that back to false on client and server, so nothing was
+        // unorderable; it is a lie stored in the catalogue and shown ticked in the admin.
+        hideBaseProduct: variations.length > 0,
+        variations,
+        suggestedSideItemIds: [],
+        // A dish carrying sections is `type: menu`, and a menu's own ingredients and sauce rule
+        // are DEAD DATA — see `buildComponents`. Its recipe lives on the carrier instead.
+        detailedIngredients: carrier ? [] : ingredientsFor(decisions, groupIds, dataset.modifierGroups),
+        content: content(item.name, item.description),
+        ...(carrier ? { sauceMin: 0, sauceMax: null, sauceIncludedFree: 0 } : sauceRuleFor(decisions, groupIds)),
+      },
+      // The one-item `Plat` section import.mjs prepends. A sectioned dish points at its recipe
+      // carrier; an ordinary product has no Plat of its own.
+      platRef: carrier ? componentRef('dish', carrier.name) : undefined,
+      sections,
+    });
   }
   return out;
 };
@@ -734,61 +732,58 @@ const buildMenuBundles = (dataset, decisions, { drinks, carriers, portions }) =>
   const out = [];
   const carrierOf = new Map(carriers.map((carrier) => [carrier.productId, carrier]));
   for (const { category, item } of eachItem(dataset, decisions)) {
-    {
-      for (const size of item.sizes ?? []) {
-        if (!isMenuSize(decisions, size)) continue;
-        const referenced = new Set([...(item.modifierGroupIds ?? []), ...(size.modifierGroupIds ?? [])]);
-        const bundleGroups = bundleGroupsIn(decisions, [...referenced]);
-        const portion = wrappedPortion(decisions, item, size);
-        const carrier = carrierOf.get(item.sourceId) ?? null;
-        out.push({
-          source: {
-            id: `${item.sourceId}:${size.name}`,
-            parentId: item.sourceId,
-            categoryId: category.sourceId,
-            image: item.image,
-            absolutePrice: size.price,
-          },
-          body: {
-            name: size.name,
-            description: null,
-            basePrice: round2(size.price),
-            isActive: item.isActive,
-            isAvailable: !item.isSoldOut,
-            isSpecial: false,
-            preparationTimeMinutes: 0,
-            type: PRODUCT_TYPE.menu,
-            kitchenType: 'None',
-            ingredients: null,
-            allergens: null,
-            displayOrder: (item.sortOrder ?? 0) + 100,
-            categoryIds: [],
-            primaryCategoryId: null,
-            variations: [],
-            suggestedSideItemIds: [],
-            detailedIngredients: [],
-            content: content(size.name),
-            sauceMin: 0,
-            sauceMax: null,
-            sauceIncludedFree: 0,
-          },
-          // What the menu's one-item `Plat` section points at, resolved to a real id by
-          // import.mjs. Three cases, in order of specificity:
-          //
-          //   a PORTION component — the menu wraps a size, not the product ("Menu 12 X Nuggets");
-          //   the dish's RECIPE CARRIER — the dish is itself sectioned, so pointing at it would
-          //     nest a second meat choice inside the menu's own;
-          //   the parent PRODUCT — the ordinary case, and kebabdilhan's shape.
-          platRef: portion
-            ? componentRef('portion', portion.name)
-            : carrier
-              ? componentRef('dish', carrier.name)
-              : productRef(item.sourceId),
-          // Kept for `--verify`: which product this menu came off, whatever its Plat resolves to.
+    for (const size of item.sizes ?? []) {
+      if (!isMenuSize(decisions, size)) continue;
+      const referenced = new Set([...(item.modifierGroupIds ?? []), ...(size.modifierGroupIds ?? [])]);
+      const bundleGroups = bundleGroupsIn(decisions, [...referenced]);
+      const portion = wrappedPortion(decisions, item, size);
+      const carrier = carrierOf.get(item.sourceId) ?? null;
+      // The menu's dish, in order of specificity:
+      //
+      //   a PORTION component — the menu wraps a SIZE, not the product ("Menu 12 X Nuggets");
+      //   the dish's RECIPE CARRIER — the dish is itself sectioned, so pointing at the dish
+      //     would nest a second meat choice inside the menu's own;
+      //   the parent PRODUCT — the ordinary case, and kebabdilhan's shape.
+      let platRef = productRef(item.sourceId);
+      if (portion) platRef = componentRef('portion', portion.name);
+      else if (carrier) platRef = componentRef('dish', carrier.name);
+      out.push({
+        source: {
+          id: `${item.sourceId}:${size.name}`,
           parentId: item.sourceId,
-          sections: bundleGroups.map((id) => sectionFor(decisions, id, drinks)),
-        });
-      }
+          categoryId: category.sourceId,
+          image: item.image,
+          absolutePrice: size.price,
+        },
+        body: {
+          name: size.name,
+          description: null,
+          basePrice: round2(size.price),
+          isActive: item.isActive,
+          isAvailable: !item.isSoldOut,
+          isSpecial: false,
+          preparationTimeMinutes: 0,
+          type: PRODUCT_TYPE.menu,
+          kitchenType: 'None',
+          ingredients: null,
+          allergens: null,
+          displayOrder: (item.sortOrder ?? 0) + 100,
+          categoryIds: [],
+          primaryCategoryId: null,
+          variations: [],
+          suggestedSideItemIds: [],
+          detailedIngredients: [],
+          content: content(size.name),
+          sauceMin: 0,
+          sauceMax: null,
+          sauceIncludedFree: 0,
+        },
+        // What the menu's one-item `Plat` section points at, resolved to a real id by import.mjs.
+        platRef,
+        // Kept for `--verify`: which product this menu came off, whatever its Plat resolves to.
+        parentId: item.sourceId,
+        sections: bundleGroups.map((id) => sectionFor(decisions, id, drinks)),
+      });
     }
   }
   return out;
@@ -1174,6 +1169,21 @@ const verifyProductTypes = (dataset, decisions) => {
  * parallel catalogue: the admin's price edit reaches no menu, and a drink marked sold out stays
  * orderable inside every bundle. The referent is what the platform's own reference tenant does.
  */
+/** What is wrong with one drink item, or `null`. Split out to keep the sweep below flat. */
+const drinkRefFailure = (where, ref, componentByRef, productByRef) => {
+  if (componentByRef.has(ref)) {
+    return (
+      `${where}: "${ref}" is a hidden component copy of a drink — a price edit on the real ` +
+      'product would reach no menu, and a sold-out drink would stay orderable'
+    );
+  }
+  const product = productByRef.get(ref);
+  if (product && product.body.type !== PRODUCT_TYPE.beverage) {
+    return `${where}: "${product.body.name}" is not type beverage`;
+  }
+  return null;
+};
+
 const verifyDrinkSections = (products, menus, components) => {
   const componentByRef = new Map(
     components.map((c) => [`component:${c.source.family}:${c.source.name.toLowerCase()}`, c]),
@@ -1181,21 +1191,11 @@ const verifyDrinkSections = (products, menus, components) => {
   const productByRef = new Map(products.map((p) => [`product:${p.source.id}`, p]));
   const failures = [];
   for (const owner of [...products, ...menus]) {
-    for (const section of owner.sections ?? []) {
-      if (String(section.__groupId) !== String(DRINK_GROUP)) continue;
-      for (const ref of section.itemRefs) {
-        if (componentByRef.has(ref)) {
-          failures.push(
-            `${owner.body.name}/${section.name}: "${ref}" is a hidden component copy of a drink — ` +
-              'a price edit on the real product would reach no menu, and a sold-out drink would stay orderable',
-          );
-          continue;
-        }
-        const product = productByRef.get(ref);
-        if (product && product.body.type !== PRODUCT_TYPE.beverage) {
-          failures.push(`${owner.body.name}/${section.name}: "${product.body.name}" is not type beverage`);
-        }
-      }
+    const drinkSections = (owner.sections ?? []).filter((s) => String(s.__groupId) === String(DRINK_GROUP));
+    for (const section of drinkSections) {
+      const where = `${owner.body.name}/${section.name}`;
+      const found = section.itemRefs.map((ref) => drinkRefFailure(where, ref, componentByRef, productByRef));
+      failures.push(...found.filter(Boolean));
     }
   }
   return failures;
@@ -1279,10 +1279,14 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
   console.log(`products                   ${products.length}`);
   // Per TYPE, not as a total. `Type=Beverage` answering 0 is the whole of the drinks-upsell
   // defect, and it is a number a reader can see is wrong at a glance.
-  for (const [type, count] of [...byType].sort()) console.log(`  …typed ${type.padEnd(19)}${count}`);
+  // A compare function on the KEY, not a bare .sort(): the default stringifies each
+  // `[name, count]` pair and sorts the concatenation, so the order would silently depend on the
+  // counts. Same trap the group-id lists below already carry a comment about.
+  const byName = (a, b) => a[0].localeCompare(b[0], 'en');
+  for (const [type, count] of [...byType].sort(byName)) console.log(`  …typed ${type.padEnd(19)}${count}`);
   console.log(`menu bundles (type=menu)   ${menus.length}`);
   console.log(`hidden components          ${components.length}`);
-  for (const [family, count] of [...byFamily].sort()) console.log(`  …family ${family.padEnd(18)}${count}`);
+  for (const [family, count] of [...byFamily].sort(byName)) console.log(`  …family ${family.padEnd(18)}${count}`);
   console.log(`products carrying sections ${sectioned.length}`);
   console.log(`variations                 ${variations}`);
   console.log(`recipe rows (+ carriers)   ${ingredients}`);

@@ -13,7 +13,6 @@
     "src/app/scan/page.tsx :: --color-text",
     "src/app/scan/page.tsx :: --color-text-muted",
     "src/app/styles/CashierPage.module.css :: --background-secondary",
-    "src/app/styles/DetailsPage.module.css :: --primary-color-light",
     "src/app/styles/FeedbackForm.module.css :: --border-radius",
     "src/app/styles/FeedbackForm.module.css :: --border-radius-small",
     "src/app/styles/FeedbackForm.module.css :: --disabled-color",

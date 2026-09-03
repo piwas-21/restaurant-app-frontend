@@ -2755,6 +2755,7 @@
   "editor_section_media": "Multimedia",
   "editor_section_media_description": "Foto e contenuti della galleria",
   "editor_media_autosave_notice": "Le modifiche alle foto vengono salvate immediatamente.",
+  "editor_media_selected_image": "Immagine selezionata",
   "editor_media_bundle_unavailable": "La gestione delle foto non è ancora disponibile per i pacchetti menu. La foto di un pacchetto si aggiunge nel campo Immagine Menu qui sopra e viene caricata al salvataggio.",
   "editor_no_primary_category_consequence": "Senza categoria principale questo articolo non eredita nulla — imposta manualmente i tipi di ordine in Servizio e disponibilità.",
   "editor_no_photo_consequence": "Senza foto, questo articolo mostra un’immagine segnaposto nel menu.",

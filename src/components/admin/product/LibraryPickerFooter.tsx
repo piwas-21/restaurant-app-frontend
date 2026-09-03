@@ -24,9 +24,15 @@ interface LibraryPickerFooterProps {
  * The picker's footer: create-and-attach on the left, cancel and confirm on the right. One footer
  * for both catalogs.
  *
- * Both writing actions are hidden in the archived view. Nothing there can be attached (plan D4) and
- * nothing there is a search result, so "+ Create new <term>" and "Add selected" would both be
- * offering something the view cannot do; only the way out stays.
+ * Both writing actions are hidden in the ARCHIVED view, and only there. Nothing there can be
+ * attached (plan D4) and nothing there is a search result, so "+ Create new <term>" and "Add
+ * selected" would both be offering something the view cannot do; only the way out stays.
+ *
+ * Written as `!== 'archived'` rather than `=== 'active'` on purpose. When the tenant's own shelf
+ * was added as a third view, the `=== 'active'` form silently took both buttons off it: rows were
+ * tickable, the count climbed, and the only control left was Cancel — the very shape (a live-looking
+ * control that leads nowhere) this picker's other fix exists to remove. The empty-state copy on that
+ * shelf even tells the admin to press "Create new".
  */
 export default function LibraryPickerFooter({
   copy,
@@ -42,7 +48,7 @@ export default function LibraryPickerFooter({
 
   return (
     <div className={styles.footer}>
-      {view === 'active' && (
+      {view !== 'archived' && (
         <button type="button" className={styles.createButton} onClick={onCreate} disabled={isCreating}>
           <Plus size={16} aria-hidden="true" />
           {newName.length > 0 ? t(copy.createNamed, { name: newName }) : t(copy.create)}
@@ -52,7 +58,7 @@ export default function LibraryPickerFooter({
         <button type="button" className={styles.cancelButton} onClick={onCancel}>
           {t('cancel')}
         </button>
-        {view === 'active' && (
+        {view !== 'archived' && (
           <button type="button" className={styles.confirmButton} onClick={onAdd} disabled={selectedCount === 0}>
             {t('add_selected')}
             {selectedCount > 0 && <span className={styles.count}> ({selectedCount})</span>}

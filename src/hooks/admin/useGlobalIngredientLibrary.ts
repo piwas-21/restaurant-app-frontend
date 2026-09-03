@@ -22,6 +22,8 @@ interface UseGlobalIngredientLibraryArgs {
   attached: ProductIngredient[];
   /** UI language, used by the `translated` filter. */
   languageCode: string;
+  /** Show only the rows this tenant created — the picker's third shelf (backend D14). */
+  tenantOwnedOnly?: boolean;
   /**
    * The GROUP the picker was opened from. The catalog is narrowed to it by default (slice G2), so a
    * Sauces picker does not open onto the whole ingredient shelf. Optional and absent means no
@@ -42,6 +44,7 @@ export function useGlobalIngredientLibrary({
   isOpen,
   attached,
   languageCode,
+  tenantOwnedOnly,
   kind,
 }: UseGlobalIngredientLibraryArgs): LibraryCatalog<GlobalIngredientSummary> {
   const attachedKeys = useMemo(() => attachedLibraryKeys(attached), [attached]);
@@ -65,6 +68,7 @@ export function useGlobalIngredientLibrary({
     loadFailedKey: 'ingredient_library_load_failed',
     attachedKeys,
     languageCode,
+    tenantOwnedOnly,
     scope,
   });
 }

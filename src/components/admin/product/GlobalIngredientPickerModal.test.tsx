@@ -66,6 +66,13 @@ const libraryRow = (
   usedOnProductCount,
   isArchived,
   kind,
+  /*
+   * `'custom'`, and that is a fixture DECISION rather than a shortcut: every case in this file that
+   * predates the origin discriminator is about the destructive action, and a built-in is never
+   * offered one (backend D14). Leaving it to default to `'system'` would silently retarget all of
+   * them at a row that has no button to press. The built-in rule has its own row below.
+   */
+  origin: 'custom',
 });
 
 const CATALOG = [

@@ -5,12 +5,12 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import { useStableT } from '@/hooks/useStableT';
 import {
-  hasTranslationFor,
+  admitsRow,
   isAlreadyAttached,
-  matchesQuery,
   rankByQuery,
   MAX_VISIBLE_LIBRARY_ROWS,
 } from '@/components/admin/product/libraryMatching';
+import type { LibraryOrigin } from '@/components/admin/product/libraryOrigin';
 import type { LibraryResponse, LibraryStatus } from './useLibraryArchive';
 
 /**
@@ -30,6 +30,8 @@ export interface CatalogRow {
   defaultName: string;
   isArchived: boolean;
   translations: { languageCode: string; name: string }[];
+  /** Platform seed or this tenant's own; absent reads as `'system'` (see `libraryOrigin`). */
+  origin?: LibraryOrigin;
 }
 
 interface UseLibraryCatalogArgs<TRow extends CatalogRow> {
@@ -43,6 +45,8 @@ interface UseLibraryCatalogArgs<TRow extends CatalogRow> {
   attachedKeys: Set<string>;
   /** UI language, used by the `translated` filter. */
   languageCode: string;
+  /** Show only the rows this tenant created — the picker's third SHELF (backend D14). */
+  tenantOwnedOnly?: boolean;
   /**
    * Which rows this picker is FOR (slice G2) — a SECOND dimension, not a fourth chip: the chips are
    * one exclusive choice and "sauces only" and "not yet added" must be answerable together.
@@ -94,6 +98,7 @@ export function useLibraryCatalog<TRow extends CatalogRow>({
   attachedKeys,
   languageCode,
   scope,
+  tenantOwnedOnly = false,
 }: UseLibraryCatalogArgs<TRow>): LibraryCatalog<TRow> {
   const tRef = useStableT();
   const [catalog, setCatalog] = useState<TRow[]>([]);
@@ -138,19 +143,14 @@ export function useLibraryCatalog<TRow extends CatalogRow>({
     };
   }, [isOpen, reloadToken, tRef, fetchCatalog, loadFailedKey]);
 
-  const withinFilters = useMemo(() => {
-    const filtered = catalog.filter((row) => {
-      // Never offer an archived row (plan D4). The list endpoints promise to exclude them, but this
-      // list is held in memory for the whole time the modal is open, so a row archived from the
-      // picker itself must stop being attachable the moment it is archived — not one refetch later.
-      if (row.isArchived) return false;
-      if (!matchesQuery(row, query)) return false;
-      if (filter === 'notAdded') return !isAlreadyAttached(row, attachedKeys);
-      if (filter === 'translated') return hasTranslationFor(row, languageCode);
-      return true;
-    });
-    return rankByQuery(filtered, query);
-  }, [catalog, query, filter, attachedKeys, languageCode]);
+  const withinFilters = useMemo(
+    () =>
+      rankByQuery(
+        catalog.filter((row) => admitsRow(row, { query, filter, attachedKeys, languageCode, tenantOwnedOnly })),
+        query,
+      ),
+    [catalog, query, filter, attachedKeys, languageCode, tenantOwnedOnly],
+  );
 
   // Applied LAST, over what the chips and the search box already accepted, so `scopeHiddenCount`
   // counts what the scope ALONE removed; against the raw catalog it would also count rows the search

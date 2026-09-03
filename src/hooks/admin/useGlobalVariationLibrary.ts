@@ -21,6 +21,8 @@ interface UseGlobalVariationLibraryArgs {
   attached: Pick<Variation, 'name' | 'globalVariationId'>[];
   /** UI language, used by the `translated` filter. */
   languageCode: string;
+  /** Show only the rows this tenant created — the picker's third shelf (backend D14). */
+  tenantOwnedOnly?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function useGlobalVariationLibrary({
   isOpen,
   attached,
   languageCode,
+  tenantOwnedOnly,
 }: UseGlobalVariationLibraryArgs): LibraryCatalog<GlobalVariationSummary> {
   const attachedKeys = useMemo(() => attachedVariationKeys(attached), [attached]);
 
@@ -43,6 +46,7 @@ export function useGlobalVariationLibrary({
     loadFailedKey: 'variation_library_load_failed',
     attachedKeys,
     languageCode,
+    tenantOwnedOnly,
   });
 }
 

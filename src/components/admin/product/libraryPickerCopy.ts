@@ -28,7 +28,17 @@ const COPY = {
   title: { ingredient: 'add_from_library', variation: 'variation_library_title' },
   viewLabel: { ingredient: 'ingredient_library_view_label', variation: 'variation_library_view_label' },
   viewActive: { ingredient: 'ingredient_library_view_active', variation: 'variation_library_view_active' },
+  viewMine: { ingredient: 'ingredient_library_view_mine', variation: 'variation_library_view_mine' },
   viewArchived: { ingredient: 'ingredient_library_view_archived', variation: 'variation_library_view_archived' },
+  /**
+   * The tenant's own shelf, empty — every tenant's starting state.
+   *
+   * It says "none of your own HERE", not "you have not created any": against a backend that
+   * predates the `origin` column every row reads as a built-in, so the shelf would be asserting
+   * something it cannot know. The weaker sentence is true either way and still points at the way to
+   * add one.
+   */
+  mineEmpty: { ingredient: 'ingredient_library_mine_empty', variation: 'variation_library_mine_empty' },
   archivedHint: { ingredient: 'ingredient_library_archived_hint', variation: 'variation_library_archived_hint' },
   archivedEmpty: { ingredient: 'ingredient_library_archived_empty', variation: 'variation_library_archived_empty' },
   searchLabel: { ingredient: 'ingredient_library_search_label', variation: 'variation_library_search_label' },
@@ -62,6 +72,11 @@ const COPY = {
   create: { ingredient: 'ingredient_library_create', variation: 'variation_library_create' },
   createNamed: { ingredient: 'ingredient_library_create_named', variation: 'variation_library_create_named' },
   createFailed: { ingredient: 'ingredient_library_create_failed', variation: 'variation_library_create_failed' },
+  /** What "+ Create new" needs before it can create anything: a name in the search box. */
+  createNeedsName: {
+    ingredient: 'ingredient_library_create_needs_name',
+    variation: 'variation_library_create_needs_name',
+  },
   loadFailed: { ingredient: 'ingredient_library_load_failed', variation: 'variation_library_load_failed' },
   /* "Apply to items" — plan S8. Every value is still a LITERAL: the two catalogs' keys differ only
      by their prefix, and building them as `${prefix}_library_apply` would take all twenty-six out of

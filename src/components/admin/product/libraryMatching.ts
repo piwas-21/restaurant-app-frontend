@@ -76,3 +76,42 @@ export function hasTranslationFor(row: { translations: { languageCode: string }[
   const primary = languageCode.split('-')[0];
   return row.translations.some((translation) => translation.languageCode.split('-')[0] === primary);
 }
+
+/**
+ * Which rows the picker's BROWSE list admits, before the visible cap.
+ *
+ * The four rules in one place, because three of them already lived here and the fourth — the
+ * tenant's own shelf (backend D14) — is the same kind of thing. It also keeps `useLibraryCatalog` a
+ * state machine rather than a state machine plus a rule set; §4 holds that file at 200 lines.
+ *
+ * Order is load-bearing only for the first two: an ARCHIVED row is never offerable whatever else is
+ * asked (plan D4), and the SHELF is a different list rather than a filter over one, so it is applied
+ * before the search box so the "showing N of M" count is about the shelf the admin is looking at.
+ */
+export function admitsRow<
+  TRow extends LibraryRow & {
+    id: string;
+    isArchived: boolean;
+    origin?: 'system' | 'custom';
+    translations: { languageCode: string; name: string }[];
+  },
+>(
+  row: TRow,
+  options: {
+    query: string;
+    filter: 'all' | 'notAdded' | 'translated';
+    attachedKeys: Set<string>;
+    languageCode: string;
+    tenantOwnedOnly: boolean;
+  },
+): boolean {
+  // The list endpoints promise to exclude archived rows, but this list is held in memory for as long
+  // as the modal is open — so a row archived FROM the picker must stop being attachable at once,
+  // not one refetch later.
+  if (row.isArchived) return false;
+  if (options.tenantOwnedOnly && row.origin !== 'custom') return false;
+  if (!matchesQuery(row, options.query)) return false;
+  if (options.filter === 'notAdded') return !isAlreadyAttached(row, options.attachedKeys);
+  if (options.filter === 'translated') return hasTranslationFor(row, options.languageCode);
+  return true;
+}

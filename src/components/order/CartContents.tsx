@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
@@ -25,6 +27,7 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     itemCount,
     subtotal,
     blockerMessage,
+    orderTypeAttempts,
     error,
     isSyncing,
     isResolving,
@@ -33,10 +36,13 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     handleCheckout,
     handlePick,
   } = useCartContents(props);
+  // Owned here, not a module constant: /cart mounts a second Proceed surface, and two identical
+  // ids would point every `aria-describedby` at whichever rendered first.
+  const blockerHintId = useId();
 
   return (
     <>
-      <OrderTypeToggle onPick={handlePick} />
+      <OrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
 
       {/* Above the list, because it usually explains why the list just changed — a reaped basket
           resyncs to empty, and without this the cart emptied with no word of why (#415).
@@ -78,8 +84,16 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
       />
 
       {/* <output>, not role="status" — it carries the same implicit live-region
-          semantics as a real element rather than a bolted-on role (Sonar S6819). */}
-      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
+          semantics as a real element rather than a bolted-on role (Sonar S6819).
+          Drawn as a NOTICE rather than a grey footnote: measured on the flyout it read as
+          disclaimer text under a live-looking CTA, so a guest pressed Proceed, nothing appeared to
+          happen, and the one sentence explaining it was the least prominent thing on the panel.
+          The click also sends them to the toggle — see `orderTypeAttempts`. */}
+      {blockerMessage && (
+        <output id={blockerHintId} className={styles.checkoutHint}>
+          {blockerMessage}
+        </output>
+      )}
     </>
   );
 }

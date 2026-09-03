@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import type { LibraryOrigin } from '@/components/admin/product/libraryOrigin';
 import type { IngredientKind } from '@/types/menu';
 
 const GLOBAL_INGREDIENTS_API_URL = '/api/global-ingredients';
@@ -39,6 +40,8 @@ export interface GlobalIngredientSummary {
    * the list endpoint sends.
    */
   isArchived: boolean;
+  /** Platform seed or this tenant's own — see `LibraryOrigin`. */
+  origin?: LibraryOrigin;
   /**
    * `'ingredient'` | `'sauce'` (plan D8). ADDITIVE and optional: every seeded row predates the
    * discriminator and arrives without it, which is why nothing here defaults it — read it through

@@ -52,6 +52,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
           register={form.register}
           errors={errors}
           control={form.control}
+          setValue={form.setValue}
           categories={editor.categories}
           categoriesError={editor.categoriesError}
           selectedCategoryIds={editor.selectedCategoryIds}
@@ -92,6 +93,8 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             removeVariation={editor.variations.remove}
             moveVariation={editor.moveVariation}
             getValues={form.getValues}
+            control={form.control}
+            setValue={form.setValue}
           />
         </>
       ),
@@ -158,7 +161,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       defaultCollapsed: true,
       // `hasVariations` reads the LIVE field array, not `product.variations`: adding the first
       // variation must reveal `hideBaseProduct` in the same session, before any save.
-      node: <ProductAdvancedFields register={form.register} hasVariations={editor.variations.fields.length > 0} />,
+      node: <ProductAdvancedFields register={form.register} />,
     },
   ];
 

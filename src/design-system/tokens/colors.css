@@ -88,6 +88,22 @@
   --border-light: #e0e0e0;
   --border-extra-light: #f0f0f0;
 
+  /* Scrollbars.
+
+     Every visible scrollbar in the app was the browser's own — the chunky grey OS default on
+     Windows and Linux, and nothing at all on a Mac until you scrolled. Four components had each
+     styled their own with hand-picked values (`LanguageSwitcher`, `AutoPrintSettingsModal`,
+     `DateTimeSelector`, `ActiveOrdersPanel`); the other ~290 stylesheets had none. These two are
+     the whole design, applied once GLOBALLY in globals.css so nothing has to import it — see the
+     `scrollbar-color` rule there for why that works with no per-component class.
+
+     Deliberately quiet: the thumb is the same grey as a rule, not a brand colour. A scrollbar is
+     chrome — it says where you are, and a red one on every overflowing panel would compete with
+     the one red the design system reserves for actions. */
+  --scrollbar-thumb: #c4c4c4;
+  --scrollbar-thumb-hover: #a8a8a8;
+  --scrollbar-track: transparent;
+
   /* Modal chrome (BaseModal). Structural values pulled into tokens so a template
      can re-skin EVERY modal's shell at once (ADR-006 — Prompt 9) with no
      per-call-site change. Declared HERE (the shared layer both templates import
@@ -455,4 +471,8 @@ html[data-theme='dark'] {
   --feedback-danger-dark: #ff6b6b;
   --feedback-danger-light: #ee5a6f;
   --feedback-danger-xlight: #ffe0e6;
+
+  /* Light thumb on the dark canvas — the same relationship to its surface as the light values. */
+  --scrollbar-thumb: #4a4a4a;
+  --scrollbar-thumb-hover: #5f5f5f;
 }

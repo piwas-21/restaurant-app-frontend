@@ -15,11 +15,19 @@ interface SuggestedSideItemGroupProps {
   onAdd: (sideItemId: string) => void;
   onRemove: (sideItemId: string) => void;
   /**
-   * `disclosure` (default) is the collapsed group the scrolling sheet needs. `plain` is the guided
-   * flow's own step: the group is already the only thing on screen and the step panel carries its
-   * heading, so a header to press and a collapsed state would both be noise.
+   * `bare` is what the guided flow's per-partition step renders: always open, and WITHOUT the
+   * group's own `<h3>`, because the step panel's title already names the partition ("Add a
+   * dessert") and the two said the same thing twice. Same rule, same word, as `VariationsSection`'s
+   * `headless`.
+   *
+   * `plain` is the same group WITH its heading — the fallback for a `sides` step that somehow
+   * carries no `sideGroup`, where all three partitions render and each needs naming.
+   *
+   * `disclosure` (the default) is the collapsed group the pre-flow scrolling sheet used. It has had
+   * no production caller since the guided flow shipped; it is kept because it is the default of a
+   * prop the flow may yet want back, and removing it is a separate change from this one.
    */
-  variant?: 'disclosure' | 'plain';
+  variant?: 'disclosure' | 'plain' | 'bare';
 }
 
 /**
@@ -39,7 +47,7 @@ export default function SuggestedSideItemGroup({
   );
   // Required sides are seeded by the sheet state. Keep their name, price and required marker visible
   // on first render instead of hiding a paid selection behind a collapsed disclosure.
-  const isPlain = variant === 'plain';
+  const isPlain = variant === 'plain' || variant === 'bare';
   const [isOpen, setIsOpen] = useState(hasPreselectedItem);
   const isExpanded = isPlain || isOpen;
   const panelId = useId();
@@ -47,9 +55,8 @@ export default function SuggestedSideItemGroup({
 
   return (
     <section className={styles.section}>
-      {isPlain ? (
-        <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>
-      ) : (
+      {variant === 'plain' && <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>}
+      {variant === 'disclosure' && (
         <h3 className={styles.sectionTitle}>
           <button
             type="button"

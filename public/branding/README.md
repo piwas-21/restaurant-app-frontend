@@ -11,6 +11,15 @@ overrides them. They are deliberately **not** any one restaurant's assets.
 | `hero.png` | home hero + craft auth pages (`BRANDING_HERO`) | 2000×800, brand gradient + onion watermark; mid-dark so classic's white hero type reads through its `rgba(0,0,0,.3)` overlay |
 | `placeholder.png` / `.svg` | menu item with no photo (`BRANDING_PLACEHOLDER`) | onion + wordmark lockup on cream |
 
+## RUMI's own set goes through the same script
+
+`public/branding-rumi/` holds tenant-1's assets, and `build-image.yml`'s prod job applies them with
+`scripts/apply-tenant-branding.sh` — the same script the self-serve path uses. It used to be an
+inline three-file loop (`hero.png icon.svg placeholder.png`) that skipped the three install PNGs, so
+it was the one branding path that bypassed the icon-set rule below. Measured on prod:
+rumirestaurant.ch served RUMI's own favicon and the **SofraPiwas onion** in `icon-192.png`,
+byte-identical to demo's. Do not re-inline it.
+
 ## Why this directory is the platform set, not tenant-1's
 
 It used to hold RUMI's assets. Because `public/branding/` is what every tenant image gets

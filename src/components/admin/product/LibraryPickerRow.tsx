@@ -30,8 +30,17 @@ interface LibraryPickerRowProps {
    * carries a Restore action instead of the destructive one.
    */
   archived?: boolean;
-  /** Archive or delete this row. The label of the control is derived from the usage count. */
+  /** Archive or delete this row. The label of the control says which — see `destructiveLabel`. */
   onArchive?: () => void;
+  /**
+   * May this row be REMOVED, or only taken off the shelf? Only the tenant's own may (backend D14):
+   * a platform-seeded row is archived at any usage count, including zero, which is exactly the case
+   * this picker used to label "Delete" on all 704 of them.
+   *
+   * Defaults to true, which is what every row was before the origin discriminator existed and what
+   * a caller that does not know about origins still means.
+   */
+  canDelete?: boolean;
   /** Un-archive this row. */
   onRestore?: () => void;
   /** A write for this row is in flight; both actions are held. */
@@ -78,6 +87,7 @@ export default function LibraryPickerRow({
   onToggle,
   archived = false,
   onArchive,
+  canDelete = true,
   onRestore,
   isPending = false,
   onApplyToItems,
@@ -91,7 +101,15 @@ export default function LibraryPickerRow({
 
   const usageCount = row.usedOnProductCount ?? 0;
   const isInUse = usageCount > 0;
-  const destructiveLabel = isInUse ? t(copy.archiveAction) : t(copy.deleteAction);
+  /*
+   * The SERVER's own branch, mirrored: `DELETE /api/global-…/{id}` archives when the row is in use
+   * OR when it is platform-seeded, and removes only otherwise. A button that promised "Delete" and
+   * archived instead would be lying about the one thing the admin is trying to decide — which is
+   * the reason this label was derived from the usage count in the first place, and the reason it
+   * now reads the origin too.
+   */
+  const willArchive = isInUse || !canDelete;
+  const destructiveLabel = willArchive ? t(copy.archiveAction) : t(copy.deleteAction);
 
   const confirmDestructive = () => {
     setIsConfirming(false);
@@ -167,7 +185,9 @@ export default function LibraryPickerRow({
         )}
         {!archived && onArchive && isConfirming && (
           <span className={styles.confirm}>
-            <span className={styles.confirmQuestion}>{isInUse ? t(copy.archiveConfirm) : t(copy.deleteConfirm)}</span>
+            <span className={styles.confirmQuestion}>
+              {willArchive ? t(copy.archiveConfirm) : t(copy.deleteConfirm)}
+            </span>
             <button
               type="button"
               className={`${styles.rowAction} ${styles.rowActionDanger}`}

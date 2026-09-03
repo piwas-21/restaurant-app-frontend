@@ -65,7 +65,14 @@ export default function GlobalVariationPickerModal({
 }: Readonly<GlobalVariationPickerModalProps>) {
   const { i18n } = useTranslation();
   const [view, setView] = useState<LibraryPickerView>('active');
-  const library = useGlobalVariationLibrary({ isOpen, attached, languageCode: i18n.language });
+  const library = useGlobalVariationLibrary({
+    isOpen,
+    attached,
+    languageCode: i18n.language,
+    // The third shelf (backend D14). One catalog, one fetch — the tenant's own rows are a narrowing
+    // of the list already in memory, not a second endpoint.
+    tenantOwnedOnly: view === 'mine',
+  });
   const archive = useGlobalVariationArchive({
     isOpen,
     isViewingArchive: view === 'archived',

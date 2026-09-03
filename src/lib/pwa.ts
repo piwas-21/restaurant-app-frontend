@@ -43,3 +43,26 @@ export function isIosInstallable(): boolean {
   const isKnownWebview = /FBAN|FBAV|Instagram|Line\//.test(ua);
   return isRealBrowser && !isKnownWebview;
 }
+
+/**
+ * A HANDHELD — a phone or a tablet — which is the only place the install offer belongs.
+ *
+ * Chromium fires `beforeinstallprompt` on the desktop too, so the nav entry appeared on a laptop
+ * and offered to install a restaurant's ordering app as a desktop window. That is the report this
+ * closes. iOS needs no test of its own: `isIosInstallable` already only ever answers true on a
+ * phone or an iPad.
+ *
+ * TWO conditions, both required, because either alone is wrong:
+ *  - `(pointer: coarse)` alone admits a touchscreen laptop, which is a desktop.
+ *  - a width bound alone admits a narrow desktop window, which is still a desktop — and a resized
+ *    window is exactly how a developer would notice, since the offer would appear and disappear.
+ * A 1024px ceiling puts every phone and every tablet in portrait or landscape inside it (an iPad
+ * Pro's 1024pt landscape is the widest thing that has to fit) and leaves laptops out.
+ *
+ * `false` on the server: the entry is a client concern and must never influence the SSR HTML, or it
+ * would hydrate differently per device.
+ */
+export function isHandheldDisplay(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(pointer: coarse)').matches && window.matchMedia('(max-width: 1024px)').matches;
+}

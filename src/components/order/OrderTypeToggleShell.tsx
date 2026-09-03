@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Utensils, ShoppingBag, Truck } from 'lucide-react';
 import { OrderType } from '@/types/order';
@@ -25,8 +25,28 @@ interface OrderTypeToggleShellProps {
    * `icon`, `label`, `skeleton`. The classic sidebar toggle and craft's
    * order-pad chips pass their own module, so the two share this markup /
    * behaviour (Sonar new-code dedup) and differ only in CSS.
+   *
+   * Optional `needsChoice` marks the group while a Proceed click is waiting on it.
    */
   styles: Readonly<Record<string, string>>;
+  /**
+   * Rises each time a Proceed-to-Checkout click was refused for want of an order type; `0` means
+   * nothing has been refused. Every increase scrolls this group into view and focuses its first
+   * button, so the guest lands ON the control the CTA is waiting for.
+   *
+   * A COUNTER, not a boolean, because the second refusal has to act too and a boolean that is
+   * already `true` never fires an effect again. See `useCheckoutBlockerHint.attempts`.
+   */
+  focusSignal?: number;
+  /**
+   * The id of the surface's blocker sentence, so a refused click's focus move ARRIVES WITH ITS
+   * REASON. The `<output>` is already on screen before the click (the 'order-type' blocker is
+   * derived, not clicked into existence), so its live region announces nothing on a refusal —
+   * without this, a screen-reader user hears focus land on "Dine In, button" and is told nothing
+   * about why. The surface owns the id (`useId`), because two cart surfaces can be mounted at once
+   * and a module constant would collide.
+   */
+  blockerHintId?: string;
 }
 
 /**
@@ -40,10 +60,39 @@ interface OrderTypeToggleShellProps {
  * Not memoized here — each template wraps this in its own `React.memo` (props
  * are a single `onPick` function ref).
  */
-export default function OrderTypeToggleShell({ onPick, styles }: Readonly<OrderTypeToggleShellProps>) {
+export default function OrderTypeToggleShell({
+  onPick,
+  styles,
+  focusSignal = 0,
+  blockerHintId,
+}: Readonly<OrderTypeToggleShellProps>) {
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
+  const groupRef = useRef<HTMLFieldSetElement>(null);
+  /** The last signal this actually SERVICED — not the last it was told about. See below. */
+  const servicedRef = useRef(0);
+
+  // Take the guest to the control, rather than only telling them about it. `focusSignal` starts at
+  // 0 and only ever changes on a REFUSED click, so this cannot fire while the basket is merely
+  // being read — which is why the derived hint (up from the moment the cart has a line) is not the
+  // trigger. `block: 'nearest'` so a toggle already on screen does not jump.
+  //
+  // It is keyed on the LOADING STATE as well as the signal, and remembers what it serviced, because
+  // the CTA stays live while `useEnabledOrderTypes` is still out (only an empty cart disables it).
+  // A click refused in that window ran this effect against the ref-less SKELETON below, and keying
+  // on `focusSignal` alone meant it never ran again once the buttons mounted: the guest got the
+  // outline and no focus — the do-nothing click this exists to remove — until they clicked a second
+  // time. `servicedRef` is what keeps the widened deps from re-firing on an unrelated change to the
+  // enabled list.
+  useEffect(() => {
+    if (focusSignal <= 0 || focusSignal === servicedRef.current) return;
+    const group = groupRef.current;
+    if (!group) return; // still a skeleton — this runs again when the group mounts
+    servicedRef.current = focusSignal;
+    group.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    group.querySelector('button')?.focus();
+  }, [focusSignal, loading, enabled.length]);
 
   if (loading || enabled.length === 0) {
     // While the admin-enabled list is in flight, render a spacer-shaped skeleton
@@ -53,7 +102,18 @@ export default function OrderTypeToggleShell({ onPick, styles }: Readonly<OrderT
   }
 
   return (
-    <div role="group" aria-label={t('order_type', 'Order type')} className={styles.group}>
+    /*
+     * `fieldset` + `legend`, not a `div` with `role="group"` and an `aria-label` (Sonar S6819, and
+     * the same call `LibraryPickerToolbar` already records). A fieldset's implicit role IS `group`
+     * and the legend IS its accessible name, so nothing that queries `getByRole('group', { name:
+     * /order type/i })` — the e2e suites do — sees any difference.
+     */
+    <fieldset
+      ref={groupRef}
+      className={`${styles.group} ${focusSignal > 0 ? (styles.needsChoice ?? '') : ''}`.trim()}
+      aria-describedby={focusSignal > 0 ? blockerHintId : undefined}
+    >
+      <legend className="sr-only">{t('order_type', 'Order type')}</legend>
       {enabled.map((type) => {
         const isActive = state.orderType === type;
         return (
@@ -69,7 +129,7 @@ export default function OrderTypeToggleShell({ onPick, styles }: Readonly<OrderT
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 

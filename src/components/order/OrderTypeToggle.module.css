@@ -1,7 +1,13 @@
 /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
    Craft renders the Dine In / Takeaway / Delivery choice as letterpress
    paper-tab toggles, the active one terracotta (Prompt 11). */
+/* The group is a `fieldset` since #684 (Sonar S6819: a fieldset+legend IS the grouping semantic).
+   `min-width: 0` because a fieldset's UA default is `min-width: min-content`, which stops a grid
+   or flex child from shrinking below its widest label — the one piece of fieldset chrome that is
+   not overridden by the properties this rule already sets. */
 .group {
+  min-width: 0;
+  margin: 0;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
@@ -113,4 +119,19 @@
   .label {
     font-size: var(--modal-body-toggle-size-sm, 0.85rem);
   }
+}
+
+/*
+  The group while a Proceed-to-Checkout click is waiting on it (`focusSignal`). An outline rather
+  than a colour swap: the buttons carry their own selected/unselected states and recolouring the
+  container would compete with them. It stays up until a type is picked, which is exactly when
+  `useCheckoutBlockerHint` resets the counter that turns it on.
+
+  The ring is `--feedback-warning`, NOT `--feedback-warning-xlight`. That token is a light-mode
+  FILL tint (every other consumer paints dark text on it) and it has no dark override, so as a
+  stroke it measured 1.03:1 against the modal's own surface in light and a near-white halo in dark.
+*/
+.needsChoice {
+  border-color: var(--feedback-warning);
+  box-shadow: 0 0 0 2px var(--feedback-warning);
 }

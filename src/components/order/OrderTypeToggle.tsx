@@ -12,6 +12,10 @@ interface OrderTypeToggleProps {
    * relevant detail modal.
    */
   onPick: (type: OrderType) => void;
+  /** Forwarded to the shell — see `OrderTypeToggleShell.focusSignal`. */
+  focusSignal?: number;
+  /** Forwarded to the shell — see `OrderTypeToggleShell.blockerHintId`. */
+  blockerHintId?: string;
 }
 
 /**
@@ -22,8 +26,10 @@ interface OrderTypeToggleProps {
  */
 // Memoized so the `useCallback`-stabilised `onPick` from CartContents (PR #74
 // review) actually prevents this child from re-rendering on parent re-renders.
-function OrderTypeToggleImpl({ onPick }: OrderTypeToggleProps) {
-  return <OrderTypeToggleShell onPick={onPick} styles={styles} />;
+function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId }: Readonly<OrderTypeToggleProps>) {
+  return (
+    <OrderTypeToggleShell onPick={onPick} styles={styles} focusSignal={focusSignal} blockerHintId={blockerHintId} />
+  );
 }
 
 const OrderTypeToggle = React.memo(OrderTypeToggleImpl);

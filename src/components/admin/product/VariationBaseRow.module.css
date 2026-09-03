@@ -1,0 +1,64 @@
+/*
+  The item's own row at the top of its variations table. It borrows the table's row chrome from
+  `ProductIngredientRow.module.css` like every other row; what is here is only what makes it read as
+  the ITEM rather than as one more editable size.
+*/
+
+/* Tinted, so the eye can tell at a glance which row is the dish and which are its sizes. */
+.baseRow {
+  background-color: var(--surface-secondary-light);
+}
+
+/*
+  The flex lives on an INNER element, not on the `<td>` — which is how the sibling rows do it
+  (`ProductIngredientRow`'s `.nameCell` cell plus its `.nameField` div), and not a style preference:
+  a flexed table cell leaves the table's column model (the browser wraps it in an anonymous cell),
+  so its width stops participating in the algorithm shared with the `<th>` and the rows beneath it.
+*/
+.nameCell {
+  padding: 0.5rem;
+  vertical-align: middle;
+}
+
+.nameField {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Says WHY this row has no inputs, in one word, beside the name it applies to. */
+.tag {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hint {
+  padding: 0.5rem;
+  vertical-align: middle;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+/* The base PRICE, not a modifier — the number every row below is relative to. */
+.basePrice {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+[data-theme='dark'] .baseRow {
+  background-color: var(--surface-secondary);
+}

@@ -1,7 +1,7 @@
 import { localizedName } from './localizedContent';
 import { isSauce } from './sauceGroup';
 import { buildBaseIngredientSelection } from './ingredientSelection';
-import { groupSuggestedSideItems } from './suggestedSideItems';
+import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSideItems';
 import { findBundleOption } from './bundleSelection';
 import type { CustomizationStep } from './customizationSteps';
 import type { SelectedSide } from './linePrice';
@@ -51,7 +51,7 @@ export function productStepSummary(
         .filter((sauce) => sauce.isActive && isSauce(sauce) && state.selectedIngredients.includes(sauce.id))
         .map((sauce) => localizedName(sauce, language));
     case 'sides':
-      return sideSummary(product, state);
+      return sideSummary(product, state, step.sideGroup);
     default:
       return [];
   }
@@ -98,9 +98,14 @@ function ingredientSummary(
   return lines;
 }
 
-/** Every partition, flattened in group order — the sides step now holds all of them at once. */
-function sideSummary(product: DetailedProduct, state: ProductSummaryState): string[] {
+/**
+ * `onlyGroup` scopes the row to ONE partition, because each partition is now its own step: without
+ * it every side step's review row would list the same three groups' worth of chosen items, and
+ * jumping back from any of them would land on a step whose summary described the other two.
+ */
+function sideSummary(product: DetailedProduct, state: ProductSummaryState, onlyGroup?: SuggestedSideGroup): string[] {
   return groupSuggestedSideItems(product.suggestedSideItems ?? [])
+    .filter((group) => onlyGroup === undefined || group.id === onlyGroup)
     .flatMap((group) => group.items)
     .map((side) => ({ side, quantity: state.selectedSideItems.find((chosen) => chosen.id === side.id)?.quantity ?? 0 }))
     .filter((entry) => entry.quantity > 0)

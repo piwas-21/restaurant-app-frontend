@@ -78,12 +78,16 @@ jobs:
         # NEXT_PUBLIC_*), so this is the right seam. Deliberately NOT added to the staging
         # job below: that image is a Sofra-owned test tenant and should carry the platform
         # default, which is also a fix — it inherited RUMI's assets until now.
-        run: |
-          set -euo pipefail
-          for f in hero.png icon.svg placeholder.png; do
-            cp "public/branding-rumi/$f" "public/branding/$f"
-            echo "RUMI branding applied: $f"
-          done
+        #
+        # THROUGH THE SHARED SCRIPT, not an inline loop. The loop copied three files —
+        # hero.png, icon.svg, placeholder.png — and skipped the three install PNGs, so it
+        # was the one branding path that bypassed the icon-set rule the script exists to
+        # enforce. Measured on prod: rumirestaurant.ch served RUMI's own favicon and the
+        # SofraPiwas onion in /branding/icon-192.png, byte-identical to demo's, i.e. the
+        # platform's mark on a paying tenant's home screen. That is precisely the leak
+        # apply-tenant-branding.sh's own header warns the duplication would reintroduce
+        # "on one path only".
+        run: bash scripts/apply-tenant-branding.sh public/branding-rumi RUMI
 
       # NEXT_PUBLIC_TENANT_COPY_PACK=rumi below is the branding step's argument applied to WORDS.
       # "Authentic Turkish Cuisine" and "…in {{city}}, Switzerland" are true of RUMI and were being

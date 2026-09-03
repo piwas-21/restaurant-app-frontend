@@ -324,6 +324,18 @@ jobs:
           tags: |
             type=raw,value=${{ inputs.image_tag }}
             type=raw,value=${{ inputs.image_tag }}-sha-${{ steps.buildmeta.outputs.sha }}
+          # The OCI revision label needs the same correction as GIT_SHA and the rollback
+          # tag above, and was the one place still left reading `github.sha`:
+          # metadata-action derives `org.opencontainers.image.revision` from the ref the
+          # RUN is on, which for a `workflow_run` caller is the DEFAULT branch. Measured
+          # 2026-09-02 on the release of a3cb4370: kebabdilhan's image carried
+          # `revision=09b6c125` — develop's tip — while the bundle it shipped was main's.
+          # Harmless that day only because the release merge was content-free and the two
+          # trees were identical; the moment develop moves ahead of main, an operator
+          # reading `docker inspect` sees a plausible SHA that names code the tenant is
+          # not running. Overriding it here wins over the auto-generated value.
+          labels: |
+            org.opencontainers.image.revision=${{ steps.buildmeta.outputs.sha }}
 
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:

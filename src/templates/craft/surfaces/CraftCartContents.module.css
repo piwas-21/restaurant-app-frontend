@@ -164,7 +164,7 @@
   margin-top: 1rem;
 }
 
-/* Why the CTA won't route yet — a pencilled margin note under the button. */
+/* Why the CTA won't route yet — a pencilled margin note, in amber so it is not read as a footnote. */
 .checkoutHint {
   display: block;
   margin: 0.5rem 0 0;
@@ -172,7 +172,7 @@
   font-size: 1.15rem;
   line-height: 1.25;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--feedback-warning-text);
 }
 
 /* Empty order pad — a Caveat note. */

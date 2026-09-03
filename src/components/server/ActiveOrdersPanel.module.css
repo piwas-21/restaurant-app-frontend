@@ -88,20 +88,6 @@
   text-align: center;
 }
 
-/* Scrollbar styling */
-.orderList::-webkit-scrollbar {
-  width: 6px;
-}
-
-.orderList::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.orderList::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 3px;
-}
-
-.orderList::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-secondary);
-}
+/* Scrollbar: the app's own, from globals.css. This file used to hand-pick its own widths and
+   colours; four components did, and ~290 stylesheets did not, so the same panel looked native on
+   one screen and designed on another. */

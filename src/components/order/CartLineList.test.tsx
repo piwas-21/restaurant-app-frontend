@@ -4,9 +4,19 @@ import type { CartItem } from '@/components/cart/cartTypes';
 import CartLineList from './CartLineList';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+  // `i18n` too: `CartLineList` reads `i18n.language` to resolve the line's variation in the
+  // reading language, and a mock returning only `t` throws on the real component's own code.
+  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key, i18n: { language: 'en' } }),
 }));
-jest.mock('./OrderLineSummary', () => ({ __esModule: true, default: () => <div data-testid="line-summary" /> }));
+jest.mock('./OrderLineSummary', () => ({
+  __esModule: true,
+  // Records what the list ASKED for. The variation row is rendered by `OrderLineSummary`, so the
+  // thing this list is responsible for is passing the resolved label and turning the row on —
+  // `OrderLineSummary.test` owns whether the row then draws.
+  default: ({ line, showVariation }: { line: { variation?: string }; showVariation?: boolean }) => (
+    <div data-testid="line-summary" data-variation={showVariation ? (line.variation ?? '') : undefined} />
+  ),
+}));
 
 const styles = {
   itemList: 'itemList',
@@ -67,5 +77,22 @@ describe('CartLineList', () => {
     const p = setup({ items: [item({ basketItemId: undefined, id: undefined, productId: 'p9' })] });
     fireEvent.click(screen.getByRole('button', { name: 'Remove item' }));
     expect(p.onRemove).toHaveBeenCalledWith('p9');
+  });
+
+  /**
+   * The reported gap: the /cart card and the checkout list have always shown the chosen size and
+   * this list did not, so the basket flyout — the only cart surface on /menu since the rail left it
+   * — was the one place a guest could not check WHICH variation they had added.
+   */
+  it('hands the summary the chosen variation, resolved for the reading language', () => {
+    setup({
+      items: [item({ variationContent: { en: { name: 'Large' } }, variationName: 'Large (40 cm)' })],
+    });
+    expect(screen.getByTestId('line-summary')).toHaveAttribute('data-variation', 'Large');
+  });
+
+  it("asks for the variation row even on a line that has none, so the empty case is the summary's call", () => {
+    setup({ items: [item()] });
+    expect(screen.getByTestId('line-summary')).toHaveAttribute('data-variation', '');
   });
 });

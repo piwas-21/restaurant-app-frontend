@@ -134,6 +134,46 @@ describe('useCartContents', () => {
     expect(result.current.blockerMessage).toBe('Choose how you want to order to continue');
   });
 
+  /**
+   * The sentence alone was not enough: it sits under a full-strength CTA and the click still
+   * appeared to do nothing. `orderTypeAttempts` is what sends the guest TO the toggle — zero until
+   * a click is actually refused (so opening the basket does not drag them anywhere), and RISING on
+   * each further refusal, because the toggle's effect cannot fire twice on an unchanging value.
+   */
+  it('counts refused Proceed clicks so the surface can send the guest to the toggle', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+
+    expect(result.current.blockerMessage).toBe('Choose how you want to order to continue');
+    expect(result.current.orderTypeAttempts).toBe(0);
+
+    await act(async () => result.current.handleCheckout());
+    expect(result.current.orderTypeAttempts).toBe(1);
+
+    await act(async () => result.current.handleCheckout());
+    expect(result.current.orderTypeAttempts).toBe(2);
+  });
+
+  it('does not send the guest to the toggle when the blocker is missing DETAILS, not a type', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce('details');
+
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+    await act(async () => result.current.handleCheckout());
+
+    expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+    expect(result.current.orderTypeAttempts).toBe(0);
+  });
+
+  it('an empty cart is a true no-op — no refusal is recorded', async () => {
+    mockCartState = { items: [], isSyncing: false };
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+    await act(async () => result.current.handleCheckout());
+    expect(result.current.orderTypeAttempts).toBe(0);
+  });
+
   it('reopens the type modal when the router reports missing details', async () => {
     const pickType = jest.fn();
     mockCartState = { items: [item()], isSyncing: false };

@@ -72,6 +72,20 @@ const COMPLEX = {
 };
 
 /**
+ * Two side partitions — the shape that motivated the split. Measured on the demo tenant's real
+ * catalogue, 22 of 58 products look exactly like this (beverages + desserts) and offer 19 side
+ * items between them; in one panel that is 1278px of content behind a sticky Continue.
+ */
+const TWO_SIDE_GROUPS = {
+  ...COMPLEX,
+  id: 'p4',
+  suggestedSideItems: [
+    { id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 },
+    { id: 'baklava', name: 'Baklava', price: 5, type: 'dessert', isRequired: false, displayOrder: 2 },
+  ],
+};
+
+/**
  * Same shape, but the product demands a sauce. This is the required gate a guest can actually
  * REACH: nothing seeds a sauce selection, whereas a variations step opens already answered by
  * `buildInitialSheetState` (see the backstop note on `stepBlocker`).
@@ -196,6 +210,27 @@ describe('the required-step gate', () => {
 });
 
 describe('walking the flow', () => {
+  /**
+   * The reported defect, end to end: with both partitions in ONE step the desserts sat below the
+   * fold under a permanently-reachable Continue, so a guest picked a drink and never saw them.
+   * Each partition is now its own screen, and the assertion that matters is the NEGATIVE one —
+   * that the dessert is not on the drinks screen and the drink is not on the dessert screen.
+   */
+  it('gives each side partition its own screen', async () => {
+    await openSheet(TWO_SIDE_GROUPS);
+    advance(); // variations
+    advance(); // ingredients
+    advance(); // sauces
+
+    expect(screen.getByText('Cola')).toBeInTheDocument();
+    expect(screen.queryByText('Baklava')).not.toBeInTheDocument();
+
+    advance();
+
+    expect(screen.getByText('Baklava')).toBeInTheDocument();
+    expect(screen.queryByText('Cola')).not.toBeInTheDocument();
+  });
+
   it('reaches each decision in turn and ends on the review', async () => {
     await openSheet(COMPLEX);
 

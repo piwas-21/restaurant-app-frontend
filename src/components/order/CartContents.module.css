@@ -175,14 +175,14 @@
   cursor: not-allowed;
 }
 
-/* Why the CTA won't route yet (no order type / missing details). */
+/* Why the CTA won't route yet. Amber, not grey: grey read as a disclaimer under a live CTA. */
 .checkoutHint {
   display: block;
   margin: 0.5rem 0 0;
   font-size: 0.8125rem;
   line-height: 1.35;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--feedback-warning-text);
 }
 
 /* Cart failure sentence (#415). Sits above the line list, since it usually explains why the list

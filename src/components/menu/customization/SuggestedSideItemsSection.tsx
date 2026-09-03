@@ -1,7 +1,7 @@
 'use client';
 
 import SuggestedSideItemGroup from './SuggestedSideItemGroup';
-import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
+import { groupSuggestedSideItems, type SuggestedSideGroup } from '@/utils/suggestedSideItems';
 import type { SuggestedSideItem } from '@/types/menu';
 
 interface SuggestedSideItemsSectionProps {
@@ -10,7 +10,13 @@ interface SuggestedSideItemsSectionProps {
   onSelectionChange: (selected: Array<{ id: string; quantity: number }>) => void;
   currentLanguage: string;
   /** Passed straight through — see `SuggestedSideItemGroup`. */
-  variant?: 'disclosure' | 'plain';
+  variant?: 'disclosure' | 'plain' | 'bare';
+  /**
+   * Render only this partition. The guided flow gives each group its own step, so it asks for one
+   * at a time. Omitted, every partition renders — which is what a `sides` step with no `sideGroup`
+   * falls back to, and the only path that still exercises it. See `ProductSheetBody`.
+   */
+  onlyGroup?: SuggestedSideGroup;
 }
 
 /** Optional drinks, desserts and accompaniments, partitioned without changing their basket payload. */
@@ -19,6 +25,7 @@ export default function SuggestedSideItemsSection({
   selectedSideItems,
   onSelectionChange,
   variant,
+  onlyGroup,
 }: Readonly<SuggestedSideItemsSectionProps>) {
   if (!sideItems.length) return null;
 
@@ -40,14 +47,16 @@ export default function SuggestedSideItemsSection({
     );
   };
 
-  return groupSuggestedSideItems(sideItems).map((group) => (
-    <SuggestedSideItemGroup
-      key={group.id}
-      group={group}
-      selectedSideItems={selectedSideItems}
-      onAdd={handleAdd}
-      onRemove={handleRemove}
-      variant={variant}
-    />
-  ));
+  return groupSuggestedSideItems(sideItems)
+    .filter((group) => onlyGroup === undefined || group.id === onlyGroup)
+    .map((group) => (
+      <SuggestedSideItemGroup
+        key={group.id}
+        group={group}
+        selectedSideItems={selectedSideItems}
+        onAdd={handleAdd}
+        onRemove={handleRemove}
+        variant={variant}
+      />
+    ));
 }

@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Elige una opción para continuar.",
   "step_blocked_sauces": "Elige las salsas requeridas para continuar.",
   "step_blocked_section": "Realiza la selección requerida para continuar.",
-  "step_sides": "Acompañamientos y bebidas",
+  "step_sides_desserts": "Añadir un postre",
+  "step_sides_accompaniments": "Añadir un acompañamiento",
   "step_drinks_hint": "Se añade como artículo independiente a tu cesta."
 }

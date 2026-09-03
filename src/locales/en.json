@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Please choose an option to continue.",
   "step_blocked_sauces": "Please choose the required sauces to continue.",
   "step_blocked_section": "Please make the required selection to continue.",
-  "step_sides": "Add sides & drinks",
+  "step_sides_desserts": "Add a dessert",
+  "step_sides_accompaniments": "Add a side",
   "step_drinks_hint": "Added as its own item in your basket."
 }

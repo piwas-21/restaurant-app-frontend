@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Scegli un’opzione per continuare.",
   "step_blocked_sauces": "Scegli le salse richieste per continuare.",
   "step_blocked_section": "Effettua la selezione richiesta per continuare.",
-  "step_sides": "Contorni e bevande",
+  "step_sides_desserts": "Aggiungi un dolce",
+  "step_sides_accompaniments": "Aggiungi un contorno",
   "step_drinks_hint": "Aggiunto come articolo separato nel carrello."
 }

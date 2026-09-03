@@ -35,21 +35,30 @@ export const TENANT_CURRENCY: string = /^[A-Z]{3}$/.test(rawTenantCurrency) ? ra
  * `8,00 €` for everyone. Switching the i18next language must never move a
  * decimal separator or a currency symbol.
  *
- * Validated through `Intl.getCanonicalLocales`, which is the authority here
- * (a regex cannot tell `de-CH` from `de_CH`): it canonicalises case, so
- * `DE-ch` resolves to `de-CH`, and throws `RangeError` on anything
- * structurally invalid (unset, empty, junk, underscores), which falls back to
- * `de-CH` so the default (RUMI) build renders byte-identical strings
- * everywhere. Consumers format via src/utils/currency.ts helpers.
+ * Validated through `Intl.getCanonicalLocales`, which is the authority here: it
+ * canonicalises case, so `DE-ch` resolves to `de-CH`, and it throws
+ * `RangeError` on a structurally invalid tag (`de_CH`, `junk!`, `123`).
+ * Unset falls back to `de-CH` silently -- that is every tenant but this one --
+ * while a tag that was SET and is invalid warns rather than being swallowed:
+ * degrading in silence would ship Swiss price formatting to a non-Swiss
+ * tenant, which is the exact defect this constant exists to prevent (E9 --
+ * bind the error AND surface it). Consumers format via src/utils/currency.ts.
  */
-const rawTenantLocale = (process.env.NEXT_PUBLIC_TENANT_LOCALE ?? '').trim();
-export const TENANT_LOCALE: string = (() => {
+function resolveTenantLocale(raw: string): string {
+  if (raw === '') return 'de-CH';
   try {
-    return Intl.getCanonicalLocales(rawTenantLocale)[0] ?? 'de-CH';
-  } catch {
-    return 'de-CH';
+    const [canonical] = Intl.getCanonicalLocales(raw);
+    if (canonical !== undefined) return canonical;
+  } catch (error) {
+    console.warn(
+      `NEXT_PUBLIC_TENANT_LOCALE=${JSON.stringify(raw)} is not a valid BCP-47 language tag, ` +
+        `so prices will format as de-CH: ${String(error)}`,
+    );
   }
-})();
+  return 'de-CH';
+}
+
+export const TENANT_LOCALE: string = resolveTenantLocale((process.env.NEXT_PUBLIC_TENANT_LOCALE ?? '').trim());
 
 /**
  * Per-tenant build-time assets (issue #125 part 3, corrected in SOFRA-ONBOARDING-PLAN O6).

@@ -182,8 +182,32 @@ describe('TENANT_LOCALE resolution', () => {
   });
 
   it('falls back to de-CH (never throws) on structurally invalid tags', async () => {
-    for (const junk of ['de_CH', 'junk!', '123', 'a', 'en--US', '€']) {
-      expect((await loadCurrency(undefined, junk)).TENANT_LOCALE).toBe('de-CH');
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      for (const junk of ['de_CH', 'junk!', '123', 'a', 'en--US', '€']) {
+        expect((await loadCurrency(undefined, junk)).TENANT_LOCALE).toBe('de-CH');
+      }
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('WARNS on a tag that was set but is invalid, and stays silent when simply unset', async () => {
+    // E9: swallowing this would ship Swiss price formatting to a non-Swiss tenant with no trace.
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await loadCurrency(undefined, 'de_CH');
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain('NEXT_PUBLIC_TENANT_LOCALE');
+      expect(warn.mock.calls[0][0]).toContain('de_CH');
+
+      warn.mockClear();
+      await loadCurrency(undefined, undefined);
+      await loadCurrency(undefined, '   ');
+      await loadCurrency(undefined, 'fr-FR');
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
     }
   });
 });

@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
+import VariationBaseRow from './VariationBaseRow';
 import VariationLibraryButton from './VariationLibraryButton';
 import { nextVariationDisplayOrder } from './globalVariationLibrary';
 import { ProductVariationsProps } from './types';
@@ -53,6 +54,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   removeVariation,
   moveVariation,
   getValues,
+  control,
 }) => {
   const { t } = useTranslation();
 
@@ -63,7 +65,17 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
       </h3>
 
       {variationFields.length === 0 ? (
-        <p className={groupStyles.emptyState}>{t('no_variations_added')}</p>
+        <>
+          <p className={groupStyles.emptyState}>{t('no_variations_added')}</p>
+          {/*
+           * REGISTERED, never unmounted (plan §6): a registered field the form stops rendering is a
+           * value the PUT clears, and an item that hides its base row and then loses its variations
+           * must not have that column silently rewritten — its variations may come back.
+           * `isBaseRowHidden` already degrades the flag to false while nothing is active, so the
+           * runtime is right either way; this only stops the SAVE from lying.
+           */}
+          <input type="checkbox" hidden {...register('hideBaseProduct')} />
+        </>
       ) : (
         <table className={groupStyles.table}>
           <thead>
@@ -79,6 +91,10 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
             </tr>
           </thead>
           <tbody>
+            {/* The item itself, first, exactly where the guest sheet draws it. Its ACTIVE switch is
+                `hideBaseProduct`, which used to live under Advanced five sections away and phrased
+                as the negative — so the one list a guest reads was assembled from two screens. */}
+            <VariationBaseRow control={control} />
             {variationFields.map((field, index) => (
               <tr key={field.id} className={rowStyles.row}>
                 <RowMoveButtons

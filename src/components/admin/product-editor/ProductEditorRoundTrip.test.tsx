@@ -358,9 +358,10 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     // A three-button group. It left `Details` for `Service & availability` in S2 (§4) — the move
     // this assertion exists to survive.
     expect(payload.kitchenType).toBe('BackKitchen');
-    // Meaningful only with variations, and D7 makes it conditional in S8.
+    // Meaningful only with variations, which is why it is now the base row's own ACTIVE switch
+    // inside the variations table rather than a "Hide base product" box under Advanced.
     expect(payload.hideBaseProduct).toBe(true);
-    // A checkbox in the same collapsed section (#631). Losing it un-hides the item on the guest
+    // A checkbox in the collapsed Advanced section (#631). Losing it un-hides the item on the guest
     // menu, which is the failure this whole file exists to catch.
     expect(payload.isComponent).toBe(true);
     // null means "inherit"; 3 is an explicit override that must never collapse back to null.
@@ -452,8 +453,13 @@ describe('product editor — a save that changes nothing changes nothing', () =>
    * the side rail, which is a SIBLING of the form. Both still have to reach the PUT, because the
    * command assigns every column it is given: an item whose type quietly became the default, or
    * whose `isActive` came back `false`, is off the menu.
+   *
+   * `type` and `hideBaseProduct` have since LEFT Advanced — the type for Basics, `hideBaseProduct`
+   * for the variations table's own base row — so this no longer demonstrates the collapsed case
+   * with them. It is kept because the payload assertion is still worth having, and the collapsed
+   * premise is asserted below with the field that is actually in there.
    */
-  it('sends the Advanced fields while the Advanced section is collapsed', async () => {
+  it('sends the type and hideBaseProduct, wherever their sections put them', async () => {
     const { container } = render(
       <ProductEditorPage
         product={fullyPopulated}
@@ -466,6 +472,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     await act(async () => {});
 
     // The premise: this is the only collapsed section, and it IS collapsed on a first visit (D1).
+    // `isComponent` is what lives in it now, so it is what proves a collapsed body still submits.
     expect(container.querySelector('#editor-section-advanced-body')).toHaveAttribute('hidden');
 
     fireEvent.submit(container.querySelector('form') as HTMLFormElement);
@@ -473,6 +480,35 @@ describe('product editor — a save that changes nothing changes nothing', () =>
 
     const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
     expect(payload.type).toBe(ITEM_TYPE);
+    expect(payload.hideBaseProduct).toBe(true);
+    expect(payload).toHaveProperty('isComponent');
+  });
+
+  /**
+   * The §6 case `hideBaseProduct` moved INTO. The base row is drawn only when the item has a
+   * variation; with none, `ProductVariations` renders a bare registered input instead — and a
+   * registered field the form stops rendering is a value the PUT clears. The fixture above has a
+   * variation, so it proves the `Controller` path only; this proves the other one, which is the one
+   * §6 is actually about.
+   */
+  it('sends hideBaseProduct for an item with NO variations, where the base row is not drawn', async () => {
+    const { container } = render(
+      <ProductEditorPage
+        product={{ ...fullyPopulated, variations: [] }}
+        isBundle={false}
+        mode="edit"
+        onSaved={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    );
+    await act(async () => {});
+
+    expect(container.querySelector('#variation-base-active')).toBeNull();
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+    const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
     expect(payload.hideBaseProduct).toBe(true);
   });
 

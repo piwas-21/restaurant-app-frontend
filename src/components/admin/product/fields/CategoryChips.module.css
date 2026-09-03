@@ -1,0 +1,55 @@
+/*
+  The category chip plus its primary star. The chip itself is the shared `.chip` from
+  `RegisterStaffModal.module.css` — unchanged, because every other chip group in the admin uses it
+  and this one must not drift from them. What is here is only the star and the box that holds the
+  pair together.
+*/
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/*
+  The star is a LABEL over a real radio, not a button: exactly one category can be primary, and the
+  radio group is what says so to the accessibility tree. The input is laid over the star at full
+  size rather than hidden, so it is focusable and hit-testable in its own right — the same rule the
+  design system's Switch records.
+*/
+.star {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.star:hover {
+  background-color: var(--surface-secondary);
+  color: var(--feedback-warning-text);
+}
+
+.starOn {
+  color: var(--feedback-warning-text);
+}
+
+.starInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.starInput:focus-visible + svg {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

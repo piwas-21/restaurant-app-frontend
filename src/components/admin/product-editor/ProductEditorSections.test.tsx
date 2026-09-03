@@ -123,17 +123,20 @@ describe('the seven sections of §4', () => {
   });
 
   /**
-   * The half a "hidden section" implementation gets wrong: `hidden`, never unmounted. The type
-   * select and `hideBaseProduct` are registered fields, and a registered field that leaves the DOM
-   * is a value the next save clears (plan §6). The round-trip suite proves the payload; this
-   * proves the mechanism.
+   * The half a "hidden section" implementation gets wrong: `hidden`, never unmounted. `isComponent`
+   * is a registered field, and a registered field that leaves the DOM is a value the next save
+   * clears (plan §6). The round-trip suite proves the payload; this proves the mechanism.
+   *
+   * It used to name the type select and `hideBaseProduct`, which have both left this section — the
+   * type for Basics (it decides how the guest sheet groups the item, which is not a once-a-lifetime
+   * setting) and `hideBaseProduct` for the variations table's own base row. The mechanism they were
+   * standing in for is unchanged; only the field that demonstrates it has moved.
    */
   it('keeps a collapsed section registered, not unmounted', async () => {
     const { container } = await renderEditor();
 
     const advanced = container.querySelector(ADVANCED_BODY) as HTMLElement;
-    expect(advanced.querySelector('select[name="type"]')).not.toBeNull();
-    expect(advanced.querySelector('#product-hide-base')).not.toBeNull();
+    expect(advanced.querySelector('#product-is-component')).not.toBeNull();
   });
 
   it('opens Advanced on click and remembers the choice for the next visit', async () => {
@@ -195,14 +198,19 @@ describe('the seven sections of §4', () => {
 const sectionOf = (container: HTMLElement, id: string) => container.querySelector(`#${id}`) as HTMLElement;
 
 describe('nothing was dropped on the way — the audit inventory, by section', () => {
-  it('Basics keeps name, description, the category chips and the primary category', async () => {
+  it('Basics keeps name, description, the category chips, the primary star and the item type', async () => {
     const { container } = await renderEditor();
     const basics = sectionOf(container, 'editor-section-basics');
 
     expect(basics.querySelector('input[name="name"]')).not.toBeNull();
     expect(basics.querySelector('textarea[name="description"]')).not.toBeNull();
     expect(basics.querySelector('#category-chip-cat-a')).not.toBeNull();
-    expect(basics.querySelector('select[name="primaryCategoryId"]')).not.toBeNull();
+    // The separate `select[name="primaryCategoryId"]` is GONE, and the field is not: the primary is
+    // now a star on the ticked chips, which is one control where there were two. The type select
+    // arrived here from Advanced in the same change.
+    expect(basics.querySelector('select[name="primaryCategoryId"]')).toBeNull();
+    expect(basics.querySelector('input[name="primary-category-star"]')).not.toBeNull();
+    expect(basics.querySelector('select[name="type"]')).not.toBeNull();
   });
 
   // S3 deleted the fork this used to pin. An item has no create page any more (D3), so Media is
@@ -273,12 +281,31 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(service.querySelectorAll('input[type="radio"][name="product-kitchen-type"]')).toHaveLength(3);
   });
 
-  it('Advanced keeps the product type and hideBaseProduct', async () => {
+  it('Advanced keeps the option-only flag, and nothing else', async () => {
     const { container } = await renderEditor();
     const advanced = sectionOf(container, 'editor-section-advanced');
 
-    expect(advanced.querySelector('select[name="type"]')).not.toBeNull();
-    expect(advanced.querySelector('#product-hide-base')).not.toBeNull();
+    expect(advanced.querySelector('#product-is-component')).not.toBeNull();
+    // Both of its former controls left, and they left for the same reason: they were filed by how
+    // often they are touched rather than by what they are about. The type is in Basics;
+    // `hideBaseProduct` is the ACTIVE switch on the variations table's own base row.
+    expect(advanced.querySelector('select[name="type"]')).toBeNull();
+    expect(advanced.querySelector('#product-hide-base')).toBeNull();
+  });
+
+  /**
+   * `hideBaseProduct` followed the base row into Pricing. This fixture's item has NO variations, so
+   * the row is not drawn — and the field must still be registered, which is the §6 rule the section
+   * above states for a collapsed body and this one states for a table with nothing in it. An item
+   * that withholds its base row and then loses its variations must not have that column silently
+   * rewritten by the next save; its variations may come back.
+   */
+  it('keeps hideBaseProduct registered in Pricing even with no variations to draw it on', async () => {
+    const { container } = await renderEditor();
+    const pricing = sectionOf(container, 'editor-section-pricing');
+
+    expect(pricing.querySelector('#variation-base-active')).toBeNull();
+    expect(pricing.querySelector('input[name="hideBaseProduct"]')).not.toBeNull();
   });
 
   it('puts the three status flags in the rail, where every section can see them', async () => {

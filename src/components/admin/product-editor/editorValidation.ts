@@ -38,8 +38,14 @@ export const SECTION_FIELDS: Readonly<Record<string, string>> = {
   kitchenType: SECTION_IDS.service,
   preparationTimeMinutes: SECTION_IDS.service,
   availableOrderTypes: SECTION_IDS.service,
-  type: SECTION_IDS.advanced,
-  hideBaseProduct: SECTION_IDS.advanced,
+  // Both of these left Advanced: the item TYPE is in Basics (it decides how the guest sheet groups
+  // the item in an upsell step, which is not a once-a-lifetime setting) and `hideBaseProduct` is the
+  // ACTIVE switch on the variations table's own base row, inside Pricing. Neither can currently
+  // fail — an enum with a default and a boolean — so the only thing a stale entry would have done
+  // is mark the wrong section in the nav; kept in step anyway, because this table's own doc calls
+  // itself the one mapping that has to be maintained by hand.
+  type: SECTION_IDS.basics,
+  hideBaseProduct: SECTION_IDS.pricing,
   isComponent: SECTION_IDS.advanced,
 };
 
@@ -128,8 +134,9 @@ export function isTranslationsField(name: string): boolean {
  * this editor is React-controlled (the collapsed `Advanced` body, the inactive tab panel), so a
  * direct DOM write would be reverted on the next render and would desync the remembered collapse
  * state. The two real cases are handled where the state lives — the caller switches tab for a
- * translation error, and no field inside `Advanced` can fail today (an enum and a boolean, both
- * with defaults).
+ * translation error, and the one field left inside `Advanced` cannot fail today (`isComponent`, a
+ * boolean with a default). The type select and `hideBaseProduct` left that section; both still have
+ * defaults and still cannot fail, but neither is behind a collapse any more either.
  *
  * Returns whether anything was found, so a caller can stay silent rather than pretend it jumped.
  */

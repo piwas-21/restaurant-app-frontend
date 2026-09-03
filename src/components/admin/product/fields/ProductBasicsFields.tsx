@@ -1,22 +1,25 @@
 import React from 'react';
-import { Controller, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { CircleAlert } from 'lucide-react';
-import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, FieldValues, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { Category } from '../types';
+import { itemProductTypes } from '../types';
+import CategoryChips from './CategoryChips';
 import FieldError from './FieldError';
 import { fieldAria, fieldDomId, fieldErrorId, fieldMessage } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './editorFields.module.css';
 
-/** The consequence notice's DOM id — shared by the `<p>` and the select's `aria-describedby`. */
-const PRIMARY_CONSEQUENCE_ID = 'primary-category-consequence';
+/** The `aria-describedby` target for the item-type select — see the section header. */
+const TYPE_HELP_ID = 'product-type-help';
+/** …and for the sentence that says what the stars on the chips do. */
+const PRIMARY_HINT_ID = 'primary-category-hint';
 
 interface ProductBasicsFieldsProps {
   // readonly: S6759 — component props are never mutated.
   readonly register: UseFormRegister<FieldValues>;
   readonly errors: FieldErrors<FieldValues>;
   readonly control: Control<FieldValues>;
+  readonly setValue: UseFormSetValue<FieldValues>;
   readonly categories: Category[];
   /** Why `categories` is empty, when the fetch failed rather than the tenant having none. */
   readonly categoriesError?: string | null;
@@ -24,22 +27,32 @@ interface ProductBasicsFieldsProps {
 }
 
 /**
- * Section 1 of the redesigned editor — **Basics**: what the item IS (plan §4, slice S2).
+ * Section 1 of the editor — **Basics**: what the item IS (plan §4, slice S2).
  *
- * Split out of `ProductBasicInfo`, whose fourth control was the kitchen-type selector. That one is
- * an *operational* setting and now lives in `Service & availability`, which is the whole point of
- * S2: this slice moves controls between sections and changes none of them.
+ * **It used to ask three questions where there are two.** Tick the categories; then pick a PRIMARY
+ * one again from a `<select>` that was disabled until you had, with a notice under it explaining
+ * what happens if you skip it; and then, five sections away under a collapsed **Advanced**, choose a
+ * product type. Three controls, one of them a re-statement of another and one of them filed by how
+ * rarely it is touched rather than by what it is about.
  *
- * S7 wires the accessibility half of every control here: a label that points at its input, an
- * `aria-invalid` the assistive tree can read, and an `aria-describedby` from the input to the
- * sentence explaining it. The category CHIPS become a real `fieldset`/`legend` — a group of
- * checkboxes needs a group name and a group-level invalid state, which a `<h3>` above a `<div>`
- * cannot give. No field is added, renamed or re-registered.
+ * Now:
+ *
+ * - **The primary category is part of the chips.** Ticking the first one makes it primary; a star on
+ *   each ticked chip moves it. The select is gone, and so is the notice — it existed because
+ *   skipping was easy, and skipping was a separate act. `primaryCategoryId` is the same field on the
+ *   same payload, so the command, its validator and the order-type inheritance are untouched.
+ * - **The item type moved here from Advanced.** It is not a once-a-lifetime setting: it decides
+ *   whether the guest sheet offers this item as a drink or a dessert in an upsell step
+ *   (`groupSuggestedSideItems`) and whether the item is offered a drinks step of its own
+ *   (`offersGenericDrinks`). Collapsed under Advanced with a default of `mainItem`, a tenant's drinks
+ *   stayed typed as main items and the upsell grouped them wrongly, with nothing on screen saying so.
+ *   It carries the sentence that says what it changes, which the select under Advanced never did.
  */
 export default function ProductBasicsFields({
   register,
   errors,
   control,
+  setValue,
   categories,
   categoriesError,
   selectedCategoryIds,
@@ -47,38 +60,12 @@ export default function ProductBasicsFields({
   const { t } = useTranslation();
   const categoriesMessage = fieldMessage(errors, 'categoryIds');
   /*
-   * D8 (S10): the consequence of leaving Primary category empty, shown AT THE CAUSE.
-   *
-   * The sentence itself is not new — `ProductOrderTypes.tsx:103-110` has said it since the
-   * order-type work. What was wrong is WHERE: it renders in `Service & availability`, five sections
-   * below the empty select that causes it, so an admin who never scrolls there never learns why
-   * their item is orderable on every channel. This is the notice the approved screen draws under
-   * this control (conformance gap G14's notice half); the one downstream stays exactly as it is,
-   * because that is where the effect actually lands.
+   * The primary's own refusal. The schema declares it twice — `min(1)` and a `.refine` that pins its
+   * path here — and when the select left, its `FieldError` went with it, so unticking every category
+   * refused the save, marked the section in the nav and explained itself NOWHERE on the page. That
+   * is the one property this editor is built around: no field fails silently.
    */
-  const primaryCategoryId = useWatch({ control, name: 'primaryCategoryId' });
-  const hasCategories = (selectedCategoryIds?.length ?? 0) > 0;
-  // Only once a category has been TICKED. Before that the select is disabled and empty by
-  // construction, so the notice would be scolding the admin for not having reached the field yet.
-  const showNoPrimaryConsequence = hasCategories && !primaryCategoryId;
-
-  /*
-   * The notice explains this control, so it has to DESCRIBE it — otherwise a screen-reader user
-   * hears the label and the options and never the consequence of leaving it empty.
-   *
-   * Merged rather than passed as a second `aria-describedby` prop: a later JSX attribute WINS over
-   * a spread one, so `aria-describedby={undefined}` written after `{...fieldAria(...)}` would have
-   * silently wiped the ERROR describedby whenever there was an error and no notice. The two ids are
-   * joined instead, which is also the correct answer if they ever do coexist.
-   */
-  const primaryCategoryAria = (() => {
-    const base = fieldAria(errors, 'primaryCategoryId');
-    if (!showNoPrimaryConsequence) return base;
-    return {
-      ...base,
-      'aria-describedby': [base['aria-describedby'], PRIMARY_CONSEQUENCE_ID].filter(Boolean).join(' '),
-    };
-  })();
+  const primaryMessage = fieldMessage(errors, 'primaryCategoryId');
 
   return (
     <div className={modalStyles.formColumn}>
@@ -93,37 +80,31 @@ export default function ProductBasicsFields({
         <textarea {...register('description')} {...fieldAria(errors, 'description')} rows={4} />
       </div>
 
+      {/* fieldset+legend IS the grouping semantic for a set of checkboxes — a heading above a div
+          cannot give the group a name or a group-level invalid state (S7). */}
+      {/*
+        Every id the group is described BY, joined — never written as separate attributes. A later
+        JSX `aria-describedby` overrides an earlier one, which is how the code this replaces once
+        wiped an error's describedby whenever the hint was absent; the hint is always present here,
+        so the bug would have been the reverse and just as silent.
+      */}
       <fieldset
         className={`${modalStyles.formGroup} ${styles.group} ${styles.fieldset}`}
-        aria-invalid={categoriesMessage ? 'true' : undefined}
-        aria-describedby={categoriesMessage ? fieldErrorId('categoryIds') : undefined}
+        aria-invalid={categoriesMessage || primaryMessage ? 'true' : undefined}
+        aria-describedby={[
+          PRIMARY_HINT_ID,
+          categoriesMessage ? fieldErrorId('categoryIds') : null,
+          primaryMessage ? fieldErrorId('primaryCategoryId') : null,
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         <legend className={styles.legend}>{t('categories')}</legend>
-        <Controller
-          name="categoryIds"
+        <CategoryChips
           control={control}
-          render={({ field }) => (
-            <div className={modalStyles.chipGroup}>
-              {categories.map((cat) => (
-                <div key={cat.id} className={modalStyles.chip}>
-                  <input
-                    type="checkbox"
-                    id={`category-chip-${cat.id}`}
-                    value={cat.id}
-                    checked={field.value?.includes(cat.id)}
-                    onChange={(e) => {
-                      const selectedIds = field.value || [];
-                      field.onChange(
-                        e.target.checked ? [...selectedIds, cat.id] : selectedIds.filter((id: string) => id !== cat.id),
-                      );
-                    }}
-                    onBlur={field.onBlur}
-                  />
-                  <label htmlFor={`category-chip-${cat.id}`}>{cat.name}</label>
-                </div>
-              ))}
-            </div>
-          )}
+          setValue={setValue}
+          categories={categories}
+          selectedCategoryIds={selectedCategoryIds}
         />
         {/* An empty chip group means one of two things — this tenant has no categories, or the
             fetch failed — and the admin cannot tell them apart from the chips. Saying which is the
@@ -134,31 +115,24 @@ export default function ProductBasicsFields({
           </p>
         )}
         <FieldError name="categoryIds" message={categoriesMessage} />
+        <FieldError name="primaryCategoryId" message={primaryMessage} />
+        <p id={PRIMARY_HINT_ID} className={styles.hint}>
+          {t('primary_category_hint')}
+        </p>
       </fieldset>
 
       <div className={`${modalStyles.formGroup} ${styles.group}`}>
-        <label htmlFor={fieldDomId('primaryCategoryId')}>{t('primary_category')}</label>
-        <select
-          {...register('primaryCategoryId')}
-          {...primaryCategoryAria}
-          disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}
-        >
-          <option value="">{t('select_primary_category')}</option>
-          {categories
-            .filter((cat) => selectedCategoryIds?.includes(cat.id))
-            .map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
+        <label htmlFor={fieldDomId('type')}>{t('product_type')}</label>
+        <select id={fieldDomId('type')} aria-describedby={TYPE_HELP_ID} {...register('type')}>
+          {itemProductTypes.map((type) => (
+            <option key={type} value={type}>
+              {t(`product_type_${type}`)}
+            </option>
+          ))}
         </select>
-        <FieldError name="primaryCategoryId" message={fieldMessage(errors, 'primaryCategoryId')} />
-        {showNoPrimaryConsequence && (
-          <p id={PRIMARY_CONSEQUENCE_ID} className={styles.consequence}>
-            <CircleAlert size={16} className={styles.consequenceIcon} aria-hidden="true" />
-            {t('editor_no_primary_category_consequence')}
-          </p>
-        )}
+        <p id={TYPE_HELP_ID} className={styles.hint}>
+          {t('product_type_help')}
+        </p>
       </div>
     </div>
   );

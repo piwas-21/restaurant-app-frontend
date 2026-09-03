@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
-import detailsStyles from '@/app/styles/DetailsPage.module.css';
+import galleryStyles from './ImageGallery.module.css';
 import { INTEGER_INPUT_PROPS } from '@/components/admin/product/numberInputProps';
 
 interface ImageActionsProps {
@@ -37,8 +37,15 @@ export default function ImageActions({
   const { t } = useTranslation();
 
   return (
-    <div className={detailsStyles.imageActions}>
-      <div className={detailsStyles.imageActionGroup}>
+    /*
+     * A LABELLED panel. The band this replaces said nothing about WHICH photo it acted on, and sat
+     * two rows above "Upload more images" — so "Delete" read as an action on the section rather
+     * than on the selected thumbnail, and the two groups had visibly collided (the borrowed
+     * stylesheet's leftover `position: sticky`).
+     */
+    <section className={galleryStyles.selected} aria-label={t('editor_media_selected_image')}>
+      <p className={galleryStyles.selectedLabel}>{t('editor_media_selected_image')}</p>
+      <div className={galleryStyles.selectedActions}>
         <button
           type="button"
           onClick={onSetPrimary}
@@ -47,8 +54,8 @@ export default function ImageActions({
         >
           {isPrimary ? t('primary') : t('set_as_primary')}
         </button>
-        <div className={`${styles.formGroup} ${detailsStyles.imageActionGroup}`}>
-          <label htmlFor="sortOrderInput">{t('sort_order')}</label>
+        <label className={galleryStyles.sortField} htmlFor="sortOrderInput">
+          {t('sort_order')}
           {/* The shared count convention (S8): a sort order is a whole number that cannot be
               negative, and a bare `type="number"` offered a phone the wrong keyboard. */}
           <input
@@ -58,20 +65,18 @@ export default function ImageActions({
             disabled={disabled}
             onChange={onSortOrderChange}
             onBlur={onSortOrderCommit}
-            className={detailsStyles.sortOrderInput}
+            className={galleryStyles.sortInput}
           />
-        </div>
-      </div>
-      <div className={detailsStyles.imageActionGroup}>
+        </label>
         <button
           type="button"
           onClick={onDelete}
           disabled={disabled}
-          className={`${styles.adminButton} ${styles.delete}`}
+          className={`${styles.adminButton} ${styles.delete} ${galleryStyles.deleteAction}`}
         >
           {t('delete')}
         </button>
       </div>
-    </div>
+    </section>
   );
 }

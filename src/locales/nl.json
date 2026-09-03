@@ -2755,6 +2755,7 @@
   "editor_section_media": "Media",
   "editor_section_media_description": "Foto's en galerijbestanden",
   "editor_media_autosave_notice": "Wijzigingen aan foto's worden meteen opgeslagen.",
+  "editor_media_selected_image": "Geselecteerde afbeelding",
   "editor_media_bundle_unavailable": "Fotobeheer is nog niet beschikbaar voor menubundels. Een bundelfoto voeg je hierboven toe in het veld Menuafbeelding en die wordt geüpload zodra je opslaat.",
   "editor_no_primary_category_consequence": "Zonder hoofdcategorie erft dit item niets — stel de besteltypes handmatig in bij Service en beschikbaarheid.",
   "editor_no_photo_consequence": "Zonder foto toont dit item een tijdelijke afbeelding op het menu.",

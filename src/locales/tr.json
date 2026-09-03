@@ -2755,6 +2755,7 @@
   "editor_section_media": "Medya",
   "editor_section_media_description": "Fotoğraflar ve galeri dosyaları",
   "editor_media_autosave_notice": "Fotoğraf değişiklikleri anında kaydedilir.",
+  "editor_media_selected_image": "Seçili görsel",
   "editor_media_bundle_unavailable": "Menü paketleri için fotoğraf yönetimi henüz kullanılamıyor. Paket fotoğrafı yukarıdaki Menü Görseli alanından eklenir ve kaydettiğinizde yüklenir.",
   "editor_no_primary_category_consequence": "Ana kategori olmadan bu ürün hiçbir şey devralmaz — sipariş türlerini Servis ve uygunluk bölümünden elle ayarlayın.",
   "editor_no_photo_consequence": "Fotoğraf olmadan bu ürün menüde yer tutucu bir görsel gösterir.",

@@ -2755,6 +2755,7 @@
   "editor_section_media": "Multimedia",
   "editor_section_media_description": "Fotos y archivos de la galería",
   "editor_media_autosave_notice": "Los cambios en las fotos se guardan inmediatamente.",
+  "editor_media_selected_image": "Imagen seleccionada",
   "editor_media_bundle_unavailable": "La gestión de fotos aún no está disponible para los combos de menú. La foto de un combo se añade en el campo Imagen del Menú de arriba y se sube al guardar.",
   "editor_no_primary_category_consequence": "Sin categoría principal este artículo no hereda nada — configura sus tipos de pedido manualmente en Servicio y disponibilidad.",
   "editor_no_photo_consequence": "Sin foto, este artículo muestra una imagen de marcador de posición en el menú.",

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { CircleAlert, CloudUpload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ProductImage } from '@/app/admin/menu-management/interfaces';
-import detailsStyles from '@/app/styles/DetailsPage.module.css';
+import galleryStyles from './ImageGallery.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import mediaStyles from './EditorMedia.module.css';
 import fieldStyles from '@/components/admin/product/fields/editorFields.module.css';
@@ -131,7 +131,7 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
   // One shape for both states rather than an early return: an empty gallery used to be a dead
   // sentence with no way out of it, and it is exactly the product that most needs the upload.
   return (
-    <div className={detailsStyles.infoSection}>
+    <div className={mediaStyles.section}>
       {/*
        * No heading here (conformance gap G16). The section CARD already draws `<h2>Media</h2>`
        * with "Photos and gallery assets" under it, so the old `<h3>Image Gallery</h3>` was a
@@ -160,25 +160,25 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
           </p>
         </>
       ) : (
-        <div className={detailsStyles.imageGalleryContainer}>
-          <div className={detailsStyles.primaryImageContainer}>
+        <div className={galleryStyles.gallery}>
+          <div className={galleryStyles.preview}>
             {selectedImage?.url && (
               <Image
                 src={selectedImage.url}
                 alt={selectedImage.altText || productName}
-                className={detailsStyles.primaryImage}
+                className={galleryStyles.previewImage}
                 width={1200}
                 height={800}
               />
             )}
           </div>
-          <div className={detailsStyles.thumbnailContainer}>
+          <div className={galleryStyles.thumbnails}>
             {imageList.map((img) => (
               <Image
                 key={img.id}
                 src={img.url}
                 alt={img.altText}
-                className={`${detailsStyles.thumbnail} ${selectedImageId === img.id ? detailsStyles.active : ''}`}
+                className={`${galleryStyles.thumbnail} ${selectedImageId === img.id ? galleryStyles.active : ''}`}
                 width={160}
                 height={80}
                 onClick={() => setSelectedImageId(img.id)}
@@ -198,15 +198,17 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
           )}
         </div>
       )}
-      <ImageUploadPanel
-        stagedFiles={uploader.stagedFiles}
-        hasImages={imageList.length > 0}
-        isUploading={uploader.isUploading}
-        onStage={uploader.stage}
-        onUnstage={uploader.unstage}
-        onUpload={uploader.upload}
-        onCancel={uploader.cancel}
-      />
+      <div className={galleryStyles.upload}>
+        <ImageUploadPanel
+          stagedFiles={uploader.stagedFiles}
+          hasImages={imageList.length > 0}
+          isUploading={uploader.isUploading}
+          onStage={uploader.stage}
+          onUnstage={uploader.unstage}
+          onUpload={uploader.upload}
+          onCancel={uploader.cancel}
+        />
+      </div>
       <ConfirmationModal
         isOpen={isConfirmationOpen}
         onClose={() => setIsConfirmationOpen(false)}

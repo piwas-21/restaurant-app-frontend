@@ -57,7 +57,12 @@ repos:
         name: prettier --check
         entry: npx prettier --check
         language: system
-        files: ^src/.*\.(ts|tsx|css|json|md)$
+        # `docs/onboarding/` is included because it holds executable .mjs, not only prose:
+        # the MC FOOD tenant importer decides what a live tenant charges, and NO other gate
+        # in this repo reaches it — `next lint` restricts itself to src/pages/app,
+        # check-file-length.sh is src/-prefixed on every branch, and jest has no docs/ root.
+        # Formatting is the one gate that can cover it without new machinery.
+        files: ^(src/.*\.(ts|tsx|css|json|md)|docs/onboarding/.*\.(mjs|json|md))$
         exclude: ^src/locales/.*\.json$
 
   # ── Sprint 2.5: typecheck gate ───────────────────────────────────────

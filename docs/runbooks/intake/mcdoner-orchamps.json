@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "tenantSlug": "mcdoner-orchamps",
+    "sourceWebsite": "https://mcdoner-orchamps.fr/",
+    "introducedBy": "Mustafa (partner)",
+    "status": "BLANK — not yet collected",
+    "blocker": "The source website is unreachable from agent sessions: this session's egress policy is an allowlist that excludes the open web (example.com is refused identically, HTTP 403 at the CONNECT). Nothing below was scraped; every value is a placeholder.",
+    "howToFill": "See ../TENANT-ONBOARDING-INTAKE.md. Confirm every price and hour with the owner even where a scrape supplies a draft."
+  },
+
+  "restaurantInfo": {
+    "name": null,
+    "addressLine1": null,
+    "addressLine2": null,
+    "city": null,
+    "postalCode": null,
+    "country": "FR",
+    "latitude": null,
+    "longitude": null,
+    "email": null,
+    "website": "https://mcdoner-orchamps.fr/",
+    "themePaletteKey": null,
+    "phoneNumbers": [
+      {
+        "label": null,
+        "number": null,
+        "whatsAppEnabled": false,
+        "displayOrder": 0,
+        "isActive": true
+      }
+    ]
+  },
+
+  "_comment_workingHours": "dayOfWeek 0=Sunday..6=Saturday. shifts[] is authoritative; two shifts for a lunch/dinner split. Times are the TENANT's zone (expect Europe/Paris), as HH:mm:ss.",
+  "workingHours": [
+    { "dayOfWeek": 0, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 1, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 2, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 3, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 4, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 5, "isClosed": null, "isActive": true, "shifts": [], "notes": null },
+    { "dayOfWeek": 6, "isClosed": null, "isActive": true, "shifts": [], "notes": null }
+  ],
+
+  "_comment_menu": "One object per item. price is absolute in tenant currency; variations[].priceModifier is a DELTA. categoryKey groups items. Allergens are an EU legal requirement — if the source has none, flag it rather than shipping empty.",
+  "menu": {
+    "currency": "EUR",
+    "categories": [],
+    "items": []
+  },
+
+  "_comment_assets": "Originals from the owner, not lifted from the site. Mirror the file set in public/branding-rumi/.",
+  "brandAssets": {
+    "targetDir": "public/branding-mcdoner-orchamps/",
+    "received": false,
+    "files": {
+      "logo.png": null,
+      "logo-dark.png": null,
+      "icon.svg": null,
+      "icon-192.png": null,
+      "icon-512.png": null,
+      "icon-maskable-512.png": null,
+      "hero.png": null,
+      "placeholder.png": null
+    },
+    "interiorImage": null,
+    "menuItemPhotography": "unknown — usually the long pole"
+  },
+
+  "commercial": {
+    "modules": {
+      "core": true,
+      "kitchen-board": null,
+      "cashier": null,
+      "server": null,
+      "reservations": null,
+      "loyalty": null,
+      "printing": null,
+      "online-payments": null,
+      "extra-languages": null
+    },
+    "locales": ["fr"],
+    "tenantCopyPack": null,
+    "template": "classic",
+    "partner": {
+      "TENANT_PARTNER_NAME": null,
+      "TENANT_PARTNER_URL": null
+    }
+  }
+}

@@ -30,7 +30,14 @@ const COPY = {
   viewActive: { ingredient: 'ingredient_library_view_active', variation: 'variation_library_view_active' },
   viewMine: { ingredient: 'ingredient_library_view_mine', variation: 'variation_library_view_mine' },
   viewArchived: { ingredient: 'ingredient_library_view_archived', variation: 'variation_library_view_archived' },
-  /** Why the tenant's own shelf is empty, which is every tenant's starting state. */
+  /**
+   * The tenant's own shelf, empty — every tenant's starting state.
+   *
+   * It says "none of your own HERE", not "you have not created any": against a backend that
+   * predates the `origin` column every row reads as a built-in, so the shelf would be asserting
+   * something it cannot know. The weaker sentence is true either way and still points at the way to
+   * add one.
+   */
   mineEmpty: { ingredient: 'ingredient_library_mine_empty', variation: 'variation_library_mine_empty' },
   archivedHint: { ingredient: 'ingredient_library_archived_hint', variation: 'variation_library_archived_hint' },
   archivedEmpty: { ingredient: 'ingredient_library_archived_empty', variation: 'variation_library_archived_empty' },

@@ -199,7 +199,10 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
 
       {/* OUTSIDE the results on purpose: `LibraryPickerResults` renders only the empty message when
           nothing matched, and an empty list is the state this notice exists to explain. */}
-      {view === 'active' && scopeNotice}
+      {/* Wherever the scope FILTERS, which is every non-archived view: the kind narrowing applies on
+          the tenant's own shelf too, and without this the notice AND its "show all" escape are gone
+          while rows are still being hidden — the one thing `scopeHiddenCount` exists to prevent. */}
+      {view !== 'archived' && scopeNotice}
 
       {view !== 'archived' ? (
         <LibraryPickerResults
@@ -228,12 +231,12 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
               checked={selected.some((entry) => entry.id === row.id)}
               alreadyAdded={library.isAttached(row)}
               onToggle={(checked) => toggle(row, checked)}
-              // Only the tenant's own rows are offered a destructive action (backend D14). A
-              // built-in can still be archived, but the row cannot say "Delete" about one — the
-              // server refuses, and a picker that offers a button the server refuses is worse than
-              // one that offers nothing. Omitted rather than disabled: a disabled control here
-              // would suggest the row could be removed by some other means.
-              onArchive={isTenantOwned(row) ? () => void retire(row) : undefined}
+              onArchive={() => void retire(row)}
+              // Whether the row may be REMOVED — a different question from whether it may be taken
+              // off the shelf (backend D14), and load-bearing here because `onArchive` is the only
+              // prop that renders the destructive control at all: gating IT would have made "we do
+              // not sell that" unsayable about all 704 seeded rows.
+              canDelete={isTenantOwned(row)}
               isPending={archive.pendingId === row.id}
               onApplyToItems={apply ? () => setApplying(row) : undefined}
             />

@@ -365,14 +365,31 @@ describe('when the catalog cannot be read', () => {
  * "Delete" on all fifty.
  */
 describe('the tenant’s own shelf', () => {
-  it('offers no destructive action on a built-in, even one nothing uses', async () => {
+  /**
+   * A built-in is ARCHIVED at any usage count, including zero — which is precisely the case the
+   * picker used to label "Delete" on all fifty shipped rows. The label mirrors the server's own
+   * branch, so a button never promises one outcome and produces the other.
+   */
+  it('offers Archive and never Delete on a built-in, even one nothing uses', async () => {
     await open();
 
     const seeded = rowFor('Seeded Size');
-    // OMITTED, not disabled: a disabled control here would suggest the row could be removed by some
-    // other means. Its usage count is 0, which is exactly the case that used to say "Delete".
+    expect(seeded.getByRole('button', { name: 'variation_library_archive' })).toBeInTheDocument();
     expect(seeded.queryByRole('button', { name: 'variation_library_delete' })).not.toBeInTheDocument();
-    expect(seeded.queryByRole('button', { name: 'variation_library_archive' })).not.toBeInTheDocument();
+  });
+
+  /**
+   * The regression the first version of this shipped: gating `onArchive` itself removed BOTH
+   * actions, so "we do not sell that" became unsayable about all 704 seeded rows — a capability
+   * lost as a side effect of a fix. Asserted end to end, not on a prop.
+   */
+  it('actually archives a built-in when the admin confirms', async () => {
+    await open();
+
+    fireEvent.click(rowFor('Seeded Size').getByRole('button', { name: 'variation_library_archive' }));
+    fireEvent.click(rowFor('Seeded Size').getByRole('button', { name: 'confirm' }));
+
+    await waitFor(() => expect(mockArchive).toHaveBeenCalledWith('g-seeded'));
   });
 
   it('still offers one on the tenant’s own row, in the same list', async () => {
@@ -399,6 +416,28 @@ describe('the tenant’s own shelf', () => {
 
     expect(screen.getByRole('searchbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'variation_library_filter_not_added' })).toBeInTheDocument();
+  });
+
+  /**
+   * …and the two WRITING controls, which the first version of this took away: the rows were
+   * tickable, the count climbed, and the only control left was Cancel — a live-looking control that
+   * leads nowhere, which is the shape the "+ Create new" fix in this same PR exists to remove. The
+   * empty-state copy on that shelf even tells the admin to press "Create new".
+   */
+  it('keeps Add selected and “+ Create new” on that shelf', async () => {
+    await open();
+    fireEvent.click(screen.getByRole('button', { name: 'variation_library_view_mine' }));
+
+    expect(screen.getByRole('button', { name: /add_selected/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /variation_library_create/ })).toBeInTheDocument();
+  });
+
+  it('takes them away in the ARCHIVED drawer, where nothing can be attached', async () => {
+    await open();
+    fireEvent.click(screen.getByRole('button', { name: 'variation_library_view_archived' }));
+
+    expect(screen.queryByRole('button', { name: /add_selected/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /variation_library_create/ })).not.toBeInTheDocument();
   });
 });
 

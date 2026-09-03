@@ -202,6 +202,11 @@ jobs:
       restaurant_name: ${{ matrix.name }}
       template: ${{ matrix.template }}
       currency: ${{ matrix.currency }}
+      # `|| 'de-CH'` because the registry's `locale:` field is NEW and optional: until the deploy
+      # repo emits it, `matrix.locale` is empty for every tenant, and an empty string would fail
+      # the callee's validation and break the whole release chain. de-CH is also what
+      # src/lib/config.ts falls back to, so an unset field and an absent one render alike.
+      locale: ${{ matrix.locale || 'de-CH' }}
       pwa_theme_color: ${{ matrix.pwa_theme_color }}
       pwa_background_color: ${{ matrix.pwa_background_color }}
 

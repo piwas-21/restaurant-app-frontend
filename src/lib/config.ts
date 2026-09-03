@@ -25,6 +25,33 @@ const rawTenantCurrency = (process.env.NEXT_PUBLIC_TENANT_CURRENCY ?? '').trim()
 export const TENANT_CURRENCY: string = /^[A-Z]{3}$/.test(rawTenantCurrency) ? rawTenantCurrency : 'CHF';
 
 /**
+ * BCP-47 locale that formats every user-facing price, baked in at build time
+ * (deploy repo registry `locale:` field -> build-tenant-image.yml `locale`
+ * input -> Dockerfile ARG), exactly like {@link TENANT_CURRENCY} beside it.
+ *
+ * It is the TENANT's locale, deliberately not the viewer's UI language. A
+ * price is the venue's own figure -- it must read the same as its printed
+ * menu and its receipts for every guest, so a French restaurant prints
+ * `8,00 €` for everyone. Switching the i18next language must never move a
+ * decimal separator or a currency symbol.
+ *
+ * Validated through `Intl.getCanonicalLocales`, which is the authority here
+ * (a regex cannot tell `de-CH` from `de_CH`): it canonicalises case, so
+ * `DE-ch` resolves to `de-CH`, and throws `RangeError` on anything
+ * structurally invalid (unset, empty, junk, underscores), which falls back to
+ * `de-CH` so the default (RUMI) build renders byte-identical strings
+ * everywhere. Consumers format via src/utils/currency.ts helpers.
+ */
+const rawTenantLocale = (process.env.NEXT_PUBLIC_TENANT_LOCALE ?? '').trim();
+export const TENANT_LOCALE: string = (() => {
+  try {
+    return Intl.getCanonicalLocales(rawTenantLocale)[0] ?? 'de-CH';
+  } catch {
+    return 'de-CH';
+  }
+})();
+
+/**
  * Per-tenant build-time assets (issue #125 part 3, corrected in SOFRA-ONBOARDING-PLAN O6).
  *
  * `public/branding/` holds the **SofraPiwas platform default set**, because it is what a

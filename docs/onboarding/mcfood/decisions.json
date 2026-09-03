@@ -175,13 +175,22 @@
     "60": "Table 1"
   },
   "restaurant": {
-    "_": "Values the capture could not take from their API.",
+    "_": [
+      "Values the capture could not take from their API.",
+      "",
+      "latitude/longitude: supplied by the owner 2026-09-03. Sanity-checked, not merely pasted —",
+      "inside the metropolitan-France bounding box and 104 m from the centre of Orchamps-Vennes,",
+      "which is what a Rue des Bleuets address should look like. Their own API had both as null."
+    ],
     "timezone": "Europe/Paris",
     "timezoneSource": "inferred from the FR address — CONFIRM",
-    "latitude": null,
-    "longitude": null,
+    "latitude": 47.1279237975688,
+    "longitude": 6.521550178558343,
     "adminEmail": null,
     "orderNotificationEmail": null,
-    "confirmed": false
+    "confirmed": false,
+    "logo": "platform-default",
+    "logoNote": "OWNER DECISION 2026-09-03: ship with no logo for now. This is NOT an upload — there is no baked default logo and there must not be one (a baked default silently wins over what a tenant later uploads). Leaving RestaurantInfo.LogoUrl null renders the designed fallback in TenantLogo.tsx: the SofraPiwas brand mark beside the restaurant's own name, in the active template's typeface. So MC FOOD's header will read `[onion mark] MC FOOD` — the platform's mark on a partner's client's site, which is the approved design and what obresse and kebabdilhan carry too. A real wordmark is a later save in tenant admin, not a rebuild.",
+    "stillMissing": ["adminEmail", "orderNotificationEmail", "timezone (Europe/Paris — inferred, unconfirmed)"]
   }
 }

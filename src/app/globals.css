@@ -49,6 +49,14 @@
      brand red the name implies — renamed in the text/status token slice. */
   --primary-color-xlight: rgba(0, 123, 255, 0.1);
 
+  /* Scrollbars: the app's own, everywhere, with nothing to import. `scrollbar-color` is an
+     INHERITED property, so declaring it here hands the same thumb to every scroll container in the
+     tree — including ones inside CSS Modules that know nothing about this file. The width and the
+     WebKit half are further down under ─── Scrollbars ───, which is also where the reasoning is.
+     Declared in THIS block rather than its own `:root` because a second one is a duplicate
+     selector (Sonar S4666). */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
   --font-family-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -184,6 +192,11 @@ body.mobile-menu-open {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  /* NOT inherited, unlike `scrollbar-color` above — measured: with it on `:root` alone, a modal's
+     own scroll container computed `scrollbar-width: auto`, i.e. the OS trough in our colour. Here
+     for the same reason the colour is up there: one `*` block, not two (Sonar S4666). `*` carries
+     zero specificity, so a module that sets `scrollbar-width: none` to HIDE its bar still wins. */
+  scrollbar-width: thin;
 }
 
 a {
@@ -1000,38 +1013,31 @@ img {
 }
 
 /* ─── Scrollbars ────────────────────────────────────────────────────────────────────────────────
-   The app's own scrollbar, applied ONCE and inherited by everything.
+   The app's own scrollbar, applied ONCE and inherited by everything. Two of its three parts are NOT
+   here — `scrollbar-color` rides in the `:root` token block at the top of this file and
+   `scrollbar-width` in the `* { box-sizing }` block above, because a second `:root` or `*` block is
+   a duplicate selector (Sonar S4666). This is the reasoning for all three.
 
    `scrollbar-color` is an INHERITED property, and that is why the colour needs no shared component
-   and no per-module import: declaring it on `:root` hands the same thumb to every scroll container
-   in the tree, present and future, including ones inside CSS Modules that know nothing about this
-   file. That is the "automatically global" the design asked for, and it is a property of the CSS
-   spec rather than a convention anyone has to remember.
+   and no per-module import: declaring it once hands the same thumb to every scroll container in the
+   tree, present and future, including ones inside CSS Modules that know nothing about this file.
+   That is the "automatically global" the design asked for, and it is a property of the CSS spec
+   rather than a convention anyone has to remember.
 
    `scrollbar-width` is NOT inherited, which is measured rather than assumed: with it declared only
    on `:root`, `getComputedStyle` on the customization sheet's own scroll container read
    `scrollbar-color: rgb(196,196,196)` — correct — and `scrollbar-width: auto`. So on Windows and
    Linux the sheet would have kept the OS's full ~17px trough in our colour, i.e. half a fix. It is
-   therefore declared on `*` too. `thin`, not `auto`: `auto` IS that OS default.
+   therefore on `*`. `thin`, not `auto`: `auto` IS that OS default.
 
-   The `::-webkit-` block underneath is NOT a duplicate. It is for Safari, which has never
-   implemented the standard properties. Chromium ≥121 supports both and prefers the standard ones,
-   so the two do not fight. It is scoped to `*` because the pseudo-element does not inherit — the
-   one place where "declare once" is not available and every element has to be named.
+   The `::-webkit-` block below is for Safari, which has never implemented the standard properties.
+   Chromium ≥121 supports both and prefers the standard ones, so the two do not fight. It is scoped
+   to `*` because the pseudo-element does not inherit — the one place where "declare once" is not
+   available and every element has to be named.
 
    Anything that wants NO scrollbar keeps opting out locally with `scrollbar-width: none` plus
    `::-webkit-scrollbar { display: none }`, which is what CategoryNav, MenuFilterRail and the craft
    category nav already do; a more specific rule wins over these regardless of order. */
-:root {
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-/* `*` carries zero specificity, so a module that sets `scrollbar-width: none` to HIDE its bar
-   (CategoryNav, MenuFilterRail, CraftCategoryNav, RestaurantSettingsPage) still wins. */
-* {
-  scrollbar-width: thin;
-}
-
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;

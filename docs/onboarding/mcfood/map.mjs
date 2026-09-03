@@ -203,14 +203,28 @@ const ingredientsFor = (decisions, groupIds, groups, merges = [], productName = 
 };
 
 /**
+ * Is this non-default size a MENU rather than a portion?
+ *
+ * Measured on their data: 34 of the 39 non-default sizes are named `Menu …`, and the other
+ * 5 are genuine portions (`6 X Mozza Stick` -> `12 X Mozza Stick`). The 34 become bundles;
+ * the 5 stay variations. Split by the name because that is what their data actually encodes
+ * — there is no other field distinguishing the two, and the 5 exceptions are listed in the
+ * README so a future reader can check the rule still holds.
+ */
+const isMenuSize = (decisions, size) =>
+  !size.isDefault && new RegExp(decisions.bundles.menuSizePattern, 'i').test(size.name);
+
+/**
  * Their sizes -> our variations. THE DELTA CONVERSION.
  *
  * The default size is the product's own price, so its modifier is 0 — that is checked
  * rather than assumed, because a default size priced differently from `basePrice` would
  * mean their model is not what we think it is, and every delta after it would be wrong.
  */
-const variationsFor = (item) => {
-  const sizes = item.sizes ?? [];
+const variationsFor = (decisions, item) => {
+  const all = item.sizes ?? [];
+  // A menu size leaves the variation list entirely — it becomes its own type=menu product.
+  const sizes = all.filter((size) => !isMenuSize(decisions, size));
   if (sizes.length < 2) return [];
   const defaults = sizes.filter((s) => s.isDefault);
   if (defaults.length !== 1) {
@@ -241,6 +255,89 @@ const governingGroupIds = (item) => {
   return defaultSize?.modifierGroupIds ?? item.modifierGroupIds ?? [];
 };
 
+/**
+ * The hidden option products a bundle section points at.
+ *
+ * ALWAYS new products, never an existing one matched by name — group 81's meat option
+ * "Kebab" name-matches the SANDWICHES product "Kebab" (8.00 EUR), and pointing a Tacos'
+ * meat section at that would put a whole priced sandwich inside the tacos. A duplicated
+ * hidden drink row costs nothing; that mis-reference is a real defect.
+ *
+ * Deduplicated by FAMILY, not by group: groups 81/83/84/85 are the same nine meats asked
+ * for one, two or three at a time, so they share one set of component products.
+ */
+const FAMILY_OF = { 79: 'drink', 81: 'meat', 83: 'meat', 84: 'meat', 85: 'meat', 87: 'gift' };
+
+const componentType = (family) => (family === 'drink' ? PRODUCT_TYPE.beverage : PRODUCT_TYPE.main);
+
+const buildComponents = (dataset, decisions) => {
+  const groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
+  const byKey = new Map();
+  for (const [id, decision] of Object.entries(decisions.modifierGroups)) {
+    if (id === '_' || decision.target !== 'bundle') continue;
+    const family = FAMILY_OF[Number(id)];
+    if (!family) throw new Error(`bundle group ${id} has no component family`);
+    for (const option of groups.get(Number(id)).options) {
+      if (isDropped(decisions, Number(id), option.name)) continue;
+      const name = ingredientName(decisions, option.name, false);
+      const key = `${family}:${name.toLowerCase()}`;
+      if (byKey.has(key)) continue;
+      byKey.set(key, {
+        source: { family, name, categoryId: decisions.bundles.componentCategories[family] },
+        body: {
+          name,
+          description: null,
+          basePrice: 0,
+          isActive: true,
+          isAvailable: true,
+          isSpecial: false,
+          preparationTimeMinutes: 0,
+          type: componentType(family),
+          kitchenType: 'None',
+          ingredients: null,
+          allergens: null,
+          displayOrder: 0,
+          categoryIds: [],
+          primaryCategoryId: null,
+          variations: [],
+          suggestedSideItemIds: [],
+          detailedIngredients: [],
+          content: content(name),
+          sauceMin: 0,
+          sauceMax: null,
+          sauceIncludedFree: 0,
+          // Hidden from the catalogue and not orderable alone — the whole point of a component.
+          isComponent: true,
+        },
+      });
+    }
+  }
+  return [...byKey.values()];
+};
+
+/** A section, from the group it came from. `componentRefs` are resolved by import.mjs. */
+const sectionFor = (decisions, groupId) => {
+  const decision = groupOf(decisions, groupId);
+  const family = FAMILY_OF[Number(groupId)];
+  const groups = decisions.__groups;
+  const options = groups
+    .get(Number(groupId))
+    .options.filter((o) => !isDropped(decisions, Number(groupId), o.name))
+    .map((o) => ingredientName(decisions, o.name, false));
+  return {
+    // Which source group this section came from. Read back by --verify to derive what is
+    // actually BUILT from the output rather than assuming the mapping ran — an empty
+    // derivation would otherwise read as "every group is built".
+    __groupId: String(groupId),
+    name: decision.displayName,
+    description: null,
+    isRequired: decision.isRequired !== false,
+    minSelection: decision.minSelection ?? (decision.isRequired === false ? 0 : 1),
+    maxSelection: decision.maxSelection ?? 1,
+    componentRefs: options.map((name) => `${family}:${name.toLowerCase()}`),
+  };
+};
+
 const buildCategories = (dataset) =>
   dataset.menu.map((category, index) => ({
     source: { id: category.sourceId, image: category.image },
@@ -258,6 +355,8 @@ const buildProducts = (dataset, decisions, merges = []) => {
     for (const item of category.items) {
       if (Object.hasOwn(decisions.dropProducts, String(item.sourceId))) continue;
       const groupIds = governingGroupIds(item);
+      const bundleGroups = groupIds.filter((id) => groupOf(decisions, id).target === 'bundle');
+      const sections = bundleGroups.map((id) => sectionFor(decisions, id));
       out.push({
         source: {
           id: item.sourceId,
@@ -273,7 +372,10 @@ const buildProducts = (dataset, decisions, merges = []) => {
           isAvailable: !item.isSoldOut,
           isSpecial: false,
           preparationTimeMinutes: 0,
-          type: PRODUCT_TYPE.main,
+          // A choice step only exists on a MenuDefinition, and UpdateProductCommand only
+          // honours one when Type is `menu`. So a dish that asks "which meat?" IS a menu in
+          // our model, even though their data calls it an ordinary product.
+          type: sections.length ? PRODUCT_TYPE.menu : PRODUCT_TYPE.main,
           kitchenType: 'None',
           ingredients: null,
           allergens: null,
@@ -284,12 +386,13 @@ const buildProducts = (dataset, decisions, merges = []) => {
           // not a thing a guest may order. Left false, the 29 sized products each show a
           // third option priced identically to their default size.
           hideBaseProduct: (item.sizes ?? []).length > 1,
-          variations: variationsFor(item),
+          variations: variationsFor(decisions, item),
           suggestedSideItemIds: [],
           detailedIngredients: ingredientsFor(decisions, groupIds, dataset.modifierGroups, merges, item.name),
           content: content(item.name, item.description),
           ...sauceRuleFor(decisions, groupIds),
         },
+        sections,
       });
     }
   }
@@ -310,7 +413,13 @@ const buildProducts = (dataset, decisions, merges = []) => {
  * Building them means `MenuDefinition` + `MenuSection` + component products
  * (`isComponent: true`, `ProductType.menu`), which is a second slice of work.
  */
-export const unbuiltBundlesInUse = (dataset, decisions) => {
+/**
+ * Bundle groups that are referenced but reach no section. Now that sections exist this can
+ * legitimately be empty — but it stays, because it is the check that would catch a group
+ * quietly dropping out of the mapping again, which is how the drink step went missing on
+ * all 29 "Menu X" the first time.
+ */
+export const unbuiltBundlesInUse = (dataset, decisions, built = null) => {
   const used = new Map();
   for (const category of dataset.menu) {
     for (const item of category.items) {
@@ -325,6 +434,7 @@ export const unbuiltBundlesInUse = (dataset, decisions) => {
       ];
       for (const id of new Set(referenced)) {
         if (groupOf(decisions, id).target !== 'bundle') continue;
+        if (built?.has(String(id))) continue;
         used.set(String(id), [...(used.get(String(id)) ?? []), item.name]);
       }
     }
@@ -342,6 +452,67 @@ export const unbuiltBundlesInUse = (dataset, decisions) => {
       // group ids in the order they are spoken about.
       .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
   );
+};
+
+/**
+ * A `Menu …` size -> its own type=menu product, per the platform's own precedent (see
+ * decisions.bundles). Its price is their ABSOLUTE size price, not a delta: this is a
+ * product in its own right, so there is no basePrice to be relative to.
+ *
+ * Sections: `Plat` naming the dish it wraps (one item, required) and whatever bundle groups
+ * the PARENT product referenced — for a "Menu Kebab" that is group 79, the drink. Those
+ * groups hang off the parent product and off the menu size, never off the default size,
+ * which is exactly why reading only the default size lost them.
+ */
+const buildMenuBundles = (dataset, decisions) => {
+  const out = [];
+  for (const category of dataset.menu) {
+    for (const item of category.items) {
+      if (Object.hasOwn(decisions.dropProducts, String(item.sourceId))) continue;
+      for (const size of item.sizes ?? []) {
+        if (!isMenuSize(decisions, size)) continue;
+        const referenced = new Set([...(item.modifierGroupIds ?? []), ...(size.modifierGroupIds ?? [])]);
+        const bundleGroups = [...referenced].filter((id) => groupOf(decisions, id).target === 'bundle');
+        out.push({
+          source: {
+            id: `${item.sourceId}:${size.name}`,
+            parentId: item.sourceId,
+            categoryId: category.sourceId,
+            image: item.image,
+            absolutePrice: size.price,
+          },
+          body: {
+            name: size.name,
+            description: null,
+            basePrice: round2(size.price),
+            isActive: item.isActive,
+            isAvailable: !item.isSoldOut,
+            isSpecial: false,
+            preparationTimeMinutes: 0,
+            type: PRODUCT_TYPE.menu,
+            kitchenType: 'None',
+            ingredients: null,
+            allergens: null,
+            displayOrder: (item.sortOrder ?? 0) + 100,
+            categoryIds: [],
+            primaryCategoryId: null,
+            variations: [],
+            suggestedSideItemIds: [],
+            detailedIngredients: [],
+            content: content(size.name),
+            sauceMin: 0,
+            sauceMax: null,
+            sauceIncludedFree: 0,
+          },
+          // `platOf` is resolved to the parent product's id by import.mjs, which is the only
+          // place that knows it — the dish must exist before the menu that wraps it.
+          platOf: item.sourceId,
+          sections: bundleGroups.map((id) => sectionFor(decisions, id)),
+        });
+      }
+    }
+  }
+  return out;
 };
 
 /**
@@ -373,11 +544,15 @@ export const build = async ({ datasetPath, decisionsPath }) => {
   const dataset = JSON.parse(await readFile(datasetPath ?? path.join(HERE, 'dataset.json'), 'utf8'));
   const decisions = JSON.parse(await readFile(decisionsPath ?? path.join(HERE, 'decisions.json'), 'utf8'));
   const merges = [];
+  // sectionFor needs the raw groups; stashed rather than threaded through six signatures.
+  decisions.__groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
   return {
     dataset,
     decisions,
     categories: buildCategories(dataset),
+    components: buildComponents(dataset, decisions),
     products: buildProducts(dataset, decisions, merges),
+    menus: buildMenuBundles(dataset, decisions),
     merges,
   };
 };
@@ -513,6 +688,50 @@ const verifyNoNegatedNames = (products) => {
   return failures;
 };
 
+/**
+ * Every section must resolve to real components, and a menu must name a real dish.
+ *
+ * A `componentRef` that matches nothing would produce a section the guest sees as empty —
+ * "choose your drink" with no drinks. That is the same failure the unbuilt-bundle refusal
+ * exists for, one layer down, so it gets the same treatment: an assertion, not a hope.
+ */
+const verifySections = (products, menus, components) => {
+  const have = new Set(components.map((c) => `${c.source.family}:${c.source.name.toLowerCase()}`));
+  const productIds = new Set(products.map((p) => p.source.id));
+  const failures = [];
+  for (const owner of [...products, ...menus]) {
+    for (const section of owner.sections ?? []) {
+      if (!section.name) failures.push(`${owner.body.name}: a section has no name`);
+      if (!section.componentRefs.length) {
+        failures.push(`${owner.body.name}/${section.name}: no options`);
+      }
+      for (const ref of section.componentRefs) {
+        if (!have.has(ref)) failures.push(`${owner.body.name}/${section.name}: no component "${ref}"`);
+      }
+      if (section.minSelection > section.maxSelection) {
+        failures.push(`${owner.body.name}/${section.name}: min ${section.minSelection} > max ${section.maxSelection}`);
+      }
+    }
+  }
+  for (const menu of menus) {
+    if (!productIds.has(menu.platOf)) {
+      failures.push(`${menu.body.name}: wraps product ${menu.platOf}, which is not being created`);
+    }
+  }
+  return failures;
+};
+
+/** A menu's price is THEIR absolute size price — never a delta, since it has no parent. */
+const verifyMenuPrices = (menus) => {
+  const failures = [];
+  for (const menu of menus) {
+    if (round2(menu.body.basePrice) !== round2(menu.source.absolutePrice)) {
+      failures.push(`${menu.body.name}: ${menu.body.basePrice} vs their ${menu.source.absolutePrice}`);
+    }
+  }
+  return failures;
+};
+
 const main = async () => {
   const argv = process.argv.slice(2);
   const flag = (name) => argv.includes(name);
@@ -521,9 +740,12 @@ const main = async () => {
     return i === -1 ? undefined : argv[i + 1];
   };
 
-  const { dataset, decisions, categories, products, merges } = await build({});
+  const { dataset, decisions, categories, components, products, menus, merges } = await build({});
   const pending = unconfirmedInUse(dataset, decisions);
-  const unbuilt = unbuiltBundlesInUse(dataset, decisions);
+  // Which groups actually reached a section — derived from the OUTPUT, so a group that
+  // silently stopped being mapped shows up here rather than being assumed built.
+  const built = new Set([...products, ...menus].flatMap((p) => (p.sections ?? []).map((sec) => sec.__groupId)));
+  const unbuilt = unbuiltBundlesInUse(dataset, decisions, built);
 
   if (flag('--verify')) {
     const priceFailures = verifyPrices(products);
@@ -533,6 +755,8 @@ const main = async () => {
     const exclusionFailures = verifyExclusionGroups(products);
     const duplicateFailures = verifyNoDuplicateIngredients(products);
     const negatedFailures = verifyNoNegatedNames(products);
+    const sectionFailures = verifySections(products, menus, components);
+    const menuPriceFailures = verifyMenuPrices(menus);
     const variations = products.reduce((n, p) => n + p.body.variations.length, 0);
     const ingredients = products.reduce((n, p) => n + p.body.detailedIngredients.length, 0);
     const sauced = products.filter((p) => p.body.sauceMin > 0).length;
@@ -541,8 +765,12 @@ const main = async () => {
       0,
     );
 
+    const sectioned = [...products, ...menus].filter((p) => (p.sections ?? []).length);
     console.log(`categories                 ${categories.length}`);
     console.log(`products                   ${products.length}`);
+    console.log(`menu bundles (type=menu)   ${menus.length}`);
+    console.log(`hidden components          ${components.length}`);
+    console.log(`products carrying sections ${sectioned.length}`);
     console.log(`variations                 ${variations}`);
     console.log(`product ingredients        ${ingredients}`);
     console.log(`products with a sauce rule ${sauced}`);
@@ -561,6 +789,8 @@ const main = async () => {
     report('no ingredient is marked mutually exclusive', exclusionFailures);
     report('no product names the same ingredient twice', duplicateFailures);
     report('no guest-facing ingredient is still phrased as a removal', negatedFailures);
+    report('every bundle section resolves to real components and a real dish', sectionFailures);
+    report("every menu's price is THEIR absolute price", menuPriceFailures);
     report(
       'every modifier group in use has a CONFIRMED meaning',
       pending.map((p) => `${p} is unconfirmed — decisions.json`),
@@ -577,7 +807,9 @@ const main = async () => {
       sauceFailures.length +
       exclusionFailures.length +
       duplicateFailures.length +
-      negatedFailures.length;
+      negatedFailures.length +
+      sectionFailures.length +
+      menuPriceFailures.length;
     if (failed || pending.length || unbuilt.length) process.exit(1);
     console.log('\nmap: all checks passed');
     return;

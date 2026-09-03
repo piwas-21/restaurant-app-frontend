@@ -207,5 +207,33 @@
     "logo": "platform-default",
     "logoNote": "OWNER DECISION 2026-09-03: ship with no logo for now. This is NOT an upload — there is no baked default logo and there must not be one (a baked default silently wins over what a tenant later uploads). Leaving RestaurantInfo.LogoUrl null renders the designed fallback in TenantLogo.tsx: the SofraPiwas brand mark beside the restaurant's own name, in the active template's typeface. So MC FOOD's header will read `[onion mark] MC FOOD` — the platform's mark on a partner's client's site, which is the approved design and what obresse and kebabdilhan carry too. A real wordmark is a later save in tenant admin, not a rebuild.",
     "stillMissing": ["adminEmail", "orderNotificationEmail", "timezone (Europe/Paris — inferred, unconfirmed)"]
+  },
+  "bundles": {
+    "_": [
+      "How a 'Menu X' becomes a bundle, settled 2026-09-03 against the PLATFORM'S OWN",
+      "PRECEDENT rather than by preference: demo.sofrapiwas.com (cloned from kebabdilhan, the",
+      "same partner's French kebab shop) models 'Menu Sandwich Kebab' as a SEPARATE product,",
+      "type=menu, variations 0, with sections Plat (the dish, 1 item) / Boissons Menu (16",
+      "drinks) / Desserts (optional). A menu is NOT a size.",
+      "",
+      "So MC FOOD's 34 'Menu …' sizes stop being variations and become 34 type=menu products.",
+      "The 5 genuine portion sizes (6 X vs 12 X Mozza Stick and friends) stay variations —",
+      "that split is measured in map.mjs, not eyeballed.",
+      "",
+      "Section OPTIONS are always NEW component products (isComponent: true, hidden from the",
+      "catalogue), never existing products matched by name. Measured why: group 81's meat",
+      "option 'Kebab' name-matches the SANDWICHES product 'Kebab' (8.00 EUR), and referencing",
+      "that would put a whole sandwich, with its own price and recipe, inside a Tacos as its",
+      "meat. Duplicating a hidden 'Coca Cola Zero' row costs nothing; that mis-reference is a",
+      "real defect. Components carry AdditionalPrice 0 — the menu price already includes them."
+    ],
+    "componentCategories": {
+      "_": "Components still need a category (CreateProductCommand requires CategoryIds NotEmpty). They are hidden by isComponent, so an existing, plausible category is used rather than inventing an empty one that would show on the carte.",
+      "drink": 94,
+      "meat": 91,
+      "gift": 86
+    },
+    "platSectionName": "Plat",
+    "menuSizePattern": "^menu\\b"
   }
 }

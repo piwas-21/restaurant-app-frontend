@@ -1,5 +1,5 @@
 // Product-related types and interfaces
-import type { Control, FieldErrors, UseFormGetValues, FieldValues } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormGetValues, UseFormSetValue, FieldValues } from 'react-hook-form';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
 
@@ -137,6 +137,9 @@ export interface ProductVariationsProps {
    * fetched value would print a stale number under the input that changed it.
    */
   control: Control<FieldValues>;
+  /** Writes a picked library row onto the row the admin is typing in — see the name type-ahead. */
+  setValue: UseFormSetValue<FieldValues>;
+
   /**
    * Read the form STORE. The library picker uses it to see the product's current rows at the moment
    * it opens — `variationFields` is a snapshot that `moveVariation`'s `setValue` renumbering does

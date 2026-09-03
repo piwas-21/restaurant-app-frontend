@@ -5,7 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import VariationBaseRow from './VariationBaseRow';
 import VariationLibraryButton from './VariationLibraryButton';
-import { nextVariationDisplayOrder } from './globalVariationLibrary';
+import VariationNameCell from './VariationNameCell';
+import { useVariationNameSuggestions } from '@/hooks/admin/useVariationNameSuggestions';
+import {
+  attachedVariationKeys,
+  mergeVariationContent,
+  nextVariationDisplayOrder,
+  toProductVariation,
+} from './globalVariationLibrary';
 import { ProductVariationsProps } from './types';
 import FieldError from './fields/FieldError';
 import { fieldAria, fieldMessage } from './fields/fieldAria';
@@ -55,8 +62,35 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   moveVariation,
   getValues,
   control,
+  setValue,
 }) => {
   const { t } = useTranslation();
+  // The type-ahead the ingredient name field has always had and this one never did — see the hook.
+  const suggestions = useVariationNameSuggestions();
+  // The picker's OWN key set, which keys on the NAME as well as the id: every variation on prod
+  // predates the library and carries no `globalVariationId`, so an id-only exclusion would exclude
+  // nothing and offer a product its own size ladder back.
+  const attachedKeys = attachedVariationKeys(getValues('variations') ?? []);
+
+  /**
+   * Fill THIS row from the library row rather than appending one: the admin is already typing into
+   * a row that exists. Everything a picked row would get lands on it — name, translations,
+   * provenance — except `displayOrder`, which this row already has and a pick must not renumber.
+   */
+  const applySuggestion = (index: number, row: Parameters<typeof toProductVariation>[0]) => {
+    const picked = toProductVariation(row, 0);
+    setValue(`variations.${index}.name`, picked.name, { shouldDirty: true });
+    // MERGED, never replaced: `toProductVariation` builds `content` for an APPEND, so writing it
+    // over an occupied row wiped that row's ten description translations — which the Translations
+    // tab edits and the catalog has no field for — see `mergeVariationContent`.
+    setValue(
+      `variations.${index}.content`,
+      mergeVariationContent(getValues(`variations.${index}.content`), picked.content),
+      { shouldDirty: true },
+    );
+    setValue(`variations.${index}.globalVariationId`, picked.globalVariationId, { shouldDirty: true });
+    suggestions.close();
+  };
 
   return (
     <section className={groupStyles.group}>
@@ -103,24 +137,15 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                   canMoveDown={index < variationFields.length - 1}
                   onMove={moveVariation}
                 />
-                <td className={rowStyles.nameCell} data-label={t('variation_name')}>
-                  <input
-                    className={rowStyles.nameInput}
-                    aria-label={t('variation_name')}
-                    placeholder={t('variation_name')}
-                    {...register(`variations.${index}.name`)}
-                    {...fieldAria(errors, `variations.${index}.name`)}
-                  />
-                  {/* S7/D13. `variationSchema.name` is `min(1)`, so a blank one refuses the
-                        WHOLE save — and until S7 this file rendered no message at all, which is
-                        why the editor could refuse with nothing on screen anywhere (plan §12.1).
-                        The `aria-label` above stays: it is the accessible NAME, and `fieldAria`
-                        only adds the invalid state and the pointer to this sentence. */}
-                  <FieldError
-                    name={`variations.${index}.name`}
-                    message={fieldMessage(errors, `variations.${index}.name`)}
-                  />
-                </td>
+                <VariationNameCell
+                  register={register}
+                  errors={errors}
+                  index={index}
+                  suggestions={suggestions.suggestionsFor(index, attachedKeys)}
+                  onSearch={(term) => suggestions.search(index, term)}
+                  onCloseSuggestions={suggestions.close}
+                  onPick={(row) => applySuggestion(index, row)}
+                />
                 <td className={rowStyles.nameCell} data-label={t('variation_description')}>
                   <input
                     className={rowStyles.nameInput}

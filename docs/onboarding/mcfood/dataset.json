@@ -1,0 +1,2405 @@
+{
+  "source": {
+    "site": "https://mcdoner-orchamps.fr/",
+    "restaurantId": 17,
+    "slug": "mcfood",
+    "fetchedAt": "2026-09-03",
+    "method": "public unauthenticated API"
+  },
+  "restaurant": {
+    "name": "MC FOOD",
+    "slug": "mcfood",
+    "address": "12 Rue des Bleuets 25390 orchamps vennes",
+    "phone": "+33 3 81 64 28 06",
+    "email": "",
+    "currency": "EUR",
+    "country": "FR",
+    "locale": "fr",
+    "timezone": "Europe/Paris (inferred from FR address — CONFIRM)",
+    "latitude": null,
+    "longitude": null,
+    "logo": "assets/logo/logo.png",
+    "minOrderAmount": null,
+    "orderNotificationEmail": "<REDACTED — see onboarding notes; collect from partner>",
+    "createdAt": "2026-08-30T22:16:29.902Z"
+  },
+  "serviceConfig": {
+    "onlineOrderingEnabled": true,
+    "deliveryEnabled": false,
+    "takeawayEnabled": true,
+    "dineInEnabled": true,
+    "cashPaymentEnabled": true,
+    "cardPaymentEnabled": true,
+    "ticketRestaurantPaymentEnabled": false,
+    "onlinePaymentEnabled": true,
+    "loyaltyCardEnabled": true,
+    "orderEmailEnabled": true,
+    "supportChatEnabled": true,
+    "serviceFeePercent": 0,
+    "serviceFeeServiceTypes": ["takeaway", "delivery"],
+    "serviceFeeOnlinePercent": 5
+  },
+  "workingHours": {
+    "mon": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "tue": {
+      "isOpen": true,
+      "open": "11:30",
+      "close": "14:00",
+      "intervals": [
+        {
+          "open": "11:30",
+          "close": "14:00"
+        },
+        {
+          "open": "18:30",
+          "close": "22:00"
+        }
+      ]
+    },
+    "wed": {
+      "isOpen": true,
+      "open": "11:30",
+      "close": "14:00",
+      "intervals": [
+        {
+          "open": "11:30",
+          "close": "14:00"
+        },
+        {
+          "open": "18:30",
+          "close": "22:00"
+        }
+      ]
+    },
+    "thu": {
+      "isOpen": true,
+      "open": "11:00",
+      "close": "14:00",
+      "intervals": [
+        {
+          "open": "11:00",
+          "close": "14:00"
+        },
+        {
+          "open": "18:30",
+          "close": "22:00"
+        }
+      ]
+    },
+    "fri": {
+      "isOpen": true,
+      "open": "11:30",
+      "close": "14:00",
+      "intervals": [
+        {
+          "open": "11:30",
+          "close": "14:00"
+        },
+        {
+          "open": "18:30",
+          "close": "22:00"
+        }
+      ]
+    },
+    "sat": {
+      "isOpen": true,
+      "open": "11:30",
+      "close": "14:00",
+      "intervals": [
+        {
+          "open": "11:30",
+          "close": "14:00"
+        },
+        {
+          "open": "18:30",
+          "close": "22:00"
+        }
+      ]
+    },
+    "sun": {
+      "isOpen": true,
+      "open": "18:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "18:00",
+          "close": "22:00"
+        }
+      ]
+    }
+  },
+  "deliveryHours": {
+    "mon": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "tue": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "wed": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "thu": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "fri": {
+      "isOpen": false,
+      "open": "09:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "09:00",
+          "close": "22:00"
+        }
+      ]
+    },
+    "sat": {
+      "isOpen": false,
+      "open": "10:00",
+      "close": "23:00",
+      "intervals": [
+        {
+          "open": "10:00",
+          "close": "23:00"
+        }
+      ]
+    },
+    "sun": {
+      "isOpen": false,
+      "open": "10:00",
+      "close": "22:00",
+      "intervals": [
+        {
+          "open": "10:00",
+          "close": "22:00"
+        }
+      ]
+    }
+  },
+  "siteSettings": {
+    "themePreset": "street",
+    "customAccent": "#F5A524",
+    "customBase": "dark",
+    "customFont": "inter",
+    "customBg": "",
+    "customRadius": 16,
+    "theme": "dark",
+    "accentColor": "orange",
+    "cardLayout": "list",
+    "buttonShape": "rounded",
+    "density": "auto",
+    "surface": "shadow",
+    "imageShape": "auto",
+    "texture": "gradient",
+    "home": {
+      "enabled": true,
+      "heroImages": ["/api/storage/objects/uploads/6294e9df-533c-4253-b57f-eeaf2cc01bf9"],
+      "heroImagesMobile": [
+        "/api/storage/objects/uploads/bf86b9c3-4f4c-4204-ad1d-550ca7bb8dc2",
+        "/api/storage/objects/uploads/7910f271-8af5-4c78-ba8d-95cd8fd6d00e",
+        "/api/storage/objects/uploads/19185731-bf48-4ead-aeea-22972c5e1f55",
+        "/api/storage/objects/uploads/6452dc2b-f2a8-437b-937d-9dcc195a79ac"
+      ],
+      "heroMobileSize": "short",
+      "showHeadline": false,
+      "headline": "",
+      "tagline": "25390 ORCHAMPS VENNES",
+      "showFeatured": true,
+      "featuredIds": [395, 406, 422, 442],
+      "showCategories": true,
+      "showAbout": false,
+      "aboutTitle": "",
+      "aboutText": "",
+      "aboutImage": "",
+      "showGallery": false,
+      "gallery": [],
+      "showHours": true,
+      "showContact": true,
+      "instagram": "",
+      "facebook": "",
+      "tiktok": "",
+      "whatsapp": ""
+    }
+  },
+  "tables": [
+    {
+      "id": 60,
+      "restaurantId": 17,
+      "label": "Masa 1",
+      "zone": null,
+      "number": 1,
+      "qrToken": "<REDACTED>",
+      "isActive": true
+    }
+  ],
+  "deliveryZones": [],
+  "campaigns": [],
+  "modifierGroups": [
+    {
+      "id": 76,
+      "restaurantId": 17,
+      "name": "+ + +",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 0,
+      "options": [
+        {
+          "id": 627,
+          "groupId": 76,
+          "name": "+ Viande",
+          "price": 3,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 628,
+          "groupId": 76,
+          "name": "+ Cheddar",
+          "price": 1,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 629,
+          "groupId": 76,
+          "name": "+ Emmentale",
+          "price": 1,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 630,
+          "groupId": 76,
+          "name": "+ Chevre",
+          "price": 1,
+          "sortOrder": 3,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "restaurantId": 17,
+      "name": "SAUCES",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 2,
+      "sortOrder": 1,
+      "options": [
+        {
+          "id": 631,
+          "groupId": 77,
+          "name": "Samourai",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 632,
+          "groupId": 77,
+          "name": "Ketchup",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 633,
+          "groupId": 77,
+          "name": "Mayonnaise",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 634,
+          "groupId": 77,
+          "name": "Harissa",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 635,
+          "groupId": 77,
+          "name": "Sauce Blanche",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 636,
+          "groupId": 77,
+          "name": "Moutarde",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 637,
+          "groupId": 77,
+          "name": "Andalouse",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        },
+        {
+          "id": 638,
+          "groupId": 77,
+          "name": "Curry",
+          "price": 0,
+          "sortOrder": 7,
+          "isAvailable": true
+        },
+        {
+          "id": 639,
+          "groupId": 77,
+          "name": "Algerienne",
+          "price": 0,
+          "sortOrder": 8,
+          "isAvailable": true
+        },
+        {
+          "id": 640,
+          "groupId": 77,
+          "name": "Barbecue",
+          "price": 0,
+          "sortOrder": 9,
+          "isAvailable": true
+        },
+        {
+          "id": 641,
+          "groupId": 77,
+          "name": "Biggy Burger",
+          "price": 0,
+          "sortOrder": 10,
+          "isAvailable": true
+        },
+        {
+          "id": 642,
+          "groupId": 77,
+          "name": "Sans Sauces",
+          "price": 0,
+          "sortOrder": 11,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "restaurantId": 17,
+      "name": "-",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 2,
+      "options": [
+        {
+          "id": 643,
+          "groupId": 78,
+          "name": "Sans Salade",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 644,
+          "groupId": 78,
+          "name": "Sans Tomate",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 645,
+          "groupId": 78,
+          "name": "Sans Oignon",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "restaurantId": 17,
+      "name": "Boissons",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 3,
+      "options": [
+        {
+          "id": 646,
+          "groupId": 79,
+          "name": "Coca Cola",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 647,
+          "groupId": 79,
+          "name": "Coca Cola Cherry",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 648,
+          "groupId": 79,
+          "name": "Coca Cola Zero",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 649,
+          "groupId": 79,
+          "name": "Sprite",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 650,
+          "groupId": 79,
+          "name": "Fanta",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 651,
+          "groupId": 79,
+          "name": "Ice Tea",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 652,
+          "groupId": 79,
+          "name": "Hawaii",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        },
+        {
+          "id": 653,
+          "groupId": 79,
+          "name": "Oasis",
+          "price": 0,
+          "sortOrder": 7,
+          "isAvailable": true
+        },
+        {
+          "id": 654,
+          "groupId": 79,
+          "name": "Oasis Pomme Cassis",
+          "price": 0,
+          "sortOrder": 8,
+          "isAvailable": true
+        },
+        {
+          "id": 655,
+          "groupId": 79,
+          "name": "Perrier",
+          "price": 0,
+          "sortOrder": 9,
+          "isAvailable": true
+        },
+        {
+          "id": 656,
+          "groupId": 79,
+          "name": "Eau",
+          "price": 0,
+          "sortOrder": 10,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "restaurantId": 17,
+      "name": "- - -",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 4,
+      "options": [
+        {
+          "id": 657,
+          "groupId": 80,
+          "name": "- Sans Sauce Fromage",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 658,
+          "groupId": 80,
+          "name": "- Sans Emmentale",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 691,
+          "groupId": 80,
+          "name": "Sans Salade",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 692,
+          "groupId": 80,
+          "name": "Sans Tomate",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 693,
+          "groupId": 80,
+          "name": "Sans Oignon",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 694,
+          "groupId": 80,
+          "name": "Sans Chou Rouge",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 695,
+          "groupId": 80,
+          "name": "Sans Carotte",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "restaurantId": 17,
+      "name": "1 Viandes",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 5,
+      "options": [
+        {
+          "id": 659,
+          "groupId": 81,
+          "name": "Kebab",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 660,
+          "groupId": 81,
+          "name": "Steak",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 661,
+          "groupId": 81,
+          "name": "Poulet",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 662,
+          "groupId": 81,
+          "name": "Nuggets",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 663,
+          "groupId": 81,
+          "name": "Tenders",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 664,
+          "groupId": 81,
+          "name": "Cordon Bleu",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 665,
+          "groupId": 81,
+          "name": "Falafel",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "restaurantId": 17,
+      "name": "Ajouter Legume",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 6,
+      "options": [
+        {
+          "id": 666,
+          "groupId": 82,
+          "name": "+ Salade",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 667,
+          "groupId": 82,
+          "name": "+ Tomate",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 668,
+          "groupId": 82,
+          "name": "+ Oignons",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 698,
+          "groupId": 82,
+          "name": "+ Oignon",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "restaurantId": 17,
+      "name": "2 Viandes",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 2,
+      "sortOrder": 7,
+      "options": [
+        {
+          "id": 669,
+          "groupId": 83,
+          "name": "Kebab",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 670,
+          "groupId": 83,
+          "name": "Steak",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 671,
+          "groupId": 83,
+          "name": "Poulet",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 672,
+          "groupId": 83,
+          "name": "Nuggets",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 673,
+          "groupId": 83,
+          "name": "Tenders",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 674,
+          "groupId": 83,
+          "name": "Cordon Bleu",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 675,
+          "groupId": 83,
+          "name": "Falafel",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 84,
+      "restaurantId": 17,
+      "name": "3 Viandes",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 3,
+      "sortOrder": 8,
+      "options": [
+        {
+          "id": 676,
+          "groupId": 84,
+          "name": "Kebab",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 677,
+          "groupId": 84,
+          "name": "Steak",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 678,
+          "groupId": 84,
+          "name": "Poulet",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 679,
+          "groupId": 84,
+          "name": "Nuggets",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 680,
+          "groupId": 84,
+          "name": "Tenders",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 681,
+          "groupId": 84,
+          "name": "Cordon Bleu",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 682,
+          "groupId": 84,
+          "name": "Falafel",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 85,
+      "restaurantId": 17,
+      "name": "Viande au choix",
+      "isRequired": true,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 9,
+      "options": [
+        {
+          "id": 683,
+          "groupId": 85,
+          "name": "Tenders",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 684,
+          "groupId": 85,
+          "name": "Cordon Bleu",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        },
+        {
+          "id": 685,
+          "groupId": 85,
+          "name": "Nuggets",
+          "price": 0,
+          "sortOrder": 2,
+          "isAvailable": true
+        },
+        {
+          "id": 686,
+          "groupId": 85,
+          "name": "Merguez",
+          "price": 0,
+          "sortOrder": 3,
+          "isAvailable": true
+        },
+        {
+          "id": 687,
+          "groupId": 85,
+          "name": "Poulet",
+          "price": 0,
+          "sortOrder": 4,
+          "isAvailable": true
+        },
+        {
+          "id": 688,
+          "groupId": 85,
+          "name": "Steak",
+          "price": 0,
+          "sortOrder": 5,
+          "isAvailable": true
+        },
+        {
+          "id": 689,
+          "groupId": 85,
+          "name": "Veggıe",
+          "price": 0,
+          "sortOrder": 6,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 86,
+      "restaurantId": 17,
+      "name": "--",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 10,
+      "options": [
+        {
+          "id": 690,
+          "groupId": 86,
+          "name": "Sans Boulgour",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 87,
+      "restaurantId": 17,
+      "name": "- -",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 11,
+      "options": [
+        {
+          "id": 696,
+          "groupId": 87,
+          "name": "Fille",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 697,
+          "groupId": 87,
+          "name": "Garçon",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        }
+      ]
+    },
+    {
+      "id": 88,
+      "restaurantId": 17,
+      "name": "- Libanaise",
+      "isRequired": false,
+      "minFree": 0,
+      "minSelect": 1,
+      "maxSelect": 1,
+      "sortOrder": 12,
+      "options": [
+        {
+          "id": 699,
+          "groupId": 88,
+          "name": "Sans Cheddar",
+          "price": 0,
+          "sortOrder": 0,
+          "isAvailable": true
+        },
+        {
+          "id": 700,
+          "groupId": 88,
+          "name": "Sans Feta",
+          "price": 0,
+          "sortOrder": 1,
+          "isAvailable": true
+        }
+      ]
+    }
+  ],
+  "menu": [
+    {
+      "sourceId": 81,
+      "name": "SANDWICHES",
+      "sortOrder": 0,
+      "isActive": true,
+      "image": "assets/categories/81-sandwiches.jpg",
+      "items": [
+        {
+          "sourceId": 395,
+          "name": "Kebab",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/395-kebab.jpg",
+          "sizes": [
+            {
+              "name": "Kebab Seul",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Kebab",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 394,
+          "name": "Cordon Bleu",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/394-cordon-bleu.jpg",
+          "sizes": [
+            {
+              "name": "Cordon Bleu",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Cordon Bleu",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 396,
+          "name": "Kofte",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/396-kofte.jpg",
+          "sizes": [
+            {
+              "name": "Kofte",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Kofte",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 397,
+          "name": "Durum",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/397-durum.jpg",
+          "sizes": [
+            {
+              "name": "Durum",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Durum",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 398,
+          "name": "Poulet",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/398-poulet.jpg",
+          "sizes": [
+            {
+              "name": "Poulet",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Poulet",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 399,
+          "name": "Americain",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 5,
+          "image": "assets/products/399-americain.jpg",
+          "sizes": [
+            {
+              "name": "Americain",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Americain",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        },
+        {
+          "sourceId": 400,
+          "name": "Falafel",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 6,
+          "image": "assets/products/400-falafel.jpg",
+          "sizes": [
+            {
+              "name": "Falafel",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Falafel",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [76, 77, 78, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 82,
+      "name": "TACOS",
+      "sortOrder": 1,
+      "isActive": true,
+      "image": "assets/categories/82-tacos.png",
+      "items": [
+        {
+          "sourceId": 401,
+          "name": "Tacos 1 Viande",
+          "description": null,
+          "price": 9,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/401-tacos-1-viande.png",
+          "sizes": [
+            {
+              "name": "Tacos 1 Viande",
+              "price": 9,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 80, 81, 82]
+            },
+            {
+              "name": "Menu Tacos 1 Viande",
+              "price": 12,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [81, 76, 80, 77, 82, 79]
+        },
+        {
+          "sourceId": 402,
+          "name": "Tacos 2 Viande",
+          "description": null,
+          "price": 11,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/402-tacos-2-viande.jpg",
+          "sizes": [
+            {
+              "name": "Tacos 2 Viande",
+              "price": 11,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 80, 82, 83]
+            },
+            {
+              "name": "Menu Tacos 2 Viande",
+              "price": 14,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [83, 76, 80, 77, 82, 79]
+        },
+        {
+          "sourceId": 403,
+          "name": "Tacos 3 Viande",
+          "description": null,
+          "price": 13,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/403-tacos-3-viande.jpg",
+          "sizes": [
+            {
+              "name": "Tacos 3 Viande",
+              "price": 13,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 80, 82, 84]
+            },
+            {
+              "name": "Menu Tacos 3 Viande",
+              "price": 16,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [84, 76, 80, 77, 82, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 83,
+      "name": "NOS GALETTES",
+      "sortOrder": 2,
+      "isActive": true,
+      "image": "assets/categories/83-nos-galettes.jpg",
+      "items": [
+        {
+          "sourceId": 404,
+          "name": "Galette",
+          "description": null,
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/404-galette.jpg",
+          "sizes": [
+            {
+              "name": "Galette Seul",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78, 85]
+            },
+            {
+              "name": "Menu Galette",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [85, 77, 78, 76, 79]
+        },
+        {
+          "sourceId": 405,
+          "name": "Menu Galette",
+          "description": null,
+          "price": 11.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/405-menu-galette.jpg",
+          "sizes": [],
+          "modifierGroupIds": [85, 77, 78, 76, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 84,
+      "name": "HAMBURGER",
+      "sortOrder": 3,
+      "isActive": true,
+      "image": "assets/categories/84-hamburger.jpg",
+      "items": [
+        {
+          "sourceId": 406,
+          "name": "Maxi Cheese",
+          "description": "1 Steak 100 gr ,fromage , crudites",
+          "price": 7.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/406-maxi-cheese.jpg",
+          "sizes": [
+            {
+              "name": "Maxi Cheese",
+              "price": 7.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Maxi Cheese",
+              "price": 10.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 78, 76, 79]
+        },
+        {
+          "sourceId": 407,
+          "name": "Mega Cheese",
+          "description": "1 Steak de 180 gr ,fromage,crudites",
+          "price": 10,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/407-mega-cheese.jpg",
+          "sizes": [
+            {
+              "name": "Mega Cheese",
+              "price": 10,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Mega Cheese",
+              "price": 13,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 78, 76, 79]
+        },
+        {
+          "sourceId": 408,
+          "name": "Chicken Burger",
+          "description": "Poulet,fromage,crudites",
+          "price": 7.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/408-chicken-burger.jpg",
+          "sizes": [
+            {
+              "name": "Chicken Burger",
+              "price": 7.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Chicken Burger",
+              "price": 10.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 78, 76, 79]
+        },
+        {
+          "sourceId": 409,
+          "name": "Tower Burger",
+          "description": "Poulet,rosty,fromage,crudites",
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/409-tower-burger.jpg",
+          "sizes": [
+            {
+              "name": "Tower Burger",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Tower Burger",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 78, 76, 79]
+        },
+        {
+          "sourceId": 410,
+          "name": "Bap's Burger",
+          "description": "1 Steak de 100 gr,rosty;fromage,crudites",
+          "price": 8.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/410-bap-s-burger.jpg",
+          "sizes": [
+            {
+              "name": "Bap's Burger",
+              "price": 8.5,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 78]
+            },
+            {
+              "name": "Menu Bap's Burger",
+              "price": 11.5,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 78, 76, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 85,
+      "name": "ASSIETTES",
+      "sortOrder": 4,
+      "isActive": true,
+      "image": "assets/categories/85-assiettes.jpg",
+      "items": [
+        {
+          "sourceId": 411,
+          "name": "Assiette Kebab",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/411-assiette-kebab.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 412,
+          "name": "Assiette Steak",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/412-assiette-steak.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 413,
+          "name": "Assiette Mixte",
+          "description": "3 Viandes au choix",
+          "price": 18,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/413-assiette-mixte.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80, 84]
+        },
+        {
+          "sourceId": 414,
+          "name": "Assiette Merguez",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/414-assiette-merguez.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 415,
+          "name": "Assiette Kofte",
+          "description": null,
+          "price": 15,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/415-assiette-kofte.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 416,
+          "name": "Assiette Cordon Bleu",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 5,
+          "image": "assets/products/416-assiette-cordon-bleu.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 417,
+          "name": "Assiette Brochette Poulet",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 6,
+          "image": "assets/products/417-assiette-brochette-poulet.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        },
+        {
+          "sourceId": 418,
+          "name": "Assiette Falafel",
+          "description": null,
+          "price": 14,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 7,
+          "image": "assets/products/418-assiette-falafel.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77, 86, 80]
+        }
+      ]
+    },
+    {
+      "sourceId": 86,
+      "name": "Menu Enfant",
+      "sortOrder": 5,
+      "isActive": true,
+      "image": "assets/categories/86-menu-enfant.jpg",
+      "items": [
+        {
+          "sourceId": 419,
+          "name": "Menu Enfant Kebab",
+          "description": null,
+          "price": 9,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/419-menu-enfant-kebab.png",
+          "sizes": [],
+          "modifierGroupIds": [87, 77]
+        },
+        {
+          "sourceId": 420,
+          "name": "Menu Enfant Hamburger",
+          "description": null,
+          "price": 9,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/420-menu-enfant-hamburger.jpg",
+          "sizes": [],
+          "modifierGroupIds": [87, 77]
+        },
+        {
+          "sourceId": 421,
+          "name": "Menu Enfant Nuggets",
+          "description": null,
+          "price": 9,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/421-menu-enfant-nuggets.jpg",
+          "sizes": [],
+          "modifierGroupIds": [87, 77]
+        }
+      ]
+    },
+    {
+      "sourceId": 87,
+      "name": "TEXMEX",
+      "sortOrder": 6,
+      "isActive": true,
+      "image": "assets/categories/87-texmex.png",
+      "items": [
+        {
+          "sourceId": 422,
+          "name": "6 X Mozza Stick",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/422-6-x-mozza-stick.jpg",
+          "sizes": [
+            {
+              "name": "6 X Mozza Stick",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 6 X Mozza Stick",
+              "price": 10,
+              "isDefault": false
+            },
+            {
+              "name": "12 X Mozza Stick",
+              "price": 12,
+              "isDefault": false,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 12 X Mozza Stick",
+              "price": 15,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 79]
+        },
+        {
+          "sourceId": 423,
+          "name": "6 X Nuggets",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/423-6-x-nuggets.avif",
+          "sizes": [
+            {
+              "name": "6 X Nuggets",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 6 X Nuggets",
+              "price": 10,
+              "isDefault": false
+            },
+            {
+              "name": "12X Nuggets",
+              "price": 12,
+              "isDefault": false,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 12 X Nuggets",
+              "price": 15,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 79]
+        },
+        {
+          "sourceId": 424,
+          "name": "6 X Onion Rings",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/424-6-x-onion-rings.jpg",
+          "sizes": [
+            {
+              "name": "6 X Onion Rings",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 6 X Onion Rings",
+              "price": 10,
+              "isDefault": false
+            },
+            {
+              "name": "12 X Onion Rings",
+              "price": 12,
+              "isDefault": false,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 12 X Onion Rings",
+              "price": 15,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 79]
+        },
+        {
+          "sourceId": 425,
+          "name": "4 X Tenders",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/425-4-x-tenders.png",
+          "sizes": [
+            {
+              "name": "4 X Tenders",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 4 X Tenders",
+              "price": 10,
+              "isDefault": false
+            },
+            {
+              "name": "8 X Tenders",
+              "price": 12,
+              "isDefault": false,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 8 X Tenders",
+              "price": 15,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 79]
+        },
+        {
+          "sourceId": 426,
+          "name": "5 X WINGS",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/426-5-x-wings.png",
+          "sizes": [
+            {
+              "name": "5 X WINGS",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 5 X WINGS",
+              "price": 10,
+              "isDefault": false
+            },
+            {
+              "name": "10 X WINGS",
+              "price": 12,
+              "isDefault": false,
+              "modifierGroupIds": [77]
+            },
+            {
+              "name": "Menu 10 X WINGS",
+              "price": 15,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 88,
+      "name": "DONER BOX",
+      "sortOrder": 7,
+      "isActive": true,
+      "image": "assets/categories/88-doner-box.webp",
+      "items": [
+        {
+          "sourceId": 427,
+          "name": "Doner Box",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/427-doner-box.webp",
+          "sizes": [],
+          "modifierGroupIds": [77, 78]
+        }
+      ]
+    },
+    {
+      "sourceId": 89,
+      "name": "PANINI",
+      "sortOrder": 8,
+      "isActive": true,
+      "image": "assets/categories/89-panini.jpg",
+      "items": [
+        {
+          "sourceId": 428,
+          "name": "Panini 3 Fromage",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/428-panini-3-fromage.jpg",
+          "sizes": [
+            {
+              "name": "Panini 3 Fromage",
+              "price": 7,
+              "isDefault": true,
+              "modifierGroupIds": [77, 82]
+            },
+            {
+              "name": "Menu Panini 3 Fromage",
+              "price": 10,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 82, 79]
+        },
+        {
+          "sourceId": 429,
+          "name": "Panini Kebab",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/429-panini-kebab.jpg",
+          "sizes": [
+            {
+              "name": "Panini Kebab",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [77, 82]
+            },
+            {
+              "name": "Menu Panini Kebab",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 82, 79]
+        },
+        {
+          "sourceId": 430,
+          "name": "Panini Steak",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/430-panini-steak.jpg",
+          "sizes": [
+            {
+              "name": "Panini Steak",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [77, 82]
+            },
+            {
+              "name": "Menu Panini Steak",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 82, 79]
+        },
+        {
+          "sourceId": 431,
+          "name": "Panini Poulet",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/431-panini-poulet.jpg",
+          "sizes": [
+            {
+              "name": "Panini Poulet",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [77, 82]
+            },
+            {
+              "name": "Menu Panini Poulet",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 82, 79]
+        },
+        {
+          "sourceId": 432,
+          "name": "Panini Thon",
+          "description": null,
+          "price": 8,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/432-panini-thon.jpg",
+          "sizes": [
+            {
+              "name": "Panini Thon",
+              "price": 8,
+              "isDefault": true,
+              "modifierGroupIds": [77, 82]
+            },
+            {
+              "name": "Menu Panini Thon",
+              "price": 11,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [77, 82, 79]
+        }
+      ]
+    },
+    {
+      "sourceId": 90,
+      "name": "FRITES",
+      "sortOrder": 9,
+      "isActive": true,
+      "image": "assets/categories/90-frites.jpg",
+      "items": [
+        {
+          "sourceId": 433,
+          "name": "Petite Frites",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/433-petite-frites.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 434,
+          "name": "Moyenne Frites",
+          "description": null,
+          "price": 3,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/434-moyenne-frites.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 435,
+          "name": "Grande Frites",
+          "description": null,
+          "price": 4,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/435-grande-frites.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        }
+      ]
+    },
+    {
+      "sourceId": 91,
+      "name": "VIANDE",
+      "sortOrder": 10,
+      "isActive": true,
+      "image": "assets/categories/91-viande.jpg",
+      "items": [
+        {
+          "sourceId": 436,
+          "name": "Petite Viande",
+          "description": null,
+          "price": 7,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/436-petite-viande.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 437,
+          "name": "Moyenne Viande",
+          "description": null,
+          "price": 10,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/437-moyenne-viande.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 438,
+          "name": "Grande Viande",
+          "description": null,
+          "price": 13,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/438-grande-viande.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        }
+      ]
+    },
+    {
+      "sourceId": 92,
+      "name": "BOULGOUR",
+      "sortOrder": 11,
+      "isActive": true,
+      "image": "assets/categories/92-boulgour.jpg",
+      "items": [
+        {
+          "sourceId": 439,
+          "name": "Petite Boulgour",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/439-petite-boulgour.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 440,
+          "name": "Moyenne Boulgour",
+          "description": null,
+          "price": 3,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/440-moyenne-boulgour.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        },
+        {
+          "sourceId": 441,
+          "name": "Grande Boulgour",
+          "description": null,
+          "price": 4,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/441-grande-boulgour.jpg",
+          "sizes": [],
+          "modifierGroupIds": [77]
+        }
+      ]
+    },
+    {
+      "sourceId": 93,
+      "name": "DESSERTS",
+      "sortOrder": 12,
+      "isActive": true,
+      "image": "assets/categories/93-desserts.jpg",
+      "items": [
+        {
+          "sourceId": 442,
+          "name": "Tiramisu",
+          "description": null,
+          "price": 4,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/442-tiramisu.jpg",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 443,
+          "name": "Tarte a Daim",
+          "description": null,
+          "price": 4,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/443-tarte-a-daim.jpg",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 444,
+          "name": "Tarte Caramel",
+          "description": null,
+          "price": 4,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/444-tarte-caramel.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        }
+      ]
+    },
+    {
+      "sourceId": 94,
+      "name": "BOISSONS",
+      "sortOrder": 13,
+      "isActive": true,
+      "image": "assets/categories/94-boissons.jpg",
+      "items": [
+        {
+          "sourceId": 445,
+          "name": "Coca Cola 33cl",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/445-coca-cola-33cl.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 446,
+          "name": "Coca Coca Cherry 33cl",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/446-coca-coca-cherry-33cl.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 447,
+          "name": "Coca Cola Zero",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/447-coca-cola-zero.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 448,
+          "name": "Fanta Orange",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 3,
+          "image": "assets/products/448-fanta-orange.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 449,
+          "name": "Ice Tea",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 4,
+          "image": "assets/products/449-ice-tea.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 450,
+          "name": "Oasis",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 5,
+          "image": "assets/products/450-oasis.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 451,
+          "name": "Oasis Pomme Cassis",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 6,
+          "image": "assets/products/451-oasis-pomme-cassis.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 452,
+          "name": "Hawaii",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 7,
+          "image": "assets/products/452-hawaii.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 453,
+          "name": "Sprite",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 8,
+          "image": "assets/products/453-sprite.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 454,
+          "name": "Perrier",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 9,
+          "image": "assets/products/454-perrier.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 455,
+          "name": "Eau 50cl",
+          "description": null,
+          "price": 1.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 10,
+          "image": "assets/products/455-eau-50cl.webp",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 456,
+          "name": "Ayran",
+          "description": null,
+          "price": 2,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 11,
+          "image": "assets/products/456-ayran.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 457,
+          "name": "Red Bull",
+          "description": null,
+          "price": 2.5,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 12,
+          "image": "assets/products/457-red-bull.png",
+          "sizes": [],
+          "modifierGroupIds": []
+        }
+      ]
+    },
+    {
+      "sourceId": 95,
+      "name": "NOS SALADES",
+      "sortOrder": 14,
+      "isActive": true,
+      "image": "assets/categories/95-nos-salades.jpg",
+      "items": [
+        {
+          "sourceId": 458,
+          "name": "Salade Cesar",
+          "description": "Salade, Tomate, Carotte, Chau Rouge, Croûtons, Tenders, Parmesan",
+          "price": 11,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/458-salade-cesar.jpg",
+          "sizes": [],
+          "modifierGroupIds": []
+        },
+        {
+          "sourceId": 459,
+          "name": "Salade Chèvre Chaud",
+          "description": "Salade, Tomate, Carotte, Chau Rouge, Toast Chèvre Chaud, Poulets",
+          "price": 11,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/459-salade-chevre-chaud.jpg",
+          "sizes": [],
+          "modifierGroupIds": []
+        }
+      ]
+    },
+    {
+      "sourceId": 96,
+      "name": "LIBANAISE NOUVEAUTE",
+      "sortOrder": 15,
+      "isActive": true,
+      "image": "assets/categories/96-libanaise-nouveaute.jpg",
+      "items": [
+        {
+          "sourceId": 460,
+          "name": "LIBANAISE 1 VIANDE",
+          "description": null,
+          "price": 9,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 0,
+          "image": "assets/products/460-libanaise-1-viande.jpg",
+          "sizes": [
+            {
+              "name": "LIBANAISE 1 VIANDE",
+              "price": 9,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 81, 88]
+            },
+            {
+              "name": "MENU LIBANAISE 1 VIANDE",
+              "price": 12,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [88, 81, 77, 76, 79]
+        },
+        {
+          "sourceId": 461,
+          "name": "LIBANAISE 2 VIANDE",
+          "description": null,
+          "price": 11,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 1,
+          "image": "assets/products/461-libanaise-2-viande.jpg",
+          "sizes": [
+            {
+              "name": "LIBANAISE 2 VIANDE",
+              "price": 11,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 83, 88]
+            },
+            {
+              "name": "MENU LIBANAISE 2 VIANDE",
+              "price": 14,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [88, 83, 77, 76, 79]
+        },
+        {
+          "sourceId": 462,
+          "name": "LIBANAISE 3 VIANDE",
+          "description": null,
+          "price": 13,
+          "isActive": true,
+          "isSoldOut": false,
+          "sortOrder": 2,
+          "image": "assets/products/462-libanaise-3-viande.webp",
+          "sizes": [
+            {
+              "name": "LIBANAISE 3 VIANDE",
+              "price": 13,
+              "isDefault": true,
+              "modifierGroupIds": [76, 77, 84, 88]
+            },
+            {
+              "name": "MENU LIBANAISE 3 VIANDE",
+              "price": 16,
+              "isDefault": false
+            }
+          ],
+          "modifierGroupIds": [88, 84, 77, 76, 79]
+        }
+      ]
+    }
+  ]
+}

@@ -6,10 +6,20 @@ const IPHONE_SAFARI =
 const ANDROID_CHROME =
   'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
 
-/** jsdom has no matchMedia; every test declares what the "device" answers. */
-function mockMatchMedia({ standalone = false }: { standalone?: boolean } = {}) {
+/**
+ * jsdom has no matchMedia; every test declares what the "device" answers.
+ *
+ * `handheld` defaults to TRUE because that is the device every existing case here is about — a
+ * phone or a tablet. Passing `false` is how the desktop case says so, and the offer is now gated on
+ * it: Chromium fires `beforeinstallprompt` on a laptop too, and the nav entry appeared there.
+ */
+function mockMatchMedia({ standalone = false, handheld = true }: { standalone?: boolean; handheld?: boolean } = {}) {
   window.matchMedia = jest.fn().mockImplementation((query: string) => ({
-    matches: query.includes('display-mode') ? standalone : false,
+    matches: query.includes('display-mode')
+      ? standalone
+      : query.includes('pointer: coarse') || query.includes('max-width: 1024px')
+        ? handheld
+        : false,
     media: query,
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
@@ -86,6 +96,48 @@ describe('usePwaInstall', () => {
     const { result } = renderHook(() => usePwaInstall());
 
     expect(result.current.standalone).toBe(true);
+    expect(result.current.platform).toBe('unsupported');
+  });
+
+  /**
+   * The reported defect: Chromium fires `beforeinstallprompt` on a desktop, so the nav entry
+   * appeared on a laptop and offered to install a restaurant's ordering app as a desktop window.
+   */
+  it('offers nothing on a desktop, even with the install event in hand', () => {
+    mockMatchMedia({ handheld: false });
+    setUserAgent(ANDROID_CHROME);
+    const { result } = renderHook(() => usePwaInstall());
+    fireBeforeInstallPrompt();
+
+    expect(result.current.platform).toBe('unsupported');
+    expect(result.current.canPrompt).toBe(false);
+  });
+
+  /** A touchscreen LAPTOP answers `pointer: coarse` and is still a desktop — both bounds required. */
+  it('offers nothing on a coarse-pointer device that is desktop-wide', () => {
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query.includes('pointer: coarse'),
+      media: query,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      onchange: null,
+      dispatchEvent: jest.fn(),
+    }));
+    setUserAgent(ANDROID_CHROME);
+    const { result } = renderHook(() => usePwaInstall());
+    fireBeforeInstallPrompt();
+
+    expect(result.current.platform).toBe('unsupported');
+  });
+
+  /** …and an iPhone gets nothing on a desktop-width window either, though it never has one. */
+  it('gates iOS on the same bound', () => {
+    mockMatchMedia({ handheld: false });
+    setUserAgent(IPHONE_SAFARI);
+    const { result } = renderHook(() => usePwaInstall());
+
     expect(result.current.platform).toBe('unsupported');
   });
 });

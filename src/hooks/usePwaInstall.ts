@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { isIosInstallable, isStandaloneDisplay } from '@/lib/pwa';
+import { isHandheldDisplay, isIosInstallable, isStandaloneDisplay } from '@/lib/pwa';
 
 /** Chrome's non-standard install event. Not in lib.dom, so it is declared here rather than `any`. */
 export interface BeforeInstallPromptEvent extends Event {
@@ -44,6 +44,13 @@ export function usePwaInstall() {
     typeof window === 'undefined' ? null : (window.__pwaDeferredInstall ?? null),
   );
   const [standalone, setStandalone] = useState(() => (typeof window === 'undefined' ? false : isStandaloneDisplay()));
+  /**
+   * Re-read on resize as well as at mount: the offer must not survive a window the guest has just
+   * dragged out to desktop width, and a rotated tablet crosses the same boundary in the other
+   * direction. `matchMedia` change events rather than a resize listener — two of them, because the
+   * predicate is a conjunction of two queries and either can flip on its own.
+   */
+  const [handheld, setHandheld] = useState(() => (typeof window === 'undefined' ? false : isHandheldDisplay()));
 
   useEffect(() => {
     // The module listener parks the event; this one only mirrors it into state. Re-read on
@@ -54,20 +61,32 @@ export function usePwaInstall() {
     window.addEventListener('appinstalled', markStandalone);
     const mq = window.matchMedia?.('(display-mode: standalone)');
     mq?.addEventListener?.('change', markStandalone);
+
+    const markHandheld = () => setHandheld(isHandheldDisplay());
+    const pointer = window.matchMedia?.('(pointer: coarse)');
+    const width = window.matchMedia?.('(max-width: 1024px)');
+    pointer?.addEventListener?.('change', markHandheld);
+    width?.addEventListener?.('change', markHandheld);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', sync);
       window.removeEventListener('appinstalled', markStandalone);
       mq?.removeEventListener?.('change', markStandalone);
+      pointer?.removeEventListener?.('change', markHandheld);
+      width?.removeEventListener?.('change', markHandheld);
     };
   }, []);
 
-  const platform: InstallPlatform = standalone
-    ? 'unsupported' // installed: the entry hides itself wherever it is running from
-    : isIosInstallable()
-      ? 'ios'
-      : deferredEvent
-        ? 'chromium'
-        : 'unsupported';
+  // `!handheld` sits with `standalone` rather than inside the chromium branch: a desktop is not a
+  // place we can offer an install the guest would want, whatever the browser says it supports.
+  const platform: InstallPlatform =
+    standalone || !handheld
+      ? 'unsupported' // installed, or not a device this app is worth installing on
+      : isIosInstallable()
+        ? 'ios'
+        : deferredEvent
+          ? 'chromium'
+          : 'unsupported';
 
   const promptInstall = useCallback(async (): Promise<InstallOutcome> => {
     const event = window.__pwaDeferredInstall ?? deferredEvent;

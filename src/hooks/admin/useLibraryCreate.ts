@@ -52,8 +52,10 @@ export function useLibraryCreate<TRow extends CatalogRow>({ copy, createRow, onC
           return;
         }
         onCreated(response.data);
-      } catch (caught) {
-        setError(getErrorMessage(caught) ?? t(copy.createFailed));
+      } catch (error_) {
+        // `error_`, not `error`: the state slot above owns that name in this scope, and a
+        // trailing underscore is the convention Sonar S7718 asks for in exactly that case.
+        setError(getErrorMessage(error_) ?? t(copy.createFailed));
       } finally {
         setIsCreating(false);
       }

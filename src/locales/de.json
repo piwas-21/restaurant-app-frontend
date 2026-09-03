@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Bitte wählen Sie eine Option, um fortzufahren.",
   "step_blocked_sauces": "Bitte wählen Sie die erforderlichen Saucen, um fortzufahren.",
   "step_blocked_section": "Bitte treffen Sie die erforderliche Auswahl, um fortzufahren.",
-  "step_sides": "Beilagen & Getränke",
+  "step_sides_desserts": "Dessert hinzufügen",
+  "step_sides_accompaniments": "Beilage hinzufügen",
   "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt."
 }

@@ -1,4 +1,4 @@
-import { groupSuggestedSideItems } from './suggestedSideItems';
+import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSideItems';
 import { isSauce, toSauceGroupRule } from './sauceGroup';
 import { findBundleSelectionErrors } from './bundleSelection';
 import { isBaseRowHidden } from './baseProductVisibility';
@@ -31,6 +31,8 @@ export interface CustomizationStep {
   isRequired: boolean;
   /** The bundle section this step renders. `section` steps only. */
   section?: MenuSection;
+  /** Which partition of the suggested sides this step renders. `sides` steps only. */
+  sideGroup?: SuggestedSideGroup;
 }
 
 /** Everything the gates read. Supplied by whichever sheet controller owns the state. */
@@ -46,6 +48,17 @@ const REVIEW_STEP: CustomizationStep = {
   titleKey: 'step_review',
   singleChoice: false,
   isRequired: false,
+};
+
+/**
+ * The title of each side step. Action-shaped ("Add a dessert") rather than the group's noun,
+ * because the step panel's heading IS the ask. `beverages` reuses `step_drinks`, which the
+ * always-available drinks upsell already carries in all ten locales and which says the same thing.
+ */
+const SIDE_STEP_TITLE_KEYS: Record<SuggestedSideGroup, string> = {
+  beverages: 'step_drinks',
+  desserts: 'step_sides_desserts',
+  accompaniments: 'step_sides_accompaniments',
 };
 
 const DRINKS_STEP: CustomizationStep = {
@@ -109,17 +122,33 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
     });
   }
 
-  // ONE step over every partition, not one per partition. A dish with drinks, desserts and
-  // accompaniments would otherwise reach seven steps on its own — and "too complicated" is the
-  // complaint this redesign answers, so a flow that is merely differently long fixes nothing. The
-  // three are the same KIND of decision; they stay separately headed inside the step.
-  if (groupSuggestedSideItems(product.suggestedSideItems ?? []).length > 0) {
+  /*
+   * ONE STEP PER PARTITION. This reverses the original call — "one step over every partition,
+   * because a dish with drinks, desserts and accompaniments would otherwise reach seven steps" —
+   * and it is reversed on a measurement rather than a preference.
+   *
+   * What the single step actually did, measured in a browser against a real tenant catalogue: the
+   * panel was 1278px of content in a 652px viewport on a desktop and 1650px in 593px on a phone.
+   * Beverages filled the screen, "Desserts" was a sliver at the fold and Accompaniments was
+   * entirely below it — while Continue sat in a sticky footer, permanently in reach. So the guest
+   * picked a drink and walked past the desserts, which is the whole of what an upsell step is for.
+   *
+   * And the seven-step fear was never available: `SuggestedSideGroup` is a closed union of THREE,
+   * so the split is bounded at three by construction. Measured over the demo tenant's 58 real
+   * products (kebabdilhan's live menu): 22 carry two groups, 14 carry one, 22 carry none, and
+   * NONE carries three. The observed worst case is therefore ONE extra step, and those 22 products
+   * each offer 19 side items — the shape that is unusable in a single panel.
+   *
+   * A product with one group is untouched: one group, one step, exactly as before.
+   */
+  for (const group of groupSuggestedSideItems(product.suggestedSideItems ?? [])) {
     steps.push({
-      id: 'sides',
+      id: `sides:${group.id}`,
       kind: 'sides',
-      titleKey: 'step_sides',
+      titleKey: SIDE_STEP_TITLE_KEYS[group.id],
       singleChoice: false,
       isRequired: false,
+      sideGroup: group.id,
     });
   }
 
@@ -127,7 +156,14 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
   // in the catalogue — which is most of them — grows a progress bar, a Continue and a review for a
   // question the guest did not come to answer, and §2's whole "a simple item stays simple" rule
   // holds for nothing but beverages.
-  if (withDrinks && steps.length >= 2) steps.push(DRINKS_STEP);
+  //
+  // DISTINCT KINDS, not `steps.length`. The count was a proxy for "two decisions" that held only
+  // while every side group shared one step; splitting them broke it, so a dish whose ONLY decision
+  // is sides — desserts and accompaniments, nothing else — satisfied `length >= 2` and grew a
+  // generic drinks step this comment forbids, on top of the review it had never had. Kinds say what
+  // the count was standing in for.
+  const decisions = new Set(steps.map((step) => step.kind));
+  if (withDrinks && decisions.size >= 2) steps.push(DRINKS_STEP);
 
   return withReview(steps);
 }

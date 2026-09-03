@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "الرجاء اختيار خيار للمتابعة.",
   "step_blocked_sauces": "الرجاء اختيار الصلصات المطلوبة للمتابعة.",
   "step_blocked_section": "الرجاء إجراء الاختيار المطلوب للمتابعة.",
-  "step_sides": "الأطباق الجانبية والمشروبات",
+  "step_sides_desserts": "أضف حلوى",
+  "step_sides_accompaniments": "أضف طبقًا جانبيًا",
   "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك."
 }

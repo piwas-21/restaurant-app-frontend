@@ -111,7 +111,18 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
         selectedSideItems={selectedSideItems}
         onSelectionChange={setSelectedSideItems}
         currentLanguage={currentLanguage}
-        variant="plain"
+        // `bare` drops the group's own <h3>, because the step panel's title already names the
+        // partition ("Add a dessert") and the two said the same thing twice.
+        //
+        // The pair is DERIVED FROM ONE FACT, deliberately. `sideGroup` is optional on the step
+        // type, and `bare` is what turns a missing one from "renders too much" into "renders three
+        // unlabelled lists back to back" — a worse screen than the one this fixes, failing silently
+        // in the visual AND the accessibility tree. Only `buildProductSteps` makes `sides` steps
+        // and it always sets the field, so this is a latent case; deriving both from it means it
+        // can only ever degrade to what develop shipped — every partition, each under its own
+        // heading — and never to something new.
+        variant={step.sideGroup ? 'bare' : 'plain'}
+        onlyGroup={step.sideGroup}
       />
     );
   }

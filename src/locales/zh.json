@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "请选择一项以继续。",
   "step_blocked_sauces": "请选择必选酱料以继续。",
   "step_blocked_section": "请完成必选项以继续。",
-  "step_sides": "配餐与饮品",
+  "step_sides_desserts": "添加甜点",
+  "step_sides_accompaniments": "添加配菜",
   "step_drinks_hint": "将作为独立商品加入购物车。"
 }

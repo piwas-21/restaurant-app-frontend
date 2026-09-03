@@ -76,26 +76,55 @@ describe('buildProductSteps — the flow is DERIVED, so a simple item stays simp
   });
 
   /**
-   * ONE step over the partitions, not one each: three side steps on top of variations, ingredients
-   * and sauces reached seven, and "differently long" is not an answer to "too complicated".
+   * ONE step PER partition, reversing the earlier call.
+   *
+   * The single shared step was 1278px of content in a 652px panel with Continue permanently in
+   * reach, so a guest picked a drink and never saw the desserts. The seven-step fear it was chosen
+   * to avoid was never reachable: `SuggestedSideGroup` is a closed union of three, and over the
+   * demo tenant's 58 real products the observed maximum is two.
    */
-  it('gives every suggested-side partition ONE shared step', () => {
+  it('gives every suggested-side partition its own step, in group order', () => {
     const steps = buildProductSteps(
       product({
         variations: [{ id: 'v1', name: 'Large', isActive: true } as never],
         suggestedSideItems: [
-          { id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 } as never,
           { id: 'cake', name: 'Cake', price: 5, type: 'dessert', isRequired: false, displayOrder: 2 } as never,
+          { id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 } as never,
           { id: 'fries', name: 'Fries', price: 5, type: 'sideItem', isRequired: false, displayOrder: 3 } as never,
         ],
       }),
     );
 
-    // Three partitions, one step. Before this it was `sides:beverages`, `sides:desserts`,
-    // `sides:accompaniments` — three of the seven a fully-configured dish reached.
-    expect(steps.map((step) => step.id)).toEqual(['variations', 'sides', 'review']);
-    // …and it is titled for the whole group, not for whichever partition happened to be first.
-    expect(steps[1].titleKey).toBe('step_sides');
+    // Deliberately seeded out of order: the flow order is the GROUP order, not the payload's.
+    expect(steps.map((step) => step.id)).toEqual([
+      'variations',
+      'sides:beverages',
+      'sides:desserts',
+      'sides:accompaniments',
+      'review',
+    ]);
+    // Each is titled for its own partition and knows which one it renders.
+    expect(steps.slice(1, 4).map((step) => step.titleKey)).toEqual([
+      'step_drinks',
+      'step_sides_desserts',
+      'step_sides_accompaniments',
+    ]);
+    expect(steps.slice(1, 4).map((step) => step.sideGroup)).toEqual(['beverages', 'desserts', 'accompaniments']);
+  });
+
+  /** A product with ONE partition is untouched: one group, one step, exactly as before. */
+  it('leaves a single-partition product at one side step', () => {
+    const steps = buildProductSteps(
+      product({
+        variations: [{ id: 'v1', name: 'Large', isActive: true } as never],
+        suggestedSideItems: [
+          { id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 } as never,
+          { id: 'water', name: 'Water', price: 2, type: 'beverage', isRequired: false, displayOrder: 2 } as never,
+        ],
+      }),
+    );
+
+    expect(steps.map((step) => step.id)).toEqual(['variations', 'sides:beverages', 'review']);
   });
 
   it('marks the variations step required only when the base row is withheld', () => {
@@ -202,5 +231,58 @@ describe('stepBlocker — the gate reads the same rules the Add button enforces'
     expect(
       stepBlocker(step, { ...empty, selectedOptions: [{ sectionId: 's1', itemId: 'i1', quantity: 1 }] }),
     ).toBeNull();
+  });
+
+  /**
+   * The split broke `steps.length >= 2` as a proxy for "two decisions": ONE decision spread across
+   * two partitions satisfied it, so a dish whose only choice is sides grew a generic drinks step —
+   * the exact thing the guard's own comment forbids — plus a progress bar and a review.
+   *
+   * Measured before the fix: `['sides:desserts', 'sides:accompaniments', 'drinks', 'review']`.
+   */
+  it('does not let a sides-only item summon the drinks upsell', () => {
+    const steps = buildProductSteps(
+      product({
+        suggestedSideItems: [
+          { id: 'cake', name: 'Cake', price: 5, type: 'dessert', isRequired: false, displayOrder: 1 } as never,
+          { id: 'fries', name: 'Fries', price: 4, type: 'sideItem', isRequired: false, displayOrder: 2 } as never,
+        ],
+      }),
+      true,
+    );
+
+    expect(steps.map((step) => step.id)).toEqual(['sides:desserts', 'sides:accompaniments', 'review']);
+    expect(steps.some((step) => step.kind === 'drinks')).toBe(false);
+  });
+
+  /** …while a genuinely two-KIND flow still gets it, which is what the guard is for. */
+  it('still extends a two-kind flow with the drinks upsell', () => {
+    const steps = buildProductSteps(
+      product({
+        variations: [{ id: 'v1', name: 'Large', isActive: true } as never],
+        detailedIngredients: [ingredient('cheese')],
+      }),
+      true,
+    );
+
+    expect(steps.map((step) => step.kind)).toEqual(['variations', 'ingredients', 'drinks', 'review']);
+  });
+
+  /**
+   * Two partitions IS worth a wizard — that is the whole finding — so this shape becomes guided
+   * where it was a single scrolling panel. Stated here so the change is a decision and not a
+   * side effect nobody noticed.
+   */
+  it('makes a two-partition sides-only item guided, with a review', () => {
+    const steps = buildProductSteps(
+      product({
+        suggestedSideItems: [
+          { id: 'cake', name: 'Cake', price: 5, type: 'dessert', isRequired: false, displayOrder: 1 } as never,
+          { id: 'fries', name: 'Fries', price: 4, type: 'sideItem', isRequired: false, displayOrder: 2 } as never,
+        ],
+      }),
+    );
+
+    expect(steps.map((step) => step.kind)).toEqual(['sides', 'sides', 'review']);
   });
 });

@@ -102,6 +102,41 @@ describe('productStepSummary — the review is what makes a skipped step visible
 
     expect(productStepSummary(stepOf('ingredients'), translated, withBacon, 'tr')).toEqual(['Pastırma']);
   });
+
+  /**
+   * Each partition is its own step now, so a step's row must describe ITS OWN group. Unscoped, all
+   * three side steps reported the same list, and jumping back from any of them landed on a step
+   * whose summary was about the other two.
+   */
+  it('scopes a side step to its own partition', () => {
+    const multi = {
+      ...PRODUCT,
+      suggestedSideItems: [
+        COLA,
+        { id: 'cake', name: 'Cake', price: 5, type: 'dessert', isRequired: false, displayOrder: 2 },
+        { id: 'fries', name: 'Fries', price: 4, type: 'sideItem', isRequired: false, displayOrder: 3 },
+      ],
+    } as unknown as DetailedProduct;
+    const steps = buildProductSteps(multi);
+    const chosen: ProductSummaryState = {
+      ...OPENED,
+      selectedSideItems: [
+        { id: 'cola', quantity: 1 },
+        { id: 'cake', quantity: 2 },
+      ],
+    };
+    const rowFor = (group: string) =>
+      productStepSummary(
+        steps.find((step) => step.sideGroup === group)!,
+        multi,
+        chosen,
+        'en',
+      );
+
+    expect(rowFor('beverages')).toEqual(['Cola']);
+    expect(rowFor('desserts')).toEqual(['2 × Cake']);
+    expect(rowFor('accompaniments')).toEqual([]);
+  });
 });
 
 describe('bundleStepSummary', () => {

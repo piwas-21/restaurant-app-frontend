@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Kies een optie om door te gaan.",
   "step_blocked_sauces": "Kies de vereiste sauzen om door te gaan.",
   "step_blocked_section": "Maak de vereiste keuze om door te gaan.",
-  "step_sides": "Bijgerechten & drankjes",
+  "step_sides_desserts": "Dessert toevoegen",
+  "step_sides_accompaniments": "Bijgerecht toevoegen",
   "step_drinks_hint": "Wordt als apart artikel aan je winkelwagen toegevoegd."
 }

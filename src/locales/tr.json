@@ -2961,6 +2961,7 @@
   "step_blocked_variation": "Devam etmek için bir seçenek seçin.",
   "step_blocked_sauces": "Devam etmek için gerekli sosları seçin.",
   "step_blocked_section": "Devam etmek için gerekli seçimi yapın.",
-  "step_sides": "Yan ürün ve içecek",
+  "step_sides_desserts": "Tatlı ekleyin",
+  "step_sides_accompaniments": "Yan ürün ekleyin",
   "step_drinks_hint": "Sepetinize ayrı bir ürün olarak eklenir."
 }

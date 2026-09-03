@@ -1,0 +1,11 @@
+# Run artefacts, never committed.
+#
+# import-state.json holds the tenant's real category/product GUIDs — this script's own
+# record of what it created. It is per-tenant and per-run, it is what makes a re-run
+# idempotent, and committing it would let a later run "resume" against ids belonging to
+# a different tenant, silently creating nothing.
+import-state.json
+
+# `node fetch.mjs out` materialises 94 images (~31 MB); 9 of them exceed the repo's 1 MB
+# check-added-large-files limit. assets-manifest.json is the committed proof of that set.
+out/

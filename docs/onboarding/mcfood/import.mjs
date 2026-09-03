@@ -316,13 +316,36 @@ const importComponents = async ({ call, components, categoryIds, state, stateFil
  * gift choice DO have sauces and removable ingredients. So those get a second call:
  * `PUT /api/Products/{id}`, whose command carries all three.
  */
+/**
+ * One namespaced reference -> the id the server gave it.
+ *
+ * `map.mjs` emits every section item and every `Plat` as `component:<family>:<name>` or
+ * `product:<sourceId>`, and BOTH are legitimate: a meat, a gift, a recipe carrier and a large
+ * portion are hidden components, while a bundle's drinks are the restaurant's REAL beverages.
+ * Pointing the drinks at components instead built a parallel catalogue — 11 phantom 0,01 € copies,
+ * so an admin's price edit reached no menu and a sold-out drink stayed orderable inside every
+ * bundle. The namespace is what lets this resolve either without guessing.
+ */
+const resolveRef = (ref, componentIds, productIds, where) => {
+  const [kind, ...rest] = String(ref).split(':');
+  // `componentIds` stays keyed `family:name`, WITHOUT the namespace — that is also the key in the
+  // state file, and rekeying it would make every in-flight import resume as if nothing were done.
+  const key = rest.join(':');
+  const id = kind === 'component' ? componentIds[key] : kind === 'product' ? productIds[key] : undefined;
+  if (!id) throw new Error(`${where} refers to ${ref}, which was not created`);
+  return id;
+};
+
 const buildSections = (owner, componentIds, productIds) => {
   const sections = owner.sections ?? [];
-  const plat = owner.platOf === undefined ? null : productIds[String(owner.platOf)];
+  const plat =
+    owner.platRef === undefined ? null : resolveRef(owner.platRef, componentIds, productIds, owner.body.name);
   const built = [];
   if (plat) {
     // The dish the menu wraps, as a one-item required section — the shape the platform's own
-    // reference tenant uses ("Plat" -> the sandwich, then the drink section beside it).
+    // reference tenant uses ("Plat" -> the sandwich, then the drink section beside it). For a dish
+    // that is itself sectioned this is its RECIPE CARRIER: a `type: menu` product stores no
+    // composition of its own, so the recipe has to live on a child to exist at all.
     built.push({
       name: 'Plat',
       description: null,
@@ -334,9 +357,8 @@ const buildSections = (owner, componentIds, productIds) => {
     });
   }
   for (const [index, section] of sections.entries()) {
-    const items = section.componentRefs.map((ref, i) => {
-      const id = componentIds[ref];
-      if (!id) throw new Error(`section "${section.name}" refers to component ${ref}, which was not created`);
+    const items = section.itemRefs.map((ref, i) => {
+      const id = resolveRef(ref, componentIds, productIds, `section "${section.name}"`);
       // additionalPrice 0: the menu's own price already includes the choice.
       return { productId: id, additionalPrice: 0, displayOrder: i, isDefault: false };
     });
@@ -394,8 +416,12 @@ const createMenuBundle = async ({ call, owner, categoryId, componentIds, product
 };
 
 /**
- * Put back what the menu-create command cannot carry: ingredients, the sauce rule and
- * variations. Only the 11 converted dishes need this; the 34 wrapper menus have none.
+ * Put back what the menu-create command cannot carry: ingredients, the sauce rule and variations.
+ *
+ * NO owner needs this today, and that is the point of the guard rather than a reason to delete it.
+ * The 11 converted dishes used to carry a recipe here — until it was measured to be DEAD data on a
+ * `type: menu` row (`buildBundleSteps` maps sections only) and moved onto a hidden carrier behind
+ * their `Plat`. A sectioned dish that later grows a variation would still need this call.
  */
 const restoreProductExtras = async ({ call, owner, productId, categoryId, componentIds, productIds }) => {
   const b = owner.body;

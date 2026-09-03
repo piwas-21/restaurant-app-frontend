@@ -51,6 +51,9 @@
       "min": 1,
       "max": 2,
       "includedFree": 2,
+      "isOptional": true,
+      "isIncludedInBasePrice": false,
+      "flagsNote": "A sauce is ALWAYS isOptional:true + isIncludedInBasePrice:false, and map.mjs forces both whatever is written here — they are stated so the file records the rule. Absent, both read as false, buildBaseIngredientSelection preselects all 11 rows against a max of 2, and POST /api/Basket/items answers 400 SauceMaximumExceeded on every savoury dish. Measured live on 50 products. What makes a sauce REQUIRED is min/max/includedFree above, never the ingredient flag.",
       "note": "The one group that maps to our sauce rule exactly (their isRequired:true, minSelect:1, maxSelect:2). Its options are ALSO emitted, as ProductIngredient rows with kind:'sauce' — a sauce is a typed ingredient, and the guest's sauce step only appears if those rows exist. Every option is priced 0 on their side, so includedFree 2 and 0 are indistinguishable today; 2 is set so a sauce that later gets a price stays free up to their current allowance.",
       "confirmed": true,
       "kind": "sauce"
@@ -129,18 +132,20 @@
       "displayName": "Viandes",
       "target": "bundle",
       "isRequired": true,
-      "minSelection": 1,
+      "minSelection": 2,
       "maxSelection": 2,
-      "confirmed": true
+      "confirmed": true,
+      "note": "minSelection is 2, not their minSelect:1. The group they named '2 Viandes' is sold on a product whose own name sells 2, at the 2-meat price; carried across literally a guest pays for 2 and may leave with one — 9 sections, measured. map.mjs REFUSES a bundle group whose name leads with N, whose maxSelection is N, and whose minSelection is not."
     },
     "84": {
       "sourceName": "3 Viandes",
       "displayName": "Viandes",
       "target": "bundle",
       "isRequired": true,
-      "minSelection": 1,
+      "minSelection": 3,
       "maxSelection": 3,
-      "confirmed": true
+      "confirmed": true,
+      "note": "minSelection is 3, not their minSelect:1. The group they named '3 Viandes' is sold on a product whose own name sells 3, at the 3-meat price; carried across literally a guest pays for 3 and may leave with one — 9 sections, measured. map.mjs REFUSES a bundle group whose name leads with N, whose maxSelection is N, and whose minSelection is not."
     },
     "85": {
       "sourceName": "Viande au choix",
@@ -222,18 +227,64 @@
       "",
       "Section OPTIONS are always NEW component products (isComponent: true, hidden from the",
       "catalogue), never existing products matched by name. Measured why: group 81's meat",
-      "option 'Kebab' name-matches the SANDWICHES product 'Kebab' (8.00 EUR), and referencing",
-      "that would put a whole sandwich, with its own price and recipe, inside a Tacos as its",
-      "meat. Duplicating a hidden 'Coca Cola Zero' row costs nothing; that mis-reference is a",
-      "real defect. Components carry AdditionalPrice 0 — the menu price already includes them."
+      "",
+      "REVISED 2026-09-03 after the first import: section options are new components EXCEPT the",
+      "DRINKS, which are the real beverage products. Making them components too built a parallel",
+      "catalogue — 11 phantom 0.01 EUR copies, so an admin's price edit reached no menu and a",
+      "sold-out drink stayed orderable inside every bundle. The meat/gift argument (option `Kebab`",
+      "name-collides with the SANDWICHES product `Kebab`) is real and still holds for those; it",
+      "never applied to a drink, where the option IS the product."
     ],
     "componentCategories": {
-      "_": "Components still need a category (CreateProductCommand requires CategoryIds NotEmpty). They are hidden by isComponent, so an existing, plausible category is used rather than inventing an empty one that would show on the carte.",
-      "drink": 94,
+      "_": "Components still need a category (CreateProductCommand requires CategoryIds NotEmpty). They are hidden by isComponent, so an existing, plausible category is used rather than inventing an empty one that would show on the carte. `dish` and `portion` carriers take their OWN dish's category instead and are not listed here.",
       "meat": 91,
       "gift": 86
     },
     "platSectionName": "Plat",
-    "menuSizePattern": "^menu\\b"
+    "menuSizePattern": "^menu\\b",
+    "drinkProducts": {
+      "_": "Group 79's drink options -> the REAL beverage products they name. NOT matched by name, because the names do not match: `Coca Cola` is the product `Coca Cola 33cl`, `Fanta` is `Fanta Orange`, `Eau` is `Eau 50cl`, and `Coca Cola Cherry` is `Coca Coca Cherry 33cl` — their typo, kept because it is the product's real name. Four of eleven, so a fuzzy match is a guess; an unmapped option is an error. Ayran (456) and Red Bull (457) are sold on the carte but are not offered inside a menu, which is their data's call, not ours.",
+      "Coca Cola": 445,
+      "Coca Cola Cherry": 446,
+      "Coca Cola Zero": 447,
+      "Sprite": 453,
+      "Fanta": 448,
+      "Ice Tea": 449,
+      "Hawaii": 452,
+      "Oasis": 450,
+      "Oasis Pomme Cassis": 451,
+      "Perrier": 454,
+      "Eau": 455
+    }
+  },
+  "productTypes": {
+    "_": [
+      "The ProductType each CATEGORY's products carry, keyed by their category sourceId.",
+      "map.mjs has no default: an absent entry throws. `mainItem` used to be hard-coded for every",
+      "catalogue product, which is legal, plausible and wrong — `useDrinkUpsell` asks for",
+      "`GET /api/Products?Type=Beverage`, so 13 drinks typed `mainItem` made that endpoint answer 0",
+      "and no dish was ever offered a drink; and `groupSuggestedSideItems` partitions a dish's sides",
+      "by the SIDE's own type, so 3 desserts landed under 'accompaniments'.",
+      "One of: mainItem, sideItem, beverage, dessert, sauce, addOn, menu. A dish that carries a",
+      "bundle section overrides this with `menu` — that is structural, not a category property.",
+      "`--verify` re-reads the category's OWN NAME and fails if a BOISSONS/DESSERTS heading is typed",
+      "anything else; this block is otherwise self-certifying."
+    ],
+    "81": "mainItem",
+    "82": "mainItem",
+    "83": "mainItem",
+    "84": "mainItem",
+    "85": "mainItem",
+    "86": "mainItem",
+    "87": "sideItem",
+    "88": "mainItem",
+    "89": "mainItem",
+    "90": "sideItem",
+    "91": "sideItem",
+    "92": "sideItem",
+    "93": "dessert",
+    "94": "beverage",
+    "95": "mainItem",
+    "96": "mainItem"
   }
 }

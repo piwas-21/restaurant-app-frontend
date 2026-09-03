@@ -1,7 +1,14 @@
 # MC FOOD (Orchamps-Vennes) — onboarding data pack
 
 Partner: Mustafa. Source: their temporary site **https://mcdoner-orchamps.fr/**.
-Captured **2026-09-03**. This is _preparation only_ — nothing has been created in RUMI yet.
+Captured **2026-09-03**, imported the same day into `mcdoner.sofrapiwas.com`.
+
+**The first run produced a catalogue with nine structural defects**, all repaired by hand against
+the live tenant on 2026-09-03 and every one of them passing `map.mjs --verify` green. The scripts
+have since been changed so they cannot reproduce them —
+[The rules the platform enforces](#the-rules-the-platform-enforces--learned-by-shipping-them-wrong)
+is what they are and how each is now gated. Read that section before running this pack against the
+next partner-migrated tenant; it is the part of it that was learned rather than designed.
 
 ## Verdict
 
@@ -84,8 +91,9 @@ primitive; ours deliberately splits that across three mechanisms
 | `restaurant.phone`                                                                  | `RestaurantPhoneNumberDto[]`                                                                            | Ours is a list with labels + a WhatsApp flag; theirs is one string.                                                                                                                                                                                                                                                                                                                           |
 | `workingHours.<day>.intervals[]`                                                    | `UpdateWorkingHoursDto.shifts[]`                                                                        | Direct match — both model split lunch/dinner service. Their `open`/`close` top-level pair is the same legacy first-window mirror our `openTime`/`closeTime` is. `"HH:mm"` → `"HH:mm:ss"`. Monday is closed.                                                                                                                                                                                   |
 | `product.sizes[].price` (**absolute**)                                              | `variations[].priceModifier` (**relative**)                                                             | Conversion required: `priceModifier = size.price − basePrice`. Getting this backwards silently misprices **29 products / 68 variations** — measured, and previously written here as "40 products", which contradicted this file's own summary table. `map.mjs --verify` re-derives every absolute price back out of the payload, which is the only check that tells the two directions apart. |
-| Groups 79 `Boissons`, 81/83/84 `N Viandes`, 85 `Viande au choix`, 87 `Fille/Garçon` | `MenuDefinition` → `MenuSection` (`isRequired`, `minSelection`, `maxSelection`) + `ProductType: 'menu'` | These are genuine "choose from a list" steps and fit our bundle sections cleanly. This is how "Menu Kebab = sandwich + drink" should be built.                                                                                                                                                                                                                                                |
-| Group 77 `SAUCES` (min 1, max 2)                                                    | `SauceGroupRule` (`min`/`max`/`includedFree`) + `ProductType: 'sauce'`                                  | Direct match. `includedFree` = 2 to keep both sauces free, as they are today.                                                                                                                                                                                                                                                                                                                 |
+| Groups 79 `Boissons`, 81/83/84 `N Viandes`, 85 `Viande au choix`, 87 `Fille/Garçon` | `MenuDefinition` → `MenuSection` (`isRequired`, `minSelection`, `maxSelection`) + `ProductType: 'menu'` | These are genuine "choose from a list" steps and fit our bundle sections cleanly — under rules 2–4 below. **`minSelection` is the count the group's own name sells, not their `minSelect: 1`**: "3 Viandes" on a 13,00 € three-meat tacos means 3..3, or the guest pays for three and picks one. Group 79's items are the REAL beverages; the others are hidden components.                   |
+| Group 77 `SAUCES` (min 1, max 2)                                                    | `SauceGroupRule` (`min`/`max`/`includedFree`) + rows with `kind: 'sauce'`                               | Direct match on the rule. `includedFree` = 2 to keep both sauces free, as they are today. The ROWS are `isOptional: true, isIncludedInBasePrice: false` — always, whatever the source group says. The rule is what makes a sauce required; the flags are what decide whether the app PRESELECTS it, and preselecting all 11 is a 400. Rule 1 below.                                           |
+| Categories `BOISSONS` (13) and `DESSERTS` (3)                                       | `ProductType: 'beverage'` / `'dessert'`                                                                 | Per category, from `decisions.productTypes`, fail-closed. Not cosmetic: `useDrinkUpsell` asks the catalogue for `Type=Beverage`, and `groupSuggestedSideItems` partitions a dish's sides by the side's own type.                                                                                                                                                                              |
 | Groups 78/80/86/88 `Sans X`                                                         | `ProductIngredient` with `isOptional: true`, `isIncludedInBasePrice: true`                              | Deselecting removes it. Not a modifier group in our model.                                                                                                                                                                                                                                                                                                                                    |
 | Groups 76 `+ Viande/Cheddar/…`, 82 `Ajouter Legume`                                 | `ProductIngredient` with `isOptional: true`, `price > 0`, `isIncludedInBasePrice: false`                | Paid add-ons.                                                                                                                                                                                                                                                                                                                                                                                 |
 | `siteSettings` (`themePreset: street`, `customAccent: #F5A524`, dark base)          | `themePaletteKey` (ADR-007) + template tokens                                                           | Their accent is an orange we can carry; the rest is their platform's vocabulary, not ours. Home hero/tagline map to landing-page config.                                                                                                                                                                                                                                                      |
@@ -116,6 +124,122 @@ from Mustafa if they're to be carried over.
 `orderNotificationEmail` is set to a personal Gmail address. It is exposed by their public API,
 but it is redacted in `dataset.json` rather than committed to our history — collect it from
 Mustafa at onboarding.
+
+## The rules the platform enforces — learned by shipping them wrong
+
+Nine defects reached the live tenant on the first run, and all of them passed this pack's own
+self-check. That is the lesson before the list: every offline gate here asked whether the payload
+was the shape the mapper meant to emit, and none asked whether the shape could be **ordered**.
+
+Each rule below is now a blocking check, and each was verified by putting its defect back and
+watching the gate go red — the count in brackets is what the reinstated defect produces.
+
+### 1. A sauce is `isOptional: true`, never `false` — the order blocker \[50]
+
+`buildBaseIngredientSelection` (`src/utils/ingredientSelection.ts`) preselects a row when
+`!isOptional || isIncludedInBasePrice === true`. The sauce group declared **neither** flag,
+`JSON.stringify` drops `undefined`, the server read both as false — so the app's own default
+payload asked for all 11 sauce rows against a `sauceMax` of 2 and `POST /api/Basket/items`
+answered **400 `SauceMaximumExceeded`** on every savoury dish, from the day the tenant opened.
+
+What makes a sauce _required_ is the group rule (`sauceMin`/`sauceMax`/`sauceIncludedFree`), never
+the ingredient flag — and a non-optional sauce is not merely preselected, it is also dropped from
+the free allowance, which `waivedSauceUnits` allocates only over rows that are
+`isSauce && isOptional && isActive`. kebabdilhan's sauces are `isOptional: true`.
+
+**Gated by** `rowFlags`, which forces `isOptional: true, isIncludedInBasePrice: false` on every
+`kind: 'sauce'` row and **throws** when any other group leaves either flag undeclared — an absent
+key reading as false is exactly how this shipped. And by `verifyDefaultSelection`, which rebuilds
+the app's own default payload and fails when it exceeds `sauceMax`. That check has an external
+referent at both ends (the util's preselect rule, the server's ceiling), which is why it sees what
+five shape checks could not.
+
+### 2. A `type: menu` product's own recipe and sauce rule are DEAD DATA \[11]
+
+`buildBundleSteps` maps **sections only**, and `BasketItemFactory.BuildMenuItemAsync` never reads
+the parent's `SelectedIngredients` — the parent row stores no composition at all. So rows on a menu
+are not redundant, they are invisible: the guest cannot see them, the ticket does not carry them,
+and the admin who edits them changes nothing. 11 dishes shipped that way.
+
+A dish that carries a choice step **is** a menu in our model, so its recipe moves to a hidden
+**carrier component behind its one-item `Plat` section** — the shape that already makes `Menu
+Kebab` work. That is the `dish` component family. **Gated by** `verifyMenusCarryNoRecipe`.
+
+### 3. A `MenuSectionItem` references a PRODUCT, not a variation \[5]
+
+So a portion sold as a _size_ is unreachable from a bundle: `Menu 12 X Nuggets` charged 15,00 € and
+delivered `6 X Nuggets`. The five large TEXMEX portions each get their own `portion` component, and
+a menu's `Plat` points at it. Matched on the name with `Menu ` stripped (their spacing is
+inconsistent — `12X` vs `12 X`), and refused when the match is not unique.
+
+**Gated by** `verifyMenuUplift`, which is an oracle rather than a mirror: every menu on this carte
+is its dish plus a fixed 3,00 €, so the menus of one product must all show the **same** uplift over
+whatever their `Plat` advertises. Pointed at the base, `Menu 12 X Nuggets` reads `+8` beside its
+sibling's `+3`. Nothing structural could see it — the reference was to a real, existing product.
+
+### 4. A bundle's drink section references the REAL beverages \[374]
+
+The first run pointed all 34 menus at 11 phantom 0,01 € `isComponent` copies. Everything about that
+reads fine, and it is a parallel catalogue: an admin's price edit reaches no menu, and a drink
+marked sold out stays orderable inside every bundle.
+
+The counter-argument that created them is real but narrower than it was applied: group 81's meat
+option `Kebab` name-matches the SANDWICHES product `Kebab` (8,00 €), and pointing a Tacos' meat
+section at that would put a whole priced sandwich inside the tacos. That holds for meats and gifts.
+It never applied to a drink, where the option **is** the product. So `meat`/`gift`/`dish`/`portion`
+are components and drinks are not, and `decisions.bundles.drinkProducts` maps each option to its
+real product explicitly — their names do not match (`Coca Cola` is `Coca Cola 33cl`, `Fanta` is
+`Fanta Orange`, `Eau` is `Eau 50cl`, `Coca Cola Cherry` is `Coca Coca Cherry 33cl`, typo and all),
+so a fuzzy match over four of eleven would be a guess. **Gated by** `verifyDrinkSections`.
+
+Relatedly, and from the same cause: every catalogue product was hard-coded `type: mainItem`, so the
+13 real drinks and 3 desserts were main dishes. `useDrinkUpsell` asks for
+`GET /api/Products?Type=Beverage`, which then answered **0** — no dish on the menu was ever offered
+a drink — and `groupSuggestedSideItems` partitions a dish's sides by the **side's own** type, so the
+desserts landed under "accompaniments". The type now comes from `decisions.productTypes` per
+category, fail-closed, and `--verify` re-reads the category's **own name**: a heading called
+BOISSONS typed anything but `beverage` is a failure.
+
+### Two more, cheaper but real
+
+- **A section whose NAME sells N must REQUIRE N.** \[9 sections] Their groups say
+  `minSelect: 1, maxSelect: N` on a group they themselves called "3 Viandes", sold on "Tacos 3
+  Viande" at the three-meat price — so a guest pays 13,00 € for three meats and may leave with one.
+  Gated by `verifySectionCounts`, against their own group name.
+- **`hideBaseProduct` belongs only on a product that has variations.** \[24] It was derived from
+  the SOURCE size count, which stopped equalling the emitted variation count the moment the
+  `Menu …` sizes became bundles. `isBaseRowHidden` degrades it to false on client and server, so
+  nothing was unorderable — it is a lie stored in the catalogue and shown ticked in the admin. Now
+  derived from the emitted variations, and gated by `verifyBaseRow` against the platform's rule.
+
+### One trap the move itself created
+
+Moving 11 recipes onto carriers took those rows out of six gates at a stroke — every check scoped
+to `products` simply stopped seeing them, and stayed green. `runVerify` now runs them over
+`recipeOwners` (`products` + `components`), and prints the row totals so the drop is visible:
+**771 recipe rows / 50 sauce rules / 550 sauce rows**, the same numbers as before the move. A gate
+that passes because it found nothing is worse than one that fails.
+
+### Writing to an existing catalogue
+
+- **Everything goes through `PUT /api/Products/{id}`, bundles included.** Never
+  `PUT /api/Menus/{id}`: `UpdateMenuBundleCommandHandler` `RemoveRange()`s `ProductCategories`
+  before its own null guard, so **no payload** sent there can preserve a bundle's categories
+  (backend #190). The product handler updates `MenuDefinition` when `type == menu` and keeps
+  categories.
+- **`UpdateProductCommand` is a full replace.** Build every body from a live `GET` and patch it.
+  Preserving `detailedIngredients[].id` is load-bearing — `IngredientQuantitiesJson` on past orders
+  keys off it.
+- **The API token authenticates as `Authorization: Bearer sk_live_…`, not `X-Api-Token`.** Almost
+  every catalogue `GET` is `[AllowAnonymous]`, so a read succeeding proves **nothing** about the
+  token. `GET /api/ApiTokens` is the discriminator: 403 with a valid token, 401 without.
+  (`import.mjs` already sends `Bearer`; this is for anything written by hand alongside it.)
+
+### Known and not fixed
+
+**`sauceMin` is not enforced server-side.** A dish with a one-sauce minimum accepts an order
+carrying none — the gate is `stepBlocker` in the browser only. Measured; harmless here, and not
+MC FOOD-specific.
 
 ## Importing it
 
@@ -154,28 +278,43 @@ and reported success against an empty tenant.
 
 Verified against a stub API, not by inspection:
 
-|                       |                                                                                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| full run              | **303** requests — 16 categories + 16 `PUT` category image + 124 product creates (57 mainItem, 11 beverage, 22 component, 34 menu) + 102 images + 45 `PUT` menuDefinition |
-| complete re-run       | **0** requests                                                                                                                                                            |
-| killed at request 150 | state `16/22/44/0/8/59`; resumed with **154**, and 149 + 154 = 303 — the clean run's exact total, **no duplicates**                                                       |
-| dry run               | writes **no** state file                                                                                                                                                  |
+|                       |                                                                                                                                                                                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| full run              | **263** requests — 16 categories + 16 `PUT` category image + 84 `POST /api/Products` (57 plain catalogue products + 27 hidden components) + 45 `POST /api/Menus` (34 wrapper menus + 11 dishes that carry a choice step) + 102 product images |
+| complete re-run       | **0** requests                                                                                                                                                                                                                                |
+| killed at request 150 | measured at **303** requests, before the four rules below changed what is created; the resume arithmetic is unchanged and the total is now 263 — **re-measure before quoting it**                                                             |
+| dry run               | writes **no** state file                                                                                                                                                                                                                      |
 
-The 45 `menuDefinition` updates are **34** bundles carrying `Plat` + a drink or meat choice,
-and **11** existing dishes that needed a choice step of their own (Tacos and LIBANAISE
-1/2/3 Viande, Assiette Mixte, Galette, the three Menu Enfant).
+The 45 `POST /api/Menus` are **34** wrapper bundles (`Plat` + a drink choice) and **11** dishes
+that carry a choice step of their own (Tacos and LIBANAISE 1/2/3 Viande, Assiette Mixte, Galette,
+the three Menu Enfant). Those 11 are `type: menu`, so their recipe lives on a hidden carrier behind
+their `Plat` — rule 2 below.
+
+The 27 hidden components are **9** meats, **2** gifts, **11** recipe carriers and **5** large
+TEXMEX portions. There are no hidden _drinks_: a bundle's drink section names the real beverages —
+rule 4 below.
 
 Order is the contract, and each step needs the one before it: categories → components (a
 section cannot point at a product that does not exist) → products → menus (a `Plat` section
 wraps a dish that must already exist).
 
-**What none of that checks is the server's own validation.** `map.mjs --verify`'s price check is
-a real oracle — their absolute price is a number it did not compute — but the content, string and
-sauce checks only assert the shape `map.mjs` was written to produce. Three defects got through
-that way (a `null` description that 400s, an `exclusionGroup` that made add-ons mutually
-exclusive, and a sauce rule with no sauce rows). The cheap structural fix is to round-trip one
-product through a real staging `POST /api/Products` as part of the pre-flight; until then, do the
-first real import against **staging**, not the tenant.
+**What none of that checks is the server's own validation** — and that gap is what shipped nine
+defects. `map.mjs --verify` has real oracles: the price check re-derives a number it did not
+compute, and four of the gates added since read the platform's own rules rather than the mapper's
+intent. But the content, string and structural checks only assert the shape `map.mjs` was written
+to produce, and a check that agrees with the mapper cannot disagree with it.
+
+**The decisive verification is placing a real order for every item.** Nothing structural found the
+`SauceMaximumExceeded`; one basket POST found it immediately. After an import, sweep the catalogue:
+for every product and every bundle, `POST /api/Basket/items` with **the payload the app itself
+would build** — `buildBaseIngredientSelection` for a product's ingredients, each required section's
+first option for a bundle — and assert the line comes back charged at the advertised price. Two
+failure modes, both of which have happened here: a 4xx (the item cannot be ordered at all) and a
+200 at the wrong price (`Menu 12 X Nuggets` at 15,00 € delivering the 6-piece).
+
+That sweep is not in `import.mjs` — it needs a live tenant and a basket session, which is the other
+side of this pack's pure/transport split. Until it is written, run it by hand, and do the first
+real import of any new tenant against **staging**, not the tenant.
 
 ### Two API limits worth knowing before you look for a bug
 
@@ -187,13 +326,20 @@ IsActive, DisplayOrder, AvailableOrderTypes)` has no content map and there is no
   `DisplayOrder = max + 1` regardless of what is sent. Their order survives only because this
   script creates them in order. Do not reorder the loop expecting the field to hold it.
 
-### What the importer does NOT do yet
+### What the importer does NOT do
 
-The **bundle steps** — `MenuDefinition` + `MenuSection` + component products. Six groups
-across 40 product references, including group 79 `Boissons`, the drink choice on all 29
-"Menu X" sizes. `map.mjs --verify` names every one of them and **refuses to emit** until
-they are built, rather than shipping a catalogue that looks complete and silently drops a
-step. Also not imported: working hours, the table, and the restaurant profile.
+The **working hours**, the **table** and the **restaurant profile** — those are `RestaurantInfo`
+and `WorkingHours`, not the menu, and this pack is the catalogue.
+
+It also does not build the **Accompagnement** section (`Frites` on the 34 wrapper menus) that the
+live tenant carries; that was added by hand and is a shape decision, not a defect this pack can
+derive from their data. And it does not write **allergens or dietary labels**, which are recipe
+facts only the kitchen knows.
+
+The bundle steps themselves ARE built (34 wrapper menus, 11 sectioned dishes, 27 components).
+`map.mjs --verify` still derives which groups actually reached a section from the OUTPUT and
+**refuses to emit** if any fell out of the mapping — that check stays precisely because it can now
+legitimately be empty, which is when a silent regression would be invisible.
 
 ### The size/product asymmetry, which is easy to miss
 

@@ -813,9 +813,12 @@ module.exports = {
     // chain, none of which any fixture reaches — `renderCard` always supplies a name and the mock
     // always supplies 'en'. The itemId fallback is NOT among them: the controls tests drive all
     // three of basketItemId → id → productId.
+    // 95, up from 86: this MR moved the variation resolver out into `variationLabel` (covered at
+    // 100 by its own suite) and covered three fallbacks here that never were. Ratcheted rather than
+    // left at the old number, so the recovered ground cannot be given back silently.
     './src/components/cart/cart-page/CartItemCard.tsx': {
       statements: 100,
-      branches: 86,
+      branches: 95,
       functions: 100,
       lines: 100,
     },

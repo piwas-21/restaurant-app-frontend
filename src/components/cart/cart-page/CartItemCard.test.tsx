@@ -300,6 +300,31 @@ describe('CartItemCard — header', () => {
     expect(screen.getByTestId('img')).toHaveTextContent('Lunch Combo');
   });
 
+  /*
+   * The three fallbacks below were uncovered before this MR and stayed uncovered while the
+   * variation resolver sat inline. Moving that resolver into `variationLabel` took three COVERED
+   * branches out of this file, and a file's branch ratio is a fraction — so a neutral extraction
+   * pushed it from 86% to 85% and the per-file threshold refused the build. The honest answer is to
+   * cover what was never covered, not to lower the number.
+   */
+  it('omits the image block entirely when the line carries no photo', () => {
+    renderCard({ productName: 'Lunch Combo' } as Partial<CartItem>);
+
+    expect(screen.queryByTestId('img')).not.toBeInTheDocument();
+  });
+
+  it('falls back to a placeholder name rather than rendering an empty heading', () => {
+    renderCard({ productName: undefined } as Partial<CartItem>);
+
+    expect(screen.getByRole('heading', { name: 'Unknown Item' })).toBeInTheDocument();
+  });
+
+  it('uses a generic alt text when the line has a photo but no name', () => {
+    renderCard({ productImageUrl: '/img/x.png', productName: undefined } as Partial<CartItem>);
+
+    expect(screen.getByTestId('img')).toHaveTextContent('Product');
+  });
+
   it('prefers the current language’s variation name', () => {
     renderCard({
       variationName: 'Large',

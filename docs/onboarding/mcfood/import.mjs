@@ -70,11 +70,15 @@ const unwrap = async (response, what) => {
 };
 
 const makeClient = ({ base, token, dryRun }) => {
+  let dryIds = 0;
   const call = async (method, endpoint, { json, form } = {}, what = `${method} ${endpoint}`) => {
     if (dryRun) {
       const size = form ? '[multipart]' : JSON.stringify(json ?? {}).length + ' bytes';
       console.log(`  DRY  ${method} ${endpoint}  ${size}`);
-      return { id: `dry-${Math.random().toString(16).slice(2, 10)}` };
+      // A counter, not Math.random(): nothing here needs randomness, and a deterministic
+      // placeholder makes two dry runs diff cleanly against each other.
+      dryIds += 1;
+      return { id: `dry-${String(dryIds).padStart(4, '0')}` };
     }
     const response = await fetch(`${base}${endpoint}`, {
       method,
@@ -150,28 +154,20 @@ const uploadImage = async (call, method, endpoint, filePath, field, extra = {}, 
   return call(method, endpoint, { form }, `upload ${path.basename(filePath)}`);
 };
 
-const main = async () => {
-  const base = arg('--base');
-  const token = readToken();
-  const assets = arg('--assets', path.join(HERE, 'out', 'assets'));
-  const dryRun = flag('--dry-run');
-  // `null` in a dry run, and `remember` treats that as "record nothing". Writing state from
-  // a dry run made the README's own recipe — dry-run, then the real run, both on the default
-  // state file — turn the real run into a silent no-op: it would skip all 84 POSTs and report
-  // `done: 16 categories, 68 products` against a completely empty tenant. It also made the
-  // "complete state re-runs to zero writes" check hollow, since it could not tell a genuinely
-  // finished import from a dry run's leftovers.
-  const stateFile = dryRun ? null : path.resolve(process.cwd(), arg('--state', 'import-state.json'));
-
-  if (!base) throw new Error('--base is required, e.g. --base https://mcdoner.sofrapiwas.com');
-  if (!token && !dryRun) {
-    throw new Error('set MCFOOD_TOKEN to a menu:write API token (or pass --token, which `ps` can see)');
+/**
+ * The refusals, in one place. Both are fail-closed and both have an escape hatch, because a
+ * gate with no way past it gets routed around rather than satisfied — but each hatch turns
+ * off exactly one check, never both.
+ */
+const refuseIfNotReady = (dataset, decisions) => {
+  const unbuilt = unbuiltBundlesInUse(dataset, decisions);
+  if (unbuilt.length && !flag('--allow-unbuilt')) {
+    console.error('REFUSING: these groups are referenced but NOT BUILT by map.mjs:');
+    for (const item of unbuilt) console.error(`  ${item}`);
+    console.error('\nThey are the "choose a drink" / "choose a meat" steps. Importing without');
+    console.error('them produces a menu that looks complete and silently drops a step.');
+    return false;
   }
-
-  const { dataset, decisions, categories, products } = await build({});
-
-  // The same refusal map.mjs enforces. Importing a catalogue built on unconfirmed
-  // guesses is worse than importing none: it looks finished.
   const unconfirmed = Object.entries(decisions.modifierGroups).filter(
     // `_` is the block's own prose and carries no `confirmed`. Counting it made this gate
     // impossible to satisfy — and a fail-closed gate that can NEVER go green trains the
@@ -181,58 +177,58 @@ const main = async () => {
   if (unconfirmed.length && !flag('--allow-unconfirmed')) {
     console.error(`REFUSING: ${unconfirmed.length} modifier-group decisions are unconfirmed.`);
     console.error('Run `node map.mjs --verify` for the list. Confirm them in decisions.json.');
-    process.exit(1);
+    return false;
   }
+  return true;
+};
 
-  // The SAME refusal map.mjs applies. Without it, the moment the `confirmed` flags flip to
-  // true this script would happily push a catalogue with no drink step, no meat choice and no
-  // Menu Enfant toy step — the refusal was guarding the file nobody posts, not the poster.
-  const unbuilt = unbuiltBundlesInUse(dataset, decisions);
-  if (unbuilt.length && !flag('--allow-unbuilt')) {
-    console.error('REFUSING: these groups are referenced but NOT BUILT by map.mjs:');
-    for (const item of unbuilt) console.error(`  ${item}`);
-    process.exit(1);
-  }
+/** The path an asset lands at, from the dataset's repo-relative reference. */
+const assetPath = (assets, reference) => path.join(assets, path.relative('assets', reference));
 
-  const call = makeClient({ base, token, dryRun });
-  const state = stateFile ? await loadState(stateFile) : structuredClone(EMPTY_STATE);
-  // Dry run only: assets that are not on disk. `fetch.mjs out` materialises them.
-  const missingAssets = dryRun ? [] : null;
-  console.log(`${dryRun ? 'DRY RUN — ' : ''}importing into ${base}`);
-  console.log(dryRun ? 'state: none written (dry run)' : `state: ${stateFile}`);
-
-  // ── Categories first: a product cannot be created without its category id ────────
-  const categoryIds = {};
+/**
+ * Categories first — a product cannot be created without its category id. The record and its
+ * IMAGE resume independently: keyed together, a crash during an upload left that category
+ * permanently image-less, because the next run saw the id in state and skipped the whole block.
+ */
+const importCategories = async ({ call, categories, state, stateFile, assets, missingAssets }) => {
+  const ids = {};
   for (const category of categories) {
     const key = String(category.source.id);
-    // The record and its IMAGE resume independently. Keyed together, a crash during an
-    // upload left that category permanently image-less: the next run saw the id in state,
-    // `continue`d past the whole block, and never retried the upload.
     if (state.categories[key]) {
-      categoryIds[key] = state.categories[key];
+      ids[key] = state.categories[key];
     } else {
       const created = await call('POST', '/api/Categories', { json: category.body });
-      categoryIds[key] = created.id;
+      ids[key] = created.id;
       await remember(stateFile, state, 'categories', key, created.id);
       console.log(`  category ${category.body.name} -> ${created.id}`);
     }
 
     if (category.source.image && !state.images[`category:${key}`]) {
-      const file = path.join(assets, path.relative('assets', category.source.image));
       // PUT, not POST: CategoriesController.UpdateCategoryImage is [HttpPut("{id}/image")].
       // POST answers 405 with a non-JSON body, which aborts the run after the category has
       // already been created and remembered.
-      await uploadImage(call, 'PUT', `/api/Categories/${categoryIds[key]}/image`, file, 'Image', {}, missingAssets);
+      await uploadImage(
+        call,
+        'PUT',
+        `/api/Categories/${ids[key]}/image`,
+        assetPath(assets, category.source.image),
+        'Image',
+        {},
+        missingAssets,
+      );
       await remember(stateFile, state, 'images', `category:${key}`, true);
     }
   }
+  return ids;
+};
 
-  // ── Products ─────────────────────────────────────────────────────────────────────
+const importProducts = async ({ call, products, categoryIds, state, stateFile, assets, missingAssets }) => {
   for (const product of products) {
     const key = String(product.source.id);
     const categoryId = categoryIds[String(product.source.categoryId)];
-    if (!categoryId)
+    if (!categoryId) {
       throw new Error(`product ${key} names category ${product.source.categoryId}, which was not created`);
+    }
 
     let productId = state.products[key];
     if (!productId) {
@@ -245,12 +241,11 @@ const main = async () => {
     }
 
     if (product.source.image && !state.images[`product:${key}`]) {
-      const file = path.join(assets, path.relative('assets', product.source.image));
       await uploadImage(
         call,
         'POST',
         `/api/Products/${productId}/images`,
-        file,
+        assetPath(assets, product.source.image),
         'Image',
         { IsPrimary: true, SortOrder: 0 },
         missingAssets,
@@ -258,7 +253,10 @@ const main = async () => {
       await remember(stateFile, state, 'images', `product:${key}`, true);
     }
   }
+};
 
+/** What this script does NOT do, said every time rather than left to the README. */
+const reportRemainder = (dataset, state, missingAssets, dryRun) => {
   if (missingAssets?.length) {
     console.log(`\n${missingAssets.length} asset(s) NOT on disk — run \`node fetch.mjs out\` first:`);
     for (const file of missingAssets.slice(0, 5)) console.log(`  ${file}`);
@@ -270,16 +268,64 @@ const main = async () => {
   const total = (o) => Object.keys(o).length;
   console.log(
     `\ndone: ${total(state.categories)} categories, ${total(state.products)} products, ` +
-      `${total(state.images)} product images`,
+      `${total(state.images)} images`,
   );
   console.log(
-    `\nNOT imported by this script: the bundle steps (a "Menu X" drink or meat choice), ` +
-      `the working hours, the table, and the restaurant profile. ` +
-      `Run \`node map.mjs --verify\` — it names every group still unbuilt.`,
+    '\nNOT imported by this script: the bundle steps (a "Menu X" drink or meat choice), ' +
+      'the working hours, the table, and the restaurant profile. ' +
+      'Run `node map.mjs --verify` — it names every group still unbuilt.',
   );
   if (dataset.tables?.length) {
     console.log(`Their table is labelled "${dataset.tables[0].label}" — rename per decisions.json.`);
   }
+};
+
+const main = async () => {
+  const base = arg('--base');
+  const token = readToken();
+  const assets = arg('--assets', path.join(HERE, 'out', 'assets'));
+  const dryRun = flag('--dry-run');
+  // `null` in a dry run, and `remember` treats that as "record nothing". Writing state from
+  // a dry run made the README's own recipe — dry-run, then the real run, both on the default
+  // state file — turn the real run into a silent no-op: it would skip every request and report
+  // `done: 16 categories, 68 products` against a completely empty tenant. It also made the
+  // "complete state re-runs to zero writes" check hollow, since it could not tell a genuinely
+  // finished import from a dry run's leftovers.
+  const stateFile = dryRun ? null : path.resolve(process.cwd(), arg('--state', 'import-state.json'));
+
+  if (!base) throw new Error('--base is required, e.g. --base https://mcdoner.sofrapiwas.com');
+  if (!token && !dryRun) {
+    throw new Error('set MCFOOD_TOKEN to a menu:write API token (or pass --token, which `ps` can see)');
+  }
+
+  const { dataset, decisions, categories, products } = await build({});
+  if (!refuseIfNotReady(dataset, decisions)) process.exit(1);
+
+  const call = makeClient({ base, token, dryRun });
+  const state = stateFile ? await loadState(stateFile) : structuredClone(EMPTY_STATE);
+  // Dry run only: assets that are not on disk. `fetch.mjs out` materialises them.
+  const missingAssets = dryRun ? [] : null;
+  console.log(`${dryRun ? 'DRY RUN — ' : ''}importing into ${base}`);
+  console.log(dryRun ? 'state: none written (dry run)' : `state: ${stateFile}`);
+
+  const categoryIds = await importCategories({
+    call,
+    categories,
+    state,
+    stateFile,
+    assets,
+    missingAssets,
+  });
+  await importProducts({
+    call,
+    products,
+    categoryIds,
+    state,
+    stateFile,
+    assets,
+    missingAssets,
+  });
+  reportRemainder(dataset, state, missingAssets, dryRun);
 };
 
 await main();

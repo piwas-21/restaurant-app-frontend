@@ -269,13 +269,19 @@ export const unbuiltBundlesInUse = (dataset, decisions) => {
       }
     }
   }
-  return [...used.entries()]
-    .map(([id, items]) => {
-      const { sourceName } = decisions.modifierGroups[id];
-      const shown = items.slice(0, 3).join(', ');
-      return `group ${id} (${sourceName}) on ${items.length}: ${shown}${items.length > 3 ? ' …' : ''}`;
-    })
-    .sort();
+  return (
+    [...used.entries()]
+      .map(([id, items]) => {
+        const { sourceName } = decisions.modifierGroups[id];
+        const shown = items.slice(0, 3).join(', ');
+        return `group ${id} (${sourceName}) on ${items.length}: ${shown}${items.length > 3 ? ' …' : ''}`;
+      })
+      // A compare function, not a bare .sort(): the default coerces to string and sorts by
+      // UTF-16 code unit, so "group 10" would come before "group 9" in a list a human reads
+      // to decide what is still unconfirmed. localeCompare with numeric ordering keeps the
+      // group ids in the order they are spoken about.
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
+  );
 };
 
 /**
@@ -291,10 +297,16 @@ const unconfirmedInUse = (dataset, decisions) => {
       for (const id of governingGroupIds(item)) used.add(String(id));
     }
   }
-  return [...used]
-    .filter((id) => decisions.modifierGroups[id]?.confirmed !== true)
-    .map((id) => `group ${id} (${decisions.modifierGroups[id]?.sourceName ?? '?'})`)
-    .sort();
+  return (
+    [...used]
+      .filter((id) => decisions.modifierGroups[id]?.confirmed !== true)
+      .map((id) => `group ${id} (${decisions.modifierGroups[id]?.sourceName ?? '?'})`)
+      // A compare function, not a bare .sort(): the default coerces to string and sorts by
+      // UTF-16 code unit, so "group 10" would come before "group 9" in a list a human reads
+      // to decide what is still unconfirmed. localeCompare with numeric ordering keeps the
+      // group ids in the order they are spoken about.
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
+  );
 };
 
 export const build = async ({ datasetPath, decisionsPath }) => {

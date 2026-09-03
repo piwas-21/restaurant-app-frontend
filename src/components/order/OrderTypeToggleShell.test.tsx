@@ -87,6 +87,46 @@ describe('OrderTypeToggleShell', () => {
       expect(screen.getByRole('group')).toHaveClass('needsChoice');
     });
 
+    /**
+     * The CTA stays live while `useEnabledOrderTypes` is out (only an empty cart disables it), so a
+     * refusal can land on the ref-less SKELETON. Keyed on `focusSignal` alone the effect never ran
+     * again once the buttons mounted — the guest got the outline and no focus, i.e. the do-nothing
+     * click this feature exists to remove, until they clicked a second time.
+     */
+    it('services a refusal that arrived while the enabled list was still loading', () => {
+      mockEnabledState = { enabled: [], loading: true };
+      const { rerender } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      expect(screen.queryByRole('group')).not.toBeInTheDocument();
+
+      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false };
+      rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      expect(screen.getByRole('button', { name: /Dine In/ })).toHaveFocus();
+    });
+
+    it('services one refusal ONCE — an unrelated change to the enabled list does not re-steal focus', () => {
+      const { rerender } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      screen.getByRole('button', { name: /Takeaway/ }).focus();
+
+      // Delivery leaves the admin-enabled list — a real re-render of this effect's new deps, with
+      // the focused button (Takeaway) still present so the assertion is about focus and not
+      // about the element having been unmounted underneath it.
+      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false };
+      rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      expect(screen.getByRole('button', { name: /Takeaway/ })).toHaveFocus();
+    });
+
+    /** The focus move arrives with its reason: the sentence is on screen BEFORE the click, so its
+     *  live region announces nothing on a refusal. */
+    it("points the group at the surface's blocker sentence, and only once refused", () => {
+      const { rerender } = render(
+        <OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={0} blockerHintId="hint-1" />,
+      );
+      expect(screen.getByRole('group')).not.toHaveAttribute('aria-describedby');
+
+      rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} blockerHintId="hint-1" />);
+      expect(screen.getByRole('group')).toHaveAttribute('aria-describedby', 'hint-1');
+    });
+
     it('acts again on a SECOND refusal', () => {
       const { rerender } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
       screen.getByRole('button', { name: /Delivery/ }).focus();

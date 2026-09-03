@@ -38,6 +38,15 @@ interface OrderTypeToggleShellProps {
    * already `true` never fires an effect again. See `useCheckoutBlockerHint.attempts`.
    */
   focusSignal?: number;
+  /**
+   * The id of the surface's blocker sentence, so a refused click's focus move ARRIVES WITH ITS
+   * REASON. The `<output>` is already on screen before the click (the 'order-type' blocker is
+   * derived, not clicked into existence), so its live region announces nothing on a refusal —
+   * without this, a screen-reader user hears focus land on "Dine In, button" and is told nothing
+   * about why. The surface owns the id (`useId`), because two cart surfaces can be mounted at once
+   * and a module constant would collide.
+   */
+  blockerHintId?: string;
 }
 
 /**
@@ -51,23 +60,39 @@ interface OrderTypeToggleShellProps {
  * Not memoized here — each template wraps this in its own `React.memo` (props
  * are a single `onPick` function ref).
  */
-export default function OrderTypeToggleShell({ onPick, styles, focusSignal = 0 }: Readonly<OrderTypeToggleShellProps>) {
+export default function OrderTypeToggleShell({
+  onPick,
+  styles,
+  focusSignal = 0,
+  blockerHintId,
+}: Readonly<OrderTypeToggleShellProps>) {
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
   const groupRef = useRef<HTMLDivElement>(null);
+  /** The last signal this actually SERVICED — not the last it was told about. See below. */
+  const servicedRef = useRef(0);
 
   // Take the guest to the control, rather than only telling them about it. `focusSignal` starts at
   // 0 and only ever changes on a REFUSED click, so this cannot fire while the basket is merely
   // being read — which is why the derived hint (up from the moment the cart has a line) is not the
   // trigger. `block: 'nearest'` so a toggle already on screen does not jump.
+  //
+  // It is keyed on the LOADING STATE as well as the signal, and remembers what it serviced, because
+  // the CTA stays live while `useEnabledOrderTypes` is still out (only an empty cart disables it).
+  // A click refused in that window ran this effect against the ref-less SKELETON below, and keying
+  // on `focusSignal` alone meant it never ran again once the buttons mounted: the guest got the
+  // outline and no focus — the do-nothing click this exists to remove — until they clicked a second
+  // time. `servicedRef` is what keeps the widened deps from re-firing on an unrelated change to the
+  // enabled list.
   useEffect(() => {
-    if (focusSignal <= 0) return;
+    if (focusSignal <= 0 || focusSignal === servicedRef.current) return;
     const group = groupRef.current;
-    if (!group) return;
+    if (!group) return; // still a skeleton — this runs again when the group mounts
+    servicedRef.current = focusSignal;
     group.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     group.querySelector('button')?.focus();
-  }, [focusSignal]);
+  }, [focusSignal, loading, enabled.length]);
 
   if (loading || enabled.length === 0) {
     // While the admin-enabled list is in flight, render a spacer-shaped skeleton
@@ -82,6 +107,7 @@ export default function OrderTypeToggleShell({ onPick, styles, focusSignal = 0 }
       role="group"
       aria-label={t('order_type', 'Order type')}
       className={`${styles.group} ${focusSignal > 0 ? (styles.needsChoice ?? '') : ''}`.trim()}
+      aria-describedby={focusSignal > 0 ? blockerHintId : undefined}
     >
       {enabled.map((type) => {
         const isActive = state.orderType === type;

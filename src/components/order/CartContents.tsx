@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
@@ -34,10 +36,13 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     handleCheckout,
     handlePick,
   } = useCartContents(props);
+  // Owned here, not a module constant: /cart mounts a second Proceed surface, and two identical
+  // ids would point every `aria-describedby` at whichever rendered first.
+  const blockerHintId = useId();
 
   return (
     <>
-      <OrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} />
+      <OrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
 
       {/* Above the list, because it usually explains why the list just changed — a reaped basket
           resyncs to empty, and without this the cart emptied with no word of why (#415).
@@ -84,7 +89,11 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
           disclaimer text under a live-looking CTA, so a guest pressed Proceed, nothing appeared to
           happen, and the one sentence explaining it was the least prominent thing on the panel.
           The click also sends them to the toggle — see `orderTypeAttempts`. */}
-      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
+      {blockerMessage && (
+        <output id={blockerHintId} className={styles.checkoutHint}>
+          {blockerMessage}
+        </output>
+      )}
     </>
   );
 }

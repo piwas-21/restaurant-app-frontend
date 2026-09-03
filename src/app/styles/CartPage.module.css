@@ -585,7 +585,7 @@
   font-size: 0.8125rem;
   line-height: 1.35;
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--feedback-warning-text);
 }
 
 /* Responsive Design */

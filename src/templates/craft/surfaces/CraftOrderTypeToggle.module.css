@@ -23,10 +23,18 @@
   padding: 0.5rem 0.75rem;
 }
 
-.button:hover,
+.button:hover {
+  transform: translateY(-2px);
+}
+
+/* Suppressed-and-replaced, as classic does. It used to be suppressed only, leaving a 2px lift
+   shared with hover as the sole keyboard feedback (WCAG 2.4.7) — and a refused Proceed now MOVES
+   FOCUS here, so that lift would be the entire visible answer to the click. Offset outward so the
+   ring survives the tape chip's `clip-path`. */
 .button:focus-visible {
   transform: translateY(-2px);
-  outline: none;
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
 }
 
 /* Terracotta clipped to the tape shape. */
@@ -53,8 +61,10 @@
   clip-path: polygon(1% 6%, 99% 0%, 100% 92%, 1% 100%);
 }
 
-/* See the classic toggle: the group is outlined while a Proceed click waits on it. */
+/* See the classic toggle: the group is outlined while a Proceed click waits on it. Craft's
+   `.group` carries no border of its own, so the ring is the whole of the state here — which is
+   why it is the amber itself and not the `-xlight` fill tint (measured 1.06:1 on kraft). */
 .needsChoice {
-  border-radius: 10px;
-  box-shadow: 0 0 0 3px var(--feedback-warning-xlight);
+  border-radius: var(--craft-radius);
+  box-shadow: 0 0 0 2px var(--feedback-warning);
 }

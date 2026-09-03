@@ -120,8 +120,12 @@
   than a colour swap: the buttons carry their own selected/unselected states and recolouring the
   container would compete with them. It stays up until a type is picked, which is exactly when
   `useCheckoutBlockerHint` resets the counter that turns it on.
+
+  The ring is `--feedback-warning`, NOT `--feedback-warning-xlight`. That token is a light-mode
+  FILL tint (every other consumer paints dark text on it) and it has no dark override, so as a
+  stroke it measured 1.03:1 against the modal's own surface in light and a near-white halo in dark.
 */
 .needsChoice {
   border-color: var(--feedback-warning);
-  box-shadow: 0 0 0 3px var(--feedback-warning-xlight);
+  box-shadow: 0 0 0 2px var(--feedback-warning);
 }

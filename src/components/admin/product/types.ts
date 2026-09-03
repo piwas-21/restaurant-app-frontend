@@ -1,5 +1,5 @@
 // Product-related types and interfaces
-import type { FieldErrors, UseFormGetValues, FieldValues } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormGetValues, FieldValues } from 'react-hook-form';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
 
@@ -131,6 +131,12 @@ export interface ProductVariationsProps {
    * see `useProductEditorForm.moveVariation` for why that would silently undo the reorder.
    */
   moveVariation: (index: number, delta: -1 | 1) => void;
+  /**
+   * For the base row's inverted switch, which `register` cannot express — and for the name and
+   * price it shows, which it WATCHES rather than takes as props: both are edited on this page, so a
+   * fetched value would print a stale number under the input that changed it.
+   */
+  control: Control<FieldValues>;
   /**
    * Read the form STORE. The library picker uses it to see the product's current rows at the moment
    * it opens — `variationFields` is a snapshot that `moveVariation`'s `setValue` renumbering does

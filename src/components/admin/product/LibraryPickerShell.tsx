@@ -11,8 +11,8 @@ import LibraryPickerResults from './LibraryPickerResults';
 import LibraryPickerRow from './LibraryPickerRow';
 import LibraryPickerToolbar, { type LibraryPickerView } from './LibraryPickerToolbar';
 import type { LibraryPickerCopy } from './libraryPickerCopy';
-import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessage } from '@/utils/apiFormErrors';
+import { isTenantOwned } from './libraryOrigin';
+import { useLibraryCreate } from '@/hooks/admin/useLibraryCreate';
 import type { CatalogRow, LibraryCatalog } from '@/hooks/admin/useLibraryCatalog';
 import type { LibraryArchive, LibraryResponse } from '@/hooks/admin/useLibraryArchive';
 import styles from './GlobalIngredientPickerModal.module.css';
@@ -90,8 +90,6 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
 }: Readonly<LibraryPickerShellProps<TRow>>) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<TRow[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
   /**
    * The row whose catalog-wide attach is on screen (plan S8).
    *
@@ -101,14 +99,27 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
    */
   const [applying, setApplying] = useState<TRow | null>(null);
 
-  const close = () => {
+  const add = (rows: TRow[]) => {
+    onAdd(rows);
+    close();
+  };
+
+  // The one WRITE a picker owns, and the only thing in this component that is not selection — see
+  // `useLibraryCreate`, which also carries the refusal an empty search box now gets.
+  const creation = useLibraryCreate<TRow>({
+    copy,
+    createRow,
+    onCreated: (row) => add([...selected, row]),
+  });
+
+  function close() {
     setSelected([]);
-    setCreateError(null);
+    creation.setError(null);
     setApplying(null);
     onViewChange('active');
     library.reset();
     onClose();
-  };
+  }
 
   const toggle = (row: TRow, checked: boolean) => {
     setSelected((previous) =>
@@ -118,35 +129,7 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
     );
   };
 
-  const add = (rows: TRow[]) => {
-    onAdd(rows);
-    close();
-  };
-
   const newName = library.query.trim();
-
-  /**
-   * Create the row the search did not find, then attach it with everything already ticked. The
-   * caller sends no translations: a name typed into a search box has none yet, and both backends
-   * build their translation list from whatever arrives.
-   */
-  const createAndAdd = async () => {
-    if (newName.length === 0 || isCreating) return;
-    setIsCreating(true);
-    setCreateError(null);
-    try {
-      const response = await createRow(newName);
-      if (!response?.success || !response.data?.id) {
-        setCreateError(serverMessage(response) ?? t(copy.createFailed));
-        return;
-      }
-      add([...selected, response.data]);
-    } catch (error) {
-      setCreateError(getErrorMessage(error) ?? t(copy.createFailed));
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   /**
    * Retire a row, then take it out of the list on screen — in that order. Marking it first would
@@ -164,8 +147,8 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
       copy={copy}
       view={view}
       newName={newName}
-      isCreating={isCreating}
-      onCreate={() => void createAndAdd()}
+      isCreating={creation.isCreating}
+      onCreate={() => void creation.create(newName)}
       onCancel={close}
       selectedCount={selected.length}
       onAdd={() => add(selected)}
@@ -193,18 +176,24 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
   return (
     <BaseModal isOpen={isOpen} onClose={close} title={t(copy.title)} size="lg" footer={footer}>
       <LibraryPickerToolbar
+        searchRef={creation.searchRef}
         copy={copy}
         view={view}
         onViewChange={onViewChange}
         query={library.query}
-        onQueryChange={library.setQuery}
+        onQueryChange={(next) => {
+          // The complaint is about an empty box, so typing into it retires the complaint — leaving
+          // it up would scold the admin for a state they have just left.
+          if (creation.error) creation.setError(null);
+          library.setQuery(next);
+        }}
         filter={library.filter}
         onFilterChange={library.setFilter}
       />
 
-      {(createError ?? archive.actionError) && (
+      {(creation.error ?? archive.actionError) && (
         <p className={styles.error} role="alert">
-          {createError ?? archive.actionError}
+          {creation.error ?? archive.actionError}
         </p>
       )}
 
@@ -212,13 +201,16 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
           nothing matched, and an empty list is the state this notice exists to explain. */}
       {view === 'active' && scopeNotice}
 
-      {view === 'active' ? (
+      {view !== 'archived' ? (
         <LibraryPickerResults
           status={library.status}
           loadError={library.loadError}
           onRetry={library.reload}
           isEmpty={library.matchCount === 0}
-          emptyKey={copy.empty}
+          // On the tenant's own shelf, "no match" is almost always "you have not created one yet",
+          // which is every tenant's starting state — the browse catalog's "nothing matched" would
+          // read as a failed search.
+          emptyKey={view === 'mine' ? copy.mineEmpty : copy.empty}
           retryKey={copy.retry}
           hiddenNote={
             library.matchCount > library.visible.length ? (
@@ -236,7 +228,12 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
               checked={selected.some((entry) => entry.id === row.id)}
               alreadyAdded={library.isAttached(row)}
               onToggle={(checked) => toggle(row, checked)}
-              onArchive={() => void retire(row)}
+              // Only the tenant's own rows are offered a destructive action (backend D14). A
+              // built-in can still be archived, but the row cannot say "Delete" about one — the
+              // server refuses, and a picker that offers a button the server refuses is worse than
+              // one that offers nothing. Omitted rather than disabled: a disabled control here
+              // would suggest the row could be removed by some other means.
+              onArchive={isTenantOwned(row) ? () => void retire(row) : undefined}
               isPending={archive.pendingId === row.id}
               onApplyToItems={apply ? () => setApplying(row) : undefined}
             />

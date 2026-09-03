@@ -31,13 +31,28 @@ const mockCreate = createGlobalVariation as jest.MockedFunction<typeof createGlo
 const mockArchive = archiveGlobalVariation as jest.MockedFunction<typeof archiveGlobalVariation>;
 const mockRestore = restoreGlobalVariation as jest.MockedFunction<typeof restoreGlobalVariation>;
 
+/**
+ * `origin` defaults to `'custom'` here, and that is a fixture DECISION rather than a shortcut: every
+ * case in this file that predates the origin discriminator is about the destructive action, and a
+ * built-in is never offered one (backend D14). A default of `'system'` would silently retarget all
+ * of them at a row that has no button to press. The built-in rule gets its own row below.
+ */
 const libraryRow = (
   id: string,
   defaultName: string,
   translations: { languageCode: string; name: string }[] = [],
   usedOnProductCount = 0,
   isArchived = false,
-): GlobalVariationSummary => ({ id, defaultName, isActive: true, translations, usedOnProductCount, isArchived });
+  origin: 'system' | 'custom' = 'custom',
+): GlobalVariationSummary => ({
+  id,
+  defaultName,
+  isActive: true,
+  translations,
+  usedOnProductCount,
+  isArchived,
+  origin,
+});
 
 const CATALOG = [
   libraryRow(
@@ -53,6 +68,9 @@ const CATALOG = [
   // No translation at all — the row the `translated` filter must exclude. Nothing uses it either,
   // which is what makes its destructive action say Delete rather than Archive.
   libraryRow('g-magnum', 'Magnum'),
+  // A platform-seeded row that nothing uses — the case the picker used to label "Delete" on all
+  // fifty shipped rows, and the one the server now refuses whatever the client offers.
+  libraryRow('g-seeded', 'Seeded Size', [], 0, false, 'system'),
 ];
 
 const onAdd = jest.fn();
@@ -104,7 +122,7 @@ describe('browsing the variation library (plan S4)', () => {
     await open();
 
     expect(mockGetLibrary).toHaveBeenCalledTimes(1);
-    expect(screen.getAllByRole('listitem')).toHaveLength(3);
+    expect(screen.getAllByRole('listitem')).toHaveLength(CATALOG.length);
   });
 
   it('matches a TRANSLATED name, which is the reason it does not ask the server', async () => {
@@ -338,5 +356,86 @@ describe('when the catalog cannot be read', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('down');
     fireEvent.click(screen.getByRole('button', { name: 'variation_library_retry' }));
     await waitFor(() => expect(mockGetLibrary).toHaveBeenCalledTimes(2));
+  });
+});
+
+/**
+ * Backend D14. These catalogs are per-tenant TABLES seeded with platform rows, so a name we shipped
+ * and a name the admin typed were the same shape in the same table — and the picker offered
+ * "Delete" on all fifty.
+ */
+describe('the tenant’s own shelf', () => {
+  it('offers no destructive action on a built-in, even one nothing uses', async () => {
+    await open();
+
+    const seeded = rowFor('Seeded Size');
+    // OMITTED, not disabled: a disabled control here would suggest the row could be removed by some
+    // other means. Its usage count is 0, which is exactly the case that used to say "Delete".
+    expect(seeded.queryByRole('button', { name: 'variation_library_delete' })).not.toBeInTheDocument();
+    expect(seeded.queryByRole('button', { name: 'variation_library_archive' })).not.toBeInTheDocument();
+  });
+
+  it('still offers one on the tenant’s own row, in the same list', async () => {
+    await open();
+
+    expect(rowFor('Magnum').getByRole('button', { name: 'variation_library_delete' })).toBeInTheDocument();
+  });
+
+  it('narrows to the tenant’s own rows on the third shelf, from the list already in memory', async () => {
+    await open();
+
+    fireEvent.click(screen.getByRole('button', { name: 'variation_library_view_mine' }));
+
+    expect(screen.getByText('Magnum')).toBeInTheDocument();
+    expect(screen.queryByText('Seeded Size')).not.toBeInTheDocument();
+    // One fetch for the whole modal — the shelf is a narrowing, not a second endpoint.
+    expect(mockGetLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the search box and the chips on that shelf, unlike the archive drawer', async () => {
+    await open();
+
+    fireEvent.click(screen.getByRole('button', { name: 'variation_library_view_mine' }));
+
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'variation_library_filter_not_added' })).toBeInTheDocument();
+  });
+});
+
+/**
+ * The reported defect. "+ Create new" creates from the SEARCH TERM, so with an empty box there was
+ * nothing to create — and the button was enabled, labelled, and inert. An admin pressed it and the
+ * modal did nothing at all.
+ */
+describe('“+ Create new” with an empty search box', () => {
+  it('says what it needs and puts the caret there, instead of doing nothing', async () => {
+    await open();
+
+    fireEvent.click(screen.getByRole('button', { name: /variation_library_create/ }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('variation_library_create_needs_name');
+    expect(screen.getByLabelText('variation_library_search_label')).toHaveFocus();
+    // The point of the complaint: nothing was written.
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('retires the complaint as soon as something is typed', async () => {
+    await open();
+    fireEvent.click(screen.getByRole('button', { name: /variation_library_create/ }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+    type('Sharing platter');
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  /** …and with a term, it still creates, which is the behaviour that already worked. */
+  it('still creates from a typed term', async () => {
+    await open();
+    type('Sharing platter');
+
+    fireEvent.click(screen.getByRole('button', { name: /variation_library_create/ }));
+
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Sharing platter', translations: [] }));
   });
 });

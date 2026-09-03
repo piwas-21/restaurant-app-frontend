@@ -7,8 +7,15 @@ import type { LibraryFilter } from '@/hooks/admin/useLibraryCatalog';
 import type { LibraryPickerCopy } from './libraryPickerCopy';
 import styles from './GlobalIngredientPickerToolbar.module.css';
 
-/** Which half of the library is on screen. */
-export type LibraryPickerView = 'active' | 'archived';
+/**
+ * Which SHELF is on screen.
+ *
+ * `mine` is the third one, and the reason it is a view rather than a filter chip is that the chips
+ * are one exclusive choice: "the rows I created" and "not yet on this item" have to be answerable
+ * together. It also keeps the tenant's own handful of rows findable at all — on the ingredient
+ * side they are three entries among 654 seeded ones.
+ */
+export type LibraryPickerView = 'active' | 'mine' | 'archived';
 
 const FILTERS: LibraryFilter[] = ['all', 'notAdded', 'translated'];
 const FILTER_SLOTS: Record<LibraryFilter, keyof LibraryPickerCopy> = {
@@ -17,13 +24,16 @@ const FILTER_SLOTS: Record<LibraryFilter, keyof LibraryPickerCopy> = {
   translated: 'filterTranslated',
 };
 
-const VIEWS: LibraryPickerView[] = ['active', 'archived'];
+const VIEWS: LibraryPickerView[] = ['active', 'mine', 'archived'];
 const VIEW_SLOTS: Record<LibraryPickerView, keyof LibraryPickerCopy> = {
   active: 'viewActive',
+  mine: 'viewMine',
   archived: 'viewArchived',
 };
 
 interface LibraryPickerToolbarProps {
+  /** So a refused "+ Create new" can put the caret in the box whose emptiness it is about. */
+  searchRef?: React.Ref<HTMLInputElement>;
   /** Which catalog's words to render — the only thing that differs between the two pickers. */
   copy: LibraryPickerCopy;
   view: LibraryPickerView;
@@ -48,11 +58,12 @@ interface LibraryPickerToolbarProps {
  * ten sets of plural forms, so INGREDIENT|VARIATION / USAGE is what tells a sighted reader what the
  * right column counts; a screen reader gets the same words from each cell's `aria-label`.
  *
- * Search and the filters belong to the browsable catalog and are hidden in the archived view: they
- * are wired to that list's state, and leaving them on screen would offer to filter a list they do
- * not touch.
+ * Search and the filters belong to the browsable catalog and are hidden in the ARCHIVED view only:
+ * they are wired to that list's state, and leaving them on screen would offer to filter a list they
+ * do not touch. The tenant's own shelf IS that list, narrowed, so it keeps both.
  */
 export default function LibraryPickerToolbar({
+  searchRef,
   copy,
   view,
   onViewChange,
@@ -81,11 +92,12 @@ export default function LibraryPickerToolbar({
         ))}
       </fieldset>
 
-      {view === 'active' && (
+      {view !== 'archived' && (
         <>
           <div className={styles.searchRow}>
             <Search size={16} className={styles.searchIcon} aria-hidden="true" />
             <input
+              ref={searchRef}
               type="search"
               className={styles.searchInput}
               value={query}

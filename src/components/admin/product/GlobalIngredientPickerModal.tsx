@@ -55,7 +55,15 @@ export default function GlobalIngredientPickerModal({
 }: Readonly<GlobalIngredientPickerModalProps>) {
   const { i18n } = useTranslation();
   const [view, setView] = useState<LibraryPickerView>('active');
-  const library = useGlobalIngredientLibrary({ isOpen, attached, languageCode: i18n.language, kind });
+  const library = useGlobalIngredientLibrary({
+    isOpen,
+    attached,
+    languageCode: i18n.language,
+    kind,
+    // The third shelf (backend D14). It matters most here: a tenant's own handful of rows are three
+    // entries among 654 seeded ones, so without it they are findable only by remembering the word.
+    tenantOwnedOnly: view === 'mine',
+  });
   const archive = useGlobalIngredientArchive({
     isOpen,
     isViewingArchive: view === 'archived',

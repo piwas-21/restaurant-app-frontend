@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import type { LibraryOrigin } from '@/components/admin/product/libraryOrigin';
 
 const GLOBAL_VARIATIONS_API_URL = '/api/global-variations';
 
@@ -30,6 +31,8 @@ export interface GlobalVariationSummary {
   isActive: boolean;
   /** Archived (plan D4): off the shelf, still linked, restorable. Not soft-deleted. */
   isArchived: boolean;
+  /** Platform seed or this tenant's own — see `LibraryOrigin`. */
+  origin?: LibraryOrigin;
   /** "used on N items" — distinct live products whose variations link to this row. */
   usedOnProductCount: number;
   translations: GlobalVariationTranslation[];

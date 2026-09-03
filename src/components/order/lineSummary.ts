@@ -1,5 +1,6 @@
 import type { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import type { BasketItemDto } from '@/types/basket';
+import { variationLabel } from './variationLabel';
 
 /**
  * Normalized, read-only view-model for one order/cart line's customizations, shared by
@@ -52,6 +53,18 @@ export interface LineChild {
 }
 
 export interface LineSummary {
+  /**
+   * The variation the guest chose ("Large (40 cm)"), already resolved for the reading language.
+   *
+   * Set by the CART adapter only, and rendered only where `OrderLineSummary` is asked for it
+   * (`showVariation`) — the same restraint `LineChild.price` documents, and for the same reason:
+   * the /cart card and the checkout list already draw this line themselves, so populating it
+   * unconditionally would print the size twice on the two surfaces that were never missing it.
+   *
+   * It is NOT part of the ingredient diff. A variation is a different product row, not a change to
+   * the recipe — which is also why `isLineSummaryEmpty` ignores it.
+   */
+  variation?: string;
   diff: LineIngredientDiff;
   /** True add-on side items ordered alongside the line (not bundle components). */
   sideItems: { id?: string; name: string; quantity: number; price?: number }[];
@@ -165,9 +178,15 @@ function basketItemToChild(item: BasketItemDto): LineChild {
   };
 }
 
-/** Adapt a `BasketItemDto` (cart shape) into a `LineSummary`. Child items are bundle components. */
-export function basketItemToLineSummary(item: BasketItemDto): LineSummary {
+/**
+ * Adapt a `BasketItemDto` (cart shape) into a `LineSummary`. Child items are bundle components.
+ *
+ * `language` is the SHORT reading code and only feeds `variation`, which no caller renders unless it
+ * asks — so the eight existing call sites keep their exact output while omitting it.
+ */
+export function basketItemToLineSummary(item: BasketItemDto, language = 'en'): LineSummary {
   return {
+    variation: variationLabel(item, language) ?? undefined,
     diff: basketDiff(item),
     sideItems: (item.selectedSideItems ?? []).map((s) => ({
       id: s.id,

@@ -114,3 +114,14 @@
     font-size: var(--modal-body-toggle-size-sm, 0.85rem);
   }
 }
+
+/*
+  The group while a Proceed-to-Checkout click is waiting on it (`focusSignal`). An outline rather
+  than a colour swap: the buttons carry their own selected/unselected states and recolouring the
+  container would compete with them. It stays up until a type is picked, which is exactly when
+  `useCheckoutBlockerHint` resets the counter that turns it on.
+*/
+.needsChoice {
+  border-color: var(--feedback-warning);
+  box-shadow: 0 0 0 3px var(--feedback-warning-xlight);
+}

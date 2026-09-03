@@ -52,3 +52,9 @@
   background-color: var(--surface-secondary);
   clip-path: polygon(1% 6%, 99% 0%, 100% 92%, 1% 100%);
 }
+
+/* See the classic toggle: the group is outlined while a Proceed click waits on it. */
+.needsChoice {
+  border-radius: 10px;
+  box-shadow: 0 0 0 3px var(--feedback-warning-xlight);
+}

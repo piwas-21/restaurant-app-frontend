@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import CraftCartContents from './CraftCartContents';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+  // `i18n` too: `CartLineList` reads `i18n.language` to resolve the line's variation in the
+  // reading language, and a mock returning only `t` throws on the real component's own code.
+  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key, i18n: { language: 'en' } }),
 }));
 
 const mockHookValue = {

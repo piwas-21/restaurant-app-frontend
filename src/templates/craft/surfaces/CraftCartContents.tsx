@@ -24,6 +24,7 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     itemCount,
     subtotal,
     blockerMessage,
+    orderTypeAttempts,
     error,
     isSyncing,
     isResolving,
@@ -35,7 +36,7 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
 
   return (
     <>
-      <CraftOrderTypeToggle onPick={handlePick} />
+      <CraftOrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} />
 
       {/* See CartContents — same slot, same reason (#415). */}
       {error && (
@@ -74,7 +75,8 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
         className={styles.checkoutButton}
       />
 
-      {/* <output> — see CartContents: implicit live region, no bolted-on role. */}
+      {/* <output> — see CartContents: implicit live region, no bolted-on role, and the same
+          notice treatment for the same measured reason. */}
       {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </>
   );

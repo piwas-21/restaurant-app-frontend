@@ -5,7 +5,7 @@
 // pushed /menu — a no-op on the menu itself, and an unexplained bounce from
 // /cart. Now each surface renders this hint instead, so the customer is never
 // left guessing.
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import type { CheckoutBlocker } from './useSmartCheckoutRouter';
@@ -21,6 +21,17 @@ export interface CheckoutBlockerHint {
   message: string;
   /** Record what a Proceed click reported (null clears it). */
   setBlocker: (next: CheckoutBlocker | null) => void;
+  /**
+   * How many times a Proceed click has been REFUSED since the last thing that unblocked the flow.
+   * Zero before the first refusal, and back to zero once the blocker is resolved.
+   *
+   * It exists because the derived 'order-type' hint cannot tell a surface WHEN to act: it is up
+   * from the moment the cart has a line, so an effect keyed on the blocker would drag the guest to
+   * the order-type toggle as they opened the basket. Keyed on this counter, the surface reacts to
+   * the click and only to the click — and a second click reacts again, which a boolean could not do
+   * because it never changes value.
+   */
+  attempts: number;
 }
 
 /**
@@ -35,6 +46,7 @@ export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: bo
   const { t } = useTranslation();
   const { state: checkoutState } = useCheckout();
   const [blocker, setBlocker] = useState<CheckoutBlocker | null>(null);
+  const [attempts, setAttempts] = useState(0);
 
   // Anything that could have unblocked the flow — a type pick, a follow-up
   // modal that filled in the contact details or address, an emptied cart —
@@ -47,7 +59,17 @@ export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: bo
     checkoutState.customerInfo?.phone ?? '',
     checkoutState.deliveryAddress?.street ?? '',
   ].join('|');
-  useEffect(() => setBlocker(null), [resolvedSignal]);
+  useEffect(() => {
+    setBlocker(null);
+    setAttempts(0);
+  }, [resolvedSignal]);
+
+  // Memoized: surfaces put this in `useCallback` dependency lists, and a fresh identity per render
+  // would rebuild every handler that closes over it.
+  const record = useCallback((next: CheckoutBlocker | null) => {
+    setBlocker(next);
+    if (next !== null) setAttempts((count) => count + 1);
+  }, []);
 
   const shown = blocker ?? (hasItems && !hasChosenOrderType ? 'order-type' : null);
 
@@ -58,5 +80,5 @@ export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: bo
     message = t('checkout_blocked_details', 'We need a few more details before checkout');
   }
 
-  return { blocker: shown, message, setBlocker };
+  return { blocker: shown, message, setBlocker: record, attempts };
 }

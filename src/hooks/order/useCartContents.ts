@@ -105,6 +105,14 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     /** Translated reason the CTA won't route yet ('' when nothing blocks it). */
     blockerMessage: hint.message,
     /**
+     * Non-zero once a Proceed click has been refused for want of an order type, and rising with
+     * every further refusal — what the surface hands the toggle so it can take the focus.
+     *
+     * Gated on the blocker so a 'details' refusal does not send the guest to a control that is
+     * already answered; that one reopens the type's own follow-up modal instead (see below).
+     */
+    orderTypeAttempts: hint.blocker === 'order-type' ? hint.attempts : 0,
+    /**
      * The cart's failure sentence, resolved for display, or null. Render it verbatim — do NOT pass
      * it through `t()`. "Resolved" is not the same as "translated": a 5xx or a message-less failure
      * yields a localized string, but a 4xx deliberately carries the SERVER's own sentence, which is

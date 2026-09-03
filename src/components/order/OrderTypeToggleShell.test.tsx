@@ -24,6 +24,7 @@ const styles = {
   icon: 'icon',
   label: 'label',
   skeleton: 'skeleton',
+  needsChoice: 'needsChoice',
 } as const;
 
 describe('OrderTypeToggleShell', () => {
@@ -58,5 +59,39 @@ describe('OrderTypeToggleShell', () => {
     render(<OrderTypeToggleShell onPick={onPick} styles={styles} />);
     fireEvent.click(screen.getByRole('button', { name: /Takeaway/ }));
     expect(onPick).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  describe('focusSignal', () => {
+    // jsdom implements no layout, so `Element.prototype.scrollIntoView` does not exist there and an
+    // unstubbed call throws inside the effect. Stubbed rather than made optional in the component:
+    // the method is universal in browsers, and `?.` there would be coding around the test runner.
+    beforeAll(() => {
+      Element.prototype.scrollIntoView = jest.fn();
+    });
+
+    /**
+     * The behaviour the reported gap needed: pressing Proceed with no order type printed a
+     * sentence and otherwise did nothing, so the click now brings the guest TO the control. The
+     * signal is a counter rather than a boolean precisely so a second refusal acts again — the
+     * third case below is the one a boolean would fail.
+     */
+    it('does nothing while no click has been refused', () => {
+      render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
+      expect(document.activeElement).toBe(document.body);
+      expect(screen.getByRole('group')).not.toHaveClass('needsChoice');
+    });
+
+    it('focuses the first type and marks the group once a click is refused', () => {
+      render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      expect(screen.getByRole('button', { name: /Dine In/ })).toHaveFocus();
+      expect(screen.getByRole('group')).toHaveClass('needsChoice');
+    });
+
+    it('acts again on a SECOND refusal', () => {
+      const { rerender } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
+      screen.getByRole('button', { name: /Delivery/ }).focus();
+      rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={2} />);
+      expect(screen.getByRole('button', { name: /Dine In/ })).toHaveFocus();
+    });
   });
 });

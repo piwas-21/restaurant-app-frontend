@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Utensils, ShoppingBag, Truck } from 'lucide-react';
 import { OrderType } from '@/types/order';
@@ -25,8 +25,19 @@ interface OrderTypeToggleShellProps {
    * `icon`, `label`, `skeleton`. The classic sidebar toggle and craft's
    * order-pad chips pass their own module, so the two share this markup /
    * behaviour (Sonar new-code dedup) and differ only in CSS.
+   *
+   * Optional `needsChoice` marks the group while a Proceed click is waiting on it.
    */
   styles: Readonly<Record<string, string>>;
+  /**
+   * Rises each time a Proceed-to-Checkout click was refused for want of an order type; `0` means
+   * nothing has been refused. Every increase scrolls this group into view and focuses its first
+   * button, so the guest lands ON the control the CTA is waiting for.
+   *
+   * A COUNTER, not a boolean, because the second refusal has to act too and a boolean that is
+   * already `true` never fires an effect again. See `useCheckoutBlockerHint.attempts`.
+   */
+  focusSignal?: number;
 }
 
 /**
@@ -40,10 +51,23 @@ interface OrderTypeToggleShellProps {
  * Not memoized here — each template wraps this in its own `React.memo` (props
  * are a single `onPick` function ref).
  */
-export default function OrderTypeToggleShell({ onPick, styles }: Readonly<OrderTypeToggleShellProps>) {
+export default function OrderTypeToggleShell({ onPick, styles, focusSignal = 0 }: Readonly<OrderTypeToggleShellProps>) {
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  // Take the guest to the control, rather than only telling them about it. `focusSignal` starts at
+  // 0 and only ever changes on a REFUSED click, so this cannot fire while the basket is merely
+  // being read — which is why the derived hint (up from the moment the cart has a line) is not the
+  // trigger. `block: 'nearest'` so a toggle already on screen does not jump.
+  useEffect(() => {
+    if (focusSignal <= 0) return;
+    const group = groupRef.current;
+    if (!group) return;
+    group.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    group.querySelector('button')?.focus();
+  }, [focusSignal]);
 
   if (loading || enabled.length === 0) {
     // While the admin-enabled list is in flight, render a spacer-shaped skeleton
@@ -53,7 +77,12 @@ export default function OrderTypeToggleShell({ onPick, styles }: Readonly<OrderT
   }
 
   return (
-    <div role="group" aria-label={t('order_type', 'Order type')} className={styles.group}>
+    <div
+      ref={groupRef}
+      role="group"
+      aria-label={t('order_type', 'Order type')}
+      className={`${styles.group} ${focusSignal > 0 ? (styles.needsChoice ?? '') : ''}`.trim()}
+    >
       {enabled.map((type) => {
         const isActive = state.orderType === type;
         return (

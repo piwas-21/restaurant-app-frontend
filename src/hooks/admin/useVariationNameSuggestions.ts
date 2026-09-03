@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getGlobalVariations, type GlobalVariationSummary } from '@/services/globalVariationService';
-import { admitsRow, MAX_VISIBLE_LIBRARY_ROWS } from '@/components/admin/product/libraryMatching';
+import { isAlreadyAttached, matchesQuery, MAX_VISIBLE_LIBRARY_ROWS } from '@/components/admin/product/libraryMatching';
 
 /** Two chars before anything is offered, matching the ingredient type-ahead's own threshold. */
 export const VARIATION_SUGGESTION_MIN_LENGTH = 2;
@@ -19,19 +19,20 @@ const SUGGESTION_LIMIT = 5;
  * **It reads the CATALOG, not a `/search` endpoint, and that is the difference that matters.** The
  * ingredient type-ahead calls `searchGlobalIngredients`, which matches `DefaultName` only — so a
  * French admin typing "grande" never finds "Large" however many translations it carries. This
- * filters the whole list with `admitsRow`, the same predicate the picker browses with, which folds
- * accents and searches every translation. The list is ~50 rows and is read ONCE per editor page, so
- * it also costs less than one request per keystroke; the ingredient catalog's 654 rows are why that
- * side went the other way (backend #431 records the trade).
+ * filters the whole list with the picker's own `matchesQuery`, which folds accents and searches
+ * every translation, with no language argument: the matcher looks at ALL of them. The list is ~50
+ * rows and is read ONCE per editor page, so it also costs less than one request per keystroke; the
+ * ingredient catalog's 654 rows are why that side went the other way (backend #431 records it).
  *
  * Both shelves are in it, because they are one list: a name the tenant created is offered beside a
  * name we shipped, which is what "search our library and the tenant's own" asks for.
  */
-export function useVariationNameSuggestions(currentLanguage: string) {
+export function useVariationNameSuggestions() {
   const [catalog, setCatalog] = useState<GlobalVariationSummary[]>([]);
   const [openRow, setOpenRow] = useState<number | null>(null);
   const [query, setQuery] = useState('');
-  /** So a stale response cannot overwrite a fresher one, and none lands after unmount. */
+  /** So no response lands after unmount. There is exactly one request, so there is no stale/fresh
+   * race to arbitrate — only that guard. */
   const alive = useRef(true);
 
   useEffect(() => {
@@ -66,28 +67,23 @@ export function useVariationNameSuggestions(currentLanguage: string) {
    * list at once — the input is single-caret and a second list would be describing a field nobody
    * is typing in.
    */
-  const suggestionsFor = useCallback(
-    (index: number, attachedIds: readonly (string | undefined)[]): GlobalVariationSummary[] => {
-      if (openRow !== index) return [];
-      const attached = new Set(attachedIds.filter(Boolean) as string[]);
-      return (
-        catalog
-          .filter((row) =>
-            admitsRow(row, {
-              query,
-              filter: 'all',
-              attachedKeys: new Set<string>(),
-              languageCode: currentLanguage,
-              tenantOwnedOnly: false,
-            }),
-          )
-          // A size already on this item is not a suggestion — picking it would add the word twice.
-          .filter((row) => !attached.has(row.id))
-          .slice(0, Math.min(SUGGESTION_LIMIT, MAX_VISIBLE_LIBRARY_ROWS))
-      );
-    },
-    [catalog, currentLanguage, openRow, query],
-  );
+  const suggestionsFor = (index: number, attachedKeys: Set<string>): GlobalVariationSummary[] => {
+    if (openRow !== index) return [];
+    return (
+      catalog
+        // Never an archived row (plan D4), and `matchesQuery` is the picker's own matcher: it folds
+        // accents and searches every TRANSLATION, so "grande" finds "Large". That is the whole
+        // difference from the ingredient type-ahead's `DefaultName`-only endpoint, and it takes no
+        // language argument because the matcher looks at all of them.
+        .filter((row) => !row.isArchived && matchesQuery(row, query))
+        // A size already on this item is not a suggestion. Keyed by `attachedVariationKeys`, which
+        // keys on the NAME as well as the id — every variation on prod predates the library and
+        // carries no id at all, so an id-only check would have excluded nothing and offered a
+        // product its own size ladder back.
+        .filter((row) => !isAlreadyAttached(row, attachedKeys))
+        .slice(0, Math.min(SUGGESTION_LIMIT, MAX_VISIBLE_LIBRARY_ROWS))
+    );
+  };
 
   return { search, close, suggestionsFor };
 }

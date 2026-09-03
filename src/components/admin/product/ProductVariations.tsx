@@ -7,7 +7,12 @@ import VariationBaseRow from './VariationBaseRow';
 import VariationLibraryButton from './VariationLibraryButton';
 import VariationNameCell from './VariationNameCell';
 import { useVariationNameSuggestions } from '@/hooks/admin/useVariationNameSuggestions';
-import { nextVariationDisplayOrder, toProductVariation } from './globalVariationLibrary';
+import {
+  attachedVariationKeys,
+  mergeVariationContent,
+  nextVariationDisplayOrder,
+  toProductVariation,
+} from './globalVariationLibrary';
 import { ProductVariationsProps } from './types';
 import FieldError from './fields/FieldError';
 import { fieldAria, fieldMessage } from './fields/fieldAria';
@@ -58,14 +63,14 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   getValues,
   control,
   setValue,
-  currentLanguage,
 }) => {
   const { t } = useTranslation();
   // The type-ahead the ingredient name field has always had and this one never did — see the hook.
-  const suggestions = useVariationNameSuggestions(currentLanguage);
-  const attachedIds = (getValues('variations') ?? []).map(
-    (row: { globalVariationId?: string }) => row?.globalVariationId,
-  );
+  const suggestions = useVariationNameSuggestions();
+  // The picker's OWN key set, which keys on the NAME as well as the id: every variation on prod
+  // predates the library and carries no `globalVariationId`, so an id-only exclusion would exclude
+  // nothing and offer a product its own size ladder back.
+  const attachedKeys = attachedVariationKeys(getValues('variations') ?? []);
 
   /**
    * Fill THIS row from the library row rather than appending one: the admin is already typing into
@@ -75,7 +80,14 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   const applySuggestion = (index: number, row: Parameters<typeof toProductVariation>[0]) => {
     const picked = toProductVariation(row, 0);
     setValue(`variations.${index}.name`, picked.name, { shouldDirty: true });
-    setValue(`variations.${index}.content`, picked.content, { shouldDirty: true });
+    // MERGED, never replaced: `toProductVariation` builds `content` for an APPEND, so writing it
+    // over an occupied row wiped that row's ten description translations — which the Translations
+    // tab edits and the catalog has no field for — see `mergeVariationContent`.
+    setValue(
+      `variations.${index}.content`,
+      mergeVariationContent(getValues(`variations.${index}.content`), picked.content),
+      { shouldDirty: true },
+    );
     setValue(`variations.${index}.globalVariationId`, picked.globalVariationId, { shouldDirty: true });
     suggestions.close();
   };
@@ -129,7 +141,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                   register={register}
                   errors={errors}
                   index={index}
-                  suggestions={suggestions.suggestionsFor(index, attachedIds)}
+                  suggestions={suggestions.suggestionsFor(index, attachedKeys)}
                   onSearch={(term) => suggestions.search(index, term)}
                   onCloseSuggestions={suggestions.close}
                   onPick={(row) => applySuggestion(index, row)}

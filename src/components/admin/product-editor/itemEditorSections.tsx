@@ -95,7 +95,6 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             getValues={form.getValues}
             control={form.control}
             setValue={form.setValue}
-            currentLanguage={editor.currentLanguage}
           />
         </>
       ),

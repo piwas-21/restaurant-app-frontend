@@ -129,3 +129,31 @@ export function toProductVariation(variation: GlobalVariationSummary, displayOrd
     content,
   };
 }
+
+/**
+ * The `content` map for a row that ALREADY EXISTS, taking the library row's names and keeping
+ * everything it does not carry.
+ *
+ * `toProductVariation` above is written for APPEND — the picker maps it over freshly-picked rows,
+ * where there is nothing to lose. Reusing it to overwrite an occupied row is where it turns
+ * destructive: it rebuilds `content` from `LANGUAGE_CODES` and fills only the names the catalog has,
+ * so a pick from the name field's type-ahead wiped the row's ten DESCRIPTION translations — which
+ * the Translations tab edits (`variation-N-description`) and which the catalog has no field for at
+ * all — plus the names of every locale the library row happens not to carry.
+ *
+ * So: names win where the library has one, the row's own name survives where it does not, and the
+ * descriptions are never touched by a decision about a name.
+ */
+export function mergeVariationContent(
+  existing: Variation['content'] | undefined,
+  picked: Variation['content'],
+): Variation['content'] {
+  const merged: Variation['content'] = {};
+  LANGUAGE_CODES.forEach((language) => {
+    merged[language] = {
+      name: picked?.[language]?.name || existing?.[language]?.name || '',
+      description: existing?.[language]?.description ?? '',
+    };
+  });
+  return merged;
+}

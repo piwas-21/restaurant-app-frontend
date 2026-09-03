@@ -139,8 +139,7 @@ export interface ProductVariationsProps {
   control: Control<FieldValues>;
   /** Writes a picked library row onto the row the admin is typing in — see the name type-ahead. */
   setValue: UseFormSetValue<FieldValues>;
-  /** The reading language, so a suggestion can be matched on its translations and not only its name. */
-  currentLanguage: string;
+
   /**
    * Read the form STORE. The library picker uses it to see the product's current rows at the moment
    * it opens — `variationFields` is a snapshot that `moveVariation`'s `setValue` renumbering does

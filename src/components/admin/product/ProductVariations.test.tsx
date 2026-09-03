@@ -58,7 +58,7 @@ const appendVariation = jest.fn();
  */
 const ROWS = [
   { id: 'rhf-1', name: 'Small', displayOrder: 2 },
-  { id: 'rhf-2', name: 'Large', displayOrder: 7 },
+  { id: 'rhf-2', name: 'Family', displayOrder: 7 },
 ];
 
 /**
@@ -76,14 +76,14 @@ const renderTable = (
       name?: string;
       globalVariationId?: string;
       displayOrder?: number;
-      content?: Record<string, { name?: string }>;
+      content?: Record<string, { name?: string; description?: string }>;
     }[];
   } = {};
   function Wrapper() {
     // `name` and `basePrice` are in the defaults because the base row WATCHES them rather than
     // taking them as props — they are edited on this page, so a fetched value would print a stale
     // number under the input that changed it. The next test drives that live.
-    const { register, control, setValue, watch } = useForm<FieldValues>({
+    const { register, control, setValue, watch, getValues } = useForm<FieldValues>({
       defaultValues: { hideBaseProduct, name: 'Margherita Pizza', basePrice: 12, variations: rows },
     });
     seen.hideBaseProduct = watch('hideBaseProduct') as boolean;
@@ -96,10 +96,12 @@ const renderTable = (
         appendVariation={appendVariation}
         removeVariation={jest.fn()}
         moveVariation={jest.fn()}
-        getValues={(() => rows) as never}
+        // The REAL one, not `() => rows`: a stub that ignores its path answers every question with
+        // the row array, and a merge that reads `variations.0.content` would silently be handed a
+        // list — which is exactly the read the preservation test below is about.
+        getValues={getValues as never}
         control={control}
         setValue={setValue}
-        currentLanguage="en"
       />
     );
   }
@@ -191,7 +193,7 @@ describe('the base row', () => {
     renderTable();
 
     const rows = screen.getAllByRole('row');
-    // [0] is the header; [1] must be the item, before Small and Large.
+    // [0] is the header; [1] must be the item, before Small and Family.
     expect(rows[1]).toHaveTextContent('Margherita Pizza');
     expect(rows[1]).toHaveTextContent('variation_base_item');
     expect(rows[1]).toHaveTextContent('12.00');
@@ -247,7 +249,6 @@ describe('the base row', () => {
               getValues={(() => []) as never}
               control={control}
               setValue={setValue}
-              currentLanguage="en"
             />
           );
         }
@@ -291,7 +292,6 @@ describe('the base row', () => {
             getValues={(() => ROWS) as never}
             control={control}
             setValue={setValue}
-            currentLanguage="en"
           />
         </>
       );
@@ -315,14 +315,16 @@ describe('the base row', () => {
  * who typed it instead got a second row saying the same word.
  */
 describe('the variation-name type-ahead', () => {
-  const nameInput = () => screen.getAllByRole('textbox', { name: 'variation_name' })[0];
+  // `combobox`, not `textbox`: the input OWNS the suggestion list — it carries `aria-expanded`,
+  // `aria-controls` and `aria-activedescendant`, because focus never moves into the list.
+  const nameInput = () => screen.getAllByRole('combobox', { name: 'variation_name' })[0];
 
   it('offers nothing until two characters are typed', async () => {
     renderTable();
     await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
 
     fireEvent.change(nameInput(), { target: { value: 'L' } });
-    expect(screen.queryByRole('button', { name: /Large/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /^Large/ })).not.toBeInTheDocument();
   });
 
   it('offers both shelves from the one list the picker reads', async () => {
@@ -331,8 +333,8 @@ describe('the variation-name type-ahead', () => {
 
     fireEvent.change(nameInput(), { target: { value: 'ar' } });
 
-    expect(screen.getByRole('button', { name: /^Large/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^Sharing Platter/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Large/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Sharing Platter/ })).toBeInTheDocument();
   });
 
   /**
@@ -346,7 +348,7 @@ describe('the variation-name type-ahead', () => {
 
     fireEvent.change(nameInput(), { target: { value: 'grande' } });
 
-    expect(screen.getByRole('button', { name: /^Large/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /^Large/ })).toBeInTheDocument();
   });
 
   it('reads the catalog ONCE for the page, not once per keystroke', async () => {
@@ -371,7 +373,7 @@ describe('the variation-name type-ahead', () => {
     await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
 
     fireEvent.change(nameInput(), { target: { value: 'grande' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Large/ }));
+    fireEvent.click(screen.getByRole('option', { name: /^Large/ }));
 
     expect(seen.variations?.[0]?.name).toBe('Large');
     expect(seen.variations?.[0]?.globalVariationId).toBe('g-large');
@@ -386,9 +388,96 @@ describe('the variation-name type-ahead', () => {
     await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
 
     fireEvent.change(nameInput(), { target: { value: 'grande' } });
-    fireEvent.click(screen.getByRole('button', { name: /^Large/ }));
+    fireEvent.click(screen.getByRole('option', { name: /^Large/ }));
 
-    expect(screen.queryByRole('button', { name: /^Large/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /^Large/ })).not.toBeInTheDocument();
+  });
+
+  /**
+   * The half of a pick that is NOT the catalog's. `toProductVariation` builds `content` for an
+   * APPEND — every one of the ten locales, name only — so writing it over an occupied row wiped
+   * that row's description translations, which the Translations tab edits and the catalog has no
+   * field for. Nothing else in this file could see it: the assertions above read `content.*.name`,
+   * which a wipe-and-replace gets right.
+   */
+  it('keeps the translations a pick could never have known', async () => {
+    const rows = [
+      {
+        id: 'rhf-1',
+        name: 'Small',
+        displayOrder: 2,
+        content: {
+          fr: { name: 'Petite', description: 'Pour une personne' },
+          nl: { name: 'Klein', description: 'Voor één persoon' },
+        },
+      },
+    ] as unknown as typeof ROWS;
+    const seen = renderTable({}, { rows }).seen;
+    await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(nameInput(), { target: { value: 'grande' } });
+    fireEvent.click(screen.getByRole('option', { name: /^Large/ }));
+
+    // The catalog's names land…
+    expect(seen.variations?.[0]?.content?.fr?.name).toBe('Grande');
+    // …the descriptions it does not carry SURVIVE…
+    expect(seen.variations?.[0]?.content?.fr?.description).toBe('Pour une personne');
+    // …and so does a locale the picked row has no name for, rather than being blanked.
+    expect(seen.variations?.[0]?.content?.nl?.name).toBe('Klein');
+    expect(seen.variations?.[0]?.content?.nl?.description).toBe('Voor één persoon');
+  });
+
+  /**
+   * Excluded by NAME, not only by id — and that is the whole of whether the exclusion works on real
+   * data. Every variation on production predates the library and carries no `globalVariationId`, so
+   * an id-only check would exclude nothing and offer a product a size it already sells.
+   */
+  it('does not offer a size the item already has, typed by hand with no library id', async () => {
+    const rows = [
+      { id: 'rhf-1', name: 'Large', displayOrder: 2 },
+      { id: 'rhf-2', name: '', displayOrder: 7 },
+    ];
+    renderTable({}, { rows });
+    await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(screen.getAllByRole('combobox', { name: 'variation_name' })[1], { target: { value: 'ar' } });
+
+    expect(screen.queryByRole('option', { name: /^Large/ })).not.toBeInTheDocument();
+    // The control: the same keystroke still offers the row that is NOT on the item.
+    expect(screen.getByRole('option', { name: /^Sharing Platter/ })).toBeInTheDocument();
+  });
+
+  /**
+   * Reachable without a mouse. Tab out of the input fires its blur and the blur closes the list, so
+   * focus can never enter it — the arrow keys move `aria-activedescendant` instead and Enter takes
+   * the highlighted row.
+   */
+  it('is usable from the keyboard', async () => {
+    const seen = renderTable().seen;
+    await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(nameInput(), { target: { value: 'ar' } });
+    // Nothing is highlighted until an arrow key says so — Enter before that belongs to the form.
+    expect(nameInput()).not.toHaveAttribute('aria-activedescendant');
+
+    fireEvent.keyDown(nameInput(), { key: 'ArrowDown' });
+    expect(screen.getByRole('option', { name: /^Large/ })).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyDown(nameInput(), { key: 'Enter' });
+    expect(seen.variations?.[0]?.name).toBe('Large');
+    expect(seen.variations?.[0]?.globalVariationId).toBe('g-large');
+  });
+
+  it('closes the list on Escape without taking anything', async () => {
+    const seen = renderTable().seen;
+    await waitFor(() => expect(mockCatalog).toHaveBeenCalledTimes(1));
+
+    fireEvent.change(nameInput(), { target: { value: 'ar' } });
+    fireEvent.keyDown(nameInput(), { key: 'Escape' });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    // The typing landed — it is the same input — but nothing was TAKEN from the library.
+    expect(seen.variations?.[0]?.globalVariationId).toBeUndefined();
   });
 
   it('shows a list for the row being typed in, and no other', async () => {
@@ -398,6 +487,6 @@ describe('the variation-name type-ahead', () => {
     fireEvent.change(nameInput(), { target: { value: 'ar' } });
 
     // Two rows exist; only one list may. A second would describe a field nobody is typing in.
-    expect(screen.getAllByRole('list')).toHaveLength(1);
+    expect(screen.getAllByRole('listbox')).toHaveLength(1);
   });
 });

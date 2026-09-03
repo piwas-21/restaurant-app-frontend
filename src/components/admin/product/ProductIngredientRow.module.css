@@ -121,7 +121,10 @@
   cursor: pointer;
 }
 .stepper button:hover,
-.suggestionItem:hover {
+.suggestionItem:hover,
+/* The arrow keys' highlight. Same paint as the pointer's, because they are the same offer — and
+   read off `aria-selected`, which the row already carries for the screen reader. */
+.suggestionItem[aria-selected='true'] {
   background: var(--surface-secondary);
 }
 .stepper input,

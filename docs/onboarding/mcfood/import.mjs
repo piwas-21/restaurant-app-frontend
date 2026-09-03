@@ -133,6 +133,47 @@ const remember = async (file, state, bucket, key, value) => {
 };
 
 /**
+ * What the server will accept, and it checks BOTH independently: the file extension against
+ * `FileStorage.AllowedExtensions`, and the part's Content-Type against `AllowedMimeTypes`
+ * (`image/jpeg`, `image/png`, `image/webp` in production).
+ *
+ * A `new Blob([bytes])` carries NO type, so the part goes up with no Content-Type — and
+ * ImageUploadRules says so in its own comment: "An absent type then falls through to the
+ * allowlist check and is rejected, which is the safe direction." Measured against the live
+ * tenant: every upload failed with `Invalid image MIME type`. The stub could not have caught
+ * it; only the real server has this rule.
+ */
+const MIME_BY_EXT = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+};
+
+/**
+ * The one asset the server cannot take. Their set is 62 jpg / 27 png / 4 webp / **1 avif**,
+ * and avif is on neither allowlist. `fetch.mjs` output is left pristine — it is the capture,
+ * and editing it would falsify what their site actually serves — so the substitution happens
+ * HERE: an unsupported asset is swapped for a converted sibling of the same basename, and if
+ * there is none the run stops and says exactly which file and how to make it.
+ */
+const resolveUploadable = async (filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  if (MIME_BY_EXT[ext]) return filePath;
+  const converted = filePath.slice(0, -ext.length) + '.png';
+  try {
+    await access(converted);
+    return converted;
+  } catch {
+    throw new Error(
+      `${path.basename(filePath)} is ${ext.slice(1)}, which the server accepts on neither its ` +
+        `extension nor its MIME allowlist. Convert it beside the original:\n` +
+        `  sips -s format png "${filePath}" --out "${converted}"`,
+    );
+  }
+};
+
+/**
  * A dry run must NOT read the bytes — it is a pre-flight, and one that dies on a missing
  * asset cannot tell you whether the OTHER 93 are present. So it checks existence, counts
  * what is missing, and lets the run finish with a verdict. A real run still fails hard on
@@ -142,14 +183,22 @@ const uploadImage = async (call, method, endpoint, filePath, field, extra = {}, 
   if (missing) {
     try {
       await access(filePath);
-    } catch {
-      missing.push(path.relative(process.cwd(), filePath));
+      await resolveUploadable(filePath);
+    } catch (error) {
+      missing.push(
+        error.message.includes('accepts on neither')
+          ? error.message.split('\n')[0]
+          : path.relative(process.cwd(), filePath),
+      );
     }
     return call(method, endpoint, { form: true }, `upload ${path.basename(filePath)}`);
   }
-  const bytes = await readFile(filePath);
+  const uploadable = await resolveUploadable(filePath);
+  const bytes = await readFile(uploadable);
   const form = new FormData();
-  form.set(field, new Blob([bytes]), path.basename(filePath));
+  // The type is the whole point — see MIME_BY_EXT.
+  const type = MIME_BY_EXT[path.extname(uploadable).toLowerCase()];
+  form.set(field, new Blob([bytes], { type }), path.basename(uploadable));
   for (const [k, v] of Object.entries(extra)) form.set(k, String(v));
   return call(method, endpoint, { form }, `upload ${path.basename(filePath)}`);
 };
@@ -256,12 +305,20 @@ const importComponents = async ({ call, components, categoryIds, state, stateFil
  * `MenuDefinition` exists on UpdateProductCommand and NOT on CreateProductCommand, and it is
  * only honoured when Type is `menu`. So every product carrying sections is create-then-update.
  */
-const attachSections = async ({ call, owner, productId, componentIds, productIds, state, stateFile, key }) => {
+/**
+ * A menu is NOT created through `POST /api/Products` — that endpoint refuses it outright
+ * ("Use CreateMenuBundle API for creating menus", measured against the live tenant). It has
+ * its own command, and the command creates the sections WITH the product in one call.
+ *
+ * `CreateMenuBundleCommand` is deliberately narrower than `CreateProductCommand`: it carries
+ * no `DetailedIngredients`, no `SauceMin/Max/IncludedFree` and no `Variations`. That is fine
+ * for the 34 wrapper menus, which have none — but the 11 dishes that merely needed a meat or
+ * gift choice DO have sauces and removable ingredients. So those get a second call:
+ * `PUT /api/Products/{id}`, whose command carries all three.
+ */
+const buildSections = (owner, componentIds, productIds) => {
   const sections = owner.sections ?? [];
   const plat = owner.platOf === undefined ? null : productIds[String(owner.platOf)];
-  if (!sections.length && !plat) return;
-  if (state.sections[key]) return;
-
   const built = [];
   if (plat) {
     // The dish the menu wraps, as a one-item required section — the shape the platform's own
@@ -294,22 +351,71 @@ const attachSections = async ({ call, owner, productId, componentIds, productIds
     });
   }
 
-  await call('PUT', `/api/Products/${productId}`, {
-    json: {
-      ...owner.body,
-      id: productId,
-      categoryIds: owner.__categoryIds,
-      primaryCategoryId: owner.__categoryIds[0],
-      menuDefinition: { isAlwaysAvailable: true, sections: built },
-    },
-  });
-  await remember(stateFile, state, 'sections', key, built.length);
+  return built;
+};
+
+/** Every day true beside `isAlwaysAvailable` — the DTO's day flags default to false. */
+const MENU_SCHEDULE = {
+  isAlwaysAvailable: true,
+  availableMonday: true,
+  availableTuesday: true,
+  availableWednesday: true,
+  availableThursday: true,
+  availableFriday: true,
+  availableSaturday: true,
+  availableSunday: true,
 };
 
 /**
- * The menus, last. Each is an ordinary product create (type=menu) followed by the
- * MenuDefinition update, and its `Plat` section wraps a dish `importProducts` has already
- * created — which is why this cannot run earlier.
+ * Create a menu bundle: one `POST /api/Menus`, sections included.
+ *
+ * Returns the new id. If the owner also carries ingredients, sauces or variations — which
+ * CreateMenuBundleCommand cannot express — the caller follows with `restoreProductExtras`.
+ */
+const createMenuBundle = async ({ call, owner, categoryId, componentIds, productIds }) => {
+  const sections = buildSections(owner, componentIds, productIds);
+  const created = await call('POST', '/api/Menus', {
+    json: {
+      name: owner.body.name,
+      description: owner.body.description,
+      basePrice: owner.body.basePrice,
+      isActive: owner.body.isActive,
+      isAvailable: owner.body.isAvailable,
+      isSpecial: owner.body.isSpecial,
+      preparationTimeMinutes: owner.body.preparationTimeMinutes,
+      displayOrder: owner.body.displayOrder,
+      categoryIds: [categoryId],
+      primaryCategoryId: categoryId,
+      content: owner.body.content,
+      menuDefinition: { ...MENU_SCHEDULE, sections },
+    },
+  });
+  return { id: created.id, sectionCount: sections.length };
+};
+
+/**
+ * Put back what the menu-create command cannot carry: ingredients, the sauce rule and
+ * variations. Only the 11 converted dishes need this; the 34 wrapper menus have none.
+ */
+const restoreProductExtras = async ({ call, owner, productId, categoryId, componentIds, productIds }) => {
+  const b = owner.body;
+  const needs = b.detailedIngredients.length || b.sauceMin > 0 || b.variations.length;
+  if (!needs) return false;
+  await call('PUT', `/api/Products/${productId}`, {
+    json: {
+      ...b,
+      id: productId,
+      categoryIds: [categoryId],
+      primaryCategoryId: categoryId,
+      menuDefinition: { ...MENU_SCHEDULE, sections: buildSections(owner, componentIds, productIds) },
+    },
+  });
+  return true;
+};
+
+/**
+ * The menus, last. Each wraps a dish `importProducts` has already created, which is why this
+ * cannot run earlier.
  */
 const importMenus = async ({
   call,
@@ -329,11 +435,10 @@ const importMenus = async ({
 
     let menuId = state.menus[key];
     if (!menuId) {
-      const created = await call('POST', '/api/Products', {
-        json: { ...menu.body, categoryIds: [categoryId], primaryCategoryId: categoryId },
-      });
-      menuId = created.id;
+      const { id, sectionCount } = await createMenuBundle({ call, owner: menu, categoryId, componentIds, productIds });
+      menuId = id;
       await remember(stateFile, state, 'menus', key, menuId);
+      await remember(stateFile, state, 'sections', `menu:${key}`, sectionCount);
       console.log(`  menu ${menu.body.name} -> ${menuId}`);
     }
 
@@ -349,17 +454,6 @@ const importMenus = async ({
       );
       await remember(stateFile, state, 'images', `menu:${key}`, true);
     }
-
-    await attachSections({
-      call,
-      owner: { ...menu, __categoryIds: [categoryId] },
-      productId: menuId,
-      componentIds,
-      productIds,
-      state,
-      stateFile,
-      key: `menu:${key}`,
-    });
   }
 };
 
@@ -374,21 +468,47 @@ const importProducts = async ({
   missingAssets,
 }) => {
   const productIds = {};
-  for (const product of products) {
+  // TWO PASSES, because a menu's `Plat` section points at a dish that must already exist —
+  // and 11 of these dishes are themselves menus. Plain products first, then the sectioned
+  // ones, so a section can always resolve what it references.
+  const plain = products.filter((p) => !(p.sections ?? []).length);
+  const sectioned = products.filter((p) => (p.sections ?? []).length);
+
+  for (const product of [...plain, ...sectioned]) {
     const key = String(product.source.id);
     const categoryId = categoryIds[String(product.source.categoryId)];
     if (!categoryId) {
       throw new Error(`product ${key} names category ${product.source.categoryId}, which was not created`);
     }
+    const isMenu = (product.sections ?? []).length > 0;
 
     let productId = state.products[key];
     if (!productId) {
-      const created = await call('POST', '/api/Products', {
-        json: { ...product.body, categoryIds: [categoryId], primaryCategoryId: categoryId },
-      });
-      productId = created.id;
-      await remember(stateFile, state, 'products', key, productId);
-      console.log(`  product ${product.body.name} -> ${productId}`);
+      if (isMenu) {
+        const { id, sectionCount } = await createMenuBundle({
+          call,
+          owner: product,
+          categoryId,
+          componentIds,
+          productIds,
+        });
+        productId = id;
+        await remember(stateFile, state, 'products', key, productId);
+        await remember(stateFile, state, 'sections', `product:${key}`, sectionCount);
+      } else {
+        const created = await call('POST', '/api/Products', {
+          json: { ...product.body, categoryIds: [categoryId], primaryCategoryId: categoryId },
+        });
+        productId = created.id;
+        await remember(stateFile, state, 'products', key, productId);
+      }
+      console.log(`  ${isMenu ? 'menu-dish' : 'product'} ${product.body.name} -> ${productId}`);
+    }
+    productIds[key] = productId;
+
+    if (isMenu && !state.sections[`extras:${key}`]) {
+      const did = await restoreProductExtras({ call, owner: product, productId, categoryId, componentIds, productIds });
+      if (did) await remember(stateFile, state, 'sections', `extras:${key}`, true);
     }
 
     if (product.source.image && !state.images[`product:${key}`]) {
@@ -403,18 +523,6 @@ const importProducts = async ({
       );
       await remember(stateFile, state, 'images', `product:${key}`, true);
     }
-
-    productIds[key] = productId;
-    await attachSections({
-      call,
-      owner: { ...product, __categoryIds: [categoryId] },
-      productId,
-      componentIds,
-      productIds,
-      state,
-      stateFile,
-      key: `product:${key}`,
-    });
   }
   return productIds;
 };

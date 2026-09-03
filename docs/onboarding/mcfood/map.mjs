@@ -270,6 +270,23 @@ const FAMILY_OF = { 79: 'drink', 81: 'meat', 83: 'meat', 84: 'meat', 85: 'meat',
 
 const componentType = (family) => (family === 'drink' ? PRODUCT_TYPE.beverage : PRODUCT_TYPE.main);
 
+/**
+ * A component's own price, and it is INERT — the guest is never charged it.
+ *
+ * Measured in the backend rather than assumed: a bundle child's money comes from the SECTION
+ * ITEM, not from the product. `BasketItemFactory` line 181
+ * `price += sectionItem.AdditionalPrice * selection.Quantity`, and line 280
+ * `UnitPrice = sectionItem.AdditionalPrice` with `ItemTotal = 0`. We set every
+ * `additionalPrice` to 0, so choosing a drink inside a menu adds nothing — which is what the
+ * platform's own reference tenant does too (`additionalPrice: 0.0` on every section item).
+ *
+ * It cannot be 0, though: `CreateProductCommandValidator` refuses "Base price must be greater
+ * than 0", measured against the live tenant. So it is a nominal 0.01 — deliberately a value
+ * nobody can mistake for a real price, on a row `isComponent: true` already keeps out of the
+ * catalogue and off the menu.
+ */
+const COMPONENT_NOMINAL_PRICE = 0.01;
+
 const buildComponents = (dataset, decisions) => {
   const groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
   const byKey = new Map();
@@ -287,7 +304,7 @@ const buildComponents = (dataset, decisions) => {
         body: {
           name,
           description: null,
-          basePrice: 0,
+          basePrice: COMPONENT_NOMINAL_PRICE,
           isActive: true,
           isAvailable: true,
           isSpecial: false,
@@ -732,6 +749,20 @@ const verifyMenuPrices = (menus) => {
   return failures;
 };
 
+/**
+ * No product may be priced at or below zero — the server refuses it, and the refusal arrives
+ * mid-import after earlier records are already created.
+ */
+const verifyPrices2 = (products, menus, components) => {
+  const failures = [];
+  for (const item of [...products, ...menus, ...components]) {
+    if (!(item.body.basePrice > 0)) {
+      failures.push(`${item.body.name}: basePrice ${item.body.basePrice} — the server requires > 0`);
+    }
+  }
+  return failures;
+};
+
 const main = async () => {
   const argv = process.argv.slice(2);
   const flag = (name) => argv.includes(name);
@@ -757,6 +788,7 @@ const main = async () => {
     const negatedFailures = verifyNoNegatedNames(products);
     const sectionFailures = verifySections(products, menus, components);
     const menuPriceFailures = verifyMenuPrices(menus);
+    const positiveFailures = verifyPrices2(products, menus, components);
     const variations = products.reduce((n, p) => n + p.body.variations.length, 0);
     const ingredients = products.reduce((n, p) => n + p.body.detailedIngredients.length, 0);
     const sauced = products.filter((p) => p.body.sauceMin > 0).length;
@@ -791,6 +823,7 @@ const main = async () => {
     report('no guest-facing ingredient is still phrased as a removal', negatedFailures);
     report('every bundle section resolves to real components and a real dish', sectionFailures);
     report("every menu's price is THEIR absolute price", menuPriceFailures);
+    report('every product has a basePrice > 0 (the server refuses 0)', positiveFailures);
     report(
       'every modifier group in use has a CONFIRMED meaning',
       pending.map((p) => `${p} is unconfirmed — decisions.json`),
@@ -809,7 +842,8 @@ const main = async () => {
       duplicateFailures.length +
       negatedFailures.length +
       sectionFailures.length +
-      menuPriceFailures.length;
+      menuPriceFailures.length +
+      positiveFailures.length;
     if (failed || pending.length || unbuilt.length) process.exit(1);
     console.log('\nmap: all checks passed');
     return;

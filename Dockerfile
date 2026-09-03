@@ -32,6 +32,11 @@ ARG NEXT_PUBLIC_TEMPLATE
 # build-tenant-image.yml `currency` input). Empty/unset/invalid falls back to
 # CHF in src/lib/config.ts, keeping the default (RUMI) build byte-identical.
 ARG NEXT_PUBLIC_TENANT_CURRENCY
+# BCP-47 locale that PLACES and punctuates that currency (registry `locale:` →
+# build-tenant-image.yml `locale` input): fr-FR renders "8,00 €" where de-CH
+# renders "EUR 8.00". Empty/unset/invalid falls back to de-CH in
+# src/lib/config.ts, keeping the default (RUMI) build byte-identical.
+ARG NEXT_PUBLIC_TENANT_LOCALE
 # Tenant COPY pack (src/locales/tenant/<pack>/): the tenant's own home-page + SEO wording laid over
 # the cuisine-neutral platform bundle. Empty/unset = the platform copy, which is what every tenant
 # but RUMI gets. Same seam as public/branding-rumi/ — see src/lib/tenantCopy.ts. An unknown name
@@ -50,6 +55,7 @@ ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 ENV NEXT_PUBLIC_RESTAURANT_NAME=${NEXT_PUBLIC_RESTAURANT_NAME}
 ENV NEXT_PUBLIC_TEMPLATE=${NEXT_PUBLIC_TEMPLATE}
 ENV NEXT_PUBLIC_TENANT_CURRENCY=${NEXT_PUBLIC_TENANT_CURRENCY}
+ENV NEXT_PUBLIC_TENANT_LOCALE=${NEXT_PUBLIC_TENANT_LOCALE}
 ENV NEXT_PUBLIC_TENANT_COPY_PACK=${NEXT_PUBLIC_TENANT_COPY_PACK}
 ENV NEXT_PUBLIC_PWA_THEME_COLOR=${NEXT_PUBLIC_PWA_THEME_COLOR}
 ENV NEXT_PUBLIC_PWA_BACKGROUND_COLOR=${NEXT_PUBLIC_PWA_BACKGROUND_COLOR}

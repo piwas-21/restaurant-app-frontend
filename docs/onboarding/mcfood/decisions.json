@@ -1,0 +1,187 @@
+{
+  "_": [
+    "Every judgement call the capture could not make for itself, in ONE file, so that",
+    "Mustafa's answers are an edit here rather than a rewrite of map.mjs.",
+    "",
+    "`confirmed: false` is load-bearing: map.mjs REFUSES to emit a payload while any",
+    "decision it actually uses is unconfirmed, unless --allow-unconfirmed is passed. A",
+    "guess that silently becomes a menu is the failure this file exists to prevent —",
+    "four of these groups, read literally, would force every guest to remove an",
+    "ingredient before they could order.",
+    "",
+    "Questions and their numbering: docs/tenants/mcfood/mustafa-questions.md (workspace,",
+    "gitignored — it holds the partner's email address)."
+  ],
+  "modifierGroups": {
+    "_": [
+      "Their model is ONE flat 'modifier group' primitive. Ours deliberately splits that",
+      "across three mechanisms (src/types/menu/sauce.ts: 'deliberately NOT a general",
+      "min/max-select engine'). `target` says which mechanism each group becomes:",
+      "  sauceRule   -> Product.SauceMin/SauceMax/SauceIncludedFree",
+      "  ingredients -> ProductIngredient[] (isOptional / price / isIncludedInBasePrice)",
+      "  bundle      -> MenuDefinition + MenuSection, ProductType 'menu'  [NOT YET BUILT]",
+      "`isRequired` restates OUR reading of their self-contradictory isRequired:false +",
+      "minSelect:1. It is the single most dangerous field in this file."
+    ],
+    "76": {
+      "sourceName": "+ + +",
+      "displayName": "Suppléments",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": false,
+      "note": "Paid add-ons: + Viande 3.00, + Cheddar/Emmentale/Chevre 1.00 each. Their isRequired:false + minSelect:1 read as OPTIONAL — a paid supplement nobody must buy.",
+      "confirmed": false
+    },
+    "77": {
+      "sourceName": "SAUCES",
+      "displayName": "Sauces",
+      "target": "sauceRule",
+      "min": 1,
+      "max": 2,
+      "includedFree": 2,
+      "note": "The one group that maps to our sauce rule exactly (their isRequired:true, minSelect:1, maxSelect:2). Its options are ALSO emitted, as ProductIngredient rows with kind:'sauce' — a sauce is a typed ingredient, and the guest's sauce step only appears if those rows exist. Every option is priced 0 on their side, so includedFree 2 and 0 are indistinguishable today; 2 is set so a sauce that later gets a price stays free up to their current allowance.",
+      "confirmed": false,
+      "kind": "sauce"
+    },
+    "78": {
+      "sourceName": "-",
+      "displayName": "Sans quoi ?",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": true,
+      "note": "Removals (Sans Salade / Tomate / Oignon). Deselecting removes it. Taken literally their minSelect:1 would FORCE a removal.",
+      "confirmed": false
+    },
+    "80": {
+      "sourceName": "- - -",
+      "displayName": "Sans quoi ?",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": true,
+      "note": "Seven removals. Two of their option names carry a leading '- ' ('- Sans Sauce Fromage', '- Sans Emmentale') which map.mjs strips.",
+      "confirmed": false
+    },
+    "82": {
+      "sourceName": "Ajouter Legume",
+      "displayName": "Ajouter un légume",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": false,
+      "note": "Free additions (all priced 0). Contains '+ Oignons' AND '+ Oignon' — the same thing twice; see dropOptions below.",
+      "confirmed": false
+    },
+    "86": {
+      "sourceName": "--",
+      "displayName": "Sans quoi ?",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": true,
+      "note": "One option: Sans Boulgour.",
+      "confirmed": false
+    },
+    "88": {
+      "sourceName": "- Libanaise",
+      "displayName": "Sans quoi ?",
+      "target": "ingredients",
+      "isOptional": true,
+      "isIncludedInBasePrice": true,
+      "note": "Sans Cheddar / Sans Feta, on the three LIBANAISE products.",
+      "confirmed": false
+    },
+    "79": {
+      "sourceName": "Boissons",
+      "displayName": "Boisson",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "note": "The drink step of a 'Menu X'. Attached at PRODUCT level on their side but belonging only to the MENU size — see README §The size/product asymmetry.",
+      "confirmed": false
+    },
+    "81": {
+      "sourceName": "1 Viandes",
+      "displayName": "Viande",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "confirmed": false
+    },
+    "83": {
+      "sourceName": "2 Viandes",
+      "displayName": "Viandes",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 2,
+      "confirmed": false
+    },
+    "84": {
+      "sourceName": "3 Viandes",
+      "displayName": "Viandes",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 3,
+      "confirmed": false
+    },
+    "85": {
+      "sourceName": "Viande au choix",
+      "displayName": "Viande au choix",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "confirmed": false
+    },
+    "87": {
+      "sourceName": "- -",
+      "displayName": "Cadeau enfant",
+      "target": "bundle",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "note": "Fille / Garçon on the three Menu Enfant products. Read as the toy choice, and as the ONE genuinely required group among the seven self-contradictory ones.",
+      "confirmed": false
+    }
+  },
+  "renameOptions": {
+    "_": "Typos and admin shorthand in OPTION names. Key is the exact source string.",
+    "Veggıe": "Veggie",
+    "- Sans Sauce Fromage": "Sans Sauce Fromage",
+    "- Sans Emmentale": "Sans Emmentale",
+    "Sans Emmentale": "Sans Emmental",
+    "+ Emmentale": "+ Emmental",
+    "+ Chevre": "+ Chèvre",
+    "Samourai": "Samouraï",
+    "Algerienne": "Algérienne"
+  },
+  "dropOptions": {
+    "_": "Options removed as duplicates. Value is why. Group-scoped: 'groupId:name'.",
+    "82:+ Oignon": "duplicate of '+ Oignons' in the same group, both free — keeping the plural",
+    "77:Sans Sauces": "our SauceGroupSection renders its own explicit 'no sauce' answer (t('sauce_none')), so importing theirs would show the guest the choice twice"
+  },
+  "dropProducts": {
+    "_": [
+      "Products removed as duplicates. Their 405 'Menu Galette' (11.50) exists BOTH as a",
+      "standalone product AND as the second size of 404 'Galette' (Galette Seul 8.50 /",
+      "Menu Galette 11.50). Every other menu on this carte is shaped as a size, so the",
+      "size wins and the standalone goes."
+    ],
+    "405": "duplicate of the 'Menu Galette' size on product 404 — kept as a size, per the shape of every other Menu on this carte"
+  },
+  "table": {
+    "_": "Their single table is labelled 'Masa 1' — Turkish for table, a leftover from their platform's default.",
+    "60": "Table 1"
+  },
+  "restaurant": {
+    "_": "Values the capture could not take from their API.",
+    "timezone": "Europe/Paris",
+    "timezoneSource": "inferred from the FR address — CONFIRM",
+    "latitude": null,
+    "longitude": null,
+    "adminEmail": null,
+    "orderNotificationEmail": null,
+    "confirmed": false
+  }
+}

@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { CartItem } from '@/components/cart/cartTypes';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { basketItemToLineSummary } from '@/components/order/lineSummary';
+import { variationLabel } from '@/components/order/variationLabel';
 import defaultStyles from './OrderItemsList.module.css';
 
 interface OrderItemsListProps {
@@ -41,8 +42,7 @@ export default function OrderItemsList({ items, formatPrice, styles = defaultSty
       </div>
       <div className={styles.itemsList}>
         {items.map((item, index) => {
-          const variationName =
-            item.variationContent?.[currentLanguage]?.name || item.variationContent?.en?.name || item.variationName;
+          const variationName = variationLabel(item, currentLanguage);
 
           return (
             <div key={item.id || `item-${index}`} className={styles.cartItem}>

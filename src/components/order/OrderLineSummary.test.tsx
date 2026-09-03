@@ -125,4 +125,35 @@ describe('OrderLineSummary', () => {
     expect(screen.getByText(/Pickles/)).toBeInTheDocument();
     expect(screen.getByText(/Extra Patty/)).toBeInTheDocument();
   });
+
+  describe('showVariation', () => {
+    const sized: LineSummary = { ...empty, variation: 'Large (40 cm)' };
+
+    it('draws the chosen size when asked', () => {
+      render(<OrderLineSummary line={sized} showVariation />);
+      expect(screen.getByText('Large (40 cm)')).toBeInTheDocument();
+    });
+
+    /**
+     * The gate, not just the row. A plain pizza in a size with no customization at all has an
+     * otherwise EMPTY summary, so `nothingToShow` has to count the variation — gating only the
+     * markup would leave the surface this exists for still showing nothing.
+     */
+    it('renders for a line whose ONLY content is the variation', () => {
+      const { container } = render(<OrderLineSummary line={sized} showVariation />);
+      expect(container).not.toBeEmptyDOMElement();
+    });
+
+    /** Opt-in: the /cart card and the checkout list draw their own, and would print it twice. */
+    it('draws nothing extra when not asked, even on a line that carries one', () => {
+      const { container } = render(<OrderLineSummary line={sized} />);
+      expect(container).toBeEmptyDOMElement();
+      expect(screen.queryByText('Large (40 cm)')).not.toBeInTheDocument();
+    });
+
+    it('stays silent when asked for a variation the line does not have', () => {
+      const { container } = render(<OrderLineSummary line={empty} showVariation />);
+      expect(container).toBeEmptyDOMElement();
+    });
+  });
 });

@@ -1,5 +1,7 @@
 'use client';
 
+import { useId } from 'react';
+
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { useCartContents, type UseCartContentsArgs } from '@/hooks/order/useCartContents';
@@ -24,6 +26,7 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     itemCount,
     subtotal,
     blockerMessage,
+    orderTypeAttempts,
     error,
     isSyncing,
     isResolving,
@@ -32,10 +35,12 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     handleCheckout,
     handlePick,
   } = useCartContents(props);
+  // See CartContents — the id is per-instance for the same reason.
+  const blockerHintId = useId();
 
   return (
     <>
-      <CraftOrderTypeToggle onPick={handlePick} />
+      <CraftOrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
 
       {/* See CartContents — same slot, same reason (#415). */}
       {error && (
@@ -74,8 +79,13 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
         className={styles.checkoutButton}
       />
 
-      {/* <output> — see CartContents: implicit live region, no bolted-on role. */}
-      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
+      {/* <output> — see CartContents: implicit live region, no bolted-on role, and the same
+          notice treatment for the same measured reason. */}
+      {blockerMessage && (
+        <output id={blockerHintId} className={styles.checkoutHint}>
+          {blockerMessage}
+        </output>
+      )}
     </>
   );
 }

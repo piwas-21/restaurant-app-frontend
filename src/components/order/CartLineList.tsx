@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { CartItem } from '@/components/cart/cartTypes';
 import OrderLineSummary from './OrderLineSummary';
@@ -36,6 +37,9 @@ export default function CartLineList({
   styles,
   headerClassName,
 }: Readonly<CartLineListProps>) {
+  const { i18n } = useTranslation();
+  const language = i18n.language?.split('-')[0] || 'en';
+
   return (
     <ul className={styles.itemList}>
       {items.map((item, index) => {
@@ -53,7 +57,12 @@ export default function CartLineList({
               </span>
               <span className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
             </div>
-            <OrderLineSummary line={basketItemToLineSummary(item)} />
+            {/* `showVariation`: the chosen size, which the /cart card and the checkout list have
+                always drawn and this list did not — so the basket flyout, the only cart surface on
+                /menu since the rail left it, was the one place a guest could not check WHICH
+                variation they had added. It rides in the summary rather than beside the name so
+                both templates get it from one stylesheet. */}
+            <OrderLineSummary line={basketItemToLineSummary(item, language)} showVariation />
             <CartLineControls
               quantity={item.quantity}
               disabled={disabled}

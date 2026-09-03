@@ -125,6 +125,12 @@ interface OrderLineSummaryProps {
    * could not add a price to the eight render sites that never had one.
    */
   readonly showChildPrices?: boolean;
+  /**
+   * Draw the chosen variation as the first row. Opt-IN, because only the basket flyout was missing
+   * it: the /cart card and the checkout list draw their own, and turning it on globally would print
+   * the size twice there. See `LineSummary.variation`.
+   */
+  readonly showVariation?: boolean;
 }
 
 /**
@@ -137,20 +143,35 @@ export default function OrderLineSummary({
   line,
   hideInstructions = false,
   showChildPrices = false,
+  showVariation = false,
 }: OrderLineSummaryProps) {
   const { t } = useTranslation();
   const showInstructions = !hideInstructions && !!line.specialInstructions;
+  // Part of `nothingToShow`, not just of the markup: a plain pizza in a size and with no
+  // customization at all has an EMPTY summary, and gating the row alone would leave the one surface
+  // this exists for still not showing the size.
+  const variationRow = showVariation && !!line.variation;
 
   const nothingToShow =
     line.diff.added.length === 0 &&
     line.diff.removed.length === 0 &&
     line.sideItems.length === 0 &&
     line.children.length === 0 &&
-    !showInstructions;
+    !showInstructions &&
+    !variationRow;
   if (nothingToShow) return null;
 
   return (
     <div className={styles.summary}>
+      {variationRow && (
+        <div className={styles.row}>
+          <span className={styles.label}>{t('variation', 'Size/Variation')}:</span>
+          <span dir="auto" className={styles.value}>
+            {line.variation}
+          </span>
+        </div>
+      )}
+
       <DiffRows diff={line.diff} />
 
       {line.sideItems.length > 0 && (

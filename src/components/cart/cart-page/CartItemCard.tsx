@@ -7,6 +7,7 @@ import { Trash2, Plus, Minus } from 'lucide-react';
 import { CartItem } from '@/components/cart/cartTypes';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { basketItemToLineSummary } from '@/components/order/lineSummary';
+import { variationLabel } from '@/components/order/variationLabel';
 import CartItemInstructionsEditor from './CartItemInstructionsEditor';
 
 interface CartItemCardProps {
@@ -48,8 +49,7 @@ export default function CartItemCard({
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const itemId = item.basketItemId || item.id || item.productId;
-  const variationName =
-    item.variationContent?.[currentLanguage]?.name || item.variationContent?.en?.name || item.variationName;
+  const variationName = variationLabel(item, currentLanguage);
 
   return (
     <div className={styles.cartItem}>

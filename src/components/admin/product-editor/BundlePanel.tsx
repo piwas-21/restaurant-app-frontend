@@ -26,10 +26,15 @@ interface BundlePanelProps {
  * Everything a bundle edits: its own core fields, when it is served, and what it contains.
  *
  * The fields are ported from `EditMenuBundleModal`, not composed from `ProductBasicInfo` /
- * `ProductDetails` — those carry item-only controls (categories, kitchen type, allergens, a
- * type chooser) that a bundle cannot support: `MenuBundleDto` returns none of that data, so
- * they would have nothing to seed from, and `editMenuBundleSchema` declares no such fields.
+ * `ProductDetails` — those carry item-only controls (categories, kitchen type, a type chooser)
+ * that a bundle cannot support: `MenuBundleDto` returns none of that data, so they would have
+ * nothing to seed from, and `editMenuBundleSchema` declares no such fields.
  * A bundle's categories survive precisely because the client never sends them (backend #192).
+ *
+ * `allergens` is NOT in that list any more: `MenuBundleDto` carries it since backend #477. It is
+ * still not edited here, for a different reason — there is no write path (backend #478), and
+ * `productFormUtils` already puts `allergens: []` into every bundle PUT, so a control added before
+ * the server accepts the field would silently discard what the admin typed.
  */
 export default function BundlePanel({
   register,

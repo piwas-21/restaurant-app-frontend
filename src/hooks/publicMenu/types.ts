@@ -46,7 +46,12 @@ export interface ProductDto {
   images?: ProductImageDto[];
   ingredients?: string[];
   detailedIngredients?: ProductIngredient[];
-  allergens?: string[];
+  /**
+   * `null` is a shape this really produces — `Product.Allergens` has no initialiser, so an
+   * unlabelled row is SQL NULL rather than an empty array. The mapper's `Array.isArray` guard has
+   * always handled it; the type just did not admit it.
+   */
+  allergens?: string[] | null;
   content?: ProductContentDto;
   basePrice?: number | string;
   preparationTimeMinutes?: number;
@@ -73,6 +78,12 @@ export interface MenuBundleDto {
   isSpecial?: boolean;
   preparationTimeMinutes?: number;
   displayOrder?: number;
+  /**
+   * The bundle's OWN allergen labelling (backend #477). Serves `null` for an unlabelled bundle —
+   * `Product.Allergens` has no initialiser and no bundle command assigns it, so NULL is the only
+   * shape the platform actually produces. Absent entirely on a backend that predates #477.
+   */
+  allergens?: string[] | null;
   /** Since §9.2. Absent on a backend that predates it, which the mapper reads as unrestricted. */
   availability?: ItemAvailabilityDto;
 }

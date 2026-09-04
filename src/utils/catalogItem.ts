@@ -70,6 +70,10 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
     // every combo — indistinguishable from a bug, and the half of the report that said "SOME menu
     // items don't have the button". Stated explicitly now, with the reason.
     priceEditability: 'bundle',
+    // Was simply absent, exactly as `priceEditability` was — and with a worse consequence than a
+    // missing control: `useMenuFilters` reads an empty token set as "free of everything", so every
+    // combo passed every "No …" chip (#702). Its product sibling has always mapped this.
+    allergens: bundle.allergens,
     isSpecial: bundle.isSpecial,
     isAvailable: bundle.isAvailable,
     bundleItemNames: bundleItemNames && bundleItemNames.length > 0 ? bundleItemNames : undefined,
@@ -160,6 +164,10 @@ export function toBundleItemFromDetail(
     isSpecial: detail.isSpecial,
     preparationTimeMinutes: detail.preparationTimeMinutes,
     displayOrder: detail.displayOrder,
+    // The SECOND producer of a MenuBundleItem, and it omitted this too — so the by-id path (the
+    // featured combo's "Details", and the `findBundle` miss) yielded `undefined` where the list
+    // path yields the real labelling, from the same field of the same row (#702).
+    allergens: detail.allergens,
     // A caller's verdict WINS over the detail's, and the fallback is not the safe one it looks:
     // `getProductById` sends no channel, so `detail.availability` was resolved against "none
     // chosen" — permissive by construction (§9.2).

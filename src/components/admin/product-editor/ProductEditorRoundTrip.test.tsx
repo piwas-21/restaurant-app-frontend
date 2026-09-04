@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render, fireEvent, screen, waitFor } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { SIDE_ITEM_SEARCH_DEBOUNCE_MS } from '@/hooks/admin/useSideItemSearch';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
@@ -387,6 +388,44 @@ describe('product editor — a save that changes nothing changes nothing', () =>
    * nor the PUT.
    */
   describe('the side-item picker', () => {
+    /**
+     * FAKE TIMERS, scoped to this block (#717).
+     *
+     * These two cases were RED ON `develop` ITSELF under machine load — 2 failed / 22 passed on a
+     * clean detached worktree at `origin/develop` @ 7002dd36 with nobody's diff, at 5198ms and
+     * 7499ms — and because the pre-push hook runs Jest, a test that is red on the integration
+     * branch blocks EVERY agent's push while presenting as "your diff broke something".
+     *
+     * The cause is a race, not an assertion: the search debounce is 300ms of REAL time and
+     * `findBy*` polls a real clock with a 1000ms default. The comment this replaces said "the poll
+     * outlasts it", which is true only on an idle machine — under load the render lands after the
+     * poll gives up, and the element appears milliseconds later. The failing member of the pair
+     * alternated between runs, which is the signature of a race.
+     *
+     * It also rejected fake timers on the ground that "the whole file" would need them. That is not
+     * so, and this is the correction: `useFakeTimers` in a `beforeEach` for THIS block only leaves
+     * the other 22 cases on the real clock, untouched.
+     *
+     * What is deliberately NOT done: the global timeout is unchanged, no assertion is weakened and
+     * no case is removed. Those would turn this green and hide every future race of the same shape
+     * in a file whose whole purpose is the round-trip oracle. The oracle here is still the FIXTURE
+     * — `fullyPopulated.suggestedSideItems` and the mocked search's id — and both cases still fail
+     * if the editor stops sending `suggestedSideItemIds`.
+     */
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => {
+      // Drain before switching back, or a pending debounce fires into a torn-down tree.
+      act(() => jest.runOnlyPendingTimers());
+      jest.useRealTimers();
+    });
+
+    /**
+     * Wait out the search debounce on the FAKE clock, by the component's own exported constant
+     * rather than by a number retyped here — a literal 300 would go stale silently the day the
+     * debounce changes, which is how a test starts asserting a duration nobody uses.
+     */
+    const settleSearchDebounce = () => act(() => jest.advanceTimersByTime(SIDE_ITEM_SEARCH_DEBOUNCE_MS));
+
     const openPicker = async (container: HTMLElement) => {
       const open = await screen.findByRole('button', { name: 'side_items_picker_open' });
       fireEvent.click(open);
@@ -417,10 +456,8 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       const container = await renderEditor();
       await openPicker(container);
 
-      // Real timers, and `findBy…` rather than `advanceTimersByTime`: the search debounce is 300ms
-      // and the poll outlasts it. Fake timers here would have to be faked for the whole file, which
-      // every other test in it is written without.
       fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
+      settleSearchDebounce();
       fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
       fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 

@@ -5,45 +5,44 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { GroupDiscountDto, DiscountType } from '@/types/userGroupTypes';
-import { emptyAsNull } from './emptyAsNull';
+import { emptyAsNull, optionalMoney, requiredMoney } from './emptyAsNull';
 import MoneyField from './MoneyField';
 
 /**
- * An optional MONEY field as the API really sends it: **absent, or `null`** (#642).
+ * #642. The three ways an admin can say "no minimum" / "no cap", and the one that used to store 0.
  *
  * `GroupDiscountDto.MinimumOrderAmount` / `.MaximumDiscountAmount` are `decimal?` on the entity, on
- * the DTO and in the 1:1 `UserGroupMapper` projection, and the API sets no
- * `DefaultIgnoreCondition` (`ApiResponse.cs:26`), so an unset cap is an explicit `null` on the wire.
- * This modal seeds the form from that response VERBATIM (`reset({ … initialData.maximumDiscountAmount })`).
+ * the DTO and in the 1:1 `UserGroupMapper` projection, so an unset cap is an explicit `null` on the
+ * wire — and this modal seeds the form from that response VERBATIM. `.optional()` did not refuse
+ * that null the way #638's string fields did; it did something quieter and worse, because
+ * `z.coerce.number().optional()` short-circuits on `undefined` alone and `Number(null)` is 0.
  *
- * `.optional()` here did NOT refuse the null the way #638's string fields did — it did something
- * quieter and worse. `z.coerce.number().optional()` only short-circuits on `undefined`; a `null`
- * falls through to the coercion, and `Number(null)` is **0**. Measured, not reasoned:
- * `z.coerce.number().min(0).optional().safeParse(null)` → `{ success: true, data: 0 }`.
+ * `.nullish()` closes the null. It does NOT close `''`, which is what a cleared number input
+ * produces. Both are closed here — the table and the measurements are in `emptyAsNull.ts`.
  *
- * So every save of an existing discount that had NO cap rewrote that cap to 0 — and
- * `MembershipQrService:188` applies the cap on `HasValue` alone, with no `> 0` guard (unlike
- * `CustomerDiscountService:128`, which has one). A group discount whose maximum became 0 therefore
- * stops discounting anything, silently, on an admin save that touched something else entirely.
- *
- * `.nullish()` short-circuits on null BEFORE the coercion, so "no cap" survives the round trip.
+ * What 0 costs: `MembershipQrService:188` applies the cap on `HasValue` alone, with no `> 0` guard
+ * (unlike `CustomerDiscountService:128`, which has one). A group discount whose maximum became 0
+ * discounts nothing, silently, after a save that touched something else entirely.
  */
-const optionalMoney = () => z.coerce.number().min(0).nullish();
-
-// The other route to the same corrupted 0 — an EMPTY input, which the schema cannot catch because
-// `''` is not null. See `emptyAsNull.ts`; it is shared with UserGroupModal, which writes the same
-// GroupDiscount through its initial-discount block.
-
 export const discountSchema = z.object({
   name: z.string().min(1, { message: 'Discount name is required' }),
   type: z.nativeEnum(DiscountType),
-  value: z.coerce.number().min(0, { message: 'Value must be positive' }),
+  // A blank box is a refusal here, not a 0 — see `requiredMoney`. Clearing this used to save a
+  // discount of 0, which is the same "discounts nothing" outcome as a cap of 0.
+  value: requiredMoney('Value must be positive'),
   minimumOrderAmount: optionalMoney(),
   maximumDiscountAmount: optionalMoney(),
   isActive: z.boolean(),
 });
 
-type DiscountFormValues = z.infer<typeof discountSchema>;
+/**
+ * TWO types, because `requiredMoney`/`optionalMoney` preprocess: the form HOLDS what the inputs
+ * produce (a string from a number box, `null` from `emptyAsNull`), and the submit handler RECEIVES
+ * what the schema produced. `z.infer` is the output alone, so using it for both is what made
+ * `useForm` and `zodResolver` disagree once a preprocess existed.
+ */
+type DiscountFormInput = z.input<typeof discountSchema>;
+type DiscountFormValues = z.output<typeof discountSchema>;
 
 interface DiscountModalProps {
   isOpen: boolean;
@@ -62,7 +61,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<DiscountFormValues>({
+  } = useForm<DiscountFormInput, unknown, DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
       type: DiscountType.Percentage,

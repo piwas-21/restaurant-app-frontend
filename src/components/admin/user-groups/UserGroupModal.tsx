@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import modalStyles from './UserGroupModal.module.css';
 import { UserGroupDto, DiscountType } from '@/types/userGroupTypes';
-import { emptyAsNull } from './emptyAsNull';
+import { emptyAsNull, optionalMoney } from './emptyAsNull';
 import MoneyField from './MoneyField';
 
 /**
@@ -39,8 +39,8 @@ export const userGroupSchema = z
     // null route cannot reach them; the EMPTY-INPUT route can, and `Number('')` is 0. A cap of 0 is
     // read by `MembershipQrService:188` as "discount nothing", so an admin who ticks "add an
     // initial discount" and leaves the cap blank creates a discount that never discounts.
-    minOrderAmount: z.coerce.number().min(0).nullish(),
-    maxDiscountAmount: z.coerce.number().min(0).nullish(),
+    minOrderAmount: optionalMoney(),
+    maxDiscountAmount: optionalMoney(),
   })
   .refine(
     (data) => {
@@ -55,7 +55,9 @@ export const userGroupSchema = z
     },
   );
 
-type UserGroupFormValues = z.infer<typeof userGroupSchema>;
+/** Input vs output, for the reason stated in `DiscountModal` — `optionalMoney` preprocesses. */
+type UserGroupFormInput = z.input<typeof userGroupSchema>;
+type UserGroupFormValues = z.output<typeof userGroupSchema>;
 
 interface UserGroupModalProps {
   isOpen: boolean;
@@ -76,7 +78,7 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({ isOpen, onClose, onSubm
     reset,
     watch,
     setValue,
-  } = useForm<UserGroupFormValues>({
+  } = useForm<UserGroupFormInput, unknown, UserGroupFormValues>({
     resolver: zodResolver(userGroupSchema),
     defaultValues: {
       isActive: true,

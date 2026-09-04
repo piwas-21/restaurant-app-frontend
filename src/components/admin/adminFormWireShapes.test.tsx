@@ -70,6 +70,25 @@ describe("#642 — Zod schemas against the API's null", () => {
     });
   });
 
+  describe('UserGroupModal writes the SAME GroupDiscount through its initial-discount block', () => {
+    // The create half of the same field pair. It is seeded from no response, so the null route
+    // cannot reach it — the EMPTY-INPUT route can, and it produced the same 0.
+    it('reads a blank initial-discount cap as "not set"', () => {
+      const parsed = userGroupSchema.parse({
+        name: 'Staff',
+        description: '',
+        validFrom: null,
+        validUntil: null,
+        isActive: true,
+        minOrderAmount: '',
+        maxDiscountAmount: '',
+      });
+
+      expect(parsed.maxDiscountAmount).toBeNull();
+      expect(parsed.minOrderAmount).toBeNull();
+    });
+  });
+
   describe('GroupDiscountDto.MinimumOrderAmount / .MaximumDiscountAmount are `decimal?`', () => {
     const uncappedFromTheWire = {
       name: 'Staff 10%',
@@ -95,6 +114,46 @@ describe("#642 — Zod schemas against the API's null", () => {
       expect(parsed.maximumDiscountAmount).toBeNull();
       expect(parsed.minimumOrderAmount).toBeNull();
       expect(parsed.maximumDiscountAmount).not.toBe(0);
+    });
+
+    /**
+     * THE THIRD GAP. `.optional()` skips `undefined`; `.nullish()` skips `undefined` and `null`;
+     * NEITHER skips `''` — and `''` is what every cleared `<input type="number">` produces. So
+     * `.nullish()` alone is not sufficient for a coerced number, only for a string.
+     *
+     * Asserted on the SCHEMA and not only through the modal, because the two are defended by
+     * different code: the modal is safe through `emptyAsNull` on the registration, and the schema is
+     * safe through its own preprocess. A caller that parses this schema WITHOUT the registration —
+     * a test, a future page, an importer — would otherwise walk straight back into the 0.
+     */
+    it('reads a cleared box as "no cap", not as a cap of 0 — the gap `.nullish()` does not close', () => {
+      const parsed = discountSchema.parse({
+        ...uncappedFromTheWire,
+        minimumOrderAmount: '',
+        maximumDiscountAmount: '',
+      });
+
+      expect(parsed.maximumDiscountAmount).toBeNull();
+      expect(parsed.minimumOrderAmount).toBeNull();
+    });
+
+    // The REQUIRED money field, reached from the other end of the same form. `z.coerce.number()`
+    // reads `''` as 0 and `min(0)` accepts it, so clearing the value saved a discount OF ZERO — the
+    // same "discounts nothing" outcome as a cap of 0, with nothing on screen. A blank required box
+    // must be a refusal.
+    it('refuses a blank discount value instead of saving a discount of 0', () => {
+      const result = discountSchema.safeParse({ ...uncappedFromTheWire, value: '' });
+
+      expect(result.success).toBe(false);
+      expect(result.success === false && result.error.issues[0].message).toBe('Value must be positive');
+    });
+
+    // The over-reach control for both preprocesses: a real 0 typed on purpose is still a real 0.
+    it('still accepts a deliberate 0', () => {
+      const parsed = discountSchema.parse({ ...uncappedFromTheWire, value: 0, minimumOrderAmount: 0 });
+
+      expect(parsed.value).toBe(0);
+      expect(parsed.minimumOrderAmount).toBe(0);
     });
 
     it('still reads a real cap as a number', () => {

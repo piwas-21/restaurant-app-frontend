@@ -131,6 +131,11 @@ export function toBundleDefaults(product: ProductDetails) {
     // uncontrolled→controlled flip: the bundle PUT assigns this column unconditionally, so a default
     // that failed to echo the stored mask would clear the restriction on the next save.
     availableOrderTypes: product.availableOrderTypes ?? null,
+    // Load-bearing for exactly the reason the mask above is: the bundle PUT will assign this
+    // column unconditionally (backend #478), so a default that failed to echo the stored labels
+    // would clear them on the next save of anything else. MC FOOD's 45 bundles are labelled;
+    // an admin renaming one must not silently strip its allergens.
+    allergens: product.allergens ?? [],
   };
 }
 

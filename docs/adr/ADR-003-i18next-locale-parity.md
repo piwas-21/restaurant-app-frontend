@@ -129,3 +129,32 @@ locale argument are invisible to *both* i18n gates by construction — `check-t-
 and `check-locale-parity.mjs` reads bundles; a literal is neither. Translating all ten files fixes nothing.
 The rule: a unit is a key, and a date/time format takes `i18n.language || 'en'`. `[]` is not "no preference",
 it is the browser's locale.
+
+### Amendment — 2026-09-04: a key nothing reads (#439)
+
+Parity asks *"does every locale have the same keys as `en.json`?"*. It never asks *"does anything READ this
+key?"*, so a key deleted from a component stays in all ten bundles forever, fully parity-compliant, and every
+gate stays green. A survey of `origin/develop` found **581 of 2966 keys (19.6%)** with no reference anywhere —
+~5,800 dead JSON lines carried through every translation pass, and noise dense enough to hide two real bugs
+(#210 shipped English in `ru`, #134 hardcoded a city).
+
+**Decision.** `scripts/check-locale-orphans.mjs` is a third question, alongside parity (bundle-vs-bundle) and
+`check-t-keys.mjs` (callsite-vs-bundle). 563 provably-unreferenced keys were deleted from all ten bundles;
+the gate now fails on the next one.
+
+The design is shaped by three ways this kind of gate goes wrong, each of which was **measured, not imagined**:
+
+1. **Scanning callsites instead of text.** 16 files hold a literal KEY TABLE (`ORDER_STATUS_META`,
+   `MENU_TYPE_FILTER_LABEL_KEYS`, `DAY_KEYS`, …) and call `t(TABLE[x].key)`. A gate looking for `t('literal')`
+   reports every one dead. The gate searches for the key STRING anywhere, never for the shape of the call.
+2. **Treating a derived file as code.** `scripts/*-baseline.json` are generated FROM `en.json`, so they name
+   the keys under test; counting them marks 75 orphans live. The gate's own allowlist is the same trap one
+   level in — `scripts/` is in the corpus, so without excluding itself every allowlisted key marks itself
+   used. Both are excluded, both have fixtures.
+3. **Deleting a key built at runtime.** 138 keys come from a prefix; those are allowlisted by prefix. And
+   `categoryNameMapper` lowercases a category name a TENANT typed into their database and uses it as a key —
+   `salads`, `meze`, `seafood`. That cannot be settled from source **at all**, so those keys are WARNED
+   about, never failed on, and never deleted without a human.
+
+The bias throughout is fail-CLOSED against deletion: ambiguous evidence counts as USED, including a mention in
+a comment. The gate exists to stop the NEXT orphan, not to win an argument about an existing one.

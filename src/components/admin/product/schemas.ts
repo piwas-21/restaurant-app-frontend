@@ -251,6 +251,13 @@ const baseMenuBundleSchema = z.object({
   // sends nothing — and because the bundle PUT assigns the column unconditionally, "sends nothing"
   // CLEARS a stored restriction on every unrelated save (§9.2).
   availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
+  // Same field as an item's, and in the schema for the same reason as the mask above: zod strips
+  // unknown keys, so a value carried outside it is silently dropped — and `productFormUtils`
+  // already puts `allergens` into every bundle PUT, so "silently dropped" becomes `[]` on the
+  // wire. Once the server reads that field (backend #478) an empty array WIPES the stored
+  // labelling on every unrelated save, which for allergens is a safety regression rather than a
+  // lost preference: the menu filter reads an unlabelled dish as free of everything.
+  allergens: z.array(z.string()).optional(),
 });
 
 export const createMenuBundleSchema = baseMenuBundleSchema;

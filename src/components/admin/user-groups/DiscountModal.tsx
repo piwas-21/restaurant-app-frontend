@@ -138,16 +138,12 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
               label={t('min_order_amount')}
               registration={register('minimumOrderAmount', emptyAsNull)}
               error={errors.minimumOrderAmount?.message}
-              errorClassName={styles.errorMessage}
-              groupClassName={styles.formGroup}
             />
             <MoneyField
               id="maximumDiscountAmount"
               label={t('max_discount_amount')}
               registration={register('maximumDiscountAmount', emptyAsNull)}
               error={errors.maximumDiscountAmount?.message}
-              errorClassName={styles.errorMessage}
-              groupClassName={styles.formGroup}
             />
           </div>
 

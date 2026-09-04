@@ -219,16 +219,12 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({ isOpen, onClose, onSubm
                       label={t('min_order_amount')}
                       registration={register('minOrderAmount', emptyAsNull)}
                       error={errors.minOrderAmount?.message}
-                      errorClassName={styles.errorMessage}
-                      groupClassName={styles.formGroup}
                     />
                     <MoneyField
                       id="maxDiscountAmount"
                       label={t('max_discount_amount')}
                       registration={register('maxDiscountAmount', emptyAsNull)}
                       error={errors.maxDiscountAmount?.message}
-                      errorClassName={styles.errorMessage}
-                      groupClassName={styles.formGroup}
                     />
                   </div>
                 </div>

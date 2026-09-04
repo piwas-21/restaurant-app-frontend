@@ -7,6 +7,7 @@ import styles from '@/app/styles/RegisterStaffModal.module.css';
 import modalStyles from './UserGroupModal.module.css';
 import { UserGroupDto, DiscountType } from '@/types/userGroupTypes';
 import { emptyAsNull } from './emptyAsNull';
+import MoneyField from './MoneyField';
 
 /**
  * #642. `UserGroupDto.ValidFrom` / `.ValidUntil` are `DateTime?` and are serialised as an explicit
@@ -211,24 +212,22 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({ isOpen, onClose, onSubm
                   </div>
 
                   <div className={styles.row}>
-                    <div className={styles.formGroup}>
-                      <label htmlFor="minOrderAmount">{t('min_order_amount')}</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        id="minOrderAmount"
-                        {...register('minOrderAmount', emptyAsNull)}
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label htmlFor="maxDiscountAmount">{t('max_discount_amount')}</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        id="maxDiscountAmount"
-                        {...register('maxDiscountAmount', emptyAsNull)}
-                      />
-                    </div>
+                    <MoneyField
+                      id="minOrderAmount"
+                      label={t('min_order_amount')}
+                      registration={register('minOrderAmount', emptyAsNull)}
+                      error={errors.minOrderAmount?.message}
+                      errorClassName={styles.errorMessage}
+                      groupClassName={styles.formGroup}
+                    />
+                    <MoneyField
+                      id="maxDiscountAmount"
+                      label={t('max_discount_amount')}
+                      registration={register('maxDiscountAmount', emptyAsNull)}
+                      error={errors.maxDiscountAmount?.message}
+                      errorClassName={styles.errorMessage}
+                      groupClassName={styles.formGroup}
+                    />
                   </div>
                 </div>
               )}

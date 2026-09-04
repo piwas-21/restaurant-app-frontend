@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { GroupDiscountDto, DiscountType } from '@/types/userGroupTypes';
 import { emptyAsNull } from './emptyAsNull';
+import MoneyField from './MoneyField';
 
 /**
  * An optional MONEY field as the API really sends it: **absent, or `null`** (#642).
@@ -133,28 +134,22 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
           </div>
 
           <div className={styles.row}>
-            <div className={styles.formGroup}>
-              <label htmlFor="minimumOrderAmount">{t('min_order_amount')}</label>
-              <input
-                type="number"
-                step="0.01"
-                id="minimumOrderAmount"
-                {...register('minimumOrderAmount', emptyAsNull)}
-              />
-              {errors.minimumOrderAmount && <p className={styles.errorMessage}>{errors.minimumOrderAmount.message}</p>}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="maximumDiscountAmount">{t('max_discount_amount')}</label>
-              <input
-                type="number"
-                step="0.01"
-                id="maximumDiscountAmount"
-                {...register('maximumDiscountAmount', emptyAsNull)}
-              />
-              {errors.maximumDiscountAmount && (
-                <p className={styles.errorMessage}>{errors.maximumDiscountAmount.message}</p>
-              )}
-            </div>
+            <MoneyField
+              id="minimumOrderAmount"
+              label={t('min_order_amount')}
+              registration={register('minimumOrderAmount', emptyAsNull)}
+              error={errors.minimumOrderAmount?.message}
+              errorClassName={styles.errorMessage}
+              groupClassName={styles.formGroup}
+            />
+            <MoneyField
+              id="maximumDiscountAmount"
+              label={t('max_discount_amount')}
+              registration={register('maximumDiscountAmount', emptyAsNull)}
+              error={errors.maximumDiscountAmount?.message}
+              errorClassName={styles.errorMessage}
+              groupClassName={styles.formGroup}
+            />
           </div>
 
           <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>

@@ -93,6 +93,11 @@ jobs:
       # perfectly consistent and passes it. This reads the CALLSITES instead — the only way to see
       # a `t()` that renders its own key to a user (#417).
       - run: node scripts/check-t-keys.mjs
+      # The third question, and the one neither of the two above can ask. Parity compares the
+      # bundles to EACH OTHER and check-t-keys reads callsites for a key that is MISSING — neither
+      # notices a key that is present, consistent across all ten, and read by nothing. 19.6% of
+      # en.json was that (#439).
+      - run: node scripts/check-locale-orphans.mjs
 
   baseline_dimensions:
     # Screenshot baselines must be exactly their viewport's width. A full-page capture

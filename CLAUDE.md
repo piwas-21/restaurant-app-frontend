@@ -100,6 +100,12 @@ that workaround shipped three times before the gate was fixed.
 every bundle, zero tolerance, no baseline: i18next falls back to English, so the bundle looks complete and the
 screen is English. Four `cashier.*` statuses sat `null` in `tr.json` on prod while every gate was green.
 
+**A key nothing reads is deleted, not kept** (#439). `scripts/check-locale-orphans.mjs` fails on a key in
+`en.json` with no reference in `src/`, `e2e/` or `scripts/`. If a key is composed at runtime
+(`` t(`allergen_${a}`) ``), add its PREFIX to `DYNAMIC_PREFIXES` **with the callsite in the commit message** —
+do not widen the match. Two things that are NOT references, both measured: a derived
+`scripts/*-baseline.json` (it is generated from `en.json`), and the gate's own allowlist.
+
 **A string only counts as translated if it goes through `t()`.** A unit written inline in JSX
 (`{points} pts`) and a `toLocaleTimeString()` with no locale argument are both invisible to *both* i18n gates
 — `check-t-keys.mjs` reads callsites, `check-locale-parity.mjs` reads bundles, and neither can see a literal.

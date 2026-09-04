@@ -12,6 +12,8 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import FormField from '@/components/design-system/FormField';
 import PhoneNumberManager from './PhoneNumberManager';
+// The widget half of #716 — see `emptyAsNullNumber` for why the schema half is not enough alone.
+import { emptyAsNullNumber } from './emptyAsNullNumber';
 import { restaurantInfoSchema, type RestaurantInfoFormInput, type RestaurantInfoFormOutput } from './schemas';
 import styles from './GeneralSettingsTab.module.css';
 
@@ -137,10 +139,10 @@ export default function GeneralSettingsTab() {
         </div>
         <div className={styles.row}>
           <FormField label={t('general_settings_latitude', 'Latitude')} error={errors.latitude?.message}>
-            <input type="number" step="any" {...register('latitude')} />
+            <input type="number" step="any" {...register('latitude', emptyAsNullNumber)} />
           </FormField>
           <FormField label={t('general_settings_longitude', 'Longitude')} error={errors.longitude?.message}>
-            <input type="number" step="any" {...register('longitude')} />
+            <input type="number" step="any" {...register('longitude', emptyAsNullNumber)} />
           </FormField>
         </div>
       </fieldset>

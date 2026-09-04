@@ -123,6 +123,44 @@ describe('flattenContent', () => {
   it('tolerates a missing content map', () => {
     expect(flattenContent(undefined)).toEqual([]);
   });
+
+  /**
+   * #641 — the row that made an item permanently unsavable.
+   *
+   * The fixture is the WIRE shape, not the form's: `ProductDescriptionDto.Name` is `string` and
+   * `Description` is `string?`, and the API sets no `DefaultIgnoreCondition`, so a stored row really
+   * does arrive as `{ name: '', description: 'Une pizza' }` rather than with the key absent.
+   */
+  describe('a stored row with a blank name (#641)', () => {
+    it('repairs an empty name from the item name, keeping the description', () => {
+      expect(flattenContent({ fr: { name: '', description: 'Une pizza' } }, 'Margherita')).toEqual([
+        { language: 'fr', name: 'Margherita', description: 'Une pizza' },
+      ]);
+    });
+
+    it('repairs a whitespace-only name, which `min(1)` reads as three valid characters', () => {
+      expect(flattenContent({ fr: { name: '   ', description: 'Une pizza' } }, 'Margherita')).toEqual([
+        { language: 'fr', name: 'Margherita', description: 'Une pizza' },
+      ]);
+    });
+
+    // The over-reach control. A name that is merely PADDED is a real name, and repairing it would
+    // silently rewrite an admin's text — the failure mode of widening a predicate without a test
+    // that says where it stops.
+    it('leaves a padded but non-blank name exactly as stored', () => {
+      expect(flattenContent({ fr: { name: '  Pizza  ', description: null } }, 'Margherita')).toEqual([
+        { language: 'fr', name: '  Pizza  ', description: '' },
+      ]);
+    });
+
+    // The create route seeds from `emptyProductDetails`, whose name is ''. There is no name to
+    // repair with and no stored row to repair, so the two blanks cancel rather than fight.
+    it('falls back to an empty string when the item itself has no name yet', () => {
+      expect(flattenContent({ fr: { name: '', description: 'Une pizza' } })).toEqual([
+        { language: 'fr', name: '', description: 'Une pizza' },
+      ]);
+    });
+  });
 });
 
 describe('resolveCategoryIds / resolveSideItemIds', () => {

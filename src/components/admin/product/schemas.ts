@@ -57,7 +57,21 @@ export const variationSchema = z.object({
 
 export const contentSchema = z.object({
   language: z.string().min(1, 'Language is required'),
-  name: z.string().min(1, 'Name is required for this language'),
+  /**
+   * `.trim()` BEFORE `.min(1)` — the client half of backend #325.
+   *
+   * `min(1)` alone counts `"   "` as three valid characters, so the editor accepted a
+   * whitespace-only translation name and `PUT /api/Products/{id}` stored it with a 200. The next
+   * ordinary save then DELETED the whole row, description text included: the payload builder drops
+   * it (`e?.name?.trim()`) and the handler does a full replace. The server refuses it now, which is
+   * what closes the window — this rule cannot constrain a client that is not this editor. What it
+   * adds is a sentence on the field instead of a 400 the admin has to decode.
+   *
+   * It is safe to tighten only because a STORED blank name is repaired on load (`flattenContent`,
+   * #641). Tightening without that repair would turn "the item cannot be saved" from a defect into
+   * a rule.
+   */
+  name: z.string().trim().min(1, 'Name is required for this language'),
   description: optionalText(),
 });
 

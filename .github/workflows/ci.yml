@@ -185,7 +185,18 @@ jobs:
   npm_audit:
     name: npm audit (high+)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # 15, not the house default of 5. `npm audit` posts the whole dependency tree to the registry's
+    # advisory endpoint, and that call's latency is not ours: measured on this repo 2026-09-03/04 it
+    # ran 25s, 27s, 3m06s, and then blew past 5m on four consecutive runs (33824320407, 33855710886,
+    # 33856949144, 33866275301 — including two on `develop`). Every one of those reported the job as
+    # **cancelled**, which reads like a human pressed stop, so the gate was not failing loudly — it
+    # was silently unavailable, and it blocked every merge in the repo because the merge gate
+    # requires CI green.
+    #
+    # Raising the ceiling does not weaken the gate: the audit itself still decides pass/fail, and a
+    # genuine hang still stops at a bound rather than running forever. What it buys is that a slow
+    # third-party endpoint costs minutes instead of a merge queue.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4

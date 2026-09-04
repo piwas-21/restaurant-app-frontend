@@ -47,11 +47,21 @@ describe("#642 — Zod schemas against the API's null", () => {
       expect(editCategorySchema.safeParse(wire).success).toBe(true);
     });
 
-    // The create form is seeded from no response, so the refusal cannot reach it. It is pinned
-    // anyway: two schemas over ONE column that disagree about null is how this class survives.
-    it('the create schema agrees with its sibling', () => {
+    /**
+     * The create form is seeded from no response, so the refusal cannot reach it — and it is pinned
+     * anyway, because two schemas over ONE column that disagree about null is how this class
+     * survives review.
+     *
+     * The agreement is now STRUCTURAL rather than asserted: both modals import one
+     * `categoryFormSchema`, so they are the same object and cannot drift. The identity is what this
+     * checks first; the parse is kept so the test still fails if that one object stops accepting
+     * the wire's null. A test that only compared two copies could only notice drift after it
+     * happened.
+     */
+    it('the create schema IS its sibling, not merely equivalent to it', () => {
       const wire = { name: 'Pizzas', description: null, isActive: true, displayOrder: 0 };
 
+      expect(createCategorySchema).toBe(editCategorySchema);
       expect(createCategorySchema.safeParse(wire).success).toBe(true);
     });
   });

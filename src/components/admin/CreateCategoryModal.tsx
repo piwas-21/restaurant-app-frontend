@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { categoryFormSchema, type CategoryFormValues } from './categoryFormSchema';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { createCategory, uploadCategoryImage } from '@/services/categoryService';
@@ -12,37 +12,10 @@ import {
   type SetCategoryError,
 } from '@/lib/categoryFormErrors';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+/** @see categoryFormSchema — one object for both modals, so they cannot drift (#642). */
+export const createCategorySchema = categoryFormSchema;
 
-export const createCategorySchema = z.object({
-  name: z.string().min(1, { message: 'Category name is required' }),
-  /**
-   * An optional text column as the API really sends it: **absent, or `null`** (#642).
-   *
-   * `CategoryDto.Description` is `string?` and the API sets no `DefaultIgnoreCondition`
-   * (`ApiResponse.cs:26`), so a category with no description arrives as an explicit `null`.
-   * `z.string().optional()` accepts `undefined` and REFUSES `null` — the #638 defect exactly.
-   *
-   * This form is a CREATE form and is seeded from no response at all, so the refusal cannot reach
-   * it today. It states the wire's shape anyway, because the sibling `EditCategoryModal` — which IS
-   * seeded from a response, and is safe only through a `|| ''` coalesce — must not be able to drift
-   * away from it. Two schemas over one column that disagree about null is how #638 survived review.
-   */
-  description: z.string().nullish(),
-  imageFile: z
-    .any()
-    .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-    .refine(
-      (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files[0].type),
-      '.jpg, .jpeg, .png and .webp files are accepted.',
-    )
-    .optional(),
-  isActive: z.boolean(),
-  displayOrder: z.coerce.number().int().min(0, { message: 'Display order must be a non-negative integer' }),
-});
-
-type CreateCategoryFormValues = z.infer<typeof createCategorySchema>;
+type CreateCategoryFormValues = CategoryFormValues;
 
 interface CreateCategoryModalProps {
   isOpen: boolean;

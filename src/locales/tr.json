@@ -2152,6 +2152,7 @@
   "server.discount": "indirim",
   "server.extras": "Ekstralar",
   "server.fidelity_points": "Sadakat Puanı",
+  "server.points_unit": "puan",
   "server.filter_active": "Aktif Siparişler",
   "server.filter_all": "Tüm Siparişler",
   "server.filter_confirmed": "Onaylandı",

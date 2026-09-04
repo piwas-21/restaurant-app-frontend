@@ -7,17 +7,20 @@
 //                        key: `items_one`/`items_other` in en.json means every locale must carry
 //                        exactly the categories `Intl.PluralRules` gives it — six for `ar`, one for
 //                        `zh` — no more, no less (#590).
-//   2. PLACEHOLDER parity — every `{{interpolation}}` en.json carries survives in every locale
+//   2. EMPTY values    — no key may be null, blank or a non-string in ANY bundle. Zero tolerance,
+//                        no baseline: a key present with no value renders the English fallback, so
+//                        the bundle looks complete and the screen shows English (#610).
+//   3. PLACEHOLDER parity — every `{{interpolation}}` en.json carries survives in every locale
 //                        (baseline `locale-placeholder-baseline.json`, currently EMPTY = zero
 //                        tolerance).
-//   3. UNTRANSLATED values — no locale value is byte-identical to the English one. Walks TOP-LEVEL
+//   4. UNTRANSLATED values — no locale value is byte-identical to the English one. Walks TOP-LEVEL
 //                        *and* NESTED keys (baseline `locale-untranslated-baseline.json`).
 //
 // Replaces the manual 10-locale checklist with a CI job (`.github/workflows/ci.yml` → `i18n_parity`).
 //
 // Usage: node scripts/check-locale-parity.mjs
 //        node scripts/check-locale-parity.mjs --regen-baseline   # rewrites BOTH baselines
-// Exit 0 = all three hold; exit 1 = report printed.
+// Exit 0 = all four hold; exit 1 = report printed.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -36,6 +39,13 @@ function flattenKeys(obj, prefix = '') {
   }
   return keys;
 }
+
+/** The same walk, carrying VALUES: one `[dottedPath, value]` pair per leaf. */
+const flatten = (obj, prefix = '') =>
+  Object.entries(obj).flatMap(([k, v]) => {
+    const path = prefix ? `${prefix}.${k}` : k;
+    return v !== null && typeof v === 'object' && !Array.isArray(v) ? flatten(v, path) : [[path, v]];
+  });
 
 const files = readdirSync(LOCALES_DIR).filter((f) => f.endsWith('.json'));
 if (!files.includes(REFERENCE)) {
@@ -139,6 +149,43 @@ console.log(
     `(${nonPluralKeys.length} keys + ${pluralBases.size} plural famil${pluralBases.size === 1 ? 'y' : 'ies'} each)`,
 );
 
+// ── EMPTY-VALUE gate (#610) ───────────────────────────────────────────────────────────
+// A key present with NO value is strictly worse than a key that is absent: i18next falls back to
+// the English string, so the bundle looks complete and the screen shows English.
+//
+// It fell through BOTH halves of this script, which is how it reached production. Key parity counts
+// KEYS, and the walks above treat `null` as a leaf, so the key IS there and parity holds. The
+// untranslated check compares values TO ENGLISH, and `null` is not equal to the English string, so
+// it is not a match either. Four `cashier.*` order statuses (`pending`, `confirmed`, `preparing`,
+// `ready`) sat `null` in `tr.json` on prod for exactly that reason — a Turkish cashier read English
+// order statuses while every gate was green.
+//
+// Zero tolerance and no baseline: unlike an untranslated value, an empty one is never legitimate.
+// The type check is part of the same rule — a number, a boolean or an array is not a translation
+// either, and the walk above yields all three as leaves.
+const emptyValues = [];
+for (const file of files) {
+  const bundle = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
+  for (const [key, value] of flatten(bundle)) {
+    if (typeof value !== 'string') emptyValues.push(`${file}:${key} = ${JSON.stringify(value)}`);
+    else if (!value.trim()) emptyValues.push(`${file}:${key} = ${JSON.stringify(value)} (blank)`);
+  }
+}
+if (emptyValues.length) {
+  console.error(`✗ ${emptyValues.length} key(s) present with no usable value:`);
+  for (const entry of emptyValues) console.error(`    ${entry}`);
+  console.error(
+    '\nA key whose value is null, blank or not a string renders as the English fallback, so the' +
+      '\nbundle looks complete and the screen shows English. Neither half of this gate could see it:' +
+      '\nkey parity counts KEYS, and the untranslated check compares values TO ENGLISH — which null' +
+      '\nis not equal to. Translate it, or remove the key from every bundle.',
+  );
+  process.exit(1);
+}
+console.log(`✓ every key in all ${files.length} locales carries a non-empty string value`);
+
+
+
 // ── Placeholder-parity gate ───────────────────────────────────────────────────────────
 // Key parity counts keys and the value gate below compares values TO ENGLISH, so a locale can hold
 // every key, be properly translated, and still have lost an interpolation: a German string missing
@@ -154,11 +201,6 @@ console.log(
 const placeholdersIn = (value) =>
   typeof value === 'string' ? new Set([...value.matchAll(/\{\{\s*([\w.]+)\s*}}/g)].map((m) => m[1])) : new Set();
 
-const flatten = (obj, prefix = '') =>
-  Object.entries(obj).flatMap(([k, v]) => {
-    const path = prefix ? `${prefix}.${k}` : k;
-    return v !== null && typeof v === 'object' && !Array.isArray(v) ? flatten(v, path) : [[path, v]];
-  });
 
 const englishBundle = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8'));
 const enPairs = flatten(englishBundle);

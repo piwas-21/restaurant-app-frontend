@@ -2150,6 +2150,7 @@
   "server.discount": "Rabatt",
   "server.extras": "Extras",
   "server.fidelity_points": "Treuepunkte",
+  "server.points_unit": "Pkt.",
   "server.filter_active": "Aktive Bestellungen",
   "server.filter_all": "Alle Bestellungen",
   "server.filter_confirmed": "Bestätigt",

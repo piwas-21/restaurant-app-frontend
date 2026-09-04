@@ -2152,6 +2152,7 @@
   "server.discount": "de descuento",
   "server.extras": "Extras",
   "server.fidelity_points": "Puntos de Fidelidad",
+  "server.points_unit": "pts",
   "server.filter_active": "Pedidos Activos",
   "server.filter_all": "Todos los Pedidos",
   "server.filter_confirmed": "Confirmado",

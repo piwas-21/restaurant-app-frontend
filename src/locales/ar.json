@@ -2151,6 +2151,7 @@
   "server.discount": "خصم",
   "server.extras": "إضافات",
   "server.fidelity_points": "نقاط الولاء",
+  "server.points_unit": "نقطة",
   "server.filter_active": "الطلبات النشطة",
   "server.filter_all": "جميع الطلبات",
   "server.filter_confirmed": "مؤكد",

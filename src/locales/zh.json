@@ -2152,6 +2152,7 @@
   "server.discount": "优惠",
   "server.extras": "加料",
   "server.fidelity_points": "积分",
+  "server.points_unit": "分",
   "server.filter_active": "进行中订单",
   "server.filter_all": "全部订单",
   "server.filter_confirmed": "已确认",

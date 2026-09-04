@@ -20,7 +20,7 @@ export default function ServerHeader({
   statusFilter,
   onStatusFilterChange,
 }: ServerHeaderProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const getConnectionStatusClass = () => {
     switch (connectionState) {
@@ -84,7 +84,10 @@ export default function ServerHeader({
         </div>
         {lastEventTime && (
           <span className={styles.lastUpdate}>
-            {t('server.last_update', 'Last update')}: {lastEventTime.toLocaleTimeString()}
+            {/* The APP's language, not the browser's. With no locale argument the format is the
+                browser's, so a German waiter on an en-US tablet reads a German label beside a
+                `3:45:12 PM` clock. Same fallback chain as MyReservationCard / ApiTokenTable. */}
+            {t('server.last_update', 'Last update')}: {lastEventTime.toLocaleTimeString(i18n.language || 'en')}
           </span>
         )}
       </div>

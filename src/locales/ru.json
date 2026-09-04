@@ -2078,6 +2078,7 @@
   "server.discount": "скидка",
   "server.extras": "Дополнения",
   "server.fidelity_points": "Бонусные баллы",
+  "server.points_unit": "баллов",
   "server.filter_active": "Активные заказы",
   "server.filter_all": "Все заказы",
   "server.filter_confirmed": "Подтверждено",

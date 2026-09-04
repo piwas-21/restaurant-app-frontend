@@ -140,7 +140,9 @@ export default function CustomerInfoPanel({
         <div className={styles.pointsHeader}>
           <span className={styles.pointsIcon}>⭐</span>
           <span className={styles.pointsLabel}>{t('server.fidelity_points', 'Fidelity Points')}</span>
-          <span className={styles.pointsBalance}>{availablePoints} pts</span>
+          <span className={styles.pointsBalance}>
+            {availablePoints} {t('server.points_unit', 'pts')}
+          </span>
         </div>
 
         {availablePoints > 0 && orderTotal > 0 ? (
@@ -157,7 +159,7 @@ export default function CustomerInfoPanel({
                   className={styles.slider}
                 />
                 <span className={styles.pointsValue}>
-                  {pointsToRedeem} pts = {formatPlainCurrency(discountAmount)}
+                  {pointsToRedeem} {t('server.points_unit', 'pts')} = {formatPlainCurrency(discountAmount)}
                 </span>
               </label>
               <div className={styles.quickButtons}>
@@ -187,7 +189,10 @@ export default function CustomerInfoPanel({
         <div className={styles.earnRow}>
           <span className={styles.earnIcon}>✨</span>
           <span>
-            {t('server.will_earn', 'Will earn')}: <strong>{pointsToEarn} pts</strong>
+            {t('server.will_earn', 'Will earn')}:{' '}
+            <strong>
+              {pointsToEarn} {t('server.points_unit', 'pts')}
+            </strong>
           </span>
         </div>
       </div>

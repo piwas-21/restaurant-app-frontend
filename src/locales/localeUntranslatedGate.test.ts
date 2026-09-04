@@ -141,3 +141,123 @@ describe('locale gate — untranslated values', () => {
     expect(nested.length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * Plural KEY FAMILIES (#590).
+ *
+ * The first version of the key-parity block compared byte-identical key SETS against `en.json`, so
+ * a correct i18next plural was a failure BY CONSTRUCTION: `ar` needs six categories and `zh` one,
+ * and every category `en` does not have reads as `extra` while every `en` category the locale must
+ * not have reads as `missing`. Three merged PRs (#569, #582, #589) each independently rewrote a
+ * counted sentence into a label-plus-number to get past it, so the gate was shaping the product's
+ * copy rather than protecting it.
+ *
+ * The required categories come from `Intl.PluralRules`, which is also what i18next itself uses to
+ * pick a suffix at runtime — so the gate demands exactly the keys the renderer will look up. Note
+ * this makes the gate STRICTER for `ar`/`ru`/`fr`, which must now SUPPLY their extra forms.
+ */
+describe('locale gate — plural key families', () => {
+  const EN_PLURAL: Bundle = {
+    save: 'Save',
+    items_one: '{{count}} item',
+    items_other: '{{count}} items',
+  };
+
+  /** Every category `Intl.PluralRules` gives the locale, so a family is complete by construction. */
+  const family = (locale: string, render: (category: string) => string): Bundle =>
+    Object.fromEntries(
+      new Intl.PluralRules(locale).resolvedOptions().pluralCategories.map((c) => [`items_${c}`, render(c)]),
+    );
+
+  it('accepts a CORRECT family: 6 Arabic forms, 4 Russian, 2 Turkish, 1 Chinese', () => {
+    const { status, output } = runGate({
+      en: EN_PLURAL,
+      ar: { save: 'حفظ', ...family('ar', (c) => `{{count}} عنصر ${c}`) },
+      ru: { save: 'Сохранить', ...family('ru', (c) => `{{count}} предмет ${c}`) },
+      tr: { save: 'Kaydet', ...family('tr', (c) => `{{count}} ürün ${c}`) },
+      zh: { save: '保存', ...family('zh', (c) => `{{count}} 件 ${c}`) },
+    });
+
+    expect(status).toBe(0);
+    expect(output).toContain('locale parity holds');
+  });
+
+  it('fails when Russian omits the _many form its CLDR rules require', () => {
+    const ru = family('ru', (c) => `{{count}} предмет ${c}`);
+    delete ru.items_many;
+    const { status, output } = runGate({ en: EN_PLURAL, ru: { save: 'Сохранить', ...ru } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('missing: items_many');
+  });
+
+  it('fails when Arabic omits the _two form its CLDR rules require', () => {
+    const ar = family('ar', (c) => `{{count}} عنصر ${c}`);
+    delete ar.items_two;
+    const { status, output } = runGate({ en: EN_PLURAL, ar: { save: 'حفظ', ...ar } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('missing: items_two');
+  });
+
+  it('fails on a category the locale does NOT have — Turkish has no _few', () => {
+    const { status, output } = runGate({
+      en: EN_PLURAL,
+      tr: { save: 'Kaydet', ...family('tr', (c) => `{{count}} ürün ${c}`), items_few: 'birkaç ürün' },
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('extra:   items_few');
+  });
+
+  it('fails when en.json itself carries a category English does not have', () => {
+    const { status, output } = runGate({
+      en: { ...EN_PLURAL, items_few: 'a few items' },
+      tr: { save: 'Kaydet', ...family('tr', (c) => `{{count}} ürün ${c}`) },
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('en.json');
+    expect(output).toContain('items_few');
+  });
+
+  it('leaves an ORDINARY key that merely ends in a plural suffix alone', () => {
+    // `discount_value_must_be_greater_than_zero` is real, and has no `_other` sibling — so it is
+    // not a family and every locale must carry it verbatim, exactly as before.
+    const en: Bundle = { save: 'Save', discount_must_be_greater_than_zero: 'Must be greater than zero' };
+
+    expect(runGate({ en, de: { save: 'Speichern' } }).status).toBe(1);
+    expect(
+      runGate({ en, de: { save: 'Speichern', discount_must_be_greater_than_zero: 'Muss größer als null sein' } })
+        .status,
+    ).toBe(0);
+  });
+
+  it('still fails on a plain missing key while a family is present (the loosening is bounded)', () => {
+    const { status, output } = runGate({
+      en: EN_PLURAL,
+      ar: family('ar', (c) => `{{count}} عنصر ${c}`), // `save` dropped
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('missing: save');
+  });
+
+  it('checks a plural category value against the English _other for placeholders', () => {
+    const ru = family('ru', (c) => `{{count}} предмет ${c}`);
+    ru.items_many = 'много предметов'; // `{{count}}` dropped — en has no `items_many` to compare to
+    const { status, output } = runGate({ en: EN_PLURAL, ru: { save: 'Сохранить', ...ru } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('ru.json:items_many');
+  });
+
+  it('checks a plural category value against the English _other for untranslated text', () => {
+    const ar = family('ar', (c) => `{{count}} عنصر ${c}`);
+    ar.items_few = '{{count}} items'; // the English `items_other` string, verbatim
+    const { status, output } = runGate({ en: EN_PLURAL, ar: { save: 'حفظ', ...ar } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('untranslated: items_few');
+  });
+});

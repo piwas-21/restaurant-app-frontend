@@ -3,7 +3,10 @@
 //
 //   1. KEY parity      — every key in en.json exists in all other locales and nowhere else; nested
 //                        groups are flattened to dotted paths, so `cashier.zreport.title` counts
-//                        whether a bundle spells it nested or flat.
+//                        whether a bundle spells it nested or flat. A PLURAL key is a FAMILY, not a
+//                        key: `items_one`/`items_other` in en.json means every locale must carry
+//                        exactly the categories `Intl.PluralRules` gives it — six for `ar`, one for
+//                        `zh` — no more, no less (#590).
 //   2. PLACEHOLDER parity — every `{{interpolation}}` en.json carries survives in every locale
 //                        (baseline `locale-placeholder-baseline.json`, currently EMPTY = zero
 //                        tolerance).
@@ -48,27 +51,93 @@ const keySets = new Map(
 );
 
 const reference = keySets.get(REFERENCE);
+
+// ── Plural key FAMILIES (#590) ────────────────────────────────────────────────────────
+// i18next spells one plural sentence as a family of suffixed keys, and the categories a language
+// HAS are not the same in every language. Requiring a byte-identical key set across ten bundles
+// therefore made a correct plural impossible in both directions at once: `ar` needs `_zero _one
+// _two _few _many _other`, which en.json does not have (reported `extra`), and `zh` must NOT carry
+// `_one`, which en.json does (reported `missing`). There was no baseline and no escape hatch, so
+// three merged PRs (#569, #582, #589) each independently rewrote a counted sentence — "10 languages"
+// → "10", "Add 3 ingredients" → "Add selected (3)" — to get past the gate. A gate that keeps
+// rewriting the product's copy is the defect.
+//
+// The required set comes from `Intl.PluralRules`, NOT from a hand-written table, for a reason that
+// is the whole point: i18next picks its runtime suffix from the same ICU data, so the gate demands
+// exactly the keys the renderer will look up. (It also corrects two beliefs the issue carried:
+// CLDR gives Turkish TWO categories, not one, and gives fr/es/it a `_many` for compact millions.)
+//
+// This is a LOOSENING of key parity, so it is bounded deliberately:
+//   - a base is a family only when en.json has BOTH `base_one` and `base_other`, so an ordinary key
+//     that merely ends in `_zero` (`discount_value_must_be_greater_than_zero`) is untouched;
+//   - within a family the check is STRICTER than before, not weaker — `ru` must now SUPPLY `_few`
+//     and `_many` and `ar` all six, where the old rule could only forbid them;
+//   - en.json is checked against its own categories too, so a stray `items_few` in English fails;
+//   - every non-family key keeps byte parity, a hard zero.
+const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+
+/** The categories a locale really has, from the same ICU data i18next resolves suffixes with. */
+function pluralCategories(file) {
+  const locale = file.replace(/\.json$/, '');
+  try {
+    return new Intl.PluralRules(locale).resolvedOptions().pluralCategories;
+  } catch {
+    console.error(`✗ ${file}: not a locale tag Intl.PluralRules understands — cannot derive plural categories`);
+    process.exit(1);
+  }
+}
+
+/** Bases that en.json declares plural. `_one` AND `_other` — one suffix alone proves nothing. */
+const pluralBases = new Set(
+  [...reference]
+    .filter((k) => PLURAL_SUFFIX.test(k))
+    .map((k) => k.replace(PLURAL_SUFFIX, ''))
+    .filter((base) => reference.has(`${base}_one`) && reference.has(`${base}_other`)),
+);
+
+/** `{ base, category }` when the key belongs to a declared family, else null. */
+const pluralMember = (key) => {
+  const match = PLURAL_SUFFIX.exec(key);
+  if (!match) return null;
+  const base = key.slice(0, -match[0].length);
+  return pluralBases.has(base) ? { base, category: match[1] } : null;
+};
+
+const nonPluralKeys = [...reference].filter((k) => !pluralMember(k));
+
+/** The exact key set this locale must carry: every plain key, plus its own plural categories. */
+const expectedKeys = (file) =>
+  new Set([...nonPluralKeys, ...[...pluralBases].flatMap((b) => pluralCategories(file).map((c) => `${b}_${c}`))]);
+
 let broken = false;
 
 for (const [file, keys] of keySets) {
-  if (file === REFERENCE) continue;
-  const missing = [...reference].filter((k) => !keys.has(k));
-  const extra = [...keys].filter((k) => !reference.has(k));
+  const expected = expectedKeys(file);
+  const missing = [...expected].filter((k) => !keys.has(k));
+  const extra = [...keys].filter((k) => !expected.has(k));
   if (missing.length || extra.length) {
     broken = true;
-    console.error(`✗ ${file}: ${missing.length} missing, ${extra.length} extra vs ${REFERENCE}`);
-    for (const k of missing) console.error(`    missing: ${k}`);
-    for (const k of extra) console.error(`    extra:   ${k}`);
+    const against = file === REFERENCE ? 'its own plural categories' : `expected set derived from ${REFERENCE}`;
+    console.error(`✗ ${file}: ${missing.length} missing, ${extra.length} extra vs ${against}`);
+    // Name the rule that demands it — "missing: items_many" alone reads like a typo in en.json.
+    const why = (k) => (pluralMember(k) ? ` (plural category '${pluralMember(k).category}' — required by ${file})` : '');
+    const notHere = (k) => (PLURAL_SUFFIX.test(k) ? ` (category not in ${file})` : '');
+    for (const k of missing) console.error(`    missing: ${k}${why(k)}`);
+    for (const k of extra) console.error(`    extra:   ${k}${notHere(k)}`);
   }
 }
 
 if (broken) {
   console.error(
-    '\nLocale parity broken (ADR-003): every key added to en.json must land in all locales in the same MR.',
+    '\nLocale parity broken (ADR-003): every key added to en.json must land in all locales in the same MR.' +
+      '\nA plural key is a FAMILY: each locale carries exactly the categories Intl.PluralRules gives it.',
   );
   process.exit(1);
 }
-console.log(`✓ locale parity holds across ${files.length} locales (${reference.size} keys each)`);
+console.log(
+  `✓ locale parity holds across ${files.length} locales ` +
+    `(${nonPluralKeys.length} keys + ${pluralBases.size} plural famil${pluralBases.size === 1 ? 'y' : 'ies'} each)`,
+);
 
 // ── Placeholder-parity gate ───────────────────────────────────────────────────────────
 // Key parity counts keys and the value gate below compares values TO ENGLISH, so a locale can hold
@@ -91,7 +160,8 @@ const flatten = (obj, prefix = '') =>
     return v !== null && typeof v === 'object' && !Array.isArray(v) ? flatten(v, path) : [[path, v]];
   });
 
-const enPairs = flatten(JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8')));
+const englishBundle = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8'));
+const enPairs = flatten(englishBundle);
 
 /**
  * Resolve as i18next does — NESTED path first, then the literal flat key.
@@ -104,6 +174,21 @@ const enPairs = flatten(JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'u
 const readValue = (obj, path) =>
   path.split('.').reduce((node, part) => (node !== null && typeof node === 'object' ? node[part] : undefined), obj) ??
   obj[path];
+
+/**
+ * The English value the two value gates below must judge a key against.
+ *
+ * For a plural category en.json does not have — `items_few` in `ru`, `items_two` in `ar` — that is
+ * the English `_other`. Without this, `readValue(en, 'items_few')` is `undefined` and BOTH value
+ * gates fall silent on exactly the keys #590 just made legal: an Arabic `_few` could drop
+ * `{{count}}`, or ship the English sentence verbatim, and the run would still be green.
+ */
+const englishValueFor = (key) => {
+  const direct = readValue(englishBundle, key);
+  if (direct !== undefined) return direct;
+  const member = pluralMember(key);
+  return member ? readValue(englishBundle, `${member.base}_other`) : undefined;
+};
 
 // Baselined when it was introduced, because its first run found 72 PRE-EXISTING mismatches. **That
 // baseline is now EMPTY**, so this is a zero-tolerance gate: any mismatch is new.
@@ -130,8 +215,10 @@ const placeholderMismatches = [];
 for (const file of files) {
   if (file === REFERENCE) continue;
   const bundle = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
-  for (const [key, enValue] of enPairs) {
-    const expected = placeholdersIn(enValue);
+  // Every key this locale is REQUIRED to carry, which for a plural family is its own categories —
+  // iterating `enPairs` alone would check `items_one`/`items_other` and skip `ar`'s other four.
+  for (const key of expectedKeys(file)) {
+    const expected = placeholdersIn(englishValueFor(key));
     if (expected.size === 0) continue;
     const actual = placeholdersIn(readValue(bundle, key));
     const dropped = [...expected].filter((p) => !actual.has(p));
@@ -212,7 +299,7 @@ function untranslatedKeys(file) {
     [...new Set(flatten(bundle).map(([path]) => path))]
       .filter((path) => {
         const value = readValue(bundle, path);
-        const english = readValue(englishValues, path);
+        const english = englishValueFor(path);
         return typeof value === 'string' && typeof english === 'string' && value === english && value.trim();
       })
       // Explicit comparator, and pinned to 'en': the result is written to a baseline file that gets
@@ -247,7 +334,7 @@ for (const [file, keys] of Object.entries(current)) {
     console.error(`✗ ${file}: ${added.length} key(s) carry the English value verbatim`);
     // readValue, not `englishValues[k]`: a nested key has no flat entry, so indexing printed
     // `undefined` for every one of them — a report that names the key but hides the string.
-    for (const k of added) console.error(`    untranslated: ${k} = ${JSON.stringify(readValue(englishValues, k))}`);
+    for (const k of added) console.error(`    untranslated: ${k} = ${JSON.stringify(englishValueFor(k))}`);
   }
 }
 

@@ -236,6 +236,38 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     );
   });
 
+  /**
+   * The CLIENT half of backend #325, and the reason it is only a second line of defence.
+   *
+   * `contentSchema.name` was `min(1)`, which counts `"   "` as three valid characters. So the
+   * editor accepted a whitespace-only translation name, `PUT /api/Products/{id}` stored it (200,
+   * measured), and the NEXT ordinary save deleted the whole row — description text included —
+   * because the payload builder filters on `e?.name?.trim()` and the handler full-replaces.
+   *
+   * The server now refuses it (backend #325), which is what actually closes the window: this rule
+   * cannot constrain a client that is not this editor. What it adds is the sentence on the field,
+   * in place of a 400 the admin would have to decode.
+   *
+   * Whitespace and not empty: `min(1)` already caught empty, so an empty-string case would pass
+   * before the change and prove nothing.
+   */
+  it('refuses a whitespace-only translation name, on the field (backend #325)', async () => {
+    const { container } = await renderEditor();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_tab_translations' }));
+    fireEvent.click(screen.getByRole('button', { name: /^English/ }));
+
+    const translationName = container.querySelector('input[name="content.0.name"]') as HTMLInputElement;
+    fireEvent.change(translationName, { target: { value: '   ' } });
+    fireEvent.blur(translationName);
+
+    expect(await screen.findByText('Name is required for this language')).toBeInTheDocument();
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary:1'));
+    expect(updateProduct).not.toHaveBeenCalled();
+  });
+
   // `variationSchema.name` is `min(1)` and this file rendered no message at all before S7, so the
   // form refused to save with nothing on screen anywhere.
   it('surfaces a blank variation name, which had no message at all', async () => {

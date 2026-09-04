@@ -351,6 +351,63 @@ describe('product editor — a save that changes nothing changes nothing', () =>
   });
 
   /**
+   * frontend #641 — A STORED TRANSLATION ROW WITH A BLANK NAME BLOCKED EVERY SAVE OF THAT ITEM.
+   *
+   * `contentSchema.name` is `min(1)`, and `flattenContent` seeded one form row per STORED
+   * translation, verbatim. So a product carrying `fr: { name: "", description: "Une pizza" }` made
+   * the resolver refuse `content.N.name` — `handleSubmit` never ran, and the admin's unrelated edit
+   * (a price, a photo) was lost on a field they never touched and did not write.
+   *
+   * The row is reachable through no client the editor controls: `productFormUtils.ts` has filtered
+   * blank names off the wire on both paths since #450, and backend #325 now refuses one at the API.
+   * It is a row an EARLIER client, or an import, already left in the database — which is exactly why
+   * the editor has to be able to open it. A rule that only refuses new bad rows leaves every
+   * existing one permanently unsavable.
+   *
+   * The repair is the product's OWN name, and it is deliberately not a deletion: every guest read
+   * resolves a name as `content[lang]?.name || content.en?.name || product.name`, so filling the
+   * blank with `product.name` changes NOTHING a guest sees while making the row valid. Pruning the
+   * row instead would have thrown away the description text, which is the one thing in it that
+   * carries information.
+   *
+   * Written as a save that touches NOTHING, like every test in this file: the point is that an
+   * unrelated edit is no longer blocked by a row the admin never saw.
+   */
+  describe('a stored translation row with a blank name (#641)', () => {
+    const withBlankFrenchName = {
+      ...fullyPopulated,
+      content: {
+        en: { name: NAME, description: DESCRIPTION },
+        fr: { name: '', description: 'Tomate, mozzarella, basilic' },
+      },
+    } as unknown as ProductDetails;
+
+    it('no longer blocks the save, and keeps the description it carried', async () => {
+      const payload = await renderAndSaveUntouched(withBlankFrenchName);
+
+      expect(payload.content).toEqual({
+        en: { name: NAME, description: DESCRIPTION },
+        // Repaired from the product's own name — the value every read site already falls back to.
+        fr: { name: NAME, description: 'Tomate, mozzarella, basilic' },
+      });
+    });
+
+    // A whitespace-only name is the shape backend #325 measured as reaching the database with a 200,
+    // and `min(1)` counts it as three valid characters — so it is the case a `=== ''` repair misses.
+    it('repairs a whitespace-only name too, not just an empty one', async () => {
+      const payload = await renderAndSaveUntouched({
+        ...fullyPopulated,
+        content: { en: { name: NAME, description: DESCRIPTION }, fr: { name: '   ', description: 'Une pizza' } },
+      } as unknown as ProductDetails);
+
+      expect(payload.content).toEqual({
+        en: { name: NAME, description: DESCRIPTION },
+        fr: { name: NAME, description: 'Une pizza' },
+      });
+    });
+  });
+
+  /**
    * The list this file is really about: values the PUT assigns unconditionally and the page shows
    * either nowhere at all (`displayOrder`) or only through a control a later slice may move.
    * Deleting an assertion here is only correct together with a backend change.

@@ -57,12 +57,45 @@ interface ContentEntry {
   description?: string;
 }
 
-/** `{ en: { name, description } }` → the flat rows `useFieldArray` renders. */
-export function flattenContent(content: ProductDetails['content']): ContentEntry[] {
+/**
+ * Absent, empty and whitespace-only are one state here. Restated rather than imported from
+ * `translations/translationSlots.ts`, which exports the identical predicate: that module is a
+ * component-folder module and this one is a `utils/` module every editor entry point already
+ * depends on — importing upward would invert the direction of that dependency for four characters
+ * of code.
+ */
+const isBlank = (value: string | null | undefined): boolean => (value ?? '').trim().length === 0;
+
+/**
+ * `{ en: { name, description } }` → the flat rows `useFieldArray` renders, WITH a blank stored name
+ * repaired from the item's own name (#641).
+ *
+ * A stored translation row whose name is blank used to make the item unsavable, permanently:
+ * `contentSchema.name` is `min(1)`, the rows are seeded verbatim, so the resolver refused
+ * `content.N.name` and `handleSubmit` never ran — losing an unrelated edit on a field the admin
+ * never touched and could not see. Refusing such a row at the door (frontend #450, backend #325)
+ * stops NEW ones; it does nothing for a row an earlier client or an import already left behind, and
+ * "the item can never be saved again" is not a state an editor may leave an admin in.
+ *
+ * THE REPAIR IS THE ITEM'S OWN NAME, and that choice is not arbitrary: every guest surface resolves
+ * a display name as `content[lang]?.name || content.en?.name || item.name` (`localizedContent.ts`,
+ * `mappers.ts`, `imageHelpers.ts`), so a blank row already renders as the item's own name TODAY.
+ * Writing that value into the field changes nothing a guest sees; it only makes the row expressible
+ * in a form whose schema requires a name.
+ *
+ * Not a deletion, deliberately — that was #641's option 2. Pruning the row would throw away its
+ * DESCRIPTION, which is the one part of a half-row that carries information the admin cannot
+ * reconstruct. The name is recoverable by definition (it is the item's); the description is not.
+ *
+ * `isBlank`, not `=== ''`: `min(1)` counts `"   "` as three valid characters, so whitespace-only is
+ * the spelling that reached the database with a 200 (backend #325) and it is the one a `=== ''`
+ * guard would miss.
+ */
+export function flattenContent(content: ProductDetails['content'], fallbackName = ''): ContentEntry[] {
   if (!content) return [];
   return Object.entries(content as Record<string, { name?: string; description?: string }>).map(([language, data]) => ({
     language,
-    name: data?.name ?? '',
+    name: isBlank(data?.name) ? fallbackName : (data?.name as string),
     description: data?.description ?? '',
   }));
 }
@@ -119,7 +152,7 @@ export function toBundleDefaults(product: ProductDetails) {
     isAvailable: product.isAvailable ?? true,
     isSpecial: product.isSpecial ?? false,
     type: 'menu' as const,
-    content: flattenContent(product.content),
+    content: flattenContent(product.content, product.name || ''),
     preparationTimeMinutes: product.preparationTimeMinutes || 0,
     displayOrder: product.displayOrder || 0,
     // Required by editMenuBundleSchema, so it has to be a form VALUE or validation fails and
@@ -163,7 +196,7 @@ export function toItemDefaults(product: ProductDetails) {
     categoryIds,
     primaryCategoryId: resolvePrimaryCategoryId(product, categoryIds),
     variations: product.variations || [],
-    content: flattenContent(product.content),
+    content: flattenContent(product.content, product.name || ''),
     preparationTimeMinutes: product.preparationTimeMinutes || 0,
     displayOrder: product.displayOrder || 0,
     suggestedSideItemIds: resolveSideItemIds(product),

@@ -73,3 +73,41 @@ Let locales drift; render the key name when missing. Rejected because rendering 
 
 ### Alternative C: Sentence-key pattern (`t("Add to cart")`)
 Use full English sentences as keys; missing translations fall back to the key (which IS the English text). Pro: easy fallback. Con: every typo in English requires touching every locale file; refactoring keys becomes a translation event. Rejected for refactor-friendliness.
+
+---
+
+## Amendment — 2026-09-04: plural keys are a FAMILY (#590)
+
+The parity rule above was implemented as a byte-identical key set across the bundles (`nl` joined in
+PR #126, so ten today, not nine). That made a **correct i18next plural impossible by construction**:
+i18next spells one counted sentence as a family of suffixed keys, and the categories a language has
+differ — `ar` six, `ru` four, `fr`/`es`/`it` three, `de`/`en`/`nl`/`tr` two, `zh` one. Every category
+`en.json` lacks was reported as `extra`; every `en` category a one-category language must not have was
+reported as `missing`. There is no baseline for key parity, so there was no escape hatch either.
+
+The cost was paid in **copy, not in CI time**: three merged PRs (#569, #582, #589) each independently
+rewrote a counted noun into a label plus a number — `🌐 10 languages` → `🌐 10`, `Add 3 ingredients` →
+`Add selected (3)`, `2 fields need attention` → `Fields to fix: 2` — and each recorded the rewrite as a
+deliberate deviation. Stilted in English; worse in the inflected languages the rule exists to protect.
+
+**Decision.** `scripts/check-locale-parity.mjs` validates a plural base as a family:
+
+1. A base is plural only when `en.json` carries **both** `base_one` and `base_other`. An ordinary key
+   that merely ends in a suffix (`discount_value_must_be_greater_than_zero`) is untouched.
+2. Each locale must carry **exactly** `new Intl.PluralRules(locale).resolvedOptions().pluralCategories`
+   for that base — no more, **and no less**. Same ICU data i18next uses to pick a suffix at runtime, so
+   the gate demands exactly the keys the renderer will look up, and no hand-written table can drift.
+3. Every non-family key keeps byte parity, a hard zero.
+4. Both value gates judge a category `en.json` does not have (`ar`'s `_few`) against the English
+   `_other`, so a plural form cannot drop an interpolation or ship the English sentence unnoticed.
+
+This is **net stricter**, which is the counter-intuitive part: before, nothing could stop a Russian
+bundle from having no plural handling at all, because the only shape the gate permitted was the one
+that cannot express plurals. It now *demands* `ru`'s `_few`/`_many` and `ar`'s `_two`.
+
+Two facts the issue got wrong, worth recording because both would have been baked into a hand-written
+table: CLDR gives **Turkish two** cardinal categories (`one`, `other`), not one; and it gives
+**`fr`/`es`/`it` a `_many`**, used for compact millions. Derive, do not tabulate.
+
+Fixtures live in `src/locales/localeUntranslatedGate.test.ts`, which runs the real script against
+temp-tree bundles.

@@ -89,6 +89,13 @@ Locales: `en`, `de`, `tr`, `it`, `ar`, `fr`, `nl`, `es`, `ru`, `zh` (nl added 20
 
 **Locale parity** is required: every key added to `en.json` must be added to all 9 other locales in the same MR. See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
 
+**Plurals are a key FAMILY, not a key** (#590). Write a counted sentence as `items_one` / `items_other` in
+`en.json` and give every locale exactly the categories `Intl.PluralRules` gives it — `ar` needs six
+(`_zero _one _two _few _many _other`), `ru` four, `fr`/`es`/`it` three, `de`/`en`/`nl`/`tr` two, `zh` one.
+`scripts/check-locale-parity.mjs` derives the required set per locale, so it fails on a missing category as
+well as on an invented one. Do NOT rewrite a counted noun as a label plus a number to make the gate quiet —
+that workaround shipped three times before the gate was fixed.
+
 ### Forms — Zod + react-hook-form
 
 Schema-first: define a Zod schema, derive the type with `z.infer`, wire to `react-hook-form` via `@hookform/resolvers/zod`. See [ADR-004](docs/adr/ADR-004-zod-form-validation.md).
@@ -168,7 +175,8 @@ Quote the relevant criteria from the sprint task / issue. Mark each:
 ### 4. i18n key audit (any UI string change)
 
 - List every i18n key added or modified.
-- Confirm parity: `en.json` ↔ `de.json` ↔ `tr.json` ↔ `it.json` ↔ `ar.json` ↔ `fr.json` ↔ `es.json` ↔ `ru.json` ↔ `zh.json`.
+- Confirm parity: `en.json` ↔ `de.json` ↔ `tr.json` ↔ `it.json` ↔ `ar.json` ↔ `fr.json` ↔ `nl.json` ↔ `es.json` ↔
+  `ru.json` ↔ `zh.json`. For a plural key, parity is over the FAMILY: each locale carries its own CLDR categories.
 - For RTL locales (`ar`), confirm any layout changes still work (e.g. flex-direction in mirrored components).
 
 ### 5. Existing references

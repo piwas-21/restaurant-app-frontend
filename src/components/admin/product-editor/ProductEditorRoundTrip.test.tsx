@@ -27,7 +27,10 @@ jest.mock('@/services/menuService', () => ({
     data: { id, name: id === 'side-1' ? 'Garlic bread' : id, description: '' },
   })),
 }));
-jest.mock('@/services/menuBundleService', () => ({ createMenuBundle: jest.fn(), updateMenuBundle: jest.fn() }));
+jest.mock('@/services/menuBundleService', () => ({
+  createMenuBundle: jest.fn(),
+  updateMenuBundle: jest.fn(async () => ({ success: true })),
+}));
 jest.mock('@/services/globalIngredientService', () => ({
   createGlobalIngredient: jest.fn(),
   searchGlobalIngredients: jest.fn(async () => ({ success: true, data: [] })),
@@ -45,6 +48,7 @@ jest.mock('@/services/categoryService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
+import { updateMenuBundle } from '@/services/menuBundleService';
 import { createGlobalIngredient } from '@/services/globalIngredientService';
 
 /**
@@ -626,5 +630,60 @@ describe('the completeness meter reads the form and never writes to it', () => {
     // allergens. This one fails if it does not send them.
     const payload = await renderAndSaveUntouched(fullyPopulated);
     expect(payload.allergens).toEqual(['gluten', 'milk']);
+  });
+});
+
+/**
+ * The same question for a BUNDLE, and it is a different code path end to end: a different form
+ * schema (`baseMenuBundleSchema`), a different defaults builder (`toBundleDefaults`), a different
+ * payload builder (`toMenuBundlePayload`) and a different service (`updateMenuBundle`).
+ *
+ * It is worth its own case because the item path proves nothing about it and the failure is
+ * silent: zod strips keys the schema does not declare, so a bundle form that carries allergens
+ * outside the schema sends `[]` — which, once the server reads the field (backend #478), WIPES a
+ * labelled combo on a save that never mentioned allergens. MC FOOD has 45 of them.
+ */
+describe('bundle editor — an untouched save returns the allergens it loaded', () => {
+  const LABELLED_BUNDLE = {
+    id: PRODUCT_ID,
+    name: 'Menu Kebab',
+    description: 'combo',
+    basePrice: 12,
+    type: 'menu',
+    isActive: true,
+    isAvailable: true,
+    isSpecial: false,
+    preparationTimeMinutes: 0,
+    displayOrder: 0,
+    content: { en: { name: 'Menu Kebab', description: 'combo' } },
+    allergens: ['gluten', 'sesame'],
+    menuDefinition: { isAlwaysAvailable: true, sections: [] },
+  } as unknown as ProductDetails;
+
+  const saveBundleUntouched = async (product: ProductDetails) => {
+    const { container } = render(
+      <ProductEditorPage product={product} isBundle mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
+    );
+    await act(async () => {});
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+
+    return (updateMenuBundle as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+  };
+
+  it('sends the STORED labels, not an empty list', async () => {
+    // THE assertion. This is the link `toBundleDefaults` and the schema exist to serve, and the
+    // only one that observes the whole chain rather than a stage of it.
+    expect((await saveBundleUntouched(LABELLED_BUNDLE)).allergens).toEqual(['gluten', 'sesame']);
+  });
+
+  it('sends an empty list for an unlabelled combo, rather than dropping the key', async () => {
+    // The control: the assertion above passes vacuously if the payload simply always carries
+    // whatever it was given. This one fails if the key is dropped — and a dropped key is a
+    // DIFFERENT instruction to the server ("leave alone") than an empty one ("clear").
+    const unlabelled = { ...LABELLED_BUNDLE, allergens: [] } as unknown as ProductDetails;
+
+    expect((await saveBundleUntouched(unlabelled)).allergens).toEqual([]);
   });
 });

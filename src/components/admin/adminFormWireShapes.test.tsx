@@ -254,7 +254,11 @@ describe("#642 — Zod schemas against the API's null", () => {
    * What keeps the form safe is therefore the SEEDING, not the schema, and that is what this pins.
    */
   describe('the boundary: allergens are coalesced at the seed, not accepted as null', () => {
-    const wireProduct = { id: 'p1', name: 'Margherita', allergens: null } as unknown as ProductDetails;
+    // No `as unknown as` on the allergens field any more: `ProductDetails.allergens` is now
+    // `string[] | null`, which is what the wire really sends. The remaining `Partial` cast is about
+    // the twenty fields this test does not care about, not about the one it is testing — a cast that
+    // hid the null would have silenced exactly the mismatch this file exists to catch.
+    const wireProduct = { id: 'p1', name: 'Margherita', allergens: null } as Partial<ProductDetails> as ProductDetails;
 
     it('an item seeded from a null allergen list carries an empty array, never null', () => {
       expect(toItemDefaults(wireProduct).allergens).toEqual([]);

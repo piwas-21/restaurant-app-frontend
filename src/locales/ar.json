@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "لا يزال على Stripe التحقق من نشاطك التجاري.",
   "payments_tab_awaiting_hint": "أكمل النموذج في لوحة Stripe الخاصة بك وسيُفعَّل الدفع بالبطاقة تلقائيًا. حتى ذلك الحين مطعمك يعمل بالكامل ويقبل النقد كالمعتاد.",
   "payments_tab_requirements_due": "بقي {{count}} من البيانات لتعبئتها في Stripe.",
+  "payments_tab_commission_rate": "عمولة Sofra: {{rate}}",
   "admin_api_tokens_title": "رموز واجهة البرمجة",
   "api_tokens_subtitle": "بيانات اعتماد باسم محدّد لوكيل أو نص برمجي. يحمل كل رمز الصلاحيات التي تمنحها فقط وينتهي في التاريخ الذي تختاره.",
   "api_tokens_create": "إنشاء رمز",

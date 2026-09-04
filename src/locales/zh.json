@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe 还需要核验你的商户信息。",
   "payments_tab_awaiting_hint": "在你的 Stripe 后台填完表格，刷卡付款就会自动开启。在那之前你的餐厅完全在线，照常收现金。",
   "payments_tab_requirements_due": "Stripe 上还有 {{count}} 项资料待填写。",
+  "payments_tab_commission_rate": "Sofra 佣金：{{rate}}",
   "admin_api_tokens_title": "API 令牌",
   "api_tokens_subtitle": "为代理或脚本创建的具名凭证。每个令牌仅拥有你授予的权限，并在你选择的日期到期。",
   "api_tokens_create": "创建令牌",

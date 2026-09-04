@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe muss Ihr Unternehmen noch überprüfen.",
   "payments_tab_awaiting_hint": "Füllen Sie das Formular in Ihrem Stripe-Dashboard aus, dann schaltet sich die Kartenzahlung von selbst frei. Bis dahin ist Ihr Restaurant vollständig online und nimmt wie gewohnt Bargeld an.",
   "payments_tab_requirements_due": "{{count}} Angaben fehlen noch bei Stripe.",
+  "payments_tab_commission_rate": "Sofra-Provision: {{rate}}",
   "admin_api_tokens_title": "API-Token",
   "api_tokens_subtitle": "Benannte Zugangsdaten für einen Agenten oder ein Skript. Jedes Token trägt nur die erteilten Berechtigungen und läuft am gewählten Datum ab.",
   "api_tokens_create": "Token erstellen",

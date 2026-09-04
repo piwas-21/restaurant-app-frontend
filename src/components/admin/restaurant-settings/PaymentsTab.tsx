@@ -155,6 +155,18 @@ export default function PaymentsTab() {
         </p>
       )}
 
+      {/* `commissionBps` is OPTIONAL (backend ships it in a separate change) and defaults to 0.
+          Absent and 0 both mean "no commission" and must render identically — nothing at all —
+          so the guard checks the type before the value: `undefined > 0` is already `false`, but
+          spelling out `typeof … === 'number'` is what keeps that true on purpose, not by luck. */}
+      {typeof onboarding.commissionBps === 'number' && onboarding.commissionBps > 0 && (
+        <p className={styles.commission}>
+          {t('payments_tab_commission_rate', 'Sofra commission: {{rate}}', {
+            rate: `${(onboarding.commissionBps / 100).toFixed(2)}%`,
+          })}
+        </p>
+      )}
+
       <a className={styles.link} href={onboarding.dashboardUrl} target="_blank" rel="noopener noreferrer">
         {t('payments_tab_dashboard_link', 'Open your Stripe dashboard')}
       </a>

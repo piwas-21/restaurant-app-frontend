@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe doit encore vérifier votre entreprise.",
   "payments_tab_awaiting_hint": "Terminez le formulaire dans votre tableau de bord Stripe et le paiement par carte s'active tout seul. D'ici là, votre restaurant est pleinement en ligne et encaisse les espèces comme d'habitude.",
   "payments_tab_requirements_due": "{{count}} informations restent à compléter sur Stripe.",
+  "payments_tab_commission_rate": "Commission Sofra : {{rate}}",
   "admin_api_tokens_title": "Jetons API",
   "api_tokens_subtitle": "Identifiants nommés pour un agent ou un script. Chaque jeton ne porte que les portées accordées et expire à la date choisie.",
   "api_tokens_create": "Créer un jeton",

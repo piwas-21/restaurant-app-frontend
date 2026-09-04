@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe still needs to verify your business.",
   "payments_tab_awaiting_hint": "Finish the form in your Stripe dashboard and card payment turns on by itself. Until then your restaurant is fully live and taking cash as usual.",
   "payments_tab_requirements_due": "{{count}} details still to fill in on Stripe.",
+  "payments_tab_commission_rate": "Sofra commission: {{rate}}",
   "admin_api_tokens_title": "API Tokens",
   "api_tokens_subtitle": "Named credentials for an agent or a script. Each token carries only the scopes you grant and expires on the date you choose.",
   "api_tokens_create": "Create token",

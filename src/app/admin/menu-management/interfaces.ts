@@ -81,7 +81,21 @@ export interface ProductDetails {
   kitchenType?: KitchenType;
   ingredients: string[]; // Legacy field - kept for backward compatibility
   detailedIngredients?: ProductIngredient[];
-  allergens: string[];
+  /**
+   * `string[] | null`, not `string[]` (#642). `ProductDto.Allergens` is `List<string>?` and the API
+   * sets no `DefaultIgnoreCondition`, so an unlabelled dish really can arrive as an explicit `null`.
+   * Declaring it non-nullable made the type disagree with the wire, and a fixture written from the
+   * wire then needed an `as unknown as ProductDetails` to compile — a cast that silences the very
+   * mismatch this audit is about, in the file whose subject is wire shapes.
+   *
+   * The SCHEMA deliberately keeps `.optional()` and does NOT accept the null (see
+   * `adminFormWireShapes.test.tsx`): the product PUT assigns this column unconditionally, so a null
+   * normalised to `[]` would silently wipe a dish's allergen labelling, and the menu filter reads an
+   * unlabelled dish as free of everything. What keeps the form safe is the SEEDING —
+   * `toItemDefaults`/`toBundleDefaults` coalesce to `[]` — and this type is what makes that coalesce
+   * visibly necessary instead of looking like defensive noise.
+   */
+  allergens: string[] | null;
   categories: ProductCategory[];
   /**
    * Mirrors backend `ProductDto.PrimaryCategory` — an OBJECT, projected from whichever

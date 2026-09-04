@@ -5,17 +5,44 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { GroupDiscountDto, DiscountType } from '@/types/userGroupTypes';
+import { emptyAsNull, optionalMoney, requiredMoney } from './emptyAsNull';
+import MoneyField from './MoneyField';
 
-const discountSchema = z.object({
+/**
+ * #642. The three ways an admin can say "no minimum" / "no cap", and the one that used to store 0.
+ *
+ * `GroupDiscountDto.MinimumOrderAmount` / `.MaximumDiscountAmount` are `decimal?` on the entity, on
+ * the DTO and in the 1:1 `UserGroupMapper` projection, so an unset cap is an explicit `null` on the
+ * wire — and this modal seeds the form from that response VERBATIM. `.optional()` did not refuse
+ * that null the way #638's string fields did; it did something quieter and worse, because
+ * `z.coerce.number().optional()` short-circuits on `undefined` alone and `Number(null)` is 0.
+ *
+ * `.nullish()` closes the null. It does NOT close `''`, which is what a cleared number input
+ * produces. Both are closed here — the table and the measurements are in `emptyAsNull.ts`.
+ *
+ * What 0 costs: `MembershipQrService:188` applies the cap on `HasValue` alone, with no `> 0` guard
+ * (unlike `CustomerDiscountService:128`, which has one). A group discount whose maximum became 0
+ * discounts nothing, silently, after a save that touched something else entirely.
+ */
+export const discountSchema = z.object({
   name: z.string().min(1, { message: 'Discount name is required' }),
   type: z.nativeEnum(DiscountType),
-  value: z.coerce.number().min(0, { message: 'Value must be positive' }),
-  minimumOrderAmount: z.coerce.number().min(0).optional(),
-  maximumDiscountAmount: z.coerce.number().min(0).optional(),
+  // A blank box is a refusal here, not a 0 — see `requiredMoney`. Clearing this used to save a
+  // discount of 0, which is the same "discounts nothing" outcome as a cap of 0.
+  value: requiredMoney('Value must be positive'),
+  minimumOrderAmount: optionalMoney(),
+  maximumDiscountAmount: optionalMoney(),
   isActive: z.boolean(),
 });
 
-type DiscountFormValues = z.infer<typeof discountSchema>;
+/**
+ * TWO types, because `requiredMoney`/`optionalMoney` preprocess: the form HOLDS what the inputs
+ * produce (a string from a number box, `null` from `emptyAsNull`), and the submit handler RECEIVES
+ * what the schema produced. `z.infer` is the output alone, so using it for both is what made
+ * `useForm` and `zodResolver` disagree once a preprocess existed.
+ */
+type DiscountFormInput = z.input<typeof discountSchema>;
+type DiscountFormValues = z.output<typeof discountSchema>;
 
 interface DiscountModalProps {
   isOpen: boolean;
@@ -34,7 +61,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<DiscountFormValues>({
+  } = useForm<DiscountFormInput, unknown, DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
       type: DiscountType.Percentage,
@@ -59,8 +86,12 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
           name: '',
           type: DiscountType.Percentage,
           value: 0,
-          minimumOrderAmount: 0,
-          maximumDiscountAmount: 0,
+          // `null`, not 0: a NEW discount has no minimum and no cap, and 0 is a different
+          // statement — `MembershipQrService` reads a cap of 0 as "discount nothing". The create
+          // path seeded 0 for both, so every discount created through this modal shipped with a
+          // cap that silently zeroed it.
+          minimumOrderAmount: null,
+          maximumDiscountAmount: null,
           isActive: true,
         });
       }
@@ -102,18 +133,18 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit
           </div>
 
           <div className={styles.row}>
-            <div className={styles.formGroup}>
-              <label htmlFor="minimumOrderAmount">{t('min_order_amount')}</label>
-              <input type="number" step="0.01" id="minimumOrderAmount" {...register('minimumOrderAmount')} />
-              {errors.minimumOrderAmount && <p className={styles.errorMessage}>{errors.minimumOrderAmount.message}</p>}
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="maximumDiscountAmount">{t('max_discount_amount')}</label>
-              <input type="number" step="0.01" id="maximumDiscountAmount" {...register('maximumDiscountAmount')} />
-              {errors.maximumDiscountAmount && (
-                <p className={styles.errorMessage}>{errors.maximumDiscountAmount.message}</p>
-              )}
-            </div>
+            <MoneyField
+              id="minimumOrderAmount"
+              label={t('min_order_amount')}
+              registration={register('minimumOrderAmount', emptyAsNull)}
+              error={errors.minimumOrderAmount?.message}
+            />
+            <MoneyField
+              id="maximumDiscountAmount"
+              label={t('max_discount_amount')}
+              registration={register('maximumDiscountAmount', emptyAsNull)}
+              error={errors.maximumDiscountAmount?.message}
+            />
           </div>
 
           <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>

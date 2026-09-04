@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render, fireEvent, screen, waitFor } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { SIDE_ITEM_SEARCH_DEBOUNCE_MS } from '@/hooks/admin/useSideItemSearch';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
@@ -387,6 +388,44 @@ describe('product editor — a save that changes nothing changes nothing', () =>
    * nor the PUT.
    */
   describe('the side-item picker', () => {
+    /**
+     * FAKE TIMERS, scoped to this block (#717).
+     *
+     * These two cases were RED ON `develop` ITSELF under machine load — 2 failed / 22 passed on a
+     * clean detached worktree at `origin/develop` @ 7002dd36 with nobody's diff, at 5198ms and
+     * 7499ms — and because the pre-push hook runs Jest, a test that is red on the integration
+     * branch blocks EVERY agent's push while presenting as "your diff broke something".
+     *
+     * The cause is a race, not an assertion: the search debounce is 300ms of REAL time and
+     * `findBy*` polls a real clock with a 1000ms default. The comment this replaces said "the poll
+     * outlasts it", which is true only on an idle machine — under load the render lands after the
+     * poll gives up, and the element appears milliseconds later. The failing member of the pair
+     * alternated between runs, which is the signature of a race.
+     *
+     * It also rejected fake timers on the ground that "the whole file" would need them. That is not
+     * so, and this is the correction: `useFakeTimers` in a `beforeEach` for THIS block only leaves
+     * the other 22 cases on the real clock, untouched.
+     *
+     * What is deliberately NOT done: the global timeout is unchanged, no assertion is weakened and
+     * no case is removed. Those would turn this green and hide every future race of the same shape
+     * in a file whose whole purpose is the round-trip oracle. The oracle here is still the FIXTURE
+     * — `fullyPopulated.suggestedSideItems` and the mocked search's id — and both cases still fail
+     * if the editor stops sending `suggestedSideItemIds`.
+     */
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => {
+      // Drain before switching back, or a pending debounce fires into a torn-down tree.
+      act(() => jest.runOnlyPendingTimers());
+      jest.useRealTimers();
+    });
+
+    /**
+     * Wait out the search debounce on the FAKE clock, by the component's own exported constant
+     * rather than by a number retyped here — a literal 300 would go stale silently the day the
+     * debounce changes, which is how a test starts asserting a duration nobody uses.
+     */
+    const settleSearchDebounce = () => act(() => jest.advanceTimersByTime(SIDE_ITEM_SEARCH_DEBOUNCE_MS));
+
     const openPicker = async (container: HTMLElement) => {
       const open = await screen.findByRole('button', { name: 'side_items_picker_open' });
       fireEvent.click(open);
@@ -413,42 +452,67 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       return view.container;
     };
 
-    it('a side item added in the picker reaches the PUT, alongside the one already there', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+    /**
+     * A LOCAL timeout, and why these two cases carry one when no other case in the file does.
+     *
+     * The fake clock above removes the RACE — the debounce no longer competes with `findBy*`'s
+     * poll — but it cannot make these two cases cheap. They are the heaviest in the file: each
+     * renders the whole editor, opens a modal picker, and resolves one `getProductById` per
+     * suggested id before it can assert. Measured with the fake clock in place and 24 competing
+     * Jest workers (about three per core), the FULL file gives 22 passed and exactly these 2 failed
+     * at 11118ms and 10433ms — a plain "Exceeded timeout of 5000 ms", not a missing element. The
+     * other 22 cases pass under the same load, so this is a per-case BUDGET, not starvation of the
+     * suite.
+     *
+     * It is deliberately not `jest.setTimeout` and not a config change: a global number would
+     * silently buy every future test the same 15 seconds and hide the next race in this file. The
+     * cost of this one is local and stated — a genuine hang in these two cases takes 15s to report
+     * instead of 5s.
+     */
+    const SLOW_PICKER_CASE_TIMEOUT_MS = 15_000;
 
-      // Real timers, and `findBy…` rather than `advanceTimersByTime`: the search debounce is 300ms
-      // and the poll outlasts it. Fake timers here would have to be faked for the whole file, which
-      // every other test in it is written without.
-      fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
-      fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item added in the picker reaches the PUT, alongside the one already there',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
+        settleSearchDebounce();
+        fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
-      // the added id is the one the mocked search returned. Neither number is computed here.
-      expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
-    });
+        const payload = await submitAndRead(container);
 
-    it('a side item removed in the picker is absent from the PUT', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+        // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
+        // the added id is the one the mocked search returned. Neither number is computed here.
+        expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
 
-      // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
-      // click is genuinely an untick and not a first selection.
-      const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
-      expect(garlic).toBeChecked();
-      fireEvent.click(garlic);
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item removed in the picker is absent from the PUT',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
+        // click is genuinely an untick and not a first selection.
+        const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
+        expect(garlic).toBeChecked();
+        fireEvent.click(garlic);
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      expect(payload.suggestedSideItemIds).toEqual([]);
-      // …and the save is otherwise untouched, so the removal is the only thing that moved.
-      expect(payload.displayOrder).toBe(7);
-      expect(payload.availableOrderTypes).toBe(3);
-    });
+        const payload = await submitAndRead(container);
+
+        expect(payload.suggestedSideItemIds).toEqual([]);
+        // …and the save is otherwise untouched, so the removal is the only thing that moved.
+        expect(payload.displayOrder).toBe(7);
+        expect(payload.availableOrderTypes).toBe(3);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
   });
 
   /**

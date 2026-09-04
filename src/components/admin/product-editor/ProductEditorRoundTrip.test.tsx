@@ -452,40 +452,67 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       return view.container;
     };
 
-    it('a side item added in the picker reaches the PUT, alongside the one already there', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+    /**
+     * A LOCAL timeout, and why these two cases carry one when no other case in the file does.
+     *
+     * The fake clock above removes the RACE — the debounce no longer competes with `findBy*`'s
+     * poll — but it cannot make these two cases cheap. They are the heaviest in the file: each
+     * renders the whole editor, opens a modal picker, and resolves one `getProductById` per
+     * suggested id before it can assert. Measured with the fake clock in place and 24 competing
+     * Jest workers (about three per core), the FULL file gives 22 passed and exactly these 2 failed
+     * at 11118ms and 10433ms — a plain "Exceeded timeout of 5000 ms", not a missing element. The
+     * other 22 cases pass under the same load, so this is a per-case BUDGET, not starvation of the
+     * suite.
+     *
+     * It is deliberately not `jest.setTimeout` and not a config change: a global number would
+     * silently buy every future test the same 15 seconds and hide the next race in this file. The
+     * cost of this one is local and stated — a genuine hang in these two cases takes 15s to report
+     * instead of 5s.
+     */
+    const SLOW_PICKER_CASE_TIMEOUT_MS = 15_000;
 
-      fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
-      settleSearchDebounce();
-      fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item added in the picker reaches the PUT, alongside the one already there',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
+        settleSearchDebounce();
+        fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
-      // the added id is the one the mocked search returned. Neither number is computed here.
-      expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
-    });
+        const payload = await submitAndRead(container);
 
-    it('a side item removed in the picker is absent from the PUT', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+        // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
+        // the added id is the one the mocked search returned. Neither number is computed here.
+        expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
 
-      // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
-      // click is genuinely an untick and not a first selection.
-      const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
-      expect(garlic).toBeChecked();
-      fireEvent.click(garlic);
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item removed in the picker is absent from the PUT',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
+        // click is genuinely an untick and not a first selection.
+        const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
+        expect(garlic).toBeChecked();
+        fireEvent.click(garlic);
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      expect(payload.suggestedSideItemIds).toEqual([]);
-      // …and the save is otherwise untouched, so the removal is the only thing that moved.
-      expect(payload.displayOrder).toBe(7);
-      expect(payload.availableOrderTypes).toBe(3);
-    });
+        const payload = await submitAndRead(container);
+
+        expect(payload.suggestedSideItemIds).toEqual([]);
+        // …and the save is otherwise untouched, so the removal is the only thing that moved.
+        expect(payload.displayOrder).toBe(7);
+        expect(payload.availableOrderTypes).toBe(3);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
   });
 
   /**

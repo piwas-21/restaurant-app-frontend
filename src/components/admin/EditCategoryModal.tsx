@@ -11,9 +11,21 @@ import { useEditCategorySave } from '@/hooks/admin/useEditCategorySave';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-const editCategorySchema = z.object({
+export const editCategorySchema = z.object({
   name: z.string().min(1, { message: 'Category name is required' }),
-  description: z.string().optional(),
+  /**
+   * An optional text column as the API really sends it: **absent, or `null`** (#642).
+   *
+   * `CategoryDto.Description` is `string?` and the API sets no `DefaultIgnoreCondition`
+   * (`ApiResponse.cs:26`), so a category with no description arrives as an explicit `null`.
+   * `z.string().optional()` accepts `undefined` and REFUSES `null` — the #638 defect exactly.
+   *
+   * This form is safe today only because its `reset` coalesces (`category.description || ''`). The
+   * schema is the contract with the SERVER'S JSON, not with the form's own defaults, so it states the
+   * wire's shape: removing that coalesce must not be able to silently reintroduce a save-blocking
+   * refusal on a field the admin never touched.
+   */
+  description: z.string().nullish(),
   imageFile: z
     .any()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)

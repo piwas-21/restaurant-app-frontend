@@ -6,21 +6,40 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import modalStyles from './UserGroupModal.module.css';
 import { UserGroupDto, DiscountType } from '@/types/userGroupTypes';
+import { emptyAsNull } from './emptyAsNull';
 
-const userGroupSchema = z
+/**
+ * #642. `UserGroupDto.ValidFrom` / `.ValidUntil` are `DateTime?` and are serialised as an explicit
+ * `null` — the audit in #642 filed all three of these as "safe: non-nullable `= string.Empty`",
+ * which is true of `Description` alone. What keeps the two dates safe today is the TERNARY in the
+ * `reset` below, not the DTO; `.nullish()` makes the schema itself state the wire's shape, so
+ * removing that coalesce cannot silently reintroduce #638.
+ *
+ * `Description` really is non-nullable on the wire (entity, DTO and mapper all checked) and is
+ * `.nullish()` here anyway: the three fields are seeded by one `reset` from one response, and a
+ * reader who has to re-derive which of them may be null is the reader who gets it wrong.
+ */
+const optionalWireText = () => z.string().nullish();
+
+export const userGroupSchema = z
   .object({
     name: z.string().min(1, { message: 'Group name is required' }),
-    description: z.string().optional(),
-    validFrom: z.string().optional(),
-    validUntil: z.string().optional(),
+    description: optionalWireText(),
+    validFrom: optionalWireText(),
+    validUntil: optionalWireText(),
     isActive: z.boolean(),
     // Initial discount fields (only used for creation)
     hasInitialDiscount: z.boolean().optional(),
     discountName: z.string().optional(),
     discountType: z.nativeEnum(DiscountType).optional(),
     discountValue: z.coerce.number().min(0).optional(),
-    minOrderAmount: z.coerce.number().min(0).optional(),
-    maxDiscountAmount: z.coerce.number().min(0).optional(),
+    // `.nullish()` and an `emptyAsNull` input, exactly as in `DiscountModal` — these two build the
+    // SAME `GroupDiscount` through `initialDiscount`. They are seeded from no response, so the
+    // null route cannot reach them; the EMPTY-INPUT route can, and `Number('')` is 0. A cap of 0 is
+    // read by `MembershipQrService:188` as "discount nothing", so an admin who ticks "add an
+    // initial discount" and leaves the cap blank creates a discount that never discounts.
+    minOrderAmount: z.coerce.number().min(0).nullish(),
+    maxDiscountAmount: z.coerce.number().min(0).nullish(),
   })
   .refine(
     (data) => {
@@ -194,11 +213,21 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({ isOpen, onClose, onSubm
                   <div className={styles.row}>
                     <div className={styles.formGroup}>
                       <label htmlFor="minOrderAmount">{t('min_order_amount')}</label>
-                      <input type="number" step="0.01" id="minOrderAmount" {...register('minOrderAmount')} />
+                      <input
+                        type="number"
+                        step="0.01"
+                        id="minOrderAmount"
+                        {...register('minOrderAmount', emptyAsNull)}
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label htmlFor="maxDiscountAmount">{t('max_discount_amount')}</label>
-                      <input type="number" step="0.01" id="maxDiscountAmount" {...register('maxDiscountAmount')} />
+                      <input
+                        type="number"
+                        step="0.01"
+                        id="maxDiscountAmount"
+                        {...register('maxDiscountAmount', emptyAsNull)}
+                      />
                     </div>
                   </div>
                 </div>

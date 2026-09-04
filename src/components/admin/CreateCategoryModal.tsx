@@ -15,9 +15,21 @@ import {
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-const createCategorySchema = z.object({
+export const createCategorySchema = z.object({
   name: z.string().min(1, { message: 'Category name is required' }),
-  description: z.string().optional(),
+  /**
+   * An optional text column as the API really sends it: **absent, or `null`** (#642).
+   *
+   * `CategoryDto.Description` is `string?` and the API sets no `DefaultIgnoreCondition`
+   * (`ApiResponse.cs:26`), so a category with no description arrives as an explicit `null`.
+   * `z.string().optional()` accepts `undefined` and REFUSES `null` — the #638 defect exactly.
+   *
+   * This form is a CREATE form and is seeded from no response at all, so the refusal cannot reach
+   * it today. It states the wire's shape anyway, because the sibling `EditCategoryModal` — which IS
+   * seeded from a response, and is safe only through a `|| ''` coalesce — must not be able to drift
+   * away from it. Two schemas over one column that disagree about null is how #638 survived review.
+   */
+  description: z.string().nullish(),
   imageFile: z
     .any()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)

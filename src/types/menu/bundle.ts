@@ -90,6 +90,16 @@ export interface MenuBundleItem {
   preparationTimeMinutes?: number;
   displayOrder: number;
   /**
+   * The bundle's own allergen labelling, normalised to an array by the mapper.
+   *
+   * Optional for the same reason every other §9.2-era field here is: against a backend predating
+   * backend #477 the bundle payload carries none. Note what absence MEANS to `useMenuFilters` —
+   * an item with no tokens survives every "No …" chip, so an unlabelled bundle is shown to a guest
+   * excluding gluten. That is permissive-on-missing-data like its neighbours, and it is the reason
+   * completeness of the LABELLING is a safety property rather than a display one.
+   */
+  allergens?: string[];
+  /**
    * Server-resolved per-order-type verdict for the channel the guest is browsing on
    * (ORDER-TYPE-AVAILABILITY-PLAN §9.2). Judges the BUNDLE's own channel set — its stored mask, else
    * its primary category's — not its options': a combo whose optional side is takeaway-only is still

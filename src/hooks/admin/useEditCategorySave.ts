@@ -19,7 +19,8 @@ export interface EditableCategory {
 
 export interface EditCategoryValues {
   name: string;
-  description?: string;
+  /** `string | null` for the reason `CategoryData.description` is — the wire sends both (#642). */
+  description?: string | null;
   isActive: boolean;
   displayOrder: number;
 }

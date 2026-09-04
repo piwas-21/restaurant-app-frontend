@@ -33,4 +33,12 @@ export interface PaymentsOnboardingDto {
    * they can act on them.
    */
   requirementsDue: number | null;
+  /**
+   * The Sofra commission on this restaurant's online payments, in basis points (100 = 1.00%).
+   * OPTIONAL: the backend ships this field in a separate change that may merge after this one,
+   * so for a period it will simply be absent from the response. Absent and `0` both mean "no
+   * commission" and must render identically — nothing at all. The backend is the source of
+   * truth for the value; this bundle only formats what it is told.
+   */
+  commissionBps?: number;
 }

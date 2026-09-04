@@ -25,9 +25,14 @@ export { SECTION_IDS } from './editorSectionTypes';
 
 /**
  * A bundle is NOT re-grouped by S2, and that is a decision rather than an omission: §4's item
- * sections are built from controls `MenuBundleDto` does not carry (no categories, allergens,
- * kitchen type, variations or ingredients), so a combo keeps the single `BundlePanel` its data
- * supports plus the order-type mask. §4's "Composition" variant is a later slice.
+ * sections are built from controls `MenuBundleDto` does not carry (no categories, kitchen type,
+ * variations or ingredients), so a combo keeps the single `BundlePanel` its data supports plus the
+ * order-type mask. §4's "Composition" variant is a later slice.
+ *
+ * `allergens` used to be on that list and no longer is — backend #477 added it to `MenuBundleDto`
+ * and #702 carries it through the guest chain. It is still absent from this editor, but that is now
+ * a GAP rather than a data limit: the write path is the missing half (backend #478), and adding the
+ * control before it exists would offer an admin a field whose every save is discarded.
  *
  * S6 adds the third: **Media, present and empty** (D11 / D5). See the section itself for why an
  * empty card beats a missing one, and why its sentence is not the approved screen's.

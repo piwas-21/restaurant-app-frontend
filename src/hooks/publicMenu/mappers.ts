@@ -147,6 +147,10 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
     isSpecial: bundle.isSpecial || false,
     preparationTimeMinutes: bundle.preparationTimeMinutes,
     displayOrder: bundle.displayOrder || 0,
+    // Same normalisation as a product's, one line above in this file. A bundle used to carry none
+    // at all, which the menu filter reads as "free of everything" rather than "unknown" — so a
+    // gluten combo was listed under "No gluten" (#702).
+    allergens: Array.isArray(bundle.allergens) ? bundle.allergens : [],
     // Same normaliser as a product's, so a bundle's verdict cannot drift from an item's: every
     // failure mode resolves permissively (§9.2).
     availability: mapAvailability(bundle.availability),

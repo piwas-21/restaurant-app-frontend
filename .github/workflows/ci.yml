@@ -93,6 +93,11 @@ jobs:
       # perfectly consistent and passes it. This reads the CALLSITES instead — the only way to see
       # a `t()` that renders its own key to a user (#417).
       - run: node scripts/check-t-keys.mjs
+      # The third question, and the one neither of the two above can ask. Parity compares the
+      # bundles to EACH OTHER and check-t-keys reads callsites for a key that is MISSING — neither
+      # notices a key that is present, consistent across all ten, and read by nothing. 19.6% of
+      # en.json was that (#439).
+      - run: node scripts/check-locale-orphans.mjs
 
   baseline_dimensions:
     # Screenshot baselines must be exactly their viewport's width. A full-page capture
@@ -185,7 +190,18 @@ jobs:
   npm_audit:
     name: npm audit (high+)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # 15, not the house default of 5. `npm audit` posts the whole dependency tree to the registry's
+    # advisory endpoint, and that call's latency is not ours: measured on this repo 2026-09-03/04 it
+    # ran 25s, 27s, 3m06s, and then blew past 5m on four consecutive runs (33824320407, 33855710886,
+    # 33856949144, 33866275301 — including two on `develop`). Every one of those reported the job as
+    # **cancelled**, which reads like a human pressed stop, so the gate was not failing loudly — it
+    # was silently unavailable, and it blocked every merge in the repo because the merge gate
+    # requires CI green.
+    #
+    # Raising the ceiling does not weaken the gate: the audit itself still decides pass/fail, and a
+    # genuine hang still stops at a bound rather than running forever. What it buys is that a slow
+    # third-party endpoint costs minutes instead of a merge queue.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4

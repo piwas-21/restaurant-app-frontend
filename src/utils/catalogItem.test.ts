@@ -279,6 +279,10 @@ describe('toBundleItemFromDetail', () => {
       isSpecial: true,
       preparationTimeMinutes: 10,
       displayOrder: 3,
+      // Added by #702: this producer omitted the bundle's own allergens, so the by-id path served
+      // a labelled combo unlabelled. The fixture's `allergens` is `[]`, so the exhaustive shape
+      // below is what pins the field's PRESENCE — `bundleAllergenChain.test.ts` pins its value.
+      allergens: [],
     });
   });
 

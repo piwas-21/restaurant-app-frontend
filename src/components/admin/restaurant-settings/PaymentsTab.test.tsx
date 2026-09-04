@@ -92,6 +92,40 @@ describe('PaymentsTab', () => {
     expect(screen.queryByText('payments_tab_requirements_due')).not.toBeInTheDocument();
   });
 
+  it('renders the Sofra commission rate as a percentage when the backend sends one', async () => {
+    // 150 bps = 1.50%. The backend is the source of truth for the raw number — this bundle
+    // only formats what it is told.
+    answer({ state: 'configured', commissionBps: 150 });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_configured')).toBeInTheDocument();
+    expect(screen.getByText('payments_tab_commission_rate')).toBeInTheDocument();
+  });
+
+  it('shows no commission line when the rate is zero', async () => {
+    // 0 means "no commission" and must render identically to the field being absent —
+    // nothing at all.
+    answer({ state: 'configured', commissionBps: 0 });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_configured')).toBeInTheDocument();
+    expect(screen.queryByText('payments_tab_commission_rate')).not.toBeInTheDocument();
+  });
+
+  it('shows no commission line when the backend has not shipped the field yet', async () => {
+    // The backend change ships in a separate PR that may merge after this one — for a period
+    // the field is simply absent from the response. Absent must behave exactly like 0, which
+    // is what protects this page from a backend that has not caught up yet.
+    answer({ state: 'configured' });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_configured')).toBeInTheDocument();
+    expect(screen.queryByText('payments_tab_commission_rate')).not.toBeInTheDocument();
+  });
+
   it('offers a retry rather than a blank strip when the read fails', async () => {
     mocked.getPaymentsOnboarding.mockRejectedValue(new Error('offline'));
 

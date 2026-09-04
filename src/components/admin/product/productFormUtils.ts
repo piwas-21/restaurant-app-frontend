@@ -4,6 +4,7 @@ import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIngredientReconciliation';
+import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
 
 /**
@@ -343,8 +344,23 @@ export const submitEditProductForm = async ({
       return isNaN(num) ? fallback : num;
     };
 
-    // Clean content array and format for API
-    const cleanedContentArray = (data.content || [])
+    // Clean content array and format for API.
+    //
+    // The re-sync runs FIRST (#536): a translation row that is a verbatim copy of the base text
+    // being replaced is a creation-time snapshot, not a translation, and must follow the plain
+    // *Açıklama* box the admin just edited — otherwise that edit reaches no guest whose locale
+    // carries the snapshot. `product` is the item as FETCHED, and the PREVIOUS base text is the
+    // only thing that can tell a snapshot from something someone typed. Rationale, and why #536's
+    // other option (stop writing `content` from the plain box) would be a regression, live in
+    // translationResync.ts.
+    const resyncedContent = withResyncedSnapshots(data.content as ResyncRow[] | undefined, {
+      previousName: product?.name,
+      previousDescription: product?.description,
+      nextName: data.name,
+      nextDescription: data.description,
+    });
+
+    const cleanedContentArray = resyncedContent
       .filter((e: any) => e?.language?.trim() && e?.name?.trim())
       .map((e: any) => ({
         language: String(e.language).trim(),

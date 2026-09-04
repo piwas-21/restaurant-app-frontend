@@ -6,7 +6,14 @@ const CATEGORIES_API_URL = '/api/Categories';
 
 interface CategoryData {
   name: string;
-  description?: string;
+  /**
+   * `string | null`, not `string | undefined` (#642): `UpdateCategoryCommand.Description` is
+   * `string?` and the PUT is a FULL REPLACE that assigns the column unconditionally, so BOTH
+   * spellings of "no description" are legal on the wire and both mean the same thing here. Typing
+   * it as `string | undefined` is what forced the two category modals to coalesce before they
+   * could call this, and a coalesce in a caller is a rule nobody can see from the schema.
+   */
+  description?: string | null;
   isActive: boolean;
   /**
    * OrderChannels bitmask; `null`/omitted = every order type. Build it with

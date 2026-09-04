@@ -57,7 +57,21 @@ export const variationSchema = z.object({
 
 export const contentSchema = z.object({
   language: z.string().min(1, 'Language is required'),
-  name: z.string().min(1, 'Name is required for this language'),
+  /**
+   * `.trim()` BEFORE `.min(1)` — the client half of backend #325.
+   *
+   * `min(1)` alone counts `"   "` as three valid characters, so the editor accepted a
+   * whitespace-only translation name and `PUT /api/Products/{id}` stored it with a 200. The next
+   * ordinary save then DELETED the whole row, description text included: the payload builder drops
+   * it (`e?.name?.trim()`) and the handler does a full replace. The server refuses it now, which is
+   * what closes the window — this rule cannot constrain a client that is not this editor. What it
+   * adds is a sentence on the field instead of a 400 the admin has to decode.
+   *
+   * It is safe to tighten only because a STORED blank name is repaired on load (`flattenContent`,
+   * #641). Tightening without that repair would turn "the item cannot be saved" from a defect into
+   * a rule.
+   */
+  name: z.string().trim().min(1, 'Name is required for this language'),
   description: optionalText(),
 });
 
@@ -251,6 +265,13 @@ const baseMenuBundleSchema = z.object({
   // sends nothing — and because the bundle PUT assigns the column unconditionally, "sends nothing"
   // CLEARS a stored restriction on every unrelated save (§9.2).
   availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
+  // Same field as an item's, and in the schema for the same reason as the mask above: zod strips
+  // unknown keys, so a value carried outside it is silently dropped — and `productFormUtils`
+  // already puts `allergens` into every bundle PUT, so "silently dropped" becomes `[]` on the
+  // wire. Once the server reads that field (backend #478) an empty array WIPES the stored
+  // labelling on every unrelated save, which for allergens is a safety regression rather than a
+  // lost preference: the menu filter reads an unlabelled dish as free of everything.
+  allergens: z.array(z.string()).optional(),
 });
 
 export const createMenuBundleSchema = baseMenuBundleSchema;

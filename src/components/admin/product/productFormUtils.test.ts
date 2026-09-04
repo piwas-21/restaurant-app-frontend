@@ -205,6 +205,70 @@ describe('submitProductForm — create endpoint dispatch', () => {
 });
 
 /**
+ * #536 — the plain description box and the translation row it was copied into.
+ *
+ * `submitProductForm` copies *Açıklama* into `content[<the admin's UI language>]` on CREATE, and
+ * nothing ever re-synced it: the admin edited the plain box, saved, and a guest in that language
+ * kept reading the creation-time text. These drive the REAL submit function, because the defect
+ * lives in what reaches the wire, not in what the form holds.
+ *
+ * The `product` argument is the item as FETCHED — the previous base text is the only thing that can
+ * tell a snapshot from a translation, and it exists nowhere else at submit time.
+ */
+describe('submitEditProductForm — a translation that is a copy of the base text (#536)', () => {
+  const editWith = async (data: Record<string, unknown>, product: Record<string, unknown>) => {
+    await submitEditProductForm({
+      data: data as never,
+      product,
+      imageFiles: [],
+      detailedIngredients: [],
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+    });
+
+    expect(setError).not.toHaveBeenCalled();
+    return (updateProduct as jest.Mock).mock.calls[0][1] as { content?: Record<string, unknown> };
+  };
+
+  /** The item as the API sends it, and the form rows seeded from it — one Turkish snapshot. */
+  const fetched = { id: 'product-1', name: 'Adana Dürüm', description: 'Acılı dürüm' };
+  const withDescription = (description: string) => ({
+    ...itemFormData(),
+    name: 'Adana Dürüm',
+    description,
+    content: [{ language: 'tr', name: 'Adana Dürüm', description: 'Acılı dürüm' }],
+  });
+
+  it('re-syncs the snapshot so the edit reaches the guest', async () => {
+    const payload = await editWith(withDescription('Bol acılı dürüm'), fetched);
+
+    expect(payload.content).toEqual({ tr: { name: 'Adana Dürüm', description: 'Bol acılı dürüm' } });
+  });
+
+  it('never touches a translation that the admin actually wrote', async () => {
+    const data = {
+      ...withDescription('Bol acılı dürüm'),
+      content: [{ language: 'fr', name: 'Wrap Adana', description: 'Wrap épicé' }],
+    };
+
+    const payload = await editWith(data, fetched);
+
+    expect(payload.content).toEqual({ fr: { name: 'Wrap Adana', description: 'Wrap épicé' } });
+  });
+
+  // A save that changes nothing must change nothing — the rule this whole editor is held to.
+  it('sends the row back untouched when the base text was not edited', async () => {
+    const payload = await editWith(withDescription('Acılı dürüm'), fetched);
+
+    expect(payload.content).toEqual({ tr: { name: 'Adana Dürüm', description: 'Acılı dürüm' } });
+  });
+});
+
+/**
  * The failure paths. Both functions used to unwrap `error.response.data` — the AXIOS error
  * envelope, and axios is not a dependency here — so their per-field / `title` / `message` branches
  * were all dead. The two paths then differed: CREATE had a live `else if (error?.message)` tail

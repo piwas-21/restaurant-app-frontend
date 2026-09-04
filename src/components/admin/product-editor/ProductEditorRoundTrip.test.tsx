@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render, fireEvent, screen, waitFor } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { SIDE_ITEM_SEARCH_DEBOUNCE_MS } from '@/hooks/admin/useSideItemSearch';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
@@ -27,7 +28,10 @@ jest.mock('@/services/menuService', () => ({
     data: { id, name: id === 'side-1' ? 'Garlic bread' : id, description: '' },
   })),
 }));
-jest.mock('@/services/menuBundleService', () => ({ createMenuBundle: jest.fn(), updateMenuBundle: jest.fn() }));
+jest.mock('@/services/menuBundleService', () => ({
+  createMenuBundle: jest.fn(),
+  updateMenuBundle: jest.fn(async () => ({ success: true })),
+}));
 jest.mock('@/services/globalIngredientService', () => ({
   createGlobalIngredient: jest.fn(),
   searchGlobalIngredients: jest.fn(async () => ({ success: true, data: [] })),
@@ -45,6 +49,7 @@ jest.mock('@/services/categoryService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
+import { updateMenuBundle } from '@/services/menuBundleService';
 import { createGlobalIngredient } from '@/services/globalIngredientService';
 
 /**
@@ -346,6 +351,63 @@ describe('product editor — a save that changes nothing changes nothing', () =>
   });
 
   /**
+   * frontend #641 — A STORED TRANSLATION ROW WITH A BLANK NAME BLOCKED EVERY SAVE OF THAT ITEM.
+   *
+   * `contentSchema.name` is `min(1)`, and `flattenContent` seeded one form row per STORED
+   * translation, verbatim. So a product carrying `fr: { name: "", description: "Une pizza" }` made
+   * the resolver refuse `content.N.name` — `handleSubmit` never ran, and the admin's unrelated edit
+   * (a price, a photo) was lost on a field they never touched and did not write.
+   *
+   * The row is reachable through no client the editor controls: `productFormUtils.ts` has filtered
+   * blank names off the wire on both paths since #450, and backend #325 now refuses one at the API.
+   * It is a row an EARLIER client, or an import, already left in the database — which is exactly why
+   * the editor has to be able to open it. A rule that only refuses new bad rows leaves every
+   * existing one permanently unsavable.
+   *
+   * The repair is the product's OWN name, and it is deliberately not a deletion: every guest read
+   * resolves a name as `content[lang]?.name || content.en?.name || product.name`, so filling the
+   * blank with `product.name` changes NOTHING a guest sees while making the row valid. Pruning the
+   * row instead would have thrown away the description text, which is the one thing in it that
+   * carries information.
+   *
+   * Written as a save that touches NOTHING, like every test in this file: the point is that an
+   * unrelated edit is no longer blocked by a row the admin never saw.
+   */
+  describe('a stored translation row with a blank name (#641)', () => {
+    const withBlankFrenchName = {
+      ...fullyPopulated,
+      content: {
+        en: { name: NAME, description: DESCRIPTION },
+        fr: { name: '', description: 'Tomate, mozzarella, basilic' },
+      },
+    } as unknown as ProductDetails;
+
+    it('no longer blocks the save, and keeps the description it carried', async () => {
+      const payload = await renderAndSaveUntouched(withBlankFrenchName);
+
+      expect(payload.content).toEqual({
+        en: { name: NAME, description: DESCRIPTION },
+        // Repaired from the product's own name — the value every read site already falls back to.
+        fr: { name: NAME, description: 'Tomate, mozzarella, basilic' },
+      });
+    });
+
+    // A whitespace-only name is the shape backend #325 measured as reaching the database with a 200,
+    // and `min(1)` counts it as three valid characters — so it is the case a `=== ''` repair misses.
+    it('repairs a whitespace-only name too, not just an empty one', async () => {
+      const payload = await renderAndSaveUntouched({
+        ...fullyPopulated,
+        content: { en: { name: NAME, description: DESCRIPTION }, fr: { name: '   ', description: 'Une pizza' } },
+      } as unknown as ProductDetails);
+
+      expect(payload.content).toEqual({
+        en: { name: NAME, description: DESCRIPTION },
+        fr: { name: NAME, description: 'Une pizza' },
+      });
+    });
+  });
+
+  /**
    * The list this file is really about: values the PUT assigns unconditionally and the page shows
    * either nowhere at all (`displayOrder`) or only through a control a later slice may move.
    * Deleting an assertion here is only correct together with a backend change.
@@ -383,6 +445,44 @@ describe('product editor — a save that changes nothing changes nothing', () =>
    * nor the PUT.
    */
   describe('the side-item picker', () => {
+    /**
+     * FAKE TIMERS, scoped to this block (#717).
+     *
+     * These two cases were RED ON `develop` ITSELF under machine load — 2 failed / 22 passed on a
+     * clean detached worktree at `origin/develop` @ 7002dd36 with nobody's diff, at 5198ms and
+     * 7499ms — and because the pre-push hook runs Jest, a test that is red on the integration
+     * branch blocks EVERY agent's push while presenting as "your diff broke something".
+     *
+     * The cause is a race, not an assertion: the search debounce is 300ms of REAL time and
+     * `findBy*` polls a real clock with a 1000ms default. The comment this replaces said "the poll
+     * outlasts it", which is true only on an idle machine — under load the render lands after the
+     * poll gives up, and the element appears milliseconds later. The failing member of the pair
+     * alternated between runs, which is the signature of a race.
+     *
+     * It also rejected fake timers on the ground that "the whole file" would need them. That is not
+     * so, and this is the correction: `useFakeTimers` in a `beforeEach` for THIS block only leaves
+     * the other 22 cases on the real clock, untouched.
+     *
+     * What is deliberately NOT done: the global timeout is unchanged, no assertion is weakened and
+     * no case is removed. Those would turn this green and hide every future race of the same shape
+     * in a file whose whole purpose is the round-trip oracle. The oracle here is still the FIXTURE
+     * — `fullyPopulated.suggestedSideItems` and the mocked search's id — and both cases still fail
+     * if the editor stops sending `suggestedSideItemIds`.
+     */
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => {
+      // Drain before switching back, or a pending debounce fires into a torn-down tree.
+      act(() => jest.runOnlyPendingTimers());
+      jest.useRealTimers();
+    });
+
+    /**
+     * Wait out the search debounce on the FAKE clock, by the component's own exported constant
+     * rather than by a number retyped here — a literal 300 would go stale silently the day the
+     * debounce changes, which is how a test starts asserting a duration nobody uses.
+     */
+    const settleSearchDebounce = () => act(() => jest.advanceTimersByTime(SIDE_ITEM_SEARCH_DEBOUNCE_MS));
+
     const openPicker = async (container: HTMLElement) => {
       const open = await screen.findByRole('button', { name: 'side_items_picker_open' });
       fireEvent.click(open);
@@ -409,42 +509,67 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       return view.container;
     };
 
-    it('a side item added in the picker reaches the PUT, alongside the one already there', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+    /**
+     * A LOCAL timeout, and why these two cases carry one when no other case in the file does.
+     *
+     * The fake clock above removes the RACE — the debounce no longer competes with `findBy*`'s
+     * poll — but it cannot make these two cases cheap. They are the heaviest in the file: each
+     * renders the whole editor, opens a modal picker, and resolves one `getProductById` per
+     * suggested id before it can assert. Measured with the fake clock in place and 24 competing
+     * Jest workers (about three per core), the FULL file gives 22 passed and exactly these 2 failed
+     * at 11118ms and 10433ms — a plain "Exceeded timeout of 5000 ms", not a missing element. The
+     * other 22 cases pass under the same load, so this is a per-case BUDGET, not starvation of the
+     * suite.
+     *
+     * It is deliberately not `jest.setTimeout` and not a config change: a global number would
+     * silently buy every future test the same 15 seconds and hide the next race in this file. The
+     * cost of this one is local and stated — a genuine hang in these two cases takes 15s to report
+     * instead of 5s.
+     */
+    const SLOW_PICKER_CASE_TIMEOUT_MS = 15_000;
 
-      // Real timers, and `findBy…` rather than `advanceTimersByTime`: the search debounce is 300ms
-      // and the poll outlasts it. Fake timers here would have to be faked for the whole file, which
-      // every other test in it is written without.
-      fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
-      fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item added in the picker reaches the PUT, alongside the one already there',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
+        settleSearchDebounce();
+        fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
-      // the added id is the one the mocked search returned. Neither number is computed here.
-      expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
-    });
+        const payload = await submitAndRead(container);
 
-    it('a side item removed in the picker is absent from the PUT', async () => {
-      const container = await renderEditor();
-      await openPicker(container);
+        // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
+        // the added id is the one the mocked search returned. Neither number is computed here.
+        expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
 
-      // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
-      // click is genuinely an untick and not a first selection.
-      const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
-      expect(garlic).toBeChecked();
-      fireEvent.click(garlic);
-      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+    it(
+      'a side item removed in the picker is absent from the PUT',
+      async () => {
+        const container = await renderEditor();
+        await openPicker(container);
 
-      const payload = await submitAndRead(container);
+        // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
+        // click is genuinely an untick and not a first selection.
+        const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
+        expect(garlic).toBeChecked();
+        fireEvent.click(garlic);
+        fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-      expect(payload.suggestedSideItemIds).toEqual([]);
-      // …and the save is otherwise untouched, so the removal is the only thing that moved.
-      expect(payload.displayOrder).toBe(7);
-      expect(payload.availableOrderTypes).toBe(3);
-    });
+        const payload = await submitAndRead(container);
+
+        expect(payload.suggestedSideItemIds).toEqual([]);
+        // …and the save is otherwise untouched, so the removal is the only thing that moved.
+        expect(payload.displayOrder).toBe(7);
+        expect(payload.availableOrderTypes).toBe(3);
+      },
+      SLOW_PICKER_CASE_TIMEOUT_MS,
+    );
   });
 
   /**
@@ -626,5 +751,60 @@ describe('the completeness meter reads the form and never writes to it', () => {
     // allergens. This one fails if it does not send them.
     const payload = await renderAndSaveUntouched(fullyPopulated);
     expect(payload.allergens).toEqual(['gluten', 'milk']);
+  });
+});
+
+/**
+ * The same question for a BUNDLE, and it is a different code path end to end: a different form
+ * schema (`baseMenuBundleSchema`), a different defaults builder (`toBundleDefaults`), a different
+ * payload builder (`toMenuBundlePayload`) and a different service (`updateMenuBundle`).
+ *
+ * It is worth its own case because the item path proves nothing about it and the failure is
+ * silent: zod strips keys the schema does not declare, so a bundle form that carries allergens
+ * outside the schema sends `[]` — which, once the server reads the field (backend #478), WIPES a
+ * labelled combo on a save that never mentioned allergens. MC FOOD has 45 of them.
+ */
+describe('bundle editor — an untouched save returns the allergens it loaded', () => {
+  const LABELLED_BUNDLE = {
+    id: PRODUCT_ID,
+    name: 'Menu Kebab',
+    description: 'combo',
+    basePrice: 12,
+    type: 'menu',
+    isActive: true,
+    isAvailable: true,
+    isSpecial: false,
+    preparationTimeMinutes: 0,
+    displayOrder: 0,
+    content: { en: { name: 'Menu Kebab', description: 'combo' } },
+    allergens: ['gluten', 'sesame'],
+    menuDefinition: { isAlwaysAvailable: true, sections: [] },
+  } as unknown as ProductDetails;
+
+  const saveBundleUntouched = async (product: ProductDetails) => {
+    const { container } = render(
+      <ProductEditorPage product={product} isBundle mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
+    );
+    await act(async () => {});
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+
+    return (updateMenuBundle as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+  };
+
+  it('sends the STORED labels, not an empty list', async () => {
+    // THE assertion. This is the link `toBundleDefaults` and the schema exist to serve, and the
+    // only one that observes the whole chain rather than a stage of it.
+    expect((await saveBundleUntouched(LABELLED_BUNDLE)).allergens).toEqual(['gluten', 'sesame']);
+  });
+
+  it('sends an empty list for an unlabelled combo, rather than dropping the key', async () => {
+    // The control: the assertion above passes vacuously if the payload simply always carries
+    // whatever it was given. This one fails if the key is dropped — and a dropped key is a
+    // DIFFERENT instruction to the server ("leave alone") than an empty one ("clear").
+    const unlabelled = { ...LABELLED_BUNDLE, allergens: [] } as unknown as ProductDetails;
+
+    expect((await saveBundleUntouched(unlabelled)).allergens).toEqual([]);
   });
 });

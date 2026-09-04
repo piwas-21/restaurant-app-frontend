@@ -46,6 +46,12 @@
   font-size: 0.9rem;
 }
 
+.commission {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 .link {
   align-self: flex-start;
   color: var(--link-default);

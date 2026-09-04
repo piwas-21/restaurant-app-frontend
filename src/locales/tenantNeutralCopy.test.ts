@@ -86,7 +86,6 @@ const ALLOWED = new Map<string, string>([
   // False positive: Arabic التركيز ("focus") contains تركي.
   ['focus_search_input', 'Arabic substring collision: التركيز = "focus"'],
   // DEBT — Swiss defaults on other surfaces, reported alongside this change and not fixed here.
-  ['address_country_placeholder', 'DEBT: CH example value in an admin form placeholder'],
   ['enter_country', 'DEBT: CH example value in an admin form placeholder'],
   ['tax_description_placeholder', 'DEBT: CH example value in an admin form placeholder'],
   ['postal_code_invalid', 'DEBT: tells a French guest to enter a "Swiss postal code"'],

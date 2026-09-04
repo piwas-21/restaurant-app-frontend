@@ -63,6 +63,18 @@ export default function ItemCustomizationSheet({
   const availability = controller.kind === 'product' ? detail?.availability : controller.bundle?.availability;
   const notice = useItemAvailabilityNotice(availability);
 
+  // Sourced by kind for the same reason `availability` is. `detail` is null on the bundle branch,
+  // so reading these off it showed a combo NO allergens and no prep time — and once the card
+  // started rendering the chips (#702), the guest who taps in to read the labelling gets a blank
+  // panel, which is worse than the card having said nothing.
+  const intro =
+    controller.kind === 'product'
+      ? { allergens: detail?.allergens, preparationTimeMinutes: detail?.preparationTimeMinutes }
+      : {
+          allergens: controller.bundle?.allergens,
+          preparationTimeMinutes: controller.bundle?.preparationTimeMinutes,
+        };
+
   // The SERVER's verdict is the gate, not our ability to render a nice reason for it. The notice is
   // null while the admin-enabled channel list is still in flight, and gating on it alone reopened
   // the exact hole this closes: the card renders "Add", the entry guard forces the sheet, and the
@@ -120,8 +132,8 @@ export default function ItemCustomizationSheet({
             push the variations and the Add button below the fold at 390px. Settled — do not re-open. */}
         <SheetIntro
           description={description}
-          allergens={detail?.allergens}
-          preparationTimeMinutes={detail?.preparationTimeMinutes}
+          allergens={intro.allergens}
+          preparationTimeMinutes={intro.preparationTimeMinutes}
         />
 
         {isGuided && (

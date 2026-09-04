@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe deve ancora verificare la tua attività.",
   "payments_tab_awaiting_hint": "Completa il modulo nel tuo pannello Stripe e il pagamento con carta si attiva da solo. Fino ad allora il tuo ristorante è pienamente online e incassa in contanti come sempre.",
   "payments_tab_requirements_due": "Mancano ancora {{count}} dati da inserire su Stripe.",
+  "payments_tab_commission_rate": "Commissione Sofra: {{rate}}",
   "admin_api_tokens_title": "Token API",
   "api_tokens_subtitle": "Credenziali con nome per un agente o uno script. Ogni token porta solo gli ambiti concessi e scade nella data scelta.",
   "api_tokens_create": "Crea token",

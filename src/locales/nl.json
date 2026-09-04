@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe moet je bedrijf nog verifiëren.",
   "payments_tab_awaiting_hint": "Vul het formulier in je Stripe-dashboard af, dan gaat kaartbetaling vanzelf aan. Tot die tijd staat je restaurant volledig online en neemt het gewoon contant geld aan.",
   "payments_tab_requirements_due": "Nog {{count}} gegevens in te vullen bij Stripe.",
+  "payments_tab_commission_rate": "Sofra-commissie: {{rate}}",
   "admin_api_tokens_title": "API-tokens",
   "api_tokens_subtitle": "Benoemde inloggegevens voor een agent of script. Elk token draagt alleen de rechten die u geeft en verloopt op de datum die u kiest.",
   "api_tokens_create": "Token aanmaken",

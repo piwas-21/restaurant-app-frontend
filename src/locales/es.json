@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe todavía tiene que verificar tu negocio.",
   "payments_tab_awaiting_hint": "Completa el formulario en tu panel de Stripe y el pago con tarjeta se activa solo. Hasta entonces tu restaurante está plenamente en línea y cobra en efectivo como siempre.",
   "payments_tab_requirements_due": "Quedan {{count}} datos por rellenar en Stripe.",
+  "payments_tab_commission_rate": "Comisión de Sofra: {{rate}}",
   "admin_api_tokens_title": "Tokens de API",
   "api_tokens_subtitle": "Credenciales con nombre para un agente o un script. Cada token lleva solo los permisos que concedas y caduca en la fecha que elijas.",
   "api_tokens_create": "Crear token",

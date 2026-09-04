@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe işletmenizi hâlâ doğrulamak zorunda.",
   "payments_tab_awaiting_hint": "Stripe panonuzdaki formu tamamlayın, kartlı ödeme kendiliğinden açılır. O zamana kadar restoranınız tamamen yayında ve her zamanki gibi nakit alıyor.",
   "payments_tab_requirements_due": "Stripe'ta doldurulacak {{count}} bilgi kaldı.",
+  "payments_tab_commission_rate": "Sofra komisyonu: {{rate}}",
   "admin_api_tokens_title": "API Anahtarları",
   "api_tokens_subtitle": "Bir ajan veya betik için adlandırılmış kimlik bilgileri. Her anahtar yalnızca verdiğiniz yetkileri taşır ve seçtiğiniz tarihte sona erer.",
   "api_tokens_create": "Anahtar oluştur",

@@ -2133,6 +2133,7 @@
   "payments_tab_state_awaiting": "Stripe ещё должен проверить ваш бизнес.",
   "payments_tab_awaiting_hint": "Заполните форму в вашем дашборде Stripe — оплата картой включится сама. До тех пор ваш ресторан полностью работает и принимает наличные как обычно.",
   "payments_tab_requirements_due": "Осталось заполнить {{count}} данных в Stripe.",
+  "payments_tab_commission_rate": "Комиссия Sofra: {{rate}}",
   "admin_api_tokens_title": "Токены API",
   "api_tokens_subtitle": "Именованные учётные данные для агента или скрипта. Каждый токен несёт только выданные права и истекает в выбранную дату.",
   "api_tokens_create": "Создать токен",

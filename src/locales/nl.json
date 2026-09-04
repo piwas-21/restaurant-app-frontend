@@ -2152,6 +2152,7 @@
   "server.discount": "korting",
   "server.extras": "Extra's",
   "server.fidelity_points": "Spaarpunten",
+  "server.points_unit": "ptn",
   "server.filter_active": "Actieve bestellingen",
   "server.filter_all": "Alle bestellingen",
   "server.filter_confirmed": "Bevestigd",

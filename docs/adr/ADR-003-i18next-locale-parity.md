@@ -111,3 +111,21 @@ table: CLDR gives **Turkish two** cardinal categories (`one`, `other`), not one;
 
 Fixtures live in `src/locales/localeUntranslatedGate.test.ts`, which runs the real script against
 temp-tree bundles.
+
+### Amendment — 2026-09-04: a key with no value, and text no bundle can reach (#610)
+
+Two holes the parity rule above could not see, both found on production data.
+
+**1. An empty value passes both halves.** Key parity counts KEYS, and the walk treats `null` as a leaf, so a
+`null` key is *present* and parity holds. The untranslated check compares values TO ENGLISH, and `null` is not
+equal to the English string, so it is not a match either. Four `cashier.*` order statuses (`pending`,
+`confirmed`, `preparing`, `ready`) shipped `null` in `tr.json` — a Turkish cashier read English order
+statuses while every gate was green. The gate now rejects `null`, blank, whitespace-only and non-string values
+in every bundle including `en.json`. **Zero tolerance, no baseline**: unlike an untranslated value, an empty
+one is never legitimate.
+
+**2. No bundle can reach a literal.** `{points} pts` written inline in JSX and `toLocaleTimeString()` with no
+locale argument are invisible to *both* i18n gates by construction — `check-t-keys.mjs` reads `t()` callsites
+and `check-locale-parity.mjs` reads bundles; a literal is neither. Translating all ten files fixes nothing.
+The rule: a unit is a key, and a date/time format takes `i18n.language || 'en'`. `[]` is not "no preference",
+it is the browser's locale.

@@ -96,6 +96,15 @@ Locales: `en`, `de`, `tr`, `it`, `ar`, `fr`, `nl`, `es`, `ru`, `zh` (nl added 20
 well as on an invented one. Do NOT rewrite a counted noun as a label plus a number to make the gate quiet —
 that workaround shipped three times before the gate was fixed.
 
+**A key with no value is worse than a missing key** (#610). `null`, `""` and whitespace are a hard error in
+every bundle, zero tolerance, no baseline: i18next falls back to English, so the bundle looks complete and the
+screen is English. Four `cashier.*` statuses sat `null` in `tr.json` on prod while every gate was green.
+
+**A string only counts as translated if it goes through `t()`.** A unit written inline in JSX
+(`{points} pts`) and a `toLocaleTimeString()` with no locale argument are both invisible to *both* i18n gates
+— `check-t-keys.mjs` reads callsites, `check-locale-parity.mjs` reads bundles, and neither can see a literal.
+Date/time formatting takes `i18n.language || 'en'`; `[]` is the BROWSER's locale, not "no preference".
+
 ### Forms — Zod + react-hook-form
 
 Schema-first: define a Zod schema, derive the type with `z.infer`, wire to `react-hook-form` via `@hookform/resolvers/zod`. See [ADR-004](docs/adr/ADR-004-zod-form-validation.md).

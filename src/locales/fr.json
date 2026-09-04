@@ -2152,6 +2152,7 @@
   "server.discount": "de réduction",
   "server.extras": "Suppléments",
   "server.fidelity_points": "Points de fidélité",
+  "server.points_unit": "pts",
   "server.filter_active": "Commandes actives",
   "server.filter_all": "Toutes les commandes",
   "server.filter_confirmed": "Confirmée",

@@ -17,7 +17,7 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({ order, onStatusChange, isLoading }: OrderCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const getNextStatus = () => {
     switch (order.status) {
@@ -52,7 +52,9 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // `[]` is not "no preference", it is the BROWSER's locale — the same defect as the header's
+    // clock one component over, on the same screen (#610).
+    return date.toLocaleTimeString(i18n.language || 'en', { hour: '2-digit', minute: '2-digit' });
   };
 
   const nextStatus = getNextStatus();

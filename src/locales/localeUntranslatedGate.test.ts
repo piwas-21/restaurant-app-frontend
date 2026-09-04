@@ -261,3 +261,59 @@ describe('locale gate — plural key families', () => {
     expect(output).toContain('untranslated: items_few');
   });
 });
+
+/**
+ * EMPTY values (#610).
+ *
+ * `cashier.pending|confirmed|preparing|ready` sat `null` in `tr.json` ON PROD while every gate was
+ * green, so a Turkish cashier read English order statuses. It fell through BOTH halves: key parity
+ * counts KEYS and `null` is a leaf, so the key is present and parity holds; the untranslated check
+ * compares values TO ENGLISH, and `null` is not equal to the English string. A key present with no
+ * value is strictly worse than an absent one — the bundle looks complete and the screen is English.
+ */
+describe('locale gate — empty values', () => {
+  const EN_VALUES: Bundle = { save: 'Save', status: 'Pending' };
+
+  it('fails on a NULL value, which key parity and the untranslated check both call fine', () => {
+    const { status, output } = runGate({ en: EN_VALUES, tr: { save: 'Kaydet', status: null } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('tr.json:status = null');
+  });
+
+  it('fails on a blank and on a whitespace-only value', () => {
+    expect(runGate({ en: EN_VALUES, tr: { save: 'Kaydet', status: '' } }).status).toBe(1);
+    expect(runGate({ en: EN_VALUES, tr: { save: 'Kaydet', status: '   ' } }).status).toBe(1);
+  });
+
+  it('fails on a value that is not a string at all', () => {
+    const { status, output } = runGate({ en: EN_VALUES, tr: { save: 'Kaydet', status: 3 } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('tr.json:status = 3');
+  });
+
+  it('reaches a NESTED null — the shape the four `cashier.*` statuses shipped in', () => {
+    const { status, output } = runGate({
+      en: { save: 'Save', cashier: { pending: 'Pending' } },
+      tr: { save: 'Kaydet', cashier: { pending: null } },
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('tr.json:cashier.pending = null');
+  });
+
+  it('checks en.json too — the reference bundle is not exempt', () => {
+    const { status, output } = runGate({ en: { save: 'Save', status: null }, tr: { save: 'Kaydet', status: null } });
+
+    expect(status).toBe(1);
+    expect(output).toContain('en.json:status = null');
+  });
+
+  it('passes when every value is a non-empty string, and says so', () => {
+    const { status, output } = runGate({ en: EN_VALUES, tr: { save: 'Kaydet', status: 'Beklemede' } });
+
+    expect(status).toBe(0);
+    expect(output).toContain('carries a non-empty string value');
+  });
+});

@@ -2152,6 +2152,7 @@
   "server.discount": "off",
   "server.extras": "Extras",
   "server.fidelity_points": "Fidelity Points",
+  "server.points_unit": "pts",
   "server.filter_active": "Active Orders",
   "server.filter_all": "All Orders",
   "server.filter_confirmed": "Confirmed",

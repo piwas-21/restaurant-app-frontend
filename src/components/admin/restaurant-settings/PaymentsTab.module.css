@@ -59,6 +59,22 @@
   text-decoration: underline;
 }
 
+/* The same affordance, deliberately inert. There IS somewhere to go, we just cannot mint the
+   link from this page — so the control stays visible and greyed, with a sentence beside it
+   saying why, rather than disappearing (which reads as "there is nothing here") or pointing at
+   a Stripe login an Express account holder does not have. */
+.linkDisabled {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  text-align: start;
+  text-decoration: underline;
+  cursor: not-allowed;
+}
+
 .errorBanner {
   display: flex;
   align-items: center;

@@ -14,16 +14,21 @@ jest.mock('react-i18next', () => ({
 
 const mocked = service as jest.Mocked<typeof service>;
 
+// The default link is a page of OURS, not a Stripe URL: under Connect Express the restaurant has
+// no full Stripe dashboard, and the links Stripe does issue live 300 seconds — so the control
+// plane mints one per click and this field carries the page that does the minting.
+const MINTED_LINK = 'https://sofrapiwas.com/onboarding/payments';
+
 const answer = (dto: Partial<PaymentsOnboardingDto> & Pick<PaymentsOnboardingDto, 'state'>) =>
   mocked.getPaymentsOnboarding.mockResolvedValue({
     success: true,
-    data: { connectedAccountId: null, dashboardUrl: 'https://dashboard.stripe.com', requirementsDue: null, ...dto },
+    data: { connectedAccountId: null, paymentsLinkUrl: MINTED_LINK, requirementsDue: null, ...dto },
   } as never);
 
 beforeEach(() => jest.clearAllMocks());
 
 describe('PaymentsTab', () => {
-  it('names the account and links to the restaurant OWN dashboard when configured', async () => {
+  it('names the account and links to the page that mints their Stripe link, when configured', async () => {
     answer({ state: 'configured', connectedAccountId: 'acct_1Example' });
 
     render(<PaymentsTab />);
@@ -32,11 +37,28 @@ describe('PaymentsTab', () => {
     // The id itself: it is what the owner pastes into a support conversation, and it is
     // the one fact that tells two similar-looking tenants apart.
     expect(screen.getByText('acct_1Example')).toBeInTheDocument();
-    const link = screen.getByRole('link', { name: 'payments_tab_dashboard_link' });
-    expect(link).toHaveAttribute('href', 'https://dashboard.stripe.com');
-    // Their dashboard is a third-party origin. Opening it without `noopener` hands the
-    // new tab a live `window.opener` back into an authenticated admin page.
+    const link = screen.getByRole('link', { name: 'payments_tab_stripe_link' });
+    expect(link).toHaveAttribute('href', MINTED_LINK);
+    // It is a different origin either way. Opening it without `noopener` hands the new tab a
+    // live `window.opener` back into an authenticated admin page.
     expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'));
+    // …and while a real link exists, the page must not ALSO apologise for not having one.
+    expect(screen.queryByText('payments_tab_stripe_link_pending')).not.toBeInTheDocument();
+  });
+
+  it('offers an inert control and says why, when there is no link to mint yet', async () => {
+    // The honest half of the contract. `paymentsLinkUrl` is null until a page exists that can
+    // mint a Stripe link on click — a static `https://dashboard.stripe.com` would send an
+    // Express account holder to a login they do not have, which is worse than no link at all.
+    answer({ state: 'configured', connectedAccountId: 'acct_1Example', paymentsLinkUrl: null });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_configured')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    const control = screen.getByRole('button', { name: 'payments_tab_stripe_link' });
+    expect(control).toBeDisabled();
+    expect(screen.getByText('payments_tab_stripe_link_pending')).toBeInTheDocument();
   });
 
   it('says the smaller true thing when nothing is configured, and names no account', async () => {
@@ -47,10 +69,12 @@ describe('PaymentsTab', () => {
     expect(await screen.findByText('payments_tab_state_not_configured')).toBeInTheDocument();
     expect(screen.getByText('payments_tab_not_configured_hint')).toBeInTheDocument();
     expect(screen.queryByText(/acct_/)).not.toBeInTheDocument();
-    // No control of any kind. §9 constraint 4: every surface here REPORTS, and the only
-    // writes in this story are the founder's registry PR and Stripe's own hosted pages.
-    // A button would promise a switch that does not exist.
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    // Still no control that WRITES anything. §9 constraint 4: every surface here REPORTS, and
+    // the writes in this story happen in the control plane and on Stripe's own hosted pages.
+    // The one button this page may render is the inert "go to Stripe" affordance, which is
+    // absent here because a link was minted — so nothing enabled may appear at all.
+    for (const control of screen.queryAllByRole('button')) expect(control).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'retry' })).not.toBeInTheDocument();
   });
 
   it('reads a state it has never heard of as not configured', async () => {

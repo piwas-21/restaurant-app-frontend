@@ -24,8 +24,22 @@ export interface PaymentsOnboardingDto {
   state: PaymentsOnboardingState;
   /** The tenant's own `acct_…`, or null when Stripe is not usable here yet. */
   connectedAccountId: string | null;
-  /** The restaurant's own Stripe dashboard. Their login, not ours (Connect Standard). */
-  dashboardUrl: string;
+  /**
+   * Where to send the restaurant so it can reach its own Stripe account, or null when there is
+   * nowhere honest to send it yet.
+   *
+   * NOT a Stripe URL. Under Connect Express the restaurant has no full Stripe dashboard, an
+   * onboarding link dies 300 seconds after it is minted, and a login link is refused outright
+   * until onboarding is finished — so the value is a page of ours that mints a fresh Stripe link
+   * per click, and the backend reports null while no such page is configured.
+   *
+   * This field replaced `dashboardUrl` rather than being renamed in place, and the rename is the
+   * safety property: an older bundle reading `dashboardUrl` off a newer backend gets `undefined`
+   * and renders an inert control, and a newer bundle reading this field off an older backend gets
+   * `undefined` and does the same. Keeping the old name would instead have let a new bundle open
+   * `https://dashboard.stripe.com` — a login an Express account holder does not have.
+   */
+  paymentsLinkUrl: string | null;
   /**
    * How many KYC fields Stripe is still waiting for, or null when we do not know — which covers
    * both "nothing to ask about" and "the read was refused". A COUNT and never the field list:

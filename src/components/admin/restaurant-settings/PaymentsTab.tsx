@@ -17,12 +17,18 @@ import styles from './PaymentsTab.module.css';
  * the restaurant is plumbed in at all, and to which account.
  *
  * It REPORTS and never writes. There is no switch here by design (§9 constraint 4): the
- * only writes in this whole story are the founder's registry PR and Stripe's own hosted
- * pages, and a control that looked like an on/off switch would promise otherwise.
+ * writes in this story all happen elsewhere — the control plane creates the Stripe account
+ * and the registry entry, and Stripe's own hosted page collects what only the restaurant
+ * can give. A control that looked like an on/off switch would promise otherwise.
  *
- * It stops short of "has Stripe finished verifying you?" — answering that needs a call to
- * Stripe with a permission the box key does not hold today (P7b). Saying the smaller true
- * thing is the same rule §9 Q1 binds the customer-facing copy to.
+ * CONNECT EXPRESS. The copy here used to describe Connect Standard, where the restaurant
+ * opened its own Stripe account and we could only wait. Under Express we mint the account,
+ * prefill everything we already hold, and the restaurant finishes a short hosted form —
+ * measured: prefill takes Stripe's `currently_due` list from 16 fields to 6 (date of birth,
+ * phone, and accepting Stripe's terms). We cannot accept those terms for them: Stripe
+ * refuses it for `controller[requirement_collection]=stripe`, "which includes Standard and
+ * Express accounts". So the sitting still exists — it is just short — and TWINT is switched
+ * on by us, not by them.
  */
 export default function PaymentsTab() {
   const { t } = useTranslation();
@@ -109,21 +115,34 @@ export default function PaymentsTab() {
       fallback: 'Card payments are not switched on for this restaurant yet.',
     },
   };
+  // The three hints are where the Express reality is told. Each one answers "what happens to my
+  // money, and what is left for me to do", and each is deliberately smaller than a promise.
   const HINT_KEYS: Record<PaymentsOnboardingState, { readonly key: string; readonly fallback: string }> = {
     configured: {
+      // This sentence replaces "we never hold your money", which was true under Connect Standard
+      // and is an over-claim under Express: Stripe holds a reserve in OUR platform balance against
+      // this account's negative balance, and an unrecoverable loss is ours, not theirs. None of
+      // that is the restaurant's business — what IS their business is where the money goes and
+      // what we take, so the copy states exactly that and stops. Saying nothing was the other
+      // option and it reads worse: a restaurant reads this line to decide whether to trust us.
       key: 'payments_tab_configured_hint',
       fallback:
-        'Payments go straight to your own Stripe account — we never hold your money. The checklist ticks this off after your first online payment settles.',
+        'Card payments settle into your own Stripe account, and Stripe pays them out to your bank account. Sofra takes a per-transaction fee only when one is agreed with you, and today that fee is zero. The checklist ticks this off after your first online payment settles.',
     },
     awaitingVerification: {
+      // No "your Stripe dashboard": an Express account has no full Stripe login. The three things
+      // named here are the measured `currently_due` remainder after prefill — date of birth,
+      // phone, terms — so the owner can see the sitting is short before they start it.
       key: 'payments_tab_awaiting_hint',
       fallback:
-        'Finish the form in your Stripe dashboard and card payment turns on by itself. Until then your restaurant is fully live and taking cash as usual.',
+        'Stripe needs a few personal details from you: date of birth, a phone number, and your acceptance of their terms. We filled in everything else, and we switch TWINT on for you. Card payment turns on by itself once Stripe is done — until then your restaurant is fully live and taking cash as usual.',
     },
     notConfigured: {
+      // "There is nothing to do here yet" was true when only the restaurant could open the
+      // account. It is false now: we open it, and the short form is theirs.
       key: 'payments_tab_not_configured_hint',
       fallback:
-        'We are switching this on for you. There is nothing to do here yet — we will tell you when card payment appears at your checkout.',
+        'We create your Stripe account and fill in what we already know about your restaurant. You finish a short form at Stripe — a few personal details and their terms — and we switch TWINT on. We will tell you when card payment appears at your checkout.',
     },
   };
 
@@ -167,9 +186,28 @@ export default function PaymentsTab() {
         </p>
       )}
 
-      <a className={styles.link} href={onboarding.dashboardUrl} target="_blank" rel="noopener noreferrer">
-        {t('payments_tab_dashboard_link', 'Open your Stripe dashboard')}
-      </a>
+      {/* One link, minted by the control plane per click, and NEVER a static Stripe URL: an
+          Express onboarding link expires 300 seconds after it is created, and the Express
+          dashboard is reached through a login link that Stripe refuses to issue before
+          onboarding finishes. When the backend has no such page to send them to it sends null
+          — and an inert control that says why beats a link to a login they do not have. */}
+      {onboarding.paymentsLinkUrl ? (
+        <a className={styles.link} href={onboarding.paymentsLinkUrl} target="_blank" rel="noopener noreferrer">
+          {t('payments_tab_stripe_link', 'Go to Stripe')}
+        </a>
+      ) : (
+        <>
+          <button className={styles.linkDisabled} type="button" disabled>
+            {t('payments_tab_stripe_link', 'Go to Stripe')}
+          </button>
+          <p className={styles.hint}>
+            {t(
+              'payments_tab_stripe_link_pending',
+              "Stripe's links expire within minutes, so there is no permanent one to put here. Ask us and we will send you a fresh link.",
+            )}
+          </p>
+        </>
+      )}
     </div>
   );
 }

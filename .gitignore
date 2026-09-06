@@ -66,3 +66,7 @@ playwright-report/
 
 # Local throwaway browser probes (never committed; may contain dev credentials)
 *.local.mjs
+
+# Python bytecode from the detect-secrets custom filter (scripts/detect_secrets_filters/)
+# — detect-secrets imports it as a module on every scan. (#440)
+__pycache__/

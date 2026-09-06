@@ -1,7 +1,6 @@
 /**
- * Shared leaf types for the menu/product domain: content, images, tags, ingredients,
- * variations, side items, and the kitchen/product enums. Extracted from types/menu.ts
- * (Sprint 4/6 type-file split by domain). No dependencies on the other menu modules.
+ * Shared leaf types for the menu/product domain: content, images, tags, ingredients, variations,
+ * side items, and the kitchen/product enums. No dependencies on the other menu modules.
  */
 
 import type { OrderType } from '@/types/order';
@@ -16,13 +15,14 @@ export type DietaryTag = 'vegan' | 'halal' | 'gluten-free' | 'vegetarian' | stri
 
 export interface MenuItemImage {
   url: string;
+  cardUrl?: string; // card-sized WebP derivative; absent -> render url
   alt: string;
 }
 
 /**
  * A sauce is an ingredient row carrying a discriminator, not a second entity (plan D7/D8) — the one
- * shape with zero impact on the `Guid` keys frozen in `OrderItem.IngredientQuantitiesJson`. Absent
- * means `'ingredient'`: resolve it with `resolveIngredientKind` (`@/utils/ingredientKind`). */
+ * shape with zero impact on the Guid keys frozen in OrderItem.IngredientQuantitiesJson. Absent
+ * means ingredient: resolve with resolveIngredientKind. */
 export type IngredientKind = 'ingredient' | 'sauce';
 
 /** Detailed ingredient with optional/pricing information */

@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { deleteUserByEmail } from '../../helpers/db';
 import { expectNoA11yViolations } from '../../helpers/a11y';
-import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
+import {
+  closeMenuBasket,
+  dismissToastsOverCartButton,
+  menuBasketPanel,
+  openMenuBasket,
+} from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — guest places an order end-to-end.
@@ -126,8 +131,14 @@ test.describe('checkout-guest: public ordering as guest', () => {
 
     // Sidebar Proceed → /checkout/review (smart-skip routes straight
     // through because CheckoutContext now reports complete for the guest).
+    // #541: the navigation wait is registered BEFORE the click and the bottom-trailing
+    // toasts are dismissed first — a toast in that corner sits over the drawer's buttons
+    // for its 4-second life (the same overlap #554 fixed for the FAB), and a URL poll
+    // started after the click cannot tell "click never landed" from a lost redirect.
+    await dismissToastsOverCartButton(page);
+    const reviewNavigation = page.waitForURL(/\/checkout\/review$/, { timeout: 10_000 });
     await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+    await reviewNavigation;
 
     // --- Regression (bug 1): "Edit" opens the order/contact editor IN PLACE and does NOT bounce
     // to /menu (the buttons used to route to the retired /checkout/order-type + /menu stubs). ---
@@ -159,12 +170,18 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // number in the modal, then dismisses it.
     const dialog = page.getByRole('dialog', { name: /order received/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
-    await page.keyboard.press('Escape'); // BaseModal owns ESC-to-close.
 
     // --- Regression (bug 2): a GUEST can't read the auth-gated /checkout/confirmation order-details
     // page, so dismissing the modal must land on /menu — NOT a "Failed to load order details"
     // error page. ---
-    await expect(page).toHaveURL(/\/menu$/, { timeout: 15_000 });
+    // #541: the redirect wait is registered BEFORE the dismissal, so the test awaits the app's
+    // own navigation; the dismissal itself is asserted web-first right after, so an Escape that
+    // fails to close fails as "modal still open" instead of a bare URL poll that spent its whole
+    // timeout blaming the redirect.
+    const menuNavigation = page.waitForURL(/\/menu$/, { timeout: 15_000 });
+    await page.keyboard.press('Escape'); // BaseModal owns ESC-to-close.
+    await expect(dialog).toBeHidden({ timeout: 10_000 });
+    await menuNavigation;
     await expect(page.getByText(/failed to load order/i)).toHaveCount(0);
 
     // --- Regression (bug 3): placing an order resets the order type (both contexts), so the next

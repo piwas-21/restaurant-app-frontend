@@ -956,6 +956,7 @@
   "request_combine_tables": "请求组合这些桌位",
   "capacity_notice": "容量提示",
   "capacity_warning_message": "我们没有单个桌位可以容纳全部 {{guests}} 位客人。但您可以选择多个桌位并请求组合，或继续提交，由我们的员工为您安排最佳座位。",
+  "selected_tables_total_capacity": "所选餐桌总共可容纳 {{seats}} 位客人。请选择更多餐桌或减少人数。",
   "select_multiple_tables_suggestion": "💡 提示：选择多个桌位并使用下方的“组合桌位”选项。",
   "sort_newest_first": "最新优先",
   "sort_oldest_first": "最旧优先",

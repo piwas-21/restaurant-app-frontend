@@ -921,6 +921,7 @@
   "request_combine_tables": "Bu masaları birleştirme talebi",
   "capacity_notice": "Kapasite Bildirimi",
   "capacity_warning_message": "{{guests}} misafirin tamamını alabilen tek bir masamız yok. Ancak birden fazla masa seçip birleştirilmesini talep edebilir veya seçiminizle devam edebilirsiniz, personelimiz en iyi düzenlemeyi bulmak için talebinizi inceleyecektir.",
+  "selected_tables_total_capacity": "Seçilen masalar toplam {{seats}} kişilik. Lütfen daha fazla masa veya daha küçük bir grup seçin.",
   "select_multiple_tables_suggestion": "💡 İpucu: Birden fazla masa seçin ve aşağıdaki \"masaları birleştir\" seçeneğini kullanın.",
   "sort_newest_first": "En Yeni Önce",
   "sort_oldest_first": "En Eski Önce",

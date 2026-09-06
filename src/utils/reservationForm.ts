@@ -129,11 +129,21 @@ export function areRequiredReservationDetailsFilled(
   });
 }
 
+/**
+ * The SUM of the selected tables' capacities (#561). A combined selection seats the party when
+ * the SET does — individual tables may each be smaller than the party, that is what combining is
+ * for. Unknown ids (stale selection) count zero seats, matching how the server would see them.
+ */
+export function selectedTablesCapacity(selectedTableIds: string[], allTables: TableDto[]): number {
+  return selectedTableIds.reduce((seats, id) => seats + (allTables.find((tbl) => tbl.id === id)?.maxGuests ?? 0), 0);
+}
+
 /** Form inputs needed to validate a reservation before submit. */
 export interface ReservationValidationInput extends ReservationDetailValues {
   selectedTableIds: string[];
   selectedDate: string;
   selectedTime: string;
+  numberOfGuests: number;
   bookedTableIds: string[];
   allTables: TableDto[];
 }
@@ -152,6 +162,7 @@ export function validateReservation(
     selectedTableIds,
     selectedDate,
     selectedTime,
+    numberOfGuests,
     customerName,
     customerEmail,
     customerPhone,
@@ -181,6 +192,22 @@ export function validateReservation(
         { tables: tableNumbers },
       ),
       variant: 'error',
+    };
+  }
+
+  // Capacity gate on the SET the guest actually picked (#561): the party fits when the SUM of
+  // the selected tables' capacities fits. This is the same rule the server enforces; before the
+  // combined-reservation backend existed this check was unreachable and the server refused with
+  // a per-table sentence instead.
+  const seats = selectedTablesCapacity(selectedTableIds, allTables);
+  if (seats < numberOfGuests) {
+    return {
+      message: t(
+        'selected_tables_total_capacity',
+        'The selected tables seat {{seats}} guests in total. Please select more tables or a smaller party.',
+        { seats },
+      ),
+      variant: 'warning',
     };
   }
   return null;
@@ -217,9 +244,17 @@ export function buildSpecialRequests(input: SpecialRequestsInput): string {
   return finalSpecialRequests;
 }
 
-/** Builds the per-table create-reservation payload (2-hour slot). */
+/**
+ * Builds the ONE create-reservation payload over the selected tables (2-hour slot, #561).
+ *
+ * `primaryTableId` is the first selected table; `combinedTableIds` are the rest. The old shape —
+ * one payload PER table, each carrying the FULL party — is what made the combine flow impossible:
+ * the server refused every row it created on per-table capacity. A single-table selection omits
+ * `combinedTableIds` entirely.
+ */
 export function buildReservationPayload(
-  tableId: string,
+  primaryTableId: string,
+  combinedTableIds: string[],
   selectedDate: string,
   selectedTime: string,
   numberOfGuests: number,
@@ -230,7 +265,8 @@ export function buildReservationPayload(
     customerName: customer.customerName,
     customerEmail: customer.customerEmail,
     customerPhone: customer.customerPhone.trim() || '', // Send empty string if empty
-    tableId,
+    tableId: primaryTableId,
+    ...(combinedTableIds.length > 0 && { combinedTableIds }),
     reservationDate: new Date(selectedDate).toISOString(),
     startTime: `${selectedTime}:00`,
     endTime: `${parseInt(selectedTime.split(':')[0]) + 2}:00:00`, // 2-hour reservation

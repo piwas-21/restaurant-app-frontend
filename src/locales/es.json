@@ -913,6 +913,7 @@
   "request_combine_tables": "Solicitar combinar estas mesas",
   "capacity_notice": "Aviso de capacidad",
   "capacity_warning_message": "No tenemos una sola mesa que pueda acomodar a todos los {{guests}} comensales. Sin embargo, puede seleccionar múltiples mesas y solicitar combinarlas, o proceder con su selección y nuestro personal revisará su solicitud para encontrar el mejor arreglo.",
+  "selected_tables_total_capacity": "Las mesas seleccionadas tienen capacidad para {{seats}} personas en total. Seleccione más mesas o reduzca el tamaño del grupo.",
   "select_multiple_tables_suggestion": "💡 Consejo: Seleccione múltiples mesas y use la opción \"combinar mesas\" a continuación.",
   "sort_newest_first": "Más reciente primero",
   "sort_oldest_first": "Más antiguo primero",

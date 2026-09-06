@@ -1503,6 +1503,7 @@
   "server.confirm_order": "Подтвердить заказ",
   "server.start_preparing": "Начать приготовление",
   "server.mark_ready": "Отметить как готово",
+  "server.dispatch_order": "Передать в доставку",
   "server.total": "Итого",
   "server.updating": "Обновление...",
   "server.search_items": "Поиск блюд...",

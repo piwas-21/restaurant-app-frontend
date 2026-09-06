@@ -4,9 +4,9 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../../app/styles/CashierPage.module.css';
-import { OrderDto, OrderStatus } from '@/types/order';
-import { OrderType } from '@/types/order';
+import { OrderDto, OrderStatus, OrderType } from '@/types/order';
 import { getOrderStatusTranslationKey } from '@/utils/orderStatusStyles';
+import { orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
 
 interface OrderListProps {
   orders: OrderDto[];
@@ -44,29 +44,20 @@ const getOrderTypeDisplay = (type: string) => {
   }
 };
 
-// Helper to get the status badge's fill modifier class. Returns a class rather than
-// a colour so the fill stays in the stylesheet, tokenised and contrast-checked
-// (see .orderStatusBadge in CashierPage.module.css) instead of inline on the span.
-const getStatusBadgeModifier = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return styles.orderStatusBadgePending;
-    case 'confirmed':
-      return styles.orderStatusBadgeConfirmed;
-    case 'preparing':
-      return styles.orderStatusBadgePreparing;
-    case 'ready':
-      return styles.orderStatusBadgeReady;
-    case 'cancelled':
-      return styles.orderStatusBadgeCancelled;
-    // An unrecognised status falls back to the Completed fill — the same grey the
-    // old hex map used as its default. The class name overstates it: the order is
-    // not necessarily completed, the grey is just the neutral fill.
-    case 'completed':
-    default:
-      return styles.orderStatusBadgeCompleted;
-  }
+// This module's binding of the SHARED status→badge-fill key (#336). The switch that used to
+// live here — duplicated verbatim in OrderDetails, which is how a contrast fix once landed on
+// one pill and not its twin — is gone; `orderStatusBadgeFill` makes the decision, and this
+// Record only binds each fill key to this module's tokenised, contrast-checked class.
+const BADGE_FILL_CLASS: Record<OrderStatusBadgeFill, string> = {
+  pending: styles.orderStatusBadgePending,
+  confirmed: styles.orderStatusBadgeConfirmed,
+  preparing: styles.orderStatusBadgePreparing,
+  ready: styles.orderStatusBadgeReady,
+  cancelled: styles.orderStatusBadgeCancelled,
+  completed: styles.orderStatusBadgeCompleted,
 };
+
+const getStatusBadgeModifier = (status: string) => BADGE_FILL_CLASS[orderStatusBadgeFill(status)];
 
 export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLoading, error }: OrderListProps) {
   const { t } = useTranslation();

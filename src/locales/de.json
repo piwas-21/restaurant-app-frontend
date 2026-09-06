@@ -1564,6 +1564,7 @@
   "server.confirm_order": "Bestellung bestätigen",
   "server.start_preparing": "Zubereitung starten",
   "server.mark_ready": "Als fertig markieren",
+  "server.dispatch_order": "Ausliefern",
   "server.total": "Gesamt",
   "server.updating": "Aktualisieren...",
   "server.search_items": "Artikel suchen...",

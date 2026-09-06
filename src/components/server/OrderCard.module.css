@@ -5,8 +5,8 @@
   padding: 1rem;
   margin-bottom: 1rem;
   transition: all 0.2s ease;
-  /* Status accent rule. The six `.status*` rules below repaint ONLY its colour, so the width
-     here and all six colours are one set and convert together — a half-converted pair splits
+  /* Status accent rule. The `.status*` rules below repaint ONLY its colour, so the width
+     here and all their colours are one set and convert together — a half-converted pair splits
      the stripe across two edges in `ar` (the defect review caught in #390). */
   border-inline-start: 4px solid var(--border-color);
 }
@@ -15,41 +15,57 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Status border colors */
+/* Status border colours — the shared `--status-*` hues (#381), the same values
+   `getOrderStatusColor` shows in the cashier's status dropdown, so one system governs both
+   screens. The six hexes this replaced WERE token values on DIFFERENT statuses, so four
+   borders repaint; Completed and Cancelled keep their hue. */
 .statusPending {
-  border-inline-start-color: #f59e0b;
+  border-inline-start-color: var(--status-pending);
 }
 
 .statusConfirmed {
-  border-inline-start-color: #3b82f6;
+  border-inline-start-color: var(--status-confirmed);
 }
 
 .statusPreparing {
-  border-inline-start-color: #8b5cf6;
+  border-inline-start-color: var(--status-preparing);
 }
 
 .statusReady {
-  border-inline-start-color: #10b981;
-  animation: pulseGreen 2s ease-in-out infinite;
+  border-inline-start-color: var(--status-ready);
+  animation: pulseReady 2s ease-in-out infinite;
+}
+
+/* In transit shares the confirmed green, as `getOrderStatusColor` maps it — safe only now
+   that Ready wears purple; before the repaint this green WAS Ready's, collapsing "collect
+   it" and "already gone" into one colour. */
+.statusInTransit {
+  border-inline-start-color: var(--status-confirmed);
+}
+
+/* Delivered shares the completed grey, as `getOrderStatusColor` maps it. */
+.statusDelivered {
+  border-inline-start-color: var(--status-completed);
 }
 
 .statusCompleted {
-  border-inline-start-color: #6b7280;
+  border-inline-start-color: var(--status-completed);
   opacity: 0.7;
 }
 
 .statusCancelled {
-  border-inline-start-color: #ef4444;
+  border-inline-start-color: var(--status-danger);
   opacity: 0.6;
 }
 
-@keyframes pulseGreen {
+/* The ready pulse reads the same hue as the border, so halo and stripe cannot drift apart. */
+@keyframes pulseReady {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 0 var(--status-ready-glow);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    box-shadow: 0 0 0 8px transparent;
   }
 }
 
@@ -190,8 +206,8 @@
 
 .actionButton {
   padding: 0.625rem 1.25rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
-  color: var(--button-text-color, #fff);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+  color: var(--button-text-color);
   border: none;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -211,18 +227,6 @@
   cursor: not-allowed;
 }
 
-/* NO `.statusInTransit` / `.statusDelivered` here, deliberately — `orderStatusMeta` names eight
-   modifier classes and this module defines six, so those two statuses keep the card's neutral
-   default border. That is not an oversight, and adding them was tried and reverted:
- *
- * this file's six hard-coded hexes ARE the six `--status-*` token values, assigned to DIFFERENT
- * statuses. `.statusReady` is #10b981, which is `--status-confirmed`; `.statusConfirmed` is
- * #3b82f6, which is `--status-preparing`. So there is no token that does not collide: giving
- * in-transit `--status-confirmed` paints it the same green as ready-for-pickup, and on a waiter's
- * screen "collect it" and "already gone" are the one distinction that border exists to carry.
- *
- * The real fix is to repaint all six onto tokens so one system governs the file — which also ends
- * the contradiction with `getOrderStatusColor`, where the same statuses have different hues. That
- * changes colours on a live staff screen, so it is a follow-up, not a migration. Until then the
- * STATUS BADGE carries these two, and it now reads a real translation instead of the raw enum.
- */
+/* All eight `orderStatusMeta` modifier classes now exist here (#381). Adding the two above was
+   tried and reverted while the hexes stood: every token then collided with a neighbour. The
+   repaint onto the shared hues is what made them safe. */

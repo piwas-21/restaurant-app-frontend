@@ -1009,6 +1009,7 @@
   "request_combine_tables": "Vraag aan om deze tafels samen te voegen",
   "capacity_notice": "Capaciteitsmelding",
   "capacity_warning_message": "We hebben geen enkele tafel die alle {{guests}} gasten kan plaatsen. Je kunt wel meerdere tafels selecteren en aanvragen om ze samen te voegen, of doorgaan met je selectie; ons personeel bekijkt dan de beste indeling.",
+  "selected_tables_total_capacity": "De geselecteerde tafels bieden in totaal plaats aan {{seats}} gasten. Kies meer tabellen of verklein het gezelschap.",
   "select_multiple_tables_suggestion": "💡 Tip: selecteer meerdere tafels en gebruik de optie \"tafels samenvoegen\" hieronder.",
   "sort_newest_first": "Nieuwste eerst",
   "sort_oldest_first": "Oudste eerst",

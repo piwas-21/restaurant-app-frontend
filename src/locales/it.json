@@ -913,6 +913,7 @@
   "request_combine_tables": "Richiedi di unire questi tavoli",
   "capacity_notice": "Avviso di capacità",
   "capacity_warning_message": "Non abbiamo un singolo tavolo che possa ospitare tutti i {{guests}} ospiti. Tuttavia, puoi selezionare più tavoli e richiedere di unirli, oppure procedere con la tua selezione e il nostro personale esaminerà la tua richiesta per trovare la migliore sistemazione.",
+  "selected_tables_total_capacity": "I tavoli selezionati offrono {{seats}} posti in totale. Seleziona altri tavoli o riduci il numero di ospiti.",
   "select_multiple_tables_suggestion": "💡 Suggerimento: Seleziona più tavoli e usa l'opzione \"unisci tavoli\" qui sotto.",
   "sort_newest_first": "Prima i più recenti",
   "sort_oldest_first": "Prima i più vecchi",

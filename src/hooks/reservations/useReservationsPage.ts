@@ -74,6 +74,7 @@ export function useReservationsPage() {
         selectedTableIds,
         selectedDate,
         selectedTime,
+        numberOfGuests,
         customerName,
         customerEmail,
         customerPhone,
@@ -101,20 +102,24 @@ export function useReservationsPage() {
         allTables,
       });
 
-      const reservationPromises = selectedTableIds.map((tableId) =>
-        reservationService.createReservation(
-          buildReservationPayload(
-            tableId,
-            selectedDate,
-            selectedTime,
-            numberOfGuests,
-            { customerName, customerEmail, customerPhone },
-            finalSpecialRequests,
-          ),
+      // ONE reservation over N tables (#561): the first selected table is the primary, the rest
+      // ride along as `combinedTableIds`. The per-table fan-out below is what made the combine
+      // flow impossible — every row carried the FULL party size and the server refused each one
+      // on per-table capacity, exactly the case the page had told the guest to use.
+      const primaryTableId = selectedTableIds[0];
+      const combinedTableIds = selectedTableIds.slice(1);
+
+      await reservationService.createReservation(
+        buildReservationPayload(
+          primaryTableId,
+          combinedTableIds,
+          selectedDate,
+          selectedTime,
+          numberOfGuests,
+          { customerName, customerEmail, customerPhone },
+          finalSpecialRequests,
         ),
       );
-
-      await Promise.all(reservationPromises);
 
       setShowSuccessModal(true);
 

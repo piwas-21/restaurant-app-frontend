@@ -9,7 +9,11 @@ import type { CategoryFormValues } from './categoryFormSchema';
  * new-code duplication stays honest instead of pasting the same four lines twice (Sonar gate).
  * Renders like the sibling isActive checkbox: a formGroup with a block label over the input.
  */
-export default function CategoryHiddenFromAllTabField({ register }: { register: UseFormRegister<CategoryFormValues> }) {
+export default function CategoryHiddenFromAllTabField({
+  register,
+}: {
+  readonly register: UseFormRegister<CategoryFormValues>;
+}) {
   const { t } = useTranslation();
   return (
     <div className={styles.formGroup}>

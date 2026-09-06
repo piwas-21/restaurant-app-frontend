@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categoryFormSchema, type CategoryFormValues } from './categoryFormSchema';
+import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
@@ -103,10 +104,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             <label htmlFor="isActive">{t('is_active')}</label>
             <input type="checkbox" id="isActive" {...register('isActive')} />
           </div>
-          <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-            <label htmlFor="isHiddenFromAllTab">{t('is_hidden_from_all_tab')}</label>
-            <input type="checkbox" id="isHiddenFromAllTab" {...register('isHiddenFromAllTab')} />
-          </div>
+          <CategoryHiddenFromAllTabField register={register} />
           <div className={styles.formGroup}>
             <label htmlFor="displayOrder">{t('display_order')}</label>
             <input id="displayOrder" type="number" {...register('displayOrder')} />

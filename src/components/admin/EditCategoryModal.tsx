@@ -18,6 +18,7 @@ interface Category {
   name: string;
   description?: string | null;
   isActive: boolean;
+  isHiddenFromAllTab?: boolean;
   displayOrder: number;
   /** Raw OrderChannels mask; `null` = every order type. Shown read-only, echoed back on save. */
   availableOrderTypes?: number | null;
@@ -61,6 +62,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
         name: category.name,
         description: category.description || '',
         isActive: category.isActive,
+        isHiddenFromAllTab: category.isHiddenFromAllTab ?? false,
         displayOrder: category.displayOrder,
       });
     }
@@ -100,6 +102,10 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
           <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
             <label htmlFor="isActive">{t('is_active')}</label>
             <input type="checkbox" id="isActive" {...register('isActive')} />
+          </div>
+          <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+            <label htmlFor="isHiddenFromAllTab">{t('is_hidden_from_all_tab')}</label>
+            <input type="checkbox" id="isHiddenFromAllTab" {...register('isHiddenFromAllTab')} />
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="displayOrder">{t('display_order')}</label>

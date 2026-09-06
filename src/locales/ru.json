@@ -2419,5 +2419,6 @@
   "step_skip_drinks": "Без напитка",
   "step_skip_sides_beverages": "Без напитка",
   "step_skip_sides_desserts": "Без десерта",
-  "step_skip_sides_accompaniments": "Без гарнира"
+  "step_skip_sides_accompaniments": "Без гарнира",
+  "is_hidden_from_all_tab": "Скрыть из вкладки «Все»"
 }

@@ -2419,5 +2419,6 @@
   "step_skip_drinks": "Senza bevanda",
   "step_skip_sides_beverages": "Senza bevanda",
   "step_skip_sides_desserts": "Senza dolce",
-  "step_skip_sides_accompaniments": "Senza contorno"
+  "step_skip_sides_accompaniments": "Senza contorno",
+  "is_hidden_from_all_tab": "Nascondi dalla scheda Tutto"
 }

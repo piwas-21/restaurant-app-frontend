@@ -16,6 +16,12 @@ interface CategoryData {
   description?: string | null;
   isActive: boolean;
   /**
+   * Keep the category orderable on its own tab but out of the guest "All" list (partner request
+   * 2026-09-06). REQUIRED, not optional: the PUT is a full replace, and `?` here is how a caller
+   * that "just forgot" silently un-hides the category. Same reasoning as `isActive` above.
+   */
+  isHiddenFromAllTab: boolean;
+  /**
    * OrderChannels bitmask; `null`/omitted = every order type. Build it with
    * `maskFromOrderTypes` from `@/utils/orderChannels` — the bit values are NOT the OrderType
    * enum's numeric values.
@@ -42,6 +48,7 @@ export interface CategoryChannelEcho {
   name: string;
   description?: string | null;
   isActive: boolean;
+  isHiddenFromAllTab: boolean;
 }
 
 /**
@@ -63,6 +70,7 @@ export const updateCategoryOrderTypes = async (category: CategoryChannelEcho, av
     name: category.name,
     description: category.description ?? undefined,
     isActive: category.isActive,
+    isHiddenFromAllTab: category.isHiddenFromAllTab,
     availableOrderTypes,
   });
 };

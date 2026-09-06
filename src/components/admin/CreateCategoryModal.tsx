@@ -43,6 +43,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     resolver: zodResolver(createCategorySchema),
     defaultValues: {
       isActive: true,
+      isHiddenFromAllTab: false,
       displayOrder: 0,
     },
   });
@@ -61,6 +62,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         name: data.name,
         description: data.description,
         isActive: data.isActive,
+        isHiddenFromAllTab: data.isHiddenFromAllTab,
         displayOrder: data.displayOrder,
       })) as CategoryApiResponse;
 
@@ -149,6 +151,10 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
           <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
             <label htmlFor="isActive">{t('is_active')}</label>
             <input type="checkbox" id="isActive" {...register('isActive')} />
+          </div>
+          <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+            <label htmlFor="isHiddenFromAllTab">{t('is_hidden_from_all_tab')}</label>
+            <input type="checkbox" id="isHiddenFromAllTab" {...register('isHiddenFromAllTab')} />
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="displayOrder">{t('display_order')}</label>

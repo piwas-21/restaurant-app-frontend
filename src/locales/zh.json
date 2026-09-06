@@ -2419,5 +2419,6 @@
   "step_skip_drinks": "不要饮品",
   "step_skip_sides_beverages": "不要饮品",
   "step_skip_sides_desserts": "不要甜点",
-  "step_skip_sides_accompaniments": "不要配菜"
+  "step_skip_sides_accompaniments": "不要配菜",
+  "is_hidden_from_all_tab": "从“全部”标签页隐藏"
 }

@@ -2419,5 +2419,6 @@
   "step_skip_drinks": "Zonder drankje",
   "step_skip_sides_beverages": "Zonder drankje",
   "step_skip_sides_desserts": "Zonder dessert",
-  "step_skip_sides_accompaniments": "Zonder bijgerecht"
+  "step_skip_sides_accompaniments": "Zonder bijgerecht",
+  "is_hidden_from_all_tab": "Verbergen op het tabblad Alles"
 }

@@ -198,9 +198,19 @@ jobs:
     # was silently unavailable, and it blocked every merge in the repo because the merge gate
     # requires CI green.
     #
-    # Raising the ceiling does not weaken the gate: the audit itself still decides pass/fail, and a
-    # genuine hang still stops at a bound rather than running forever. What it buys is that a slow
-    # third-party endpoint costs minutes instead of a merge queue.
+    # The ceiling was a bound, not a cure (#712): a slow registry still cost minutes of merge
+    # latency, and a fetch failure still died as an illegible CANCELLED. scripts/run-npm-audit.sh
+    # is the cure, on the axes the issue asked for — the verdict is CACHED per lockfile (week-salted,
+    # so it can never outlive ~7 days), the fetch is RETRIED with backoff, each attempt is TIME-CAPPED
+    # so even a hang returns as a classified failure, and a fetch failure says so explicitly with the
+    # one action that helps (re-run the job). The retries cannot reach this job ceiling
+    # (3 × 4min + backoff < 15min), so if this job ever still shows CANCELLED, that can only be a
+    # runner-level hang, never a fetch failure.
+    #
+    # Kept alongside OSV-Scanner + Trivy because it is the only one of the three that queries npm's
+    # live advisory endpoint at run time (the other two read database snapshots refreshed on their
+    # own cadence) and reports npm's own fix/remediation graph — the input to the expiring
+    # allowlist in .npm-audit-allowlist.json.
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -209,14 +219,23 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --prefer-offline --no-audit
-        # Not a bare `npm audit --audit-level=high`: npm has no ignore mechanism,
-        # so an advisory with no reachable patched version leaves only "force an
-        # incompatible major" or "delete the gate". The wrapper makes accepting one
-        # an explicit, dated entry in .npm-audit-allowlist.json instead, and fails
-        # when an acceptance expires. Same house pattern as .retireignore.json.
-      # `npm audit` exits non-zero on any finding, so the pipeline's status is the
-      # parser's — it is the one that decides whether a finding is accepted.
-      - run: npm audit --json | node scripts/check-npm-audit.mjs
+      # Not a bare `npm audit --audit-level=high`: npm has no ignore mechanism, so an
+      # advisory with no reachable patched version leaves only "force an incompatible
+      # major" or "delete the gate". scripts/check-npm-audit.mjs (invoked inside
+      # run-npm-audit.sh) makes accepting one an explicit, dated entry in
+      # .npm-audit-allowlist.json instead, and fails when an acceptance expires.
+      # Same house pattern as .retireignore.json. `npm audit` exits non-zero on any
+      # finding, so the pipeline's status is the parser's — it is the one that decides
+      # whether a finding is accepted.
+      - name: Compute the audit-cache week (bounds a cached verdict to ~7 days)
+        run: echo "AUDIT_CACHE_WEEK=$(date -u +%G-W%V)" >> "$GITHUB_ENV"
+      - name: Restore the cached audit verdict for this lockfile
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .npm-audit-cache
+          key: npm-audit-${{ runner.os }}-${{ env.AUDIT_CACHE_WEEK }}-${{ hashFiles('package-lock.json') }}
+      - name: npm audit (cached verdict, retried fetch, legible failure)
+        run: bash scripts/run-npm-audit.sh
 
   file_length:
     name: file-length (CLAUDE.md §4)

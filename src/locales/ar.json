@@ -2413,5 +2413,11 @@
   "step_blocked_section": "الرجاء إجراء الاختيار المطلوب للمتابعة.",
   "step_sides_desserts": "أضف حلوى",
   "step_sides_accompaniments": "أضف طبقًا جانبيًا",
-  "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك."
+  "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك.",
+  "step_skip_sauces": "بدون صلصة",
+  "step_skip_ingredients": "بدون إضافات",
+  "step_skip_drinks": "بدون مشروب",
+  "step_skip_sides_beverages": "بدون مشروب",
+  "step_skip_sides_desserts": "بدون حلوى",
+  "step_skip_sides_accompaniments": "بدون طبق جانبي"
 }

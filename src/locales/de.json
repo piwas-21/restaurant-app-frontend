@@ -2413,5 +2413,11 @@
   "step_blocked_section": "Bitte treffen Sie die erforderliche Auswahl, um fortzufahren.",
   "step_sides_desserts": "Dessert hinzufügen",
   "step_sides_accompaniments": "Beilage hinzufügen",
-  "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt."
+  "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt.",
+  "step_skip_sauces": "Keine Soße",
+  "step_skip_ingredients": "Ohne Extras",
+  "step_skip_drinks": "Ohne Getränk",
+  "step_skip_sides_beverages": "Ohne Getränk",
+  "step_skip_sides_desserts": "Ohne Dessert",
+  "step_skip_sides_accompaniments": "Ohne Beilage"
 }

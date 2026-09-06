@@ -2413,5 +2413,11 @@
   "step_blocked_section": "Veuillez faire la sélection requise pour continuer.",
   "step_sides_desserts": "Ajouter un dessert",
   "step_sides_accompaniments": "Ajouter un accompagnement",
-  "step_drinks_hint": "Ajouté comme article distinct dans votre panier."
+  "step_drinks_hint": "Ajouté comme article distinct dans votre panier.",
+  "step_skip_sauces": "Sans sauce",
+  "step_skip_ingredients": "Sans suppléments",
+  "step_skip_drinks": "Sans boisson",
+  "step_skip_sides_beverages": "Sans boisson",
+  "step_skip_sides_desserts": "Sans dessert",
+  "step_skip_sides_accompaniments": "Sans accompagnement"
 }

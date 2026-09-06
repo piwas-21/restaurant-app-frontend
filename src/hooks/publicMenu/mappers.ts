@@ -68,7 +68,7 @@ function mapImages(images: ProductImageDto[] | undefined, fallbackAlt: string): 
   if (!Array.isArray(images)) return [];
   return images
     .filter((img): img is ProductImageDto => !!img && typeof img.url === 'string' && img.url.length > 0)
-    .map((img) => ({ url: img.url, cardUrl: img.cardUrl, alt: img.altText || fallbackAlt }));
+    .map((img) => ({ url: img.url, cardUrl: img.cardUrl ?? undefined, alt: img.altText || fallbackAlt }));
 }
 
 /** Normalise the per-locale content map; falls back to an `en` entry if absent. */
@@ -104,8 +104,8 @@ export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): Me
   // The card slot prefers the card-sized WebP when the backend generated one (partner-reported
   // menu slowness, 2026-09-06); the gallery and lightbox keep the original via `images`.
   const primaryImage =
-    p.imageUrl ||
     (Array.isArray(p.images) && p.images[0]?.cardUrl ? p.images[0].cardUrl : undefined) ||
+    p.imageUrl ||
     (Array.isArray(p.images) && p.images[0]?.url ? p.images[0].url : PLACEHOLDER_IMAGE);
   return {
     id: p.id,

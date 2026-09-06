@@ -61,7 +61,7 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
     name: bundle.name,
     description: bundle.description,
     content: bundle.content,
-    imageUrl: bundle.images?.[0]?.url || FALLBACK_IMAGE,
+    imageUrl: bundle.images?.[0]?.cardUrl || bundle.images?.[0]?.url || FALLBACK_IMAGE,
     imageCount: bundle.images?.length,
     images: bundle.images,
     price: bundle.basePrice,

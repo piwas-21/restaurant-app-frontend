@@ -16,6 +16,8 @@ interface SheetFooterProps {
   onContinue: () => void;
   /** The step is optional and the guest has not touched it — the action is honestly "Skip". */
   isSkip: boolean;
+  /** The "Skip" wording for THIS step ("Sans sauce"), from `stepSkipLabel`; generic verb when absent. */
+  skipLabel?: string;
   /** Why the guest cannot move on yet, revealed only once they have tried (never on arrival). */
   blockedMessage?: string;
 }
@@ -37,6 +39,7 @@ export default function SheetFooter({
   onAdd,
   onContinue,
   isSkip,
+  skipLabel,
   blockedMessage,
 }: Readonly<SheetFooterProps>) {
   const { t } = useTranslation();
@@ -71,7 +74,7 @@ export default function SheetFooter({
             {amount}
           </p>
           <button type="button" className={styles.primary} onClick={onContinue}>
-            {isSkip ? t('step_skip') : t('step_continue')}
+            {isSkip ? (skipLabel ?? t('step_skip')) : t('step_continue')}
           </button>
         </div>
         {announcement}

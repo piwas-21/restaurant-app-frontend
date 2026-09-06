@@ -82,7 +82,11 @@ export default function MenuItemImage({
           className={styles.itemImage}
           priority={false}
           quality={100}
-          loading="eager"
+          // Default `lazy`, deliberately: the All view used to start ALL 57 card downloads the
+          // moment the sheet rendered (measured 8.3-16.4 MB per menu view across tenants), and
+          // every one of them competed with the images the guest is actually looking at. Below-fold
+          // photos now wait their turn. Nothing is lost for the first screen: this page is
+          // client-rendered, so even an `eager` image could not start before hydration anyway.
           onError={onError}
         />
         {badge}

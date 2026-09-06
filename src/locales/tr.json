@@ -2413,5 +2413,12 @@
   "step_blocked_section": "Devam etmek için gerekli seçimi yapın.",
   "step_sides_desserts": "Tatlı ekleyin",
   "step_sides_accompaniments": "Yan ürün ekleyin",
-  "step_drinks_hint": "Sepetinize ayrı bir ürün olarak eklenir."
+  "step_drinks_hint": "Sepetinize ayrı bir ürün olarak eklenir.",
+  "step_skip_sauces": "Sos istemiyorum",
+  "step_skip_ingredients": "Ek istemiyorum",
+  "step_skip_drinks": "İçecek istemiyorum",
+  "step_skip_sides_beverages": "İçecek istemiyorum",
+  "step_skip_sides_desserts": "Tatlı istemiyorum",
+  "step_skip_sides_accompaniments": "Yan ürün istemiyorum",
+  "is_hidden_from_all_tab": "Tümü sekmesinden gizle"
 }

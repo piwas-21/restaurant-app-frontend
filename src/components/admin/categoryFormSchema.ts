@@ -36,6 +36,10 @@ export const categoryFormSchema = z.object({
     )
     .optional(),
   isActive: z.boolean(),
+  // Partner request 2026-09-06: keep the category orderable on its own tab but out of the guest
+  // "All" list. The PUT is a full replace, so BOTH modals always post it — never `.optional()`,
+  // an omitted flag would silently un-hide on every unrelated rename.
+  isHiddenFromAllTab: z.boolean(),
   displayOrder: z.coerce.number().int().min(0, { message: 'Display order must be a non-negative integer' }),
 });
 

@@ -13,6 +13,8 @@ type ProductVariationDto = NonNullable<MenuItem['variations']>[number];
  */
 export interface ProductImageDto {
   url: string;
+  /** The card-sized WebP derivative (backend generates it at upload); absent on rows predating it. */
+  cardUrl?: string | null;
   altText?: string;
 }
 

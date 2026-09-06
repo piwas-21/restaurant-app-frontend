@@ -145,7 +145,12 @@ export function useCategoryChannelsAdmin() {
         // One writer for the whole feature (`updateCategoryOrderTypes`): it owns the §9.1
         // full-replace echo, so the matrix and the pinned quick toggle cannot drift into two
         // payloads, one of which blanks a field.
-        await updateCategoryOrderTypes(category, category.availableOrderTypes ?? null);
+        // `?? false` guards a row typed before the flag existed; the list endpoint always
+        // returns it, so this is a boundary normalisation, not a default the admin chose.
+        await updateCategoryOrderTypes(
+          { ...category, isHiddenFromAllTab: category.isHiddenFromAllTab ?? false },
+          category.availableOrderTypes ?? null,
+        );
 
         setSaved((prev) => prev.map((c) => (c.id === categoryId ? { ...category } : c)));
         enqueueSnackbar(t('order_types_saved', 'Order type availability saved'), { variant: 'success' });

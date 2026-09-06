@@ -61,31 +61,39 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
    * order-type mask itself got wiped by an unrelated edit the first time round.
    */
   it('echoes name, description and isActive back, so the update cannot blank them', async () => {
-    await updateCategoryOrderTypes({ id: 'c1', name: 'Dürüm Wraps', description: 'Wraps', isActive: true }, 6);
+    await updateCategoryOrderTypes(
+      { id: 'c1', name: 'Dürüm Wraps', description: 'Wraps', isActive: true, isHiddenFromAllTab: true },
+      6,
+    );
 
     expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', {
       id: 'c1',
       name: 'Dürüm Wraps',
       description: 'Wraps',
       isActive: true,
+      isHiddenFromAllTab: true,
       availableOrderTypes: 6,
     });
   });
 
   it('sends an absent description as undefined rather than a null the handler would store', async () => {
-    await updateCategoryOrderTypes({ id: 'c1', name: 'Grills', description: null, isActive: false }, null);
+    await updateCategoryOrderTypes(
+      { id: 'c1', name: 'Grills', description: null, isActive: false, isHiddenFromAllTab: false },
+      null,
+    );
 
     expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', {
       id: 'c1',
       name: 'Grills',
       description: undefined,
       isActive: false,
+      isHiddenFromAllTab: false,
       availableOrderTypes: null,
     });
   });
 
   it('never sends displayOrder — the handler never assigns it, ReorderCategories owns ordering', async () => {
-    await updateCategoryOrderTypes({ id: 'c1', name: 'Grills', isActive: true }, 2);
+    await updateCategoryOrderTypes({ id: 'c1', name: 'Grills', isActive: true, isHiddenFromAllTab: false }, 2);
 
     expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('displayOrder');
   });

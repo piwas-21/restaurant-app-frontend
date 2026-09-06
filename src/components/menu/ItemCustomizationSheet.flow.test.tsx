@@ -154,7 +154,7 @@ beforeEach(() => {
 });
 
 /** The footer's one forward control — labelled Skip on an untouched optional step, else Continue. */
-const advance = () => fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)$/ }));
+const advance = () => fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)(_|$)/ }));
 
 describe('the flow is CONDITIONAL — a simple item must not pay for the complex ones', () => {
   it('gives a one-decision item no progress bar, no Continue, and an Add straight away', async () => {
@@ -192,7 +192,7 @@ describe('the required-step gate', () => {
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)(_|$)/ }));
     expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
     // Still on the sauces: the drinks group from the next step has not appeared.
     expect(screen.queryByRole('button', { name: /add_ingredient/ })).not.toBeInTheDocument();

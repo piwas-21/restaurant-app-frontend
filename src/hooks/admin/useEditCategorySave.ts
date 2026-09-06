@@ -22,6 +22,7 @@ export interface EditCategoryValues {
   /** `string | null` for the reason `CategoryData.description` is — the wire sends both (#642). */
   description?: string | null;
   isActive: boolean;
+  isHiddenFromAllTab: boolean;
   displayOrder: number;
 }
 
@@ -62,6 +63,9 @@ export function useEditCategorySave(
         name: values.name,
         description: values.description,
         isActive: values.isActive,
+        // Posted from the form (seeded from the row), NOT edited here — the PUT is a full
+        // replace, so an omitted flag would silently un-hide the category on every rename.
+        isHiddenFromAllTab: values.isHiddenFromAllTab,
         // Echoed back unchanged, NOT edited here. `UpdateCategoryCommand` is a full-replace PUT
         // that assigns AvailableOrderTypes unconditionally, so omitting it would clear the
         // category's channel restriction on every unrelated rename (plan §9.1). The channel

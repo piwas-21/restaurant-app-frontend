@@ -3,9 +3,9 @@ import { deleteUserByEmail } from '../../helpers/db';
 import { expectNoA11yViolations } from '../../helpers/a11y';
 import {
   closeMenuBasket,
-  dismissToastsOverCartButton,
   menuBasketPanel,
   openMenuBasket,
+  proceedViaSidebarExpectingNavigation,
 } from '../../helpers/menuBasket';
 
 /**
@@ -131,14 +131,8 @@ test.describe('checkout-guest: public ordering as guest', () => {
 
     // Sidebar Proceed → /checkout/review (smart-skip routes straight
     // through because CheckoutContext now reports complete for the guest).
-    // #541: the navigation wait is registered BEFORE the click and the bottom-trailing
-    // toasts are dismissed first — a toast in that corner sits over the drawer's buttons
-    // for its 4-second life (the same overlap #554 fixed for the FAB), and a URL poll
-    // started after the click cannot tell "click never landed" from a lost redirect.
-    await dismissToastsOverCartButton(page);
-    const reviewNavigation = page.waitForURL(/\/checkout\/review$/, { timeout: 10_000 });
-    await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await reviewNavigation;
+    // #541: toasts first, wait registered before the click (shared helper).
+    await proceedViaSidebarExpectingNavigation(page, sidebar);
 
     // --- Regression (bug 1): "Edit" opens the order/contact editor IN PLACE and does NOT bounce
     // to /menu (the buttons used to route to the retired /checkout/order-type + /menu stubs). ---

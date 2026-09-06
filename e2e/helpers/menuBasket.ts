@@ -131,6 +131,26 @@ export async function dismissToastsOverCartButton(page: Page): Promise<void> {
   await expect(snacks, 'a toast is still covering the floating cart button').toHaveCount(0, { timeout: 10_000 });
 }
 
+/**
+ * Click the sidebar's "Proceed to checkout" and await the navigation it performs (#541).
+ *
+ * The navigation wait is registered BEFORE the click, so it cannot mistake "the click never
+ * landed" for a lost redirect; and toasts are dismissed first, because a bottom-trailing
+ * notistack snack parks over this exact corner for its 4-second life (the overlap #554 fixed
+ * for the floating cart button). One body for every Proceed site — the wait blocks this
+ * replaces were Sonar-duplicated four times across two specs.
+ */
+export async function proceedViaSidebarExpectingNavigation(
+  page: Page,
+  sidebar: Locator,
+  targetUrl: RegExp = /\/checkout\/review$/,
+): Promise<void> {
+  await dismissToastsOverCartButton(page);
+  const navigation = page.waitForURL(targetUrl, { timeout: 10_000 });
+  await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
+  await navigation;
+}
+
 /** Close it again, so the grid behind it is clickable. */
 export async function closeMenuBasket(page: Page): Promise<void> {
   const panel = menuBasketPanel(page);

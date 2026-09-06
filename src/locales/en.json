@@ -1566,6 +1566,7 @@
   "server.confirm_order": "Confirm Order",
   "server.start_preparing": "Start Preparing",
   "server.mark_ready": "Mark Ready",
+  "server.dispatch_order": "Out for Delivery",
   "server.total": "Total",
   "server.updating": "Updating...",
   "server.search_items": "Search items...",

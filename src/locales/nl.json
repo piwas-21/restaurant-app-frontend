@@ -1566,6 +1566,7 @@
   "server.confirm_order": "Bestelling bevestigen",
   "server.start_preparing": "Beginnen met bereiden",
   "server.mark_ready": "Markeren als klaar",
+  "server.dispatch_order": "Bezorging starten",
   "server.total": "Totaal",
   "server.updating": "Bijwerken...",
   "server.search_items": "Items zoeken...",

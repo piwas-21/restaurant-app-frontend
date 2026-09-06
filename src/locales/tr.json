@@ -1566,6 +1566,7 @@
   "server.confirm_order": "Siparişi Onayla",
   "server.start_preparing": "Hazırlamaya Başla",
   "server.mark_ready": "Hazır Olarak İşaretle",
+  "server.dispatch_order": "Yola Çıkar",
   "server.total": "Toplam",
   "server.updating": "Güncelleniyor...",
   "server.search_items": "Ürün ara...",

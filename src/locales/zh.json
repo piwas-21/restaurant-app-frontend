@@ -1566,6 +1566,7 @@
   "server.confirm_order": "确认订单",
   "server.start_preparing": "开始制作",
   "server.mark_ready": "设为出餐",
+  "server.dispatch_order": "开始配送",
   "server.total": "合计",
   "server.updating": "更新中...",
   "server.search_items": "搜索菜品...",

@@ -6,6 +6,7 @@ import {
   ORDER_STATUS_META,
   ORDER_STATUS_TRANSITIONS,
   nextOrderStatuses,
+  orderStatusBadgeFill,
   orderStatusLabel,
   orderStatusMeta,
   resolveOrderStatus,
@@ -157,5 +158,59 @@ describe('nextOrderStatuses', () => {
   it('returns nothing for an unknown status rather than guessing a path', () => {
     expect(nextOrderStatuses('SomeFutureStatus')).toEqual([]);
     expect(nextOrderStatuses(null)).toEqual([]);
+  });
+});
+
+/**
+ * The cashier's status pills (#336). The mapping lived twice — verbatim, in `OrderList` and
+ * `OrderDetails` — which is how a contrast fix (#333/#334) once landed on one pill and not its
+ * twin. These pins exist so the consolidation cannot silently change what either pill wears:
+ * the first block is the old switch's six cases, byte for byte.
+ */
+describe('orderStatusBadgeFill', () => {
+  it.each([
+    ['Pending', 'pending'],
+    ['Confirmed', 'confirmed'],
+    ['Preparing', 'preparing'],
+    ['Ready', 'ready'],
+    ['Cancelled', 'cancelled'],
+    ['Completed', 'completed'],
+  ])('%s keeps the %s fill it has today', (status, fill) => {
+    expect(orderStatusBadgeFill(status)).toBe(fill);
+  });
+
+  /**
+   * Every status OUTSIDE the six fills takes the completed fill — the same neutral grey the
+   * replaced switches' `default` returned. The class name overstates it; the grey is just the
+   * neutral fill. Asserted per member so a future edit cannot quietly promote one of them to
+   * a real colour on one till and not the other.
+   */
+  it.each(['PendingApproval', 'In Progress', 'OutForDelivery', 'InTransit', 'Delivered', 'Refunded'])(
+    '%s falls back to the neutral completed fill',
+    (status) => {
+      expect(orderStatusBadgeFill(status)).toBe('completed');
+    },
+  );
+
+  // The old switches matched on `status.toLowerCase()`; the shared one normalises through
+  // `resolveOrderStatus` like labels and the transition table do. Only whitespace-including
+  // legacy values change behaviour, and they change from the grey default to their real fill —
+  // the same normalisation every other status mapping on these screens already applies.
+  it.each([
+    ['ready', 'ready'],
+    ['PENDING', 'pending'],
+    ['in transit', 'completed'],
+    ['outfordelivery', 'completed'],
+    ['NotAStatus', 'completed'],
+    ['', 'completed'],
+    [null, 'completed'],
+    [undefined, 'completed'],
+  ])('%p resolves to the %p fill', (input, expected) => {
+    expect(orderStatusBadgeFill(input as string)).toBe(expected);
+  });
+
+  it('resolves every member of the union to one of the six fills', () => {
+    const FILLS = ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'];
+    for (const status of ALL_STATUSES) expect(FILLS).toContain(orderStatusBadgeFill(status));
   });
 });

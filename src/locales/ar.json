@@ -1565,6 +1565,7 @@
   "server.confirm_order": "تأكيد الطلب",
   "server.start_preparing": "بدء التحضير",
   "server.mark_ready": "تحديد كجاهز",
+  "server.dispatch_order": "إرسال للتوصيل",
   "server.total": "المجموع",
   "server.updating": "جاري التحديث...",
   "server.search_items": "البحث عن منتجات...",

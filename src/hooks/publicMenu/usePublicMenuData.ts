@@ -6,6 +6,7 @@ import { getPublicMenuBundles } from '@/services/menuBundleService';
 import type { MenuBundleItem, MenuItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import { ALL_ITEMS_KEY } from './constants';
+import { IDLE, errorMessage, type FetcherState } from './pipeline';
 import { isVisible, mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
 import type { MenuBundleListResponse, ProductListResponse } from './types';
 
@@ -22,33 +23,32 @@ import type { MenuBundleListResponse, ProductListResponse } from './types';
 const PAGE_SIZE = 200;
 
 /**
- * Extract a human error message from an unknown thrown value.
- *
- * **Blank is absence, never a message.** The second branch used to catch the empty string the
- * first one had just rejected and return it, and this value is consumed as a FLAG —
- * `MenuContent` renders its own translated sentence off `errorLoadingItems ? … : null`. So an
- * empty string disabled the error banner entirely, and `reportError` also clears the list: a dead
- * backend read as "No items in category" on the most-visited page in the app. Latent until #401
- * stopped `apiClient` manufacturing an English sentence for every failure, which is what had been
- * keeping this branch non-empty.
+ * The two fetchers are INDEPENDENT PIPELINES with disjoint state (a FetcherState each): they run
+ * CONCURRENTLY since bundles load on every view (they are grouped into the category tabs), so a
+ * shared slot would let one pipeline clobber the other — a slow bundles response re-writing the
+ * count line, or a bundles failure blanking the products grid. `usePublicMenu` composes the
+ * active view's halves for the page.
  */
-function errorMessage(e: unknown, fallback: string): string {
-  if (e instanceof Error) return e.message.trim() || fallback;
-  if (typeof e === 'object' && e !== null && 'message' in e) {
-    const m = (e as { message?: unknown }).message;
-    if (typeof m === 'string' && m.trim()) return m.trim();
-  }
-  return fallback;
-}
 
 export interface UsePublicMenuDataReturn {
   items: MenuItem[];
   menuBundles: MenuBundleItem[];
+  /** The PRODUCTS pipeline's flag — the main grid's skeleton on every product view. */
   isLoading: boolean;
+  /** The BUNDLES pipeline's flag, for whichever surface renders bundles as its main list. */
+  isLoadingBundles: boolean;
+  /** The PRODUCTS pipeline's error slot — the main grid's error/Retry state. */
   error: string | null;
+  /** The BUNDLES pipeline's error slot — the bundles view's error/Retry state. */
+  bundlesError: string | null;
   currentPage: number;
   totalPages: number;
   totalCount: number;
+  /** The BUNDLES pipeline's pagination trio, kept beside the products one (see FetcherState). */
+  bundlesCurrentPage: number;
+  bundlesTotalPages: number;
+  bundlesTotalCount: number;
+  /** One PAGE_SIZE serves both pipelines. */
   pageSize: number;
   /**
    * `categoryId` is a category id, `null`, or the `ALL_ITEMS_KEY` sentinel. Typed as plain `string`
@@ -67,42 +67,42 @@ export interface UsePublicMenuDataReturn {
 export function usePublicMenuData(): UsePublicMenuDataReturn {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [products, setProducts] = useState<FetcherState>(IDLE);
+  const [bundles, setBundles] = useState<FetcherState>(IDLE);
 
-  // Request-id guard: rapid view/category switching can race two in-flight
-  // fetches. We bump this counter on every fetch start, capture the local id,
-  // and only commit state if our local id is still the latest after the await.
-  // The loading flag is still owned by the latest request so the UI's
-  // true→false transition tracks the freshest fetch.
-  const requestIdRef = useRef(0);
+  // Request-id guard per pipeline: rapid switching can race two in-flight fetches of the SAME
+  // pipeline. Bump the counter on every start, capture the local id, and only commit state if it
+  // is still the latest after the await; the loading flag stays owned by the latest request.
+  const productsRequestIdRef = useRef(0);
+  const bundlesRequestIdRef = useRef(0);
 
   // `requestedOrderType` is an ARGUMENT rather than a closure dependency on purpose: it keeps this
   // callback's identity stable, so adding the channel to the fetch cannot turn the caller's load
   // effect into one that re-runs on an unrelated identity change.
   const fetchProducts = useCallback(
     async (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => {
-      const localId = ++requestIdRef.current;
-      setIsLoading(true);
-      setError(null);
+      const localId = ++productsRequestIdRef.current;
+      setProducts((state) => ({ ...state, isLoading: true, error: null }));
       setItems([]);
+      // Every failure exit runs through here, so the loading flag clears where it was raised.
       const reportError = (msg: string) => {
-        setError(msg);
+        setProducts((state) => ({ ...state, error: msg, isLoading: false }));
         setItems([]);
       };
       try {
         const catId = categoryId === ALL_ITEMS_KEY ? null : categoryId;
+        // The GUEST-SURFACE opt-in (menuService): /menu must render the guest's All list even when
+        // the browser carries a staff token, or the owner cannot preview the hide-from-All flag
+        // they just saved. The flag widens ONLY the hidden-category exclusion server-side.
         const response = (await getProducts(
           page,
           PAGE_SIZE,
           catId || undefined,
           undefined,
           requestedOrderType,
+          true,
         )) as ProductListResponse;
-        if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
+        if (localId !== productsRequestIdRef.current) return; // stale — newer fetch in flight
         if (!response.success) {
           // Through the same helper as the thrown path: both feed one `setError`, so "blank is
           // absence" has to hold on both or the invariant is only half true. `||` alone let a
@@ -110,17 +110,19 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
           reportError(errorMessage(response, 'Failed to fetch products'));
           return;
         }
-        setTotalPages(response.data?.totalPages || 1);
-        setTotalCount(response.data?.totalCount || 0);
-        setCurrentPage(page);
+        setProducts((state) => ({
+          ...state,
+          isLoading: false,
+          totalPages: response.data?.totalPages || 1,
+          totalCount: response.data?.totalCount || 0,
+          currentPage: page,
+        }));
         const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
         setItems(mapped.filter(isVisible));
       } catch (e: unknown) {
-        if (localId !== requestIdRef.current) return;
+        if (localId !== productsRequestIdRef.current) return;
         console.error('Failed to fetch products', e);
         reportError(errorMessage(e, 'Failed to fetch products'));
-      } finally {
-        if (localId === requestIdRef.current) setIsLoading(false);
       }
     },
     [],
@@ -130,43 +132,50 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
   // identity stable, so resolving bundle availability cannot turn the caller's load effect into one
   // that re-runs on an unrelated identity change.
   const fetchMenuBundles = useCallback(async (page: number, requestedOrderType?: OrderType | null) => {
-    const localId = ++requestIdRef.current;
-    setIsLoading(true);
-    setError(null);
+    const localId = ++bundlesRequestIdRef.current;
+    setBundles((state) => ({ ...state, isLoading: true, error: null }));
     setMenuBundles([]);
+    // Every failure exit runs through here, so the loading flag clears where it was raised.
     const reportError = (msg: string) => {
-      setError(msg);
+      setBundles((state) => ({ ...state, error: msg, isLoading: false }));
       setMenuBundles([]);
     };
     try {
       const response = (await getPublicMenuBundles(page, PAGE_SIZE, requestedOrderType)) as MenuBundleListResponse;
-      if (localId !== requestIdRef.current) return;
+      if (localId !== bundlesRequestIdRef.current) return;
       if (!response.success) {
         reportError(errorMessage(response, 'Failed to fetch menu bundles'));
         return;
       }
-      setTotalPages(response.data?.totalPages || 1);
-      setTotalCount(response.data?.totalCount || 0);
-      setCurrentPage(page);
+      setBundles((state) => ({
+        ...state,
+        isLoading: false,
+        totalPages: response.data?.totalPages || 1,
+        totalCount: response.data?.totalCount || 0,
+        currentPage: page,
+      }));
       const mapped = (response.data?.items || []).map(mapBundleDtoToMenuBundleItem);
       setMenuBundles(mapped.filter(isVisible));
     } catch (e: unknown) {
-      if (localId !== requestIdRef.current) return;
+      if (localId !== bundlesRequestIdRef.current) return;
       console.error('Failed to fetch menu bundles', e);
       reportError(errorMessage(e, 'Failed to fetch menu bundles'));
-    } finally {
-      if (localId === requestIdRef.current) setIsLoading(false);
     }
   }, []);
 
   return {
     items,
     menuBundles,
-    isLoading,
-    error,
-    currentPage,
-    totalPages,
-    totalCount,
+    isLoading: products.isLoading,
+    isLoadingBundles: bundles.isLoading,
+    error: products.error,
+    bundlesError: bundles.error,
+    currentPage: products.currentPage,
+    totalPages: products.totalPages,
+    totalCount: products.totalCount,
+    bundlesCurrentPage: bundles.currentPage,
+    bundlesTotalPages: bundles.totalPages,
+    bundlesTotalCount: bundles.totalCount,
     pageSize: PAGE_SIZE,
     fetchProducts,
     fetchMenuBundles,

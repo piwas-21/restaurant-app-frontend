@@ -88,6 +88,14 @@ export interface MenuBundleDto {
   allergens?: string[] | null;
   /** Since §9.2. Absent on a backend that predates it, which the mapper reads as unrestricted. */
   availability?: ItemAvailabilityDto;
+  /**
+   * The categories the bundle is LISTED in (`MenuBundleDto.CategoryIds`, the same links a plain
+   * dish carries). The customer menu groups bundles into their categories' tabs with these ids.
+   * Absent on a backend that predates the field, which the mapper reads as "listed nowhere".
+   */
+  categoryIds?: string[];
+  /** The primary link of {@link categoryIds}, when one is marked primary. */
+  primaryCategoryId?: string | null;
 }
 
 export interface PaginatedResponse<T> {

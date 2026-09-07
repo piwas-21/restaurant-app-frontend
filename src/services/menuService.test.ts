@@ -98,6 +98,39 @@ describe('getProducts — IncludeComponents', () => {
  * chosen", which is orderable BY DESIGN, so the hero would silently offer an item the catalog card
  * two rows below it refuses. Nothing errors; the guard is simply absent.
  */
+/**
+ * The GUEST-SURFACE opt-in for the backend's hide-from-All exclusion
+ * (`GetProductsQuery.GuestAllView`). The public menu's browser can carry a staff token (the owner
+ * previewing what a guest sees), and without the flag the server exempts staff callers — the
+ * category the owner just hid sat in the All list anyway. Pinned in BOTH directions, like every
+ * opt-in here: the admin/staff request must stay byte-identical without it.
+ */
+describe('getProducts — GuestAllView', () => {
+  it('sends the opt-in under the name the backend binds when a caller asks for it', async () => {
+    await getProducts(1, 200, null, undefined, null, true);
+
+    expect(requestedUrl()).toContain('GuestAllView=true');
+  });
+
+  it('sends nothing for a caller that does not ask — the admin and waiter shape', async () => {
+    await getProducts(1, 20, null, { includeMenus: true });
+
+    expect(requestedUrl()).not.toContain('GuestAllView');
+  });
+
+  it('sends nothing when the flag is explicitly false', async () => {
+    await getProducts(1, 20, null, undefined, null, false);
+
+    expect(requestedUrl()).not.toContain('GuestAllView');
+  });
+
+  it('rides alongside the channel parameter', async () => {
+    await getProducts(1, 200, null, undefined, OrderType.DineIn, true);
+
+    expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=200&RequestedOrderType=DineIn&GuestAllView=true');
+  });
+});
+
 describe('getFeaturedSpecial — RequestedOrderType', () => {
   it('sends the chosen channel', async () => {
     await getFeaturedSpecial(OrderType.DineIn);

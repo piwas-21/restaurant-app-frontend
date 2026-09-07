@@ -10,7 +10,8 @@ import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import styles from './MenuContent.module.css';
 import { useTranslation } from 'react-i18next';
 
-interface MenuListProps {
+/** Exported for the grouping tests: the props are the assertion surface. */
+export interface MenuListProps {
   products: MenuItem[];
   bundles: MenuBundleItem[];
   /** Opens the shared customization sheet — the page owns it, so the featured banner shares it. */

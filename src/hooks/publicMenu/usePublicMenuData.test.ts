@@ -23,6 +23,22 @@ jest.mock('@/services/menuBundleService', () => ({ getPublicMenuBundles: jest.fn
 const mockGetProducts = getProducts as jest.Mock;
 const mockGetBundles = getPublicMenuBundles as jest.Mock;
 
+/** Minimal wire shapes — only what the mappers and `isVisible` read. */
+function productDto(name: string) {
+  return { id: `p-${name}`, name, basePrice: 4, isActive: true, isAvailable: true };
+}
+function bundleDto(name: string) {
+  return {
+    id: `b-${name}`,
+    name,
+    basePrice: 12,
+    isActive: true,
+    isAvailable: true,
+    menuDefinition: { sections: [] },
+    categoryIds: ['cat-viande'],
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -122,7 +138,9 @@ describe('a RESOLVED failure reports something the caller can show', () => {
       await result.current.fetchMenuBundles(1);
     });
 
-    expect(result.current.error).toBe('Failed to fetch menu bundles');
+    expect(result.current.bundlesError).toBe('Failed to fetch menu bundles');
+    // A bundles failure must not blank the products grid with its error.
+    expect(result.current.error).toBeNull();
   });
 });
 
@@ -135,7 +153,90 @@ describe('fetchMenuBundles always reports something the caller can show', () => 
       await result.current.fetchMenuBundles(1);
     });
 
-    expect(result.current.error).toBe('Failed to fetch menu bundles');
+    expect(result.current.bundlesError).toBe('Failed to fetch menu bundles');
+  });
+});
+
+/**
+ * The two pipelines run CONCURRENTLY now — bundles load on every view because they are grouped
+ * into the category tabs — so the old shared request-id counter is a correctness bug, not a
+ * perf detail: whichever fetch started second marked the first one stale, and its response was
+ * discarded on arrival. The two fetchers own disjoint state, so each answer is stale only
+ * against its own successor.
+ */
+describe('the two pipelines can be in flight at the same time', () => {
+  it('commits a bundles response that lands after a products fetch started', async () => {
+    let resolveBundles: (value: unknown) => void = () => {};
+    mockGetBundles.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveBundles = resolve;
+        }),
+    );
+    mockGetProducts.mockResolvedValueOnce({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+
+    const { result } = renderHook(() => usePublicMenuData());
+
+    let bundlesFetch: Promise<void>;
+    act(() => {
+      bundlesFetch = result.current.fetchMenuBundles(1);
+    });
+    await act(async () => {
+      await result.current.fetchProducts(1, null);
+    });
+    await act(async () => {
+      resolveBundles({
+        success: true,
+        data: { items: [bundleDto('LIBANAISE 1 VIANDE')], totalPages: 1, totalCount: 1 },
+      });
+      await bundlesFetch;
+    });
+
+    expect(result.current.menuBundles).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+    expect(result.current.bundlesError).toBeNull();
+  });
+
+  it('commits a products response that lands after a bundles fetch started', async () => {
+    let resolveProducts: (value: unknown) => void = () => {};
+    mockGetProducts.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveProducts = resolve;
+        }),
+    );
+    mockGetBundles.mockResolvedValueOnce({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+
+    const { result } = renderHook(() => usePublicMenuData());
+
+    let productsFetch: Promise<void>;
+    act(() => {
+      productsFetch = result.current.fetchProducts(1, null);
+    });
+    await act(async () => {
+      await result.current.fetchMenuBundles(1);
+    });
+    await act(async () => {
+      resolveProducts({ success: true, data: { items: [productDto('Plat du jour')], totalPages: 1, totalCount: 1 } });
+      await productsFetch;
+    });
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+  });
+});
+
+/** The public menu sends this on every fetch — see usePublicMenuData. */
+describe('fetchProducts declares the guest all-view', () => {
+  it('sends the opt-in the backend reads as GuestAllView', async () => {
+    mockGetProducts.mockResolvedValueOnce({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+    const { result } = renderHook(() => usePublicMenuData());
+
+    await act(async () => {
+      await result.current.fetchProducts(1, null);
+    });
+
+    expect(mockGetProducts.mock.calls[0][5]).toBe(true);
   });
 });
 

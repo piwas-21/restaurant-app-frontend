@@ -158,6 +158,13 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
     // Same normaliser as a product's, so a bundle's verdict cannot drift from an item's: every
     // failure mode resolves permissively (§9.2).
     availability: mapAvailability(bundle.availability),
+    // The tab-grouping key. Absent on an older backend reads as "listed in no category tab" —
+    // the bundles area still shows the bundle, so degradation is "no extra placement", never
+    // a vanished combo.
+    categoryIds: Array.isArray(bundle.categoryIds)
+      ? bundle.categoryIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+      : [],
+    primaryCategoryId: typeof bundle.primaryCategoryId === 'string' ? bundle.primaryCategoryId : undefined,
   };
 }
 

@@ -9,7 +9,7 @@ import {
   stepBlocker,
   type CustomizationStep,
 } from '@/utils/customizationSteps';
-import { bundleStepSummary, productStepSummary } from '@/utils/customizationSummary';
+import { bundleStepSummary, productStepSummary, stepHasTickedSelection } from '@/utils/customizationSummary';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import type { ReviewRow } from '@/components/menu/customization/SheetReviewStep';
 import type { ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
@@ -159,13 +159,30 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   /**
    * Whether the current step is one the guest may walk past having chosen nothing — which is what
    * makes the footer say **Skip** instead of Continue. Naming the action honestly is the point:
-   * "Continue" on an untouched optional step implies something was answered.
+   * the skip verb ("Sans sauce") claims the press DECLINES the step, so it is true only when
+   * nothing in the step's scope is ticked. A step answered by the base recipe — every row
+   * pre-ticked — is an answered step, not an untouched one, and says Continue (partner report:
+   * mcdoner's 'Assiette Kebab' opened fully selected behind a "No extra" button). The review's
+   * None rule stays deviation-based: `stepHasTickedSelection` answers "is anything kept", the
+   * summary answers "what changed".
    */
   const isSkip = useMemo(() => {
     if (!flow.step || flow.step.isRequired || flow.isLast) return false;
     const row = reviewRows.find((candidate) => candidate.step.id === flow.step?.id);
-    return row ? row.values.length === 0 : false;
-  }, [flow.step, flow.isLast, reviewRows]);
+    if (!row) return false;
+    if (controller.kind !== 'product' || !controller.product) return row.values.length === 0;
+    // Drinks are the one step whose answer the helper cannot see: the upsell selection is not in
+    // ProductSummaryState, so its verb reads the summary row — a picked drink is an answer, an
+    // empty list is an honest Skip.
+    if (row.step.kind === 'drinks') return row.values.length === 0;
+    const state = {
+      selectedVariationId: controller.selectedVariationId,
+      selectedIngredients: controller.selectedIngredients,
+      ingredientQuantities: controller.ingredientQuantities,
+      selectedSideItems: controller.selectedSideItems,
+    };
+    return !stepHasTickedSelection(row.step, controller.product, state);
+  }, [flow.step, flow.isLast, reviewRows, controller]);
 
   /**
    * What the footer shows. `linePrice` stays the line's own authority — the drinks are separate

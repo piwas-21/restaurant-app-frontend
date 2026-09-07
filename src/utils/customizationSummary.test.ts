@@ -1,4 +1,9 @@
-import { bundleStepSummary, productStepSummary, type ProductSummaryState } from './customizationSummary';
+import {
+  bundleStepSummary,
+  productStepSummary,
+  stepHasTickedSelection,
+  type ProductSummaryState,
+} from './customizationSummary';
 import { buildProductSteps } from './customizationSteps';
 import type { DetailedProduct, MenuSection } from '@/types/menu';
 
@@ -157,4 +162,58 @@ describe('bundleStepSummary', () => {
     expect(bundleStepSummary(section, [])).toEqual([]);
     expect(bundleStepSummary(section, [{ sectionId: 's1', itemId: 'ayran', quantity: 1 }])).toEqual(['Ayran']);
   });
+});
+
+describe('stepHasTickedSelection — the skip verb belongs to an untouched step', () => {
+  const ticked = (ids: string[]): ProductSummaryState => ({
+    ...OPENED,
+    selectedIngredients: ids,
+    ingredientQuantities: Object.fromEntries(ids.map((id) => [id, 1])),
+  });
+  const ingredientsStep = stepOf('ingredients');
+  const saucesStep = stepOf('sauces');
+
+  it('says the base-recipe ticks answer the step — walking past keeps them, so no skip verb', () => {
+    expect(stepHasTickedSelection(ingredientsStep, PRODUCT, ticked(['cheese']))).toBe(true);
+  });
+
+  it('says an untouched step is untouched — nothing ticked is what makes the skip verb honest', () => {
+    expect(stepHasTickedSelection(ingredientsStep, PRODUCT, ticked([]))).toBe(false);
+  });
+
+  it('counts a guest tick the same way, sauce or not', () => {
+    expect(stepHasTickedSelection(ingredientsStep, PRODUCT, ticked(['bacon']))).toBe(true);
+    expect(stepHasTickedSelection(saucesStep, PRODUCT, ticked(['garlic']))).toBe(true);
+    expect(stepHasTickedSelection(saucesStep, PRODUCT, ticked([]))).toBe(false);
+  });
+
+  it('never counts inactive or required rows as the answer — they are not offered as a choice', () => {
+    const WITH_DEAD = {
+      ...PRODUCT,
+      detailedIngredients: [
+        { ...CHEESE, isActive: false },
+        { ...CHEESE, id: 'mustard', name: 'Mustard', isOptional: false, isIncludedInBasePrice: true },
+        CHEESE,
+      ],
+    } as unknown as DetailedProduct;
+    expect(stepHasTickedSelection(ingredientsStep, WITH_DEAD, ticked(['mustard']))).toBe(false);
+  });
+});
+
+it('scopes the sides answer to the step partition — a dessert tick says nothing about beverages', () => {
+  const DESSERT = { id: 'baklava', name: 'Baklava', price: 5, type: 'dessert', isRequired: false, displayOrder: 2 };
+  const WITH_TWO_GROUPS = {
+    ...PRODUCT,
+    suggestedSideItems: [COLA, DESSERT],
+  } as unknown as DetailedProduct;
+  const beveragesStep = buildProductSteps(WITH_TWO_GROUPS).find(
+    (step) => step.kind === 'sides' && step.sideGroup === 'beverages',
+  )!;
+  const dessertsStep = buildProductSteps(WITH_TWO_GROUPS).find(
+    (step) => step.kind === 'sides' && step.sideGroup === 'desserts',
+  )!;
+  const pickedDessert: ProductSummaryState = { ...OPENED, selectedSideItems: [{ id: 'baklava', quantity: 1 }] };
+  expect(stepHasTickedSelection(dessertsStep, WITH_TWO_GROUPS, pickedDessert)).toBe(true);
+  expect(stepHasTickedSelection(beveragesStep, WITH_TWO_GROUPS, pickedDessert)).toBe(false);
+  expect(stepHasTickedSelection(beveragesStep, WITH_TWO_GROUPS, { ...OPENED, selectedSideItems: [] })).toBe(false);
 });

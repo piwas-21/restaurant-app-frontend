@@ -688,3 +688,41 @@ describe('the sauce library (G1/G2/G3)', () => {
     });
   });
 });
+
+describe('the column strip heads a list, not the modal', () => {
+  // Partner report (rumirestaurant): the strip printed between the filter chips and the results
+  // unconditionally, so an EMPTY picker — the sauce shelf on a library with no typed sauces —
+  // floated a bare "Ingredient / Usage" line over nothing. It belongs to the list.
+  const strip = () => screen.queryByText('ingredient_library_column_ingredient');
+
+  it('renders above the rows while the list has rows', async () => {
+    await open();
+
+    expect(strip()).toBeInTheDocument();
+    expect(screen.getByText('ingredient_library_column_usage')).toBeInTheDocument();
+  });
+
+  it('is gone when nothing matched — an empty picker shows the empty sentence, not a header', async () => {
+    mockGetLibrary.mockResolvedValue({ success: true, data: [] } as never);
+    render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={[]} onAdd={onAdd} />);
+    await screen.findByText('ingredient_library_empty');
+
+    expect(strip()).not.toBeInTheDocument();
+  });
+
+  it('is gone while the catalog is still loading', () => {
+    mockGetLibrary.mockReturnValue(new Promise(() => {}) as never);
+    render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={[]} onAdd={onAdd} />);
+    expect(screen.getByText('searching')).toBeInTheDocument();
+
+    expect(strip()).not.toBeInTheDocument();
+  });
+
+  it('is gone on the archived view, whose list has its own shape', async () => {
+    await open();
+    showArchived();
+    await screen.findByText('ingredient_library_archived_empty');
+
+    expect(strip()).not.toBeInTheDocument();
+  });
+});

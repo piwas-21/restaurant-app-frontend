@@ -20,6 +20,13 @@ interface LibraryPickerResultsProps {
   retryKey: string;
   /** How many matches the cap is hiding, or null when it is hiding none. */
   hiddenNote?: React.ReactNode;
+  /**
+   * The two column headers, when the caller's list HAS columns. Optional because the archived
+   * view's list has a different shape and passes nothing — which is also what keeps the strip off
+   * every state that has no rows to head: it renders in the success branch only.
+   */
+  columnEntityKey?: string;
+  columnUsageKey?: string;
   children: React.ReactNode;
 }
 
@@ -41,6 +48,8 @@ export default function LibraryPickerResults({
   emptyKey,
   retryKey,
   hiddenNote,
+  columnEntityKey,
+  columnUsageKey,
   children,
 }: Readonly<LibraryPickerResultsProps>) {
   const { t } = useTranslation();
@@ -62,6 +71,15 @@ export default function LibraryPickerResults({
 
   return (
     <>
+      {/* The strip is the rounded head of the list's frame, so it renders only when the list does —
+          printed unconditionally it floated as a bare "Ingredient … Usage" line over an empty,
+          loading or archived result (partner report, rumirestaurant). */}
+      {columnEntityKey && columnUsageKey && (
+        <div className={styles.columns}>
+          <span>{t(columnEntityKey)}</span>
+          <span>{t(columnUsageKey)}</span>
+        </div>
+      )}
       <ul className={styles.list}>{children}</ul>
       {hiddenNote}
     </>

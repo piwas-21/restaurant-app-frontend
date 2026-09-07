@@ -126,11 +126,6 @@ export default function LibraryPickerToolbar({
       )}
 
       {view === 'archived' && <p className={styles.hint}>{t(copy.archivedHint)}</p>}
-
-      <div className={styles.columns}>
-        <span>{t(copy.columnEntity)}</span>
-        <span>{t(copy.columnUsage)}</span>
-      </div>
     </>
   );
 }

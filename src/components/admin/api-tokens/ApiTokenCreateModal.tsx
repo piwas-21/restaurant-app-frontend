@@ -48,6 +48,14 @@ export default function ApiTokenCreateModal({
   const toggleScope = (scope: ApiTokenScope, checked: boolean) =>
     setScopes((current) => (checked ? [...current, scope] : current.filter((s) => s !== scope)));
 
+  const allScopesSelected = scopes.length === API_TOKEN_SCOPES.length;
+  const someScopesSelected = scopes.length > 0 && !allScopesSelected;
+
+  // Select-all over the SAME vocabulary the groups below render — no new scope is introduced.
+  // One checkbox, three states: unchecked (nothing picked), indeterminate (some), checked (all);
+  // CheckboxField owns the dash, and clicking it always fires onChange(true) while mixed.
+  const toggleAllScopes = (checked: boolean) => setScopes(checked ? [...API_TOKEN_SCOPES] : []);
+
   const nameInvalid = name.trim().length === 0;
   const scopesInvalid = scopes.length === 0;
   const expiryInvalid =
@@ -110,7 +118,26 @@ export default function ApiTokenCreateModal({
         </FormField>
 
         <div className={styles.scopeSection}>
-          <p className={styles.sectionTitle}>{t('api_tokens_field_scopes')}</p>
+          <p className={styles.sectionTitle}>
+            {t('api_tokens_field_scopes')}
+            <span className={styles.scopeCount}>
+              {t('api_tokens_scopes_selected_count', {
+                selected: scopes.length,
+                total: API_TOKEN_SCOPES.length,
+              })}
+            </span>
+          </p>
+          <div className={styles.fullAccess}>
+            <CheckboxField
+              label={t('api_tokens_full_admin_access')}
+              description={t('api_tokens_full_admin_access_desc')}
+              checked={allScopesSelected}
+              indeterminate={someScopesSelected}
+              onChange={toggleAllScopes}
+              invalid={scopesInvalid}
+              describedBy="api-token-scopes-error"
+            />
+          </div>
           {renderGroup(t('api_tokens_scope_group_read'), READ_SCOPES)}
           {renderGroup(t('api_tokens_scope_group_write'), WRITE_SCOPES)}
           {renderGroup(t('api_tokens_scope_group_maintenance'), MAINTENANCE_SCOPES)}

@@ -32,6 +32,13 @@
   color: var(--text-primary);
 }
 
+.fullAccess {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  background-color: var(--surface-secondary);
+}
+
 .group {
   display: flex;
   flex-direction: column;
@@ -40,6 +47,13 @@
   border-radius: 6px;
   padding: 0.75rem 1rem;
   margin: 0;
+}
+
+.scopeCount {
+  margin-inline-start: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .legend {

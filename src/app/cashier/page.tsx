@@ -14,6 +14,7 @@ import CashierHeader from '@/components/cashier/CashierHeader';
 import OrderTypeNav from '@/components/cashier/OrderTypeNav';
 import CashierMainContent from '@/components/cashier/CashierMainContent';
 import CashierActionDialogs from '@/components/cashier/CashierActionDialogs';
+import { useTableBill } from '@/hooks/cashier/useTableBill';
 import CashierAuxiliaryDialogs from '@/components/cashier/CashierAuxiliaryDialogs';
 import QuickConfirmModal from '@/components/cashier/QuickConfirmModal';
 import NotificationCenter from '@/components/cashier/NotificationCenter';
@@ -63,6 +64,8 @@ export default function CashierPage() {
     playOrderUpdateSound: notif.playOrderUpdateSound,
   });
 
+  const billState = useTableBill();
+
   const [showAutoPrintSettings, setShowAutoPrintSettings] = useState(false);
   const [showQRScannerDialog, setShowQRScannerDialog] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -88,6 +91,7 @@ export default function CashierPage() {
         onTestSound={notif.playSoundByType}
         onToggleRepeat={notif.toggleRepeatSound}
         onOpenQRScanner={() => setShowQRScannerDialog(true)}
+        onOpenTableBill={billState.open}
         onOpenZReport={() => setShowZReport(true)}
         onOpenDiagnostics={() => setShowDiagnostics(!showDiagnostics)}
       />
@@ -158,6 +162,8 @@ export default function CashierPage() {
       />
 
       <CashierAuxiliaryDialogs
+        billState={billState}
+        onBillPaymentSuccess={(message) => (dialogs.showSuccess(message), void refreshOrders())}
         showQRScanner={showQRScannerDialog}
         showAutoPrint={showAutoPrintSettings}
         showZReport={showZReport}

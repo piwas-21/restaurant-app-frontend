@@ -1501,7 +1501,31 @@
       "error": "Z报表加载失败",
       "retry": "重试"
     },
-    "show_todays_orders_only": "仅显示今日订单"
+    "show_todays_orders_only": "仅显示今日订单",
+    "table_bill": {
+      "title": "桌账",
+      "table_number": "桌号",
+      "load": "加载账单",
+      "loading": "加载中...",
+      "orders_count": "订单",
+      "total": "账单总额",
+      "paid": "已付",
+      "remaining": "剩余",
+      "add_payment": "添加付款",
+      "payment_applied": "已将 {{amount}} 的付款计入桌账",
+      "settled": "已结清",
+      "item": "项目",
+      "method_cash": "现金",
+      "method_credit_card": "信用卡",
+      "method_debit_card": "借记卡",
+      "method_mobile": "手机支付",
+      "error": {
+        "table_number": "请输入有效的桌号",
+        "amount": "请输入大于 0 的付款金额",
+        "loading": "加载桌账失败",
+        "payment": "记录付款失败，请重试。"
+      }
+    }
   },
   "restaurant_closed_on_date": "餐厅在 {{day}}，{{date}} 关闭。请选择其他日期。",
   "selected_tables_not_available": "所选桌位 {{tables}} 在该时间段已不可用。请选择其他桌位或时间。",

@@ -1501,7 +1501,31 @@
       "retry": "Reintentar"
     },
     "show_todays_orders_only": "Mostrar solo los pedidos de hoy",
-    "notes_info": "Utilice las notas para documentar los cambios solicitados que no se pueden aplicar directamente a través de esta interfaz. Es especialmente útil para cambios en el tipo de pedido, modificaciones de artículos o solicitudes especiales."
+    "notes_info": "Utilice las notas para documentar los cambios solicitados que no se pueden aplicar directamente a través de esta interfaz. Es especialmente útil para cambios en el tipo de pedido, modificaciones de artículos o solicitudes especiales.",
+    "table_bill": {
+      "title": "Cuenta de la mesa",
+      "table_number": "Número de mesa",
+      "load": "Cargar cuenta",
+      "loading": "Cargando...",
+      "orders_count": "Pedidos",
+      "total": "Total de la cuenta",
+      "paid": "Pagado",
+      "remaining": "Restante",
+      "add_payment": "Añadir pago",
+      "payment_applied": "Pago de {{amount}} aplicado a la cuenta de la mesa",
+      "settled": "Liquidado",
+      "item": "Artículo",
+      "method_cash": "Efectivo",
+      "method_credit_card": "Tarjeta de crédito",
+      "method_debit_card": "Tarjeta de débito",
+      "method_mobile": "Pago móvil",
+      "error": {
+        "table_number": "Introduce un número de mesa válido",
+        "amount": "Introduce un importe mayor que 0",
+        "loading": "No se pudo cargar la cuenta de la mesa",
+        "payment": "No se pudo registrar el pago. Inténtalo de nuevo."
+      }
+    }
   },
   "restaurant_closed_on_date": "El restaurante está cerrado el {{day}}, {{date}}. Por favor, seleccione otra fecha.",
   "selected_tables_not_available": "La(s) mesa(s) seleccionada(s) {{tables}} ya no están disponibles para este horario. Por favor, seleccione otras mesas u otro horario.",

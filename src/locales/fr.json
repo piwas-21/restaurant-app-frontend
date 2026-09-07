@@ -1501,7 +1501,31 @@
       "error": "Échec du chargement du rapport Z",
       "retry": "Réessayer"
     },
-    "show_todays_orders_only": "Afficher uniquement les commandes du jour"
+    "show_todays_orders_only": "Afficher uniquement les commandes du jour",
+    "table_bill": {
+      "title": "Addition de la table",
+      "table_number": "Numéro de table",
+      "load": "Charger l'addition",
+      "loading": "Chargement...",
+      "orders_count": "Commandes",
+      "total": "Total de l'addition",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "add_payment": "Ajouter un paiement",
+      "payment_applied": "Paiement de {{amount}} appliqué à l'addition",
+      "settled": "Réglé",
+      "item": "Article",
+      "method_cash": "Espèces",
+      "method_credit_card": "Carte de crédit",
+      "method_debit_card": "Carte de débit",
+      "method_mobile": "Paiement mobile",
+      "error": {
+        "table_number": "Saisissez un numéro de table valide",
+        "amount": "Saisissez un montant supérieur à 0",
+        "loading": "Échec du chargement de l'addition",
+        "payment": "Échec de l'enregistrement du paiement. Veuillez réessayer."
+      }
+    }
   },
   "restaurant_closed_on_date": "Le restaurant est fermé le {{day}}, {{date}}. Veuillez sélectionner une autre date.",
   "selected_tables_not_available": "La ou les tables sélectionnées {{tables}} ne sont plus disponibles pour ce créneau horaire. Veuillez choisir d’autres tables ou un autre horaire.",

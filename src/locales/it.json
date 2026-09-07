@@ -1501,7 +1501,31 @@
       "error": "Impossibile caricare il rapporto Z",
       "retry": "Riprova"
     },
-    "show_todays_orders_only": "Mostra solo gli ordini di oggi"
+    "show_todays_orders_only": "Mostra solo gli ordini di oggi",
+    "table_bill": {
+      "title": "Conto del tavolo",
+      "table_number": "Numero del tavolo",
+      "load": "Carica il conto",
+      "loading": "Caricamento...",
+      "orders_count": "Ordini",
+      "total": "Totale del conto",
+      "paid": "Pagato",
+      "remaining": "Resto da pagare",
+      "add_payment": "Aggiungi pagamento",
+      "payment_applied": "Pagamento di {{amount}} applicato al conto del tavolo",
+      "settled": "Saldato",
+      "item": "Voce",
+      "method_cash": "Contanti",
+      "method_credit_card": "Carta di credito",
+      "method_debit_card": "Carta di debito",
+      "method_mobile": "Pagamento mobile",
+      "error": {
+        "table_number": "Inserisci un numero di tavolo valido",
+        "amount": "Inserisci un importo maggiore di 0",
+        "loading": "Impossibile caricare il conto del tavolo",
+        "payment": "Impossibile registrare il pagamento. Riprova."
+      }
+    }
   },
   "restaurant_closed_on_date": "Il ristorante è chiuso il {{day}}, {{date}}. Seleziona un'altra data.",
   "selected_tables_not_available": "Il/i tavolo/i selezionato/i {{tables}} non è/sono più disponibile/i per questa fascia oraria. Seleziona tavoli o orari diversi.",

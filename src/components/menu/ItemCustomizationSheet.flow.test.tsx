@@ -118,16 +118,25 @@ const SIMPLE = {
  * effect on every rerender and quietly defeat the very freeze the tests below assert.
  */
 const resetDrinks = jest.fn();
-const upsell = (drinks: Array<{ id: string; name: string; price: number }>, subtotal = 0) => ({
-  drinks,
-  selected: {},
-  subtotal,
-  add: jest.fn(),
-  remove: jest.fn(),
-  reset: resetDrinks,
-  addSelected: jest.fn().mockResolvedValue(undefined),
-  summary: () => [],
-});
+const upsell = (drinks: Array<{ id: string; name: string; price: number }>, subtotal = 0) => {
+  // Picked drinks tracked so `summary` answers truthfully — the real hook's summary feeds BOTH
+  // the review row and (since the skip-verb fix) the footer's Skip/Continue decision.
+  const picked: Record<string, number> = {};
+  return {
+    drinks,
+    selected: {},
+    subtotal,
+    add: jest.fn((id: string) => {
+      picked[id] = (picked[id] ?? 0) + 1;
+    }),
+    remove: jest.fn((id: string) => {
+      delete picked[id];
+    }),
+    reset: resetDrinks,
+    addSelected: jest.fn().mockResolvedValue(undefined),
+    summary: () => Object.entries(picked).map(([id, quantity]) => `${quantity} × ${id}`),
+  };
+};
 
 function Harness({ drinks }: { drinks?: ReturnType<typeof upsell> }) {
   const controller = useItemCustomizationSheet();
@@ -421,5 +430,79 @@ describe('the fixes the first review found', () => {
     expect(mockAddItem).not.toHaveBeenCalled();
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
+  });
+});
+
+/**
+ * Partner report (mcdoner, 'Assiette Kebab'): an ingredients step that opens FULLY selected — every
+ * row is in the base recipe — used to offer the skip label, which reads as "the answer is NO" while
+ * the sheet holds the opposite answer. The skip label is the honest verb for an UNTOUCHED step only
+ * (`useSheetFlow.isSkip` = zero values); a step that arrived answered says Continue until the guest
+ * empties it by hand — and only then does walking past mean "None".
+ */
+describe('the skip label belongs to an untouched step, not an answered one', () => {
+  /** Every ingredient is in the base recipe (`isIncludedInBasePrice`), so the step opens checked. */
+  const PRESELECTED = {
+    ...COMPLEX,
+    id: 'p7',
+    detailedIngredients: [
+      ingredient('onion', 'Onion', { isIncludedInBasePrice: true }),
+      ingredient('tomato', 'Tomato', { isIncludedInBasePrice: true }),
+    ],
+    suggestedSideItems: [],
+  };
+
+  it('reads Continue on a step that arrived answered, and the skip label only once emptied', async () => {
+    await openSheet(PRESELECTED);
+
+    advance(); // past the variations — answered by buildInitialSheetState
+    expect(screen.getByRole('checkbox', { name: /Onion/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Tomato/ })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
+
+    // Empty the step by hand — NOW walking past honestly means "None".
+    fireEvent.click(screen.getByRole('checkbox', { name: /Onion/ }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Tomato/ }));
+    expect(screen.getByRole('button', { name: 'step_skip_ingredients' })).toBeInTheDocument();
+  });
+
+  it('never offers Skip on the variations step — keeping the base row is an answer too', async () => {
+    await openSheet(COMPLEX);
+
+    // On arrival the first active variation is seeded; the footer names the forward verb.
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    // Pick the BASE row: selectedVariationId becomes null, which the review reports as the dish
+    // itself — the answer is held, so the verb must not change into a skip.
+    fireEvent.click(screen.getByRole('radio', { name: /Dürüm/ }));
+    expect(screen.getByRole('radio', { name: /Dürüm/ })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
+  });
+
+  it('says Skip drinks only while nothing is added, and Continue once a drink is picked', async () => {
+    // No beverages side group — otherwise the dish curates its own and the upsell stands down.
+    const fixture = { ...COMPLEX, id: 'p8', suggestedSideItems: [] };
+
+    const untouched = await openSheetWith(fixture, upsell([{ id: 'cola', name: 'Cola', price: 3.5 }]));
+    advance(); // variations
+    advance(); // ingredients
+    advance(); // sauces
+    expect(screen.getByText('step_drinks_hint')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'step_skip_drinks' })).toBeInTheDocument();
+    untouched.unmount();
+
+    // The SAME step with a picked drink: the summary row carries the answer, so the verb stays
+    // forward — the deviation rule said Skip here while the total included the drink.
+    const picked = upsell([{ id: 'cola', name: 'Cola', price: 3.5 }]);
+    picked.summary = () => ['1 × cola'];
+    picked.selected = { cola: 1 };
+    await openSheetWith({ ...fixture, id: 'p9' }, picked);
+    advance(); // variations
+    advance(); // ingredients
+    advance(); // sauces
+    expect(screen.getByText('step_drinks_hint')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
   });
 });

@@ -99,6 +99,60 @@ function ingredientSummary(
 }
 
 /**
+ * Whether the guest's CURRENT selection already answers this step — any ticked row in the step's
+ * scope counts, INCLUDING the base-recipe ticks the sheet seeded. This is the skip decision, and
+ * it is deliberately a different question from `productStepSummary`'s: the review lists what the
+ * guest CHANGED (deviations from the base recipe), while the footer's skip verb is honest only
+ * when walking past would keep NOTHING. A step answered by the base recipe commits an answer, so
+ * it says Continue — partner report (mcdoner, 'Assiette Kebab'): a fully pre-selected ingredients
+ * step used to offer "No extra", a lie about the order the press would build.
+ */
+export function stepHasTickedSelection(
+  step: CustomizationStep,
+  product: DetailedProduct,
+  state: ProductSummaryState,
+): boolean {
+  const ingredients = product.detailedIngredients ?? [];
+
+  switch (step.kind) {
+    case 'variations':
+      // The base row IS an answer (see `variationSummary`), and a dish ALWAYS has one in view: a
+      // guest who kept the base row answered the step exactly as much as one who picked a
+      // variation — a size cannot be skipped, only kept or changed. Always answered.
+      return true;
+    case 'ingredients':
+      return ingredients.some(
+        (ingredient) =>
+          ingredient.isActive &&
+          !isSauce(ingredient) &&
+          ingredient.isOptional &&
+          state.selectedIngredients.includes(ingredient.id),
+      );
+    case 'sauces':
+      return ingredients.some(
+        (ingredient) =>
+          ingredient.isActive &&
+          isSauce(ingredient) &&
+          ingredient.isOptional &&
+          state.selectedIngredients.includes(ingredient.id),
+      );
+    case 'sides': {
+      // Each partition is its own step (`sideGroup`): a dessert tick answers the desserts step and
+      // says nothing about the beverages step, which must still be allowed to say Skip. An
+      // unpartitioned sides step reads every group.
+      const selectedIds = new Set(state.selectedSideItems.map((side) => side.id));
+      return groupSuggestedSideItems(product.suggestedSideItems ?? [])
+        .filter((group) => step.sideGroup === undefined || group.id === step.sideGroup)
+        .some((group) => group.items.some((item) => selectedIds.has(item.id)));
+    }
+    default:
+      // `drinks` never reaches this helper: the upsell selection is not in ProductSummaryState,
+      // so useSheetFlow.isSkip answers the drinks step straight from its summary row.
+      return false;
+  }
+}
+
+/**
  * `onlyGroup` scopes the row to ONE partition, because each partition is now its own step: without
  * it every side step's review row would list the same three groups' worth of chosen items, and
  * jumping back from any of them would land on a step whose summary described the other two.

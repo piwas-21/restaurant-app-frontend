@@ -111,101 +111,103 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
           <input type="checkbox" hidden {...register('hideBaseProduct')} />
         </>
       ) : (
-        <table className={groupStyles.table}>
-          <thead>
-            <tr>
-              {/* Empty on purpose: the reorder column's names are on its two buttons, and a title
-                  for a pair of chevrons is noise in a table this narrow. */}
-              <th />
-              <th scope="col">{t('variation_name')}</th>
-              <th scope="col">{t('variation_description')}</th>
-              <th scope="col">{t('price_modifier')}</th>
-              <th scope="col">{t('active')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {/* The item itself, first, exactly where the guest sheet draws it. Its ACTIVE switch is
-                `hideBaseProduct`, which used to live under Advanced five sections away and phrased
-                as the negative — so the one list a guest reads was assembled from two screens. */}
-            <VariationBaseRow control={control} />
-            {variationFields.map((field, index) => (
-              <tr key={field.id} className={rowStyles.row}>
-                <RowMoveButtons
-                  index={index}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < variationFields.length - 1}
-                  onMove={moveVariation}
-                />
-                <VariationNameCell
-                  register={register}
-                  errors={errors}
-                  index={index}
-                  suggestions={suggestions.suggestionsFor(index, attachedKeys)}
-                  onSearch={(term) => suggestions.search(index, term)}
-                  onCloseSuggestions={suggestions.close}
-                  onPick={(row) => applySuggestion(index, row)}
-                />
-                <td className={rowStyles.nameCell} data-label={t('variation_description')}>
-                  <input
-                    className={rowStyles.nameInput}
-                    aria-label={t('variation_description')}
-                    placeholder={t('variation_description')}
-                    {...register(`variations.${index}.description`)}
-                    {...fieldAria(errors, `variations.${index}.description`)}
-                  />
-                  {/* The other half of the same defect the name input's message closed, and the one
-                      that actually bit production: a variation loaded with `description: null`
-                      failed the resolver here, this cell drew nothing, and the whole form refused
-                      to save with no sentence anywhere on the page. The schema now accepts null
-                      (`optionalText` in schemas.ts), so this is defence in depth — no field in this
-                      table may fail silently again. */}
-                  <FieldError
-                    name={`variations.${index}.description`}
-                    message={fieldMessage(errors, `variations.${index}.description`)}
-                  />
-                </td>
-                <td className={rowStyles.centerCell} data-label={t('price_modifier')}>
-                  <span className={rowStyles.priceField}>
-                    {/* SIGNED, not `MONEY_INPUT_PROPS`: a *Small* is priced below the base item,
-                          so this is legitimately negative and a `min="0"` would have the browser
-                          refuse a value the schema, the API and the menu all accept. */}
-                    <input
-                      {...SIGNED_MONEY_INPUT_PROPS}
-                      aria-label={t('price_modifier')}
-                      {...register(`variations.${index}.priceModifier`)}
-                      {...fieldAria(errors, `variations.${index}.priceModifier`)}
-                    />
-                    <span className={rowStyles.currency}>{TENANT_CURRENCY}</span>
-                  </span>
-                  <FieldError
-                    name={`variations.${index}.priceModifier`}
-                    message={fieldMessage(errors, `variations.${index}.priceModifier`)}
-                  />
-                </td>
-                <td className={rowStyles.centerCell} data-label={t('active')}>
-                  <Switch
-                    className={rowStyles.rowSwitch}
-                    label={t('active')}
-                    srOnlyLabel
-                    id={`variation-active-${index}`}
-                    {...register(`variations.${index}.isActive`)}
-                  />
-                </td>
-                <td className={rowStyles.centerCell} data-label={t('actions')}>
-                  <button
-                    type="button"
-                    className={rowStyles.removeButton}
-                    aria-label={t('remove')}
-                    onClick={() => removeVariation(index)}
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </td>
+        <div className={groupStyles.tableScroll}>
+          <table className={groupStyles.table}>
+            <thead>
+              <tr>
+                {/* Empty on purpose: the reorder column's names are on its two buttons, and a title
+                    for a pair of chevrons is noise in a table this narrow. */}
+                <th />
+                <th scope="col">{t('variation_name')}</th>
+                <th scope="col">{t('variation_description')}</th>
+                <th scope="col">{t('price_modifier')}</th>
+                <th scope="col">{t('active')}</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {/* The item itself, first, exactly where the guest sheet draws it. Its ACTIVE switch is
+                  `hideBaseProduct`, which used to live under Advanced five sections away and phrased
+                  as the negative — so the one list a guest reads was assembled from two screens. */}
+              <VariationBaseRow control={control} />
+              {variationFields.map((field, index) => (
+                <tr key={field.id} className={rowStyles.row}>
+                  <RowMoveButtons
+                    index={index}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < variationFields.length - 1}
+                    onMove={moveVariation}
+                  />
+                  <VariationNameCell
+                    register={register}
+                    errors={errors}
+                    index={index}
+                    suggestions={suggestions.suggestionsFor(index, attachedKeys)}
+                    onSearch={(term) => suggestions.search(index, term)}
+                    onCloseSuggestions={suggestions.close}
+                    onPick={(row) => applySuggestion(index, row)}
+                  />
+                  <td className={rowStyles.nameCell} data-label={t('variation_description')}>
+                    <input
+                      className={rowStyles.nameInput}
+                      aria-label={t('variation_description')}
+                      placeholder={t('variation_description')}
+                      {...register(`variations.${index}.description`)}
+                      {...fieldAria(errors, `variations.${index}.description`)}
+                    />
+                    {/* The other half of the same defect the name input's message closed, and the one
+                        that actually bit production: a variation loaded with `description: null`
+                        failed the resolver here, this cell drew nothing, and the whole form refused
+                        to save with no sentence anywhere on the page. The schema now accepts null
+                        (`optionalText` in schemas.ts), so this is defence in depth — no field in this
+                        table may fail silently again. */}
+                    <FieldError
+                      name={`variations.${index}.description`}
+                      message={fieldMessage(errors, `variations.${index}.description`)}
+                    />
+                  </td>
+                  <td className={rowStyles.centerCell} data-label={t('price_modifier')}>
+                    <span className={rowStyles.priceField}>
+                      {/* SIGNED, not `MONEY_INPUT_PROPS`: a *Small* is priced below the base item,
+                            so this is legitimately negative and a `min="0"` would have the browser
+                            refuse a value the schema, the API and the menu all accept. */}
+                      <input
+                        {...SIGNED_MONEY_INPUT_PROPS}
+                        aria-label={t('price_modifier')}
+                        {...register(`variations.${index}.priceModifier`)}
+                        {...fieldAria(errors, `variations.${index}.priceModifier`)}
+                      />
+                      <span className={rowStyles.currency}>{TENANT_CURRENCY}</span>
+                    </span>
+                    <FieldError
+                      name={`variations.${index}.priceModifier`}
+                      message={fieldMessage(errors, `variations.${index}.priceModifier`)}
+                    />
+                  </td>
+                  <td className={rowStyles.centerCell} data-label={t('active')}>
+                    <Switch
+                      className={rowStyles.rowSwitch}
+                      label={t('active')}
+                      srOnlyLabel
+                      id={`variation-active-${index}`}
+                      {...register(`variations.${index}.isActive`)}
+                    />
+                  </td>
+                  <td className={rowStyles.centerCell} data-label={t('actions')}>
+                    <button
+                      type="button"
+                      className={rowStyles.removeButton}
+                      aria-label={t('remove')}
+                      onClick={() => removeVariation(index)}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <div className={groupStyles.actions}>

@@ -124,38 +124,40 @@ export function ProductIngredientsManager({
       {rows.length === 0 ? (
         <p className={styles.emptyState}>{t(isSauceGroup ? 'no_sauces_added' : 'no_ingredients_added')}</p>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              {/* The reorder column's header is empty by design: `Move up`/`Move down` are on the
-                  buttons themselves, and a visible column title for two chevrons is noise. */}
-              <th />
-              <th scope="col">{t('name')}</th>
-              <th scope="col">{t('ingredient_optional')}</th>
-              <th scope="col">{t('max_quantity')}</th>
-              <th scope="col">{t('additional_price')}</th>
-              <th scope="col">{t('ingredient_included')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((ingredient, index) => (
-              <ProductIngredientRow
-                key={ingredient.id}
-                ingredient={ingredient}
-                index={index}
-                productBasePrice={productBasePrice}
-                onPatch={patchRow}
-                onRemove={(position) => commit(rows.filter((_, other) => other !== position))}
-                onMove={moveRow}
-                canMoveUp={index > 0}
-                canMoveDown={index < rows.length - 1}
-                typeahead={typeahead}
-                onPickSuggestion={pickSuggestion}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                {/* The reorder column's header is empty by design: `Move up`/`Move down` are on the
+                    buttons themselves, and a visible column title for two chevrons is noise. */}
+                <th />
+                <th scope="col">{t('name')}</th>
+                <th scope="col">{t('ingredient_optional')}</th>
+                <th scope="col">{t('max_quantity')}</th>
+                <th scope="col">{t('additional_price')}</th>
+                <th scope="col">{t('ingredient_included')}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((ingredient, index) => (
+                <ProductIngredientRow
+                  key={ingredient.id}
+                  ingredient={ingredient}
+                  index={index}
+                  productBasePrice={productBasePrice}
+                  onPatch={patchRow}
+                  onRemove={(position) => commit(rows.filter((_, other) => other !== position))}
+                  onMove={moveRow}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < rows.length - 1}
+                  typeahead={typeahead}
+                  onPickSuggestion={pickSuggestion}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <div className={styles.actions}>

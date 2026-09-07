@@ -26,7 +26,8 @@ interface ApiTokenCreateModalProps {
 }
 
 const READ_SCOPES = API_TOKEN_SCOPES.filter((scope) => scope.endsWith(':read'));
-const WRITE_SCOPES = API_TOKEN_SCOPES.filter((scope) => scope.endsWith(':write'));
+const WRITE_SCOPES = API_TOKEN_SCOPES.filter((scope) => scope.endsWith(':write') && !scope.startsWith('maintenance:'));
+const MAINTENANCE_SCOPES = API_TOKEN_SCOPES.filter((scope) => scope.startsWith('maintenance:'));
 
 /**
  * Create form. Client-side checks are a courtesy only — the backend validator (plan §8) is
@@ -112,6 +113,7 @@ export default function ApiTokenCreateModal({
           <p className={styles.sectionTitle}>{t('api_tokens_field_scopes')}</p>
           {renderGroup(t('api_tokens_scope_group_read'), READ_SCOPES)}
           {renderGroup(t('api_tokens_scope_group_write'), WRITE_SCOPES)}
+          {renderGroup(t('api_tokens_scope_group_maintenance'), MAINTENANCE_SCOPES)}
           <p id="api-token-scopes-error" className={styles.hint}>
             {scopesInvalid ? t('api_tokens_scopes_required') : t('api_tokens_scopes_hint')}
           </p>

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { useState } from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -365,5 +366,106 @@ describe('SauceGroupSection — every locale it ships in', () => {
     const hint = `${copy(bundle, 'sauces_hint_up_to').replace('{{max}}', '3')} ${copy(bundle, 'sauces_hint_first_free')}`;
     expect(screen.getByText(hint)).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: copy(bundle, 'sauce_none') })).toBeInTheDocument();
+  });
+});
+
+describe('SauceGroupSection — stored exclusive no-sauce answers', () => {
+  const none = sauce('none', 'Without sauce', 4, { isNoneOption: true, price: 0 });
+  const otherNone = sauce('other-none', 'Plain', 5, { isNoneOption: true, price: 0 });
+  const onion = { ...sauce('onion', 'Onion', 0), kind: 'ingredient' as const };
+
+  function InteractiveGroup({
+    initialSelected,
+    initialQuantities,
+    ingredients = [onion, ...SAUCES, none, otherNone],
+  }: {
+    initialSelected: string[];
+    initialQuantities: Record<string, number>;
+    ingredients?: ProductIngredient[];
+  }) {
+    const [selected, setSelected] = useState(initialSelected);
+    const [quantities, setQuantities] = useState(initialQuantities);
+    return (
+      <>
+        <SauceGroupSection
+          ingredients={ingredients}
+          rule={{ min: 1, max: 3, includedFree: 0 }}
+          selectedIngredients={selected}
+          ingredientQuantities={quantities}
+          onSelectionChange={setSelected}
+          onQuantityChange={(id, quantity) => setQuantities((previous) => ({ ...previous, [id]: quantity }))}
+          currentLanguage="en"
+          variant="plain"
+        />
+        <output data-testid="selection">{JSON.stringify(selected)}</output>
+        <output data-testid="quantities">{JSON.stringify(quantities)}</output>
+      </>
+    );
+  }
+
+  it('selects no-sauce, unticks all previous sauces and zeroes all their quantities', () => {
+    render(
+      <InteractiveGroup
+        initialSelected={['onion', 'salsa', 'mayo']}
+        initialQuantities={{ onion: 2, salsa: 3, mayo: 2 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Without sauce' }));
+    expect(screen.getByRole('checkbox', { name: 'Without sauce' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Tomato Salsa/ })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Garlic Mayo/ })).not.toBeChecked();
+    expect(JSON.parse(screen.getByTestId('selection').textContent!)).toEqual(['onion', 'none']);
+    expect(JSON.parse(screen.getByTestId('quantities').textContent!)).toEqual({ onion: 2, salsa: 0, mayo: 0, none: 1 });
+  });
+
+  it('selects a normal sauce, unticks all no-sauce answers and zeroes their quantities', () => {
+    render(
+      <InteractiveGroup
+        initialSelected={['onion', 'none', 'other-none']}
+        initialQuantities={{ onion: 2, none: 2, 'other-none': 1 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: /Garlic Mayo/ }));
+    expect(screen.getByRole('checkbox', { name: /Garlic Mayo/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Without sauce' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Plain' })).not.toBeChecked();
+    expect(JSON.parse(screen.getByTestId('selection').textContent!)).toEqual(['onion', 'mayo']);
+    expect(JSON.parse(screen.getByTestId('quantities').textContent!)).toEqual({
+      onion: 2,
+      none: 0,
+      'other-none': 0,
+      mayo: 1,
+    });
+  });
+
+  it('keeps legacy multi-select even when an unflagged row has a no-sauce name', () => {
+    render(
+      <InteractiveGroup
+        ingredients={[...SAUCES, { ...none, isNoneOption: undefined }]}
+        initialSelected={['salsa']}
+        initialQuantities={{ salsa: 2 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Without sauce' }));
+    expect(screen.getByRole('checkbox', { name: /Tomato Salsa/ })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Without sauce' })).toBeChecked();
+    expect(JSON.parse(screen.getByTestId('selection').textContent!)).toEqual(['salsa', 'none']);
+    expect(JSON.parse(screen.getByTestId('quantities').textContent!)).toEqual({ salsa: 2, none: 1 });
+  });
+
+  it('keeps the existing max and aria-disabled guard for a flagged answer', () => {
+    const { onSelectionChange, onQuantityChange } = renderGroup({
+      ingredients: [...SAUCES, none],
+      rule: { min: 0, max: 2, includedFree: 0 },
+      selectedIngredients: ['salsa', 'mayo'],
+      ingredientQuantities: { salsa: 1, mayo: 1 },
+    });
+    expand();
+    const answer = screen.getByRole('checkbox', { name: /Without sauce/ });
+    expect(answer).toHaveAttribute('aria-disabled', 'true');
+    expect(answer).toBeEnabled();
+    fireEvent.click(answer);
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    expect(onQuantityChange).not.toHaveBeenCalled();
   });
 });

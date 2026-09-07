@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "1 至 365 天。没有永不过期的选项。",
   "api_tokens_scope_group_read": "读取",
   "api_tokens_scope_group_write": "写入",
+  "api_tokens_scope_group_maintenance": "维护",
+  "api_tokens_scope_desc_maintenance_write": "对现有图片执行维护任务（调整尺寸和生成卡片版本）。",
   "api_tokens_scopes_hint": "只授予任务所需的最小权限集合。",
   "api_tokens_scopes_required": "请至少选择一个权限。",
   "api_tokens_scope_desc_menu_read": "读取分类、商品和菜单。",

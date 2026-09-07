@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "От 1 до 365 дней. Варианта без срока действия нет.",
   "api_tokens_scope_group_read": "Чтение",
   "api_tokens_scope_group_write": "Запись",
+  "api_tokens_scope_group_maintenance": "Обслуживание",
+  "api_tokens_scope_desc_maintenance_write": "Выполнять обслуживание существующих изображений (изменение размера и создание вариантов для карточек).",
   "api_tokens_scopes_hint": "Выдавайте минимально необходимый набор прав.",
   "api_tokens_scopes_required": "Выберите хотя бы одно право.",
   "api_tokens_scope_desc_menu_read": "Чтение категорий, товаров и меню.",

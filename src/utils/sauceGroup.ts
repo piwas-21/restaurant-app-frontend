@@ -25,6 +25,7 @@ export interface SauceCandidate {
   maxQuantity?: number;
   displayOrder?: number;
   kind?: IngredientKind;
+  isNoneOption?: boolean;
 }
 
 /**
@@ -156,4 +157,28 @@ export function sauceWidget(rule: SauceGroupRule): 'radio' | 'checkbox' {
  */
 export function isSauceGroupFull(selectedSauceCount: number, rule: SauceGroupRule): boolean {
   return rule.max !== null && selectedSauceCount >= rule.max;
+}
+
+/**
+ * A stored no-sauce answer excludes every other selected sauce. A normal sauce excludes only
+ * stored no-sauce answers. Never match by name: tenant copy and locale do not define the rule.
+ * Return selected ids only, so callers zero exactly the rows they remove from the payload.
+ */
+export function saucesToDeselectForNoneOption(
+  ingredients: readonly Pick<SauceCandidate, 'id' | 'kind' | 'isNoneOption'>[],
+  ingredientId: string,
+  selectedIngredientIds: Iterable<string>,
+): string[] {
+  const target = ingredients.find((ingredient) => ingredient.id === ingredientId);
+  if (!target || !isSauce(target)) return [];
+  const selected = new Set(selectedIngredientIds);
+  return ingredients
+    .filter(
+      (other) =>
+        other.id !== ingredientId &&
+        selected.has(other.id) &&
+        isSauce(other) &&
+        (target.isNoneOption === true || other.isNoneOption === true),
+    )
+    .map((other) => other.id);
 }

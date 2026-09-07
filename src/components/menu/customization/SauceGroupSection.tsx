@@ -5,7 +5,14 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import { chargeableSauceUnits, isSauce, isSauceGroupFull, sauceWidget, waivedSauceUnits } from '@/utils/sauceGroup';
+import {
+  chargeableSauceUnits,
+  isSauce,
+  isSauceGroupFull,
+  saucesToDeselectForNoneOption,
+  sauceWidget,
+  waivedSauceUnits,
+} from '@/utils/sauceGroup';
 import { siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupRule } from '@/types/menu';
 import styles from './SauceGroupSection.module.css';
@@ -133,7 +140,8 @@ export default function SauceGroupSection({
     // that the sauces section ignored would be stored, shown in the editor and silently inert here.
     const others = widget === 'radio' ? choosable.map((other) => other.id) : [];
     const excluded = siblingsToDeselect(sauces, sauce.id, selectedIngredients);
-    const cleared = [...new Set([...others, ...excluded])];
+    const noneExcluded = saucesToDeselectForNoneOption(ingredients, sauce.id, selectedIngredients);
+    const cleared = [...new Set([...others, ...excluded, ...noneExcluded])];
     onSelectionChange([...selectedIngredients.filter((id) => !cleared.includes(id)), sauce.id]);
     cleared
       .filter((id) => id !== sauce.id && selectedIngredients.includes(id))

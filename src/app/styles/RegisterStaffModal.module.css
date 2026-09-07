@@ -146,6 +146,42 @@
   font-size: 1rem;
 }
 
+/* A checkbox is NOT a text field: the generic rule above stretches it into a full-width bordered
+   box the size of an input, with the label stranded on the line above — which is exactly the
+   "broken-looking checkbox" the category modals shipped. The compound selector outranks
+   `.formGroup input` without touching any other modal, and matches the row the DiscountModal
+   already renders into this class: control and label on one line. */
+.formGroup.checkboxGroup {
+  display: flex;
+  align-items: center;
+}
+
+.formGroup.checkboxGroup label {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.formGroup.checkboxGroup input[type='checkbox'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  flex-shrink: 0;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.formGroup.checkboxGroup input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
 .errorMessage {
   color: var(--error-color, red);
   font-size: 0.875rem;

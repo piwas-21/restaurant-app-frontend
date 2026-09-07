@@ -182,6 +182,41 @@ describe('updateBundleOption / findBundleOption / countSectionSelections', () =>
     expect(findBundleOption(next, 's1', 'a')?.specialInstructions).toBeUndefined();
   });
 
+  it('composes quantity deltas while keeping selection, instructions and other options', () => {
+    const initial: SelectedMenuOption[] = [
+      {
+        sectionId: 's1',
+        itemId: 'a',
+        quantity: 1,
+        selectedIngredients: ['salsa'],
+        ingredientQuantities: { salsa: 1, cheese: 2 },
+        specialInstructions: 'Keep separate',
+      },
+      selected[1],
+    ];
+    const chosen = updateBundleOption(initial, 's1', 'a', { selectedIngredients: ['mayo'] });
+    const cleared = updateBundleOption(chosen, 's1', 'a', { ingredientQuantities: { salsa: 0 } });
+    const next = updateBundleOption(cleared, 's1', 'a', { ingredientQuantities: { mayo: 1 } });
+
+    expect(next[0]).toEqual({
+      ...initial[0],
+      selectedIngredients: ['mayo'],
+      ingredientQuantities: { salsa: 0, cheese: 2, mayo: 1 },
+    });
+    expect(next[1]).toBe(initial[1]);
+    expect(initial[0].ingredientQuantities).toEqual({ salsa: 1, cheese: 2 });
+    expect(chosen[0].ingredientQuantities).toBe(initial[0].ingredientQuantities);
+  });
+
+  it('creates a quantities map for an option without one and preserves other patch semantics', () => {
+    const next = updateBundleOption(selected, 's1', 'a', { ingredientQuantities: { salsa: 0 } });
+    expect(next[0].ingredientQuantities).toEqual({ salsa: 0 });
+    const withNote = updateBundleOption(next, 's1', 'a', { specialInstructions: 'No salt' });
+    const clearedNote = updateBundleOption(withNote, 's1', 'a', { specialInstructions: undefined });
+    expect(clearedNote[0].specialInstructions).toBeUndefined();
+    expect(clearedNote[0].ingredientQuantities).toEqual({ salsa: 0 });
+  });
+
   it('counts options, not their quantities — matching the server gate', () => {
     // BasketItemFactory gates Min/MaxSelection on sectionSelections.Count, so 'b' at quantity 2
     // still counts once.

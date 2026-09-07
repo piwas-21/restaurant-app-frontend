@@ -6,7 +6,7 @@
  * CREATE response only — it is returned once and stored nowhere.
  */
 
-/** The seven scopes the backend accepts (`ApiTokenScopes.All`). */
+/** Scopes available in the create form, accepted by backend `ApiTokenScopes.All`. */
 export const API_TOKEN_SCOPES = [
   'menu:read',
   'menu:write',
@@ -15,6 +15,7 @@ export const API_TOKEN_SCOPES = [
   'reservations:read',
   'reservations:write',
   'tenant:read',
+  'maintenance:write',
 ] as const;
 
 export type ApiTokenScope = (typeof API_TOKEN_SCOPES)[number];

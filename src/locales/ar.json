@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "بين 1 و365 يومًا. لا يوجد خيار بدون انتهاء.",
   "api_tokens_scope_group_read": "قراءة",
   "api_tokens_scope_group_write": "كتابة",
+  "api_tokens_scope_group_maintenance": "الصيانة",
+  "api_tokens_scope_desc_maintenance_write": "تشغيل صيانة الصور الموجودة (تغيير الحجم وإنشاء نسخ للبطاقات).",
   "api_tokens_scopes_hint": "امنح أصغر مجموعة صلاحيات تكفي المهمة.",
   "api_tokens_scopes_required": "اختر صلاحية واحدة على الأقل.",
   "api_tokens_scope_desc_menu_read": "قراءة الفئات والمنتجات والقوائم.",

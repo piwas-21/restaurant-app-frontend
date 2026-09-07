@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "1 ile 365 gün arası. Süresiz seçenek yoktur.",
   "api_tokens_scope_group_read": "Okuma",
   "api_tokens_scope_group_write": "Yazma",
+  "api_tokens_scope_group_maintenance": "Bakım",
+  "api_tokens_scope_desc_maintenance_write": "Mevcut görseller için bakım işlemlerini çalıştırır (yeniden boyutlandırma ve kart varyantları).",
   "api_tokens_scopes_hint": "İşin gerektirdiği en küçük yetki kümesini verin.",
   "api_tokens_scopes_required": "En az bir yetki seçin.",
   "api_tokens_scope_desc_menu_read": "Kategorileri, ürünleri ve menüleri okur.",

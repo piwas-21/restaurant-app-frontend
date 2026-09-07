@@ -123,7 +123,7 @@ export default function BundleOptionRow({
             onSelectionChange={(selected) => onCustomizationChange({ selectedIngredients: selected })}
             onQuantityChange={(ingredientId, quantity) =>
               onCustomizationChange({
-                ingredientQuantities: { ...option?.ingredientQuantities, [ingredientId]: quantity },
+                ingredientQuantities: { [ingredientId]: quantity },
               })
             }
             currentLanguage={currentLanguage}

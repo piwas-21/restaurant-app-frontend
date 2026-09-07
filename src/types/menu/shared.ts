@@ -1,7 +1,4 @@
-/**
- * Shared leaf types for the menu/product domain: content, images, tags, ingredients, variations,
- * side items, and the kitchen/product enums. No dependencies on the other menu modules.
- */
+/** Shared leaf types for the menu/product domain. */
 
 import type { OrderType } from '@/types/order';
 
@@ -30,6 +27,7 @@ export interface ProductIngredient {
   id: string;
   name: string;
   kind?: IngredientKind;
+  isNoneOption?: boolean; // Exclusive no-sauce answer; absent means an ordinary sauce.
   isOptional: boolean;
   maxQuantity?: number; // Maximum quantity allowed for this ingredient (default 1)
   price: number;
@@ -59,6 +57,7 @@ export interface DetailedIngredient {
   displayOrder: number;
   maxQuantity: number;
   kind?: IngredientKind; // Ingredient or sauce (S5), `MenuBundleIngredientDto.kind`; absent = ingredient
+  isNoneOption?: boolean; // `MenuBundleIngredientDto.isNoneOption`; absent = ordinary sauce.
   exclusionGroup?: string | null; // Mutual-exclusion group (§9); absent = no group. See @/utils/exclusionGroup
   content?: Record<string, { name: string; description?: string }>;
 }

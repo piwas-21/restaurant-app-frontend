@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "Entre 1 et 365 jours. Aucune option sans expiration n’existe.",
   "api_tokens_scope_group_read": "Lecture",
   "api_tokens_scope_group_write": "Écriture",
+  "api_tokens_scope_group_maintenance": "Entretien",
+  "api_tokens_scope_desc_maintenance_write": "Exécuter la maintenance des images existantes (redimensionnement et variantes pour les cartes).",
   "api_tokens_scopes_hint": "Accordez le plus petit ensemble nécessaire à la tâche.",
   "api_tokens_scopes_required": "Sélectionnez au moins une portée.",
   "api_tokens_scope_desc_menu_read": "Lire les catégories, les produits et les menus.",

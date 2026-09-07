@@ -1,5 +1,5 @@
 /* Everything above the list in the ingredient picker: the archive switch, the search box, the
-   filter chips and the two column headers. Tokens only — no hex. */
+   and the filter chips. Tokens only — no hex. */
 
 .searchRow {
   position: relative;

@@ -45,18 +45,14 @@ interface LibraryPickerToolbarProps {
 }
 
 /**
- * Everything above the list: the archive switch, the search box, the filter chips, and the two
- * column headers the approved screen draws.
+ * Everything above the list: the archive switch, the search box, and the filter chips. (The column
+ * strip moved to `LibraryPickerResults`, which owns the list it heads.)
  *
  * One toolbar for both catalogs. It was written twice first — the ingredient one for plan S2, the
  * variation one for S4 — on the argument that a literal `t('…')` at every label keeps each key in
  * `scripts/check-t-keys.mjs`'s sight. The copy came out of it into `libraryPickerCopy`, where the
  * keys are still literals and both catalogs are one table apart; twelve labels was not worth a
  * second copy of the layout.
- *
- * The column strip is not decoration. Both figures in a row render as bare numbers to stay out of
- * ten sets of plural forms, so INGREDIENT|VARIATION / USAGE is what tells a sighted reader what the
- * right column counts; a screen reader gets the same words from each cell's `aria-label`.
  *
  * Search and the filters belong to the browsable catalog and are hidden in the ARCHIVED view only:
  * they are wired to that list's state, and leaving them on screen would offer to filter a list they

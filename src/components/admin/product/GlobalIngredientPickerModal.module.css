@@ -3,6 +3,8 @@
    `GlobalIngredientPickerToolbar.module.css` and a row in `GlobalIngredientPickerRow.module.css`:
    one file per component, and none of the three near the 200-line cap. */
 
+/* The column strip: rendered by LibraryPickerResults above the list. Its meaning work lives
+   with the row (see GlobalIngredientPickerRow). */
 .columns {
   display: flex;
   align-items: center;
@@ -26,7 +28,8 @@
   max-height: 22rem;
   overflow-y: auto;
   border: 1px solid var(--border-light);
-  /* Square at the top: the toolbar's column strip is the rounded head of the same frame. */
+  /* Square at the top: the column strip — rendered by LibraryPickerResults, which owns the
+     list — is the rounded head of the same frame. */
   border-radius: 0 0 8px 8px;
 }
 

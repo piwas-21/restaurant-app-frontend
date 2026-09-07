@@ -166,6 +166,8 @@ export interface Category {
   name: string;
   description?: string | null;
   isActive: boolean;
+  /** Orderable on its own tab but left out of the guest "All" list (`CategoryDto.IsHiddenFromAllTab`). */
+  isHiddenFromAllTab?: boolean;
   displayOrder: number;
   productCount?: number;
   /**

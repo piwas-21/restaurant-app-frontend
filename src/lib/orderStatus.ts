@@ -161,3 +161,38 @@ export function orderStatusLabel(status: string | null | undefined, t: (key: str
   const meta = orderStatusMeta(status);
   return meta ? t(meta.i18nKey) : (status ?? '');
 }
+
+/**
+ * Which badge FILL a status maps to — the single switch behind the cashier's status pills (#336).
+ * It existed twice, verbatim, in `OrderList` and `OrderDetails`, which is how a contrast fix once
+ * landed on one pill and not its twin (#333/#334). A class cannot be returned from here: the two
+ * pills wear classes from different CSS modules, so this returns the KEY and each component binds
+ * it to its own module with a `Record` — the drifting switch is gone, only the dumb binding stays.
+ *
+ * Narrower than `ORDER_STATUS_META.className` on purpose: the pills have exactly six fills, and
+ * every status outside them (`PendingApproval`, `OutForDelivery`, `InTransit`, `Delivered`,
+ * `'In Progress'`, `Refunded`) takes the completed fill — the same neutral-grey fallback the hex
+ * maps these components replaced had. The class name overstates it; the grey is just "neutral".
+ */
+export type OrderStatusBadgeFill = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+
+const BADGE_FILL: Readonly<Record<OrderStatus, OrderStatusBadgeFill>> = {
+  Pending: 'pending',
+  PendingApproval: 'completed',
+  Confirmed: 'confirmed',
+  Preparing: 'preparing',
+  'In Progress': 'completed',
+  Ready: 'ready',
+  OutForDelivery: 'completed',
+  InTransit: 'completed',
+  Delivered: 'completed',
+  Completed: 'completed',
+  Cancelled: 'cancelled',
+  Refunded: 'completed',
+};
+
+/** The badge-fill key for `status`. An unknown status takes the neutral completed fill. */
+export function orderStatusBadgeFill(status: string | null | undefined): OrderStatusBadgeFill {
+  const resolved = resolveOrderStatus(status);
+  return resolved ? BADGE_FILL[resolved] : 'completed';
+}

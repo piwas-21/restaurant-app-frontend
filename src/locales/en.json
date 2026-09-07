@@ -1009,6 +1009,7 @@
   "request_combine_tables": "Request to combine these tables",
   "capacity_notice": "Capacity Notice",
   "capacity_warning_message": "We don't have a single table that can accommodate all {{guests}} guests. However, you can select multiple tables and request to combine them, or proceed with your selection and our staff will review your request to find the best arrangement.",
+  "selected_tables_total_capacity": "The selected tables seat {{seats}} guests in total. Please select more tables or a smaller party.",
   "select_multiple_tables_suggestion": "💡 Tip: Select multiple tables and use the \"combine tables\" option below.",
   "sort_newest_first": "Newest First",
   "sort_oldest_first": "Oldest First",
@@ -1566,6 +1567,7 @@
   "server.confirm_order": "Confirm Order",
   "server.start_preparing": "Start Preparing",
   "server.mark_ready": "Mark Ready",
+  "server.dispatch_order": "Out for Delivery",
   "server.total": "Total",
   "server.updating": "Updating...",
   "server.search_items": "Search items...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Please make the required selection to continue.",
   "step_sides_desserts": "Add a dessert",
   "step_sides_accompaniments": "Add a side",
-  "step_drinks_hint": "Added as its own item in your basket."
+  "step_drinks_hint": "Added as its own item in your basket.",
+  "step_skip_sauces": "No sauce",
+  "step_skip_ingredients": "No extras",
+  "step_skip_drinks": "No drink",
+  "step_skip_sides_beverages": "No drink",
+  "step_skip_sides_desserts": "No dessert",
+  "step_skip_sides_accompaniments": "No side",
+  "is_hidden_from_all_tab": "Hide from the All tab"
 }

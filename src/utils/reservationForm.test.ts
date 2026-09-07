@@ -9,6 +9,7 @@ import {
   computeTableAvailability,
   getTimeSlotOptions,
   validateReservation,
+  selectedTablesCapacity,
   areRequiredReservationDetailsFilled,
   buildSpecialRequests,
   buildReservationPayload,
@@ -120,6 +121,7 @@ describe('validateReservation', () => {
     selectedTableIds: ['a'],
     selectedDate: '2026-08-15',
     selectedTime: '12:00',
+    numberOfGuests: 2, // exactly t1's capacity — the SUM gate below must pass
     customerName: 'Ada',
     customerEmail: 'ada@example.com',
     customerPhone: '',
@@ -159,6 +161,31 @@ describe('validateReservation', () => {
     expect(toast?.variant).toBe('warning');
     expect(toast?.message).toContain('fill in your details');
     expect(validateReservation({ ...base, customerPhone: '+41 22 000 00 00' }, t, rules)).toBeNull();
+  });
+
+  it('warns when the SUM of the selected tables cannot seat the party (#561)', () => {
+    // a(2) + b(4) = 6 seats — a party of 7 fits NO single table but not the set either.
+    const toast = validateReservation({ ...base, selectedTableIds: ['a', 'b'], numberOfGuests: 7 }, t);
+    expect(toast?.variant).toBe('warning');
+    expect(toast?.message).toContain('6 guests in total');
+  });
+
+  it('passes the capacity gate when the SUM seats the party even though no single table does (#561)', () => {
+    // The exact case the combine flow exists for: 10 guests, no 10-seat table, but a(2)+b(4)+c(6)=12.
+    expect(
+      validateReservation(
+        { ...base, selectedTableIds: ['a', 'b', 'c'], numberOfGuests: 10, allTables: [t1, t2, t3] },
+        t,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('selectedTablesCapacity', () => {
+  it('sums the capacities of the selected tables and counts unknown ids as zero', () => {
+    expect(selectedTablesCapacity(['a', 'c'], [t1, t2, t3])).toBe(8);
+    expect(selectedTablesCapacity(['a', 'ghost'], [t1, t2, t3])).toBe(2);
+    expect(selectedTablesCapacity([], [t1, t2, t3])).toBe(0);
   });
 });
 
@@ -236,6 +263,7 @@ describe('buildReservationPayload', () => {
   it('builds a 2-hour slot payload with trimmed phone and ISO date', () => {
     const dto = buildReservationPayload(
       'a',
+      [],
       '2026-08-15',
       '19:00',
       3,
@@ -253,9 +281,26 @@ describe('buildReservationPayload', () => {
     expect(dto.reservationDate).toBe('2026-08-15T00:00:00.000Z');
   });
 
-  it('sends empty phone and null specialRequests when blank', () => {
+  it('carries the combined tables as ONE payload over N tables (#561)', () => {
     const dto = buildReservationPayload(
       'a',
+      ['b', 'c'],
+      '2026-08-15',
+      '19:00',
+      10,
+      { customerName: 'Ada', customerEmail: 'ada@example.com', customerPhone: '' },
+      '[REQUEST TO COMBINE TABLES: 2, 3] note',
+    );
+    expect(dto.tableId).toBe('a');
+    expect(dto.combinedTableIds).toEqual(['b', 'c']);
+    // ONE row carries the FULL party — the retired fan-out posted one 10-guest row PER table.
+    expect(dto.numberOfGuests).toBe(10);
+  });
+
+  it('omits combinedTableIds entirely for a single-table booking', () => {
+    const dto = buildReservationPayload(
+      'a',
+      [],
       '2026-08-15',
       '18:00',
       2,
@@ -264,11 +309,13 @@ describe('buildReservationPayload', () => {
     );
     expect(dto.customerPhone).toBe('');
     expect(dto.specialRequests).toBeNull();
+    expect('combinedTableIds' in dto).toBe(false);
   });
 
   it('rounds the end to the hour, dropping start-time minutes (2-hour slot)', () => {
     const dto = buildReservationPayload(
       'a',
+      [],
       '2026-08-15',
       '19:30',
       2,

@@ -13,7 +13,7 @@ import SpecialRequestSection from '@/components/menu/customization/SpecialReques
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow, type SheetController } from '@/hooks/menu/useSheetFlow';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
-import { stepLabel } from '@/components/menu/customization/stepLabel';
+import { stepLabel, stepSkipLabel } from '@/components/menu/customization/stepLabel';
 import type { OrderType } from '@/types/order';
 import styles from './ItemCustomizationSheet.module.css';
 
@@ -119,6 +119,7 @@ export default function ItemCustomizationSheet({
       onAdd={() => flow.addOrJumpToBlocker(addToCart)}
       onContinue={flow.goNext}
       isSkip={flow.isSkip}
+      skipLabel={stepSkipLabel(step, t)}
       blockedMessage={flow.showBlocker ? t(`step_blocked_${flow.blocker}`) : undefined}
     />
   );

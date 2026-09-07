@@ -913,6 +913,7 @@
   "request_combine_tables": "Solicitar combinar estas mesas",
   "capacity_notice": "Aviso de capacidad",
   "capacity_warning_message": "No tenemos una sola mesa que pueda acomodar a todos los {{guests}} comensales. Sin embargo, puede seleccionar múltiples mesas y solicitar combinarlas, o proceder con su selección y nuestro personal revisará su solicitud para encontrar el mejor arreglo.",
+  "selected_tables_total_capacity": "Las mesas seleccionadas tienen capacidad para {{seats}} personas en total. Seleccione más mesas o reduzca el tamaño del grupo.",
   "select_multiple_tables_suggestion": "💡 Consejo: Seleccione múltiples mesas y use la opción \"combinar mesas\" a continuación.",
   "sort_newest_first": "Más reciente primero",
   "sort_oldest_first": "Más antiguo primero",
@@ -1566,6 +1567,7 @@
   "server.confirm_order": "Confirmar Pedido",
   "server.start_preparing": "Iniciar Preparación",
   "server.mark_ready": "Marcar como Listo",
+  "server.dispatch_order": "Enviar a Reparto",
   "server.total": "Total",
   "server.updating": "Actualizando...",
   "server.search_items": "Buscar artículos...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Realiza la selección requerida para continuar.",
   "step_sides_desserts": "Añadir un postre",
   "step_sides_accompaniments": "Añadir un acompañamiento",
-  "step_drinks_hint": "Se añade como artículo independiente a tu cesta."
+  "step_drinks_hint": "Se añade como artículo independiente a tu cesta.",
+  "step_skip_sauces": "Sin salsa",
+  "step_skip_ingredients": "Sin extras",
+  "step_skip_drinks": "Sin bebida",
+  "step_skip_sides_beverages": "Sin bebida",
+  "step_skip_sides_desserts": "Sin postre",
+  "step_skip_sides_accompaniments": "Sin acompañamiento",
+  "is_hidden_from_all_tab": "Ocultar de la pestaña Todo"
 }

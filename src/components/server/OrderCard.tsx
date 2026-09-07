@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 // One source for the status modifier class. The ladder this replaces handled six of the ten
 // statuses and returned '' for the rest — an unstyled badge, which reads as "no status" rather
 // than as an unhandled one.
-import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
-import { OrderDto } from '@/types/order';
+import { nextOrderStatuses, orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
+import { OrderDto, OrderStatus, OrderType } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './OrderCard.module.css';
@@ -16,39 +16,34 @@ interface OrderCardProps {
   isLoading?: boolean;
 }
 
+// The primary next action, derived from the SHARED transition table (#547) instead of the local
+// case ladder this card used to own. The table allows `Ready → OutForDelivery`, which the ladder
+// could not express, so a delivery order could not be dispatched from the surface that sees it.
+// Two exclusions stay deliberate: `Cancelled` is never the card's primary offer, and
+// `OutForDelivery` is offered only to delivery orders — every other card still moves exactly as
+// it did before (Pending→Confirmed→Preparing→Ready→Completed).
+function primaryNextStatus(order: OrderDto): OrderStatus | null {
+  const isDelivery = order.type === OrderType.Delivery;
+  return (
+    nextOrderStatuses(order.status).find(
+      (status) => status !== 'Cancelled' && (status !== 'OutForDelivery' || isDelivery),
+    ) ?? null
+  );
+}
+
+// Button copy per target status — the same keys and English fallbacks the in-component switch
+// used, plus the dispatch path. `PendingApproval` never wins the primary slot (`Confirmed`
+// precedes it in the table), so it needs no entry.
+const NEXT_ACTION: Partial<Record<OrderStatus, { key: string; fallback: string }>> = {
+  Confirmed: { key: 'server.confirm_order', fallback: 'Confirm Order' },
+  Preparing: { key: 'server.start_preparing', fallback: 'Start Preparing' },
+  Ready: { key: 'server.mark_ready', fallback: 'Mark Ready' },
+  OutForDelivery: { key: 'server.dispatch_order', fallback: 'Out for Delivery' },
+  Completed: { key: 'server.complete_order', fallback: 'Complete Order' },
+};
+
 export default function OrderCard({ order, onStatusChange, isLoading }: OrderCardProps) {
   const { t, i18n } = useTranslation();
-
-  const getNextStatus = () => {
-    switch (order.status) {
-      case 'Pending':
-        return 'Confirmed';
-      case 'Confirmed':
-        return 'Preparing';
-      case 'Preparing':
-        return 'Ready';
-      case 'Ready':
-        return 'Completed';
-      default:
-        return null;
-    }
-  };
-
-  const getNextStatusLabel = () => {
-    const next = getNextStatus();
-    switch (next) {
-      case 'Confirmed':
-        return t('server.confirm_order', 'Confirm Order');
-      case 'Preparing':
-        return t('server.start_preparing', 'Start Preparing');
-      case 'Ready':
-        return t('server.mark_ready', 'Mark Ready');
-      case 'Completed':
-        return t('server.complete_order', 'Complete Order');
-      default:
-        return null;
-    }
-  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -57,8 +52,8 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
     return date.toLocaleTimeString(i18n.language || 'en', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const nextStatus = getNextStatus();
-  const nextStatusLabel = getNextStatusLabel();
+  const nextStatus = primaryNextStatus(order);
+  const nextAction = nextStatus ? NEXT_ACTION[nextStatus] : undefined;
 
   return (
     <div className={`${styles.card} ${styles[orderStatusMeta(order.status)?.className ?? ''] ?? ''}`}>
@@ -103,13 +98,13 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
           <span className={styles.totalAmount}>{formatPlainCurrency(order.total)}</span>
         </div>
 
-        {nextStatus && nextStatusLabel && (
+        {nextStatus && nextAction && (
           <button
             className={styles.actionButton}
             onClick={() => onStatusChange(order.id, nextStatus)}
             disabled={isLoading}
           >
-            {isLoading ? t('server.updating', 'Updating...') : nextStatusLabel}
+            {isLoading ? t('server.updating', 'Updating...') : t(nextAction.key, nextAction.fallback)}
           </button>
         )}
       </div>

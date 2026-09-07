@@ -157,7 +157,10 @@ export function useCategoryChannelQuickToggle(enabled: boolean): CategoryChannel
 
       setSavingId(categoryId);
       try {
-        await updateCategoryOrderTypes(category, maskWithChannel(category.availableOrderTypes, orderType, next));
+        await updateCategoryOrderTypes(
+          { ...category, isHiddenFromAllTab: category.isHiddenFromAllTab ?? false },
+          maskWithChannel(category.availableOrderTypes, orderType, next),
+        );
         // Re-read rather than patch state: the switch has to show SERVER truth, and a snapshot
         // written from the request body would hide a rejected or concurrently-overwritten save.
         await read();

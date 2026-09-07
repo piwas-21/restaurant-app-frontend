@@ -38,6 +38,8 @@ export interface ReservationDto {
   customerPhone?: string | null;
   tableId: string;
   tableNumber: string;
+  /** Additional tables this booking occupies (#561); optional on payloads predating the feature. */
+  combinedTableIds?: string[];
   reservationDate: string;
   startTime: string;
   endTime: string;
@@ -53,6 +55,12 @@ export interface CreateReservationDto {
   customerEmail: string;
   customerPhone?: string | null;
   tableId: string;
+  /**
+   * ONE reservation over N tables (#561): tables beyond `tableId` this booking occupies. Omitted
+   * for a single-table booking; the party is validated against the SUM of every table's capacity
+   * (individual tables may be smaller — that is the point). Distinct; no `tableId` repeat.
+   */
+  combinedTableIds?: string[] | null;
   reservationDate: string;
   startTime: string;
   endTime: string;

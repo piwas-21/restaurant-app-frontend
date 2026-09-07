@@ -1009,6 +1009,7 @@
   "request_combine_tables": "Vraag aan om deze tafels samen te voegen",
   "capacity_notice": "Capaciteitsmelding",
   "capacity_warning_message": "We hebben geen enkele tafel die alle {{guests}} gasten kan plaatsen. Je kunt wel meerdere tafels selecteren en aanvragen om ze samen te voegen, of doorgaan met je selectie; ons personeel bekijkt dan de beste indeling.",
+  "selected_tables_total_capacity": "De geselecteerde tafels bieden in totaal plaats aan {{seats}} gasten. Kies meer tabellen of verklein het gezelschap.",
   "select_multiple_tables_suggestion": "💡 Tip: selecteer meerdere tafels en gebruik de optie \"tafels samenvoegen\" hieronder.",
   "sort_newest_first": "Nieuwste eerst",
   "sort_oldest_first": "Oudste eerst",
@@ -1566,6 +1567,7 @@
   "server.confirm_order": "Bestelling bevestigen",
   "server.start_preparing": "Beginnen met bereiden",
   "server.mark_ready": "Markeren als klaar",
+  "server.dispatch_order": "Bezorging starten",
   "server.total": "Totaal",
   "server.updating": "Bijwerken...",
   "server.search_items": "Items zoeken...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Maak de vereiste keuze om door te gaan.",
   "step_sides_desserts": "Dessert toevoegen",
   "step_sides_accompaniments": "Bijgerecht toevoegen",
-  "step_drinks_hint": "Wordt als apart artikel aan je winkelwagen toegevoegd."
+  "step_drinks_hint": "Wordt als apart artikel aan je winkelwagen toegevoegd.",
+  "step_skip_sauces": "Geen saus",
+  "step_skip_ingredients": "Zonder extra's",
+  "step_skip_drinks": "Zonder drankje",
+  "step_skip_sides_beverages": "Zonder drankje",
+  "step_skip_sides_desserts": "Zonder dessert",
+  "step_skip_sides_accompaniments": "Zonder bijgerecht",
+  "is_hidden_from_all_tab": "Verbergen op het tabblad Alles"
 }

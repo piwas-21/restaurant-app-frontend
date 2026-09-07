@@ -3,7 +3,7 @@ import { test as publicTest } from '@playwright/test';
 import { request } from '@playwright/test';
 import { apiBaseUrl } from '../../helpers/config';
 import { deleteUserByEmail } from '../../helpers/db';
-import { menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
+import { menuBasketPanel, openMenuBasket, proceedViaSidebarExpectingNavigation } from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — smart-skip checkout (BUGS-IMPROVEMENTS-PLAN §C1.5.d + §C1.5.e).
@@ -78,8 +78,8 @@ authedTest('logged-in user with phone skips customer-info on Takeaway', async ({
     // No takeaway info modal — profile is complete.
     await expect(page.getByRole('dialog', { name: /almost there/i })).toBeHidden();
 
-    await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+    // #541: toasts first, wait registered before the click (shared helper).
+    await proceedViaSidebarExpectingNavigation(page, sidebar);
   } finally {
     await context.close();
   }
@@ -135,8 +135,8 @@ authedTest(
       await modal.getByRole('button', { name: /^confirm$/i }).click();
       await expect(modal).toBeHidden({ timeout: 5_000 });
 
-      await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-      await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+        // #541: toasts first, wait registered before the click (shared helper).
+      await proceedViaSidebarExpectingNavigation(page, sidebar);
     } finally {
       await context.close();
     }
@@ -192,8 +192,8 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
     await modal.getByRole('button', { name: /^confirm$/i }).click();
     await expect(modal).toBeHidden({ timeout: 5_000 });
 
-    await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+    // #541: toasts first, wait registered before the click (shared helper).
+    await proceedViaSidebarExpectingNavigation(page, sidebar);
   } finally {
     await context.close();
   }
@@ -268,8 +268,8 @@ publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)',
 
     await expect(modal).toBeHidden({ timeout: 10_000 });
 
-    await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+    // #541: toasts first, wait registered before the click (shared helper).
+    await proceedViaSidebarExpectingNavigation(page, sidebar);
   } finally {
     await context.close();
     if (createdEmail) {

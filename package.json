@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "#dev:webpack": "webpack dev server; Playwright's webServer picks it in git worktrees, where Turbopack rejects the symlinked node_modules (#623)",
+    "dev:webpack": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings=0",

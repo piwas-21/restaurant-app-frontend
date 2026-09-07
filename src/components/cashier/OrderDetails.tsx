@@ -4,37 +4,29 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle } from 'lucide-react';
 import { OrderDto } from '@/types/order';
+import { orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
 import styles from './OrderDetails.module.css';
 import OrderDetailsActionBar from './order-details/OrderDetailsActionBar';
 import OrderDetailsLeftColumn from './order-details/OrderDetailsLeftColumn';
 import OrderDetailsRightColumn from './order-details/OrderDetailsRightColumn';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 
-// Helper to get the status badge's fill modifier class. Returns a class rather than a
-// colour so the fill stays in the stylesheet, tokenised and contrast-checked (see
-// .statusBadge in OrderDetails.module.css) instead of inline on the span. Deliberately
-// NOT getOrderStatusColor: that returns the shared --status-* hues, which are tuned as
-// indicators with nothing written on them and fail WCAG AA behind this badge's label.
-const getStatusBadgeModifier = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return styles.statusBadgePending;
-    case 'confirmed':
-      return styles.statusBadgeConfirmed;
-    case 'preparing':
-      return styles.statusBadgePreparing;
-    case 'ready':
-      return styles.statusBadgeReady;
-    case 'cancelled':
-      return styles.statusBadgeCancelled;
-    // An unrecognised status falls back to the Completed fill — the same grey the
-    // old hex map used as its default. The class name overstates it: the order is
-    // not necessarily completed, the grey is just the neutral fill.
-    case 'completed':
-    default:
-      return styles.statusBadgeCompleted;
-  }
+// This module's binding of the SHARED status→badge-fill key (#336). The switch that used to
+// live here — duplicated verbatim in OrderList, which is how a contrast fix once landed on
+// one pill and not its twin — is gone; `orderStatusBadgeFill` makes the decision, and this
+// Record only binds each fill key to this module's tokenised, contrast-checked class.
+// Deliberately NOT getOrderStatusColor: those --status-* hues are tuned as indicators with
+// nothing written on them and fail WCAG AA behind this badge's label.
+const BADGE_FILL_CLASS: Record<OrderStatusBadgeFill, string> = {
+  pending: styles.statusBadgePending,
+  confirmed: styles.statusBadgeConfirmed,
+  preparing: styles.statusBadgePreparing,
+  ready: styles.statusBadgeReady,
+  cancelled: styles.statusBadgeCancelled,
+  completed: styles.statusBadgeCompleted,
 };
+
+const getStatusBadgeModifier = (status: string) => BADGE_FILL_CLASS[orderStatusBadgeFill(status)];
 
 interface OrderDetailsProps {
   order: OrderDto | null;

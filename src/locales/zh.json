@@ -956,6 +956,7 @@
   "request_combine_tables": "请求组合这些桌位",
   "capacity_notice": "容量提示",
   "capacity_warning_message": "我们没有单个桌位可以容纳全部 {{guests}} 位客人。但您可以选择多个桌位并请求组合，或继续提交，由我们的员工为您安排最佳座位。",
+  "selected_tables_total_capacity": "所选餐桌总共可容纳 {{seats}} 位客人。请选择更多餐桌或减少人数。",
   "select_multiple_tables_suggestion": "💡 提示：选择多个桌位并使用下方的“组合桌位”选项。",
   "sort_newest_first": "最新优先",
   "sort_oldest_first": "最旧优先",
@@ -1566,6 +1567,7 @@
   "server.confirm_order": "确认订单",
   "server.start_preparing": "开始制作",
   "server.mark_ready": "设为出餐",
+  "server.dispatch_order": "开始配送",
   "server.total": "合计",
   "server.updating": "更新中...",
   "server.search_items": "搜索菜品...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "请完成必选项以继续。",
   "step_sides_desserts": "添加甜点",
   "step_sides_accompaniments": "添加配菜",
-  "step_drinks_hint": "将作为独立商品加入购物车。"
+  "step_drinks_hint": "将作为独立商品加入购物车。",
+  "step_skip_sauces": "不要酱料",
+  "step_skip_ingredients": "不要加料",
+  "step_skip_drinks": "不要饮品",
+  "step_skip_sides_beverages": "不要饮品",
+  "step_skip_sides_desserts": "不要甜点",
+  "step_skip_sides_accompaniments": "不要配菜",
+  "is_hidden_from_all_tab": "从“全部”标签页隐藏"
 }

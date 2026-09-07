@@ -42,7 +42,8 @@ describe("#642 — Zod schemas against the API's null", () => {
     // `category.description || ''` coalesce. The coalesce is a rule nobody can see from the schema,
     // and removing it is a one-character edit — this is what makes that edit safe.
     it('the edit schema accepts the null a description-less category really sends', () => {
-      const wire = { name: 'Pizzas', description: null, isActive: true, displayOrder: 0 };
+      // `isHiddenFromAllTab` rides along: the API returns it on every row once the column exists.
+      const wire = { name: 'Pizzas', description: null, isActive: true, isHiddenFromAllTab: false, displayOrder: 0 };
 
       expect(editCategorySchema.safeParse(wire).success).toBe(true);
     });
@@ -59,7 +60,8 @@ describe("#642 — Zod schemas against the API's null", () => {
      * happened.
      */
     it('the create schema IS its sibling, not merely equivalent to it', () => {
-      const wire = { name: 'Pizzas', description: null, isActive: true, displayOrder: 0 };
+      // `isHiddenFromAllTab` rides along: the API returns it on every row once the column exists.
+      const wire = { name: 'Pizzas', description: null, isActive: true, isHiddenFromAllTab: false, displayOrder: 0 };
 
       expect(createCategorySchema).toBe(editCategorySchema);
       expect(createCategorySchema.safeParse(wire).success).toBe(true);

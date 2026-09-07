@@ -69,6 +69,10 @@ const DYNAMIC_PREFIXES = [
   'roles.',
   'setup_step_',
   'step_blocked_',
+  // `src/components/menu/customization/stepLabel.ts:31` composes `step_skip_sides_${sideGroup}`
+  // for the optional sides rows (Sans-x partner feedback, 2026-09-06). Prefix verified as a set:
+  // exactly step_skip_sides_{accompaniments,beverages,desserts} exist in the ten bundles.
+  'step_skip_sides_',
 ];
 
 /**
@@ -214,4 +218,6 @@ if (failing.length) {
 }
 
 const allowlisted = warned.length ? `, ${warned.length} allowlisted` : '';
-console.log(`✓ no orphaned locale keys (${englishKeys.length} keys, ${corpusFiles.length} files scanned${allowlisted})`);
+console.log(
+  `✓ no orphaned locale keys (${englishKeys.length} keys, ${corpusFiles.length} files scanned${allowlisted})`,
+);

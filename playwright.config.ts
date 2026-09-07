@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -6,6 +8,30 @@ import { defineConfig, devices } from '@playwright/test';
  * Strategy: docs/E2E-STRATEGY.md
  * Layout:   e2e/{tests,pages,fixtures,helpers,seed}
  */
+
+/**
+ * Which dev-server command this checkout can actually start (#623).
+ *
+ * In a git worktree, node_modules is a SYMLINK to the primary clone's, and Turbopack
+ * refuses it outright — `TurbopackInternalError: Symlink node_modules is invalid, it
+ * points out of the filesystem root` — so the webServer died before a single test ran,
+ * which read as "the suite is broken" rather than "worktrees exist". webpack (`next dev`
+ * without --turbopack) follows the symlink happily. Detect the symlinked case by
+ * resolving real paths and swap to the webpack dev script; the primary clone and CI
+ * (real node_modules) keep running `npm run dev` with Turbopack, so what E2E compiles
+ * with only ever differs in the worktree case, where the alternative was nothing.
+ */
+function devServerCommand(): string {
+  const nodeModulesPath = path.resolve(process.cwd(), 'node_modules');
+  try {
+    if (fs.lstatSync(nodeModulesPath).isSymbolicLink()) {
+      return 'npm run dev:webpack';
+    }
+  } catch {
+    // No node_modules at all — run the default command and let npm say so.
+  }
+  return 'npm run dev';
+}
 export default defineConfig({
   testDir: './e2e/tests',
   testMatch: '**/*.e2e.ts',
@@ -46,7 +72,7 @@ export default defineConfig({
   webServer: process.env.E2E_REMOTE
     ? undefined
     : {
-        command: 'npm run dev',
+        command: devServerCommand(),
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         stdout: 'ignore',

@@ -912,6 +912,7 @@
   "request_combine_tables": "Anfrage zum Zusammenstellen dieser Tische",
   "capacity_notice": "Kapazitätshinweis",
   "capacity_warning_message": "Wir haben keinen einzelnen Tisch, der alle {{guests}} Gäste aufnehmen kann. Sie können jedoch mehrere Tische auswählen und deren Zusammenstellung anfordern, oder mit Ihrer Auswahl fortfahren und unser Personal wird Ihre Anfrage prüfen, um die beste Anordnung zu finden.",
+  "selected_tables_total_capacity": "Die ausgewählten Tische bieten insgesamt {{seats}} Plätze. Bitte wählen Sie weitere Tische oder eine kleinere Gruppe.",
   "select_multiple_tables_suggestion": "💡 Tipp: Wählen Sie mehrere Tische aus und nutzen Sie die Option \"Tische zusammenstellen\" unten.",
   "sort_newest_first": "Neueste zuerst",
   "sort_oldest_first": "Älteste zuerst",
@@ -1564,6 +1565,7 @@
   "server.confirm_order": "Bestellung bestätigen",
   "server.start_preparing": "Zubereitung starten",
   "server.mark_ready": "Als fertig markieren",
+  "server.dispatch_order": "Ausliefern",
   "server.total": "Gesamt",
   "server.updating": "Aktualisieren...",
   "server.search_items": "Artikel suchen...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Bitte treffen Sie die erforderliche Auswahl, um fortzufahren.",
   "step_sides_desserts": "Dessert hinzufügen",
   "step_sides_accompaniments": "Beilage hinzufügen",
-  "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt."
+  "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt.",
+  "step_skip_sauces": "Keine Soße",
+  "step_skip_ingredients": "Ohne Extras",
+  "step_skip_drinks": "Ohne Getränk",
+  "step_skip_sides_beverages": "Ohne Getränk",
+  "step_skip_sides_desserts": "Ohne Dessert",
+  "step_skip_sides_accompaniments": "Ohne Beilage",
+  "is_hidden_from_all_tab": "Aus dem Tab „Alle“ ausblenden"
 }

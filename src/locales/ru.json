@@ -896,6 +896,7 @@
   "request_combine_tables": "Запросить объединение этих столиков",
   "capacity_notice": "Уведомление о вместимости",
   "capacity_warning_message": "У нас нет одного столика, который может вместить всех {{guests}} гостей. Однако вы можете выбрать несколько столиков и запросить их объединение, или продолжить выбор, и наш персонал рассмотрит ваш запрос, чтобы найти лучшее решение.",
+  "selected_tables_total_capacity": "Выбранные столы вмещают всего {{seats}} гостей. Выберите дополнительные столы или уменьшите размер компании.",
   "select_multiple_tables_suggestion": "💡 Совет: Выберите несколько столиков и используйте опцию \"объединить столики\" ниже.",
   "sort_newest_first": "Сначала новые",
   "sort_oldest_first": "Сначала старые",
@@ -1503,6 +1504,7 @@
   "server.confirm_order": "Подтвердить заказ",
   "server.start_preparing": "Начать приготовление",
   "server.mark_ready": "Отметить как готово",
+  "server.dispatch_order": "Передать в доставку",
   "server.total": "Итого",
   "server.updating": "Обновление...",
   "server.search_items": "Поиск блюд...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Сделайте обязательный выбор, чтобы продолжить.",
   "step_sides_desserts": "Добавить десерт",
   "step_sides_accompaniments": "Добавить гарнир",
-  "step_drinks_hint": "Добавляется в корзину отдельной позицией."
+  "step_drinks_hint": "Добавляется в корзину отдельной позицией.",
+  "step_skip_sauces": "Без соуса",
+  "step_skip_ingredients": "Без добавок",
+  "step_skip_drinks": "Без напитка",
+  "step_skip_sides_beverages": "Без напитка",
+  "step_skip_sides_desserts": "Без десерта",
+  "step_skip_sides_accompaniments": "Без гарнира",
+  "is_hidden_from_all_tab": "Скрыть из вкладки «Все»"
 }

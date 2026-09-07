@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categoryFormSchema, type CategoryFormValues } from './categoryFormSchema';
+import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
@@ -18,6 +19,7 @@ interface Category {
   name: string;
   description?: string | null;
   isActive: boolean;
+  isHiddenFromAllTab?: boolean;
   displayOrder: number;
   /** Raw OrderChannels mask; `null` = every order type. Shown read-only, echoed back on save. */
   availableOrderTypes?: number | null;
@@ -61,6 +63,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
         name: category.name,
         description: category.description || '',
         isActive: category.isActive,
+        isHiddenFromAllTab: category.isHiddenFromAllTab ?? false,
         displayOrder: category.displayOrder,
       });
     }
@@ -101,6 +104,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             <label htmlFor="isActive">{t('is_active')}</label>
             <input type="checkbox" id="isActive" {...register('isActive')} />
           </div>
+          <CategoryHiddenFromAllTabField register={register} />
           <div className={styles.formGroup}>
             <label htmlFor="displayOrder">{t('display_order')}</label>
             <input id="displayOrder" type="number" {...register('displayOrder')} />

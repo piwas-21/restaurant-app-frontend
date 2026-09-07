@@ -913,6 +913,7 @@
   "request_combine_tables": "Richiedi di unire questi tavoli",
   "capacity_notice": "Avviso di capacità",
   "capacity_warning_message": "Non abbiamo un singolo tavolo che possa ospitare tutti i {{guests}} ospiti. Tuttavia, puoi selezionare più tavoli e richiedere di unirli, oppure procedere con la tua selezione e il nostro personale esaminerà la tua richiesta per trovare la migliore sistemazione.",
+  "selected_tables_total_capacity": "I tavoli selezionati offrono {{seats}} posti in totale. Seleziona altri tavoli o riduci il numero di ospiti.",
   "select_multiple_tables_suggestion": "💡 Suggerimento: Seleziona più tavoli e usa l'opzione \"unisci tavoli\" qui sotto.",
   "sort_newest_first": "Prima i più recenti",
   "sort_oldest_first": "Prima i più vecchi",
@@ -1566,6 +1567,7 @@
   "server.confirm_order": "Conferma Ordine",
   "server.start_preparing": "Inizia Preparazione",
   "server.mark_ready": "Segna come Pronto",
+  "server.dispatch_order": "Metti in Consegna",
   "server.total": "Totale",
   "server.updating": "Aggiornamento...",
   "server.search_items": "Cerca articoli...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "Effettua la selezione richiesta per continuare.",
   "step_sides_desserts": "Aggiungi un dolce",
   "step_sides_accompaniments": "Aggiungi un contorno",
-  "step_drinks_hint": "Aggiunto come articolo separato nel carrello."
+  "step_drinks_hint": "Aggiunto come articolo separato nel carrello.",
+  "step_skip_sauces": "Senza salsa",
+  "step_skip_ingredients": "Senza extra",
+  "step_skip_drinks": "Senza bevanda",
+  "step_skip_sides_beverages": "Senza bevanda",
+  "step_skip_sides_desserts": "Senza dolce",
+  "step_skip_sides_accompaniments": "Senza contorno",
+  "is_hidden_from_all_tab": "Nascondi dalla scheda Tutto"
 }

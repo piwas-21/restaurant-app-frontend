@@ -908,6 +908,7 @@
   "request_combine_tables": "طلب دمج هذه الطاولات",
   "capacity_notice": "ملاحظة السعة",
   "capacity_warning_message": "ليس لدينا طاولة واحدة يمكنها استيعاب جميع الضيوف البالغ عددهم {{guests}}. ومع ذلك، يمكنك اختيار طاولات متعددة وطلب دمجها، أو المتابعة باختيارك وسيراجع موظفونا طلبك لإيجاد أفضل ترتيب.",
+  "selected_tables_total_capacity": "الطاولات المحددة تتسع إجمالًا لـ {{seats}} ضيوفًا. يرجى اختيار طاولات إضافية أو تقليل عدد الضيوف.",
   "select_multiple_tables_suggestion": "💡 نصيحة: حدد طاولات متعددة واستخدم خيار \"دمج الطاولات\" أدناه.",
   "sort_newest_first": "الأحدث أولاً",
   "sort_oldest_first": "الأقدم أولاً",
@@ -1565,6 +1566,7 @@
   "server.confirm_order": "تأكيد الطلب",
   "server.start_preparing": "بدء التحضير",
   "server.mark_ready": "تحديد كجاهز",
+  "server.dispatch_order": "إرسال للتوصيل",
   "server.total": "المجموع",
   "server.updating": "جاري التحديث...",
   "server.search_items": "البحث عن منتجات...",
@@ -2411,5 +2413,12 @@
   "step_blocked_section": "الرجاء إجراء الاختيار المطلوب للمتابعة.",
   "step_sides_desserts": "أضف حلوى",
   "step_sides_accompaniments": "أضف طبقًا جانبيًا",
-  "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك."
+  "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك.",
+  "step_skip_sauces": "بدون صلصة",
+  "step_skip_ingredients": "بدون إضافات",
+  "step_skip_drinks": "بدون مشروب",
+  "step_skip_sides_beverages": "بدون مشروب",
+  "step_skip_sides_desserts": "بدون حلوى",
+  "step_skip_sides_accompaniments": "بدون طبق جانبي",
+  "is_hidden_from_all_tab": "إخفاء من تبويب الكل"
 }

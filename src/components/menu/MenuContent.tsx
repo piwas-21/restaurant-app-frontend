@@ -95,12 +95,28 @@ export default function MenuContent({
   const { t } = useTranslation();
 
   const isMenuBundlesView = selectedView === MENU_BUNDLES_KEY;
-  // One widened element type, so a single filter instance serves both views. The two lists are
-  // never mixed — the view picks exactly one — and the casts below re-narrow at the call site.
-  const sourceItems: (MenuItem | MenuBundleItem)[] = isMenuBundlesView ? menuBundles : currentMenuItems;
+  const isAllView = selectedView === ALL_ITEMS_KEY;
+  // A combo is listed under the tabs of the categories its main dish belongs to (the links the
+  // admin assigns to the bundle itself), so a category tab shows its dishes PLUS those bundles.
+  // The All view stays products-only — the server excludes bundles from it and the bundles area
+  // is their combined listing — and the bundles view already has every bundle. Empty `categoryIds`
+  // (older backend, orphan bundle) simply matches no tab, which degrades to today's placement.
+  const groupedBundles =
+    isMenuBundlesView || isAllView
+      ? []
+      : menuBundles.filter((bundle) => bundle.categoryIds?.includes(selectedView) ?? false);
+  // One widened element type, so a single filter instance serves every view: an allergen chip has
+  // to count the tab's bundles too, or "No gluten 3" hides a matching combo from its own tally.
+  const sourceItems: (MenuItem | MenuBundleItem)[] = isMenuBundlesView
+    ? menuBundles
+    : [...currentMenuItems, ...groupedBundles];
   const filters = useMenuFilters(sourceItems);
   const displayItems = filters.filtered;
   const isFiltered = filters.activeIds.size > 0;
+  // The grid takes one merged list; the list needs the two card shapes back apart. A bundle is the
+  // only member carrying a menu definition.
+  const displayProducts = displayItems.filter((item): item is MenuItem => !('menuDefinition' in item));
+  const displayBundles = displayItems.filter((item): item is MenuBundleItem => 'menuDefinition' in item);
 
   const displayError = errorLoadingItems
     ? t(errorKeyFor(selectedView, isMenuBundlesView), { categoryName: categoryDisplayName })
@@ -158,8 +174,8 @@ export default function MenuContent({
       {!isLoadingItems && !displayError && displayItems.length > 0 && (
         <>
           <MenuList
-            products={isMenuBundlesView ? [] : (displayItems as MenuItem[])}
-            bundles={isMenuBundlesView ? (displayItems as MenuBundleItem[]) : []}
+            products={isMenuBundlesView ? [] : displayProducts}
+            bundles={isMenuBundlesView ? (displayItems as MenuBundleItem[]) : displayBundles}
             onOpenItem={onOpenItem}
             onFeedbackSuccess={() => {}}
             onSwitchOrderType={onSwitchOrderType}

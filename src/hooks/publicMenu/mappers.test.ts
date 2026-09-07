@@ -98,3 +98,56 @@ describe('mapBundleDtoToMenuBundleItem — availability', () => {
     expect(mapBundleDtoToMenuBundleItem(bundle).availability).toBeUndefined();
   });
 });
+
+/**
+ * The category-tab grouping key (menu page, Issue B): a combo is listed under the tabs of the
+ * categories its main dish belongs to, so the ids have to survive the mapper — normalised like
+ * everything else here, because a backend that predates the field omits it entirely and the
+ * degradation must be "no extra placement", never a vanished combo.
+ */
+describe('mapBundleDtoToMenuBundleItem — categoryIds', () => {
+  const wire: MenuBundleDto = {
+    id: 'b1',
+    name: 'LIBANAISE 1 VIANDE',
+    basePrice: 12,
+    menuDefinition: {
+      id: 'md-1',
+      isAlwaysAvailable: true,
+      availableMonday: true,
+      availableTuesday: true,
+      availableWednesday: true,
+      availableThursday: true,
+      availableFriday: true,
+      availableSaturday: true,
+      availableSunday: true,
+      sections: [],
+    },
+  };
+
+  it('carries the listed categories and the primary link through', () => {
+    const mapped = mapBundleDtoToMenuBundleItem({
+      ...wire,
+      categoryIds: ['cat-libanaise', 'cat-viande'],
+      primaryCategoryId: 'cat-libanaise',
+    });
+
+    expect(mapped.categoryIds).toEqual(['cat-libanaise', 'cat-viande']);
+    expect(mapped.primaryCategoryId).toBe('cat-libanaise');
+  });
+
+  it('normalises a missing field on an older backend to an empty list', () => {
+    const mapped = mapBundleDtoToMenuBundleItem(wire);
+
+    expect(mapped.categoryIds).toEqual([]);
+    expect(mapped.primaryCategoryId).toBeUndefined();
+  });
+
+  it('drops junk entries instead of grouping by them', () => {
+    const mapped = mapBundleDtoToMenuBundleItem({
+      ...wire,
+      categoryIds: ['cat-viande', '', 42 as unknown as string, null as unknown as string],
+    });
+
+    expect(mapped.categoryIds).toEqual(['cat-viande']);
+  });
+});

@@ -25,11 +25,16 @@ export function usePublicMenu() {
   const {
     items,
     menuBundles,
-    isLoading,
-    error,
+    isLoading: isLoadingProducts,
+    isLoadingBundles,
+    error: productsError,
+    bundlesError,
     currentPage,
     totalPages,
     totalCount,
+    bundlesCurrentPage,
+    bundlesTotalPages,
+    bundlesTotalCount,
     pageSize,
     fetchProducts,
     fetchMenuBundles,
@@ -61,10 +66,25 @@ export function usePublicMenu() {
   // the other branch does not care about. Waits for `orderTypeHydrated` for the same reason products
   // do — before that, "no channel chosen" and "not read back from localStorage yet" look identical,
   // and fetching on the guess costs a second request plus an undimmed→dimmed flash.
+  //
+  // Runs on EVERY view, not just the bundles tab: the bundles are grouped into the tabs of the
+  // categories they are listed in (a combo under its main dish's categories), so a category view
+  // needs the list loaded too. A bundles fetch failure must not take the products grid down with
+  // it — that is why the two pipelines own disjoint error/loading state.
+  useEffect(() => {
+    if (!orderTypeHydrated) return;
+    void fetchMenuBundles(1, orderType);
+  }, [orderType, orderTypeHydrated, fetchMenuBundles]);
+
+  // Entering the bundles tab still refreshes page 1: bundles carry schedule windows, and a list
+  // loaded minutes ago can be quietly out of date by the time the guest opens the tab. The channel
+  // is read from the ref on purpose: it is already a dependency of the effect above, and listing
+  // it here too would fire this refresh on every channel switch WHILE the tab is open — one
+  // duplicate request every time.
   useEffect(() => {
     if (selectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
-    void fetchMenuBundles(1, orderType);
-  }, [selectedView, orderType, orderTypeHydrated, fetchMenuBundles]);
+    void fetchMenuBundles(1, orderTypeRef.current);
+  }, [selectedView, orderTypeHydrated, fetchMenuBundles]);
 
   // Products DO depend on the channel: it decides each row's `availability`, so a switch must
   // re-resolve the list (which resets to page 1 — the verdicts on other pages are stale too).
@@ -111,10 +131,15 @@ export function usePublicMenu() {
     // Returns the promise so callers (e.g. admin save flows) can `await`
     // a fresh load instead of racing the next render.
     if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-      return fetchMenuBundles(currentPage, orderTypeRef.current);
+      return fetchMenuBundles(bundlesCurrentPage, orderTypeRef.current);
     }
     return fetchProducts(currentPage, selectedViewRef.current, orderTypeRef.current);
-  }, [currentPage, fetchMenuBundles, fetchProducts]);
+  }, [bundlesCurrentPage, currentPage, fetchMenuBundles, fetchProducts]);
+
+  // The page reads ONE pipeline's state — whichever one owns the active view. The other pipeline
+  // keeps running for the grouping without being able to blank this view's grid, count line or
+  // Retry button.
+  const isBundlesView = selectedView === MENU_BUNDLES_KEY;
 
   return {
     categories,
@@ -122,11 +147,11 @@ export function usePublicMenu() {
     setSelectedView,
     items,
     menuBundles,
-    isLoading,
-    error,
-    currentPage,
-    totalPages,
-    totalCount,
+    isLoading: isBundlesView ? isLoadingBundles : isLoadingProducts,
+    error: isBundlesView ? bundlesError : productsError,
+    currentPage: isBundlesView ? bundlesCurrentPage : currentPage,
+    totalPages: isBundlesView ? bundlesTotalPages : totalPages,
+    totalCount: isBundlesView ? bundlesTotalCount : totalCount,
     pageSize,
     onPageChange: handlePageChange,
     refetch,

@@ -101,8 +101,10 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             {errors.imageFile && <p className={styles.errorMessage}>{errors.imageFile.message as string}</p>}
           </div>
           <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-            <label htmlFor="isActive">{t('is_active')}</label>
-            <input type="checkbox" id="isActive" {...register('isActive')} />
+            <label htmlFor="isActive">
+              <input type="checkbox" id="isActive" {...register('isActive')} />
+              {t('is_active')}
+            </label>
           </div>
           <CategoryHiddenFromAllTabField register={register} />
           <div className={styles.formGroup}>

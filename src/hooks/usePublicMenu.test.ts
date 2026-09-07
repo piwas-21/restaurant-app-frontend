@@ -109,36 +109,50 @@ describe('usePublicMenu — bundles follow the channel too (§9.2)', () => {
   // rendered as fully orderable however the guest was ordering. §9.2 wired the query, so the same
   // rule as products applies — a switch has to re-resolve the list, and the cost the old test named
   // (bouncing the guest back to page 1) is now the correct price for not showing stale verdicts.
-  it('forwards the chosen channel', async () => {
+  //
+  // Since the bundles are grouped into the category tabs, the list also loads on EVERY view — the
+  // mount fetch below happens on the All view, before any tab is chosen.
+  it('loads the bundle list on mount, without the guest visiting the bundles tab', async () => {
+    setOrderTypeContext(OrderType.Takeaway, true);
+
+    renderHook(() => usePublicMenu());
+
+    await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(1));
+    expect(bundleChannelOfCall(0)).toBe(OrderType.Takeaway);
+  });
+
+  it('forwards the chosen channel on the tab-entry refresh too', async () => {
     setOrderTypeContext(OrderType.Takeaway, true);
     const { result } = renderHook(() => usePublicMenu());
 
-    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
-
-    await waitFor(() => expect(mockGetBundles).toHaveBeenCalled());
-    expect(bundleChannelOfCall()).toBe(OrderType.Takeaway);
-  });
-
-  it('refetches with the new channel when the guest switches', async () => {
-    setOrderTypeContext(null, true);
-    const { result, rerender } = renderHook(() => usePublicMenu());
-
-    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
     await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(1));
-
-    setOrderTypeContext(OrderType.Takeaway, true);
-    await act(async () => rerender());
+    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
 
     await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(2));
     expect(bundleChannelOfCall(1)).toBe(OrderType.Takeaway);
   });
 
+  it('refetches with the new channel when the guest switches — exactly once', async () => {
+    setOrderTypeContext(null, true);
+    const { rerender } = renderHook(() => usePublicMenu());
+    await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(1));
+
+    setOrderTypeContext(OrderType.Takeaway, true);
+    await act(async () => rerender());
+
+    // The tab-entry refresh reads the channel REF, so a switch while the tab is open fires the
+    // channel effect alone — a second fetch here would be a duplicate request with the same answer.
+    await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(2));
+    await act(async () => {});
+    expect(mockGetBundles).toHaveBeenCalledTimes(2);
+    expect(bundleChannelOfCall(1)).toBe(OrderType.Takeaway);
+  });
+
   it('waits for hydration, like products — a guess costs an undimmed→dimmed flash', async () => {
     setOrderTypeContext(null, false);
-    const { result } = renderHook(() => usePublicMenu());
+    renderHook(() => usePublicMenu());
 
-    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
-
+    await act(async () => {});
     expect(mockGetBundles).not.toHaveBeenCalled();
   });
 });

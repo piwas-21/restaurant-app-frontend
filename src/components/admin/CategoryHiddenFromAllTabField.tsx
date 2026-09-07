@@ -7,7 +7,9 @@ import type { CategoryFormValues } from './categoryFormSchema';
  * The per-category "hide from the guest All tab" checkbox (partner feedback, 2026-09-06). Shared by
  * the create + edit category modals so the field cannot drift between them — and so the PR's
  * new-code duplication stays honest instead of pasting the same four lines twice (Sonar gate).
- * Renders like the sibling isActive checkbox: a formGroup with a block label over the input.
+ * Renders as one checkbox ROW — the input wrapped in its label inside `checkboxGroup` — the same
+ * pattern the DiscountModal uses in this stylesheet; a block label above a stretched input was the
+ * "looks broken" rendering this replaced.
  */
 export default function CategoryHiddenFromAllTabField({
   register,
@@ -16,9 +18,11 @@ export default function CategoryHiddenFromAllTabField({
 }) {
   const { t } = useTranslation();
   return (
-    <div className={styles.formGroup}>
-      <label htmlFor="isHiddenFromAllTab">{t('is_hidden_from_all_tab')}</label>
-      <input type="checkbox" id="isHiddenFromAllTab" {...register('isHiddenFromAllTab')} />
+    <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+      <label htmlFor="isHiddenFromAllTab">
+        <input type="checkbox" id="isHiddenFromAllTab" {...register('isHiddenFromAllTab')} />
+        {t('is_hidden_from_all_tab')}
+      </label>
     </div>
   );
 }

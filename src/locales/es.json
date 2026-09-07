@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "Entre 1 y 365 días. No existe la opción sin caducidad.",
   "api_tokens_scope_group_read": "Lectura",
   "api_tokens_scope_group_write": "Escritura",
+  "api_tokens_scope_group_maintenance": "Mantenimiento",
+  "api_tokens_scope_desc_maintenance_write": "Ejecutar el mantenimiento de imágenes existentes (redimensionado y variantes para tarjetas).",
   "api_tokens_scopes_hint": "Conceda el conjunto más pequeño que necesite la tarea.",
   "api_tokens_scopes_required": "Seleccione al menos un permiso.",
   "api_tokens_scope_desc_menu_read": "Leer categorías, productos y menús.",

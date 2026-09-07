@@ -112,16 +112,24 @@ export function toggleBundleOption(
   return [...selectedOptions, buildBundleOption(section.id, item)];
 }
 
-/** Merge a patch (drill-in ingredients / instructions) into one already-selected option. */
+/**
+ * Merge a patch into one selected option. Quantities are per-ID deltas (zero means removed),
+ * merged into the latest state so several changes in one event cannot undo earlier changes.
+ */
 export function updateBundleOption(
   selectedOptions: readonly SelectedMenuOption[],
   sectionId: string,
   itemId: string,
   patch: Partial<SelectedMenuOption>,
 ): SelectedMenuOption[] {
-  return selectedOptions.map((option) =>
-    option.sectionId === sectionId && option.itemId === itemId ? { ...option, ...patch } : option,
-  );
+  return selectedOptions.map((option) => {
+    if (option.sectionId !== sectionId || option.itemId !== itemId) return option;
+    const updated = { ...option, ...patch };
+    if (patch.ingredientQuantities) {
+      updated.ingredientQuantities = { ...option.ingredientQuantities, ...patch.ingredientQuantities };
+    }
+    return updated;
+  });
 }
 
 /** A required section that has not met its `minSelection`. */

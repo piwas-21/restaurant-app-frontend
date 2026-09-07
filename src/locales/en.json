@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "Between 1 and 365 days. There is no never-expires option.",
   "api_tokens_scope_group_read": "Read",
   "api_tokens_scope_group_write": "Write",
+  "api_tokens_scope_group_maintenance": "Maintenance",
+  "api_tokens_scope_desc_maintenance_write": "Run image maintenance backfills (resize and card variants).",
   "api_tokens_scopes_hint": "Grant the smallest set the job needs.",
   "api_tokens_scopes_required": "Select at least one scope.",
   "api_tokens_scope_desc_menu_read": "Read categories, products and menus.",

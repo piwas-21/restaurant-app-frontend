@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "Tussen 1 en 365 dagen. Een optie zonder verloop bestaat niet.",
   "api_tokens_scope_group_read": "Lezen",
   "api_tokens_scope_group_write": "Schrijven",
+  "api_tokens_scope_group_maintenance": "Onderhoud",
+  "api_tokens_scope_desc_maintenance_write": "Afbeeldingsonderhoud uitvoeren voor bestaande afbeeldingen (formaat wijzigen en kaartvarianten).",
   "api_tokens_scopes_hint": "Geef de kleinste set die het werk nodig heeft.",
   "api_tokens_scopes_required": "Kies minstens één recht.",
   "api_tokens_scope_desc_menu_read": "Categorieën, producten en menu’s lezen.",

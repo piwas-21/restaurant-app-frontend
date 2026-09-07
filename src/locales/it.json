@@ -2157,6 +2157,8 @@
   "api_tokens_field_expiry_hint": "Tra 1 e 365 giorni. Non esiste un’opzione senza scadenza.",
   "api_tokens_scope_group_read": "Lettura",
   "api_tokens_scope_group_write": "Scrittura",
+  "api_tokens_scope_group_maintenance": "Manutenzione",
+  "api_tokens_scope_desc_maintenance_write": "Eseguire la manutenzione delle immagini esistenti (ridimensionamento e varianti per le schede).",
   "api_tokens_scopes_hint": "Concedi il minimo insieme necessario al lavoro.",
   "api_tokens_scopes_required": "Seleziona almeno un ambito.",
   "api_tokens_scope_desc_menu_read": "Leggere categorie, prodotti e menu.",

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { OrderStatus, TableBillDto } from '@/types/order';
 import { formatPlainCurrency } from '@/utils/currency';
@@ -14,7 +15,19 @@ import styles from './TableBillModal.module.css';
  * with its number, time, status badge and lines. Line totals are the
  * backend-computed `itemTotal`; a fully-paid round reads as settled.
  */
-export default function TableBillLines({ bill }: { bill: TableBillDto }) {
+/** A settled round is green; otherwise the order's own status drives the badge. */
+const badgeTone = (order: TableBillDto['orders'][number]) => {
+  if (order.remainingAmount <= 0) return 'success';
+  if (order.status === 'Ready') return 'info';
+  return 'warning';
+};
+
+const badgeLabel = (order: TableBillDto['orders'][number], t: TFunction<'translation', undefined>) =>
+  order.remainingAmount <= 0
+    ? t('cashier.table_bill.settled', 'Settled')
+    : t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status);
+
+export default function TableBillLines({ bill }: Readonly<{ bill: TableBillDto }>) {
   const { t, i18n } = useTranslation();
 
   return (
@@ -31,11 +44,7 @@ export default function TableBillLines({ bill }: { bill: TableBillDto }) {
                 minute: '2-digit',
               })}
             </span>
-            <StatusBadge tone={order.remainingAmount <= 0 ? 'success' : order.status === 'Ready' ? 'info' : 'warning'}>
-              {order.remainingAmount <= 0
-                ? t('cashier.table_bill.settled', 'Settled')
-                : t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status)}
-            </StatusBadge>
+            <StatusBadge tone={badgeTone(order)}>{badgeLabel(order, t)}</StatusBadge>
             <span className={styles.orderTotal}>{formatPlainCurrency(order.total)}</span>
           </header>
           <ul className={styles.lineList}>

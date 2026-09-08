@@ -13,10 +13,10 @@ import type { useTableBill } from '@/hooks/cashier/useTableBill';
 import styles from './TableBillModal.module.css';
 
 interface TableBillModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  billState: ReturnType<typeof useTableBill>;
-  onSuccess: (message: string) => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly billState: ReturnType<typeof useTableBill>;
+  readonly onSuccess: (message: string) => void;
 }
 
 type BillTender = Pick<AddPaymentRequest, 'paymentMethod' | 'amount'>;

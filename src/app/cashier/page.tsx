@@ -163,7 +163,10 @@ export default function CashierPage() {
 
       <CashierAuxiliaryDialogs
         billState={billState}
-        onBillPaymentSuccess={(message) => (dialogs.showSuccess(message), void refreshOrders())}
+        onBillPaymentSuccess={(message) => {
+          dialogs.showSuccess(message);
+          void refreshOrders();
+        }}
         showQRScanner={showQRScannerDialog}
         showAutoPrint={showAutoPrintSettings}
         showZReport={showZReport}

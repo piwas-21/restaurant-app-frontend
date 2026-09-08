@@ -116,6 +116,13 @@ export default function BundleOptionRow({
 
       {customizationIsVisible && (
         <div className={styles.panel} id={panelId}>
+          {/* Sauces expanded, like the single-product step. This REVERSES the group's original
+              collapsed-by-default decision here — that trade bought "Add" above the fold on the
+              390px single-product sheet, but this panel only exists because the guest pressed
+              Customize, so the fold argument never applied to it, and the collapsed one-liner
+              read as a different design answering the same question (partner feedback, mcdoner:
+              a combo's sauces must behave like the dish's). The option's ingredient rows keep
+              their own layout; only the sauce group is promoted. */}
           <OptionalIngredientsSection
             ingredients={ingredients}
             selectedIngredients={option?.selectedIngredients ?? []}
@@ -128,6 +135,7 @@ export default function BundleOptionRow({
             }
             currentLanguage={currentLanguage}
             sauceGroup={item}
+            sauceVariant="plain"
           />
           <SpecialRequestSection
             specialInstructions={option?.specialInstructions ?? ''}

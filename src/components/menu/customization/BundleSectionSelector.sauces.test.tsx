@@ -84,7 +84,8 @@ function openBundle(max: number, selected: string[]) {
       }}
     />,
   );
-  fireEvent.click(screen.getByRole('button', { name: /sauces/ }));
+  // The sauce group renders EXPANDED in the option panel since the parity change (partner
+  // feedback, mcdoner) — no disclosure header to open, the rows are on screen immediately.
 }
 
 function expectState(selected: string[], quantities: Record<string, number>) {
@@ -108,7 +109,10 @@ describe('Bundle sauce quantity composition — real state, not callback spies',
   it('keeps every zero when the synthetic no-sauce answer clears several rows', () => {
     openBundle(3, ['salsa', 'mayo']);
     fireEvent.click(screen.getByRole('checkbox', { name: 'sauce_none' }));
-    expectState([], { salsa: 0, mayo: 0, 'stored-none': 0 });
+    // Zeroes exactly the rows it REMOVES — the selected ones. The unselected stored-none copy
+    // never claimed a unit, so no explicit 0 of it goes into the payload (the same rule the
+    // stored isNoneOption answer follows; the two "no sauce" answers now agree).
+    expectState([], { salsa: 0, mayo: 0 });
   });
 
   it('composes stored isNoneOption selection and clearing in both directions', () => {

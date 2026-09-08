@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   applyIngredientTranslations,
   fetchAllIngredientCarriers,
@@ -35,23 +35,29 @@ export function useIngredientTranslations() {
   const [entries, setEntries] = useState<IngredientEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // The catalog walk is many paged requests; a Retry pressed mid-walk (or an unmount) must
+  // make the stale walk a no-op rather than let its late resolution clobber the newer state.
+  const loadEpoch = useRef(0);
   const [edits, setEdits] = useState<Record<string, EntryEdits>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<IngredientApplyReceipt | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    const epoch = ++loadEpoch.current;
     setLoading(true);
     setLoadError(null);
     setReceipt(null);
     setSaveError(null);
     try {
       const carriers: IngredientCarrierProduct[] = await fetchAllIngredientCarriers();
+      if (epoch !== loadEpoch.current) return;
       setEntries(buildIngredientEntries(carriers));
     } catch (error) {
+      if (epoch !== loadEpoch.current) return;
       setLoadError(error instanceof Error ? error.message : String(error));
     } finally {
-      setLoading(false);
+      if (epoch === loadEpoch.current) setLoading(false);
     }
   }, []);
 

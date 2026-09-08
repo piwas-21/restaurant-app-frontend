@@ -12,3 +12,4 @@ export * from './order/dtos';
 export * from './order/orderDto';
 export * from './order/commands';
 export * from './order/zReport';
+export * from './order/tableBill';

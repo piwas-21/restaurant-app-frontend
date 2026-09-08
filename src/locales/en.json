@@ -885,7 +885,31 @@
       "error": "Failed to load Z-Report",
       "retry": "Retry"
     },
-    "show_todays_orders_only": "Show today's orders only"
+    "show_todays_orders_only": "Show today's orders only",
+    "table_bill": {
+      "title": "Table bill",
+      "table_number": "Table number",
+      "load": "Load bill",
+      "loading": "Loading...",
+      "orders_count": "Orders",
+      "total": "Bill total",
+      "paid": "Paid",
+      "remaining": "Remaining",
+      "add_payment": "Add payment",
+      "payment_applied": "Payment of {{amount}} applied to the table bill",
+      "settled": "Settled",
+      "item": "Item",
+      "method_cash": "Cash",
+      "method_credit_card": "Credit Card",
+      "method_debit_card": "Debit Card",
+      "method_mobile": "Mobile Payment",
+      "error": {
+        "table_number": "Enter a valid table number",
+        "amount": "Enter a payment amount greater than 0",
+        "loading": "Failed to load the table bill",
+        "payment": "Failed to record the payment. Please try again."
+      }
+    }
   },
   "update": "Update",
   "book_your_table": "Book your table",

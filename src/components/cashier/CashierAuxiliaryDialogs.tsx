@@ -8,8 +8,19 @@ import { AutoPrintSettings } from '@/types/cashier';
 import { QRCodeValidationResult } from '@/types/userGroupTypes';
 import styles from '@/app/styles/CashierPage.module.css';
 import { ConnectionState } from '@/hooks/cashier/useCashierOrdersStream';
+import dynamic from 'next/dynamic';
+import type { useTableBill } from '@/hooks/cashier/useTableBill';
+
+// next/dynamic + the isOpen guard below are load-bearing (LibraryPickerShell's pattern):
+// the dialog is click-gated, and next/dynamic fetches at first RENDER — a static import
+// tipped /cashier over its First Load JS budget.
+const TableBillModal = dynamic(() => import('./TableBillModal'), { ssr: false });
 
 interface CashierAuxiliaryDialogsProps {
+  /** One-bill-per-table dialog state; mounts the click-gated TableBillModal. */
+  billState: ReturnType<typeof useTableBill>;
+  /** Fired after a bill tender commits — the page toasts and refreshes the order list. */
+  onBillPaymentSuccess: (message: string) => void;
   showQRScanner: boolean;
   showAutoPrint: boolean;
   showZReport: boolean;
@@ -43,6 +54,14 @@ interface CashierAuxiliaryDialogsProps {
 export default function CashierAuxiliaryDialogs(props: CashierAuxiliaryDialogsProps) {
   return (
     <>
+      {props.billState.isOpen && (
+        <TableBillModal
+          isOpen={props.billState.isOpen}
+          onClose={props.billState.close}
+          billState={props.billState}
+          onSuccess={props.onBillPaymentSuccess}
+        />
+      )}
       <QRScannerDialog
         isOpen={props.showQRScanner}
         onClose={props.onCloseQRScanner}

@@ -6,7 +6,15 @@
  */
 
 import { apiClient } from '@/utils/apiClient';
-import { OrderDto, OrderDtoPagedResultApiResponse, OrderDtoApiResponse, PagedResult } from '@/types/order';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
+import {
+  OrderDto,
+  OrderDtoPagedResultApiResponse,
+  OrderDtoApiResponse,
+  PagedResult,
+  TableBillDto,
+  TableBillApiResponse,
+} from '@/types/order';
 import { SseDiagnostics } from '@/types/diagnostics';
 
 /**
@@ -107,7 +115,7 @@ export async function addPaymentToOrder(orderId: string, paymentData: AddPayment
   );
 
   if (!response.data) {
-    throw new Error('Failed to add payment');
+    throwServerRefusal(response);
   }
 
   return response.data;
@@ -274,4 +282,45 @@ export async function getEventsDiagnostics(): Promise<SseDiagnostics> {
   });
 
   return response;
+}
+
+/**
+ * ONE bill for a table: the union of the table's open orders (every ordering
+ * round), grouped per order, with bill-level sums. Fails when the table has no
+ * open orders.
+ */
+export async function getTableBill(tableNumber: number): Promise<TableBillDto> {
+  const response = await apiClient.get<TableBillApiResponse>(`/api/orders/table/${tableNumber}/bill`, {
+    requireAuth: true,
+  });
+
+  // throwServerRefusal, not a generic Error (#435): the controller answers 200 with Success=false,
+  // and the refusal ("No open orders found for table N") is the message the cashier needs.
+  if (!response.data) {
+    throwServerRefusal(response);
+  }
+
+  return response.data;
+}
+
+/**
+ * Take ONE tender against the table's whole bill — the backend spreads it
+ * across the table's open orders oldest-round-first. Overpayment is rejected
+ * server-side. Returns the post-payment bill.
+ */
+export async function addTableBillPayment(tableNumber: number, paymentData: AddPaymentRequest): Promise<TableBillDto> {
+  const response = await apiClient.post<TableBillApiResponse>(
+    `/api/orders/table/${tableNumber}/bill/payments`,
+    {
+      tableNumber,
+      ...paymentData,
+    },
+    { requireAuth: true },
+  );
+
+  if (!response.data) {
+    throwServerRefusal(response);
+  }
+
+  return response.data;
 }

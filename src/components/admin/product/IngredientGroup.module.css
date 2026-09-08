@@ -18,6 +18,33 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
 }
+/*
+  The table never shrinks to its column: its columns are fixed-size controls, so its automatic
+  minimum width is ~690px, while the editor's middle column offers ~346px of table at a 1280px
+  viewport and ~410px at 1024px (200px nav + 264px rail + 24px gaps + container and card padding).
+  Uncontained, the table overflowed its grid column and painted UNDER the sticky side rail — a
+  `position: sticky` element paints above in-flow siblings' overflow — and what missed the rail was
+  clipped by `.adminContainer`'s `overflow-x: clip`. So the last columns (INCLUDED, the delete
+  button) vanished behind the rail at exactly the widths this editor is used at.
+
+  The scroller keeps every column INSIDE the card: rows scroll horizontally, visibly, and the
+  actions stay reachable at the row's end — the same containment the admin list tables already use
+  (`AdminPage.module.css` `.adminTableContainer`). At ≥769px only; the ≤768px band below reflows the
+  whole table into the labelled card list, which needs no scroller and must keep `overflow: visible`
+  so the row type-ahead's dropdown can escape the table box as before.
+
+  Known cost, accepted deliberately: a scroll container clips BOTH axes (`overflow-y` computes to
+  `auto` beside `overflow-x: auto`), so at ≥769px the type-ahead's dropdown — absolutely positioned
+  inside `.nameField`, whose containing block sits inside this box — is clipped at this box's bottom
+  edge instead of overlaying following content. It stays reachable (it extends this box's scrollable
+  overflow, so scrolling reveals it, the input keeps focus, and the pick still lands) but it is
+  scroll-in rather than floating — worst on the last row, where a freshly added row is typed. The
+  ≤768px card list keeps today's floating behavior. Lifting the dropdown out of the scroller
+  (portal or anchor positioning) is the follow-up; it must serve the variations name cell too.
+*/
+.tableScroll {
+  overflow-x: auto;
+}
 .table thead tr {
   background: var(--surface-secondary);
 }
@@ -79,6 +106,11 @@
   .table {
     display: block;
     border: 0;
+    overflow: visible;
+  }
+
+  /* The scroller above must not clip the card list — see its comment. */
+  .tableScroll {
     overflow: visible;
   }
 

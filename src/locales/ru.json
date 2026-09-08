@@ -1438,7 +1438,31 @@
       "error": "Не удалось загрузить Z-отчёт",
       "retry": "Повторить"
     },
-    "show_todays_orders_only": "Показывать только сегодняшние заказы"
+    "show_todays_orders_only": "Показывать только сегодняшние заказы",
+    "table_bill": {
+      "title": "Счёт для стола",
+      "table_number": "Номер столика",
+      "load": "Загрузить счёт",
+      "loading": "Загрузка...",
+      "orders_count": "Заказы",
+      "total": "Сумма счёта",
+      "paid": "Оплачено",
+      "remaining": "Остаток",
+      "add_payment": "Добавить платёж",
+      "payment_applied": "Платёж {{amount}} применён к счёту стола",
+      "settled": "Оплачен",
+      "item": "Позиция",
+      "method_cash": "Наличные",
+      "method_credit_card": "Кредитная карта",
+      "method_debit_card": "Дебетовая карта",
+      "method_mobile": "Мобильный платёж",
+      "error": {
+        "table_number": "Введите корректный номер столика",
+        "amount": "Введите сумму платежа больше 0",
+        "loading": "Не удалось загрузить счёт для стола",
+        "payment": "Не удалось записать платёж. Попробуйте снова."
+      }
+    }
   },
   "restaurant_closed_on_date": "Ресторан закрыт {{day}}, {{date}}. Пожалуйста, выберите другую дату.",
   "selected_tables_not_available": "Выбранные столы {{tables}} больше недоступны для этого временного интервала. Пожалуйста, выберите другие столы или другое время.",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Выполнять обслуживание существующих изображений (изменение размера и создание вариантов для карточек).",
   "api_tokens_scopes_hint": "Выдавайте минимально необходимый набор прав.",
   "api_tokens_scopes_required": "Выберите хотя бы одно право.",
+  "api_tokens_full_admin_access": "Полный доступ администратора",
+  "api_tokens_full_admin_access_desc": "Выбирает сразу все перечисленные ниже права.",
+  "api_tokens_scopes_selected_count": "Выбрано {{selected}} из {{total}}",
   "api_tokens_scope_desc_menu_read": "Чтение категорий, товаров и меню.",
   "api_tokens_scope_desc_menu_write": "Создание, изменение и удаление категорий, товаров и меню.",
   "api_tokens_scope_desc_orders_read": "Чтение заказов.",

@@ -1,5 +1,5 @@
-/* Everything above the list in the ingredient picker: the archive switch, the search box, the
-   filter chips and the two column headers. Tokens only — no hex. */
+/* Everything above the list in the ingredient picker: the archive switch, the search box, and
+   the filter chips. Tokens only — no hex. */
 
 .searchRow {
   position: relative;
@@ -90,24 +90,6 @@
   background: var(--surface-secondary);
   color: var(--brand-primary);
   font-weight: 600;
-}
-
-/* The column strip the approved screen draws. It carries the meaning of the right-hand column,
-   which is a bare number on purpose (see GlobalIngredientPickerRow). */
-.columns {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid var(--border-light);
-  border-bottom: 0;
-  border-radius: 8px 8px 0 0;
-  background: var(--surface-secondary);
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .hint {

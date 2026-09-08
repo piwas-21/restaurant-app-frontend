@@ -1117,7 +1117,31 @@
     },
     "show_todays_orders_only": "Sadece bugünün siparişlerini göster",
     "save_note": "Notu Kaydet",
-    "pending": "Beklemede"
+    "pending": "Beklemede",
+    "table_bill": {
+      "title": "Masa hesabı",
+      "table_number": "Masa numarası",
+      "load": "Hesabı getir",
+      "loading": "Yükleniyor...",
+      "orders_count": "Siparişler",
+      "total": "Hesap toplamı",
+      "paid": "Ödenen",
+      "remaining": "Kalan",
+      "add_payment": "Ödeme ekle",
+      "payment_applied": "{{amount}} tutarı masa hesabına uygulandı",
+      "settled": "Kapatıldı",
+      "item": "Ürün",
+      "method_cash": "Nakit",
+      "method_credit_card": "Kredi Kartı",
+      "method_debit_card": "Banka Kartı",
+      "method_mobile": "Mobil Ödeme",
+      "error": {
+        "table_number": "Geçerli bir masa numarası girin",
+        "amount": "0'dan büyük bir ödeme tutarı girin",
+        "loading": "Masa hesabı yüklenemedi",
+        "payment": "Ödeme kaydedilemedi. Lütfen tekrar deneyin."
+      }
+    }
   },
   "cashier.order_summary": "Sipariş Özeti",
   "cashier.update_status": "Durumu Güncelle",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Mevcut görseller için bakım işlemlerini çalıştırır (yeniden boyutlandırma ve kart varyantları).",
   "api_tokens_scopes_hint": "İşin gerektirdiği en küçük yetki kümesini verin.",
   "api_tokens_scopes_required": "En az bir yetki seçin.",
+  "api_tokens_full_admin_access": "Tam yönetici erişimi",
+  "api_tokens_full_admin_access_desc": "Aşağıda listelenen tüm yetkileri tek seferde seçer.",
+  "api_tokens_scopes_selected_count": "{{total}} yetkiden {{selected}} tanesi seçildi",
   "api_tokens_scope_desc_menu_read": "Kategorileri, ürünleri ve menüleri okur.",
   "api_tokens_scope_desc_menu_write": "Kategori, ürün ve menü oluşturur, değiştirir ve siler.",
   "api_tokens_scope_desc_orders_read": "Siparişleri okur.",

@@ -1501,7 +1501,31 @@
       "error": "Échec du chargement du rapport Z",
       "retry": "Réessayer"
     },
-    "show_todays_orders_only": "Afficher uniquement les commandes du jour"
+    "show_todays_orders_only": "Afficher uniquement les commandes du jour",
+    "table_bill": {
+      "title": "Addition de la table",
+      "table_number": "Numéro de table",
+      "load": "Charger l'addition",
+      "loading": "Chargement...",
+      "orders_count": "Commandes",
+      "total": "Total de l'addition",
+      "paid": "Payé",
+      "remaining": "Reste à payer",
+      "add_payment": "Ajouter un paiement",
+      "payment_applied": "Paiement de {{amount}} appliqué à l'addition",
+      "settled": "Réglé",
+      "item": "Article",
+      "method_cash": "Espèces",
+      "method_credit_card": "Carte de crédit",
+      "method_debit_card": "Carte de débit",
+      "method_mobile": "Paiement mobile",
+      "error": {
+        "table_number": "Saisissez un numéro de table valide",
+        "amount": "Saisissez un montant supérieur à 0",
+        "loading": "Échec du chargement de l'addition",
+        "payment": "Échec de l'enregistrement du paiement. Veuillez réessayer."
+      }
+    }
   },
   "restaurant_closed_on_date": "Le restaurant est fermé le {{day}}, {{date}}. Veuillez sélectionner une autre date.",
   "selected_tables_not_available": "La ou les tables sélectionnées {{tables}} ne sont plus disponibles pour ce créneau horaire. Veuillez choisir d’autres tables ou un autre horaire.",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Exécuter la maintenance des images existantes (redimensionnement et variantes pour les cartes).",
   "api_tokens_scopes_hint": "Accordez le plus petit ensemble nécessaire à la tâche.",
   "api_tokens_scopes_required": "Sélectionnez au moins une portée.",
+  "api_tokens_full_admin_access": "Accès administrateur complet",
+  "api_tokens_full_admin_access_desc": "Sélectionne d'un coup toutes les portées listées ci-dessous.",
+  "api_tokens_scopes_selected_count": "{{selected}} sur {{total}} sélectionnées",
   "api_tokens_scope_desc_menu_read": "Lire les catégories, les produits et les menus.",
   "api_tokens_scope_desc_menu_write": "Créer, modifier et supprimer catégories, produits et menus.",
   "api_tokens_scope_desc_orders_read": "Lire les commandes.",

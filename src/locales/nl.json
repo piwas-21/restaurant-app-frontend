@@ -885,7 +885,31 @@
       "error": "Kon Z-rapport niet laden",
       "retry": "Opnieuw proberen"
     },
-    "show_todays_orders_only": "Alleen bestellingen van vandaag tonen"
+    "show_todays_orders_only": "Alleen bestellingen van vandaag tonen",
+    "table_bill": {
+      "title": "Tafelrekening",
+      "table_number": "Tafelnummer",
+      "load": "Rekening laden",
+      "loading": "Bezig met laden...",
+      "orders_count": "Bestellingen",
+      "total": "Totaal van de rekening",
+      "paid": "Betaald",
+      "remaining": "Nog te betalen",
+      "add_payment": "Betaling toevoegen",
+      "payment_applied": "Betaling van {{amount}} toegepast op de tafelrekening",
+      "settled": "Voldaan",
+      "item": "Artikel",
+      "method_cash": "Contant geld",
+      "method_credit_card": "Creditcard",
+      "method_debit_card": "Debitcard",
+      "method_mobile": "Mobiele betaling",
+      "error": {
+        "table_number": "Voer een geldig tafelnummer in",
+        "amount": "Voer een bedrag groter dan 0 in",
+        "loading": "De tafelrekening kon niet worden geladen",
+        "payment": "De betaling kon niet worden vastgelegd. Probeer het opnieuw."
+      }
+    }
   },
   "update": "Bijwerken",
   "book_your_table": "Boek je tafel",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Afbeeldingsonderhoud uitvoeren voor bestaande afbeeldingen (formaat wijzigen en kaartvarianten).",
   "api_tokens_scopes_hint": "Geef de kleinste set die het werk nodig heeft.",
   "api_tokens_scopes_required": "Kies minstens één recht.",
+  "api_tokens_full_admin_access": "Volledige beheerderstoegang",
+  "api_tokens_full_admin_access_desc": "Selecteert alle onderstaande rechten in één keer.",
+  "api_tokens_scopes_selected_count": "{{selected}} van {{total}} geselecteerd",
   "api_tokens_scope_desc_menu_read": "Categorieën, producten en menu’s lezen.",
   "api_tokens_scope_desc_menu_write": "Categorieën, producten en menu’s aanmaken, wijzigen en verwijderen.",
   "api_tokens_scope_desc_orders_read": "Bestellingen lezen.",

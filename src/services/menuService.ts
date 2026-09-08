@@ -60,6 +60,12 @@ export const getProducts = async (
   // The channel the guest is ordering through. Does NOT filter the list — the server keeps blocked
   // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
   requestedOrderType?: OrderType | null,
+  // GUEST-SURFACE opt-in for the backend's hide-from-All exclusion (`GetProductsQuery.GuestAllView`).
+  // The public menu sends it because its visitors include the owner previewing what a guest sees,
+  // and apiClient rides their staff token on every fetch — without the flag the server exempts a
+  // staff caller, and the category the owner just hid sat in the All list anyway. Admin/staff
+  // callers omit it and keep seeing everything (they manage the flag). A guest needs no flag.
+  guestAllView?: boolean,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
   let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
   if (categoryId) {
@@ -67,6 +73,9 @@ export const getProducts = async (
   }
   if (requestedOrderType) {
     url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
+  }
+  if (guestAllView) {
+    url += `&GuestAllView=true`;
   }
   if (typeQuery?.type) {
     url += `&Type=${typeQuery.type}`;

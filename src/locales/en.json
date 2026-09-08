@@ -885,7 +885,31 @@
       "error": "Failed to load Z-Report",
       "retry": "Retry"
     },
-    "show_todays_orders_only": "Show today's orders only"
+    "show_todays_orders_only": "Show today's orders only",
+    "table_bill": {
+      "title": "Table bill",
+      "table_number": "Table number",
+      "load": "Load bill",
+      "loading": "Loading...",
+      "orders_count": "Orders",
+      "total": "Bill total",
+      "paid": "Paid",
+      "remaining": "Remaining",
+      "add_payment": "Add payment",
+      "payment_applied": "Payment of {{amount}} applied to the table bill",
+      "settled": "Settled",
+      "item": "Item",
+      "method_cash": "Cash",
+      "method_credit_card": "Credit Card",
+      "method_debit_card": "Debit Card",
+      "method_mobile": "Mobile Payment",
+      "error": {
+        "table_number": "Enter a valid table number",
+        "amount": "Enter a payment amount greater than 0",
+        "loading": "Failed to load the table bill",
+        "payment": "Failed to record the payment. Please try again."
+      }
+    }
   },
   "update": "Update",
   "book_your_table": "Book your table",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Run image maintenance backfills (resize and card variants).",
   "api_tokens_scopes_hint": "Grant the smallest set the job needs.",
   "api_tokens_scopes_required": "Select at least one scope.",
+  "api_tokens_full_admin_access": "Full admin access",
+  "api_tokens_full_admin_access_desc": "Selects every scope listed below at once.",
+  "api_tokens_scopes_selected_count": "{{selected}} of {{total}} selected",
   "api_tokens_scope_desc_menu_read": "Read categories, products and menus.",
   "api_tokens_scope_desc_menu_write": "Create, change and delete categories, products and menus.",
   "api_tokens_scope_desc_orders_read": "Read orders.",

@@ -1499,7 +1499,31 @@
       "error": "Z-Bericht konnte nicht geladen werden",
       "retry": "Erneut versuchen"
     },
-    "show_todays_orders_only": "Nur heutige Bestellungen anzeigen"
+    "show_todays_orders_only": "Nur heutige Bestellungen anzeigen",
+    "table_bill": {
+      "title": "Tischrechnung",
+      "table_number": "Tischnummer",
+      "load": "Rechnung laden",
+      "loading": "Wird geladen...",
+      "orders_count": "Bestellungen",
+      "total": "Rechnungstotal",
+      "paid": "Bezahlt",
+      "remaining": "Restbetrag",
+      "add_payment": "Zahlung erfassen",
+      "payment_applied": "Zahlung von {{amount}} auf die Tischrechnung verbucht",
+      "settled": "Beglichen",
+      "item": "Position",
+      "method_cash": "Bargeld",
+      "method_credit_card": "Kreditkarte",
+      "method_debit_card": "Debitkarte",
+      "method_mobile": "Mobile Zahlung",
+      "error": {
+        "table_number": "Geben Sie eine gültige Tischnummer ein",
+        "amount": "Geben Sie einen Zahlungsbetrag größer als 0 ein",
+        "loading": "Die Tischrechnung konnte nicht geladen werden",
+        "payment": "Die Zahlung konnte nicht verbucht werden. Bitte erneut versuchen."
+      }
+    }
   },
   "restaurant_closed_on_date": "Das Restaurant ist am {{day}}, {{date}} geschlossen. Bitte wählen Sie ein anderes Datum.",
   "selected_tables_not_available": "Die ausgewählten Tische {{tables}} sind für dieses Zeitfenster nicht mehr verfügbar. Bitte wählen Sie andere Tische oder eine andere Uhrzeit.",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "Bildwartung für vorhandene Bilder ausführen (Größenanpassung und Kartenvarianten).",
   "api_tokens_scopes_hint": "Erteilen Sie nur die kleinste nötige Menge.",
   "api_tokens_scopes_required": "Wählen Sie mindestens eine Berechtigung.",
+  "api_tokens_full_admin_access": "Voller Admin-Zugriff",
+  "api_tokens_full_admin_access_desc": "Wählt alle unten aufgeführten Berechtigungen auf einmal aus.",
+  "api_tokens_scopes_selected_count": "{{selected}} von {{total}} ausgewählt",
   "api_tokens_scope_desc_menu_read": "Kategorien, Produkte und Menüs lesen.",
   "api_tokens_scope_desc_menu_write": "Kategorien, Produkte und Menüs anlegen, ändern und löschen.",
   "api_tokens_scope_desc_orders_read": "Bestellungen lesen.",

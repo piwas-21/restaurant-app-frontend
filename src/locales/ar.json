@@ -1500,7 +1500,31 @@
       "error": "فشل في تحميل تقرير Z",
       "retry": "إعادة المحاولة"
     },
-    "show_todays_orders_only": "عرض طلبات اليوم فقط"
+    "show_todays_orders_only": "عرض طلبات اليوم فقط",
+    "table_bill": {
+      "title": "فاتورة الطاولة",
+      "table_number": "رقم الطاولة",
+      "load": "جلب الفاتورة",
+      "loading": "جار التحميل...",
+      "orders_count": "الطلبات",
+      "total": "إجمالي الفاتورة",
+      "paid": "المدفوع",
+      "remaining": "المتبقي",
+      "add_payment": "إضافة دفعة",
+      "payment_applied": "تم تطبيق دفعة من {{amount}} على فاتورة الطاولة",
+      "settled": "مسدد",
+      "item": "عنصر",
+      "method_cash": "نقداً",
+      "method_credit_card": "بطاقة ائتمان",
+      "method_debit_card": "بطاقة خصم",
+      "method_mobile": "دفع عبر الهاتف",
+      "error": {
+        "table_number": "أدخل رقم طاولة صالحاً",
+        "amount": "أدخل مبلغ دفعة أكبر من 0",
+        "loading": "تعذر تحميل فاتورة الطاولة",
+        "payment": "تعذر تسجيل الدفعة. حاول مرة أخرى."
+      }
+    }
   },
   "restaurant_closed_on_date": "المطعم مغلق يوم {{day}}، {{date}}. يرجى اختيار تاريخ آخر.",
   "selected_tables_not_available": "الطاولة/الطاولات المحددة {{tables}} لم تعد متاحة في هذا الوقت. يرجى اختيار طاولات أو وقت مختلف.",
@@ -2161,6 +2185,9 @@
   "api_tokens_scope_desc_maintenance_write": "تشغيل صيانة الصور الموجودة (تغيير الحجم وإنشاء نسخ للبطاقات).",
   "api_tokens_scopes_hint": "امنح أصغر مجموعة صلاحيات تكفي المهمة.",
   "api_tokens_scopes_required": "اختر صلاحية واحدة على الأقل.",
+  "api_tokens_full_admin_access": "صلاحيات المدير الكاملة",
+  "api_tokens_full_admin_access_desc": "يحدد جميع الصلاحيات المذكورة أدناه مرة واحدة.",
+  "api_tokens_scopes_selected_count": "تم تحديد {{selected}} من {{total}}",
   "api_tokens_scope_desc_menu_read": "قراءة الفئات والمنتجات والقوائم.",
   "api_tokens_scope_desc_menu_write": "إنشاء وتعديل وحذف الفئات والمنتجات والقوائم.",
   "api_tokens_scope_desc_orders_read": "قراءة الطلبات.",

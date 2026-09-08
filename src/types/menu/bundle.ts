@@ -109,4 +109,15 @@ export interface MenuBundleItem {
    * unrestricted, matching every other permissive-on-missing-data default in this feature.
    */
   availability?: ItemAvailability;
+  /**
+   * The categories the bundle is LISTED in — the main dish's categories, which the admin assigns
+   * to the bundle itself. The key the customer menu groups by: on a category tab the grid shows
+   * the tab's dishes PLUS the bundles whose ids include that tab. The mapper normalises it to an
+   * array (empty against a backend that predates the field, or an orphan bundle), but the FIELD is
+   * optional: hand-built fixtures and older wire shapes must not grow a field they never read.
+   * Grouping code reads it through the mapper's normalised output.
+   */
+  categoryIds?: string[];
+  /** The primary link of {@link categoryIds}, when the bundle has one. */
+  primaryCategoryId?: string;
 }

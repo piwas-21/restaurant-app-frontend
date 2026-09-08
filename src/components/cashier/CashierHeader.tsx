@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, QrCode, FileBarChart /*Printer, Settings*/ } from 'lucide-react';
+import { RefreshCw, QrCode, FileBarChart, ReceiptText /*Printer, Settings*/ } from 'lucide-react';
 import { NotificationSoundType } from '@/hooks/useNotification';
 import SoundSelector from './SoundSelector';
 import CategoryChannelQuickToggle from '@/components/order-types/CategoryChannelQuickToggle';
@@ -19,6 +19,7 @@ interface CashierHeaderProps {
   onTestSound: (type: NotificationSoundType) => void;
   onToggleRepeat: () => void;
   onOpenQRScanner: () => void;
+  onOpenTableBill?: () => void;
   onOpenZReport?: () => void;
   onOpenDiagnostics?: () => void; // NEW: Open diagnostic panel
   // autoPrintEnabled?: boolean;
@@ -39,6 +40,7 @@ export default function CashierHeader({
   onTestSound,
   onToggleRepeat,
   onOpenQRScanner,
+  onOpenTableBill,
   onOpenZReport,
   onOpenDiagnostics,
 }: CashierHeaderProps) {
@@ -170,6 +172,18 @@ export default function CashierHeader({
           <Settings size={16} />
           Print Settings
         </button> */}
+
+        {/* One-bill-per-table (waiter/POS): settle every ordering round on a table at once */}
+        {onOpenTableBill && (
+          <button
+            className={styles.button}
+            onClick={onOpenTableBill}
+            title={t('cashier.table_bill.title') || 'Table bill'}
+          >
+            <ReceiptText size={16} />
+            {t('cashier.table_bill.title') || 'Table bill'}
+          </button>
+        )}
 
         {/* Z-Report Button */}
         {onOpenZReport && (

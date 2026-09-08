@@ -155,8 +155,6 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
     />
   );
 
-  // The apply step owns the whole dialog while it is on screen — its own title, its own body and
-  // its own footer — so nothing behind it can be ticked while a catalog-wide write is being decided.
   // The apply step OWNS the dialog while it is on screen, replacing this one rather than stacking
   // over it: two BaseModals means focus trapped twice and two Escape keys with different meanings.
   if (applying && apply) {
@@ -215,6 +213,8 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
           // read as a failed search.
           emptyKey={view === 'mine' ? copy.mineEmpty : copy.empty}
           retryKey={copy.retry}
+          columnEntityKey={copy.columnEntity}
+          columnUsageKey={copy.columnUsage}
           hiddenNote={
             library.matchCount > library.visible.length ? (
               <p className={styles.notice}>

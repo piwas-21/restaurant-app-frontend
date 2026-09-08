@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import MenuContent from './MenuContent';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import type { MenuListProps } from './MenuList';
@@ -20,8 +20,8 @@ jest.mock('./MenuList', () => (props: MenuListProps) => {
   listProps.push(props);
   return null;
 });
-const filterProps: Array<{ options: MenuFilterOption[] }> = [];
-jest.mock('./MenuFilters', () => (props: { options: MenuFilterOption[] }) => {
+const filterProps: Array<{ options: MenuFilterOption[]; onToggle: (id: string) => void }> = [];
+jest.mock('./MenuFilters', () => (props: { options: MenuFilterOption[]; onToggle: (id: string) => void }) => {
   filterProps.push(props);
   return null;
 });
@@ -158,5 +158,114 @@ describe("MenuContent — bundles are grouped into their categories' tabs", () =
 
     const ids = filterProps.at(-1)!.options.map((option) => option.id);
     expect(ids).toContain('without:gluten');
+  });
+});
+
+describe('MenuContent — the tenant "bundles on All" setting (mcdoner partner request)', () => {
+  it("default (off): the All view stays products-only — today's behaviour, unchanged", () => {
+    // The prop is ABSENT, exactly as every pre-setting caller renders: the group must not
+    // appear and the one grid must carry the products alone.
+    render(
+      <MenuContent {...base} selectedView={ALL_ITEMS_KEY} currentMenuItems={[dish('kefta')]} menuBundles={[viande]} />,
+    );
+
+    expect(listProps).toHaveLength(1);
+    expect(listProps[0].products.map((p) => p.id)).toEqual(['kefta']);
+    expect(listProps[0].bundles).toEqual([]);
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
+  });
+
+  it('on: the All view keeps its product grid AND gains the bundles as a headed group below it', () => {
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[dish('kefta')]}
+        menuBundles={[viande, dessert]}
+        showBundlesOnAllView
+      />,
+    );
+
+    const [mainList, groupList] = listProps.slice(-2);
+    // The product grid is not diluted: same products, and the bundles do NOT leak into it.
+    expect(mainList.products.map((p) => p.id)).toEqual(['kefta']);
+    expect(mainList.bundles).toEqual([]);
+    // The group below is bundles-only, with its own heading of the third rank (the All
+    // view's h2 above already names where the guest is).
+    expect(groupList.products).toEqual([]);
+    expect(groupList.bundles.map((b) => b.id)).toEqual(['LIBANAISE 1 VIANDE', 'DESSERT COMBO']);
+    expect(screen.getByRole('heading', { level: 3, name: 'menu_bundles' })).toBeInTheDocument();
+  });
+
+  it("on: the bundles are the combined listing — every bundle, not one category's slice", () => {
+    // On the All view there is no category slice to compute; the setting reuses exactly
+    // what the bundles tab shows.
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[dish('kefta')]}
+        menuBundles={[viande, dessert]}
+        showBundlesOnAllView
+      />,
+    );
+
+    const groupList = listProps.at(-1)!;
+    expect(groupList.bundles.map((b) => b.id)).toEqual(['LIBANAISE 1 VIANDE', 'DESSERT COMBO']);
+  });
+
+  it('on: the group shows on page 1 only — page 2 of products is a different scroll decision', () => {
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentPage={2}
+        currentMenuItems={[dish('kefta-p2')]}
+        menuBundles={[viande]}
+        showBundlesOnAllView
+      />,
+    );
+
+    expect(listProps).toHaveLength(1);
+    expect(listProps[0].products.map((p) => p.id)).toEqual(['kefta-p2']);
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
+  });
+
+  it('on: counts the All-view bundles in the filter tally too', () => {
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[dish('kefta')]}
+        menuBundles={[combo('COMBO GLUTEN', ['cat-viande'], ['gluten'])]}
+        showBundlesOnAllView
+      />,
+    );
+
+    const ids = filterProps.at(-1)!.options.map((option) => option.id);
+    expect(ids).toContain('without:gluten');
+  });
+
+  it('on: a chip that filters the bundles out hides the empty group but keeps the products', async () => {
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[dish('kefta')]}
+        menuBundles={[combo('COMBO GLUTEN', ['cat-viande'], ['gluten'])]}
+        showBundlesOnAllView
+      />,
+    );
+    expect(screen.getByRole('heading', { level: 3, name: 'menu_bundles' })).toBeInTheDocument();
+
+    // Press "No gluten" through the filter row's own toggle — the combo carries gluten and
+    // drops out of both the tally and the grid.
+    await act(async () => {
+      filterProps.at(-1)!.onToggle('without:gluten');
+    });
+
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
+    const mainList = listProps.at(-1)!;
+    expect(mainList.products.map((p) => p.id)).toEqual(['kefta']);
   });
 });

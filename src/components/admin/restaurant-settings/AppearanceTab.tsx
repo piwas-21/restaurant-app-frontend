@@ -10,6 +10,8 @@ import { serverMessage } from '@/utils/apiFormErrors';
 import { PALETTES } from '@/design-system/palettes';
 import { revalidateTenantTheme } from '@/app/actions/revalidateTenantTheme';
 import { toUpdateCommand } from './appearanceCommand';
+import MenuDisplaySection from './MenuDisplaySection';
+import type { MenuLayout } from '@/types/restaurantInfo';
 import styles from './AppearanceTab.module.css';
 
 // English fallbacks so the picker is usable even before a locale ships the key
@@ -29,10 +31,18 @@ export default function AppearanceTab() {
   const { enqueueSnackbar } = useSnackbar();
   const { info, isLoading, refetch } = useRestaurantInfo();
   const [selected, setSelected] = useState<string | null>(null);
+  const [menuLayout, setMenuLayout] = useState<MenuLayout>('tabs');
+  const [showBundles, setShowBundles] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (info) setSelected(info.themePaletteKey ?? null);
+    if (info) {
+      setSelected(info.themePaletteKey ?? null);
+      // The `??` arms cover a backend that predates the fields: absence reads as
+      // the shipped defaults, never as an accidental layout change on open.
+      setMenuLayout(info.menuLayout ?? 'tabs');
+      setShowBundles(info.showMenuBundlesOnAllTab ?? false);
+    }
   }, [info]);
 
   if (isLoading && !info) {
@@ -50,12 +60,18 @@ export default function AppearanceTab() {
   }
 
   const current = info.themePaletteKey ?? null;
-  const isDirty = selected !== current;
+  const currentLayout = info.menuLayout ?? 'tabs';
+  const currentShowBundles = info.showMenuBundlesOnAllTab ?? false;
+  // One Save for the tab: a palette choice and either menu-display choice are all
+  // dirty-tracked against the same server state and ride one full-upsert PUT.
+  const isDirty = selected !== current || menuLayout !== currentLayout || showBundles !== currentShowBundles;
 
   const save = async () => {
     setIsSaving(true);
     try {
-      const response = await updateRestaurantInfo(toUpdateCommand(info, selected));
+      const response = await updateRestaurantInfo(
+        toUpdateCommand(info, selected, { menuLayout, showBundlesOnAllTab: showBundles }),
+      );
       if (response.success) {
         invalidateRestaurantInfoCache();
         // Bust the SSR palette cache so a reload reflects the new palette immediately, not after
@@ -143,6 +159,14 @@ export default function AppearanceTab() {
           );
         })}
       </div>
+      <MenuDisplaySection
+        menuLayout={menuLayout}
+        showBundlesOnAllTab={showBundles}
+        onLayoutChange={setMenuLayout}
+        onShowBundlesChange={setShowBundles}
+        disabled={isSaving}
+      />
+
       <div className={styles.actions}>
         <button type="button" onClick={save} disabled={isSaving || !isDirty}>
           {isSaving ? t('saving', 'Saving...') : t('save', 'Save')}

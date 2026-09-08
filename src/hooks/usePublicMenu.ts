@@ -20,7 +20,7 @@ export type { PublicMenuView };
  * pre-split hook — callers (`src/app/menu/page.tsx`,
  * `src/components/menu/MenuContent.tsx`) need no changes.
  */
-export function usePublicMenu() {
+export function usePublicMenu(enabled = true) {
   const categories = usePublicMenuCategories();
   const {
     items,
@@ -60,6 +60,10 @@ export function usePublicMenu() {
     orderTypeRef.current = orderType;
   }, [orderType]);
 
+  // `enabled = false` (the one-page layout owns the page instead) stands the whole pipeline
+  // down: no products fetch for a view nobody renders, no duplicate bundles fetch beside the
+  // one-page hook's own. Default true — every existing caller is unchanged.
+  //
   // Bundles depend on the channel too, since §9.2 wired `GetMenuBundlesQuery` to resolve each row's
   // verdict. Kept as its own effect rather than folded into the products one: they are different
   // fetchers with different pagination, and one branching effect would re-run on a view change that
@@ -72,9 +76,9 @@ export function usePublicMenu() {
   // needs the list loaded too. A bundles fetch failure must not take the products grid down with
   // it — that is why the two pipelines own disjoint error/loading state.
   useEffect(() => {
-    if (!orderTypeHydrated) return;
+    if (!enabled || !orderTypeHydrated) return;
     void fetchMenuBundles(1, orderType);
-  }, [orderType, orderTypeHydrated, fetchMenuBundles]);
+  }, [enabled, orderType, orderTypeHydrated, fetchMenuBundles]);
 
   // Entering the bundles tab still refreshes page 1: bundles carry schedule windows, and a list
   // loaded minutes ago can be quietly out of date by the time the guest opens the tab. The channel
@@ -82,9 +86,9 @@ export function usePublicMenu() {
   // it here too would fire this refresh on every channel switch WHILE the tab is open — one
   // duplicate request every time.
   useEffect(() => {
-    if (selectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
+    if (!enabled || selectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
     void fetchMenuBundles(1, orderTypeRef.current);
-  }, [selectedView, orderTypeHydrated, fetchMenuBundles]);
+  }, [enabled, selectedView, orderTypeHydrated, fetchMenuBundles]);
 
   // Products DO depend on the channel: it decides each row's `availability`, so a switch must
   // re-resolve the list (which resets to page 1 — the verdicts on other pages are stale too).
@@ -95,9 +99,9 @@ export function usePublicMenu() {
   // localStorage" look identical, and fetching on the guess costs a second request plus a visible
   // undimmed→dimmed flash on every restricted card.
   useEffect(() => {
-    if (!selectedView || selectedView === MENU_BUNDLES_KEY || !orderTypeHydrated) return;
+    if (!enabled || !selectedView || selectedView === MENU_BUNDLES_KEY || !orderTypeHydrated) return;
     void fetchProducts(1, selectedView, orderType);
-  }, [selectedView, orderType, orderTypeHydrated, fetchProducts]);
+  }, [enabled, selectedView, orderType, orderTypeHydrated, fetchProducts]);
 
   const handlePageChange = useCallback(
     (page: number) => {

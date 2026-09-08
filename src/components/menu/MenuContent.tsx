@@ -4,6 +4,7 @@ import type { MenuItem, MenuBundleItem, CatalogItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
+import { groupedBundlesFor } from '@/hooks/publicMenu/mappers';
 import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuFilters from '@/components/menu/MenuFilters';
@@ -70,6 +71,13 @@ interface MenuContentProps {
    * withheld. The slot above is an opaque element — this is the data behind it.
    */
   featuredFilterable?: { allergens?: string[]; isSpecial?: boolean };
+  /**
+   * The tenant's "menu bundles on the All tab" setting (mcdoner partner request). Off — the
+   * default, and what every pre-setting backend effectively sends — keeps the All view
+   * products-only, today's behaviour. On, the view gains the bundles as a headed group
+   * under the product grid (page 1 only — see the render note below).
+   */
+  showBundlesOnAllView?: boolean;
 }
 
 export default function MenuContent({
@@ -91,20 +99,15 @@ export default function MenuContent({
   onBrowseFullMenu,
   featuredSlot,
   featuredFilterable,
+  showBundlesOnAllView = false,
 }: MenuContentProps) {
   const { t } = useTranslation();
 
   const isMenuBundlesView = selectedView === MENU_BUNDLES_KEY;
   const isAllView = selectedView === ALL_ITEMS_KEY;
-  // A combo is listed under the tabs of the categories its main dish belongs to (the links the
-  // admin assigns to the bundle itself), so a category tab shows its dishes PLUS those bundles.
-  // The All view stays products-only — the server excludes bundles from it and the bundles area
-  // is their combined listing — and the bundles view already has every bundle. Empty `categoryIds`
-  // (older backend, orphan bundle) simply matches no tab, which degrades to today's placement.
-  const groupedBundles =
-    isMenuBundlesView || isAllView
-      ? []
-      : menuBundles.filter((bundle) => bundle.categoryIds?.includes(selectedView) ?? false);
+  // Which bundles join this view's grid (see groupedBundlesFor below).
+  const showAllViewBundles = isAllView && showBundlesOnAllView;
+  const groupedBundles = groupedBundlesFor(selectedView, isAllView, isMenuBundlesView, showAllViewBundles, menuBundles);
   // One widened element type, so a single filter instance serves every view: an allergen chip has
   // to count the tab's bundles too, or "No gluten 3" hides a matching combo from its own tally.
   const sourceItems: (MenuItem | MenuBundleItem)[] = isMenuBundlesView
@@ -170,22 +173,45 @@ export default function MenuContent({
         }
       />
 
-      {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it. */}
+      {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it.
+          All + the bundles setting is the one split view: products grid, then the bundles as a
+          headed group below — page 1 only, the group shows the bundles pipeline's page 1. */}
       {!isLoadingItems && !displayError && displayItems.length > 0 && (
         <>
-          <MenuList
-            products={isMenuBundlesView ? [] : displayProducts}
-            bundles={isMenuBundlesView ? (displayItems as MenuBundleItem[]) : displayBundles}
-            onOpenItem={onOpenItem}
-            onFeedbackSuccess={() => {}}
-            onSwitchOrderType={onSwitchOrderType}
-            // FILTERED like any other dish, not withheld. It used to disappear whenever any chip
-            // was on, which is wrong in both directions: a special that matches vanishes for no
-            // reason, and a guest filtering "No gluten" must not be shown one that has gluten.
-            featuredSlot={
-              featuredFilterable && !matchesFilters(featuredFilterable, filters.activeIds) ? undefined : featuredSlot
-            }
-          />
+          {(isMenuBundlesView || !showAllViewBundles || displayProducts.length > 0) && (
+            <MenuList
+              products={isMenuBundlesView ? [] : displayProducts}
+              bundles={
+                isMenuBundlesView ? (displayItems as MenuBundleItem[]) : showAllViewBundles ? [] : displayBundles
+              }
+              onOpenItem={onOpenItem}
+              onFeedbackSuccess={() => {}}
+              onSwitchOrderType={onSwitchOrderType}
+              // FILTERED like any other dish, not withheld. It used to disappear whenever any chip
+              // was on, which is wrong in both directions: a special that matches vanishes for no
+              // reason, and a guest filtering "No gluten" must not be shown one that has gluten.
+              featuredSlot={
+                featuredFilterable && !matchesFilters(featuredFilterable, filters.activeIds) ? undefined : featuredSlot
+              }
+            />
+          )}
+
+          {showAllViewBundles && currentPage === 1 && displayBundles.length > 0 && (
+            <div className={styles.bundleGroup}>
+              {/* A subsection of the All view, not a section of its own. */}
+              <div className={styles.bundleGroupHeadingRow}>
+                <h3 className={styles.bundleGroupHeading}>{t('menu_bundles')}</h3>
+                <span className={styles.sectionHeadingRule} aria-hidden="true" />
+              </div>
+              <MenuList
+                products={[]}
+                bundles={displayBundles}
+                onOpenItem={onOpenItem}
+                onFeedbackSuccess={() => {}}
+                onSwitchOrderType={onSwitchOrderType}
+              />
+            </div>
+          )}
 
           {/* Hidden while filtering. The filter runs over the LOADED page, so paging through a
               filtered view would silently change which dishes the filter had even seen. */}

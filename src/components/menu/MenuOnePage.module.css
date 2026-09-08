@@ -1,0 +1,29 @@
+/* The one-page menu layout (menuLayout = "onepage"): every category rendered as a
+   section on one scrolling page, with the category bar jumping between them.
+
+   A section clears the sticky chrome the tabs layout's swap-to-view makes moot: the
+   bar sticks at header + banner, and the page root publishes the bar's own measured
+   height alongside those, so the scroll anchor accounts for all three with the SAME
+   variables `.stickyNav` reads — no second hardcoded total for a breakpoint to
+   disagree with (the original defect categoryNavStickyOffset.test.ts exists for). */
+.section {
+  scroll-margin-top: calc(
+    var(--menu-header-offset, 80px) + var(--menu-banner-offset, 0px) + var(--menu-nav-offset, 0px)
+  );
+  margin-bottom: 3rem;
+}
+
+/* The one filter row for the whole page. In the tabs layout each view's row lives
+   inside its heading band; here the chips describe EVERY section at once, so the
+   row sits once, above the first section, and reads as page chrome. */
+.onePageFilters {
+  margin-bottom: 1.5rem;
+}
+
+/* The bundles section trails the category sections (see MenuOnePage — one listing,
+   not one per category, so no combo can appear twice on the same page). A hairline
+   above it marks the shift from "the menu's dishes" to "the menu's combos". */
+.bundlesDivider {
+  border-top: 1px solid var(--border-default);
+  padding-top: 1.5rem;
+}

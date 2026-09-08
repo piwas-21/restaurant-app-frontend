@@ -10,6 +10,15 @@
 
 import type { ApiResponse } from '@/types/order';
 
+/**
+ * How the public /menu presents the catalogue. Mirrors the backend
+ * `RestaurantInfo.MenuLayout` (stored as a string, serialised lowercase):
+ *
+ * - `tabs` — the shipped default: All items, Menu Bundles, then one tab per category.
+ * - `onepage` — every category on one page; the category bar scrolls to each section.
+ */
+export type MenuLayout = 'tabs' | 'onepage';
+
 export interface RestaurantPhoneNumberDto {
   id: string;
   label: string | null;
@@ -53,6 +62,16 @@ export interface RestaurantInfoDto {
    */
   interiorImageUrl: string | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
+  /**
+   * The tenant's menu layout choice. Optional on the wire: a backend that predates the
+   * field omits it, and absence reads as `'tabs'` — the shipped behaviour.
+   */
+  menuLayout?: MenuLayout | null;
+  /**
+   * Whether the guest All tab also lists menu bundles. Optional on the wire: absence
+   * reads as `false` — the All tab stays products-only, the shipped behaviour.
+   */
+  showMenuBundlesOnAllTab?: boolean;
 }
 
 /** Which stored logo an upload or delete addresses. Mirrors the backend `LogoVariant`. */
@@ -72,6 +91,10 @@ export interface UpdateRestaurantInfoCommand {
   email: string;
   website: string | null;
   themePaletteKey: string | null;
+  /** Always sent: the PUT is a full upsert and an omitted field would reset it. */
+  menuLayout: MenuLayout;
+  /** Always sent: same full-upsert reason. */
+  showMenuBundlesOnAllTab: boolean;
 }
 
 export interface AddPhoneNumberCommand {

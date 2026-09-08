@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   ImageDown,
   KeyRound,
+  Languages,
   type LucideIcon,
 } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
@@ -85,6 +86,15 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       key: 'admin_menu_management_title',
       fallback: 'Menu Management',
       icon: UtensilsCrossed,
+    },
+    {
+      // Same admin-only surface family as the catalog it edits: the bulk-apply endpoint writes
+      // across every product, so it is guarded server-side on the Admin role alone. Not
+      // module-gated (no entry owns it, mirroring menu-management itself, which is core).
+      href: '/admin/ingredient-translations',
+      key: 'admin_ingredient_translations_title',
+      fallback: 'Ingredients & Sauces',
+      icon: Languages,
     },
     {
       href: '/admin/specials-management',

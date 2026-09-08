@@ -9,6 +9,7 @@ import {
   chargeableSauceUnits,
   isSauce,
   isSauceGroupFull,
+  rendersNoSauceAnswer,
   saucesToDeselectForNoneOption,
   sauceWidget,
   waivedSauceUnits,
@@ -41,19 +42,21 @@ interface SauceGroupSectionProps {
  * free — `BundleOptionRow` mounts that section directly.
  *
  * Three things about it are decisions, not taste:
- *  - **Collapsed by default.** The sheet is already full at 390px, which is why it carries no hero
- *    photo; a fifth block expanded on open would push "Add" below the fold.
+ *  - **Collapsed by default in `disclosure`** — the 390px sheet is already full, and a fifth block
+ *    expanded on open would push "Add" below the fold. The bundle option panel mounts `plain` on
+ *    purpose: its panel exists only because the guest pressed Customize, so the fold trade never
+ *    applied there — and the partner asked for parity with the product step (mcdoner, 2026-09).
  *  - **The widget is DERIVED** from the rule (`max === 1` ⇒ radio, else checkboxes) and never
  *    chosen by an admin, and the exclusive "no sauce" answer sorts LAST, after a rule (GOV.UK).
  *  - **It computes no money.** Every price it shows is read from the SAME `waivedSauceUnits`
- *    allocation `linePrice` subtracts, which mirrors the backend's single writer. A badge here can
- *    therefore never claim a waiver the total did not apply.
+ *    allocation `linePrice` subtracts — the backend's single writer mirrored — so a badge here can
+ *    never claim a waiver the total did not apply.
  */
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
 /**
- * The group hint — the min/max stated as text under the legend, never as a tooltip (WCAG: a rule the
- * guest must satisfy has to be readable without hovering anything), plus what the allowance gives.
+ * The group hint — the min/max as text under the legend, never a tooltip (WCAG: a rule the guest
+ * must satisfy has to be readable without hovering anything), plus what the allowance gives.
  */
 function groupHint(t: Translate, rule: SauceGroupRule): string {
   const clauses: string[] = [];
@@ -102,8 +105,7 @@ export default function SauceGroupSection({
     .filter((ingredient) => isSauce(ingredient) && ingredient.isActive)
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
-  // A product with no sauces renders no group, no summary line and no empty state — exactly as the
-  // ingredient section does with no ingredients.
+  // No sauces, no group, no summary, no empty state — as the ingredient section does.
   if (sauces.length === 0) return null;
 
   const choosable = sauces.filter((sauce) => sauce.isOptional);
@@ -126,9 +128,8 @@ export default function SauceGroupSection({
   const toggle = (sauce: ProductIngredient) => {
     if (!sauce.isOptional) return;
     if (selectedIngredients.includes(sauce.id)) {
-      // Checkboxes only, in practice: a CHECKED radio fires no change event when it is clicked
-      // again, which is why a single-choice group can be emptied only through the "no sauce"
-      // answer — and why that answer is offered exactly when no sauce is required.
+      // Checkboxes only, in practice: a CHECKED radio fires no change event when clicked again, so
+      // a single-choice group empties only through the "no sauce" answer, offered when min is 0.
       deselect([sauce.id]);
       return;
     }
@@ -205,8 +206,7 @@ export default function SauceGroupSection({
 
           {sauces.map((sauce) => {
             const isSelected = selectedIngredients.includes(sauce.id);
-            // aria-disabled, never `disabled`: a max-reached option must stay reachable and able to
-            // say WHY it cannot be ticked, which a control removed from the tab order cannot.
+            // aria-disabled, never `disabled`: a blocked option must stay reachable and able to say WHY.
             const blocked = !sauce.isOptional || (!isSelected && isFull && widget === 'checkbox');
             return (
               <label key={sauce.id} className={`${styles.row} ${blocked ? styles.rowBlocked : ''}`}>
@@ -227,14 +227,18 @@ export default function SauceGroupSection({
             );
           })}
 
-          {rule.min === 0 && choosable.length > 0 && (
+          {rendersNoSauceAnswer(choosable.length, rule) && (
             <label className={`${styles.row} ${styles.rowExclusive}`}>
               <input
                 type={widget}
                 name={`${domId}-sauce`}
                 className={styles.input}
                 checked={selectedCount === 0}
-                onChange={() => deselect(choosable.map((sauce) => sauce.id))}
+                /* Never max-blocked — it is the way OUT of a full group — and it zeroes exactly
+                   the rows it removes, the stored no-sauce answers' rule. */
+                onChange={() =>
+                  deselect(choosable.filter((sauce) => selectedIngredients.includes(sauce.id)).map((sauce) => sauce.id))
+                }
               />
               <span className={styles.name}>{t('sauce_none')}</span>
             </label>

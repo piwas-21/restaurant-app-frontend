@@ -1,5 +1,6 @@
 import { localizedName } from './localizedContent';
-import { isSauce } from './sauceGroup';
+import { isSauce, rendersNoSauceAnswer } from './sauceGroup';
+import type { SauceGroupRule } from '@/types/menu/sauce';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSideItems';
 import { findBundleOption } from './bundleSelection';
@@ -96,6 +97,39 @@ function ingredientSummary(
   }
 
   return lines;
+}
+
+/**
+ * Whether the footer's action on this step is the honest Skip — or, on the sauces step, the named
+ * "no sauce" answer. Lives beside `stepHasTickedSelection` because the two are siblings: both
+ * read the guest's CURRENT selection, and both exist so the footer cannot say something the
+ * press underneath it would contradict.
+ */
+export function stepIsSkippable(
+  step: CustomizationStep,
+  controllerKind: 'product' | 'bundle',
+  summaryValues: readonly string[],
+  product: DetailedProduct | null,
+  state: ProductSummaryState,
+  sauceIds: readonly string[],
+  sauceRule: SauceGroupRule,
+): boolean {
+  if (controllerKind !== 'product' || !product) return summaryValues.length === 0;
+  // Drinks are the one step whose answer the helper cannot see: the upsell selection is not in
+  // ProductSummaryState, so its verb reads the summary row — a picked drink is an answer, an
+  // empty list is an honest Skip.
+  if (step.kind === 'drinks') return summaryValues.length === 0;
+  // The sauces step names its answer instead of a verb whenever the answer IS "no sauce" — the
+  // same predicate the group renders its built-in row from, so the button can never promise a
+  // choice the screen does not offer. Deliberately NOT the untouched-only rule the other steps
+  // keep: unticking a sauce returns the answer to "no sauce" (partner report, mcdoner).
+  if (step.kind === 'sauces') {
+    return (
+      rendersNoSauceAnswer(sauceIds.length, sauceRule) &&
+      sauceIds.every((id) => !state.selectedIngredients.includes(id))
+    );
+  }
+  return !stepHasTickedSelection(step, product, state);
 }
 
 /**

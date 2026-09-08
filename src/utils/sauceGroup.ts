@@ -152,6 +152,16 @@ export function sauceWidget(rule: SauceGroupRule): 'radio' | 'checkbox' {
 }
 
 /**
+ * Does the group render its built-in "no sauce" answer? ONE predicate for the two sites that must
+ * agree about it: `SauceGroupSection` renders the row from this, and the sheet footer names that
+ * same answer from this — a second, looser reading in either place is how the button starts
+ * promising a choice the screen does not offer, or misses one it does.
+ */
+export function rendersNoSauceAnswer(choosableSauceCount: number, rule: SauceGroupRule): boolean {
+  return rule.min === 0 && choosableSauceCount > 0;
+}
+
+/**
  * Is the group full? `null` max is no cap, so it never is. Counted in chosen ROWS, which is what
  * the guest sees: the sauce widget offers no quantity stepper, so a row is one sauce.
  */

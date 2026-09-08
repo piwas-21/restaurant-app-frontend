@@ -120,6 +120,10 @@ export default function MenuContent({
   // only member carrying a menu definition.
   const displayProducts = displayItems.filter((item): item is MenuItem => !('menuDefinition' in item));
   const displayBundles = displayItems.filter((item): item is MenuBundleItem => 'menuDefinition' in item);
+  // Bundles the main grid receives: on the All tab the headed group below (page 1) carries them,
+  // so the grid gets none; the Bundles view's grid shows the filtered list itself.
+  const bundlesOnAllView = showAllViewBundles ? [] : displayBundles;
+  const listBundles = isMenuBundlesView ? (displayItems as MenuBundleItem[]) : bundlesOnAllView;
 
   const displayError = errorLoadingItems
     ? t(errorKeyFor(selectedView, isMenuBundlesView), { categoryName: categoryDisplayName })
@@ -181,9 +185,7 @@ export default function MenuContent({
           {(isMenuBundlesView || !showAllViewBundles || displayProducts.length > 0) && (
             <MenuList
               products={isMenuBundlesView ? [] : displayProducts}
-              bundles={
-                isMenuBundlesView ? (displayItems as MenuBundleItem[]) : showAllViewBundles ? [] : displayBundles
-              }
+              bundles={listBundles}
               onOpenItem={onOpenItem}
               onFeedbackSuccess={() => {}}
               onSwitchOrderType={onSwitchOrderType}

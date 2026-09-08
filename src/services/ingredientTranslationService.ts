@@ -69,8 +69,10 @@ export const applyIngredientTranslations = async (
   globalIngredientId: string,
   translations: IngredientTranslationInput[],
 ): Promise<ApiResponse<IngredientApplyReceipt>> => {
+  // The body IS the list — the backend binds `[FromBody] List<GlobalIngredientTranslationDto>`
+  // directly (its GlobalIngredientTranslationDto is { languageCode, name }, this input's shape).
   return await apiClient.put<ApiResponse<IngredientApplyReceipt>>(
     `${GLOBAL_INGREDIENTS_API_URL}/${encodeURIComponent(globalIngredientId)}/apply-translations`,
-    { translations },
+    translations,
   );
 };

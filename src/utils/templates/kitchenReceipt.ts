@@ -8,7 +8,7 @@ import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
 import { selectItemsForKitchen } from '../orderItemTree';
-import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
+import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -53,21 +53,18 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
     html += `<div style="margin-left: 16px; font-size: 11pt;">Size: ${escapeHtml(item.variationName)}</div>`;
   }
 
-  // Only show removed and extra ingredients
-  const customizedIngredients = item.ingredientCustomizations?.filter((ing) => ing.isRemoved || ing.quantity > 1) || [];
+  // What the kitchen must ACT on — removals, above-default quantities, and paid extras the guest
+  // opted into. The old `isRemoved || quantity > 1` filter dropped every add-on chosen at its
+  // default quantity 1, which is exactly what a guest's "extra sauce" looks like on the wire:
+  // the chosen sauce never reached the printed ticket. One filter with the child rows below.
+  customizedIngredientRows(item).forEach((ing) => {
+    html += ingredientRowHtml(ing, 16);
+  });
 
-  if (customizedIngredients.length > 0) {
-    customizedIngredients.forEach((ing) => {
-      if (ing.isRemoved) {
-        html += `<div style="margin-left: 16px; font-size: 11pt; text-decoration: line-through;">✘ NO ${escapeHtml(ing.ingredientName)}</div>`;
-      } else if (ing.quantity > 1) {
-        html += `<div style="margin-left: 16px; font-size: 11pt;">+ EXTRA ${escapeHtml(ing.ingredientName)}</div>`;
-      }
-    });
-  }
-
-  // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen
-  html += buildChildItemsHtml(item.sideItems ?? [], { showPrices, heading: 'Additionals:' });
+  // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen.
+  // withIngredients: a customization made INSIDE a combo must reach paper too — the ticket used
+  // to print the component's name and silently drop its ingredient rows.
+  html += buildChildItemsHtml(item.sideItems ?? [], { showPrices, heading: 'Additionals:', withIngredients: true });
 
   // Special instructions - prominent styling
   if (item.specialInstructions) {

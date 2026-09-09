@@ -82,7 +82,7 @@ async function fetchCarrierList(): Promise<IngredientCarrierProduct[]> {
 }
 
 /** Detail rows the by-id query returns; only the ingredient copies are read here. */
-type ProductDetailResponse = { data?: { detailedIngredients?: ProductIngredient[] | null } | null };
+type ProductDetailResponse = { success?: boolean; data?: { detailedIngredients?: ProductIngredient[] | null } | null };
 
 const DETAIL_CONCURRENCY = 8;
 
@@ -100,7 +100,15 @@ async function hydrateCarrierIngredients(carriers: IngredientCarrierProduct[]): 
       const carrier = carriers[index];
       try {
         const detail = (await getProductById(carrier.id)) as ProductDetailResponse;
-        carriers[index] = { ...carrier, detailedIngredients: detail.data?.detailedIngredients ?? [] };
+        // THIS backend answers a missing product with HTTP 200 {success:false,data:null}, not a
+        // 404 — an envelope refusal means the carrier is gone (deleted between the list and its
+        // detail call), so it reads as carrying none and the walk continues. The 404 branch below
+        // stays for a backend that does answer 404.
+        if (detail.success === false || detail.data === null || detail.data === undefined) {
+          carriers[index] = { ...carrier, detailedIngredients: [] };
+          continue;
+        }
+        carriers[index] = { ...carrier, detailedIngredients: detail.data.detailedIngredients ?? [] };
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) continue;
         throw error;

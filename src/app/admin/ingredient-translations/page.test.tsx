@@ -131,14 +131,31 @@ describe('IngredientTranslationsPage — the page mounts, hydrates the inventory
   it('search filters the hydrated entries client-side without refetching', async () => {
     render(<IngredientTranslationsPage />);
     await screen.findByText('Sans Sauces');
-    const callsAfterLoad = (apiClient.get as jest.Mock).mock.calls.length;
-
     fireEvent.change(screen.getByLabelText('ingredient_translations_search'), { target: { value: 'lettuce' } });
 
     await waitFor(() => expect(screen.queryByText('Sans Sauces')).not.toBeInTheDocument());
     expect(screen.getByText('Lettuce')).toBeInTheDocument();
-    // Search is designed to filter what the mount already loaded — no extra request.
-    expect((apiClient.get as jest.Mock).mock.calls).toHaveLength(callsAfterLoad);
+    // Search is designed to filter what the mount already loaded — no extra request. The 3 is
+    // also the mount's whole budget, pinned: 1 LIST + exactly one detail GET per carrier (a
+    // cursor bug that double-fetched would show up here).
+    expect((apiClient.get as jest.Mock).mock.calls).toHaveLength(3);
+  });
+
+  it('a carrier the detail endpoint refuses folds to carrying none, and the walk continues', async () => {
+    // The REAL wire shape for a product deleted between the list and its detail call: HTTP 200
+    // {success:false,data:null} — not a 404. It must read as carries-none, not kill the load.
+    (apiClient.get as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/Products?')) return Promise.resolve(LIST_PAGE);
+      if (url.endsWith('/api/Products/p1')) return Promise.resolve(DETAILS.p1);
+      if (url.endsWith('/api/Products/p2')) return Promise.resolve({ success: false, data: null });
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+
+    render(<IngredientTranslationsPage />);
+
+    expect(await screen.findByText('Lettuce')).toBeInTheDocument();
+    expect(screen.queryByText('Sans Sauces')).not.toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('save posts the bare translation list to apply-translations and shows the receipt', async () => {

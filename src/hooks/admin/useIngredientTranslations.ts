@@ -11,11 +11,30 @@ import {
   translationsForSave,
   type IngredientCarrierProduct,
   type IngredientEntry,
+  type LocaleCell,
 } from '@/utils/ingredientTranslationEntries';
 import type { IngredientKind } from '@/types/menu';
 
 /** Edits held for one entry, by locale — absent means "leave what the copies say". */
 export type EntryEdits = Record<string, string>;
+
+/**
+ * Optimistic commit for one entry's locale cells after a successful bulk-apply: every locale the
+ * save wrote collapses to consensus (the saved name, nothing to disagree about, nothing missing);
+ * locales the admin left BLANK keep their reading. Module-level so the setState mapper in `save`
+ * stays shallow (S2004) — this is the fold, and it is pure.
+ */
+function collapseSavedCells(
+  saved: readonly IngredientTranslationInput[],
+  cells: Readonly<Record<string, LocaleCell>>,
+): Record<string, LocaleCell> {
+  return Object.fromEntries(
+    Object.entries(cells).map(([locale, cell]): [string, LocaleCell] => {
+      const written = saved.find((translation) => translation.languageCode === locale);
+      return written ? [locale, { value: written.name, disagreements: 0, missing: 0 }] : [locale, cell];
+    }),
+  );
+}
 
 /**
  * Page logic behind the Ingredients & Sauces translations manager (partner feedback, mcdoner:
@@ -117,12 +136,7 @@ export function useIngredientTranslations() {
                   ...candidate,
                   globalIngredientId: libraryId,
                   copies: candidate.copies,
-                  cells: Object.fromEntries(
-                    Object.entries(candidate.cells).map(([locale, cell]) => {
-                      const saved = translations.find((t) => t.languageCode === locale);
-                      return saved ? [locale, { value: saved.name, disagreements: 0, missing: 0 }] : [locale, cell];
-                    }),
-                  ),
+                  cells: collapseSavedCells(translations, candidate.cells),
                 }
               : candidate,
           ),

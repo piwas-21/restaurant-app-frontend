@@ -54,12 +54,12 @@ function IngredientTranslationsPage() {
         </header>
 
         {receipt && (
-          <div className={styles.successBanner} role="status">
+          <output className={styles.successBanner}>
             <p>{t('ingredient_translations_receipt_products', { count: receipt.updatedProductCount })}</p>
             <p className={styles.receiptNames} dir="auto">
               {receipt.items.map((item) => item.productName).join(', ')}
             </p>
-          </div>
+          </output>
         )}
         {saveError && (
           <div className={styles.errorBanner} role="alert">
@@ -76,7 +76,7 @@ function IngredientTranslationsPage() {
             aria-label={t('ingredient_translations_search')}
             onChange={(event) => setQuery(event.target.value)}
           />
-          <div className={styles.chipRow} role="group" aria-label={t('all_dish_types_filter')}>
+          <fieldset className={styles.chipRow} aria-label={t('all_dish_types_filter')}>
             {kindChips.map((chip) => (
               <button
                 key={chip.id}
@@ -87,30 +87,32 @@ function IngredientTranslationsPage() {
                 {chip.label}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
-        {loading ? (
-          <p className={styles.loading}>{t('loading')}</p>
-        ) : loadError ? (
-          <div className={styles.errorBanner} role="alert">
-            <p>{t('ingredient_translations_load_failed')}</p>
-            <button type="button" onClick={() => load()}>
-              {t('retry')}
-            </button>
-          </div>
-        ) : visible.length === 0 ? (
-          <p className={styles.loading}>{t('ingredient_translations_empty')}</p>
-        ) : (
-          <IngredientTranslationsGrid
-            entries={visible}
-            edits={edits}
-            dirtyKeys={isDirty}
-            savingKey={savingKey}
-            onEdit={edit}
-            onSave={save}
-          />
-        )}
+        {(() => {
+          if (loading) return <p className={styles.loading}>{t('loading')}</p>;
+          if (loadError)
+            return (
+              <div className={styles.errorBanner} role="alert">
+                <p>{t('ingredient_translations_load_failed')}</p>
+                <button type="button" onClick={() => load()}>
+                  {t('retry')}
+                </button>
+              </div>
+            );
+          if (visible.length === 0) return <p className={styles.loading}>{t('ingredient_translations_empty')}</p>;
+          return (
+            <IngredientTranslationsGrid
+              entries={visible}
+              edits={edits}
+              dirtyKeys={isDirty}
+              savingKey={savingKey}
+              onEdit={edit}
+              onSave={save}
+            />
+          );
+        })()}
       </div>
     </AdminAuthGuard>
   );

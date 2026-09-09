@@ -23,6 +23,8 @@
 }
 
 .successBanner {
+  /* <output> is inline by default; the banner must keep its div-era block flow. */
+  display: block;
   background: var(--surface-primary);
   border-inline-start: 3px solid var(--feedback-success);
   color: var(--feedback-success-text);
@@ -68,6 +70,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  /* <fieldset> UA chrome reset — the semantic element must not drag a groove border,
+     default padding/margin or min-inline-size into the toolbar. */
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
 }
 
 .chip {

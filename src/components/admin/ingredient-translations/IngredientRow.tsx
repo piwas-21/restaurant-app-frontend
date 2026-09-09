@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLanguageNativeName } from '@/config/languageConfig';
-import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { directionFor } from '@/lib/textDirection';
 import type { IngredientEntry } from '@/utils/ingredientTranslationEntries';

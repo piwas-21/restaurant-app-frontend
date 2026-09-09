@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLanguageNativeName } from '@/config/languageConfig';
-import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
 import IngredientRow from './IngredientRow';
 import type { IngredientEntry } from '@/utils/ingredientTranslationEntries';
 import type { EntryEdits } from '@/hooks/admin/useIngredientTranslations';

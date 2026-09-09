@@ -138,7 +138,7 @@ describe('IngredientTranslationsPage — the page mounts, hydrates the inventory
     await waitFor(() => expect(screen.queryByText('Sans Sauces')).not.toBeInTheDocument());
     expect(screen.getByText('Lettuce')).toBeInTheDocument();
     // Search is designed to filter what the mount already loaded — no extra request.
-    expect((apiClient.get as jest.Mock).mock.calls.length).toBe(callsAfterLoad);
+    expect((apiClient.get as jest.Mock).mock.calls).toHaveLength(callsAfterLoad);
   });
 
   it('save posts the bare translation list to apply-translations and shows the receipt', async () => {

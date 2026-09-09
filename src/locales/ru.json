@@ -1732,6 +1732,7 @@
   "creating": "Создание...",
   "error_loading_product": "Не удалось загрузить сведения о товаре",
   "customize": "Настроить",
+  "done": "Готово",
   "choose_count": "Выберите {{count}}",
   "choose_range": "Выберите {{min}}-{{max}}",
   "please_select_at_least_options": "Выберите не менее {{count}} опции(й)",

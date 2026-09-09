@@ -29,6 +29,18 @@ export interface ProductSummaryState {
 
 const withQuantity = (name: string, quantity: number): string => (quantity > 1 ? `${quantity} × ${name}` : name);
 
+/** Any ACTIVE OPTIONAL row in scope is ticked — the ingredients/sauces steps' shared answer. */
+function anyTicked(
+  ingredients: readonly ProductIngredient[],
+  inScope: (ingredient: ProductIngredient) => boolean,
+  selected: readonly string[],
+): boolean {
+  return ingredients.some(
+    (ingredient) =>
+      ingredient.isActive && inScope(ingredient) && ingredient.isOptional && selected.includes(ingredient.id),
+  );
+}
+
 /** The names a product step reports. An empty array means "the guest chose nothing here". */
 export function productStepSummary(
   step: CustomizationStep,
@@ -155,21 +167,9 @@ export function stepHasTickedSelection(
       // variation — a size cannot be skipped, only kept or changed. Always answered.
       return true;
     case 'ingredients':
-      return ingredients.some(
-        (ingredient) =>
-          ingredient.isActive &&
-          !isSauce(ingredient) &&
-          ingredient.isOptional &&
-          state.selectedIngredients.includes(ingredient.id),
-      );
+      return anyTicked(ingredients, (ingredient) => !isSauce(ingredient), state.selectedIngredients);
     case 'sauces':
-      return ingredients.some(
-        (ingredient) =>
-          ingredient.isActive &&
-          isSauce(ingredient) &&
-          ingredient.isOptional &&
-          state.selectedIngredients.includes(ingredient.id),
-      );
+      return anyTicked(ingredients, isSauce, state.selectedIngredients);
     case 'sides': {
       // Each partition is its own step (`sideGroup`): a dessert tick answers the desserts step and
       // says nothing about the beverages step, which must still be allowed to say Skip. An
@@ -198,6 +198,31 @@ function sideSummary(product: DetailedProduct, state: ProductSummaryState, onlyG
     .map((side) => ({ side, quantity: state.selectedSideItems.find((chosen) => chosen.id === side.id)?.quantity ?? 0 }))
     .filter((entry) => entry.quantity > 0)
     .map((entry) => withQuantity(entry.side.name, entry.quantity));
+}
+
+/**
+ * The skip verb's decision on the PER-OPTION screen — the same two rules `stepIsSkippable` answers
+ * for a product, narrowed to what a bundle option can carry (no variations, no sides): an
+ * ingredients step is skippable only with nothing ticked — a base-recipe tick IS an answer; a
+ * sauces step is skippable exactly when the current answer already IS "no sauce", so the footer
+ * names that answer instead of offering a verb.
+ */
+export function optionStepIsSkippable(
+  step: CustomizationStep,
+  detailedIngredients: readonly ProductIngredient[],
+  selectedIngredients: readonly string[],
+  sauceIds: readonly string[],
+  sauceRule: SauceGroupRule,
+): boolean {
+  if (step.kind === 'sauces') {
+    return (
+      rendersNoSauceAnswer(sauceIds.length, sauceRule) && sauceIds.every((id) => !selectedIngredients.includes(id))
+    );
+  }
+  if (step.kind === 'ingredients') {
+    return !anyTicked(detailedIngredients, (ingredient) => !isSauce(ingredient), selectedIngredients);
+  }
+  return false;
 }
 
 /** The names a bundle section step reports — the options picked, in the section's own order. */

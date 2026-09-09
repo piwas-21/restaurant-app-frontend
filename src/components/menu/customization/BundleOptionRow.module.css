@@ -1,9 +1,9 @@
 /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
    This file renders INSIDE the item sheet — `ItemCustomizationSheet` → `BundleSheetBody` →
-   `BundleSectionSelector` → here — and `.panel` below hosts `OptionalIngredientsSection`. So a guest
-   expanding a bundle option saw the sheet's new 10px hairline rows stacked directly under this
-   file's 0.6rem radius, its 999px pill and its 4.16:1 price: one panel, two design systems. It is
-   brought in line here rather than deferred for that reason. */
+   `BundleSectionSelector` → here — stacked against the sheet's 10px hairline rows, so it carries
+   the same radius/pill/contrast decisions the sheet's own controls settled on. The option panel
+   that used to live here moved to `BundleOptionInlinePanel.module.css` when the guest flow's
+   drill-in became the guided per-option screen (owner decision, 2026-09). */
 .option {
   display: flex;
   flex-direction: column;
@@ -93,14 +93,5 @@
 }
 
 .customizeButton:hover {
-  background: var(--surface-secondary);
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-top: 1px solid var(--border-default, var(--border-color));
   background: var(--surface-secondary);
 }

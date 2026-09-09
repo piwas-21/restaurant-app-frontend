@@ -1731,6 +1731,7 @@
   "creating": "Creazione...",
   "error_loading_product": "Impossibile caricare i dettagli del prodotto",
   "customize": "Personalizza",
+  "done": "Fatto",
   "choose_count": "Scegli {{count}}",
   "choose_range": "Scegli {{min}}-{{max}}",
   "please_select_at_least_options": "Seleziona almeno {{count}} opzione/i",

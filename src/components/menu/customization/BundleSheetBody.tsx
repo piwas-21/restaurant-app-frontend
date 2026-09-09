@@ -21,18 +21,12 @@ interface BundleSheetBodyProps {
  * (MENU-CUSTOMIZATION-FLOW-PLAN §3).
  *
  * A combo is the case the old single-scroll layout hurt most: four sections, each with its own
- * options and each option carrying a nested "Customize" disclosure, all stacked in one column.
+ * options and each option carrying a nested "Customize" drill-in, all stacked in one column.
+ * Customizing an option now leaves this body entirely — the sheet hosts the option's guided
+ * screen (the 2026-09 owner decision superseding #175's inline drill-in).
  */
 export default function BundleSheetBody({ controller, step, onChoice }: Readonly<BundleSheetBodyProps>) {
-  const {
-    selectedOptions,
-    visibleErrors,
-    expandedOptionKey,
-    currentLanguage,
-    toggleOption,
-    toggleOptionExpanded,
-    setOptionCustomization,
-  } = controller;
+  const { selectedOptions, visibleErrors, currentLanguage, toggleOption, openOptionCustomization } = controller;
 
   const section = step.section;
   if (!section) return null;
@@ -44,23 +38,21 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
       section={section}
       selectedOptions={selectedOptions}
       minSelectionError={minSelectionError}
-      expandedOptionKey={expandedOptionKey}
       currentLanguage={currentLanguage}
       onToggleOption={(toggledSection, itemId) => {
         toggleOption(toggledSection, itemId);
         // …but NOT when the option the guest just picked has ingredients of its own. Its
-        // "Customize" disclosure appears only once the option is selected, so advancing 260 ms
-        // later slides the panel away before the guest can ever open it.
-        if (!hasOwnCustomization(section, itemId)) onChoice();
+        // "Customize" affordance appears only once the option is selected, so advancing 260 ms
+        // later slides the screen away before the guest can ever open it.
+        if (!hasOwnCustomization(toggledSection, itemId)) onChoice();
       }}
-      onToggleExpanded={toggleOptionExpanded}
-      onCustomizationChange={setOptionCustomization}
+      onCustomizeOption={openOptionCustomization}
       hideLegend
     />
   );
 }
 
-/** Does picking this option open a drill-in the guest would be carried past? */
+/** Does picking this option open a customization screen the guest would be carried past? */
 function hasOwnCustomization(section: MenuSection, productId: string): boolean {
   const item = section.items.find((candidate) => candidate.productId === productId);
   return (item?.detailedIngredients?.length ?? 0) > 0;

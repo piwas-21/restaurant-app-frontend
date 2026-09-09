@@ -2,10 +2,8 @@
 
 import React from 'react';
 import VariationsSection from './VariationsSection';
-import OptionalIngredientsSection from './OptionalIngredientsSection';
-import SauceGroupSection from './SauceGroupSection';
+import IngredientStepsBody from './IngredientStepsBody';
 import SuggestedSideItemsSection from './SuggestedSideItemsSection';
-import { toSauceGroupRule } from '@/utils/sauceGroup';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
 
@@ -66,40 +64,20 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
     );
   }
 
-  if (step.kind === 'ingredients') {
+  if (step.kind === 'ingredients' || step.kind === 'sauces') {
+    // The shared ingredient-decisions body — the SAME component the per-option screen inside a
+    // bundle sheet renders, which is what keeps a combo's sauces identical to the dish's.
     return (
-      <OptionalIngredientsSection
+      <IngredientStepsBody
+        sauceGroup={product}
         ingredients={product.detailedIngredients ?? []}
+        step={step}
         selectedIngredients={selectedIngredients}
         ingredientQuantities={ingredientQuantities}
         onSelectionChange={setSelectedIngredients}
         onQuantityChange={onQuantityChange}
+        onChoice={onChoice}
         currentLanguage={currentLanguage}
-        sauceGroup={product}
-        headless
-        // Sauces are their own step here. Left on, the group would render in BOTH steps at once and
-        // each copy could undo the other's selection.
-        includeSauces={false}
-      />
-    );
-  }
-
-  if (step.kind === 'sauces') {
-    return (
-      <SauceGroupSection
-        ingredients={product.detailedIngredients ?? []}
-        rule={toSauceGroupRule(product)}
-        selectedIngredients={selectedIngredients}
-        ingredientQuantities={ingredientQuantities}
-        onSelectionChange={(selected) => {
-          setSelectedIngredients(selected);
-          // Not when a chosen sauce still has a quantity to set: its stepper renders only while the
-          // row is selected, so advancing would carry the guest past a control that just appeared.
-          if (!selected.some((id) => hasQuantityStepper(product.detailedIngredients ?? [], id))) onChoice();
-        }}
-        onQuantityChange={onQuantityChange}
-        currentLanguage={currentLanguage}
-        variant="plain"
       />
     );
   }
@@ -128,9 +106,4 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
   }
 
   return null;
-}
-
-/** A selected row shows a stepper only above `maxQuantity` 1 — and only while it is selected. */
-function hasQuantityStepper(ingredients: readonly { id: string; maxQuantity?: number }[], id: string): boolean {
-  return (ingredients.find((ingredient) => ingredient.id === id)?.maxQuantity ?? 1) > 1;
 }

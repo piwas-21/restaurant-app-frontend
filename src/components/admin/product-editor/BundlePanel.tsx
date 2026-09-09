@@ -22,7 +22,7 @@ interface BundlePanelProps {
 /**
  * Everything a bundle edits: its own core fields, when it is served, and what it contains.
  *
- * The staged photo input is NOT here any more: it moved to the editor\'s Media section
+ * The staged photo input is NOT here any more: it moved to the editor's Media section
  * (`BundleMediaPanel`), the one surface named after what it does. This panel edits identity,
  * price and flags; its section heading says Details, not Media.
  *

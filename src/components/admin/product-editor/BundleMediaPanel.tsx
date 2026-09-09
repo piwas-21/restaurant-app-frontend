@@ -12,7 +12,7 @@ interface BundleMediaPanelProps {
 }
 
 /**
- * The bundle editor\'s Media section — the ONE surface for a bundle\'s photo.
+ * The bundle editor's Media section — the ONE surface for a bundle's photo.
  *
  * A bundle has no gallery (#524): `MenuBundleDto` carries no image rows, so there is nothing
  * server-side to set primary, reorder or delete. What a bundle DOES have is the staged path the
@@ -22,10 +22,10 @@ interface BundleMediaPanelProps {
  * saying photo management did not exist: two surfaces disagreeing about one feature, and the
  * truthful one offering no way to undo a mis-picked file.
  *
- * One surface now: pick (a new choice replaces the selection, the shared picker\'s contract),
+ * One surface now: pick (a new choice replaces the selection, the shared picker's contract),
  * remove a staged file before saving, and a notice saying WHEN the upload happens — the honest
- * counterpart of the gallery\'s "saved immediately" notice, because nothing here writes until
- * the page\'s Save.
+ * counterpart of the gallery's "saved immediately" notice, because nothing here writes until
+ * the page's Save.
  */
 export default function BundleMediaPanel({ files, onChange }: BundleMediaPanelProps) {
   const { t } = useTranslation();

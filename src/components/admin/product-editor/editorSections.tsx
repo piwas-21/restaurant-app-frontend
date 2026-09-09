@@ -35,8 +35,8 @@ export { SECTION_IDS } from './editorSectionTypes';
  * control before it exists would offer an admin a field whose every save is discarded.
  *
  * S6 added the third as **Media, present and empty** (D11 / D5). It is no longer empty: the
- * staged photo surface that used to sit at the bottom of `BundlePanel`\'s Basics column moved
- * here, so the section named "Media" is the one place a bundle\'s photo is picked, removed or
+ * staged photo surface that used to sit at the bottom of `BundlePanel`'s Basics column moved
+ * here, so the section named "Media" is the one place a bundle's photo is picked, removed or
  * replaced — and the placeholder that called photo management unavailable is gone with it.
  * (#524, a managed gallery, stays open; this is the staged path that exists today.)
  */

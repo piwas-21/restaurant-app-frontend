@@ -3,17 +3,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
-import SheetIntro from '@/components/menu/customization/SheetIntro';
-import SheetStepProgress from '@/components/menu/customization/SheetStepProgress';
-import SheetStepPanel from '@/components/menu/customization/SheetStepPanel';
-import SheetStepContent from '@/components/menu/customization/SheetStepContent';
-import SheetFooter from '@/components/menu/customization/SheetFooter';
-import SheetBlockedFooter from '@/components/menu/customization/SheetBlockedFooter';
-import SpecialRequestSection from '@/components/menu/customization/SpecialRequestSection';
+import BundleOptionCustomizationScreen from '@/components/menu/customization/BundleOptionCustomizationScreen';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow, type SheetController } from '@/hooks/menu/useSheetFlow';
+import { useBundleOptionFlow } from '@/hooks/menu/useBundleOptionFlow';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
-import { stepLabel, stepSkipLabel } from '@/components/menu/customization/stepLabel';
+import { footerFor, sheetIntro, OptionFooterBar, ProductFlowBody } from '@/components/menu/customization/SheetSurfaces';
 import type { OrderType } from '@/types/order';
 import styles from './ItemCustomizationSheet.module.css';
 
@@ -52,6 +47,14 @@ export default function ItemCustomizationSheet({
   const { t } = useTranslation();
   const { isOpen, title, description, quantity, setQuantity, isSubmitting, addToCart, close } = controller;
   const flow = useSheetFlow(controller, drinks);
+  // The per-option screen the bundle sheet navigates to (Customize on a selected option), or null
+  // when the sheet is on its own flow. While it is up, BOTH the body and the footer below are the
+  // option's — the bundle's steps stay exactly where the guest left them.
+  const optionFlow = useBundleOptionFlow(controller, flow.total);
+
+  // Taking the way out ends the option screen first: the line being edited is still in the bundle
+  // controller, so backing out must not throw it away with the sheet.
+  const dismiss = optionFlow ? optionFlow.close : close;
 
   // Narrowed once — the product branch's fields are read four times below.
   const detail = controller.kind === 'product' ? controller.product : null;
@@ -67,13 +70,7 @@ export default function ItemCustomizationSheet({
   // so reading these off it showed a combo NO allergens and no prep time — and once the card
   // started rendering the chips (#702), the guest who taps in to read the labelling gets a blank
   // panel, which is worse than the card having said nothing.
-  const intro =
-    controller.kind === 'product'
-      ? { allergens: detail?.allergens, preparationTimeMinutes: detail?.preparationTimeMinutes }
-      : {
-          allergens: controller.bundle?.allergens,
-          preparationTimeMinutes: controller.bundle?.preparationTimeMinutes,
-        };
+  const intro = sheetIntro(controller);
 
   // The SERVER's verdict is the gate, not our ability to render a nice reason for it. The notice is
   // null while the admin-enabled channel list is still in flight, and gating on it alone reopened
@@ -99,81 +96,46 @@ export default function ItemCustomizationSheet({
   const { step } = flow;
   const isGuided = flow.steps.length > 1;
 
+  // The option screen's bar. Its last step commits BACK INTO THE LINE, not an order — so it asks
+  // SheetFooter for the confirm mode (a labelled Done over the same live total) instead of the
+  // quantity stepper and the Add, and the money keeps rendering through the one component.
+  const optionFooter = optionFlow ? <OptionFooterBar optionFlow={optionFlow} t={t} /> : null;
+
   // Blocked ⇒ the whole action bar is replaced by the reason and the way out, on every step. Not
   // disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a
   // quantity that cannot be ordered is noise.
-  const footer = isBlocked ? (
-    <SheetBlockedFooter
-      notice={notice}
-      onSwitchOrderType={switchOrderTypeAndClose}
-      styles={styles}
-      onContinue={flow.isLast ? undefined : flow.goNext}
-    />
-  ) : (
-    <SheetFooter
-      total={flow.total}
-      isLast={flow.isLast}
-      isSubmitting={isSubmitting}
-      quantity={quantity}
-      setQuantity={setQuantity}
-      onAdd={() => flow.addOrJumpToBlocker(addToCart)}
-      onContinue={flow.goNext}
-      isSkip={flow.isSkip}
-      skipLabel={stepSkipLabel(step, t)}
-      blockedMessage={flow.showBlocker ? t(`step_blocked_${flow.blocker}`) : undefined}
-    />
-  );
+  const footer = footerFor({
+    optionFooter,
+    isBlocked,
+    notice,
+    onSwitchOrderType: switchOrderTypeAndClose,
+    styles,
+    flow,
+    step,
+    isSubmitting,
+    quantity,
+    setQuantity,
+    addToCart,
+    t,
+  });
 
   return (
-    <BaseModal isOpen={isOpen} onClose={close} title={title} size="lg" footer={footer}>
+    <BaseModal isOpen={isOpen} onClose={dismiss} title={title} size="lg" footer={footer}>
       <div className={styles.body}>
-        {/* No dish photo here, deliberately (MENU-DESIGN-CONFORMANCE-PLAN D8). The two
-            `item_details_*` screens that show one are CRAFT designs, not classic, so they do not
-            govern this surface; the lightbox already owns the photo from the card; and a hero would
-            push the variations and the Add button below the fold at 390px. Settled — do not re-open. */}
-        <SheetIntro
-          description={description}
-          allergens={intro.allergens}
-          preparationTimeMinutes={intro.preparationTimeMinutes}
-        />
-
-        {isGuided && (
-          <SheetStepProgress
-            steps={flow.steps}
-            index={flow.index}
-            furthest={flow.furthest}
-            onJump={flow.goTo}
-            onBack={flow.goBack}
-          />
-        )}
-
-        {step && (
-          <SheetStepPanel
-            stepId={step.id}
-            direction={flow.direction}
-            title={stepLabel(step, t)}
-            isRequired={step.isRequired}
-            requiredLabel={t('required')}
-            steady={isGuided}
-          >
-            <SheetStepContent
-              controller={controller}
-              step={step}
-              reviewRows={flow.reviewRows}
-              onJump={flow.jumpToStep}
-              onChoice={flow.advanceAfterChoice}
-              drinks={drinks}
-            />
-          </SheetStepPanel>
-        )}
-
-        {/* Without a guided flow there is no review step to host it, and the note must not vanish
-            for the simple items that are most of the catalogue. With one, it lives on the review
-            step — asking for "no onions" before the guest has chosen anything is the wrong order. */}
-        {!isGuided && (
-          <SpecialRequestSection
-            specialInstructions={controller.specialInstructions}
-            onInstructionsChange={controller.setSpecialInstructions}
+        {optionFlow ? (
+          // The per-option screen REPLACES the bundle body: the intro above describes the combo,
+          // not the option being customized, and the option's steps carry their own progress rail.
+          <BundleOptionCustomizationScreen flow={optionFlow} />
+        ) : (
+          <ProductFlowBody
+            controller={controller}
+            flow={flow}
+            step={step}
+            isGuided={isGuided}
+            drinks={drinks}
+            description={description}
+            t={t}
+            intro={intro}
           />
         )}
       </div>

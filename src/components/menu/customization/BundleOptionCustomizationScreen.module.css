@@ -1,0 +1,47 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* The way back to the bundle sheet. Same 44px target and rtl mirroring rule as the progress
+   rail's back button, which sits directly below it on a guided option. */
+.header {
+  display: flex;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-start: -0.5rem;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.back:hover {
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.back svg {
+  transform: none;
+}
+
+[dir='rtl'] .back svg {
+  transform: scaleX(-1);
+}
+
+.headerName {
+  overflow: hidden;
+  max-width: 16rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}

@@ -69,11 +69,8 @@ const multiSection: MenuSection = {
 const props = (over: Partial<React.ComponentProps<typeof BundleSectionSelector>> = {}) => ({
   section,
   selectedOptions: [] as SelectedMenuOption[],
-  expandedOptionKey: null,
   currentLanguage: 'en',
   onToggleOption: jest.fn(),
-  onToggleExpanded: jest.fn(),
-  onCustomizationChange: jest.fn(),
   ...over,
 });
 
@@ -150,31 +147,36 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByText(/choose_range\(min=1,max=3\)/)).toBeInTheDocument();
   });
 
-  it('offers the drill-in only for a selected option that has ingredients', () => {
-    const onToggleExpanded = jest.fn();
-    const { rerender } = render(<BundleSectionSelector {...props({ onToggleExpanded })} />);
+  // The guest sheet's Customize NAVIGATES — the sheet hosts the option's guided screen — so the
+  // row's button is a plain button, not a disclosure (an aria-expanded would promise a panel on
+  // this row that never appears).
+  it('offers Customize only for a selected option that has ingredients, and raises it', () => {
+    const onCustomizeOption = jest.fn();
+    const { rerender } = render(<BundleSectionSelector {...props({ onCustomizeOption })} />);
     // Nothing selected yet → no Customize affordance.
     expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
 
     const selectedOptions = [{ sectionId: 'main', itemId: 'burger', quantity: 1 }];
-    rerender(<BundleSectionSelector {...props({ selectedOptions, onToggleExpanded })} />);
+    rerender(<BundleSectionSelector {...props({ selectedOptions, onCustomizeOption })} />);
 
     const customize = screen.getByRole('button', { name: 'customize' });
-    expect(customize).toHaveAttribute('aria-expanded', 'false');
+    expect(customize).not.toHaveAttribute('aria-expanded');
 
     fireEvent.click(customize);
-    expect(onToggleExpanded).toHaveBeenCalledWith('main', 'burger');
+    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger');
   });
 
-  it('never offers the drill-in for an option with no ingredients', () => {
+  it('never offers Customize for an option with no ingredients', () => {
     const selectedOptions = [{ sectionId: 'main', itemId: 'wrap', quantity: 1 }];
     render(<BundleSectionSelector {...props({ selectedOptions })} />);
 
     expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
   });
 
-  it('expands the ingredients inline — not in a nested modal — and reports a change', () => {
-    const onCustomizationChange = jest.fn();
+  // The staff modal keeps the INLINE panel — expanding in place is the counter shape. This is the
+  // only consumer of the disclosure props.
+  it('expands the option panel inline in staff mode, with a disclosure button, and reports a change', () => {
+    const onChange = jest.fn();
     const selectedOptions = [
       {
         sectionId: 'main',
@@ -186,21 +188,27 @@ describe('BundleSectionSelector', () => {
     ];
     render(
       <BundleSectionSelector
-        {...props({ selectedOptions, expandedOptionKey: 'main::burger', onCustomizationChange })}
+        {...props({
+          selectedOptions,
+          onCustomizeOption: jest.fn(),
+          inlinePanel: { expandedOptionKey: 'main::burger', onToggle: jest.fn(), onChange },
+        })}
       />,
     );
 
+    expect(screen.getByRole('button', { name: 'customize' })).toHaveAttribute('aria-expanded', 'true');
     const cheeseBox = screen.getByRole('checkbox', { name: /Cheese/ });
     expect(cheeseBox).toBeChecked();
 
     // Deselecting an included-in-base optional must report the removal, so the kitchen ticket can
     // print "NO Cheese" (backend derives IsRemoved from quantity 0 — issue #150).
     fireEvent.click(cheeseBox);
-    expect(onCustomizationChange).toHaveBeenCalledWith('main', 'burger', { selectedIngredients: [] });
-    expect(onCustomizationChange).toHaveBeenCalledWith('main', 'burger', { ingredientQuantities: { cheese: 0 } });
+    expect(onChange).toHaveBeenCalledWith('main', 'burger', { selectedIngredients: [] });
+    expect(onChange).toHaveBeenCalledWith('main', 'burger', { ingredientQuantities: { cheese: 0 } });
   });
 
-  it('flattens the fixed one-item Plat and exposes its child customization without a picker', () => {
+  it('flattens the fixed one-item Plat: guest mode raises Customize where the picker was', () => {
+    const onCustomizeOption = jest.fn();
     const fixedPlat: MenuSection = { ...section, name: 'Plat', items: [section.items[0]] };
     const selectedOptions = [
       {
@@ -212,7 +220,34 @@ describe('BundleSectionSelector', () => {
       },
     ];
 
-    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions })} />);
+    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions, onCustomizeOption })} />);
+
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'customize' }));
+    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger');
+  });
+
+  it('keeps the staff fixed Plat expanded in place, with no Customize button on top', () => {
+    const fixedPlat: MenuSection = { ...section, name: 'Plat', items: [section.items[0]] };
+    const selectedOptions = [
+      {
+        sectionId: 'main',
+        itemId: 'burger',
+        quantity: 1,
+        selectedIngredients: ['cheese'],
+        ingredientQuantities: { cheese: 1 },
+      },
+    ];
+
+    render(
+      <BundleSectionSelector
+        {...props({
+          section: fixedPlat,
+          selectedOptions,
+          inlinePanel: { expandedOptionKey: null, onToggle: jest.fn(), onChange: jest.fn() },
+        })}
+      />,
+    );
 
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();

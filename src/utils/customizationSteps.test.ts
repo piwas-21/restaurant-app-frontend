@@ -1,5 +1,11 @@
-import { buildBundleSteps, buildProductSteps, offersGenericDrinks, stepBlocker } from './customizationSteps';
-import type { DetailedProduct, MenuSection } from '@/types/menu';
+import {
+  buildBundleSteps,
+  buildOptionSteps,
+  buildProductSteps,
+  offersGenericDrinks,
+  stepBlocker,
+} from './customizationSteps';
+import type { DetailedProduct, MenuSection, MenuSectionItem, SauceGroupCarrier } from '@/types/menu';
 
 const ingredient = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -8,6 +14,8 @@ const ingredient = (id: string, overrides: Record<string, unknown> = {}) => ({
   isOptional: true,
   isActive: true,
   displayOrder: 1,
+  isIncludedInBasePrice: false,
+  maxQuantity: 1,
   ...overrides,
 });
 
@@ -144,6 +152,56 @@ describe('buildProductSteps — the flow is DERIVED, so a simple item stays simp
       product({ detailedIngredients: sauces, sauceMin: 1, sauceMax: 1 } as Partial<DetailedProduct>),
     )[0];
     expect(single).toMatchObject({ kind: 'sauces', isRequired: true, singleChoice: true });
+  });
+});
+
+describe('buildOptionSteps — the per-option screen runs the SAME machinery as a product', () => {
+  const option = (overrides: Partial<MenuSectionItem & SauceGroupCarrier> = {}): MenuSectionItem =>
+    ({
+      id: 'si-burger',
+      productId: 'burger',
+      additionalPrice: 0,
+      displayOrder: 1,
+      isDefault: true,
+      detailedIngredients: [],
+      ...overrides,
+    }) as unknown as MenuSectionItem;
+
+  it('derives ingredients first, sauces as their own step, the special request LAST', () => {
+    const steps = buildOptionSteps(
+      option({
+        detailedIngredients: [ingredient('onion'), ingredient('garlic', { kind: 'sauce' })],
+      }),
+    );
+
+    expect(steps.map((step) => step.kind)).toEqual(['ingredients', 'sauces', 'special']);
+  });
+
+  it('always carries the special request, even for an option with nothing else to choose', () => {
+    const steps = buildOptionSteps(option());
+
+    expect(steps.map((step) => step.kind)).toEqual(['special']);
+    expect(steps).toHaveLength(1);
+  });
+
+  it("takes the sauces step's requirement and widget from the OPTION's own rule", () => {
+    const steps = buildOptionSteps(
+      option({ sauceMin: 1, sauceMax: 1, detailedIngredients: [ingredient('garlic', { kind: 'sauce' })] }),
+    );
+    const sauces = steps.find((step) => step.kind === 'sauces');
+
+    expect(sauces?.isRequired).toBe(true);
+    expect(sauces?.singleChoice).toBe(true);
+  });
+
+  it('never appends a review step — the special request IS the last panel', () => {
+    const steps = buildOptionSteps(
+      option({
+        detailedIngredients: [ingredient('onion'), ingredient('garlic', { kind: 'sauce' })],
+      }),
+    );
+
+    expect(steps.some((step) => step.kind === 'review')).toBe(false);
   });
 });
 

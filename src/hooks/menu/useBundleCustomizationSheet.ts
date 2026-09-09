@@ -6,7 +6,6 @@ import { useCart } from '@/components/cart/CartContext';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
-  bundleOptionKey,
   buildDefaultBundleSelection,
   findBundleSelectionErrors,
   toggleBundleOption,
@@ -43,7 +42,9 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedMenuOption[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const [expandedOptionKey, setExpandedOptionKey] = useState<string | null>(null);
+  /** The option whose guided customization screen is open, if any (the 2026-09 owner override of
+   * #175's inline drill-in). Keyed by section+item, resolved by the sheet against the payload. */
+  const [customizingOption, setCustomizingOption] = useState<{ sectionId: string; itemId: string } | null>(null);
   const [showValidation, setShowValidation] = useState(false);
 
   const sections = useMemo(() => bundle?.menuDefinition?.sections ?? [], [bundle]);
@@ -56,6 +57,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const close = useCallback(() => {
     setIsOpen(false);
     setBundle(null);
+    setCustomizingOption(null);
   }, []);
 
   const openForBundle = useCallback(
@@ -70,7 +72,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
       setSelectedOptions(buildDefaultBundleSelection(next.menuDefinition.sections));
       setQuantity(1);
       setSpecialInstructions('');
-      setExpandedOptionKey(null);
+      setCustomizingOption(null);
       setShowValidation(false);
       setBundle(next);
       setIsOpen(true);
@@ -96,9 +98,9 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
 
   const toggleOption = useCallback((section: MenuSection, itemId: string) => {
     setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
-    // Collapse the drill-in if its option just went away, so re-picking the option later doesn't
-    // silently reopen a panel the guest had closed.
-    setExpandedOptionKey((prev) => (prev === bundleOptionKey(section.id, itemId) ? null : prev));
+    // Close the option's screen if its option just went away, so re-picking it later doesn't
+    // silently reopen a screen the guest had left.
+    setCustomizingOption((prev) => (prev?.sectionId === section.id && prev.itemId === itemId ? null : prev));
   }, []);
 
   const setOptionCustomization = useCallback(
@@ -108,9 +110,12 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     [],
   );
 
-  const toggleOptionExpanded = useCallback((sectionId: string, itemId: string) => {
-    const key = bundleOptionKey(sectionId, itemId);
-    setExpandedOptionKey((prev) => (prev === key ? null : key));
+  const openOptionCustomization = useCallback((sectionId: string, itemId: string) => {
+    setCustomizingOption({ sectionId, itemId });
+  }, []);
+
+  const closeOptionCustomization = useCallback(() => {
+    setCustomizingOption(null);
   }, []);
 
   const addToCart = useCallback(async () => {
@@ -170,8 +175,9 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     selectedOptions,
     toggleOption,
     setOptionCustomization,
-    expandedOptionKey,
-    toggleOptionExpanded,
+    customizingOption,
+    openOptionCustomization,
+    closeOptionCustomization,
     specialInstructions,
     setSpecialInstructions,
     visibleErrors,

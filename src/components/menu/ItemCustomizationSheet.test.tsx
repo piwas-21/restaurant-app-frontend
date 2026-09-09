@@ -71,7 +71,7 @@ function bundleController(availability?: unknown): SheetController {
     sections: [],
     selectedOptions: [],
     visibleErrors: [],
-    expandedOptionKey: null,
+    customizingOption: null,
   } as unknown as SheetController;
 }
 

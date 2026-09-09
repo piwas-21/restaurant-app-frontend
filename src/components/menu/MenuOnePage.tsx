@@ -8,6 +8,7 @@ import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import { MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
+import { groupedBundlesFor } from '@/hooks/publicMenu/mappers';
 import { onePageSectionId, type UseOnePageMenuReturn } from '@/hooks/useOnePageMenu';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
@@ -39,10 +40,13 @@ interface MenuOnePageProps {
  * The one-page layout body: one section per category in nav order, then ONE bundles
  * section. Deliberate placement decisions (stated in the PR):
  *
- *  - **Sections are products-only; bundles have one section of their own.** Grouping
- *    each bundle into its categories AND keeping the bundles listing would print the
- *    same combo twice on one page; dropping the listing would hide bundles the admin
- *    listed under no category. One section is honest in both directions.
+ *  - **Sections mirror their category tab: dishes PLUS the bundles listed in that
+ *    category** — the SAME `groupedBundlesFor` mapping the tabs grid uses, so a combo
+ *    the admin listed under two categories prints under both sections, exactly as it
+ *    prints under both tabs. The bundles listing at the foot stays too (the Bundles
+ *    tab's counterpart), so a bundle shows once per placement its `categoryIds` name
+ *    plus the dedicated listing — the tabs layout shows the same card in the same
+ *    places.
  *  - **One filter row for the whole page**, above the sections: the chips tally every
  *    loaded dish, and each section filters itself with the same active set. A row per
  *    section would be N copies of the same controls.
@@ -80,15 +84,25 @@ export default function MenuOnePage({
   // they are transient — and chips that empty the listing hide it like any other section.
   const showBundlesSection = bundlesState.isLoading || bundlesState.error !== null || menuBundles.length > 0;
 
-  const shownCount = useMemo(
-    () =>
-      sections.reduce(
-        (total, section) =>
-          total + section.state.items.filter((item) => matchesFilters(item, filters.activeIds)).length,
-        0,
-      ) + visibleBundles.length,
-    [sections, visibleBundles, filters.activeIds],
-  );
+  // Every card the page prints, each entity counted ONCE: a combo listed in two
+  // categories prints three times (both sections + the bundles listing, exactly the
+  // placements the tabs layout offers), but the "N of M dishes" sentence counts dishes,
+  // not placements — so `shown` can never exceed the loaded `total`.
+  const shownCount = useMemo(() => {
+    const shown = new Set<string>();
+    for (const { category, state } of sections) {
+      for (const item of state.items) {
+        if (matchesFilters(item, filters.activeIds)) shown.add(item.id);
+      }
+      for (const bundle of groupedBundlesFor(category.id, false, false, false, menuBundles)) {
+        if (matchesFilters(bundle, filters.activeIds)) shown.add(bundle.id);
+      }
+    }
+    for (const bundle of menuBundles) {
+      if (matchesFilters(bundle, filters.activeIds)) shown.add(bundle.id);
+    }
+    return shown.size;
+  }, [sections, menuBundles, filters.activeIds]);
 
   return (
     <div>
@@ -109,10 +123,17 @@ export default function MenuOnePage({
 
       {sections.map(({ category, state }, index) => {
         const visible = state.items.filter((item) => matchesFilters(item, filters.activeIds));
+        // The SAME mapping a category tab feeds its grid (`groupedBundlesFor` over the
+        // bundle's own admin-assigned `categoryIds`) — so a combo listed under two
+        // categories lands in both sections here, as it does under both tabs. Order-type
+        // dimming rides each bundle's own `availability` through the card, the same
+        // channel a tab uses; no per-section verdict is computed here.
+        const sectionBundles = groupedBundlesFor(category.id, false, false, false, menuBundles);
+        const visibleSectionBundles = sectionBundles.filter((bundle) => matchesFilters(bundle, filters.activeIds));
         // Under active chips an empty section is NOISE, not information — the chip row
         // already says how much survives overall. Without chips, "no dishes here yet"
         // is the tenant's true state and stays visible (same rule as a tab).
-        if (isFiltered && visible.length === 0) return null;
+        if (isFiltered && visible.length === 0 && visibleSectionBundles.length === 0) return null;
         return (
           <section
             key={category.id}
@@ -126,7 +147,17 @@ export default function MenuOnePage({
               description={category.description}
               isLoading={state.isLoading}
               errorMessage={state.error ? t('error_loading_menu_items') : null}
-              isEmpty={!state.isLoading && !state.error && state.items.length === 0}
+              isEmpty={
+                !state.isLoading &&
+                !state.error &&
+                state.items.length === 0 &&
+                sectionBundles.length === 0 &&
+                // While the bundles pipeline is in flight `menuBundles` is deliberately
+                // empty, so a zero-dish category WITH assigned bundles would flash
+                // "No dishes here yet" before its combo cards land. A loading pipeline
+                // is "not yet known", not "truly empty".
+                !bundlesState.isLoading
+              }
               loadingMessage={t('loading_items', 'Loading items...')}
               emptyMessage={t('no_items_in_category', { categoryName: category.name })}
               emptyHeading={
@@ -139,10 +170,10 @@ export default function MenuOnePage({
               browseLabel={t('browse_full_menu', 'Browse full menu')}
               onRetry={state.error ? () => refetchCategory(category.id) : undefined}
             />
-            {!state.isLoading && !state.error && visible.length > 0 && (
+            {!state.isLoading && !state.error && (visible.length > 0 || visibleSectionBundles.length > 0) && (
               <MenuList
                 products={visible}
-                bundles={[]}
+                bundles={visibleSectionBundles}
                 onOpenItem={onOpenItem}
                 onFeedbackSuccess={() => {}}
                 onSwitchOrderType={onSwitchOrderType}

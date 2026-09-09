@@ -6,10 +6,11 @@ import type { UseOnePageMenuReturn } from '@/hooks/useOnePageMenu';
 
 /**
  * The one-page layout body (menuLayout = "onepage"). Pinned here: sections in nav
- * order with real headings, the featured hero living in the FIRST section's grid,
- * ONE filter row for the whole page, the bundles section trailing the categories,
- * and a section the active chips empty skipping itself instead of printing an
- * empty headed band.
+ * order with real headings, each section carrying the bundles its category lists (the
+ * tabs `groupedBundlesFor` mapping — a bundle of two categories prints in both
+ * sections AND the trailing bundles listing), the featured hero living in the FIRST
+ * section's grid, ONE filter row for the whole page, and a section the active chips
+ * empty skipping itself instead of printing an empty headed band.
  */
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -59,13 +60,17 @@ jest.mock(
       );
     },
 );
+// The chips' active set, exposed so a test can turn a chip on and watch the section
+// bundles re-filter through the SAME `matchesFilters` the products go through. The
+// `mock` prefix is what lets the hoisted jest.mock factory read it.
+const mockActiveIds = new Set<string>();
 jest.mock('@/hooks/menu/useMenuFilters', () => {
   const actual = jest.requireActual('@/hooks/menu/useMenuFilters');
   return {
     ...actual,
     useMenuFilters: () => ({
       options: [{ id: 'without:gluten', kind: 'without', token: 'gluten', count: 1 }],
-      activeIds: new Set<string>(),
+      activeIds: mockActiveIds,
       toggle: jest.fn(),
       clear: jest.fn(),
       filtered: [],
@@ -85,7 +90,7 @@ function dish(id: string): MenuItem {
   };
 }
 
-function bundle(id: string): MenuBundleItem {
+function bundle(id: string, categoryIds: string[] = ['cat-mains']): MenuBundleItem {
   return {
     id,
     name: id,
@@ -108,7 +113,7 @@ function bundle(id: string): MenuBundleItem {
     isSpecial: false,
     displayOrder: 0,
     allergens: [],
-    categoryIds: ['cat-mains'],
+    categoryIds,
   };
 }
 
@@ -146,6 +151,7 @@ const shared = {
 beforeEach(() => {
   listProps.length = 0;
   filterProps.length = 0;
+  mockActiveIds.clear();
 });
 
 describe('MenuOnePage — sections', () => {
@@ -163,17 +169,77 @@ describe('MenuOnePage — sections', () => {
     expect(screen.getAllByTestId('status')[0].getAttribute('data-title')).toBe('Starters');
   });
 
-  it('feeds each section its own products and puts ALL bundles in the trailing bundles section', () => {
+  it('lists each bundle in its category section AND keeps the full bundles listing at the foot', () => {
     render(<MenuOnePage {...shared} controller={controller()} />);
 
     expect(listProps).toHaveLength(3);
     expect(listProps[0].products.map((p) => p.id)).toEqual(['humus']);
     expect(listProps[1].products.map((p) => p.id)).toEqual(['kefta', 'adana']);
+    // combo-1 lists cat-mains: its section carries it, and the trailing bundles listing
+    // keeps it — the same two placements a tabs page offers (the category tab + the
+    // Bundles tab). Sections without the combo list none.
+    expect(listProps[1].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    expect(listProps[0].bundles).toEqual([]);
     expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
-    // A combo must not ALSO appear inside its category section — one listing, no duplicates.
-    for (const list of listProps.slice(0, 2)) {
-      expect(list.bundles).toEqual([]);
-    }
+  });
+
+  it('shows a bundle listed in two categories in BOTH sections (the reported regression)', () => {
+    // The tabs layout prints 'Tacos 1 Viande' under the Tacos tab and the Viande tab
+    // (and the Bundles tab); one-page must print it in the same three places.
+    const twoCategoryBundle = bundle('combo-1', ['cat-starters', 'cat-mains']);
+    render(<MenuOnePage {...shared} controller={controller({ menuBundles: [twoCategoryBundle] })} />);
+
+    expect(listProps).toHaveLength(3);
+    expect(listProps[0].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    expect(listProps[1].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    // The chip tally counts DISHES, not placements: 3 dishes + 1 bundle — the combo
+    // printing three times must not push `shown` to 6.
+    expect(filterProps).toHaveLength(1);
+    expect(filterProps[0].shown).toBe(4);
+  });
+
+  it('lists an orphan bundle (no categories) only in the trailing bundles listing', () => {
+    const orphan = bundle('combo-1', []);
+    render(<MenuOnePage {...shared} controller={controller({ menuBundles: [orphan] })} />);
+
+    expect(listProps).toHaveLength(3);
+    // Degradation is "no extra placement, never a vanished combo": no section claims it.
+    expect(listProps[0].bundles).toEqual([]);
+    expect(listProps[1].bundles).toEqual([]);
+    expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
+  });
+
+  it('filters the section bundles with the active chips and keeps a bundles-only section alive', () => {
+    mockActiveIds.add('without:gluten');
+    render(
+      <MenuOnePage
+        {...shared}
+        controller={controller({
+          // Listed in Starters, whose only dish the chip excludes.
+          menuBundles: [bundle('combo-1', ['cat-starters'])],
+          sections: [
+            {
+              category: { id: 'cat-starters', name: 'Starters' },
+              state: { items: [{ ...dish('humus'), allergens: ['gluten'] }], isLoading: false, error: null },
+            },
+            {
+              category: { id: 'cat-mains', name: 'Grills' },
+              state: { items: [dish('kefta')], isLoading: false, error: null },
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(listProps).toHaveLength(3);
+    // Starters' only dish fails the chip, but the section survives on its bundle: not
+    // skipped, and the failing dish does not print.
+    expect(listProps[0].products).toEqual([]);
+    expect(listProps[0].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    expect(listProps[1].products.map((p) => p.id)).toEqual(['kefta']);
+    expect(listProps[1].bundles).toEqual([]);
+    expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
   });
 
   it("hands the featured hero to the FIRST section's grid only", () => {

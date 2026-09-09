@@ -2,7 +2,13 @@ import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSid
 import { isSauce, toSauceGroupRule } from './sauceGroup';
 import { findBundleSelectionErrors } from './bundleSelection';
 import { isBaseRowHidden } from './baseProductVisibility';
-import type { DetailedProduct, MenuSection, SelectedMenuOption } from '@/types/menu';
+import type {
+  DetailedProduct,
+  MenuSection,
+  MenuSectionItem,
+  SauceGroupCarrier,
+  SelectedMenuOption,
+} from '@/types/menu';
 
 /**
  * The step model behind the guided customization flow (MENU-CUSTOMIZATION-FLOW-PLAN §3.1).
@@ -15,7 +21,7 @@ import type { DetailedProduct, MenuSection, SelectedMenuOption } from '@/types/m
  * `buildProductSteps`.
  */
 
-export type StepKind = 'variations' | 'ingredients' | 'sauces' | 'sides' | 'drinks' | 'section' | 'review';
+export type StepKind = 'variations' | 'ingredients' | 'sauces' | 'sides' | 'drinks' | 'section' | 'special' | 'review';
 
 export interface CustomizationStep {
   /** Stable within one sheet — used as the animation key and the progress-segment key. */
@@ -166,6 +172,55 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
   if (withDrinks && decisions.size >= 2) steps.push(DRINKS_STEP);
 
   return withReview(steps);
+}
+
+/**
+ * One selected bundle option's steps, in flow order — the SAME machinery `buildProductSteps`
+ * follows, narrowed to what an option carries (no variations, no sides, no drinks): the
+ * ingredients step, then sauces as their own step, then the special request.
+ *
+ * This is the shared machinery the per-option customization screen runs (the owner's 2026-09
+ * override of #175's inline drill-in): the option's flow is derived from its payload exactly as a
+ * product's is, so a combo's sauces behave like the dish's — one decision per screen, gates and
+ * skip verbs included. There is no review step: the special request IS the last panel, and the
+ * screen commits back into the bundle line rather than adding one.
+ */
+export function buildOptionSteps(
+  item: Pick<MenuSectionItem, 'detailedIngredients'> & SauceGroupCarrier,
+): CustomizationStep[] {
+  const steps: CustomizationStep[] = [];
+  const ingredients = item.detailedIngredients ?? [];
+
+  if (ingredients.some((ingredient) => ingredient.isActive && !isSauce(ingredient))) {
+    steps.push({
+      id: 'ingredients',
+      kind: 'ingredients',
+      titleKey: 'customize_ingredients',
+      singleChoice: false,
+      isRequired: false,
+    });
+  }
+
+  if (ingredients.some((ingredient) => ingredient.isActive && isSauce(ingredient))) {
+    const rule = toSauceGroupRule(item);
+    steps.push({
+      id: 'sauces',
+      kind: 'sauces',
+      titleKey: 'sauces',
+      singleChoice: rule.max === 1,
+      isRequired: rule.min > 0,
+    });
+  }
+
+  steps.push({
+    id: 'special',
+    kind: 'special',
+    titleKey: 'product_special_requests',
+    singleChoice: false,
+    isRequired: false,
+  });
+
+  return steps;
 }
 
 /**

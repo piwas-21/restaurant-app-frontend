@@ -20,6 +20,13 @@ interface SheetFooterProps {
   skipLabel?: string;
   /** Why the guest cannot move on yet, revealed only once they have tried (never on arrival). */
   blockedMessage?: string;
+  /**
+   * A flow whose last step commits a SUB-edit, not the line (the per-option screen inside a
+   * bundle sheet): the labelled confirm replaces the quantity stepper and the Add, and the total
+   * keeps rendering through this component so the money cannot drift between the two shapes.
+   */
+  confirmLabel?: string;
+  onConfirm?: () => void;
 }
 
 /**
@@ -41,6 +48,8 @@ export default function SheetFooter({
   isSkip,
   skipLabel,
   blockedMessage,
+  confirmLabel,
+  onConfirm,
 }: Readonly<SheetFooterProps>) {
   const { t } = useTranslation();
 
@@ -75,6 +84,23 @@ export default function SheetFooter({
           </p>
           <button type="button" className={styles.primary} onClick={onContinue}>
             {isSkip ? (skipLabel ?? t('step_skip')) : t('step_continue')}
+          </button>
+        </div>
+        {announcement}
+      </div>
+    );
+  }
+
+  if (confirmLabel) {
+    return (
+      <div className={styles.footer}>
+        <div className={styles.row}>
+          <p className={styles.total}>
+            <span className={styles.totalLabel}>{t('total')}</span>
+            {amount}
+          </p>
+          <button type="button" className={styles.primary} onClick={onConfirm}>
+            {confirmLabel}
           </button>
         </div>
         {announcement}

@@ -14,6 +14,7 @@ import {
   sauceWidget,
   waivedSauceUnits,
 } from '@/utils/sauceGroup';
+import { groupHint, groupSummary } from './stepLabel';
 import { siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupRule } from '@/types/menu';
 import styles from './SauceGroupSection.module.css';
@@ -43,47 +44,17 @@ interface SauceGroupSectionProps {
  *
  * Three things about it are decisions, not taste:
  *  - **Collapsed by default in `disclosure`** — the 390px sheet is already full, and a fifth block
- *    expanded on open would push "Add" below the fold. The bundle option panel mounts `plain` on
- *    purpose: its panel exists only because the guest pressed Customize, so the fold trade never
- *    applied there — and the partner asked for parity with the product step (mcdoner, 2026-09).
+ *    expanded on open would push "Add" below the fold. The per-option guided screen mounts `plain`
+ *    on purpose: it is a step of its own, so the fold trade never applied there.
  *  - **The widget is DERIVED** from the rule (`max === 1` ⇒ radio, else checkboxes) and never
- *    chosen by an admin, and the exclusive "no sauce" answer sorts LAST, after a rule (GOV.UK).
+ *    chosen by an admin. The exclusive "no sauce" answer sorts FIRST — a deliberate 2026-09 owner
+ *    override of the sort-last rule (GOV.UK's "the disruptive answer goes last"): guests reach for
+ *    the leading row, and the owner wants the opt-out visible before the upsell, on products and
+ *    bundle options alike. It stays exclusive and never max-blocked — it is the way OUT.
  *  - **It computes no money.** Every price it shows is read from the SAME `waivedSauceUnits`
  *    allocation `linePrice` subtracts — the backend's single writer mirrored — so a badge here can
  *    never claim a waiver the total did not apply.
  */
-type Translate = (key: string, options?: Record<string, unknown>) => string;
-
-/**
- * The group hint — the min/max as text under the legend, never a tooltip (WCAG: a rule the guest
- * must satisfy has to be readable without hovering anything), plus what the allowance gives.
- */
-function groupHint(t: Translate, rule: SauceGroupRule): string {
-  const clauses: string[] = [];
-
-  if (rule.max === null) {
-    if (rule.min > 0) clauses.push(t('sauces_hint_at_least', { min: rule.min }));
-  } else if (rule.min === rule.max) {
-    clauses.push(t('sauces_hint_exactly', { amount: rule.max }));
-  } else if (rule.min > 0) {
-    clauses.push(t('sauces_hint_between', { min: rule.min, max: rule.max }));
-  } else {
-    clauses.push(t('sauces_hint_up_to', { max: rule.max }));
-  }
-
-  if (rule.includedFree === 1) clauses.push(t('sauces_hint_first_free'));
-  else if (rule.includedFree > 1) clauses.push(t('sauces_hint_n_free', { amount: rule.includedFree }));
-
-  return clauses.join(' ');
-}
-
-/** The collapsed one-liner: what the guest is choosing between, before they open anything. */
-function groupSummary(t: Translate, rule: SauceGroupRule, selectedCount: number, available: number): string {
-  if (selectedCount > 0) return t('sauces_summary_selected', { selected: selectedCount });
-  return rule.includedFree > 0
-    ? t('sauces_summary_free', { included: rule.includedFree, available })
-    : t('sauces_summary_available', { available });
-}
 
 export default function SauceGroupSection({
   ingredients,
@@ -204,6 +175,25 @@ export default function SauceGroupSection({
             </p>
           )}
 
+          {/* FIRST, not last — the 2026-09 owner override recorded in the file header. Exclusive
+              (checking it clears every choosable row) and never max-blocked: it is the way OUT of
+              a full group, and it zeroes exactly the rows it removes, the stored no-sauce
+              answers' rule. */}
+          {rendersNoSauceAnswer(choosable.length, rule) && (
+            <label className={`${styles.row} ${styles.rowExclusive}`}>
+              <input
+                type={widget}
+                name={`${domId}-sauce`}
+                className={styles.input}
+                checked={selectedCount === 0}
+                onChange={() =>
+                  deselect(choosable.filter((sauce) => selectedIngredients.includes(sauce.id)).map((sauce) => sauce.id))
+                }
+              />
+              <span className={styles.name}>{t('sauce_none')}</span>
+            </label>
+          )}
+
           {sauces.map((sauce) => {
             const isSelected = selectedIngredients.includes(sauce.id);
             // aria-disabled, never `disabled`: a blocked option must stay reachable and able to say WHY.
@@ -226,23 +216,6 @@ export default function SauceGroupSection({
               </label>
             );
           })}
-
-          {rendersNoSauceAnswer(choosable.length, rule) && (
-            <label className={`${styles.row} ${styles.rowExclusive}`}>
-              <input
-                type={widget}
-                name={`${domId}-sauce`}
-                className={styles.input}
-                checked={selectedCount === 0}
-                /* Never max-blocked — it is the way OUT of a full group — and it zeroes exactly
-                   the rows it removes, the stored no-sauce answers' rule. */
-                onChange={() =>
-                  deselect(choosable.filter((sauce) => selectedIngredients.includes(sauce.id)).map((sauce) => sauce.id))
-                }
-              />
-              <span className={styles.name}>{t('sauce_none')}</span>
-            </label>
-          )}
         </div>
       )}
     </fieldset>

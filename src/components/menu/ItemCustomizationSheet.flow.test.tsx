@@ -162,8 +162,10 @@ beforeEach(() => {
   mockedNotice.mockReturnValue(null);
 });
 
-/** The footer's one forward control — labelled Skip on an untouched optional step, else Continue. */
-const advance = () => fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)(_|$)/ }));
+/** The footer's one forward control — Skip/Continue, or the named "no sauce" answer on the sauces
+ * step, whose press commits the same goNext. */
+const advance = () =>
+  fireEvent.click(screen.getByRole('button', { name: /^(?:step_(?:skip|continue)(?:_|$)|sauce_none)/ }));
 
 describe('the flow is CONDITIONAL — a simple item must not pay for the complex ones', () => {
   it('gives a one-decision item no progress bar, no Continue, and an Add straight away', async () => {
@@ -504,5 +506,68 @@ describe('the skip label belongs to an untouched step, not an answered one', () 
     expect(screen.getByText('step_drinks_hint')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('the sauces step names the answer, not a verb', () => {
+  /** One optional sauce, no rule — min 0, so the built-in "no sauce" answer renders. */
+  const SAUCED = {
+    ...COMPLEX,
+    id: 'p10',
+    detailedIngredients: [
+      ingredient('onion', 'Onion', { isIncludedInBasePrice: true }),
+      ingredient('garlic', 'Garlic sauce', { kind: 'sauce' }),
+    ],
+    suggestedSideItems: [],
+  };
+
+  /** A sauce the dish always carries: choosable is empty, so no "no sauce" answer can render. */
+  const FIXED_SAUCE = {
+    ...COMPLEX,
+    id: 'p11',
+    detailedIngredients: [
+      ingredient('onion', 'Onion', { isIncludedInBasePrice: true }),
+      ingredient('house', 'House sauce', { kind: 'sauce', isOptional: false }),
+    ],
+    suggestedSideItems: [],
+  };
+
+  async function openOnSauces(product: object) {
+    await openSheet(product);
+    advance(); // variations
+    advance(); // ingredients — onto the sauces step
+  }
+
+  it('reads the no-sauce answer while nothing is ticked, and Continue only once a sauce is', async () => {
+    await openOnSauces(SAUCED);
+
+    expect(screen.getByRole('checkbox', { name: 'sauce_none' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'sauce_none' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^step_(skip|continue)/ })).not.toBeInTheDocument();
+
+    // Tick one: the answer is now a sauce, so the button is the forward verb again.
+    fireEvent.click(screen.getByRole('checkbox', { name: /Garlic sauce/ }));
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'sauce_none' })).not.toBeInTheDocument();
+
+    // Untick it: the answer is "no sauce" again — even though the step has been touched, which is
+    // the state the old untouched-only rule answered with Continue (partner report, mcdoner).
+    fireEvent.click(screen.getByRole('checkbox', { name: /Garlic sauce/ }));
+    expect(screen.getByRole('button', { name: 'sauce_none' })).toBeInTheDocument();
+  });
+
+  it('keeps the forward verb on a required sauces step — a rule with a minimum has no none answer', async () => {
+    await openOnSauces(GATED);
+
+    expect(screen.queryByRole('checkbox', { name: 'sauce_none' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+  });
+
+  it('keeps the forward verb when every sauce is fixed — there is no none answer to name', async () => {
+    await openOnSauces(FIXED_SAUCE);
+
+    expect(screen.queryByRole('checkbox', { name: 'sauce_none' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /House sauce/ })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
   });
 });

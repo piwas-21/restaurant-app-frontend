@@ -18,6 +18,12 @@ export function stepLabel(step: CustomizationStep, t: Translate): string {
  * TENANT-authored `title` cannot be declined into every language, so it keeps the generic verb.
  * The keys are per KIND, not one interpolated template, because the noun inflects per language
  * ("Sans sauce" / "No sauce" / "بدون صلصة" share no word order).
+ *
+ * The sauces step reads `sauce_none` — the SAME key the group's built-in row is labelled with —
+ * so the button and the row it answers are one string with one writer (partner feedback
+ * 2026-09: the press should read as the answer it commits, and the answer already has a name).
+ * The old `step_skip_sauces` twin was byte-identical in all ten bundles and is deleted; keeping
+ * two keys for one noun is how they drift.
  */
 export function stepSkipLabel(step: CustomizationStep | undefined, t: Translate): string {
   // The sheet renders before a step exists (flow.step is undefined at open), and an absent step
@@ -25,7 +31,7 @@ export function stepSkipLabel(step: CustomizationStep | undefined, t: Translate)
   if (!step || step.title) return t('step_skip');
   switch (step.kind) {
     case 'sauces':
-      return t('step_skip_sauces');
+      return t('sauce_none');
     case 'ingredients':
       return t('step_skip_ingredients');
     case 'drinks':

@@ -32,6 +32,14 @@ interface OptionalIngredientsSectionProps {
    * two steps at once, each able to undo the other.
    */
   includeSauces?: boolean;
+  /**
+   * Which shape the sauces group takes (passed straight through to `SauceGroupSection`). The
+   * default `disclosure` is the collapsed one-liner; the bundle option panel passes `plain` so a
+   * combo's sauces look and behave like the single-product step's — expanded, with the built-in
+   * "no sauce" answer in view (partner feedback, mcdoner: the two surfaces answered the same
+   * question with two different designs). Only meaningful together with `includeSauces`.
+   */
+  sauceVariant?: 'disclosure' | 'plain';
 }
 
 export default function OptionalIngredientsSection({
@@ -44,6 +52,7 @@ export default function OptionalIngredientsSection({
   sauceGroup,
   headless = false,
   includeSauces = true,
+  sauceVariant = 'disclosure',
 }: OptionalIngredientsSectionProps) {
   const { t } = useTranslation();
 
@@ -194,15 +203,22 @@ export default function OptionalIngredientsSection({
           mounts THIS component directly (`BundleOptionRow`), so a sauces group placed here reaches
           the bundle body for free and can never drift from the product one. */}
       {includeSauces && (
-        <SauceGroupSection
-          ingredients={ingredients}
-          rule={toSauceGroupRule(sauceGroup)}
-          selectedIngredients={selectedIngredients}
-          ingredientQuantities={ingredientQuantities}
-          onSelectionChange={onSelectionChange}
-          onQuantityChange={onQuantityChange}
-          currentLanguage={currentLanguage}
-        />
+        <>
+          {/* `plain` drops the group's own disclosure header, so this heading is what says what
+              the rows below it choose between — the same job the `h4`s above do for the two
+              ingredient partitions. */}
+          {sauceVariant === 'plain' && hasSauces && <h4 className={styles.groupTitle}>{t('sauces')}</h4>}
+          <SauceGroupSection
+            ingredients={ingredients}
+            rule={toSauceGroupRule(sauceGroup)}
+            selectedIngredients={selectedIngredients}
+            ingredientQuantities={ingredientQuantities}
+            onSelectionChange={onSelectionChange}
+            onQuantityChange={onQuantityChange}
+            currentLanguage={currentLanguage}
+            variant={sauceVariant}
+          />
+        </>
       )}
     </div>
   );

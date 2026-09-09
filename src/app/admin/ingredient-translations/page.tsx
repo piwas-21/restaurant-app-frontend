@@ -74,7 +74,7 @@ function IngredientTranslationsPage() {
             <select
               className={styles.pageSizeSelect}
               value={view.pageSize}
-              onChange={(event) => view.setPageSize(Number(event.target.value))}
+              onChange={(event) => view.updatePageSize(Number(event.target.value))}
             >
               {INGREDIENT_TRANSLATIONS_PAGE_SIZES.map((size) => (
                 <option key={size} value={size}>
@@ -123,7 +123,7 @@ function IngredientTranslationsPage() {
             value={view.query}
             placeholder={t('ingredient_translations_search')}
             aria-label={t('ingredient_translations_search')}
-            onChange={(event) => view.setQuery(event.target.value)}
+            onChange={(event) => view.updateQuery(event.target.value)}
           />
           <fieldset className={styles.chipRow} aria-label={t('all_dish_types_filter')}>
             {kindChips.map((chip) => (
@@ -131,7 +131,7 @@ function IngredientTranslationsPage() {
                 key={chip.id}
                 type="button"
                 className={`${styles.chip} ${view.kind === chip.id ? styles.chipActive : ''}`}
-                onClick={() => view.setKind(chip.id)}
+                onClick={() => view.updateKind(chip.id)}
               >
                 {chip.label}
               </button>
@@ -143,7 +143,7 @@ function IngredientTranslationsPage() {
                 key={chip.id}
                 type="button"
                 className={`${styles.chip} ${view.origin === chip.id ? styles.chipActive : ''}`}
-                onClick={() => view.setOrigin(chip.id)}
+                onClick={() => view.updateOrigin(chip.id)}
               >
                 {chip.label}
               </button>
@@ -154,12 +154,12 @@ function IngredientTranslationsPage() {
         {renderBody()}
 
         {isDirty.size > 0 && (
-          <div className={styles.saveBar} role="status">
+          <output className={styles.saveBar}>
             <span className={styles.saveBarCount}>{t('ingredient_translations_unsaved', { count: isDirty.size })}</span>
             <button type="button" className={styles.saveBarButton} disabled={saving} onClick={() => saveAll()}>
               {saving ? t('ingredient_translations_saving') : t('ingredient_translations_save_all')}
             </button>
-          </div>
+          </output>
         )}
       </div>
     </AdminAuthGuard>

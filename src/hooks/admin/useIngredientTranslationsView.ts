@@ -23,30 +23,32 @@ const DEFAULT_PAGE_SIZE = 25;
  * entries of its own and never talks to the API.
  */
 export function useIngredientTranslationsView(entries: readonly IngredientEntry[]) {
-  const [query, setQueryState] = useState('');
-  const [kind, setKindState] = useState<KindFilter>('all');
-  const [origin, setOriginState] = useState<OriginFilter>('all');
-  const [page, setPageState] = useState(1);
-  const [pageSize, setPageSizeState] = useState(DEFAULT_PAGE_SIZE);
+  const [query, setQuery] = useState('');
+  const [kind, setKind] = useState<KindFilter>('all');
+  const [origin, setOrigin] = useState<OriginFilter>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const setQuery = useCallback((value: string) => {
-    setQueryState(value);
-    setPageState(1);
+  // Each update* wraps its raw setter to also reset the page — a narrowed filter must never
+  // strand the table on an empty page (the read side clamps via safePage as a second net).
+  const updateQuery = useCallback((value: string) => {
+    setQuery(value);
+    setPage(1);
   }, []);
 
-  const setKind = useCallback((value: KindFilter) => {
-    setKindState(value);
-    setPageState(1);
+  const updateKind = useCallback((value: KindFilter) => {
+    setKind(value);
+    setPage(1);
   }, []);
 
-  const setOrigin = useCallback((value: OriginFilter) => {
-    setOriginState(value);
-    setPageState(1);
+  const updateOrigin = useCallback((value: OriginFilter) => {
+    setOrigin(value);
+    setPage(1);
   }, []);
 
-  const setPageSize = useCallback((value: number) => {
-    setPageSizeState(value);
-    setPageState(1);
+  const updatePageSize = useCallback((value: number) => {
+    setPageSize(value);
+    setPage(1);
   }, []);
 
   const filtered = useMemo(() => {
@@ -72,15 +74,15 @@ export function useIngredientTranslationsView(entries: readonly IngredientEntry[
 
   return {
     query,
-    setQuery,
+    updateQuery,
     kind,
-    setKind,
+    updateKind,
     origin,
-    setOrigin,
+    updateOrigin,
     page: safePage,
-    setPage: setPageState,
+    setPage,
     pageSize,
-    setPageSize,
+    updatePageSize,
     filteredCount: filtered.length,
     totalPages,
     paged,

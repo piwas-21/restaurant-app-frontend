@@ -226,6 +226,32 @@ describe('basketItemToLineSummary', () => {
     expect(summary.children[0].diff.removed).toEqual([]);
   });
 
+  it('maps a bundle component’s selected ingredient names into its Added row', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 10,
+      itemTotal: 10,
+      productName: 'Libanaise menu',
+      childItems: [
+        {
+          id: 'libanaise',
+          quantity: 1,
+          unitPrice: 0,
+          itemTotal: 0,
+          productName: 'Libanaise',
+          selectedIngredients: ['emmental', 'mayonnaise'],
+          selectedIngredientNames: ['Emmental', 'Mayonnaise'],
+          ingredientQuantities: { emmental: 2 },
+        },
+      ],
+    });
+
+    expect(summary.children[0].diff.added).toEqual([
+      { name: 'Emmental', quantity: 2 },
+      { name: 'Mayonnaise', quantity: 1 },
+    ]);
+  });
+
   it('adapts a component of a component', () => {
     const summary = basketItemToLineSummary({
       quantity: 1,

@@ -12,9 +12,7 @@ interface IngredientTranslationsGridProps {
   readonly entries: readonly IngredientEntry[];
   readonly edits: Readonly<Record<string, EntryEdits>>;
   readonly dirtyKeys: ReadonlySet<string>;
-  readonly savingKey: string | null;
   readonly onEdit: (entryKey: string, locale: string, name: string) => void;
-  readonly onSave: (entry: IngredientEntry) => void;
 }
 
 /**
@@ -23,15 +21,15 @@ interface IngredientTranslationsGridProps {
  *
  * It scrolls horizontally rather than squeezing the ten locale columns — the identity column
  * sticks, so the row never loses its "what am I editing" anchor while a translator scrolls
- * between `العربية` and `中文`.
+ * between `العربية` and `中文`. Saving is NOT here: the page's sticky save bar batch-applies
+ * every dirty entry at once, so no row carries its own save button (partner feedback: it hid
+ * past the tenth locale column).
  */
 export default function IngredientTranslationsGrid({
   entries,
   edits,
   dirtyKeys,
-  savingKey,
   onEdit,
-  onSave,
 }: Readonly<IngredientTranslationsGridProps>) {
   const { t } = useTranslation();
 
@@ -48,7 +46,6 @@ export default function IngredientTranslationsGrid({
                 {getLanguageNativeName(locale)}
               </th>
             ))}
-            <th className={styles.actions} scope="col" aria-label={t('save')} />
           </tr>
         </thead>
         <tbody>
@@ -58,9 +55,7 @@ export default function IngredientTranslationsGrid({
               entry={entry}
               edits={edits[entry.key] ?? {}}
               isDirty={dirtyKeys.has(entry.key)}
-              isSaving={savingKey === entry.key}
               onEdit={(locale, name) => onEdit(entry.key, locale, name)}
-              onSave={() => onSave(entry)}
             />
           ))}
         </tbody>

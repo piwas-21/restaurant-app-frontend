@@ -99,6 +99,77 @@
   padding: 1.5rem 0;
 }
 
+.paginationRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pageSizeLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.pageSizeSelect {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.showing {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Sticky batch-save bar (partner feedback: the per-row save hid past the last locale column).
+   It takes flow space after the table and pins to the viewport bottom while edits exist. */
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  box-shadow: 0 -4px 12px rgb(0 0 0 / 0.08);
+}
+
+.saveBarCount {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.saveBarButton {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.saveBarButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 700px) {
   .container {
     padding: 1rem;

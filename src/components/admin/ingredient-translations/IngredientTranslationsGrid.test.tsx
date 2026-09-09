@@ -31,19 +31,12 @@ jest.mock('@/config/languageConfig', () => {
   return { ...actual, LANGUAGE_CODES: ['en', 'fr'] };
 });
 
-const noop = jest.fn();
-
 function renderGrid(entries: IngredientEntry[], dirtyKeys = new Set<string>()) {
-  return render(
-    <IngredientTranslationsGrid
-      entries={entries}
-      edits={{}}
-      dirtyKeys={dirtyKeys}
-      savingKey={null}
-      onEdit={noop}
-      onSave={noop}
-    />,
+  const onEdit = jest.fn();
+  const view = render(
+    <IngredientTranslationsGrid entries={entries} edits={{}} dirtyKeys={dirtyKeys} onEdit={onEdit} />,
   );
+  return { onEdit, view };
 }
 
 describe('IngredientTranslationsGrid', () => {
@@ -75,22 +68,22 @@ describe('IngredientTranslationsGrid', () => {
     expect(screen.getByText('ingredient_translations_unlinked')).toBeInTheDocument();
   });
 
-  it('disables the save button until the row is dirty, then saves', () => {
-    const onSave = jest.fn();
-    render(
-      <IngredientTranslationsGrid
-        entries={[entry()]}
-        edits={{}}
-        dirtyKeys={new Set(['id:g1'])}
-        savingKey={null}
-        onEdit={noop}
-        onSave={onSave}
-      />,
-    );
+  it('tints a dirty row and never renders a per-row save button (partner feedback: it hid past the last locale column)', () => {
+    renderGrid([entry()], new Set(['id:g1']));
 
-    const save = screen.getByRole('button', { name: 'save' });
-    expect(save).toBeEnabled();
-    fireEvent.click(save);
-    expect(onSave).toHaveBeenCalledTimes(1);
+    const row = screen.getByText('Sans Sauces').closest('tr');
+    expect(row).toHaveClass('dirtyRow');
+    // Saving is the page's sticky batch bar — the grid carries no save affordance of its own.
+    expect(screen.queryByRole('button', { name: 'save' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'ingredient_translations_save_all' })).not.toBeInTheDocument();
+  });
+
+  it('routes an input change through onEdit with the entry key and locale', () => {
+    const { onEdit } = renderGrid([entry()]);
+
+    fireEvent.change(screen.getByLabelText('Français · editor_translations_field_ingredient_name'), {
+      target: { value: 'Sans sauces' },
+    });
+    expect(onEdit).toHaveBeenCalledWith('id:g1', 'fr', 'Sans sauces');
   });
 });

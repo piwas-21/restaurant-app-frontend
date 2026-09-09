@@ -428,11 +428,11 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     isDefault: false,
     ...(withIngredients ? { detailedIngredients: [sideIngredient] } : {}),
   });
+  // Spread of the drink section's shape + overrides — no second free-standing section literal.
   const sidesSection: MenuSection = {
+    ...bundle.menuDefinition.sections[1],
     id: 'sides',
     name: 'Sides',
-    displayOrder: 2,
-    isRequired: true,
     minSelection: 1,
     maxSelection: 2,
     items: [

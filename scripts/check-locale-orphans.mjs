@@ -67,6 +67,11 @@ const DYNAMIC_PREFIXES = [
   // `t('ingredient_translations_receipt_products', { count })` — the receipt sentence ("applied
   // to N products"). i18next appends the CLDR category itself, so no literal exists per category.
   'ingredient_translations_receipt_products_',
+  // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
+  // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
+  // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the
+  // receipt family above: i18next appends the CLDR category, so no literal exists per category.
+  'ingredient_translations_unsaved_',
   'my_reservations_status_',
   'order_status_',
   'payment_status_',

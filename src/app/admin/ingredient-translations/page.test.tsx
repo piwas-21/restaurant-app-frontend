@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import IngredientTranslationsPage from './page';
 import { apiClient, ApiError } from '@/utils/apiClient';
 
@@ -103,11 +103,27 @@ function routeGet(url: string) {
   return Promise.reject(new Error(`unexpected GET ${url}`));
 }
 
+/** A receipt the bulk-apply endpoint returns, sized by the test. */
+const receiptFor = (count: number, names: string[]) => ({
+  success: true,
+  data: {
+    updatedProductCount: count,
+    updatedIngredientCount: count,
+    items: names.map((productName, index) => ({
+      productId: `p${index + 1}`,
+      productName,
+      ingredientId: `i${index + 1}`,
+    })),
+  },
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
   (apiClient.get as jest.Mock).mockImplementation(routeGet);
   (apiClient.post as jest.Mock).mockResolvedValue({ success: true, data: null });
 });
+
+const enInputs = () => screen.getAllByLabelText('English · editor_translations_field_ingredient_name');
 
 describe('IngredientTranslationsPage — the page mounts, hydrates the inventory and talks to the API', () => {
   it('pages the catalog AND hydrates each carrier from its detail endpoint, then renders the rows', async () => {
@@ -158,39 +174,6 @@ describe('IngredientTranslationsPage — the page mounts, hydrates the inventory
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('save posts the bare translation list to apply-translations and shows the receipt', async () => {
-    (apiClient.post as jest.Mock).mockResolvedValue({
-      success: true,
-      data: {
-        updatedProductCount: 2,
-        updatedIngredientCount: 2,
-        items: [
-          { productId: 'p1', productName: 'Chicken Burger', ingredientId: 'i1' },
-          { productId: 'p2', productName: 'Tower Burger', ingredientId: 'i2' },
-        ],
-      },
-    });
-    render(<IngredientTranslationsPage />);
-    await screen.findByText('Lettuce');
-
-    // Rows sort sauces first, so row 0 is the 'Sans Sauces' sauce (library row g2).
-    const enInputs = screen.getAllByLabelText('English · editor_translations_field_ingredient_name');
-    fireEvent.change(enInputs[0], { target: { value: 'No sauce, please' } });
-    fireEvent.click(screen.getAllByRole('button', { name: 'save' })[0]);
-
-    await waitFor(() => expect(apiClient.post).toHaveBeenCalled());
-    const [url, body] = (apiClient.post as jest.Mock).mock.calls[0];
-    expect(url).toBe('/api/global-ingredients/g2/apply-translations');
-    // The body IS the bare list of { languageCode, name } (backend PR #511 contract).
-    expect(Array.isArray(body)).toBe(true);
-    expect(body).toEqual(
-      expect.arrayContaining([expect.objectContaining({ languageCode: 'en', name: 'No sauce, please' })]),
-    );
-
-    expect(await screen.findByText(/ingredient_translations_receipt_products:2/)).toBeInTheDocument();
-    expect(screen.getByText(/Chicken Burger/)).toBeInTheDocument();
-  });
-
   it('a failed load shows the retryable error banner instead of a dead page', async () => {
     (apiClient.get as jest.Mock).mockRejectedValue(new Error('boom'));
     render(<IngredientTranslationsPage />);
@@ -212,5 +195,207 @@ describe('IngredientTranslationsPage — the page mounts, hydrates the inventory
     expect(await screen.findByText('Sans Sauces')).toBeInTheDocument();
     expect(screen.queryByText('Lettuce')).not.toBeInTheDocument();
     expect(screen.queryByText('ingredient_translations_load_failed')).not.toBeInTheDocument();
+  });
+});
+
+describe('IngredientTranslationsPage — the origin filter (partner feedback, trans-ux)', () => {
+  const routeUnlinkedSauce = (url: string) => {
+    if (url.includes('/api/Products?')) return Promise.resolve(LIST_PAGE);
+    if (url.endsWith('/api/Products/p1')) return Promise.resolve(DETAILS.p1);
+    if (url.endsWith('/api/Products/p2'))
+      // No globalIngredientId: a legacy name-only copy — the tenant's own, not library-linked.
+      return Promise.resolve({
+        success: true,
+        data: { id: 'p2', name: 'Tower Burger', detailedIngredients: [copyOf('i2', 'Sans Sauces', { kind: 'sauce' })] },
+      });
+    return Promise.reject(new Error(`unexpected GET ${url}`));
+  };
+
+  it('splits the catalog into library-linked and tenant-custom rows, and back to all', async () => {
+    (apiClient.get as jest.Mock).mockImplementation(routeUnlinkedSauce);
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Sans Sauces');
+    expect(screen.getByText('Lettuce')).toBeInTheDocument();
+
+    const originGroup = screen.getByRole('group', { name: 'ingredient_translations_filter_origin' });
+
+    fireEvent.click(within(originGroup).getByRole('button', { name: 'ingredient_translations_origin_custom' }));
+    expect(screen.getByText('Sans Sauces')).toBeInTheDocument();
+    expect(screen.queryByText('Lettuce')).not.toBeInTheDocument();
+
+    fireEvent.click(within(originGroup).getByRole('button', { name: 'ingredient_translations_origin_library' }));
+    expect(screen.getByText('Lettuce')).toBeInTheDocument();
+    expect(screen.queryByText('Sans Sauces')).not.toBeInTheDocument();
+
+    fireEvent.click(within(originGroup).getByRole('button', { name: 'ingredient_translations_origin_all' }));
+    expect(screen.getByText('Lettuce')).toBeInTheDocument();
+    expect(screen.getByText('Sans Sauces')).toBeInTheDocument();
+  });
+});
+
+describe('IngredientTranslationsPage — batch save from the sticky bar (partner feedback, trans-ux)', () => {
+  it('an edited row raises the sticky bar; save-all applies it; the untouched row is never sent', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValue(receiptFor(2, ['Chicken Burger', 'Tower Burger']));
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Lettuce');
+
+    // No edits, no bar.
+    expect(screen.queryByRole('button', { name: 'ingredient_translations_save_all' })).not.toBeInTheDocument();
+
+    // Rows sort sauces first, so row 0 is the 'Sans Sauces' sauce (library row g2).
+    fireEvent.change(enInputs()[0], { target: { value: 'No sauce, please' } });
+
+    // The bar names ONE dirty row — Lettuce was never touched, and must never be marked dirty.
+    expect(screen.getByText('ingredient_translations_unsaved:1')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ingredient_translations_save_all' }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledTimes(1));
+    const [url, body] = (apiClient.post as jest.Mock).mock.calls[0];
+    expect(url).toBe('/api/global-ingredients/g2/apply-translations');
+    // The body IS the bare list of { languageCode, name } (backend PR #511 contract).
+    expect(Array.isArray(body)).toBe(true);
+    expect(body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ languageCode: 'en', name: 'No sauce, please' })]),
+    );
+
+    expect(await screen.findByText(/ingredient_translations_receipt_products:2/)).toBeInTheDocument();
+    expect(screen.getByText(/Chicken Burger/)).toBeInTheDocument();
+    // The batch committed: the bar is gone.
+    await waitFor(() => expect(screen.queryByText('ingredient_translations_unsaved:1')).not.toBeInTheDocument());
+  });
+
+  it('two edited rows go out as TWO bulk-applies in one press, then the bar clears', async () => {
+    (apiClient.post as jest.Mock)
+      .mockResolvedValueOnce(receiptFor(2, ['Chicken Burger', 'Tower Burger']))
+      .mockResolvedValueOnce(receiptFor(1, ['Chicken Burger']));
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Lettuce');
+
+    fireEvent.change(enInputs()[0], { target: { value: 'No sauce, please' } });
+    fireEvent.change(enInputs()[1], { target: { value: 'Cos' } });
+    expect(screen.getByText('ingredient_translations_unsaved:2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'ingredient_translations_save_all' }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledTimes(2));
+    // Sauce-first order: Sans Sauces (g2), then Lettuce (g1) — each gets its own apply.
+    expect((apiClient.post as jest.Mock).mock.calls[0][0]).toBe('/api/global-ingredients/g2/apply-translations');
+    expect((apiClient.post as jest.Mock).mock.calls[1][0]).toBe('/api/global-ingredients/g1/apply-translations');
+    expect((apiClient.post as jest.Mock).mock.calls[1][1]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ languageCode: 'en', name: 'Cos' })]),
+    );
+    // The receipt aggregates BOTH applies.
+    expect(await screen.findByText(/ingredient_translations_receipt_products:3/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('ingredient_translations_unsaved:2')).not.toBeInTheDocument());
+  });
+
+  it('an edit reverted to the shown value is not dirty — the bar never appears', async () => {
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Sans Sauces');
+
+    // The en cell SHOWS the copy's own name 'Sans Sauces'; typing it back is not an edit.
+    fireEvent.change(enInputs()[0], { target: { value: 'X' } });
+    expect(screen.getByText('ingredient_translations_unsaved:1')).toBeInTheDocument();
+    fireEvent.change(enInputs()[0], { target: { value: 'Sans Sauces' } });
+    expect(screen.queryByText('ingredient_translations_unsaved:1')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'ingredient_translations_save_all' })).not.toBeInTheDocument();
+  });
+
+  it('a mid-batch refusal keeps the failed row dirty, saves the rest, and shows the error banner', async () => {
+    (apiClient.post as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/g2/')) return Promise.resolve(receiptFor(2, ['Chicken Burger', 'Tower Burger']));
+      return Promise.resolve({ success: false, data: null });
+    });
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Lettuce');
+
+    fireEvent.change(enInputs()[0], { target: { value: 'No sauce, please' } });
+    fireEvent.change(enInputs()[1], { target: { value: 'Cos' } });
+    fireEvent.click(screen.getByRole('button', { name: 'ingredient_translations_save_all' }));
+
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledTimes(2));
+    // The landed half shows its receipt; the refused half keeps its edits.
+    expect(await screen.findByText(/ingredient_translations_receipt_products:2/)).toBeInTheDocument();
+    expect(screen.getByText('ingredient_translations_save_failed')).toBeInTheDocument();
+    expect(screen.getByText('ingredient_translations_unsaved:1')).toBeInTheDocument();
+  });
+});
+
+describe('IngredientTranslationsPage — client-side pagination (partner feedback, trans-ux)', () => {
+  /** 26 tenants-carried entries: one page of 25, plus one row on page 2. */
+  const makeCatalog = () => {
+    const items = Array.from({ length: 26 }, (_, index) => ({
+      id: `p${index + 1}`,
+      name: `Product ${index + 1}`,
+      detailedIngredients: [],
+    }));
+    const details: Record<string, unknown> = {};
+    items.forEach((item, index) => {
+      const n = index + 1;
+      details[item.id] = {
+        success: true,
+        data: {
+          id: item.id,
+          name: item.name,
+          detailedIngredients: [
+            copyOf(`i${n}`, `Ingredient ${String(n).padStart(2, '0')}`, { globalIngredientId: `g${n}` }),
+          ],
+        },
+      };
+    });
+    return {
+      list: { success: true, message: '', data: { items, totalCount: 26, pageNumber: 1, totalPages: 1 } },
+      details,
+    };
+  };
+
+  it('slices the loaded catalog, pages through it, and resets the page when the size changes', async () => {
+    const catalog = makeCatalog();
+    (apiClient.get as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/Products?')) return Promise.resolve(catalog.list);
+      const id = url.split('/api/Products/')[1];
+      return Promise.resolve(catalog.details[id]);
+    });
+
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Ingredient 01');
+
+    // Default page size 25: the first page only, with the showing caption.
+    expect(enInputs()).toHaveLength(25);
+    expect(screen.getByText('showing_items')).toBeInTheDocument();
+    expect(screen.queryByText('Ingredient 26')).not.toBeInTheDocument();
+
+    // Next page: the 26th row.
+    fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
+    expect(await screen.findByText('Ingredient 26')).toBeInTheDocument();
+    expect(screen.queryByText('Ingredient 01')).not.toBeInTheDocument();
+
+    // A bigger page size resets to page 1 and shows the whole catalog — still no refetch.
+    fireEvent.change(screen.getByLabelText('ingredient_translations_per_page'), { target: { value: '100' } });
+    expect(await screen.findByText('Ingredient 01')).toBeInTheDocument();
+    expect(enInputs()).toHaveLength(26);
+    expect(
+      (apiClient.get as jest.Mock).mock.calls.filter(([url]) => String(url).includes('/api/Products?')),
+    ).toHaveLength(1);
+  });
+
+  it('a search narrow enough for one page hides the pager controls entirely', async () => {
+    const catalog = makeCatalog();
+    (apiClient.get as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/Products?')) return Promise.resolve(catalog.list);
+      const id = url.split('/api/Products/')[1];
+      return Promise.resolve(catalog.details[id]);
+    });
+
+    render(<IngredientTranslationsPage />);
+    await screen.findByText('Ingredient 01');
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('ingredient_translations_search'), { target: { value: 'ingredient 26' } });
+    expect(await screen.findByText('Ingredient 26')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument();
+    // The page-size selector stays — it is a preference, not a pager state.
+    expect(screen.getByLabelText('ingredient_translations_per_page')).toBeInTheDocument();
   });
 });

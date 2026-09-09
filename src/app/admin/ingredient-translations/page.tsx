@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
+import Pagination from '@/components/common/Pagination';
 import IngredientTranslationsGrid from '@/components/admin/ingredient-translations/IngredientTranslationsGrid';
 import { useIngredientTranslations } from '@/hooks/admin/useIngredientTranslations';
-import { fold } from '@/utils/nameFold';
+import {
+  INGREDIENT_TRANSLATIONS_PAGE_SIZES,
+  useIngredientTranslationsView,
+  type KindFilter,
+  type OriginFilter,
+} from '@/hooks/admin/useIngredientTranslationsView';
 import styles from './styles.module.css';
-
-type KindFilter = 'all' | 'sauce' | 'ingredient';
 
 /**
  * The Ingredients & Sauces translations manager (partner feedback, mcdoner).
@@ -18,32 +22,77 @@ type KindFilter = 'all' | 'sauce' | 'ingredient';
  * reverse: every distinct ingredient and sauce the tenant uses, one row, one name per language,
  * and a save that applies the name to EVERY product and bundle option that references it.
  *
+ * Partner feedback (trans-ux): the catalog is filtered by origin (library-linked vs the tenant's
+ * own), paged client-side with a page-size selector, and saved in BATCH from a sticky bar — the
+ * old per-row save button hid past the tenth locale column.
+ *
  * Admin-only: the bulk-apply endpoint it calls writes across the whole catalog.
  */
 function IngredientTranslationsPage() {
   const { t } = useTranslation();
-  const { entries, loading, loadError, load, edits, edit, save, savingKey, receipt, saveError, isDirty } =
+  const { entries, loading, loadError, load, edits, edit, saveAll, saving, receipt, saveError, isDirty } =
     useIngredientTranslations();
-  const [query, setQuery] = useState('');
-  const [kind, setKind] = useState<KindFilter>('all');
+  const view = useIngredientTranslationsView(entries);
 
   useEffect(() => {
     load();
   }, [load]);
-
-  const visible = useMemo(() => {
-    const needle = fold(query);
-    return entries.filter((entry) => {
-      if (kind !== 'all' && (entry.isSauce ? kind !== 'sauce' : kind !== 'ingredient')) return false;
-      return needle.length === 0 || fold(entry.defaultName).includes(needle);
-    });
-  }, [entries, query, kind]);
 
   const kindChips: ReadonlyArray<{ id: KindFilter; label: string }> = [
     { id: 'all', label: t('all_dish_types_filter') },
     { id: 'sauce', label: t('sauces') },
     { id: 'ingredient', label: t('ingredients') },
   ];
+
+  const originChips: ReadonlyArray<{ id: OriginFilter; label: string }> = [
+    { id: 'all', label: t('ingredient_translations_origin_all') },
+    { id: 'library', label: t('ingredient_translations_origin_library') },
+    { id: 'custom', label: t('ingredient_translations_origin_custom') },
+  ];
+
+  const pageStart = (view.page - 1) * view.pageSize + 1;
+  const pageEnd = Math.min(view.page * view.pageSize, view.filteredCount);
+
+  const renderBody = () => {
+    if (loading) return <p className={styles.loading}>{t('loading')}</p>;
+    if (loadError)
+      return (
+        <div className={styles.errorBanner} role="alert">
+          <p>{t('ingredient_translations_load_failed')}</p>
+          <button type="button" onClick={() => load()}>
+            {t('retry')}
+          </button>
+        </div>
+      );
+    if (view.filteredCount === 0) return <p className={styles.loading}>{t('ingredient_translations_empty')}</p>;
+    return (
+      <>
+        <IngredientTranslationsGrid entries={view.paged} edits={edits} dirtyKeys={isDirty} onEdit={edit} />
+        <div className={styles.paginationRow}>
+          <label className={styles.pageSizeLabel}>
+            {t('ingredient_translations_per_page')}
+            <select
+              className={styles.pageSizeSelect}
+              value={view.pageSize}
+              onChange={(event) => view.updatePageSize(Number(event.target.value))}
+            >
+              {INGREDIENT_TRANSLATIONS_PAGE_SIZES.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Pagination currentPage={view.page} totalPages={view.totalPages} onPageChange={view.setPage} />
+          {view.filteredCount > 0 && (
+            <p className={styles.showing}>
+              {t('showing_items', { start: pageStart, end: pageEnd, total: view.filteredCount })}
+            </p>
+          )}
+        </div>
+      </>
+    );
+  };
 
   return (
     <AdminAuthGuard requiredRoles={['Admin']}>
@@ -71,18 +120,30 @@ function IngredientTranslationsPage() {
           <input
             type="search"
             className={styles.searchInput}
-            value={query}
+            value={view.query}
             placeholder={t('ingredient_translations_search')}
             aria-label={t('ingredient_translations_search')}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => view.updateQuery(event.target.value)}
           />
           <fieldset className={styles.chipRow} aria-label={t('all_dish_types_filter')}>
             {kindChips.map((chip) => (
               <button
                 key={chip.id}
                 type="button"
-                className={`${styles.chip} ${kind === chip.id ? styles.chipActive : ''}`}
-                onClick={() => setKind(chip.id)}
+                className={`${styles.chip} ${view.kind === chip.id ? styles.chipActive : ''}`}
+                onClick={() => view.updateKind(chip.id)}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </fieldset>
+          <fieldset className={styles.chipRow} aria-label={t('ingredient_translations_filter_origin')}>
+            {originChips.map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                className={`${styles.chip} ${view.origin === chip.id ? styles.chipActive : ''}`}
+                onClick={() => view.updateOrigin(chip.id)}
               >
                 {chip.label}
               </button>
@@ -90,29 +151,16 @@ function IngredientTranslationsPage() {
           </fieldset>
         </div>
 
-        {(() => {
-          if (loading) return <p className={styles.loading}>{t('loading')}</p>;
-          if (loadError)
-            return (
-              <div className={styles.errorBanner} role="alert">
-                <p>{t('ingredient_translations_load_failed')}</p>
-                <button type="button" onClick={() => load()}>
-                  {t('retry')}
-                </button>
-              </div>
-            );
-          if (visible.length === 0) return <p className={styles.loading}>{t('ingredient_translations_empty')}</p>;
-          return (
-            <IngredientTranslationsGrid
-              entries={visible}
-              edits={edits}
-              dirtyKeys={isDirty}
-              savingKey={savingKey}
-              onEdit={edit}
-              onSave={save}
-            />
-          );
-        })()}
+        {renderBody()}
+
+        {isDirty.size > 0 && (
+          <output className={styles.saveBar}>
+            <span className={styles.saveBarCount}>{t('ingredient_translations_unsaved', { count: isDirty.size })}</span>
+            <button type="button" className={styles.saveBarButton} disabled={saving} onClick={() => saveAll()}>
+              {saving ? t('ingredient_translations_saving') : t('ingredient_translations_save_all')}
+            </button>
+          </output>
+        )}
       </div>
     </AdminAuthGuard>
   );

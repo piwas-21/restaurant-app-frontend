@@ -9,9 +9,9 @@ import {
   stepBlocker,
   type CustomizationStep,
 } from '@/utils/customizationSteps';
-import { bundleStepSummary, productStepSummary, stepIsSkippable } from '@/utils/customizationSummary';
+import { stepIsSkippable } from '@/utils/customizationSummary';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
-import type { ReviewRow } from '@/components/menu/customization/SheetReviewStep';
+import { useReviewRows } from './useReviewRows';
 import type { ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
 import type { BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
 import type { DrinkUpsell } from './useDrinkUpsell';
@@ -95,34 +95,7 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   });
 
   const drinkSummary = drinks?.summary;
-
-  /** Every content step with what the guest chose — see `customizationSummary` for the None rule. */
-  const reviewRows: ReviewRow[] = useMemo(() => {
-    const contentSteps = steps.filter((step) => step.kind !== 'review');
-
-    const drinkValues = (step: CustomizationStep) =>
-      step.kind === 'drinks' ? (drinkSummary?.(controller.currentLanguage) ?? []) : null;
-
-    if (controller.kind === 'bundle') {
-      return contentSteps.map((step) => ({
-        step,
-        values: drinkValues(step) ?? (step.section ? bundleStepSummary(step.section, controller.selectedOptions) : []),
-      }));
-    }
-
-    if (!controller.product) return [];
-    const detail = controller.product;
-    const state = {
-      selectedVariationId: controller.selectedVariationId,
-      selectedIngredients: controller.selectedIngredients,
-      ingredientQuantities: controller.ingredientQuantities,
-      selectedSideItems: controller.selectedSideItems,
-    };
-    return contentSteps.map((step) => ({
-      step,
-      values: drinkValues(step) ?? productStepSummary(step, detail, state, controller.currentLanguage),
-    }));
-  }, [steps, controller, drinkSummary]);
+  const reviewRows = useReviewRows({ controller, steps, drinkSummary });
 
   const jumpToStep = useCallback(
     (target: CustomizationStep) => {
@@ -131,6 +104,30 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
     },
     [steps, flow],
   );
+
+  /**
+   * Continue on a BUNDLE section step, partner feedback 2026-09: finishing a multi-select (or
+   * fixed-Plat) section whose picks carry their own ingredients/sauces walks those options'
+   * guided screens one after another — no Customize tap. Only a SATISFIED section enters the
+   * walk (an unmet minimum is the gate's business, and its reason must render first); a section
+   * with nothing to walk advances as before.
+   *
+   * `stepGoNext` is the unwrapped advance: the walk's last Done goes through it, because by then
+   * every walkable option has been opened and finished — re-entering the walk here would loop.
+   */
+  const stepGoNext = flow.goNext;
+  const goNext = useCallback(() => {
+    if (
+      controller.kind === 'bundle' &&
+      flow.step?.kind === 'section' &&
+      flow.step.section &&
+      !flow.blocker &&
+      controller.beginOptionTour(flow.step.section)
+    ) {
+      return;
+    }
+    stepGoNext();
+  }, [controller, flow.step, flow.blocker, stepGoNext]);
 
   /**
    * Commit, or send the guest to the first thing standing in the way.
@@ -190,7 +187,7 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
    */
   const total = controller.linePrice.total + (drinks?.subtotal ?? 0);
 
-  return { ...flow, reviewRows, jumpToStep, addOrJumpToBlocker, isSkip, total };
+  return { ...flow, stepGoNext, goNext, reviewRows, jumpToStep, addOrJumpToBlocker, isSkip, total };
 }
 
 const EMPTY_SECTIONS: never[] = [];

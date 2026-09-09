@@ -262,21 +262,26 @@ describe('the no-sauce answer on the option screen', () => {
  * chosen; a multi-select section walks its picked options when the guest Continues. Customize
  * stays only as the way BACK into a visited option.
  */
+// Factories, not repeated literals: Sonar's duplication gate reads the PR delta, and several
+// near-identical bundle builders in this file crossed its threshold on the first cut.
+const bundleWithSections = (sections: MenuSection[]): MenuBundleItem => ({
+  ...BUNDLE,
+  menuDefinition: { ...BUNDLE.menuDefinition, sections },
+});
+const pickableBurgerSection = (): MenuSection => ({
+  ...mainSection,
+  items: [{ ...mainSection.items[0], isDefault: false }, mainSection.items[1]],
+});
+/** ONE required item named Plat — the exact shape `isFixedPlatSection` collapses (P3). */
+const fixedPlatSection = (): MenuSection => ({
+  ...mainSection,
+  name: 'Plat',
+  items: [{ ...mainSection.items[0], isDefault: false }],
+});
+
 describe('the guided walk — selection opens the screens by itself', () => {
   /** The burger is NOT the section default, so picking it is a real guest action. */
-  const OPEN_BUNDLE: MenuBundleItem = {
-    ...BUNDLE,
-    menuDefinition: {
-      ...BUNDLE.menuDefinition,
-      sections: [
-        {
-          ...mainSection,
-          items: [{ ...mainSection.items[0], isDefault: false }, mainSection.items[1]],
-        },
-        drinkSection,
-      ],
-    },
-  };
+  const OPEN_BUNDLE = bundleWithSections([pickableBurgerSection(), drinkSection]);
 
   it('a single-choice pick advances straight into the option\u2019s screens — no Customize tap', async () => {
     await openSheet(OPEN_BUNDLE);
@@ -317,6 +322,15 @@ describe('the guided walk — selection opens the screens by itself', () => {
   });
 
   it('a multi-select section walks its picked options in section order, starting at Continue', async () => {
+    const walkItem = (productId: string, productName: string, displayOrder: number) => ({
+      id: `si-${productId}`,
+      productId,
+      productName,
+      additionalPrice: 0,
+      displayOrder,
+      isDefault: false,
+      detailedIngredients: [BURGER_INGREDIENTS[0]],
+    });
     const sidesSection: MenuSection = {
       id: 'sides',
       name: 'Sides',
@@ -324,35 +338,9 @@ describe('the guided walk — selection opens the screens by itself', () => {
       isRequired: true,
       minSelection: 1,
       maxSelection: 2,
-      items: [
-        {
-          id: 'si-fries',
-          productId: 'fries',
-          productName: 'Fries',
-          additionalPrice: 0,
-          displayOrder: 1,
-          isDefault: false,
-          detailedIngredients: [BURGER_INGREDIENTS[0]],
-        },
-        {
-          id: 'si-salad',
-          productId: 'salad',
-          productName: 'Salad',
-          additionalPrice: 0,
-          displayOrder: 2,
-          isDefault: false,
-          detailedIngredients: [BURGER_INGREDIENTS[0]],
-        },
-      ],
+      items: [walkItem('fries', 'Fries', 1), walkItem('salad', 'Salad', 2)],
     };
-    const WALK_BUNDLE: MenuBundleItem = {
-      ...BUNDLE,
-      menuDefinition: {
-        ...BUNDLE.menuDefinition,
-        sections: [sidesSection, drinkSection],
-      },
-    };
-    await openSheet(WALK_BUNDLE);
+    await openSheet(bundleWithSections([sidesSection, drinkSection]));
 
     // Finish selecting FIRST — ticking must not drag the guest off the rows.
     fireEvent.click(screen.getByRole('checkbox', { name: /Fries/ }));
@@ -378,17 +366,7 @@ describe('the guided walk — selection opens the screens by itself', () => {
   });
 
   it('a fixed Plat\u2019s screens open when the guest Continues past its step', async () => {
-    const fixedPlat: MenuBundleItem = {
-      ...BUNDLE,
-      menuDefinition: {
-        ...BUNDLE.menuDefinition,
-        sections: [
-          { ...mainSection, name: 'Plat', items: [{ ...mainSection.items[0], isDefault: false }] },
-          drinkSection,
-        ],
-      },
-    };
-    await openSheet(fixedPlat);
+    await openSheet(bundleWithSections([fixedPlatSection(), drinkSection]));
 
     expect(screen.queryByText('customize_ingredients')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
@@ -407,21 +385,11 @@ describe('the Continue-vs-\u201cNo extras\u201d rule on the option screen', () =
     const noChoiceSection: MenuSection = {
       ...mainSection,
       items: [
-        {
-          ...mainSection.items[0],
-          isDefault: false,
-          detailedIngredients: NO_CHOICE_INGREDIENTS,
-          sauceMin: 0,
-          sauceMax: 0,
-        },
-        mainSection.items[1],
+        { ...pickableBurgerSection().items[0], detailedIngredients: NO_CHOICE_INGREDIENTS, sauceMax: 0 },
+        pickableBurgerSection().items[1],
       ],
     };
-    const NO_CHOICE_BUNDLE: MenuBundleItem = {
-      ...BUNDLE,
-      menuDefinition: { ...BUNDLE.menuDefinition, sections: [noChoiceSection, drinkSection] },
-    };
-    await openSheet(NO_CHOICE_BUNDLE);
+    await openSheet(bundleWithSections([noChoiceSection, drinkSection]));
 
     fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
     await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
@@ -442,17 +410,7 @@ describe('the Continue-vs-\u201cNo extras\u201d rule on the option screen', () =
 
 describe('fixed one-option Plat', () => {
   it('navigates to the guided screen where the redundant picker used to be', async () => {
-    const fixedPlat: MenuBundleItem = {
-      ...BUNDLE,
-      menuDefinition: {
-        ...BUNDLE.menuDefinition,
-        sections: [
-          { ...mainSection, name: 'Plat', items: [{ ...mainSection.items[0], isDefault: false }] },
-          drinkSection,
-        ],
-      },
-    };
-    await openSheet(fixedPlat);
+    await openSheet(bundleWithSections([fixedPlatSection(), drinkSection]));
 
     expect(screen.queryByRole('radio', { name: /Burger/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'customize' }));

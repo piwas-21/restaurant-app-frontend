@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useBundleCustomizationSheet } from './useBundleCustomizationSheet';
-import type { MenuBundleItem } from '@/types/menu';
+import type { MenuBundleItem, MenuSection } from '@/types/menu';
 import { ApiError } from '@/utils/apiClient';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
@@ -407,6 +407,8 @@ describe('useBundleCustomizationSheet', () => {
 });
 
 describe('the guided option walk (partner feedback 2026-09)', () => {
+  // One factory per shape, so no two multi-line literals in this file (or in the sheet's e2e
+  // specs) repeat a 10-line stretch — the PR delta is what Sonar's duplication gate reads.
   const sideIngredient = {
     id: 'onion',
     name: 'Onion',
@@ -417,53 +419,33 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     maxQuantity: 1,
     displayOrder: 1,
   };
-  /** A multi-select section whose every option carries its own ingredients. */
+  const sideItem = (productId: string, productName: string, displayOrder: number, withIngredients: boolean) => ({
+    id: `si-${productId}`,
+    productId,
+    productName,
+    additionalPrice: 0,
+    displayOrder,
+    isDefault: false,
+    ...(withIngredients ? { detailedIngredients: [sideIngredient] } : {}),
+  });
+  const sidesSection: MenuSection = {
+    id: 'sides',
+    name: 'Sides',
+    displayOrder: 2,
+    isRequired: true,
+    minSelection: 1,
+    maxSelection: 2,
+    items: [
+      sideItem('fries', 'Fries', 1, true),
+      sideItem('salad', 'Salad', 2, true),
+      sideItem('soup', 'Soup', 3, false),
+    ],
+  };
+  /** A multi-select section whose options carry their own ingredients, beside the combo's main. */
   const walkingBundle: MenuBundleItem = {
     ...bundle,
-    menuDefinition: {
-      ...bundle.menuDefinition,
-      sections: [
-        bundle.menuDefinition.sections[0],
-        {
-          id: 'sides',
-          name: 'Sides',
-          displayOrder: 2,
-          isRequired: true,
-          minSelection: 1,
-          maxSelection: 2,
-          items: [
-            {
-              id: 'si-fries',
-              productId: 'fries',
-              productName: 'Fries',
-              additionalPrice: 0,
-              displayOrder: 1,
-              isDefault: false,
-              detailedIngredients: [sideIngredient],
-            },
-            {
-              id: 'si-salad',
-              productId: 'salad',
-              productName: 'Salad',
-              additionalPrice: 0,
-              displayOrder: 2,
-              isDefault: false,
-              detailedIngredients: [sideIngredient],
-            },
-            {
-              id: 'si-soup',
-              productId: 'soup',
-              productName: 'Soup',
-              additionalPrice: 0,
-              displayOrder: 3,
-              isDefault: false,
-            },
-          ],
-        },
-      ],
-    },
+    menuDefinition: { ...bundle.menuDefinition, sections: [bundle.menuDefinition.sections[0], sidesSection] },
   };
-  const sidesSection = walkingBundle.menuDefinition.sections[1];
 
   it('starts the walk at the FIRST selected option that carries its own customization', () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());

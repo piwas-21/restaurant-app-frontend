@@ -187,7 +187,7 @@ describe('the way back keeps every selection', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /salsa/ }));
 
     // Back to the bundle sheet — the line is still open, the sauce is stored in it.
-    fireEvent.click(screen.getByRole('button', { name: 'back' }));
+    fireEvent.click(screen.getByRole('button', { name: /^back/ }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'customize' })).toBeInTheDocument());
     expect(screen.queryByText('sauces')).not.toBeInTheDocument();
 

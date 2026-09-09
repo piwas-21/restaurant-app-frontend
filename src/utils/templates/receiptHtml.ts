@@ -23,10 +23,14 @@ export const customizedIngredientRows = (item: OrderItemDto): OrderItemIngredien
   ) ?? [];
 
 /** One ingredient row on the ticket: struck-through "✘ NO X", or "+ EXTRA X" with a ×N above 1. */
-export const ingredientRowHtml = (ing: OrderItemIngredientDto, indent: number): string =>
-  ing.isRemoved
-    ? `<div style="margin-left: ${indent}px; font-size: 11pt; text-decoration: line-through;">✘ NO ${escapeHtml(ing.ingredientName)}</div>`
-    : `<div style="margin-left: ${indent}px; font-size: 11pt;">+ EXTRA ${escapeHtml(ing.ingredientName)}${ing.quantity > 1 ? ` x${ing.quantity}` : ''}</div>`;
+export const ingredientRowHtml = (ing: OrderItemIngredientDto, indent: number): string => {
+  const base = `margin-left: ${indent}px; font-size: 11pt;`;
+  if (ing.isRemoved) {
+    return `<div style="${base} text-decoration: line-through;">✘ NO ${escapeHtml(ing.ingredientName)}</div>`;
+  }
+  const suffix = ing.quantity > 1 ? ` x${ing.quantity}` : '';
+  return `<div style="${base}">+ EXTRA ${escapeHtml(ing.ingredientName)}${suffix}</div>`;
+};
 
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',

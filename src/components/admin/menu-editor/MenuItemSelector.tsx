@@ -188,7 +188,12 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
               <tr key={item.id}>
                 <td>
                   <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    {/* `type="button"` on all three: without it these default to `submit`
+                        inside the editor's page-wide form, so "remove item" silently SAVED the
+                        bundle behind the confirmation. Same defect class ConfirmationModal's
+                        comment documents for its own buttons. */}
                     <button
+                      type="button"
                       onClick={() => moveItem(index, 'up')}
                       disabled={index === 0}
                       className={styles.iconButton}
@@ -197,6 +202,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
                       ↑
                     </button>
                     <button
+                      type="button"
                       onClick={() => moveItem(index, 'down')}
                       disabled={index === items.length - 1}
                       className={styles.iconButton}
@@ -232,6 +238,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
                 </td>
                 <td>
                   <button
+                    type="button"
                     onClick={() => confirmRemoveItem(index)}
                     className={`${styles.iconButton} ${styles.danger}`}
                     title={t('remove_item')}

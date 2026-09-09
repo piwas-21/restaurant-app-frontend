@@ -167,3 +167,69 @@ describe('generateKitchenReceiptHtml — a child row with no total of its own', 
     expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(`+ Coke x2 (${formatCurrency(5)})`);
   });
 });
+
+/**
+ * The chosen-ingredient defect: the old `isRemoved || quantity > 1` filter dropped every add-on a
+ * guest chose at its default quantity 1 — which is what "extra sauce" looks like on the wire — so
+ * the chosen sauce never reached the printed kitchen ticket. `isAddOn` (backend-derived) is what
+ * lets the ticket act on it, on the root items AND inside a combo's components.
+ */
+describe('generateKitchenReceiptHtml — chosen ingredients reach the ticket', () => {
+  const orderWithChoices = () =>
+    makeOrder([
+      makeOrderItem({
+        id: 'kebab',
+        productName: 'Kebab Plate',
+        kitchenType: 'FrontKitchen',
+        ingredientCustomizations: [
+          { ingredientId: 'i1', ingredientName: 'Garlic Sauce', quantity: 1, isRemoved: false, isAddOn: true },
+          { ingredientId: 'i2', ingredientName: 'Onion', quantity: 0, isRemoved: true },
+          { ingredientId: 'i3', ingredientName: 'Olives', quantity: 0, isRemoved: false, isAddOn: true }, // unchosen
+          { ingredientId: 'i4', ingredientName: 'Dough', quantity: 1, isRemoved: false }, // base default
+          { ingredientId: 'i5', ingredientName: 'Meat', quantity: 2, isRemoved: false }, // extra portion
+        ],
+      }),
+    ]);
+
+  it('prints a chosen add-on at quantity 1 as an EXTRA line', () => {
+    const html = generateKitchenReceiptHtml(orderWithChoices(), 'FrontKitchen');
+    expect(html).toContain('+ EXTRA Garlic Sauce');
+  });
+
+  it('still prints removals and extra portions', () => {
+    const html = generateKitchenReceiptHtml(orderWithChoices(), 'FrontKitchen');
+    expect(html).toContain('✘ NO Onion');
+    expect(html).toContain('+ EXTRA Meat x2');
+  });
+
+  it('does not print what the guest never chose, nor the plain base recipe', () => {
+    const html = generateKitchenReceiptHtml(orderWithChoices(), 'FrontKitchen');
+    expect(html).not.toContain('Olives');
+    expect(html).not.toContain('Dough');
+  });
+
+  it('prints a component’s own chosen add-on beneath the component', () => {
+    const order = makeOrder([
+      makeOrderItem({
+        id: 'combo',
+        productName: 'Mezze Combo',
+        kitchenType: 'FrontKitchen',
+        sideItems: [
+          makeOrderItem({
+            id: 'hummus',
+            productName: 'Hummus',
+            kitchenType: 'FrontKitchen',
+            kind: 'BundleChild',
+            ingredientCustomizations: [
+              { ingredientId: 'y1', ingredientName: 'Harissa', quantity: 1, isRemoved: false, isAddOn: true },
+            ],
+          }),
+        ],
+      }),
+    ]);
+
+    const html = generateKitchenReceiptHtml(order, 'FrontKitchen');
+    const afterHummus = html!.split('Hummus')[1] ?? '';
+    expect(afterHummus).toContain('+ EXTRA Harissa');
+  });
+});

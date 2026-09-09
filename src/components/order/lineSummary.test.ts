@@ -116,6 +116,86 @@ describe('orderItemToLineSummary', () => {
   });
 });
 
+describe('orderItemToLineSummary — chosen paid extras (isAddOn)', () => {
+  it('shows a paid extra at its default quantity 1 — the case the old qty>1 filter hid', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        ingredientCustomizations: [
+          { ingredientId: 'a', ingredientName: 'Garlic Sauce', quantity: 1, isRemoved: false, isAddOn: true },
+          { ingredientId: 'b', ingredientName: 'Dough', quantity: 1, isRemoved: false }, // base default → hidden
+        ],
+      }),
+    );
+    expect(summary.diff.added).toEqual([{ name: 'Garlic Sauce', quantity: 1 }]);
+  });
+
+  it('keeps an unchosen add-on (explicit quantity 0) off the "Added" line', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        ingredientCustomizations: [
+          { ingredientId: 'a', ingredientName: 'Olives', quantity: 0, isRemoved: false, isAddOn: true },
+        ],
+      }),
+    );
+    expect(summary.diff.added).toEqual([]);
+    expect(summary.diff.removed).toEqual([]);
+  });
+
+  it('carries the ×N for an add-on chosen at an above-default quantity', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        ingredientCustomizations: [
+          { ingredientId: 'a', ingredientName: 'Extra Bacon', quantity: 2, isRemoved: false, isAddOn: true },
+        ],
+      }),
+    );
+    expect(summary.diff.added).toEqual([{ name: 'Extra Bacon', quantity: 2 }]);
+  });
+
+  it('a removed row wins over the add-on flag', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        ingredientCustomizations: [
+          { ingredientId: 'a', ingredientName: 'Sauce', quantity: 0, isRemoved: true, isAddOn: true },
+        ],
+      }),
+    );
+    expect(summary.diff.added).toEqual([]);
+    expect(summary.diff.removed).toEqual(['Sauce']);
+  });
+
+  it('treats a missing isAddOn (older backend payload) exactly as before', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        ingredientCustomizations: [{ ingredientId: 'a', ingredientName: 'Sauce', quantity: 1, isRemoved: false }],
+      }),
+    );
+    expect(summary.diff.added).toEqual([]);
+  });
+
+  it('shows a bundle component’s chosen add-on in the component’s own diff', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        sideItems: [
+          {
+            id: 'c1',
+            productId: 'pc',
+            productName: 'Pizza',
+            quantity: 1,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+            ingredientCustomizations: [
+              { ingredientId: 'x', ingredientName: 'Harissa', quantity: 1, isRemoved: false, isAddOn: true },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(summary.children[0].diff.added).toEqual([{ name: 'Harissa', quantity: 1 }]);
+  });
+});
+
 describe('basketItemToLineSummary', () => {
   it('maps added (with quantity), sides, and child components', () => {
     const item: BasketItemDto = {

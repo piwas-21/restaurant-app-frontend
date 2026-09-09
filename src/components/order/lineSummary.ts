@@ -85,20 +85,31 @@ export function isLineSummaryEmpty(summary: LineSummary): boolean {
 }
 
 /**
- * Build a diff from an order item's flattened ingredient customizations. The snapshot can carry
- * unchanged defaults (quantity 1), so those are skipped: only removals (`isRemoved`) and
- * above-default quantities (>1) are meaningful changes — matching the "No onion" / "Extra cheese ×2"
- * display. (The order DTO can't distinguish a default-1 from an added-optional-1, so single adds are
- * not surfaced here; the richer cart shape carries an explicit added list.)
+ * Build a diff from an order item's flattened ingredient customizations. Removals (`isRemoved`)
+ * and above-default quantities (>1) are the "No onion" / "Extra cheese ×2" display; chosen paid
+ * extras (the backend's `isAddOn`) are shown at any quantity — see `isChosenIngredient`. Base
+ * defaults at quantity 1 stay hidden: they are the dish, not a decision.
  */
 function orderDiff(customizations: OrderItemIngredientDto[] | undefined): LineIngredientDiff {
   const list = customizations ?? [];
   return {
-    added: list
-      .filter((c) => !c.isRemoved && c.quantity > 1)
-      .map((c) => ({ name: c.ingredientName, quantity: c.quantity })),
+    added: list.filter(isChosenIngredient).map((c) => ({ name: c.ingredientName, quantity: c.quantity })),
     removed: list.filter((c) => c.isRemoved).map((c) => c.ingredientName),
   };
+}
+
+/**
+ * A row counts as CHOSEN — worth an "Added:" line — when it is on the dish and says something the
+ * guest decided. Two shapes a row can take:
+ *  - a PAID EXTRA the guest opted into (`isAddOn`, backend derives it from the live recipe), shown
+ *    at ANY quantity — a fresh add-on carries `quantity: 1`, which is why the old `quantity > 1`
+ *    filter hid the guest's ordinary "extra sauce" on every order surface;
+ *  - a base-recipe row at an above-default quantity (`quantity > 1`), the "extra cheese ×2" case.
+ * A row with `quantity: 0` and `isRemoved: false` is an add-on the guest did NOT pick (the
+ * backfilled explicit zero) — the quantity half of the rule drops it.
+ */
+function isChosenIngredient(c: OrderItemIngredientDto): boolean {
+  return !c.isRemoved && c.quantity > 0 && (c.quantity > 1 || c.isAddOn === true);
 }
 
 /**

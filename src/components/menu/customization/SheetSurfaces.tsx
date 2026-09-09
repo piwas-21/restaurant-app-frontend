@@ -105,9 +105,16 @@ function BlockedFooterBar({
 export function OptionFooterBar({
   optionFlow,
   t,
+  onConfirm,
 }: Readonly<{
   optionFlow: ReturnType<typeof useBundleOptionFlow>;
   t: ReturnType<typeof useTranslation>['t'];
+  /**
+   * Done on the screen's last step — for a guided walk this advances to the next option (the
+   * caller reads `advanceTour`), for a review visit it returns to the section. Defaults to the
+   * plain close when the caller has no walk to arbitrate.
+   */
+  onConfirm?: () => void;
 }>) {
   if (!optionFlow) return null;
   return (
@@ -118,7 +125,7 @@ export function OptionFooterBar({
       quantity={1}
       setQuantity={() => undefined}
       onAdd={() => undefined}
-      onConfirm={optionFlow.close}
+      onConfirm={onConfirm ?? optionFlow.close}
       confirmLabel={t('done')}
       onContinue={optionFlow.goNext}
       isSkip={optionFlow.isSkip}

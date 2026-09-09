@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
+import { useBundleOptionTour } from '@/hooks/menu/useBundleOptionTour';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
@@ -42,12 +43,23 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedMenuOption[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
-  /** The option whose guided customization screen is open, if any (the 2026-09 owner override of
-   * #175's inline drill-in). Keyed by section+item, resolved by the sheet against the payload. */
-  const [customizingOption, setCustomizingOption] = useState<{ sectionId: string; itemId: string } | null>(null);
   const [showValidation, setShowValidation] = useState(false);
 
   const sections = useMemo(() => bundle?.menuDefinition?.sections ?? [], [bundle]);
+
+  // The per-option screens' navigation — which option is up, guided walk or review (own hook).
+  const optionTour = useBundleOptionTour({ sections, selectedOptions });
+  const {
+    customizingOption,
+    tourSectionId: optionTourSectionId,
+    openForReview: openOptionCustomization,
+    beginAt: beginOptionTourAt,
+    begin: beginOptionTour,
+    advance: advanceOptionTour,
+    close: closeOptionCustomization,
+    reset: resetOptionTour,
+    handleDeselection: forgetTouredOption,
+  } = optionTour;
 
   const title = bundle ? localizedName(bundle, currentLanguage) : '';
   // The shared display chain, so a combo whose description was never translated shows the plain one
@@ -57,8 +69,8 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const close = useCallback(() => {
     setIsOpen(false);
     setBundle(null);
-    setCustomizingOption(null);
-  }, []);
+    resetOptionTour();
+  }, [resetOptionTour]);
 
   const openForBundle = useCallback(
     (next: MenuBundleItem) => {
@@ -72,12 +84,12 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
       setSelectedOptions(buildDefaultBundleSelection(next.menuDefinition.sections));
       setQuantity(1);
       setSpecialInstructions('');
-      setCustomizingOption(null);
+      resetOptionTour();
       setShowValidation(false);
       setBundle(next);
       setIsOpen(true);
     },
-    [notifyAddFailed],
+    [notifyAddFailed, resetOptionTour],
   );
 
   const linePrice = useLinePrice({
@@ -96,12 +108,15 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   );
   const visibleErrors = useMemo(() => (showValidation ? selectionErrors : []), [showValidation, selectionErrors]);
 
-  const toggleOption = useCallback((section: MenuSection, itemId: string) => {
-    setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
-    // Close the option's screen if its option just went away, so re-picking it later doesn't
-    // silently reopen a screen the guest had left.
-    setCustomizingOption((prev) => (prev?.sectionId === section.id && prev.itemId === itemId ? null : prev));
-  }, []);
+  const toggleOption = useCallback(
+    (section: MenuSection, itemId: string) => {
+      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
+      // Close the option's screen if its option just went away, so re-picking it later doesn't
+      // silently reopen it; a selection change in the walked section kills the walk.
+      forgetTouredOption(section.id, itemId);
+    },
+    [forgetTouredOption],
+  );
 
   const setOptionCustomization = useCallback(
     (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => {
@@ -109,14 +124,6 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     },
     [],
   );
-
-  const openOptionCustomization = useCallback((sectionId: string, itemId: string) => {
-    setCustomizingOption({ sectionId, itemId });
-  }, []);
-
-  const closeOptionCustomization = useCallback(() => {
-    setCustomizingOption(null);
-  }, []);
 
   const addToCart = useCallback(async () => {
     // Guard the money-path add against double submission (rapid clicks / Enter key).
@@ -176,7 +183,11 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     toggleOption,
     setOptionCustomization,
     customizingOption,
+    optionTourSectionId,
     openOptionCustomization,
+    beginOptionTour,
+    beginOptionTourAt,
+    advanceOptionTour,
     closeOptionCustomization,
     specialInstructions,
     setSpecialInstructions,

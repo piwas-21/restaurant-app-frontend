@@ -14,9 +14,7 @@ interface IngredientRowProps {
   /** The admin's unsaved edits for this entry, by locale. */
   readonly edits: EntryEdits;
   readonly isDirty: boolean;
-  readonly isSaving: boolean;
   readonly onEdit: (locale: string, name: string) => void;
-  readonly onSave: () => void;
 }
 
 /**
@@ -25,24 +23,17 @@ interface IngredientRowProps {
  *
  * An input shows the CONSENSUS reading of its locale across every copy; a red outline marks a
  * locale where copies disagree (the value shown is one of them), a dashed outline one where some
- * copies have no name at all. Either way, saving writes ONE name to EVERY copy — which is the
- * whole point of the screen.
+ * copies have no name at all. A tinted row marks UNSAVED edits — the page's sticky save bar
+ * batch-applies them, one bulk-apply per entry that writes EVERY copy.
  */
-export default function IngredientRow({
-  entry,
-  edits,
-  isDirty,
-  isSaving,
-  onEdit,
-  onSave,
-}: Readonly<IngredientRowProps>) {
+export default function IngredientRow({ entry, edits, isDirty, onEdit }: Readonly<IngredientRowProps>) {
   const { t } = useTranslation();
 
   const conflictCount = LANGUAGE_CODES.filter((locale) => entry.cells[locale].disagreements > 0).length;
   const missingCount = LANGUAGE_CODES.filter((locale) => entry.cells[locale].missing > 0).length;
 
   return (
-    <tr>
+    <tr className={isDirty ? styles.dirtyRow : undefined}>
       <td className={styles.identity}>
         <span className={styles.ingredientName} dir="auto">
           {entry.defaultName}
@@ -80,11 +71,6 @@ export default function IngredientRow({
           </td>
         );
       })}
-      <td className={styles.actions}>
-        <button type="button" className={styles.saveButton} disabled={!isDirty || isSaving} onClick={onSave}>
-          {isSaving ? t('ingredient_translations_saving') : t('save')}
-        </button>
-      </td>
     </tr>
   );
 }

@@ -38,3 +38,36 @@ describe('OrderDetailsInfo — bundle components', () => {
     expect(screen.getAllByText(/No garlic/)).toHaveLength(1);
   });
 });
+
+/**
+ * The admin order-details item list must show the ingredients/sauces the guest chose — including a
+ * paid extra at its default quantity 1, which the old qty>1-only diff hid on every order surface.
+ */
+describe('OrderDetailsInfo — chosen ingredients', () => {
+  it('renders a chosen sauce at quantity 1 and hides the plain base recipe', () => {
+    const order = singleKitchenBundleOrder();
+    order.items = [
+      {
+        id: 'item-1',
+        productId: 'p-1',
+        productName: 'Kebab Plate',
+        quantity: 1,
+        unitPrice: 18,
+        itemTotal: 18,
+        ingredientCustomizations: [
+          { ingredientId: 'i1', ingredientName: 'Dough', quantity: 1, isRemoved: false },
+          { ingredientId: 'i2', ingredientName: 'Garlic Sauce', quantity: 1, isRemoved: false, isAddOn: true },
+          { ingredientId: 'i3', ingredientName: 'Onion', quantity: 0, isRemoved: true },
+        ],
+      },
+    ];
+
+    render(<OrderDetailsInfo order={order} />);
+
+    expect(screen.getByText('Garlic Sauce')).toBeInTheDocument();
+    expect(screen.getByText(/Added/)).toBeInTheDocument();
+    expect(screen.getByText('Onion')).toBeInTheDocument();
+    expect(screen.getByText(/Removed/)).toBeInTheDocument();
+    expect(screen.queryByText('Dough')).not.toBeInTheDocument();
+  });
+});

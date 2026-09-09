@@ -89,6 +89,14 @@ export default function BundleSectionSelector({
       (extra.hideSelectionControl || inlinePanel.expandedOptionKey === bundleOptionKey(section.id, item.productId)),
     );
     const panelId = `bundle-option-panel-${section.id}-${item.productId}`;
+    // A fixed Plat's Customize still NAVIGATES in the guest sheet; the staff modal keeps its panel
+    // permanently open where the redundant radio picker used to be (P3), so it needs no Customize
+    // affordance on top — every other selected option gets the navigation props.
+    const customizeAffordance = extra.hideSelectionControl
+      ? inlinePanel
+        ? { onCustomize: undefined, customizeExpanded: undefined, customizePanelId: undefined }
+        : customizeProps(item.productId)
+      : customizeProps(item.productId);
 
     return (
       <React.Fragment key={item.id}>
@@ -97,17 +105,10 @@ export default function BundleSectionSelector({
           sectionId={section.id}
           inputType={isRadio ? 'radio' : 'checkbox'}
           isSelected={Boolean(option)}
-          isDisabled={!Boolean(option) && !isRadio && selectedCount >= section.maxSelection}
+          isDisabled={!option && !isRadio && selectedCount >= section.maxSelection}
           currentLanguage={currentLanguage}
           onToggle={() => onToggleOption(section, item.productId)}
-          {...(extra.hideSelectionControl
-            ? // A fixed Plat's Customize still NAVIGATES in the guest sheet; the staff modal keeps
-              // its panel permanently open where the redundant radio picker used to be (P3), so it
-              // needs no Customize affordance on top.
-              inlinePanel
-              ? { onCustomize: undefined, customizeExpanded: undefined, customizePanelId: undefined }
-              : customizeProps(item.productId)
-            : customizeProps(item.productId))}
+          {...customizeAffordance}
           {...extra}
         />
         {inlinePanel && panelVisible && (

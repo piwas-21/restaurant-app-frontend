@@ -91,12 +91,12 @@ function BlockedFooterBar({
   onSwitchOrderType,
   styles,
   onContinue,
-}: {
+}: Readonly<{
   notice: ReturnType<typeof useItemAvailabilityNotice>;
   onSwitchOrderType: ((type: OrderType) => void) | undefined;
   styles: Record<string, string>;
   onContinue: (() => void) | undefined;
-}) {
+}>) {
   return (
     <SheetBlockedFooter notice={notice} onSwitchOrderType={onSwitchOrderType} styles={styles} onContinue={onContinue} />
   );
@@ -105,10 +105,10 @@ function BlockedFooterBar({
 export function OptionFooterBar({
   optionFlow,
   t,
-}: {
+}: Readonly<{
   optionFlow: ReturnType<typeof useBundleOptionFlow>;
   t: ReturnType<typeof useTranslation>['t'];
-}) {
+}>) {
   if (!optionFlow) return null;
   return (
     <SheetFooter
@@ -138,7 +138,7 @@ export function ProductFlowBody({
   description,
   t,
   intro,
-}: {
+}: Readonly<{
   controller: SheetController;
   flow: ReturnType<typeof useSheetFlow>;
   step: ReturnType<typeof useSheetFlow>['step'];
@@ -147,7 +147,7 @@ export function ProductFlowBody({
   description?: string;
   t: ReturnType<typeof useTranslation>['t'];
   intro: Omit<ComponentProps<typeof SheetIntro>, 'description'>;
-}) {
+}>) {
   return (
     <>
       {/* No dish photo here, deliberately (MENU-DESIGN-CONFORMANCE-PLAN D8). The two
@@ -211,7 +211,7 @@ function StepFooterBar({
   setQuantity,
   addToCart,
   t,
-}: {
+}: Readonly<{
   flow: ReturnType<typeof useSheetFlow>;
   step: ReturnType<typeof useSheetFlow>['step'];
   isSubmitting: boolean;
@@ -219,7 +219,7 @@ function StepFooterBar({
   setQuantity: (quantity: number) => void;
   addToCart: Parameters<ReturnType<typeof useSheetFlow>['addOrJumpToBlocker']>[0];
   t: ReturnType<typeof useTranslation>['t'];
-}) {
+}>) {
   return (
     <SheetFooter
       total={flow.total}

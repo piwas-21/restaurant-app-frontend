@@ -1,5 +1,6 @@
 import {
   bundleStepSummary,
+  optionStepIsSkippable,
   productStepSummary,
   stepHasTickedSelection,
   type ProductSummaryState,
@@ -197,6 +198,67 @@ describe('stepHasTickedSelection — the skip verb belongs to an untouched step'
       ],
     } as unknown as DetailedProduct;
     expect(stepHasTickedSelection(ingredientsStep, WITH_DEAD, ticked(['mustard']))).toBe(false);
+  });
+});
+
+describe('the Continue-vs-“No extras” rule (partner feedback 2026-09)', () => {
+  /** A recipe with NOTHING optional in scope: every row is required, so there is no choice. */
+  const ALL_REQUIRED = {
+    ...PRODUCT,
+    detailedIngredients: [
+      { ...CHEESE, id: 'bread', name: 'Bread', isOptional: false, isIncludedInBasePrice: true },
+      { ...CHEESE, id: 'meat', name: 'Meat', isOptional: false, isIncludedInBasePrice: true },
+    ],
+  } as unknown as DetailedProduct;
+  const ingredientsStep = stepOf('ingredients');
+  const picked = (ids: string[]): ProductSummaryState => ({
+    ...OPENED,
+    selectedIngredients: ids,
+    ingredientQuantities: Object.fromEntries(ids.map((id) => [id, 1])),
+  });
+  const NO_CHOICE_STATE = picked(['bread', 'meat']);
+
+  it('a fully-selected step with nothing optional never offers the decline verb (product flow)', () => {
+    // "No extras" names a DECLINE, and there is nothing here to decline — the footer must read
+    // Continue, i.e. the step counts as answered.
+    expect(stepHasTickedSelection(ingredientsStep, ALL_REQUIRED, NO_CHOICE_STATE)).toBe(true);
+    expect(stepHasTickedSelection(ingredientsStep, ALL_REQUIRED, picked([]))).toBe(true);
+  });
+
+  it('an option step with nothing optional answers Continue, not "No extras"', () => {
+    expect(
+      optionStepIsSkippable(ingredientsStep, ALL_REQUIRED.detailedIngredients ?? [], ['bread', 'meat'], [], {
+        min: 0,
+        max: null,
+        includedFree: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('optional extras unticked still honestly read "No extras" (option step)', () => {
+    // The guest has removed even the free base extras — declining is now what the press commits.
+    expect(
+      optionStepIsSkippable(ingredientsStep, PRODUCT.detailedIngredients ?? [], [], [], {
+        min: 0,
+        max: null,
+        includedFree: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it('optional extras ticked answer the step (option step)', () => {
+    expect(
+      optionStepIsSkippable(ingredientsStep, PRODUCT.detailedIngredients ?? [], ['cheese', 'bacon'], [], {
+        min: 0,
+        max: null,
+        includedFree: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('a step with optional extras where none is ticked still reads answered when one is ticked', () => {
+    // The product-flow predicate: base-recipe ticks ARE answers (the #744 rule, unchanged).
+    expect(stepHasTickedSelection(ingredientsStep, PRODUCT, picked(['cheese']))).toBe(true);
   });
 });
 

@@ -41,6 +41,19 @@ function anyTicked(
   );
 }
 
+/**
+ * The step carries at least one OPTIONAL extra the guest could add — the only condition under
+ * which declining is a decision. An ingredients step whose in-scope rows are ALL required has
+ * nothing to choose (partner feedback 2026-09: its footer must read Continue, not "No extras" —
+ * "no extras" names a decline, and there is nothing here to decline).
+ */
+function hasOptionalChoiceInScope(
+  ingredients: readonly ProductIngredient[],
+  inScope: (ingredient: ProductIngredient) => boolean,
+): boolean {
+  return ingredients.some((ingredient) => ingredient.isActive && inScope(ingredient) && ingredient.isOptional);
+}
+
 /** The names a product step reports. An empty array means "the guest chose nothing here". */
 export function productStepSummary(
   step: CustomizationStep,
@@ -167,7 +180,12 @@ export function stepHasTickedSelection(
       // variation — a size cannot be skipped, only kept or changed. Always answered.
       return true;
     case 'ingredients':
-      return anyTicked(ingredients, (ingredient) => !isSauce(ingredient), state.selectedIngredients);
+      // Nothing optional in scope ⇒ nothing to choose ⇒ the recipe itself answers the step (the
+      // variations rule). A step with no choice must offer Continue, never the decline verb.
+      return (
+        !hasOptionalChoiceInScope(ingredients, (ingredient) => !isSauce(ingredient)) ||
+        anyTicked(ingredients, (ingredient) => !isSauce(ingredient), state.selectedIngredients)
+      );
     case 'sauces':
       return anyTicked(ingredients, isSauce, state.selectedIngredients);
     case 'sides': {
@@ -220,7 +238,13 @@ export function optionStepIsSkippable(
     );
   }
   if (step.kind === 'ingredients') {
-    return !anyTicked(detailedIngredients, (ingredient) => !isSauce(ingredient), selectedIngredients);
+    // "No extras" is a DECLINE — it is honest only while there are optional extras to decline
+    // (partner feedback 2026-09). An option whose ingredients are all required opens fully
+    // selected with nothing choosable; its footer must read Continue.
+    return (
+      hasOptionalChoiceInScope(detailedIngredients, (ingredient) => !isSauce(ingredient)) &&
+      !anyTicked(detailedIngredients, (ingredient) => !isSauce(ingredient), selectedIngredients)
+    );
   }
   return false;
 }

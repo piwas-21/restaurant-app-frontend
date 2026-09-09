@@ -256,6 +256,190 @@ describe('the no-sauce answer on the option screen', () => {
   });
 });
 
+/**
+ * The guided walk (partner feedback 2026-09): the primary path into an option's screens is the
+ * PICK — no Customize tap. A single-choice section opens the screens the moment the row is
+ * chosen; a multi-select section walks its picked options when the guest Continues. Customize
+ * stays only as the way BACK into a visited option.
+ */
+describe('the guided walk — selection opens the screens by itself', () => {
+  /** The burger is NOT the section default, so picking it is a real guest action. */
+  const OPEN_BUNDLE: MenuBundleItem = {
+    ...BUNDLE,
+    menuDefinition: {
+      ...BUNDLE.menuDefinition,
+      sections: [
+        {
+          ...mainSection,
+          items: [{ ...mainSection.items[0], isDefault: false }, mainSection.items[1]],
+        },
+        drinkSection,
+      ],
+    },
+  };
+
+  it('a single-choice pick advances straight into the option\u2019s screens — no Customize tap', async () => {
+    await openSheet(OPEN_BUNDLE);
+
+    expect(screen.queryByText('customize_ingredients')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
+
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+    // The navigation replaced the section rows — the Customize affordance is not on this screen.
+    expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
+  });
+
+  it('Done at the end of the walk advances the SECTION flow past the answered section', async () => {
+    await openSheet(OPEN_BUNDLE);
+    fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+
+    // Walk the option's own steps: ingredients → sauces → special request, then Done.
+    fireEvent.click(screen.getByRole('button', { name: 'step_skip_ingredients' }));
+    fireEvent.click(screen.getByRole('button', { name: 'sauce_none' }));
+    await waitFor(() => expect(screen.getAllByText('product_special_requests').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByRole('button', { name: 'done' }));
+
+    // The pick answered the section — the flow is on the NEXT section, not back on Main.
+    await waitFor(() => expect(screen.getByText('Drink')).toBeInTheDocument());
+    expect(screen.queryByText('customize_ingredients')).not.toBeInTheDocument();
+  });
+
+  it('Back out of a walked screen returns to the section with the pick intact', async () => {
+    await openSheet(OPEN_BUNDLE);
+    fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /^back/ }));
+    await waitFor(() => expect(screen.getByRole('radio', { name: /Burger/ })).toBeChecked());
+    // From here Customize is the way back in — the review path.
+    expect(screen.getByRole('button', { name: 'customize' })).toBeInTheDocument();
+  });
+
+  it('a multi-select section walks its picked options in section order, starting at Continue', async () => {
+    const sidesSection: MenuSection = {
+      id: 'sides',
+      name: 'Sides',
+      displayOrder: 2,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 2,
+      items: [
+        {
+          id: 'si-fries',
+          productId: 'fries',
+          productName: 'Fries',
+          additionalPrice: 0,
+          displayOrder: 1,
+          isDefault: false,
+          detailedIngredients: [BURGER_INGREDIENTS[0]],
+        },
+        {
+          id: 'si-salad',
+          productId: 'salad',
+          productName: 'Salad',
+          additionalPrice: 0,
+          displayOrder: 2,
+          isDefault: false,
+          detailedIngredients: [BURGER_INGREDIENTS[0]],
+        },
+      ],
+    };
+    const WALK_BUNDLE: MenuBundleItem = {
+      ...BUNDLE,
+      menuDefinition: {
+        ...BUNDLE.menuDefinition,
+        sections: [sidesSection, drinkSection],
+      },
+    };
+    await openSheet(WALK_BUNDLE);
+
+    // Finish selecting FIRST — ticking must not drag the guest off the rows.
+    fireEvent.click(screen.getByRole('checkbox', { name: /Fries/ }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Salad/ }));
+    expect(screen.queryByText('customize_ingredients')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+    expect(screen.getByText('Fries')).toBeInTheDocument();
+
+    // Walk the first option's own steps, then Done…
+    fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+    await waitFor(() => expect(screen.getAllByText('product_special_requests').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByRole('button', { name: 'done' }));
+    // …which opens the NEXT picked option's screens.
+    await waitFor(() => expect(screen.getByText('Salad')).toBeInTheDocument());
+
+    // …and the last Done advances past the section.
+    fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+    await waitFor(() => expect(screen.getAllByText('product_special_requests').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByRole('button', { name: 'done' }));
+    await waitFor(() => expect(screen.getByText('Drink')).toBeInTheDocument());
+  });
+
+  it('a fixed Plat\u2019s screens open when the guest Continues past its step', async () => {
+    const fixedPlat: MenuBundleItem = {
+      ...BUNDLE,
+      menuDefinition: {
+        ...BUNDLE.menuDefinition,
+        sections: [
+          { ...mainSection, name: 'Plat', items: [{ ...mainSection.items[0], isDefault: false }] },
+          drinkSection,
+        ],
+      },
+    };
+    await openSheet(fixedPlat);
+
+    expect(screen.queryByText('customize_ingredients')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+  });
+});
+
+/** A recipe with nothing optional: every row is required, fully selected, nothing to choose. */
+const NO_CHOICE_INGREDIENTS: DetailedIngredient[] = [
+  ingredient('bread', { isOptional: false, isIncludedInBasePrice: true }),
+  ingredient('meat', { isOptional: false, isIncludedInBasePrice: true }),
+];
+
+describe('the Continue-vs-\u201cNo extras\u201d rule on the option screen', () => {
+  it('says Continue when the step\u2019s ingredients are all required — there is nothing to decline', async () => {
+    const noChoiceSection: MenuSection = {
+      ...mainSection,
+      items: [
+        {
+          ...mainSection.items[0],
+          isDefault: false,
+          detailedIngredients: NO_CHOICE_INGREDIENTS,
+          sauceMin: 0,
+          sauceMax: 0,
+        },
+        mainSection.items[1],
+      ],
+    };
+    const NO_CHOICE_BUNDLE: MenuBundleItem = {
+      ...BUNDLE,
+      menuDefinition: { ...BUNDLE.menuDefinition, sections: [noChoiceSection, drinkSection] },
+    };
+    await openSheet(NO_CHOICE_BUNDLE);
+
+    fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
+    await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
+
+    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'step_skip_ingredients' })).not.toBeInTheDocument();
+  });
+
+  it('keeps "No extras" for a step whose optional extras the guest declines', async () => {
+    await openSheet();
+    await openOptionScreen();
+
+    // The seeded step has optional extras in scope (bacon, sauces) — walking past unticked is a
+    // real decline, and the verb names it.
+    expect(screen.getByRole('button', { name: 'step_skip_ingredients' })).toBeInTheDocument();
+  });
+});
+
 describe('fixed one-option Plat', () => {
   it('navigates to the guided screen where the redundant picker used to be', async () => {
     const fixedPlat: MenuBundleItem = {

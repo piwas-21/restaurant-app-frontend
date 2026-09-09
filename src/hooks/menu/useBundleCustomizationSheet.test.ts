@@ -405,3 +405,160 @@ describe('useBundleCustomizationSheet', () => {
     ]);
   });
 });
+
+describe('the guided option walk (partner feedback 2026-09)', () => {
+  const sideIngredient = {
+    id: 'onion',
+    name: 'Onion',
+    price: 0,
+    isOptional: false,
+    isActive: true,
+    isIncludedInBasePrice: true,
+    maxQuantity: 1,
+    displayOrder: 1,
+  };
+  /** A multi-select section whose every option carries its own ingredients. */
+  const walkingBundle: MenuBundleItem = {
+    ...bundle,
+    menuDefinition: {
+      ...bundle.menuDefinition,
+      sections: [
+        bundle.menuDefinition.sections[0],
+        {
+          id: 'sides',
+          name: 'Sides',
+          displayOrder: 2,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 2,
+          items: [
+            {
+              id: 'si-fries',
+              productId: 'fries',
+              productName: 'Fries',
+              additionalPrice: 0,
+              displayOrder: 1,
+              isDefault: false,
+              detailedIngredients: [sideIngredient],
+            },
+            {
+              id: 'si-salad',
+              productId: 'salad',
+              productName: 'Salad',
+              additionalPrice: 0,
+              displayOrder: 2,
+              isDefault: false,
+              detailedIngredients: [sideIngredient],
+            },
+            {
+              id: 'si-soup',
+              productId: 'soup',
+              productName: 'Soup',
+              additionalPrice: 0,
+              displayOrder: 3,
+              isDefault: false,
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const sidesSection = walkingBundle.menuDefinition.sections[1];
+
+  it('starts the walk at the FIRST selected option that carries its own customization', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.toggleOption(sidesSection, 'salad'));
+    act(() => result.current.toggleOption(sidesSection, 'fries'));
+
+    let started = false;
+    act(() => {
+      started = result.current.beginOptionTour(sidesSection);
+    });
+    expect(started).toBe(true);
+    expect(result.current.optionTourSectionId).toBe('sides');
+    // Section order, not pick order: fries sits before salad.
+    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
+  });
+
+  it('reports nothing to walk when no selected option carries its own customization', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.toggleOption(walkingBundle.menuDefinition.sections[1], 'soup'));
+
+    let started = true;
+    act(() => {
+      started = result.current.beginOptionTour(walkingBundle.menuDefinition.sections[1]);
+    });
+    expect(started).toBe(false);
+    expect(result.current.customizingOption).toBeNull();
+  });
+
+  it('advances the walk option by option and ends with a done verdict', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.toggleOption(sidesSection, 'fries'));
+    act(() => result.current.toggleOption(sidesSection, 'salad'));
+    act(() => result.current.beginOptionTour(sidesSection));
+
+    let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
+    act(() => {
+      outcome = result.current.advanceOptionTour();
+    });
+    expect(outcome).toBe('advanced');
+    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'salad' });
+    expect(result.current.optionTourSectionId).toBe('sides');
+
+    act(() => {
+      outcome = result.current.advanceOptionTour();
+    });
+    expect(outcome).toBe('done');
+    expect(result.current.customizingOption).toBeNull();
+    expect(result.current.optionTourSectionId).toBeNull();
+  });
+
+  it('skips options without their own customization while walking', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.toggleOption(sidesSection, 'soup'));
+    act(() => result.current.toggleOption(sidesSection, 'fries'));
+    act(() => result.current.beginOptionTour(sidesSection));
+
+    // Soup sits between fries and nothing — the walk lands on fries and finishes there.
+    let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
+    act(() => {
+      outcome = result.current.advanceOptionTour();
+    });
+    expect(outcome).toBe('done');
+  });
+
+  it('a review visit never walks — Done hands back to the section it was opened from', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.toggleOption(sidesSection, 'fries'));
+    act(() => result.current.openOptionCustomization('sides', 'fries'));
+
+    expect(result.current.optionTourSectionId).toBeNull();
+    expect(result.current.advanceOptionTour()).toBe('review');
+    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
+  });
+
+  it('the guided entry opens at the picked option itself', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+
+    act(() => result.current.beginOptionTourAt('sides', 'salad'));
+    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'salad' });
+    expect(result.current.optionTourSectionId).toBe('sides');
+  });
+
+  it('dies with the sheet: closing it resets the walk', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(walkingBundle));
+    act(() => result.current.beginOptionTourAt('sides', 'fries'));
+    act(() => result.current.close());
+
+    expect(result.current.customizingOption).toBeNull();
+    expect(result.current.optionTourSectionId).toBeNull();
+  });
+});

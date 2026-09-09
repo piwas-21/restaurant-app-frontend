@@ -117,6 +117,14 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     onInstructionsChange,
     /** The way back to the bundle sheet — the header's back button, the last step's Done, Escape. */
     close: bundle.closeOptionCustomization,
+    /**
+     * The last step's Done (partner feedback 2026-09 guided walk): inside a tour it opens the
+     * next option's screens; `'done'`/`'review'` mean the caller closes — and on `'done'` also
+     * advances the SECTION flow past the section the walk answered.
+     */
+    advanceTour: bundle.advanceOptionTour,
+    /** Non-null while the screen is part of a guided walk (vs opened for review). */
+    tourSectionId: bundle.optionTourSectionId,
   };
 }
 

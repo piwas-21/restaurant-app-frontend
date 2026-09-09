@@ -99,7 +99,23 @@ export default function ItemCustomizationSheet({
   // The option screen's bar. Its last step commits BACK INTO THE LINE, not an order — so it asks
   // SheetFooter for the confirm mode (a labelled Done over the same live total) instead of the
   // quantity stepper and the Add, and the money keeps rendering through the one component.
-  const optionFooter = optionFlow ? <OptionFooterBar optionFlow={optionFlow} t={t} /> : null;
+  //
+  // Done is mode-aware (partner feedback 2026-09): inside a guided walk it opens the next
+  // option's screens; when the walk is finished it ALSO advances the section flow past the
+  // section the walk answered (the raw advance — the wrapper would otherwise restart the walk);
+  // a review visit just returns to the section it was opened from.
+  const onOptionDone = optionFlow
+    ? () => {
+        const outcome = optionFlow.advanceTour();
+        if (outcome === 'advanced') return;
+        if (outcome === 'done') {
+          flow.stepGoNext();
+          return;
+        }
+        optionFlow.close();
+      }
+    : undefined;
+  const optionFooter = optionFlow ? <OptionFooterBar optionFlow={optionFlow} t={t} onConfirm={onOptionDone} /> : null;
 
   // Blocked ⇒ the whole action bar is replaced by the reason and the way out, on every step. Not
   // disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a

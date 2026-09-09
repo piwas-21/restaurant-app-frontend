@@ -3,10 +3,10 @@
 import React from 'react';
 import TranslationsWorkbench from './translations/TranslationsWorkbench';
 import BundlePanel from './BundlePanel';
+import BundleMediaPanel from './BundleMediaPanel';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { buildItemSections } from './itemEditorSections';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
-import mediaStyles from './EditorMedia.module.css';
 import type { EditorSection } from './EditorShell';
 
 /**
@@ -34,8 +34,11 @@ export { SECTION_IDS } from './editorSectionTypes';
  * a GAP rather than a data limit: the write path is the missing half (backend #478), and adding the
  * control before it exists would offer an admin a field whose every save is discarded.
  *
- * S6 adds the third: **Media, present and empty** (D11 / D5). See the section itself for why an
- * empty card beats a missing one, and why its sentence is not the approved screen's.
+ * S6 added the third as **Media, present and empty** (D11 / D5). It is no longer empty: the
+ * staged photo surface that used to sit at the bottom of `BundlePanel`\'s Basics column moved
+ * here, so the section named "Media" is the one place a bundle\'s photo is picked, removed or
+ * replaced — and the placeholder that called photo management unavailable is gone with it.
+ * (#524, a managed gallery, stays open; this is the staged path that exists today.)
  */
 function bundleSections(context: EditorSectionsContext): EditorSection[] {
   const { editor, t } = context;
@@ -53,8 +56,6 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
           errors={form.formState.errors}
           menuDefinition={editor.menuDefinition}
           onChange={editor.changeMenuDefinition}
-          imageFiles={editor.imageFiles}
-          setImageFiles={editor.setImageFiles}
         />
       ),
     },
@@ -64,30 +65,14 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       showHeading: true,
       description: t('editor_section_media_description'),
       /*
-       * EMPTY WITH A REASON, not filtered out (D11, slice S6). A bundle has no gallery — issue
-       * #524 — so there is nothing to render here, and hiding the card was the tempting move.
-       * It is the wrong one on a REACHABLE path: the sticky nav is built from this list, so a
-       * missing section shortens the nav and leaves the admin unable to tell "no photos yet"
-       * from "photos are not a thing here". The only legitimate `filter()` in this feature is
-       * `itemEditorSections.tsx`'s unsaved-item guard, and it is legitimate because D3 made that
-       * state unreachable.
-       *
-       * ⚠️ THE SENTENCE IS DELIBERATELY NOT THE APPROVED SCREEN'S. The screen
-       * (`admin_bundle_editor_pizza_menu`) reads "Photos are not available for menu bundles yet",
-       * which is FALSE against the code — a bundle CAN have a photo today:
-       *   - `BundlePanel.tsx:96` renders a `StagedImagePicker` labelled `menu_image` for EVERY
-       *     bundle, which is the field this copy points at;
-       *   - `admin/product/productFormUtils.ts:411-414` uploads those staged files on the UPDATE
-       *     path — the branch a bundle takes to `updateMenuBundle` — via `uploadBulkProductImages`;
-       *   - backend `UploadMultipleProductImagesCommand.cs:66-68` looks the id up in `Products`
-       *     on `Id` and `!IsDeleted` with NO type filter, and a bundle IS a Product (`Type=Menu`)
-       *     whose `MenuBundleDto` carries `List<ProductImageDto> Images`.
-       * What a bundle cannot do is MANAGE its photos — set primary, reorder, delete — because it
-       * has no gallery. So the copy says "photo MANAGEMENT", and points at the field that works.
-       * Do not edit it back toward the picture; #524 is what makes it obsolete, and when a bundle
-       * gallery ships this whole branch is replaced by `<ImageGallery … />`.
+       * The section keeps its place in the nav either way — the nav is built from this list, so
+       * a missing section would shorten it and leave the admin unable to tell "no photos yet"
+       * from "photos are not a thing here". What changed is the body: the staged picker that
+       * worked from the Basics column now lives HERE, with per-file remove and the save-time
+       * upload notice (see `BundleMediaPanel`). When #524 ships a managed gallery, this node is
+       * replaced by `<ImageGallery … />` — the same swap S3 made for items.
        */
-      node: <p className={mediaStyles.bundleUnavailable}>{t('editor_media_bundle_unavailable')}</p>,
+      node: <BundleMediaPanel files={editor.imageFiles} onChange={editor.setImageFiles} />,
     },
     {
       id: SECTION_IDS.service,

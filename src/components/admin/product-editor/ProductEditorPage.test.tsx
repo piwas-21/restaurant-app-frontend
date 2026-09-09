@@ -482,13 +482,16 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(galleryNotice()).not.toBeInTheDocument();
     expect(document.querySelector('#editor-section-media')).toBeNull();
 
-    // A bundle DOES get the section — empty, with the reason in it (S6/D11). What it does not get
-    // is the gallery, so the autosave notice must not follow it there: nothing here autosaves.
+    // A bundle DOES get the section, and since the staged surface moved here from the Basics
+    // column it is the ONE place its photo is picked: the picker label renders in Media. What it
+    // does not get is the gallery, so the autosave notice must not follow it there: nothing here
+    // autosaves — the bundle's staged files upload on Save.
     const { container } = await renderEditor(bundle, true);
     expect(galleryNotice()).not.toBeInTheDocument();
     const media = container.querySelector('#editor-section-media') as HTMLElement;
     expect(media).not.toBeNull();
-    expect(within(media).getByText('editor_media_bundle_unavailable')).toBeInTheDocument();
+    expect(within(media).getByText(/menu_image/)).toBeInTheDocument();
+    expect(within(media).queryByText('editor_media_bundle_unavailable')).not.toBeInTheDocument();
   });
 
   // Track F, F7-C was positional: images sat below the sticky Save bar after nine other sections.

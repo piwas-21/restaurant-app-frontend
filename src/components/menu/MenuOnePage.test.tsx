@@ -193,6 +193,21 @@ describe('MenuOnePage — sections', () => {
     expect(listProps[0].bundles.map((b) => b.id)).toEqual(['combo-1']);
     expect(listProps[1].bundles.map((b) => b.id)).toEqual(['combo-1']);
     expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
+    // The chip tally counts DISHES, not placements: 3 dishes + 1 bundle — the combo
+    // printing three times must not push `shown` to 6.
+    expect(filterProps).toHaveLength(1);
+    expect(filterProps[0].shown).toBe(4);
+  });
+
+  it('lists an orphan bundle (no categories) only in the trailing bundles listing', () => {
+    const orphan = bundle('combo-1', []);
+    render(<MenuOnePage {...shared} controller={controller({ menuBundles: [orphan] })} />);
+
+    expect(listProps).toHaveLength(3);
+    // Degradation is "no extra placement, never a vanished combo": no section claims it.
+    expect(listProps[0].bundles).toEqual([]);
+    expect(listProps[1].bundles).toEqual([]);
+    expect(listProps[2].bundles.map((b) => b.id)).toEqual(['combo-1']);
   });
 
   it('filters the section bundles with the active chips and keeps a bundles-only section alive', () => {

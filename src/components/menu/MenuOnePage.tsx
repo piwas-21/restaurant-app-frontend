@@ -147,7 +147,17 @@ export default function MenuOnePage({
               description={category.description}
               isLoading={state.isLoading}
               errorMessage={state.error ? t('error_loading_menu_items') : null}
-              isEmpty={!state.isLoading && !state.error && state.items.length === 0 && sectionBundles.length === 0}
+              isEmpty={
+                !state.isLoading &&
+                !state.error &&
+                state.items.length === 0 &&
+                sectionBundles.length === 0 &&
+                // While the bundles pipeline is in flight `menuBundles` is deliberately
+                // empty, so a zero-dish category WITH assigned bundles would flash
+                // "No dishes here yet" before its combo cards land. A loading pipeline
+                // is "not yet known", not "truly empty".
+                !bundlesState.isLoading
+              }
               loadingMessage={t('loading_items', 'Loading items...')}
               emptyMessage={t('no_items_in_category', { categoryName: category.name })}
               emptyHeading={

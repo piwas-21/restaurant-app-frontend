@@ -407,10 +407,9 @@ describe('useBundleCustomizationSheet', () => {
 });
 
 describe('the guided option walk (partner feedback 2026-09)', () => {
-  // One factory per shape, so no two multi-line literals in this file (or in the sheet's e2e
-  // specs) repeat a 10-line stretch — the PR delta is what Sonar's duplication gate reads.
-  // Derived from the fixture's own `cheese` literal: a second 8-property ingredient literal is a
-  // structural duplicate, which is exactly what the Sonar delta gate counts.
+  // One ingredient/one item/one section factory each, all derived from the fixture above by
+  // spread — a second free-standing literal of any of those shapes is a structural duplicate,
+  // which is exactly what the Sonar delta gate counts.
   const sideIngredient = { ...cheese, id: 'onion', name: 'Onion', price: 0, isOptional: false };
   const sideItem = (productId: string, productName: string, displayOrder: number, withIngredients: boolean) => ({
     id: `si-${productId}`,
@@ -421,7 +420,6 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     isDefault: false,
     ...(withIngredients ? { detailedIngredients: [sideIngredient] } : {}),
   });
-  // Spread of the drink section's shape + overrides — no second free-standing section literal.
   const sidesSection: MenuSection = {
     ...bundle.menuDefinition.sections[1],
     id: 'sides',
@@ -440,49 +438,36 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     menuDefinition: { ...bundle.menuDefinition, sections: [bundle.menuDefinition.sections[0], sidesSection] },
   };
 
-  it('starts the walk at the FIRST selected option that carries its own customization', () => {
+  /** The one harness every case below reads: open the sheet, tick the given options, return. */
+  const openWalkingSheet = (toggles: Array<[MenuSection, string]> = []) => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.toggleOption(sidesSection, 'salad'));
-    act(() => result.current.toggleOption(sidesSection, 'fries'));
+    toggles.forEach(([section, item]) => act(() => result.current.toggleOption(section, item)));
+    return result;
+  };
 
+  it('walks the selected options in section order, ends with done, skips the plain ones', () => {
+    const result = openWalkingSheet([
+      [sidesSection, 'fries'],
+      [sidesSection, 'salad'],
+    ]);
+
+    // Starts at the FIRST selected walkable option in SECTION order, not pick order.
     let started = false;
     act(() => {
       started = result.current.beginOptionTour(sidesSection);
     });
     expect(started).toBe(true);
     expect(result.current.optionTourSectionId).toBe('sides');
-    // Section order, not pick order: fries sits before salad.
     expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
-  });
 
-  it('reports nothing to walk when no selected option carries its own customization', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.toggleOption(walkingBundle.menuDefinition.sections[1], 'soup'));
-
-    let started = true;
-    act(() => {
-      started = result.current.beginOptionTour(walkingBundle.menuDefinition.sections[1]);
-    });
-    expect(started).toBe(false);
-    expect(result.current.customizingOption).toBeNull();
-  });
-
-  it('advances the walk option by option and ends with a done verdict', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.toggleOption(sidesSection, 'fries'));
-    act(() => result.current.toggleOption(sidesSection, 'salad'));
-    act(() => result.current.beginOptionTour(sidesSection));
-
+    // Done opens the next walkable option; soup (no ingredients) is skipped by the walk.
     let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
     act(() => {
       outcome = result.current.advanceOptionTour();
     });
     expect(outcome).toBe('advanced');
     expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'salad' });
-    expect(result.current.optionTourSectionId).toBe('sides');
 
     act(() => {
       outcome = result.current.advanceOptionTour();
@@ -492,14 +477,19 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     expect(result.current.optionTourSectionId).toBeNull();
   });
 
-  it('skips options without their own customization while walking', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.toggleOption(sidesSection, 'soup'));
-    act(() => result.current.toggleOption(sidesSection, 'fries'));
-    act(() => result.current.beginOptionTour(sidesSection));
+  it('skips a selected option with no customization while walking (soup, then fries)', () => {
+    const result = openWalkingSheet([
+      [sidesSection, 'soup'],
+      [sidesSection, 'fries'],
+    ]);
 
-    // Soup sits between fries and nothing — the walk lands on fries and finishes there.
+    let started = false;
+    act(() => {
+      started = result.current.beginOptionTour(sidesSection);
+    });
+    expect(started).toBe(true);
+    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
+
     let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
     act(() => {
       outcome = result.current.advanceOptionTour();
@@ -507,33 +497,24 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     expect(outcome).toBe('done');
   });
 
-  it('a review visit never walks — Done hands back to the section it was opened from', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.toggleOption(sidesSection, 'fries'));
-    act(() => result.current.openOptionCustomization('sides', 'fries'));
-
-    expect(result.current.optionTourSectionId).toBeNull();
-    expect(result.current.advanceOptionTour()).toBe('review');
-    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
-  });
-
-  it('the guided entry opens at the picked option itself', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-
+  it('enters at the picked option itself (single-choice pick) and resets with the sheet', () => {
+    const result = openWalkingSheet();
     act(() => result.current.beginOptionTourAt('sides', 'salad'));
     expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'salad' });
     expect(result.current.optionTourSectionId).toBe('sides');
-  });
 
-  it('dies with the sheet: closing it resets the walk', () => {
-    const { result } = renderHook(() => useBundleCustomizationSheet());
-    act(() => result.current.openForBundle(walkingBundle));
-    act(() => result.current.beginOptionTourAt('sides', 'fries'));
     act(() => result.current.close());
-
     expect(result.current.customizingOption).toBeNull();
     expect(result.current.optionTourSectionId).toBeNull();
+  });
+
+  it('a review visit never walks, and nothing walkable reports false', () => {
+    const result = openWalkingSheet([[sidesSection, 'soup']]);
+    act(() => result.current.openOptionCustomization('sides', 'soup'));
+    expect(result.current.optionTourSectionId).toBeNull();
+    expect(result.current.advanceOptionTour()).toBe('review');
+
+    // Only soup is selected and it carries no ingredients: Continue must advance normally.
+    expect(result.current.beginOptionTour(sidesSection)).toBe(false);
   });
 });

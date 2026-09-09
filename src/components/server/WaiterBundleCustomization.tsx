@@ -47,6 +47,8 @@ export default function WaiterBundleCustomization({
   );
   const [quantity, setQuantity] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState('');
+  /** The option whose editing panel is expanded inline — the staff shape; the guest sheet's
+   * Customize navigates to a guided screen instead. */
   const [expandedOptionKey, setExpandedOptionKey] = useState<string | null>(null);
   const [showValidation, setShowValidation] = useState(false);
   const currentLanguage = (i18n.language || 'en').split('-')[0];
@@ -97,7 +99,6 @@ export default function WaiterBundleCustomization({
           section={section}
           selectedOptions={selectedOptions}
           minSelectionError={errorsBySection.get(section.id)}
-          expandedOptionKey={expandedOptionKey}
           currentLanguage={currentLanguage}
           onToggleOption={(nextSection, itemId) => {
             setSelectedOptions((previous) => toggleBundleOption(nextSection, previous, itemId));
@@ -105,13 +106,18 @@ export default function WaiterBundleCustomization({
               previous === bundleOptionKey(nextSection.id, itemId) ? null : previous,
             );
           }}
-          onToggleExpanded={(sectionId, itemId) => {
-            const key = bundleOptionKey(sectionId, itemId);
-            setExpandedOptionKey((previous) => (previous === key ? null : key));
+          // The staff modal EXPANDS the option's panel in place — the efficient shape for a counter
+          // order. The guest sheet deliberately does something else: its Customize navigates to the
+          // option's guided screen inside `ItemCustomizationSheet`.
+          inlinePanel={{
+            expandedOptionKey,
+            onToggle: (sectionId, itemId) => {
+              const key = bundleOptionKey(sectionId, itemId);
+              setExpandedOptionKey((previous) => (previous === key ? null : key));
+            },
+            onChange: (sectionId, itemId, patch) =>
+              setSelectedOptions((previous) => updateBundleOption(previous, sectionId, itemId, patch)),
           }}
-          onCustomizationChange={(sectionId, itemId, patch) =>
-            setSelectedOptions((previous) => updateBundleOption(previous, sectionId, itemId, patch))
-          }
         />
       ))}
       <SpecialRequestSection specialInstructions={specialInstructions} onInstructionsChange={setSpecialInstructions} />

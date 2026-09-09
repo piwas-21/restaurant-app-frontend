@@ -1,4 +1,5 @@
 import type { CustomizationStep } from '@/utils/customizationSteps';
+import type { SauceGroupRule } from '@/types/menu';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
@@ -42,4 +43,35 @@ export function stepSkipLabel(step: CustomizationStep | undefined, t: Translate)
       // variations answer "which size", review is never skippable, sections are tenant-worded.
       return t('step_skip');
   }
+}
+
+/**
+ * The group hint — the min/max as text under the legend, never a tooltip (WCAG: a rule the guest
+ * must satisfy has to be readable without hovering anything), plus what the allowance gives.
+ */
+export function groupHint(t: Translate, rule: SauceGroupRule): string {
+  const clauses: string[] = [];
+
+  if (rule.max === null) {
+    if (rule.min > 0) clauses.push(t('sauces_hint_at_least', { min: rule.min }));
+  } else if (rule.min === rule.max) {
+    clauses.push(t('sauces_hint_exactly', { amount: rule.max }));
+  } else if (rule.min > 0) {
+    clauses.push(t('sauces_hint_between', { min: rule.min, max: rule.max }));
+  } else {
+    clauses.push(t('sauces_hint_up_to', { max: rule.max }));
+  }
+
+  if (rule.includedFree === 1) clauses.push(t('sauces_hint_first_free'));
+  else if (rule.includedFree > 1) clauses.push(t('sauces_hint_n_free', { amount: rule.includedFree }));
+
+  return clauses.join(' ');
+}
+
+/** The collapsed one-liner: what the guest is choosing between, before they open anything. */
+export function groupSummary(t: Translate, rule: SauceGroupRule, selectedCount: number, available: number): string {
+  if (selectedCount > 0) return t('sauces_summary_selected', { selected: selectedCount });
+  return rule.includedFree > 0
+    ? t('sauces_summary_free', { included: rule.includedFree, available })
+    : t('sauces_summary_available', { available });
 }

@@ -152,17 +152,36 @@ describe('SauceGroupSection — the group semantics', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(3); // no "No sauce": one is required
   });
 
-  it('offers the exclusive "No sauce" answer LAST, and clears the choice through it', () => {
+  // FIRST, not last — the 2026-09 owner override of the sort-last rule (GOV.UK), recorded in the
+  // component header. The way out leads the list, on products and bundle options alike.
+  it('offers the exclusive "No sauce" answer FIRST, and clears the choice through it', () => {
     const { onSelectionChange, onQuantityChange } = renderGroup({ selectedIngredients: ['salsa'] });
     expand();
 
     const options = screen.getAllByRole('checkbox');
-    expect(options[options.length - 1]).toHaveAccessibleName('No sauce');
+    expect(options[0]).toHaveAccessibleName('No sauce');
+    // …and the sauces follow in their own display order behind it.
+    expect(options[1]).toHaveAccessibleName(/Tomato Salsa/);
+    expect(options[3]).toHaveAccessibleName(/BBQ Sauce/);
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'No sauce' }));
     expect(onSelectionChange).toHaveBeenCalledWith([]);
     // Quantity 0, not 1 — the kitchen ticket's "NO x" convention (issue #150).
     expect(onQuantityChange).toHaveBeenCalledWith('salsa', 0);
+  });
+
+  it('keeps the answer exclusive and always enabled — it is the way out of a full group', () => {
+    const { onSelectionChange } = renderGroup({
+      rule: { min: 0, max: 2, includedFree: 1 },
+      selectedIngredients: ['salsa', 'mayo'],
+    });
+    expand();
+
+    const none = screen.getByRole('checkbox', { name: 'No sauce' });
+    // The sauces sit max-blocked; the answer does not — being blocked would dead-end the guest.
+    expect(none).not.toHaveAttribute('aria-disabled');
+    fireEvent.click(none);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
   });
 });
 

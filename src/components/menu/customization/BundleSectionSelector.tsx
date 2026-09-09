@@ -3,21 +3,34 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BundleOptionRow from './BundleOptionRow';
+import BundleOptionInlinePanel from './BundleOptionInlinePanel';
 import { bundleOptionKey, countSectionSelections, findBundleOption } from '@/utils/bundleSelection';
 import { isFixedPlatSection } from '@/utils/fixedPlatSection';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
 import styles from './BundleSectionSelector.module.css';
+
+/** Inline-expansion mode: the staff modal expands a selected option's panel under its row. */
+export interface BundleSectionInlinePanel {
+  expandedOptionKey: string | null;
+  onToggle: (sectionId: string, itemId: string) => void;
+  onChange: (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => void;
+}
 
 interface BundleSectionSelectorProps {
   section: MenuSection;
   selectedOptions: readonly SelectedMenuOption[];
   /** The section's unmet `minSelection`, present only once the guest has tried to add. */
   minSelectionError?: number;
-  expandedOptionKey: string | null;
   currentLanguage: string;
   onToggleOption: (section: MenuSection, itemId: string) => void;
-  onToggleExpanded: (sectionId: string, itemId: string) => void;
-  onCustomizationChange: (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => void;
+  /**
+   * GUEST sheet: tapping Customize on a selected option opens the option's guided customization
+   * screen, which the sheet itself hosts (BundleOptionCustomizationScreen — the 2026-09 owner
+   * decision superseding #175's inline drill-in). The selector only raises the intent.
+   */
+  onCustomizeOption?: (sectionId: string, itemId: string) => void;
+  /** STAFF modal: expand the option's editing panel inline instead of navigating. */
+  inlinePanel?: BundleSectionInlinePanel;
   /**
    * Withhold the visible `<legend>`. The guided flow's step panel already carries the section name
    * and its required marker; a second copy inside the fieldset reads as a nested group. The
@@ -35,11 +48,10 @@ export default function BundleSectionSelector({
   section,
   selectedOptions,
   minSelectionError,
-  expandedOptionKey,
   currentLanguage,
   onToggleOption,
-  onToggleExpanded,
-  onCustomizationChange,
+  onCustomizeOption,
+  inlinePanel,
   hideLegend = false,
 }: Readonly<BundleSectionSelectorProps>) {
   const { t } = useTranslation();
@@ -56,29 +68,80 @@ export default function BundleSectionSelector({
       ? t('choose_count', { count: section.maxSelection })
       : t('choose_range', { min: section.minSelection, max: section.maxSelection });
 
-  // P3: a required `Plat` with one legal item is already selected by the hook. Keep the child in
-  // selectedMenuOptions, but show its customizations where the redundant radio picker used to be.
-  if (fixedPlat) {
-    const item = section.items[0];
+  /** What Customize opens for this option — navigation (guest) or inline disclosure (staff). */
+  const customizeProps = (itemId: string) => {
+    if (inlinePanel) {
+      const key = bundleOptionKey(section.id, itemId);
+      return {
+        onCustomize: () => inlinePanel.onToggle(section.id, itemId),
+        customizeExpanded: inlinePanel.expandedOptionKey === key,
+        customizePanelId: `bundle-option-panel-${section.id}-${itemId}`,
+      };
+    }
+    return { onCustomize: () => onCustomizeOption?.(section.id, itemId) };
+  };
+
+  /** The row, then — staff mode only — the expanded panel under it. */
+  const renderOption = (item: (typeof section.items)[number], extra: { hideSelectionControl?: boolean }) => {
     const option = findBundleOption(selectedOptions, section.id, item.productId);
+    const panelVisible = Boolean(
+      inlinePanel &&
+      (extra.hideSelectionControl || inlinePanel.expandedOptionKey === bundleOptionKey(section.id, item.productId)),
+    );
+    const panelId = `bundle-option-panel-${section.id}-${item.productId}`;
+    // A fixed Plat's Customize still NAVIGATES in the guest sheet; the staff modal keeps its panel
+    // permanently open where the redundant radio picker used to be (P3), so it needs no Customize
+    // affordance on top — every other selected option gets the navigation props.
+    const navigateAffordance = customizeProps(item.productId);
+    let customizeAffordance:
+      | typeof navigateAffordance
+      | { onCustomize: undefined; customizeExpanded: undefined; customizePanelId: undefined } = navigateAffordance;
+    if (extra.hideSelectionControl && inlinePanel) {
+      customizeAffordance = { onCustomize: undefined, customizeExpanded: undefined, customizePanelId: undefined };
+    }
 
     return (
-      <section className={styles.section} aria-label={section.name}>
+      <React.Fragment key={item.id}>
         <BundleOptionRow
           item={item}
           sectionId={section.id}
-          inputType="radio"
+          inputType={isRadio ? 'radio' : 'checkbox'}
           isSelected={Boolean(option)}
-          isDisabled={false}
-          isExpanded={true}
-          option={option}
+          isDisabled={!option && !isRadio && selectedCount >= section.maxSelection}
           currentLanguage={currentLanguage}
           onToggle={() => onToggleOption(section, item.productId)}
-          onToggleExpanded={() => onToggleExpanded(section.id, item.productId)}
-          onCustomizationChange={(patch) => onCustomizationChange(section.id, item.productId, patch)}
-          hideSelectionControl
-          showCustomizationInline
+          {...customizeAffordance}
+          {...extra}
         />
+        {inlinePanel && panelVisible && (
+          <BundleOptionInlinePanel
+            id={panelId}
+            item={item}
+            option={option}
+            currentLanguage={currentLanguage}
+            onSelectionChange={(selected) =>
+              inlinePanel.onChange(section.id, item.productId, { selectedIngredients: selected })
+            }
+            onQuantityChange={(ingredientId, quantity) =>
+              inlinePanel.onChange(section.id, item.productId, { ingredientQuantities: { [ingredientId]: quantity } })
+            }
+            onInstructionsChange={(instructions) =>
+              inlinePanel.onChange(section.id, item.productId, { specialInstructions: instructions || undefined })
+            }
+          />
+        )}
+      </React.Fragment>
+    );
+  };
+
+  // P3: a required `Plat` with one legal item is already selected by the hook. Keep the child in
+  // selectedMenuOptions, but move its customizations to where the redundant radio picker used to be.
+  if (fixedPlat) {
+    const item = section.items[0];
+
+    return (
+      <section className={styles.section} aria-label={section.name}>
+        {renderOption(item, { hideSelectionControl: true })}
       </section>
     );
   }
@@ -115,29 +178,7 @@ export default function BundleSectionSelector({
         </p>
       )}
 
-      <div className={styles.options}>
-        {section.items.map((item) => {
-          const option = findBundleOption(selectedOptions, section.id, item.productId);
-          const isSelected = Boolean(option);
-
-          return (
-            <BundleOptionRow
-              key={item.id}
-              item={item}
-              sectionId={section.id}
-              inputType={isRadio ? 'radio' : 'checkbox'}
-              isSelected={isSelected}
-              isDisabled={!isSelected && !isRadio && selectedCount >= section.maxSelection}
-              isExpanded={expandedOptionKey === bundleOptionKey(section.id, item.productId)}
-              option={option}
-              currentLanguage={currentLanguage}
-              onToggle={() => onToggleOption(section, item.productId)}
-              onToggleExpanded={() => onToggleExpanded(section.id, item.productId)}
-              onCustomizationChange={(patch) => onCustomizationChange(section.id, item.productId, patch)}
-            />
-          );
-        })}
-      </div>
+      <div className={styles.options}>{section.items.map((item) => renderOption(item, {}))}</div>
     </fieldset>
   );
 }

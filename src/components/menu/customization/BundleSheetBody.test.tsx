@@ -56,9 +56,9 @@ const controller = () =>
 /**
  * The auto-advance rule at the point where it can HURT.
  *
- * `BundleOptionRow` shows its "Customize" disclosure only once the option is selected — so on a
+ * `BundleOptionRow` shows its "Customize" affordance only once the option is selected — so on a
  * single-select section, picking an option that has ingredients and then sliding to the next step
- * 260 ms later carries the guest past a control that had just appeared, with no way to reach it on
+ * 260 ms later carries the guest past the way into its guided screen, with no way to reach it on
  * the forward pass.
  */
 describe('BundleSheetBody — auto-advance must not slide past a drill-in', () => {

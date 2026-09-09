@@ -1,0 +1,11 @@
+/* The staff modal's inline option panel — extracted from BundleOptionRow when the guest flow
+   replaced it with the guided per-option screen (owner decision, 2026-09). Craft hooks, exactly as
+   the row's: var fallback = the exact classic literal. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-default, var(--border-color));
+  background: var(--surface-secondary);
+}

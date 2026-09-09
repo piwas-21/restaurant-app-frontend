@@ -1730,6 +1730,7 @@
   "creating": "Oluşturuluyor...",
   "error_loading_product": "Ürün ayrıntıları yüklenemedi",
   "customize": "Özelleştir",
+  "done": "Tamam",
   "choose_count": "{{count}} adet seçin",
   "choose_range": "{{min}}-{{max}} adet seçin",
   "please_select_at_least_options": "Lütfen en az {{count}} seçenek seçin",

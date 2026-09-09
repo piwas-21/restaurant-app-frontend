@@ -1730,6 +1730,7 @@
   "creating": "Aanmaken...",
   "error_loading_product": "Kan productdetails niet laden",
   "customize": "Aanpassen",
+  "done": "Klaar",
   "choose_count": "Kies {{count}}",
   "choose_range": "Kies {{min}}-{{max}}",
   "please_select_at_least_options": "Selecteer minimaal {{count}} optie(s)",

@@ -284,15 +284,40 @@ describe('useBundleCustomizationSheet', () => {
     );
   });
 
-  it('toggles the drill-in disclosure open and closed', () => {
+  it('opens and closes the per-option customization screen', () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(bundle));
 
-    act(() => result.current.toggleOptionExpanded('main', 'burger'));
-    expect(result.current.expandedOptionKey).toBe('main::burger');
+    act(() => result.current.openOptionCustomization('main', 'burger'));
+    expect(result.current.customizingOption).toEqual({ sectionId: 'main', itemId: 'burger' });
 
-    act(() => result.current.toggleOptionExpanded('main', 'burger'));
-    expect(result.current.expandedOptionKey).toBeNull();
+    act(() => result.current.closeOptionCustomization());
+    expect(result.current.customizingOption).toBeNull();
+  });
+
+  it('closes the option screen when the option being customized is deselected', () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(bundle));
+    act(() => result.current.toggleOption(bundle.menuDefinition.sections[1], 'coke'));
+    act(() => result.current.openOptionCustomization('drink', 'coke'));
+    expect(result.current.customizingOption).toEqual({ sectionId: 'drink', itemId: 'coke' });
+
+    act(() => result.current.toggleOption(bundle.menuDefinition.sections[1], 'coke'));
+    expect(result.current.customizingOption).toBeNull();
+  });
+
+  it('resets the option screen when the sheet closes', async () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(bundle));
+    act(() => result.current.openOptionCustomization('main', 'burger'));
+    act(() => result.current.toggleOption(bundle.menuDefinition.sections[1], 'coke'));
+
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(result.current.isOpen).toBe(false);
+    expect(result.current.customizingOption).toBeNull();
   });
 
   it('fires onAdded only after a successful add', async () => {

@@ -92,11 +92,13 @@ export default function BundleSectionSelector({
     // A fixed Plat's Customize still NAVIGATES in the guest sheet; the staff modal keeps its panel
     // permanently open where the redundant radio picker used to be (P3), so it needs no Customize
     // affordance on top — every other selected option gets the navigation props.
-    const customizeAffordance = extra.hideSelectionControl
-      ? inlinePanel
-        ? { onCustomize: undefined, customizeExpanded: undefined, customizePanelId: undefined }
-        : customizeProps(item.productId)
-      : customizeProps(item.productId);
+    const navigateAffordance = customizeProps(item.productId);
+    let customizeAffordance:
+      | typeof navigateAffordance
+      | { onCustomize: undefined; customizeExpanded: undefined; customizePanelId: undefined } = navigateAffordance;
+    if (extra.hideSelectionControl && inlinePanel) {
+      customizeAffordance = { onCustomize: undefined, customizeExpanded: undefined, customizePanelId: undefined };
+    }
 
     return (
       <React.Fragment key={item.id}>

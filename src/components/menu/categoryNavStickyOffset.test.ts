@@ -125,12 +125,13 @@ describe('the category bar is page chrome, not a column widget', () => {
     // Nav-first is the decision: below the promotion, a phone guest scrolled the whole thing before
     // the tabs appeared and then watched them jump when it scrolled past.
     //
-    // The hero is no longer a strip BETWEEN the two — it is the grid's first cell, handed down as
-    // `featuredSlot` — so the old three-way ordering collapses to "the bar comes before the
-    // layout", and the hero's own position is `featuredSpecialPlacement.test.ts`'s subject.
+    // The hero is no longer a strip BETWEEN the two — it is the grid's first cell, built once
+    // as the `featuredSlot` element and handed to WHICHEVER layout body renders (tabs
+    // `MenuContent` in its `styles.menuLayout` div, one-page `MenuOnePage` in its branch), so
+    // the ordering to pin is "the bar comes before BOTH content bodies". The hero's own slot
+    // wiring remains `featuredSpecialPlacement.test.ts`'s subject.
     expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('className={styles.menuLayout}'));
-    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('<FeaturedSpecialComponent'));
-    expect(pageIndexOf('<FeaturedSpecialComponent')).toBeGreaterThan(pageIndexOf('className={styles.menuLayout}'));
+    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('<MenuOnePage'));
   });
 
   it('is not rendered by the column component it was lifted out of', () => {

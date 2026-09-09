@@ -9,19 +9,20 @@ import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
 import { ALL_ITEMS_KEY, usePublicMenu } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
-import OrderFlowModals from '@/components/order/OrderFlowModals';
-import CartSheet from '@/components/order/CartSheet';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
+import MenuOnePage from '@/components/menu/MenuOnePage';
+import MenuOrderOverlays from '@/components/menu/MenuOrderOverlays';
 import DefaultCategoryNav from '@/components/menu/CategoryNav';
 import DefaultFeaturedSpecial from '@/components/menu/FeaturedSpecial';
-import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import { useMenuCart } from '@/hooks/menu/useMenuCart';
+import { useMenuDisplaySettings } from '@/hooks/useMenuDisplaySettings';
+import { useOnePageMenu } from '@/hooks/useOnePageMenu';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
@@ -35,12 +36,19 @@ export default function MenuPage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
+  // The tenant's menu-display settings (mcdoner partner request). `tabs` is the answer until
+  // the read settles and on any backend that predates the fields, so the page renders exactly
+  // today's tree by default. The settings decide which data pipeline runs BEFORE either is
+  // mounted: in the one-page layout the tabs pipeline is stood down and the one-page
+  // controller's per-category fetches own the page.
+  const displaySettings = useMenuDisplaySettings();
+  const isOnePage = displaySettings.menuLayout === 'onepage';
   const {
     categories: categoriesForNav,
     selectedView,
     setSelectedView,
     items: currentMenuItems,
-    menuBundles,
+    menuBundles: tabsMenuBundles,
     isLoading: isLoadingItems,
     error: errorLoadingItems,
     currentPage,
@@ -49,7 +57,10 @@ export default function MenuPage() {
     pageSize,
     onPageChange,
     refetch,
-  } = usePublicMenu();
+  } = usePublicMenu(!isOnePage);
+  const onePage = useOnePageMenu(isOnePage);
+  // One bundles list for the sheet's lookup, whichever layout is on screen.
+  const menuBundles = isOnePage ? onePage.menuBundles : tabsMenuBundles;
 
   const { featuredSpecial } = useFeaturedSpecial();
 
@@ -87,6 +98,16 @@ export default function MenuPage() {
     return null;
   }
 
+  const featuredSlot = featuredSpecial ? (
+    <FeaturedSpecialComponent
+      special={featuredSpecial}
+      // The banner builds its own options (it holds the verdict); the page only routes.
+      onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+      onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+      onSwitchOrderType={switchOrderTypeFromCard}
+    />
+  ) : undefined;
+
   const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t);
   // The tenant's own blurb for the selected category, when it has one. `''` on every RUMI category
   // today, so nothing renders — the field exists on `CategoryDto` and the design has a paragraph
@@ -111,67 +132,55 @@ export default function MenuPage() {
       {categoriesForNav.length > 0 && (
         <CategoryNav
           categories={categoriesForNav}
-          selectedView={selectedView}
-          onSelect={setSelectedView}
+          /* Tabs layout: the bar swaps the view. One-page layout: the SAME bar — and the
+             SAME craft surface override — jumps the page to the section instead, which is
+             why the tabs (All, Menu Bundles, one per category) are unchanged up there. */
+          selectedView={isOnePage ? onePage.activeSectionId : selectedView}
+          onSelect={isOnePage ? onePage.selectSection : setSelectedView}
           allLabel={t('all_categories_nav')}
         />
       )}
 
-      <div className={styles.menuLayout}>
-        <MenuContent
-          selectedView={selectedView}
-          categoryDisplayName={categoryDisplayName}
-          categoryDescription={categoryDescription}
-          isLoadingItems={isLoadingItems}
-          errorLoadingItems={errorLoadingItems}
-          currentMenuItems={currentMenuItems}
-          menuBundles={menuBundles}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
+      {/* The Chef's Special is the grid's FIRST CELL in both layouts. The page resolves the
+          template SURFACE — classic one hero, craft `CraftFeaturedSpecial` — and hands the
+          element down; resolving it inside a list would bundle craft into classic. */}
+      {isOnePage ? (
+        <MenuOnePage
+          controller={onePage}
           onOpenItem={sheet.openForCatalogItem}
-          // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
-          // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
-          // its own instance would set the type and swallow the table/address/contact step.
           onSwitchOrderType={switchOrderTypeFromCard}
-          // Retry — the copy has promised "Please try again." since before a control existed.
-          onRetry={refetch}
-          onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
-          // The Chef's Special is the grid's FIRST CELL now, spanning two columns, which is where
-          // the design puts it. The page still resolves the template SURFACE — classic ships one
-          // hero, craft ships `CraftFeaturedSpecial` — and hands the element down; `MenuList` only
-          // decides where it sits. Resolving it inside the list would bundle craft into classic.
-          // The data behind the slot, so `MenuContent` can filter the special by the same rule as
-          // the grid rather than hiding it whenever any chip is on.
           featuredFilterable={featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined}
-          featuredSlot={
-            featuredSpecial ? (
-              <FeaturedSpecialComponent
-                special={featuredSpecial}
-                // The banner builds its own options (it holds the verdict); the page only routes.
-                onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-                onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-                onSwitchOrderType={switchOrderTypeFromCard}
-              />
-            ) : undefined
-          }
+          featuredSlot={featuredSlot}
         />
-      </div>
-
-      {/* Same switch handler as the cards: the sheet refuses an add the card refused (§9.10), and
-          the way out has to reach the page's follow-up instance to open its modal. */}
-      <ItemCustomizationSheet
-        controller={sheet.product}
-        onSwitchOrderType={switchOrderTypeFromCard}
-        drinks={sheet.drinks}
-      />
-      <ItemCustomizationSheet
-        controller={sheet.bundle}
-        onSwitchOrderType={switchOrderTypeFromCard}
-        drinks={sheet.drinks}
-      />
+      ) : (
+        <div className={styles.menuLayout}>
+          <MenuContent
+            selectedView={selectedView}
+            categoryDisplayName={categoryDisplayName}
+            categoryDescription={categoryDescription}
+            isLoadingItems={isLoadingItems}
+            errorLoadingItems={errorLoadingItems}
+            currentMenuItems={currentMenuItems}
+            menuBundles={menuBundles}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onOpenItem={sheet.openForCatalogItem}
+            // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
+            // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
+            // its own instance would set the type and swallow the table/address/contact step.
+            onSwitchOrderType={switchOrderTypeFromCard}
+            // Retry — the copy has promised "Please try again." since before a control existed.
+            onRetry={refetch}
+            onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
+            showBundlesOnAllView={displaySettings.showBundlesOnAllTab}
+            featuredFilterable={featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined}
+            featuredSlot={featuredSlot}
+          />
+        </div>
+      )}
 
       <FloatingCartButton
         itemCount={cart.itemCount}
@@ -180,17 +189,12 @@ export default function MenuPage() {
         onClick={() => cart.openSheet('mobile_sheet')}
       />
 
-      {/* Closed while an order-type conflict is being confirmed. The sheet hosts the very toggle
-          that raises the confirm, so leaving it open stacks two BaseModals — and both register a
-          GLOBAL window keydown, so one Escape dismisses both. Same rule §9.10 landed for the
-          customization sheet: the surface that hands a verdict over closes behind it. */}
-      <CartSheet
-        isOpen={cart.isSheetOpen && orderTypeFollowUp.switchFlow.pending === null}
-        onClose={cart.closeSheet}
+      <MenuOrderOverlays
+        sheet={sheet}
+        cart={cart}
         followUp={orderTypeFollowUp}
+        onSwitchOrderType={switchOrderTypeFromCard}
       />
-
-      <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>
   );
 }

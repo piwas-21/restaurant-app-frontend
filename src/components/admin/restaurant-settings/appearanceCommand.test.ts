@@ -18,11 +18,16 @@ const info: RestaurantInfoDto = {
   logoDarkUrl: null,
   interiorImageUrl: null,
   phoneNumbers: [],
+  menuLayout: 'tabs',
+  showMenuBundlesOnAllTab: false,
 };
+
+const menuDisplayTabs = { menuLayout: 'tabs', showBundlesOnAllTab: false } as const;
+const menuDisplayOnePage = { menuLayout: 'onepage', showBundlesOnAllTab: true } as const;
 
 describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
   it('carries every current field so a palette save cannot wipe them', () => {
-    expect(toUpdateCommand(info, 'saffron')).toEqual({
+    expect(toUpdateCommand(info, 'saffron', menuDisplayOnePage)).toEqual({
       name: 'Rumi',
       addressLine1: 'Rue X 1',
       addressLine2: '2nd floor',
@@ -34,11 +39,13 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
       email: 'contact@rumirestaurant.ch',
       website: 'https://rumirestaurant.ch',
       themePaletteKey: 'saffron',
+      menuLayout: 'onepage',
+      showMenuBundlesOnAllTab: true,
     });
   });
 
-  it('sends all 11 command fields (the full upsert, no more no less)', () => {
-    expect(Object.keys(toUpdateCommand(info, 'saffron')).sort()).toEqual(
+  it('sends all 13 command fields (the full upsert, no more no less)', () => {
+    expect(Object.keys(toUpdateCommand(info, 'saffron', menuDisplayOnePage)).sort()).toEqual(
       [
         'addressLine1',
         'addressLine2',
@@ -47,8 +54,10 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
         'email',
         'latitude',
         'longitude',
+        'menuLayout',
         'name',
         'postalCode',
+        'showMenuBundlesOnAllTab',
         'themePaletteKey',
         'website',
       ].sort(),
@@ -61,15 +70,26 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
     // unconditionally, so a logo carried here would be wiped by any writer that built the
     // command before the logo was uploaded. The fixture has a logo set — if these keys
     // ever appear, the wipe is already possible.
-    const command = toUpdateCommand(info, 'saffron');
+    const command = toUpdateCommand(info, 'saffron', menuDisplayOnePage);
     expect(command).not.toHaveProperty('logoUrl');
     expect(command).not.toHaveProperty('logoDarkUrl');
   });
 
   it('overrides only themePaletteKey, incl. clearing to null', () => {
-    expect(toUpdateCommand(info, null).themePaletteKey).toBeNull();
-    expect(toUpdateCommand(info, 'saffron').name).toBe(info.name);
-    expect(toUpdateCommand(info, 'saffron').website).toBe(info.website);
-    expect(toUpdateCommand(info, 'saffron').city).toBe(info.city);
+    expect(toUpdateCommand(info, null, menuDisplayTabs).themePaletteKey).toBeNull();
+    expect(toUpdateCommand(info, 'saffron', menuDisplayOnePage).name).toBe(info.name);
+    expect(toUpdateCommand(info, 'saffron', menuDisplayOnePage).website).toBe(info.website);
+    expect(toUpdateCommand(info, 'saffron', menuDisplayOnePage).city).toBe(info.city);
+  });
+
+  it('carries the menu-display settings so a palette save cannot reset them', () => {
+    const command = toUpdateCommand(info, 'saffron', menuDisplayOnePage);
+    expect(command.menuLayout).toBe('onepage');
+    expect(command.showMenuBundlesOnAllTab).toBe(true);
+
+    // And the tab's own defaults write the shipped behaviour back.
+    const defaults = toUpdateCommand(info, null, menuDisplayTabs);
+    expect(defaults.menuLayout).toBe('tabs');
+    expect(defaults.showMenuBundlesOnAllTab).toBe(false);
   });
 });

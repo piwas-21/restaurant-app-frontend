@@ -20,7 +20,7 @@ import type { MenuBundleListResponse, ProductListResponse } from './types';
  * tenant who exceeds it keeps pagination and the filter row keeps printing its match count against
  * what it actually loaded, so the number on screen stays true either way.
  */
-const PAGE_SIZE = 200;
+export const PAGE_SIZE = 200;
 
 /**
  * The two fetchers are INDEPENDENT PIPELINES with disjoint state (a FetcherState each): they run

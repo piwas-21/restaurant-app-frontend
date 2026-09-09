@@ -172,3 +172,21 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
 export function isVisible<T extends { isActive?: boolean; isAvailable?: boolean }>(entity: T): boolean {
   return entity.isActive !== false && entity.isAvailable !== false;
 }
+
+/**
+ * Which bundles join one view's grid. A category tab shows its dishes PLUS the bundles listed
+ * in it (the links the admin assigns to the bundle itself). The All view stays products-only
+ * unless the tenant turned the setting on — then it carries the combined listing, exactly what
+ * the bundles tab shows. Empty `categoryIds` (orphan bundle) matches no tab: today's placement.
+ */
+export function groupedBundlesFor(
+  selectedView: string,
+  isAllView: boolean,
+  isMenuBundlesView: boolean,
+  showAllViewBundles: boolean,
+  menuBundles: MenuBundleItem[],
+): MenuBundleItem[] {
+  if (isMenuBundlesView) return [];
+  if (isAllView) return showAllViewBundles ? menuBundles : [];
+  return menuBundles.filter((bundle) => bundle.categoryIds?.includes(selectedView) ?? false);
+}

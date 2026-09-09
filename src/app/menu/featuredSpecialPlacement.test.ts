@@ -22,6 +22,9 @@ import { join } from 'node:path';
  * different way. It catches the regressions that actually happened.
  */
 const SOURCE = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
+// The overlays (customization sheets + basket slide-over + follow-up modals) moved out of the
+// page when it grew the one-page layout branch — they are shared by both layouts verbatim.
+const OVERLAYS = readFileSync(join(__dirname, '../../components/menu/MenuOrderOverlays.tsx'), 'utf8');
 const LIST = readFileSync(join(__dirname, '../../components/menu/MenuList.tsx'), 'utf8');
 const CONTENT_CSS = readFileSync(join(__dirname, '../../components/menu/MenuContent.module.css'), 'utf8');
 
@@ -31,10 +34,15 @@ describe('Chef’s Special placement on the menu page', () => {
     // `CraftFeaturedSpecial` — and passes the ELEMENT down. Resolving it inside `MenuList` would
     // bundle craft's module into classic's build (T4).
     expect(SOURCE).toContain("surfaceOr('FeaturedSpecial'");
-    expect(SOURCE).toMatch(/featuredSlot=\{[\s\S]*?<FeaturedSpecialComponent/);
-    // …and it is the ONLY place the hero is rendered: a second, page-level copy would put the
-    // promoted dish on screen twice.
+    // Built ONCE as a slot element before the layout branch, then handed to whichever body
+    // renders — the tabs `MenuContent` and the one-page `MenuOnePage` are its two consumers.
+    // A slot built per-branch would either render the surface resolution twice or let one
+    // layout drift out of the hero's wiring.
+    const slotStart = SOURCE.indexOf('const featuredSlot =');
+    expect(slotStart).toBeGreaterThan(-1);
+    expect(SOURCE.slice(slotStart)).toContain('<FeaturedSpecialComponent');
     expect(SOURCE.match(/<FeaturedSpecialComponent/g)).toHaveLength(1);
+    expect(SOURCE.match(/featuredSlot=\{featuredSlot\}/g)).toHaveLength(2);
   });
 
   it('renders the hero inside the grid, as its first cell', () => {
@@ -58,7 +66,10 @@ describe('Chef’s Special placement on the menu page', () => {
     // halves of that are gone: the rail is a slide-over opened from the sticky bar.
     expect(SOURCE).not.toContain('<OrderFlowSidebar');
     expect(SOURCE).not.toContain('menuSidebarColumn');
-    expect(SOURCE).toContain('<CartSheet');
+    // The slide-over still hosts the basket; it renders through the shared overlays component
+    // both layouts mount (the page delegates, it does not lose the surface).
+    expect(SOURCE).toContain('<MenuOrderOverlays');
+    expect(OVERLAYS).toContain('<CartSheet');
     // Opened by the FLOATING cart button, which is the page's only cart entry point — a second
     // copy in the sticky bar did the same job from the other corner and is gone.
     expect(SOURCE).toContain('<FloatingCartButton');

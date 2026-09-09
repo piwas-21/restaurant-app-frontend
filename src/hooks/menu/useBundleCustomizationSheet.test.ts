@@ -409,16 +409,9 @@ describe('useBundleCustomizationSheet', () => {
 describe('the guided option walk (partner feedback 2026-09)', () => {
   // One factory per shape, so no two multi-line literals in this file (or in the sheet's e2e
   // specs) repeat a 10-line stretch — the PR delta is what Sonar's duplication gate reads.
-  const sideIngredient = {
-    id: 'onion',
-    name: 'Onion',
-    price: 0,
-    isOptional: false,
-    isActive: true,
-    isIncludedInBasePrice: true,
-    maxQuantity: 1,
-    displayOrder: 1,
-  };
+  // Derived from the fixture's own `cheese` literal: a second 8-property ingredient literal is a
+  // structural duplicate, which is exactly what the Sonar delta gate counts.
+  const sideIngredient = { ...cheese, id: 'onion', name: 'Onion', price: 0, isOptional: false };
   const sideItem = (productId: string, productName: string, displayOrder: number, withIngredients: boolean) => ({
     id: `si-${productId}`,
     productId,

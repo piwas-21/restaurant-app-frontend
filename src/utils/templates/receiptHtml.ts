@@ -6,8 +6,27 @@
  * appearing as top-level entries, so a template that prints only the top level silently omits
  * everything inside a combo. It recurses because the backend builds the tree to arbitrary depth.
  */
-import { OrderItemDto } from '@/types/order';
+import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import { formatCurrency } from '../currency';
+
+/**
+ * The ingredient rows a KITCHEN must act on, and their ticket lines. A row qualifies when it is a
+ * removal, an above-default quantity, or a PAID EXTRA the guest opted into (`isAddOn` — a freshly
+ * chosen add-on carries quantity 1, which is why quantity alone cannot say it; the old
+ * quantity-only filter is what dropped every chosen sauce from the printed ticket). An add-on row
+ * at quantity 0 was never picked, so the quantity half of the rule drops it.
+ * Shared by the root items and the bundle-component rows — one filter, two depths.
+ */
+export const customizedIngredientRows = (item: OrderItemDto): OrderItemIngredientDto[] =>
+  item.ingredientCustomizations?.filter(
+    (ing) => ing.isRemoved || ing.quantity > 1 || (ing.isAddOn === true && ing.quantity > 0),
+  ) ?? [];
+
+/** One ingredient row on the ticket: struck-through "✘ NO X", or "+ EXTRA X" with a ×N above 1. */
+export const ingredientRowHtml = (ing: OrderItemIngredientDto, indent: number): string =>
+  ing.isRemoved
+    ? `<div style="margin-left: ${indent}px; font-size: 11pt; text-decoration: line-through;">✘ NO ${escapeHtml(ing.ingredientName)}</div>`
+    : `<div style="margin-left: ${indent}px; font-size: 11pt;">+ EXTRA ${escapeHtml(ing.ingredientName)}${ing.quantity > 1 ? ` x${ing.quantity}` : ''}</div>`;
 
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
@@ -35,6 +54,14 @@ export interface ChildItemsOptions {
   showPrices: boolean;
   /** Heading printed above the children, e.g. the kitchen ticket's "Additionals:". Omitted ⇒ none. */
   heading?: string;
+  /**
+   * Print each component's OWN ingredient rows beneath its name — the same
+   * `customizedIngredientRows` filter the root items use, indented one level deeper. Opt-in
+   * because the two templates disagree about what a bill is for: the kitchen ticket needs the
+   * sauce the guest chose INSIDE a combo to reach paper (it used to print the component name and
+   * silently drop its customizations), while the customer bill stays a money document.
+   */
+  withIngredients?: boolean;
 }
 
 /** Render an item's child rows (bundle components + add-on sides), indented one level per depth. */
@@ -51,6 +78,11 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     const childPrice = options.showPrices && child.itemTotal > 0 ? ` (${formatCurrency(child.itemTotal)})` : '';
     const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
     html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
+    if (options.withIngredients) {
+      customizedIngredientRows(child).forEach((ing) => {
+        html += ingredientRowHtml(ing, indent + 16);
+      });
+    }
     html += buildChildItemsHtml(child.sideItems ?? [], options, depth + 1);
   });
 

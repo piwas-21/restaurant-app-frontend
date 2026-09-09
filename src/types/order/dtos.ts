@@ -49,6 +49,7 @@ export interface OrderItemIngredientDto {
   ingredientName: string;
   quantity: number;
   isRemoved: boolean; // true if customer deselected/removed this ingredient
+  isAddOn?: boolean; // frozen paid-extra marker; CHOSEN = !isRemoved && qty > 0 && (isAddOn || qty > 1); absent = pre-flag payload (see lineSummary.isChosenIngredient)
 }
 
 /** Order item details — the shape POSTed to `/api/Orders`, and the base of what it returns. */

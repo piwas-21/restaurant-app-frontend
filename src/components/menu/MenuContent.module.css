@@ -99,6 +99,32 @@
   font-weight: 500;
 }
 
+/* The "Menu Bundles" group under the All tab's product grid (tenant setting, mcdoner
+   partner request). A subsection of the All view, not a section of its own: the view's
+   h2 above already says where the guest is, so this is one rank smaller and carries the
+   same hairline-out-to-the-edge anatomy the section heading uses. */
+.bundleGroup {
+  margin-bottom: 2rem;
+}
+
+.bundleGroupHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.bundleGroupHeading {
+  font-family: var(--font-family-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--text-primary);
+}
+
 /* Tablet. Two columns is a FLOOR here, overriding what `auto-fill` would derive: between roughly
    600 and 900px the 340px minimum yields one full-width card, and a single 584px card on a tablet
    reads as a broken grid rather than a dense menu. Density is worth more than the card's ideal

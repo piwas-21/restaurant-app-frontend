@@ -62,6 +62,11 @@ const DYNAMIC_PREFIXES = [
   'kitchen_type_',
   'lang_',
   'language_',
+  // `src/app/admin/ingredient-translations/page.tsx` composes the i18next plural family
+  // `ingredient_translations_receipt_products_{category}` via
+  // `t('ingredient_translations_receipt_products', { count })` — the receipt sentence ("applied
+  // to N products"). i18next appends the CLDR category itself, so no literal exists per category.
+  'ingredient_translations_receipt_products_',
   'my_reservations_status_',
   'order_status_',
   'payment_status_',

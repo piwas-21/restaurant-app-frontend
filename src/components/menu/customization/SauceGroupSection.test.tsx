@@ -469,3 +469,79 @@ describe('SauceGroupSection — stored exclusive no-sauce answers', () => {
     expect(onQuantityChange).not.toHaveBeenCalled();
   });
 });
+
+describe('SauceGroupSection — the built-in no-sauce answer is never blocked by the max', () => {
+  /**
+   * The built-in row is the EXCLUSIVE answer, not a member of the group: blocking it at the max
+   * would strand a guest who wants to back out to zero with no way to get there (partner report,
+   * mcdoner). These pin what the code already does, so a future "block everything at the max"
+   * refactor cannot take the way out silently.
+   */
+  it('leaves the built-in row reachable at the max, and it clears EVERY selected sauce (checkbox)', () => {
+    const { onSelectionChange, onQuantityChange } = renderGroup({
+      rule: { min: 0, max: 2, includedFree: 1 },
+      selectedIngredients: ['salsa', 'mayo'],
+    });
+    expand();
+
+    // Contrast within the same render: members are blocked, the exclusive answer is not.
+    expect(screen.getByRole('checkbox', { name: /BBQ Sauce/ })).toHaveAttribute('aria-disabled', 'true');
+    const none = screen.getByRole('checkbox', { name: 'No sauce' });
+    expect(none).not.toHaveAttribute('aria-disabled');
+    expect(none).toBeEnabled();
+
+    fireEvent.click(none);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+    // Quantity 0 for EVERY selected sauce, not just the last — the kitchen ticket's "NO x".
+    expect(onQuantityChange).toHaveBeenCalledWith('salsa', 0);
+    expect(onQuantityChange).toHaveBeenCalledWith('mayo', 0);
+  });
+
+  it('leaves the built-in row reachable at the max, and it clears the choice (radio)', () => {
+    const { onSelectionChange, onQuantityChange } = renderGroup({
+      rule: { min: 0, max: 1, includedFree: 1 },
+      selectedIngredients: ['salsa'],
+    });
+    expand();
+
+    const none = screen.getByRole('radio', { name: 'No sauce' });
+    expect(none).not.toHaveAttribute('aria-disabled');
+    expect(none).toBeEnabled();
+
+    fireEvent.click(none);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+    expect(onQuantityChange).toHaveBeenCalledWith('salsa', 0);
+  });
+
+  it('empties real state through the built-in row while the group sits at its max', () => {
+    function MaxedGroup() {
+      const [selected, setSelected] = useState(['salsa', 'mayo']);
+      const [quantities, setQuantities] = useState<Record<string, number>>({ salsa: 2, mayo: 1 });
+      return (
+        <>
+          <SauceGroupSection
+            ingredients={SAUCES}
+            rule={{ min: 0, max: 2, includedFree: 0 }}
+            selectedIngredients={selected}
+            ingredientQuantities={quantities}
+            onSelectionChange={setSelected}
+            onQuantityChange={(id, quantity) => setQuantities((previous) => ({ ...previous, [id]: quantity }))}
+            currentLanguage="en"
+          />
+          <output data-testid="selection">{JSON.stringify(selected)}</output>
+          <output data-testid="quantities">{JSON.stringify(quantities)}</output>
+        </>
+      );
+    }
+
+    render(<MaxedGroup />);
+    expand();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'No sauce' }));
+    expect(screen.getByRole('checkbox', { name: 'No sauce' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Tomato Salsa/ })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Garlic Mayo/ })).not.toBeChecked();
+    expect(JSON.parse(screen.getByTestId('selection').textContent!)).toEqual([]);
+    expect(JSON.parse(screen.getByTestId('quantities').textContent!)).toEqual({ salsa: 0, mayo: 0 });
+  });
+});

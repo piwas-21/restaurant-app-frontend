@@ -12,6 +12,8 @@
  * from, so neither service has to depend on the other.
  */
 
+import { fold } from '@/utils/nameFold';
+
 /** Everything these rules need from a catalog row. */
 export interface LibraryRow {
   defaultName: string;
@@ -24,13 +26,11 @@ export const MAX_VISIBLE_LIBRARY_ROWS = 50;
 /**
  * Case- and accent-insensitive. The catalog is multilingual, so "creme" must find "Crème" — which
  * is one more reason a picker filters the browsed list itself instead of asking the server.
+ *
+ * Re-exported from `utils/nameFold.ts` since the ingredient-translations manager needed the
+ * identical folding outside this folder; this path stays so every existing import keeps working.
  */
-export const fold = (value: string): string =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
+export { fold };
 
 /** Every name a row answers to: its default name plus all of its translations. */
 export const searchableNames = (row: LibraryRow): string[] => [

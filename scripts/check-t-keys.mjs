@@ -196,6 +196,17 @@ for (const file of sourceFiles) {
     // A second argument counts as a default when it is a string literal, or an options object
     // carrying `defaultValue` — `t('k', { count, defaultValue: '…' })`.
     const after = m[3] === ',' ? src.slice(CALL.lastIndex).trimStart() : '';
+
+    // A `count` option is a PLURAL FAMILY call, not a miss: i18next resolves `k_<category>`
+    // (Intl.PluralRules cardinal categories) and never touches the bare `k`, so the bare key is
+    // SUPPOSED to be absent. The callsite resolves when en carries the full English category set;
+    // check-locale-parity.mjs then holds every other locale to exactly that set (#590), so a
+    // locale missing a category still fails — there, not here.
+    if (after.startsWith('{') && /\bcount\s*:/.test(after.slice(0, 400))) {
+      const categories = new Intl.PluralRules('en').resolvedOptions().pluralCategories;
+      if (categories.every((category) => resolve(en, `${key}_${category}`) !== undefined)) continue;
+    }
+
     const hasDefault =
       /^['"`]/.test(after) || (after.startsWith('{') && /\bdefaultValue\s*:/.test(after.slice(0, 400)));
 

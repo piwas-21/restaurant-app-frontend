@@ -28,6 +28,12 @@ export function toFullUpdateCommand(
     email: info.email,
     website: info.website,
     themePaletteKey: info.themePaletteKey,
+    // Menu-display settings (mcdoner partner request): the PUT is a full upsert,
+    // so these ride along from the current server state like every other field.
+    // `??` covers a backend that predates the fields on the READ side only; the
+    // fallbacks are the shipped defaults (tabs layout, products-only All tab).
+    menuLayout: info.menuLayout ?? 'tabs',
+    showMenuBundlesOnAllTab: info.showMenuBundlesOnAllTab ?? false,
     ...overrides,
   };
 }

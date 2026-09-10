@@ -3,9 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import BundleMediaPanel from './BundleMediaPanel';
 
 /**
- * The bundle Media section's own contract: the staged picker, a removable row per staged file,
- * and the notice that says the upload happens on Save (nothing here writes immediately — that
- * is the gallery's behaviour, and the notice exists so the two sections can't be confused).
+ * The bundle CREATE route's staged Media section — its own contract: the staged picker, a
+ * removable row per staged file, and the notice that says the upload happens on Save (nothing
+ * here writes immediately — that is the gallery's behaviour on the EDIT route, and the notice
+ * exists so the two surfaces can't be confused).
  */
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({

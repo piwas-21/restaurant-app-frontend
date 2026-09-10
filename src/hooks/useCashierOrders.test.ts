@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCashierOrders } from './useCashierOrders';
 import { getCashierOrders, getOrderById, refundPayment } from '@/services/cashierService';
 import { ApiError } from '@/utils/apiClient';
+import type { CashierOrdersQuery } from './cashier/useCashierFilters';
 
 jest.mock('@/services/cashierService', () => ({
   getCashierOrders: jest.fn(),
@@ -37,6 +38,35 @@ beforeEach(() => {
  * over the top of the error banner, and the `catch` it had written for the failure was
  * unreachable. The boolean is the only thing that distinguishes them (E9 slice 8).
  */
+describe('useCashierOrders — server-paged queue', () => {
+  it('sends a search to the server so an order beyond an unfiltered first page is found', async () => {
+    const firstPage = Array.from({ length: 10 }, (_, index) => ({
+      id: `o${index + 1}`,
+      orderNumber: `${index + 1}`,
+      status: 'Pending',
+    }));
+    const laterOrder = { id: 'o11', orderNumber: 'later-order', status: 'Pending' };
+    const initialQuery: CashierOrdersQuery = { page: 1, pageSize: 10 };
+
+    mockGetCashierOrders
+      .mockResolvedValueOnce({ items: firstPage, totalCount: 11, page: 1, pageSize: 10, totalPages: 2 })
+      .mockResolvedValueOnce({ items: [laterOrder], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+
+    const { result, rerender } = renderHook(({ query }) => useCashierOrders(undefined, query), {
+      initialProps: { query: initialQuery },
+    });
+    await waitFor(() => expect(result.current.orders).toHaveLength(10));
+
+    rerender({ query: { ...initialQuery, search: 'later-order' } });
+
+    await waitFor(() =>
+      expect(mockGetCashierOrders).toHaveBeenLastCalledWith({ page: 1, pageSize: 10, search: 'later-order' }),
+    );
+    await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['o11']));
+    expect(result.current.pagination.totalCount).toBe(1);
+  });
+});
+
 describe('useCashierOrders — refreshOrders reports its outcome', () => {
   it('resolves true and leaves `error` clear when the fetch lands', async () => {
     const { result } = renderHook(() => useCashierOrders());

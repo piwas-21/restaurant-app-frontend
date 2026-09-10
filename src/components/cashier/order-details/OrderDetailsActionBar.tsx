@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { CreditCard, XCircle, Zap, RefreshCw, ChevronDown } from 'lucide-react';
 import { OrderDto } from '@/types/order';
+import { canCollectPayment } from '@/lib/settlementEligibility';
 import { getOrderStatusColor } from '@/utils/orderStatusColor';
 import styles from '../OrderDetails.module.css';
 
@@ -13,7 +14,7 @@ interface OrderDetailsActionBarProps {
   onRefund: () => void;
   onCancel: () => void;
   onToggleFocus: () => void;
-  nextStatuses: string[];
+  nextStatuses: readonly string[];
   isUpdating: boolean;
   isStatusMenuOpen: boolean;
   setIsStatusMenuOpen: (open: boolean) => void;
@@ -90,8 +91,9 @@ export default function OrderDetailsActionBar({
           </div>
         )}
 
-        {/* Add Payment - hide for completed/cancelled */}
-        {order.status !== 'Completed' && order.status !== 'Cancelled' && (
+        {/* Collect — a completed-but-unpaid sale stays collectible (backend #522); cancelled,
+            refunded and credited orders never reopen debt. */}
+        {canCollectPayment(order) && (
           <button className={`${styles.actionButton} ${styles.actionButtonSuccess}`} onClick={onAddPayment}>
             <CreditCard size={18} />
             {t('cashier.add_payment', 'Payment')}

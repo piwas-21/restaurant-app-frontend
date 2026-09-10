@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   addPaymentToOrder,
   refundPayment,
+  getOrderById,
   cancelOrder,
   toggleFocusOrder,
   AddPaymentRequest,
@@ -14,6 +15,7 @@ import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
 import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
+import { CashierOrdersQuery, DEFAULT_QUEUE_QUERY } from './cashier/useCashierFilters';
 
 const POLLING_INTERVAL_MS = 5000;
 
@@ -24,18 +26,13 @@ export interface CashierDateRange {
 
 interface UseCashierOrdersReturn {
   orders: OrderDto[];
+  pagination: { totalCount: number; page: number; pageSize: number; totalPages: number };
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
-  /**
-   * `true` when the fetch landed, `false` when it failed — the failure itself is already on
-   * screen via `error`, so the boolean exists only so a CALLER can tell the two apart. It could
-   * not before: this resolves on both paths, so the cashier page's manual-refresh handler
-   * announced "Orders refreshed" over the top of the error banner every time the backend was
-   * down, and the `catch` it wrote for that case was unreachable.
-   */
+  /** `true` when the fetch landed, `false` when it failed; the failure itself is on `error`. */
   refreshOrders: () => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
@@ -44,50 +41,57 @@ interface UseCashierOrdersReturn {
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
 }
 
-export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrdersReturn {
+export function useCashierOrders(
+  dateRange?: CashierDateRange,
+  query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
+): UseCashierOrdersReturn {
   const dateRangeRef = useRef<CashierDateRange | undefined>(dateRange);
   dateRangeRef.current = dateRange;
+  const queryRef = useRef<CashierOrdersQuery>(query);
+  queryRef.current = query;
 
   const [orders, setOrders] = useState<OrderDto[]>([]);
+  const [pagination, setPagination] = useState({
+    totalCount: 0,
+    page: query.page,
+    pageSize: query.pageSize,
+    totalPages: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const isMountedRef = useRef(true);
-  const lastPolledAtRef = useRef<Date | null>(null);
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const latestRequestRef = useRef(0);
 
-  const refreshOrders = useCallback(async (modifiedSince?: Date): Promise<boolean> => {
+  const refreshOrders = useCallback(async (): Promise<boolean> => {
     if (!isMountedRef.current) return false;
+    const requestId = ++latestRequestRef.current;
     try {
       setError(null);
       const range = dateRangeRef.current;
+      const currentQuery = queryRef.current;
       const filters = {
-        ...(modifiedSince ? { modifiedSince } : {}),
+        ...currentQuery,
         ...(range?.startDate ? { startDate: range.startDate } : {}),
         ...(range?.endDate ? { endDate: range.endDate } : {}),
       };
-      const result = await getCashierOrders(Object.keys(filters).length > 0 ? filters : undefined);
-      if (!isMountedRef.current) return false;
+      const result = await getCashierOrders(filters);
+      if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
 
-      if (modifiedSince && result.items && result.items.length > 0) {
-        // Incremental: merge new/updated rows in place.
-        setOrders((prev) => {
-          const next = [...prev];
-          for (const order of result.items) {
-            const existingIndex = next.findIndex((o) => o.id === order.id);
-            if (existingIndex >= 0) next[existingIndex] = order;
-            else next.unshift(order);
-          }
-          return next;
-        });
-      } else if (!modifiedSince) {
-        setOrders(result.items || []);
-      }
-      lastPolledAtRef.current = new Date();
+      // A complete page replaces the prior page: incremental `modifiedSince` deltas cannot
+      // carry a truthful total, so the operational queue polls the server-filtered page.
+      setOrders(result.items || []);
+      setPagination({
+        totalCount: result.totalCount,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+      });
       setIsLoading(false);
       return true;
     } catch (err) {
-      if (!isMountedRef.current) return false;
+      if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
       const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
       setError(errorMessage);
       setIsLoading(false);
@@ -112,7 +116,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
       if (!isMountedRef.current || primaryPollingIntervalRef.current) return;
       primaryPollingIntervalRef.current = setInterval(() => {
         if (!isMountedRef.current) return;
-        void refreshOrders(lastPolledAtRef.current || undefined);
+        void refreshOrders();
       }, POLLING_INTERVAL_MS);
     }, 100);
 
@@ -128,21 +132,21 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-fetch on date-range change after the initial mount; drop cached
-  // orders so the previous window doesn't bleed into the new one.
-  const isFirstRangeEffectRef = useRef(true);
+  // Refresh when the date window, server-side filters, search, or page changes. Keep the
+  // prior page visible while the new page loads so a selected order does not blink away during a
+  // normal refresh; the response atomically replaces it.
   const startDateMs = dateRange?.startDate?.getTime();
   const endDateMs = dateRange?.endDate?.getTime();
+  const fetchKey = `${startDateMs ?? ''}:${endDateMs ?? ''}:${JSON.stringify(query)}`;
+  const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
-    if (isFirstRangeEffectRef.current) {
-      isFirstRangeEffectRef.current = false;
+    if (isFirstFetchEffectRef.current) {
+      isFirstFetchEffectRef.current = false;
       return;
     }
-    setOrders([]);
     setIsLoading(true);
-    lastPolledAtRef.current = null;
     void refreshOrders();
-  }, [startDateMs, endDateMs, refreshOrders]);
+  }, [fetchKey, refreshOrders]);
 
   // Call the API, merge the returned order into local state, surface errors via setError.
   // Replaces five near-identical handlers; lives in its own file since §4.
@@ -150,6 +154,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
 
   return {
     orders,
+    pagination,
     isConnected: stream.isConnected,
     isLoading,
     error: error || stream.error,
@@ -167,7 +172,16 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
     ),
     refundPayment: useCallback(
       (orderId, paymentId, amount) =>
-        applyMutation(orderId, () => refundPayment(orderId, paymentId, amount), 'Failed to refund'),
+        // The refund endpoint returns its payment record, not the order aggregate. Fetch the
+        // authoritative order before `applyMutation` merges anything into cashier state.
+        applyMutation(
+          orderId,
+          async () => {
+            await refundPayment(orderId, paymentId, amount);
+            return getOrderById(orderId);
+          },
+          'Failed to refund',
+        ),
       [applyMutation],
     ),
     cancelOrder: useCallback(

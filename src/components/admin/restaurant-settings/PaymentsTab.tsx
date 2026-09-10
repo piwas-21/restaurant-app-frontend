@@ -29,14 +29,16 @@ import styles from './PaymentsTab.module.css';
  * refuses it for `controller[requirement_collection]=stripe`, "which includes Standard and
  * Express accounts". So the sitting still exists — it is just short.
  *
- * TWINT. The hints used to say we switch TWINT on. Measured on the LIVE platform 2026-09-05:
- * a connected Express account reports `twint_payments: inactive`, its payment method
- * configuration reports `twint.available: false`, and writing the display preference to `on`
- * returns 200 while `available` stays false — the capability is missing one level up, and
- * Stripe lets only full-dashboard accounts turn it on themselves. In TEST mode the same probe
- * answers `available: true`, which is how the claim got shipped. The copy now says what is
- * true today: card payment comes first, TWINT follows when we can offer it. See
- * `paymentsTabCopy.test.ts` — the key-mocked tests here cannot see a false sentence.
+ * TWINT. "We switch TWINT on" was true in TEST mode and false on the LIVE platform until
+ * 2026-09-06: the PLATFORM `twint_payments` capability was `inactive` (a connected Express
+ * account reported `twint.available: false`, and a display-preference write returned 200
+ * while `available` stayed false), so #728 retired the promise. Stripe approved the platform
+ * capability on 2026-09-06, after piwas.nl went live and the profile URL was fixed. The mint
+ * now requests the capability at account creation and the platform approves it, so the
+ * promise is true again for accounts minted from now on: we switch TWINT on as part of
+ * setup, and it activates when the restaurant finishes Stripe's onboarding — not before,
+ * and not "instantly". See `paymentsTabCopy.test.ts` — the key-mocked tests here cannot
+ * see a false sentence.
  */
 export default function PaymentsTab() {
   const { t } = useTranslation();
@@ -143,14 +145,14 @@ export default function PaymentsTab() {
       // phone, terms — so the owner can see the sitting is short before they start it.
       key: 'payments_tab_awaiting_hint',
       fallback:
-        'Stripe needs a few personal details from you: date of birth, a phone number, and your acceptance of their terms. We filled in everything else. Card payment turns on by itself once Stripe is done. TWINT is not available yet; it follows as soon as we can offer it — until then your restaurant is fully live and taking cash as usual.',
+        'Stripe needs a few personal details from you: date of birth, a phone number, and your acceptance of their terms. We filled in everything else, and we switch TWINT on for you. Card payment turns on by itself once Stripe is done — until then your restaurant is fully live and taking cash as usual.',
     },
     notConfigured: {
       // "There is nothing to do here yet" was true when only the restaurant could open the
       // account. It is false now: we open it, and the short form is theirs.
       key: 'payments_tab_not_configured_hint',
       fallback:
-        'We create your Stripe account and fill in what we already know about your restaurant. You finish a short form at Stripe — a few personal details and their terms — and card payment comes first. TWINT is not available yet; it follows as soon as we can offer it. We will tell you when card payment appears at your checkout.',
+        'We create your Stripe account and fill in what we already know about your restaurant. You finish a short form at Stripe — a few personal details and their terms — and we switch TWINT on. We will tell you when card payment appears at your checkout.',
     },
   };
 

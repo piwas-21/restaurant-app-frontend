@@ -11,6 +11,8 @@ import {
   OrderDto,
   OrderDtoPagedResultApiResponse,
   OrderDtoApiResponse,
+  OrderPaymentDto,
+  OrderPaymentDtoApiResponse,
   PagedResult,
   TableBillDto,
   TableBillApiResponse,
@@ -23,7 +25,8 @@ import { SseDiagnostics } from '@/types/diagnostics';
 export async function getCashierOrders(filters?: {
   status?: string;
   paymentStatus?: string;
-  type?: string;
+  orderType?: string;
+  search?: string;
   page?: number;
   pageSize?: number;
   startDate?: Date;
@@ -35,9 +38,10 @@ export async function getCashierOrders(filters?: {
   if (filters) {
     if (filters.status) params.append('status', filters.status);
     if (filters.paymentStatus) params.append('paymentStatus', filters.paymentStatus);
-    if (filters.type) params.append('type', filters.type);
-    if (filters.page) params.append('page', filters.page.toString());
-    if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
+    if (filters.orderType) params.append('orderType', filters.orderType);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.page !== undefined) params.append('page', filters.page.toString());
+    if (filters.pageSize !== undefined) params.append('pageSize', filters.pageSize.toString());
     if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
     if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
     if (filters.modifiedSince) params.append('modifiedSince', filters.modifiedSince.toISOString());
@@ -124,8 +128,12 @@ export async function addPaymentToOrder(orderId: string, paymentData: AddPayment
 /**
  * Refund a payment
  */
-export async function refundPayment(orderId: string, paymentId: string, refundAmount?: number): Promise<OrderDto> {
-  const response = await apiClient.post<OrderDtoApiResponse>(
+export async function refundPayment(
+  orderId: string,
+  paymentId: string,
+  refundAmount?: number,
+): Promise<OrderPaymentDto> {
+  const response = await apiClient.post<OrderPaymentDtoApiResponse>(
     `/api/orders/${orderId}/payments/${paymentId}/refund`,
     {
       orderId,

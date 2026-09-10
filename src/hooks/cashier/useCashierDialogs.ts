@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
-import { quickConfirmOrder, quickCancelOrder, AddPaymentRequest } from '@/services/cashierService';
+import { AddPaymentRequest } from '@/services/cashierService';
+import { useCashierQuickActions } from './useCashierQuickActions';
 
 const SUCCESS_MESSAGE_TIMEOUT_MS = 3000;
 const ERROR_MESSAGE_TIMEOUT_MS = 5000;
@@ -36,6 +37,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
   const [showFocusDialog, setShowFocusDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isMutating, setIsMutating] = useState(false);
 
   const selectedOrder = useMemo(() => orders.find((o) => o.id === selectedOrderId) || null, [orders, selectedOrderId]);
 
@@ -49,7 +51,9 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     setTimeout(() => setErrorMessage(null), ERROR_MESSAGE_TIMEOUT_MS);
   }, []);
 
-  // Generic dialog action: run mutation, surface feedback, close dialog.
+  // Generic dialog action: run mutation, surface feedback, and close the dialog ONLY on
+  // success. A failed mutation leaves the dialog open so the cashier can retry with their
+  // input intact (#767) — closing it in `finally` made every failure look like a reset.
   const runDialogAction = useCallback(
     async <T>(
       runner: () => Promise<T>,
@@ -57,15 +61,16 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
       onErrorKey: string,
       closeDialog: () => void,
       onSuccess?: (value: T) => void,
-    ) => {
+    ): Promise<boolean> => {
       try {
         const value = await runner();
         onSuccess?.(value);
         showSuccess(t(onSuccessKey) || onSuccessKey);
+        closeDialog();
+        return true;
       } catch (err) {
         showError((err as Error).message || t(onErrorKey) || onErrorKey);
-      } finally {
-        closeDialog();
+        return false;
       }
     },
     [showSuccess, showError, t],
@@ -85,18 +90,23 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     [selectedOrder, mutations, runDialogAction],
   );
 
+  // The payment dialog owns its form state and its failure display, so the hook rethrows
+  // here: the dialog's catch keeps the dialog open with the entered tender intact, while
+  // `isMutating` locks the confirm button against a double submit (#767). Success closes.
   const handleAddPayment = useCallback(
     async (paymentData: AddPaymentRequest) => {
       if (!selectedOrder) return;
-      await runDialogAction(
-        () => mutations.addPayment(selectedOrder.id, paymentData),
-        'cashier.payment_added',
-        'cashier.payment_failed',
-        () => setShowPaymentDialog(false),
-        (updated) => setSelectedOrderId(updated.id),
-      );
+      setIsMutating(true);
+      try {
+        const updated = await mutations.addPayment(selectedOrder.id, paymentData);
+        setSelectedOrderId(updated.id);
+        showSuccess(t('cashier.payment_added') || 'cashier.payment_added');
+        setShowPaymentDialog(false);
+      } finally {
+        setIsMutating(false);
+      }
     },
-    [selectedOrder, mutations, runDialogAction],
+    [selectedOrder, mutations, showSuccess, t],
   );
 
   const handleRefund = useCallback(
@@ -142,33 +152,11 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     [selectedOrder, mutations, runDialogAction],
   );
 
-  const handleQuickConfirm = useCallback(
-    async (orderNumber: string, preparationMinutes: number) => {
-      try {
-        await quickConfirmOrder(orderNumber, preparationMinutes);
-        await mutations.refreshOrders();
-        showSuccess(`Order ${orderNumber} confirmed with ${preparationMinutes} min preparation time`);
-      } catch (err) {
-        showError((err as Error).message || 'Failed to confirm order');
-        throw err;
-      }
-    },
-    [mutations, showSuccess, showError],
-  );
-
-  const handleQuickCancel = useCallback(
-    async (orderNumber: string) => {
-      try {
-        await quickCancelOrder(orderNumber);
-        await mutations.refreshOrders();
-        showSuccess(`Order ${orderNumber} has been cancelled`);
-      } catch (err) {
-        showError((err as Error).message || 'Failed to cancel order');
-        throw err;
-      }
-    },
-    [mutations, showSuccess, showError],
-  );
+  const { handleQuickConfirm, handleQuickCancel } = useCashierQuickActions({
+    refreshOrders: mutations.refreshOrders,
+    showSuccess,
+    showError,
+  });
 
   return {
     selectedOrderId,
@@ -176,6 +164,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     setSelectedOrderId,
     successMessage,
     errorMessage,
+    isMutating,
     showSuccess,
     showError,
     showStatusDialog,

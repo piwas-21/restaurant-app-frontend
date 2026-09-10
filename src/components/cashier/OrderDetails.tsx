@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle } from 'lucide-react';
 import { OrderDto } from '@/types/order';
-import { orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
+import { nextOrderStatuses, orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
 import styles from './OrderDetails.module.css';
 import OrderDetailsActionBar from './order-details/OrderDetailsActionBar';
 import OrderDetailsLeftColumn from './order-details/OrderDetailsLeftColumn';
@@ -53,7 +53,6 @@ export default function OrderDetails({
   const [isUpdating, setIsUpdating] = useState(false);
   const [notesExpanded, setNotesExpanded] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-  const [noteText, setNoteText] = useState('');
 
   if (!order) {
     return (
@@ -74,8 +73,9 @@ export default function OrderDetails({
     }
   };
 
-  const orderStatuses = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed'];
-  const nextStatuses = orderStatuses.slice(orderStatuses.indexOf(order.status) + 1);
+  // The backend-mirrored transition table is the single source (#732): a local five-state
+  // slice offered illegal skips (Pending → Preparing) and dropped OutForDelivery entirely.
+  const nextStatuses = nextOrderStatuses(order.status);
 
   const orderTypeEmoji = order.type === 'DineIn' ? '🍽️' : order.type === 'Takeaway' ? '🛍️' : '🚚';
 
@@ -119,13 +119,7 @@ export default function OrderDetails({
         <OrderDetailsRightColumn order={order} />
       </div>
 
-      <OrderDetailsNotesSection
-        order={order}
-        notesExpanded={notesExpanded}
-        setNotesExpanded={setNotesExpanded}
-        noteText={noteText}
-        setNoteText={setNoteText}
-      />
+      <OrderDetailsNotesSection order={order} notesExpanded={notesExpanded} setNotesExpanded={setNotesExpanded} />
     </div>
   );
 }

@@ -8,6 +8,12 @@ import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus'
 
 interface CashierMainContentProps {
   filteredOrders: OrderDto[];
+  pagination: {
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
   selectedOrder: OrderDto | null;
   selectedOrderId: string | null;
   isLoading: boolean;
@@ -27,10 +33,12 @@ interface CashierMainContentProps {
   onStatusFilterChange: (status: string) => void;
   onPaymentStatusFilterChange: (status: string) => void;
   onOrderTypeFilterChange: (type: string) => void;
+  onPageChange: (page: number) => void;
 }
 
 export default function CashierMainContent({
   filteredOrders,
+  pagination,
   selectedOrder,
   selectedOrderId,
   isLoading,
@@ -50,6 +58,7 @@ export default function CashierMainContent({
   onStatusFilterChange,
   onPaymentStatusFilterChange,
   onOrderTypeFilterChange,
+  onPageChange,
 }: CashierMainContentProps) {
   const { t } = useTranslation();
 
@@ -114,6 +123,34 @@ export default function CashierMainContent({
                   <option value="Takeaway">Takeaway</option>
                   <option value="Delivery">Delivery</option>
                 </select>
+              </div>
+
+              <div className={styles.pagination} aria-live="polite">
+                <span>
+                  {t('showing_items', {
+                    start: pagination.totalCount === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1,
+                    end: Math.min(pagination.page * pagination.pageSize, pagination.totalCount),
+                    total: pagination.totalCount,
+                  })}
+                </span>
+                {pagination.totalPages > 1 && (
+                  <div className={styles.paginationControls}>
+                    <button
+                      type="button"
+                      onClick={() => onPageChange(pagination.page - 1)}
+                      disabled={pagination.page <= 1}
+                    >
+                      {t('previous')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onPageChange(pagination.page + 1)}
+                      disabled={pagination.page >= pagination.totalPages}
+                    >
+                      {t('next')}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

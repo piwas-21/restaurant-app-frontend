@@ -12,20 +12,20 @@ interface BundleMediaPanelProps {
 }
 
 /**
- * The bundle editor's Media section — the ONE surface for a bundle's photo.
+ * The bundle CREATE route's staged Media section.
  *
- * A bundle has no gallery (#524): `MenuBundleDto` carries no image rows, so there is nothing
- * server-side to set primary, reorder or delete. What a bundle DOES have is the staged path the
- * create route always had — files picked here ride the next Save (`productFormUtils` uploads
- * them once the bundle endpoint has answered). That path used to sit at the bottom of the
- * Basics column with no actions and no explanation, while THIS section rendered a placeholder
- * saying photo management did not exist: two surfaces disagreeing about one feature, and the
- * truthful one offering no way to undo a mis-picked file.
+ * This panel exists because a bundle being CREATED has no product id yet, so there is nothing to
+ * upload against until the bundle endpoint has answered — files picked here ride the next Save
+ * (`productFormUtils` uploads them once it has): pick (a new choice replaces the selection, the
+ * shared picker's contract), remove a staged file before saving, and a notice saying WHEN the
+ * upload happens.
  *
- * One surface now: pick (a new choice replaces the selection, the shared picker's contract),
- * remove a staged file before saving, and a notice saying WHEN the upload happens — the honest
- * counterpart of the gallery's "saved immediately" notice, because nothing here writes until
- * the page's Save.
+ * A SAVED bundle no longer renders this panel at all: `MenuBundleDto` DOES carry `images` (they
+ * are ProductImages on the bundle's product row), so `editorSections` gives it the same managed
+ * `ImageGallery` an item gets. Rendering this panel on the edit route instead is what hid five
+ * uploaded photos behind an empty Media section with nothing to remove or replace — 2026-09-10
+ * partner feedback, and the wrong assumption this file was built on ("carries no image rows") is
+ * recorded here so it does not get re-derived.
  */
 export default function BundleMediaPanel({ files, onChange }: BundleMediaPanelProps) {
   const { t } = useTranslation();

@@ -4,6 +4,7 @@ import React from 'react';
 import TranslationsWorkbench from './translations/TranslationsWorkbench';
 import BundlePanel from './BundlePanel';
 import BundleMediaPanel from './BundleMediaPanel';
+import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { buildItemSections } from './itemEditorSections';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
@@ -34,14 +35,17 @@ export { SECTION_IDS } from './editorSectionTypes';
  * a GAP rather than a data limit: the write path is the missing half (backend #478), and adding the
  * control before it exists would offer an admin a field whose every save is discarded.
  *
- * S6 added the third as **Media, present and empty** (D11 / D5). It is no longer empty: the
- * staged photo surface that used to sit at the bottom of `BundlePanel`'s Basics column moved
- * here, so the section named "Media" is the one place a bundle's photo is picked, removed or
- * replaced — and the placeholder that called photo management unavailable is gone with it.
- * (#524, a managed gallery, stays open; this is the staged path that exists today.)
+ * S6 added the third as **Media, present and empty** (D11 / D5). Since 2026-09-10 it holds the
+ * SAME managed gallery an item gets: `MenuBundleDto` DOES carry `images` (they are ProductImages
+ * on the bundle's product row, served by `GET /api/Menus/{id}` and managed by the same
+ * `/api/Products/{id}/images...` sub-resources) — the staged-only panel this section used to
+ * render was built on the assumption that it carries none, which is why an admin with five
+ * uploaded photos opened the editor and saw an empty Media section with nothing to remove or
+ * replace. A saved bundle edits its photos exactly like an item; the staged picker survives on
+ * the CREATE route only, where there is no product id to upload against yet.
  */
 function bundleSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t } = context;
+  const { editor, t, product } = context;
   const { form } = editor;
 
   return [
@@ -67,12 +71,20 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       /*
        * The section keeps its place in the nav either way — the nav is built from this list, so
        * a missing section would shorten it and leave the admin unable to tell "no photos yet"
-       * from "photos are not a thing here". What changed is the body: the staged picker that
-       * worked from the Basics column now lives HERE, with per-file remove and the save-time
-       * upload notice (see `BundleMediaPanel`). When #524 ships a managed gallery, this node is
-       * replaced by `<ImageGallery … />` — the same swap S3 made for items.
+       * from "photos are not a thing here".
+       *
+       * A SAVED bundle gets the real gallery — the same swap S3 made for items, working the same
+       * product-image sub-resources (`/api/Products/{id}/images...`); a bundle IS a product row,
+       * so set-primary, reorder, delete and upload all answer for it (2026-09-10 partner
+       * feedback: five uploaded photos, Media looked empty, nothing removable). Only the CREATE
+       * route — no product id yet — keeps `BundleMediaPanel`, the staged picker whose files ride
+       * the page's Save (see `BundleMediaPanel`).
        */
-      node: <BundleMediaPanel files={editor.imageFiles} onChange={editor.setImageFiles} />,
+      node: product.id ? (
+        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
+      ) : (
+        <BundleMediaPanel files={editor.imageFiles} onChange={editor.setImageFiles} />
+      ),
     },
     {
       id: SECTION_IDS.service,

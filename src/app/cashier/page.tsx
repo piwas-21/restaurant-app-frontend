@@ -24,7 +24,7 @@ export default function CashierPage() {
   const { t } = useTranslation();
 
   const { todayOnly, setTodayOnly, dateRange } = useTodayOnlyDateRange();
-
+  const filters = useCashierFilters();
   const {
     orders,
     isConnected,
@@ -38,7 +38,11 @@ export default function CashierPage() {
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
-  } = useCashierOrders(dateRange);
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+  } = useCashierOrders(dateRange, filters.query);
 
   const notif = useNotification();
 
@@ -52,8 +56,6 @@ export default function CashierPage() {
     toggleFocusOrder,
     refreshOrders,
   });
-
-  const filters = useCashierFilters(orders, dialogs.selectedOrderId, dialogs.setSelectedOrderId);
 
   const alerts = useCashierOrderAlerts({
     orders,
@@ -70,8 +72,8 @@ export default function CashierPage() {
   const [showQRScannerDialog, setShowQRScannerDialog] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showZReport, setShowZReport] = useState(false);
-  // Owns the pending flag AND which of the two outcomes gets announced — see the hook for why
-  // that second part needed a boolean rather than a catch.
+  // Owns the pending flag AND which outcome gets announced — see the hook for why that second
+  // part needed a boolean rather than a catch.
   const { isRefreshing, handleRefresh } = useCashierManualRefresh(refreshOrders, dialogs);
 
   return (
@@ -110,7 +112,8 @@ export default function CashierPage() {
       </div>
 
       <CashierMainContent
-        filteredOrders={filters.filteredOrders}
+        filteredOrders={orders}
+        pagination={{ totalCount, page, pageSize, totalPages }}
         selectedOrder={dialogs.selectedOrder}
         selectedOrderId={dialogs.selectedOrderId}
         isLoading={isLoading}
@@ -130,6 +133,7 @@ export default function CashierPage() {
         onStatusFilterChange={filters.setStatusFilter}
         onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
         onOrderTypeFilterChange={filters.setOrderTypeFilter}
+        onPageChange={filters.setPage}
       />
 
       <CashierActionDialogs

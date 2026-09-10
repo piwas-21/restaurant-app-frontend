@@ -1742,6 +1742,7 @@
   "creating": "Создание...",
   "error_loading_product": "Не удалось загрузить сведения о товаре",
   "customize": "Настроить",
+  "menu_option_free": "Бесплатно",
   "done": "Готово",
   "choose_count": "Выберите {{count}}",
   "choose_range": "Выберите {{min}}-{{max}}",

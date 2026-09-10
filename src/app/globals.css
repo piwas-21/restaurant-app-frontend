@@ -995,11 +995,15 @@ img {
     max-width: 100%;
   }
 
-  /* Fix for mobile viewport units */
+  /* Fix for mobile viewport units. `width` only: `overflow-x` stays on `html` ALONE — the base
+     rule above, the pattern the "THE PAGE SCROLLS ON THE VIEWPORT" block at the top of this file
+     documents and measured. `overflow-x: hidden` on `body` makes body the document's scroll
+     container, and every sticky descendant — the menu page's category bar above all — is then
+     measured against a box that never moves, so nothing sticks on a phone. Invisible for years
+     on short paginated menus; the one-page menu (mcdoner) is the long scroll that exposed it. */
   html,
   body {
     width: 100%;
-    overflow-x: hidden;
   }
 
   /* Ensure containers don't overflow */

@@ -1736,6 +1736,7 @@
   "creating": "正在创建...",
   "error_loading_product": "无法加载产品详情",
   "customize": "自定义",
+  "menu_option_free": "免费",
   "done": "完成",
   "choose_count": "选择 {{count}} 项",
   "choose_range": "选择 {{min}}-{{max}} 项",

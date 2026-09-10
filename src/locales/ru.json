@@ -1422,7 +1422,6 @@
     "print_back_kitchen": "Только задняя кухня",
     "print_customer_bill": "Счёт для клиента",
     "at_least_one_option": "Пожалуйста, выберите хотя бы один тип заказа, статус и содержимое для печати",
-    "save_note": "Сохранить заметку",
     "zreport": {
       "title": "Z-отчёт",
       "export_pdf": "Печать / PDF",
@@ -2484,5 +2483,15 @@
   "step_skip_sides_beverages": "Без напитка",
   "step_skip_sides_desserts": "Без десерта",
   "step_skip_sides_accompaniments": "Без гарнира",
-  "is_hidden_from_all_tab": "Скрыть из вкладки «Все»"
+  "is_hidden_from_all_tab": "Скрыть из вкладки «Все»",
+  "cashier.operational_notes_title": "Рабочие заметки",
+  "cashier.operational_note_empty": "Рабочих заметок пока нет.",
+  "cashier.operational_note_text_label": "Заметка",
+  "cashier.operational_note_audience_label": "Аудитория",
+  "cashier.operational_note_audience_kitchen": "Кухня",
+  "cashier.operational_note_audience_staff": "Персонал",
+  "cashier.operational_note_save": "Сохранить заметку",
+  "cashier.operational_note_saving": "Сохранение…",
+  "cashier.operational_note_load_error": "Не удалось загрузить рабочие заметки.",
+  "cashier.operational_note_save_error": "Не удалось сохранить заметку."
 }

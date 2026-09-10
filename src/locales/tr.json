@@ -1136,7 +1136,6 @@
       "retry": "Tekrar dene"
     },
     "show_todays_orders_only": "Sadece bugünün siparişlerini göster",
-    "save_note": "Notu Kaydet",
     "pending": "Beklemede",
     "table_bill": {
       "title": "Masa hesabı",
@@ -2480,5 +2479,15 @@
   "step_skip_sides_beverages": "İçecek istemiyorum",
   "step_skip_sides_desserts": "Tatlı istemiyorum",
   "step_skip_sides_accompaniments": "Yan ürün istemiyorum",
-  "is_hidden_from_all_tab": "Tümü sekmesinden gizle"
+  "is_hidden_from_all_tab": "Tümü sekmesinden gizle",
+  "cashier.operational_notes_title": "Operasyon notları",
+  "cashier.operational_note_empty": "Henüz operasyon notu yok.",
+  "cashier.operational_note_text_label": "Not",
+  "cashier.operational_note_audience_label": "Hedef kitle",
+  "cashier.operational_note_audience_kitchen": "Mutfak",
+  "cashier.operational_note_audience_staff": "Personel",
+  "cashier.operational_note_save": "Notu kaydet",
+  "cashier.operational_note_saving": "Kaydediliyor…",
+  "cashier.operational_note_load_error": "Operasyon notları yüklenemedi.",
+  "cashier.operational_note_save_error": "Not kaydedilemedi."
 }

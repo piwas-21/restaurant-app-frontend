@@ -865,7 +865,6 @@
     "print_back_kitchen": "Alleen achterkeuken",
     "print_customer_bill": "Klantrekening",
     "at_least_one_option": "Selecteer minstens één besteltype, status en printinhoud",
-    "save_note": "Notitie opslaan",
     "zreport": {
       "title": "Z-rapport",
       "export_pdf": "Printen / PDF",
@@ -2480,5 +2479,15 @@
   "step_skip_sides_beverages": "Zonder drankje",
   "step_skip_sides_desserts": "Zonder dessert",
   "step_skip_sides_accompaniments": "Zonder bijgerecht",
-  "is_hidden_from_all_tab": "Verbergen op het tabblad Alles"
+  "is_hidden_from_all_tab": "Verbergen op het tabblad Alles",
+  "cashier.operational_notes_title": "Operationele notities",
+  "cashier.operational_note_empty": "Nog geen operationele notities.",
+  "cashier.operational_note_text_label": "Notitie",
+  "cashier.operational_note_audience_label": "Doelgroep",
+  "cashier.operational_note_audience_kitchen": "Keuken",
+  "cashier.operational_note_audience_staff": "Personeel",
+  "cashier.operational_note_save": "Notitie opslaan",
+  "cashier.operational_note_saving": "Opslaan…",
+  "cashier.operational_note_load_error": "Kan operationele notities niet laden.",
+  "cashier.operational_note_save_error": "Kan de notitie niet opslaan."
 }

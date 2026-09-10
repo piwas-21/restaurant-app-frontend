@@ -1488,7 +1488,6 @@
     "print_back_kitchen": "مطبخ الخلفية فقط",
     "print_customer_bill": "فاتورة العميل",
     "at_least_one_option": "يرجى اختيار نوع طلب واحد على الأقل، وحالة، ومحتوى الطباعة",
-    "save_note": "حفظ الملاحظة",
     "zreport": {
       "title": "تقرير Z",
       "export_pdf": "طباعة / PDF",
@@ -2488,5 +2487,15 @@
   "step_skip_sides_beverages": "بدون مشروب",
   "step_skip_sides_desserts": "بدون حلوى",
   "step_skip_sides_accompaniments": "بدون طبق جانبي",
-  "is_hidden_from_all_tab": "إخفاء من تبويب الكل"
+  "is_hidden_from_all_tab": "إخفاء من تبويب الكل",
+  "cashier.operational_notes_title": "ملاحظات التشغيل",
+  "cashier.operational_note_empty": "لا توجد ملاحظات تشغيل بعد.",
+  "cashier.operational_note_text_label": "ملاحظة",
+  "cashier.operational_note_audience_label": "المستلمون",
+  "cashier.operational_note_audience_kitchen": "المطبخ",
+  "cashier.operational_note_audience_staff": "الموظفون",
+  "cashier.operational_note_save": "حفظ الملاحظة",
+  "cashier.operational_note_saving": "جارٍ الحفظ…",
+  "cashier.operational_note_load_error": "تعذر تحميل ملاحظات التشغيل.",
+  "cashier.operational_note_save_error": "تعذر حفظ الملاحظة."
 }

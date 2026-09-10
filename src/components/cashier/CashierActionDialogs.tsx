@@ -25,6 +25,8 @@ interface CashierActionDialogsProps {
   onConfirmRefund: (paymentId: string, amount?: number) => Promise<void>;
   onConfirmCancel: (reason?: string) => Promise<void>;
   onConfirmFocus: (isFocus: boolean, priority?: number, reason?: string) => Promise<void>;
+  /** A mutation is in flight; dialogs that carry a form lock their submit control. */
+  isMutating?: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export default function CashierActionDialogs(props: CashierActionDialogsProps) {
         isOpen={props.showPaymentDialog}
         onClose={props.onClosePayment}
         onConfirm={props.onConfirmPayment}
+        isLoading={props.isMutating}
       />
       <RefundDialog
         order={props.selectedOrder}

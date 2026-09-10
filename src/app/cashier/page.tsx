@@ -54,6 +54,7 @@ export default function CashierPage() {
     refreshOrders,
   });
 
+  const { isMutating } = dialogs;
   const alerts = useCashierOrderAlerts({
     orders,
     autoPrintSettings,
@@ -150,6 +151,7 @@ export default function CashierPage() {
         onConfirmRefund={dialogs.handleRefund}
         onConfirmCancel={dialogs.handleCancelOrder}
         onConfirmFocus={dialogs.handleToggleFocus}
+        isMutating={isMutating}
       />
 
       <QuickConfirmModal

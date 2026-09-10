@@ -11,6 +11,8 @@ import {
   OrderDto,
   OrderDtoPagedResultApiResponse,
   OrderDtoApiResponse,
+  OrderPaymentDto,
+  OrderPaymentDtoApiResponse,
   PagedResult,
   TableBillDto,
   TableBillApiResponse,
@@ -124,8 +126,12 @@ export async function addPaymentToOrder(orderId: string, paymentData: AddPayment
 /**
  * Refund a payment
  */
-export async function refundPayment(orderId: string, paymentId: string, refundAmount?: number): Promise<OrderDto> {
-  const response = await apiClient.post<OrderDtoApiResponse>(
+export async function refundPayment(
+  orderId: string,
+  paymentId: string,
+  refundAmount?: number,
+): Promise<OrderPaymentDto> {
+  const response = await apiClient.post<OrderPaymentDtoApiResponse>(
     `/api/orders/${orderId}/payments/${paymentId}/refund`,
     {
       orderId,

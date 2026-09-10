@@ -1483,7 +1483,6 @@
     "print_back_kitchen": "Cuisine arrière uniquement",
     "print_customer_bill": "Facture client",
     "at_least_one_option": "Veuillez sélectionner au moins un type de commande, un statut et un contenu d’impression",
-    "save_note": "Enregistrer la note",
     "zreport": {
       "title": "Rapport Z",
       "export_pdf": "Imprimer / PDF",
@@ -2482,5 +2481,15 @@
   "step_skip_sides_beverages": "Sans boisson",
   "step_skip_sides_desserts": "Sans dessert",
   "step_skip_sides_accompaniments": "Sans accompagnement",
-  "is_hidden_from_all_tab": "Cacher de l'onglet Tout"
+  "is_hidden_from_all_tab": "Cacher de l'onglet Tout",
+  "cashier.operational_notes_title": "Notes opérationnelles",
+  "cashier.operational_note_empty": "Aucune note opérationnelle pour le moment.",
+  "cashier.operational_note_text_label": "Remarque",
+  "cashier.operational_note_audience_label": "Destinataires",
+  "cashier.operational_note_audience_kitchen": "Cuisine",
+  "cashier.operational_note_audience_staff": "Personnel",
+  "cashier.operational_note_save": "Enregistrer la note",
+  "cashier.operational_note_saving": "Enregistrement…",
+  "cashier.operational_note_load_error": "Impossible de charger les notes opérationnelles.",
+  "cashier.operational_note_save_error": "Impossible d’enregistrer la note."
 }

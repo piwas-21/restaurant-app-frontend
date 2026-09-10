@@ -1479,7 +1479,6 @@
     "print_back_kitchen": "Nur hintere Küche",
     "print_customer_bill": "Kundenrechnung",
     "at_least_one_option": "Bitte wählen Sie mindestens einen Bestelltyp, Status und Druckinhalt aus",
-    "save_note": "Notiz speichern",
     "zreport": {
       "title": "Z-Bericht",
       "export_pdf": "Drucken / PDF",
@@ -2480,5 +2479,15 @@
   "step_skip_sides_beverages": "Ohne Getränk",
   "step_skip_sides_desserts": "Ohne Dessert",
   "step_skip_sides_accompaniments": "Ohne Beilage",
-  "is_hidden_from_all_tab": "Aus dem Tab „Alle“ ausblenden"
+  "is_hidden_from_all_tab": "Aus dem Tab „Alle“ ausblenden",
+  "cashier.operational_notes_title": "Betriebsnotizen",
+  "cashier.operational_note_empty": "Noch keine Betriebsnotizen.",
+  "cashier.operational_note_text_label": "Notiz",
+  "cashier.operational_note_audience_label": "Zielgruppe",
+  "cashier.operational_note_audience_kitchen": "Küche",
+  "cashier.operational_note_audience_staff": "Personal",
+  "cashier.operational_note_save": "Notiz speichern",
+  "cashier.operational_note_saving": "Wird gespeichert…",
+  "cashier.operational_note_load_error": "Betriebsnotizen konnten nicht geladen werden.",
+  "cashier.operational_note_save_error": "Die Notiz konnte nicht gespeichert werden."
 }

@@ -865,7 +865,6 @@
     "print_back_kitchen": "Back Kitchen Only",
     "print_customer_bill": "Customer Bill",
     "at_least_one_option": "Please select at least one order type, status, and print content",
-    "save_note": "Save Note",
     "zreport": {
       "title": "Z-Report",
       "export_pdf": "Print / PDF",
@@ -2480,5 +2479,15 @@
   "step_skip_sides_beverages": "No drink",
   "step_skip_sides_desserts": "No dessert",
   "step_skip_sides_accompaniments": "No side",
-  "is_hidden_from_all_tab": "Hide from the All tab"
+  "is_hidden_from_all_tab": "Hide from the All tab",
+  "cashier.operational_notes_title": "Operational notes",
+  "cashier.operational_note_empty": "No operational notes yet.",
+  "cashier.operational_note_text_label": "Note",
+  "cashier.operational_note_audience_label": "Audience",
+  "cashier.operational_note_audience_kitchen": "Kitchen",
+  "cashier.operational_note_audience_staff": "Staff",
+  "cashier.operational_note_save": "Save note",
+  "cashier.operational_note_saving": "Saving…",
+  "cashier.operational_note_load_error": "Could not load operational notes.",
+  "cashier.operational_note_save_error": "Could not save the note."
 }

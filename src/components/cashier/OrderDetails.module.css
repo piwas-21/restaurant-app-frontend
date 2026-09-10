@@ -477,161 +477,184 @@
   margin-top: 1rem;
 }
 
-/* Notes Section Redesign */
+/* Operational notes stay on the staff-only endpoint, not on the guest order DTO. */
 .notesSection {
   background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-  overflow: visible;
+  margin-block: 1.5rem;
+  overflow: hidden;
 }
 
 .notesHeader {
-  /* The only site where the undefined token was NOT simply swapped for --surface-card. Doing that
-     here would make both stops the same colour (--card-background IS --surface-card), leaving a
-     gradient that paints flat and a :hover below that changes nothing — with a `transition:
-     background` animating it. Those two rules are the evidence of the intent: a sheen at rest that
-     flattens to the card colour on hover. --surface-secondary is safe for the leading stop because
-     the only text on this header is .notesTitle at --text-color; measured 15.3:1 classic light,
-     10.0:1 craft light, 12.3:1 classic dark, 9.8:1 craft dark. --text-muted never lands here, which
-     is what rules --surface-secondary out on the other 21 sites. */
-  background: linear-gradient(135deg, var(--surface-secondary) 0%, var(--surface-card) 100%);
-  padding: 1rem 1.25rem;
+  background: var(--surface-secondary);
+  border: 0;
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.2s;
+  padding: 1rem 1.25rem;
+  text-align: start;
+  width: 100%;
 }
 
 .notesHeader:hover {
   background: var(--surface-card);
 }
 
-.notesHeaderLeft {
+.notesHeader:focus-visible,
+.noteButton:focus-visible,
+.audienceOption:focus-within {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.notesHeaderLeft,
+.noteMetadata,
+.noteFooter,
+.audienceFieldset,
+.audienceOption {
   display: flex;
   align-items: center;
+}
+
+.notesHeaderLeft,
+.noteMetadata,
+.audienceFieldset {
   gap: 0.75rem;
 }
 
 .notesTitle {
-  font-weight: 600;
+  color: var(--text-primary);
   font-size: 1rem;
-  color: var(--text-color);
-  margin: 0;
+  font-weight: 600;
 }
 
-.notesBadge {
+.notesBadge,
+.noteAudience {
   background: var(--primary-color);
-  color: white;
-  padding: 0.25rem 0.625rem;
   border-radius: 12px;
+  color: var(--text-on-primary);
   font-size: 0.75rem;
   font-weight: 600;
+  padding: 0.25rem 0.5rem;
+}
+
+.notesChevron,
+.notesChevronOpen {
+  flex: none;
+  transition: transform 0.2s;
+}
+
+.notesChevronOpen {
+  transform: rotate(180deg);
 }
 
 .notesContent {
   padding: 1.25rem;
 }
 
+.notesEmpty,
+.noteMetadata,
+.charCount {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.notesList {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .existingNote {
   background: var(--surface-card);
-  /* Accent rule down the leading edge. Nothing repaints it per-state, so the whole
-     declaration moves as one (contrast the cashier order-type stripe in #391, where a
-     `borderLeftColor` inline style had to move with it). */
   border-inline-start: 3px solid var(--primary-color);
-  padding: 1rem;
   border-radius: 6px;
-  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
 .noteText {
-  color: var(--text-color);
-  font-size: 0.9375rem;
+  color: var(--text-primary);
   line-height: 1.5;
   margin: 0;
+  white-space: pre-wrap;
+}
+
+.noteMetadata {
+  flex-wrap: wrap;
+  margin-block-start: 0.5rem;
 }
 
 .noteForm {
-  margin-top: 1rem;
+  margin-block-start: 1.25rem;
 }
 
-.noteFormHeader {
+.audienceFieldset {
+  border: 0;
+  flex-wrap: wrap;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.audienceLegend {
+  color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.9375rem;
-  color: var(--text-color);
-  margin-bottom: 0.5rem;
+  margin-block-end: 0.5rem;
+  padding: 0;
+  width: 100%;
 }
 
-.noteHint {
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  margin-bottom: 1rem;
-  line-height: 1.4;
+.audienceOption {
+  cursor: pointer;
+  gap: 0.5rem;
 }
 
 .noteTextarea {
-  width: 100%;
-  padding: 0.875rem;
   background: var(--surface-card);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-family: inherit;
-  font-size: 0.9375rem;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font: inherit;
+  min-height: 6rem;
+  padding: 0.75rem;
   resize: vertical;
-  min-height: 100px;
-  transition: all 0.2s;
+  width: 100%;
 }
 
 .noteTextarea:focus {
-  outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(192, 0, 0, 0.1);
-}
-
-.noteTextarea:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  outline: 0;
 }
 
 .noteFooter {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 0.75rem;
-}
-
-.charCount {
-  color: var(--text-muted);
-  font-size: 0.8125rem;
+  margin-block-start: 0.75rem;
 }
 
 .noteButton {
-  padding: 0.625rem 1.25rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  display: flex;
   align-items: center;
+  background: var(--primary-color);
+  border: 0;
+  border-radius: 6px;
+  color: var(--text-on-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
   gap: 0.5rem;
-  transition: all 0.2s;
+  padding: 0.5rem 1rem;
 }
 
-.noteButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(192, 0, 0, 0.3);
-}
-
-.noteButton:disabled {
-  opacity: 0.5;
+.noteButton:disabled,
+.noteTextarea:disabled,
+.audienceFieldset:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Responsive */

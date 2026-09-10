@@ -53,7 +53,6 @@ export default function OrderDetails({
   const [isUpdating, setIsUpdating] = useState(false);
   const [notesExpanded, setNotesExpanded] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-  const [noteText, setNoteText] = useState('');
 
   if (!order) {
     return (
@@ -119,13 +118,7 @@ export default function OrderDetails({
         <OrderDetailsRightColumn order={order} />
       </div>
 
-      <OrderDetailsNotesSection
-        order={order}
-        notesExpanded={notesExpanded}
-        setNotesExpanded={setNotesExpanded}
-        noteText={noteText}
-        setNoteText={setNoteText}
-      />
+      <OrderDetailsNotesSection order={order} notesExpanded={notesExpanded} setNotesExpanded={setNotesExpanded} />
     </div>
   );
 }

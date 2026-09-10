@@ -1479,7 +1479,6 @@
     "print_back_kitchen": "仅后厨",
     "print_customer_bill": "顾客账单",
     "at_least_one_option": "请至少选择一个订单类型、订单状态和打印内容",
-    "save_note": "保存备注",
     "zreport": {
       "title": "Z报表",
       "export_pdf": "打印 / PDF",
@@ -2478,5 +2477,15 @@
   "step_skip_sides_beverages": "不要饮品",
   "step_skip_sides_desserts": "不要甜点",
   "step_skip_sides_accompaniments": "不要配菜",
-  "is_hidden_from_all_tab": "从“全部”标签页隐藏"
+  "is_hidden_from_all_tab": "从“全部”标签页隐藏",
+  "cashier.operational_notes_title": "运营备注",
+  "cashier.operational_note_empty": "暂无运营备注。",
+  "cashier.operational_note_text_label": "备注",
+  "cashier.operational_note_audience_label": "接收对象",
+  "cashier.operational_note_audience_kitchen": "厨房",
+  "cashier.operational_note_audience_staff": "员工",
+  "cashier.operational_note_save": "保存备注",
+  "cashier.operational_note_saving": "正在保存…",
+  "cashier.operational_note_load_error": "无法加载运营备注。",
+  "cashier.operational_note_save_error": "无法保存备注。"
 }

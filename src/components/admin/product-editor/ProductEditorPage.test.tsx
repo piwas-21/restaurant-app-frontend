@@ -255,20 +255,44 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
-  // frontend #223: staged uploads live outside RHF, so picking an image and changing nothing
-  // else left Save disabled and the upload unreachable. Asserted on a BUNDLE since Track F
-  // F7-B: an item's edit route no longer stages anything (its gallery uploads immediately),
-  // and the bundle picker is the staged path that survives on edit.
-  it('enables Save after an image-only change', async () => {
-    const { container } = await renderEditor(bundle, true);
+  // 2026-09-10 partner feedback: a SAVED bundle used to get the staged picker, whose Media
+  // section never showed the bundle's existing photos — five uploaded images read as an empty
+  // Media section with nothing to remove or replace. `MenuBundleDto` DOES carry `images` (they
+  // are ProductImages on the bundle's product row) and the image sub-resources answer for a
+  // bundle the same as for an item, so the edit route now renders the real gallery.
+  it('gives a SAVED bundle the real gallery — its photos visible, no staged picker', async () => {
+    const withPhotos = {
+      ...bundle,
+      images: [{ id: 'img-1', url: '/a.jpg', altText: 'combo photo', isPrimary: true, sortOrder: 0 }],
+    };
+    const { container } = await renderEditor(withPhotos, true);
 
-    expect(screen.getByTestId('editor-save')).toBeDisabled();
-    const fileInput = container.querySelector('#bundle-images') as HTMLInputElement;
-    fireEvent.change(fileInput, {
+    expect(container.querySelector('img[alt="combo photo"]')).not.toBeNull();
+    expect(container.querySelector('#bundle-images')).toBeNull();
+    expect(screen.queryByText('editor_media_bundle_upload_notice')).not.toBeInTheDocument();
+  });
+
+  // The staged picker is the CREATE route's path only: a bundle being created has no product id
+  // to upload against, so its files ride the page's Save (see `BundleMediaPanel`).
+  it('keeps the staged picker on the CREATE route, where no product id exists yet', async () => {
+    const { container } = await renderEditor({ ...bundle, id: '' }, true, 'create');
+
+    expect(container.querySelector('#bundle-images')).not.toBeNull();
+  });
+
+  // frontend #223 still holds where staging survives: staged uploads live outside RHF, so on the
+  // create route picking an image and nothing else must still count as work — Back must confirm
+  // instead of discarding it silently.
+  it('treats a staged file as unsaved work on the create route', async () => {
+    const { container, onBack } = await renderEditor({ ...bundle, id: '' }, true, 'create');
+
+    fireEvent.change(container.querySelector('#bundle-images') as HTMLInputElement, {
       target: { files: [new File(['x'], 'pizza.png', { type: 'image/png' })] },
     });
+    fireEvent.click(screen.getByRole('button', { name: 'back' }));
 
-    expect(screen.getByTestId('editor-save')).toBeEnabled();
+    expect(onBack).not.toHaveBeenCalled();
+    expect(screen.getByText('discard_unsaved_changes_message')).toBeInTheDocument();
   });
 
   // Both kinds since §9.2: the bundle commands now accept and store a mask, so the control no
@@ -477,21 +501,34 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(within(media).getByRole('heading', { name: 'editor_section_media' })).toBeInTheDocument();
   });
 
-  it('does not mount the gallery on an unsaved item, nor for a bundle', async () => {
+  it('does not mount the gallery on an unsaved item, and only on the create route for a bundle', async () => {
     await renderEditor(emptyProductDetails(false), false, 'create');
     expect(galleryNotice()).not.toBeInTheDocument();
     expect(document.querySelector('#editor-section-media')).toBeNull();
 
-    // A bundle DOES get the section, and since the staged surface moved here from the Basics
-    // column it is the ONE place its photo is picked: the picker label renders in Media. What it
-    // does not get is the gallery, so the autosave notice must not follow it there: nothing here
-    // autosaves — the bundle's staged files upload on Save.
-    const { container } = await renderEditor(bundle, true);
+    // A bundle DOES get the Media section. On the CREATE route there is no product id to upload
+    // against, so the staged picker is the one surface there: the picker label renders in Media
+    // and the gallery's autosave notice must NOT follow it — nothing here autosaves, the bundle's
+    // staged files upload on Save.
+    const { container } = await renderEditor({ ...bundle, id: '' }, true, 'create');
     expect(galleryNotice()).not.toBeInTheDocument();
     const media = container.querySelector('#editor-section-media') as HTMLElement;
     expect(media).not.toBeNull();
     expect(within(media).getByText(/menu_image/)).toBeInTheDocument();
     expect(within(media).queryByText('editor_media_bundle_unavailable')).not.toBeInTheDocument();
+  });
+
+  // 2026-09-10 partner feedback: a SAVED bundle gets the gallery, exactly like an item — its
+  // images are ProductImages on the bundle's product row and the image sub-resources answer for
+  // it. The autosave notice is unique to the gallery, so its presence here is the affirmative.
+  it('mounts the image gallery when editing a saved bundle', async () => {
+    const withPhotos = {
+      ...bundle,
+      images: [{ id: 'img-1', url: '/a.jpg', altText: 'combo photo', isPrimary: true, sortOrder: 0 }],
+    };
+    await renderEditor(withPhotos, true);
+
+    expect(galleryNotice()).toBeInTheDocument();
   });
 
   // Track F, F7-C was positional: images sat below the sticky Save bar after nine other sections.

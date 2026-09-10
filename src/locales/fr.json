@@ -1740,6 +1740,7 @@
   "creating": "Création...",
   "error_loading_product": "Échec du chargement des détails du produit",
   "customize": "Personnaliser",
+  "menu_option_free": "Gratuit",
   "done": "Terminé",
   "choose_count": "Choisissez {{count}}",
   "choose_range": "Choisissez {{min}}-{{max}}",

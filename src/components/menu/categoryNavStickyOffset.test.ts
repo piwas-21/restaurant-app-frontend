@@ -27,6 +27,7 @@ function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 }
 
+const GLOBALS_CSS = withoutComments(readFileSync(join(__dirname, '../../app/globals.css'), 'utf8'));
 const NAV_CSS = withoutComments(readFileSync(join(__dirname, 'CategoryNav.module.css'), 'utf8'));
 const PAGE_CSS = withoutComments(readFileSync(join(__dirname, '../../app/styles/MenuPage.module.css'), 'utf8'));
 const OFFSET_HOOK = withoutComments(readFileSync(join(__dirname, '../../hooks/menu/useStickyNavOffset.ts'), 'utf8'));
@@ -264,6 +265,23 @@ describe('basket rail sticky offset', () => {
    * reintroduce a cell with no travel: the rules would have to come back with it, and this fails
    * the moment one does without the other.
    */
+  /**
+   * 2026-09-10 partner report (mcdoner, the one-page menu): the category bar did not stick on a
+   * phone at all. The trap was the mobile block of globals.css putting `overflow-x: hidden` on
+   * `body` — per CSS Overflow 3 body's `visible` overflow-y then computes to `auto`, body becomes
+   * THE scroll container of the document, and the bar (a `position: sticky` descendant of body)
+   * is measured against a box that never scrolls: nothing sticks, at any `top`. Invisible on the
+   * old short paginated menus; the one-page layout is the long scroll that exposed it.
+   *
+   * Gate on the SHAPE, not the exact rule: no rule whose selector list names `body` may declare
+   * `overflow-x` anywhere in globals.css. The documented-safe pattern (the block at the top of
+   * that file) clips sideways at `html`, whose overflow propagates to the viewport without
+   * creating a scroll container.
+   */
+  it('never puts overflow-x on body, which would make body the scroll container and kill every sticky', () => {
+    expect(/body\s*\{[^}]*overflow-x/.test(GLOBALS_CSS)).toBe(false);
+  });
+
   it('has no rail column left to stick, and no orphan rules pretending otherwise', () => {
     expect(/\.menuSidebarColumn\s*\{/.exec(PAGE_CSS)).toBeNull();
     expect(PAGE_CSS).not.toContain('align-items: start');

@@ -69,6 +69,16 @@
   color: var(--brand-primary-elevated);
 }
 
+/* The zero-price twin of `.price`, same slot and weight: the success token, because "no extra
+   cost" is the good-news mark where the brand colour marks an upcharge. */
+.free {
+  flex-shrink: 0;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-weight: 600;
+  font-size: var(--modal-body-accent-size, 0.9rem);
+  color: var(--feedback-success);
+}
+
 .ingredients {
   font-size: 0.8rem;
   line-height: 1.35;

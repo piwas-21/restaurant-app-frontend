@@ -1746,6 +1746,7 @@
   "creating": "جاري الإنشاء...",
   "error_loading_product": "فشل تحميل تفاصيل المنتج",
   "customize": "تخصيص",
+  "menu_option_free": "مجاناً",
   "done": "تم",
   "choose_count": "اختر {{count}}",
   "choose_range": "اختر {{min}}-{{max}}",

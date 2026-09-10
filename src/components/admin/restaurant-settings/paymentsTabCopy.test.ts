@@ -28,14 +28,16 @@ import zh from '@/locales/zh.json';
  * `payments_tab_dashboard_link` went with it. An Express account has no full Stripe dashboard, so
  * the label no longer describes anywhere the restaurant can go.
  *
- * The second dangerous sentence was TWINT: "and we switch TWINT on". Measured on the LIVE
- * platform 2026-09-05 — a connected Express account reports `twint_payments: inactive` and
- * `twint.available: false`, and setting the display preference to `on` returns 200 while
- * `available` stays false. The capability is missing above the connected account, and Stripe
- * lets only full-dashboard accounts self-enable it. In TEST mode the same probe answers
- * `available: true`, which is why nobody caught it. Re-stated rather than deleted, because a
- * Swiss restaurant cares about TWINT and silence reads as "they do not support it": card
- * payment comes first, TWINT follows when we can offer it.
+ * The second sentence was TWINT. "We switch TWINT on" measured FALSE on the LIVE platform
+ * 2026-09-05 — the PLATFORM `twint_payments` capability was `inactive` (a connected Express
+ * account reported `twint.available: false`; a display-preference write returned 200 while
+ * `available` stayed false; TEST mode answered `available: true`, which is how the claim had
+ * shipped in #726) — and #728 retired the promise. On 2026-09-06 Stripe approved the platform
+ * capability, after piwas.nl went live and the profile URL was fixed. The mint now requests
+ * the capability at account creation and the platform approves it, so the promise is TRUE
+ * AGAIN for accounts minted from now on: TWINT is switched on as part of setup and activates
+ * when the restaurant finishes Stripe's onboarding — part of setup, never "instantly". The
+ * #728 directions are inverted below, and every matcher was re-proven both ways.
  */
 // `it` is jest's test function here, so the Italian bundle is imported under another name.
 const BUNDLES = { ar, de, en, es, fr, it: itIT, nl, ru, tr, zh } as const;
@@ -49,9 +51,9 @@ const RETIRED_KEY = 'payments_tab_dashboard_link';
 const LIVE_KEY = 'payments_tab_stripe_link';
 
 /**
- * The retired present-tense TWINT promise, in each bundle's own words. Every one of these was
- * verified to match the #726 copy TWICE (once per hint) and the replacement copy zero times, so
- * the matcher is known to discriminate rather than merely to return nothing.
+ * The present-tense TWINT promise, restored, in each bundle's own words. Every one of these was
+ * verified to match the restored copy TWICE (once per hint) and the retired #728 copy zero
+ * times, so the matcher is known to discriminate rather than merely to return nothing.
  */
 const TWINT_PROMISED_NOW: Record<Locale, RegExp> = {
   ar: /نفعّل\s+(?:\S+\s+){0,2}TWINT|TWINT\s+(?:\S+\s+){0,2}نفعّل/,
@@ -66,8 +68,12 @@ const TWINT_PROMISED_NOW: Record<Locale, RegExp> = {
   zh: /TWINT\s*[^。！？]{0,8}由我们|由我们[^。！？]{0,8}开通\s*TWINT/,
 };
 
-/** The replacement, in each bundle's own words — the positive control for the check above. */
-const TWINT_ARRIVES_LATER: Record<Locale, RegExp> = {
+/**
+ * The retired #728 deferral ("TWINT is not available yet…"), in each bundle's own words.
+ * Verified to match the #728 copy TWICE (once per hint) and the restored copy zero times —
+ * the proof that this matcher can see the phrase it must not find.
+ */
+const TWINT_NOT_AVAILABLE_YET: Record<Locale, RegExp> = {
   ar: /غير متاح بعد/,
   de: /noch nicht verfügbar/i,
   en: /not available yet/i,
@@ -123,30 +129,32 @@ describe('PaymentsTab copy', () => {
     expect(en.payments_tab_not_configured_hint).toMatch(/short form/i);
   });
 
-  it('states the TWINT order of arrival instead of promising it is already on', () => {
+  it('promises TWINT as part of setup instead of deferring it', () => {
     for (const hint of [en.payments_tab_not_configured_hint, en.payments_tab_awaiting_hint]) {
-      expect(hint).toMatch(/TWINT is not available yet/);
-      expect(hint).toMatch(/follows as soon as we can offer it/);
+      expect(hint).toMatch(/we switch TWINT on/);
+      expect(hint).not.toMatch(/TWINT is not available yet/);
+      // The #728 sentence is retired as a whole — its "card first" clause went with it.
+      expect(hint).not.toMatch(/card payment comes first/i);
+      // Setup, not "live right now": the promise must not overstate the activation moment.
+      expect(hint).not.toMatch(/instantly/i);
     }
-    // Card payment is named as the thing that arrives first, so "not yet" is not the whole
-    // message a restaurant takes away.
-    expect(en.payments_tab_not_configured_hint).toMatch(/card payment comes first/i);
     // The reassurance the owner actually needs must survive the rewrite untouched.
     expect(en.payments_tab_awaiting_hint).toMatch(/until then your restaurant is fully live and taking cash as usual/);
   });
 
-  it.each(LOCALES)('%s never says TWINT is switched on today', (locale) => {
+  it.each(LOCALES)('%s promises TWINT is switched on as part of setup', (locale) => {
     const bundle = BUNDLES[locale];
-    const copy = `${bundle.payments_tab_not_configured_hint}\n${bundle.payments_tab_awaiting_hint}`;
+    const notConfigured = String(bundle.payments_tab_not_configured_hint);
+    const awaiting = String(bundle.payments_tab_awaiting_hint);
 
-    // POSITIVE CONTROL, first and on the same haystack and the same matcher family: a phrase
-    // that IS in this bundle's new copy. Without it a passing `not.toMatch` below could only
-    // mean the lookup found nothing at all — a missing key, a renamed key, an empty string —
-    // and a blind instrument would read as a clean result.
-    expect(copy).toMatch(/TWINT/);
-    expect(copy).toMatch(TWINT_ARRIVES_LATER[locale]);
+    // POSITIVE, per hint: the promise, in this bundle's own words — BOTH hints carry it.
+    expect(notConfigured).toMatch(TWINT_PROMISED_NOW[locale]);
+    expect(awaiting).toMatch(TWINT_PROMISED_NOW[locale]);
 
-    // NEGATIVE: the present-tense promise shipped in #726, in this bundle's own words.
-    expect(copy).not.toMatch(TWINT_PROMISED_NOW[locale]);
+    // NEGATIVE: the retired #728 deferral, in this bundle's own words. The two promise matches
+    // above are the positive control for this haystack — they prove the lookup found real
+    // strings, so a clean `not.toMatch` cannot mean a blind instrument.
+    const copy = `${notConfigured}\n${awaiting}`;
+    expect(copy).not.toMatch(TWINT_NOT_AVAILABLE_YET[locale]);
   });
 });

@@ -38,10 +38,7 @@ export default function CashierPage() {
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
-    totalCount,
-    page,
-    pageSize,
-    totalPages,
+    pagination,
   } = useCashierOrders(dateRange, filters.query);
 
   const notif = useNotification();
@@ -113,7 +110,7 @@ export default function CashierPage() {
 
       <CashierMainContent
         filteredOrders={orders}
-        pagination={{ totalCount, page, pageSize, totalPages }}
+        pagination={pagination}
         selectedOrder={dialogs.selectedOrder}
         selectedOrderId={dialogs.selectedOrderId}
         isLoading={isLoading}

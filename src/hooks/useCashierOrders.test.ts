@@ -63,7 +63,7 @@ describe('useCashierOrders — server-paged queue', () => {
       expect(mockGetCashierOrders).toHaveBeenLastCalledWith({ page: 1, pageSize: 10, search: 'later-order' }),
     );
     await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['o11']));
-    expect(result.current.totalCount).toBe(1);
+    expect(result.current.pagination.totalCount).toBe(1);
   });
 });
 

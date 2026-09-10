@@ -26,22 +26,13 @@ export interface CashierDateRange {
 
 interface UseCashierOrdersReturn {
   orders: OrderDto[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  pagination: { totalCount: number; page: number; pageSize: number; totalPages: number };
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
-  /**
-   * `true` when the fetch landed, `false` when it failed — the failure itself is already on
-   * screen via `error`, so the boolean exists only so a CALLER can tell the two apart. It could
-   * not before: this resolves on both paths, so the cashier page's manual-refresh handler
-   * announced "Orders refreshed" over the top of the error banner every time the backend was
-   * down, and the `catch` it wrote for that case was unreachable.
-   */
+  /** `true` when the fetch landed, `false` when it failed; the failure itself is on `error`. */
   refreshOrders: () => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
@@ -60,15 +51,16 @@ export function useCashierOrders(
   queryRef.current = query;
 
   const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(query.page);
-  const [pageSize, setPageSize] = useState(query.pageSize);
-  const [totalPages, setTotalPages] = useState(0);
+  const [pagination, setPagination] = useState({
+    totalCount: 0,
+    page: query.page,
+    pageSize: query.pageSize,
+    totalPages: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const isMountedRef = useRef(true);
-  const lastPolledAtRef = useRef<Date | null>(null);
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const latestRequestRef = useRef(0);
 
@@ -87,15 +79,15 @@ export function useCashierOrders(
       const result = await getCashierOrders(filters);
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
 
-      // A complete page replaces the prior page. Incremental `modifiedSince` results cannot
-      // carry a truthful total or stable page boundaries, so the operational queue polls the
-      // server-filtered page instead.
+      // A complete page replaces the prior page: incremental `modifiedSince` deltas cannot
+      // carry a truthful total, so the operational queue polls the server-filtered page.
       setOrders(result.items || []);
-      setTotalCount(result.totalCount);
-      setPage(result.page);
-      setPageSize(result.pageSize);
-      setTotalPages(result.totalPages);
-      lastPolledAtRef.current = new Date();
+      setPagination({
+        totalCount: result.totalCount,
+        page: result.page,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+      });
       setIsLoading(false);
       return true;
     } catch (err) {
@@ -145,8 +137,7 @@ export function useCashierOrders(
   // normal refresh; the response atomically replaces it.
   const startDateMs = dateRange?.startDate?.getTime();
   const endDateMs = dateRange?.endDate?.getTime();
-  const queryKey = JSON.stringify(query);
-  const fetchKey = `${startDateMs ?? ''}:${endDateMs ?? ''}:${queryKey}`;
+  const fetchKey = `${startDateMs ?? ''}:${endDateMs ?? ''}:${JSON.stringify(query)}`;
   const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
     if (isFirstFetchEffectRef.current) {
@@ -154,7 +145,6 @@ export function useCashierOrders(
       return;
     }
     setIsLoading(true);
-    lastPolledAtRef.current = null;
     void refreshOrders();
   }, [fetchKey, refreshOrders]);
 
@@ -164,10 +154,7 @@ export function useCashierOrders(
 
   return {
     orders,
-    totalCount,
-    page,
-    pageSize,
-    totalPages,
+    pagination,
     isConnected: stream.isConnected,
     isLoading,
     error: error || stream.error,

@@ -1,10 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCashierOrders } from './useCashierOrders';
-import { getCashierOrders } from '@/services/cashierService';
+import { getCashierOrders, getOrderById, refundPayment } from '@/services/cashierService';
 import { ApiError } from '@/utils/apiClient';
 
 jest.mock('@/services/cashierService', () => ({
   getCashierOrders: jest.fn(),
+  getOrderById: jest.fn(),
   updateOrderStatus: jest.fn(),
   addPaymentToOrder: jest.fn(),
   refundPayment: jest.fn(),
@@ -21,6 +22,8 @@ jest.mock('./cashier/useCashierOrdersStream', () => ({
 }));
 
 const mockGetCashierOrders = getCashierOrders as jest.Mock;
+const mockGetOrderById = getOrderById as jest.Mock;
+const mockRefundPayment = refundPayment as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -62,5 +65,38 @@ describe('useCashierOrders — refreshOrders reports its outcome', () => {
     // Still reported where it always was — the boolean adds a caller signal, it does not move
     // the message.
     expect(result.current.error).toBe('Till service unavailable');
+  });
+});
+
+describe('useCashierOrders — refund response lifecycle', () => {
+  it('fetches and merges the authoritative order instead of spreading payment id or status into it', async () => {
+    const refundedPayment = {
+      id: 'payment-99',
+      orderId: 'o1',
+      paymentMethod: 'Cash',
+      amount: 18,
+      status: 'Refunded',
+    };
+    const authoritativeOrder = {
+      id: 'o1',
+      status: 'Confirmed',
+      paymentStatus: 'Refunded',
+    };
+    mockRefundPayment.mockResolvedValue(refundedPayment);
+    mockGetOrderById.mockResolvedValue(authoritativeOrder);
+
+    const { result } = renderHook(() => useCashierOrders());
+    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+
+    let returnedOrder: typeof authoritativeOrder | undefined;
+    await act(async () => {
+      returnedOrder = await result.current.refundPayment('o1', 'payment-99', 18);
+    });
+
+    expect(mockRefundPayment).toHaveBeenCalledWith('o1', 'payment-99', 18);
+    expect(mockGetOrderById).toHaveBeenCalledWith('o1');
+    expect(returnedOrder).toEqual(authoritativeOrder);
+    expect(result.current.orders).toEqual([authoritativeOrder]);
+    expect(result.current.orders[0]).not.toMatchObject({ id: refundedPayment.id, status: refundedPayment.status });
   });
 });

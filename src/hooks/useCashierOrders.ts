@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   addPaymentToOrder,
   refundPayment,
+  getOrderById,
   cancelOrder,
   toggleFocusOrder,
   AddPaymentRequest,
@@ -167,7 +168,16 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
     ),
     refundPayment: useCallback(
       (orderId, paymentId, amount) =>
-        applyMutation(orderId, () => refundPayment(orderId, paymentId, amount), 'Failed to refund'),
+        // The refund endpoint returns its payment record, not the order aggregate. Fetch the
+        // authoritative order before `applyMutation` merges anything into cashier state.
+        applyMutation(
+          orderId,
+          async () => {
+            await refundPayment(orderId, paymentId, amount);
+            return getOrderById(orderId);
+          },
+          'Failed to refund',
+        ),
       [applyMutation],
     ),
     cancelOrder: useCallback(

@@ -1,5 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
-import { refundPayment } from './cashierService';
+import { getCashierOrders, getCashierTenantDay, refundPayment } from './cashierService';
 import { PaymentMethod, type OrderPaymentDto } from '@/types/order';
 
 jest.mock('@/utils/apiClient', () => ({
@@ -33,5 +33,33 @@ describe('cashierService.refundPayment', () => {
       { orderId: 'order-1', paymentId: 'payment-1', refundAmount: 18 },
       { requireAuth: true },
     );
+  });
+});
+
+describe('getCashierOrders — tenant-day parameter (#545)', () => {
+  it('sends tenantDay instead of device-computed instants', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ data: { items: [], totalCount: 0 }, success: true });
+    await getCashierOrders({ tenantDay: '2026-03-08', page: 1, pageSize: 50 });
+    const calledWith = mockGet.mock.calls.at(-1);
+    expect(calledWith[0]).toContain('tenantDay=2026-03-08');
+    expect(calledWith[0]).not.toContain('startDate');
+  });
+});
+
+describe('getCashierTenantDay', () => {
+  it('returns only the server-named calendar day for the cashier filter', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ data: { date: '2026-03-08', timeZone: 'Europe/Zurich' }, success: true });
+
+    await expect(getCashierTenantDay()).resolves.toBe('2026-03-08');
+    expect(mockGet).toHaveBeenCalledWith('/api/tenant/today', { requireAuth: true });
+  });
+
+  it('does not invent a date when the tenant response is malformed', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ data: { date: 'not-a-day' }, success: true });
+
+    await expect(getCashierTenantDay()).resolves.toBeUndefined();
   });
 });

@@ -20,6 +20,21 @@ import {
 import { SseDiagnostics } from '@/types/diagnostics';
 
 /**
+ * Names the restaurant calendar day for the queue window. This stays in the cashier service so
+ * the POS does not need the reservation-specific tenant-day cache/analytics bundle at first
+ * paint. Undefined is deliberately safe: the caller omits its date filter rather than guessing
+ * from a counter tablet's clock (#545).
+ */
+export async function getCashierTenantDay(): Promise<string | undefined> {
+  const response = await apiClient.get<{ data?: { date?: unknown } }>('/api/tenant/today', {
+    requireAuth: true,
+  });
+  const day = response.data?.date;
+
+  return typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : undefined;
+}
+
+/**
  * Get all orders with optional filters for cashier view
  */
 export async function getCashierOrders(filters?: {
@@ -29,6 +44,8 @@ export async function getCashierOrders(filters?: {
   search?: string;
   page?: number;
   pageSize?: number;
+  /** The venue's calendar day — the server computes the window on the tenant clock (#545). */
+  tenantDay?: string;
   startDate?: Date;
   endDate?: Date;
   modifiedSince?: Date; // For efficient polling - returns orders modified after this timestamp
@@ -41,6 +58,7 @@ export async function getCashierOrders(filters?: {
     if (filters.orderType) params.append('orderType', filters.orderType);
     if (filters.search) params.append('search', filters.search);
     if (filters.page !== undefined) params.append('page', filters.page.toString());
+    if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
     if (filters.pageSize !== undefined) params.append('pageSize', filters.pageSize.toString());
     if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
     if (filters.endDate) params.append('endDate', filters.endDate.toISOString());

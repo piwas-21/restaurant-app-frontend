@@ -101,3 +101,16 @@ export const TENANT_COPY_PACK: string = (process.env.NEXT_PUBLIC_TENANT_COPY_PAC
  */
 export const PWA_THEME_COLOR = (process.env.NEXT_PUBLIC_PWA_THEME_COLOR ?? '').trim() || '#c00000';
 export const PWA_BACKGROUND_COLOR = (process.env.NEXT_PUBLIC_PWA_BACKGROUND_COLOR ?? '').trim() || '#ffffff';
+
+/**
+ * How long an open cashier page may retain the tenant day before asking the server again. The
+ * venue clock, not the counter device, owns a business-day boundary. This is build configuration
+ * so a tenant with a custom cutover can choose its operational staleness budget without a code
+ * change (POS #545).
+ */
+const rawCashierTenantDayRefreshMs = (process.env.NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS ?? '').trim();
+const configuredCashierTenantDayRefreshMs = Number(rawCashierTenantDayRefreshMs);
+export const CASHIER_TENANT_DAY_REFRESH_MS =
+  Number.isSafeInteger(configuredCashierTenantDayRefreshMs) && configuredCashierTenantDayRefreshMs > 0
+    ? configuredCashierTenantDayRefreshMs
+    : undefined;

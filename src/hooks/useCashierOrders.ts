@@ -15,7 +15,7 @@ import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
 import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
-import { CashierOrdersQuery, CASHIER_ORDERS_PAGE_SIZE } from './cashier/useCashierFilters';
+import { CashierOrdersQuery, DEFAULT_QUEUE_QUERY } from './cashier/useCashierFilters';
 
 const POLLING_INTERVAL_MS = 5000;
 
@@ -52,7 +52,7 @@ interface UseCashierOrdersReturn {
 
 export function useCashierOrders(
   dateRange?: CashierDateRange,
-  query: CashierOrdersQuery = { page: 1, pageSize: CASHIER_ORDERS_PAGE_SIZE },
+  query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
 ): UseCashierOrdersReturn {
   const dateRangeRef = useRef<CashierDateRange | undefined>(dateRange);
   dateRangeRef.current = dateRange;

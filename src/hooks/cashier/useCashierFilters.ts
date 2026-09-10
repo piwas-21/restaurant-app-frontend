@@ -4,6 +4,12 @@ import { useMemo, useState } from 'react';
 
 export const CASHIER_ORDERS_PAGE_SIZE = 50;
 
+// Shared so a hook parameter default never needs a fresh object literal (S7737).
+export const DEFAULT_QUEUE_QUERY: CashierOrdersQuery = {
+  page: 1,
+  pageSize: CASHIER_ORDERS_PAGE_SIZE,
+};
+
 export interface CashierOrdersQuery {
   page: number;
   pageSize: number;
@@ -32,10 +38,10 @@ export interface UseCashierFiltersReturn {
  * client filtering only whichever page happened to be loaded.
  */
 export function useCashierFilters(): UseCashierFiltersReturn {
-  const [searchQuery, setSearchQueryState] = useState('');
-  const [statusFilter, setStatusFilterState] = useState('all');
-  const [paymentStatusFilter, setPaymentStatusFilterState] = useState('all');
-  const [orderTypeFilter, setOrderTypeFilterState] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+  const [orderTypeFilter, setOrderTypeFilter] = useState('all');
   const [page, setPage] = useState(1);
 
   const resetPage = (setter: (value: string) => void) => (value: string) => {
@@ -61,10 +67,10 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     paymentStatusFilter,
     orderTypeFilter,
     query,
-    setSearchQuery: resetPage(setSearchQueryState),
-    setStatusFilter: resetPage(setStatusFilterState),
-    setPaymentStatusFilter: resetPage(setPaymentStatusFilterState),
-    setOrderTypeFilter: resetPage(setOrderTypeFilterState),
+    setSearchQuery: resetPage(setSearchQuery),
+    setStatusFilter: resetPage(setStatusFilter),
+    setPaymentStatusFilter: resetPage(setPaymentStatusFilter),
+    setOrderTypeFilter: resetPage(setOrderTypeFilter),
     setPage,
   };
 }

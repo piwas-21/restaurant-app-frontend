@@ -1738,6 +1738,7 @@
   "creating": "Creating...",
   "error_loading_product": "Failed to load product details",
   "customize": "Customize",
+  "menu_option_free": "Free",
   "done": "Done",
   "choose_count": "Choose {{count}}",
   "choose_range": "Choose {{min}}-{{max}}",

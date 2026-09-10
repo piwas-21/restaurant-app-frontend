@@ -68,7 +68,17 @@ export default function BundleOptionRow({
     <div className={styles.details}>
       <div className={styles.header}>
         <span className={styles.name}>{item.productName}</span>
-        {item.additionalPrice > 0 && <span className={styles.price}>+{formatPlainCurrency(item.additionalPrice)}</span>}
+        {/*
+          A zero-surcharge option SAYS so (2026-09-10 mcdoner partner request): the frites inside
+          a menu are included, and a row with no price mark read as "unpriced" rather than "free".
+          Uniform across options — a drink or the dish row at 0 is exactly as included as the
+          frites are.
+        */}
+        {item.additionalPrice > 0 ? (
+          <span className={styles.price}>+{formatPlainCurrency(item.additionalPrice)}</span>
+        ) : (
+          <span className={styles.free}>{t('menu_option_free')}</span>
+        )}
       </div>
       {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
       {item.allergens && item.allergens.length > 0 && (

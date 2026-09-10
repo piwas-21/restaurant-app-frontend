@@ -1738,6 +1738,7 @@
   "creating": "Erstellen...",
   "error_loading_product": "Produktdetails konnten nicht geladen werden",
   "customize": "Anpassen",
+  "menu_option_free": "Gratis",
   "done": "Fertig",
   "choose_count": "Wähle {{count}}",
   "choose_range": "Wähle {{min}}-{{max}}",

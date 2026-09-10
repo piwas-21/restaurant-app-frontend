@@ -1738,6 +1738,7 @@
   "creating": "Aanmaken...",
   "error_loading_product": "Kan productdetails niet laden",
   "customize": "Aanpassen",
+  "menu_option_free": "Gratis",
   "done": "Klaar",
   "choose_count": "Kies {{count}}",
   "choose_range": "Kies {{min}}-{{max}}",

@@ -1738,6 +1738,7 @@
   "creating": "Oluşturuluyor...",
   "error_loading_product": "Ürün ayrıntıları yüklenemedi",
   "customize": "Özelleştir",
+  "menu_option_free": "Ücretsiz",
   "done": "Tamam",
   "choose_count": "{{count}} adet seçin",
   "choose_range": "{{min}}-{{max}} adet seçin",

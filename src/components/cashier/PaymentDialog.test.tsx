@@ -43,7 +43,10 @@ describe('PaymentDialog — failure retains the form', () => {
     await waitFor(() => expect(screen.getByText('Terminal offline')).toBeInTheDocument());
     // Still open, still holding the cashier's input.
     expect(screen.getByPlaceholderText('0.00')).toHaveValue(18.5);
-    expect(onConfirm).toHaveBeenCalledTimes(1);
+    const firstOperation = onConfirm.mock.calls[0][0].operationId;
+    fireEvent.click(confirmButton());
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(2));
+    expect(onConfirm.mock.calls[1][0].operationId).toBe(firstOperation);
   });
 
   it('resets and lets the hook close the dialog only on success', async () => {

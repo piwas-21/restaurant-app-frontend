@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto, PaymentMethod } from '@/types/order';
 import { X } from 'lucide-react';
+import { usePaymentOperationKey } from '@/hooks/cashier/usePaymentOperationKey';
 
 interface PaymentDialogProps {
   order: OrderDto | null;
@@ -14,6 +15,7 @@ interface PaymentDialogProps {
 }
 
 export interface PaymentDialogData {
+  operationId: string;
   amount: number;
   paymentMethod: string;
   transactionId?: string;
@@ -31,6 +33,7 @@ export default function PaymentDialog({ order, isOpen, onClose, onConfirm, isLoa
   const [transactionId, setTransactionId] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const { operationFor, resetOperation } = usePaymentOperationKey();
 
   // Prefill transaction ID with order number when dialog opens
   useEffect(() => {
@@ -42,19 +45,24 @@ export default function PaymentDialog({ order, isOpen, onClose, onConfirm, isLoa
   // Calculate remaining balance
   const remainingBalance = order?.remainingAmount || 0;
 
-  const handleAmountChange = useCallback((value: string) => {
-    // Allow only numbers and decimal point
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue) || value === '') {
-      setAmount(value);
-      setError(null);
-    }
-  }, []);
+  const handleAmountChange = useCallback(
+    (value: string) => {
+      // Allow only numbers and decimal point
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) || value === '') {
+        setAmount(value);
+        resetOperation();
+        setError(null);
+      }
+    },
+    [resetOperation],
+  );
 
   const handleSetMaxAmount = useCallback(() => {
     setAmount(remainingBalance.toFixed(2));
+    resetOperation();
     setError(null);
-  }, [remainingBalance]);
+  }, [remainingBalance, resetOperation]);
 
   const handleConfirm = useCallback(async () => {
     // Validation
@@ -78,12 +86,14 @@ export default function PaymentDialog({ order, isOpen, onClose, onConfirm, isLoa
     }
 
     try {
-      await onConfirm({
+      const tender = {
         amount: paymentAmount,
         paymentMethod: method,
         transactionId: transactionId || undefined,
         paymentNotes: notes || undefined,
-      });
+      };
+      await onConfirm({ ...tender, operationId: operationFor() });
+      resetOperation();
 
       // Reset form
       setAmount('');
@@ -94,7 +104,7 @@ export default function PaymentDialog({ order, isOpen, onClose, onConfirm, isLoa
     } catch (err) {
       setError((err as Error).message || t('cashier.payment_failed') || 'Failed to add payment');
     }
-  }, [amount, method, transactionId, notes, remainingBalance, onConfirm, onClose, t]);
+  }, [amount, method, transactionId, notes, remainingBalance, onConfirm, onClose, operationFor, resetOperation, t]);
 
   if (!isOpen || !order) return null;
 

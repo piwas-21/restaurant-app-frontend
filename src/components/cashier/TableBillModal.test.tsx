@@ -137,7 +137,15 @@ describe('TableBillModal', () => {
     fireEvent.change(screen.getByLabelText('cashier.payment_amount'), { target: { value: '40' } });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.table_bill.add_payment' }));
 
-    await waitFor(() => expect(state.payBill).toHaveBeenCalledWith({ amount: 40, paymentMethod: PaymentMethod.Cash }));
+    await waitFor(() =>
+      expect(state.payBill).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 40,
+          paymentMethod: PaymentMethod.Cash,
+          operationId: expect.any(String),
+        }),
+      ),
+    );
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith('cashier.table_bill.payment_applied:40.00'));
   });
 

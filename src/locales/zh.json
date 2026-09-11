@@ -1547,7 +1547,11 @@
       }
     },
     "record_card_payment": "记录银行卡付款",
-    "standalone_card_instruction": "请先在终端收取此金额，然后记录银行卡付款。"
+    "standalone_card_instruction": "请先在终端收取此金额，然后记录银行卡付款。",
+    "cash_received": "收到现金",
+    "cash_exact": "正好",
+    "cash_change": "找零",
+    "cash_received_too_low": "收到的现金必须不少于付款金额。"
   },
   "restaurant_closed_on_date": "餐厅在 {{day}}，{{date}} 关闭。请选择其他日期。",
   "selected_tables_not_available": "所选桌位 {{tables}} 在该时间段已不可用。请选择其他桌位或时间。",

@@ -930,7 +930,11 @@
       }
     },
     "record_card_payment": "Record card payment",
-    "standalone_card_instruction": "Take this amount on the terminal, then record the card payment."
+    "standalone_card_instruction": "Take this amount on the terminal, then record the card payment.",
+    "cash_received": "Cash received",
+    "cash_exact": "Exact",
+    "cash_change": "Change",
+    "cash_received_too_low": "Cash received must cover the payment amount."
   },
   "update": "Update",
   "book_your_table": "Book your table",

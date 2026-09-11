@@ -1162,7 +1162,11 @@
       }
     },
     "record_card_payment": "Kart ödemesini kaydet",
-    "standalone_card_instruction": "Bu tutarı terminalden alın, ardından kart ödemesini kaydedin."
+    "standalone_card_instruction": "Bu tutarı terminalden alın, ardından kart ödemesini kaydedin.",
+    "cash_received": "Alınan nakit",
+    "cash_exact": "Tam tutar",
+    "cash_change": "Para üstü",
+    "cash_received_too_low": "Alınan nakit ödeme tutarını karşılamalıdır."
   },
   "cashier.order_summary": "Sipariş Özeti",
   "cashier.update_status": "Durumu Güncelle",

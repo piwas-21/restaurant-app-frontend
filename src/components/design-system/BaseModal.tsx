@@ -111,7 +111,7 @@ export default function BaseModal({
       }
 
       const first = elements[0];
-      const last = elements[elements.length - 1];
+      const last = elements.at(-1)!;
       if (!dialog.contains(document.activeElement)) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus();

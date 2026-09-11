@@ -7,6 +7,7 @@ import styles from '../../app/styles/CashierPage.module.css';
 import { OrderDto, OrderType } from '@/types/order';
 import { type OrderStatusBadgeFill } from '@/lib/orderStatus';
 import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
+import StatusBadge from '@/components/design-system/StatusBadge';
 
 interface OrderListProps {
   orders: OrderDto[];
@@ -107,7 +108,9 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
                 <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
                 <span className={styles.orderNumber}>{order.orderNumber}</span>
               </div>
-              <span className={`${styles.orderStatusBadge} ${statusBadgeModifier}`}>{status.label}</span>
+              <StatusBadge tone={status.tone} className={`${styles.orderStatusBadge} ${statusBadgeModifier}`}>
+                {status.label}
+              </StatusBadge>
             </div>
 
             <div className={styles.orderCardBody}>

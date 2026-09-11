@@ -6,6 +6,7 @@ import { Clock, AlertCircle } from 'lucide-react';
 import { OrderDto } from '@/types/order';
 import { nextOrderStatuses, type OrderStatusBadgeFill } from '@/lib/orderStatus';
 import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './OrderDetails.module.css';
 import OrderDetailsActionBar from './order-details/OrderDetailsActionBar';
 import OrderDetailsLeftColumn from './order-details/OrderDetailsLeftColumn';
@@ -107,7 +108,9 @@ export default function OrderDetails({
               {new Date(order.orderDate).toLocaleString()}
             </p>
           </div>
-          <span className={`${styles.statusBadge} ${BADGE_FILL_CLASS[status.fill]}`}>{status.label}</span>
+          <StatusBadge tone={status.tone} className={`${styles.statusBadge} ${BADGE_FILL_CLASS[status.fill]}`}>
+            {status.label}
+          </StatusBadge>
         </div>
       </div>
 

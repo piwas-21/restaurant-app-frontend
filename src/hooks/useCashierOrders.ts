@@ -31,7 +31,7 @@ interface UseCashierOrdersReturn {
   refreshOrders: () => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
-  refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
+  refundPayment: (orderId: string, paymentId: string, amount: number, reason: string) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
 }
@@ -163,13 +163,13 @@ export function useCashierOrders(
       [applyMutation],
     ),
     refundPayment: useCallback(
-      (orderId, paymentId, amount) =>
+      (orderId, paymentId, amount, reason) =>
         // The refund endpoint returns its payment record, not the order aggregate. Fetch the
         // authoritative order before `applyMutation` merges anything into cashier state.
         applyMutation(
           orderId,
           async () => {
-            await refundPayment(orderId, paymentId, amount);
+            await refundPayment(orderId, paymentId, amount, reason);
             return getOrderById(orderId);
           },
           'Failed to refund',

@@ -1100,6 +1100,7 @@
   "cashier.full_refund": "Vollständige Rückerstattung",
   "cashier.partial_refund": "Teilweise Rückerstattung",
   "cashier.refund_reason": "Grund für Rückerstattung",
+  "cashier.refund_reason_min_length": "Der Erstattungsgrund muss mindestens 5 Zeichen enthalten",
   "cashier.order_to_cancel": "Bestellung zum Stornieren",
   "cashier.order_cancelled": "Bestellung erfolgreich storniert",
   "cashier.mark_as_focus": "Als Fokus kennzeichnen",

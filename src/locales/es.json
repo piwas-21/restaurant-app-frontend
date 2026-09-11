@@ -1103,6 +1103,7 @@
   "cashier.full_refund": "Reembolso Completo",
   "cashier.partial_refund": "Reembolso Parcial",
   "cashier.refund_reason": "Motivo del Reembolso",
+  "cashier.refund_reason_min_length": "El motivo del reembolso debe tener al menos 5 caracteres",
   "cashier.order_to_cancel": "Pedido a Cancelar",
   "cashier.order_cancelled": "Pedido Cancelado Exitosamente",
   "cashier.mark_as_focus": "Marcar como Prioritario",

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
-import RefundDialog from './RefundDialog';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import RefundModal from './RefundModal';
 import type { OrderDto, OrderPaymentDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
 
@@ -25,23 +25,25 @@ const payment = (over: Partial<OrderPaymentDto>): OrderPaymentDto =>
     ...over,
   }) as OrderPaymentDto;
 
-const open = (payments: OrderPaymentDto[]) =>
+const open = (payments: OrderPaymentDto[], onConfirm = jest.fn().mockResolvedValue(undefined)) => {
   render(
-    <RefundDialog
+    <RefundModal
       isOpen
       order={{ id: 'o1', orderNumber: 'A-1', payments } as unknown as OrderDto}
       onClose={jest.fn()}
-      onConfirm={jest.fn()}
+      onConfirm={onConfirm}
       isLoading={false}
     />,
   );
+  return onConfirm;
+};
 
 /**
  * S11. `RefundPaymentCommand` refuses a tender captured by a payment gateway — the platform's
  * Stripe key has no refunds write, so booking one would report money returned that never left
  * Stripe. This dialog must not offer what the server will refuse.
  */
-describe('RefundDialog — gateway-held tenders', () => {
+describe('RefundModal — gateway-held tenders', () => {
   it('does not offer a Stripe tender for refund', () => {
     open([payment({ id: 'stripe', paymentMethod: PaymentMethod.OnlinePayment, paymentGateway: 'Stripe' })]);
 
@@ -134,5 +136,79 @@ describe('RefundDialog — gateway-held tenders', () => {
 
     expect(screen.queryByText(/^gateway_refund_notice/)).not.toBeInTheDocument();
     expect(screen.getByText('cashier.no_refundable_payments')).toBeInTheDocument();
+  });
+});
+
+describe('RefundModal — refund reason contract', () => {
+  it('blocks a reason shorter than the backend minimum', () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByText('cashier.refund_reason_min_length')).toBeInTheDocument();
+  });
+
+  it('passes the trimmed reason and full amount through the confirm callback', async () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.change(screen.getByPlaceholderText('cashier.refund_reason_placeholder'), {
+      target: { value: '  Customer request  ' },
+    });
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('cash', 40, 'Customer request'));
+  });
+});
+
+describe('RefundModal — schema and pending contract', () => {
+  it('requires a partial refund amount', () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.click(screen.getByText('cashier.partial_refund'));
+    fireEvent.change(screen.getByPlaceholderText('cashier.refund_reason_placeholder'), {
+      target: { value: 'Customer request' },
+    });
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByText('cashier.refund_amount_required')).toBeInTheDocument();
+  });
+
+  it('rejects a partial amount above the selected payment', () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.click(screen.getByText('cashier.partial_refund'));
+    fireEvent.change(screen.getByPlaceholderText('0.00'), { target: { value: '40.01' } });
+    fireEvent.change(screen.getByPlaceholderText('cashier.refund_reason_placeholder'), {
+      target: { value: 'Customer request' },
+    });
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByText('cashier.refund_exceeds_payment')).toBeInTheDocument();
+  });
+
+  it('protects the pending refund from close and escape dismissal', () => {
+    const onClose = jest.fn();
+    render(
+      <RefundModal
+        isOpen
+        order={{ id: 'o1', orderNumber: 'A-1', payments: [payment({ id: 'cash' })] } as unknown as OrderDto}
+        onClose={onClose}
+        onConfirm={jest.fn()}
+        isLoading
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'close' }));
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

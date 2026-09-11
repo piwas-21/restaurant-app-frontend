@@ -26,11 +26,16 @@ describe('cashierService.refundPayment', () => {
     };
     mockPost.mockResolvedValue({ success: true, data: payment });
 
-    await expect(refundPayment('order-1', 'payment-1', 18)).resolves.toEqual(payment);
+    await expect(refundPayment('order-1', 'payment-1', 18, 'Customer request')).resolves.toEqual(payment);
 
     expect(mockPost).toHaveBeenCalledWith(
       '/api/orders/order-1/payments/payment-1/refund',
-      { orderId: 'order-1', paymentId: 'payment-1', refundAmount: 18 },
+      {
+        orderId: 'order-1',
+        paymentId: 'payment-1',
+        refundAmount: 18,
+        refundReason: 'Customer request',
+      },
       { requireAuth: true },
     );
   });

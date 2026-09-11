@@ -1104,6 +1104,7 @@
   "cashier.full_refund": "Remboursement Complet",
   "cashier.partial_refund": "Remboursement Partiel",
   "cashier.refund_reason": "Raison du Remboursement",
+  "cashier.refund_reason_min_length": "Le motif du remboursement doit comporter au moins 5 caractères",
   "cashier.order_to_cancel": "Commande à Annuler",
   "cashier.order_cancelled": "Commande Annulée avec Succès",
   "cashier.mark_as_focus": "Marquer comme Prioritaire",

@@ -1186,6 +1186,7 @@
   "cashier.full_refund": "Tam İade",
   "cashier.partial_refund": "Kısmi İade",
   "cashier.refund_reason": "İade Nedeni",
+  "cashier.refund_reason_min_length": "İade nedeni en az 5 karakter olmalıdır",
   "cashier.order_to_cancel": "İptal Edilecek Sipariş",
   "cashier.order_cancelled": "Sipariş Başarıyla İptal Edildi",
   "cashier.mark_as_focus": "Odak Olarak İşaretle",

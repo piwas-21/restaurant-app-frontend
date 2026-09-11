@@ -930,7 +930,11 @@
       }
     },
     "record_card_payment": "Kaartbetaling registreren",
-    "standalone_card_instruction": "Neem dit bedrag aan op de terminal en registreer daarna de kaartbetaling."
+    "standalone_card_instruction": "Neem dit bedrag aan op de terminal en registreer daarna de kaartbetaling.",
+    "cash_received": "Ontvangen contant",
+    "cash_exact": "Gepast",
+    "cash_change": "Wisselgeld",
+    "cash_received_too_low": "Het ontvangen contante bedrag moet het betaalbedrag dekken."
   },
   "update": "Bijwerken",
   "book_your_table": "Boek je tafel",

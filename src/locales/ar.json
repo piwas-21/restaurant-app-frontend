@@ -1556,7 +1556,11 @@
       }
     },
     "record_card_payment": "تسجيل دفعة البطاقة",
-    "standalone_card_instruction": "حصّل هذا المبلغ على جهاز الدفع، ثم سجّل دفعة البطاقة."
+    "standalone_card_instruction": "حصّل هذا المبلغ على جهاز الدفع، ثم سجّل دفعة البطاقة.",
+    "cash_received": "النقد المستلم",
+    "cash_exact": "المبلغ بالضبط",
+    "cash_change": "الباقي",
+    "cash_received_too_low": "يجب أن يغطي النقد المستلم مبلغ الدفع."
   },
   "restaurant_closed_on_date": "المطعم مغلق يوم {{day}}، {{date}}. يرجى اختيار تاريخ آخر.",
   "selected_tables_not_available": "الطاولة/الطاولات المحددة {{tables}} لم تعد متاحة في هذا الوقت. يرجى اختيار طاولات أو وقت مختلف.",

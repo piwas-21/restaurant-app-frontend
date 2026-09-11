@@ -1551,7 +1551,11 @@
       }
     },
     "record_card_payment": "Registra pagamento con carta",
-    "standalone_card_instruction": "Incassa questo importo sul terminale, poi registra il pagamento con carta."
+    "standalone_card_instruction": "Incassa questo importo sul terminale, poi registra il pagamento con carta.",
+    "cash_received": "Contanti ricevuti",
+    "cash_exact": "Importo esatto",
+    "cash_change": "Resto",
+    "cash_received_too_low": "I contanti ricevuti devono coprire l’importo del pagamento."
   },
   "restaurant_closed_on_date": "Il ristorante è chiuso il {{day}}, {{date}}. Seleziona un'altra data.",
   "selected_tables_not_available": "Il/i tavolo/i selezionato/i {{tables}} non è/sono più disponibile/i per questa fascia oraria. Seleziona tavoli o orari diversi.",

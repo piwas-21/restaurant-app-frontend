@@ -72,6 +72,45 @@ describe('PaymentModal — failure retains the form', () => {
     expect(screen.queryByRole('option', { name: /online/i })).not.toBeInTheDocument();
   });
 
+  it('shows change but submits only the amount applied to the bill', async () => {
+    const onConfirm = jest.fn().mockResolvedValue(undefined);
+    open(onConfirm);
+    fireEvent.change(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ }), { target: { value: '20' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), { target: { value: '50' } });
+
+    expect(screen.getByRole('status')).toHaveTextContent('30.00');
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ amount: 20 })));
+  });
+
+  it('keeps the operation key when only transient received cash changes after failure', async () => {
+    const onConfirm = jest.fn().mockRejectedValueOnce(new Error('timeout')).mockResolvedValueOnce(undefined);
+    open(onConfirm);
+    fireEvent.change(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ }), { target: { value: '20' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), { target: { value: '50' } });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+    await screen.findByText('timeout');
+    const firstOperationId = onConfirm.mock.calls[0][0].operationId;
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), { target: { value: '100' } });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(2));
+    expect(onConfirm.mock.calls[1][0].operationId).toBe(firstOperationId);
+  });
+
+  it('refuses cash below the amount being applied', async () => {
+    const onConfirm = jest.fn();
+    open(onConfirm);
+    fireEvent.change(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ }), { target: { value: '20' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+
+    expect(await screen.findByText('cashier.cash_received_too_low')).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
   it('locks the confirm control while a submit is pending', () => {
     open(jest.fn(), true);
 

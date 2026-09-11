@@ -113,3 +113,63 @@ export const mixedKitchenBundleOrder = (): OrderDto =>
       ],
     }),
   ]);
+
+/**
+ * An order whose roots and descendants have no station assignment. The General ticket must still
+ * show every line: an unassigned line is work for the explicit General Kitchen action.
+ */
+export const allUnassignedOrder = (): OrderDto =>
+  makeOrder([
+    makeOrderItem({
+      id: 'unassigned-kebab',
+      productName: 'Adana Kebab',
+      kitchenType: 'None',
+      quantity: 2,
+      unitPrice: 12,
+      itemTotal: 24,
+      sideItems: [
+        makeOrderItem({
+          id: 'unassigned-salad',
+          productName: 'Shepherd Salad',
+          kitchenType: 'None',
+          kind: 'BundleChild',
+          sideItems: [
+            makeOrderItem({
+              id: 'unassigned-sauce',
+              productName: 'Garlic Sauce',
+              kind: 'SideItem',
+            }),
+          ],
+        }),
+      ],
+    }),
+    makeOrderItem({ id: 'unassigned-pide', productName: 'Pide', kitchenType: undefined }),
+  ]);
+
+/**
+ * A mixed tree with a BackKitchen line below a FrontKitchen line and an unassigned grandchild.
+ * General includes every line once; Front/Back retain their existing routed projections.
+ */
+export const mixedNestedKitchenBundleOrder = (): OrderDto =>
+  makeOrder([
+    makeOrderItem({
+      id: 'mixed-menu',
+      productName: 'Mixed Menu',
+      kitchenType: 'FrontKitchen',
+      sideItems: [
+        makeOrderItem({
+          id: 'mixed-burger',
+          productName: 'Beef Burger',
+          kitchenType: 'FrontKitchen',
+          kind: 'BundleChild',
+        }),
+        makeOrderItem({
+          id: 'mixed-fries',
+          productName: 'Fries',
+          kitchenType: 'BackKitchen',
+          kind: 'BundleChild',
+          sideItems: [makeOrderItem({ id: 'mixed-ketchup', productName: 'Ketchup', kind: 'SideItem' })],
+        }),
+      ],
+    }),
+  ]);

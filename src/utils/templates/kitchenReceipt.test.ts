@@ -1,10 +1,13 @@
 import { generateKitchenReceiptHtml } from './kitchenReceipt';
 import { formatCurrency } from '../currency';
+import { PaymentMethod } from '@/types/order';
 import {
   makeOrder,
   makeOrderItem,
+  allUnassignedOrder,
   singleKitchenBundleOrder,
   mixedKitchenBundleOrder,
+  mixedNestedKitchenBundleOrder,
 } from '../__fixtures__/bundleOrderFixture';
 
 /** How many times a product name appears in the ticket — the double-render guard. */
@@ -25,6 +28,68 @@ describe('generateKitchenReceiptHtml — single-kitchen bundle', () => {
 
   it('prints no back-kitchen ticket at all', () => {
     expect(generateKitchenReceiptHtml(order, 'BackKitchen')).toBeNull();
+  });
+});
+
+describe('generateKitchenReceiptHtml — General Kitchen', () => {
+  it('shows every all-unassigned line, including nested descendants', () => {
+    const html = generateKitchenReceiptHtml(allUnassignedOrder(), 'GeneralKitchen');
+
+    expect(html).not.toBeNull();
+    expect(occurrences(html!, 'Adana Kebab')).toBe(1);
+    expect(occurrences(html!, 'Shepherd Salad')).toBe(1);
+    expect(occurrences(html!, 'Garlic Sauce')).toBe(1);
+    expect(occurrences(html!, 'Pide')).toBe(1);
+  });
+
+  it('keeps All as the customer-facing money ticket', () => {
+    const order = mixedKitchenBundleOrder();
+    order.customerName = 'Private Customer';
+    order.payments = [
+      {
+        id: 'payment-all',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: order.total,
+        status: 'Completed',
+      },
+    ];
+
+    const html = generateKitchenReceiptHtml(order, 'All');
+
+    expect(html).toContain('TOTAL:');
+    expect(html).toContain(formatCurrency(order.total));
+    expect(html).toContain('Payment:');
+    expect(html).toContain(PaymentMethod.Cash);
+    expect(html).toContain('Private Customer');
+  });
+
+  it('prints a mixed nested tree exactly once without money or payment data', () => {
+    const order = mixedNestedKitchenBundleOrder();
+    order.payments = [
+      {
+        id: 'payment-1',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: 24,
+        status: 'Completed',
+      },
+    ];
+
+    order.customerName = 'Private Customer';
+    const html = generateKitchenReceiptHtml(order, 'GeneralKitchen');
+
+    expect(html).not.toBeNull();
+    for (const name of ['Mixed Menu', 'Beef Burger', 'Fries', 'Ketchup']) {
+      expect(occurrences(html!, name)).toBe(1);
+    }
+    expect(html).not.toContain(formatCurrency(order.total));
+    expect(html).not.toContain(formatCurrency(order.items[0].itemTotal));
+    expect(html).not.toContain('Subtotal');
+    expect(html).not.toContain('TOTAL');
+    expect(html).not.toContain('Payment');
+    expect(html).not.toContain('Cash');
+    expect(html).not.toContain('Private Customer');
   });
 });
 

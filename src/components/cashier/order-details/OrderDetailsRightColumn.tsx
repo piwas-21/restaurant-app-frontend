@@ -25,6 +25,7 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
   // would hide that kitchen's print button entirely.
   const hasFrontKitchenItems = hasItemsForKitchen(order?.items, 'FrontKitchen');
   const hasBackKitchenItems = hasItemsForKitchen(order?.items, 'BackKitchen');
+  const hasGeneralKitchenItems = order.items.length > 0;
 
   return (
     <div className={styles.rightColumn}>
@@ -115,6 +116,15 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
             <Printer size={16} />
             {t('cashier.print_bill', 'Print Bill')}
           </button>
+          {hasGeneralKitchenItems && (
+            <button
+              className={`${styles.actionButton} ${styles.actionButtonInfo}`}
+              onClick={() => exportKitchenItemsToPDF(order, 'GeneralKitchen', t)}
+            >
+              <Printer size={16} />
+              {t('print_general_kitchen', 'Print General Kitchen')}
+            </button>
+          )}
           {hasFrontKitchenItems && (
             <button
               className={`${styles.actionButton} ${styles.actionButtonInfo}`}

@@ -12,6 +12,8 @@ import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escap
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
+export type KitchenReceiptType = 'FrontKitchen' | 'BackKitchen' | 'GeneralKitchen' | 'All';
+
 // Get order type label
 const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
   const translate = t || ((key: string, fallback: string) => fallback);
@@ -27,25 +29,35 @@ const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): s
   }
 };
 
+const getKitchenLabel = (kitchenType: KitchenReceiptType, translate: TranslationFunction): string => {
+  switch (kitchenType) {
+    case 'FrontKitchen':
+      return translate('kitchen_type_frontkitchen', 'Front Kitchen');
+    case 'BackKitchen':
+      return translate('kitchen_type_backkitchen', 'Back Kitchen');
+    case 'GeneralKitchen':
+      return translate('kitchen_type_generalkitchen', 'General Kitchen');
+    default:
+      return translate('order_details', 'Order Details');
+  }
+};
+
 // Build kitchen item HTML - with optional pricing
 const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction, showPrices: boolean): string => {
   const itemName = item.productName || item.menuName || translate('item', 'Item');
-
-  // Calculate unit price with fallback
-  const unitPriceValue = item.unitPrice || (item.quantity > 0 ? item.itemTotal / item.quantity : 0);
-  const totalPrice = formatCurrency(item.itemTotal);
-  const unitPrice = formatCurrency(unitPriceValue);
 
   let html = `
     <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
       <div style="display: flex; justify-content: space-between; font-size: 13pt; font-weight: bold;">
         <span>${item.quantity}x ${escapeHtml(itemName)}</span>
-        ${showPrices ? `<span>${totalPrice}</span>` : ''}
+        ${showPrices ? `<span>${formatCurrency(item.itemTotal)}</span>` : ''}
       </div>`;
 
-  // Show unit price breakdown if prices enabled
+  // Show unit price breakdown if prices enabled. General/Front/Back tickets do not even format
+  // money, keeping the kitchen-purpose branches incapable of leaking a price into their HTML.
   if (showPrices && item.quantity > 0) {
-    html += `<div style="font-size: 10pt; color: #555;">${item.quantity} @ ${unitPrice}</div>`;
+    const unitPriceValue = item.unitPrice || item.itemTotal / item.quantity;
+    html += `<div style="font-size: 10pt; color: #555;">${item.quantity} @ ${formatCurrency(unitPriceValue)}</div>`;
   }
 
   // Variation
@@ -84,15 +96,18 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
  */
 export const generateKitchenReceiptHtml = (
   order: OrderDto,
-  kitchenType: 'FrontKitchen' | 'BackKitchen' | 'All',
+  kitchenType: KitchenReceiptType,
   t?: TranslationFunction,
 ): string | null => {
   const translate = t || ((key: string, fallback: string) => fallback);
 
-  // Filter items by kitchen type. `order.items` is root-only (backend #237), so a kitchen's items
-  // can sit anywhere in the tree — a BackKitchen side inside a FrontKitchen combo belongs on the
-  // BACK ticket, not nested on the front one. `selectItemsForKitchen` recurses and re-parents.
-  const filteredItems = kitchenType === 'All' ? order.items : selectItemsForKitchen(order.items, kitchenType);
+  // 'All' remains the customer-facing order print. General Kitchen is the explicit kitchen-purpose
+  // ticket: it keeps every root and descendant, including unassigned lines, while never carrying
+  // the customer money block below. Front/Back continue through the existing recursive routing.
+  const filteredItems =
+    kitchenType === 'All' || kitchenType === 'GeneralKitchen'
+      ? order.items
+      : selectItemsForKitchen(order.items, kitchenType);
 
   if (filteredItems.length === 0) {
     return null;
@@ -102,15 +117,11 @@ export const generateKitchenReceiptHtml = (
   const showPrices = kitchenType === 'All';
 
   // Kitchen type label
-  const kitchenLabel =
-    kitchenType === 'FrontKitchen'
-      ? translate('kitchen_type_frontkitchen', 'Front Kitchen')
-      : kitchenType === 'BackKitchen'
-        ? translate('kitchen_type_backkitchen', 'Back Kitchen')
-        : translate('order_details', 'Order Details');
+  const kitchenLabel = getKitchenLabel(kitchenType, translate);
 
   // Build items with or without prices
   const itemsHtml = filteredItems.map((item) => buildKitchenItemHtml(item, translate, showPrices)).join('');
+  const includeCustomerDetails = kitchenType !== 'GeneralKitchen';
 
   // Totals section only for customer-facing 'All' type
   const totalsHtml = showPrices
@@ -195,7 +206,7 @@ export const generateKitchenReceiptHtml = (
         </div>
 
         ${
-          order.customerName
+          includeCustomerDetails && order.customerName
             ? `
           <div style="margin: 8px 0; padding: 6px; background: #f5f5f5;">
             <strong>Customer:</strong> ${escapeHtml(order.customerName)}

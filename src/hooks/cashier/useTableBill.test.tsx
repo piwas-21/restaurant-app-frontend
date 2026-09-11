@@ -52,11 +52,19 @@ describe('useTableBill', () => {
     act(() => result.current.setTableNumberInput('8'));
     let paid = false;
     await act(async () => {
-      paid = await result.current.payBill({ paymentMethod: 'Cash', amount: 10 });
+      paid = await result.current.payBill({
+        operationId: '11111111-1111-4111-8111-111111111111',
+        paymentMethod: 'Cash',
+        amount: 10,
+      });
     });
 
     expect(paid).toBe(true);
-    expect(mockedAddPayment).toHaveBeenCalledWith(7, { paymentMethod: 'Cash', amount: 10 });
+    expect(mockedAddPayment).toHaveBeenCalledWith(7, {
+      operationId: '11111111-1111-4111-8111-111111111111',
+      paymentMethod: 'Cash',
+      amount: 10,
+    });
   });
 
   it("ignores a slow older load so the screen never shows another table's bill", async () => {

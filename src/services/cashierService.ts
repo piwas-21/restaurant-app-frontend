@@ -115,6 +115,7 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
  * Add payment to order
  */
 export interface AddPaymentRequest {
+  operationId: string;
   paymentMethod: string;
   amount: number;
   transactionId?: string;

@@ -11,6 +11,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { billTenderSchema } from '@/schemas/tableBill.schema';
 import type { useTableBill } from '@/hooks/cashier/useTableBill';
 import styles from './TableBillModal.module.css';
+import { usePaymentOperationKey } from '@/hooks/cashier/usePaymentOperationKey';
 
 interface TableBillModalProps {
   readonly isOpen: boolean;
@@ -33,6 +34,7 @@ export default function TableBillModal({ isOpen, onClose, billState, onSuccess }
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const { operationFor, resetOperation } = usePaymentOperationKey();
 
   const { bill, tableNumberInput, setTableNumberInput, isLoading, isPaying, error } = billState;
   const remaining = bill?.remaining ?? 0;
@@ -59,8 +61,9 @@ export default function TableBillModal({ isOpen, onClose, billState, onSuccess }
     }
     setValidationError(null);
     const tender: BillTender = { amount: parsed.data.amount, paymentMethod: parsed.data.paymentMethod };
-    const ok = await billState.payBill(tender);
+    const ok = await billState.payBill({ ...tender, operationId: operationFor() });
     if (ok) {
+      resetOperation();
       onSuccess(t('cashier.table_bill.payment_applied', { amount: parsed.data.amount.toFixed(2) }));
       setAmount('');
     }
@@ -133,7 +136,10 @@ export default function TableBillModal({ isOpen, onClose, billState, onSuccess }
                 className="form-input"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  resetOperation();
+                }}
                 disabled={isPaying || remaining <= 0}
               />
             </FormField>
@@ -141,7 +147,10 @@ export default function TableBillModal({ isOpen, onClose, billState, onSuccess }
               <select
                 className="form-select"
                 value={method}
-                onChange={(e) => setMethod(e.target.value)}
+                onChange={(e) => {
+                  setMethod(e.target.value);
+                  resetOperation();
+                }}
                 disabled={isPaying || remaining <= 0}
               >
                 <option value={PaymentMethod.Cash}>💵 {t('cashier.table_bill.method_cash', 'Cash')}</option>

@@ -904,7 +904,6 @@
       "error": "Kon Z-rapport niet laden",
       "retry": "Opnieuw proberen"
     },
-    "show_todays_orders_only": "Alleen bestellingen van vandaag tonen",
     "table_bill": {
       "title": "Tafelrekening",
       "table_number": "Tafelnummer",
@@ -1176,6 +1175,8 @@
   "cashier.no_orders": "Geen bestellingen gevonden",
   "cashier.loading": "Bestellingen laden...",
   "cashier.error_loading_orders": "Kon bestellingen niet laden",
+  "cashier.queue_stale": "De laatst beschikbare bestellingen worden getoond. De wachtrij is mogelijk niet actueel.",
+  "cashier.queue_unavailable": "Bestellingen zijn momenteel niet beschikbaar.",
   "cashier.connected": "Verbonden",
   "cashier.disconnected": "Verbinding verbroken",
   "cashier.refresh": "Vernieuwen",

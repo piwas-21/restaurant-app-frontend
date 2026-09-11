@@ -9,7 +9,6 @@ import { useCashierDialogs } from '@/hooks/cashier/useCashierDialogs';
 import { useCashierManualRefresh } from '@/hooks/cashier/useCashierManualRefresh';
 import { useCashierAutoPrint } from '@/hooks/cashier/useCashierAutoPrint';
 import { useCashierOrderAlerts } from '@/hooks/cashier/useCashierOrderAlerts';
-import { useTodayOnlyDateRange } from '@/hooks/cashier/useTodayOnlyDateRange';
 import CashierHeader from '@/components/cashier/CashierHeader';
 import OrderTypeNav from '@/components/cashier/OrderTypeNav';
 import CashierMainContent from '@/components/cashier/CashierMainContent';
@@ -23,7 +22,6 @@ import styles from '@/app/styles/CashierPage.module.css';
 export default function CashierPage() {
   const { t } = useTranslation();
 
-  const { todayOnly, setTodayOnly, tenantDay } = useTodayOnlyDateRange();
   const filters = useCashierFilters();
   const {
     orders,
@@ -32,6 +30,7 @@ export default function CashierPage() {
     error,
     lastEventTime,
     connectionState,
+    queueState,
     refreshOrders,
     updateOrderStatus,
     addPayment,
@@ -39,7 +38,7 @@ export default function CashierPage() {
     cancelOrder,
     toggleFocusOrder,
     pagination,
-  } = useCashierOrders(tenantDay, filters.query);
+  } = useCashierOrders(filters.query);
 
   const notif = useNotification();
 
@@ -102,13 +101,6 @@ export default function CashierPage() {
 
       <OrderTypeNav activeFilter={filters.orderTypeFilter} onFilterChange={filters.setOrderTypeFilter} />
 
-      <div className={styles.dateRangeToolbar}>
-        <label>
-          <input type="checkbox" checked={todayOnly} onChange={(e) => setTodayOnly(e.target.checked)} />{' '}
-          {t('cashier.show_todays_orders_only')}
-        </label>
-      </div>
-
       <CashierMainContent
         filteredOrders={orders}
         pagination={pagination}
@@ -116,10 +108,12 @@ export default function CashierPage() {
         selectedOrderId={dialogs.selectedOrderId}
         isLoading={isLoading}
         error={error}
+        queueState={queueState}
         searchQuery={filters.searchQuery}
         statusFilter={filters.statusFilter}
         paymentStatusFilter={filters.paymentStatusFilter}
         orderTypeFilter={filters.orderTypeFilter}
+        tableNumberFilter={filters.tableNumberFilter}
         onSelectOrder={dialogs.setSelectedOrderId}
         onStatusChange={dialogs.handleStatusChange}
         onAddPayment={() => dialogs.setShowPaymentModal(true)}
@@ -128,10 +122,13 @@ export default function CashierPage() {
         onToggleFocus={() => dialogs.setShowFocusDialog(true)}
         onQuickConfirm={alerts.openQuickConfirmModal}
         onSearchChange={filters.setSearchQuery}
+        onSearchSubmit={filters.submitSearch}
         onStatusFilterChange={filters.setStatusFilter}
         onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
         onOrderTypeFilterChange={filters.setOrderTypeFilter}
+        onTableNumberFilterChange={filters.setTableNumberFilter}
         onPageChange={filters.setPage}
+        onRetry={() => void refreshOrders()}
       />
 
       <CashierActionDialogs

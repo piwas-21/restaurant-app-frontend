@@ -1092,6 +1092,8 @@
   "cashier.no_orders": "未找到订单",
   "cashier.loading": "正在加载订单...",
   "cashier.error_loading_orders": "订单加载失败",
+  "cashier.queue_stale": "正在显示最近可用的订单。队列可能不是最新的。",
+  "cashier.queue_unavailable": "订单当前不可用.",
   "cashier.connected": "已连接",
   "cashier.disconnected": "已断开",
   "cashier.refresh": "刷新",
@@ -1521,7 +1523,6 @@
       "error": "Z报表加载失败",
       "retry": "重试"
     },
-    "show_todays_orders_only": "仅显示今日订单",
     "table_bill": {
       "title": "桌账",
       "table_number": "桌号",

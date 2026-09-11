@@ -52,7 +52,7 @@ describe('useCashierOrders — server-paged queue', () => {
       .mockResolvedValueOnce({ items: firstPage, totalCount: 11, page: 1, pageSize: 10, totalPages: 2 })
       .mockResolvedValueOnce({ items: [laterOrder], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
 
-    const { result, rerender } = renderHook(({ query }) => useCashierOrders(undefined, query), {
+    const { result, rerender } = renderHook(({ query }) => useCashierOrders(query), {
       initialProps: { query: initialQuery },
     });
     await waitFor(() => expect(result.current.orders).toHaveLength(10));
@@ -60,7 +60,12 @@ describe('useCashierOrders — server-paged queue', () => {
     rerender({ query: { ...initialQuery, search: 'later-order' } });
 
     await waitFor(() =>
-      expect(mockGetCashierOrders).toHaveBeenLastCalledWith({ page: 1, pageSize: 10, search: 'later-order' }),
+      expect(mockGetCashierOrders).toHaveBeenLastCalledWith({
+        page: 1,
+        pageSize: 10,
+        search: 'later-order',
+        scope: 'Operational',
+      }),
     );
     await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['o11']));
     expect(result.current.pagination.totalCount).toBe(1);
@@ -95,6 +100,79 @@ describe('useCashierOrders — refreshOrders reports its outcome', () => {
     // Still reported where it always was — the boolean adds a caller signal, it does not move
     // the message.
     expect(result.current.error).toBe('Till service unavailable');
+    expect(result.current.queueState).toBe('stale');
+  });
+});
+
+describe('useCashierOrders — snapshot availability and races', () => {
+  it('reports unavailable when the first snapshot fails', async () => {
+    mockGetCashierOrders.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
+    const { result } = renderHook(() => useCashierOrders());
+
+    await waitFor(() => expect(result.current.queueState).toBe('unavailable'));
+    expect(result.current.orders).toEqual([]);
+  });
+
+  it('treats a successful empty page as ready rather than unavailable', async () => {
+    mockGetCashierOrders.mockResolvedValueOnce({
+      items: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 50,
+      totalPages: 0,
+    });
+    const { result } = renderHook(() => useCashierOrders());
+
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+    expect(result.current.orders).toEqual([]);
+  });
+
+  it('keeps the last usable page and marks it stale after a transient failure', async () => {
+    const { result } = renderHook(() => useCashierOrders());
+    await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+    mockGetCashierOrders.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
+    await act(async () => {
+      await result.current.refreshOrders();
+    });
+
+    expect(result.current.orders).toEqual([{ id: 'o1', status: 'Pending' }]);
+    expect(result.current.queueState).toBe('stale');
+  });
+
+  it('lets the newest response win when an older response resolves later', async () => {
+    let resolveFirst: (value: unknown) => void = () => undefined;
+    let resolveSecond: (value: unknown) => void = () => undefined;
+    mockGetCashierOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirst = resolve;
+        }),
+    );
+    mockGetCashierOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSecond = resolve;
+        }),
+    );
+
+    const { result, rerender } = renderHook(({ query }) => useCashierOrders(query), {
+      initialProps: { query: { page: 1, pageSize: 10 } as CashierOrdersQuery },
+    });
+    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalledTimes(1));
+    rerender({ query: { page: 1, pageSize: 10, search: 'new' } });
+    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      resolveSecond({ items: [{ id: 'newer' }], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+    });
+    await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['newer']));
+
+    await act(async () => {
+      resolveFirst({ items: [{ id: 'older' }], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+    });
+    expect(result.current.orders.map((order) => order.id)).toEqual(['newer']);
+    expect(result.current.queueState).toBe('ready');
   });
 });
 

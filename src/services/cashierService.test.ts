@@ -41,14 +41,49 @@ describe('cashierService.refundPayment', () => {
   });
 });
 
-describe('getCashierOrders — tenant-day parameter (#545)', () => {
-  it('sends tenantDay instead of device-computed instants', async () => {
+describe('getCashierOrders — operational scope contract', () => {
+  it('sends the operational scope, server filters, pagination and watermark', async () => {
     const mockGet = apiClient.get as jest.Mock;
     mockGet.mockResolvedValueOnce({ data: { items: [], totalCount: 0 }, success: true });
-    await getCashierOrders({ tenantDay: '2026-03-08', page: 1, pageSize: 50 });
-    const calledWith = mockGet.mock.calls.at(-1);
-    expect(calledWith[0]).toContain('tenantDay=2026-03-08');
-    expect(calledWith[0]).not.toContain('startDate');
+    const modifiedSince = new Date('2026-03-08T10:00:00.000Z');
+
+    await getCashierOrders({
+      orderType: 'DineIn',
+      search: '12',
+      tableNumber: 12,
+      page: 2,
+      pageSize: 20,
+      modifiedSince,
+      tenantDay: '2026-03-08',
+      startDate: new Date('2026-03-08T00:00:00.000Z'),
+      endDate: new Date('2026-03-08T23:59:59.000Z'),
+    });
+
+    const [endpoint] = mockGet.mock.calls.at(-1) as [string];
+    expect(endpoint).toBe(
+      '/api/orders?scope=Operational&orderType=DineIn&search=12&tableNumber=12&page=2&pageSize=20&modifiedSince=2026-03-08T10%3A00%3A00.000Z',
+    );
+    expect(endpoint).not.toContain('tenantDay');
+    expect(endpoint).not.toContain('startDate');
+    expect(endpoint).not.toContain('endDate');
+  });
+
+  it('keeps date bounds only for an explicit all-orders read', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ data: { items: [], totalCount: 0 }, success: true });
+
+    await getCashierOrders({
+      scope: 'All',
+      tenantDay: '2026-03-08',
+      startDate: new Date('2026-03-08T00:00:00.000Z'),
+      endDate: new Date('2026-03-08T23:59:59.000Z'),
+    });
+
+    const [endpoint] = mockGet.mock.calls.at(-1) as [string];
+    expect(endpoint).toContain('scope=All');
+    expect(endpoint).toContain('tenantDay=2026-03-08');
+    expect(endpoint).toContain('startDate=2026-03-08T00%3A00%3A00.000Z');
+    expect(endpoint).toContain('endDate=2026-03-08T23%3A59%3A59.000Z');
   });
 });
 

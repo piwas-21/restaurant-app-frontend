@@ -18,6 +18,7 @@ import {
   TableBillApiResponse,
 } from '@/types/order';
 import { SseDiagnostics } from '@/types/diagnostics';
+import type { CashierOrdersFilters } from '@/types/cashier';
 
 /**
  * Names the restaurant calendar day for the queue window. This stays in the cashier service so
@@ -35,40 +36,21 @@ export async function getCashierTenantDay(): Promise<string | undefined> {
 }
 
 /**
- * Get all orders with optional filters for cashier view
+ * Get the server-owned cashier queue.
+ *
+ * Operational is the default cashier scope. It deliberately omits tenant-day and instant date
+ * bounds: unfinished work must survive midnight, and the tenant clock belongs to the server. The
+ * legacy All scope remains available to callers that explicitly need a date-windowed list.
  */
-export async function getCashierOrders(filters?: {
-  status?: string;
-  paymentStatus?: string;
-  orderType?: string;
-  search?: string;
-  page?: number;
-  pageSize?: number;
-  /** The venue's calendar day — the server computes the window on the tenant clock (#545). */
-  tenantDay?: string;
-  startDate?: Date;
-  endDate?: Date;
-  modifiedSince?: Date; // For efficient polling - returns orders modified after this timestamp
-}): Promise<PagedResult<OrderDto>> {
+export async function getCashierOrders(filters?: CashierOrdersFilters): Promise<PagedResult<OrderDto>> {
   const params = new URLSearchParams();
+  const scope = filters?.scope ?? 'Operational';
 
-  if (filters) {
-    if (filters.status) params.append('status', filters.status);
-    if (filters.paymentStatus) params.append('paymentStatus', filters.paymentStatus);
-    if (filters.orderType) params.append('orderType', filters.orderType);
-    if (filters.search) params.append('search', filters.search);
-    if (filters.page !== undefined) params.append('page', filters.page.toString());
-    if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
-    if (filters.pageSize !== undefined) params.append('pageSize', filters.pageSize.toString());
-    if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
-    if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
-    if (filters.modifiedSince) params.append('modifiedSince', filters.modifiedSince.toISOString());
-  }
+  params.append('scope', scope);
+  appendCashierOrderFilters(params, filters, scope);
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/api/orders?${queryString}` : '/api/orders';
-
-  const response = await apiClient.get<OrderDtoPagedResultApiResponse>(endpoint, {
+  const response = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?${queryString}`, {
     requireAuth: true,
   });
 
@@ -77,6 +59,40 @@ export async function getCashierOrders(filters?: {
   }
 
   return response.data;
+}
+
+function appendCashierOrderFilters(
+  params: URLSearchParams,
+  filters: CashierOrdersFilters | undefined,
+  scope: string,
+): void {
+  if (!filters) return;
+
+  const values: Record<string, string | number | undefined> = {
+    status: filters.status,
+    paymentStatus: filters.paymentStatus,
+    orderType: filters.orderType,
+    search: filters.search,
+    tableNumber: filters.tableNumber,
+    page: filters.page,
+    pageSize: filters.pageSize,
+    modifiedSince: filters.modifiedSince?.toISOString(),
+  };
+  Object.entries(values).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') params.append(key, value.toString());
+  });
+
+  appendCashierDateFilters(params, filters, scope);
+}
+
+function appendCashierDateFilters(params: URLSearchParams, filters: CashierOrdersFilters, scope: string): void {
+  // Operational has no date bounds by contract. Keep the old date parameters only for callers
+  // that explicitly request the generic All scope.
+  if (scope === 'Operational') return;
+
+  if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
+  if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
+  if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
 }
 
 /**

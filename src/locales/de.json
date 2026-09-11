@@ -1202,6 +1202,8 @@
   "cashier.filter_type": "Nach Bestelltyp filtern",
   "cashier.loading": "Bestellungen laden...",
   "cashier.error_loading_orders": "Fehler beim Laden der Bestellungen",
+  "cashier.queue_stale": "Die zuletzt verfügbaren Bestellungen werden angezeigt. Die Liste könnte veraltet sein.",
+  "cashier.queue_unavailable": "Bestellungen sind derzeit nicht verfügbar.",
   "cashier.orders_refreshed": "Bestellungen aktualisiert",
   "cashier.refresh_failed": "Fehler beim Aktualisieren der Bestellungen",
   "cashier.select_order": "Wählen Sie eine Bestellung für Details",
@@ -1521,7 +1523,6 @@
       "error": "Z-Bericht konnte nicht geladen werden",
       "retry": "Erneut versuchen"
     },
-    "show_todays_orders_only": "Nur heutige Bestellungen anzeigen",
     "table_bill": {
       "title": "Tischrechnung",
       "table_number": "Tischnummer",

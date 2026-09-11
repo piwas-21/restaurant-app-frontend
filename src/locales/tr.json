@@ -1135,7 +1135,6 @@
       "error": "Z-Raporu yüklenemedi",
       "retry": "Tekrar dene"
     },
-    "show_todays_orders_only": "Sadece bugünün siparişlerini göster",
     "pending": "Beklemede",
     "table_bill": {
       "title": "Masa hesabı",
@@ -1285,6 +1284,8 @@
   "cashier.filter_type": "Sipariş Türüne Göre Filtrele",
   "cashier.loading": "Siparişler yükleniyor...",
   "cashier.error_loading_orders": "Siparişler yüklenemedi",
+  "cashier.queue_stale": "Son kullanılabilir siparişler gösteriliyor. Kuyruk güncel olmayabilir.",
+  "cashier.queue_unavailable": "Siparişler şu anda kullanılamıyor.",
   "cashier.orders_refreshed": "Siparişler yenilendi",
   "cashier.refresh_failed": "Siparişler yenilenemedi",
   "cashier.select_order": "Detaylar için bir sipariş seçin",

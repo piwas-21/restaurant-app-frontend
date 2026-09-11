@@ -1038,6 +1038,8 @@
   "cashier.no_orders": "Заказы не найдены",
   "cashier.loading": "Загрузка заказов...",
   "cashier.error_loading_orders": "Не удалось загрузить заказы",
+  "cashier.queue_stale": "Показаны последние доступные заказы. Очередь может быть неактуальной.",
+  "cashier.queue_unavailable": "Заказы сейчас недоступны.",
   "cashier.connected": "Подключено",
   "cashier.disconnected": "Отключено",
   "cashier.refresh": "Обновить",
@@ -1464,7 +1466,6 @@
       "error": "Не удалось загрузить Z-отчёт",
       "retry": "Повторить"
     },
-    "show_todays_orders_only": "Показывать только сегодняшние заказы",
     "table_bill": {
       "title": "Счёт для стола",
       "table_number": "Номер столика",

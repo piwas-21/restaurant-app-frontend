@@ -928,7 +928,9 @@
         "loading": "De tafelrekening kon niet worden geladen",
         "payment": "De betaling kon niet worden vastgelegd. Probeer het opnieuw."
       }
-    }
+    },
+    "record_card_payment": "Kaartbetaling registreren",
+    "standalone_card_instruction": "Neem dit bedrag aan op de terminal en registreer daarna de kaartbetaling."
   },
   "update": "Bijwerken",
   "book_your_table": "Boek je tafel",

@@ -122,7 +122,7 @@ export default function CashierPage() {
         orderTypeFilter={filters.orderTypeFilter}
         onSelectOrder={dialogs.setSelectedOrderId}
         onStatusChange={dialogs.handleStatusChange}
-        onAddPayment={() => dialogs.setShowPaymentDialog(true)}
+        onAddPayment={() => dialogs.setShowPaymentModal(true)}
         onRefund={() => dialogs.setShowRefundDialog(true)}
         onCancel={() => dialogs.setShowCancelDialog(true)}
         onToggleFocus={() => dialogs.setShowFocusDialog(true)}
@@ -137,12 +137,12 @@ export default function CashierPage() {
       <CashierActionDialogs
         selectedOrder={dialogs.selectedOrder}
         showStatusDialog={dialogs.showStatusDialog}
-        showPaymentDialog={dialogs.showPaymentDialog}
+        showPaymentModal={dialogs.showPaymentModal}
         showRefundDialog={dialogs.showRefundDialog}
         showCancelDialog={dialogs.showCancelDialog}
         showFocusDialog={dialogs.showFocusDialog}
         onCloseStatus={() => dialogs.setShowStatusDialog(false)}
-        onClosePayment={() => dialogs.setShowPaymentDialog(false)}
+        onClosePayment={() => dialogs.setShowPaymentModal(false)}
         onCloseRefund={() => dialogs.setShowRefundDialog(false)}
         onCloseCancel={() => dialogs.setShowCancelDialog(false)}
         onCloseFocus={() => dialogs.setShowFocusDialog(false)}

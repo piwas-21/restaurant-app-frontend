@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import PaymentDialog from './PaymentDialog';
+import PaymentModal from './PaymentModal';
 import type { OrderDto } from '@/types/order';
 
 jest.mock('react-i18next', () => ({
@@ -18,7 +18,7 @@ const order = {
 } as unknown as OrderDto;
 
 const open = (onConfirm: jest.Mock, isLoading = false) =>
-  render(<PaymentDialog order={order} isOpen onClose={jest.fn()} onConfirm={onConfirm} isLoading={isLoading} />);
+  render(<PaymentModal order={order} isOpen onClose={jest.fn()} onConfirm={onConfirm} isLoading={isLoading} />);
 
 const confirmButton = () => screen.getByRole('button', { name: 'cashier.add_payment' });
 
@@ -32,7 +32,7 @@ const fillForm = () => {
  * These tests pin the opposite contract: rejection keeps the dialog and its input, resolution
  * closes it, and a pending submit cannot be double-fired.
  */
-describe('PaymentDialog — failure retains the form', () => {
+describe('PaymentModal — failure retains the form', () => {
   it('keeps the dialog open with the entered amount when the mutation rejects', async () => {
     const onConfirm = jest.fn().mockRejectedValueOnce(new Error('Terminal offline'));
     open(onConfirm);
@@ -60,12 +60,26 @@ describe('PaymentDialog — failure retains the form', () => {
     await waitFor(() => expect((screen.getByPlaceholderText('0.00') as HTMLInputElement).value).toBe(''));
   });
 
+  it('labels manual card recording honestly and offers no pretend online capture', () => {
+    open(jest.fn());
+
+    fireEvent.change(screen.getByRole('combobox', { name: /cashier.payment_method/ }), {
+      target: { value: 'CreditCard' },
+    });
+
+    expect(screen.getByText('cashier.standalone_card_instruction')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'cashier.record_card_payment' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /online/i })).not.toBeInTheDocument();
+  });
+
   it('locks the confirm control while a submit is pending', () => {
     open(jest.fn(), true);
 
     // Pending swaps the label for the loading key; both must be a single disabled control.
     const pending = screen.getByRole('button', { name: 'common.loading' });
     expect(pending).toBeDisabled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /close/i })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'cashier.add_payment' })).not.toBeInTheDocument();
   });
 });

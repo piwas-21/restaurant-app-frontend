@@ -78,6 +78,69 @@ describe('BaseModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('moves focus into the dialog and returns it to the invoking control on close', () => {
+    const trigger = document.createElement('button');
+    trigger.textContent = 'Open payment';
+    document.body.appendChild(trigger);
+    trigger.focus();
+
+    const { rerender } = render(
+      <BaseModal isOpen onClose={() => {}} title="Payment">
+        <button>Record payment</button>
+      </BaseModal>,
+    );
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+
+    rerender(
+      <BaseModal isOpen={false} onClose={() => {}} title="Payment">
+        <button>Record payment</button>
+      </BaseModal>,
+    );
+    expect(trigger).toHaveFocus();
+    trigger.remove();
+  });
+
+  it('keeps Tab and Shift+Tab within the dialog controls', () => {
+    render(
+      <BaseModal isOpen onClose={() => {}} title="Payment" footer={<button>Confirm</button>}>
+        <button>Amount</button>
+      </BaseModal>,
+    );
+    const close = screen.getByRole('button', { name: 'Close' });
+    const confirm = screen.getByRole('button', { name: 'Confirm' });
+
+    confirm.focus();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(close).toHaveFocus();
+
+    close.focus();
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(confirm).toHaveFocus();
+
+    const background = document.createElement('button');
+    document.body.appendChild(background);
+    background.focus();
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(close).toHaveFocus();
+    background.remove();
+  });
+
+  it('does not allow a pending action to be dismissed', () => {
+    const onClose = jest.fn();
+    render(
+      <BaseModal isOpen onClose={onClose} title="Recording payment" isPending>
+        <p>Waiting for the till</p>
+      </BaseModal>,
+    );
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('dialog').parentElement!);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(screen.getByRole('button', { name: 'Close' })).toBeDisabled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('applies the size class (e.g. size_lg)', () => {
     render(
       <BaseModal isOpen onClose={() => {}} title="t" size="lg">

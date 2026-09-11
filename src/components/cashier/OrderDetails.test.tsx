@@ -58,8 +58,17 @@ it.each([
 ])('a %s pill wears %s', (status, modifier) => {
   renderDetails(buildOrder({ status }));
 
-  const pill = screen.getByText(status);
+  const pill = document.querySelector('span.statusBadge');
   expect(pill).toHaveClass('statusBadge', modifier);
+});
+
+it.each([
+  ['PendingApproval', 'order_status_pending_approval'],
+  ['OutForDelivery', 'order_status_in_transit'],
+  ['In Progress', 'order_status_in_progress'],
+])('renders %s with its canonical translated key', (status, label) => {
+  renderDetails(buildOrder({ status }));
+  expect(screen.getByText(label)).toBeInTheDocument();
 });
 
 it('shows the empty state without an order', () => {

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, AlertCircle } from 'lucide-react';
 import { OrderDto } from '@/types/order';
-import { nextOrderStatuses, orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
+import { nextOrderStatuses, type OrderStatusBadgeFill } from '@/lib/orderStatus';
+import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
 import styles from './OrderDetails.module.css';
 import OrderDetailsActionBar from './order-details/OrderDetailsActionBar';
 import OrderDetailsLeftColumn from './order-details/OrderDetailsLeftColumn';
@@ -25,8 +26,6 @@ const BADGE_FILL_CLASS: Record<OrderStatusBadgeFill, string> = {
   cancelled: styles.statusBadgeCancelled,
   completed: styles.statusBadgeCompleted,
 };
-
-const getStatusBadgeModifier = (status: string) => BADGE_FILL_CLASS[orderStatusBadgeFill(status)];
 
 interface OrderDetailsProps {
   order: OrderDto | null;
@@ -76,6 +75,7 @@ export default function OrderDetails({
   // The backend-mirrored transition table is the single source (#732): a local five-state
   // slice offered illegal skips (Pending → Preparing) and dropped OutForDelivery entirely.
   const nextStatuses = nextOrderStatuses(order.status);
+  const status = orderStatusPresentation(order.status, t);
 
   const orderTypeEmoji = order.type === 'DineIn' ? '🍽️' : order.type === 'Takeaway' ? '🛍️' : '🚚';
 
@@ -107,9 +107,7 @@ export default function OrderDetails({
               {new Date(order.orderDate).toLocaleString()}
             </p>
           </div>
-          <span className={`${styles.statusBadge} ${getStatusBadgeModifier(order.status)}`}>
-            {t(`order_status_${order.status.toLowerCase()}`, order.status)}
-          </span>
+          <span className={`${styles.statusBadge} ${BADGE_FILL_CLASS[status.fill]}`}>{status.label}</span>
         </div>
       </div>
 

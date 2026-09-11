@@ -1206,6 +1206,7 @@
   "cashier.partial_refund": "Gedeeltelijke terugbetaling",
   "cashier.refund_amount": "Terugbetaalbedrag",
   "cashier.refund_reason": "Reden van terugbetaling",
+  "cashier.refund_reason_min_length": "De reden voor terugbetaling moet minstens 5 tekens bevatten",
   "cashier.refund_reason_placeholder": "Vul de reden van terugbetaling in",
   "cashier.no_refundable_payments": "Geen terugbetaalbare betalingen beschikbaar voor deze bestelling",
   "cashier.refund_completed": "Terugbetaling afgerond",

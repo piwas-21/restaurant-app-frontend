@@ -1072,6 +1072,7 @@
   "cashier.partial_refund": "Частичный возврат",
   "cashier.refund_amount": "Сумма возврата",
   "cashier.refund_reason": "Причина возврата",
+  "cashier.refund_reason_min_length": "Причина возврата должна содержать не менее 5 символов",
   "cashier.refund_reason_placeholder": "Введите причину возврата",
   "cashier.no_refundable_payments": "Нет доступных для возврата платежей по этому заказу",
   "cashier.refund_completed": "Возврат успешно завершен",

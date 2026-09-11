@@ -11,7 +11,7 @@ interface RefundDialogProps {
   order: OrderDto | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (paymentId: string, amount?: number) => Promise<void>;
+  onConfirm: (paymentId: string, amount: number, reason: string) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -86,7 +86,13 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
       return;
     }
 
-    let amount: number | undefined;
+    const normalizedReason = reason.trim();
+    if (normalizedReason.length < 5) {
+      setError(t('cashier.refund_reason_min_length'));
+      return;
+    }
+
+    let amount = maxRefundAmount;
     if (refundType === 'partial') {
       if (!refundAmount || parseFloat(refundAmount) <= 0) {
         setError(t('cashier.refund_amount_required'));
@@ -109,7 +115,7 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
     }
 
     try {
-      await onConfirm(selectedPaymentId, amount);
+      await onConfirm(selectedPaymentId, amount, normalizedReason);
 
       // Reset form
       setSelectedPaymentId('');
@@ -120,7 +126,7 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
     } catch (err) {
       setError((err as Error).message || t('cashier.refund_failed') || 'Failed to process refund');
     }
-  }, [selectedPaymentId, refundType, refundAmount, maxRefundAmount, onConfirm, onClose, t]);
+  }, [selectedPaymentId, refundType, refundAmount, maxRefundAmount, reason, onConfirm, onClose, t]);
 
   if (!isOpen || !order) return null;
 
@@ -203,13 +209,15 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
 
                   {/* Reason for Refund */}
                   <div className="form-group">
-                    <label className="form-label">{t('cashier.refund_reason') || 'Reason for Refund'} (optional)</label>
+                    <label className="form-label">{t('cashier.refund_reason') || 'Reason for Refund'} *</label>
                     <textarea
                       className="form-textarea"
                       placeholder={t('cashier.refund_reason_placeholder') || 'Enter reason for refund'}
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       disabled={isLoading}
+                      required
+                      minLength={5}
                       rows={3}
                     />
                   </div>

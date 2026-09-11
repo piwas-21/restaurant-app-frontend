@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import RefundDialog from './RefundDialog';
 import type { OrderDto, OrderPaymentDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
@@ -25,16 +25,18 @@ const payment = (over: Partial<OrderPaymentDto>): OrderPaymentDto =>
     ...over,
   }) as OrderPaymentDto;
 
-const open = (payments: OrderPaymentDto[]) =>
+const open = (payments: OrderPaymentDto[], onConfirm = jest.fn().mockResolvedValue(undefined)) => {
   render(
     <RefundDialog
       isOpen
       order={{ id: 'o1', orderNumber: 'A-1', payments } as unknown as OrderDto}
       onClose={jest.fn()}
-      onConfirm={jest.fn()}
+      onConfirm={onConfirm}
       isLoading={false}
     />,
   );
+  return onConfirm;
+};
 
 /**
  * S11. `RefundPaymentCommand` refuses a tender captured by a payment gateway — the platform's
@@ -134,5 +136,29 @@ describe('RefundDialog — gateway-held tenders', () => {
 
     expect(screen.queryByText(/^gateway_refund_notice/)).not.toBeInTheDocument();
     expect(screen.getByText('cashier.no_refundable_payments')).toBeInTheDocument();
+  });
+});
+
+describe('RefundDialog — refund reason contract', () => {
+  it('blocks a reason shorter than the backend minimum', () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByText('cashier.refund_reason_min_length')).toBeInTheDocument();
+  });
+
+  it('passes the trimmed reason and full amount through the confirm callback', async () => {
+    const onConfirm = open([payment({ id: 'cash' })]);
+
+    fireEvent.click(screen.getByText('40.00'));
+    fireEvent.change(screen.getByPlaceholderText('cashier.refund_reason_placeholder'), {
+      target: { value: '  Customer request  ' },
+    });
+    fireEvent.click(screen.getByText('cashier.process_refund'));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('cash', 40, 'Customer request'));
   });
 });

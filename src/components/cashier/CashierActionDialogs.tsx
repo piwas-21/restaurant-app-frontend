@@ -24,7 +24,7 @@ interface CashierActionDialogsProps {
   onCloseFocus: () => void;
   onConfirmStatus: (newStatus: string) => Promise<void>;
   onConfirmPayment: (paymentData: AddPaymentRequest) => Promise<void>;
-  onConfirmRefund: (paymentId: string, amount?: number) => Promise<void>;
+  onConfirmRefund: (paymentId: string, amount: number, reason: string) => Promise<void>;
   onConfirmCancel: (reason?: string) => Promise<void>;
   onConfirmFocus: (isFocus: boolean, priority?: number, reason?: string) => Promise<void>;
   /** A mutation is in flight; dialogs that carry a form lock their submit control. */

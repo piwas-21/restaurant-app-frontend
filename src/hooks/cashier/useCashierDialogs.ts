@@ -12,7 +12,7 @@ const ERROR_MESSAGE_TIMEOUT_MS = 5000;
 export interface CashierMutations {
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
-  refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
+  refundPayment: (orderId: string, paymentId: string, amount: number, reason: string) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
   /** Resolves `false` when the refresh failed; see `useCashierOrders`. Unused here — the dialogs
@@ -110,10 +110,10 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
   );
 
   const handleRefund = useCallback(
-    async (paymentId: string, amount?: number) => {
+    async (paymentId: string, amount: number, reason: string) => {
       if (!selectedOrder) return;
       await runDialogAction(
-        () => mutations.refundPayment(selectedOrder.id, paymentId, amount),
+        () => mutations.refundPayment(selectedOrder.id, paymentId, amount, reason),
         'cashier.refund_completed',
         'cashier.refund_failed',
         () => setShowRefundDialog(false),

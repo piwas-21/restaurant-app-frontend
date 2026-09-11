@@ -120,10 +120,10 @@ describe('useCashierOrders — refund response lifecycle', () => {
 
     let returnedOrder: typeof authoritativeOrder | undefined;
     await act(async () => {
-      returnedOrder = await result.current.refundPayment('o1', 'payment-99', 18);
+      returnedOrder = await result.current.refundPayment('o1', 'payment-99', 18, 'Customer request');
     });
 
-    expect(mockRefundPayment).toHaveBeenCalledWith('o1', 'payment-99', 18);
+    expect(mockRefundPayment).toHaveBeenCalledWith('o1', 'payment-99', 18, 'Customer request');
     expect(mockGetOrderById).toHaveBeenCalledWith('o1');
     expect(returnedOrder).toEqual(authoritativeOrder);
     expect(result.current.orders).toEqual([authoritativeOrder]);

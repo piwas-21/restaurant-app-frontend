@@ -29,6 +29,7 @@ export function makeOrder(items: OrderItemDto[]): OrderDto {
     deliveryFee: 0,
     discount: 0,
     discountPercentage: 0,
+    customerDiscountAmount: 0,
     tip: 0,
     total: 20,
     totalPaid: 0,

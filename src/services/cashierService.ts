@@ -150,7 +150,8 @@ export async function addPaymentToOrder(orderId: string, paymentData: AddPayment
 export async function refundPayment(
   orderId: string,
   paymentId: string,
-  refundAmount?: number,
+  refundAmount: number,
+  refundReason: string,
 ): Promise<OrderPaymentDto> {
   const response = await apiClient.post<OrderPaymentDtoApiResponse>(
     `/api/orders/${orderId}/payments/${paymentId}/refund`,
@@ -158,6 +159,7 @@ export async function refundPayment(
       orderId,
       paymentId,
       refundAmount,
+      refundReason,
     },
     { requireAuth: true },
   );

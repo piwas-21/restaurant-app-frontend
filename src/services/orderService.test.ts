@@ -46,6 +46,7 @@ describe('OrderService', () => {
     tax: 0,
     discount: 0,
     discountPercentage: 0,
+    customerDiscountAmount: 0,
     deliveryFee: 0,
     tip: 0,
     total: 0,
@@ -332,24 +333,30 @@ describe('OrderService', () => {
         amount: 26.93,
       };
 
-      const mockPayment = {
-        id: 'payment-1',
-        orderId,
-        paymentMethod: 'Cash' as any,
-        amount: 26.93,
-        status: 'Paid' as any,
-        paidAt: '2025-10-23T10:05:00Z',
-      };
+      const mockOrder = createMockOrder({
+        id: orderId,
+        total: 26.93,
+        payments: [
+          {
+            id: 'payment-1',
+            orderId,
+            paymentMethod: 'Cash' as any,
+            amount: 26.93,
+            status: 'Completed',
+          },
+        ],
+      });
 
-      mockApiClient.post.mockResolvedValue({ data: mockPayment });
+      mockApiClient.post.mockResolvedValue({ data: mockOrder });
 
       const result = await orderServiceModule.addPaymentToOrder(orderId, command);
 
       expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/payments`, command, {
         requireAuth: true,
       });
-      expect(result.amount).toBe(26.93);
-      expect(result.paymentMethod).toBe('Cash');
+      expect(result.id).toBe(orderId);
+      expect(result.payments[0].amount).toBe(26.93);
+      expect(result.payments[0].paymentMethod).toBe('Cash');
     });
   });
 });

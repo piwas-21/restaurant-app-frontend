@@ -52,8 +52,8 @@ export interface AddPaymentToOrderCommand {
  * Refund payment command
  */
 export interface RefundPaymentCommand {
-  amount: number;
-  reason: string;
+  refundAmount: number;
+  refundReason: string;
 }
 
 /**

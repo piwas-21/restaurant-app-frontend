@@ -1126,6 +1126,7 @@
   "cashier.partial_refund": "部分退款",
   "cashier.refund_amount": "退款金额",
   "cashier.refund_reason": "退款原因",
+  "cashier.refund_reason_min_length": "退款原因至少需要 5 个字符",
   "cashier.refund_reason_placeholder": "输入退款原因",
   "cashier.no_refundable_payments": "该订单没有可退款的支付记录",
   "cashier.refund_completed": "退款成功",

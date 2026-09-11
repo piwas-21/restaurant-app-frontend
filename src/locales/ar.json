@@ -1104,6 +1104,7 @@
   "cashier.full_refund": "استرجاع كامل",
   "cashier.partial_refund": "استرجاع جزئي",
   "cashier.refund_reason": "سبب الاسترجاع",
+  "cashier.refund_reason_min_length": "يجب أن يتكون سبب الاسترداد من 5 أحرف على الأقل",
   "cashier.order_to_cancel": "الطلب الذي سيتم إلغاؤه",
   "cashier.order_cancelled": "تم إلغاء الطلب بنجاح",
   "cashier.mark_as_focus": "تحديد كأولوية",

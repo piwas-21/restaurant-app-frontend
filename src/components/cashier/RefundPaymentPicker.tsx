@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
 import { OrderPaymentDto } from '@/types/order';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { gatewayNames } from '@/utils/tenderCustody';
@@ -11,10 +12,11 @@ interface RefundPaymentPickerProps {
   selectedPaymentId: string;
   onSelect: (paymentId: string) => void;
   isLoading: boolean;
+  error?: string;
 }
 
 /**
- * The "which payment are we refunding" half of {@link RefundDialog}: the selectable list, plus the
+ * The "which payment are we refunding" half of {@link RefundModal}: the selectable list, plus the
  * notice explaining any tender that is deliberately absent from it.
  *
  * Extracted so the dialog stays inside its file-length limit, and because the notice has to render
@@ -29,6 +31,7 @@ export default function RefundPaymentPicker({
   selectedPaymentId,
   onSelect,
   isLoading,
+  error,
 }: Readonly<RefundPaymentPickerProps>) {
   const { t } = useTranslation();
   const gateways = gatewayNames(gatewayHeld);
@@ -46,17 +49,16 @@ export default function RefundPaymentPicker({
       ) : (
         // No `t(…) || 'English'` fallbacks, unlike the code this moved out of. `t()` returns the
         // KEY when a key is missing, and a key is a non-empty string, so the right-hand side can
-        // never run — the same dead branch #417 removed two of from RefundDialog. Both keys here
+        // never run — the same dead branch #417 removed two of from RefundModal. Both keys here
         // resolve in all ten locales.
-        <div className="form-group">
-          <label className="form-label">{t('cashier.select_payment')} *</label>
+        <FormField label={`${t('cashier.select_payment')} *`} error={error}>
           <div className="payment-options">
             {refundable.map((payment) => (
               <button
                 key={payment.id}
                 // Explicit, and not cosmetic: a <button> with no type defaults to `submit`. These
                 // sit in a modal today, but the dialog they came out of is one wrapper away from a
-                // <form>, and there "pick which payment to refund" would submit it.
+                // form, and there "pick which payment to refund" would submit it.
                 type="button"
                 className={`payment-option ${selectedPaymentId === payment.id ? 'selected' : ''}`}
                 onClick={() => onSelect(payment.id)}
@@ -70,7 +72,7 @@ export default function RefundPaymentPicker({
               </button>
             ))}
           </div>
-        </div>
+        </FormField>
       )}
     </>
   );

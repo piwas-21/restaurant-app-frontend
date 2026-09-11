@@ -2,24 +2,27 @@
 
 import dynamic from 'next/dynamic';
 import StatusUpdateDialog from './StatusUpdateDialog';
-import RefundDialog from './RefundDialog';
+
 import CancelOrderDialog from './CancelOrderDialog';
 import FocusOrderDialog from './FocusOrderDialog';
 import { OrderDto } from '@/types/order';
 import { AddPaymentRequest } from '@/services/cashierService';
 
 const PaymentModal = dynamic(() => import('./PaymentModal'), { ssr: false });
+const RefundModal = dynamic(() => import('./RefundModal'), { ssr: false });
 
 interface CashierActionDialogsProps {
   selectedOrder: OrderDto | null;
   showStatusDialog: boolean;
+
   showPaymentModal: boolean;
-  showRefundDialog: boolean;
+  showRefundModal: boolean;
+
   showCancelDialog: boolean;
   showFocusDialog: boolean;
   onCloseStatus: () => void;
   onClosePayment: () => void;
-  onCloseRefund: () => void;
+  onCloseRefundModal: () => void;
   onCloseCancel: () => void;
   onCloseFocus: () => void;
   onConfirmStatus: (newStatus: string) => Promise<void>;
@@ -51,11 +54,12 @@ export default function CashierActionDialogs(props: CashierActionDialogsProps) {
         onConfirm={props.onConfirmPayment}
         isLoading={props.isMutating}
       />
-      <RefundDialog
+      <RefundModal
         order={props.selectedOrder}
-        isOpen={props.showRefundDialog}
-        onClose={props.onCloseRefund}
+        isOpen={props.showRefundModal}
+        onClose={props.onCloseRefundModal}
         onConfirm={props.onConfirmRefund}
+        isLoading={props.isMutating}
       />
       <CancelOrderDialog
         order={props.selectedOrder}

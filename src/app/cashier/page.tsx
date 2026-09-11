@@ -123,7 +123,7 @@ export default function CashierPage() {
         onSelectOrder={dialogs.setSelectedOrderId}
         onStatusChange={dialogs.handleStatusChange}
         onAddPayment={() => dialogs.setShowPaymentModal(true)}
-        onRefund={() => dialogs.setShowRefundDialog(true)}
+        onRefund={() => dialogs.setShowRefundModal(true)}
         onCancel={() => dialogs.setShowCancelDialog(true)}
         onToggleFocus={() => dialogs.setShowFocusDialog(true)}
         onQuickConfirm={alerts.openQuickConfirmModal}
@@ -138,12 +138,12 @@ export default function CashierPage() {
         selectedOrder={dialogs.selectedOrder}
         showStatusDialog={dialogs.showStatusDialog}
         showPaymentModal={dialogs.showPaymentModal}
-        showRefundDialog={dialogs.showRefundDialog}
+        showRefundModal={dialogs.showRefundModal}
         showCancelDialog={dialogs.showCancelDialog}
         showFocusDialog={dialogs.showFocusDialog}
         onCloseStatus={() => dialogs.setShowStatusDialog(false)}
         onClosePayment={() => dialogs.setShowPaymentModal(false)}
-        onCloseRefund={() => dialogs.setShowRefundDialog(false)}
+        onCloseRefundModal={() => dialogs.setShowRefundModal(false)}
         onCloseCancel={() => dialogs.setShowCancelDialog(false)}
         onCloseFocus={() => dialogs.setShowFocusDialog(false)}
         onConfirmStatus={dialogs.handleStatusChange}

@@ -14,7 +14,7 @@ import type {
   OrderStatus,
   UpdateOrderStatusCommand,
 } from '@/types/order';
-import { OrderType } from '@/types/order';
+import { OrderType, PaymentMethod } from '@/types/order';
 
 // Stub the HTTP surface, keep everything else REAL. A bare `jest.mock('@/utils/apiClient')`
 // automocks, which hollows out `ApiError` — `instanceof` still passes while `message`, `status` and
@@ -329,7 +329,7 @@ describe('OrderService', () => {
       const orderId = 'order-123';
       const command = {
         orderId,
-        paymentMethod: 'Cash' as any,
+        paymentMethod: PaymentMethod.Cash,
         amount: 26.93,
       };
 
@@ -340,7 +340,7 @@ describe('OrderService', () => {
           {
             id: 'payment-1',
             orderId,
-            paymentMethod: 'Cash' as any,
+            paymentMethod: PaymentMethod.Cash,
             amount: 26.93,
             status: 'Completed',
           },

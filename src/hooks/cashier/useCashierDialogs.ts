@@ -31,8 +31,10 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showRefundDialog, setShowRefundDialog] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFocusDialog, setShowFocusDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -62,6 +64,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
       closeDialog: () => void,
       onSuccess?: (value: T) => void,
     ): Promise<boolean> => {
+      setIsMutating(true);
       try {
         const value = await runner();
         onSuccess?.(value);
@@ -71,6 +74,8 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
       } catch (err) {
         showError((err as Error).message || t(onErrorKey) || onErrorKey);
         return false;
+      } finally {
+        setIsMutating(false);
       }
     },
     [showSuccess, showError, t],
@@ -112,15 +117,16 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
   const handleRefund = useCallback(
     async (paymentId: string, amount: number, reason: string) => {
       if (!selectedOrder) return;
-      await runDialogAction(
+      const succeeded = await runDialogAction(
         () => mutations.refundPayment(selectedOrder.id, paymentId, amount, reason),
         'cashier.refund_completed',
         'cashier.refund_failed',
-        () => setShowRefundDialog(false),
+        () => setShowRefundModal(false),
         (updated) => setSelectedOrderId(updated.id),
       );
+      if (!succeeded) throw new Error(t('cashier.refund_failed'));
     },
-    [selectedOrder, mutations, runDialogAction],
+    [selectedOrder, mutations, runDialogAction, t],
   );
 
   const handleCancelOrder = useCallback(
@@ -168,13 +174,15 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     showSuccess,
     showError,
     showStatusDialog,
+
     showPaymentModal,
-    showRefundDialog,
+    showRefundModal,
     showCancelDialog,
     showFocusDialog,
     setShowStatusDialog,
     setShowPaymentModal,
-    setShowRefundDialog,
+    setShowRefundModal,
+
     setShowCancelDialog,
     setShowFocusDialog,
     handleStatusChange,

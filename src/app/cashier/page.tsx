@@ -23,7 +23,7 @@ import styles from '@/app/styles/CashierPage.module.css';
 export default function CashierPage() {
   const { t } = useTranslation();
 
-  const { todayOnly, setTodayOnly, dateRange } = useTodayOnlyDateRange();
+  const { todayOnly, setTodayOnly, tenantDay } = useTodayOnlyDateRange();
   const filters = useCashierFilters();
   const {
     orders,
@@ -39,7 +39,7 @@ export default function CashierPage() {
     cancelOrder,
     toggleFocusOrder,
     pagination,
-  } = useCashierOrders(dateRange, filters.query);
+  } = useCashierOrders(tenantDay, filters.query);
 
   const notif = useNotification();
 

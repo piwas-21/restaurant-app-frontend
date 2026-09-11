@@ -19,11 +19,6 @@ import { CashierOrdersQuery, DEFAULT_QUEUE_QUERY } from './cashier/useCashierFil
 
 const POLLING_INTERVAL_MS = 5000;
 
-export interface CashierDateRange {
-  startDate?: Date;
-  endDate?: Date;
-}
-
 interface UseCashierOrdersReturn {
   orders: OrderDto[];
   pagination: { totalCount: number; page: number; pageSize: number; totalPages: number };
@@ -42,11 +37,11 @@ interface UseCashierOrdersReturn {
 }
 
 export function useCashierOrders(
-  dateRange?: CashierDateRange,
+  tenantDay?: string,
   query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
 ): UseCashierOrdersReturn {
-  const dateRangeRef = useRef<CashierDateRange | undefined>(dateRange);
-  dateRangeRef.current = dateRange;
+  const tenantDayRef = useRef<string | undefined>(tenantDay);
+  tenantDayRef.current = tenantDay;
   const queryRef = useRef<CashierOrdersQuery>(query);
   queryRef.current = query;
 
@@ -69,12 +64,11 @@ export function useCashierOrders(
     const requestId = ++latestRequestRef.current;
     try {
       setError(null);
-      const range = dateRangeRef.current;
+      const day = tenantDayRef.current;
       const currentQuery = queryRef.current;
       const filters = {
         ...currentQuery,
-        ...(range?.startDate ? { startDate: range.startDate } : {}),
-        ...(range?.endDate ? { endDate: range.endDate } : {}),
+        ...(day ? { tenantDay: day } : {}),
       };
       const result = await getCashierOrders(filters);
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
@@ -132,12 +126,10 @@ export function useCashierOrders(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh when the date window, server-side filters, search, or page changes. Keep the
+  // Refresh when the venue day, server-side filters, search, or page changes. Keep the
   // prior page visible while the new page loads so a selected order does not blink away during a
   // normal refresh; the response atomically replaces it.
-  const startDateMs = dateRange?.startDate?.getTime();
-  const endDateMs = dateRange?.endDate?.getTime();
-  const fetchKey = `${startDateMs ?? ''}:${endDateMs ?? ''}:${JSON.stringify(query)}`;
+  const fetchKey = `${tenantDay ?? ''}:${JSON.stringify(query)}`;
   const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
     if (isFirstFetchEffectRef.current) {

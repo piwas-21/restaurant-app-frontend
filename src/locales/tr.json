@@ -1160,7 +1160,9 @@
         "loading": "Masa hesabı yüklenemedi",
         "payment": "Ödeme kaydedilemedi. Lütfen tekrar deneyin."
       }
-    }
+    },
+    "record_card_payment": "Kart ödemesini kaydet",
+    "standalone_card_instruction": "Bu tutarı terminalden alın, ardından kart ödemesini kaydedin."
   },
   "cashier.order_summary": "Sipariş Özeti",
   "cashier.update_status": "Durumu Güncelle",

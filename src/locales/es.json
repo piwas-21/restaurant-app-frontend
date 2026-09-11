@@ -1546,7 +1546,9 @@
         "loading": "No se pudo cargar la cuenta de la mesa",
         "payment": "No se pudo registrar el pago. Inténtalo de nuevo."
       }
-    }
+    },
+    "record_card_payment": "Registrar pago con tarjeta",
+    "standalone_card_instruction": "Cobra este importe en el terminal y después registra el pago con tarjeta."
   },
   "restaurant_closed_on_date": "El restaurante está cerrado el {{day}}, {{date}}. Por favor, seleccione otra fecha.",
   "selected_tables_not_available": "La(s) mesa(s) seleccionada(s) {{tables}} ya no están disponibles para este horario. Por favor, seleccione otras mesas u otro horario.",

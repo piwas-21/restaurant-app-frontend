@@ -1542,7 +1542,9 @@
         "loading": "Die Tischrechnung konnte nicht geladen werden",
         "payment": "Die Zahlung konnte nicht verbucht werden. Bitte erneut versuchen."
       }
-    }
+    },
+    "record_card_payment": "Kartenzahlung erfassen",
+    "standalone_card_instruction": "Nehmen Sie diesen Betrag am Terminal an und erfassen Sie danach die Kartenzahlung."
   },
   "restaurant_closed_on_date": "Das Restaurant ist am {{day}}, {{date}} geschlossen. Bitte wählen Sie ein anderes Datum.",
   "selected_tables_not_available": "Die ausgewählten Tische {{tables}} sind für dieses Zeitfenster nicht mehr verfügbar. Bitte wählen Sie andere Tische oder eine andere Uhrzeit.",

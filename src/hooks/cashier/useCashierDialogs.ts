@@ -31,7 +31,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFocusDialog, setShowFocusDialog] = useState(false);
@@ -101,7 +101,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
         const updated = await mutations.addPayment(selectedOrder.id, paymentData);
         setSelectedOrderId(updated.id);
         showSuccess(t('cashier.payment_added') || 'cashier.payment_added');
-        setShowPaymentDialog(false);
+        setShowPaymentModal(false);
       } finally {
         setIsMutating(false);
       }
@@ -168,12 +168,12 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     showSuccess,
     showError,
     showStatusDialog,
-    showPaymentDialog,
+    showPaymentModal,
     showRefundDialog,
     showCancelDialog,
     showFocusDialog,
     setShowStatusDialog,
-    setShowPaymentDialog,
+    setShowPaymentModal,
     setShowRefundDialog,
     setShowCancelDialog,
     setShowFocusDialog,

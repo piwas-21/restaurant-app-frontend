@@ -928,7 +928,9 @@
         "loading": "Failed to load the table bill",
         "payment": "Failed to record the payment. Please try again."
       }
-    }
+    },
+    "record_card_payment": "Record card payment",
+    "standalone_card_instruction": "Take this amount on the terminal, then record the card payment."
   },
   "update": "Update",
   "book_your_table": "Book your table",

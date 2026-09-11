@@ -1,17 +1,19 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import StatusUpdateDialog from './StatusUpdateDialog';
-import PaymentDialog from './PaymentDialog';
 import RefundDialog from './RefundDialog';
 import CancelOrderDialog from './CancelOrderDialog';
 import FocusOrderDialog from './FocusOrderDialog';
 import { OrderDto } from '@/types/order';
 import { AddPaymentRequest } from '@/services/cashierService';
 
+const PaymentModal = dynamic(() => import('./PaymentModal'), { ssr: false });
+
 interface CashierActionDialogsProps {
   selectedOrder: OrderDto | null;
   showStatusDialog: boolean;
-  showPaymentDialog: boolean;
+  showPaymentModal: boolean;
   showRefundDialog: boolean;
   showCancelDialog: boolean;
   showFocusDialog: boolean;
@@ -42,9 +44,9 @@ export default function CashierActionDialogs(props: CashierActionDialogsProps) {
         onClose={props.onCloseStatus}
         onConfirm={props.onConfirmStatus}
       />
-      <PaymentDialog
+      <PaymentModal
         order={props.selectedOrder}
-        isOpen={props.showPaymentDialog}
+        isOpen={props.showPaymentModal}
         onClose={props.onClosePayment}
         onConfirm={props.onConfirmPayment}
         isLoading={props.isMutating}

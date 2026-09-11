@@ -1546,7 +1546,9 @@
         "loading": "Échec du chargement de l'addition",
         "payment": "Échec de l'enregistrement du paiement. Veuillez réessayer."
       }
-    }
+    },
+    "record_card_payment": "Enregistrer le paiement par carte",
+    "standalone_card_instruction": "Encaissez ce montant sur le terminal, puis enregistrez le paiement par carte."
   },
   "restaurant_closed_on_date": "Le restaurant est fermé le {{day}}, {{date}}. Veuillez sélectionner une autre date.",
   "selected_tables_not_available": "La ou les tables sélectionnées {{tables}} ne sont plus disponibles pour ce créneau horaire. Veuillez choisir d’autres tables ou un autre horaire.",

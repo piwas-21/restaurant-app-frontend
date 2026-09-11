@@ -4,9 +4,10 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../../app/styles/CashierPage.module.css';
-import { OrderDto, OrderStatus, OrderType } from '@/types/order';
-import { getOrderStatusTranslationKey } from '@/utils/orderStatusStyles';
-import { orderStatusBadgeFill, type OrderStatusBadgeFill } from '@/lib/orderStatus';
+import { OrderDto, OrderType } from '@/types/order';
+import { type OrderStatusBadgeFill } from '@/lib/orderStatus';
+import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
+import StatusBadge from '@/components/design-system/StatusBadge';
 
 interface OrderListProps {
   orders: OrderDto[];
@@ -57,8 +58,6 @@ const BADGE_FILL_CLASS: Record<OrderStatusBadgeFill, string> = {
   completed: styles.orderStatusBadgeCompleted,
 };
 
-const getStatusBadgeModifier = (status: string) => BADGE_FILL_CLASS[orderStatusBadgeFill(status)];
-
 export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLoading, error }: OrderListProps) {
   const { t } = useTranslation();
 
@@ -87,7 +86,8 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
     <div className={styles.orderList}>
       {orders.map((order) => {
         const orderTypeDisplay = getOrderTypeDisplay(order.type);
-        const statusBadgeModifier = getStatusBadgeModifier(order.status);
+        const status = orderStatusPresentation(order.status, t);
+        const statusBadgeModifier = BADGE_FILL_CLASS[status.fill];
         const isSelected = selectedOrderId === order.id;
 
         return (
@@ -108,9 +108,9 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
                 <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
                 <span className={styles.orderNumber}>{order.orderNumber}</span>
               </div>
-              <span className={`${styles.orderStatusBadge} ${statusBadgeModifier}`}>
-                {t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status)}
-              </span>
+              <StatusBadge tone={status.tone} className={`${styles.orderStatusBadge} ${statusBadgeModifier}`}>
+                {status.label}
+              </StatusBadge>
             </div>
 
             <div className={styles.orderCardBody}>

@@ -16,6 +16,8 @@ import {
   PagedResult,
   TableBillDto,
   TableBillApiResponse,
+  PaymentOperationLookupApiResponse,
+  PaymentOperationLookupDto,
 } from '@/types/order';
 import { SseDiagnostics } from '@/types/diagnostics';
 import type { CashierOrdersFilters } from '@/types/cashier';
@@ -159,6 +161,28 @@ export async function addPaymentToOrder(orderId: string, paymentData: AddPayment
 
   return response.data;
 }
+
+/**
+ * Reconcile one uncertain staff payment write by its idempotency key.
+ *
+ * This endpoint is read-only and never accepts the original tender payload. An `Unknown` result is
+ * a valid response, so this service only rejects when the transport or response envelope failed.
+ */
+export async function getPaymentOperation(orderId: string, operationId: string): Promise<PaymentOperationLookupDto> {
+  const response = await apiClient.get<PaymentOperationLookupApiResponse>(
+    `/api/orders/${encodeURIComponent(orderId)}/payments/operations/${encodeURIComponent(operationId)}`,
+    { requireAuth: true },
+  );
+
+  if (!response.data) {
+    throwServerRefusal(response);
+  }
+
+  return response.data;
+}
+
+/** Readable alias for callers that describe the action as a lookup. */
+export const lookupPaymentOperation = getPaymentOperation;
 
 /**
  * Refund a payment

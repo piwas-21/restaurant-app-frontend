@@ -17,8 +17,17 @@ const order = {
   remainingAmount: 25,
 } as unknown as OrderDto;
 
-const open = (onConfirm: jest.Mock, isLoading = false) =>
-  render(<PaymentModal order={order} isOpen onClose={jest.fn()} onConfirm={onConfirm} isLoading={isLoading} />);
+const open = (onConfirm: jest.Mock, isLoading = false, isCheckingPayment = false) =>
+  render(
+    <PaymentModal
+      order={order}
+      isOpen
+      onClose={jest.fn()}
+      onConfirm={onConfirm}
+      isLoading={isLoading}
+      isCheckingPayment={isCheckingPayment}
+    />,
+  );
 
 const confirmButton = () => screen.getByRole('button', { name: 'cashier.add_payment' });
 
@@ -38,11 +47,19 @@ describe('PaymentModal — failure retains the form', () => {
     open(onConfirm);
 
     fillForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'cashier.transaction_id' }), {
+      target: { value: 'terminal-1' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'cashier.notes' }), {
+      target: { value: 'keep this payload' },
+    });
     fireEvent.click(confirmButton());
 
     await waitFor(() => expect(screen.getByText('Terminal offline')).toBeInTheDocument());
-    // Still open, still holding the cashier's input.
+    // Still open, still holding the cashier's full input payload.
     expect(screen.getByPlaceholderText('0.00')).toHaveValue(18.5);
+    expect(screen.getByRole('textbox', { name: 'cashier.transaction_id' })).toHaveValue('terminal-1');
+    expect(screen.getByRole('textbox', { name: 'cashier.notes' })).toHaveValue('keep this payload');
     const firstOperation = onConfirm.mock.calls[0][0].operationId;
     fireEvent.click(confirmButton());
     await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(2));
@@ -120,5 +137,16 @@ describe('PaymentModal — failure retains the form', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /close/i })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'cashier.add_payment' })).not.toBeInTheDocument();
+  });
+
+  it('shows a localized checking state and prevents a duplicate submit', () => {
+    const onConfirm = jest.fn();
+    open(onConfirm, true, true);
+
+    expect(screen.getByRole('status', { name: 'cashier.payment_checking' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'cashier.payment_checking' })).toBeDisabled();
+    expect(screen.getByPlaceholderText('0.00')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.payment_checking' }));
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 });

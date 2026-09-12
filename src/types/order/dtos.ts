@@ -111,6 +111,7 @@ export interface CreateOrderPaymentDto {
  * DTO was tightened. Mirrors backend `Features/Orders/Dtos/OrderPaymentDto.cs`.
  */
 export interface OrderPaymentDto {
+  operationId?: string | null; // Staff till idempotency key, when present.
   paymentMethod: PaymentMethod;
   amount: number;
   paymentNotes?: string;
@@ -136,7 +137,6 @@ export interface OrderPaymentDto {
   refundReason?: string;
   createdAt?: string;
 }
-
 /**
  * Order status history entry
  */

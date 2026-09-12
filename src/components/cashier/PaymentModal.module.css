@@ -78,6 +78,14 @@
   background: var(--info-background, var(--surface-secondary));
 }
 
+.checkingNotice {
+  margin: 0 0 var(--space-3, 12px);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-2, 8px);
+  color: var(--text-secondary);
+  background: var(--surface-secondary);
+}
+
 @media (max-width: 480px) {
   .summaryGrid {
     grid-template-columns: 1fr;

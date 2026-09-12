@@ -32,6 +32,8 @@ interface CashierActionDialogsProps {
   onConfirmFocus: (isFocus: boolean, priority?: number, reason?: string) => Promise<void>;
   /** A mutation is in flight; dialogs that carry a form lock their submit control. */
   isMutating?: boolean;
+  /** A lost payment response is being reconciled; show the checking state rather than a generic spinner. */
+  isCheckingPayment?: boolean;
 }
 
 /**
@@ -53,6 +55,7 @@ export default function CashierActionDialogs(props: CashierActionDialogsProps) {
         onClose={props.onClosePayment}
         onConfirm={props.onConfirmPayment}
         isLoading={props.isMutating}
+        isCheckingPayment={props.isCheckingPayment}
       />
       <RefundModal
         order={props.selectedOrder}

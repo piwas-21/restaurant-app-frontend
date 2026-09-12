@@ -904,7 +904,6 @@
       "error": "Failed to load Z-Report",
       "retry": "Retry"
     },
-    "show_todays_orders_only": "Show today's orders only",
     "table_bill": {
       "title": "Table bill",
       "table_number": "Table number",
@@ -1176,6 +1175,8 @@
   "cashier.no_orders": "No orders found",
   "cashier.loading": "Loading orders...",
   "cashier.error_loading_orders": "Failed to load orders",
+  "cashier.queue_stale": "Showing the last available orders. The queue may be out of date.",
+  "cashier.queue_unavailable": "Orders are currently unavailable.",
   "cashier.connected": "Connected",
   "cashier.disconnected": "Disconnected",
   "cashier.refresh": "Refresh",

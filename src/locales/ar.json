@@ -1212,6 +1212,8 @@
   "cashier.filter_type": "تصفية حسب نوع الطلب",
   "cashier.loading": "جاري تحميل الطلبات...",
   "cashier.error_loading_orders": "فشل تحميل الطلبات",
+  "cashier.queue_stale": "يتم عرض آخر الطلبات المتاحة. قد لا تكون القائمة محدثة.",
+  "cashier.queue_unavailable": "الطلبات غير متاحة حاليًا.",
   "cashier.orders_refreshed": "تم تحديث الطلبات",
   "cashier.refresh_failed": "فشل تحديث الطلبات",
   "cashier.select_order": "اختر طلباً لعرض التفاصيل",
@@ -1530,7 +1532,6 @@
       "error": "فشل في تحميل تقرير Z",
       "retry": "إعادة المحاولة"
     },
-    "show_todays_orders_only": "عرض طلبات اليوم فقط",
     "table_bill": {
       "title": "فاتورة الطاولة",
       "table_number": "رقم الطاولة",

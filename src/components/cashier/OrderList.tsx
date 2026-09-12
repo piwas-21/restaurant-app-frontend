@@ -10,11 +10,11 @@ import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
 import StatusBadge from '@/components/design-system/StatusBadge';
 
 interface OrderListProps {
-  orders: OrderDto[];
-  selectedOrderId: string | null;
-  onSelectOrder: (orderId: string) => void;
-  isLoading: boolean;
-  error: string | null;
+  readonly orders: readonly OrderDto[];
+  readonly selectedOrderId: string | null;
+  readonly onSelectOrder: (orderId: string) => void;
+  readonly isLoading: boolean;
+  readonly error: string | null;
 }
 
 // Helper to get time ago string
@@ -61,7 +61,7 @@ const BADGE_FILL_CLASS: Record<OrderStatusBadgeFill, string> = {
 export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLoading, error }: OrderListProps) {
   const { t } = useTranslation();
 
-  if (error) {
+  if (error && orders.length === 0) {
     return (
       <div className={styles.errorState}>
         <p className={styles.errorMessage}>{t('cashier.error_loading_orders', 'Error loading orders')}</p>
@@ -83,7 +83,7 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
   }
 
   return (
-    <div className={styles.orderList}>
+    <div>
       {orders.map((order) => {
         const orderTypeDisplay = getOrderTypeDisplay(order.type);
         const status = orderStatusPresentation(order.status, t);

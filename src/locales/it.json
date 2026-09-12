@@ -1206,6 +1206,8 @@
   "cashier.filter_type": "Filtra per Tipo Ordine",
   "cashier.loading": "Caricamento ordini...",
   "cashier.error_loading_orders": "Impossibile caricare gli ordini",
+  "cashier.queue_stale": "Vengono mostrati gli ultimi ordini disponibili. La coda potrebbe non essere aggiornata.",
+  "cashier.queue_unavailable": "Gli ordini non sono al momento disponibili.",
   "cashier.orders_refreshed": "Ordini aggiornati",
   "cashier.refresh_failed": "Impossibile aggiornare gli ordini",
   "cashier.select_order": "Seleziona un ordine per i dettagli",
@@ -1525,7 +1527,6 @@
       "error": "Impossibile caricare il rapporto Z",
       "retry": "Riprova"
     },
-    "show_todays_orders_only": "Mostra solo gli ordini di oggi",
     "table_bill": {
       "title": "Conto del tavolo",
       "table_number": "Numero del tavolo",

@@ -71,11 +71,8 @@ test('a bundle spanning two kitchens prints one correct ticket per kitchen', asy
     await page.goto('/cashier');
     await expect(page).toHaveURL(/\/cashier(?:\/|$)/, { timeout: 15_000 });
 
-    // The dashboard defaults to a "today only" window computed in the BROWSER's local timezone,
-    // which the seeded fixture cannot reason about. Turn it off: the fixture is future-dated, so
-    // with no window it sits at the top of the OrderDate-descending page whatever else the suite
-    // has created. Unchecking clears the cached rows and refetches.
-    await page.getByRole('checkbox', { name: /today/i }).uncheck();
+    // The operational queue is server-scoped and has no device or tenant-day date window, so the
+    // future-dated fixture remains visible without a local toggle.
 
     // Open the seeded mixed-kitchen order. The card is keyed by its order number.
     await page.getByText(ORDER_NUMBER, { exact: true }).click();

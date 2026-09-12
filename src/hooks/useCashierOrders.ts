@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type SetStateAction } from 'react';
 import {
   getCashierOrders,
   updateOrderStatus,
@@ -12,6 +12,7 @@ import {
   AddPaymentRequest,
 } from '@/services/cashierService';
 import { OrderDto } from '@/types/order';
+import type { CashierQueueState } from '@/types/cashier';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
 import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
@@ -25,6 +26,8 @@ interface UseCashierOrdersReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
+  /** Whether the visible rows are a current, stale, or unavailable server snapshot. */
+  queueState: CashierQueueState;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
   /** `true` when the fetch landed, `false` when it failed; the failure itself is on `error`. */
@@ -36,12 +39,7 @@ interface UseCashierOrdersReturn {
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
 }
 
-export function useCashierOrders(
-  tenantDay?: string,
-  query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
-): UseCashierOrdersReturn {
-  const tenantDayRef = useRef<string | undefined>(tenantDay);
-  tenantDayRef.current = tenantDay;
+export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY): UseCashierOrdersReturn {
   const queryRef = useRef<CashierOrdersQuery>(query);
   queryRef.current = query;
 
@@ -54,54 +52,68 @@ export function useCashierOrders(
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [queueState, setQueueState] = useState<CashierQueueState>('loading');
 
   const isMountedRef = useRef(true);
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const latestRequestRef = useRef(0);
+  const dataRevisionRef = useRef(0);
+  const hasSnapshotRef = useRef(false);
+  const updateOrders = useCallback((updater: SetStateAction<OrderDto[]>) => {
+    dataRevisionRef.current += 1;
+    setOrders(updater);
+  }, []);
 
   const refreshOrders = useCallback(async (): Promise<boolean> => {
     if (!isMountedRef.current) return false;
     const requestId = ++latestRequestRef.current;
+    const revisionAtRequest = dataRevisionRef.current;
     try {
       setError(null);
-      const day = tenantDayRef.current;
-      const currentQuery = queryRef.current;
-      const filters = {
-        ...currentQuery,
-        ...(day ? { tenantDay: day } : {}),
-      };
-      const result = await getCashierOrders(filters);
+      const {
+        tenantDay: _tenantDay,
+        startDate: _startDate,
+        endDate: _endDate,
+        ...queryWithoutDates
+      } = queryRef.current;
+      const result = await getCashierOrders({ ...queryWithoutDates, scope: 'Operational' });
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
+      if (hasSnapshotRef.current && revisionAtRequest !== dataRevisionRef.current) {
+        setIsLoading(false);
+        return false;
+      }
 
-      // A complete page replaces the prior page: incremental `modifiedSince` deltas cannot
-      // carry a truthful total, so the operational queue polls the server-filtered page.
-      setOrders(result.items || []);
-      setPagination({
-        totalCount: result.totalCount,
-        page: result.page,
-        pageSize: result.pageSize,
-        totalPages: result.totalPages,
-      });
+      const items = Array.isArray(result.items) ? result.items : [];
+      const pageSize = result.pageSize > 0 ? result.pageSize : queryRef.current.pageSize;
+      const totalCount = Number.isFinite(result.totalCount) ? result.totalCount : items.length;
+      const page = result.page > 0 ? result.page : queryRef.current.page;
+      const totalPages = result.totalPages > 0 ? result.totalPages : Math.ceil(totalCount / pageSize);
+
+      updateOrders(items);
+      setPagination({ totalCount, page, pageSize, totalPages });
+      hasSnapshotRef.current = true;
+      setQueueState('ready');
       setIsLoading(false);
       return true;
-    } catch (err) {
+    } catch (error_) {
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
-      const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
+      const errorMessage = getErrorMessage(error_) ?? 'Failed to load orders';
       setError(errorMessage);
+      setQueueState(hasSnapshotRef.current ? 'stale' : 'unavailable');
       setIsLoading(false);
-      console.error('Error fetching orders:', err);
+      console.error('Error fetching orders:', error_);
       return false;
     }
-  }, []);
+  }, [updateOrders]);
 
   const stream = useCashierOrdersStream({
-    onOrderUpdate: (updater) => setOrders(updater),
+    onOrderUpdate: () => {
+      void refreshOrders();
+    },
     onReconnectRequested: () => {
       void refreshOrders();
     },
   });
-
-  // Polling: primary delivery mechanism, runs always (SSE is enhancement).
   useEffect(() => {
     isMountedRef.current = true;
     void refreshOrders();
@@ -122,14 +134,9 @@ export function useCashierOrders(
         primaryPollingIntervalRef.current = null;
       }
     };
-    // Mount-once lifecycle (see useCashierOrdersStream for the same rationale).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshOrders]);
 
-  // Refresh when the venue day, server-side filters, search, or page changes. Keep the
-  // prior page visible while the new page loads so a selected order does not blink away during a
-  // normal refresh; the response atomically replaces it.
-  const fetchKey = `${tenantDay ?? ''}:${JSON.stringify(query)}`;
+  const fetchKey = JSON.stringify(query);
   const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
     if (isFirstFetchEffectRef.current) {
@@ -140,9 +147,7 @@ export function useCashierOrders(
     void refreshOrders();
   }, [fetchKey, refreshOrders]);
 
-  // Call the API, merge the returned order into local state, surface errors via setError.
-  // Replaces five near-identical handlers; lives in its own file since §4.
-  const applyMutation = useCashierOrderMutation(setOrders, setError);
+  const applyMutation = useCashierOrderMutation(updateOrders, setError);
 
   return {
     orders,
@@ -150,6 +155,7 @@ export function useCashierOrders(
     isConnected: stream.isConnected,
     isLoading,
     error: error || stream.error,
+    queueState,
     lastEventTime: stream.lastEventTime,
     connectionState: stream.connectionState,
     refreshOrders: useCallback(() => refreshOrders(), [refreshOrders]),

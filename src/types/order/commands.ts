@@ -5,6 +5,9 @@
 
 import { OrderStatus, OrderPaymentStatus, OrderType, PaymentMethod } from './enums';
 
+/** Read surface selected by GET /api/orders. */
+export type OrderListScope = 'All' | 'Operational';
+
 /**
  * Update order status command
  */
@@ -60,12 +63,16 @@ export interface RefundPaymentCommand {
  * Order query filters
  */
 export interface OrderQueryFilters {
+  /** Operational ignores calendar date bounds and returns the till's open work. */
+  scope?: OrderListScope;
   status?: OrderStatus;
   // The ORDER's status, not a payment record's — this filters orders. Typed rather than
   // `string` because sending a value the enum has no member for makes the server's `Enum.TryParse`
   // fail and the WHOLE clause get skipped, returning everything.
   paymentStatus?: OrderPaymentStatus;
   orderType?: OrderType;
+  /** Exact table number filter; search also matches table number server-side. */
+  tableNumber?: number;
   startDate?: string;
   endDate?: string;
   userId?: string;
@@ -75,6 +82,8 @@ export interface OrderQueryFilters {
   descending?: boolean;
   page?: number;
   pageSize?: number;
+  /** Incremental watermark retained for callers that use modified-order polling. */
+  modifiedSince?: string;
 }
 
 /**

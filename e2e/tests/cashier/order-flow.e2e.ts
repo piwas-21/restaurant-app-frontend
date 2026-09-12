@@ -57,13 +57,8 @@ test('cashier logs in and reaches the cashier dashboard', async ({ cashierUser, 
     // breakpoint.
     await expect(page.getByRole('navigation').or(page.getByRole('tablist')).first()).toBeVisible({ timeout: 10_000 });
 
-    // The dashboard defaults to a "today only" window (useTodayOnlyDateRange starts true, and
-    // nothing seeds `cashier:todayOnly` into the fixture's storage state), while the seeded order
-    // is deliberately future-dated to pin it to the top of the OrderDate-descending page — see the
-    // rationale in e2e/seed/seed.sql. So the landing list is EMPTY until this is switched off,
-    // exactly as kitchen-ticket-routing.e2e.ts does it. Unchecking clears the cached rows and
-    // refetches.
-    await page.getByRole('checkbox', { name: /today/i }).uncheck();
+    // The operational queue is server-scoped and intentionally does not use a device or tenant-day
+    // date window, so the seeded order is visible without changing a local date toggle.
 
     // Wait for the refetched row before scanning — otherwise both scans below race the fetch and
     // silently cover an empty list, which is the failure mode this whole test is guarding against.

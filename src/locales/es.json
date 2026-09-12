@@ -1206,6 +1206,8 @@
   "cashier.filter_type": "Filtrar por Tipo de Pedido",
   "cashier.loading": "Cargando pedidos...",
   "cashier.error_loading_orders": "Error al cargar pedidos",
+  "cashier.queue_stale": "Se muestran los últimos pedidos disponibles. La cola puede no estar actualizada.",
+  "cashier.queue_unavailable": "Los pedidos no están disponibles en este momento.",
   "cashier.orders_refreshed": "Pedidos actualizados",
   "cashier.refresh_failed": "Error al actualizar pedidos",
   "cashier.select_order": "Seleccione un pedido para ver detalles",
@@ -1524,7 +1526,6 @@
       "error": "Error al cargar el informe Z",
       "retry": "Reintentar"
     },
-    "show_todays_orders_only": "Mostrar solo los pedidos de hoy",
     "notes_info": "Utilice las notas para documentar los cambios solicitados que no se pueden aplicar directamente a través de esta interfaz. Es especialmente útil para cambios en el tipo de pedido, modificaciones de artículos o solicitudes especiales.",
     "table_bill": {
       "title": "Cuenta de la mesa",

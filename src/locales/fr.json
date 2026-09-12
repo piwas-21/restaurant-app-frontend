@@ -1206,6 +1206,8 @@
   "cashier.filter_type": "Filtrer par Type de Commande",
   "cashier.loading": "Chargement des commandes...",
   "cashier.error_loading_orders": "Échec du chargement des commandes",
+  "cashier.queue_stale": "Les dernières commandes disponibles sont affichées. La file peut ne pas être à jour.",
+  "cashier.queue_unavailable": "Les commandes sont momentanément indisponibles.",
   "cashier.orders_refreshed": "Commandes actualisées",
   "cashier.refresh_failed": "Échec de l'actualisation des commandes",
   "cashier.select_order": "Sélectionnez une commande pour voir les détails",
@@ -1525,7 +1527,6 @@
       "error": "Échec du chargement du rapport Z",
       "retry": "Réessayer"
     },
-    "show_todays_orders_only": "Afficher uniquement les commandes du jour",
     "table_bill": {
       "title": "Addition de la table",
       "table_number": "Numéro de table",

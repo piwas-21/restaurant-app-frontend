@@ -1,16 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
-import FormField from '@/components/design-system/FormField';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import { usePaymentOperationKey } from '@/hooks/cashier/usePaymentOperationKey';
+import { usePaymentModalLifecycle } from '@/hooks/cashier/usePaymentModalLifecycle';
 import { OrderDto, PaymentMethod } from '@/types/order';
 import { paymentModalSchema } from './paymentModalSchema';
-
 import styles from './PaymentModal.module.css';
-
 import CashReceivedFields from './CashReceivedFields';
+import PaymentAmountField from './PaymentAmountField';
 import PaymentReferenceFields from './PaymentReferenceFields';
 import PaymentOrderSummary from './PaymentOrderSummary';
 import PaymentModalFooter from './PaymentModalFooter';
@@ -22,6 +22,7 @@ interface PaymentModalProps {
   readonly onClose: () => void;
   readonly onConfirm: (paymentData: PaymentModalData) => Promise<void>;
   readonly isLoading?: boolean;
+  readonly isCheckingPayment?: boolean;
 }
 
 export interface PaymentModalData {
@@ -32,7 +33,15 @@ export interface PaymentModalData {
   paymentNotes?: string;
 }
 
-export default function PaymentModal({ order, isOpen, onClose, onConfirm, isLoading = false }: PaymentModalProps) {
+/** Cashier tender form. BaseModal owns focus and prevents dismissal while money is unresolved. */
+export default function PaymentModal({
+  order,
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading = false,
+  isCheckingPayment = false,
+}: PaymentModalProps) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
@@ -41,31 +50,39 @@ export default function PaymentModal({ order, isOpen, onClose, onConfirm, isLoad
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const { operationFor, resetOperation } = usePaymentOperationKey();
-
-  useEffect(() => {
-    if (isOpen && order) setTransactionId(order.orderNumber || order.id || '');
-  }, [isOpen, order]);
+  const { aliveRef, openRef } = usePaymentModalLifecycle(isOpen, order, resetOperation, setTransactionId);
 
   const remainingBalance = order?.remainingAmount || 0;
+  const isPending = isLoading || isCheckingPayment;
+  const updatePaymentField = useCallback(
+    (setValue: (value: string) => void, value: string) => {
+      setValue(value);
+      resetOperation();
+      setError(null);
+    },
+    [resetOperation],
+  );
   const handleAmountChange = useCallback(
     (value: string) => {
-      if (!Number.isNaN(Number.parseFloat(value)) || value === '') {
-        setAmount(value);
-        if (method === PaymentMethod.Cash) setReceived(value);
-        resetOperation();
-        setError(null);
-      }
+      if (Number.isNaN(Number.parseFloat(value)) && value !== '') return;
+      setAmount(value);
+      if (method === PaymentMethod.Cash) setReceived(value);
+      resetOperation();
+      setError(null);
     },
     [method, resetOperation],
   );
   const handleSetMaxAmount = useCallback(() => {
-    setAmount(remainingBalance.toFixed(2));
-    if (method === PaymentMethod.Cash) setReceived(remainingBalance.toFixed(2));
+    const value = remainingBalance.toFixed(2);
+    setAmount(value);
+    if (method === PaymentMethod.Cash) setReceived(value);
     resetOperation();
     setError(null);
   }, [method, remainingBalance, resetOperation]);
+  const handleReceivedChange = useCallback((value: string) => setReceived(value), []);
 
   const handleConfirm = useCallback(async () => {
+    if (isPending) return;
     const parsed = paymentModalSchema.safeParse({ amount, paymentMethod: method, cashReceived: received });
     if (!parsed.success) {
       const invalidField = parsed.error.issues[0]?.path[0];
@@ -80,22 +97,25 @@ export default function PaymentModal({ order, isOpen, onClose, onConfirm, isLoad
       setError(t('cashier.payment_exceeds_balance') || `Payment amount cannot exceed ${remainingBalance.toFixed(2)}`);
       return;
     }
-    const tender = {
-      amount: paymentAmount,
-      paymentMethod: method,
-      transactionId: transactionId || undefined,
-      paymentNotes: notes || undefined,
-    };
     try {
-      await onConfirm({ ...tender, operationId: operationFor() });
+      await onConfirm({
+        amount: paymentAmount,
+        paymentMethod: method,
+        transactionId: transactionId || undefined,
+        paymentNotes: notes || undefined,
+        operationId: operationFor(),
+      });
+      if (!aliveRef.current || !openRef.current) return;
       resetOperation();
       setAmount('');
       setMethod(PaymentMethod.Cash);
       setReceived('');
-      setTransactionId('');
+      setTransactionId(order?.orderNumber || order?.id || '');
       setNotes('');
+      setError(null);
       onClose();
     } catch (error_) {
+      if (!aliveRef.current || !openRef.current) return;
       setError(error_ instanceof Error ? error_.message : t('cashier.payment_failed') || 'Failed to add payment');
     }
   }, [
@@ -105,75 +125,73 @@ export default function PaymentModal({ order, isOpen, onClose, onConfirm, isLoad
     transactionId,
     notes,
     remainingBalance,
+    order,
     onConfirm,
     onClose,
     operationFor,
     resetOperation,
+    isPending,
+    aliveRef,
+    openRef,
     t,
   ]);
 
   if (!order) return null;
-
-  const footer = (
-    <PaymentModalFooter
-      amount={amount}
-      method={method}
-      pending={isLoading}
-      onCancel={onClose}
-      onConfirm={handleConfirm}
-      t={t}
-    />
-  );
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title={t('cashier.add_payment') || 'Add Payment'}
-      footer={footer}
-      isPending={isLoading}
-    >
-      <PaymentOrderSummary order={order} remainingBalance={remainingBalance} t={t} />
-
-      <FormField label={`${t('cashier.payment_amount') || 'Payment Amount'} *`} error={error ?? undefined}>
-        <input
-          type="number"
-          className={styles.input}
-          placeholder="0.00"
-          value={amount}
-          onChange={(event) => handleAmountChange(event.target.value)}
-          disabled={isLoading}
-          min="0"
-          step="0.01"
-          max={remainingBalance}
+      footer={
+        <PaymentModalFooter
+          amount={amount}
+          method={method}
+          pending={isPending}
+          checking={isCheckingPayment}
+          onCancel={onClose}
+          onConfirm={handleConfirm}
+          t={t}
         />
-      </FormField>
-      <button
-        type="button"
-        className={styles.maxButton}
-        onClick={handleSetMaxAmount}
-        disabled={isLoading}
-        title={t('cashier.use_remaining')}
-      >
-        {t('cashier.max') || 'Max'}
-      </button>
+      }
+      isPending={isPending}
+    >
+      {isCheckingPayment && (
+        <output aria-label={t('cashier.payment_checking')} className={styles.checkingNotice}>
+          <StatusBadge tone="info">{t('cashier.payment_checking')}</StatusBadge>
+        </output>
+      )}
+      <PaymentOrderSummary order={order} remainingBalance={remainingBalance} t={t} />
+      <PaymentAmountField
+        amount={amount}
+        remainingBalance={remainingBalance}
+        disabled={isPending}
+        error={error}
+        onAmountChange={handleAmountChange}
+        onSetMaxAmount={handleSetMaxAmount}
+        t={t}
+      />
       {method === PaymentMethod.Cash && (
         <CashReceivedFields
           amount={amount}
           received={received}
-          disabled={isLoading}
-          onReceivedChange={setReceived}
+          disabled={isPending}
+          onReceivedChange={handleReceivedChange}
           onExact={() => setReceived(amount)}
           t={t}
         />
       )}
-      <PaymentMethodField method={method} disabled={isLoading} onChange={setMethod} t={t} />
+      <PaymentMethodField
+        method={method}
+        disabled={isPending}
+        onChange={(value) => updatePaymentField(setMethod, value)}
+        t={t}
+      />
       <PaymentReferenceFields
         transactionId={transactionId}
         notes={notes}
-        disabled={isLoading}
-        onTransactionIdChange={setTransactionId}
-        onNotesChange={setNotes}
+        disabled={isPending}
+        onTransactionIdChange={(value) => updatePaymentField(setTransactionId, value)}
+        onNotesChange={(value) => updatePaymentField(setNotes, value)}
         t={t}
       />
     </BaseModal>

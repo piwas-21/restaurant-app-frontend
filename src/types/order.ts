@@ -13,3 +13,4 @@ export * from './order/orderDto';
 export * from './order/commands';
 export * from './order/zReport';
 export * from './order/tableBill';
+export * from './order/paymentOperation';

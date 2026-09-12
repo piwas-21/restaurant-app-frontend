@@ -1,5 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
-import { getCashierOrders, getCashierTenantDay, refundPayment } from './cashierService';
+import { getCashierOrders, getCashierTenantDay, getPaymentOperation, refundPayment } from './cashierService';
 import { PaymentMethod, type OrderPaymentDto } from '@/types/order';
 
 jest.mock('@/utils/apiClient', () => ({
@@ -38,6 +38,29 @@ describe('cashierService.refundPayment', () => {
       },
       { requireAuth: true },
     );
+  });
+});
+
+describe('cashierService.getPaymentOperation', () => {
+  it('looks up the exact operation key and returns an unknown result as data', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    const lookup = {
+      operationId: 'op-1',
+      status: 'Unknown' as const,
+      payment: null,
+      order: null,
+    };
+    mockGet.mockResolvedValueOnce({ success: true, data: lookup });
+
+    await expect(getPaymentOperation('order-1', 'op-1')).resolves.toEqual(lookup);
+    expect(mockGet).toHaveBeenCalledWith('/api/orders/order-1/payments/operations/op-1', { requireAuth: true });
+  });
+
+  it('rejects an envelope without data instead of treating it as unknown', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ success: true });
+
+    await expect(getPaymentOperation('order-1', 'op-1')).rejects.toThrow();
   });
 });
 

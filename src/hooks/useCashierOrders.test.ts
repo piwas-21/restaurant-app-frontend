@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCashierOrders } from './useCashierOrders';
-import { getCashierOrders, getOrderById, refundPayment } from '@/services/cashierService';
+import { getCashierOrders, getOrderById, getPaymentOperation, refundPayment } from '@/services/cashierService';
 import { ApiError } from '@/utils/apiClient';
 import type { CashierOrdersQuery } from './cashier/useCashierFilters';
 
@@ -9,6 +9,7 @@ jest.mock('@/services/cashierService', () => ({
   getOrderById: jest.fn(),
   updateOrderStatus: jest.fn(),
   addPaymentToOrder: jest.fn(),
+  getPaymentOperation: jest.fn(),
   refundPayment: jest.fn(),
   cancelOrder: jest.fn(),
   toggleFocusOrder: jest.fn(),
@@ -24,6 +25,7 @@ jest.mock('./cashier/useCashierOrdersStream', () => ({
 
 const mockGetCashierOrders = getCashierOrders as jest.Mock;
 const mockGetOrderById = getOrderById as jest.Mock;
+const mockGetPaymentOperation = getPaymentOperation as jest.Mock;
 const mockRefundPayment = refundPayment as jest.Mock;
 
 beforeEach(() => {
@@ -173,6 +175,30 @@ describe('useCashierOrders — snapshot availability and races', () => {
     });
     expect(result.current.orders.map((order) => order.id)).toEqual(['newer']);
     expect(result.current.queueState).toBe('ready');
+  });
+});
+
+describe('useCashierOrders — payment reconciliation lifecycle', () => {
+  it('merges the authoritative order returned by an operation lookup', async () => {
+    const authoritativeOrder = { id: 'o1', status: 'Completed', paymentStatus: 'Completed' };
+    mockGetPaymentOperation.mockResolvedValueOnce({
+      operationId: 'op-1',
+      status: 'Committed',
+      payment: { id: 'p1' },
+      order: authoritativeOrder,
+    });
+
+    const { result } = renderHook(() => useCashierOrders());
+    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+
+    let reconciliation;
+    await act(async () => {
+      reconciliation = await result.current.reconcilePayment('o1', 'op-1');
+    });
+
+    expect(mockGetPaymentOperation).toHaveBeenCalledWith('o1', 'op-1');
+    expect(reconciliation).toMatchObject({ status: 'Committed', order: authoritativeOrder });
+    expect(result.current.orders).toEqual([authoritativeOrder]);
   });
 });
 

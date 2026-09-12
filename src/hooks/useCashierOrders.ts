@@ -9,9 +9,10 @@ import {
   getOrderById,
   cancelOrder,
   toggleFocusOrder,
+  getPaymentOperation,
   AddPaymentRequest,
 } from '@/services/cashierService';
-import { OrderDto } from '@/types/order';
+import { OrderDto, PaymentOperationLookupDto } from '@/types/order';
 import type { CashierQueueState } from '@/types/cashier';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
@@ -26,14 +27,13 @@ interface UseCashierOrdersReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  /** Whether the visible rows are a current, stale, or unavailable server snapshot. */
   queueState: CashierQueueState;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
-  /** `true` when the fetch landed, `false` when it failed; the failure itself is on `error`. */
   refreshOrders: () => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
+  reconcilePayment: (orderId: string, operationId: string) => Promise<PaymentOperationLookupDto>;
   refundPayment: (orderId: string, paymentId: string, amount: number, reason: string) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
@@ -105,19 +105,13 @@ export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY
       return false;
     }
   }, [updateOrders]);
-
   const stream = useCashierOrdersStream({
-    onOrderUpdate: () => {
-      void refreshOrders();
-    },
-    onReconnectRequested: () => {
-      void refreshOrders();
-    },
+    onOrderUpdate: () => void refreshOrders(),
+    onReconnectRequested: () => void refreshOrders(),
   });
   useEffect(() => {
     isMountedRef.current = true;
     void refreshOrders();
-
     const startTimeout = setTimeout(() => {
       if (!isMountedRef.current || primaryPollingIntervalRef.current) return;
       primaryPollingIntervalRef.current = setInterval(() => {
@@ -135,7 +129,6 @@ export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY
       }
     };
   }, [refreshOrders]);
-
   const fetchKey = JSON.stringify(query);
   const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
@@ -168,10 +161,21 @@ export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY
         applyMutation(orderId, () => addPaymentToOrder(orderId, paymentData), 'Failed to add payment'),
       [applyMutation],
     ),
+    reconcilePayment: useCallback(
+      async (orderId: string, operationId: string) => {
+        const result = await getPaymentOperation(orderId, operationId);
+        const authoritativeOrder = result.order;
+        const sameOrder = authoritativeOrder?.id?.toLowerCase() === orderId.toLowerCase();
+        const sameOperation = result.operationId?.toLowerCase() === operationId.toLowerCase();
+        if (authoritativeOrder && sameOrder && sameOperation && isMountedRef.current) {
+          updateOrders((previous) => previous.map((order) => (order.id === orderId ? authoritativeOrder : order)));
+        }
+        return result;
+      },
+      [updateOrders],
+    ),
     refundPayment: useCallback(
       (orderId, paymentId, amount, reason) =>
-        // The refund endpoint returns its payment record, not the order aggregate. Fetch the
-        // authoritative order before `applyMutation` merges anything into cashier state.
         applyMutation(
           orderId,
           async () => {

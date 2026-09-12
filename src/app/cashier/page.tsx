@@ -34,6 +34,7 @@ export default function CashierPage() {
     refreshOrders,
     updateOrderStatus,
     addPayment,
+    reconcilePayment,
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
@@ -41,19 +42,18 @@ export default function CashierPage() {
   } = useCashierOrders(filters.query);
 
   const notif = useNotification();
-
   const { settings: autoPrintSettings, saveSettings: saveAutoPrintSettings } = useCashierAutoPrint();
 
   const dialogs = useCashierDialogs(orders, {
     updateOrderStatus,
     addPayment,
+    reconcilePayment,
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
     refreshOrders,
   });
 
-  const { isMutating } = dialogs;
   const alerts = useCashierOrderAlerts({
     orders,
     autoPrintSettings,
@@ -148,7 +148,8 @@ export default function CashierPage() {
         onConfirmRefund={dialogs.handleRefund}
         onConfirmCancel={dialogs.handleCancelOrder}
         onConfirmFocus={dialogs.handleToggleFocus}
-        isMutating={isMutating}
+        isMutating={dialogs.isMutating}
+        isCheckingPayment={dialogs.isCheckingPayment}
       />
 
       <QuickConfirmModal

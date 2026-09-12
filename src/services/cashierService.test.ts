@@ -110,6 +110,22 @@ describe('getCashierOrders — operational scope contract', () => {
   });
 });
 
+it('passes date-only tenant range fields without converting DST boundaries to UTC', async () => {
+  const mockGet = apiClient.get as jest.Mock;
+  mockGet.mockResolvedValueOnce({ data: { items: [], totalCount: 0 }, success: true });
+
+  await getCashierOrders({
+    scope: 'All',
+    tenantStartDay: '2026-03-29',
+    tenantEndDay: '2026-10-25',
+  });
+
+  const [endpoint] = mockGet.mock.calls.at(-1) as [string];
+  expect(endpoint).toBe('/api/orders?scope=All&tenantStartDay=2026-03-29&tenantEndDay=2026-10-25');
+  expect(endpoint).not.toContain('startDate');
+  expect(endpoint).not.toContain('endDate');
+});
+
 describe('getCashierTenantDay', () => {
   it('returns only the server-named calendar day for the cashier filter', async () => {
     const mockGet = apiClient.get as jest.Mock;

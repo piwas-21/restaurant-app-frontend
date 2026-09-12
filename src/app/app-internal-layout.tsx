@@ -19,6 +19,8 @@ import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { isCashierWorkspacePath } from '@/lib/cashierWorkspace';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 
 // Fonts moved behind the template definition (ADR-006): the root layout
 // applies the active template's next/font classNames to <body>. The unused
@@ -41,6 +43,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
+  const cashierModuleEnabled = useModuleEnabled('cashier');
+  const isCashierWorkspace = cashierModuleEnabled && isCashierWorkspacePath(pathname ?? '');
   const _router = useRouter();
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
@@ -123,7 +127,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
             {adminSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         )}
-        {
+        {!isCashierWorkspace && (
           <header style={headerStyles} className={isHomePage && theme !== 'dark' ? 'home-overlay-header' : undefined}>
             <div
               style={{
@@ -197,9 +201,9 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
               </nav>
             </div>
           </header>
-        }
+        )}
         <main style={mainStyles}>{children}</main>
-        {!isHomePage && (
+        {!isHomePage && !isCashierWorkspace && (
           <footer style={footerStyles}>
             <p>
               {/* Name from the RestaurantInfo API (issue #125); baked build-time

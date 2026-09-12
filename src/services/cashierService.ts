@@ -23,7 +23,9 @@ import { SseDiagnostics } from '@/types/diagnostics';
 import type { CashierOrdersFilters } from '@/types/cashier';
 
 /**
- * Names the restaurant calendar day for the queue window. This stays in the cashier service so
+ * Names the restaurant calendar day for a single queue window. Date ranges use the date-only
+ * tenantStartDay/tenantEndDay fields below so the backend, not a browser clock, resolves DST. This
+ * stays in the cashier service so
  * the POS does not need the reservation-specific tenant-day cache/analytics bundle at first
  * paint. Undefined is deliberately safe: the caller omits its date filter rather than guessing
  * from a counter tablet's clock (#545).
@@ -88,11 +90,13 @@ function appendCashierOrderFilters(
 }
 
 function appendCashierDateFilters(params: URLSearchParams, filters: CashierOrdersFilters, scope: string): void {
-  // Operational has no date bounds by contract. Keep the old date parameters only for callers
-  // that explicitly request the generic All scope.
+  // Operational has no date bounds by contract. Keep date parameters only for callers
+  // that explicitly request the generic All scope; tenant day fields are date-only and backend-owned.
   if (scope === 'Operational') return;
 
   if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
+  if (filters.tenantStartDay) params.append('tenantStartDay', filters.tenantStartDay);
+  if (filters.tenantEndDay) params.append('tenantEndDay', filters.tenantEndDay);
   if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
   if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
 }

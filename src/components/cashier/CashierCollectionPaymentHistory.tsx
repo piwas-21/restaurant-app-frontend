@@ -15,7 +15,7 @@ export default function CashierCollectionPaymentHistory({ order }: CashierCollec
       <h2 id="cashier-collection-history">{t('cashier.workspace.payment')}</h2>
       <div className={styles.historyTotals}>
         <div>
-          <span>{t('cashier.collection.total')}</span>
+          <span>{t('cashier.total')}</span>
           <strong>{formatOrderCurrency(order.total, order)}</strong>
         </div>
         <div>

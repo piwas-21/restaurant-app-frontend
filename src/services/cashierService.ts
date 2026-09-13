@@ -150,6 +150,8 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
  */
 export interface AddPaymentRequest {
   operationId: string;
+  /** Server-issued order version observed when the cashier opened the tender. */
+  expectedVersion?: number;
   paymentMethod: string;
   amount: number;
   transactionId?: string;

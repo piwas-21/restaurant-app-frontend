@@ -79,7 +79,18 @@ export default function CashierWorkspaceShell({
 
   return (
     <div className={styles.workspace}>
-      <header className={styles.header}>
+      <header
+        className={styles.header}
+        aria-busy={navigationDisabled}
+        onClickCapture={(event) => {
+          if (!navigationDisabled) return;
+          const target = event.target;
+          if (target instanceof HTMLElement && target.closest('a,button')) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
+      >
         <Link href={CASHIER_ORDERS_PATH} className={styles.brand} aria-label={RESTAURANT_NAME}>
           <TenantLogo
             info={info}

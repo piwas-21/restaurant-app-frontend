@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { exportOrderToPDF } from '@/utils/pdfExportUtils';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierCollectionPanel from './CashierCollectionPanel';
 import { useCashierCollection } from '@/hooks/cashier/useCashierCollection';
@@ -24,15 +25,45 @@ export default function CashierCollectionWorkspace() {
   const { t } = useTranslation();
   const route = useCashierOrderRoute();
   const collection = useCashierCollection(route.selectedOrderId);
+  const pendingBlocksNavigation = Boolean(collection.pendingPayment && collection.pendingPayment.status !== 'Refused');
   const isPending = collection.isMutating || collection.isCheckingPayment;
+  const navigationDisabled = isPending || pendingBlocksNavigation;
   const queueState = collection.isLoading ? 'loading' : !collection.order && collection.error ? 'unavailable' : 'ready';
   const returnToOrder = useCallback(() => {
     if (route.selectedOrderId) route.navigateToOrder(route.selectedOrderId);
     else route.navigateToOrders();
   }, [route]);
+  const printReceipt = useCallback(
+    (order: Parameters<typeof exportOrderToPDF>[0]) =>
+      exportOrderToPDF(order, (key, fallback) => t(key, { defaultValue: fallback })),
+    [t],
+  );
+
+  // App-router has no beforePopState equivalent. Restore the guarded URL before Next can consume
+  // a browser Back/Forward event; the submitted operation remains in sessionStorage meanwhile.
+  useEffect(() => {
+    if (!navigationDisabled || typeof window === 'undefined') return;
+    const guardedUrl = window.location.href;
+    const preventPopState = (event: PopStateEvent) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.history.pushState(window.history.state, '', guardedUrl);
+    };
+    window.addEventListener('popstate', preventPopState, true);
+    return () => window.removeEventListener('popstate', preventPopState, true);
+  }, [navigationDisabled]);
+
+  const hasOutcome = Boolean(
+    collection.order &&
+    collection.outcomeOrderId &&
+    collection.outcomeOrderId.toLowerCase() === collection.order.id.toLowerCase(),
+  );
+  const canShowCollection = Boolean(
+    collection.order && !collection.isLoading && (canCollectPayment(collection.order) || hasOutcome),
+  );
 
   return (
-    <CashierWorkspaceShell activeDestination="orders" queueState={queueState} navigationDisabled={isPending}>
+    <CashierWorkspaceShell activeDestination="orders" queueState={queueState} navigationDisabled={navigationDisabled}>
       {collection.isLoading && <output className={styles.pendingNotice}>{t('cashier.workspace.order_loading')}</output>}
       {!collection.isLoading && !collection.order && (
         <section className={styles.collection} aria-labelledby="cashier-collection-title">
@@ -45,7 +76,7 @@ export default function CashierCollectionWorkspace() {
           </Link>
         </section>
       )}
-      {collection.order && !canCollectPayment(collection.order) && (
+      {!collection.isLoading && collection.order && !canCollectPayment(collection.order) && !hasOutcome && (
         <section className={styles.collection} aria-labelledby="cashier-collection-title">
           <header className={styles.collectionHeader}>
             <button type="button" className={styles.backButton} onClick={returnToOrder}>
@@ -69,15 +100,20 @@ export default function CashierCollectionWorkspace() {
           <p>{t('cashier.collection.no_due')}</p>
         </section>
       )}
-      {collection.order && canCollectPayment(collection.order) && (
+      {canShowCollection && collection.order && (
         <CashierCollectionPanel
           order={collection.order}
           isPending={isPending}
           isCheckingPayment={collection.isCheckingPayment}
+          pendingPayment={collection.pendingPayment}
+          recoveredPayment={collection.recoveredPayment}
           onSubmit={collection.submitPayment}
           onBack={returnToOrder}
           onNextSale={route.navigateToOrders}
           onReturnToOrder={returnToOrder}
+          onRetryPendingPayment={collection.retryPendingPayment}
+          onAbandonPendingPayment={collection.abandonPendingPayment}
+          onPrintReceipt={printReceipt}
         />
       )}
     </CashierWorkspaceShell>

@@ -2668,5 +2668,17 @@
   "cashier.collection.order_required": "Kies een bestelling voordat je een betaling int.",
   "cashier.collection.no_due": "Voor deze bestelling is geen te innen saldo.",
   "cashier.collection.cash_suggestions": "Voorgesteld contant geld",
-  "cashier.collection.payment_in_progress": "Betaling bezig. Navigatie is tijdelijk vergrendeld."
+  "cashier.collection.payment_in_progress": "Betaling bezig. Navigatie is tijdelijk vergrendeld.",
+  "cashier.collection.keypad": "Contantentoetsen",
+  "cashier.collection.keypad_backspace": "Laatste cijfer verwijderen",
+  "cashier.collection.keypad_clear": "Bedrag wissen",
+  "cashier.collection.retry_payment_check": "Opnieuw controleren",
+  "cashier.collection.abandon_payment": "Nieuwe betaling starten",
+  "cashier.collection.order_changed": "De bestelling is gewijzigd. Controleer het bijgewerkte saldo voordat je het opnieuw probeert.",
+  "cashier.collection.settled": "Voldaan",
+  "cashier.collection.credit": "Tegoed: {{amount}}",
+  "cashier.collection.print_receipt": "Bon afdrukken",
+  "cashier.collection.no_receipt": "Geen bon",
+  "cashier.collection.receipt_printed": "Bon naar de printer gestuurd.",
+  "cashier.collection.receipt_skipped": "Bon overgeslagen."
 }

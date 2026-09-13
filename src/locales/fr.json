@@ -2670,5 +2670,17 @@
   "cashier.collection.order_required": "Choisissez une commande avant d’encaisser.",
   "cashier.collection.no_due": "Cette commande n’a aucun solde à encaisser.",
   "cashier.collection.cash_suggestions": "Espèces suggérées",
-  "cashier.collection.payment_in_progress": "Paiement en cours. La navigation est temporairement verrouillée."
+  "cashier.collection.payment_in_progress": "Paiement en cours. La navigation est temporairement verrouillée.",
+  "cashier.collection.keypad": "Clavier espèces",
+  "cashier.collection.keypad_backspace": "Supprimer le dernier chiffre",
+  "cashier.collection.keypad_clear": "Effacer le montant",
+  "cashier.collection.retry_payment_check": "Vérifier à nouveau",
+  "cashier.collection.abandon_payment": "Commencer un nouveau paiement",
+  "cashier.collection.order_changed": "La commande a changé. Vérifiez le solde mis à jour avant de réessayer.",
+  "cashier.collection.settled": "Réglé",
+  "cashier.collection.credit": "Avoir : {{amount}}",
+  "cashier.collection.print_receipt": "Imprimer le reçu",
+  "cashier.collection.no_receipt": "Pas de reçu",
+  "cashier.collection.receipt_printed": "Reçu envoyé à l’imprimante.",
+  "cashier.collection.receipt_skipped": "Reçu ignoré."
 }

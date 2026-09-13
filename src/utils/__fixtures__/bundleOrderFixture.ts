@@ -37,6 +37,7 @@ export function makeOrder(items: OrderItemDto[]): OrderDto {
     isFullyPaid: false,
     status: 'Pending',
     paymentStatus: 'Pending',
+    version: 0,
     isFocusOrder: false,
     orderDate: '2026-07-27T12:00:00.000Z',
     hasUserLimitDiscount: false,

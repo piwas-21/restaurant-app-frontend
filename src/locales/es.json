@@ -2670,5 +2670,17 @@
   "cashier.collection.order_required": "Elija un pedido antes de cobrar.",
   "cashier.collection.no_due": "Este pedido no tiene saldo cobrable.",
   "cashier.collection.cash_suggestions": "Efectivo sugerido",
-  "cashier.collection.payment_in_progress": "Pago en curso. La navegación está bloqueada temporalmente."
+  "cashier.collection.payment_in_progress": "Pago en curso. La navegación está bloqueada temporalmente.",
+  "cashier.collection.keypad": "Teclado de efectivo",
+  "cashier.collection.keypad_backspace": "Borrar último dígito",
+  "cashier.collection.keypad_clear": "Borrar importe",
+  "cashier.collection.retry_payment_check": "Comprobar de nuevo",
+  "cashier.collection.abandon_payment": "Iniciar un pago nuevo",
+  "cashier.collection.order_changed": "El pedido ha cambiado. Revisa el saldo actualizado antes de volver a intentarlo.",
+  "cashier.collection.settled": "Liquidado",
+  "cashier.collection.credit": "Crédito: {{amount}}",
+  "cashier.collection.print_receipt": "Imprimir recibo",
+  "cashier.collection.no_receipt": "Sin recibo",
+  "cashier.collection.receipt_printed": "Recibo enviado a la impresora.",
+  "cashier.collection.receipt_skipped": "Recibo omitido."
 }

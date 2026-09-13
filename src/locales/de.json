@@ -2668,5 +2668,17 @@
   "cashier.collection.order_required": "Wählen Sie eine Bestellung, bevor Sie eine Zahlung kassieren.",
   "cashier.collection.no_due": "Für diese Bestellung kann kein offener Betrag kassiert werden.",
   "cashier.collection.cash_suggestions": "Bargeldvorschläge",
-  "cashier.collection.payment_in_progress": "Zahlung läuft. Die Navigation ist vorübergehend gesperrt."
+  "cashier.collection.payment_in_progress": "Zahlung läuft. Die Navigation ist vorübergehend gesperrt.",
+  "cashier.collection.keypad": "Bargeld-Tastatur",
+  "cashier.collection.keypad_backspace": "Letzte Ziffer löschen",
+  "cashier.collection.keypad_clear": "Betrag löschen",
+  "cashier.collection.retry_payment_check": "Erneut prüfen",
+  "cashier.collection.abandon_payment": "Neue Zahlung beginnen",
+  "cashier.collection.order_changed": "Die Bestellung wurde geändert. Prüfen Sie den aktualisierten Betrag, bevor Sie es erneut versuchen.",
+  "cashier.collection.settled": "Beglichen",
+  "cashier.collection.credit": "Guthaben: {{amount}}",
+  "cashier.collection.print_receipt": "Beleg drucken",
+  "cashier.collection.no_receipt": "Kein Beleg",
+  "cashier.collection.receipt_printed": "Beleg an den Drucker gesendet.",
+  "cashier.collection.receipt_skipped": "Beleg übersprungen."
 }

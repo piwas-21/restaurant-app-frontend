@@ -2676,5 +2676,17 @@
   "cashier.collection.order_required": "اختر طلبًا قبل تحصيل الدفع.",
   "cashier.collection.no_due": "لا يوجد رصيد قابل للتحصيل لهذا الطلب.",
   "cashier.collection.cash_suggestions": "مبالغ نقدية مقترحة",
-  "cashier.collection.payment_in_progress": "الدفع قيد التنفيذ. تم قفل التنقل مؤقتًا."
+  "cashier.collection.payment_in_progress": "الدفع قيد التنفيذ. تم قفل التنقل مؤقتًا.",
+  "cashier.collection.keypad": "لوحة أرقام النقد",
+  "cashier.collection.keypad_backspace": "حذف الرقم الأخير",
+  "cashier.collection.keypad_clear": "مسح المبلغ",
+  "cashier.collection.retry_payment_check": "تحقق مرة أخرى",
+  "cashier.collection.abandon_payment": "بدء دفعة جديدة",
+  "cashier.collection.order_changed": "تغير الطلب. راجع الرصيد المحدث قبل المحاولة مرة أخرى.",
+  "cashier.collection.settled": "تمت التسوية",
+  "cashier.collection.credit": "رصيد دائن: {{amount}}",
+  "cashier.collection.print_receipt": "طباعة الإيصال",
+  "cashier.collection.no_receipt": "بدون إيصال",
+  "cashier.collection.receipt_printed": "تم إرسال الإيصال إلى الطابعة.",
+  "cashier.collection.receipt_skipped": "تم تخطي الإيصال."
 }

@@ -12,6 +12,16 @@ const PAYMENT_TOLERANCE = 0.01;
 export function canCollectPayment(order: OrderDto): boolean {
   if (order.status === 'Cancelled' || order.status === 'Refunded') return false;
   if (order.paymentStatus === 'Refunded') return false;
-  if (order.payments?.some((payment) => payment.isRefunded || payment.refundedAmount)) return false;
+  if (
+    order.payments?.some(
+      (payment) =>
+        payment.status === 'Refunded' ||
+        payment.status === 'PartiallyRefunded' ||
+        payment.isRefunded ||
+        (payment.refundedAmount ?? 0) > 0,
+    )
+  ) {
+    return false;
+  }
   return order.remainingAmount > PAYMENT_TOLERANCE;
 }

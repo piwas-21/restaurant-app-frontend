@@ -2672,5 +2672,17 @@
   "cashier.collection.order_required": "Выберите заказ перед приёмом оплаты.",
   "cashier.collection.no_due": "Для этого заказа нет доступной к оплате суммы.",
   "cashier.collection.cash_suggestions": "Рекомендуемые купюры",
-  "cashier.collection.payment_in_progress": "Оплата выполняется. Навигация временно заблокирована."
+  "cashier.collection.payment_in_progress": "Оплата выполняется. Навигация временно заблокирована.",
+  "cashier.collection.keypad": "Цифровая клавиатура наличных",
+  "cashier.collection.keypad_backspace": "Удалить последнюю цифру",
+  "cashier.collection.keypad_clear": "Очистить сумму",
+  "cashier.collection.retry_payment_check": "Проверить снова",
+  "cashier.collection.abandon_payment": "Начать новый платёж",
+  "cashier.collection.order_changed": "Заказ изменился. Проверьте обновлённый баланс перед повторной попыткой.",
+  "cashier.collection.settled": "Оплачено",
+  "cashier.collection.credit": "Кредит: {{amount}}",
+  "cashier.collection.print_receipt": "Печать чека",
+  "cashier.collection.no_receipt": "Без чека",
+  "cashier.collection.receipt_printed": "Чек отправлен на принтер.",
+  "cashier.collection.receipt_skipped": "Чек пропущен."
 }

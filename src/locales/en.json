@@ -2668,5 +2668,17 @@
   "cashier.collection.order_required": "Choose an order before collecting payment.",
   "cashier.collection.no_due": "This order has no collectible balance.",
   "cashier.collection.cash_suggestions": "Suggested cash",
-  "cashier.collection.payment_in_progress": "Payment is in progress. Navigation is temporarily locked."
+  "cashier.collection.payment_in_progress": "Payment is in progress. Navigation is temporarily locked.",
+  "cashier.collection.keypad": "Cash keypad",
+  "cashier.collection.keypad_backspace": "Delete last digit",
+  "cashier.collection.keypad_clear": "Clear amount",
+  "cashier.collection.retry_payment_check": "Check again",
+  "cashier.collection.abandon_payment": "Start a new payment",
+  "cashier.collection.order_changed": "This order changed. Review the updated balance before trying again.",
+  "cashier.collection.settled": "Settled",
+  "cashier.collection.credit": "Credit {{amount}}",
+  "cashier.collection.print_receipt": "Print receipt",
+  "cashier.collection.no_receipt": "No receipt",
+  "cashier.collection.receipt_printed": "Receipt sent to the printer.",
+  "cashier.collection.receipt_skipped": "Receipt skipped."
 }

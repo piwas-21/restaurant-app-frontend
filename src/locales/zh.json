@@ -2666,5 +2666,17 @@
   "cashier.collection.order_required": "收款前请选择一个订单。",
   "cashier.collection.no_due": "此订单没有可收取的余额。",
   "cashier.collection.cash_suggestions": "建议现金金额",
-  "cashier.collection.payment_in_progress": "付款进行中，导航已暂时锁定。"
+  "cashier.collection.payment_in_progress": "付款进行中，导航已暂时锁定。",
+  "cashier.collection.keypad": "现金数字键盘",
+  "cashier.collection.keypad_backspace": "删除最后一位",
+  "cashier.collection.keypad_clear": "清除金额",
+  "cashier.collection.retry_payment_check": "再次检查",
+  "cashier.collection.abandon_payment": "开始新付款",
+  "cashier.collection.order_changed": "订单已更改。请检查更新后的余额后再试。",
+  "cashier.collection.settled": "已结清",
+  "cashier.collection.credit": "余额：{{amount}}",
+  "cashier.collection.print_receipt": "打印收据",
+  "cashier.collection.no_receipt": "不打印收据",
+  "cashier.collection.receipt_printed": "收据已发送到打印机。",
+  "cashier.collection.receipt_skipped": "已跳过收据。"
 }

@@ -2670,5 +2670,17 @@
   "cashier.collection.order_required": "Scegli un ordine prima di riscuotere il pagamento.",
   "cashier.collection.no_due": "Questo ordine non ha un saldo riscuotibile.",
   "cashier.collection.cash_suggestions": "Contanti suggeriti",
-  "cashier.collection.payment_in_progress": "Pagamento in corso. La navigazione è temporaneamente bloccata."
+  "cashier.collection.payment_in_progress": "Pagamento in corso. La navigazione è temporaneamente bloccata.",
+  "cashier.collection.keypad": "Tastierino contanti",
+  "cashier.collection.keypad_backspace": "Elimina ultima cifra",
+  "cashier.collection.keypad_clear": "Cancella importo",
+  "cashier.collection.retry_payment_check": "Controlla di nuovo",
+  "cashier.collection.abandon_payment": "Inizia un nuovo pagamento",
+  "cashier.collection.order_changed": "L’ordine è cambiato. Controlla il saldo aggiornato prima di riprovare.",
+  "cashier.collection.settled": "Saldato",
+  "cashier.collection.credit": "Credito: {{amount}}",
+  "cashier.collection.print_receipt": "Stampa ricevuta",
+  "cashier.collection.no_receipt": "Nessuna ricevuta",
+  "cashier.collection.receipt_printed": "Ricevuta inviata alla stampante.",
+  "cashier.collection.receipt_skipped": "Ricevuta ignorata."
 }

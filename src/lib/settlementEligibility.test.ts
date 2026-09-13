@@ -29,6 +29,10 @@ describe('canCollectPayment — the till mirror of backend OrderSettlementEligib
     ).toBe(false);
   });
 
+  it.each(['Refunded', 'PartiallyRefunded'])('refuses a %s tender even when legacy flags are absent', (status) => {
+    expect(canCollectPayment(order({ payments: [{ id: 'p1', status }] }))).toBe(false);
+  });
+
   it('refuses credit and settled orders', () => {
     expect(canCollectPayment(order({ remainingAmount: 0 }))).toBe(false);
     expect(canCollectPayment(order({ remainingAmount: -5 }))).toBe(false);

@@ -2668,5 +2668,17 @@
   "cashier.collection.order_required": "Ödeme almadan önce bir sipariş seçin.",
   "cashier.collection.no_due": "Bu sipariş için tahsil edilebilir bakiye yok.",
   "cashier.collection.cash_suggestions": "Önerilen nakit",
-  "cashier.collection.payment_in_progress": "Ödeme devam ediyor. Gezinme geçici olarak kilitlendi."
+  "cashier.collection.payment_in_progress": "Ödeme devam ediyor. Gezinme geçici olarak kilitlendi.",
+  "cashier.collection.keypad": "Nakit tuş takımı",
+  "cashier.collection.keypad_backspace": "Son basamağı sil",
+  "cashier.collection.keypad_clear": "Tutarı temizle",
+  "cashier.collection.retry_payment_check": "Tekrar kontrol et",
+  "cashier.collection.abandon_payment": "Yeni ödeme başlat",
+  "cashier.collection.order_changed": "Sipariş değişti. Tekrar denemeden önce güncel bakiyeyi inceleyin.",
+  "cashier.collection.settled": "Ödendi",
+  "cashier.collection.credit": "Alacak: {{amount}}",
+  "cashier.collection.print_receipt": "Makbuz yazdır",
+  "cashier.collection.no_receipt": "Makbuz yok",
+  "cashier.collection.receipt_printed": "Makbuz yazıcıya gönderildi.",
+  "cashier.collection.receipt_skipped": "Makbuz atlandı."
 }

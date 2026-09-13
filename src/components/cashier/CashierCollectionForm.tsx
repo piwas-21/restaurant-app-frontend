@@ -4,6 +4,7 @@ import { cashSuggestions } from '@/lib/cashierMoney';
 import type { OrderDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
 import CashReceivedFields from './CashReceivedFields';
+import CashierNumericKeypad from './CashierNumericKeypad';
 import PaymentAmountField from './PaymentAmountField';
 import PaymentMethodField from './PaymentMethodField';
 import PaymentReferenceFields from './PaymentReferenceFields';
@@ -72,6 +73,7 @@ export default function CashierCollectionForm({
         onSetMaxAmount={onSetMaxAmount}
         t={t}
       />
+      <CashierNumericKeypad value={amount} disabled={isPending} onChange={onAmountChange} t={t} />
       {method === PaymentMethod.Cash && (
         <CashReceivedFields
           amount={amount}

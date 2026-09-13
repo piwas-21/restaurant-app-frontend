@@ -4,6 +4,7 @@ import type { AddPaymentRequest } from '@/services/cashierService';
 import type { OrderDto, PaymentOperationLookupDto } from '@/types/order';
 import { addPaymentToOrder, getOrderById, getPaymentOperation } from '@/services/cashierService';
 import { useCashierCollection } from './useCashierCollection';
+import { persistPendingPayment } from '@/lib/cashierPendingPayment';
 
 jest.mock('@/services/cashierService', () => ({
   addPaymentToOrder: jest.fn(),
@@ -54,7 +55,10 @@ const mockedAddPayment = jest.mocked(addPaymentToOrder);
 const mockedGetOperation = jest.mocked(getPaymentOperation);
 
 describe('useCashierCollection', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    window.sessionStorage.clear();
+  });
 
   it('loads the selected order and applies a definitive payment response', async () => {
     const initial = baseOrder();
@@ -70,6 +74,19 @@ describe('useCashierCollection', () => {
     expect(mockedGetOperation).not.toHaveBeenCalled();
     expect(result.current.order).toEqual(updated);
     expect(result.current.isMutating).toBe(false);
+  });
+
+  it('adds the loaded aggregate version when a caller omits it', async () => {
+    const initial = baseOrder({ version: 7 });
+    mockedGetOrder.mockResolvedValue(initial);
+    mockedAddPayment.mockResolvedValue(initial);
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+
+    await act(async () => {
+      await result.current.submitPayment(payment);
+    });
+    expect(mockedAddPayment).toHaveBeenCalledWith(initial.id, { ...payment, expectedVersion: 7 });
   });
 
   it('reconciles a transport failure by operation id and never repeats the write', async () => {
@@ -130,5 +147,79 @@ describe('useCashierCollection', () => {
 
     await act(async () => resolvePayment(updated));
     await waitFor(() => expect(result.current.isMutating).toBe(false));
+  });
+  it('resumes a persisted operation lookup after reload without posting again', async () => {
+    const initial = baseOrder();
+    const updated = baseOrder({ totalPaid: 18.5, remainingAmount: 0, isFullyPaid: true, paymentStatus: 'Paid' });
+    persistPendingPayment(initial.id, payment);
+    mockedGetOrder.mockResolvedValue(initial);
+    mockedGetOperation.mockResolvedValue(committedLookup(updated));
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+
+    await waitFor(() => expect(result.current.order).toEqual(updated));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockedGetOperation).toHaveBeenCalledWith(initial.id, payment.operationId);
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
+  });
+
+  it('requires explicit abandonment before clearing an unknown operation', async () => {
+    const initial = baseOrder();
+    const unknownLookup = {
+      operationId: payment.operationId,
+      status: 'Unknown',
+      payment: null,
+      order: initial,
+    } as PaymentOperationLookupDto;
+    mockedGetOrder.mockResolvedValue(initial);
+    mockedAddPayment.mockRejectedValue(new ApiError(503, 'network unavailable'));
+    mockedGetOperation.mockResolvedValue(unknownLookup);
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.payment_result_unknown');
+    });
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).not.toBeNull();
+    act(() => result.current.abandonPendingPayment());
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
+  });
+  it('refreshes the order and does not retry after an optimistic version conflict', async () => {
+    const initial = baseOrder({ version: 4 });
+    const latest = baseOrder({ version: 5, totalPaid: 4, remainingAmount: 14.5 });
+    mockedGetOrder.mockResolvedValueOnce(initial).mockResolvedValueOnce(latest);
+    mockedAddPayment.mockRejectedValue(new ApiError(409, '', [], 'OrderVersionConflict'));
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.collection.order_changed');
+    });
+    expect(mockedAddPayment).toHaveBeenCalledTimes(1);
+    expect(mockedGetOperation).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.order).toEqual(latest));
+  });
+  it('unlocks the new route and ignores a stale write from the previous order', async () => {
+    const first = baseOrder({ id: 'order-1' });
+    const second = baseOrder({ id: 'order-2', orderNumber: '1043' });
+    let resolvePayment!: (value: OrderDto) => void;
+    mockedGetOrder.mockImplementation(async (id) => (id === first.id ? first : second));
+    mockedAddPayment.mockReturnValue(new Promise<OrderDto>((resolve) => (resolvePayment = resolve)));
+    const { result, rerender } = renderHook(({ id }: { id: string }) => useCashierCollection(id), {
+      initialProps: { id: first.id },
+    });
+    await waitFor(() => expect(result.current.order).toEqual(first));
+    let stalePayment!: Promise<OrderDto>;
+    act(() => {
+      stalePayment = result.current.submitPayment(payment);
+    });
+    await waitFor(() => expect(result.current.isMutating).toBe(true));
+
+    rerender({ id: second.id });
+    await waitFor(() => expect(result.current.order).toEqual(second));
+    expect(result.current.isMutating).toBe(false);
+    act(() => resolvePayment(first));
+    await expect(stalePayment).rejects.toThrow('cashier.payment_outcome_stale');
+    await waitFor(() => expect(result.current.order).toEqual(second));
   });
 });

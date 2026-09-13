@@ -8,6 +8,8 @@ interface CashReceivedFieldsProps {
   readonly currency?: string | null;
   readonly suggestions?: readonly number[];
   readonly disabled: boolean;
+  readonly error?: string;
+
   readonly onReceivedChange: (value: string) => void;
   readonly onExact: () => void;
   readonly onSuggestion?: (value: number) => void;
@@ -21,6 +23,7 @@ export default function CashReceivedFields({
   currency,
   suggestions = [],
   disabled,
+  error,
   onReceivedChange,
   onExact,
   onSuggestion,
@@ -29,10 +32,12 @@ export default function CashReceivedFields({
   const applied = Number.parseFloat(amount) || 0;
   const cashReceived = Number.parseFloat(received) || 0;
   const change = Math.max(0, cashReceived - applied);
+  const formatCash = (value: number) =>
+    currency === null ? t('cashier.tables.currency_unknown') : formatOrderCurrency(value, { currency });
 
   return (
     <div>
-      <FormField label={t('cashier.cash_received')}>
+      <FormField label={t('cashier.cash_received')} error={error}>
         <input
           type="number"
           className={styles.input}
@@ -59,13 +64,13 @@ export default function CashReceivedFields({
               onClick={() => onSuggestion?.(suggestion)}
               disabled={disabled || !onSuggestion}
             >
-              {formatOrderCurrency(suggestion, { currency })}
+              {formatCash(suggestion)}
             </button>
           ))}
         </div>
       </div>
       <output aria-live="polite">
-        {t('cashier.cash_change')}: <strong>{formatOrderCurrency(change, { currency })}</strong>
+        {t('cashier.cash_change')}: <strong>{formatCash(change)}</strong>
       </output>
     </div>
   );

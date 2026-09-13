@@ -17,12 +17,12 @@ import {
 import { getErrorMessage } from '@/utils/apiClient';
 import { isPaymentOutcomeUnknown } from './usePaymentReconciliation';
 import type { CashierTableSessionState } from './cashierTableSessionTypes';
+import { reconcilePendingTablePayment } from './reconcilePendingTablePayment';
 import {
   beginTableSessionMutation,
   finishTableSessionMutation,
   isCurrentTableSessionMutation,
 } from './tableSessionMutation';
-
 export function useCashierTableSession(serviceSessionId: string | null): CashierTableSessionState {
   const [session, setSession] = useState<TableServiceSessionDto | null>(null);
   const [isLoading, setIsLoading] = useState(Boolean(serviceSessionId));
@@ -89,9 +89,9 @@ export function useCashierTableSession(serviceSessionId: string | null): Cashier
     return () => window.removeEventListener('beforeunload', warn);
   }, [isMutating, pendingOperation]);
   const executePayment = useCallback(
-    async (payment: AddTableServiceSessionPaymentRequest, isRetry = false): Promise<TableServiceSessionDto> => {
+    async (payment: AddTableServiceSessionPaymentRequest): Promise<TableServiceSessionDto> => {
       if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-      if (pendingOperation && !isRetry) throw new Error('cashier.tables.operation_pending');
+      if (pendingOperation) throw new Error('cashier.tables.operation_pending');
       if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
       const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
       const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
@@ -128,63 +128,62 @@ export function useCashierTableSession(serviceSessionId: string | null): Cashier
     },
     [pendingOperation, refresh, serviceSessionId, session],
   );
-
-  const executeClose = useCallback(
-    async (isRetry = false): Promise<TableServiceSessionDto> => {
-      if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-      if (pendingOperation && !isRetry) throw new Error('cashier.tables.operation_pending');
-      if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
-      const expectedVersion =
-        isRetry && pendingOperation?.kind === 'close' ? pendingOperation.expectedVersion : session.version;
-      const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
-      const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
-      persistPendingTableClose(serviceSessionId, expectedVersion);
-      setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Checking' });
-      setIsMutating(true);
-      setError(null);
-      try {
-        const result = await closeTableServiceSession(serviceSessionId, { expectedVersion });
-        if (!current()) throw new Error('cashier.tables.operation_stale');
+  const executeClose = useCallback(async (): Promise<TableServiceSessionDto> => {
+    if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
+    if (pendingOperation) throw new Error('cashier.tables.operation_pending');
+    if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+    const expectedVersion = session.version;
+    const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
+    const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
+    persistPendingTableClose(serviceSessionId, expectedVersion);
+    setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Checking' });
+    setIsMutating(true);
+    setError(null);
+    try {
+      const result = await closeTableServiceSession(serviceSessionId, { expectedVersion });
+      if (!current()) throw new Error('cashier.tables.operation_stale');
+      clearPendingTableOperation(serviceSessionId);
+      setPendingOperation(null);
+      setSession(result);
+      setIsStale(false);
+      return result;
+    } catch (reason: unknown) {
+      if (!current()) throw reason;
+      if (isPaymentOutcomeUnknown(reason)) {
+        setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Unknown' });
+        setError('cashier.tables.close_unknown');
+      } else {
         clearPendingTableOperation(serviceSessionId);
         setPendingOperation(null);
-        setSession(result);
-        setIsStale(false);
-        return result;
-      } catch (reason: unknown) {
-        if (!current()) throw reason;
-        if (isPaymentOutcomeUnknown(reason)) {
-          setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Unknown' });
-          setError('cashier.tables.close_unknown');
-        } else {
-          clearPendingTableOperation(serviceSessionId);
-          setPendingOperation(null);
-          const message = getErrorMessage(reason) ?? 'cashier.tables.close_failed';
-          setError(message);
-          void refresh().finally(() => {
-            if (current()) setError(message);
-          });
-        }
-        throw reason;
-      } finally {
-        finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
+        const message = getErrorMessage(reason) ?? 'cashier.tables.close_failed';
+        setError(message);
+        void refresh().finally(() => {
+          if (current()) setError(message);
+        });
       }
-    },
-    [pendingOperation, refresh, serviceSessionId, session],
-  );
-
-  const retryPendingOperation = useCallback(async () => {
-    if (!pendingOperation || pendingOperation.status === 'Checking') return;
-    const saved = pendingOperation;
-    if (saved.kind === 'payment') {
-      // Keep the operation id and expected version. The backend replays a committed operation.
-      setPendingOperation({ ...saved, status: 'Checking' });
-      await executePayment(saved, true);
-    } else {
-      setPendingOperation({ ...saved, status: 'Checking' });
-      await executeClose(true);
+      throw reason;
+    } finally {
+      finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
     }
-  }, [executeClose, executePayment, pendingOperation]);
-
+  }, [pendingOperation, refresh, serviceSessionId, session]);
+  const reconcilePendingOperation = useCallback(async (): Promise<void> => {
+    if (!serviceSessionId || !pendingOperation || pendingOperation.kind !== 'payment') return;
+    if (pendingOperation.status !== 'Unknown' || inFlightRef.current) return;
+    await reconcilePendingTablePayment({
+      serviceSessionId,
+      pendingOperation,
+      mountedRef,
+      requestRef,
+      operationRef,
+      inFlightRef,
+      setIsLoading,
+      setIsMutating,
+      setPendingOperation,
+      setSession,
+      setIsStale,
+      setError,
+    });
+  }, [pendingOperation, serviceSessionId]);
   return {
     session,
     isLoading,
@@ -195,6 +194,6 @@ export function useCashierTableSession(serviceSessionId: string | null): Cashier
     refresh,
     submitPayment: executePayment,
     closeSession: executeClose,
-    retryPendingOperation,
+    reconcilePendingOperation,
   };
 }

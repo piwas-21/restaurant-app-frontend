@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
+import StaffButton from '@/components/design-system/StaffButton';
 import CashReceivedFields from './CashReceivedFields';
 import CashierNumericKeypad from './CashierNumericKeypad';
 import PaymentMethodField from './PaymentMethodField';
@@ -12,7 +13,7 @@ import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } fro
 import { PaymentMethod } from '@/types/order';
 import { billTenderSchema } from '@/schemas/tableBill.schema';
 import { cashSuggestions } from '@/lib/cashierMoney';
-import { formatTableMoney, tableSessionCurrency } from '@/lib/cashierTableSession';
+import { formatTableMoney, tableSessionCurrency, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { usePaymentOperationKey } from '@/hooks/cashier/usePaymentOperationKey';
 import sessionStyles from './CashierTableSession.module.css';
 import styles from './CashierTablePayment.module.css';
@@ -25,25 +26,29 @@ interface CashierTablePaymentFormProps {
 
 export default function CashierTablePaymentForm({ session, disabled, onSubmit }: CashierTablePaymentFormProps) {
   const { t } = useTranslation();
-  const [amount, setAmount] = useState(() => session.outstanding.toFixed(2));
+  const eligibleOutstanding = tableSessionEligibleOutstanding(session);
+  const [amount, setAmount] = useState(() => eligibleOutstanding.toFixed(2));
   const [received, setReceived] = useState('');
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
   const [transactionId, setTransactionId] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [cashReceivedError, setCashReceivedError] = useState<string | null>(null);
   const { operationFor, resetOperation } = usePaymentOperationKey();
   const currency = tableSessionCurrency(session);
+  const currencyUnknown = currency === null;
 
   useEffect(() => {
-    setAmount(session.outstanding.toFixed(2));
+    setAmount(eligibleOutstanding.toFixed(2));
     setReceived('');
     setError(null);
+    setCashReceivedError(null);
     resetOperation();
   }, [
     resetOperation,
     session.serviceSessionId,
     session.version,
-    session.outstanding,
+    eligibleOutstanding,
     session.currency,
     session.bill.currency,
   ]);
@@ -52,27 +57,41 @@ export default function CashierTablePaymentForm({ session, disabled, onSubmit }:
     setAmount(value);
     resetOperation();
     setError(null);
+    setCashReceivedError(null);
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (currencyUnknown) {
+      setError('cashier.tables.currency_unknown');
+      setCashReceivedError(null);
+      return;
+    }
     const parsed = billTenderSchema.safeParse({
       amount,
       paymentMethod: method,
       cashReceived: method === PaymentMethod.Cash ? received : undefined,
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'cashier.table_bill.error.amount');
+      const issue = parsed.error.issues[0];
+      if (issue?.path[0] === 'cashReceived') {
+        setCashReceivedError('cashier.cash_received_too_low');
+        setError(null);
+      } else {
+        setError(issue?.message ?? 'cashier.table_bill.error.amount');
+        setCashReceivedError(null);
+      }
       return;
     }
     setError(null);
+    setCashReceivedError(null);
     try {
       await onSubmit({
         operationId: operationFor(),
         expectedVersion: session.version,
         paymentMethod: parsed.data.paymentMethod,
         amount: parsed.data.amount,
-        currency,
+        ...(currency ? { currency } : {}),
         transactionId: transactionId.trim() || undefined,
         paymentNotes: notes.trim() || undefined,
       });
@@ -91,8 +110,14 @@ export default function CashierTablePaymentForm({ session, disabled, onSubmit }:
     <section className={styles.payment} aria-labelledby="cashier-table-payment-title">
       <h3 id="cashier-table-payment-title">{t('cashier.tables.payment_title')}</h3>
       <p className={sessionStyles.muted}>
-        {t('cashier.tables.payment_currency', { currency })} · {formatTableMoney(session.outstanding, session)}
+        {currency ? t('cashier.tables.payment_currency', { currency }) : t('cashier.tables.currency_unknown')} ·{' '}
+        {formatTableMoney(eligibleOutstanding, session) ?? t('cashier.tables.currency_unknown')}
       </p>
+      {currencyUnknown && (
+        <p className={sessionStyles.warning} role="alert">
+          {t('cashier.tables.currency_unknown')}
+        </p>
+      )}
       <form className={styles.paymentForm} onSubmit={submit} noValidate>
         <div className={styles.paymentGrid}>
           <FormField label={t('cashier.payment_amount')} error={error ? t(error) : undefined}>
@@ -104,39 +129,44 @@ export default function CashierTablePaymentForm({ session, disabled, onSubmit }:
               inputMode="decimal"
               value={amount}
               onChange={(event) => updateAmount(event.target.value)}
-              disabled={disabled}
+              disabled={disabled || currencyUnknown}
             />
           </FormField>
           <PaymentMethodField
             method={method}
-            disabled={disabled}
+            disabled={disabled || currencyUnknown}
             onChange={(value) => {
               setMethod(value);
               resetOperation();
               setError(null);
+              setCashReceivedError(null);
             }}
             t={t}
           />
         </div>
-        <CashierNumericKeypad value={amount} disabled={disabled} onChange={updateAmount} t={t} />
+        <CashierNumericKeypad value={amount} disabled={disabled || currencyUnknown} onChange={updateAmount} t={t} />
         {method === PaymentMethod.Cash && (
           <CashReceivedFields
             amount={amount}
             received={received}
             currency={currency}
             suggestions={cashSuggestions(Number.parseFloat(amount) || 0)}
-            disabled={disabled}
+            disabled={disabled || currencyUnknown}
+            error={cashReceivedError ? t(cashReceivedError) : undefined}
             onReceivedChange={(value) => {
               setReceived(value);
               setError(null);
+              setCashReceivedError(null);
             }}
             onExact={() => {
               setReceived(amount);
               setError(null);
+              setCashReceivedError(null);
             }}
             onSuggestion={(value) => {
               setReceived(value.toFixed(2));
               setError(null);
+              setCashReceivedError(null);
             }}
             t={t}
           />
@@ -144,7 +174,7 @@ export default function CashierTablePaymentForm({ session, disabled, onSubmit }:
         <PaymentReferenceFields
           transactionId={transactionId}
           notes={notes}
-          disabled={disabled}
+          disabled={disabled || currencyUnknown}
           onTransactionIdChange={(value) => {
             setTransactionId(value);
             resetOperation();
@@ -158,9 +188,14 @@ export default function CashierTablePaymentForm({ session, disabled, onSubmit }:
           t={t}
         />
         <div className={sessionStyles.formActions}>
-          <button type="submit" className={sessionStyles.primaryButton} disabled={disabled || session.outstanding <= 0}>
+          <StaffButton
+            variant="primary"
+            className={sessionStyles.primaryButton}
+            type="submit"
+            disabled={disabled || currencyUnknown || eligibleOutstanding <= 0}
+          >
             {disabled ? t('cashier.tables.operation_checking') : t('cashier.tables.payment_submit')}
-          </button>
+          </StaffButton>
         </div>
       </form>
     </section>

@@ -1,17 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Printer, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
+import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
 import type { PendingTableOperation } from '@/lib/cashierTablePending';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
-import { tableSessionActions, formatTableMoney } from '@/lib/cashierTableSession';
+import {
+  formatTableMoney,
+  tableSessionActions,
+  tableSessionCurrency,
+  tableSessionEligibleOutstanding,
+} from '@/lib/cashierTableSession';
+import { staffTableOrderHref } from '@/lib/cashierWorkspace';
 import { sessionStatusLabel } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
+import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
 
 interface CashierTableSessionPanelProps {
@@ -21,11 +30,12 @@ interface CashierTableSessionPanelProps {
   readonly isMutating: boolean;
   readonly isStale: boolean;
   readonly pendingOperation: PendingTableOperation | null;
+  readonly hasLegacyConflict?: boolean;
   readonly onBack: () => void;
   readonly onRefresh: () => void;
   readonly onSubmitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<void>;
   readonly onCloseSession: () => Promise<void>;
-  readonly onRetryPendingOperation: () => Promise<void>;
+  readonly onReconcilePendingOperation: () => Promise<void>;
 }
 
 function displayError(error: string | null, t: (key: string) => string): string | null {
@@ -40,11 +50,12 @@ export default function CashierTableSessionPanel({
   isMutating,
   isStale,
   pendingOperation,
+  hasLegacyConflict = false,
   onBack,
   onRefresh,
   onSubmitPayment,
   onCloseSession,
-  onRetryPendingOperation,
+  onReconcilePendingOperation,
 }: CashierTableSessionPanelProps) {
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -52,7 +63,10 @@ export default function CashierTableSessionPanel({
   const operationLocked = isMutating || pendingOperation !== null;
   const writesLocked = operationLocked || isStale;
   const closeAllowed = actions.has('close');
+  const legacyConflict = hasLegacyConflict || session.hasUnassignedActiveOrders === true;
+  const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict;
   const message = displayError(error, t);
+  const currency = tableSessionCurrency(session);
   const opened = formatCashierDateTime(
     session.openedAt,
     i18n.language || 'en',
@@ -74,10 +88,10 @@ export default function CashierTableSessionPanel({
     <section className={styles.session} aria-labelledby="cashier-table-session-title">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <button type="button" className={styles.button} onClick={onBack} disabled={operationLocked}>
+          <StaffButton onClick={onBack} disabled={operationLocked}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('cashier.tables.back')}
-          </button>
+          </StaffButton>
           <p className={styles.eyebrow}>{t('cashier.tables.session')}</p>
           <h2 id="cashier-table-session-title" dir="auto">
             {t('cashier.tables.table_number', { table: session.tableNumber })}
@@ -88,10 +102,10 @@ export default function CashierTableSessionPanel({
           <StatusBadge tone={session.status === 'Open' ? 'success' : 'neutral'}>
             {sessionStatusLabel(session.status, t)}
           </StatusBadge>
-          <button type="button" className={styles.button} onClick={onRefresh} disabled={operationLocked}>
+          <StaffButton onClick={onRefresh} disabled={operationLocked}>
             <RefreshCw size={17} aria-hidden="true" />
             {t('cashier.workspace.refresh')}
-          </button>
+          </StaffButton>
         </div>
       </header>
 
@@ -105,6 +119,14 @@ export default function CashierTableSessionPanel({
           {t('cashier.tables.ambiguous')}
         </div>
       )}
+      {legacyConflict && (
+        <div className={styles.warning} role="alert">
+          <p>{t('cashier.tables.legacy_conflict')}</p>
+          <Link className={`btn btn-secondary ${buttonStyles.touch}`} href={staffTableOrderHref(session.tableNumber)}>
+            {t('cashier.tables.resolve_legacy_orders')}
+          </Link>
+        </div>
+      )}
       {pendingOperation && (
         <div className={styles.notice} role="status" aria-live="polite">
           <span>
@@ -114,35 +136,47 @@ export default function CashierTableSessionPanel({
                 ? t('cashier.tables.payment_unknown')
                 : t('cashier.tables.close_unknown')}
           </span>
-          <button
-            type="button"
-            className={styles.retryButton}
-            onClick={() => void onRetryPendingOperation().catch(() => undefined)}
-            disabled={pendingOperation.status === 'Checking'}
-          >
-            {pendingOperation.status === 'Checking'
-              ? t('cashier.tables.operation_checking')
-              : t('cashier.tables.operation_retry')}
-          </button>
+          {pendingOperation.status === 'Unknown' && pendingOperation.kind === 'payment' && (
+            <StaffButton onClick={() => void onReconcilePendingOperation().catch(() => undefined)}>
+              {t('cashier.tables.operation_retry')}
+            </StaffButton>
+          )}
+          {pendingOperation.status === 'Unknown' && (
+            <p className={styles.muted}>{t('cashier.tables.reconciliation_unavailable')}</p>
+          )}
         </div>
       )}
 
       <div className={styles.actionRow}>
-        <button
-          type="button"
-          className={styles.dangerButton}
+        <StaffButton
+          variant="danger"
           onClick={() => setShowCloseConfirm(true)}
           disabled={writesLocked || !closeAllowed}
           aria-describedby={!closeAllowed ? 'cashier-table-close-hint' : undefined}
         >
           {t('cashier.tables.close')}
-        </button>
+        </StaffButton>
+        <StaffButton onClick={() => window.print()} disabled={writesLocked}>
+          <Printer size={17} aria-hidden="true" />
+          {t('cashier.tables.print_bill')}
+        </StaffButton>
+        {addRoundAllowed ? (
+          <Link
+            className={`btn btn-secondary ${buttonStyles.touch}`}
+            href={staffTableOrderHref(session.tableNumber, session.serviceSessionId)}
+          >
+            {t('cashier.tables.add_round')}
+          </Link>
+        ) : (
+          <StaffButton disabled>{t('cashier.tables.add_round')}</StaffButton>
+        )}
         {!closeAllowed && session.status === 'Open' && (
           <span id="cashier-table-close-hint" className={styles.muted}>
             {t('cashier.tables.close_not_ready')}
           </span>
         )}
       </div>
+      {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}
 
       <CashierTableSessionBill session={session} timeZone={timeZone} />
       {actions.has('collect') && (
@@ -156,27 +190,20 @@ export default function CashierTableSessionPanel({
         isPending={isMutating}
         footer={
           <div className={styles.formActions}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={() => setShowCloseConfirm(false)}
-              disabled={isMutating}
-            >
+            <StaffButton onClick={() => setShowCloseConfirm(false)} disabled={isMutating}>
               {t('cashier.tables.cancel')}
-            </button>
-            <button
-              type="button"
-              className={styles.dangerButton}
-              onClick={() => void confirmClose()}
-              disabled={isMutating}
-            >
+            </StaffButton>
+            <StaffButton variant="danger" onClick={() => void confirmClose()} disabled={isMutating}>
               {isMutating ? t('cashier.tables.operation_checking') : t('cashier.tables.close_confirm_action')}
-            </button>
+            </StaffButton>
           </div>
         }
       >
         <p>{t('cashier.tables.close_confirm_message', { table: session.tableNumber })}</p>
-        <p className={styles.muted}>{formatTableMoney(session.outstanding, session)}</p>
+        <p className={styles.muted}>
+          {formatTableMoney(tableSessionEligibleOutstanding(session), session) ?? t('cashier.tables.currency_unknown')}
+        </p>
+        {!currency && <p className={styles.warning}>{t('cashier.tables.currency_unknown')}</p>}
       </BaseModal>
     </section>
   );

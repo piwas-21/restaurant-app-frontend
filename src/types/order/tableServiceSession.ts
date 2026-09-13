@@ -1,6 +1,7 @@
 import type { ApiResponse } from './common';
 import type { PaymentMethod } from './enums';
 import type { TableBillDto } from './tableBill';
+import type { OrderPaymentDto } from './dtos';
 
 /** Lifecycle values emitted by the durable table-service-session contract (#533). */
 export type TableServiceSessionStatus = 'Open' | 'Closed';
@@ -17,6 +18,13 @@ export interface TableServiceSessionDto {
   roundCount: number;
   ageMinutes: number;
   outstanding: number;
+  /** Server-authoritative debt eligible for a new table tender. */
+  eligibleOutstanding?: number;
+  /** Server-authoritative action decisions; omitted by pre-follow-up backends. */
+  canCollect?: boolean;
+  canClose?: boolean;
+  hasUnassignedActiveOrders?: boolean;
+  legacyActiveOrderCount?: number;
   bill: TableBillDto;
 }
 
@@ -40,3 +48,16 @@ export interface CloseTableServiceSessionRequest {
 
 export type TableServiceSessionApiResponse = ApiResponse<TableServiceSessionDto>;
 export type TableServiceSessionListApiResponse = ApiResponse<TableServiceSessionDto[]>;
+
+/** Read-only result of looking up one table-session payment operation. */
+export type TableServiceSessionPaymentOperationStatus = 'Committed' | 'Unknown';
+
+export interface TableServiceSessionPaymentOperationLookupDto {
+  operationId: string;
+  status: TableServiceSessionPaymentOperationStatus;
+  session?: TableServiceSessionDto | null;
+  payments: OrderPaymentDto[];
+}
+
+export type TableServiceSessionPaymentOperationLookupApiResponse =
+  ApiResponse<TableServiceSessionPaymentOperationLookupDto>;

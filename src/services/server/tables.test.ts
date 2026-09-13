@@ -2,7 +2,7 @@
  * @jest-environment ./jest-environments/timezone.js
  * @jest-environment-options {"timezone": "Europe/Zurich"}
  */
-import { getTables, getUpcomingReservations } from './tables';
+import { getCashierTables, getTables, getUpcomingReservations } from './tables';
 import { apiClient } from '@/utils/apiClient';
 import { getTenantToday } from '@/services/tenantTimeService';
 
@@ -75,6 +75,22 @@ describe("the floor view asks for the RESTAURANT's day (#517)", () => {
     await getUpcomingReservations('2026-13-45');
 
     expect(requestedDate()).toBe('2026-08-19');
+  });
+});
+
+describe('getCashierTables occupancy contract', () => {
+  it('uses the staff-only occupancy route and authenticated request', async () => {
+    mockGet.mockResolvedValueOnce({ success: true, data: [] });
+
+    await expect(getCashierTables()).resolves.toEqual([]);
+
+    expect(mockGet).toHaveBeenCalledWith('/api/tables/occupancy', { requireAuth: true });
+  });
+
+  it('does not turn a failed occupancy response into an empty workspace', async () => {
+    mockGet.mockResolvedValueOnce({ success: false, data: [], message: 'Occupancy read failed' });
+
+    await expect(getCashierTables()).rejects.toThrow('Occupancy read failed');
   });
 });
 

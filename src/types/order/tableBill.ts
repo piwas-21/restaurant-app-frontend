@@ -1,5 +1,6 @@
 import { ApiResponse } from './common';
 import { OrderDto } from './orderDto';
+import type { TableBillRoundDto } from './tableBillRound';
 
 /**
  * ONE bill for a dine-in table (waiter/POS): the union of the table's still-open
@@ -17,6 +18,12 @@ export interface TableBillDto {
   currency?: string | null;
   /** True when a legacy table-number lookup cannot identify one visit safely. */
   isAmbiguous?: boolean;
+  /** Settlement-annotated rounds, oldest first. Present on the explicit table-session contract. */
+  rounds?: TableBillRoundDto[];
+  /** Outstanding amount on rounds currently eligible for collection. */
+  eligibleOutstanding?: number;
+  /** Net overpayment credit across the bill's rounds. */
+  credit?: number;
   /** Server clock instant the bill was assembled. */
   generatedAt: string;
   /** Open orders for the table, oldest round first. */

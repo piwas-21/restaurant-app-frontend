@@ -5,6 +5,14 @@ export const CASHIER_ORDERS_PATH = '/cashier/orders' as const;
 /** Focused tender route. It is not a navigation destination because it needs an order target. */
 export const CASHIER_COLLECTION_PATH = '/cashier/collection' as const;
 export const CASHIER_TABLES_PATH = '/cashier/tables' as const;
+/** Existing waiter/staff order route; it creates legacy table orders until membership is shipped. */
+export const STAFF_ORDER_PATH = '/server' as const;
+
+export function staffTableOrderHref(tableNumber: string | number, serviceSessionId?: string): string {
+  const params = new URLSearchParams({ tableNumber: String(tableNumber) });
+  if (serviceSessionId) params.set('serviceSessionId', serviceSessionId);
+  return `${STAFF_ORDER_PATH}?${params.toString()}`;
+}
 
 export interface CashierWorkspaceRoute {
   readonly destination: CashierWorkspaceDestination;

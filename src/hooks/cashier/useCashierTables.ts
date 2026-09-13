@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TableDto } from '@/types/reservation';
 import type { TableServiceSessionDto } from '@/types/order';
-import { getTables } from '@/services/server/tables';
+import { getCashierTables } from '@/services/server/tables';
 import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 
-export type CashierTableStatus = 'available' | 'occupied' | 'closed' | 'legacy' | 'reserved';
+export type CashierTableStatus = 'available' | 'occupied' | 'closed' | 'legacy' | 'reserved' | 'conflict';
 
 export interface CashierTableEntry {
   readonly table: TableDto;
@@ -26,6 +26,39 @@ export interface CashierTablesState {
   readonly openSession: (tableNumber: string) => Promise<TableServiceSessionDto>;
 }
 
+const ACTIVE_TABLE_ORDER_STATUSES = new Set(['Pending', 'Confirmed', 'Preparing', 'Ready', 'PendingApproval']);
+
+/**
+ * The legacy table projection counts all active orders, including explicit-session members.
+ * Compare that count with active rounds in the explicit bill; a surplus is a conservative signal
+ * that an unassigned round must be resolved before this visit can be collected or closed.
+ */
+export function hasLegacyTableOrders(
+  table: Pick<TableDto, 'isOccupied' | 'activeOrderCount'>,
+  session: Pick<TableServiceSessionDto, 'bill' | 'hasUnassignedActiveOrders' | 'legacyActiveOrderCount'>,
+): boolean {
+  if (!table.isOccupied) return false;
+  if (typeof session.hasUnassignedActiveOrders === 'boolean') return session.hasUnassignedActiveOrders;
+  if ((session.legacyActiveOrderCount ?? 0) > 0) return true;
+  if (typeof table.activeOrderCount !== 'number') return true;
+  const activeSessionRounds = session.bill.orders.filter((order) =>
+    ACTIVE_TABLE_ORDER_STATUSES.has(order.status),
+  ).length;
+  return table.activeOrderCount > activeSessionRounds;
+}
+
+function tableStatus(
+  table: Pick<TableDto, 'isActive' | 'isOccupied' | 'isReserved' | 'activeOrderCount'>,
+  session: TableServiceSessionDto | null,
+): CashierTableStatus {
+  if (!table.isActive) return 'closed';
+  if (session && hasLegacyTableOrders(table, session)) return 'conflict';
+  if (session) return 'occupied';
+  if (table.isOccupied) return 'legacy';
+  if (table.isReserved) return 'reserved';
+  return 'available';
+}
+
 function mergeEntries(tables: readonly TableDto[], sessions: readonly TableServiceSessionDto[]): CashierTableEntry[] {
   const byTable = new Map(sessions.map((session) => [tableNumberKey(session.tableNumber), session]));
   const known = new Set<string>();
@@ -33,16 +66,7 @@ function mergeEntries(tables: readonly TableDto[], sessions: readonly TableServi
     const key = tableNumberKey(table.tableNumber);
     known.add(key);
     const session = byTable.get(key) ?? null;
-    const status: CashierTableStatus = !table.isActive
-      ? 'closed'
-      : session
-        ? 'occupied'
-        : table.isOccupied
-          ? 'legacy'
-          : table.isReserved
-            ? 'reserved'
-            : 'available';
-    return { table, session, status };
+    return { table, session, status: tableStatus(table, session) };
   });
 
   // A session without a table row remains visible in the list instead of becoming an invisible bill.
@@ -97,7 +121,7 @@ export function useCashierTables(): CashierTablesState {
     setIsLoading(true);
     setError(null);
     try {
-      const [tables, sessions] = await Promise.all([getTables(), getActiveTableServiceSessions()]);
+      const [tables, sessions] = await Promise.all([getCashierTables(), getActiveTableServiceSessions()]);
       if (!mountedRef.current || requestId !== requestRef.current) return;
       const merged = mergeEntries(tables, sessions);
       setEntries(merged);

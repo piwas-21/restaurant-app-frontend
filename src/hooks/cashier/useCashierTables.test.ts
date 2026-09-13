@@ -1,14 +1,14 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { TableDto } from '@/types/reservation';
 import type { TableServiceSessionDto } from '@/types/order';
-import { getTables } from '@/services/server/tables';
+import { getCashierTables } from '@/services/server/tables';
 import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
 import { useCashierTables } from './useCashierTables';
 
 jest.mock('@/services/server/tables');
 jest.mock('@/services/tableServiceSessionService');
 
-const mockedTables = jest.mocked(getTables);
+const mockedTables = jest.mocked(getCashierTables);
 const mockedSessions = jest.mocked(getActiveTableServiceSessions);
 const mockedOpen = jest.mocked(openTableServiceSession);
 const session = (id: string, tableNumber: number): TableServiceSessionDto => ({

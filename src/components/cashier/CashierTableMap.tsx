@@ -3,11 +3,12 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import FloorPlanScene from '@/components/floor-plan/FloorPlanScene';
+import StaffButton from '@/components/design-system/StaffButton';
 import { useFloorPlanDocument } from '@/hooks/floorPlan/useFloorPlanDocument';
 import type { FloorPlanTableGeometry } from '@/types/floorPlan';
 import type { TableRenderState } from '@/components/floor-plan/sceneTypes';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
-import { formatTableMoney, tableNumberKey } from '@/lib/cashierTableSession';
+import { formatTableMoney, tableNumberKey, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableMap.module.css';
 
@@ -21,7 +22,8 @@ interface CashierTableMapProps {
 function mapState(entry: CashierTableEntry, selected: boolean): TableRenderState {
   if (selected) return 'selected';
   if (entry.status === 'closed') return 'dim';
-  if (entry.session || entry.status === 'legacy' || entry.status === 'reserved') return 'occupied';
+  if (entry.session || entry.status === 'legacy' || entry.status === 'reserved' || entry.status === 'conflict')
+    return 'occupied';
   return 'available';
 }
 
@@ -67,7 +69,8 @@ export default function CashierTableMap({
       const entry = entryByNumber.get(tableNumberKey(table.tableNumber));
       const status = entry ? tableStatusLabel(entry.status, t) : t('cashier.tables.status_available');
       const balance = entry?.session
-        ? formatTableMoney(entry.session.outstanding, entry.session)
+        ? (formatTableMoney(tableSessionEligibleOutstanding(entry.session), entry.session) ??
+          t('cashier.tables.currency_unknown'))
         : t('cashier.tables.no_balance');
       return t('cashier.tables.map_label', {
         table: table.tableNumber,
@@ -85,9 +88,7 @@ export default function CashierTableMap({
     return (
       <div className={styles.message} role="alert">
         <span>{t('cashier.tables.map_error')}</span>
-        <button type="button" className={styles.retry} onClick={retry}>
-          {t('cashier.tables.retry')}
-        </button>
+        <StaffButton onClick={retry}>{t('cashier.tables.retry')}</StaffButton>
       </div>
     );
   }

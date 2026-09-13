@@ -32,6 +32,15 @@ export async function getTables(): Promise<TableDto[]> {
   return response.data;
 }
 
+/** Staff table catalogue with live occupancy, restricted to the cashier tables workspace. */
+export async function getCashierTables(): Promise<TableDto[]> {
+  const response = await apiClient.get<ApiResponse<TableDto[]>>('/api/tables/occupancy', { requireAuth: true });
+  if (!response.success || !response.data) {
+    throwServerRefusal(response);
+  }
+  return response.data;
+}
+
 /**
  * Today's confirmed reservations (used internally by `getTablesWithStatus`).
  *

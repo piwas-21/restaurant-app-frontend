@@ -8,6 +8,7 @@ export function tableStatusLabel(status: CashierTableStatus, t: Translate): stri
   if (status === 'closed') return t('cashier.tables.status_closed');
   if (status === 'legacy') return t('cashier.tables.status_legacy');
   if (status === 'reserved') return t('cashier.tables.status_reserved');
+  if (status === 'conflict') return t('cashier.tables.status_conflict');
   return t('cashier.tables.status_available');
 }
 

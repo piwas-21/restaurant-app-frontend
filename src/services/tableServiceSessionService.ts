@@ -6,6 +6,8 @@ import type {
   TableServiceSessionApiResponse,
   TableServiceSessionDto,
   TableServiceSessionListApiResponse,
+  TableServiceSessionPaymentOperationLookupApiResponse,
+  TableServiceSessionPaymentOperationLookupDto,
 } from '@/types/order';
 
 const BASE_PATH = '/api/table-service-sessions';
@@ -72,6 +74,18 @@ export async function closeTableServiceSession(
   const response = await apiClient.post<TableServiceSessionApiResponse>(
     `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/close`,
     request,
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
+/** Look up a table payment outcome without replaying its write payload. */
+export async function lookupTableServiceSessionPaymentOperation(
+  serviceSessionId: string,
+  operationId: string,
+): Promise<TableServiceSessionPaymentOperationLookupDto> {
+  const response = await apiClient.get<TableServiceSessionPaymentOperationLookupApiResponse>(
+    `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/payments/operations/${encodeURIComponent(operationId)}`,
     { requireAuth: true },
   );
   return requireData(response);

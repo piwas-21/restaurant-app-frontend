@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { tableStatusLabel } from '@/lib/cashierTableLabels';
@@ -23,7 +24,7 @@ export default function CashierTableEmptyState({
   const { t } = useTranslation();
   const canOpen = entry.status === 'available';
   const message =
-    entry.status === 'legacy'
+    entry.status === 'legacy' || entry.status === 'conflict'
       ? t('cashier.tables.legacy_table')
       : entry.status === 'reserved'
         ? t('cashier.tables.reserved_table')
@@ -34,10 +35,10 @@ export default function CashierTableEmptyState({
     <section className={styles.session} aria-labelledby="cashier-table-empty-title">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <button type="button" className={styles.button} onClick={onBack} disabled={isOpening}>
+          <StaffButton onClick={onBack} disabled={isOpening}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('cashier.tables.back')}
-          </button>
+          </StaffButton>
           <p className={styles.eyebrow}>{t('cashier.tables.table')}</p>
           <h2 id="cashier-table-empty-title" dir="auto">
             {t('cashier.tables.table_number', { table: entry.table.tableNumber })}
@@ -47,9 +48,9 @@ export default function CashierTableEmptyState({
       </header>
       <p>{message}</p>
       {canOpen && (
-        <button type="button" className={styles.primaryButton} onClick={onOpenSession} disabled={isOpening}>
+        <StaffButton variant="primary" onClick={onOpenSession} disabled={isOpening}>
           {isOpening ? t('cashier.tables.opening') : t('cashier.tables.open_session')}
-        </button>
+        </StaffButton>
       )}
     </section>
   );

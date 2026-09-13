@@ -27,7 +27,7 @@ export const billTenderSchema = z
     if (value.paymentMethod === PaymentMethod.Cash && value.cashReceived !== undefined) {
       const received = Number(value.cashReceived);
       if (!Number.isFinite(received) || received < value.amount) {
-        context.addIssue({ code: 'custom', path: ['cashReceived'], message: 'cash_received_too_low' });
+        context.addIssue({ code: 'custom', path: ['cashReceived'], message: 'cashier.cash_received_too_low' });
       }
     }
   });

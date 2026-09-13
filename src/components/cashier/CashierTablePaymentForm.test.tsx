@@ -52,7 +52,10 @@ describe('CashierTablePaymentForm', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
 
-    await waitFor(() => expect(screen.getByText('cash_received_too_low')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('cashier.cash_received_too_low')).toBeInTheDocument());
+    const received = screen.getByRole('spinbutton', { name: 'cashier.cash_received' });
+    expect(received).toHaveAttribute('aria-invalid', 'true');
+    expect(received).toHaveAccessibleDescription('cashier.cash_received_too_low');
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

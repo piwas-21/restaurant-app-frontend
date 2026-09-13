@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
-import { formatTableMoney, tableNumberKey } from '@/lib/cashierTableSession';
+import { formatTableMoney, tableNumberKey, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableList.module.css';
 
 type BadgeTone = 'success' | 'warning' | 'neutral';
 
 function tone(status: CashierTableEntry['status']): BadgeTone {
-  if (status === 'occupied' || status === 'legacy' || status === 'reserved') return 'warning';
+  if (status === 'occupied' || status === 'legacy' || status === 'reserved' || status === 'conflict') return 'warning';
   if (status === 'available') return 'success';
   return 'neutral';
 }
@@ -40,7 +40,10 @@ export default function CashierTableList({
         const { table, session, status } = entry;
         const number = table.tableNumber;
         const selected = selectedTableNumber !== null && tableNumberKey(selectedTableNumber) === tableNumberKey(number);
-        const balance = session ? formatTableMoney(session.outstanding, session) : t('cashier.tables.no_balance');
+        const balance = session
+          ? (formatTableMoney(tableSessionEligibleOutstanding(session), session) ??
+            t('cashier.tables.currency_unknown'))
+          : t('cashier.tables.no_balance');
         const opened = session
           ? formatCashierDateTime(
               session.openedAt,
@@ -74,10 +77,14 @@ export default function CashierTableList({
                     <span>{t('cashier.tables.rounds', { rounds: session.roundCount })}</span>
                   </>
                 )}
-                {status === 'legacy' && (
+                {(status === 'legacy' || status === 'conflict') && (
                   <>
                     <span aria-hidden="true"> · </span>
-                    <span>{t('cashier.tables.legacy_orders', { orders: table.activeOrderCount ?? 0 })}</span>
+                    <span>
+                      {t('cashier.tables.legacy_orders', {
+                        orders: session?.legacyActiveOrderCount ?? table.activeOrderCount ?? 0,
+                      })}
+                    </span>
                   </>
                 )}
               </span>

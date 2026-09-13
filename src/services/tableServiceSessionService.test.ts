@@ -5,6 +5,7 @@ import {
   closeTableServiceSession,
   getActiveTableServiceSessions,
   getTableServiceSession,
+  lookupTableServiceSessionPaymentOperation,
   openTableServiceSession,
 } from './tableServiceSessionService';
 
@@ -78,6 +79,16 @@ describe('table service session contract', () => {
       { expectedVersion: 5 },
       { requireAuth: true },
     );
+  });
+
+  it('looks up a payment operation through the read-only table route', async () => {
+    const lookup = { operationId: 'op-1', status: 'Unknown' as const, session: null, payments: [] };
+    mockGet.mockResolvedValue({ success: true, data: lookup });
+
+    await expect(lookupTableServiceSessionPaymentOperation('session/1', 'op/1')).resolves.toEqual(lookup);
+    expect(mockGet).toHaveBeenCalledWith('/api/table-service-sessions/session%2F1/payments/operations/op%2F1', {
+      requireAuth: true,
+    });
   });
 
   it('does not turn a failed envelope into a successful empty session', async () => {

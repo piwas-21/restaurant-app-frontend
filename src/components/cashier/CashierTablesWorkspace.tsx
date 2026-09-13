@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { List, Map, RefreshCw } from 'lucide-react';
+import StaffButton from '@/components/design-system/StaffButton';
 import { useTranslation } from 'react-i18next';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierTableMap from './CashierTableMap';
@@ -11,7 +12,7 @@ import CashierTableSessionPanel from './CashierTableSessionPanel';
 import { useCashierTables, type CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
-import { useCashierTenantTimeZone } from '@/hooks/cashier/useCashierTenantTimeZone';
+import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import type { CashierQueueState } from '@/types/cashier';
 import styles from './CashierTablesWorkspace.module.css';
@@ -62,7 +63,8 @@ export default function CashierTablesWorkspace() {
   );
   const sessionId = route.selectedSessionId ?? selectedFromList?.session?.serviceSessionId ?? null;
   const session = useCashierTableSession(sessionId);
-  const timeZone = useCashierTenantTimeZone();
+  const timeZoneState = useCashierTenantTimeZoneState();
+  const timeZone = timeZoneState.timeZone;
   const [view, setView] = useState<TableView>('map');
   const selectedTableNumber =
     session.session?.tableNumber.toString() ?? selectedFromList?.table.tableNumber ?? route.selectedTableNumber;
@@ -116,36 +118,37 @@ export default function CashierTablesWorkspace() {
           </div>
           <div className={styles.headerActions}>
             <div className={styles.viewToggle} role="group" aria-label={t('cashier.tables.view_toggle')}>
-              <button
-                type="button"
+              <StaffButton
+                variant={view === 'map' ? 'primary' : 'secondary'}
                 className={styles.viewButton}
                 aria-pressed={view === 'map'}
                 onClick={() => setView('map')}
               >
                 <Map size={17} aria-hidden="true" /> {t('cashier.tables.map')}
-              </button>
-              <button
-                type="button"
+              </StaffButton>
+              <StaffButton
+                variant={view === 'list' ? 'primary' : 'secondary'}
                 className={styles.viewButton}
                 aria-pressed={view === 'list'}
                 onClick={() => setView('list')}
               >
                 <List size={17} aria-hidden="true" /> {t('cashier.tables.list')}
-              </button>
+              </StaffButton>
             </div>
-            <button
-              type="button"
-              className={styles.button}
-              onClick={refresh}
-              disabled={navigationDisabled || tables.isLoading}
-            >
+            <StaffButton onClick={refresh} disabled={navigationDisabled || tables.isLoading}>
               <RefreshCw size={17} aria-hidden="true" /> {t('cashier.workspace.refresh')}
-            </button>
+            </StaffButton>
           </div>
         </header>
         {tables.error && (
           <div className={styles.alert} role="alert">
             {messageFor(tables.error, t)}
+          </div>
+        )}
+        {timeZoneState.isLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
+        {timeZoneState.hasError && (
+          <div className={styles.alert} role="alert">
+            {t('cashier.tables.time_zone_unavailable')}
           </div>
         )}
         {tables.isLoading && tables.entries.length === 0 && (
@@ -189,6 +192,7 @@ export default function CashierTablesWorkspace() {
                     isMutating={session.isMutating}
                     isStale={session.isStale}
                     pendingOperation={session.pendingOperation}
+                    hasLegacyConflict={selectedEntry?.status === 'conflict'}
                     onBack={route.clearSelection}
                     onRefresh={() => void session.refresh()}
                     onSubmitPayment={async (payment) => {
@@ -199,15 +203,13 @@ export default function CashierTablesWorkspace() {
                       await session.closeSession();
                       void tables.refresh();
                     }}
-                    onRetryPendingOperation={session.retryPendingOperation}
+                    onReconcilePendingOperation={session.reconcilePendingOperation}
                   />
                 )}
                 {sessionId && !session.isLoading && !session.session && (
                   <div className={styles.alert} role="alert">
                     {messageFor(session.error, t) ?? t('cashier.tables.session_unavailable')}
-                    <button type="button" className={styles.button} onClick={route.clearSelection}>
-                      {t('cashier.tables.back')}
-                    </button>
+                    <StaffButton onClick={route.clearSelection}>{t('cashier.tables.back')}</StaffButton>
                   </div>
                 )}
                 {!sessionId && selectedEntry && (
@@ -221,9 +223,7 @@ export default function CashierTablesWorkspace() {
                 {!sessionId && !selectedEntry && (
                   <div className={styles.alert} role="alert">
                     <p>{t('cashier.tables.table_not_found')}</p>
-                    <button type="button" className={styles.button} onClick={route.clearSelection}>
-                      {t('cashier.tables.back')}
-                    </button>
+                    <StaffButton onClick={route.clearSelection}>{t('cashier.tables.back')}</StaffButton>
                   </div>
                 )}
               </section>

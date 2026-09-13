@@ -5,6 +5,7 @@ import {
   addTableServiceSessionPayment,
   closeTableServiceSession,
   getTableServiceSession,
+  lookupTableServiceSessionPaymentOperation,
 } from '@/services/tableServiceSessionService';
 import { persistPendingTablePayment } from '@/lib/cashierTablePending';
 import { useCashierTableSession } from './useCashierTableSession';
@@ -14,6 +15,7 @@ jest.mock('@/services/tableServiceSessionService');
 const mockedGet = jest.mocked(getTableServiceSession);
 const mockedAdd = jest.mocked(addTableServiceSessionPayment);
 const mockedClose = jest.mocked(closeTableServiceSession);
+const mockedLookup = jest.mocked(lookupTableServiceSessionPaymentOperation);
 const session = (over: Partial<TableServiceSessionDto> = {}): TableServiceSessionDto => ({
   serviceSessionId: 'session-1',
   tableNumber: 7,
@@ -90,7 +92,7 @@ describe('useCashierTableSession', () => {
     expect(window.sessionStorage.getItem('cashier.pending-table-operation')).toBeNull();
   });
 
-  it('keeps an unknown close persisted and retries only on explicit action', async () => {
+  it('keeps an unknown close persisted without reposting an unverified operation', async () => {
     mockedClose.mockRejectedValueOnce(new ApiError(503, ''));
     const { result } = renderHook(() => useCashierTableSession('session-1'));
     await waitFor(() => expect(result.current.session).not.toBeNull());
@@ -100,14 +102,58 @@ describe('useCashierTableSession', () => {
     });
     expect(result.current.pendingOperation).toEqual(expect.objectContaining({ kind: 'close', status: 'Unknown' }));
     expect(mockedClose).toHaveBeenCalledTimes(1);
+    expect(window.sessionStorage.getItem('cashier.pending-table-operation')).toContain('close');
+  });
 
-    mockedClose.mockResolvedValue(session({ status: 'Closed', version: 5, outstanding: 0 }));
-    await act(async () => {
-      await result.current.retryPendingOperation();
+  it('reconciles an unknown payment through lookup without posting it again', async () => {
+    const committed = session({ version: 5, outstanding: 0 });
+    mockedAdd.mockRejectedValueOnce(new ApiError(503, ''));
+    mockedLookup.mockResolvedValueOnce({
+      operationId: payment.operationId,
+      status: 'Committed',
+      session: committed,
+      payments: [],
     });
-    expect(mockedClose).toHaveBeenCalledTimes(2);
-    expect(mockedClose).toHaveBeenLastCalledWith('session-1', { expectedVersion: 4 });
+    const { result } = renderHook(() => useCashierTableSession('session-1'));
+    await waitFor(() => expect(result.current.session).not.toBeNull());
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toBeInstanceOf(ApiError);
+    });
+    expect(result.current.pendingOperation).toEqual(expect.objectContaining({ status: 'Unknown' }));
+
+    await act(async () => {
+      await result.current.reconcilePendingOperation();
+    });
+    expect(mockedAdd).toHaveBeenCalledTimes(1);
+    expect(mockedLookup).toHaveBeenCalledWith('session-1', payment.operationId);
     expect(result.current.pendingOperation).toBeNull();
+    expect(result.current.session).toEqual(committed);
+  });
+
+  it('keeps an unknown payment blocked when lookup still has no committed result', async () => {
+    mockedAdd.mockRejectedValueOnce(new ApiError(503, ''));
+    mockedLookup.mockResolvedValueOnce({
+      operationId: payment.operationId,
+      status: 'Unknown',
+      session: null,
+      payments: [],
+    });
+    const { result } = renderHook(() => useCashierTableSession('session-1'));
+    await waitFor(() => expect(result.current.session).not.toBeNull());
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toBeInstanceOf(ApiError);
+    });
+    await waitFor(() =>
+      expect(result.current.pendingOperation).toEqual(expect.objectContaining({ status: 'Unknown' })),
+    );
+    await act(async () => {
+      await result.current.reconcilePendingOperation();
+    });
+    expect(mockedAdd).toHaveBeenCalledTimes(1);
+    expect(mockedLookup).toHaveBeenCalledTimes(1);
+    expect(result.current.pendingOperation).toEqual(expect.objectContaining({ status: 'Unknown' }));
   });
 
   it('rejects a duplicate payment submit while the first write is in flight', async () => {

@@ -43,7 +43,7 @@ describe('CashierWorkspaceShell', () => {
     expect(screen.getByRole('link', { name: /cashier\.workspace\.orders/ })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: /cashier\.workspace\.history/ })).not.toHaveAttribute('aria-current');
     expect(screen.getByLabelText('2 open orders')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /tables|new sale/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /cashier\.workspace\.tables/ })).not.toHaveAttribute('aria-current');
   });
 
   it('keeps the operational count visible while the destination queue loads', () => {

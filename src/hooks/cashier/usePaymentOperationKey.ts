@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /** Keeps one operation id across an unchanged tender retry. Call reset when its payload changes. */
 export function usePaymentOperationKey(initialOperationId?: string) {
@@ -10,10 +10,10 @@ export function usePaymentOperationKey(initialOperationId?: string) {
     if (initialOperationId && !operationId.current) operationId.current = initialOperationId;
   }, [initialOperationId]);
 
-  return {
-    operationFor: () => (operationId.current ??= crypto.randomUUID()),
-    resetOperation: () => {
-      operationId.current = undefined;
-    },
-  };
+  const operationFor = useCallback(() => (operationId.current ??= crypto.randomUUID()), []);
+  const resetOperation = useCallback(() => {
+    operationId.current = undefined;
+  }, []);
+
+  return { operationFor, resetOperation };
 }

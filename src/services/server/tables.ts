@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@/utils/apiClient';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
 import { OrderDto } from '@/types/order';
 import { TableDto, ReservationDto, ApiResponse, PagedResult as ReservationPagedResult } from '@/types/reservation';
 import { getTenantToday } from '@/services/tenantTimeService';
@@ -25,7 +26,10 @@ export interface ServerTableDto extends TableDto {
 /** All tables, including closed ones so servers can reopen them. */
 export async function getTables(): Promise<TableDto[]> {
   const response = await apiClient.get<ApiResponse<TableDto[]>>('/api/tables');
-  return response.data || [];
+  if (!response.success || !response.data) {
+    throwServerRefusal(response);
+  }
+  return response.data;
 }
 
 /**

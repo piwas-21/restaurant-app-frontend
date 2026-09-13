@@ -1,0 +1,187 @@
+.session {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1rem;
+}
+.header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+.identity h2 {
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  margin: 0;
+}
+.eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.2rem;
+  text-transform: uppercase;
+}
+.headerActions,
+.actionRow,
+.formActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.button,
+.primaryButton,
+.dangerButton,
+.secondaryButton,
+.retryButton {
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.6rem 0.9rem;
+}
+.button,
+.secondaryButton,
+.retryButton {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+.primaryButton {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+.dangerButton {
+  background: var(--feedback-danger-dark);
+  border-color: var(--feedback-danger-dark);
+  color: var(--text-on-primary);
+}
+.button:focus-visible,
+.primaryButton:focus-visible,
+.dangerButton:focus-visible,
+.secondaryButton:focus-visible,
+.retryButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.button:disabled,
+.primaryButton:disabled,
+.dangerButton:disabled,
+.secondaryButton:disabled,
+.retryButton:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.notice,
+.error,
+.warning {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.7rem 0.8rem;
+}
+.notice {
+  background: var(--feedback-info-xlight);
+  color: var(--feedback-info-dark);
+}
+.warning {
+  background: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+}
+.error {
+  background: var(--feedback-danger-xlight);
+  color: var(--feedback-danger-dark);
+}
+.bill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+.billScroll {
+  max-height: min(38rem, 48dvh);
+  overflow: auto;
+}
+.round {
+  border-top: 1px solid var(--border-default);
+  padding: 0.75rem 0;
+}
+.round:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.roundHeader,
+.line,
+.totalRow {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+.roundHeader {
+  flex-wrap: wrap;
+}
+.roundIdentity {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.roundTime,
+.lineName,
+.muted {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.lineList {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+.line {
+  align-items: flex-start;
+  padding: 0.3rem 0;
+}
+.lineName {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lineTotal,
+.totalValue {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.totals {
+  border-top: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.75rem;
+}
+.totalRow strong {
+  font-size: 1.25rem;
+}
+@media (max-width: 640px) {
+  .session {
+    border: 0;
+    border-radius: 0;
+    padding: 0.25rem;
+  }
+  .billScroll {
+    max-height: none;
+  }
+  .formActions > * {
+    flex: 1 1 100%;
+  }
+}

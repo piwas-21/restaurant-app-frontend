@@ -9,6 +9,9 @@ type Translate = (key: string, fallback: string, opts?: Record<string, unknown>)
  * small for the party spells out the mismatch rather than a bare "unavailable".
  */
 export function tableStatusLabel(state: TableRenderState, maxGuests: number, party: number, t: Translate): string {
+  if (state === 'occupied') {
+    return t('table_occupied', 'Occupied');
+  }
   if (state === 'booked') {
     return t('booked', 'Booked');
   }

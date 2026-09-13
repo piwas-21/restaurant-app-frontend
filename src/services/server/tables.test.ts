@@ -2,11 +2,14 @@
  * @jest-environment ./jest-environments/timezone.js
  * @jest-environment-options {"timezone": "Europe/Zurich"}
  */
-import { getUpcomingReservations } from './tables';
+import { getTables, getUpcomingReservations } from './tables';
 import { apiClient } from '@/utils/apiClient';
 import { getTenantToday } from '@/services/tenantTimeService';
 
-jest.mock('@/utils/apiClient', () => ({ apiClient: { get: jest.fn() } }));
+jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
+  apiClient: { get: jest.fn() },
+}));
 jest.mock('@/services/tenantTimeService', () => ({ getTenantToday: jest.fn() }));
 
 const mockGet = apiClient.get as jest.Mock;
@@ -72,5 +75,13 @@ describe("the floor view asks for the RESTAURANT's day (#517)", () => {
     await getUpcomingReservations('2026-13-45');
 
     expect(requestedDate()).toBe('2026-08-19');
+  });
+});
+
+describe('getTables response envelope', () => {
+  it('surfaces a failed server envelope instead of presenting an empty floor', async () => {
+    mockGet.mockResolvedValueOnce({ success: false, data: [], message: 'Table read failed' });
+
+    await expect(getTables()).rejects.toThrow('Table read failed');
   });
 });

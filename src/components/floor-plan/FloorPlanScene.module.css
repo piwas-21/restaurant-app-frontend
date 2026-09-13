@@ -153,6 +153,11 @@
 .table[data-state='booked'] {
   opacity: 0.5;
 }
+.table[data-state='occupied'] .tableTop,
+.table[data-state='occupied'] .chair {
+  fill: var(--feedback-warning-xlight);
+  stroke: var(--feedback-warning-text);
+}
 .table[data-state='booked'] .tableTop {
   fill: url(#fp-hatch);
 }

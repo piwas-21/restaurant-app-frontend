@@ -9,6 +9,14 @@ import { OrderDto } from './orderDto';
  */
 export interface TableBillDto {
   tableNumber: number;
+  /** Explicit durable visit identity; null on the legacy table-number bill. */
+  serviceSessionId?: string | null;
+  /** Optimistic-concurrency version for an explicit visit. */
+  serviceSessionVersion?: number | null;
+  /** Currency captured for the visit; null means no currency is declared. */
+  currency?: string | null;
+  /** True when a legacy table-number lookup cannot identify one visit safely. */
+  isAmbiguous?: boolean;
   /** Server clock instant the bill was assembled. */
   generatedAt: string;
   /** Open orders for the table, oldest round first. */

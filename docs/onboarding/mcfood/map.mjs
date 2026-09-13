@@ -169,23 +169,37 @@ const sauceRuleFor = (decisions, groupIds) => {
  * products. They cannot both stand: two `Salade` rows on one product is a menu bug, and
  * offering to add something the dish already contains is the contradiction, not the removal.
  *
- * **The included row wins.** Appearing in a removal list is evidence the ingredient is in the
- * dish, and one optional-and-included row already gives the guest both directions — leave it
- * on to have it, untick to remove. The merge is REPORTED by `--verify`, never silent.
+ * **The included row wins by default.** Appearing in a removal list is evidence the ingredient is
+ * in the dish, and one optional-and-included row already gives the guest both directions — leave it
+ * on to have it, untick to remove. A partner-confirmed paid exception is recorded in
+ * `duplicateIngredientResolution`. Every merge is REPORTED by `--verify`, never silent.
  */
-const dedupeIngredients = (rows, merges, productName) => {
+// The source calls the same vegetable both "Oignon" and "Oignons". Treat that known
+// singular/plural typo as one ingredient before applying the collision policy.
+const ingredientKey = (name) => (name.toLowerCase() === 'oignons' ? 'oignon' : name.toLowerCase());
+
+const duplicateResolutionFor = (decisions, productName, ingredientName) =>
+  decisions.duplicateIngredientResolution?.[productName]?.[ingredientName] ?? 'included';
+
+const dedupeIngredients = (rows, merges, productName, decisions) => {
   const byName = new Map();
   for (const row of rows) {
-    const key = row.name.toLowerCase();
+    const key = ingredientKey(row.name);
     const seen = byName.get(key);
     if (!seen) {
       byName.set(key, row);
       continue;
     }
-    const winner = seen.isIncludedInBasePrice ? seen : row;
-    const loser = seen.isIncludedInBasePrice ? row : seen;
+    const resolution = duplicateResolutionFor(decisions, productName, row.name);
+    if (resolution !== 'included' && resolution !== 'paid') {
+      throw new Error(`${productName}: duplicate ingredient "${row.name}" has unsupported resolution "${resolution}"`);
+    }
+    const keepPaid = resolution === 'paid';
+    const winner = keepPaid ? (seen.price > 0 ? seen : row) : seen.isIncludedInBasePrice ? seen : row;
+    const loser = winner === seen ? row : seen;
     const dropped = loser.price > 0 ? `${loser.price} paid` : 'free';
-    merges.push(`${productName}: "${row.name}" appeared twice — kept the included row, dropped the ${dropped} one`);
+    const kept = keepPaid ? 'the paid' : 'the included';
+    merges.push(`${productName}: "${row.name}" appeared twice — kept ${kept} row, dropped the ${dropped} one`);
     byName.set(key, winner);
   }
   return [...byName.values()].map((row, index) => ({ ...row, displayOrder: index }));
@@ -270,7 +284,7 @@ const ingredientsFor = (decisions, groupIds, groups, merges = [], productName = 
       });
     }
   }
-  return dedupeIngredients(out, merges, productName);
+  return dedupeIngredients(out, merges, productName, decisions);
 };
 
 /**
@@ -948,9 +962,94 @@ const verifyNoDuplicateIngredients = (products) => {
   for (const product of products) {
     const seen = new Map();
     for (const ingredient of product.body.detailedIngredients) {
-      const key = ingredient.name.toLowerCase();
+      const key = ingredientKey(ingredient.name);
       if (seen.has(key)) failures.push(`${product.body.name}: "${ingredient.name}" appears twice`);
       seen.set(key, true);
+    }
+  }
+  return failures;
+};
+
+/**
+ * Partner-confirmed duplicate policy. Most "Sans X"/"+ X" collisions keep the included row,
+ * but MC FOOD explicitly sells Emmental as a 1,00 EUR extra on each Tacos variant. This gate
+ * checks the emitted recipe owner, not only the decision JSON, so changing the dedupe code cannot
+ * silently make that extra free again.
+ */
+const verifyDuplicateIngredientResolutions = (decisions, owners) => {
+  const failures = [];
+  for (const [productName, ingredients] of Object.entries(decisions.duplicateIngredientResolution ?? {})) {
+    if (productName === '_') continue;
+    const owner = owners.find(
+      (candidate) => candidate.body.name === productName && candidate.body.detailedIngredients.length > 0,
+    );
+    if (!owner) {
+      failures.push(`${productName}: duplicate-resolution owner was not emitted`);
+      continue;
+    }
+    for (const [ingredientName, resolution] of Object.entries(ingredients)) {
+      const row = owner.body.detailedIngredients.find(
+        (ingredient) => ingredientKey(ingredient.name) === ingredientKey(ingredientName),
+      );
+      if (!row) {
+        failures.push(`${productName}: duplicate-resolution ingredient "${ingredientName}" was not emitted`);
+        continue;
+      }
+      if (resolution === 'paid' && (!row.isOptional || row.isIncludedInBasePrice || row.price <= 0)) {
+        failures.push(
+          `${productName}: "${ingredientName}" must remain an optional paid extra, but emitted ` +
+            `price=${row.price}, isOptional=${row.isOptional}, isIncludedInBasePrice=${row.isIncludedInBasePrice}`,
+        );
+      } else if (resolution !== 'paid' && resolution !== 'included') {
+        failures.push(`${productName}: unsupported duplicate resolution "${resolution}"`);
+      }
+    }
+  }
+  return failures;
+};
+
+/**
+ * Direct partner requirements for the three Tacos recipes. These rows are recipe-carrier data,
+ * not the type=menu parents, so the check must inspect the emitted component owners.
+ */
+const verifyTacosRecipes = (owners) => {
+  const failures = [];
+  const names = ['Tacos 1 Viande', 'Tacos 2 Viande', 'Tacos 3 Viande'];
+  const paidExtras = new Map([
+    ['Viande', 3],
+    ['Emmental', 1],
+    ['Cheddar', 1],
+    ['Chèvre', 1],
+  ]);
+  const vegetables = ['Salade', 'Tomate', 'Oignon'];
+  for (const name of names) {
+    const owner = owners.find(
+      (candidate) => candidate.body.name === name && candidate.body.detailedIngredients.length > 0,
+    );
+    if (!owner) {
+      failures.push(`${name}: Tacos recipe carrier was not emitted`);
+      continue;
+    }
+    if (owner.body.sauceMin !== 1 || owner.body.sauceMax !== 2 || owner.body.sauceIncludedFree !== 2) {
+      failures.push(
+        `${name}: sauce rule must be 1..2 with 2 free, emitted ` +
+          `${owner.body.sauceMin}..${owner.body.sauceMax} with ${owner.body.sauceIncludedFree} free`,
+      );
+    }
+    const rows = new Map(
+      owner.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
+    );
+    for (const [ingredientName, price] of paidExtras) {
+      const row = rows.get(ingredientKey(ingredientName));
+      if (!row || !row.isOptional || row.isIncludedInBasePrice || row.price !== price) {
+        failures.push(`${name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
+      }
+    }
+    for (const ingredientName of vegetables) {
+      const row = rows.get(ingredientKey(ingredientName));
+      if (!row || !row.isOptional) {
+        failures.push(`${name}: optional vegetable "${ingredientName}" was not emitted`);
+      }
     }
   }
   return failures;
@@ -1202,6 +1301,34 @@ const verifyDrinkSections = (products, menus, components) => {
 };
 
 /**
+ * Each Menu Enfant must retain the source site's required drink question. Checking only sections
+ * that happen to exist would let an accidental omission pass vacuously, while `verifyDrinkSections`
+ * checks the identity of any options that remain.
+ */
+const verifyKidsDrinkSections = (menus) => {
+  const failures = [];
+  for (const menu of menus.filter((candidate) =>
+    /^Menu Enfant (Kebab|Hamburger|Nuggets)$/i.test(candidate.body.name),
+  )) {
+    const drinkSections = (menu.sections ?? []).filter((section) => String(section.__groupId) === String(DRINK_GROUP));
+    if (drinkSections.length !== 1) {
+      failures.push(`${menu.body.name}: expected exactly one required Boisson section, found ${drinkSections.length}`);
+      continue;
+    }
+    const [section] = drinkSections;
+    if (
+      !section.isRequired ||
+      section.minSelection !== 1 ||
+      section.maxSelection !== 1 ||
+      section.itemRefs.length === 0
+    ) {
+      failures.push(`${menu.body.name}/${section.name}: drink choice must be required 1..1 with at least one option`);
+    }
+  }
+  return failures;
+};
+
+/**
  * A bundle section whose NAME sells a number must REQUIRE that number.
  *
  * Their groups say `minSelect: 1, maxSelect: N` on a group they themselves called "3 Viandes",
@@ -1209,16 +1336,20 @@ const verifyDrinkSections = (products, menus, components) => {
  * which a guest pays 13,00 € for three meats and may leave with one — legal server-side, invisible
  * to every structural check, and a refund conversation. The referent is their own group name.
  */
-const verifySectionCounts = (decisions) => {
+const verifySectionCounts = (decisions, products, menus) => {
   const failures = [];
-  for (const [id, group] of Object.entries(decisions.modifierGroups)) {
-    if (id === '_' || group.target !== 'bundle') continue;
-    const sold = Number(/^(\d+)\b/.exec(group.sourceName ?? '')?.[1]);
-    if (Number.isInteger(sold) && sold === group.maxSelection && group.minSelection !== sold) {
-      failures.push(
-        `group ${id} (${group.sourceName}): its name sells ${sold} and maxSelection is ${sold}, but ` +
-          `minSelection is ${group.minSelection} — a guest pays for ${sold} and may pick ${group.minSelection}`,
-      );
+  for (const owner of [...products, ...menus]) {
+    for (const section of owner.sections ?? []) {
+      const group = decisions.modifierGroups[String(section.__groupId)];
+      if (!group || group.target !== 'bundle') continue;
+      const sold = Number(/^(\d+)\b/.exec(group.sourceName ?? '')?.[1]);
+      if (!Number.isInteger(sold) || sold !== group.maxSelection) continue;
+      if (section.minSelection !== sold || section.maxSelection !== sold) {
+        failures.push(
+          `${owner.body.name}/${section.name}: its name sells ${sold}, but emitted ` +
+            `minSelection=${section.minSelection}, maxSelection=${section.maxSelection}`,
+        );
+      }
     }
   }
   return failures;
@@ -1293,7 +1424,7 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
   console.log(`rows with a sauce rule     ${sauced}`);
   console.log(`  …of which sauce rows      ${sauceRows}`);
   if (merges.length) {
-    console.log(`\nmerged duplicate ingredients (${merges.length}) — the included row won:`);
+    console.log(`\nmerged duplicate ingredients (${merges.length}) — resolved per decisions.json:`);
     for (const line of merges) console.log(`  ${line}`);
   }
   console.log('');
@@ -1305,6 +1436,11 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
     ['every product with a sauce RULE carries the sauce ROWS to satisfy it', verifySauces(recipeOwners)],
     ['no ingredient is marked mutually exclusive', verifyExclusionGroups(recipeOwners)],
     ['no product names the same ingredient twice', verifyNoDuplicateIngredients(recipeOwners)],
+    [
+      'partner duplicate-ingredient resolutions are applied',
+      verifyDuplicateIngredientResolutions(decisions, recipeOwners),
+    ],
+    ['Tacos recipes carry the requested extras, vegetables, and sauce rule', verifyTacosRecipes(recipeOwners)],
     ['no guest-facing ingredient is still phrased as a removal', verifyNoNegatedNames(recipeOwners)],
     ["the app's own default selection is ORDERABLE (sauces within sauceMax)", verifyDefaultSelection(recipeOwners)],
     ['hideBaseProduct only where there is an active variation to sell instead', verifyBaseRow(products)],
@@ -1314,7 +1450,8 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
       'every drink section names the REAL beverages, not hidden copies',
       verifyDrinkSections(products, menus, components),
     ],
-    ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions)],
+    ['each Menu Enfant asks for a required drink', verifyKidsDrinkSections(menus)],
+    ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions, products, menus)],
     [
       'every bundle section and Plat resolves to something this run creates',
       verifySections(products, menus, components),

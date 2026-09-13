@@ -176,6 +176,12 @@
     "Algerienne": "Algérienne",
     "Sauce Fromage": "Sauce fromage"
   },
+  "duplicateIngredientResolution": {
+    "_": "The default collision policy keeps the included base-recipe row. Partner feedback confirms the paid Emmental extra wins only on the three Tacos recipes, where the source has both Sans Emmentale and + Emmentale.",
+    "Tacos 1 Viande": { "Emmental": "paid" },
+    "Tacos 2 Viande": { "Emmental": "paid" },
+    "Tacos 3 Viande": { "Emmental": "paid" }
+  },
   "dropOptions": {
     "_": "Options removed. Group-scoped: 'groupId:exact source name'.",
     "82:+ Oignon": "duplicate of '+ Oignons' in the same group, both free — keeping the plural (owner)",

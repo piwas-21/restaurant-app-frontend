@@ -241,6 +241,26 @@ that passes because it found nothing is worse than one that fails.
 carrying none — the gate is `stepBlocker` in the browser only. Measured; harmless here, and not
 MC FOOD-specific.
 
+## Partner feedback follow-up (2026-09-13)
+
+The live-catalogue audit confirmed the following requested structures and prices:
+
+- Tacos 1/2/3 Viande use a required 1–3 meat section matching the product name and a required
+  sauce rule of 1–2, with the source's seven meat choices. Their recipe carrier keeps optional
+  paid extras `Viande` (3,00 €), `Emmental` (1,00 €), `Cheddar` (1,00 €), and `Chèvre` (1,00 €),
+  plus optional base vegetables `Salade`, `Tomate`, and `Oignon`.
+- Menu Enfant Kebab, Hamburger, and Nuggets each retain one required `Boisson` section (1–1)
+  pointing at the real beverage products.
+- Assiette Mixte retains a required `Viandes` section of exactly 3 choices.
+- LIBANAISE 1/2/3 VIANDE retain required meat sections of exactly 1/2/3 choices.
+
+The source has both `Sans Emmentale` and `+ Emmentale` on each Tacos recipe. The partner's
+feedback resolves that collision in favour of the paid extra, while other source collisions
+continue to keep the included base-recipe row. `duplicateIngredientResolution` records this
+exception and `map.mjs --verify` checks the emitted recipe rather than trusting the decision file.
+The same verify run checks emitted meat counts and the presence and cardinality of all three
+children's drink sections, so a rebuild cannot silently drop those questions.
+
 ## Importing it
 
 Provisioning gives an **empty** tenant — it seeds `RestaurantInfo` and nothing else, and no

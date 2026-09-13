@@ -69,6 +69,8 @@ export const ORDER_STATUS_META: Readonly<Record<OrderStatus, OrderStatusMeta>> =
   Refunded: { i18nKey: 'order_status_refunded', className: 'statusCancelled', tone: 'danger' },
 };
 
+export const ORDER_STATUSES: readonly OrderStatus[] = Object.keys(ORDER_STATUS_META) as OrderStatus[];
+
 /**
  * Which statuses a staff surface may offer NEXT, mirroring the backend's `IsValidStatusTransition`
  * (`UpdateOrderStatusCommand.cs`) — the only authority on what the server will accept.

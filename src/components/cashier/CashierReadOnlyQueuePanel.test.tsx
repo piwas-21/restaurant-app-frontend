@@ -60,13 +60,37 @@ describe('CashierReadOnlyQueuePanel', () => {
     const onStatusFilterChange = jest.fn();
     render(<CashierReadOnlyQueuePanel {...props({ onSelectOrder, onSearchSubmit, onStatusFilterChange })} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open 1042' }));
+    fireEvent.click(screen.getByRole('button', { name: /1042/ }));
     fireEvent.submit(screen.getByRole('search'));
     fireEvent.change(screen.getByLabelText('cashier.workspace.status_filter'), { target: { value: 'Ready' } });
 
     expect(onSelectOrder).toHaveBeenCalledWith('one');
     expect(onSearchSubmit).toHaveBeenCalledTimes(1);
     expect(onStatusFilterChange).toHaveBeenCalledWith('Ready');
+  });
+
+  it('names the visible queue context and offers every canonical status', () => {
+    render(<CashierReadOnlyQueuePanel {...props()} />);
+
+    const row = screen.getByRole('button', { name: /1042/ });
+    expect(row).toHaveAccessibleName(expect.stringContaining('cashier.workspace.channel_takeaway'));
+    expect(row).toHaveAccessibleName(expect.stringContaining('cashier.workspace.due_value'));
+    const statusSelect = screen.getByLabelText('cashier.workspace.status_filter') as HTMLSelectElement;
+    expect([...statusSelect.options].map((option) => option.value)).toEqual([
+      'all',
+      'Pending',
+      'PendingApproval',
+      'Confirmed',
+      'Preparing',
+      'In Progress',
+      'Ready',
+      'OutForDelivery',
+      'InTransit',
+      'Delivered',
+      'Completed',
+      'Cancelled',
+      'Refunded',
+    ]);
   });
 
   it('keeps the last snapshot visible while stale and distinguishes unavailable', () => {

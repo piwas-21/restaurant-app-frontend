@@ -1,13 +1,15 @@
 'use client';
 
+import type { Ref } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
 import { formatPlainCurrency } from '@/utils/currency';
-import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
+import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
 import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
+import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './CashierWorkspaceTicket.module.css';
 
@@ -16,6 +18,10 @@ interface CashierReadOnlyTicketProps {
   readonly isLoading?: boolean;
   readonly error?: string | null;
   readonly onBack?: () => void;
+  readonly timeZone?: string;
+  readonly backButtonRef?: Ref<HTMLButtonElement>;
+  readonly headingRef?: Ref<HTMLHeadingElement>;
+  readonly stateRef?: Ref<HTMLDivElement>;
 }
 
 function amountDue(order: OrderDto): number {
@@ -23,11 +29,8 @@ function amountDue(order: OrderDto): number {
   return order.total - order.totalPaid;
 }
 
-function formatDate(value: string, language: string, t: TFunction): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? t('cashier.workspace.unknown_time')
-    : date.toLocaleString(language || 'en', { dateStyle: 'medium', timeStyle: 'short' });
+function formatDate(value: string, language: string, timeZone: string | undefined, t: TFunction): string {
+  return formatCashierDateTime(value, language, timeZone, 'medium', t('cashier.workspace.unknown_time'));
 }
 
 function channelLabel(type: string, t: TFunction): string {
@@ -37,40 +40,61 @@ function channelLabel(type: string, t: TFunction): string {
   return t('cashier.workspace.channel_unknown');
 }
 
-export default function CashierReadOnlyTicket({ order, isLoading = false, error, onBack }: CashierReadOnlyTicketProps) {
+export default function CashierReadOnlyTicket({
+  order,
+  isLoading = false,
+  error,
+  onBack,
+  timeZone,
+  backButtonRef,
+  headingRef,
+  stateRef,
+}: CashierReadOnlyTicketProps) {
   const { t, i18n } = useTranslation();
+  const backButton = onBack ? (
+    <button type="button" ref={backButtonRef} className={styles.backButton} onClick={onBack}>
+      {t('cashier.workspace.back_to_list')}
+    </button>
+  ) : null;
 
   if (isLoading) {
-    return <output className={styles.ticketState}>{t('cashier.workspace.order_loading')}</output>;
+    return (
+      <div ref={stateRef} className={styles.ticketState} tabIndex={-1}>
+        {backButton}
+        <output>{t('cashier.workspace.order_loading')}</output>
+      </div>
+    );
   }
   if (error) {
     return (
-      <div className={`${styles.ticketState} ${styles.ticketError}`} role="alert">
+      <div ref={stateRef} className={`${styles.ticketState} ${styles.ticketError}`} role="alert" tabIndex={-1}>
+        {backButton}
         <p>{error === 'cashier.workspace.order_unavailable' ? t(error) : error}</p>
       </div>
     );
   }
   if (!order) {
-    return <div className={styles.ticketState}>{t('cashier.workspace.select_order')}</div>;
+    return (
+      <div ref={stateRef} className={styles.ticketState} tabIndex={-1}>
+        {t('cashier.workspace.select_order')}
+      </div>
+    );
   }
 
-  const status = orderStatusPresentation(order.status, t);
   const due = amountDue(order);
   return (
     <article className={styles.ticket} aria-labelledby="cashier-ticket-title">
-      {onBack && (
-        <button type="button" className={styles.backButton} onClick={onBack}>
-          {t('cashier.workspace.back_to_list')}
-        </button>
-      )}
+      {backButton}
       <header className={styles.ticketHeader}>
         <div>
           <p className={styles.eyebrow}>{t('cashier.workspace.order_details')}</p>
-          <h2 id="cashier-ticket-title">{order.orderNumber}</h2>
-          <time dateTime={order.orderDate}>{formatDate(order.orderDate, i18n.language, t)}</time>
+          <h2 id="cashier-ticket-title" ref={headingRef} tabIndex={-1} dir="auto">
+            {order.orderNumber}
+          </h2>
+          <time dateTime={order.orderDate}>{formatDate(order.orderDate, i18n.language, timeZone, t)}</time>
         </div>
         <div className={styles.ticketBadges}>
-          <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+          <OrderStatusBadge status={order.status} />
           <StatusBadge tone="neutral">{paymentStatusLabel(order.paymentStatus, t)}</StatusBadge>
         </div>
       </header>
@@ -81,7 +105,7 @@ export default function CashierReadOnlyTicket({ order, isLoading = false, error,
             <User size={16} aria-hidden="true" />
             {t('cashier.workspace.customer')}
           </dt>
-          <dd>{order.customerName || t('cashier.workspace.guest')}</dd>
+          <dd dir="auto">{order.customerName || t('cashier.workspace.guest')}</dd>
         </div>
         <div>
           <dt>{t('cashier.workspace.channel')}</dt>
@@ -99,7 +123,7 @@ export default function CashierReadOnlyTicket({ order, isLoading = false, error,
               <MapPin size={16} aria-hidden="true" />
               {t('cashier.workspace.delivery_address')}
             </dt>
-            <dd>{order.deliveryAddress.fullAddress}</dd>
+            <dd dir="auto">{order.deliveryAddress.fullAddress}</dd>
           </div>
         )}
       </dl>
@@ -118,7 +142,9 @@ export default function CashierReadOnlyTicket({ order, isLoading = false, error,
             <FileText size={18} aria-hidden="true" />
             {t('cashier.workspace.notes')}
           </h3>
-          <p className={styles.notes}>{order.notes}</p>
+          <p className={styles.notes} dir="auto">
+            {order.notes}
+          </p>
         </section>
       )}
 

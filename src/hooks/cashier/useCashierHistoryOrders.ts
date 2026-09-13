@@ -76,7 +76,7 @@ export function useCashierHistoryOrders(
     if (!enabled) {
       requestRef.current += 1;
       hasSnapshot.current = false;
-      setResult(emptyPage(query));
+      setResult(emptyPage(queryRef.current));
       setError(null);
       setQueueState(blockedState);
       setIsLoading(blockedState === 'loading');
@@ -84,7 +84,7 @@ export function useCashierHistoryOrders(
     }
     setIsLoading(true);
     void refreshOrders();
-  }, [blockedState, enabled, fetchKey, query, refreshOrders]);
+  }, [blockedState, enabled, fetchKey, refreshOrders]);
 
   return {
     orders: result.items,

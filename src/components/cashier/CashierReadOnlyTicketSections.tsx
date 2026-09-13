@@ -1,6 +1,8 @@
 import type { TFunction } from 'i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { OrderItemDto, OrderPaymentDto } from '@/types/order';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './CashierWorkspaceTicket.module.css';
 
@@ -70,20 +72,21 @@ export function TicketItems({ items, t }: { readonly items: readonly OrderItemDt
     <ul className={styles.ticketItems}>
       {items.map((item) => (
         <li key={item.id} className={styles.ticketItem}>
-          <div className={styles.ticketItemMain}>
-            <span className={styles.ticketItemQuantity}>{item.quantity}×</span>
-            <span>
-              <strong>{item.productName || t('cashier.workspace.unknown_item')}</strong>
-              {item.variationName && <span className={styles.itemSecondary}> · {item.variationName}</span>}
-              {item.specialInstructions && <span className={styles.itemInstruction}>{item.specialInstructions}</span>}
-            </span>
+          <div className={styles.ticketItemContent}>
+            <div className={styles.ticketItemMain}>
+              <span className={styles.ticketItemQuantity}>{item.quantity}×</span>
+              <span>
+                <strong dir="auto">{item.productName || t('cashier.workspace.unknown_item')}</strong>
+                {item.variationName && (
+                  <span className={styles.itemSecondary}>
+                    · <span dir="auto">{item.variationName}</span>
+                  </span>
+                )}
+              </span>
+            </div>
+            <OrderLineSummary line={orderItemToLineSummary(item)} />
           </div>
           <span className={styles.ticketItemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
-          {(item.sideItems ?? []).length > 0 && (
-            <div className={styles.childItems}>
-              <TicketItems items={item.sideItems ?? []} t={t} />
-            </div>
-          )}
         </li>
       ))}
     </ul>

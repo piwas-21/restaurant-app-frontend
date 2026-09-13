@@ -88,6 +88,10 @@
 .paymentRow:last-child {
   border-bottom: 0;
 }
+.ticketItemContent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .ticketItemMain {
   display: flex;
   gap: 0.5rem;

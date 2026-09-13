@@ -44,5 +44,10 @@ export default function CashierLayout({ children }: CashierLayoutProps) {
     return null;
   }
 
+  const userRole = user.role?.toLowerCase();
+  if (userRole !== 'cashier' && userRole !== 'admin') {
+    return null;
+  }
+
   return <>{children}</>;
 }

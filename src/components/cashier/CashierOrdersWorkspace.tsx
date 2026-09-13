@@ -5,6 +5,7 @@ import { useCashierOrders } from '@/hooks/useCashierOrders';
 import { useCashierFilters } from '@/hooks/cashier/useCashierFilters';
 import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { useCashierOrderSelection } from '@/hooks/cashier/useCashierOrderSelection';
+import { useCashierTenantTimeZone } from '@/hooks/cashier/useCashierTenantTimeZone';
 import CashierReadOnlyDestination from './CashierReadOnlyDestination';
 
 export default function CashierOrdersWorkspace() {
@@ -13,11 +14,13 @@ export default function CashierOrdersWorkspace() {
   const queue = useCashierOrders(filters.query);
   const route = useCashierOrderRoute();
   const selection = useCashierOrderSelection(queue.orders, route.selectedOrderId);
+  const timeZone = useCashierTenantTimeZone();
 
   return (
     <CashierReadOnlyDestination
       destination="orders"
       description={t('cashier.workspace.orders_description')}
+      timeZone={timeZone}
       orders={queue.orders}
       pagination={queue.pagination}
       queueState={queue.queueState}

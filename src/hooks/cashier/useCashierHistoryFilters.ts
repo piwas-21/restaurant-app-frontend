@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { getCashierTenantDay } from '@/services/cashierService';
+import { getCashierTenantContext } from '@/services/cashierService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { CASHIER_TENANT_DAY_REFRESH_MS } from '@/lib/config';
 import { daysBetween, isCalendarDay } from '@/utils/calendarDay';
@@ -9,8 +9,6 @@ import { historyDateWindow, readDay, readPage, readRange } from './cashierHistor
 import { CASHIER_ORDERS_PAGE_SIZE, CASHIER_SEARCH_DEBOUNCE_MS } from './useCashierFilters';
 import type { CashierHistoryFilters, CashierHistoryQuery, CashierHistoryRange } from './cashierHistoryTypes';
 export type { CashierHistoryFilters, CashierHistoryQuery, CashierHistoryRange };
-
-/** URL-backed History filters. Calendar ranges are derived from the restaurant-named day. */
 export function useCashierHistoryFilters(): CashierHistoryFilters {
   const pathname = usePathname();
   const router = useRouter();
@@ -29,10 +27,12 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
   const searchRef = useRef(submittedSearch);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tenantDay, setTenantDay] = useState<string>();
+  const [tenantTimeZone, setTenantTimeZone] = useState<string>();
   const [tenantDayLoading, setTenantDayLoading] = useState(true);
   const [tenantDayError, setTenantDayError] = useState(false);
   const [tenantDayErrorMessage, setTenantDayErrorMessage] = useState<string | null>(null);
   const tenantRequestRef = useRef(0);
+  const tenantContextSettledRef = useRef(false);
   const replaceParams = useCallback(
     (changes: Record<string, string | null>) => {
       const next = new URLSearchParams(paramsString);
@@ -45,25 +45,26 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
     },
     [paramsString, pathname, router],
   );
-  const loadTenantDay = useCallback(async () => {
+  const loadTenantContext = useCallback(async () => {
     const requestId = ++tenantRequestRef.current;
     setTenantDayLoading(true);
     setTenantDayError(false);
-    setTenantDayErrorMessage(null);
     try {
-      const day = await getCashierTenantDay();
+      const context = await getCashierTenantContext();
       if (requestId !== tenantRequestRef.current) return;
-      if (day && isCalendarDay(day)) {
-        setTenantDay(day);
+      tenantContextSettledRef.current = true;
+      if (context?.timeZone) setTenantTimeZone(context.timeZone);
+      if (context?.date && isCalendarDay(context.date)) {
+        setTenantDay(context.date);
+        setTenantDayError(false);
         setTenantDayErrorMessage(null);
       } else {
-        setTenantDay(undefined);
         setTenantDayError(true);
         setTenantDayErrorMessage(null);
       }
     } catch (reason: unknown) {
       if (requestId !== tenantRequestRef.current) return;
-      setTenantDay(undefined);
+      tenantContextSettledRef.current = true;
       setTenantDayError(true);
       setTenantDayErrorMessage(getErrorMessage(reason));
     } finally {
@@ -71,21 +72,27 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
     }
   }, []);
   useEffect(() => {
-    void loadTenantDay();
+    if (range === 'custom') {
+      if (!tenantContextSettledRef.current) void loadTenantContext();
+      return () => {
+        tenantRequestRef.current += 1;
+      };
+    }
+    void loadTenantContext();
     const onVisible = () => {
-      if (document.visibilityState === 'visible') void loadTenantDay();
+      if (document.visibilityState === 'visible') void loadTenantContext();
     };
     document.addEventListener('visibilitychange', onVisible);
     const timer =
       CASHIER_TENANT_DAY_REFRESH_MS === undefined
         ? undefined
-        : window.setInterval(() => void loadTenantDay(), CASHIER_TENANT_DAY_REFRESH_MS);
-
+        : window.setInterval(() => void loadTenantContext(), CASHIER_TENANT_DAY_REFRESH_MS);
     return () => {
+      tenantRequestRef.current += 1;
       document.removeEventListener('visibilitychange', onVisible);
       if (timer !== undefined) window.clearInterval(timer);
     };
-  }, [loadTenantDay]);
+  }, [loadTenantContext, range]);
   useEffect(() => {
     if (submittedSearch === searchRef.current) return;
     searchRef.current = submittedSearch;
@@ -163,10 +170,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
       ...dateWindow,
     };
   }, [fromDay, orderTypeFilter, page, paymentStatusFilter, range, statusFilter, submittedSearch, tenantDay, toDay]);
-  const refreshTenantDay = useCallback(() => {
-    void loadTenantDay();
-  }, [loadTenantDay]);
-
+  const refreshTenantDay = useCallback(() => void loadTenantContext(), [loadTenantContext]);
   return {
     range,
     fromDay,
@@ -177,6 +181,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
     orderTypeFilter,
     query,
     tenantDay,
+    tenantTimeZone,
     tenantDayLoading,
     tenantDayError,
     tenantDayErrorMessage,

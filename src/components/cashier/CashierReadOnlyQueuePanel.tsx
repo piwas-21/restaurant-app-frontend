@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
-import { orderStatusLabel } from '@/lib/orderStatus';
+import { ORDER_STATUSES, orderStatusLabel } from '@/lib/orderStatus';
 import type { CashierQueueState } from '@/types/cashier';
 import type { OrderDto } from '@/types/order';
 import CashierReadOnlyOrderList from './CashierReadOnlyOrderList';
@@ -29,27 +29,18 @@ interface CashierReadOnlyQueuePanelProps {
   readonly statusFilter: string;
   readonly paymentStatusFilter: string;
   readonly orderTypeFilter: string;
+  readonly timeZone?: string;
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
+  readonly onOrderRowRef?: (orderId: string, node: HTMLButtonElement | null) => void;
   readonly onSearchChange: (value: string) => void;
   readonly onSearchSubmit: () => void;
   readonly onStatusFilterChange: (value: string) => void;
   readonly onPaymentStatusFilterChange: (value: string) => void;
   readonly onOrderTypeFilterChange: (value: string) => void;
   readonly onPageChange: (page: number) => void;
-  readonly onRetry: () => void;
+  readonly onRetry?: () => void;
 }
-
-const ORDER_STATUSES = [
-  'Pending',
-  'PendingApproval',
-  'Confirmed',
-  'Preparing',
-  'Ready',
-  'OutForDelivery',
-  'Completed',
-  'Cancelled',
-] as const;
 
 export default function CashierReadOnlyQueuePanel({
   destination,
@@ -63,8 +54,10 @@ export default function CashierReadOnlyQueuePanel({
   statusFilter,
   paymentStatusFilter,
   orderTypeFilter,
+  timeZone,
   additionalFilters,
   onSelectOrder,
+  onOrderRowRef,
   onSearchChange,
   onSearchSubmit,
   onStatusFilterChange,
@@ -157,9 +150,11 @@ export default function CashierReadOnlyQueuePanel({
       {queueState === 'stale' && (
         <div className={styles.stateMessageWarning} role="status">
           <span>{t('cashier.workspace.queue_stale')}</span>
-          <button type="button" className={styles.stateAction} onClick={onRetry} disabled={isLoading}>
-            {t('cashier.workspace.retry')}
-          </button>
+          {onRetry && (
+            <button type="button" className={styles.stateAction} onClick={onRetry} disabled={isLoading}>
+              {t('cashier.workspace.retry')}
+            </button>
+          )}
         </div>
       )}
       {isLoading && orders.length === 0 && (
@@ -170,16 +165,24 @@ export default function CashierReadOnlyQueuePanel({
           <span>
             {error || t(isHistory ? 'cashier.workspace.history_unavailable' : 'cashier.workspace.queue_unavailable')}
           </span>
-          <button type="button" className={styles.stateAction} onClick={onRetry}>
-            {t('cashier.workspace.retry')}
-          </button>
+          {onRetry && (
+            <button type="button" className={styles.stateAction} onClick={onRetry}>
+              {t('cashier.workspace.retry')}
+            </button>
+          )}
         </div>
       )}
       {!isLoading && queueState !== 'unavailable' && orders.length === 0 && (
         <div className={styles.stateMessage}>{t('cashier.workspace.no_matches')}</div>
       )}
       {orders.length > 0 && (
-        <CashierReadOnlyOrderList orders={orders} selectedOrderId={selectedOrderId} onSelectOrder={onSelectOrder} />
+        <CashierReadOnlyOrderList
+          orders={orders}
+          selectedOrderId={selectedOrderId}
+          timeZone={timeZone}
+          onSelectOrder={onSelectOrder}
+          onOrderRowRef={onOrderRowRef}
+        />
       )}
       {pagination.totalPages > 1 && (
         <div className={styles.pagination}>

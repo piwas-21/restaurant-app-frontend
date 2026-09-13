@@ -3,16 +3,18 @@
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
-import { orderStatusPresentation } from '@/lib/orderStatusPresentation';
+import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
-import StatusBadge from '@/components/design-system/StatusBadge';
+import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import styles from './CashierWorkspaceList.module.css';
 
 interface CashierReadOnlyOrderListProps {
   readonly orders: readonly OrderDto[];
   readonly selectedOrderId: string | null;
+  readonly timeZone?: string;
   readonly onSelectOrder: (orderId: string) => void;
+  readonly onOrderRowRef?: (orderId: string, node: HTMLButtonElement | null) => void;
 }
 
 function orderTypeLabel(type: string, t: TFunction): string {
@@ -22,10 +24,8 @@ function orderTypeLabel(type: string, t: TFunction): string {
   return type;
 }
 
-function orderTime(orderDate: string, language: string, t: TFunction): string {
-  const date = new Date(orderDate);
-  if (Number.isNaN(date.getTime())) return t('cashier.workspace.unknown_time');
-  return date.toLocaleString(language || 'en', { dateStyle: 'short', timeStyle: 'short' });
+function orderTime(orderDate: string, language: string, timeZone: string | undefined, t: TFunction): string {
+  return formatCashierDateTime(orderDate, language, timeZone, 'short', t('cashier.workspace.unknown_time'));
 }
 
 function amountDue(order: OrderDto): number {
@@ -36,38 +36,45 @@ function amountDue(order: OrderDto): number {
 export default function CashierReadOnlyOrderList({
   orders,
   selectedOrderId,
+  timeZone,
   onSelectOrder,
+  onOrderRowRef,
 }: CashierReadOnlyOrderListProps) {
   const { t, i18n } = useTranslation();
 
   return (
     <ul className={styles.orderList} aria-label={t('cashier.workspace.order_list')}>
       {orders.map((order) => {
-        const status = orderStatusPresentation(order.status, t);
         const due = amountDue(order);
         const selected = selectedOrderId?.toLowerCase() === order.id.toLowerCase();
         return (
           <li key={order.id} className={styles.orderListItem}>
             <button
+              ref={(node) => onOrderRowRef?.(order.id, node)}
               type="button"
               className={`${styles.orderRow} ${selected ? styles.orderRowSelected : ''}`}
               onClick={() => onSelectOrder(order.id)}
               aria-current={selected ? 'true' : undefined}
-              aria-label={t('cashier.workspace.open_order', { order: order.orderNumber })}
+              aria-describedby={`cashier-order-${order.id}-description`}
             >
+              <span id={`cashier-order-${order.id}-description`} className="sr-only">
+                {t('cashier.workspace.open_order', { order: order.orderNumber })}
+              </span>
               <span className={styles.orderRowTop}>
-                <span className={styles.orderNumber}>{order.orderNumber}</span>
-                <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+                <span className={styles.orderNumber} dir="auto">
+                  {order.orderNumber}
+                </span>
+                <OrderStatusBadge status={order.status} />
               </span>
               <span className={styles.orderRowMeta}>
                 <span>{orderTypeLabel(order.type, t)}</span>
                 {order.tableNumber !== undefined && (
                   <span>{t('cashier.workspace.table_value', { table: order.tableNumber })}</span>
                 )}
-                <time dateTime={order.orderDate}>{orderTime(order.orderDate, i18n.language, t)}</time>
+                <time dateTime={order.orderDate}>{orderTime(order.orderDate, i18n.language, timeZone, t)}</time>
               </span>
               <span className={styles.orderRowBottom}>
-                <span>{order.customerName || t('cashier.workspace.guest')}</span>
+                <span dir="auto">{order.customerName || t('cashier.workspace.guest')}</span>
                 <span className={due > 0 ? styles.amountDue : due < 0 ? styles.amountCredit : styles.amountSettled}>
                   {due > 0
                     ? t('cashier.workspace.due_value', { amount: formatPlainCurrency(due) })

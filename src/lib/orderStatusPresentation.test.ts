@@ -1,3 +1,4 @@
+import { ORDER_STATUSES } from './orderStatus';
 import { orderStatusPresentation } from './orderStatusPresentation';
 
 const t = (key: string) => `translated:${key}`;
@@ -13,6 +14,14 @@ describe('orderStatusPresentation', () => {
     expect(orderStatusPresentation(status, t)).toEqual({ label, tone, fill });
   });
 
+  it('covers every canonical status through the shared presentation', () => {
+    ORDER_STATUSES.forEach((status) => {
+      const presentation = orderStatusPresentation(status, t);
+      expect(presentation.label).toMatch(/^translated:order_status_/);
+      expect(presentation.tone).not.toBe('neutral');
+    });
+  });
+
   it('keeps an unknown server value visible with neutral styling', () => {
     expect(orderStatusPresentation('FutureStatus', t)).toEqual({
       label: 'FutureStatus',
@@ -22,6 +31,10 @@ describe('orderStatusPresentation', () => {
   });
 
   it('does not invent a label for an absent status', () => {
-    expect(orderStatusPresentation(null, t)).toEqual({ label: '', tone: 'neutral', fill: 'completed' });
+    expect(orderStatusPresentation(null, t)).toEqual({
+      label: '',
+      tone: 'neutral',
+      fill: 'completed',
+    });
   });
 });

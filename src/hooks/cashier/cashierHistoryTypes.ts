@@ -2,6 +2,7 @@ import type { OrderListScope } from '@/types/order';
 
 export type CashierHistoryRange = 'today' | 'yesterday' | 'week' | 'custom';
 
+/** Requires backend queue contract 49970ca plus its DateOnly tenant range fields. */
 export interface CashierHistoryQuery {
   readonly scope: OrderListScope;
   readonly page: number;
@@ -25,6 +26,7 @@ export interface CashierHistoryFilters {
   readonly orderTypeFilter: string;
   readonly query: CashierHistoryQuery;
   readonly tenantDay: string | undefined;
+  readonly tenantTimeZone: string | undefined;
   readonly tenantDayLoading: boolean;
   readonly tenantDayError: boolean;
   readonly tenantDayErrorMessage: string | null;

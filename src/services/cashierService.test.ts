@@ -1,5 +1,11 @@
 import { apiClient } from '@/utils/apiClient';
-import { getCashierOrders, getCashierTenantDay, getPaymentOperation, refundPayment } from './cashierService';
+import {
+  getCashierOrders,
+  getCashierTenantContext,
+  getCashierTenantDay,
+  getPaymentOperation,
+  refundPayment,
+} from './cashierService';
 import { PaymentMethod, type OrderPaymentDto } from '@/types/order';
 
 jest.mock('@/utils/apiClient', () => ({
@@ -133,6 +139,13 @@ describe('getCashierTenantDay', () => {
 
     await expect(getCashierTenantDay()).resolves.toBe('2026-03-08');
     expect(mockGet).toHaveBeenCalledWith('/api/tenant/today', { requireAuth: true });
+  });
+
+  it('preserves the server timezone alongside the calendar day', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    mockGet.mockResolvedValueOnce({ data: { date: '2026-03-08', timeZone: 'Europe/Zurich' }, success: true });
+
+    await expect(getCashierTenantContext()).resolves.toEqual({ date: '2026-03-08', timeZone: 'Europe/Zurich' });
   });
 
   it('does not invent a date when the tenant response is malformed', async () => {

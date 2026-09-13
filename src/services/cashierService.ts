@@ -23,20 +23,32 @@ import { SseDiagnostics } from '@/types/diagnostics';
 import type { CashierOrdersFilters } from '@/types/cashier';
 
 /**
- * Names the restaurant calendar day for a single queue window. Date ranges use the date-only
- * tenantStartDay/tenantEndDay fields below so the backend, not a browser clock, resolves DST. This
- * stays in the cashier service so
- * the POS does not need the reservation-specific tenant-day cache/analytics bundle at first
- * paint. Undefined is deliberately safe: the caller omits its date filter rather than guessing
- * from a counter tablet's clock (#545).
+ * The server context used by cashier date windows and order timestamps. Date ranges use the
+ * date-only tenantStartDay/tenantEndDay fields below so the backend, not a browser clock, resolves
+ * DST. Keeping the timezone beside the day prevents a device in a different zone from relabelling
+ * a tenant order at the midnight boundary.
  */
-export async function getCashierTenantDay(): Promise<string | undefined> {
-  const response = await apiClient.get<{ data?: { date?: unknown } }>('/api/tenant/today', {
+export interface CashierTenantContext {
+  readonly date?: string;
+  readonly timeZone?: string;
+}
+
+export async function getCashierTenantContext(): Promise<CashierTenantContext | undefined> {
+  const response = await apiClient.get<{ data?: { date?: unknown; timeZone?: unknown } }>('/api/tenant/today', {
     requireAuth: true,
   });
-  const day = response.data?.date;
+  const rawDate = response.data?.date;
+  const rawTimeZone = response.data?.timeZone;
+  const date = typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : undefined;
+  const timeZone = typeof rawTimeZone === 'string' && rawTimeZone.trim() ? rawTimeZone.trim() : undefined;
 
-  return typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : undefined;
+  return date || timeZone ? { date, timeZone } : undefined;
+}
+
+/** Backwards-compatible day-only facade for the legacy cashier date-range hook. */
+export async function getCashierTenantDay(): Promise<string | undefined> {
+  const context = await getCashierTenantContext();
+  return context?.date;
 }
 
 /**

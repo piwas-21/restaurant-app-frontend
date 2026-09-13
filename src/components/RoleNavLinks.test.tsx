@@ -51,7 +51,7 @@ describe('RoleNavLinks module gating', () => {
   });
 
   it.each([
-    ['cashier', 'cashier' as ModuleId, '/cashier'],
+    ['cashier', 'cashier' as ModuleId, '/cashier/orders'],
     ['server', 'server' as ModuleId, '/server'],
   ])('renders nothing for a %s whose module is off', (role, moduleId, href) => {
     renderNav(role, ['core']);

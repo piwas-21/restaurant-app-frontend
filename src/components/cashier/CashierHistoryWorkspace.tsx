@@ -13,10 +13,14 @@ export default function CashierHistoryWorkspace() {
   const filters = useCashierHistoryFilters();
   const queue = useCashierHistoryOrders(filters.query, {
     enabled: filters.rangeReady,
-    blockedState: filters.tenantDayLoading ? 'loading' : 'unavailable',
+    // A refresh of the tenant clock must not turn an already-valid query into a second queue fetch.
+    // The loading state is only meaningful while there is no usable range yet.
+    blockedState: filters.rangeReady ? 'unavailable' : filters.tenantDayLoading ? 'loading' : 'unavailable',
   });
   const route = useCashierOrderRoute();
   const selection = useCashierOrderSelection(queue.orders, route.selectedOrderId);
+  const effectiveQueueState =
+    filters.range !== 'custom' && filters.tenantDayError && filters.tenantDay ? 'stale' : queue.queueState;
   const rangeError =
     !filters.rangeReady && filters.range === 'custom'
       ? filters.tenantDayLoading
@@ -27,20 +31,23 @@ export default function CashierHistoryWorkspace() {
         : null;
 
   const retry = () => {
-    if (!filters.rangeReady || filters.tenantDayError) {
-      filters.refreshTenantDay();
+    if (filters.range === 'custom') {
+      if (filters.rangeReady) void queue.refreshOrders();
       return;
     }
-    void queue.refreshOrders();
+    if (filters.tenantDayError) void filters.refreshTenantDay();
+    if (filters.rangeReady) void queue.refreshOrders();
   };
+  const canRetry = filters.rangeReady || (filters.range !== 'custom' && filters.tenantDayError);
 
   return (
     <CashierReadOnlyDestination
       destination="history"
       description={t('cashier.workspace.history_description')}
+      timeZone={filters.tenantTimeZone}
       orders={queue.orders}
       pagination={queue.pagination}
-      queueState={queue.queueState}
+      queueState={effectiveQueueState}
       isLoading={queue.isLoading}
       error={rangeError || queue.error}
       selectedOrderId={route.selectedOrderId}
@@ -60,7 +67,7 @@ export default function CashierHistoryWorkspace() {
       onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
       onOrderTypeFilterChange={filters.setOrderTypeFilter}
       onPageChange={filters.setPage}
-      onRetry={retry}
+      onRetry={canRetry ? retry : undefined}
     />
   );
 }

@@ -11,10 +11,30 @@ export interface CashierOrderSelection {
   readonly error: string | null;
 }
 
-/**
- * Resolves a deep-linked order independently of the current page. The queue may be filtered or
- * paginated, but a copied `/cashier/orders?order=...` link must still identify its ticket.
- */
+type OrderWithVersion = OrderDto & { readonly version?: unknown };
+
+function queueFingerprint(order: OrderDto | null): string {
+  if (!order) return '';
+  const candidate = order as OrderWithVersion;
+  const version =
+    typeof candidate.version === 'string' || typeof candidate.version === 'number' ? String(candidate.version) : '';
+  const payments = (order.payments ?? [])
+    .map((payment) => `${payment.id}:${payment.status}:${payment.amount}:${payment.refundedAmount ?? ''}`)
+    .join(',');
+  return [
+    order.id.toLowerCase(),
+    version || order.updatedAt || '',
+    order.status,
+    order.paymentStatus,
+    order.total,
+    order.totalPaid,
+    order.remainingAmount,
+    order.isFullyPaid,
+    payments,
+  ].join('|');
+}
+
+/** Resolves a deep-linked order and refreshes it when queue money/status identity changes. */
 export function useCashierOrderSelection(
   orders: readonly OrderDto[],
   selectedOrderId: string | null,
@@ -23,21 +43,23 @@ export function useCashierOrderSelection(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestRef = useRef(0);
-
   const queueOrder = selectedOrderId
     ? (orders.find((candidate) => candidate.id.toLowerCase() === selectedOrderId.toLowerCase()) ?? null)
     : null;
+  const fingerprint = queueFingerprint(queueOrder);
 
   useEffect(() => {
+    let alive = true;
     const requestId = ++requestRef.current;
-    if (!selectedOrderId || queueOrder) {
+    if (!selectedOrderId) {
       setFetchedOrder(null);
       setError(null);
       setIsLoading(false);
-      return;
+      return () => {
+        alive = false;
+      };
     }
 
-    let alive = true;
     setFetchedOrder(null);
     setIsLoading(true);
     setError(null);
@@ -57,7 +79,7 @@ export function useCashierOrderSelection(
     return () => {
       alive = false;
     };
-  }, [queueOrder, selectedOrderId]);
+  }, [fingerprint, selectedOrderId]);
 
-  return { order: queueOrder ?? fetchedOrder, isLoading, error };
+  return { order: fetchedOrder ?? queueOrder, isLoading, error };
 }

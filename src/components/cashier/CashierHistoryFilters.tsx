@@ -78,7 +78,7 @@ export default function CashierHistoryFilters({ filters }: CashierHistoryFilters
           </label>
         </div>
       )}
-      {filters.tenantDayLoading && (
+      {filters.tenantDayLoading && filters.range !== 'custom' && (
         <output className={styles.historyDayStatus}>{t('cashier.workspace.tenant_day_loading')}</output>
       )}
       {filters.tenantDayError && filters.range !== 'custom' && (

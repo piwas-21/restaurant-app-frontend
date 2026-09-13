@@ -4,7 +4,8 @@ import type { Ref } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
-import { formatPlainCurrency } from '@/utils/currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
@@ -18,6 +19,7 @@ interface CashierReadOnlyTicketProps {
   readonly isLoading?: boolean;
   readonly error?: string | null;
   readonly onBack?: () => void;
+  readonly onCollect?: (orderId: string) => void;
   readonly timeZone?: string;
   readonly backButtonRef?: Ref<HTMLButtonElement>;
   readonly headingRef?: Ref<HTMLHeadingElement>;
@@ -45,6 +47,7 @@ export default function CashierReadOnlyTicket({
   isLoading = false,
   error,
   onBack,
+  onCollect,
   timeZone,
   backButtonRef,
   headingRef,
@@ -133,7 +136,7 @@ export default function CashierReadOnlyTicket({
           <ShoppingBag size={18} aria-hidden="true" />
           {t('cashier.workspace.items')}
         </h3>
-        <TicketItems items={order.items ?? []} t={t} />
+        <TicketItems items={order.items ?? []} currency={order.currency} t={t} />
       </section>
 
       {order.notes && (
@@ -156,11 +159,11 @@ export default function CashierReadOnlyTicket({
         <div className={styles.moneyRows}>
           <div>
             <span>{t('cashier.workspace.order_total')}</span>
-            <strong>{formatPlainCurrency(order.total)}</strong>
+            <strong>{formatOrderCurrency(order.total, order)}</strong>
           </div>
           <div>
             <span>{t('cashier.workspace.total_paid')}</span>
-            <strong>{formatPlainCurrency(order.totalPaid)}</strong>
+            <strong>{formatOrderCurrency(order.totalPaid, order)}</strong>
           </div>
           <div className={styles.moneyTotal}>
             <span>
@@ -170,10 +173,16 @@ export default function CashierReadOnlyTicket({
                   ? t('cashier.workspace.credit')
                   : t('cashier.workspace.settled')}
             </span>
-            <strong>{formatPlainCurrency(Math.abs(due))}</strong>
+            <strong>{formatOrderCurrency(Math.abs(due), order)}</strong>
           </div>
         </div>
-        <PaymentRows payments={order.payments ?? []} t={t} />
+        <PaymentRows payments={order.payments ?? []} currency={order.currency} t={t} />
+        {onCollect && canCollectPayment(order) && (
+          <button type="button" className={styles.collectButton} onClick={() => onCollect(order.id)}>
+            <CreditCard size={18} aria-hidden="true" />
+            {t('cashier.collection.title')}
+          </button>
+        )}
       </section>
     </article>
   );

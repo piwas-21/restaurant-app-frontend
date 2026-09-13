@@ -2654,5 +2654,21 @@
   "cashier.workspace.open_count_loading": "Le nombre de commandes ouvertes est en cours de chargement.",
   "cashier.workspace.open_count_current": "Le nombre de commandes ouvertes est à jour.",
   "cashier.workspace.open_count_stale": "Le nombre de commandes ouvertes peut être obsolète.",
-  "cashier.workspace.open_count_unavailable": "Le nombre de commandes ouvertes est indisponible."
+  "cashier.workspace.open_count_unavailable": "Le nombre de commandes ouvertes est indisponible.",
+  "cashier.collection.title": "Encaisser le paiement",
+  "cashier.collection.order": "Commande",
+  "cashier.collection.description": "Enregistrer un paiement pour la commande {{order}}",
+  "cashier.collection.currency": "Devise : {{currency}}",
+  "cashier.collection.pending": "Gardez cet écran ouvert pendant la vérification du paiement.",
+  "cashier.collection.success": "Paiement enregistré",
+  "cashier.collection.applied": "Appliqué : {{amount}}",
+  "cashier.collection.change": "Monnaie : {{amount}}",
+  "cashier.collection.remaining": "Restant : {{amount}}",
+  "cashier.collection.next_sale": "Vente suivante",
+  "cashier.collection.return_order": "Retour à la commande",
+  "cashier.collection.back_orders": "Retour aux commandes",
+  "cashier.collection.order_required": "Choisissez une commande avant d’encaisser.",
+  "cashier.collection.no_due": "Cette commande n’a aucun solde à encaisser.",
+  "cashier.collection.cash_suggestions": "Espèces suggérées",
+  "cashier.collection.payment_in_progress": "Paiement en cours. La navigation est temporairement verrouillée."
 }

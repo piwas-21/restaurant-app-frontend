@@ -13,7 +13,11 @@ import TenantLogo from '@/components/branding/TenantLogo';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { useCashierOperationalCount } from '@/hooks/cashier/useCashierOperationalCount';
 import { RESTAURANT_NAME } from '@/lib/config';
-import { CASHIER_WORKSPACE_ROUTES, type CashierWorkspaceDestination } from '@/lib/cashierWorkspace';
+import {
+  CASHIER_ORDERS_PATH,
+  CASHIER_WORKSPACE_ROUTES,
+  type CashierWorkspaceDestination,
+} from '@/lib/cashierWorkspace';
 import type { CashierQueueState } from '@/types/cashier';
 import styles from './CashierWorkspaceShell.module.css';
 
@@ -22,6 +26,8 @@ interface CashierWorkspaceShellProps {
   readonly children: ReactNode;
   readonly queueState: CashierQueueState;
   readonly isConnected?: boolean;
+  /** Locks workspace navigation while a tender outcome is still unresolved. */
+  readonly navigationDisabled?: boolean;
 }
 
 type HealthTone = 'loading' | 'success' | 'warning' | 'danger';
@@ -62,6 +68,7 @@ export default function CashierWorkspaceShell({
   children,
   queueState,
   isConnected,
+  navigationDisabled = false,
 }: CashierWorkspaceShellProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
@@ -73,7 +80,7 @@ export default function CashierWorkspaceShell({
   return (
     <div className={styles.workspace}>
       <header className={styles.header}>
-        <Link href="/cashier/orders" className={styles.brand} aria-label={RESTAURANT_NAME}>
+        <Link href={CASHIER_ORDERS_PATH} className={styles.brand} aria-label={RESTAURANT_NAME}>
           <TenantLogo
             info={info}
             fallbackName={RESTAURANT_NAME}
@@ -95,6 +102,10 @@ export default function CashierWorkspaceShell({
                 href={route.href}
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ''}`}
                 aria-current={active ? 'page' : undefined}
+                aria-disabled={navigationDisabled ? 'true' : undefined}
+                onClick={(event) => {
+                  if (navigationDisabled) event.preventDefault();
+                }}
               >
                 <span>{t(route.labelKey)}</span>
                 {route.destination === 'orders' && showOpenCount && operationalCount.count > 0 && (
@@ -113,6 +124,11 @@ export default function CashierWorkspaceShell({
         </nav>
         <div className={styles.actions}>
           <QueueHealth queueState={queueState} isConnected={isConnected} />
+          {navigationDisabled && (
+            <span className="sr-only" role="status">
+              {t('cashier.collection.payment_in_progress')}
+            </span>
+          )}
           {operationalCount.state !== 'ready' && (
             <span className="sr-only" role="status">
               {t(operationalCount.statusMessageKey)}

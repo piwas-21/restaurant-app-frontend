@@ -2652,5 +2652,21 @@
   "cashier.workspace.open_count_loading": "Aantal openstaande bestellingen wordt geladen.",
   "cashier.workspace.open_count_current": "Aantal openstaande bestellingen is actueel.",
   "cashier.workspace.open_count_stale": "Aantal openstaande bestellingen is mogelijk verouderd.",
-  "cashier.workspace.open_count_unavailable": "Aantal openstaande bestellingen is niet beschikbaar."
+  "cashier.workspace.open_count_unavailable": "Aantal openstaande bestellingen is niet beschikbaar.",
+  "cashier.collection.title": "Betaling innen",
+  "cashier.collection.order": "Bestelling",
+  "cashier.collection.description": "Betaling voor bestelling {{order}} registreren",
+  "cashier.collection.currency": "Valuta: {{currency}}",
+  "cashier.collection.pending": "Houd dit scherm open terwijl het betalingsresultaat wordt gecontroleerd.",
+  "cashier.collection.success": "Betaling geregistreerd",
+  "cashier.collection.applied": "Toegepast: {{amount}}",
+  "cashier.collection.change": "Wisselgeld: {{amount}}",
+  "cashier.collection.remaining": "Resterend: {{amount}}",
+  "cashier.collection.next_sale": "Volgende verkoop",
+  "cashier.collection.return_order": "Terug naar bestelling",
+  "cashier.collection.back_orders": "Terug naar bestellingen",
+  "cashier.collection.order_required": "Kies een bestelling voordat je een betaling int.",
+  "cashier.collection.no_due": "Voor deze bestelling is geen te innen saldo.",
+  "cashier.collection.cash_suggestions": "Voorgesteld contant geld",
+  "cashier.collection.payment_in_progress": "Betaling bezig. Navigatie is tijdelijk vergrendeld."
 }

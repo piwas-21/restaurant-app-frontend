@@ -37,6 +37,7 @@ interface CashierReadOnlyDestinationProps {
   readonly orderTypeFilter: string;
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
+  readonly onCollect?: (orderId: string) => void;
   readonly onBack: () => void;
   readonly onSearchChange: (value: string) => void;
   readonly onSearchSubmit: () => void;
@@ -67,6 +68,7 @@ export default function CashierReadOnlyDestination({
   orderTypeFilter,
   additionalFilters,
   onSelectOrder,
+  onCollect,
   onBack,
   onSearchChange,
   onSearchSubmit,
@@ -178,6 +180,7 @@ export default function CashierReadOnlyDestination({
               error={selectedOrderError}
               timeZone={timeZone}
               onBack={hasSelection ? onBack : undefined}
+              onCollect={onCollect}
               backButtonRef={backButtonRef}
               headingRef={ticketHeadingRef}
               stateRef={ticketStateRef}

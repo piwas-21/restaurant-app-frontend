@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { CASHIER_COLLECTION_PATH, CASHIER_ORDERS_PATH } from '@/lib/cashierWorkspace';
 
 /** URL-owned selection for a cashier destination. Selection is pushed so browser Back closes it. */
 export function useCashierOrderRoute() {
@@ -26,5 +27,24 @@ export function useCashierOrderRoute() {
     router.replace(query ? `${pathname}?${query}` : pathname);
   }, [pathname, router, searchParams]);
 
-  return { selectedOrderId, navigateWithOrder, clearOrder };
+  const navigateToCollection = useCallback(
+    (orderId: string) => router.push(`${CASHIER_COLLECTION_PATH}?order=${encodeURIComponent(orderId)}`),
+    [router],
+  );
+
+  const navigateToOrder = useCallback(
+    (orderId: string) => router.push(`${CASHIER_ORDERS_PATH}?order=${encodeURIComponent(orderId)}`),
+    [router],
+  );
+
+  const navigateToOrders = useCallback(() => router.push(CASHIER_ORDERS_PATH), [router]);
+
+  return {
+    selectedOrderId,
+    navigateWithOrder,
+    navigateToCollection,
+    navigateToOrder,
+    navigateToOrders,
+    clearOrder,
+  };
 }

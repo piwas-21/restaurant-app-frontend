@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
-import { formatPlainCurrency } from '@/utils/currency';
-import type { OrderItemDto, OrderPaymentDto } from '@/types/order';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import type { OrderDto, OrderItemDto, OrderPaymentDto } from '@/types/order';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import StatusBadge from '@/components/design-system/StatusBadge';
@@ -65,7 +65,15 @@ function paymentRecordTone(payment: OrderPaymentDto): 'success' | 'warning' | 'd
   }
 }
 
-export function TicketItems({ items, t }: { readonly items: readonly OrderItemDto[]; readonly t: TFunction }) {
+export function TicketItems({
+  items,
+  t,
+  currency,
+}: {
+  readonly items: readonly OrderItemDto[];
+  readonly t: TFunction;
+  readonly currency?: OrderDto['currency'];
+}) {
   if (items.length === 0) return <p className={styles.emptyMessage}>{t('cashier.workspace.no_items')}</p>;
 
   return (
@@ -86,14 +94,22 @@ export function TicketItems({ items, t }: { readonly items: readonly OrderItemDt
             </div>
             <OrderLineSummary line={orderItemToLineSummary(item)} />
           </div>
-          <span className={styles.ticketItemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
+          <span className={styles.ticketItemPrice}>{formatOrderCurrency(item.itemTotal, { currency })}</span>
         </li>
       ))}
     </ul>
   );
 }
 
-export function PaymentRows({ payments, t }: { readonly payments: readonly OrderPaymentDto[]; readonly t: TFunction }) {
+export function PaymentRows({
+  payments,
+  t,
+  currency,
+}: {
+  readonly payments: readonly OrderPaymentDto[];
+  readonly t: TFunction;
+  readonly currency?: OrderDto['currency'];
+}) {
   if (payments.length === 0) return <p className={styles.emptyMessage}>{t('cashier.workspace.no_payments')}</p>;
   return (
     <ul className={styles.paymentRows}>
@@ -103,7 +119,7 @@ export function PaymentRows({ payments, t }: { readonly payments: readonly Order
             <strong>{methodLabel(String(payment.paymentMethod), t)}</strong>
             <StatusBadge tone={paymentRecordTone(payment)}>{paymentRecordStatus(payment, t)}</StatusBadge>
           </span>
-          <span>{formatPlainCurrency(payment.amount)}</span>
+          <span>{formatOrderCurrency(payment.amount, { currency })}</span>
         </li>
       ))}
     </ul>

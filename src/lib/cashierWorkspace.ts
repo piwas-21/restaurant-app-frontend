@@ -1,9 +1,9 @@
-/** Route metadata for the read-only cashier workspace increment.
- *
- * Collection remains at `/cashier`; these destinations deliberately have no links to
- * mutation surfaces until their server contracts land.
- */
+/** Route metadata for the route-backed cashier workspace destinations. */
 export type CashierWorkspaceDestination = 'orders' | 'history';
+
+export const CASHIER_ORDERS_PATH = '/cashier/orders' as const;
+/** Focused tender route. It is not a navigation destination because it needs an order target. */
+export const CASHIER_COLLECTION_PATH = '/cashier/collection' as const;
 
 export interface CashierWorkspaceRoute {
   readonly destination: CashierWorkspaceDestination;
@@ -15,7 +15,7 @@ export interface CashierWorkspaceRoute {
 export const CASHIER_WORKSPACE_ROUTES: readonly CashierWorkspaceRoute[] = [
   {
     destination: 'orders',
-    href: '/cashier/orders',
+    href: CASHIER_ORDERS_PATH,
     labelKey: 'cashier.workspace.orders',
     descriptionKey: 'cashier.workspace.orders_description',
   },
@@ -28,5 +28,9 @@ export const CASHIER_WORKSPACE_ROUTES: readonly CashierWorkspaceRoute[] = [
 ];
 
 export function isCashierWorkspacePath(pathname: string): boolean {
-  return CASHIER_WORKSPACE_ROUTES.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`));
+  return (
+    CASHIER_WORKSPACE_ROUTES.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`)) ||
+    pathname === CASHIER_COLLECTION_PATH ||
+    pathname.startsWith(`${CASHIER_COLLECTION_PATH}/`)
+  );
 }

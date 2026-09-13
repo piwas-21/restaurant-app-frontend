@@ -36,6 +36,7 @@ export default function CashierOrdersWorkspace() {
       paymentStatusFilter={filters.paymentStatusFilter}
       orderTypeFilter={filters.orderTypeFilter}
       onSelectOrder={route.navigateWithOrder}
+      onCollect={route.navigateToCollection}
       onBack={route.clearOrder}
       onSearchChange={filters.setSearchQuery}
       onSearchSubmit={filters.submitSearch}

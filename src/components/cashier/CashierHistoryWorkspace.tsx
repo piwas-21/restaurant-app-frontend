@@ -60,6 +60,7 @@ export default function CashierHistoryWorkspace() {
       orderTypeFilter={filters.orderTypeFilter}
       additionalFilters={<CashierHistoryFilters filters={filters} />}
       onSelectOrder={route.navigateWithOrder}
+      onCollect={route.navigateToCollection}
       onBack={route.clearOrder}
       onSearchChange={filters.setSearchQuery}
       onSearchSubmit={filters.submitSearch}

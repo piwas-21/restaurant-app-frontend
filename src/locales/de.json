@@ -2652,5 +2652,21 @@
   "cashier.workspace.open_count_loading": "Anzahl offener Bestellungen wird geladen.",
   "cashier.workspace.open_count_current": "Anzahl offener Bestellungen ist aktuell.",
   "cashier.workspace.open_count_stale": "Anzahl offener Bestellungen könnte veraltet sein.",
-  "cashier.workspace.open_count_unavailable": "Anzahl offener Bestellungen ist nicht verfügbar."
+  "cashier.workspace.open_count_unavailable": "Anzahl offener Bestellungen ist nicht verfügbar.",
+  "cashier.collection.title": "Zahlung kassieren",
+  "cashier.collection.order": "Bestellung",
+  "cashier.collection.description": "Zahlung für Bestellung {{order}} erfassen",
+  "cashier.collection.currency": "Währung: {{currency}}",
+  "cashier.collection.pending": "Lassen Sie diese Ansicht geöffnet, während das Zahlungsergebnis geprüft wird.",
+  "cashier.collection.success": "Zahlung erfasst",
+  "cashier.collection.applied": "Angewendet: {{amount}}",
+  "cashier.collection.change": "Rückgeld: {{amount}}",
+  "cashier.collection.remaining": "Offen: {{amount}}",
+  "cashier.collection.next_sale": "Nächster Verkauf",
+  "cashier.collection.return_order": "Zur Bestellung",
+  "cashier.collection.back_orders": "Zurück zu Bestellungen",
+  "cashier.collection.order_required": "Wählen Sie eine Bestellung, bevor Sie eine Zahlung kassieren.",
+  "cashier.collection.no_due": "Für diese Bestellung kann kein offener Betrag kassiert werden.",
+  "cashier.collection.cash_suggestions": "Bargeldvorschläge",
+  "cashier.collection.payment_in_progress": "Zahlung läuft. Die Navigation ist vorübergehend gesperrt."
 }

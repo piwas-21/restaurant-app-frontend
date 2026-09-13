@@ -2652,5 +2652,21 @@
   "cashier.workspace.open_count_loading": "Open order count is loading.",
   "cashier.workspace.open_count_current": "Open order count is current.",
   "cashier.workspace.open_count_stale": "Open order count may be out of date.",
-  "cashier.workspace.open_count_unavailable": "Open order count is unavailable."
+  "cashier.workspace.open_count_unavailable": "Open order count is unavailable.",
+  "cashier.collection.title": "Collect payment",
+  "cashier.collection.order": "Order",
+  "cashier.collection.description": "Record a payment for order {{order}}",
+  "cashier.collection.currency": "Currency: {{currency}}",
+  "cashier.collection.pending": "Keep this screen open while the payment result is checked.",
+  "cashier.collection.success": "Payment recorded",
+  "cashier.collection.applied": "Applied {{amount}}",
+  "cashier.collection.change": "Change {{amount}}",
+  "cashier.collection.remaining": "Remaining {{amount}}",
+  "cashier.collection.next_sale": "Next sale",
+  "cashier.collection.return_order": "Return to order",
+  "cashier.collection.back_orders": "Back to orders",
+  "cashier.collection.order_required": "Choose an order before collecting payment.",
+  "cashier.collection.no_due": "This order has no collectible balance.",
+  "cashier.collection.cash_suggestions": "Suggested cash",
+  "cashier.collection.payment_in_progress": "Payment is in progress. Navigation is temporarily locked."
 }

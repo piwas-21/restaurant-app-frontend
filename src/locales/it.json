@@ -2654,5 +2654,21 @@
   "cashier.workspace.open_count_loading": "Conteggio degli ordini aperti in caricamento.",
   "cashier.workspace.open_count_current": "Conteggio degli ordini aperti aggiornato.",
   "cashier.workspace.open_count_stale": "Il conteggio degli ordini aperti potrebbe essere obsoleto.",
-  "cashier.workspace.open_count_unavailable": "Conteggio degli ordini aperti non disponibile."
+  "cashier.workspace.open_count_unavailable": "Conteggio degli ordini aperti non disponibile.",
+  "cashier.collection.title": "Riscuoti pagamento",
+  "cashier.collection.order": "Ordine",
+  "cashier.collection.description": "Registra un pagamento per l’ordine {{order}}",
+  "cashier.collection.currency": "Valuta: {{currency}}",
+  "cashier.collection.pending": "Tieni aperta questa schermata mentre controlli il risultato del pagamento.",
+  "cashier.collection.success": "Pagamento registrato",
+  "cashier.collection.applied": "Applicato: {{amount}}",
+  "cashier.collection.change": "Resto: {{amount}}",
+  "cashier.collection.remaining": "Rimanente: {{amount}}",
+  "cashier.collection.next_sale": "Vendita successiva",
+  "cashier.collection.return_order": "Torna all’ordine",
+  "cashier.collection.back_orders": "Torna agli ordini",
+  "cashier.collection.order_required": "Scegli un ordine prima di riscuotere il pagamento.",
+  "cashier.collection.no_due": "Questo ordine non ha un saldo riscuotibile.",
+  "cashier.collection.cash_suggestions": "Contanti suggeriti",
+  "cashier.collection.payment_in_progress": "Pagamento in corso. La navigazione è temporaneamente bloccata."
 }

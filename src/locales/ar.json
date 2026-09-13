@@ -2660,5 +2660,21 @@
   "cashier.workspace.open_count_loading": "جارٍ تحميل عدد الطلبات المفتوحة.",
   "cashier.workspace.open_count_current": "عدد الطلبات المفتوحة محدث.",
   "cashier.workspace.open_count_stale": "قد يكون عدد الطلبات المفتوحة قديمًا.",
-  "cashier.workspace.open_count_unavailable": "عدد الطلبات المفتوحة غير متاح."
+  "cashier.workspace.open_count_unavailable": "عدد الطلبات المفتوحة غير متاح.",
+  "cashier.collection.title": "تحصيل الدفع",
+  "cashier.collection.order": "الطلب",
+  "cashier.collection.description": "تسجيل دفعة للطلب {{order}}",
+  "cashier.collection.currency": "العملة: {{currency}}",
+  "cashier.collection.pending": "أبقِ هذه الشاشة مفتوحة أثناء التحقق من نتيجة الدفع.",
+  "cashier.collection.success": "تم تسجيل الدفع",
+  "cashier.collection.applied": "المبلغ المطبق: {{amount}}",
+  "cashier.collection.change": "الباقي: {{amount}}",
+  "cashier.collection.remaining": "المتبقي: {{amount}}",
+  "cashier.collection.next_sale": "البيع التالي",
+  "cashier.collection.return_order": "العودة إلى الطلب",
+  "cashier.collection.back_orders": "العودة إلى الطلبات",
+  "cashier.collection.order_required": "اختر طلبًا قبل تحصيل الدفع.",
+  "cashier.collection.no_due": "لا يوجد رصيد قابل للتحصيل لهذا الطلب.",
+  "cashier.collection.cash_suggestions": "مبالغ نقدية مقترحة",
+  "cashier.collection.payment_in_progress": "الدفع قيد التنفيذ. تم قفل التنقل مؤقتًا."
 }

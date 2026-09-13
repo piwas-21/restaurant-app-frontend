@@ -2650,5 +2650,21 @@
   "cashier.workspace.open_count_loading": "正在加载未完成订单数量。",
   "cashier.workspace.open_count_current": "未完成订单数量已更新。",
   "cashier.workspace.open_count_stale": "未完成订单数量可能已过期。",
-  "cashier.workspace.open_count_unavailable": "未完成订单数量不可用。"
+  "cashier.workspace.open_count_unavailable": "未完成订单数量不可用。",
+  "cashier.collection.title": "收款",
+  "cashier.collection.order": "订单",
+  "cashier.collection.description": "记录订单 {{order}} 的付款",
+  "cashier.collection.currency": "货币：{{currency}}",
+  "cashier.collection.pending": "正在检查付款结果，请保持此页面打开。",
+  "cashier.collection.success": "付款已记录",
+  "cashier.collection.applied": "已收：{{amount}}",
+  "cashier.collection.change": "找零：{{amount}}",
+  "cashier.collection.remaining": "剩余：{{amount}}",
+  "cashier.collection.next_sale": "下一笔销售",
+  "cashier.collection.return_order": "返回订单",
+  "cashier.collection.back_orders": "返回订单列表",
+  "cashier.collection.order_required": "收款前请选择一个订单。",
+  "cashier.collection.no_due": "此订单没有可收取的余额。",
+  "cashier.collection.cash_suggestions": "建议现金金额",
+  "cashier.collection.payment_in_progress": "付款进行中，导航已暂时锁定。"
 }

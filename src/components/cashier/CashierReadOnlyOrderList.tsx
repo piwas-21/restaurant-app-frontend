@@ -2,7 +2,7 @@
 
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { formatPlainCurrency } from '@/utils/currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
@@ -77,9 +77,9 @@ export default function CashierReadOnlyOrderList({
                 <span dir="auto">{order.customerName || t('cashier.workspace.guest')}</span>
                 <span className={due > 0 ? styles.amountDue : due < 0 ? styles.amountCredit : styles.amountSettled}>
                   {due > 0
-                    ? t('cashier.workspace.due_value', { amount: formatPlainCurrency(due) })
+                    ? t('cashier.workspace.due_value', { amount: formatOrderCurrency(due, order) })
                     : due < 0
-                      ? t('cashier.workspace.credit_value', { amount: formatPlainCurrency(Math.abs(due)) })
+                      ? t('cashier.workspace.credit_value', { amount: formatOrderCurrency(Math.abs(due), order) })
                       : t('cashier.workspace.settled')}
                 </span>
               </span>

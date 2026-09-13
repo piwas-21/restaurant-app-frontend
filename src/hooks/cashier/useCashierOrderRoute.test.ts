@@ -27,4 +27,17 @@ describe('useCashierOrderRoute', () => {
     act(() => result.current.clearOrder());
     expect(mockReplace).toHaveBeenCalledWith('/cashier/orders?status=Ready');
   });
+
+  it('routes collection as a focused task and can return to the same ticket', () => {
+    const { result } = renderHook(() => useCashierOrderRoute());
+
+    act(() => result.current.navigateToCollection('order/7'));
+    expect(mockPush).toHaveBeenCalledWith('/cashier/collection?order=order%2F7');
+
+    act(() => result.current.navigateToOrder('order/7'));
+    expect(mockPush).toHaveBeenLastCalledWith('/cashier/orders?order=order%2F7');
+
+    act(() => result.current.navigateToOrders());
+    expect(mockPush).toHaveBeenLastCalledWith('/cashier/orders');
+  });
 });

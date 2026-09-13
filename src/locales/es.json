@@ -2654,5 +2654,21 @@
   "cashier.workspace.open_count_loading": "Se está cargando el número de pedidos abiertos.",
   "cashier.workspace.open_count_current": "El número de pedidos abiertos está actualizado.",
   "cashier.workspace.open_count_stale": "El número de pedidos abiertos podría estar desactualizado.",
-  "cashier.workspace.open_count_unavailable": "El número de pedidos abiertos no está disponible."
+  "cashier.workspace.open_count_unavailable": "El número de pedidos abiertos no está disponible.",
+  "cashier.collection.title": "Cobrar pago",
+  "cashier.collection.order": "Pedido",
+  "cashier.collection.description": "Registrar un pago para el pedido {{order}}",
+  "cashier.collection.currency": "Moneda: {{currency}}",
+  "cashier.collection.pending": "Mantenga esta pantalla abierta mientras se comprueba el resultado del pago.",
+  "cashier.collection.success": "Pago registrado",
+  "cashier.collection.applied": "Aplicado: {{amount}}",
+  "cashier.collection.change": "Cambio: {{amount}}",
+  "cashier.collection.remaining": "Restante: {{amount}}",
+  "cashier.collection.next_sale": "Siguiente venta",
+  "cashier.collection.return_order": "Volver al pedido",
+  "cashier.collection.back_orders": "Volver a pedidos",
+  "cashier.collection.order_required": "Elija un pedido antes de cobrar.",
+  "cashier.collection.no_due": "Este pedido no tiene saldo cobrable.",
+  "cashier.collection.cash_suggestions": "Efectivo sugerido",
+  "cashier.collection.payment_in_progress": "Pago en curso. La navegación está bloqueada temporalmente."
 }

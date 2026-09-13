@@ -2652,5 +2652,21 @@
   "cashier.workspace.open_count_loading": "Açık sipariş sayısı yükleniyor.",
   "cashier.workspace.open_count_current": "Açık sipariş sayısı güncel.",
   "cashier.workspace.open_count_stale": "Açık sipariş sayısı güncel olmayabilir.",
-  "cashier.workspace.open_count_unavailable": "Açık sipariş sayısı kullanılamıyor."
+  "cashier.workspace.open_count_unavailable": "Açık sipariş sayısı kullanılamıyor.",
+  "cashier.collection.title": "Ödeme al",
+  "cashier.collection.order": "Sipariş",
+  "cashier.collection.description": "{{order}} numaralı sipariş için ödeme kaydet",
+  "cashier.collection.currency": "Para birimi: {{currency}}",
+  "cashier.collection.pending": "Ödeme sonucu kontrol edilirken bu ekranı açık tutun.",
+  "cashier.collection.success": "Ödeme kaydedildi",
+  "cashier.collection.applied": "Uygulanan: {{amount}}",
+  "cashier.collection.change": "Para üstü: {{amount}}",
+  "cashier.collection.remaining": "Kalan: {{amount}}",
+  "cashier.collection.next_sale": "Sonraki satış",
+  "cashier.collection.return_order": "Siparişe dön",
+  "cashier.collection.back_orders": "Siparişlere dön",
+  "cashier.collection.order_required": "Ödeme almadan önce bir sipariş seçin.",
+  "cashier.collection.no_due": "Bu sipariş için tahsil edilebilir bakiye yok.",
+  "cashier.collection.cash_suggestions": "Önerilen nakit",
+  "cashier.collection.payment_in_progress": "Ödeme devam ediyor. Gezinme geçici olarak kilitlendi."
 }

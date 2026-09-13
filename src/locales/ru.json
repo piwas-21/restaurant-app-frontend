@@ -2656,5 +2656,21 @@
   "cashier.workspace.open_count_loading": "Загрузка числа открытых заказов.",
   "cashier.workspace.open_count_current": "Число открытых заказов актуально.",
   "cashier.workspace.open_count_stale": "Число открытых заказов может быть устаревшим.",
-  "cashier.workspace.open_count_unavailable": "Число открытых заказов недоступно."
+  "cashier.workspace.open_count_unavailable": "Число открытых заказов недоступно.",
+  "cashier.collection.title": "Принять оплату",
+  "cashier.collection.order": "Заказ",
+  "cashier.collection.description": "Записать оплату для заказа {{order}}",
+  "cashier.collection.currency": "Валюта: {{currency}}",
+  "cashier.collection.pending": "Оставьте этот экран открытым, пока проверяется результат оплаты.",
+  "cashier.collection.success": "Оплата записана",
+  "cashier.collection.applied": "Зачислено: {{amount}}",
+  "cashier.collection.change": "Сдача: {{amount}}",
+  "cashier.collection.remaining": "Осталось: {{amount}}",
+  "cashier.collection.next_sale": "Следующая продажа",
+  "cashier.collection.return_order": "Вернуться к заказу",
+  "cashier.collection.back_orders": "Назад к заказам",
+  "cashier.collection.order_required": "Выберите заказ перед приёмом оплаты.",
+  "cashier.collection.no_due": "Для этого заказа нет доступной к оплате суммы.",
+  "cashier.collection.cash_suggestions": "Рекомендуемые купюры",
+  "cashier.collection.payment_in_progress": "Оплата выполняется. Навигация временно заблокирована."
 }

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "capturedAtUtc": "2026-09-14T05:04:29.586Z",
+  "source": "https://mcdoner.solutioneva.com",
+  "restoreLocation": ".local/mcfood-rollback-current",
+  "originalScopedPreChangeBackup": "docs/tenants/mcfood/backup-pre-feedback (see README for timestamped path)",
+  "expectedUnion": 126,
+  "counts": {
+    "products": 44,
+    "components": 24,
+    "beverages": 13,
+    "menus": 45,
+    "union": 126
+  },
+  "endpoints": {
+    "products": "/api/Products?PageSize=500&IncludeComponents=true",
+    "menus": "/api/Menus?PageSize=500",
+    "beverages": "/api/Products?PageSize=500&CategoryId=<fresh BOISSONS id>",
+    "categories": "/api/Categories?PageSize=500"
+  },
+  "checksums": {
+    "algorithm": "SHA-256",
+    "privateFile": "SHA256SUMS",
+    "scope": "raw responses, per-record details, and manifest in restoreLocation"
+  },
+  "payloadPolicy": "Raw payloads, per-record details, and tokens remain local and are intentionally not committed."
+}

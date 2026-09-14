@@ -2,6 +2,7 @@
 
 Partner: Mustafa. Source: their temporary site **https://mcdoner-orchamps.fr/**.
 Captured **2026-09-03**, imported the same day into `mcdoner.sofrapiwas.com`.
+The partner-feedback audit and rollback capture were refreshed **2026-09-14**.
 
 **The first run produced a catalogue with nine structural defects**, all repaired by hand against
 the live tenant on 2026-09-03 and every one of them passing `map.mjs --verify` green. The scripts
@@ -18,27 +19,29 @@ resolves to `restaurantId 17` / slug `mcfood`. The full menu, settings, opening 
 their site hits. Two things are _not_ available and must come from Mustafa directly (see
 [Blockers](#blockers-must-come-from-mustafa)).
 
-|                       |                                                                |
-| --------------------- | -------------------------------------------------------------- |
-| Categories            | 16 (all active, all with an image)                             |
-| Products              | 69 (all active, none sold out, all with an image)              |
-| Product size variants | 29 products carry 2–4 sizes                                    |
-| Modifier groups       | 13, 74 options total                                           |
-| Images                | 94 files, 31.3 MB, 73 distinct (21 are reused across products) |
-| Tables                | 1 (`Masa 1`)                                                   |
-| Delivery zones        | 0 — delivery is **off**                                        |
-| Active campaigns      | 0                                                              |
+|                       |                                                                   |
+| --------------------- | ----------------------------------------------------------------- |
+| Categories            | 16 (all active, all with an image)                                |
+| Source products       | 69 captured; 68 survive mapping (source duplicate 405 is dropped) |
+| Product size variants | 29 products carry 2–4 sizes                                       |
+| Modifier groups       | 13, 74 options total                                              |
+| Images                | 94 files, 31.3 MB, 73 distinct (21 are reused across products)    |
+| Tables                | 1 (`Masa 1`)                                                      |
+| Delivery zones        | 0 — delivery is **off**                                           |
+| Active campaigns      | 0                                                                 |
 
 ## What's in this folder
 
-| File                   |                                                                                                                                                                                        |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dataset.json`         | Normalised, consolidated capture — restaurant, service config, hours, site theme, tables, all 13 modifier groups, and the 16 categories with their 69 products nested.                 |
-| `assets-manifest.json` | All 94 images: source object path, target filename, real format, byte size, **sha256**, and what each is used for.                                                                     |
-| `fetch.mjs`            | Re-runs the whole capture (`node fetch.mjs [outDir]`). Verified end-to-end: it reproduces all 94 assets byte-identically and self-checks against `assets-manifest.json`.               |
-| `decisions.json`       | Every judgement call the capture could not make — the 7 self-contradictory groups, the 5 unnameable ones, the duplicates, the typos. `confirmed: false` on each until Mustafa answers. |
-| `map.mjs`              | **Pure.** `dataset.json` + `decisions.json` → the request bodies our API accepts. `--verify` self-checks; opens no socket.                                                             |
-| `import.mjs`           | The transport half: pushes the mapped catalogue into a provisioned tenant with a `menu:write` API token. `--dry-run` is a pre-flight.                                                  |
+| File                     |                                                                                                                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dataset.json`           | Normalised, consolidated capture — restaurant, service config, hours, site theme, tables, all 13 modifier groups, and the 16 categories with their 69 products nested.                 |
+| `assets-manifest.json`   | All 94 images: source object path, target filename, real format, byte size, **sha256**, and what each is used for.                                                                     |
+| `fetch.mjs`              | Re-runs the whole capture (`node fetch.mjs [outDir]`). Verified end-to-end: it reproduces all 94 assets byte-identically and self-checks against `assets-manifest.json`.               |
+| `decisions.json`         | Every judgement call the capture could not make — the 7 self-contradictory groups, the 5 unnameable ones, the duplicates, the typos. `confirmed: false` on each until Mustafa answers. |
+| `map.mjs`                | **Pure.** `dataset.json` + `decisions.json` → the request bodies our API accepts. `--verify` self-checks; opens no socket.                                                             |
+| `import.mjs`             | The transport half: pushes the mapped catalogue into a provisioned tenant with a `menu:write` API token. `--dry-run` is a pre-flight.                                                  |
+| `backup.mjs`             | Fresh public rollback capture: products/components, menus, BOISSONS (including Ayran/Red Bull), per-record details, checksums. Raw output stays outside git.                           |
+| `rollback-manifest.json` | Sanitized 2026-09-14 evidence: 44 products + 24 components + 13 beverages + 45 menus = **126** unique records, endpoint paths, and private checksum/restore locations.                 |
 
 ### Why the images aren't committed
 
@@ -260,6 +263,27 @@ continue to keep the included base-recipe row. `duplicateIngredientResolution` r
 exception and `map.mjs --verify` checks the emitted recipe rather than trusting the decision file.
 The same verify run checks emitted meat counts and the presence and cardinality of all three
 children's drink sections, so a rebuild cannot silently drop those questions.
+
+## Rollback evidence (2026-09-14)
+
+A fresh unauthenticated audit of the live tenant used `backup.mjs`; it did not write the menu.
+The default public product list excludes components and beverages, so the capture explicitly uses:
+
+- `GET /api/Products?PageSize=500&IncludeComponents=true`: 68 records (44 catalogue products + 24 hidden components)
+- `GET /api/Menus?PageSize=500`: 45 menu bundles
+- `GET /api/Products?PageSize=500&CategoryId=<BOISSONS id>`: 13 beverages, including **Ayran** and **Red Bull**
+
+The disjoint union is **126 records**. The script asserts that count, rejects duplicate IDs, and
+fetches a full public product detail for every product/component/beverage. It writes raw responses,
+details, `manifest.json`, and `SHA256SUMS` to the private restore location recorded in
+`rollback-manifest.json`:
+
+`/Users/mahmutkaya/workspace/rumi-workspace/.local/mcfood-rollback-current`
+
+The original scoped pre-change backup remains untouched at
+`docs/tenants/mcfood/backup-20260913T211924Z-pre-feedback`. Neither raw payloads, per-record IDs,
+checksums, nor tokens are committed; the local manifest and `SHA256SUMS` retain those details at
+the restore location, while the tracked manifest records only sanitized counts, paths, and policy.
 
 ## Importing it
 

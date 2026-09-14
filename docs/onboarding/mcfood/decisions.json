@@ -248,6 +248,12 @@
     },
     "platSectionName": "Plat",
     "menuSizePattern": "^menu\\b",
+    "productGroupOverrides": {
+      "_": "Explicit product-level additions for source products whose public modifier groups omit a required bundle step. Names are exact ownership keys, not a regex or fuzzy match.",
+      "Menu Enfant Kebab": [79],
+      "Menu Enfant Hamburger": [79],
+      "Menu Enfant Nuggets": [79]
+    },
     "drinkProducts": {
       "_": "Group 79's drink options -> the REAL beverage products they name. NOT matched by name, because the names do not match: `Coca Cola` is the product `Coca Cola 33cl`, `Fanta` is `Fanta Orange`, `Eau` is `Eau 50cl`, and `Coca Cola Cherry` is `Coca Coca Cherry 33cl` — their typo, kept because it is the product's real name. Four of eleven, so a fuzzy match is a guess; an unmapped option is an error. Ayran (456) and Red Bull (457) are sold on the carte but are not offered inside a menu, which is their data's call, not ours.",
       "Coca Cola": 445,

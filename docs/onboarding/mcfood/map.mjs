@@ -335,9 +335,21 @@ const variationsFor = (decisions, item) => {
  * product's own. See the header — the product-level list on a sized item includes the
  * menu-only steps, so using it would ask a plain sandwich for a drink choice.
  */
-const governingGroupIds = (item) => {
+const governingGroupIds = (item, decisions) => {
   const defaultSize = (item.sizes ?? []).find((s) => s.isDefault);
-  return defaultSize?.modifierGroupIds ?? item.modifierGroupIds ?? [];
+  const governing = defaultSize?.modifierGroupIds ?? item.modifierGroupIds ?? [];
+  // A source product can omit a choice that is still part of the named product's contract.
+  // These additions are explicit, exact-name decisions in decisions.json — never a fuzzy
+  // fallback. The three child menus are the measured case: their source lists group 87/77 but
+  // the partner's required drink step is group 79.
+  const overrides = decisions?.bundles?.productGroupOverrides?.[item.name] ?? [];
+  for (const id of overrides) {
+    const decision = decisions?.modifierGroups?.[String(id)];
+    if (!decision || decision.target !== 'bundle') {
+      throw new Error(`product ${item.sourceId} "${item.name}" has invalid bundle override ${id}`);
+    }
+  }
+  return [...new Set([...governing, ...overrides])];
 };
 
 /**
@@ -433,7 +445,7 @@ const wrappedPortion = (decisions, item, menuSize) => {
 const recipeCarriers = (dataset, decisions, merges = []) => {
   const out = [];
   for (const { category, item } of eachItem(dataset, decisions)) {
-    const groupIds = governingGroupIds(item);
+    const groupIds = governingGroupIds(item, decisions);
     if (!bundleGroupsIn(decisions, groupIds).length) continue;
     out.push({
       productId: item.sourceId,
@@ -609,7 +621,7 @@ const buildProducts = (dataset, decisions, { drinks, carriers }) => {
   const out = [];
   const carrierOf = new Map(carriers.map((carrier) => [carrier.productId, carrier]));
   for (const { category, item } of eachItem(dataset, decisions)) {
-    const groupIds = governingGroupIds(item);
+    const groupIds = governingGroupIds(item, decisions);
     const bundleGroups = bundleGroupsIn(decisions, groupIds);
     const sections = bundleGroups.map((id) => sectionFor(decisions, id, drinks));
     const carrier = carrierOf.get(item.sourceId) ?? null;
@@ -706,6 +718,7 @@ const bundleGroupsReferencedBy = (item, decisions) => {
   const referenced = new Set([
     ...(item.modifierGroupIds ?? []),
     ...(item.sizes ?? []).flatMap((size) => size.modifierGroupIds ?? []),
+    ...(decisions.bundles?.productGroupOverrides?.[item.name] ?? []),
   ]);
   return [...referenced].filter((id) => groupOf(decisions, id).target === 'bundle');
 };
@@ -813,7 +826,7 @@ const unconfirmedInUse = (dataset, decisions) => {
   for (const category of dataset.menu) {
     for (const item of category.items) {
       if (Object.hasOwn(decisions.dropProducts, String(item.sourceId))) continue;
-      for (const id of governingGroupIds(item)) used.add(String(id));
+      for (const id of governingGroupIds(item, decisions)) used.add(String(id));
     }
   }
   return (
@@ -1009,46 +1022,102 @@ const verifyDuplicateIngredientResolutions = (decisions, owners) => {
 };
 
 /**
- * Direct partner requirements for the three Tacos recipes. These rows are recipe-carrier data,
- * not the type=menu parents, so the check must inspect the emitted component owners.
+ * Partner structure is an explicit table, not a check derived from the same group names the
+ * mapper emits. That keeps a missing product, duplicate name, missing section, six-option section,
+ * or wrong cardinality visible. Sections belong to the menu product; recipes belong to its hidden
+ * carrier, so each ownership lookup names the expected surface explicitly.
  */
-const verifyTacosRecipes = (owners) => {
+const PARTNER_STRUCTURE_EXPECTATIONS = [
+  { name: 'Tacos 1 Viande', groupId: '81', count: 1, recipe: true, checkVegetables: true },
+  { name: 'Tacos 2 Viande', groupId: '83', count: 2, recipe: true, checkVegetables: true },
+  { name: 'Tacos 3 Viande', groupId: '84', count: 3, recipe: true, checkVegetables: true },
+  { name: 'Assiette Mixte', groupId: '84', count: 3, recipe: true, checkVegetables: true },
+  { name: 'LIBANAISE 1 VIANDE', groupId: '81', count: 1 },
+  { name: 'LIBANAISE 2 VIANDE', groupId: '83', count: 2 },
+  { name: 'LIBANAISE 3 VIANDE', groupId: '84', count: 3 },
+];
+
+const PARTNER_PAID_EXTRAS = new Map([
+  ['Viande', 3],
+  ['Emmental', 1],
+  ['Cheddar', 1],
+  ['Chèvre', 1],
+]);
+const PARTNER_VEGETABLES = ['Salade', 'Tomate', 'Oignon'];
+
+const uniqueNamedOwner = (owners, name, predicate, label, failures) => {
+  const matches = owners.filter((candidate) => candidate.body.name === name && predicate(candidate));
+  if (matches.length === 0) failures.push(`${name}: ${label} owner is missing`);
+  if (matches.length > 1) failures.push(`${name}: ${label} has ${matches.length} owners, expected exactly one`);
+  return matches.length === 1 ? matches[0] : null;
+};
+
+export const verifyPartnerStructures = (owners) => {
   const failures = [];
-  const names = ['Tacos 1 Viande', 'Tacos 2 Viande', 'Tacos 3 Viande'];
-  const paidExtras = new Map([
-    ['Viande', 3],
-    ['Emmental', 1],
-    ['Cheddar', 1],
-    ['Chèvre', 1],
-  ]);
-  const vegetables = ['Salade', 'Tomate', 'Oignon'];
-  for (const name of names) {
-    const owner = owners.find(
-      (candidate) => candidate.body.name === name && candidate.body.detailedIngredients.length > 0,
+  for (const expected of PARTNER_STRUCTURE_EXPECTATIONS) {
+    const owner = uniqueNamedOwner(
+      owners,
+      expected.name,
+      (candidate) => (candidate.sections ?? []).some((section) => String(section.__groupId) === expected.groupId),
+      'meat-section',
+      failures,
     );
-    if (!owner) {
-      failures.push(`${name}: Tacos recipe carrier was not emitted`);
-      continue;
-    }
-    if (owner.body.sauceMin !== 1 || owner.body.sauceMax !== 2 || owner.body.sauceIncludedFree !== 2) {
-      failures.push(
-        `${name}: sauce rule must be 1..2 with 2 free, emitted ` +
-          `${owner.body.sauceMin}..${owner.body.sauceMax} with ${owner.body.sauceIncludedFree} free`,
-      );
-    }
-    const rows = new Map(
-      owner.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
-    );
-    for (const [ingredientName, price] of paidExtras) {
-      const row = rows.get(ingredientKey(ingredientName));
-      if (!row || !row.isOptional || row.isIncludedInBasePrice || row.price !== price) {
-        failures.push(`${name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
+    if (owner) {
+      const sections = (owner.sections ?? []).filter((section) => String(section.__groupId) === expected.groupId);
+      if (sections.length !== 1) {
+        failures.push(`${expected.name}: expected exactly one meat section, found ${sections.length}`);
+      } else {
+        const [section] = sections;
+        const distinctOptions = new Set(section.itemRefs ?? []);
+        if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
+          failures.push(
+            `${expected.name}: meat section must be required ${expected.count}..${expected.count}, emitted ` +
+              `${section.minSelection}..${section.maxSelection}`,
+          );
+        }
+        if (distinctOptions.size !== 7 || (section.itemRefs ?? []).length !== 7) {
+          failures.push(
+            `${expected.name}: meat section must have seven distinct options, ` +
+              `emitted ${(section.itemRefs ?? []).length} (${distinctOptions.size} distinct)`,
+          );
+        }
       }
     }
-    for (const ingredientName of vegetables) {
-      const row = rows.get(ingredientKey(ingredientName));
-      if (!row || !row.isOptional) {
-        failures.push(`${name}: optional vegetable "${ingredientName}" was not emitted`);
+
+    if (!expected.recipe) continue;
+    const recipe = uniqueNamedOwner(
+      owners,
+      expected.name,
+      (candidate) => candidate.body.detailedIngredients.length > 0,
+      'recipe',
+      failures,
+    );
+    if (!recipe) continue;
+    if (expected.checkVegetables) {
+      if (recipe.body.sauceMin !== 1 || recipe.body.sauceMax !== 2 || recipe.body.sauceIncludedFree !== 2) {
+        failures.push(
+          `${expected.name}: sauce rule must be 1..2 with 2 free, emitted ` +
+            `${recipe.body.sauceMin}..${recipe.body.sauceMax} with ${recipe.body.sauceIncludedFree} free`,
+        );
+      }
+      const rows = new Map(
+        recipe.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
+      );
+      if (expected.name.startsWith('Tacos ')) {
+        for (const [ingredientName, price] of PARTNER_PAID_EXTRAS) {
+          const row = rows.get(ingredientKey(ingredientName));
+          if (!row || !row.isOptional || row.isIncludedInBasePrice || row.price !== price) {
+            failures.push(`${expected.name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
+          }
+        }
+      }
+      for (const ingredientName of PARTNER_VEGETABLES) {
+        const row = rows.get(ingredientKey(ingredientName));
+        if (!row || !row.isOptional || row.price !== 0 || !row.isIncludedInBasePrice) {
+          failures.push(
+            `${expected.name}: vegetable "${ingredientName}" must be optional, free, and included in the base price`,
+          );
+        }
       }
     }
   }
@@ -1277,7 +1346,8 @@ const drinkRefFailure = (where, ref, componentByRef, productByRef) => {
     );
   }
   const product = productByRef.get(ref);
-  if (product && product.body.type !== PRODUCT_TYPE.beverage) {
+  if (!product) return `${where}: "${ref}" does not resolve to a catalogue product`;
+  if (product.body.type !== PRODUCT_TYPE.beverage) {
     return `${where}: "${product.body.name}" is not type beverage`;
   }
   return null;
@@ -1301,28 +1371,40 @@ const verifyDrinkSections = (products, menus, components) => {
 };
 
 /**
- * Each Menu Enfant must retain the source site's required drink question. Checking only sections
- * that happen to exist would let an accidental omission pass vacuously, while `verifyDrinkSections`
- * checks the identity of any options that remain.
+ * These child menus are products in the mapper's output (the wrapper sizes are in `menus`). Keep
+ * the expected ownership table explicit and inspect the union: a check scoped only to `menus`
+ * silently went vacuous. Every name must have one owner, one group-79 section, and exactly the
+ * eleven source drink options with required 1..1 cardinality.
  */
-const verifyKidsDrinkSections = (menus) => {
+const KIDS_DRINK_EXPECTATIONS = [
+  { name: 'Menu Enfant Kebab', optionCount: 11 },
+  { name: 'Menu Enfant Hamburger', optionCount: 11 },
+  { name: 'Menu Enfant Nuggets', optionCount: 11 },
+];
+
+export const verifyKidsDrinkSections = (owners) => {
   const failures = [];
-  for (const menu of menus.filter((candidate) =>
-    /^Menu Enfant (Kebab|Hamburger|Nuggets)$/i.test(candidate.body.name),
-  )) {
-    const drinkSections = (menu.sections ?? []).filter((section) => String(section.__groupId) === String(DRINK_GROUP));
+  for (const expected of KIDS_DRINK_EXPECTATIONS) {
+    const owner = uniqueNamedOwner(owners, expected.name, () => true, 'product', failures);
+    if (!owner) continue;
+    const drinkSections = (owner.sections ?? []).filter((section) => String(section.__groupId) === String(DRINK_GROUP));
     if (drinkSections.length !== 1) {
-      failures.push(`${menu.body.name}: expected exactly one required Boisson section, found ${drinkSections.length}`);
+      failures.push(`${expected.name}: expected exactly one required Boisson section, found ${drinkSections.length}`);
       continue;
     }
     const [section] = drinkSections;
+    const optionCount = (section.itemRefs ?? []).length;
     if (
+      section.name !== 'Boisson' ||
       !section.isRequired ||
       section.minSelection !== 1 ||
       section.maxSelection !== 1 ||
-      section.itemRefs.length === 0
+      optionCount !== expected.optionCount
     ) {
-      failures.push(`${menu.body.name}/${section.name}: drink choice must be required 1..1 with at least one option`);
+      failures.push(
+        `${expected.name}/${section.name}: drink choice must be Boisson, required 1..1 with ` +
+          `${expected.optionCount} options (emitted ${optionCount}, ${section.minSelection}..${section.maxSelection})`,
+      );
     }
   }
   return failures;
@@ -1440,7 +1522,10 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
       'partner duplicate-ingredient resolutions are applied',
       verifyDuplicateIngredientResolutions(decisions, recipeOwners),
     ],
-    ['Tacos recipes carry the requested extras, vegetables, and sauce rule', verifyTacosRecipes(recipeOwners)],
+    [
+      'partner Tacos/Assiette/Libanaise structures and recipe rules are explicit',
+      verifyPartnerStructures([...products, ...components, ...menus]),
+    ],
     ['no guest-facing ingredient is still phrased as a removal', verifyNoNegatedNames(recipeOwners)],
     ["the app's own default selection is ORDERABLE (sauces within sauceMax)", verifyDefaultSelection(recipeOwners)],
     ['hideBaseProduct only where there is an active variation to sell instead', verifyBaseRow(products)],
@@ -1450,7 +1535,7 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
       'every drink section names the REAL beverages, not hidden copies',
       verifyDrinkSections(products, menus, components),
     ],
-    ['each Menu Enfant asks for a required drink', verifyKidsDrinkSections(menus)],
+    ['each Menu Enfant owns one required drink section', verifyKidsDrinkSections([...products, ...menus])],
     ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions, products, menus)],
     [
       'every bundle section and Plat resolves to something this run creates',

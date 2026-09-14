@@ -870,6 +870,7 @@ const unconfirmedInUse = (dataset, decisions) => {
 export const build = async ({ datasetPath, decisionsPath }) => {
   const dataset = JSON.parse(await readFile(datasetPath ?? path.join(HERE, 'dataset.json'), 'utf8'));
   const decisions = JSON.parse(await readFile(decisionsPath ?? path.join(HERE, 'decisions.json'), 'utf8'));
+  normalizePartnerStructures(decisions.verification?.partnerStructures);
   const merges = [];
   // sectionFor needs the raw groups; stashed rather than threaded through six signatures.
   decisions.__groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
@@ -1062,41 +1063,146 @@ const verifyDuplicateIngredientResolutions = (decisions, owners) => {
 };
 
 /**
- * Partner structure is an explicit table, not a check derived from the same group names the
- * mapper emits. That keeps a missing product, duplicate name, missing section, six-option section,
+ * Partner structure is an explicit table in decisions.json, not a check derived from the same
+ * group names the mapper emits. That keeps a missing product, duplicate name, missing section,
  * or wrong cardinality visible. Sections belong to the menu product; recipes belong to its hidden
  * carrier, so each ownership lookup names the expected surface explicitly.
  */
-const PARTNER_STRUCTURE_EXPECTATIONS = [
-  { name: 'Tacos 1 Viande', groupId: '81', count: 1, recipe: true, checkVegetables: true },
-  { name: 'Tacos 2 Viande', groupId: '83', count: 2, recipe: true, checkVegetables: true },
-  { name: 'Tacos 3 Viande', groupId: '84', count: 3, recipe: true, checkVegetables: true },
-  { name: 'Assiette Mixte', groupId: '84', count: 3, recipe: true, checkVegetables: true },
-  { name: 'LIBANAISE 1 VIANDE', groupId: '81', count: 1 },
-  { name: 'LIBANAISE 2 VIANDE', groupId: '83', count: 2 },
-  { name: 'LIBANAISE 3 VIANDE', groupId: '84', count: 3 },
-];
+const contractObject = (value, label = 'contract') => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`verification.partnerStructures.${label} must be an object`);
+  }
+  return value;
+};
 
-// These are the seven identities confirmed in source meat groups 81, 83 and 84. The section
-// must keep these exact component refs: seven resolvable components could otherwise include a
-// sauce, gift, or unrelated product while every count/type check still passed.
-const PARTNER_MEAT_OPTIONS = [
-  { name: 'Kebab', ref: 'component:meat:kebab' },
-  { name: 'Steak', ref: 'component:meat:steak' },
-  { name: 'Poulet', ref: 'component:meat:poulet' },
-  { name: 'Nuggets', ref: 'component:meat:nuggets' },
-  { name: 'Tenders', ref: 'component:meat:tenders' },
-  { name: 'Cordon Bleu', ref: 'component:meat:cordon bleu' },
-  { name: 'Falafel', ref: 'component:meat:falafel' },
-];
+const contractArray = (value, label) => {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`verification.partnerStructures.${label} must be a non-empty array`);
+  }
+  return value;
+};
 
-const PARTNER_PAID_EXTRAS = new Map([
-  ['Viande', 3],
-  ['Emmental', 1],
-  ['Cheddar', 1],
-  ['Chèvre', 1],
-]);
-const PARTNER_VEGETABLES = ['Salade', 'Tomate', 'Oignon'];
+const contractString = (value, label) => {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`verification.partnerStructures.${label} must be a non-empty string`);
+  }
+  return value.trim();
+};
+
+const contractBoolean = (value, label) => {
+  if (typeof value !== 'boolean') {
+    throw new Error(`verification.partnerStructures.${label} must be a boolean`);
+  }
+  return value;
+};
+
+const contractInteger = (value, label) => {
+  if (!Number.isInteger(value)) {
+    throw new Error(`verification.partnerStructures.${label} must be an integer`);
+  }
+  return value;
+};
+
+const uniqueContractValues = (values, label) => {
+  if (new Set(values).size !== values.length) {
+    throw new Error(`verification.partnerStructures.${label} must contain unique values`);
+  }
+};
+
+const normalizePartnerProduct = (rawProduct, index) => {
+  const product = contractObject(rawProduct, `products[${index}]`);
+  const name = contractString(product.name, `products[${index}].name`);
+  const groupId = contractString(product.groupId, `products[${index}].groupId`);
+  const count = contractInteger(product.count, `products[${index}].count`);
+  if (count < 1) throw new Error(`verification.partnerStructures.products[${index}].count must be positive`);
+  return {
+    name,
+    groupId,
+    count,
+    recipe: contractBoolean(product.recipe, `products[${index}].recipe`),
+    checkVegetables: contractBoolean(product.checkVegetables, `products[${index}].checkVegetables`),
+    checkPaidExtras: contractBoolean(product.checkPaidExtras, `products[${index}].checkPaidExtras`),
+  };
+};
+
+const normalizePartnerProducts = (contract) => {
+  const rawProducts = contractArray(contract.products, 'products');
+  const products = rawProducts.map(normalizePartnerProduct);
+  uniqueContractValues(
+    products.map((product) => product.name),
+    'products names',
+  );
+  return products;
+};
+
+const normalizePartnerMeatOptions = (contract) => {
+  const rawOptions = contractArray(contract.meatOptions, 'meatOptions');
+  const meatOptions = rawOptions.map((rawOption, index) => {
+    const option = contractObject(rawOption, `meatOptions[${index}]`);
+    return {
+      name: contractString(option.name, `meatOptions[${index}].name`),
+      ref: contractString(option.ref, `meatOptions[${index}].ref`),
+    };
+  });
+  uniqueContractValues(
+    meatOptions.map((option) => option.name),
+    'meatOptions names',
+  );
+  uniqueContractValues(
+    meatOptions.map((option) => option.ref),
+    'meatOptions refs',
+  );
+  return meatOptions;
+};
+
+const normalizePartnerPaidExtras = (contract) => {
+  const rawPaidExtras = contractObject(contract.paidExtras, 'paidExtras');
+  const paidExtras = Object.fromEntries(
+    Object.entries(rawPaidExtras).map(([name, price]) => {
+      const extraName = contractString(name, 'paidExtras name');
+      if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
+        throw new Error(`verification.partnerStructures.paidExtras.${extraName} must be a positive number`);
+      }
+      return [extraName, price];
+    }),
+  );
+  if (Object.keys(paidExtras).length === 0) {
+    throw new Error('verification.partnerStructures.paidExtras must not be empty');
+  }
+  uniqueContractValues(Object.keys(paidExtras), 'paidExtras names');
+  return paidExtras;
+};
+
+const normalizePartnerVegetables = (contract) => {
+  const rawVegetables = contractArray(contract.vegetables, 'vegetables');
+  const vegetables = rawVegetables.map((name, index) => contractString(name, `vegetables[${index}]`));
+  uniqueContractValues(vegetables, 'vegetables');
+  return vegetables;
+};
+
+const normalizePartnerSauceRule = (contract) => {
+  const rawSauceRule = contractObject(contract.sauceRule, 'sauceRule');
+  const sauceRule = {
+    min: contractInteger(rawSauceRule.min, 'sauceRule.min'),
+    max: contractInteger(rawSauceRule.max, 'sauceRule.max'),
+    includedFree: contractInteger(rawSauceRule.includedFree, 'sauceRule.includedFree'),
+  };
+  if (sauceRule.min < 0 || sauceRule.max < sauceRule.min || sauceRule.includedFree < 0) {
+    throw new Error('verification.partnerStructures.sauceRule has invalid bounds');
+  }
+  return sauceRule;
+};
+
+const normalizePartnerStructures = (raw) => {
+  const contract = contractObject(raw);
+  return {
+    products: normalizePartnerProducts(contract),
+    meatOptions: normalizePartnerMeatOptions(contract),
+    paidExtras: normalizePartnerPaidExtras(contract),
+    vegetables: normalizePartnerVegetables(contract),
+    sauceRule: normalizePartnerSauceRule(contract),
+  };
+};
 
 const uniqueNamedOwner = (owners, name, predicate, label, failures) => {
   const matches = owners.filter((candidate) => candidate.body.name === name && predicate(candidate));
@@ -1105,7 +1211,7 @@ const uniqueNamedOwner = (owners, name, predicate, label, failures) => {
   return matches.length === 1 ? matches[0] : null;
 };
 
-const verifyPartnerMeatSection = (expected, owner) => {
+const verifyPartnerMeatSection = (expected, owner, partnerStructures) => {
   const failures = [];
   const sections = (owner.sections ?? []).filter((section) => String(section.__groupId) === expected.groupId);
   if (sections.length !== 1) {
@@ -1116,11 +1222,12 @@ const verifyPartnerMeatSection = (expected, owner) => {
   const [section] = sections;
   const optionRefs = section.itemRefs ?? [];
   const distinctOptions = new Set(optionRefs);
-  const expectedMeatRefs = new Set(PARTNER_MEAT_OPTIONS.map((option) => option.ref));
+  const expectedMeatRefs = new Set(partnerStructures.meatOptions.map((option) => option.ref));
+  const expectedOptionCount = partnerStructures.meatOptions.length;
   const exactMeatRefs =
-    optionRefs.length === PARTNER_MEAT_OPTIONS.length &&
-    distinctOptions.size === PARTNER_MEAT_OPTIONS.length &&
-    PARTNER_MEAT_OPTIONS.every((option) => distinctOptions.has(option.ref)) &&
+    optionRefs.length === expectedOptionCount &&
+    distinctOptions.size === expectedOptionCount &&
+    partnerStructures.meatOptions.every((option) => distinctOptions.has(option.ref)) &&
     optionRefs.every((ref) => expectedMeatRefs.has(ref));
   if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
     failures.push(
@@ -1130,34 +1237,35 @@ const verifyPartnerMeatSection = (expected, owner) => {
   }
   if (!exactMeatRefs) {
     failures.push(
-      `${expected.name}: meat section must have seven distinct options with the exact confirmed meat refs, ` +
-        `emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
+      `${expected.name}: meat section must have ${expectedOptionCount} distinct options with the exact ` +
+        `confirmed meat refs, emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
     );
   }
   return failures;
 };
 
-const verifyPartnerRecipe = (expected, recipe) => {
+const verifyPartnerRecipe = (expected, recipe, partnerStructures) => {
   const failures = [];
   if (!expected.checkVegetables) return failures;
-  if (recipe.body.sauceMin !== 1 || recipe.body.sauceMax !== 2 || recipe.body.sauceIncludedFree !== 2) {
+  const { min, max, includedFree } = partnerStructures.sauceRule;
+  if (recipe.body.sauceMin !== min || recipe.body.sauceMax !== max || recipe.body.sauceIncludedFree !== includedFree) {
     failures.push(
-      `${expected.name}: sauce rule must be 1..2 with 2 free, emitted ` +
+      `${expected.name}: sauce rule must be ${min}..${max} with ${includedFree} free, emitted ` +
         `${recipe.body.sauceMin}..${recipe.body.sauceMax} with ${recipe.body.sauceIncludedFree} free`,
     );
   }
   const rows = new Map(
     recipe.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
   );
-  if (expected.name.startsWith('Tacos ')) {
-    for (const [ingredientName, price] of PARTNER_PAID_EXTRAS) {
+  if (expected.checkPaidExtras) {
+    for (const [ingredientName, price] of Object.entries(partnerStructures.paidExtras)) {
       const row = rows.get(ingredientKey(ingredientName));
       if (!row?.isOptional || row.isIncludedInBasePrice || row.price !== price) {
         failures.push(`${expected.name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
       }
     }
   }
-  for (const ingredientName of PARTNER_VEGETABLES) {
+  for (const ingredientName of partnerStructures.vegetables) {
     const row = rows.get(ingredientKey(ingredientName));
     if (!row?.isOptional || row.price !== 0 || !row.isIncludedInBasePrice) {
       failures.push(
@@ -1168,9 +1276,10 @@ const verifyPartnerRecipe = (expected, recipe) => {
   return failures;
 };
 
-export const verifyPartnerStructures = (owners) => {
+export const verifyPartnerStructures = (owners, rawPartnerStructures) => {
+  const partnerStructures = normalizePartnerStructures(rawPartnerStructures);
   const failures = [];
-  for (const expected of PARTNER_STRUCTURE_EXPECTATIONS) {
+  for (const expected of partnerStructures.products) {
     const owner = uniqueNamedOwner(
       owners,
       expected.name,
@@ -1178,7 +1287,7 @@ export const verifyPartnerStructures = (owners) => {
       'meat-section',
       failures,
     );
-    if (owner) failures.push(...verifyPartnerMeatSection(expected, owner));
+    if (owner) failures.push(...verifyPartnerMeatSection(expected, owner, partnerStructures));
 
     if (!expected.recipe) continue;
     const recipe = uniqueNamedOwner(
@@ -1189,7 +1298,7 @@ export const verifyPartnerStructures = (owners) => {
       failures,
     );
     if (!recipe) continue;
-    failures.push(...verifyPartnerRecipe(expected, recipe));
+    failures.push(...verifyPartnerRecipe(expected, recipe, partnerStructures));
   }
   return failures;
 };
@@ -1563,7 +1672,18 @@ const verifyPositivePrices = (products, menus, components) => {
  * The self-check, whole. Split out of `main` so the entry point is argument handling and
  * nothing else — and because this is the part a reader comes here to read.
  */
-const runVerify = ({ dataset, decisions, categories, components, products, menus, merges, pending, unbuilt }) => {
+const runVerify = ({
+  dataset,
+  decisions,
+  categories,
+  components,
+  products,
+  menus,
+  merges,
+  pending,
+  unbuilt,
+  partnerStructures,
+}) => {
   // EVERY row that carries a recipe, products and components alike. NOT `products`: the 11 dishes
   // that became `type: menu` had their ingredients and sauce rule moved onto hidden carriers, and
   // a gate scoped to `products` would simply have stopped seeing them — six checks going quietly
@@ -1618,8 +1738,8 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
       verifyDuplicateIngredientResolutions(decisions, recipeOwners),
     ],
     [
-      'partner Tacos/Assiette/Libanaise structures and recipe rules are explicit',
-      verifyPartnerStructures([...products, ...components, ...menus]),
+      'partner structures and recipe rules are explicit',
+      verifyPartnerStructures([...products, ...components, ...menus], partnerStructures),
     ],
     ['no guest-facing ingredient is still phrased as a removal', verifyNoNegatedNames(recipeOwners)],
     ["the app's own default selection is ORDERABLE (sauces within sauceMax)", verifyDefaultSelection(recipeOwners)],
@@ -1674,7 +1794,18 @@ const main = async () => {
   const unbuilt = unbuiltBundlesInUse(dataset, decisions, built);
 
   if (flag('--verify')) {
-    const ok = runVerify({ dataset, decisions, categories, components, products, menus, merges, pending, unbuilt });
+    const ok = runVerify({
+      dataset,
+      decisions,
+      categories,
+      components,
+      products,
+      menus,
+      merges,
+      pending,
+      unbuilt,
+      partnerStructures: decisions.verification.partnerStructures,
+    });
     if (!ok) process.exit(1);
     return;
   }

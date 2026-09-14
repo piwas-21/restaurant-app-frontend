@@ -32,16 +32,16 @@ their site hits. Two things are _not_ available and must come from Mustafa direc
 
 ## What's in this folder
 
-| File                     |                                                                                                                                                                                        |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dataset.json`           | Normalised, consolidated capture — restaurant, service config, hours, site theme, tables, all 13 modifier groups, and the 16 categories with their 69 products nested.                 |
-| `assets-manifest.json`   | All 94 images: source object path, target filename, real format, byte size, **sha256**, and what each is used for.                                                                     |
-| `fetch.mjs`              | Re-runs the whole capture (`node fetch.mjs [outDir]`). Verified end-to-end: it reproduces all 94 assets byte-identically and self-checks against `assets-manifest.json`.               |
-| `decisions.json`         | Every judgement call the capture could not make — the 7 self-contradictory groups, the 5 unnameable ones, the duplicates, the typos. `confirmed: false` on each until Mustafa answers. |
-| `map.mjs`                | **Pure.** `dataset.json` + `decisions.json` → the request bodies our API accepts. `--verify` self-checks; opens no socket.                                                             |
-| `import.mjs`             | The transport half: pushes the mapped catalogue into a provisioned tenant with a `menu:write` API token. `--dry-run` is a pre-flight.                                                  |
-| `map.test.mjs`           | Nine mutation tests for the verifier; they prove that deliberately broken emitted payloads fail the relevant check.                                                                    |
-| `rollback-manifest.json` | Sanitized 2026-09-14 evidence: 44 products + 24 components + 13 beverages + 45 menus = **126** unique records, endpoint paths, and private checksum/restore locations.                 |
+| File                     |                                                                                                                                                                                                                                                    |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dataset.json`           | Normalised, consolidated capture — restaurant, service config, hours, site theme, tables, all 13 modifier groups, and the 16 categories with their 69 products nested.                                                                             |
+| `assets-manifest.json`   | All 94 images: source object path, target filename, real format, byte size, **sha256**, and what each is used for.                                                                                                                                 |
+| `fetch.mjs`              | Re-runs the whole capture (`node fetch.mjs [outDir]`). Verified end-to-end: it reproduces all 94 assets byte-identically and self-checks against `assets-manifest.json`.                                                                           |
+| `decisions.json`         | Every judgement call the capture could not make — the 7 self-contradictory groups, the 5 unnameable ones, the duplicates, the typos, and the explicit `verification.partnerStructures` contract. `confirmed: false` on each until Mustafa answers. |
+| `map.mjs`                | **Pure.** `dataset.json` + `decisions.json` → the request bodies our API accepts. `--verify` self-checks; opens no socket.                                                                                                                         |
+| `import.mjs`             | The transport half: pushes the mapped catalogue into a provisioned tenant with a `menu:write` API token. `--dry-run` is a pre-flight.                                                                                                              |
+| `map.test.mjs`           | Nine mutation tests for the verifier; they prove that deliberately broken emitted payloads fail the relevant check.                                                                                                                                |
+| `rollback-manifest.json` | Sanitized 2026-09-14 evidence: 44 products + 24 components + 13 beverages + 45 menus = **126** unique records, endpoint paths, and private checksum/restore locations.                                                                             |
 
 ### Why the images aren't committed
 

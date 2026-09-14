@@ -12,6 +12,91 @@
     "Questions and their numbering: docs/tenants/mcfood/mustafa-questions.md (workspace,",
     "gitignored — it holds the partner's email address)."
   ],
+  "verification": {
+    "partnerStructures": {
+      "_": [
+        "The verifier's business truth is explicit here, separate from emitted owners. Keep exact",
+        "product ownership, source group IDs, meat counts, component refs, paid extra prices,",
+        "vegetable names, and sauce rule values here. map.mjs validates this contract and never",
+        "derives an expectation from the payload it checks."
+      ],
+      "products": [
+        {
+          "name": "Tacos 1 Viande",
+          "groupId": "81",
+          "count": 1,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Tacos 2 Viande",
+          "groupId": "83",
+          "count": 2,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Tacos 3 Viande",
+          "groupId": "84",
+          "count": 3,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Assiette Mixte",
+          "groupId": "84",
+          "count": 3,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 1 VIANDE",
+          "groupId": "81",
+          "count": 1,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 2 VIANDE",
+          "groupId": "83",
+          "count": 2,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 3 VIANDE",
+          "groupId": "84",
+          "count": 3,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        }
+      ],
+      "meatOptions": [
+        { "name": "Kebab", "ref": "component:meat:kebab" },
+        { "name": "Steak", "ref": "component:meat:steak" },
+        { "name": "Poulet", "ref": "component:meat:poulet" },
+        { "name": "Nuggets", "ref": "component:meat:nuggets" },
+        { "name": "Tenders", "ref": "component:meat:tenders" },
+        { "name": "Cordon Bleu", "ref": "component:meat:cordon bleu" },
+        { "name": "Falafel", "ref": "component:meat:falafel" }
+      ],
+      "paidExtras": {
+        "Viande": 3,
+        "Emmental": 1,
+        "Cheddar": 1,
+        "Chèvre": 1
+      },
+      "vegetables": ["Salade", "Tomate", "Oignon"],
+      "sauceRule": { "min": 1, "max": 2, "includedFree": 2 }
+    }
+  },
   "modifierGroups": {
     "_": [
       "Their model is ONE flat 'modifier group' primitive. Ours deliberately splits that",

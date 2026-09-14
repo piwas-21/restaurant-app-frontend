@@ -15,7 +15,6 @@ import { collectErrorFields, jumpToField } from '@/components/admin/product-edit
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
 import { useCustomizationGroupsEditorState } from './useCustomizationGroupsEditorState';
-import { areCustomizationGroupsValid } from '@/utils/customizationGroupDraft';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -76,6 +75,10 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     if (isBundle) setValue('menuDefinition', menuDefinition);
   }, [isBundle, menuDefinition, setValue]);
 
+  useEffect(() => {
+    if (!isBundle) setValue('customizationGroups', customization.groups);
+  }, [customization.groups, isBundle, setValue]);
+
   const changeMenuDefinition = useCallback((next: MenuDefinition) => {
     setMenuDefinition(next);
     setIsMenuDefinitionDirty(true);
@@ -105,10 +108,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
-    if (!areCustomizationGroupsValid(customization.groups)) {
-      setError('root', { message: t('customization_groups_invalid') });
-      return;
-    }
     const payload: Record<string, unknown> = { ...(data as Record<string, unknown>) };
 
     // Section AND item AND definition ids: every `temp-…` one 400s (Guid? on the wire).

@@ -267,6 +267,12 @@ children's drink sections, so a rebuild cannot silently drop those questions.
 ## Rollback evidence (2026-09-14)
 
 A fresh unauthenticated audit of the live tenant used `backup.mjs`; it did not write the menu.
+Capture to a private directory with an explicit origin (or set `MCFOOD_BASE_URL`):
+
+```bash
+node backup.mjs --base-url https://mcdoner.solutioneva.com --out /path/to/private/mcfood-rollback-YYYYMMDDTHHMMSSZ
+```
+
 The default public product list excludes components and beverages, so the capture explicitly uses:
 
 - `GET /api/Products?PageSize=500&IncludeComponents=true`: 68 records (44 catalogue products + 24 hidden components)

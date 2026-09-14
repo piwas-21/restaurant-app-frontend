@@ -40,7 +40,7 @@ their site hits. Two things are _not_ available and must come from Mustafa direc
 | `decisions.json`         | Every judgement call the capture could not make — the 7 self-contradictory groups, the 5 unnameable ones, the duplicates, the typos. `confirmed: false` on each until Mustafa answers. |
 | `map.mjs`                | **Pure.** `dataset.json` + `decisions.json` → the request bodies our API accepts. `--verify` self-checks; opens no socket.                                                             |
 | `import.mjs`             | The transport half: pushes the mapped catalogue into a provisioned tenant with a `menu:write` API token. `--dry-run` is a pre-flight.                                                  |
-| `backup.mjs`             | Fresh public rollback capture: products/components, menus, BOISSONS (including Ayran/Red Bull), per-record details, checksums. Raw output stays outside git.                           |
+| `map.test.mjs`           | Nine mutation tests for the verifier; they prove that deliberately broken emitted payloads fail the relevant check.                                                                    |
 | `rollback-manifest.json` | Sanitized 2026-09-14 evidence: 44 products + 24 components + 13 beverages + 45 menus = **126** unique records, endpoint paths, and private checksum/restore locations.                 |
 
 ### Why the images aren't committed
@@ -266,30 +266,21 @@ children's drink sections, so a rebuild cannot silently drop those questions.
 
 ## Rollback evidence (2026-09-14)
 
-A fresh unauthenticated audit of the live tenant used `backup.mjs`; it did not write the menu.
-Capture to a private directory with an explicit origin (or set `MCFOOD_BASE_URL`):
+A fresh unauthenticated audit of the live tenant was captured without writing the menu. The
+sanitized evidence is tracked in `rollback-manifest.json`; the complete ignored capture remains at:
 
-```bash
-node backup.mjs --base-url https://mcdoner.solutioneva.com --out /path/to/private/mcfood-rollback-YYYYMMDDTHHMMSSZ
-```
+`/Users/mahmutkaya/workspace/rumi-workspace/.local/mcfood-rollback-current`
 
-The default public product list excludes components and beverages, so the capture explicitly uses:
+The default public product list excludes components and beverages. The capture covers:
 
 - `GET /api/Products?PageSize=500&IncludeComponents=true`: 68 records (44 catalogue products + 24 hidden components)
 - `GET /api/Menus?PageSize=500`: 45 menu bundles
 - `GET /api/Products?PageSize=500&CategoryId=<BOISSONS id>`: 13 beverages, including **Ayran** and **Red Bull**
 
-The disjoint union is **126 records**. The script asserts that count, rejects duplicate IDs, and
-fetches a full public product detail for every product/component/beverage. It writes raw responses,
-details, `manifest.json`, and `SHA256SUMS` to the private restore location recorded in
-`rollback-manifest.json`:
-
-`/Users/mahmutkaya/workspace/rumi-workspace/.local/mcfood-rollback-current`
-
-The original scoped pre-change backup remains untouched at
-`docs/tenants/mcfood/backup-20260913T211924Z-pre-feedback`. Neither raw payloads, per-record IDs,
-checksums, nor tokens are committed; the local manifest and `SHA256SUMS` retain those details at
-the restore location, while the tracked manifest records only sanitized counts, paths, and policy.
+The disjoint union is **126 records**. The local capture contains the raw responses, full public product
+details, `manifest.json`, and `SHA256SUMS`; the tracked manifest records only sanitized counts, paths,
+and policy. The original scoped pre-change backup remains untouched at
+`docs/tenants/mcfood/backup-20260913T211924Z-pre-feedback`.
 
 ## Importing it
 
@@ -300,6 +291,7 @@ tenant whose catalogue comes from outside.) These two scripts are that missing s
 
 ```bash
 node fetch.mjs out                      # materialise the 94 images (~31 MB, not in git)
+node --test map.test.mjs                # 9/9 map verifier mutation tests
 node map.mjs --verify                   # exhaustive offline self-check
 export MCFOOD_TOKEN=...                 # a menu:write API token
 node import.mjs --base https://mcdoner.sofrapiwas.com --dry-run

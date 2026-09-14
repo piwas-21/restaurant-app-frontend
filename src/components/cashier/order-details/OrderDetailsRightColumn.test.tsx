@@ -4,6 +4,7 @@ import OrderDetailsRightColumn from './OrderDetailsRightColumn';
 import {
   makeOrder,
   makeOrderItem,
+  allUnassignedOrder,
   singleKitchenBundleOrder,
   mixedKitchenBundleOrder,
 } from '@/utils/__fixtures__/bundleOrderFixture';
@@ -21,17 +22,19 @@ jest.mock('@/utils/pdfExportUtils', () => ({
 beforeEach(() => mockExportKitchenItemsToPDF.mockClear());
 
 describe('OrderDetailsRightColumn — kitchen print buttons', () => {
-  it('offers only the front-kitchen button for a single-kitchen bundle', () => {
+  it('offers General and only the front-kitchen station for a single-kitchen bundle', () => {
     render(<OrderDetailsRightColumn order={singleKitchenBundleOrder()} />);
 
+    expect(screen.getByRole('button', { name: /General Kitchen/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Front Kitchen/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Back Kitchen/ })).not.toBeInTheDocument();
   });
 
-  it('offers BOTH buttons when the only back-kitchen item is nested in a front-kitchen bundle', () => {
+  it('offers General and BOTH station buttons when back work is nested in a front-kitchen bundle', () => {
     // The #237 regression: no top-level item is BackKitchen, so a top-level-only check hid this.
     render(<OrderDetailsRightColumn order={mixedKitchenBundleOrder()} />);
 
+    expect(screen.getByRole('button', { name: /General Kitchen/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Front Kitchen/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Back Kitchen/ })).toBeInTheDocument();
   });
@@ -45,10 +48,24 @@ describe('OrderDetailsRightColumn — kitchen print buttons', () => {
     expect(mockExportKitchenItemsToPDF).toHaveBeenCalledWith(order, 'BackKitchen', expect.anything());
   });
 
-  it('offers neither button when nothing routes to a kitchen', () => {
+  it('offers and prints General Kitchen for an all-unassigned order', () => {
+    const order = allUnassignedOrder();
+    render(<OrderDetailsRightColumn order={order} />);
+
+    const button = screen.getByRole('button', { name: /General Kitchen/ });
+    expect(button).toBeInTheDocument();
+    fireEvent.click(button);
+
+    expect(mockExportKitchenItemsToPDF).toHaveBeenCalledWith(order, 'GeneralKitchen', expect.anything());
+    expect(screen.queryByRole('button', { name: /Front Kitchen/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Back Kitchen/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps the General action available when no line routes to Front or Back', () => {
     const order = makeOrder([makeOrderItem({ id: 'water', productName: 'Still Water', kitchenType: 'None' })]);
     render(<OrderDetailsRightColumn order={order} />);
 
+    expect(screen.getByRole('button', { name: /General Kitchen/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Front Kitchen/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Back Kitchen/ })).not.toBeInTheDocument();
   });

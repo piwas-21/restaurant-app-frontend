@@ -153,6 +153,7 @@ describe('useTenantToday — what a late or failed answer may NOT do', () => {
     // One 503 on the ten-minute poll must not re-label all 14 buttons with this device's guess
     // under a guest who is mid-form. Falling back is for when nothing is known, not for forgetting.
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-08-19T09:00:00-07:00'));
     mockGetTenantToday.mockResolvedValue(zurich('2026-08-19'));
     const { result } = renderHook(() => useTenantToday());
     await act(async () => {});

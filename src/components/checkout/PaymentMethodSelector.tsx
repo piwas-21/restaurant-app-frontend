@@ -7,13 +7,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Info, CheckCircle } from 'lucide-react';
-import { PaymentMethod } from '@/types/order';
-import { offerablePaymentMethods } from '@/config/paymentMethods';
+import { OrderType, PaymentMethod } from '@/types/order';
+import { normalizePaymentMethodForOrderType, offerablePaymentMethods } from '@/config/paymentMethods';
 import defaultStyles from './PaymentMethodSelector.module.css';
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod;
   onMethodChange: (method: PaymentMethod) => void;
+  /** The active checkout channel. Card at restaurant is not a Delivery option. */
+  orderType: OrderType | null;
   /** Whether this restaurant can take an online payment (S8). Defaults to false so a caller
    *  that has not been taught to ask cannot accidentally offer it. */
   onlinePaymentAvailable?: boolean;
@@ -25,11 +27,29 @@ interface PaymentMethodSelectorProps {
 export default function PaymentMethodSelector({
   selectedMethod,
   onMethodChange,
+  orderType,
   onlinePaymentAvailable = false,
   styles = defaultStyles,
 }: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
-  const methods = offerablePaymentMethods(onlinePaymentAvailable);
+  const methods = offerablePaymentMethods(onlinePaymentAvailable, orderType);
+  const cardAtRestaurantAvailable = orderType === OrderType.DineIn || orderType === OrderType.Takeaway;
+  let infoKey = 'payment_methods_info_delivery';
+  let infoDefault = 'Pay cash on delivery only.';
+
+  if (cardAtRestaurantAvailable) {
+    infoKey = onlinePaymentAvailable ? 'payment_methods_info_online' : 'payment_methods_info';
+    infoDefault = onlinePaymentAvailable
+      ? 'Pay in cash or by card at the restaurant, or pay by card now — we will take you to our secure payment page.'
+      : 'Pay in cash or by card at the restaurant. Online payment and other methods are coming soon!';
+  } else if (onlinePaymentAvailable) {
+    infoKey = 'payment_methods_info_delivery_online';
+    infoDefault = 'Pay cash on delivery, or pay by card now — we will take you to our secure payment page.';
+  }
+
+  // Keep the visual radio state valid even during the render in which an order-type edit changes
+  // Delivery away from a previously selected Card at restaurant.
+  const effectiveSelectedMethod = normalizePaymentMethodForOrderType(selectedMethod, orderType);
 
   return (
     <section className={styles.section}>
@@ -40,56 +60,39 @@ export default function PaymentMethodSelector({
         </h2>
       </div>
 
-      {/* The banner states what this restaurant can actually take. The "only cash" sentence was
-          unconditional, so on a tenant that HAS online payment it contradicted the enabled option
-          rendered directly beneath it. */}
+      {/* The banner states what this restaurant can actually take. The copy distinguishes on-site
+          cash/card intents from the optional online payment route rendered below it. Unknown order
+          types use the delivery-safe copy so the banner never promises an on-site card payment. */}
       <div className={styles.infoMessage}>
         <Info size={18} />
-        <p>
-          {onlinePaymentAvailable
-            ? t(
-                'payment_methods_info_online',
-                'Pay in cash at the restaurant, or pay by card now — we will take you to our secure payment page.',
-              )
-            : t(
-                'payment_methods_info',
-                'Currently, only cash payment is available. Other payment methods are coming soon!',
-              )}
-        </p>
+        <p>{t(infoKey, infoDefault)}</p>
       </div>
 
       <div className={styles.paymentMethods}>
         {methods.map((method) => {
           const Icon = method.icon;
-          const isDisabled = method.disabled;
 
           return (
             <label
               key={method.value}
-              className={`${styles.paymentMethod} ${
-                selectedMethod === method.value ? styles.selected : ''
-              } ${isDisabled ? styles.disabled : ''}`}
+              className={`${styles.paymentMethod} ${effectiveSelectedMethod === method.value ? styles.selected : ''}`}
             >
               <input
                 type="radio"
                 name="paymentMethod"
                 value={method.value}
-                checked={selectedMethod === method.value}
-                onChange={() => !isDisabled && onMethodChange(method.value)}
+                checked={effectiveSelectedMethod === method.value}
+                onChange={() => onMethodChange(method.value)}
                 className={styles.paymentRadio}
-                disabled={isDisabled}
               />
               <div className={styles.paymentIcon}>
                 <Icon size={24} />
               </div>
               <div className={styles.paymentInfo}>
-                <span className={styles.paymentLabel}>
-                  {t(method.labelKey, method.label)}
-                  {isDisabled && <span className={styles.comingSoon}> ({t('coming_soon', 'Coming Soon')})</span>}
-                </span>
+                <span className={styles.paymentLabel}>{t(method.labelKey, method.label)}</span>
                 <span className={styles.paymentDescription}>{t(method.descriptionKey, method.description)}</span>
               </div>
-              {selectedMethod === method.value && !isDisabled && <CheckCircle size={20} className={styles.checkmark} />}
+              {effectiveSelectedMethod === method.value && <CheckCircle size={20} className={styles.checkmark} />}
             </label>
           );
         })}

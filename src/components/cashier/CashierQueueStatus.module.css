@@ -1,0 +1,36 @@
+.status {
+  align-items: center;
+  border: 1px solid;
+  border-radius: 6px;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.warning {
+  background-color: var(--feedback-warning-xlight);
+  border-color: var(--feedback-warning-light);
+  color: var(--feedback-warning-text);
+}
+
+.error {
+  background-color: var(--feedback-error-bg);
+  border-color: var(--feedback-error-border);
+  color: var(--feedback-error-text);
+}
+
+.retryButton {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.retryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

@@ -1,39 +1,46 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
+import type { CashierQueueState } from '@/types/cashier';
 import OrderList from './OrderList';
 import OrderDetails from './OrderDetails';
 import styles from './CashierMainContent.module.css';
+import queueStatusStyles from './CashierQueueStatus.module.css';
 import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
 
 interface CashierMainContentProps {
-  filteredOrders: OrderDto[];
-  pagination: {
-    totalCount: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
+  readonly filteredOrders: readonly OrderDto[];
+  readonly pagination: {
+    readonly totalCount: number;
+    readonly page: number;
+    readonly pageSize: number;
+    readonly totalPages: number;
   };
-  selectedOrder: OrderDto | null;
-  selectedOrderId: string | null;
-  isLoading: boolean;
-  error: string | null;
-  searchQuery: string;
-  statusFilter: string;
-  paymentStatusFilter: string;
-  orderTypeFilter: string;
-  onSelectOrder: (orderId: string) => void;
-  onStatusChange: (newStatus: string) => Promise<void>;
-  onAddPayment: () => void;
-  onRefund: () => void;
-  onCancel: () => void;
-  onToggleFocus: () => void;
-  onQuickConfirm: (orderId: string) => void;
-  onSearchChange: (query: string) => void;
-  onStatusFilterChange: (status: string) => void;
-  onPaymentStatusFilterChange: (status: string) => void;
-  onOrderTypeFilterChange: (type: string) => void;
-  onPageChange: (page: number) => void;
+  readonly selectedOrder: OrderDto | null;
+  readonly selectedOrderId: string | null;
+  readonly isLoading: boolean;
+  readonly error: string | null;
+  readonly queueState: CashierQueueState;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly paymentStatusFilter: string;
+  readonly orderTypeFilter: string;
+  readonly tableNumberFilter: string;
+  readonly onSelectOrder: (orderId: string) => void;
+  readonly onStatusChange: (newStatus: string) => Promise<void>;
+  readonly onAddPayment: () => void;
+  readonly onRefund: () => void;
+  readonly onCancel: () => void;
+  readonly onToggleFocus: () => void;
+  readonly onQuickConfirm: (orderId: string) => void;
+  readonly onSearchChange: (query: string) => void;
+  readonly onSearchSubmit: () => void;
+  readonly onStatusFilterChange: (status: string) => void;
+  readonly onPaymentStatusFilterChange: (status: string) => void;
+  readonly onOrderTypeFilterChange: (type: string) => void;
+  readonly onTableNumberFilterChange: (tableNumber: string) => void;
+  readonly onPageChange: (page: number) => void;
+  readonly onRetry: () => void;
 }
 
 export default function CashierMainContent({
@@ -43,10 +50,12 @@ export default function CashierMainContent({
   selectedOrderId,
   isLoading,
   error,
+  queueState,
   searchQuery,
   statusFilter,
   paymentStatusFilter,
   orderTypeFilter,
+  tableNumberFilter,
   onSelectOrder,
   onStatusChange,
   onAddPayment,
@@ -55,32 +64,43 @@ export default function CashierMainContent({
   onToggleFocus,
   onQuickConfirm,
   onSearchChange,
+  onSearchSubmit,
   onStatusFilterChange,
   onPaymentStatusFilterChange,
   onOrderTypeFilterChange,
+  onTableNumberFilterChange,
   onPageChange,
+  onRetry,
 }: CashierMainContentProps) {
   const { t } = useTranslation();
-
   return (
     <div className={styles.container}>
       <div className={styles.content}>
-        {/* Sidebar - Order List */}
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
             <h2 className={styles.sidebarTitle}>{t('cashier.orders') || 'Orders'}</h2>
-
-            {/* Filters inside sidebar */}
             <div className={styles.filterSection}>
               <input
-                type="text"
+                type="search"
                 className={styles.searchInput}
                 placeholder={t('cashier.search_placeholder') || 'Search by order # or customer...'}
                 value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
+                onChange={(event) => onSearchChange(event.target.value)}
+                onBlur={onSearchSubmit}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') onSearchSubmit();
+                }}
               />
-
               <div className={styles.filterSelects}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.filterSelect}
+                  value={tableNumberFilter}
+                  onChange={(e) => onTableNumberFilterChange(e.target.value)}
+                  placeholder={t('table_number')}
+                  aria-label={t('table_number')}
+                />
                 <select
                   className={styles.filterSelect}
                   value={statusFilter}
@@ -155,22 +175,44 @@ export default function CashierMainContent({
             </div>
           </div>
 
-          {/* Order List */}
-          {isLoading && !filteredOrders.length ? (
+          {queueState === 'stale' && (
+            <output className={`${queueStatusStyles.status} ${queueStatusStyles.warning}`}>
+              <span>{t('cashier.queue_stale')}</span>
+              <button className={queueStatusStyles.retryButton} type="button" onClick={onRetry} disabled={isLoading}>
+                {t('retry')}
+              </button>
+            </output>
+          )}
+
+          {isLoading && filteredOrders.length === 0 && (
             <div className={styles.orderListEmpty}>
               <span>{t('cashier.loading') || 'Loading orders...'}</span>
             </div>
-          ) : filteredOrders.length === 0 ? (
+          )}
+          {!isLoading && queueState === 'unavailable' && filteredOrders.length === 0 && (
+            <div
+              className={`${styles.orderListEmpty} ${queueStatusStyles.status} ${queueStatusStyles.error}`}
+              role="alert"
+            >
+              <span>{t('cashier.queue_unavailable')}</span>
+              <button className={queueStatusStyles.retryButton} type="button" onClick={onRetry} disabled={isLoading}>
+                {t('retry')}
+              </button>
+            </div>
+          )}
+          {!isLoading && queueState !== 'unavailable' && filteredOrders.length === 0 && (
             <div className={styles.orderListEmpty}>
               <span>{t('cashier.no_orders') || 'No orders found'}</span>
             </div>
-          ) : (
-            /* A labelled <section> (not a div with role="region") that is focusable: this pane
-               scrolls, so a keyboard-only user must be able to reach and scroll it — axe
-               `scrollable-region-focusable`, which is satisfied by the tabIndex, not by the label.
-               Only reachable once there ARE orders, which is why the dashboard a11y scan, running
-               against an empty list, never caught it. */
-            <section className={styles.orderList} tabIndex={0} aria-label={t('cashier.orders') || 'Orders'}>
+          )}
+          {filteredOrders.length > 0 && (
+            <section
+              className={styles.orderList}
+              tabIndex={0}
+              aria-busy={isLoading}
+              aria-label={t('cashier.orders') || 'Orders'}
+              data-queue-state={queueState}
+            >
               <OrderList
                 orders={filteredOrders}
                 selectedOrderId={selectedOrderId}
@@ -182,7 +224,6 @@ export default function CashierMainContent({
           )}
         </div>
 
-        {/* Main Area - Order Details */}
         <div className={styles.main}>
           <div className={styles.detailsContainer}>
             {selectedOrder ? (

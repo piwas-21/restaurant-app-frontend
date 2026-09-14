@@ -8,6 +8,22 @@ import styles from './BaseModal.module.css';
 
 export type BaseModalSize = 'sm' | 'md' | 'lg';
 
+const focusableSelector = [
+  'a[href]',
+  'area[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
+
+function focusableElements(dialog: HTMLElement): HTMLElement[] {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+    (element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true',
+  );
+}
+
 export interface BaseModalProps {
   /** Controls visibility. When false the modal is unmounted, not just hidden. */
   isOpen: boolean;
@@ -34,6 +50,11 @@ export interface BaseModalProps {
   disableBackdropClose?: boolean;
   /** Disable ESC-key-to-close. Default false. */
   disableEscapeClose?: boolean;
+  /**
+   * A mutation is in flight. Dismissal controls are disabled so a financial or form action
+   * cannot be hidden while its result is still unknown. The caller still owns its pending UI.
+   */
+  isPending?: boolean;
 }
 
 /**
@@ -42,16 +63,12 @@ export interface BaseModalProps {
  *  - role="dialog", aria-modal="true", aria-labelledby pointing at the title
  *  - ESC and backdrop-click dismissal (each opt-out-able)
  *  - X close button with translated aria-label
- *  - body-scroll lock while open
+ *  - body-scroll lock, initial focus, focus containment and return focus
+ *  - dismissal protection while a caller-owned action is pending
  *
  * Replaces the ad-hoc createPortal+overlay pattern that's been duplicated
  * across CustomizationModal, ZReportModal, AlertDialog-style components.
  * Migration to this primitive is gradual — see issue #16.
- *
- * **Known limitation (deferred):** no focus trap. Tab can escape the dialog
- * to background controls. Acceptable for the C1.5 onboarding modals (short,
- * action-oriented) but should be added before BaseModal hosts longer forms.
- * Tracked separately as a follow-up under issue #16.
  */
 export default function BaseModal({
   isOpen,
@@ -63,23 +80,52 @@ export default function BaseModal({
   className,
   disableBackdropClose,
   disableEscapeClose,
+  isPending = false,
 }: BaseModalProps) {
   const { t } = useTranslation();
   // useId is SSR-safe and idiomatic; previous Math.random in useRef worked
   // but would have mismatched if the dialog were ever server-rendered.
   const titleId = `base-modal-title-${useId()}`;
   const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const canDismiss = !isPending;
 
-  // ESC dismissal — listener is global because focus may not be in the modal
-  // yet when the user smashes the key (e.g. mid-mount).
+  // ESC dismissal and Tab containment are global because focus can briefly be outside the
+  // dialog during mount. Containment makes the portal a true modal for keyboard users.
   useEffect(() => {
-    if (!isOpen || disableEscapeClose) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    if (!isOpen) return;
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && canDismiss && !disableEscapeClose) {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const elements = focusableElements(dialog);
+      if (elements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = elements[0];
+      const last = elements.at(-1)!;
+      if (!dialog.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, disableEscapeClose, onClose]);
+  }, [canDismiss, disableEscapeClose, isOpen, onClose]);
 
   // Lock body scroll while open. Restore the previous overflow value on
   // close so that a host page with its own overflow rules isn't stomped on.
@@ -92,18 +138,27 @@ export default function BaseModal({
     };
   }, [isOpen]);
 
-  // Move initial focus into the dialog box on open for screen-reader and
-  // keyboard users.
+  // Capture the invoking control before moving focus into the dialog. On close, restoring it
+  // keeps a keyboard user in the same task context instead of dropping them at document start.
   useEffect(() => {
     if (!isOpen) return;
-    dialogRef.current?.focus();
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = dialogRef.current;
+    const initial = dialog && focusableElements(dialog)[0];
+    (initial ?? dialog)?.focus();
+
+    return () => {
+      const returnFocus = returnFocusRef.current;
+      if (returnFocus?.isConnected) returnFocus.focus();
+      returnFocusRef.current = null;
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
   const handleBackdrop = () => {
-    if (!disableBackdropClose) onClose();
+    if (canDismiss && !disableBackdropClose) onClose();
   };
 
   return createPortal(
@@ -124,7 +179,13 @@ export default function BaseModal({
           <h2 id={titleId} dir="auto" className={styles.title}>
             {title}
           </h2>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('close', 'Close')}>
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('close', 'Close')}
+            disabled={!canDismiss}
+          >
             <X size={20} />
           </button>
         </div>

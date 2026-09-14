@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, Home, ShoppingBag } from 'lucide-react';
+import { PaymentMethod } from '@/types/order';
 import BaseModal from '@/components/design-system/BaseModal';
 import styles from './OrderConfirmationModal.module.css';
 
@@ -10,6 +11,7 @@ interface OrderConfirmationModalProps {
   isOpen: boolean;
   orderNumber: string;
   customerEmail: string;
+  paymentMethod: PaymentMethod;
   isLoggedIn: boolean;
   onClose: () => void;
 }
@@ -29,6 +31,7 @@ export default function OrderConfirmationModal({
   isOpen,
   orderNumber,
   customerEmail,
+  paymentMethod,
   isLoggedIn,
   onClose,
 }: OrderConfirmationModalProps) {
@@ -57,6 +60,15 @@ export default function OrderConfirmationModal({
           'Thank you for your order. We have received it and will start preparing it shortly.',
         )}
       </p>
+
+      {paymentMethod === PaymentMethod.CreditCard && (
+        <p role="note" className={styles.paymentReminder}>
+          {t(
+            'payment_card_at_restaurant_reminder',
+            'Please pay by card at the restaurant when you arrive. Your order is not paid yet.',
+          )}
+        </p>
+      )}
 
       <div className={styles.orderNumberCard}>
         <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>

@@ -8,6 +8,7 @@ import { getZReport } from '@/services/orderService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { exportZReportToPDF } from '@/utils/zReportExportUtils';
 import { formatCurrency } from '@/utils/currency';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { calendarDayFromReport } from '@/utils/zReportDay';
 import styles from './ZReportModal.module.css';
 
@@ -108,7 +109,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
 
   const handleExportPDF = () => {
     if (reportData) {
-      exportZReportToPDF(reportData);
+      exportZReportToPDF(reportData, t);
     }
   };
 
@@ -216,7 +217,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                         <tbody>
                           {reportData.paymentsByMethod.map((pm) => (
                             <tr key={pm.paymentMethod}>
-                              <td>{pm.paymentMethod}</td>
+                              <td>{getPaymentMethodLabel(pm.paymentMethod, t)}</td>
                               <td>{pm.transactionCount}</td>
                               <td>{formatCurrency(pm.totalAmount)}</td>
                             </tr>

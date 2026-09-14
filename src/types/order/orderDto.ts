@@ -84,6 +84,7 @@ export interface OrderDto {
   deliveryFee: number;
   discount: number;
   discountPercentage: number;
+  customerDiscountAmount: number;
   tip: number;
   total: number;
   totalPaid: number;
@@ -96,6 +97,9 @@ export interface OrderDto {
   focusReason?: string;
   focusedAt?: string;
   focusedBy?: string;
+  orderTypeOverrideBy?: string | null;
+  orderTypeOverrideItems?: string | null;
+  preferredLanguage?: string | null;
   orderDate: string;
   estimatedDeliveryTime?: string;
   actualDeliveryTime?: string;
@@ -107,6 +111,7 @@ export interface OrderDto {
   promoCode?: string;
   hasUserLimitDiscount: boolean;
   userLimitAmount: number;
+  currency?: string | null;
   items: OrderItemDto[];
   payments: OrderPaymentDto[];
   statusHistory: OrderStatusHistoryDto[];

@@ -1,0 +1,71 @@
+.typeField {
+  margin: 1rem 0;
+  padding: 0;
+  border: 0;
+}
+
+.typeLegend {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary-color);
+  font-size: 0.875rem;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-color);
+}
+
+.amountControls {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.amountControls input {
+  flex: 1;
+}
+
+.amountControls button,
+.cancelButton,
+.submitButton {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 500);
+  cursor: pointer;
+}
+
+.amountControls button,
+.cancelButton {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+.submitButton {
+  background-color: var(--danger-color);
+  color: var(--text-on-primary);
+  font-weight: var(--modal-body-btn-weight, 600);
+}
+
+.amountControls button:disabled,
+.cancelButton:disabled,
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitError {
+  margin: 0.75rem 0 0;
+  color: var(--modal-body-error-color, var(--error-color));
+}

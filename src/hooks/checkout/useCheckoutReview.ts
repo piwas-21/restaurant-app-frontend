@@ -22,6 +22,7 @@ import { getTranslatedOrderError } from '@/utils/orderErrorHandler';
 import { formatPlainCurrency, formatCurrency } from '@/utils/currency';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { PaymentMethod, OrderType as OrderTypeEnum } from '@/types/order';
+import { normalizePaymentMethodForOrderType } from '@/config/paymentMethods';
 import { buildOrderCommand } from '@/lib/checkout/buildOrderCommand';
 import { useCheckoutTax } from './useCheckoutTax';
 import { useCheckoutPrereqGuard } from './useCheckoutPrereqGuard';
@@ -45,6 +46,13 @@ export function useCheckoutReview() {
   const [pointsDiscount, setPointsDiscount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const effectivePaymentMethod = normalizePaymentMethodForOrderType(selectedPaymentMethod, checkoutState.orderType);
+
+  // Reset a stale card after an order-type edit; the effective value keeps this render's radio and
+  // payload valid before the state effect runs.
+  useEffect(() => {
+    if (effectivePaymentMethod !== selectedPaymentMethod) setSelectedPaymentMethod(effectivePaymentMethod);
+  }, [effectivePaymentMethod, selectedPaymentMethod]);
 
   const confirmation = useOrderConfirmationModal();
   const onlinePaymentAvailable = useOnlinePaymentAvailability();
@@ -88,7 +96,7 @@ export function useCheckoutReview() {
         specialInstructions: checkoutState.specialInstructions,
         tipAmount: checkoutState.tipAmount || 0,
         basket: cartState.basket,
-        paymentMethod: selectedPaymentMethod,
+        paymentMethod: effectivePaymentMethod,
         pointsDiscount,
         redeemedPoints,
       });
@@ -108,6 +116,8 @@ export function useCheckoutReview() {
         return;
       }
 
+      // Cash and CreditCard are on-site intents. They finish through order creation with a Pending
+      // tender; only OnlinePayment takes the Stripe branch above.
       const createdOrder = await createOrderFromBasket(orderCommand);
 
       trackEvent('checkout_completed', {
@@ -122,6 +132,7 @@ export function useCheckoutReview() {
         id: createdOrder.id,
         orderNumber: createdOrder.orderNumber,
         customerEmail: checkoutState.customerInfo?.email || '',
+        paymentMethod: effectivePaymentMethod,
       });
 
       // Reset BOTH contexts: OrderTypeContext persists its own copy, so without
@@ -162,7 +173,7 @@ export function useCheckoutReview() {
     checkoutState,
     cartState,
     orderTypeFollowUp,
-    selectedPaymentMethod,
+    selectedPaymentMethod: effectivePaymentMethod,
     setSelectedPaymentMethod,
     onlinePaymentAvailable,
     redeemedPoints,

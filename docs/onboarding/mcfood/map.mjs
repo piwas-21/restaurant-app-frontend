@@ -169,24 +169,64 @@ const sauceRuleFor = (decisions, groupIds) => {
  * products. They cannot both stand: two `Salade` rows on one product is a menu bug, and
  * offering to add something the dish already contains is the contradiction, not the removal.
  *
- * **The included row wins.** Appearing in a removal list is evidence the ingredient is in the
- * dish, and one optional-and-included row already gives the guest both directions — leave it
- * on to have it, untick to remove. The merge is REPORTED by `--verify`, never silent.
+ * **The included row wins by default.** Appearing in a removal list is evidence the ingredient is
+ * in the dish, and one optional-and-included row already gives the guest both directions — leave it
+ * on to have it, untick to remove. A partner-confirmed paid exception is recorded in
+ * `duplicateIngredientResolution`. Every merge is REPORTED by `--verify`, never silent.
  */
-const dedupeIngredients = (rows, merges, productName) => {
+// The source calls the same vegetable both "Oignon" and "Oignons". Treat that known
+// singular/plural typo as one ingredient before applying the collision policy.
+const ingredientKey = (name) => (name.toLowerCase() === 'oignons' ? 'oignon' : name.toLowerCase());
+
+const duplicateResolutionFor = (decisions, productName, ingredientName) =>
+  decisions.duplicateIngredientResolution?.[productName]?.[ingredientName] ?? 'included';
+
+const duplicateWinner = (resolution, seen, row) => {
+  if (resolution === 'paid') {
+    if (seen.price > 0) return seen;
+    return row;
+  }
+  if (seen.isIncludedInBasePrice) return seen;
+  return row;
+};
+
+const duplicateMerge = (resolution, seen, row, productName) => {
+  const winner = duplicateWinner(resolution, seen, row);
+  const loser = winner === seen ? row : seen;
+  let dropped;
+  if (loser.price > 0) {
+    dropped = `${loser.price} paid`;
+  } else {
+    dropped = 'free';
+  }
+  let kept;
+  if (resolution === 'paid') {
+    kept = 'the paid';
+  } else {
+    kept = 'the included';
+  }
+  return {
+    winner,
+    message: `${productName}: "${row.name}" appeared twice — kept ${kept} row, dropped the ${dropped} one`,
+  };
+};
+
+const dedupeIngredients = (rows, merges, productName, decisions) => {
   const byName = new Map();
   for (const row of rows) {
-    const key = row.name.toLowerCase();
+    const key = ingredientKey(row.name);
     const seen = byName.get(key);
     if (!seen) {
       byName.set(key, row);
       continue;
     }
-    const winner = seen.isIncludedInBasePrice ? seen : row;
-    const loser = seen.isIncludedInBasePrice ? row : seen;
-    const dropped = loser.price > 0 ? `${loser.price} paid` : 'free';
-    merges.push(`${productName}: "${row.name}" appeared twice — kept the included row, dropped the ${dropped} one`);
-    byName.set(key, winner);
+    const resolution = duplicateResolutionFor(decisions, productName, row.name);
+    if (resolution !== 'included' && resolution !== 'paid') {
+      throw new Error(`${productName}: duplicate ingredient "${row.name}" has unsupported resolution "${resolution}"`);
+    }
+    const merge = duplicateMerge(resolution, seen, row, productName);
+    merges.push(merge.message);
+    byName.set(key, merge.winner);
   }
   return [...byName.values()].map((row, index) => ({ ...row, displayOrder: index }));
 };
@@ -270,7 +310,7 @@ const ingredientsFor = (decisions, groupIds, groups, merges = [], productName = 
       });
     }
   }
-  return dedupeIngredients(out, merges, productName);
+  return dedupeIngredients(out, merges, productName, decisions);
 };
 
 /**
@@ -321,9 +361,21 @@ const variationsFor = (decisions, item) => {
  * product's own. See the header — the product-level list on a sized item includes the
  * menu-only steps, so using it would ask a plain sandwich for a drink choice.
  */
-const governingGroupIds = (item) => {
+const governingGroupIds = (item, decisions) => {
   const defaultSize = (item.sizes ?? []).find((s) => s.isDefault);
-  return defaultSize?.modifierGroupIds ?? item.modifierGroupIds ?? [];
+  const governing = defaultSize?.modifierGroupIds ?? item.modifierGroupIds ?? [];
+  // A source product can omit a choice that is still part of the named product's contract.
+  // These additions are explicit, exact-name decisions in decisions.json — never a fuzzy
+  // fallback. The three child menus are the measured case: their source lists group 87/77 but
+  // the partner's required drink step is group 79.
+  const overrides = decisions?.bundles?.productGroupOverrides?.[item.name] ?? [];
+  for (const id of overrides) {
+    const decision = decisions?.modifierGroups?.[String(id)];
+    if (decision?.target !== 'bundle') {
+      throw new Error(`product ${item.sourceId} "${item.name}" has invalid bundle override ${id}`);
+    }
+  }
+  return [...new Set([...governing, ...overrides])];
 };
 
 /**
@@ -340,10 +392,16 @@ const governingGroupIds = (item) => {
 const FAMILY_OF = { 81: 'meat', 83: 'meat', 84: 'meat', 85: 'meat', 87: 'gift' };
 
 /**
- * Group 79 `Boissons` is deliberately NOT here. Its options are drinks the restaurant already
- * sells, and a bundle's drink section must reference THOSE — see `drinkRefs`.
+ * The source group whose options are the drinks the restaurant already sells. No default is
+ * safe here: a missing decision would silently omit every bundle's drink section.
  */
-const DRINK_GROUP = 79;
+const drinkGroupIdOf = (decisions) => {
+  const groupId = decisions.bundles?.drinkGroupId;
+  if (!Number.isInteger(groupId)) {
+    throw new TypeError('bundles.drinkGroupId must be an integer in decisions.json');
+  }
+  return groupId;
+};
 
 /**
  * How a section item and a menu's dish are named before the server has given anything an id.
@@ -419,7 +477,7 @@ const wrappedPortion = (decisions, item, menuSize) => {
 const recipeCarriers = (dataset, decisions, merges = []) => {
   const out = [];
   for (const { category, item } of eachItem(dataset, decisions)) {
-    const groupIds = governingGroupIds(item);
+    const groupIds = governingGroupIds(item, decisions);
     if (!bundleGroupsIn(decisions, groupIds).length) continue;
     out.push({
       productId: item.sourceId,
@@ -455,11 +513,13 @@ const largePortions = (dataset, decisions) => {
  */
 const drinkRefs = (dataset, decisions) => {
   const map = decisions.bundles.drinkProducts ?? {};
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const known = new Map();
   for (const { item } of eachItem(dataset, decisions)) known.set(item.sourceId, item.name);
-  const group = dataset.modifierGroups.find((g) => g.id === DRINK_GROUP);
+  const group = dataset.modifierGroups.find((g) => g.id === drinkGroupId);
+  if (!group) throw new Error(`modifier group ${drinkGroupId} has no entry in dataset.json`);
   return group.options
-    .filter((option) => !isDropped(decisions, DRINK_GROUP, option.name))
+    .filter((option) => !isDropped(decisions, drinkGroupId, option.name))
     .map((option) => {
       const id = map[option.name];
       if (id === undefined) {
@@ -530,8 +590,9 @@ const buildComponents = (dataset, decisions, carriers, portions) => {
     byKey.set(key, { source: { family, name, categoryId }, body: componentBody(name, extra) });
   };
 
+  const drinkGroupId = drinkGroupIdOf(decisions);
   for (const [id, decision] of Object.entries(decisions.modifierGroups)) {
-    if (id === '_' || decision.target !== 'bundle' || Number(id) === DRINK_GROUP) continue;
+    if (id === '_' || decision.target !== 'bundle' || Number(id) === drinkGroupId) continue;
     const family = FAMILY_OF[Number(id)];
     if (!family) throw new Error(`bundle group ${id} has no component family`);
     for (const option of groups.get(Number(id)).options) {
@@ -559,6 +620,7 @@ const buildComponents = (dataset, decisions, carriers, portions) => {
 /** A section, from the group it came from. `itemRefs` are resolved by import.mjs. */
 const sectionFor = (decisions, groupId, drinks) => {
   const decision = groupOf(decisions, groupId);
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const family = FAMILY_OF[Number(groupId)];
   const groups = decisions.__groups;
   const options = groups
@@ -576,7 +638,7 @@ const sectionFor = (decisions, groupId, drinks) => {
     minSelection: decision.minSelection ?? (decision.isRequired === false ? 0 : 1),
     maxSelection: decision.maxSelection ?? 1,
     // The drink section points at the REAL beverages; every other section at hidden components.
-    itemRefs: Number(groupId) === DRINK_GROUP ? drinks : options.map((name) => componentRef(family, name)),
+    itemRefs: Number(groupId) === drinkGroupId ? drinks : options.map((name) => componentRef(family, name)),
   };
 };
 
@@ -595,7 +657,7 @@ const buildProducts = (dataset, decisions, { drinks, carriers }) => {
   const out = [];
   const carrierOf = new Map(carriers.map((carrier) => [carrier.productId, carrier]));
   for (const { category, item } of eachItem(dataset, decisions)) {
-    const groupIds = governingGroupIds(item);
+    const groupIds = governingGroupIds(item, decisions);
     const bundleGroups = bundleGroupsIn(decisions, groupIds);
     const sections = bundleGroups.map((id) => sectionFor(decisions, id, drinks));
     const carrier = carrierOf.get(item.sourceId) ?? null;
@@ -692,6 +754,7 @@ const bundleGroupsReferencedBy = (item, decisions) => {
   const referenced = new Set([
     ...(item.modifierGroupIds ?? []),
     ...(item.sizes ?? []).flatMap((size) => size.modifierGroupIds ?? []),
+    ...(decisions.bundles?.productGroupOverrides?.[item.name] ?? []),
   ]);
   return [...referenced].filter((id) => groupOf(decisions, id).target === 'bundle');
 };
@@ -799,7 +862,7 @@ const unconfirmedInUse = (dataset, decisions) => {
   for (const category of dataset.menu) {
     for (const item of category.items) {
       if (Object.hasOwn(decisions.dropProducts, String(item.sourceId))) continue;
-      for (const id of governingGroupIds(item)) used.add(String(id));
+      for (const id of governingGroupIds(item, decisions)) used.add(String(id));
     }
   }
   return (
@@ -817,6 +880,8 @@ const unconfirmedInUse = (dataset, decisions) => {
 export const build = async ({ datasetPath, decisionsPath }) => {
   const dataset = JSON.parse(await readFile(datasetPath ?? path.join(HERE, 'dataset.json'), 'utf8'));
   const decisions = JSON.parse(await readFile(decisionsPath ?? path.join(HERE, 'decisions.json'), 'utf8'));
+  normalizePartnerStructures(decisions.verification?.partnerStructures);
+  const kidsDrinkSections = normalizeKidsDrinkSections(decisions.verification?.kidsDrinkSections);
   const merges = [];
   // sectionFor needs the raw groups; stashed rather than threaded through six signatures.
   decisions.__groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
@@ -836,6 +901,7 @@ export const build = async ({ datasetPath, decisionsPath }) => {
     products: buildProducts(dataset, decisions, parts),
     menus: buildMenuBundles(dataset, decisions, parts),
     merges,
+    kidsDrinkSections,
   };
 };
 
@@ -948,10 +1014,309 @@ const verifyNoDuplicateIngredients = (products) => {
   for (const product of products) {
     const seen = new Map();
     for (const ingredient of product.body.detailedIngredients) {
-      const key = ingredient.name.toLowerCase();
+      const key = ingredientKey(ingredient.name);
       if (seen.has(key)) failures.push(`${product.body.name}: "${ingredient.name}" appears twice`);
       seen.set(key, true);
     }
+  }
+  return failures;
+};
+
+/**
+ * Partner-confirmed duplicate policy. Most "Sans X"/"+ X" collisions keep the included row,
+ * but MC FOOD explicitly sells Emmental as a 1,00 EUR extra on each Tacos variant. This gate
+ * checks the emitted recipe owner, not only the decision JSON, so changing the dedupe code cannot
+ * silently make that extra free again.
+ */
+const duplicateResolutionFailure = (productName, ingredientName, resolution, row) => {
+  if (resolution === 'paid') {
+    if (!row.isOptional || row.isIncludedInBasePrice || row.price <= 0) {
+      return (
+        `${productName}: "${ingredientName}" must remain an optional paid extra, but emitted ` +
+        `price=${row.price}, isOptional=${row.isOptional}, isIncludedInBasePrice=${row.isIncludedInBasePrice}`
+      );
+    }
+    return null;
+  }
+  if (resolution !== 'included') {
+    return `${productName}: unsupported duplicate resolution "${resolution}"`;
+  }
+  return null;
+};
+
+const verifyDuplicateResolutionForProduct = (productName, ingredients, owners) => {
+  const owner = owners.find(
+    (candidate) => candidate.body.name === productName && candidate.body.detailedIngredients.length > 0,
+  );
+  if (!owner) return [`${productName}: duplicate-resolution owner was not emitted`];
+
+  const failures = [];
+  for (const [ingredientName, resolution] of Object.entries(ingredients)) {
+    const row = owner.body.detailedIngredients.find(
+      (ingredient) => ingredientKey(ingredient.name) === ingredientKey(ingredientName),
+    );
+    if (!row) {
+      failures.push(`${productName}: duplicate-resolution ingredient "${ingredientName}" was not emitted`);
+      continue;
+    }
+    const failure = duplicateResolutionFailure(productName, ingredientName, resolution, row);
+    if (failure) failures.push(failure);
+  }
+  return failures;
+};
+
+const verifyDuplicateIngredientResolutions = (decisions, owners) => {
+  const failures = [];
+  for (const [productName, ingredients] of Object.entries(decisions.duplicateIngredientResolution ?? {})) {
+    if (productName === '_') continue;
+    failures.push(...verifyDuplicateResolutionForProduct(productName, ingredients, owners));
+  }
+  return failures;
+};
+
+/**
+ * Partner structure is an explicit table in decisions.json, not a check derived from the same
+ * group names the mapper emits. That keeps a missing product, duplicate name, missing section,
+ * or wrong cardinality visible. Sections belong to the menu product; recipes belong to its hidden
+ * carrier, so each ownership lookup names the expected surface explicitly.
+ */
+const contractObject = (value, label = 'contract', root = 'verification.partnerStructures') => {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${root}.${label} must be an object`);
+  }
+  return value;
+};
+
+const contractArray = (value, label, root = 'verification.partnerStructures') => {
+  if (!Array.isArray(value)) {
+    throw new TypeError(`${root}.${label} must be an array`);
+  }
+  if (value.length === 0) {
+    throw new Error(`${root}.${label} must be a non-empty array`);
+  }
+  return value;
+};
+
+const contractString = (value, label, root = 'verification.partnerStructures') => {
+  if (typeof value !== 'string') {
+    throw new TypeError(`${root}.${label} must be a string`);
+  }
+  if (value.trim() === '') {
+    throw new Error(`${root}.${label} must be a non-empty string`);
+  }
+  return value.trim();
+};
+
+const contractBoolean = (value, label, root = 'verification.partnerStructures') => {
+  if (typeof value !== 'boolean') {
+    throw new TypeError(`${root}.${label} must be a boolean`);
+  }
+  return value;
+};
+
+const contractInteger = (value, label, root = 'verification.partnerStructures') => {
+  if (!Number.isInteger(value)) {
+    throw new TypeError(`${root}.${label} must be an integer`);
+  }
+  return value;
+};
+
+const uniqueContractValues = (values, label, root = 'verification.partnerStructures') => {
+  if (new Set(values).size !== values.length) {
+    throw new Error(`${root}.${label} must contain unique values`);
+  }
+};
+
+const normalizePartnerProduct = (rawProduct, index) => {
+  const product = contractObject(rawProduct, `products[${index}]`);
+  const name = contractString(product.name, `products[${index}].name`);
+  const groupId = contractString(product.groupId, `products[${index}].groupId`);
+  const count = contractInteger(product.count, `products[${index}].count`);
+  if (count < 1) throw new Error(`verification.partnerStructures.products[${index}].count must be positive`);
+  return {
+    name,
+    groupId,
+    count,
+    recipe: contractBoolean(product.recipe, `products[${index}].recipe`),
+    checkVegetables: contractBoolean(product.checkVegetables, `products[${index}].checkVegetables`),
+    checkPaidExtras: contractBoolean(product.checkPaidExtras, `products[${index}].checkPaidExtras`),
+  };
+};
+
+const normalizePartnerProducts = (contract) => {
+  const rawProducts = contractArray(contract.products, 'products');
+  const products = rawProducts.map((rawProduct, index) => normalizePartnerProduct(rawProduct, index));
+  uniqueContractValues(
+    products.map((product) => product.name),
+    'products names',
+  );
+  return products;
+};
+
+const normalizePartnerMeatOptions = (contract) => {
+  const rawOptions = contractArray(contract.meatOptions, 'meatOptions');
+  const meatOptions = rawOptions.map((rawOption, index) => {
+    const option = contractObject(rawOption, `meatOptions[${index}]`);
+    return {
+      name: contractString(option.name, `meatOptions[${index}].name`),
+      ref: contractString(option.ref, `meatOptions[${index}].ref`),
+    };
+  });
+  uniqueContractValues(
+    meatOptions.map((option) => option.name),
+    'meatOptions names',
+  );
+  uniqueContractValues(
+    meatOptions.map((option) => option.ref),
+    'meatOptions refs',
+  );
+  return meatOptions;
+};
+
+const normalizePartnerPaidExtras = (contract) => {
+  const rawPaidExtras = contractObject(contract.paidExtras, 'paidExtras');
+  const paidExtras = Object.fromEntries(
+    Object.entries(rawPaidExtras).map(([name, price]) => {
+      const extraName = contractString(name, 'paidExtras name');
+      if (typeof price !== 'number' || !Number.isFinite(price) || price <= 0) {
+        throw new Error(`verification.partnerStructures.paidExtras.${extraName} must be a positive number`);
+      }
+      return [extraName, price];
+    }),
+  );
+  if (Object.keys(paidExtras).length === 0) {
+    throw new Error('verification.partnerStructures.paidExtras must not be empty');
+  }
+  uniqueContractValues(Object.keys(paidExtras), 'paidExtras names');
+  return paidExtras;
+};
+
+const normalizePartnerVegetables = (contract) => {
+  const rawVegetables = contractArray(contract.vegetables, 'vegetables');
+  const vegetables = rawVegetables.map((name, index) => contractString(name, `vegetables[${index}]`));
+  uniqueContractValues(vegetables, 'vegetables');
+  return vegetables;
+};
+
+const normalizePartnerSauceRule = (contract) => {
+  const rawSauceRule = contractObject(contract.sauceRule, 'sauceRule');
+  const sauceRule = {
+    min: contractInteger(rawSauceRule.min, 'sauceRule.min'),
+    max: contractInteger(rawSauceRule.max, 'sauceRule.max'),
+    includedFree: contractInteger(rawSauceRule.includedFree, 'sauceRule.includedFree'),
+  };
+  if (sauceRule.min < 0 || sauceRule.max < sauceRule.min || sauceRule.includedFree < 0) {
+    throw new Error('verification.partnerStructures.sauceRule has invalid bounds');
+  }
+  return sauceRule;
+};
+
+const normalizePartnerStructures = (raw) => {
+  const contract = contractObject(raw);
+  return {
+    products: normalizePartnerProducts(contract),
+    meatOptions: normalizePartnerMeatOptions(contract),
+    paidExtras: normalizePartnerPaidExtras(contract),
+    vegetables: normalizePartnerVegetables(contract),
+    sauceRule: normalizePartnerSauceRule(contract),
+  };
+};
+
+const uniqueNamedOwner = (owners, name, predicate, label, failures) => {
+  const matches = owners.filter((candidate) => candidate.body.name === name && predicate(candidate));
+  if (matches.length === 0) failures.push(`${name}: ${label} owner is missing`);
+  if (matches.length > 1) failures.push(`${name}: ${label} has ${matches.length} owners, expected exactly one`);
+  return matches.length === 1 ? matches[0] : null;
+};
+
+const verifyPartnerMeatSection = (expected, owner, partnerStructures) => {
+  const failures = [];
+  const sections = (owner.sections ?? []).filter((section) => String(section.__groupId) === expected.groupId);
+  if (sections.length !== 1) {
+    failures.push(`${expected.name}: expected exactly one meat section, found ${sections.length}`);
+    return failures;
+  }
+
+  const [section] = sections;
+  const optionRefs = section.itemRefs ?? [];
+  const distinctOptions = new Set(optionRefs);
+  const expectedMeatRefs = new Set(partnerStructures.meatOptions.map((option) => option.ref));
+  const expectedOptionCount = partnerStructures.meatOptions.length;
+  const exactMeatRefs =
+    optionRefs.length === expectedOptionCount &&
+    distinctOptions.size === expectedOptionCount &&
+    partnerStructures.meatOptions.every((option) => distinctOptions.has(option.ref)) &&
+    optionRefs.every((ref) => expectedMeatRefs.has(ref));
+  if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
+    failures.push(
+      `${expected.name}: meat section must be required ${expected.count}..${expected.count}, emitted ` +
+        `${section.minSelection}..${section.maxSelection}`,
+    );
+  }
+  if (!exactMeatRefs) {
+    failures.push(
+      `${expected.name}: meat section must have ${expectedOptionCount} distinct options with the exact ` +
+        `confirmed meat refs, emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
+    );
+  }
+  return failures;
+};
+
+const verifyPartnerRecipe = (expected, recipe, partnerStructures) => {
+  const failures = [];
+  if (!expected.checkVegetables) return failures;
+  const { min, max, includedFree } = partnerStructures.sauceRule;
+  if (recipe.body.sauceMin !== min || recipe.body.sauceMax !== max || recipe.body.sauceIncludedFree !== includedFree) {
+    failures.push(
+      `${expected.name}: sauce rule must be ${min}..${max} with ${includedFree} free, emitted ` +
+        `${recipe.body.sauceMin}..${recipe.body.sauceMax} with ${recipe.body.sauceIncludedFree} free`,
+    );
+  }
+  const rows = new Map(
+    recipe.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
+  );
+  if (expected.checkPaidExtras) {
+    for (const [ingredientName, price] of Object.entries(partnerStructures.paidExtras)) {
+      const row = rows.get(ingredientKey(ingredientName));
+      if (!row?.isOptional || row.isIncludedInBasePrice || row.price !== price) {
+        failures.push(`${expected.name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
+      }
+    }
+  }
+  for (const ingredientName of partnerStructures.vegetables) {
+    const row = rows.get(ingredientKey(ingredientName));
+    if (!row?.isOptional || row.price !== 0 || !row.isIncludedInBasePrice) {
+      failures.push(
+        `${expected.name}: vegetable "${ingredientName}" must be optional, free, and included in the base price`,
+      );
+    }
+  }
+  return failures;
+};
+
+export const verifyPartnerStructures = (owners, rawPartnerStructures) => {
+  const partnerStructures = normalizePartnerStructures(rawPartnerStructures);
+  const failures = [];
+  for (const expected of partnerStructures.products) {
+    const owner = uniqueNamedOwner(
+      owners,
+      expected.name,
+      (candidate) => (candidate.sections ?? []).some((section) => String(section.__groupId) === expected.groupId),
+      'meat-section',
+      failures,
+    );
+    if (owner) failures.push(...verifyPartnerMeatSection(expected, owner, partnerStructures));
+
+    if (!expected.recipe) continue;
+    const recipe = uniqueNamedOwner(
+      owners,
+      expected.name,
+      (candidate) => candidate.body.detailedIngredients.length > 0,
+      'recipe',
+      failures,
+    );
+    if (!recipe) continue;
+    failures.push(...verifyPartnerRecipe(expected, recipe, partnerStructures));
   }
   return failures;
 };
@@ -1178,24 +1543,95 @@ const drinkRefFailure = (where, ref, componentByRef, productByRef) => {
     );
   }
   const product = productByRef.get(ref);
-  if (product && product.body.type !== PRODUCT_TYPE.beverage) {
+  if (!product) return `${where}: "${ref}" does not resolve to a catalogue product`;
+  if (product.body.type !== PRODUCT_TYPE.beverage) {
     return `${where}: "${product.body.name}" is not type beverage`;
   }
   return null;
 };
 
-const verifyDrinkSections = (products, menus, components) => {
+const verifyDrinkSections = (products, menus, components, decisions) => {
   const componentByRef = new Map(
     components.map((c) => [`component:${c.source.family}:${c.source.name.toLowerCase()}`, c]),
   );
   const productByRef = new Map(products.map((p) => [`product:${p.source.id}`, p]));
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const failures = [];
   for (const owner of [...products, ...menus]) {
-    const drinkSections = (owner.sections ?? []).filter((s) => String(s.__groupId) === String(DRINK_GROUP));
+    const drinkSections = (owner.sections ?? []).filter((s) => String(s.__groupId) === String(drinkGroupId));
     for (const section of drinkSections) {
       const where = `${owner.body.name}/${section.name}`;
       const found = section.itemRefs.map((ref) => drinkRefFailure(where, ref, componentByRef, productByRef));
       failures.push(...found.filter(Boolean));
+    }
+  }
+  return failures;
+};
+
+/**
+ * The child-menu drink contract is kept in decisions.json, not executable tenant truth. Normalize
+ * it before checking emitted owners so a missing or malformed contract fails closed.
+ */
+const normalizeKidsDrinkSections = (raw) => {
+  const root = 'verification.kidsDrinkSections';
+  const contract = contractObject(raw, 'contract', root);
+  const products = contractArray(contract.products, 'products', root).map((name, index) =>
+    contractString(name, `products[${index}]`, root),
+  );
+  const drinkRefs = contractArray(contract.drinkRefs, 'drinkRefs', root).map((ref, index) =>
+    contractString(ref, `drinkRefs[${index}]`, root),
+  );
+  uniqueContractValues(products, 'products names', root);
+  uniqueContractValues(drinkRefs, 'drinkRefs', root);
+  const sectionName = contractString(contract.sectionName, 'sectionName', root);
+  const groupId = contractString(contract.groupId, 'groupId', root);
+  const isRequired = contractBoolean(contract.isRequired, 'isRequired', root);
+  const minSelection = contractInteger(contract.minSelection, 'minSelection', root);
+  const maxSelection = contractInteger(contract.maxSelection, 'maxSelection', root);
+  if (minSelection < 0 || maxSelection < minSelection || (isRequired && minSelection < 1)) {
+    throw new Error(`${root} has invalid selection bounds`);
+  }
+  return { products, drinkRefs, sectionName, groupId, isRequired, minSelection, maxSelection };
+};
+
+export const verifyKidsDrinkSections = (owners, rawKidsDrinkSections) => {
+  const expectedContract = normalizeKidsDrinkSections(rawKidsDrinkSections);
+  const expectedRefs = new Set(expectedContract.drinkRefs);
+  const expectedCount = expectedContract.drinkRefs.length;
+  const failures = [];
+  for (const name of expectedContract.products) {
+    const owner = uniqueNamedOwner(owners, name, () => true, 'product', failures);
+    if (!owner) continue;
+    const drinkSections = (owner.sections ?? []).filter(
+      (section) => String(section.__groupId) === expectedContract.groupId,
+    );
+    if (drinkSections.length !== 1) {
+      failures.push(
+        `${name}: expected exactly one required ${expectedContract.sectionName} section, found ${drinkSections.length}`,
+      );
+      continue;
+    }
+    const [section] = drinkSections;
+    const optionRefs = section.itemRefs ?? [];
+    const distinctRefs = new Set(optionRefs);
+    const exactDrinkRefs =
+      optionRefs.length === expectedCount &&
+      distinctRefs.size === expectedCount &&
+      expectedContract.drinkRefs.every((ref) => distinctRefs.has(ref)) &&
+      optionRefs.every((ref) => expectedRefs.has(ref));
+    if (
+      section.name !== expectedContract.sectionName ||
+      section.isRequired !== expectedContract.isRequired ||
+      section.minSelection !== expectedContract.minSelection ||
+      section.maxSelection !== expectedContract.maxSelection ||
+      !exactDrinkRefs
+    ) {
+      failures.push(
+        `${name}/${section.name}: drink choice must be ${expectedContract.sectionName}, ` +
+          `${expectedContract.isRequired ? 'required' : 'optional'} ${expectedContract.minSelection}..` +
+          `${expectedContract.maxSelection} with the exact ${expectedCount} source refs ` +
+          `(emitted ${optionRefs.length}, ${section.minSelection}..${section.maxSelection})`,
+      );
     }
   }
   return failures;
@@ -1209,16 +1645,20 @@ const verifyDrinkSections = (products, menus, components) => {
  * which a guest pays 13,00 € for three meats and may leave with one — legal server-side, invisible
  * to every structural check, and a refund conversation. The referent is their own group name.
  */
-const verifySectionCounts = (decisions) => {
+const verifySectionCounts = (decisions, products, menus) => {
   const failures = [];
-  for (const [id, group] of Object.entries(decisions.modifierGroups)) {
-    if (id === '_' || group.target !== 'bundle') continue;
-    const sold = Number(/^(\d+)\b/.exec(group.sourceName ?? '')?.[1]);
-    if (Number.isInteger(sold) && sold === group.maxSelection && group.minSelection !== sold) {
-      failures.push(
-        `group ${id} (${group.sourceName}): its name sells ${sold} and maxSelection is ${sold}, but ` +
-          `minSelection is ${group.minSelection} — a guest pays for ${sold} and may pick ${group.minSelection}`,
-      );
+  for (const owner of [...products, ...menus]) {
+    for (const section of owner.sections ?? []) {
+      const group = decisions.modifierGroups[String(section.__groupId)];
+      if (group?.target !== 'bundle') continue;
+      const sold = Number(/^(\d+)\b/.exec(group.sourceName ?? '')?.[1]);
+      if (!Number.isInteger(sold) || sold !== group.maxSelection) continue;
+      if (section.minSelection !== sold || section.maxSelection !== sold) {
+        failures.push(
+          `${owner.body.name}/${section.name}: its name sells ${sold}, but emitted ` +
+            `minSelection=${section.minSelection}, maxSelection=${section.maxSelection}`,
+        );
+      }
     }
   }
   return failures;
@@ -1255,7 +1695,19 @@ const verifyPositivePrices = (products, menus, components) => {
  * The self-check, whole. Split out of `main` so the entry point is argument handling and
  * nothing else — and because this is the part a reader comes here to read.
  */
-const runVerify = ({ dataset, decisions, categories, components, products, menus, merges, pending, unbuilt }) => {
+const runVerify = ({
+  dataset,
+  decisions,
+  categories,
+  components,
+  products,
+  menus,
+  merges,
+  pending,
+  unbuilt,
+  partnerStructures,
+  kidsDrinkSections,
+}) => {
   // EVERY row that carries a recipe, products and components alike. NOT `products`: the 11 dishes
   // that became `type: menu` had their ingredients and sauce rule moved onto hidden carriers, and
   // a gate scoped to `products` would simply have stopped seeing them — six checks going quietly
@@ -1293,7 +1745,7 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
   console.log(`rows with a sauce rule     ${sauced}`);
   console.log(`  …of which sauce rows      ${sauceRows}`);
   if (merges.length) {
-    console.log(`\nmerged duplicate ingredients (${merges.length}) — the included row won:`);
+    console.log(`\nmerged duplicate ingredients (${merges.length}) — resolved per decisions.json:`);
     for (const line of merges) console.log(`  ${line}`);
   }
   console.log('');
@@ -1305,6 +1757,14 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
     ['every product with a sauce RULE carries the sauce ROWS to satisfy it', verifySauces(recipeOwners)],
     ['no ingredient is marked mutually exclusive', verifyExclusionGroups(recipeOwners)],
     ['no product names the same ingredient twice', verifyNoDuplicateIngredients(recipeOwners)],
+    [
+      'partner duplicate-ingredient resolutions are applied',
+      verifyDuplicateIngredientResolutions(decisions, recipeOwners),
+    ],
+    [
+      'partner structures and recipe rules are explicit',
+      verifyPartnerStructures([...products, ...components, ...menus], partnerStructures),
+    ],
     ['no guest-facing ingredient is still phrased as a removal', verifyNoNegatedNames(recipeOwners)],
     ["the app's own default selection is ORDERABLE (sauces within sauceMax)", verifyDefaultSelection(recipeOwners)],
     ['hideBaseProduct only where there is an active variation to sell instead', verifyBaseRow(products)],
@@ -1312,9 +1772,13 @@ const runVerify = ({ dataset, decisions, categories, components, products, menus
     ['no type=menu product carries its own (dead) recipe or sauce rule', verifyMenusCarryNoRecipe(products, menus)],
     [
       'every drink section names the REAL beverages, not hidden copies',
-      verifyDrinkSections(products, menus, components),
+      verifyDrinkSections(products, menus, components, decisions),
     ],
-    ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions)],
+    [
+      'each Menu Enfant owns one required drink section',
+      verifyKidsDrinkSections([...products, ...menus], kidsDrinkSections),
+    ],
+    ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions, products, menus)],
     [
       'every bundle section and Plat resolves to something this run creates',
       verifySections(products, menus, components),
@@ -1349,7 +1813,7 @@ const main = async () => {
     return i === -1 ? undefined : argv[i + 1];
   };
 
-  const { dataset, decisions, categories, components, products, menus, merges } = await build({});
+  const { dataset, decisions, categories, components, products, menus, merges, kidsDrinkSections } = await build({});
   const pending = unconfirmedInUse(dataset, decisions);
   // Which groups actually reached a section — derived from the OUTPUT, so a group that
   // silently stopped being mapped shows up here rather than being assumed built.
@@ -1357,7 +1821,19 @@ const main = async () => {
   const unbuilt = unbuiltBundlesInUse(dataset, decisions, built);
 
   if (flag('--verify')) {
-    const ok = runVerify({ dataset, decisions, categories, components, products, menus, merges, pending, unbuilt });
+    const ok = runVerify({
+      dataset,
+      decisions,
+      categories,
+      components,
+      products,
+      menus,
+      merges,
+      pending,
+      unbuilt,
+      partnerStructures: decisions.verification.partnerStructures,
+      kidsDrinkSections,
+    });
     if (!ok) process.exit(1);
     return;
   }

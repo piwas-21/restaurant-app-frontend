@@ -3,6 +3,7 @@ import { printHtmlContent } from './pdfExportUtils';
 import { formatCurrency } from './currency';
 import { calendarDayFromReport } from './zReportDay';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { getPaymentMethodLabel, type PaymentTranslationFunction } from './paymentMethodDisplay';
 
 // `reportDate` is a calendar DAY, not an instant, so the paper must name the day the FIGURES are
 // for: without `timeZone`, the device's zone decided, and west of UTC this printed
@@ -30,7 +31,7 @@ const formatTimestamp = (dateStr: string): string => {
   return new Date(dateStr).toLocaleString('de-CH');
 };
 
-export const exportZReportToPDF = (report: ZReportDto): void => {
+export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFunction): void => {
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -111,7 +112,7 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
         <table>
           <thead><tr><th>Method</th><th>Txns</th><th>Amount</th></tr></thead>
           <tbody>
-            ${report.paymentsByMethod.map((pm) => `<tr><td>${pm.paymentMethod}</td><td>${pm.transactionCount}</td><td>${formatCurrency(pm.totalAmount)}</td></tr>`).join('')}
+            ${report.paymentsByMethod.map((pm) => `<tr><td>${getPaymentMethodLabel(pm.paymentMethod, t)}</td><td>${pm.transactionCount}</td><td>${formatCurrency(pm.totalAmount)}</td></tr>`).join('')}
           </tbody>
         </table>`
             : '<p style="color:#999;font-size:11px;">No payments</p>'

@@ -7,6 +7,7 @@ import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -23,16 +24,6 @@ const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): s
     default:
       return type || 'Unknown';
   }
-};
-
-// Get payment method label
-const getPaymentMethodLabel = (method: string): string => {
-  const labels: Record<string, string> = {
-    cash: 'Cash',
-    card: 'Card',
-    twint: 'TWINT',
-  };
-  return labels[method?.toLowerCase()] || method || 'N/A';
 };
 
 // Build item HTML - simple format (name, qty, total only - no unit price breakdown)
@@ -88,7 +79,9 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       ? `
       <div style="margin-top: 8px;">
         <strong>${translate('payment', 'PAYMENT')}:</strong>
-        ${order.payments.map((p) => `<div>${getPaymentMethodLabel(p.paymentMethod)}: ${formatCurrency(p.amount)}</div>`).join('')}
+        ${order.payments
+          .map((p) => `<div>${getPaymentMethodLabel(p.paymentMethod, translate)}: ${formatCurrency(p.amount)}</div>`)
+          .join('')}
       </div>
     `
       : '';

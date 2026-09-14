@@ -39,7 +39,6 @@
     "src/components/cashier/diagnostics/RealtimeConnectionSection.tsx :: styles.errorIcon",
     "src/components/cashier/diagnostics/ServerDiagnosticsSection.tsx :: styles.errorIcon",
     "src/components/cashier/OrderDetails.tsx :: styles.noOrderSelected",
-    "src/components/cashier/OrderList.tsx :: styles.orderList",
     "src/components/cashier/OrderList.tsx :: styles.orderListEmpty",
     "src/components/cashier/QRScannerDialog.tsx :: styles.cancelButton",
     "src/components/cashier/QRScannerDialog.tsx :: styles.closeButton",

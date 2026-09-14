@@ -376,6 +376,7 @@ jobs:
             NEXT_PUBLIC_API_URL=https://${{ inputs.tenant_domain }}
             NEXT_PUBLIC_IMAGE_BASE_URL=https://${{ inputs.tenant_domain }}
             NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
+            NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS=600000
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
             NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
             NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}

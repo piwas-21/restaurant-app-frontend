@@ -2,8 +2,9 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { OrderDto } from '@/types/order';
+import { OrderDto, PaymentOperationLookupDto } from '@/types/order';
 import { AddPaymentRequest } from '@/services/cashierService';
+import { useCashierPaymentAction } from './useCashierPaymentAction';
 import { useCashierQuickActions } from './useCashierQuickActions';
 
 const SUCCESS_MESSAGE_TIMEOUT_MS = 3000;
@@ -12,7 +13,9 @@ const ERROR_MESSAGE_TIMEOUT_MS = 5000;
 export interface CashierMutations {
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
-  refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
+  /** Optional for tests and older queue owners; the reconciliation hook falls back to its typed service. */
+  reconcilePayment?: (orderId: string, operationId: string) => Promise<PaymentOperationLookupDto>;
+  refundPayment: (orderId: string, paymentId: string, amount: number, reason: string) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
   /** Resolves `false` when the refresh failed; see `useCashierOrders`. Unused here — the dialogs
@@ -31,8 +34,10 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showRefundDialog, setShowRefundDialog] = useState(false);
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFocusDialog, setShowFocusDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -51,6 +56,18 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     setTimeout(() => setErrorMessage(null), ERROR_MESSAGE_TIMEOUT_MS);
   }, []);
 
+  const paymentAction = useCashierPaymentAction({
+    selectedOrder,
+    addPayment: mutations.addPayment,
+    reconcilePayment: mutations.reconcilePayment,
+    showPaymentModal,
+    setShowPaymentModal,
+    setSelectedOrderId,
+    showSuccess,
+    showError,
+    t,
+  });
+
   // Generic dialog action: run mutation, surface feedback, and close the dialog ONLY on
   // success. A failed mutation leaves the dialog open so the cashier can retry with their
   // input intact (#767) — closing it in `finally` made every failure look like a reset.
@@ -62,6 +79,7 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
       closeDialog: () => void,
       onSuccess?: (value: T) => void,
     ): Promise<boolean> => {
+      setIsMutating(true);
       try {
         const value = await runner();
         onSuccess?.(value);
@@ -71,6 +89,8 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
       } catch (err) {
         showError((err as Error).message || t(onErrorKey) || onErrorKey);
         return false;
+      } finally {
+        setIsMutating(false);
       }
     },
     [showSuccess, showError, t],
@@ -90,37 +110,19 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     [selectedOrder, mutations, runDialogAction],
   );
 
-  // The payment dialog owns its form state and its failure display, so the hook rethrows
-  // here: the dialog's catch keeps the dialog open with the entered tender intact, while
-  // `isMutating` locks the confirm button against a double submit (#767). Success closes.
-  const handleAddPayment = useCallback(
-    async (paymentData: AddPaymentRequest) => {
-      if (!selectedOrder) return;
-      setIsMutating(true);
-      try {
-        const updated = await mutations.addPayment(selectedOrder.id, paymentData);
-        setSelectedOrderId(updated.id);
-        showSuccess(t('cashier.payment_added') || 'cashier.payment_added');
-        setShowPaymentDialog(false);
-      } finally {
-        setIsMutating(false);
-      }
-    },
-    [selectedOrder, mutations, showSuccess, t],
-  );
-
   const handleRefund = useCallback(
-    async (paymentId: string, amount?: number) => {
+    async (paymentId: string, amount: number, reason: string) => {
       if (!selectedOrder) return;
-      await runDialogAction(
-        () => mutations.refundPayment(selectedOrder.id, paymentId, amount),
+      const succeeded = await runDialogAction(
+        () => mutations.refundPayment(selectedOrder.id, paymentId, amount, reason),
         'cashier.refund_completed',
         'cashier.refund_failed',
-        () => setShowRefundDialog(false),
+        () => setShowRefundModal(false),
         (updated) => setSelectedOrderId(updated.id),
       );
+      if (!succeeded) throw new Error(t('cashier.refund_failed'));
     },
-    [selectedOrder, mutations, runDialogAction],
+    [selectedOrder, mutations, runDialogAction, t],
   );
 
   const handleCancelOrder = useCallback(
@@ -164,21 +166,24 @@ export function useCashierDialogs(orders: OrderDto[], mutations: CashierMutation
     setSelectedOrderId,
     successMessage,
     errorMessage,
-    isMutating,
+    isMutating: isMutating || paymentAction.isMutating,
+    isCheckingPayment: paymentAction.isCheckingPayment,
     showSuccess,
     showError,
     showStatusDialog,
-    showPaymentDialog,
-    showRefundDialog,
+
+    showPaymentModal,
+    showRefundModal,
     showCancelDialog,
     showFocusDialog,
     setShowStatusDialog,
-    setShowPaymentDialog,
-    setShowRefundDialog,
+    setShowPaymentModal,
+    setShowRefundModal,
+
     setShowCancelDialog,
     setShowFocusDialog,
     handleStatusChange,
-    handleAddPayment,
+    handleAddPayment: paymentAction.handleAddPayment,
     handleRefund,
     handleCancelOrder,
     handleToggleFocus,

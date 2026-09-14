@@ -111,6 +111,7 @@ export interface CreateOrderPaymentDto {
  * DTO was tightened. Mirrors backend `Features/Orders/Dtos/OrderPaymentDto.cs`.
  */
 export interface OrderPaymentDto {
+  operationId?: string | null; // Staff till idempotency key, when present.
   paymentMethod: PaymentMethod;
   amount: number;
   paymentNotes?: string;
@@ -123,7 +124,7 @@ export interface OrderPaymentDto {
   orderId: string;
   /**
    * Typed rather than `string` so a comparison against a state a payment record cannot hold is a
-   * COMPILE error — `RefundDialog` compared it to `'Paid'`, and its refundable list was always
+   * COMPILE error — `RefundModal` compared it to `'Paid'`, and its refundable list was always
    * empty. See `PaymentRecordStatus` for the six values and who writes each; `Pending` in
    * particular is the resting state of every CASH payment, not an edge case, and `Processing` is
    * an online tender still at Stripe — neither is money the restaurant holds.
@@ -136,7 +137,6 @@ export interface OrderPaymentDto {
   refundReason?: string;
   createdAt?: string;
 }
-
 /**
  * Order status history entry
  */

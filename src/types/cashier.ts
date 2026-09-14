@@ -1,3 +1,24 @@
+import type { OrderListScope } from './order/commands';
+
+/** Query parameters supported by the cashier's orders resource. */
+export interface CashierOrdersFilters {
+  scope?: OrderListScope;
+  status?: string;
+  paymentStatus?: string;
+  orderType?: string;
+  search?: string;
+  tableNumber?: number;
+  page?: number;
+  pageSize?: number;
+  tenantDay?: string;
+  startDate?: Date;
+  endDate?: Date;
+  modifiedSince?: Date;
+}
+
+/** Availability of the last server snapshot shown in the cashier queue. */
+export type CashierQueueState = 'loading' | 'ready' | 'stale' | 'unavailable';
+
 /**
  * Auto Print Settings for Cashier Page
  */

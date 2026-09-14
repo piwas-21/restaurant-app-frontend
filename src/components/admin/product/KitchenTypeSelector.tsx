@@ -54,8 +54,9 @@ const ERROR_ID = 'product-field-kitchenType-error';
  * consequence is invisible from that label. Kitchen tickets are built by
  * `orderItemTree.selectItemsForKitchen`, which matches on `item.kitchenType === kitchenType`, so a
  * `None` item matches NEITHER `'FrontKitchen'` NOR `'BackKitchen'` and is printed by no station.
- * It survives only on the `'All'` ticket, which `generateKitchenReceiptHtml`'s own comment calls
- * customer-facing. So the dish is sold and nobody is told to cook it.
+ * It remains on the customer-facing `'All'` ticket and on the explicit `'GeneralKitchen'` ticket,
+ * which is the cashier's kitchen-purpose path for unassigned work. Without that General action the
+ * dish is sold and nobody is told to cook it.
  *
  * `undefined` is folded in DELIBERATELY rather than treated as "not known yet": it has exactly the
  * same consequence. `KitchenType` is non-nullable on the entity with `= KitchenType.None`, so a
@@ -113,7 +114,7 @@ export default function KitchenTypeSelector({ value, onChange, disabled = false,
         <p className={styles.warning}>
           {t(
             'kitchen_type_none_warning',
-            'Not assigned to a kitchen, so this item appears on no kitchen ticket — only on the full order printout.',
+            'Not assigned to a station, so this item appears on no Front/Back kitchen ticket — use the General Kitchen ticket or full order printout.',
           )}
         </p>
       )}

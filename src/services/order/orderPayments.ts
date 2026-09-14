@@ -1,12 +1,15 @@
 /**
  * Order payment sub-resource endpoints: add payment, refund payment.
- * Extracted from orderService (Sprint 4/6 service split); behaviour unchanged.
+ * Extracted from orderService (Sprint 4/6 service split); responses mirror the backend endpoint
+ * contracts rather than the request sub-resource names.
  */
 
 import { apiClient } from '@/utils/apiClient';
 import {
   AddPaymentToOrderCommand,
   RefundPaymentCommand,
+  OrderDto,
+  OrderDtoApiResponse,
   OrderPaymentDto,
   OrderPaymentDtoApiResponse,
 } from '@/types/order';
@@ -14,9 +17,9 @@ import {
 /**
  * Add payment to order
  */
-export async function addPaymentToOrder(orderId: string, command: AddPaymentToOrderCommand): Promise<OrderPaymentDto> {
+export async function addPaymentToOrder(orderId: string, command: AddPaymentToOrderCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.post<OrderPaymentDtoApiResponse>(`/api/Orders/${orderId}/payments`, command, {
+    const response = await apiClient.post<OrderDtoApiResponse>(`/api/Orders/${orderId}/payments`, command, {
       requireAuth: true,
     });
     if (!response.data) {

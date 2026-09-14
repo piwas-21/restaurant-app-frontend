@@ -12,6 +12,116 @@
     "Questions and their numbering: docs/tenants/mcfood/mustafa-questions.md (workspace,",
     "gitignored — it holds the partner's email address)."
   ],
+  "verification": {
+    "kidsDrinkSections": {
+      "_": [
+        "The three children must each carry this exact required drink step. These refs are verifier truth.",
+        "Separate from bundles.drinkProducts so an emitted-output mutation cannot update both sides."
+      ],
+      "products": ["Menu Enfant Kebab", "Menu Enfant Hamburger", "Menu Enfant Nuggets"],
+      "sectionName": "Boisson",
+      "groupId": "79",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "drinkRefs": [
+        "product:445",
+        "product:446",
+        "product:447",
+        "product:453",
+        "product:448",
+        "product:449",
+        "product:452",
+        "product:450",
+        "product:451",
+        "product:454",
+        "product:455"
+      ]
+    },
+    "partnerStructures": {
+      "_": [
+        "The verifier's business truth is explicit here, separate from emitted owners. Keep exact",
+        "product ownership, source group IDs, meat counts, component refs, paid extra prices,",
+        "vegetable names, and sauce rule values here. map.mjs validates this contract and never",
+        "derives an expectation from the payload it checks."
+      ],
+      "products": [
+        {
+          "name": "Tacos 1 Viande",
+          "groupId": "81",
+          "count": 1,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Tacos 2 Viande",
+          "groupId": "83",
+          "count": 2,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Tacos 3 Viande",
+          "groupId": "84",
+          "count": 3,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": true
+        },
+        {
+          "name": "Assiette Mixte",
+          "groupId": "84",
+          "count": 3,
+          "recipe": true,
+          "checkVegetables": true,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 1 VIANDE",
+          "groupId": "81",
+          "count": 1,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 2 VIANDE",
+          "groupId": "83",
+          "count": 2,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        },
+        {
+          "name": "LIBANAISE 3 VIANDE",
+          "groupId": "84",
+          "count": 3,
+          "recipe": false,
+          "checkVegetables": false,
+          "checkPaidExtras": false
+        }
+      ],
+      "meatOptions": [
+        { "name": "Kebab", "ref": "component:meat:kebab" },
+        { "name": "Steak", "ref": "component:meat:steak" },
+        { "name": "Poulet", "ref": "component:meat:poulet" },
+        { "name": "Nuggets", "ref": "component:meat:nuggets" },
+        { "name": "Tenders", "ref": "component:meat:tenders" },
+        { "name": "Cordon Bleu", "ref": "component:meat:cordon bleu" },
+        { "name": "Falafel", "ref": "component:meat:falafel" }
+      ],
+      "paidExtras": {
+        "Viande": 3,
+        "Emmental": 1,
+        "Cheddar": 1,
+        "Chèvre": 1
+      },
+      "vegetables": ["Salade", "Tomate", "Oignon"],
+      "sauceRule": { "min": 1, "max": 2, "includedFree": 2 }
+    }
+  },
   "modifierGroups": {
     "_": [
       "Their model is ONE flat 'modifier group' primitive. Ours deliberately splits that",
@@ -176,6 +286,12 @@
     "Algerienne": "Algérienne",
     "Sauce Fromage": "Sauce fromage"
   },
+  "duplicateIngredientResolution": {
+    "_": "The default collision policy keeps the included base-recipe row. Partner feedback confirms the paid Emmental extra wins only on the three Tacos recipes, where the source has both Sans Emmentale and + Emmentale.",
+    "Tacos 1 Viande": { "Emmental": "paid" },
+    "Tacos 2 Viande": { "Emmental": "paid" },
+    "Tacos 3 Viande": { "Emmental": "paid" }
+  },
   "dropOptions": {
     "_": "Options removed. Group-scoped: 'groupId:exact source name'.",
     "82:+ Oignon": "duplicate of '+ Oignons' in the same group, both free — keeping the plural (owner)",
@@ -235,6 +351,7 @@
       "name-collides with the SANDWICHES product `Kebab`) is real and still holds for those; it",
       "never applied to a drink, where the option IS the product."
     ],
+    "drinkGroupId": 79,
     "componentCategories": {
       "_": "Components still need a category (CreateProductCommand requires CategoryIds NotEmpty). They are hidden by isComponent, so an existing, plausible category is used rather than inventing an empty one that would show on the carte. `dish` and `portion` carriers take their OWN dish's category instead and are not listed here.",
       "meat": 91,
@@ -242,6 +359,12 @@
     },
     "platSectionName": "Plat",
     "menuSizePattern": "^menu\\b",
+    "productGroupOverrides": {
+      "_": "Explicit product-level additions for source products whose public modifier groups omit a required bundle step. Names are exact ownership keys, not a regex or fuzzy match.",
+      "Menu Enfant Kebab": [79],
+      "Menu Enfant Hamburger": [79],
+      "Menu Enfant Nuggets": [79]
+    },
     "drinkProducts": {
       "_": "Group 79's drink options -> the REAL beverage products they name. NOT matched by name, because the names do not match: `Coca Cola` is the product `Coca Cola 33cl`, `Fanta` is `Fanta Orange`, `Eau` is `Eau 50cl`, and `Coca Cola Cherry` is `Coca Coca Cherry 33cl` — their typo, kept because it is the product's real name. Four of eleven, so a fuzzy match is a guess; an unmapped option is an error. Ayran (456) and Red Bull (457) are sold on the carte but are not offered inside a menu, which is their data's call, not ours.",
       "Coca Cola": 445,

@@ -11,6 +11,7 @@ import { orderStatusLabel } from '@/lib/orderStatus';
 
 // Import templates
 import { generateSimpleReceiptHtml, generateKitchenReceiptHtml } from './templates';
+import type { KitchenReceiptType } from './templates';
 
 // Re-export templates for backward compatibility
 export { generateSimpleReceiptHtml, generateKitchenReceiptHtml };
@@ -93,7 +94,7 @@ export const exportSimpleReceiptToPDF = (order: OrderDto, t?: TranslationFunctio
  */
 export const exportKitchenItemsToPDF = (
   order: OrderDto,
-  kitchenType: 'FrontKitchen' | 'BackKitchen' | 'All',
+  kitchenType: KitchenReceiptType,
   t?: TranslationFunction,
 ): void => {
   const translate = t || ((key: string, fallback: string) => fallback);

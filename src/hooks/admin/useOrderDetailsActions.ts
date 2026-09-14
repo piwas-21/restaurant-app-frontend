@@ -109,6 +109,10 @@ export function useOrderDetailsActions(
       apiError.show(t('fill_refund_details', 'Please fill in all refund details'));
       return;
     }
+    if (refundReason.trim().length < 5) {
+      apiError.show(t('cashier.refund_reason_min_length'));
+      return;
+    }
 
     const amount = parseFloat(refundAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -120,8 +124,8 @@ export function useOrderDetailsActions(
       setIsRefunding(true);
       apiError.clear();
       await refundPayment(order.id, selectedPayment, {
-        amount,
-        reason: refundReason,
+        refundAmount: amount,
+        refundReason,
       });
       setShowRefundModal(false);
       alert(t('payment_refunded_successfully', 'Payment refunded successfully'));

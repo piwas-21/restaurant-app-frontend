@@ -9,7 +9,6 @@ import { useCashierDialogs } from '@/hooks/cashier/useCashierDialogs';
 import { useCashierManualRefresh } from '@/hooks/cashier/useCashierManualRefresh';
 import { useCashierAutoPrint } from '@/hooks/cashier/useCashierAutoPrint';
 import { useCashierOrderAlerts } from '@/hooks/cashier/useCashierOrderAlerts';
-import { useTodayOnlyDateRange } from '@/hooks/cashier/useTodayOnlyDateRange';
 import CashierHeader from '@/components/cashier/CashierHeader';
 import OrderTypeNav from '@/components/cashier/OrderTypeNav';
 import CashierMainContent from '@/components/cashier/CashierMainContent';
@@ -23,7 +22,6 @@ import styles from '@/app/styles/CashierPage.module.css';
 export default function CashierPage() {
   const { t } = useTranslation();
 
-  const { todayOnly, setTodayOnly, dateRange } = useTodayOnlyDateRange();
   const filters = useCashierFilters();
   const {
     orders,
@@ -32,29 +30,30 @@ export default function CashierPage() {
     error,
     lastEventTime,
     connectionState,
+    queueState,
     refreshOrders,
     updateOrderStatus,
     addPayment,
+    reconcilePayment,
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
     pagination,
-  } = useCashierOrders(dateRange, filters.query);
+  } = useCashierOrders(filters.query);
 
   const notif = useNotification();
-
   const { settings: autoPrintSettings, saveSettings: saveAutoPrintSettings } = useCashierAutoPrint();
 
   const dialogs = useCashierDialogs(orders, {
     updateOrderStatus,
     addPayment,
+    reconcilePayment,
     refundPayment,
     cancelOrder,
     toggleFocusOrder,
     refreshOrders,
   });
 
-  const { isMutating } = dialogs;
   const alerts = useCashierOrderAlerts({
     orders,
     autoPrintSettings,
@@ -102,13 +101,6 @@ export default function CashierPage() {
 
       <OrderTypeNav activeFilter={filters.orderTypeFilter} onFilterChange={filters.setOrderTypeFilter} />
 
-      <div className={styles.dateRangeToolbar}>
-        <label>
-          <input type="checkbox" checked={todayOnly} onChange={(e) => setTodayOnly(e.target.checked)} />{' '}
-          {t('cashier.show_todays_orders_only')}
-        </label>
-      </div>
-
       <CashierMainContent
         filteredOrders={orders}
         pagination={pagination}
@@ -116,34 +108,39 @@ export default function CashierPage() {
         selectedOrderId={dialogs.selectedOrderId}
         isLoading={isLoading}
         error={error}
+        queueState={queueState}
         searchQuery={filters.searchQuery}
         statusFilter={filters.statusFilter}
         paymentStatusFilter={filters.paymentStatusFilter}
         orderTypeFilter={filters.orderTypeFilter}
+        tableNumberFilter={filters.tableNumberFilter}
         onSelectOrder={dialogs.setSelectedOrderId}
         onStatusChange={dialogs.handleStatusChange}
-        onAddPayment={() => dialogs.setShowPaymentDialog(true)}
-        onRefund={() => dialogs.setShowRefundDialog(true)}
+        onAddPayment={() => dialogs.setShowPaymentModal(true)}
+        onRefund={() => dialogs.setShowRefundModal(true)}
         onCancel={() => dialogs.setShowCancelDialog(true)}
         onToggleFocus={() => dialogs.setShowFocusDialog(true)}
         onQuickConfirm={alerts.openQuickConfirmModal}
         onSearchChange={filters.setSearchQuery}
+        onSearchSubmit={filters.submitSearch}
         onStatusFilterChange={filters.setStatusFilter}
         onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
         onOrderTypeFilterChange={filters.setOrderTypeFilter}
+        onTableNumberFilterChange={filters.setTableNumberFilter}
         onPageChange={filters.setPage}
+        onRetry={() => void refreshOrders()}
       />
 
       <CashierActionDialogs
         selectedOrder={dialogs.selectedOrder}
         showStatusDialog={dialogs.showStatusDialog}
-        showPaymentDialog={dialogs.showPaymentDialog}
-        showRefundDialog={dialogs.showRefundDialog}
+        showPaymentModal={dialogs.showPaymentModal}
+        showRefundModal={dialogs.showRefundModal}
         showCancelDialog={dialogs.showCancelDialog}
         showFocusDialog={dialogs.showFocusDialog}
         onCloseStatus={() => dialogs.setShowStatusDialog(false)}
-        onClosePayment={() => dialogs.setShowPaymentDialog(false)}
-        onCloseRefund={() => dialogs.setShowRefundDialog(false)}
+        onClosePayment={() => dialogs.setShowPaymentModal(false)}
+        onCloseRefundModal={() => dialogs.setShowRefundModal(false)}
         onCloseCancel={() => dialogs.setShowCancelDialog(false)}
         onCloseFocus={() => dialogs.setShowFocusDialog(false)}
         onConfirmStatus={dialogs.handleStatusChange}
@@ -151,7 +148,8 @@ export default function CashierPage() {
         onConfirmRefund={dialogs.handleRefund}
         onConfirmCancel={dialogs.handleCancelOrder}
         onConfirmFocus={dialogs.handleToggleFocus}
-        isMutating={isMutating}
+        isMutating={dialogs.isMutating}
+        isCheckingPayment={dialogs.isCheckingPayment}
       />
 
       <QuickConfirmModal

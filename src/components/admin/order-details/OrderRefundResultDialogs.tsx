@@ -109,7 +109,7 @@ export default function OrderRefundResultDialogs({
                 without a payments array must not crash the closed dialog. */}
             {selectablePayments.map((payment) => (
               <option key={payment.id} value={payment.id}>
-                {getPaymentMethodLabel(payment.paymentMethod)} - {formatOrderPrice(payment.amount)}
+                {getPaymentMethodLabel(payment.paymentMethod, t)} - {formatOrderPrice(payment.amount)}
               </option>
             ))}
           </select>

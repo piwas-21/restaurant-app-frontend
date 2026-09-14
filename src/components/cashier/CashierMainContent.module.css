@@ -4,7 +4,6 @@
   flex-direction: column;
   overflow: hidden;
 }
-
 .content {
   flex: 1;
   display: flex;
@@ -117,6 +116,7 @@
 
 .orderList {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 

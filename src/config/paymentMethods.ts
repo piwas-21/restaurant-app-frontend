@@ -5,7 +5,7 @@
  */
 
 import { CreditCard, Wallet, Smartphone, Banknote, Building2 } from 'lucide-react';
-import { PaymentMethod } from '@/types/order';
+import { OrderType, PaymentMethod } from '@/types/order';
 import type { LucideIcon } from 'lucide-react';
 
 export interface PaymentMethodOption {
@@ -20,7 +20,8 @@ export interface PaymentMethodOption {
 
 /**
  * The full payment-method vocabulary. `disabled` here is the *default* — see
- * {@link offerablePaymentMethods}, which is what the checkout page must render.
+ * {@link offerablePaymentMethods}, which is what the checkout page must render. CreditCard is
+ * presented as an on-site intent, not as the optional Stripe OnlinePayment method.
  */
 export const PAYMENT_METHODS: PaymentMethodOption[] = [
   {
@@ -34,12 +35,12 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
   },
   {
     value: PaymentMethod.CreditCard,
-    labelKey: 'payment_credit_card',
-    label: 'Credit Card',
+    labelKey: 'payment_card_at_restaurant',
+    label: 'Card at restaurant',
     icon: CreditCard,
-    descriptionKey: 'payment_credit_card_desc',
-    description: 'Visa, Mastercard, Amex',
-    disabled: true,
+    descriptionKey: 'payment_card_at_restaurant_desc',
+    description: 'Pay by card at the restaurant',
+    disabled: false,
   },
   {
     value: PaymentMethod.DebitCard,
@@ -85,25 +86,39 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
  * `GET /api/payments/availability`, which fails closed).
  *
  * **Online payment is HIDDEN when unavailable rather than shown "Coming Soon", and that is a
- * deliberate departure from its four neighbours.** Credit card, debit card, mobile payment and
- * bank transfer are placeholders for work nobody has started; "coming soon" is true of them.
+ * deliberate departure from its four neighbours.** Card at restaurant is an on-site intent and
+ * is available for DineIn and Takeaway, but not Delivery. Debit card, mobile payment and bank
+ * transfer are placeholders for work
+ * nobody has started; "coming soon" is true of them.
  * Online payment is a purchasable module — on a tenant that did not buy it, "coming soon"
  * promises something that will never arrive unless they pay for it, and the codebase's own rule
  * for an unbought module is that its surface does not exist on this instance (the backend
  * answers 404, not 403, for exactly that reason).
  */
-export function offerablePaymentMethods(onlinePaymentAvailable: boolean): PaymentMethodOption[] {
-  if (!onlinePaymentAvailable) {
-    return PAYMENT_METHODS.filter((method) => method.value !== PaymentMethod.OnlinePayment);
-  }
+export function normalizePaymentMethodForOrderType(method: PaymentMethod, orderType: OrderType | null): PaymentMethod {
+  // Card at restaurant is a till intent. Only explicit DineIn/Takeaway channels have a
+  // collection point, so Delivery, null and unknown states all fall back to Cash.
+  const cardAllowed = orderType === OrderType.DineIn || orderType === OrderType.Takeaway;
+  return !cardAllowed && method === PaymentMethod.CreditCard ? PaymentMethod.Cash : method;
+}
 
-  // A copy, never a mutation of the shared catalog. The justification here first named
-  // `paymentMethodDisplay` as the victim of an in-place flip — that was WRONG, it reads only
-  // `.label` and never `.disabled`. The real reason is plainer and does not depend on today's
-  // consumers: `PAYMENT_METHODS` is module-level mutable state, so flipping a flag in it makes
-  // one call to this function change what every LATER call returns, including calls that pass
-  // `false`. That is a bug no test of this function's return value would show.
-  return PAYMENT_METHODS.map((method) =>
-    method.value === PaymentMethod.OnlinePayment ? { ...method, disabled: false } : method,
+export function offerablePaymentMethods(
+  onlinePaymentAvailable: boolean,
+  orderType: OrderType | null,
+): PaymentMethodOption[] {
+  // Checkout offers cash for every channel, but Card at restaurant only where a diner can hand
+  // the tender to staff. The remaining non-online entries are future placeholders and stay hidden.
+  const onSiteMethods = PAYMENT_METHODS.filter(
+    (method) =>
+      method.value === PaymentMethod.Cash ||
+      ((orderType === OrderType.DineIn || orderType === OrderType.Takeaway) &&
+        method.value === PaymentMethod.CreditCard),
   );
+
+  if (!onlinePaymentAvailable) return onSiteMethods;
+
+  // A copy, never a mutation of the shared catalog. The module-level catalog remains disabled for
+  // OnlinePayment so a later fail-closed call cannot accidentally expose the Stripe path.
+  const onlinePayment = PAYMENT_METHODS.find((method) => method.value === PaymentMethod.OnlinePayment);
+  return onlinePayment ? [...onSiteMethods, { ...onlinePayment, disabled: false }] : onSiteMethods;
 }

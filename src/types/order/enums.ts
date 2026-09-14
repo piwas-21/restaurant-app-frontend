@@ -17,6 +17,7 @@ export enum OrderType {
  */
 export enum PaymentMethod {
   Cash = 'Cash',
+  /** Card accepted at the restaurant; OnlinePayment is the separate Stripe path. */
   CreditCard = 'CreditCard',
   DebitCard = 'DebitCard',
   OnlinePayment = 'OnlinePayment',
@@ -78,7 +79,7 @@ export type OrderStatus =
  *    whole `Where` clause was skipped — so "Paid" returned **every order**, unfiltered. An empty
  *    list would have been noticed; a full one looks plausible.
  * 2. The cashier's filter compares client-side, so the same value returned **zero** orders there.
- * 3. `RefundDialog` filtered payments on `status === 'Paid'`, which a payment record can never be —
+ * 3. `RefundModal` filtered payments on `status === 'Paid'`, which a payment record can never be —
  *    the refundable list was **always empty**.
  *
  * Keeping them separate is the point: a filter over ORDERS must not accept a value only a payment

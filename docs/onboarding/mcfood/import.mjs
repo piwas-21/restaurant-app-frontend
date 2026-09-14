@@ -6,8 +6,8 @@
  * decides where it goes and in what order, and cannot be fully checked until a tenant
  * exists. Keeping them apart is why the risky arithmetic is already proven.
  *
- *   node import.mjs --base https://mcdoner.sofrapiwas.com --token "$TOKEN" --dry-run
- *   node import.mjs --base https://mcdoner.sofrapiwas.com --token "$TOKEN" --assets ./out/assets
+ *   node import.mjs --base "$MCFOOD_BASE_URL" --token "$TOKEN" --dry-run
+ *   node import.mjs --base "$MCFOOD_BASE_URL" --token "$TOKEN" --assets ./out/assets
  *
  * ── Auth ─────────────────────────────────────────────────────────────────────────
  *
@@ -619,7 +619,7 @@ const main = async () => {
   // finished import from a dry run's leftovers.
   const stateFile = dryRun ? null : path.resolve(process.cwd(), arg('--state', 'import-state.json'));
 
-  if (!base) throw new Error('--base is required, e.g. --base https://mcdoner.sofrapiwas.com');
+  if (!base) throw new Error("--base is required (pass the tenant's public origin)");
   if (!token && !dryRun) {
     throw new Error('set MCFOOD_TOKEN to a menu:write API token (or pass --token, which `ps` can see)');
   }

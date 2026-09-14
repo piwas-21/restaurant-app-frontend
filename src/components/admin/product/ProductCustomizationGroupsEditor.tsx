@@ -23,7 +23,7 @@ export default function ProductCustomizationGroupsEditor({
   onChange,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const products = useCustomizationProductOptions(productId);
+  const products = useCustomizationProductOptions(productId, groups.length > 0);
   const replace = (index: number, group: ProductCustomizationGroupDraft) =>
     onChange(groups.map((candidate, candidateIndex) => (candidateIndex === index ? group : candidate)));
   const move = (index: number, offset: number) => {

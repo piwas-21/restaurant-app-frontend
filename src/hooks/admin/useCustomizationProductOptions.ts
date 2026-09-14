@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { getProducts } from '@/services/menuService';
 import type { Product } from '@/app/admin/menu-management/interfaces';
 
-export function useCustomizationProductOptions(excludedProductId: string) {
+export function useCustomizationProductOptions(excludedProductId: string, enabled: boolean) {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     void getProducts(1, 500, null, { includeComponents: true })
       .then((response) => {
@@ -17,7 +18,7 @@ export function useCustomizationProductOptions(excludedProductId: string) {
     return () => {
       active = false;
     };
-  }, [excludedProductId]);
+  }, [enabled, excludedProductId]);
 
   return products;
 }

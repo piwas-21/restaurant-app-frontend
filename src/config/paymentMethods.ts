@@ -95,17 +95,17 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
  * answers 404, not 403, for exactly that reason).
  */
 export function offerablePaymentMethods(onlinePaymentAvailable: boolean): PaymentMethodOption[] {
-  if (!onlinePaymentAvailable) {
-    return PAYMENT_METHODS.filter((method) => method.value !== PaymentMethod.OnlinePayment);
-  }
-
-  // A copy, never a mutation of the shared catalog. The justification here first named
-  // `paymentMethodDisplay` as the victim of an in-place flip — that was WRONG, it reads only
-  // `.label` and never `.disabled`. The real reason is plainer and does not depend on today's
-  // consumers: `PAYMENT_METHODS` is module-level mutable state, so flipping a flag in it makes
-  // one call to this function change what every LATER call returns, including calls that pass
-  // `false`. That is a bug no test of this function's return value would show.
-  return PAYMENT_METHODS.map((method) =>
-    method.value === PaymentMethod.OnlinePayment ? { ...method, disabled: false } : method,
+  // Checkout offers the two on-site intents in every case. The remaining non-online entries are
+  // future placeholders and must stay hidden: showing DebitCard beside the generic card intent
+  // makes the guest choose between two labels for the same promise while the backend rejects one.
+  const onSiteMethods = PAYMENT_METHODS.filter(
+    (method) => method.value === PaymentMethod.Cash || method.value === PaymentMethod.CreditCard,
   );
+
+  if (!onlinePaymentAvailable) return onSiteMethods;
+
+  // A copy, never a mutation of the shared catalog. The module-level catalog remains disabled for
+  // OnlinePayment so a later fail-closed call cannot accidentally expose the Stripe path.
+  const onlinePayment = PAYMENT_METHODS.find((method) => method.value === PaymentMethod.OnlinePayment);
+  return onlinePayment ? [...onSiteMethods, { ...onlinePayment, disabled: false }] : onSiteMethods;
 }

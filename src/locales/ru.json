@@ -489,6 +489,7 @@
   "payment_cash": "Оплата на кассе (Наличные)",
   "payment_card_at_restaurant": "Оплата картой в ресторане",
   "payment_card_at_restaurant_desc": "Оплатите картой в ресторане",
+  "payment_card_at_restaurant_reminder": "Пожалуйста, оплатите картой в ресторане по прибытии. Ваш заказ ещё не оплачен.",
   "payment_debit_card": "Дебетовая карта",
   "payment_online": "Онлайн оплата",
   "payment_mobile": "Мобильный платеж",
@@ -1484,7 +1485,6 @@
       "settled": "Оплачен",
       "item": "Позиция",
       "method_cash": "Наличные",
-      "method_credit_card": "Кредитная карта",
       "method_debit_card": "Дебетовая карта",
       "method_mobile": "Мобильный платёж",
       "error": {

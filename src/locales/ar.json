@@ -544,6 +544,7 @@
   "payment_cash": "الدفع نقداً عند الكاشير",
   "payment_card_at_restaurant": "الدفع بالبطاقة في المطعم",
   "payment_card_at_restaurant_desc": "ادفع بالبطاقة في المطعم",
+  "payment_card_at_restaurant_reminder": "يرجى الدفع بالبطاقة في المطعم عند وصولك. لم يتم دفع قيمة طلبك بعد.",
   "payment_debit_card": "بطاقة مدين",
   "payment_online": "الدفع عبر الإنترنت",
   "payment_mobile": "الدفع عبر الهاتف المحمول",
@@ -1550,7 +1551,6 @@
       "settled": "مسدد",
       "item": "عنصر",
       "method_cash": "نقداً",
-      "method_credit_card": "بطاقة ائتمان",
       "method_debit_card": "بطاقة خصم",
       "method_mobile": "دفع عبر الهاتف",
       "error": {

@@ -89,6 +89,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
         isOpen={showConfirmationModal}
         orderNumber={confirmedOrder.orderNumber}
         customerEmail={confirmedOrder.customerEmail || ''}
+        paymentMethod={confirmedOrder.paymentMethod}
         isLoggedIn={isLoggedIn}
         onClose={handleCloseConfirmationModal}
       />

@@ -25,17 +25,19 @@ describe('offerablePaymentMethods', () => {
     const values = offerablePaymentMethods(false).map((method) => method.value);
 
     expect(values).not.toContain(PaymentMethod.OnlinePayment);
-    // The on-site card option and the other placeholders stay. Only the Stripe-backed online
-    // option belongs to the availability endpoint.
-    expect(values).toContain(PaymentMethod.CreditCard);
-    expect(values).toContain(PaymentMethod.Cash);
+    // The two on-site intents remain; every unsupported placeholder stays hidden.
+    expect(values).toEqual([PaymentMethod.Cash, PaymentMethod.CreditCard]);
+    expect(values).not.toContain(PaymentMethod.DebitCard);
   });
 
-  it('includes online payment ENABLED when it is available', () => {
+  it('includes online payment ENABLED without exposing the debit-card placeholder', () => {
+    const values = offerablePaymentMethods(true).map((method) => method.value);
     const online = offerablePaymentMethods(true).find((m) => m.value === PaymentMethod.OnlinePayment);
 
     expect(online).toBeDefined();
     expect(online?.disabled).toBe(false);
+    expect(values).toEqual([PaymentMethod.Cash, PaymentMethod.CreditCard, PaymentMethod.OnlinePayment]);
+    expect(values).not.toContain(PaymentMethod.DebitCard);
   });
 
   it('does not mutate the shared catalog when enabling', () => {
@@ -60,6 +62,7 @@ describe('PaymentMethodSelector', () => {
     const online = screen.getByRole('radio', { name: /online payment/i });
     expect(online).toBeEnabled();
     expect(screen.getByRole('radio', { name: /card at restaurant/i })).toBeEnabled();
+    expect(screen.queryByRole('radio', { name: /debit card/i })).not.toBeInTheDocument();
     expect(screen.getByText(/pay in cash or by card at the restaurant/i)).toBeInTheDocument();
     expect(screen.getByText(/pay by card now/i)).toBeInTheDocument();
     expect(screen.queryByText(/only cash payment is available/i)).not.toBeInTheDocument();
@@ -75,6 +78,8 @@ describe('PaymentMethodSelector', () => {
     );
 
     expect(screen.queryByRole('radio', { name: /online payment/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /debit card/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /card at restaurant/i })).toBeEnabled();
     expect(screen.getByText(/pay in cash or by card at the restaurant/i)).toBeInTheDocument();
   });
 

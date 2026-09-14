@@ -155,7 +155,7 @@ export default function TableBillModal({ isOpen, onClose, billState, onSuccess }
               >
                 <option value={PaymentMethod.Cash}>💵 {t('cashier.table_bill.method_cash', 'Cash')}</option>
                 <option value={PaymentMethod.CreditCard}>
-                  💳 {t('cashier.table_bill.method_credit_card', 'Credit Card')}
+                  💳 {t('payment_card_at_restaurant', 'Card at restaurant')}
                 </option>
                 <option value={PaymentMethod.DebitCard}>
                   💳 {t('cashier.table_bill.method_debit_card', 'Debit Card')}

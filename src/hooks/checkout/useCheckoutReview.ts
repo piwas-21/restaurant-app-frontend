@@ -124,6 +124,7 @@ export function useCheckoutReview() {
         id: createdOrder.id,
         orderNumber: createdOrder.orderNumber,
         customerEmail: checkoutState.customerInfo?.email || '',
+        paymentMethod: selectedPaymentMethod,
       });
 
       // Reset BOTH contexts: OrderTypeContext persists its own copy, so without

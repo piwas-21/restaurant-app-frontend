@@ -543,6 +543,7 @@
   "payment_cash": "现金支付",
   "payment_card_at_restaurant": "餐厅刷卡支付",
   "payment_card_at_restaurant_desc": "在餐厅使用银行卡支付",
+  "payment_card_at_restaurant_reminder": "到达餐厅后请使用银行卡支付。您的订单尚未付款。",
   "payment_debit_card": "借记卡支付",
   "payment_online": "在线支付",
   "payment_mobile": "移动支付",
@@ -1541,7 +1542,6 @@
       "settled": "已结清",
       "item": "项目",
       "method_cash": "现金",
-      "method_credit_card": "信用卡",
       "method_debit_card": "借记卡",
       "method_mobile": "手机支付",
       "error": {

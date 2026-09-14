@@ -50,6 +50,17 @@
   margin: 0 0 1.5rem 0;
 }
 
+.paymentReminder {
+  color: var(--text-color);
+  text-align: center;
+  line-height: 1.5;
+  margin: -0.5rem 0 1.5rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-inline-start: 3px solid var(--primary-color);
+  border-radius: var(--modal-body-option-radius, 6px);
+}
+
 .orderNumberCard {
   /* craft: flat terracotta plate + letterpress offset (zero gradients) */
   background: var(

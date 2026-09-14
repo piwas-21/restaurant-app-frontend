@@ -545,6 +545,7 @@
   "payment_cash": "Paiement en Espèces à la Caisse",
   "payment_card_at_restaurant": "Carte au restaurant",
   "payment_card_at_restaurant_desc": "Payez par carte au restaurant",
+  "payment_card_at_restaurant_reminder": "Veuillez payer par carte au restaurant à votre arrivée. Votre commande n’est pas encore payée.",
   "payment_debit_card": "Carte de Débit",
   "payment_online": "Paiement en Ligne",
   "payment_mobile": "Paiement Mobile",
@@ -1545,7 +1546,6 @@
       "settled": "Réglé",
       "item": "Article",
       "method_cash": "Espèces",
-      "method_credit_card": "Carte de crédit",
       "method_debit_card": "Carte de débit",
       "method_mobile": "Paiement mobile",
       "error": {

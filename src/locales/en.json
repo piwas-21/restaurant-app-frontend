@@ -545,6 +545,7 @@
   "payment_cash": "Pay on Cashier (Cash)",
   "payment_card_at_restaurant": "Card at restaurant",
   "payment_card_at_restaurant_desc": "Pay by card at the restaurant",
+  "payment_card_at_restaurant_reminder": "Please pay by card at the restaurant when you arrive. Your order is not paid yet.",
   "payment_debit_card": "Debit Card",
   "payment_online": "Online Payment",
   "payment_mobile": "Mobile Payment",
@@ -919,7 +920,6 @@
       "settled": "Settled",
       "item": "Item",
       "method_cash": "Cash",
-      "method_credit_card": "Credit Card",
       "method_debit_card": "Debit Card",
       "method_mobile": "Mobile Payment",
       "error": {

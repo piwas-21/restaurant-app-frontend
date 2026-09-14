@@ -545,6 +545,7 @@
   "payment_cash": "Betalen aan de kassa (contant)",
   "payment_card_at_restaurant": "Kaartbetaling in het restaurant",
   "payment_card_at_restaurant_desc": "Betaal met kaart in het restaurant",
+  "payment_card_at_restaurant_reminder": "Betaal bij aankomst met kaart in het restaurant. Je bestelling is nog niet betaald.",
   "payment_debit_card": "Pinpas",
   "payment_online": "Online betalen",
   "payment_mobile": "Mobiel betalen",
@@ -919,7 +920,6 @@
       "settled": "Voldaan",
       "item": "Artikel",
       "method_cash": "Contant geld",
-      "method_credit_card": "Creditcard",
       "method_debit_card": "Debitcard",
       "method_mobile": "Mobiele betaling",
       "error": {

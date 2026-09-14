@@ -544,6 +544,7 @@
   "payment_cash": "Pago en Efectivo en Caja",
   "payment_card_at_restaurant": "Pago con tarjeta en el restaurante",
   "payment_card_at_restaurant_desc": "Pague con tarjeta en el restaurante",
+  "payment_card_at_restaurant_reminder": "Pague con tarjeta en el restaurante al llegar. Su pedido aún no está pagado.",
   "payment_debit_card": "Tarjeta de Débito",
   "payment_online": "Pago en Línea",
   "payment_mobile": "Pago Móvil",
@@ -1545,7 +1546,6 @@
       "settled": "Liquidado",
       "item": "Artículo",
       "method_cash": "Efectivo",
-      "method_credit_card": "Tarjeta de crédito",
       "method_debit_card": "Tarjeta de débito",
       "method_mobile": "Pago móvil",
       "error": {

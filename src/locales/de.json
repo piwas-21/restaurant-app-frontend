@@ -543,6 +543,7 @@
   "payment_cash": "Barzahlung an der Kasse",
   "payment_card_at_restaurant": "Kartenzahlung im Restaurant",
   "payment_card_at_restaurant_desc": "Im Restaurant mit Karte zahlen",
+  "payment_card_at_restaurant_reminder": "Bitte bezahlen Sie bei Ihrer Ankunft mit Karte im Restaurant. Ihre Bestellung ist noch nicht bezahlt.",
   "payment_debit_card": "Debitkarte",
   "payment_online": "Online-Zahlung",
   "payment_mobile": "Mobile Zahlung",
@@ -1541,7 +1542,6 @@
       "settled": "Beglichen",
       "item": "Position",
       "method_cash": "Bargeld",
-      "method_credit_card": "Kreditkarte",
       "method_debit_card": "Debitkarte",
       "method_mobile": "Mobile Zahlung",
       "error": {

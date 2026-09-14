@@ -547,6 +547,7 @@
   "payment_cash": "Kasada Nakit Ödeme",
   "payment_card_at_restaurant": "Restoranda Kartla Ödeme",
   "payment_card_at_restaurant_desc": "Restoranda kartla ödeyin",
+  "payment_card_at_restaurant_reminder": "Lütfen geldiğinizde restoranda kartla ödeme yapın. Siparişiniz henüz ödenmedi.",
   "payment_debit_card": "Banka Kartı",
   "payment_online": "Online Ödeme",
   "payment_mobile": "Mobil Ödeme",
@@ -1151,7 +1152,6 @@
       "settled": "Kapatıldı",
       "item": "Ürün",
       "method_cash": "Nakit",
-      "method_credit_card": "Kredi Kartı",
       "method_debit_card": "Banka Kartı",
       "method_mobile": "Mobil Ödeme",
       "error": {

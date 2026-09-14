@@ -544,6 +544,7 @@
   "payment_cash": "Pagamento in Contanti alla Cassa",
   "payment_card_at_restaurant": "Pagamento con carta al ristorante",
   "payment_card_at_restaurant_desc": "Paga con carta al ristorante",
+  "payment_card_at_restaurant_reminder": "Paga con carta al ristorante quando arrivi. Il tuo ordine non è ancora pagato.",
   "payment_debit_card": "Carta di Debito",
   "payment_online": "Pagamento Online",
   "payment_mobile": "Pagamento Mobile",
@@ -1545,7 +1546,6 @@
       "settled": "Saldato",
       "item": "Voce",
       "method_cash": "Contanti",
-      "method_credit_card": "Carta di credito",
       "method_debit_card": "Carta di debito",
       "method_mobile": "Pagamento mobile",
       "error": {

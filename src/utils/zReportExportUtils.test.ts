@@ -78,4 +78,17 @@ describe('the printed Z-report names the day the figures are for (#511)', () => 
     const html = mockPrint.mock.calls[0][0] as string;
     expect(html).toContain('not a date');
   });
+
+  it('localizes the card-at-restaurant label in the cashier export', () => {
+    const withCard = report('2026-08-19T00:00:00Z');
+    withCard.paymentsByMethod = [{ paymentMethod: 'CreditCard', transactionCount: 1, totalAmount: 20 }];
+    const french = (key: string, fallback: string): string =>
+      key === 'payment_card_at_restaurant' ? 'Carte au restaurant' : fallback;
+
+    exportZReportToPDF(withCard, french);
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toContain('Carte au restaurant');
+    expect(html).not.toContain('CreditCard');
+  });
 });

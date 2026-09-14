@@ -1,7 +1,7 @@
 import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
-import { IngredientKind, KitchenType, MenuDefinition } from '@/types/menu';
+import { IngredientKind, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
 
 export interface ProductImage {
   id: string;
@@ -81,6 +81,7 @@ export interface ProductDetails {
   kitchenType?: KitchenType;
   ingredients: string[]; // Legacy field - kept for backward compatibility
   detailedIngredients?: ProductIngredient[];
+  customizationGroups?: ProductCustomizationGroup[];
   /**
    * `string[] | null`, not `string[]` (#642). `ProductDto.Allergens` is `List<string>?` and the API
    * sets no `DefaultIgnoreCondition`, so an unlabelled dish really can arrive as an explicit `null`.

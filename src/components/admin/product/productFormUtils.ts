@@ -6,6 +6,7 @@ import { updateProduct, uploadBulkProductImages } from '@/services/productServic
 import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIngredientReconciliation';
 import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
+import type { ProductCustomizationGroupDraft } from '@/types/menu';
 
 /**
  * Told when the product itself was written but its staged photos were NOT stored. It receives the
@@ -24,6 +25,7 @@ interface SubmitProductFormParams {
   imageFiles: File[];
   currentLanguage: string;
   detailedIngredients?: any[];
+  customizationGroups?: ProductCustomizationGroupDraft[];
   setSubmissionStatus: (status: 'idle' | 'creating' | 'uploading') => void;
   setError: UseFormSetError<FormData>;
   /** Receives the NEW id: quick-add (D3) lands the admin on the item's own edit page. */
@@ -47,6 +49,7 @@ interface SubmitEditProductFormParams {
   product: any;
   imageFiles: File[];
   detailedIngredients?: any[];
+  customizationGroups?: ProductCustomizationGroupDraft[];
   setIsSubmitting: (status: boolean) => void;
   setError: UseFormSetError<EditFormData>;
   onProductUpdated: () => void;
@@ -222,6 +225,7 @@ export const submitProductForm = async ({
   imageFiles,
   currentLanguage,
   detailedIngredients,
+  customizationGroups,
   setSubmissionStatus,
   setError,
   onProductCreated,
@@ -282,6 +286,7 @@ export const submitProductForm = async ({
         description: variation.description ?? '',
       })),
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
+      customizationGroups,
       menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     };
 
@@ -330,6 +335,7 @@ export const submitEditProductForm = async ({
   product,
   imageFiles,
   detailedIngredients,
+  customizationGroups,
   setIsSubmitting,
   setError,
   onProductUpdated,
@@ -422,6 +428,7 @@ export const submitEditProductForm = async ({
       variations: cleanedVariations,
       content: formattedContent,
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
+      customizationGroups,
       menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     } as any;
 

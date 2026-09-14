@@ -5,6 +5,7 @@ import type { OrderType } from '@/types/order';
 // A product CAN carry a menu definition (that is what makes it a bundle), so the product-creation
 // payload still references the bundle shape even though the bundle CALLS moved out.
 import type { MenuDefinitionData } from './menuBundleService';
+import type { ProductCustomizationGroupDraft } from '@/types/menu';
 
 const API_BASE_URL = '/api';
 const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
@@ -49,6 +50,7 @@ export interface CreateProductData {
   variations?: VariationData[];
   content?: ContentData;
   detailedIngredients?: any[];
+  customizationGroups?: ProductCustomizationGroupDraft[];
   menuDefinition?: MenuDefinitionData;
 }
 

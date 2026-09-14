@@ -119,7 +119,7 @@ export function productLineUnitPrice(params: {
     params.ingredients,
     params.selectedIngredientIds,
     params.ingredientQuantities,
-    (params.customizationGroups?.length ?? 0) > 0 ? 0 : (params.sauceIncludedFree ?? 0),
+    params.customizationGroups?.some((group) => group.isActive) ? 0 : (params.sauceIncludedFree ?? 0),
   );
 
   const explicitDelta = explicitCustomizationPrice(
@@ -239,7 +239,7 @@ export function bundleLineUnitPrice(params: {
       item.detailedIngredients,
       option.selectedIngredients ?? [],
       option.ingredientQuantities,
-      (item.customizationGroups?.length ?? 0) > 0 ? 0 : (item.sauceIncludedFree ?? 0),
+      item.customizationGroups?.some((group) => group.isActive) ? 0 : (item.sauceIncludedFree ?? 0),
     );
     const explicitDelta = explicitCustomizationPrice(
       item.customizationGroups,

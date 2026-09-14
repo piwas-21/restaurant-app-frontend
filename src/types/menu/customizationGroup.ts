@@ -32,6 +32,15 @@ export interface ProductCustomizationGroup {
   productOptions: ProductCustomizationProductOption[];
 }
 
+export type ProductCustomizationGroupDraft = Omit<
+  ProductCustomizationGroup,
+  'id' | 'ingredientOptions' | 'productOptions'
+> & {
+  id?: string;
+  ingredientOptions: Array<Omit<ProductCustomizationIngredientOption, 'id'> & { id?: string }>;
+  productOptions: Array<Omit<ProductCustomizationProductOption, 'id'> & { id?: string }>;
+};
+
 /** Numeric because the backend currently serializes CustomizationOptionKind without a string converter. */
 export type CustomizationOptionKind = 0 | 1;
 

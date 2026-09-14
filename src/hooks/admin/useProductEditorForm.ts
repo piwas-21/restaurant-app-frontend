@@ -14,6 +14,8 @@ import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils
 import { collectErrorFields, jumpToField } from '@/components/admin/product-editor/editorValidation';
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
+import { useCustomizationGroupsEditorState } from './useCustomizationGroupsEditorState';
+import { areCustomizationGroupsValid } from '@/utils/customizationGroupDraft';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -35,21 +37,15 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const { t, i18n } = useTranslation();
   const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // The list AND the reason it is missing. A failed category fetch used to be a console.error and
-  // an empty control — see useEditorCategories.
   const { categories, categoriesError } = useEditorCategories(isBundle);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [selectedSideItemIds, setSelectedSideItemIds] = useState<string[]>([]);
   const [detailedIngredients, setDetailedIngredients] = useState<ProductIngredient[]>([]);
+  const customization = useCustomizationGroupsEditorState(product, isBundle);
   const [menuDefinition, setMenuDefinition] = useState<MenuDefinition>(() => toMenuDefinitionState(product));
-  // The form's own isDirty can't see these: the schedule/sections AND the detailed
-  // ingredients live outside RHF (ingredients are not a registered field), so a change to
-  // either would otherwise leave Save disabled and strand the edit.
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
 
-  // `FieldValues` + a `never` cast, because the four schemas have no single shape for `useForm` to
-  // infer — see `pickEditorSchema`, which owns that choice. (The modals used `as any`.)
   const schema = pickEditorSchema(isBundle, mode);
   const form = useForm<FieldValues>({
     // D13/S7. Not `onChange` (a message while the admin types the first character is noise) and
@@ -63,9 +59,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const { control, getValues, reset, setError, watch, setValue } = form;
 
   const variations = useFieldArray({ control, name: 'variations' });
-  // No `useFieldArray` for `content` since S4: the workbench addresses a locale by CODE, not by row
-  // index, so a field array would be a rival owner whose `fields` go stale on every pruned row.
-
   useEffect(() => {
     reset(isBundle ? toBundleDefaults(product) : toItemDefaults(product));
     setSelectedSideItemIds(isBundle ? [] : (product.suggestedSideItems ?? []).map((s) => s.id).filter(Boolean));
@@ -101,7 +94,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     setIsIngredientsDirty(true);
   }, []);
 
-  /** #593: reorder AND renumber. `useVariationReorder` states why `move` alone is not enough. */
   const moveVariation = useVariationReorder({ getValues, setValue, variations });
 
   // A refused submit jumps to the first failing field (D13). Without it the only signal is a Save
@@ -113,6 +105,10 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
+    if (!areCustomizationGroupsValid(customization.groups)) {
+      setError('root', { message: t('customization_groups_invalid') });
+      return;
+    }
     const payload: Record<string, unknown> = { ...(data as Record<string, unknown>) };
 
     // Section AND item AND definition ids: every `temp-…` one 400s (Guid? on the wire).
@@ -129,6 +125,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
         imageFiles,
         currentLanguage: i18n.language || 'en',
         detailedIngredients: ingredientsForKind,
+        customizationGroups: customization.groups,
         // 'creating' | 'uploading' | 'idle' collapses to a boolean here; on success the page
         // navigates away via onSaved, so there are no dirty flags to clear.
         setSubmissionStatus: (status) => setIsSubmitting(status !== 'idle'),
@@ -153,12 +150,14 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       product,
       imageFiles,
       detailedIngredients: ingredientsForKind,
+      customizationGroups: customization.groups,
       setIsSubmitting,
       setError,
       onProductUpdated: () => {
         setImageFiles([]);
         setIsMenuDefinitionDirty(false);
         setIsIngredientsDirty(false);
+        customization.markClean();
         onSaved();
       },
       onClose: () => {},
@@ -182,13 +181,18 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     changeSideItemIds,
     detailedIngredients,
     changeIngredients,
+    customizationGroups: customization.groups,
+    changeCustomizationGroups: customization.change,
     moveVariation,
     menuDefinition,
     changeMenuDefinition,
     isSubmitting,
-    // `imageFiles` counts too (frontend #223): staged uploads live outside RHF, so picking images
-    // and changing nothing else left Save disabled and the upload unreachable.
-    isDirty: form.formState.isDirty || isMenuDefinitionDirty || isIngredientsDirty || imageFiles.length > 0,
+    isDirty:
+      form.formState.isDirty ||
+      isMenuDefinitionDirty ||
+      isIngredientsDirty ||
+      customization.isDirty ||
+      imageFiles.length > 0,
     onSubmit,
   };
 }

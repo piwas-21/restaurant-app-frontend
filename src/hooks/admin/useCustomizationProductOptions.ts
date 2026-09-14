@@ -14,7 +14,7 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
     let active = true;
     setIsLoading(true);
     setHasError(false);
-    void loadAllProducts()
+    void loadAllCustomizationProducts()
       .then((loaded) => {
         if (active) setProducts(loaded.filter((product) => product.id !== excludedProductId));
       })
@@ -32,7 +32,7 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
   return { products, isLoading, hasError };
 }
 
-async function loadAllProducts(): Promise<Product[]> {
+export async function loadAllCustomizationProducts(): Promise<Product[]> {
   const first = await getProducts(undefined, undefined, null, { includeComponents: true });
   const remaining = await Promise.all(
     Array.from({ length: Math.max(0, first.data.totalPages - 1) }, (_, index) =>

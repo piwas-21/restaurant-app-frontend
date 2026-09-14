@@ -7,6 +7,7 @@ import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIng
 import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
+import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 
 /**
  * Told when the product itself was written but its staged photos were NOT stored. It receives the
@@ -24,7 +25,7 @@ interface SubmitProductFormParams {
   data: FormData;
   imageFiles: File[];
   currentLanguage: string;
-  detailedIngredients?: any[];
+  detailedIngredients?: ProductIngredient[];
   customizationGroups?: ProductCustomizationGroupDraft[];
   setSubmissionStatus: (status: 'idle' | 'creating' | 'uploading') => void;
   setError: UseFormSetError<FormData>;
@@ -46,9 +47,9 @@ interface SubmitProductFormParams {
 
 interface SubmitEditProductFormParams {
   data: EditFormData;
-  product: any;
+  product: { id: string; name?: string; description?: string };
   imageFiles: File[];
-  detailedIngredients?: any[];
+  detailedIngredients?: ProductIngredient[];
   customizationGroups?: ProductCustomizationGroupDraft[];
   setIsSubmitting: (status: boolean) => void;
   setError: UseFormSetError<EditFormData>;

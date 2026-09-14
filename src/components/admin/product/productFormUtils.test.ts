@@ -74,7 +74,7 @@ const onImageUploadFailed = jest.fn();
 const submit = async (data: Record<string, unknown>) => {
   await submitEditProductForm({
     data: data as never,
-    product: { id: data.id },
+    product: { id: String(data.id) },
     imageFiles: [],
     detailedIngredients: [],
     setIsSubmitting: () => {},
@@ -251,7 +251,10 @@ describe('submitProductForm — create endpoint dispatch', () => {
  * tell a snapshot from a translation, and it exists nowhere else at submit time.
  */
 describe('submitEditProductForm — a translation that is a copy of the base text (#536)', () => {
-  const editWith = async (data: Record<string, unknown>, product: Record<string, unknown>) => {
+  const editWith = async (
+    data: Record<string, unknown>,
+    product: { id: string; name?: string; description?: string },
+  ) => {
     await submitEditProductForm({
       data: data as never,
       product,

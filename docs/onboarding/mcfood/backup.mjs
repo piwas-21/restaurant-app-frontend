@@ -58,42 +58,68 @@ export const validateBaseUrl = (candidate, source = 'base URL') => {
   return url.origin.replace(/\/$/, '');
 };
 
+const parseBaseUrlOption = (argv, index, state) => {
+  const argument = argv[index];
+  if (argument === '--base-url') {
+    if (state.baseSource) throw new Error('--base-url may be supplied only once');
+    return {
+      nextIndex: index + 2,
+      state: {
+        ...state,
+        baseCandidate: optionValue(argv, index, '--base-url'),
+        baseSource: 'the --base-url value',
+      },
+    };
+  }
+  if (!argument.startsWith('--base-url=')) return null;
+  if (state.baseSource) throw new Error('--base-url may be supplied only once');
+  const baseCandidate = argument.slice('--base-url='.length);
+  if (!baseCandidate) throw new Error('--base-url requires a value');
+  return {
+    nextIndex: index + 1,
+    state: { ...state, baseCandidate, baseSource: 'the --base-url value' },
+  };
+};
+
+const parseOutOption = (argv, index, state) => {
+  const argument = argv[index];
+  if (argument === '--out') {
+    if (state.out !== undefined) throw new Error('--out may be supplied only once');
+    return {
+      nextIndex: index + 2,
+      state: { ...state, out: optionValue(argv, index, '--out') },
+    };
+  }
+  if (!argument.startsWith('--out=')) return null;
+  if (state.out !== undefined) throw new Error('--out may be supplied only once');
+  const out = argument.slice('--out='.length);
+  if (!out) throw new Error('--out requires a value');
+  return { nextIndex: index + 1, state: { ...state, out } };
+};
+
+const parseOption = (argv, index, state) => {
+  const base = parseBaseUrlOption(argv, index, state);
+  if (base) return base;
+  const out = parseOutOption(argv, index, state);
+  if (out) return out;
+  throw new Error(`unknown argument: ${argv[index]}`);
+};
+
 /** Parse only the options this capture accepts; unknown or repeated options fail closed. */
 export const parseArguments = (argv, env = process.env) => {
-  let baseCandidate;
-  let baseSource;
-  let out;
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index];
-    if (argument === '--base-url') {
-      if (baseSource) throw new Error('--base-url may be supplied only once');
-      baseCandidate = optionValue(argv, index, '--base-url');
-      baseSource = 'the --base-url value';
-      index += 1;
-    } else if (argument.startsWith('--base-url=')) {
-      if (baseSource) throw new Error('--base-url may be supplied only once');
-      baseCandidate = argument.slice('--base-url='.length);
-      if (!baseCandidate) throw new Error('--base-url requires a value');
-      baseSource = 'the --base-url value';
-    } else if (argument === '--out') {
-      if (out !== undefined) throw new Error('--out may be supplied only once');
-      out = optionValue(argv, index, '--out');
-      index += 1;
-    } else if (argument.startsWith('--out=')) {
-      if (out !== undefined) throw new Error('--out may be supplied only once');
-      out = argument.slice('--out='.length);
-      if (!out) throw new Error('--out requires a value');
-    } else {
-      throw new Error(`unknown argument: ${argument}`);
-    }
+  let state = {};
+  for (let index = 0; index < argv.length;) {
+    const parsed = parseOption(argv, index, state);
+    state = parsed.state;
+    index = parsed.nextIndex;
   }
 
-  const source = baseSource ?? 'MCFOOD_BASE_URL';
-  const candidate = baseCandidate ?? env?.MCFOOD_BASE_URL;
+  const source = state.baseSource ?? 'MCFOOD_BASE_URL';
+  const candidate = state.baseCandidate ?? env?.MCFOOD_BASE_URL;
   if (candidate === undefined || candidate === '') {
     throw new Error('provide --base-url or set MCFOOD_BASE_URL');
   }
-  return { baseUrl: validateBaseUrl(candidate, source), out };
+  return { baseUrl: validateBaseUrl(candidate, source), out: state.out };
 };
 
 const stamp = new Date()

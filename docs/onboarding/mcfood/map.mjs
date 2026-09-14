@@ -181,6 +181,36 @@ const ingredientKey = (name) => (name.toLowerCase() === 'oignons' ? 'oignon' : n
 const duplicateResolutionFor = (decisions, productName, ingredientName) =>
   decisions.duplicateIngredientResolution?.[productName]?.[ingredientName] ?? 'included';
 
+const duplicateWinner = (resolution, seen, row) => {
+  if (resolution === 'paid') {
+    if (seen.price > 0) return seen;
+    return row;
+  }
+  if (seen.isIncludedInBasePrice) return seen;
+  return row;
+};
+
+const duplicateMerge = (resolution, seen, row, productName) => {
+  const winner = duplicateWinner(resolution, seen, row);
+  const loser = winner === seen ? row : seen;
+  let dropped;
+  if (loser.price > 0) {
+    dropped = `${loser.price} paid`;
+  } else {
+    dropped = 'free';
+  }
+  let kept;
+  if (resolution === 'paid') {
+    kept = 'the paid';
+  } else {
+    kept = 'the included';
+  }
+  return {
+    winner,
+    message: `${productName}: "${row.name}" appeared twice — kept ${kept} row, dropped the ${dropped} one`,
+  };
+};
+
 const dedupeIngredients = (rows, merges, productName, decisions) => {
   const byName = new Map();
   for (const row of rows) {
@@ -194,13 +224,9 @@ const dedupeIngredients = (rows, merges, productName, decisions) => {
     if (resolution !== 'included' && resolution !== 'paid') {
       throw new Error(`${productName}: duplicate ingredient "${row.name}" has unsupported resolution "${resolution}"`);
     }
-    const keepPaid = resolution === 'paid';
-    const winner = keepPaid ? (seen.price > 0 ? seen : row) : seen.isIncludedInBasePrice ? seen : row;
-    const loser = winner === seen ? row : seen;
-    const dropped = loser.price > 0 ? `${loser.price} paid` : 'free';
-    const kept = keepPaid ? 'the paid' : 'the included';
-    merges.push(`${productName}: "${row.name}" appeared twice — kept ${kept} row, dropped the ${dropped} one`);
-    byName.set(key, winner);
+    const merge = duplicateMerge(resolution, seen, row, productName);
+    merges.push(merge.message);
+    byName.set(key, merge.winner);
   }
   return [...byName.values()].map((row, index) => ({ ...row, displayOrder: index }));
 };
@@ -345,7 +371,7 @@ const governingGroupIds = (item, decisions) => {
   const overrides = decisions?.bundles?.productGroupOverrides?.[item.name] ?? [];
   for (const id of overrides) {
     const decision = decisions?.modifierGroups?.[String(id)];
-    if (!decision || decision.target !== 'bundle') {
+    if (decision?.target !== 'bundle') {
       throw new Error(`product ${item.sourceId} "${item.name}" has invalid bundle override ${id}`);
     }
   }
@@ -989,34 +1015,48 @@ const verifyNoDuplicateIngredients = (products) => {
  * checks the emitted recipe owner, not only the decision JSON, so changing the dedupe code cannot
  * silently make that extra free again.
  */
+const duplicateResolutionFailure = (productName, ingredientName, resolution, row) => {
+  if (resolution === 'paid') {
+    if (!row.isOptional || row.isIncludedInBasePrice || row.price <= 0) {
+      return (
+        `${productName}: "${ingredientName}" must remain an optional paid extra, but emitted ` +
+        `price=${row.price}, isOptional=${row.isOptional}, isIncludedInBasePrice=${row.isIncludedInBasePrice}`
+      );
+    }
+    return null;
+  }
+  if (resolution !== 'included') {
+    return `${productName}: unsupported duplicate resolution "${resolution}"`;
+  }
+  return null;
+};
+
+const verifyDuplicateResolutionForProduct = (productName, ingredients, owners) => {
+  const owner = owners.find(
+    (candidate) => candidate.body.name === productName && candidate.body.detailedIngredients.length > 0,
+  );
+  if (!owner) return [`${productName}: duplicate-resolution owner was not emitted`];
+
+  const failures = [];
+  for (const [ingredientName, resolution] of Object.entries(ingredients)) {
+    const row = owner.body.detailedIngredients.find(
+      (ingredient) => ingredientKey(ingredient.name) === ingredientKey(ingredientName),
+    );
+    if (!row) {
+      failures.push(`${productName}: duplicate-resolution ingredient "${ingredientName}" was not emitted`);
+      continue;
+    }
+    const failure = duplicateResolutionFailure(productName, ingredientName, resolution, row);
+    if (failure) failures.push(failure);
+  }
+  return failures;
+};
+
 const verifyDuplicateIngredientResolutions = (decisions, owners) => {
   const failures = [];
   for (const [productName, ingredients] of Object.entries(decisions.duplicateIngredientResolution ?? {})) {
     if (productName === '_') continue;
-    const owner = owners.find(
-      (candidate) => candidate.body.name === productName && candidate.body.detailedIngredients.length > 0,
-    );
-    if (!owner) {
-      failures.push(`${productName}: duplicate-resolution owner was not emitted`);
-      continue;
-    }
-    for (const [ingredientName, resolution] of Object.entries(ingredients)) {
-      const row = owner.body.detailedIngredients.find(
-        (ingredient) => ingredientKey(ingredient.name) === ingredientKey(ingredientName),
-      );
-      if (!row) {
-        failures.push(`${productName}: duplicate-resolution ingredient "${ingredientName}" was not emitted`);
-        continue;
-      }
-      if (resolution === 'paid' && (!row.isOptional || row.isIncludedInBasePrice || row.price <= 0)) {
-        failures.push(
-          `${productName}: "${ingredientName}" must remain an optional paid extra, but emitted ` +
-            `price=${row.price}, isOptional=${row.isOptional}, isIncludedInBasePrice=${row.isIncludedInBasePrice}`,
-        );
-      } else if (resolution !== 'paid' && resolution !== 'included') {
-        failures.push(`${productName}: unsupported duplicate resolution "${resolution}"`);
-      }
-    }
+    failures.push(...verifyDuplicateResolutionForProduct(productName, ingredients, owners));
   }
   return failures;
 };
@@ -1065,6 +1105,69 @@ const uniqueNamedOwner = (owners, name, predicate, label, failures) => {
   return matches.length === 1 ? matches[0] : null;
 };
 
+const verifyPartnerMeatSection = (expected, owner) => {
+  const failures = [];
+  const sections = (owner.sections ?? []).filter((section) => String(section.__groupId) === expected.groupId);
+  if (sections.length !== 1) {
+    failures.push(`${expected.name}: expected exactly one meat section, found ${sections.length}`);
+    return failures;
+  }
+
+  const [section] = sections;
+  const optionRefs = section.itemRefs ?? [];
+  const distinctOptions = new Set(optionRefs);
+  const expectedMeatRefs = new Set(PARTNER_MEAT_OPTIONS.map((option) => option.ref));
+  const exactMeatRefs =
+    optionRefs.length === PARTNER_MEAT_OPTIONS.length &&
+    distinctOptions.size === PARTNER_MEAT_OPTIONS.length &&
+    PARTNER_MEAT_OPTIONS.every((option) => distinctOptions.has(option.ref)) &&
+    optionRefs.every((ref) => expectedMeatRefs.has(ref));
+  if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
+    failures.push(
+      `${expected.name}: meat section must be required ${expected.count}..${expected.count}, emitted ` +
+        `${section.minSelection}..${section.maxSelection}`,
+    );
+  }
+  if (!exactMeatRefs) {
+    failures.push(
+      `${expected.name}: meat section must have seven distinct options with the exact confirmed meat refs, ` +
+        `emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
+    );
+  }
+  return failures;
+};
+
+const verifyPartnerRecipe = (expected, recipe) => {
+  const failures = [];
+  if (!expected.checkVegetables) return failures;
+  if (recipe.body.sauceMin !== 1 || recipe.body.sauceMax !== 2 || recipe.body.sauceIncludedFree !== 2) {
+    failures.push(
+      `${expected.name}: sauce rule must be 1..2 with 2 free, emitted ` +
+        `${recipe.body.sauceMin}..${recipe.body.sauceMax} with ${recipe.body.sauceIncludedFree} free`,
+    );
+  }
+  const rows = new Map(
+    recipe.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
+  );
+  if (expected.name.startsWith('Tacos ')) {
+    for (const [ingredientName, price] of PARTNER_PAID_EXTRAS) {
+      const row = rows.get(ingredientKey(ingredientName));
+      if (!row?.isOptional || row.isIncludedInBasePrice || row.price !== price) {
+        failures.push(`${expected.name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
+      }
+    }
+  }
+  for (const ingredientName of PARTNER_VEGETABLES) {
+    const row = rows.get(ingredientKey(ingredientName));
+    if (!row?.isOptional || row.price !== 0 || !row.isIncludedInBasePrice) {
+      failures.push(
+        `${expected.name}: vegetable "${ingredientName}" must be optional, free, and included in the base price`,
+      );
+    }
+  }
+  return failures;
+};
+
 export const verifyPartnerStructures = (owners) => {
   const failures = [];
   for (const expected of PARTNER_STRUCTURE_EXPECTATIONS) {
@@ -1075,34 +1178,7 @@ export const verifyPartnerStructures = (owners) => {
       'meat-section',
       failures,
     );
-    if (owner) {
-      const sections = (owner.sections ?? []).filter((section) => String(section.__groupId) === expected.groupId);
-      if (sections.length !== 1) {
-        failures.push(`${expected.name}: expected exactly one meat section, found ${sections.length}`);
-      } else {
-        const [section] = sections;
-        const optionRefs = section.itemRefs ?? [];
-        const distinctOptions = new Set(optionRefs);
-        const expectedMeatRefs = new Set(PARTNER_MEAT_OPTIONS.map((option) => option.ref));
-        const exactMeatRefs =
-          optionRefs.length === PARTNER_MEAT_OPTIONS.length &&
-          distinctOptions.size === PARTNER_MEAT_OPTIONS.length &&
-          PARTNER_MEAT_OPTIONS.every((option) => distinctOptions.has(option.ref)) &&
-          optionRefs.every((ref) => expectedMeatRefs.has(ref));
-        if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
-          failures.push(
-            `${expected.name}: meat section must be required ${expected.count}..${expected.count}, emitted ` +
-              `${section.minSelection}..${section.maxSelection}`,
-          );
-        }
-        if (!exactMeatRefs) {
-          failures.push(
-            `${expected.name}: meat section must have seven distinct options with the exact confirmed meat refs, ` +
-              `emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
-          );
-        }
-      }
-    }
+    if (owner) failures.push(...verifyPartnerMeatSection(expected, owner));
 
     if (!expected.recipe) continue;
     const recipe = uniqueNamedOwner(
@@ -1113,33 +1189,7 @@ export const verifyPartnerStructures = (owners) => {
       failures,
     );
     if (!recipe) continue;
-    if (expected.checkVegetables) {
-      if (recipe.body.sauceMin !== 1 || recipe.body.sauceMax !== 2 || recipe.body.sauceIncludedFree !== 2) {
-        failures.push(
-          `${expected.name}: sauce rule must be 1..2 with 2 free, emitted ` +
-            `${recipe.body.sauceMin}..${recipe.body.sauceMax} with ${recipe.body.sauceIncludedFree} free`,
-        );
-      }
-      const rows = new Map(
-        recipe.body.detailedIngredients.map((ingredient) => [ingredientKey(ingredient.name), ingredient]),
-      );
-      if (expected.name.startsWith('Tacos ')) {
-        for (const [ingredientName, price] of PARTNER_PAID_EXTRAS) {
-          const row = rows.get(ingredientKey(ingredientName));
-          if (!row || !row.isOptional || row.isIncludedInBasePrice || row.price !== price) {
-            failures.push(`${expected.name}: optional paid extra "${ingredientName}" must cost ${price},00 EUR`);
-          }
-        }
-      }
-      for (const ingredientName of PARTNER_VEGETABLES) {
-        const row = rows.get(ingredientKey(ingredientName));
-        if (!row || !row.isOptional || row.price !== 0 || !row.isIncludedInBasePrice) {
-          failures.push(
-            `${expected.name}: vegetable "${ingredientName}" must be optional, free, and included in the base price`,
-          );
-        }
-      }
-    }
+    failures.push(...verifyPartnerRecipe(expected, recipe));
   }
   return failures;
 };
@@ -1468,7 +1518,7 @@ const verifySectionCounts = (decisions, products, menus) => {
   for (const owner of [...products, ...menus]) {
     for (const section of owner.sections ?? []) {
       const group = decisions.modifierGroups[String(section.__groupId)];
-      if (!group || group.target !== 'bundle') continue;
+      if (group?.target !== 'bundle') continue;
       const sold = Number(/^(\d+)\b/.exec(group.sourceName ?? '')?.[1]);
       if (!Number.isInteger(sold) || sold !== group.maxSelection) continue;
       if (section.minSelection !== sold || section.maxSelection !== sold) {

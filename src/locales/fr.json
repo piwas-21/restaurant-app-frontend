@@ -2491,7 +2491,6 @@
   "step_blocked_group": "Veuillez faire la sélection requise pour continuer.",
   "customization_groups": "Groupes de choix",
   "customization_groups_help": "Créez des choix ordonnés avec leur propre minimum, maximum et nombre d'unités incluses.",
-  "customization_groups_invalid": "Complétez chaque groupe de choix et vérifiez que ses limites correspondent aux options disponibles.",
   "customization_products_load_failed": "Les choix de produits n'ont pas pu être chargés. Réessayez avant d'ajouter une option de produit.",
   "add_customization_group": "Ajouter un groupe de choix",
   "customization_group_ingredients": "Choix d'ingrédients",

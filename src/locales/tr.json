@@ -2489,7 +2489,6 @@
   "step_blocked_group": "Devam etmek için gerekli seçimi yapın.",
   "customization_groups": "Seçim grupları",
   "customization_groups_help": "Kendi zorunlu minimum, maksimum ve dahil birim sayısına sahip sıralı seçimler oluşturun.",
-  "customization_groups_invalid": "Her seçim grubunu tamamlayın ve sınırlarının mevcut seçeneklerle uyumlu olduğundan emin olun.",
   "customization_products_load_failed": "Ürün seçenekleri yüklenemedi. Bir ürün seçeneği eklemeden önce yeniden deneyin.",
   "add_customization_group": "Seçim grubu ekle",
   "customization_group_ingredients": "Malzeme seçimleri",

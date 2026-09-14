@@ -2489,7 +2489,6 @@
   "step_blocked_group": "Bitte treffen Sie die erforderliche Auswahl, um fortzufahren.",
   "customization_groups": "Auswahlgruppen",
   "customization_groups_help": "Erstellen Sie geordnete Auswahlen mit eigenem Minimum, Maximum und enthaltenen Einheiten.",
-  "customization_groups_invalid": "Vervollständigen Sie jede Auswahlgruppe und prüfen Sie, ob ihre Grenzen zu den verfügbaren Optionen passen.",
   "customization_products_load_failed": "Die Produktauswahl konnte nicht geladen werden. Versuchen Sie es erneut, bevor Sie eine Produktoption hinzufügen.",
   "add_customization_group": "Auswahlgruppe hinzufügen",
   "customization_group_ingredients": "Zutatenauswahl",

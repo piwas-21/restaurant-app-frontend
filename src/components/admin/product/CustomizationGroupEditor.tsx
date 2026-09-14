@@ -123,7 +123,7 @@ export default function CustomizationGroupEditor({
             onChange={(event) => patch({ maxSelection: Number(event.target.value) })}
           />
         </FormField>
-        <FormField label={t('sauce_free_count_label')}>
+        <FormField label={t('sauce_included_free_label')}>
           <input
             type="number"
             min={0}

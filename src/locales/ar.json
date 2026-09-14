@@ -2497,7 +2497,6 @@
   "step_blocked_group": "الرجاء إجراء الاختيار المطلوب للمتابعة.",
   "customization_groups": "مجموعات الاختيار",
   "customization_groups_help": "أنشئ خيارات مرتبة بحد أدنى وأقصى ووحدات مضمنة لكل مجموعة.",
-  "customization_groups_invalid": "أكمل كل مجموعة خيارات وتأكد من توافق حدودها مع الخيارات المتاحة.",
   "customization_products_load_failed": "تعذر تحميل خيارات المنتجات. حاول مرة أخرى قبل إضافة خيار منتج.",
   "add_customization_group": "إضافة مجموعة اختيار",
   "customization_group_ingredients": "خيارات المكونات",

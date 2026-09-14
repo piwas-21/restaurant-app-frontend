@@ -49,7 +49,7 @@ export default function ProductCustomizationGroupsEditor({
       </div>
       {groups.length > 0 && (
         <label className={styles.search}>
-          {t('search_products')}
+          {t('search')}
           <input value={productQuery} onChange={(event) => setProductQuery(event.target.value)} />
         </label>
       )}

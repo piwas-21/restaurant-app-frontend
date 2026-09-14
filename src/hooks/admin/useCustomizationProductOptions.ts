@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { getProducts } from '@/services/menuService';
 import type { Product } from '@/app/admin/menu-management/interfaces';
 
-export const CUSTOMIZATION_PRODUCT_PAGE_SIZE = 500;
-
 export function useCustomizationProductOptions(excludedProductId: string, enabled: boolean) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +14,9 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
     let active = true;
     setIsLoading(true);
     setHasError(false);
-    void getProducts(1, CUSTOMIZATION_PRODUCT_PAGE_SIZE, null, { includeComponents: true })
-      .then((response) => {
-        if (active) setProducts(response.data.items.filter((product) => product.id !== excludedProductId));
+    void loadAllProducts()
+      .then((loaded) => {
+        if (active) setProducts(loaded.filter((product) => product.id !== excludedProductId));
       })
       .catch(() => {
         if (active) setHasError(true);
@@ -32,4 +30,14 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
   }, [enabled, excludedProductId]);
 
   return { products, isLoading, hasError };
+}
+
+async function loadAllProducts(): Promise<Product[]> {
+  const first = await getProducts(undefined, undefined, null, { includeComponents: true });
+  const remaining = await Promise.all(
+    Array.from({ length: Math.max(0, first.data.totalPages - 1) }, (_, index) =>
+      getProducts(index + 2, first.data.pageSize, null, { includeComponents: true }),
+    ),
+  );
+  return [first, ...remaining].flatMap((response) => response.data.items);
 }

@@ -154,7 +154,11 @@ export default function CustomizationGroupEditor({
       <fieldset className={styles.options}>
         <legend>{t('customization_group_products')}</legend>
         <div className={styles.productPicker}>
-          <select value={productId} onChange={(event) => setProductId(event.target.value)}>
+          <select
+            aria-label={t('select_product')}
+            value={productId}
+            onChange={(event) => setProductId(event.target.value)}
+          >
             <option value="">{t('select_product')}</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>

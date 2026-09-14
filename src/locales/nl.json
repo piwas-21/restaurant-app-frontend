@@ -2490,6 +2490,7 @@
   "customization_groups": "Keuzegroepen",
   "customization_groups_help": "Maak geordende keuzes met een eigen minimum, maximum en inbegrepen aantal.",
   "customization_groups_invalid": "Vul elke keuzegroep in en controleer of de limieten passen bij de beschikbare opties.",
+  "customization_products_load_failed": "Productkeuzes konden niet worden geladen. Probeer het opnieuw voordat u een productoptie toevoegt.",
   "add_customization_group": "Keuzegroep toevoegen",
   "customization_group_ingredients": "Ingrediëntkeuzes",
   "customization_group_products": "Productkeuzes",

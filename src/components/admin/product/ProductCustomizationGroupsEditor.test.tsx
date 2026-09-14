@@ -2,7 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ProductCustomizationGroupsEditor from './ProductCustomizationGroupsEditor';
 
 jest.mock('@/hooks/admin/useCustomizationProductOptions', () => ({
-  useCustomizationProductOptions: () => [{ id: 'meat-1', name: 'Kebab', basePrice: 8 }],
+  useCustomizationProductOptions: () => ({
+    products: [{ id: 'meat-1', name: 'Kebab', basePrice: 8 }],
+    isLoading: false,
+    hasError: false,
+  }),
 }));
 
 jest.mock('react-i18next', () => ({

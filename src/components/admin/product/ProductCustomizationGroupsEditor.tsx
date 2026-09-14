@@ -23,7 +23,7 @@ export default function ProductCustomizationGroupsEditor({
   onChange,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const products = useCustomizationProductOptions(productId, groups.length > 0);
+  const { products, isLoading, hasError } = useCustomizationProductOptions(productId, groups.length > 0);
   const replace = (index: number, group: ProductCustomizationGroupDraft) =>
     onChange(groups.map((candidate, candidateIndex) => (candidateIndex === index ? group : candidate)));
   const move = (index: number, offset: number) => {
@@ -45,6 +45,12 @@ export default function ProductCustomizationGroupsEditor({
           {t('add_customization_group')}
         </button>
       </div>
+      {isLoading && <p className={styles.status}>{t('loading')}…</p>}
+      {hasError && (
+        <p className={styles.error} role="alert">
+          {t('customization_products_load_failed')}
+        </p>
+      )}
       {groups.map((group, index) => (
         <CustomizationGroupEditor
           key={group.id || `new-${index}`}

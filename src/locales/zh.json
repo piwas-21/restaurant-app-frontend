@@ -2488,6 +2488,7 @@
   "customization_groups": "选项组",
   "customization_groups_help": "创建有独立最小值、最大值和包含数量的有序选项。",
   "customization_groups_invalid": "请完善每个选项组，并确保其限制与可用选项一致。",
+  "customization_products_load_failed": "无法加载产品选项。请重试后再添加产品选项。",
   "add_customization_group": "添加选项组",
   "customization_group_ingredients": "配料选项",
   "customization_group_products": "产品选项",

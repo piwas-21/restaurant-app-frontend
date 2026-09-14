@@ -2492,6 +2492,7 @@
   "customization_groups": "Gruppi di scelta",
   "customization_groups_help": "Crea scelte ordinate con minimo, massimo e unità incluse propri.",
   "customization_groups_invalid": "Completa ogni gruppo di scelta e verifica che i limiti corrispondano alle opzioni disponibili.",
+  "customization_products_load_failed": "Impossibile caricare le scelte dei prodotti. Riprova prima di aggiungere un'opzione.",
   "add_customization_group": "Aggiungi gruppo di scelta",
   "customization_group_ingredients": "Scelte di ingredienti",
   "customization_group_products": "Scelte di prodotti",

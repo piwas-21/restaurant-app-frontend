@@ -2494,6 +2494,7 @@
   "customization_groups": "Группы выбора",
   "customization_groups_help": "Создавайте упорядоченные варианты со своим минимумом, максимумом и включённым количеством.",
   "customization_groups_invalid": "Заполните каждую группу выбора и убедитесь, что её ограничения соответствуют доступным вариантам.",
+  "customization_products_load_failed": "Не удалось загрузить варианты продуктов. Повторите попытку перед добавлением варианта.",
   "add_customization_group": "Добавить группу выбора",
   "customization_group_ingredients": "Выбор ингредиентов",
   "customization_group_products": "Выбор продуктов",

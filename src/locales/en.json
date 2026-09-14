@@ -2490,6 +2490,7 @@
   "customization_groups": "Choice groups",
   "customization_groups_help": "Create ordered choices with their own required minimum, maximum and included units.",
   "customization_groups_invalid": "Complete every choice group and make sure its limits match the available options.",
+  "customization_products_load_failed": "Product choices could not be loaded. Try again before adding a product option.",
   "add_customization_group": "Add choice group",
   "customization_group_ingredients": "Ingredient choices",
   "customization_group_products": "Product choices",

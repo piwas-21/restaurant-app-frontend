@@ -32,3 +32,16 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.status,
+.error {
+  margin-block: 0 1rem;
+}
+
+.status {
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--error-color);
+}

@@ -184,10 +184,10 @@ function explicitGroupPrice(
     }
   }
 
-  const ingredientAllowance = chargeable
-    .sort((left, right) => right.price - left.price || left.order - right.order || left.id.localeCompare(right.id))
-    .slice(0, group.includedFreeUnits)
-    .reduce((sum, unit) => sum + unit.price, 0);
+  chargeable.sort(
+    (left, right) => right.price - left.price || left.order - right.order || left.id.localeCompare(right.id),
+  );
+  const ingredientAllowance = chargeable.slice(0, group.includedFreeUnits).reduce((sum, unit) => sum + unit.price, 0);
   return { ingredientAllowance, productOptionsCost };
 }
 

@@ -30,6 +30,42 @@ export default function BundleOptionCustomizationScreen({ flow }: Readonly<{ flo
   const { item, option, step } = flow;
   if (!step) return null;
 
+  let stepContent = (
+    <IngredientStepsBody
+      sauceGroup={item}
+      ingredients={item.detailedIngredients ?? []}
+      step={step}
+      selectedIngredients={option?.selectedIngredients ?? []}
+      ingredientQuantities={option?.ingredientQuantities ?? {}}
+      onSelectionChange={flow.onSelectionChange}
+      onQuantityChange={flow.onQuantityChange}
+      onChoice={flow.advanceAfterChoice}
+      currentLanguage={flow.currentLanguage}
+    />
+  );
+  if (step.kind === 'special') {
+    stepContent = (
+      <SpecialRequestSection
+        specialInstructions={option?.specialInstructions ?? ''}
+        onInstructionsChange={flow.onInstructionsChange}
+      />
+    );
+  } else if (step.kind === 'group' && step.group) {
+    stepContent = (
+      <CustomizationGroupSection
+        group={step.group}
+        groups={activeCustomizationGroups(item)}
+        ingredients={item.detailedIngredients ?? []}
+        selections={option?.customizationSelections ?? []}
+        onSelectionsChange={flow.onCustomizationSelectionsChange}
+        onIngredientSelectionChange={flow.onSelectionChange}
+        onIngredientQuantityChange={flow.onQuantityChange}
+        onChoice={flow.advanceAfterChoice}
+        currentLanguage={flow.currentLanguage}
+      />
+    );
+  }
+
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
@@ -66,36 +102,7 @@ export default function BundleOptionCustomizationScreen({ flow }: Readonly<{ flo
         hint={stepHint(step, t)}
         steady
       >
-        {step.kind === 'special' ? (
-          <SpecialRequestSection
-            specialInstructions={option?.specialInstructions ?? ''}
-            onInstructionsChange={flow.onInstructionsChange}
-          />
-        ) : step.kind === 'group' && step.group ? (
-          <CustomizationGroupSection
-            group={step.group}
-            groups={activeCustomizationGroups(item)}
-            ingredients={item.detailedIngredients ?? []}
-            selections={option?.customizationSelections ?? []}
-            onSelectionsChange={flow.onCustomizationSelectionsChange}
-            onIngredientSelectionChange={flow.onSelectionChange}
-            onIngredientQuantityChange={flow.onQuantityChange}
-            onChoice={flow.advanceAfterChoice}
-            currentLanguage={flow.currentLanguage}
-          />
-        ) : (
-          <IngredientStepsBody
-            sauceGroup={item}
-            ingredients={item.detailedIngredients ?? []}
-            step={step}
-            selectedIngredients={option?.selectedIngredients ?? []}
-            ingredientQuantities={option?.ingredientQuantities ?? {}}
-            onSelectionChange={flow.onSelectionChange}
-            onQuantityChange={flow.onQuantityChange}
-            onChoice={flow.advanceAfterChoice}
-            currentLanguage={flow.currentLanguage}
-          />
-        )}
+        {stepContent}
       </SheetStepPanel>
     </div>
   );

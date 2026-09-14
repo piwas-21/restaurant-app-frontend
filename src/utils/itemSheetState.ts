@@ -1,9 +1,8 @@
-import type { DetailedProduct } from '@/types/menu';
+import type { CustomizationGroupSelection, DetailedProduct } from '@/types/menu';
 import { firstActiveVariationId } from './baseProductVisibility';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import type { SelectedSide } from './linePrice';
 import type { ProductLineInput } from '@/hooks/menu/useLinePrice';
-import type { CustomizationGroupSelection } from '@/types/menu';
 import {
   activeCustomizationGroups,
   defaultCustomizationSelections,

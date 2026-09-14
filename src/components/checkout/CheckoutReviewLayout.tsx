@@ -139,6 +139,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
               <PaymentMethodSelector
                 selectedMethod={selectedPaymentMethod}
                 onMethodChange={setSelectedPaymentMethod}
+                orderType={checkoutState.orderType}
                 onlinePaymentAvailable={onlinePaymentAvailable}
                 styles={bundle.payment}
               />

@@ -5,7 +5,7 @@
  */
 
 import { CreditCard, Wallet, Smartphone, Banknote, Building2 } from 'lucide-react';
-import { PaymentMethod } from '@/types/order';
+import { OrderType, PaymentMethod } from '@/types/order';
 import type { LucideIcon } from 'lucide-react';
 
 export interface PaymentMethodOption {
@@ -87,19 +87,32 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
  *
  * **Online payment is HIDDEN when unavailable rather than shown "Coming Soon", and that is a
  * deliberate departure from its four neighbours.** Card at restaurant is an on-site intent and
- * is always available. Debit card, mobile payment and bank transfer are placeholders for work
+ * is available for DineIn and Takeaway, but not Delivery. Debit card, mobile payment and bank
+ * transfer are placeholders for work
  * nobody has started; "coming soon" is true of them.
  * Online payment is a purchasable module — on a tenant that did not buy it, "coming soon"
  * promises something that will never arrive unless they pay for it, and the codebase's own rule
  * for an unbought module is that its surface does not exist on this instance (the backend
  * answers 404, not 403, for exactly that reason).
  */
-export function offerablePaymentMethods(onlinePaymentAvailable: boolean): PaymentMethodOption[] {
-  // Checkout offers the two on-site intents in every case. The remaining non-online entries are
-  // future placeholders and must stay hidden: showing DebitCard beside the generic card intent
-  // makes the guest choose between two labels for the same promise while the backend rejects one.
+export function normalizePaymentMethodForOrderType(method: PaymentMethod, orderType: OrderType | null): PaymentMethod {
+  // Card at restaurant is a till intent. Only explicit DineIn/Takeaway channels have a
+  // collection point, so Delivery, null and unknown states all fall back to Cash.
+  const cardAllowed = orderType === OrderType.DineIn || orderType === OrderType.Takeaway;
+  return !cardAllowed && method === PaymentMethod.CreditCard ? PaymentMethod.Cash : method;
+}
+
+export function offerablePaymentMethods(
+  onlinePaymentAvailable: boolean,
+  orderType: OrderType | null,
+): PaymentMethodOption[] {
+  // Checkout offers cash for every channel, but Card at restaurant only where a diner can hand
+  // the tender to staff. The remaining non-online entries are future placeholders and stay hidden.
   const onSiteMethods = PAYMENT_METHODS.filter(
-    (method) => method.value === PaymentMethod.Cash || method.value === PaymentMethod.CreditCard,
+    (method) =>
+      method.value === PaymentMethod.Cash ||
+      ((orderType === OrderType.DineIn || orderType === OrderType.Takeaway) &&
+        method.value === PaymentMethod.CreditCard),
   );
 
   if (!onlinePaymentAvailable) return onSiteMethods;

@@ -7,13 +7,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Info, CheckCircle } from 'lucide-react';
-import { PaymentMethod } from '@/types/order';
-import { offerablePaymentMethods } from '@/config/paymentMethods';
+import { OrderType, PaymentMethod } from '@/types/order';
+import { normalizePaymentMethodForOrderType, offerablePaymentMethods } from '@/config/paymentMethods';
 import defaultStyles from './PaymentMethodSelector.module.css';
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod;
   onMethodChange: (method: PaymentMethod) => void;
+  /** The active checkout channel. Card at restaurant is not a Delivery option. */
+  orderType: OrderType | null;
   /** Whether this restaurant can take an online payment (S8). Defaults to false so a caller
    *  that has not been taught to ask cannot accidentally offer it. */
   onlinePaymentAvailable?: boolean;
@@ -25,11 +27,15 @@ interface PaymentMethodSelectorProps {
 export default function PaymentMethodSelector({
   selectedMethod,
   onMethodChange,
+  orderType,
   onlinePaymentAvailable = false,
   styles = defaultStyles,
 }: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
-  const methods = offerablePaymentMethods(onlinePaymentAvailable);
+  const methods = offerablePaymentMethods(onlinePaymentAvailable, orderType);
+  // Keep the visual radio state valid even during the render in which an order-type edit changes
+  // Delivery away from a previously selected Card at restaurant.
+  const effectiveSelectedMethod = normalizePaymentMethodForOrderType(selectedMethod, orderType);
 
   return (
     <section className={styles.section}>
@@ -66,14 +72,14 @@ export default function PaymentMethodSelector({
             <label
               key={method.value}
               className={`${styles.paymentMethod} ${
-                selectedMethod === method.value ? styles.selected : ''
+                effectiveSelectedMethod === method.value ? styles.selected : ''
               } ${isDisabled ? styles.disabled : ''}`}
             >
               <input
                 type="radio"
                 name="paymentMethod"
                 value={method.value}
-                checked={selectedMethod === method.value}
+                checked={effectiveSelectedMethod === method.value}
                 onChange={() => !isDisabled && onMethodChange(method.value)}
                 className={styles.paymentRadio}
                 disabled={isDisabled}
@@ -88,7 +94,9 @@ export default function PaymentMethodSelector({
                 </span>
                 <span className={styles.paymentDescription}>{t(method.descriptionKey, method.description)}</span>
               </div>
-              {selectedMethod === method.value && !isDisabled && <CheckCircle size={20} className={styles.checkmark} />}
+              {effectiveSelectedMethod === method.value && !isDisabled && (
+                <CheckCircle size={20} className={styles.checkmark} />
+              )}
             </label>
           );
         })}

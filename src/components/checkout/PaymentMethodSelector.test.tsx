@@ -25,8 +25,8 @@ describe('offerablePaymentMethods', () => {
     const values = offerablePaymentMethods(false).map((method) => method.value);
 
     expect(values).not.toContain(PaymentMethod.OnlinePayment);
-    // The other placeholders stay — "coming soon" is true of them, and hiding them is not this
-    // slice's business.
+    // The on-site card option and the other placeholders stay. Only the Stripe-backed online
+    // option belongs to the availability endpoint.
     expect(values).toContain(PaymentMethod.CreditCard);
     expect(values).toContain(PaymentMethod.Cash);
   });
@@ -59,6 +59,8 @@ describe('PaymentMethodSelector', () => {
 
     const online = screen.getByRole('radio', { name: /online payment/i });
     expect(online).toBeEnabled();
+    expect(screen.getByRole('radio', { name: /card at restaurant/i })).toBeEnabled();
+    expect(screen.getByText(/pay in cash or by card at the restaurant/i)).toBeInTheDocument();
     expect(screen.getByText(/pay by card now/i)).toBeInTheDocument();
     expect(screen.queryByText(/only cash payment is available/i)).not.toBeInTheDocument();
   });
@@ -73,7 +75,7 @@ describe('PaymentMethodSelector', () => {
     );
 
     expect(screen.queryByRole('radio', { name: /online payment/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/only cash payment is available/i)).toBeInTheDocument();
+    expect(screen.getByText(/pay in cash or by card at the restaurant/i)).toBeInTheDocument();
   });
 
   it('defaults to unavailable when the prop is omitted', () => {

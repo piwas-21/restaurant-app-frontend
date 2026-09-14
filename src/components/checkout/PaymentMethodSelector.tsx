@@ -40,20 +40,19 @@ export default function PaymentMethodSelector({
         </h2>
       </div>
 
-      {/* The banner states what this restaurant can actually take. The "only cash" sentence was
-          unconditional, so on a tenant that HAS online payment it contradicted the enabled option
-          rendered directly beneath it. */}
+      {/* The banner states what this restaurant can actually take. The copy distinguishes on-site
+          cash/card intents from the optional online payment route rendered below it. */}
       <div className={styles.infoMessage}>
         <Info size={18} />
         <p>
           {onlinePaymentAvailable
             ? t(
                 'payment_methods_info_online',
-                'Pay in cash at the restaurant, or pay by card now — we will take you to our secure payment page.',
+                'Pay in cash or by card at the restaurant, or pay by card now — we will take you to our secure payment page.',
               )
             : t(
                 'payment_methods_info',
-                'Currently, only cash payment is available. Other payment methods are coming soon!',
+                'Pay in cash or by card at the restaurant. Online payment and other methods are coming soon!',
               )}
         </p>
       </div>

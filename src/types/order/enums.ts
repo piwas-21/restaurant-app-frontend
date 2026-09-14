@@ -17,6 +17,7 @@ export enum OrderType {
  */
 export enum PaymentMethod {
   Cash = 'Cash',
+  /** Card accepted at the restaurant; OnlinePayment is the separate Stripe path. */
   CreditCard = 'CreditCard',
   DebitCard = 'DebitCard',
   OnlinePayment = 'OnlinePayment',

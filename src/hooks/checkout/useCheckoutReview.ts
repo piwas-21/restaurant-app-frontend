@@ -108,6 +108,8 @@ export function useCheckoutReview() {
         return;
       }
 
+      // Cash and CreditCard are on-site intents. They finish through order creation with a Pending
+      // tender; only OnlinePayment takes the Stripe branch above.
       const createdOrder = await createOrderFromBasket(orderCommand);
 
       trackEvent('checkout_completed', {

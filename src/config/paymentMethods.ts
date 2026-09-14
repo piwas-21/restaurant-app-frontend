@@ -20,7 +20,8 @@ export interface PaymentMethodOption {
 
 /**
  * The full payment-method vocabulary. `disabled` here is the *default* — see
- * {@link offerablePaymentMethods}, which is what the checkout page must render.
+ * {@link offerablePaymentMethods}, which is what the checkout page must render. CreditCard is
+ * presented as an on-site intent, not as the optional Stripe OnlinePayment method.
  */
 export const PAYMENT_METHODS: PaymentMethodOption[] = [
   {
@@ -34,12 +35,12 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
   },
   {
     value: PaymentMethod.CreditCard,
-    labelKey: 'payment_credit_card',
-    label: 'Credit Card',
+    labelKey: 'payment_card_at_restaurant',
+    label: 'Card at restaurant',
     icon: CreditCard,
-    descriptionKey: 'payment_credit_card_desc',
-    description: 'Visa, Mastercard, Amex',
-    disabled: true,
+    descriptionKey: 'payment_card_at_restaurant_desc',
+    description: 'Pay by card at the restaurant',
+    disabled: false,
   },
   {
     value: PaymentMethod.DebitCard,
@@ -85,8 +86,9 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
  * `GET /api/payments/availability`, which fails closed).
  *
  * **Online payment is HIDDEN when unavailable rather than shown "Coming Soon", and that is a
- * deliberate departure from its four neighbours.** Credit card, debit card, mobile payment and
- * bank transfer are placeholders for work nobody has started; "coming soon" is true of them.
+ * deliberate departure from its four neighbours.** Card at restaurant is an on-site intent and
+ * is always available. Debit card, mobile payment and bank transfer are placeholders for work
+ * nobody has started; "coming soon" is true of them.
  * Online payment is a purchasable module — on a tenant that did not buy it, "coming soon"
  * promises something that will never arrive unless they pay for it, and the codebase's own rule
  * for an unbought module is that its surface does not exist on this instance (the backend

@@ -75,6 +75,54 @@ export const contentSchema = z.object({
   description: optionalText(),
 });
 
+const customizationIngredientOptionSchema = z.object({
+  id: z.string().optional(),
+  productIngredientId: z.string().min(1),
+  displayOrder: z.coerce.number().int().min(0),
+  isDefault: z.boolean(),
+});
+
+const customizationProductOptionSchema = z.object({
+  id: z.string().optional(),
+  optionProductId: z.string().min(1),
+  optionProductName: z.string(),
+  additionalPrice: z.coerce.number().min(0),
+  displayOrder: z.coerce.number().int().min(0),
+  isDefault: z.boolean(),
+});
+
+export const customizationGroupSchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().trim().min(1).max(100),
+    description: z.string().max(500).optional(),
+    displayOrder: z.coerce.number().int().min(0),
+    isRequired: z.boolean(),
+    minSelection: z.coerce.number().int().min(0),
+    maxSelection: z.coerce.number().int().min(0),
+    includedFreeUnits: z.coerce.number().int().min(0),
+    isActive: z.boolean(),
+    content: z.record(z.string(), z.object({ name: z.string().trim().min(1), description: optionalText() })),
+    ingredientOptions: z.array(customizationIngredientOptionSchema),
+    productOptions: z.array(customizationProductOptionSchema),
+  })
+  .superRefine((group, ctx) => {
+    const optionCount = group.ingredientOptions.length + group.productOptions.length;
+    if (group.maxSelection < group.minSelection || group.maxSelection > optionCount) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['maxSelection'], message: 'Limits must match the options' });
+    }
+    if (group.includedFreeUnits > group.maxSelection) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['includedFreeUnits'], message: 'Too many included units' });
+    }
+    if (group.isRequired && group.minSelection === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['minSelection'],
+        message: 'A required group needs a minimum',
+      });
+    }
+  });
+
 // Base product schema shared by both create and edit
 const baseProductSchema = z.object({
   name: z.string().min(1),
@@ -113,6 +161,7 @@ const baseProductSchema = z.object({
     ),
   preparationTimeMinutes: z.coerce.number().min(0).default(0),
   suggestedSideItemIds: z.array(z.string()).default([]),
+  customizationGroups: z.array(customizationGroupSchema).default([]),
   // Raw OrderChannels mask. `null` = inherit from the primary category; 1..7 = an explicit
   // per-item override. The bounds mirror the server's `ValidOrderChannelMask` — 0 is rejected
   // there because "orderable on no channel" renders as a blocked item with no stateable reason.

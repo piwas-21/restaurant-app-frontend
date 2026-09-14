@@ -6,6 +6,7 @@ import { buildOptionSteps } from '@/utils/customizationSteps';
 import { optionStepIsSkippable } from '@/utils/customizationSummary';
 import { findBundleOption } from '@/utils/bundleSelection';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
+import { activeCustomizationGroups, ingredientIdsForSelections } from '@/utils/explicitCustomization';
 import type { SheetController } from './useSheetFlow';
 import type { SelectedMenuOption } from '@/types/menu';
 
@@ -56,8 +57,12 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
   );
 
   const selectedIngredients = option?.selectedIngredients ?? EMPTY_IDS;
+  const customizationSelections = option?.customizationSelections ?? EMPTY_CUSTOMIZATION_SELECTIONS;
   const currentLanguage = bundle?.currentLanguage ?? 'en';
-  const gate = useMemo(() => ({ selectedVariationId: null, selectedIngredients }), [selectedIngredients]);
+  const gate = useMemo(
+    () => ({ selectedVariationId: null, selectedIngredients, customizationSelections }),
+    [selectedIngredients, customizationSelections],
+  );
 
   const flow = useSheetSteps({
     steps,
@@ -78,9 +83,16 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
         flow.step &&
         !flow.step.isRequired &&
         !flow.isLast &&
-        optionStepIsSkippable(flow.step, item?.detailedIngredients ?? [], selectedIngredients, sauceIds, sauceRule),
+        optionStepIsSkippable(
+          flow.step,
+          item?.detailedIngredients ?? [],
+          selectedIngredients,
+          sauceIds,
+          sauceRule,
+          customizationSelections,
+        ),
       ),
-    [flow.step, flow.isLast, item, selectedIngredients, sauceIds, sauceRule],
+    [flow.step, flow.isLast, item, selectedIngredients, sauceIds, sauceRule, customizationSelections],
   );
 
   const patch = useCallback(
@@ -100,6 +112,18 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     (instructions: string) => patch({ specialInstructions: instructions || undefined }),
     [patch],
   );
+  const onCustomizationSelectionsChange = useCallback(
+    (next: SelectedMenuOption['customizationSelections']) => {
+      if (!next || !item) return;
+      const ingredientIds = ingredientIdsForSelections(activeCustomizationGroups(item), next);
+      patch({
+        customizationSelections: next,
+        selectedIngredients: ingredientIds,
+        ingredientQuantities: Object.fromEntries(ingredientIds.map((id) => [id, 1])),
+      });
+    },
+    [item, patch],
+  );
 
   if (!bundle || !item || !customizing) return null;
 
@@ -115,6 +139,7 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     onSelectionChange,
     onQuantityChange,
     onInstructionsChange,
+    onCustomizationSelectionsChange,
     /** The way back to the bundle sheet — the header's back button, the last step's Done, Escape. */
     close: bundle.closeOptionCustomization,
     /**
@@ -132,3 +157,4 @@ export type BundleOptionFlow = NonNullable<ReturnType<typeof useBundleOptionFlow
 
 const EMPTY_SECTIONS: never[] = [];
 const EMPTY_IDS: string[] = [];
+const EMPTY_CUSTOMIZATION_SELECTIONS: never[] = [];

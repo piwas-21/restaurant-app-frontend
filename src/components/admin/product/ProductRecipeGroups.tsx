@@ -26,6 +26,7 @@ interface ProductRecipeGroupsProps {
   readonly register: UseFormRegister<FieldValues>;
   readonly control: Control<FieldValues>;
   readonly errors: FieldErrors<FieldValues>;
+  readonly hasExplicitGroups?: boolean;
 }
 
 export default function ProductRecipeGroups({
@@ -35,6 +36,7 @@ export default function ProductRecipeGroups({
   register,
   control,
   errors,
+  hasExplicitGroups = false,
 }: ProductRecipeGroupsProps) {
   return (
     <>
@@ -50,7 +52,7 @@ export default function ProductRecipeGroups({
         onChange={onChange}
         productBasePrice={productBasePrice}
       >
-        <SauceGroupRules register={register} control={control} errors={errors} />
+        {!hasExplicitGroups && <SauceGroupRules register={register} control={control} errors={errors} />}
       </ProductIngredientsManager>
     </>
   );

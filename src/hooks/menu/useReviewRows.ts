@@ -39,6 +39,7 @@ export function useReviewRows({ controller, steps, drinkSummary }: UseReviewRows
       selectedIngredients: controller.selectedIngredients,
       ingredientQuantities: controller.ingredientQuantities,
       selectedSideItems: controller.selectedSideItems,
+      customizationSelections: controller.customizationSelections,
     };
     return contentSteps.map((step) => ({
       step,

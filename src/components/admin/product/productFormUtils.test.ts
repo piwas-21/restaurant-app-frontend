@@ -74,7 +74,7 @@ const onImageUploadFailed = jest.fn();
 const submit = async (data: Record<string, unknown>) => {
   await submitEditProductForm({
     data: data as never,
-    product: { id: data.id },
+    product: { id: String(data.id) },
     imageFiles: [],
     detailedIngredients: [],
     setIsSubmitting: () => {},
@@ -104,10 +104,45 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
   });
 
   it('still sends a plain item to the product endpoint', async () => {
-    await submit(itemFormData());
+    const customizationGroups = [
+      {
+        name: 'Viande',
+        displayOrder: 0,
+        isRequired: true,
+        minSelection: 1,
+        maxSelection: 1,
+        includedFreeUnits: 1,
+        isActive: true,
+        content: { fr: { name: 'Viande', description: '' } },
+        ingredientOptions: [],
+        productOptions: [
+          {
+            optionProductId: 'meat-1',
+            optionProductName: 'Kebab',
+            additionalPrice: 0,
+            displayOrder: 0,
+            isDefault: false,
+          },
+        ],
+      },
+    ];
+    await submitEditProductForm({
+      data: itemFormData() as never,
+      product: { id: 'product-1' },
+      imageFiles: [],
+      detailedIngredients: [],
+      customizationGroups,
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+    });
 
     expect(updateProduct).toHaveBeenCalledTimes(1);
     expect(updateMenuBundle).not.toHaveBeenCalled();
+    expect(updateProduct).toHaveBeenCalledWith('product-1', expect.objectContaining({ customizationGroups }));
   });
 
   // Deliberately NOT named "no longer depends on categories": categoryIds:[] is what the code
@@ -216,7 +251,10 @@ describe('submitProductForm — create endpoint dispatch', () => {
  * tell a snapshot from a translation, and it exists nowhere else at submit time.
  */
 describe('submitEditProductForm — a translation that is a copy of the base text (#536)', () => {
-  const editWith = async (data: Record<string, unknown>, product: Record<string, unknown>) => {
+  const editWith = async (
+    data: Record<string, unknown>,
+    product: { id: string; name?: string; description?: string },
+  ) => {
     await submitEditProductForm({
       data: data as never,
       product,

@@ -37,6 +37,8 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   // `controller.kind === …` in a dependency array is an expression ESLint cannot check statically.
   const selectedVariationId = controller.kind === 'product' ? controller.selectedVariationId : null;
   const selectedIngredients = controller.kind === 'product' ? controller.selectedIngredients : EMPTY_IDS;
+  const customizationSelections =
+    controller.kind === 'product' ? controller.customizationSelections : EMPTY_CUSTOMIZATION_SELECTIONS;
   const selectedOptions = controller.kind === 'bundle' ? controller.selectedOptions : undefined;
 
   // A step only exists once there is something in it. Deriving it from "we asked for drinks" would
@@ -72,8 +74,8 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   // The fields rather than the controller object: the controller is a fresh identity every render,
   // so depending on it would rebuild the gate on every keystroke in the special-request box.
   const gate = useMemo(
-    () => ({ selectedVariationId, selectedIngredients, selectedOptions }),
-    [selectedVariationId, selectedIngredients, selectedOptions],
+    () => ({ selectedVariationId, selectedIngredients, selectedOptions, customizationSelections }),
+    [selectedVariationId, selectedIngredients, selectedOptions, customizationSelections],
   );
 
   // A drink chosen for the last dish must not ride along with the next one.
@@ -192,3 +194,4 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
 
 const EMPTY_SECTIONS: never[] = [];
 const EMPTY_IDS: string[] = [];
+const EMPTY_CUSTOMIZATION_SELECTIONS: never[] = [];

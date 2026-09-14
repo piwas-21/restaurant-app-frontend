@@ -33,7 +33,8 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   const [tourSectionId, setTourSectionId] = useState<string | null>(null);
 
   /** The option carries ingredients/sauces of its own — what makes it a walk stop. */
-  const optionHasCustomization = (item: MenuSectionItem): boolean => (item.detailedIngredients?.length ?? 0) > 0;
+  const optionHasCustomization = (item: MenuSectionItem): boolean =>
+    (item.customizationGroups?.some((group) => group.isActive) ?? false) || (item.detailedIngredients?.length ?? 0) > 0;
 
   const close = useCallback(() => {
     setCustomizingOption(null);

@@ -3,6 +3,12 @@ import { firstActiveVariationId } from './baseProductVisibility';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import type { SelectedSide } from './linePrice';
 import type { ProductLineInput } from '@/hooks/menu/useLinePrice';
+import type { CustomizationGroupSelection } from '@/types/menu';
+import {
+  activeCustomizationGroups,
+  defaultCustomizationSelections,
+  ingredientIdsForSelections,
+} from './explicitCustomization';
 
 /**
  * The pure open-state rules for the product body of the customization sheet (menu-bundles redesign
@@ -13,6 +19,7 @@ import type { ProductLineInput } from '@/hooks/menu/useLinePrice';
 /** Whether the product has anything to choose. Nothing to choose → the card adds it directly. */
 export function hasCustomizationOptions(detail: DetailedProduct): boolean {
   return (
+    (detail.customizationGroups?.some((group) => group.isActive) ?? false) ||
     (detail.variations?.length ?? 0) > 0 ||
     (detail.detailedIngredients?.length ?? 0) > 0 ||
     (detail.suggestedSideItems?.length ?? 0) > 0
@@ -24,6 +31,7 @@ export interface InitialSheetState {
   ingredientQuantities: Record<string, number>;
   selectedSideItems: SelectedSide[];
   selectedVariationId: string | null;
+  customizationSelections: CustomizationGroupSelection[];
 }
 
 /**
@@ -32,10 +40,14 @@ export interface InitialSheetState {
  */
 export function buildInitialSheetState(detail: DetailedProduct): InitialSheetState {
   const base = buildBaseIngredientSelection(detail.detailedIngredients ?? []);
+  const groups = activeCustomizationGroups(detail);
+  const customizationSelections = defaultCustomizationSelections(detail);
+  const explicitIngredientIds = ingredientIdsForSelections(groups, customizationSelections);
 
   return {
-    selectedIngredients: base.selectedIngredients,
-    ingredientQuantities: base.ingredientQuantities,
+    selectedIngredients: groups.length > 0 ? explicitIngredientIds : base.selectedIngredients,
+    ingredientQuantities:
+      groups.length > 0 ? Object.fromEntries(explicitIngredientIds.map((id) => [id, 1])) : base.ingredientQuantities,
     selectedSideItems: (detail.suggestedSideItems ?? [])
       .filter((side) => side.isRequired)
       .map((side) => ({ id: side.id, quantity: 1 })),
@@ -44,6 +56,7 @@ export function buildInitialSheetState(detail: DetailedProduct): InitialSheetSta
     // no visible radio. Load-bearing since Track F / F2 — with the base row hidden, a null start
     // is an add the server refuses.
     selectedVariationId: firstActiveVariationId(detail.variations),
+    customizationSelections,
   };
 }
 
@@ -54,6 +67,7 @@ export interface SheetSelection {
   selectedIngredients: string[];
   ingredientQuantities: Record<string, number>;
   selectedSideItems: SelectedSide[];
+  customizationSelections?: CustomizationGroupSelection[];
 }
 
 /**
@@ -77,5 +91,7 @@ export function toLinePriceInput(product: DetailedProduct | null, selection: She
     sauceIncludedFree: product?.sauceIncludedFree ?? 0,
     sides: product?.suggestedSideItems,
     selectedSides: selection.selectedSideItems,
+    customizationGroups: product?.customizationGroups,
+    customizationSelections: selection.customizationSelections,
   };
 }

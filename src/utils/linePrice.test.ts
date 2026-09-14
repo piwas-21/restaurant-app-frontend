@@ -71,6 +71,55 @@ describe('ingredientCustomizationPrice — FE↔BE parity with BasketPricingServ
 });
 
 describe('productLineUnitPrice', () => {
+  it('prices mixed explicit choices and applies the group-scoped ingredient allowance', () => {
+    const ingredient = ing({ id: 'cheddar', price: 1, isIncludedInBasePrice: false });
+    const customizationGroups = [
+      {
+        id: 'extras',
+        name: 'Extras',
+        displayOrder: 1,
+        isRequired: false,
+        minSelection: 0,
+        maxSelection: 2,
+        includedFreeUnits: 1,
+        isActive: true,
+        content: {},
+        ingredientOptions: [
+          { id: 'cheddar-membership', productIngredientId: 'cheddar', displayOrder: 1, isDefault: false },
+        ],
+        productOptions: [
+          {
+            id: 'meat-membership',
+            optionProductId: 'extra-meat',
+            optionProductName: 'Extra viande',
+            additionalPrice: 3,
+            displayOrder: 2,
+            isDefault: false,
+          },
+        ],
+      },
+    ];
+
+    expect(
+      productLineUnitPrice({
+        basePrice: 10,
+        ingredients: [ingredient],
+        selectedIngredientIds: ['cheddar'],
+        ingredientQuantities: { cheddar: 1 },
+        customizationGroups,
+        customizationSelections: [
+          {
+            groupId: 'extras',
+            options: [
+              { kind: 0, optionId: 'cheddar-membership', quantity: 1 },
+              { kind: 1, optionId: 'meat-membership', quantity: 1 },
+            ],
+          },
+        ],
+      }),
+    ).toBe(13);
+  });
+
   it('is just the base price with no customization', () => {
     expect(productLineUnitPrice({ basePrice: 10, selectedIngredientIds: [] })).toBe(10);
   });

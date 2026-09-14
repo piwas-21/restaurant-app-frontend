@@ -1,6 +1,5 @@
 /**
- * Admin product CRUD shapes and the detailed product / featured-special responses.
- * Extracted from types/menu.ts (Sprint 4/6 type-file split by domain).
+ * Admin product CRUD and detailed product / featured-special responses, split from types/menu.ts.
  */
 
 import {
@@ -15,6 +14,7 @@ import {
 import { MenuDefinition } from './bundle';
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
+import type { CustomizationGroupCarrier } from './customizationGroup';
 
 export interface CreateProductData {
   name: string;
@@ -47,7 +47,7 @@ export interface ProductResponse {
   };
 }
 
-export interface DetailedProduct extends SauceGroupCarrier {
+export interface DetailedProduct extends SauceGroupCarrier, CustomizationGroupCarrier {
   id: string;
   name: string;
   description?: string;
@@ -107,7 +107,7 @@ export interface DetailedProductResponse {
   errors?: string[];
 }
 
-export interface FeaturedSpecial {
+export interface FeaturedSpecial extends CustomizationGroupCarrier {
   id: string;
   name: string;
   description?: string;

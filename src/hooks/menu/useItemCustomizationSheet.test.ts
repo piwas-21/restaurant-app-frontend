@@ -64,6 +64,46 @@ const noOptionsProduct = {
 };
 
 describe('useItemCustomizationSheet', () => {
+  it('seeds and serializes explicit membership selections instead of trusting target ids', async () => {
+    const detail = {
+      ...productWithOptions,
+      customizationGroups: [
+        {
+          id: 'meat',
+          name: 'Viande',
+          displayOrder: 1,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 1,
+          includedFreeUnits: 0,
+          isActive: true,
+          content: {},
+          ingredientOptions: [
+            { id: 'bacon-membership', productIngredientId: 'bacon', displayOrder: 1, isDefault: true },
+          ],
+          productOptions: [],
+        },
+      ],
+    };
+    mockGetProductById.mockResolvedValue({ data: detail });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => result.current.openForProduct('p1'));
+    expect(result.current.selectedIngredients).toEqual(['bacon']);
+    expect(result.current.customizationSelections).toEqual([
+      { groupId: 'meat', options: [{ kind: 0, optionId: 'bacon-membership', quantity: 1 }] },
+    ]);
+
+    await act(async () => result.current.addToCart());
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customizationSelections: [
+          { groupId: 'meat', options: [{ kind: 0, optionId: 'bacon-membership', quantity: 1 }] },
+        ],
+      }),
+    );
+  });
+
   it('opens the sheet with the base-recipe default selection and adds the customized line', async () => {
     mockGetProductById.mockResolvedValue({ data: productWithOptions });
     const { result } = renderHook(() => useItemCustomizationSheet());

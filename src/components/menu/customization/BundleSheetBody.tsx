@@ -71,5 +71,8 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
 /** Does picking this option open a customization screen the guest would be carried past? */
 function hasOwnCustomization(section: MenuSection, productId: string): boolean {
   const item = section.items.find((candidate) => candidate.productId === productId);
-  return (item?.detailedIngredients?.length ?? 0) > 0;
+  return (
+    (item?.customizationGroups?.some((group) => group.isActive) ?? false) ||
+    (item?.detailedIngredients?.length ?? 0) > 0
+  );
 }

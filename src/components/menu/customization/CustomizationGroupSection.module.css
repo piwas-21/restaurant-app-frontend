@@ -1,0 +1,59 @@
+.group {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.description {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
+  cursor: pointer;
+}
+
+.row:has(:checked),
+.row:hover {
+  border-color: var(--brand-primary);
+}
+
+.row input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--brand-primary);
+}
+
+.blocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.price {
+  flex: 0 0 auto;
+  color: var(--text-primary);
+  font-weight: 600;
+}

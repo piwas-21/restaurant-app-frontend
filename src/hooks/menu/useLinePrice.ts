@@ -10,6 +10,7 @@ import {
   type PriceableBundleSection,
   type SelectedBundleOption,
 } from '@/utils/linePrice';
+import type { CustomizationGroupSelection, ProductCustomizationGroup } from '@/types/menu';
 
 export interface ProductLineInput {
   kind: 'product';
@@ -24,6 +25,8 @@ export interface ProductLineInput {
   sauceIncludedFree?: number;
   sides?: readonly PriceableSide[];
   selectedSides?: readonly SelectedSide[];
+  customizationGroups?: readonly ProductCustomizationGroup[];
+  customizationSelections?: readonly CustomizationGroupSelection[];
 }
 
 interface BundleLineArgs {
@@ -60,6 +63,8 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
   const sauceIncludedFree = args.kind === 'product' ? args.sauceIncludedFree : undefined;
   const sides = args.kind === 'product' ? args.sides : undefined;
   const selectedSides = args.kind === 'product' ? args.selectedSides : undefined;
+  const customizationGroups = args.kind === 'product' ? args.customizationGroups : undefined;
+  const customizationSelections = args.kind === 'product' ? args.customizationSelections : undefined;
   const sections = args.kind === 'bundle' ? args.sections : undefined;
   const selectedOptions = args.kind === 'bundle' ? args.selectedOptions : undefined;
 
@@ -77,6 +82,8 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
             sauceIncludedFree,
             sides,
             selectedSides,
+            customizationGroups,
+            customizationSelections,
           });
 
     return { unitPrice, total: lineTotal(unitPrice, quantity) };
@@ -92,6 +99,8 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
     sauceIncludedFree,
     sides,
     selectedSides,
+    customizationGroups,
+    customizationSelections,
     sections,
     selectedOptions,
   ]);

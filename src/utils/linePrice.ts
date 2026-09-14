@@ -11,7 +11,8 @@
  */
 
 import { sauceWaiverAmount } from './sauceGroup';
-import type { IngredientKind } from '@/types/menu';
+import type { CustomizationGroupSelection, IngredientKind, ProductCustomizationGroup } from '@/types/menu';
+import { selectionForGroup } from './explicitCustomization';
 
 /** The minimal ingredient shape pricing needs — satisfied by both `ProductIngredient` (optional
  *  `isIncludedInBasePrice`/`maxQuantity`) and `DetailedIngredient` (required). */
@@ -105,6 +106,8 @@ export function productLineUnitPrice(params: {
   sauceIncludedFree?: number;
   sides?: readonly PriceableSide[];
   selectedSides?: readonly SelectedSide[];
+  customizationGroups?: readonly ProductCustomizationGroup[];
+  customizationSelections?: readonly CustomizationGroupSelection[];
 }): number {
   const variation =
     params.selectedVariationId && params.variations
@@ -112,19 +115,80 @@ export function productLineUnitPrice(params: {
       : undefined;
   const base = params.basePrice + (variation?.priceModifier ?? 0);
 
-  const ingredientDelta = ingredientCustomizationPrice(
+  let ingredientDelta = ingredientCustomizationPrice(
     params.ingredients,
     params.selectedIngredientIds,
     params.ingredientQuantities,
-    params.sauceIncludedFree ?? 0,
+    (params.customizationGroups?.length ?? 0) > 0 ? 0 : (params.sauceIncludedFree ?? 0),
   );
+
+  const explicitDelta = explicitCustomizationPrice(
+    params.customizationGroups,
+    params.customizationSelections,
+    params.ingredients,
+    params.ingredientQuantities,
+  );
+  ingredientDelta -= explicitDelta.ingredientAllowance;
 
   const sidesCost = (params.selectedSides ?? []).reduce((sum, selected) => {
     const side = params.sides?.find((s) => s.id === selected.id);
     return sum + (side?.price ?? 0) * selected.quantity;
   }, 0);
 
-  return base + ingredientDelta + sidesCost;
+  return base + ingredientDelta + explicitDelta.productOptionsCost + sidesCost;
+}
+
+function explicitCustomizationPrice(
+  groups: readonly ProductCustomizationGroup[] | undefined,
+  selections: readonly CustomizationGroupSelection[] | undefined,
+  ingredients: readonly PriceableIngredient[] | undefined,
+  quantities: Record<string, number> | undefined,
+): { ingredientAllowance: number; productOptionsCost: number } {
+  if (!groups?.length || !selections) return { ingredientAllowance: 0, productOptionsCost: 0 };
+  const ingredientById = new Map((ingredients ?? []).map((ingredient) => [ingredient.id, ingredient]));
+  let ingredientAllowance = 0;
+  let productOptionsCost = 0;
+
+  for (const group of groups.filter((candidate) => candidate.isActive)) {
+    const groupPrice = explicitGroupPrice(group, selectionForGroup(selections, group.id), ingredientById, quantities);
+    ingredientAllowance += groupPrice.ingredientAllowance;
+    productOptionsCost += groupPrice.productOptionsCost;
+  }
+
+  return { ingredientAllowance, productOptionsCost };
+}
+
+function explicitGroupPrice(
+  group: ProductCustomizationGroup,
+  selected: readonly CustomizationGroupSelection['options'][number][],
+  ingredientById: ReadonlyMap<string, PriceableIngredient>,
+  quantities: Record<string, number> | undefined,
+): { ingredientAllowance: number; productOptionsCost: number } {
+  const ingredientMemberships = new Map(group.ingredientOptions.map((option) => [option.id, option]));
+  const productMemberships = new Map(group.productOptions.map((option) => [option.id, option]));
+  const chargeable: Array<{ price: number; order: number; id: string }> = [];
+  let productOptionsCost = 0;
+
+  for (const choice of selected) {
+    if (choice.kind === 1) {
+      productOptionsCost += (productMemberships.get(choice.optionId)?.additionalPrice ?? 0) * choice.quantity;
+      continue;
+    }
+    const membership = ingredientMemberships.get(choice.optionId);
+    const ingredient = membership ? ingredientById.get(membership.productIngredientId) : undefined;
+    if (!membership || !ingredient || ingredient.price <= 0) continue;
+    const quantity = quantities?.[ingredient.id] ?? choice.quantity;
+    const units = ingredient.isIncludedInBasePrice ? Math.max(0, quantity - 1) : quantity;
+    for (let unit = 0; unit < units; unit += 1) {
+      chargeable.push({ price: ingredient.price, order: membership.displayOrder, id: ingredient.id });
+    }
+  }
+
+  const ingredientAllowance = chargeable
+    .sort((left, right) => right.price - left.price || left.order - right.order || left.id.localeCompare(right.id))
+    .slice(0, group.includedFreeUnits)
+    .reduce((sum, unit) => sum + unit.price, 0);
+  return { ingredientAllowance, productOptionsCost };
 }
 
 /** One chosen option inside a bundle section, with its per-option ingredient customization. */
@@ -134,6 +198,7 @@ export interface SelectedBundleOption {
   quantity: number;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
+  customizationSelections?: CustomizationGroupSelection[];
 }
 
 export interface PriceableBundleSectionItem {
@@ -146,6 +211,7 @@ export interface PriceableBundleSectionItem {
    * the parent bundle owns no sauce rows for an allowance of its own to apply to.
    */
   sauceIncludedFree?: number;
+  customizationGroups?: readonly ProductCustomizationGroup[];
 }
 
 export interface PriceableBundleSection {
@@ -169,13 +235,20 @@ export function bundleLineUnitPrice(params: {
     if (!item) continue;
 
     total += item.additionalPrice * option.quantity;
-    total +=
-      ingredientCustomizationPrice(
-        item.detailedIngredients,
-        option.selectedIngredients ?? [],
-        option.ingredientQuantities,
-        item.sauceIncludedFree ?? 0,
-      ) * option.quantity;
+    let ingredientDelta = ingredientCustomizationPrice(
+      item.detailedIngredients,
+      option.selectedIngredients ?? [],
+      option.ingredientQuantities,
+      (item.customizationGroups?.length ?? 0) > 0 ? 0 : (item.sauceIncludedFree ?? 0),
+    );
+    const explicitDelta = explicitCustomizationPrice(
+      item.customizationGroups,
+      option.customizationSelections,
+      item.detailedIngredients,
+      option.ingredientQuantities,
+    );
+    ingredientDelta -= explicitDelta.ingredientAllowance;
+    total += (ingredientDelta + explicitDelta.productOptionsCost) * option.quantity;
   }
 
   return total;

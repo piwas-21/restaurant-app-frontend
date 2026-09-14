@@ -6,7 +6,15 @@ import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSid
 import { findBundleOption } from './bundleSelection';
 import type { CustomizationStep } from './customizationSteps';
 import type { SelectedSide } from './linePrice';
-import type { DetailedProduct, MenuSection, ProductIngredient, SelectedMenuOption } from '@/types/menu';
+import type {
+  CustomizationGroupSelection,
+  DetailedProduct,
+  MenuSection,
+  ProductCustomizationGroup,
+  ProductIngredient,
+  SelectedMenuOption,
+} from '@/types/menu';
+import { selectionForGroup } from './explicitCustomization';
 
 /**
  * What the review step reports back (MENU-CUSTOMIZATION-FLOW-PLAN §3.3).
@@ -25,6 +33,7 @@ export interface ProductSummaryState {
   selectedIngredients: readonly string[];
   ingredientQuantities: Readonly<Record<string, number>>;
   selectedSideItems: readonly SelectedSide[];
+  customizationSelections?: readonly CustomizationGroupSelection[];
 }
 
 const withQuantity = (name: string, quantity: number): string => (quantity > 1 ? `${quantity} × ${name}` : name);
@@ -66,6 +75,10 @@ export function productStepSummary(
   switch (step.kind) {
     case 'variations':
       return variationSummary(product, state.selectedVariationId, language);
+    case 'group':
+      return step.group
+        ? customizationGroupSummary(step.group, ingredients, state.customizationSelections ?? [], language)
+        : [];
     case 'ingredients':
       return ingredientSummary(
         ingredients.filter((ingredient) => ingredient.isActive && !isSauce(ingredient)),
@@ -81,6 +94,27 @@ export function productStepSummary(
     default:
       return [];
   }
+}
+
+function customizationGroupSummary(
+  group: ProductCustomizationGroup,
+  ingredients: readonly ProductIngredient[],
+  selections: readonly CustomizationGroupSelection[],
+  language: string,
+): string[] {
+  const selected = selectionForGroup(selections, group.id);
+  const ingredientsById = new Map(ingredients.map((ingredient) => [ingredient.id, ingredient]));
+  const ingredientOptions = new Map(group.ingredientOptions.map((option) => [option.id, option]));
+  const productOptions = new Map(group.productOptions.map((option) => [option.id, option]));
+  return selected.flatMap((choice) => {
+    if (choice.kind === 1) {
+      const option = productOptions.get(choice.optionId);
+      return option ? [withQuantity(option.optionProductName, choice.quantity)] : [];
+    }
+    const membership = ingredientOptions.get(choice.optionId);
+    const ingredient = membership ? ingredientsById.get(membership.productIngredientId) : undefined;
+    return ingredient ? [withQuantity(localizedName(ingredient, language), choice.quantity)] : [];
+  });
 }
 
 function variationSummary(product: DetailedProduct, selectedId: string | null, language: string): string[] {
@@ -179,6 +213,8 @@ export function stepHasTickedSelection(
       // guest who kept the base row answered the step exactly as much as one who picked a
       // variation — a size cannot be skipped, only kept or changed. Always answered.
       return true;
+    case 'group':
+      return step.group ? selectionForGroup(state.customizationSelections ?? [], step.group.id).length > 0 : false;
     case 'ingredients':
       // Nothing optional in scope ⇒ nothing to choose ⇒ the recipe itself answers the step (the
       // variations rule). A step with no choice must offer Continue, never the decline verb.
@@ -231,7 +267,11 @@ export function optionStepIsSkippable(
   selectedIngredients: readonly string[],
   sauceIds: readonly string[],
   sauceRule: SauceGroupRule,
+  customizationSelections: readonly CustomizationGroupSelection[] = [],
 ): boolean {
+  if (step.kind === 'group' && step.group) {
+    return selectionForGroup(customizationSelections, step.group.id).length === 0;
+  }
   if (step.kind === 'sauces') {
     return (
       rendersNoSauceAnswer(sauceIds.length, sauceRule) && sauceIds.every((id) => !selectedIngredients.includes(id))

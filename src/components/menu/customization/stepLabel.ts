@@ -12,6 +12,15 @@ export function stepLabel(step: CustomizationStep, t: Translate): string {
   if (step.title) return step.title;
   return step.titleKey ? t(step.titleKey) : '';
 }
+
+export function stepHint(step: CustomizationStep, t: Translate): string | undefined {
+  if (step.kind !== 'group' || !step.group) return undefined;
+  return groupHint(t, {
+    min: step.group.minSelection,
+    max: step.group.maxSelection,
+    includedFree: step.group.includedFreeUnits,
+  });
+}
 /**
  * The footer's action when the guest has left an OPTIONAL step untouched: "Sans …" (partner
  * feedback 2026-09-06 — on a sauces row the generic verb reads like a dead end, where "Sans

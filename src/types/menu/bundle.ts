@@ -6,6 +6,7 @@
 import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
+import type { CustomizationGroupSelection, ProductCustomizationGroup } from './customizationGroup';
 
 /**
  * Menu bundle definition with sections and scheduling
@@ -57,6 +58,7 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   ingredients?: string[];
   allergens?: string[];
   detailedIngredients?: DetailedIngredient[];
+  customizationGroups?: ProductCustomizationGroup[];
   suggestedSideItems?: MenuSectionSuggestedSideItem[];
 }
 
@@ -71,6 +73,7 @@ export interface SelectedMenuOption {
   specialInstructions?: string;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
+  customizationSelections?: CustomizationGroupSelection[];
 }
 
 /**

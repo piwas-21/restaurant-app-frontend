@@ -58,7 +58,8 @@ export default function BundleOptionRow({
   const { t } = useTranslation();
 
   const ingredients = item.detailedIngredients ?? [];
-  const canCustomize = isSelected && ingredients.length > 0;
+  const canCustomize =
+    isSelected && ((item.customizationGroups?.some((group) => group.isActive) ?? false) || ingredients.length > 0);
 
   const ingredientSummary = ingredients.length
     ? ingredients.map((ing) => ing.content?.[currentLanguage]?.name || ing.content?.en?.name || ing.name).join(', ')

@@ -6,8 +6,10 @@ import { ChevronLeft } from 'lucide-react';
 import SheetStepProgress from './SheetStepProgress';
 import SheetStepPanel from './SheetStepPanel';
 import IngredientStepsBody from './IngredientStepsBody';
+import CustomizationGroupSection from './CustomizationGroupSection';
+import { activeCustomizationGroups } from '@/utils/explicitCustomization';
 import SpecialRequestSection from './SpecialRequestSection';
-import { stepLabel } from './stepLabel';
+import { stepHint, stepLabel } from './stepLabel';
 import type { BundleOptionFlow } from '@/hooks/menu/useBundleOptionFlow';
 import styles from './BundleOptionCustomizationScreen.module.css';
 
@@ -61,12 +63,25 @@ export default function BundleOptionCustomizationScreen({ flow }: Readonly<{ flo
         title={stepLabel(step, t)}
         isRequired={step.isRequired}
         requiredLabel={t('required')}
+        hint={stepHint(step, t)}
         steady
       >
         {step.kind === 'special' ? (
           <SpecialRequestSection
             specialInstructions={option?.specialInstructions ?? ''}
             onInstructionsChange={flow.onInstructionsChange}
+          />
+        ) : step.kind === 'group' && step.group ? (
+          <CustomizationGroupSection
+            group={step.group}
+            groups={activeCustomizationGroups(item)}
+            ingredients={item.detailedIngredients ?? []}
+            selections={option?.customizationSelections ?? []}
+            onSelectionsChange={flow.onCustomizationSelectionsChange}
+            onIngredientSelectionChange={flow.onSelectionChange}
+            onIngredientQuantityChange={flow.onQuantityChange}
+            onChoice={flow.advanceAfterChoice}
+            currentLanguage={flow.currentLanguage}
           />
         ) : (
           <IngredientStepsBody

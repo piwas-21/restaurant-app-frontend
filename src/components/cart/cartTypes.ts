@@ -1,5 +1,5 @@
 import { BasketDto, BasketItemDto } from '@/types/basket';
-import { SelectedMenuOption } from '@/types/menu';
+import { CustomizationGroupSelection, SelectedMenuOption } from '@/types/menu';
 
 /**
  * Extended cart item with backend basket item ID
@@ -35,6 +35,7 @@ export interface AddItemPayload {
   specialInstructions?: string;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
+  customizationSelections?: CustomizationGroupSelection[];
   selectedSideItems?: Array<{ id: string; quantity: number }>;
   // Full per-option customization (ingredientQuantities, specialInstructions, …) — the
   // AddToBasket contract carries it per option and the bundle modal collects it (issue #150).

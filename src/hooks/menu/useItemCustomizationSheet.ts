@@ -11,7 +11,7 @@ import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
-import type { DetailedProduct, MenuBundleItem } from '@/types/menu';
+import type { CustomizationGroupSelection, DetailedProduct, MenuBundleItem } from '@/types/menu';
 
 interface UseItemCustomizationSheetArgs {
   /** Hand-off for an id that turns out to be a combo — see `toBundleItemFromDetail` for why. */
@@ -23,11 +23,8 @@ interface UseItemCustomizationSheetArgs {
 }
 
 /**
- * Drives the customer product-customization sheet (menu-bundles redesign #175, slice 6): fetches the
- * detail on open via the `getProductById` service, seeds from `buildInitialSheetState`, live-prices
- * with the shared `useLinePrice`, and adds the line. A product with nothing to choose is added
- * straight to the cart without opening (the "Add to Order" fast path) — UNLESS the caller passes
- * `forceSheet` (the "Details"/title affordances), which always opens the sheet to view the item.
+ * Fetches, seeds, prices and submits the guest product-customization sheet. Products without a
+ * choice use the direct-add path unless `forceSheet` asks to show their details.
  */
 export function useItemCustomizationSheet({
   onBundleDetected,
@@ -39,7 +36,6 @@ export function useItemCustomizationSheet({
   const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
   const currentLanguage = (i18n.language || 'en').split('-')[0];
 
-  // Entry guard: the no-options branch adds directly, so a second tap mid-fetch can't double-add.
   const isOpeningRef = useRef(false);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -50,11 +46,11 @@ export function useItemCustomizationSheet({
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [ingredientQuantities, setIngredientQuantities] = useState<Record<string, number>>({});
+  const [customizationSelections, setCustomizationSelections] = useState<CustomizationGroupSelection[]>([]);
   const [selectedSideItems, setSelectedSideItems] = useState<SelectedSide[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
 
-  // One add-success path for both the direct-add and the sheet's Add button — they had drifted
-  // into two copies of the same snackbar, and each would now need its own `onAdded` call.
+  // One success path for both direct-add and the sheet button.
   const notifyAdded = useCallback(
     (added: Pick<DetailedProduct, 'content' | 'name'>) => {
       notifyItemAdded(localizedName(added, currentLanguage));
@@ -73,9 +69,7 @@ export function useItemCustomizationSheet({
       if (isOpeningRef.current) return;
       isOpeningRef.current = true;
       setIsLoading(true);
-      // Which STEP failed, not which try caught it: the direct-add fast path runs inside the same
-      // try as the fetch (and `getProductById` now throws rather than swallowing), so classifying
-      // by the block would report a failed quick-add as a load failure.
+      // Direct-add and fetch share this try, so retain which operation actually failed.
       let failedStep: 'load' | 'add' = 'load';
       try {
         const response = (await getProductById(productId)) as { data?: DetailedProduct };
@@ -84,8 +78,7 @@ export function useItemCustomizationSheet({
           throw new Error('Missing product detail');
         }
 
-        // The id turned out to be a combo — hand it to the bundle sheet rather than render a
-        // product body with none of its sections. The caller's verdict wins (§9.2, argued in the mapper).
+        // A combo belongs in the bundle sheet; the caller's availability verdict still wins (§9.2).
         const bundle = toBundleItemFromDetail(detail, opts?.availability);
         if (bundle && onBundleDetected) {
           onBundleDetected(bundle);
@@ -103,6 +96,7 @@ export function useItemCustomizationSheet({
         const seed = buildInitialSheetState(detail);
         setSelectedIngredients(seed.selectedIngredients);
         setIngredientQuantities(seed.ingredientQuantities);
+        setCustomizationSelections(seed.customizationSelections);
         setSelectedSideItems(seed.selectedSideItems);
         setSelectedVariationId(seed.selectedVariationId);
         setQuantity(1);
@@ -121,11 +115,17 @@ export function useItemCustomizationSheet({
   );
 
   const title = product ? localizedName(product, currentLanguage) : '';
-  // The same chain the browse card uses, so the sheet can no longer omit a description the card
-  // just showed (Track F/F3) — including the fall back to the plain `Product.Description`.
+  // Same fallback chain as the browse card (Track F/F3).
   const description = product ? localizedDescription(product, currentLanguage) : undefined;
 
-  const selection = { quantity, selectedVariationId, selectedIngredients, ingredientQuantities, selectedSideItems };
+  const selection = {
+    quantity,
+    selectedVariationId,
+    selectedIngredients,
+    ingredientQuantities,
+    selectedSideItems,
+    customizationSelections,
+  };
   const linePrice = useLinePrice(toLinePriceInput(product, selection));
 
   const addToCart = useCallback(async () => {
@@ -140,6 +140,7 @@ export function useItemCustomizationSheet({
         specialInstructions: specialInstructions || undefined,
         selectedIngredients,
         ingredientQuantities,
+        customizationSelections,
         selectedSideItems,
       });
       // Strictly after: a rejected line must not leave a lone drink behind in the basket.
@@ -155,6 +156,7 @@ export function useItemCustomizationSheet({
     addItem,
     close,
     ingredientQuantities,
+    customizationSelections,
     isSubmitting,
     notifyAdded,
     notifyAddFailed,
@@ -184,6 +186,8 @@ export function useItemCustomizationSheet({
     setSelectedIngredients,
     ingredientQuantities,
     setIngredientQuantities,
+    customizationSelections,
+    setCustomizationSelections,
     selectedSideItems,
     setSelectedSideItems,
     specialInstructions,

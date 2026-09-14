@@ -2,12 +2,15 @@ import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSid
 import { isSauce, toSauceGroupRule } from './sauceGroup';
 import { findBundleSelectionErrors } from './bundleSelection';
 import { isBaseRowHidden } from './baseProductVisibility';
+import { activeCustomizationGroups, customizationGroupSatisfied } from './explicitCustomization';
 import type {
   DetailedProduct,
   MenuSection,
   MenuSectionItem,
   SauceGroupCarrier,
   SelectedMenuOption,
+  CustomizationGroupSelection,
+  ProductCustomizationGroup,
 } from '@/types/menu';
 
 /**
@@ -21,7 +24,8 @@ import type {
  * `buildProductSteps`.
  */
 
-export type StepKind = 'variations' | 'ingredients' | 'sauces' | 'sides' | 'drinks' | 'section' | 'special' | 'review';
+export type StepKind =
+  'variations' | 'group' | 'ingredients' | 'sauces' | 'sides' | 'drinks' | 'section' | 'special' | 'review';
 
 export interface CustomizationStep {
   /** Stable within one sheet — used as the animation key and the progress-segment key. */
@@ -39,6 +43,8 @@ export interface CustomizationStep {
   section?: MenuSection;
   /** Which partition of the suggested sides this step renders. `sides` steps only. */
   sideGroup?: SuggestedSideGroup;
+  /** Explicit tenant-authored choice group. Present only on `group` steps. */
+  group?: ProductCustomizationGroup;
 }
 
 /** Everything the gates read. Supplied by whichever sheet controller owns the state. */
@@ -46,6 +52,7 @@ export interface StepGateState {
   selectedVariationId: string | null;
   selectedIngredients: readonly string[];
   selectedOptions?: readonly SelectedMenuOption[];
+  customizationSelections?: readonly CustomizationGroupSelection[];
 }
 
 const REVIEW_STEP: CustomizationStep = {
@@ -96,6 +103,7 @@ export function offersGenericDrinks(product: Pick<DetailedProduct, 'type' | 'sug
 export function buildProductSteps(product: DetailedProduct, withDrinks = false): CustomizationStep[] {
   const steps: CustomizationStep[] = [];
   const ingredients = product.detailedIngredients ?? [];
+  const groups = activeCustomizationGroups(product);
 
   if ((product.variations ?? []).some((variation) => variation.isActive)) {
     steps.push({
@@ -107,7 +115,9 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
     });
   }
 
-  if (ingredients.some((ingredient) => ingredient.isActive && !isSauce(ingredient))) {
+  if (groups.length > 0) {
+    steps.push(...groups.map(toCustomizationGroupStep));
+  } else if (ingredients.some((ingredient) => ingredient.isActive && !isSauce(ingredient))) {
     steps.push({
       id: 'ingredients',
       kind: 'ingredients',
@@ -117,7 +127,7 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
     });
   }
 
-  if (ingredients.some((ingredient) => ingredient.isActive && isSauce(ingredient))) {
+  if (groups.length === 0 && ingredients.some((ingredient) => ingredient.isActive && isSauce(ingredient))) {
     const rule = toSauceGroupRule(product);
     steps.push({
       id: 'sauces',
@@ -185,13 +195,14 @@ export function buildProductSteps(product: DetailedProduct, withDrinks = false):
  * skip verbs included. There is no review step: the special request IS the last panel, and the
  * screen commits back into the bundle line rather than adding one.
  */
-export function buildOptionSteps(
-  item: Pick<MenuSectionItem, 'detailedIngredients'> & SauceGroupCarrier,
-): CustomizationStep[] {
+export function buildOptionSteps(item: MenuSectionItem & SauceGroupCarrier): CustomizationStep[] {
   const steps: CustomizationStep[] = [];
   const ingredients = item.detailedIngredients ?? [];
+  const groups = activeCustomizationGroups(item);
 
-  if (ingredients.some((ingredient) => ingredient.isActive && !isSauce(ingredient))) {
+  if (groups.length > 0) {
+    steps.push(...groups.map(toCustomizationGroupStep));
+  } else if (ingredients.some((ingredient) => ingredient.isActive && !isSauce(ingredient))) {
     steps.push({
       id: 'ingredients',
       kind: 'ingredients',
@@ -201,7 +212,7 @@ export function buildOptionSteps(
     });
   }
 
-  if (ingredients.some((ingredient) => ingredient.isActive && isSauce(ingredient))) {
+  if (groups.length === 0 && ingredients.some((ingredient) => ingredient.isActive && isSauce(ingredient))) {
     const rule = toSauceGroupRule(item);
     steps.push({
       id: 'sauces',
@@ -257,7 +268,7 @@ function withReview(contentSteps: CustomizationStep[]): CustomizationStep[] {
 }
 
 /** Why a required step is not yet satisfied, or `null` when the guest may move on. */
-export type StepBlocker = 'variation' | 'sauces' | 'section';
+export type StepBlocker = 'variation' | 'group' | 'sauces' | 'section';
 
 /**
  * The gate. Reads the same rules the ADD button already enforces — `isBaseRowHidden` for the base
@@ -285,10 +296,25 @@ export function stepBlocker(
     return chosen < sauceMin ? 'sauces' : null;
   }
 
+  if (step.kind === 'group' && step.group) {
+    return customizationGroupSatisfied(step.group, state.customizationSelections ?? []) ? null : 'group';
+  }
+
   if (step.kind === 'section' && step.section) {
     const errors = findBundleSelectionErrors([step.section], state.selectedOptions ?? []);
     return errors.length > 0 ? 'section' : null;
   }
 
   return null;
+}
+
+function toCustomizationGroupStep(group: ProductCustomizationGroup): CustomizationStep {
+  return {
+    id: `group:${group.id}`,
+    kind: 'group',
+    title: group.name,
+    singleChoice: group.maxSelection === 1,
+    isRequired: group.isRequired || group.minSelection > 0,
+    group,
+  };
 }

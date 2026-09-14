@@ -1091,14 +1091,14 @@ const contractString = (value, label) => {
 
 const contractBoolean = (value, label) => {
   if (typeof value !== 'boolean') {
-    throw new Error(`verification.partnerStructures.${label} must be a boolean`);
+    throw new TypeError(`verification.partnerStructures.${label} must be a boolean`);
   }
   return value;
 };
 
 const contractInteger = (value, label) => {
   if (!Number.isInteger(value)) {
-    throw new Error(`verification.partnerStructures.${label} must be an integer`);
+    throw new TypeError(`verification.partnerStructures.${label} must be an integer`);
   }
   return value;
 };
@@ -1127,7 +1127,7 @@ const normalizePartnerProduct = (rawProduct, index) => {
 
 const normalizePartnerProducts = (contract) => {
   const rawProducts = contractArray(contract.products, 'products');
-  const products = rawProducts.map(normalizePartnerProduct);
+  const products = rawProducts.map((rawProduct, index) => normalizePartnerProduct(rawProduct, index));
   uniqueContractValues(
     products.map((product) => product.name),
     'products names',

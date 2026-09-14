@@ -39,6 +39,26 @@ await test('duplicate or missing explicit child ownership fails', async () => {
   assert.ok(verifyKidsDrinkSections(missing).some((failure) => failure.includes('owner is missing')));
 });
 
+await test('a duplicate child drink ref fails even when eleven refs remain', async () => {
+  const owners = await payload();
+  const mutated = structuredClone(owners);
+  const child = byName(mutated, 'Menu Enfant Kebab');
+  const section = child.sections.find((candidate) => candidate.__groupId === '79');
+  section.itemRefs = [...section.itemRefs.slice(0, -1), section.itemRefs[0]];
+  const failures = verifyKidsDrinkSections(mutated);
+  assert.ok(failures.some((failure) => failure.includes('Menu Enfant Kebab')));
+});
+
+await test('an equal-cardinality non-group-79 drink substitution fails', async () => {
+  const owners = await payload();
+  const mutated = structuredClone(owners);
+  const child = byName(mutated, 'Menu Enfant Kebab');
+  const section = child.sections.find((candidate) => candidate.__groupId === '79');
+  section.itemRefs = [...section.itemRefs.slice(0, -1), 'product:456'];
+  const failures = verifyKidsDrinkSections(mutated);
+  assert.ok(failures.some((failure) => failure.includes('Menu Enfant Kebab')));
+});
+
 await test('partner structure rejects a missing meat section and six choices', async () => {
   const owners = await payload();
   const missing = structuredClone(owners);
@@ -52,4 +72,48 @@ await test('partner structure rejects a missing meat section and six choices', a
     .find((section) => section.__groupId === '84')
     .itemRefs.slice(0, 6);
   assert.ok(verifyPartnerStructures(six).some((failure) => failure.includes('seven distinct options')));
+});
+
+await test('an equal-cardinality non-meat substitution fails', async () => {
+  const owners = await payload();
+  const mutated = structuredClone(owners);
+  const tacos = byName(mutated, 'Tacos 1 Viande');
+  const section = tacos.sections.find((candidate) => candidate.__groupId === '81');
+  section.itemRefs = [...section.itemRefs.slice(0, -1), 'component:gift:fille'];
+  const failures = verifyPartnerStructures(mutated);
+  assert.ok(failures.some((failure) => failure.includes('exact confirmed meat refs')));
+});
+
+await test('a Tacos recipe must keep its confirmed one-sauce minimum', async () => {
+  const owners = await payload();
+  const mutated = structuredClone(owners);
+  const recipe = mutated.find(
+    (owner) => owner.body.name === 'Tacos 1 Viande' && owner.body.detailedIngredients.length > 0,
+  );
+  recipe.body.sauceMin = 0;
+  const failures = verifyPartnerStructures(mutated);
+  assert.ok(failures.some((failure) => failure.includes('sauce rule must be 1..2')));
+});
+
+await test('Tacos Emmental remains an optional paid extra', async () => {
+  const owners = await payload();
+  for (const mutate of [
+    (row) => {
+      row.price = 0;
+    },
+    (row) => {
+      row.isOptional = false;
+    },
+    (row) => {
+      row.isIncludedInBasePrice = true;
+    },
+  ]) {
+    const mutated = structuredClone(owners);
+    const recipe = mutated.find(
+      (owner) => owner.body.name === 'Tacos 1 Viande' && owner.body.detailedIngredients.length > 0,
+    );
+    mutate(recipe.body.detailedIngredients.find((ingredient) => ingredient.name === 'Emmental'));
+    const failures = verifyPartnerStructures(mutated);
+    assert.ok(failures.some((failure) => failure.includes('optional paid extra "Emmental"')));
+  }
 });

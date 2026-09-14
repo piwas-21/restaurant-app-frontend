@@ -1037,6 +1037,19 @@ const PARTNER_STRUCTURE_EXPECTATIONS = [
   { name: 'LIBANAISE 3 VIANDE', groupId: '84', count: 3 },
 ];
 
+// These are the seven identities confirmed in source meat groups 81, 83 and 84. The section
+// must keep these exact component refs: seven resolvable components could otherwise include a
+// sauce, gift, or unrelated product while every count/type check still passed.
+const PARTNER_MEAT_OPTIONS = [
+  { name: 'Kebab', ref: 'component:meat:kebab' },
+  { name: 'Steak', ref: 'component:meat:steak' },
+  { name: 'Poulet', ref: 'component:meat:poulet' },
+  { name: 'Nuggets', ref: 'component:meat:nuggets' },
+  { name: 'Tenders', ref: 'component:meat:tenders' },
+  { name: 'Cordon Bleu', ref: 'component:meat:cordon bleu' },
+  { name: 'Falafel', ref: 'component:meat:falafel' },
+];
+
 const PARTNER_PAID_EXTRAS = new Map([
   ['Viande', 3],
   ['Emmental', 1],
@@ -1068,17 +1081,24 @@ export const verifyPartnerStructures = (owners) => {
         failures.push(`${expected.name}: expected exactly one meat section, found ${sections.length}`);
       } else {
         const [section] = sections;
-        const distinctOptions = new Set(section.itemRefs ?? []);
+        const optionRefs = section.itemRefs ?? [];
+        const distinctOptions = new Set(optionRefs);
+        const expectedMeatRefs = new Set(PARTNER_MEAT_OPTIONS.map((option) => option.ref));
+        const exactMeatRefs =
+          optionRefs.length === PARTNER_MEAT_OPTIONS.length &&
+          distinctOptions.size === PARTNER_MEAT_OPTIONS.length &&
+          PARTNER_MEAT_OPTIONS.every((option) => distinctOptions.has(option.ref)) &&
+          optionRefs.every((ref) => expectedMeatRefs.has(ref));
         if (!section.isRequired || section.minSelection !== expected.count || section.maxSelection !== expected.count) {
           failures.push(
             `${expected.name}: meat section must be required ${expected.count}..${expected.count}, emitted ` +
               `${section.minSelection}..${section.maxSelection}`,
           );
         }
-        if (distinctOptions.size !== 7 || (section.itemRefs ?? []).length !== 7) {
+        if (!exactMeatRefs) {
           failures.push(
-            `${expected.name}: meat section must have seven distinct options, ` +
-              `emitted ${(section.itemRefs ?? []).length} (${distinctOptions.size} distinct)`,
+            `${expected.name}: meat section must have seven distinct options with the exact confirmed meat refs, ` +
+              `emitted ${optionRefs.length} (${distinctOptions.size} distinct)`,
           );
         }
       }
@@ -1376,6 +1396,23 @@ const verifyDrinkSections = (products, menus, components) => {
  * silently went vacuous. Every name must have one owner, one group-79 section, and exactly the
  * eleven source drink options with required 1..1 cardinality.
  */
+// Confirmed source group 79 (`Boissons`) options, resolved to the real beverage products
+// named by `decisions.bundles.drinkProducts`. Cardinality alone is not enough: replacing one
+// drink with another real product would still resolve and leave eleven apparently valid refs.
+const KIDS_DRINK_SOURCE_REFS = [
+  'product:445',
+  'product:446',
+  'product:447',
+  'product:453',
+  'product:448',
+  'product:449',
+  'product:452',
+  'product:450',
+  'product:451',
+  'product:454',
+  'product:455',
+];
+
 const KIDS_DRINK_EXPECTATIONS = [
   { name: 'Menu Enfant Kebab', optionCount: 11 },
   { name: 'Menu Enfant Hamburger', optionCount: 11 },
@@ -1393,17 +1430,25 @@ export const verifyKidsDrinkSections = (owners) => {
       continue;
     }
     const [section] = drinkSections;
-    const optionCount = (section.itemRefs ?? []).length;
+    const optionRefs = section.itemRefs ?? [];
+    const distinctRefs = new Set(optionRefs);
+    const expectedRefs = new Set(KIDS_DRINK_SOURCE_REFS);
+    const exactDrinkRefs =
+      optionRefs.length === expected.optionCount &&
+      distinctRefs.size === expected.optionCount &&
+      KIDS_DRINK_SOURCE_REFS.every((ref) => distinctRefs.has(ref)) &&
+      optionRefs.every((ref) => expectedRefs.has(ref));
     if (
       section.name !== 'Boisson' ||
       !section.isRequired ||
       section.minSelection !== 1 ||
       section.maxSelection !== 1 ||
-      optionCount !== expected.optionCount
+      !exactDrinkRefs
     ) {
       failures.push(
         `${expected.name}/${section.name}: drink choice must be Boisson, required 1..1 with ` +
-          `${expected.optionCount} options (emitted ${optionCount}, ${section.minSelection}..${section.maxSelection})`,
+          `the exact ${expected.optionCount} source refs (emitted ${optionRefs.length}, ` +
+          `${section.minSelection}..${section.maxSelection})`,
       );
     }
   }

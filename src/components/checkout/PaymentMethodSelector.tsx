@@ -33,6 +33,20 @@ export default function PaymentMethodSelector({
 }: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
   const methods = offerablePaymentMethods(onlinePaymentAvailable, orderType);
+  const cardAtRestaurantAvailable = orderType === OrderType.DineIn || orderType === OrderType.Takeaway;
+  let infoKey = 'payment_methods_info_delivery';
+  let infoDefault = 'Pay cash on delivery only.';
+
+  if (cardAtRestaurantAvailable) {
+    infoKey = onlinePaymentAvailable ? 'payment_methods_info_online' : 'payment_methods_info';
+    infoDefault = onlinePaymentAvailable
+      ? 'Pay in cash or by card at the restaurant, or pay by card now — we will take you to our secure payment page.'
+      : 'Pay in cash or by card at the restaurant. Online payment and other methods are coming soon!';
+  } else if (onlinePaymentAvailable) {
+    infoKey = 'payment_methods_info_delivery_online';
+    infoDefault = 'Pay cash on delivery, or pay by card now — we will take you to our secure payment page.';
+  }
+
   // Keep the visual radio state valid even during the render in which an order-type edit changes
   // Delivery away from a previously selected Card at restaurant.
   const effectiveSelectedMethod = normalizePaymentMethodForOrderType(selectedMethod, orderType);
@@ -47,20 +61,11 @@ export default function PaymentMethodSelector({
       </div>
 
       {/* The banner states what this restaurant can actually take. The copy distinguishes on-site
-          cash/card intents from the optional online payment route rendered below it. */}
+          cash/card intents from the optional online payment route rendered below it. Unknown order
+          types use the delivery-safe copy so the banner never promises an on-site card payment. */}
       <div className={styles.infoMessage}>
         <Info size={18} />
-        <p>
-          {onlinePaymentAvailable
-            ? t(
-                'payment_methods_info_online',
-                'Pay in cash or by card at the restaurant, or pay by card now — we will take you to our secure payment page.',
-              )
-            : t(
-                'payment_methods_info',
-                'Pay in cash or by card at the restaurant. Online payment and other methods are coming soon!',
-              )}
-        </p>
+        <p>{t(infoKey, infoDefault)}</p>
       </div>
 
       <div className={styles.paymentMethods}>

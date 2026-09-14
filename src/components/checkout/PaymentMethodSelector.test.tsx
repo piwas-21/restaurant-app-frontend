@@ -138,6 +138,50 @@ describe('PaymentMethodSelector', () => {
     expect(screen.getByRole('radio', { name: /cash/i })).toBeChecked();
   });
 
+  it('uses cash on delivery only copy when Delivery has no online payment', () => {
+    render(
+      <PaymentMethodSelector
+        selectedMethod={PaymentMethod.Cash}
+        onMethodChange={noop}
+        orderType={OrderType.Delivery}
+        onlinePaymentAvailable={false}
+      />,
+    );
+
+    expect(screen.getByText(/pay cash on delivery only/i)).toBeInTheDocument();
+    expect(screen.queryByText(/card at restaurant/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/pay by card now/i)).not.toBeInTheDocument();
+  });
+
+  it('uses cash on delivery or secure online payment copy when Delivery has online payment', () => {
+    render(
+      <PaymentMethodSelector
+        selectedMethod={PaymentMethod.Cash}
+        onMethodChange={noop}
+        orderType={OrderType.Delivery}
+        onlinePaymentAvailable
+      />,
+    );
+
+    expect(screen.getByText(/pay cash on delivery/i)).toBeInTheDocument();
+    expect(screen.getByText(/pay by card now/i)).toBeInTheDocument();
+    expect(screen.queryByText(/card at restaurant/i)).not.toBeInTheDocument();
+  });
+
+  it('fails closed to delivery-safe copy when order type is unknown', () => {
+    render(
+      <PaymentMethodSelector
+        selectedMethod={PaymentMethod.Cash}
+        onMethodChange={noop}
+        orderType={null}
+        onlinePaymentAvailable
+      />,
+    );
+
+    expect(screen.getByText(/pay cash on delivery/i)).toBeInTheDocument();
+    expect(screen.queryByText(/card at restaurant/i)).not.toBeInTheDocument();
+  });
+
   it('defaults to unavailable when the prop is omitted', () => {
     // The fail-closed default. A template or test that renders this component without asking the
     // backend must not offer a redirect the tenant cannot mint.

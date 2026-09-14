@@ -1069,6 +1069,8 @@
   "your_current_balance": "Il tuo saldo attuale",
   "payment_methods_info": "Paga in contanti o con carta al ristorante. Il pagamento online e gli altri metodi arriveranno presto!",
   "payment_methods_info_online": "Paga in contanti o con carta al ristorante, oppure paga con carta adesso — ti porteremo alla nostra pagina di pagamento sicura.",
+  "payment_methods_info_delivery": "Paga alla consegna esclusivamente in contanti.",
+  "payment_methods_info_delivery_online": "Paga in contanti alla consegna oppure paga con carta adesso — ti porteremo alla nostra pagina di pagamento sicura.",
   "payment_confirming": "Conferma del pagamento in corso…",
   "payment_not_completed": "Pagamento non completato",
   "payment_not_completed_message": "Il pagamento non è andato a buon fine, quindi l'ordine è stato annullato. Non è stato addebitato nulla. Il carrello è ancora qui se vuoi riprovare.",

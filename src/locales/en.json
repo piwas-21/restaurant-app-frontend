@@ -1151,6 +1151,8 @@
   "your_current_balance": "Your Current Balance",
   "payment_methods_info": "Pay in cash or by card at the restaurant. Online payment and other methods are coming soon!",
   "payment_methods_info_online": "Pay in cash or by card at the restaurant, or pay by card now — we will take you to our secure payment page.",
+  "payment_methods_info_delivery": "Pay cash on delivery only.",
+  "payment_methods_info_delivery_online": "Pay cash on delivery, or pay by card now — we will take you to our secure payment page.",
   "payment_confirming": "Confirming your payment…",
   "payment_not_completed": "Payment not completed",
   "payment_not_completed_message": "Your payment did not go through, so this order was cancelled. Nothing has been charged. Your basket is still here if you would like to try again.",

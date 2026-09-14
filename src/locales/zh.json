@@ -1069,6 +1069,8 @@
   "your_current_balance": "您的当前积分余额",
   "payment_methods_info": "可在餐厅使用现金或银行卡支付。在线支付和其他方式即将推出！",
   "payment_methods_info_online": "可在餐厅使用现金或银行卡支付，或现在使用银行卡支付——我们会将您引导至安全支付页面。",
+  "payment_methods_info_delivery": "配送时仅支持现金支付。",
+  "payment_methods_info_delivery_online": "您可以在配送时支付现金，或现在使用银行卡支付——我们会将您引导至安全支付页面。",
   "payment_confirming": "正在确认您的付款…",
   "payment_not_completed": "付款未完成",
   "payment_not_completed_message": "您的付款未成功，因此该订单已取消。未扣除任何款项。购物车仍为您保留，如需可再试一次。",

@@ -1075,6 +1075,8 @@
   "your_current_balance": "Mevcut Bakiyeniz",
   "payment_methods_info": "Restoranda nakit veya kartla ödeme yapın. Online ödeme ve diğer yöntemler yakında gelecek!",
   "payment_methods_info_online": "Restoranda nakit veya kartla ödeme yapın ya da şimdi kartla ödeyin — sizi güvenli ödeme sayfamıza yönlendireceğiz.",
+  "payment_methods_info_delivery": "Teslimatta yalnızca nakit ödeme yapın.",
+  "payment_methods_info_delivery_online": "Teslimatta nakit ödeme yapın veya şimdi kartla ödeyin — sizi güvenli ödeme sayfamıza yönlendireceğiz.",
   "payment_confirming": "Ödemeniz onaylanıyor…",
   "payment_not_completed": "Ödeme tamamlanmadı",
   "payment_not_completed_message": "Ödemeniz gerçekleşmedi, bu nedenle sipariş iptal edildi. Hesabınızdan hiçbir tutar çekilmedi. Tekrar denemek isterseniz sepetiniz duruyor.",

@@ -1066,6 +1066,8 @@
   "your_current_balance": "Ihr aktueller Kontostand",
   "payment_methods_info": "Zahlen Sie im Restaurant bar oder mit Karte. Online-Zahlung und weitere Methoden folgen bald!",
   "payment_methods_info_online": "Zahlen Sie im Restaurant bar oder mit Karte, oder jetzt mit Karte — wir leiten Sie zu unserer sicheren Zahlungsseite weiter.",
+  "payment_methods_info_delivery": "Bezahlen Sie bei der Lieferung ausschließlich bar.",
+  "payment_methods_info_delivery_online": "Bezahlen Sie bei der Lieferung bar oder jetzt mit Karte – wir leiten Sie zu unserer sicheren Zahlungsseite weiter.",
   "payment_confirming": "Zahlung wird bestätigt …",
   "payment_not_completed": "Zahlung nicht abgeschlossen",
   "payment_not_completed_message": "Ihre Zahlung ist nicht durchgegangen, daher wurde diese Bestellung storniert. Es wurde nichts belastet. Ihr Warenkorb ist noch da, falls Sie es erneut versuchen möchten.",

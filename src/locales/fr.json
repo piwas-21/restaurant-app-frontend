@@ -1070,6 +1070,8 @@
   "your_current_balance": "Votre solde actuel",
   "payment_methods_info": "Payez en espèces ou par carte au restaurant. Le paiement en ligne et les autres méthodes arrivent bientôt !",
   "payment_methods_info_online": "Payez en espèces ou par carte au restaurant, ou par carte maintenant — nous vous dirigerons vers notre page de paiement sécurisée.",
+  "payment_methods_info_delivery": "Payez uniquement en espèces à la livraison.",
+  "payment_methods_info_delivery_online": "Payez en espèces à la livraison ou par carte maintenant — nous vous dirigerons vers notre page de paiement sécurisée.",
   "payment_confirming": "Confirmation de votre paiement…",
   "payment_not_completed": "Paiement non abouti",
   "payment_not_completed_message": "Votre paiement n'a pas abouti, cette commande a donc été annulée. Rien n'a été débité. Votre panier est toujours là si vous souhaitez réessayer.",

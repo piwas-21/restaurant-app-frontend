@@ -1069,6 +1069,8 @@
   "your_current_balance": "Su saldo actual",
   "payment_methods_info": "Pague en efectivo o con tarjeta en el restaurante. El pago en línea y otros métodos llegarán pronto!",
   "payment_methods_info_online": "Pague en efectivo o con tarjeta en el restaurante, o con tarjeta ahora — le llevaremos a nuestra página de pago segura.",
+  "payment_methods_info_delivery": "Pague únicamente en efectivo al recibir el pedido.",
+  "payment_methods_info_delivery_online": "Pague en efectivo al recibir el pedido o con tarjeta ahora — le llevaremos a nuestra página de pago segura.",
   "payment_confirming": "Confirmando tu pago…",
   "payment_not_completed": "Pago no completado",
   "payment_not_completed_message": "Tu pago no se ha realizado, por lo que este pedido se ha cancelado. No se ha cobrado nada. Tu cesta sigue aquí por si quieres intentarlo de nuevo.",

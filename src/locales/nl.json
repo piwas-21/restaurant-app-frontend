@@ -1151,6 +1151,8 @@
   "your_current_balance": "Je huidige saldo",
   "payment_methods_info": "Betaal contant of met kaart in het restaurant. Online betalen en andere methoden volgen binnenkort!",
   "payment_methods_info_online": "Betaal contant of met kaart in het restaurant, of nu met de kaart — we brengen je naar onze beveiligde betaalpagina.",
+  "payment_methods_info_delivery": "Betaal bij bezorging uitsluitend contant.",
+  "payment_methods_info_delivery_online": "Betaal contant bij bezorging of nu met de kaart — we brengen je naar onze beveiligde betaalpagina.",
   "payment_confirming": "Je betaling wordt bevestigd…",
   "payment_not_completed": "Betaling niet voltooid",
   "payment_not_completed_message": "Je betaling is niet gelukt, daarom is deze bestelling geannuleerd. Er is niets afgeschreven. Je winkelmandje staat er nog als je het opnieuw wilt proberen.",

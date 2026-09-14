@@ -38,6 +38,22 @@
   margin-block: 0 1rem;
 }
 
+.search {
+  display: grid;
+  gap: 0.35rem;
+  margin-block-end: 1rem;
+  color: var(--text-secondary);
+}
+
+.search input {
+  min-height: 44px;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
 .status {
   color: var(--text-secondary);
 }

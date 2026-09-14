@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getProducts } from '@/services/menuService';
+import { searchProducts } from '@/services/productService';
 import type { Product } from '@/app/admin/menu-management/interfaces';
 
-export function useCustomizationProductOptions(excludedProductId: string, enabled: boolean) {
+export function useCustomizationProductOptions(excludedProductId: string, enabled: boolean, query: string) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -14,7 +14,7 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
     let active = true;
     setIsLoading(true);
     setHasError(false);
-    void loadAllCustomizationProducts()
+    void loadCustomizationProducts(query)
       .then((loaded) => {
         if (active) setProducts(loaded.filter((product) => product.id !== excludedProductId));
       })
@@ -27,17 +27,13 @@ export function useCustomizationProductOptions(excludedProductId: string, enable
     return () => {
       active = false;
     };
-  }, [enabled, excludedProductId]);
+  }, [enabled, excludedProductId, query]);
 
   return { products, isLoading, hasError };
 }
 
-export async function loadAllCustomizationProducts(): Promise<Product[]> {
-  const first = await getProducts(undefined, undefined, null, { includeComponents: true });
-  const remaining = await Promise.all(
-    Array.from({ length: Math.max(0, first.data.totalPages - 1) }, (_, index) =>
-      getProducts(index + 2, first.data.pageSize, null, { includeComponents: true }),
-    ),
-  );
-  return [first, ...remaining].flatMap((response) => response.data.items);
+export async function loadCustomizationProducts(query: string): Promise<Product[]> {
+  const response = await searchProducts(query, { includeComponents: true });
+  if (!response.success) throw new Error(response.message || 'Product search failed');
+  return response.data?.items ?? [];
 }

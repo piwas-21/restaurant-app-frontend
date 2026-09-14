@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import CustomizationGroupEditor from './CustomizationGroupEditor';
 import { useCustomizationProductOptions } from '@/hooks/admin/useCustomizationProductOptions';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
@@ -23,7 +24,8 @@ export default function ProductCustomizationGroupsEditor({
   onChange,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const { products, isLoading, hasError } = useCustomizationProductOptions(productId, groups.length > 0);
+  const [productQuery, setProductQuery] = useState('');
+  const { products, isLoading, hasError } = useCustomizationProductOptions(productId, groups.length > 0, productQuery);
   const replace = (index: number, group: ProductCustomizationGroupDraft) =>
     onChange(groups.map((candidate, candidateIndex) => (candidateIndex === index ? group : candidate)));
   const move = (index: number, offset: number) => {
@@ -45,6 +47,12 @@ export default function ProductCustomizationGroupsEditor({
           {t('add_customization_group')}
         </button>
       </div>
+      {groups.length > 0 && (
+        <label className={styles.search}>
+          {t('search_products')}
+          <input value={productQuery} onChange={(event) => setProductQuery(event.target.value)} />
+        </label>
+      )}
       {isLoading && <p className={styles.status}>{t('loading')}…</p>}
       {hasError && (
         <p className={styles.error} role="alert">

@@ -1,45 +1,34 @@
-import { getProducts } from '@/services/menuService';
-import { loadAllCustomizationProducts } from './useCustomizationProductOptions';
+import { searchProducts } from '@/services/productService';
+import { loadCustomizationProducts } from './useCustomizationProductOptions';
 
-jest.mock('@/services/menuService', () => ({ getProducts: jest.fn() }));
+jest.mock('@/services/productService', () => ({ searchProducts: jest.fn() }));
 
-const mockedGetProducts = getProducts as jest.MockedFunction<typeof getProducts>;
-const response = (page: number, totalPages: number, names: string[] = []) => ({
+const mockedSearchProducts = searchProducts as jest.MockedFunction<typeof searchProducts>;
+const response = (names: string[] = []) => ({
   success: true,
   message: '',
   errors: null,
   data: {
     items: names.map((name) => ({ id: name, name })),
     totalCount: names.length,
-    page,
-    pageSize: 10,
-    totalPages,
   },
 });
 
-describe('loadAllCustomizationProducts', () => {
+describe('loadCustomizationProducts', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('loads every server-declared page using the returned page size', async () => {
-    mockedGetProducts
-      .mockResolvedValueOnce(response(1, 3, ['one']) as never)
-      .mockResolvedValueOnce(response(2, 3, ['two']) as never)
-      .mockResolvedValueOnce(response(3, 3, ['three']) as never);
+  it('uses bounded server search and includes component products', async () => {
+    mockedSearchProducts.mockResolvedValueOnce(response(['one']) as never);
 
-    await expect(loadAllCustomizationProducts()).resolves.toEqual([
-      expect.objectContaining({ id: 'one' }),
-      expect.objectContaining({ id: 'two' }),
-      expect.objectContaining({ id: 'three' }),
-    ]);
-    expect(mockedGetProducts).toHaveBeenNthCalledWith(2, 2, 10, null, { includeComponents: true });
-    expect(mockedGetProducts).toHaveBeenNthCalledWith(3, 3, 10, null, { includeComponents: true });
+    await expect(loadCustomizationProducts('kebab')).resolves.toEqual([expect.objectContaining({ id: 'one' })]);
+    expect(mockedSearchProducts).toHaveBeenCalledWith('kebab', { includeComponents: true });
   });
 
-  it('returns an empty catalogue and propagates load failures', async () => {
-    mockedGetProducts.mockResolvedValueOnce(response(1, 1) as never);
-    await expect(loadAllCustomizationProducts()).resolves.toEqual([]);
+  it('returns an empty result and propagates load failures', async () => {
+    mockedSearchProducts.mockResolvedValueOnce(response() as never);
+    await expect(loadCustomizationProducts('')).resolves.toEqual([]);
 
-    mockedGetProducts.mockRejectedValueOnce(new Error('offline'));
-    await expect(loadAllCustomizationProducts()).rejects.toThrow('offline');
+    mockedSearchProducts.mockRejectedValueOnce(new Error('offline'));
+    await expect(loadCustomizationProducts('meat')).rejects.toThrow('offline');
   });
 });

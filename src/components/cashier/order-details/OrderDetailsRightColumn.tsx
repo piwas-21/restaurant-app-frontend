@@ -89,7 +89,7 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
               <div key={idx} className={styles.paymentCard}>
                 <div className={styles.paymentCardHeader}>
                   <div>
-                    <div className={styles.paymentMethod}>{getPaymentMethodLabel(payment.paymentMethod)}</div>
+                    <div className={styles.paymentMethod}>{getPaymentMethodLabel(payment.paymentMethod, t)}</div>
                     <div className={styles.paymentDate}>
                       {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'N/A'}
                     </div>

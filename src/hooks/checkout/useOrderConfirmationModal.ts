@@ -9,11 +9,13 @@
 // pieces of UI that fact drives.
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import type { PaymentMethod } from '@/types/order';
 
 export interface ConfirmedOrder {
   id: string;
   orderNumber: string;
   customerEmail: string;
+  paymentMethod: PaymentMethod;
 }
 
 export function useOrderConfirmationModal() {

@@ -376,7 +376,7 @@ function ConfirmationContent() {
                   <h3 className={styles.paymentTitle}>{t('payment_information', 'Payment Information')}</h3>
                   {order.payments.map((payment) => (
                     <div key={payment.id} className={styles.paymentRow}>
-                      <span>{getPaymentMethodLabel(payment.paymentMethod)}</span>
+                      <span>{getPaymentMethodLabel(payment.paymentMethod, t)}</span>
                       <span className={styles.paymentStatus}>{payment.status}</span>
                     </div>
                   ))}

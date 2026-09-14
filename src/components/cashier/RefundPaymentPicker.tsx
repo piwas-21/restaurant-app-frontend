@@ -65,7 +65,7 @@ export default function RefundPaymentPicker({
                 disabled={isLoading}
               >
                 <div className="payment-info">
-                  <span className="payment-method">{getPaymentMethodLabel(payment.paymentMethod)}</span>
+                  <span className="payment-method">{getPaymentMethodLabel(payment.paymentMethod, t)}</span>
                   <span className="payment-amount">{(payment.amount || 0).toFixed(2)}</span>
                 </div>
                 <span className="payment-date">{new Date(payment.paymentDate || '').toLocaleDateString()}</span>

@@ -109,7 +109,7 @@ export default function OrderDetailsSummary({ order }: OrderDetailsSummaryProps)
               <div key={payment.id} className={styles.paymentItem}>
                 <div className={styles.paymentMethod}>
                   <CreditCard size={16} />
-                  <span>{getPaymentMethodLabel(payment.paymentMethod) || 'N/A'}</span>
+                  <span>{getPaymentMethodLabel(payment.paymentMethod, t) || 'N/A'}</span>
                 </div>
                 <div className={styles.paymentAmount}>{formatOrderPrice(payment.amount)}</div>
                 <div className={styles.paymentStatus}>

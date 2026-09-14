@@ -1,4 +1,5 @@
 import { generateSimpleReceiptHtml } from './simpleReceipt';
+import { PaymentMethod } from '@/types/order';
 import { singleKitchenBundleOrder, nestedBundleOrder } from '../__fixtures__/bundleOrderFixture';
 
 /** How many times a product name appears on the bill — the double-render guard. */
@@ -36,5 +37,25 @@ describe('generateSimpleReceiptHtml — bundle components on the customer bill',
     const html = generateSimpleReceiptHtml(order);
 
     expect(html).toContain('Hummus &amp; &lt;b&gt;Pita&lt;/b&gt;');
+  });
+});
+
+describe('generateSimpleReceiptHtml — payment method labels', () => {
+  it('renders CreditCard as card at restaurant instead of the raw enum', () => {
+    const order = singleKitchenBundleOrder();
+    order.payments = [
+      {
+        id: 'payment-1',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.CreditCard,
+        amount: order.total,
+        status: 'Pending',
+      },
+    ];
+
+    const html = generateSimpleReceiptHtml(order);
+
+    expect(html).toContain('Card at restaurant');
+    expect(html).not.toContain('CreditCard');
   });
 });

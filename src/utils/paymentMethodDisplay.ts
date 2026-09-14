@@ -8,18 +8,20 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { PaymentMethod } from '@/types/order';
 import { PAYMENT_METHODS } from '@/config/paymentMethods';
 
+/** A minimal translator shape shared by UI components and HTML/PDF receipt builders. */
+export type PaymentTranslationFunction = (key: string, fallback: string) => string;
+
 /**
- * Get the display label for a payment method
- * Handles both enum values and string representations
- * Maps backend numeric values (1-6) to frontend enum names
+ * Get the localized display label for a payment method.
+ * Handles backend numeric enum values and historical string aliases without exposing raw enum names.
  */
-export function getPaymentMethodLabel(method: string | PaymentMethod | number): string {
+export function getPaymentMethodLabel(method: string | PaymentMethod | number, t?: PaymentTranslationFunction): string {
   if (!method && method !== 0) return 'Unknown';
 
   const methodStr = String(method);
+  const normalizedMethod = methodStr.trim().toLowerCase();
 
-  // Map backend numeric values to frontend enum names
-  // Backend enum: Cash=1, CreditCard=2, DebitCard=3, OnlinePayment=4, MobilePayment=5, BankTransfer=6
+  // Backend enum: Cash=1, CreditCard=2, DebitCard=3, OnlinePayment=4, MobilePayment=5, BankTransfer=6.
   const numericToEnumName: Record<string, PaymentMethod> = {
     '1': PaymentMethod.Cash,
     '2': PaymentMethod.CreditCard,
@@ -28,27 +30,27 @@ export function getPaymentMethodLabel(method: string | PaymentMethod | number): 
     '5': PaymentMethod.MobilePayment,
     '6': PaymentMethod.BankTransfer,
   };
+  const enumValue = numericToEnumName[methodStr.trim()];
 
-  // If method is a numeric string from backend, map it to enum name
-  if (numericToEnumName[methodStr]) {
-    const enumValue = numericToEnumName[methodStr];
-    const paymentMethodConfig = PAYMENT_METHODS.find((pm) => pm.value === enumValue);
-    if (paymentMethodConfig) {
-      return paymentMethodConfig.label;
-    }
+  // `Card` is the legacy generic value used by older receipts; CreditCard is now explicitly the
+  // card-at-restaurant intent. Normalizing also keeps casing/whitespace changes from printing raw
+  // backend values in a customer or cashier surface.
+  const paymentMethodConfig = PAYMENT_METHODS.find((pm) => {
+    const configValue = pm.value.toLowerCase();
+    const configLabel = pm.label.toLowerCase();
+    return (
+      pm.value === enumValue ||
+      configValue === normalizedMethod ||
+      configLabel === normalizedMethod ||
+      (normalizedMethod === 'card' && pm.value === PaymentMethod.CreditCard)
+    );
+  });
+
+  if (paymentMethodConfig) {
+    return t ? t(paymentMethodConfig.labelKey, paymentMethodConfig.label) : paymentMethodConfig.label;
   }
 
-  // Find the matching payment method config by direct match
-  const paymentMethodConfig = PAYMENT_METHODS.find(
-    (pm) =>
-      pm.value === method ||
-      pm.value.toString() === methodStr ||
-      pm.label === methodStr ||
-      // Match by enum name
-      (pm.value as unknown as string) === methodStr,
-  );
-
-  return paymentMethodConfig?.label || (methodStr === '0' ? 'Unknown' : methodStr);
+  return normalizedMethod === '0' ? 'Unknown' : methodStr;
 }
 
 /**
@@ -67,13 +69,5 @@ export function formatPaymentMethod(method: string | PaymentMethod | number, amo
  * Get payment method name from enum value
  */
 export function getPaymentMethodName(value: PaymentMethod): string {
-  const mapping: Record<PaymentMethod, string> = {
-    [PaymentMethod.Cash]: 'Cash',
-    [PaymentMethod.CreditCard]: 'Credit Card',
-    [PaymentMethod.DebitCard]: 'Debit Card',
-    [PaymentMethod.OnlinePayment]: 'Online Payment',
-    [PaymentMethod.MobilePayment]: 'Mobile Payment',
-    [PaymentMethod.BankTransfer]: 'Bank Transfer',
-  };
-  return mapping[value] || 'Unknown';
+  return getPaymentMethodLabel(value);
 }

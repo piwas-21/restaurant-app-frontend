@@ -20,7 +20,7 @@ export default function PaymentMethodField({ method, disabled, onChange, t }: Pa
           disabled={disabled}
         >
           <option value={PaymentMethod.Cash}>{t('cashier.table_bill.method_cash')}</option>
-          <option value={PaymentMethod.CreditCard}>{t('cashier.table_bill.method_credit_card')}</option>
+          <option value={PaymentMethod.CreditCard}>{t('payment_card_at_restaurant')}</option>
           <option value={PaymentMethod.DebitCard}>{t('cashier.table_bill.method_debit_card')}</option>
         </select>
       </FormField>

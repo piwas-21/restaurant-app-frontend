@@ -89,6 +89,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
         isOpen={showConfirmationModal}
         orderNumber={confirmedOrder.orderNumber}
         customerEmail={confirmedOrder.customerEmail || ''}
+        paymentMethod={confirmedOrder.paymentMethod}
         isLoggedIn={isLoggedIn}
         onClose={handleCloseConfirmationModal}
       />
@@ -138,6 +139,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
               <PaymentMethodSelector
                 selectedMethod={selectedPaymentMethod}
                 onMethodChange={setSelectedPaymentMethod}
+                orderType={checkoutState.orderType}
                 onlinePaymentAvailable={onlinePaymentAvailable}
                 styles={bundle.payment}
               />

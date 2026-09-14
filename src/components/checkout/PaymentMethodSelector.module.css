@@ -84,7 +84,7 @@
   background-color: var(--background-color);
 }
 
-.paymentMethod:hover:not(.disabled) {
+.paymentMethod:hover {
   border-color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
@@ -96,26 +96,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.paymentMethod.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--secondary-color);
-}
-
-.paymentMethod.disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
 .paymentRadio {
   width: 20px;
   height: 20px;
   cursor: pointer;
   accent-color: var(--primary-color);
-}
-
-.paymentRadio:disabled {
-  cursor: not-allowed;
 }
 
 .paymentIcon {
@@ -129,10 +114,6 @@
   border-radius: 8px;
 }
 
-.disabled .paymentIcon {
-  opacity: 0.6;
-}
-
 .paymentInfo {
   display: flex;
   flex-direction: column;
@@ -143,15 +124,6 @@
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--text-color);
-}
-
-/* Warning TEXT, not the fill — see globals.css `.text-warning` (§9.9). At 0.75rem this is small
-   text, so the 1.97:1 the fill gives on white was failing by a wide margin on the tightest case. */
-.comingSoon {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--feedback-warning-text);
-  font-style: italic;
 }
 
 .paymentDescription {

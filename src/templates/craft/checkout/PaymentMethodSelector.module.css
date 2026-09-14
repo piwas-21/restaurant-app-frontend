@@ -59,18 +59,12 @@
 .selected .paymentLabel,
 .selected .paymentDescription,
 .selected .paymentIcon,
-.selected .comingSoon,
 .selected .checkmark {
   color: var(--text-on-primary);
 }
 
 .selected .paymentRadio {
   accent-color: var(--text-on-primary);
-}
-
-.disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 .paymentRadio {
@@ -97,14 +91,6 @@
   font-family: 'Quicksand', var(--font-family-sans);
   font-weight: 600;
   color: var(--text-primary);
-}
-
-.comingSoon {
-  font-family: 'Caveat', cursive;
-  font-size: 0.95rem;
-  /* --craft-saffron-text, NOT --brand-accent: the raw saffron swatch is
-     ~2.2:1 on the card in light theme (tokens.css a11y note). */
-  color: var(--craft-saffron-text);
 }
 
 .paymentDescription {

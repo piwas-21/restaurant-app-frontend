@@ -1,7 +1,7 @@
 # MC FOOD (Orchamps-Vennes) — onboarding data pack
 
 Partner: Mustafa. Source: their temporary site **https://mcdoner-orchamps.fr/**.
-Captured **2026-09-03**, imported the same day into `mcdoner.sofrapiwas.com`.
+Captured **2026-09-03**, imported the same day into `mcdoner.solutioneva.com`.
 The partner-feedback audit and rollback capture were refreshed **2026-09-14**.
 
 **The first run produced a catalogue with nine structural defects**, all repaired by hand against
@@ -294,8 +294,9 @@ node fetch.mjs out                      # materialise the 94 images (~31 MB, not
 node --test map.test.mjs                # 9/9 map verifier mutation tests
 node map.mjs --verify                   # exhaustive offline self-check
 export MCFOOD_TOKEN=...                 # a menu:write API token
-node import.mjs --base https://mcdoner.sofrapiwas.com --dry-run
-node import.mjs --base https://mcdoner.sofrapiwas.com
+export MCFOOD_BASE_URL=https://mcdoner.solutioneva.com
+node import.mjs --base "$MCFOOD_BASE_URL" --dry-run
+node import.mjs --base "$MCFOOD_BASE_URL"
 ```
 
 The token comes from `MCFOOD_TOKEN`, not from a flag: `--token "$TOKEN"` expands before exec,

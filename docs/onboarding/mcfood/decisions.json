@@ -13,6 +13,31 @@
     "gitignored — it holds the partner's email address)."
   ],
   "verification": {
+    "kidsDrinkSections": {
+      "_": [
+        "The three children must each carry this exact required drink step. These refs are verifier truth.",
+        "Separate from bundles.drinkProducts so an emitted-output mutation cannot update both sides."
+      ],
+      "products": ["Menu Enfant Kebab", "Menu Enfant Hamburger", "Menu Enfant Nuggets"],
+      "sectionName": "Boisson",
+      "groupId": "79",
+      "isRequired": true,
+      "minSelection": 1,
+      "maxSelection": 1,
+      "drinkRefs": [
+        "product:445",
+        "product:446",
+        "product:447",
+        "product:453",
+        "product:448",
+        "product:449",
+        "product:452",
+        "product:450",
+        "product:451",
+        "product:454",
+        "product:455"
+      ]
+    },
     "partnerStructures": {
       "_": [
         "The verifier's business truth is explicit here, separate from emitted owners. Keep exact",
@@ -326,6 +351,7 @@
       "name-collides with the SANDWICHES product `Kebab`) is real and still holds for those; it",
       "never applied to a drink, where the option IS the product."
     ],
+    "drinkGroupId": 79,
     "componentCategories": {
       "_": "Components still need a category (CreateProductCommand requires CategoryIds NotEmpty). They are hidden by isComponent, so an existing, plausible category is used rather than inventing an empty one that would show on the carte. `dish` and `portion` carriers take their OWN dish's category instead and are not listed here.",
       "meat": 91,

@@ -392,10 +392,16 @@ const governingGroupIds = (item, decisions) => {
 const FAMILY_OF = { 81: 'meat', 83: 'meat', 84: 'meat', 85: 'meat', 87: 'gift' };
 
 /**
- * Group 79 `Boissons` is deliberately NOT here. Its options are drinks the restaurant already
- * sells, and a bundle's drink section must reference THOSE — see `drinkRefs`.
+ * The source group whose options are the drinks the restaurant already sells. No default is
+ * safe here: a missing decision would silently omit every bundle's drink section.
  */
-const DRINK_GROUP = 79;
+const drinkGroupIdOf = (decisions) => {
+  const groupId = decisions.bundles?.drinkGroupId;
+  if (!Number.isInteger(groupId)) {
+    throw new TypeError('bundles.drinkGroupId must be an integer in decisions.json');
+  }
+  return groupId;
+};
 
 /**
  * How a section item and a menu's dish are named before the server has given anything an id.
@@ -507,11 +513,13 @@ const largePortions = (dataset, decisions) => {
  */
 const drinkRefs = (dataset, decisions) => {
   const map = decisions.bundles.drinkProducts ?? {};
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const known = new Map();
   for (const { item } of eachItem(dataset, decisions)) known.set(item.sourceId, item.name);
-  const group = dataset.modifierGroups.find((g) => g.id === DRINK_GROUP);
+  const group = dataset.modifierGroups.find((g) => g.id === drinkGroupId);
+  if (!group) throw new Error(`modifier group ${drinkGroupId} has no entry in dataset.json`);
   return group.options
-    .filter((option) => !isDropped(decisions, DRINK_GROUP, option.name))
+    .filter((option) => !isDropped(decisions, drinkGroupId, option.name))
     .map((option) => {
       const id = map[option.name];
       if (id === undefined) {
@@ -582,8 +590,9 @@ const buildComponents = (dataset, decisions, carriers, portions) => {
     byKey.set(key, { source: { family, name, categoryId }, body: componentBody(name, extra) });
   };
 
+  const drinkGroupId = drinkGroupIdOf(decisions);
   for (const [id, decision] of Object.entries(decisions.modifierGroups)) {
-    if (id === '_' || decision.target !== 'bundle' || Number(id) === DRINK_GROUP) continue;
+    if (id === '_' || decision.target !== 'bundle' || Number(id) === drinkGroupId) continue;
     const family = FAMILY_OF[Number(id)];
     if (!family) throw new Error(`bundle group ${id} has no component family`);
     for (const option of groups.get(Number(id)).options) {
@@ -611,6 +620,7 @@ const buildComponents = (dataset, decisions, carriers, portions) => {
 /** A section, from the group it came from. `itemRefs` are resolved by import.mjs. */
 const sectionFor = (decisions, groupId, drinks) => {
   const decision = groupOf(decisions, groupId);
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const family = FAMILY_OF[Number(groupId)];
   const groups = decisions.__groups;
   const options = groups
@@ -628,7 +638,7 @@ const sectionFor = (decisions, groupId, drinks) => {
     minSelection: decision.minSelection ?? (decision.isRequired === false ? 0 : 1),
     maxSelection: decision.maxSelection ?? 1,
     // The drink section points at the REAL beverages; every other section at hidden components.
-    itemRefs: Number(groupId) === DRINK_GROUP ? drinks : options.map((name) => componentRef(family, name)),
+    itemRefs: Number(groupId) === drinkGroupId ? drinks : options.map((name) => componentRef(family, name)),
   };
 };
 
@@ -871,6 +881,7 @@ export const build = async ({ datasetPath, decisionsPath }) => {
   const dataset = JSON.parse(await readFile(datasetPath ?? path.join(HERE, 'dataset.json'), 'utf8'));
   const decisions = JSON.parse(await readFile(decisionsPath ?? path.join(HERE, 'decisions.json'), 'utf8'));
   normalizePartnerStructures(decisions.verification?.partnerStructures);
+  const kidsDrinkSections = normalizeKidsDrinkSections(decisions.verification?.kidsDrinkSections);
   const merges = [];
   // sectionFor needs the raw groups; stashed rather than threaded through six signatures.
   decisions.__groups = new Map(dataset.modifierGroups.map((g) => [g.id, g]));
@@ -890,6 +901,7 @@ export const build = async ({ datasetPath, decisionsPath }) => {
     products: buildProducts(dataset, decisions, parts),
     menus: buildMenuBundles(dataset, decisions, parts),
     merges,
+    kidsDrinkSections,
   };
 };
 
@@ -1068,44 +1080,50 @@ const verifyDuplicateIngredientResolutions = (decisions, owners) => {
  * or wrong cardinality visible. Sections belong to the menu product; recipes belong to its hidden
  * carrier, so each ownership lookup names the expected surface explicitly.
  */
-const contractObject = (value, label = 'contract') => {
+const contractObject = (value, label = 'contract', root = 'verification.partnerStructures') => {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`verification.partnerStructures.${label} must be an object`);
+    throw new TypeError(`${root}.${label} must be an object`);
   }
   return value;
 };
 
-const contractArray = (value, label) => {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw new Error(`verification.partnerStructures.${label} must be a non-empty array`);
+const contractArray = (value, label, root = 'verification.partnerStructures') => {
+  if (!Array.isArray(value)) {
+    throw new TypeError(`${root}.${label} must be an array`);
+  }
+  if (value.length === 0) {
+    throw new Error(`${root}.${label} must be a non-empty array`);
   }
   return value;
 };
 
-const contractString = (value, label) => {
-  if (typeof value !== 'string' || value.trim() === '') {
-    throw new Error(`verification.partnerStructures.${label} must be a non-empty string`);
+const contractString = (value, label, root = 'verification.partnerStructures') => {
+  if (typeof value !== 'string') {
+    throw new TypeError(`${root}.${label} must be a string`);
+  }
+  if (value.trim() === '') {
+    throw new Error(`${root}.${label} must be a non-empty string`);
   }
   return value.trim();
 };
 
-const contractBoolean = (value, label) => {
+const contractBoolean = (value, label, root = 'verification.partnerStructures') => {
   if (typeof value !== 'boolean') {
-    throw new TypeError(`verification.partnerStructures.${label} must be a boolean`);
+    throw new TypeError(`${root}.${label} must be a boolean`);
   }
   return value;
 };
 
-const contractInteger = (value, label) => {
+const contractInteger = (value, label, root = 'verification.partnerStructures') => {
   if (!Number.isInteger(value)) {
-    throw new TypeError(`verification.partnerStructures.${label} must be an integer`);
+    throw new TypeError(`${root}.${label} must be an integer`);
   }
   return value;
 };
 
-const uniqueContractValues = (values, label) => {
+const uniqueContractValues = (values, label, root = 'verification.partnerStructures') => {
   if (new Set(values).size !== values.length) {
-    throw new Error(`verification.partnerStructures.${label} must contain unique values`);
+    throw new Error(`${root}.${label} must contain unique values`);
   }
 };
 
@@ -1532,14 +1550,15 @@ const drinkRefFailure = (where, ref, componentByRef, productByRef) => {
   return null;
 };
 
-const verifyDrinkSections = (products, menus, components) => {
+const verifyDrinkSections = (products, menus, components, decisions) => {
   const componentByRef = new Map(
     components.map((c) => [`component:${c.source.family}:${c.source.name.toLowerCase()}`, c]),
   );
   const productByRef = new Map(products.map((p) => [`product:${p.source.id}`, p]));
+  const drinkGroupId = drinkGroupIdOf(decisions);
   const failures = [];
   for (const owner of [...products, ...menus]) {
-    const drinkSections = (owner.sections ?? []).filter((s) => String(s.__groupId) === String(DRINK_GROUP));
+    const drinkSections = (owner.sections ?? []).filter((s) => String(s.__groupId) === String(drinkGroupId));
     for (const section of drinkSections) {
       const where = `${owner.body.name}/${section.name}`;
       const found = section.itemRefs.map((ref) => drinkRefFailure(where, ref, componentByRef, productByRef));
@@ -1550,64 +1569,68 @@ const verifyDrinkSections = (products, menus, components) => {
 };
 
 /**
- * These child menus are products in the mapper's output (the wrapper sizes are in `menus`). Keep
- * the expected ownership table explicit and inspect the union: a check scoped only to `menus`
- * silently went vacuous. Every name must have one owner, one group-79 section, and exactly the
- * eleven source drink options with required 1..1 cardinality.
+ * The child-menu drink contract is kept in decisions.json, not executable tenant truth. Normalize
+ * it before checking emitted owners so a missing or malformed contract fails closed.
  */
-// Confirmed source group 79 (`Boissons`) options, resolved to the real beverage products
-// named by `decisions.bundles.drinkProducts`. Cardinality alone is not enough: replacing one
-// drink with another real product would still resolve and leave eleven apparently valid refs.
-const KIDS_DRINK_SOURCE_REFS = [
-  'product:445',
-  'product:446',
-  'product:447',
-  'product:453',
-  'product:448',
-  'product:449',
-  'product:452',
-  'product:450',
-  'product:451',
-  'product:454',
-  'product:455',
-];
+const normalizeKidsDrinkSections = (raw) => {
+  const root = 'verification.kidsDrinkSections';
+  const contract = contractObject(raw, 'contract', root);
+  const products = contractArray(contract.products, 'products', root).map((name, index) =>
+    contractString(name, `products[${index}]`, root),
+  );
+  const drinkRefs = contractArray(contract.drinkRefs, 'drinkRefs', root).map((ref, index) =>
+    contractString(ref, `drinkRefs[${index}]`, root),
+  );
+  uniqueContractValues(products, 'products names', root);
+  uniqueContractValues(drinkRefs, 'drinkRefs', root);
+  const sectionName = contractString(contract.sectionName, 'sectionName', root);
+  const groupId = contractString(contract.groupId, 'groupId', root);
+  const isRequired = contractBoolean(contract.isRequired, 'isRequired', root);
+  const minSelection = contractInteger(contract.minSelection, 'minSelection', root);
+  const maxSelection = contractInteger(contract.maxSelection, 'maxSelection', root);
+  if (minSelection < 0 || maxSelection < minSelection || (isRequired && minSelection < 1)) {
+    throw new Error(`${root} has invalid selection bounds`);
+  }
+  return { products, drinkRefs, sectionName, groupId, isRequired, minSelection, maxSelection };
+};
 
-const KIDS_DRINK_EXPECTATIONS = [
-  { name: 'Menu Enfant Kebab', optionCount: 11 },
-  { name: 'Menu Enfant Hamburger', optionCount: 11 },
-  { name: 'Menu Enfant Nuggets', optionCount: 11 },
-];
-
-export const verifyKidsDrinkSections = (owners) => {
+export const verifyKidsDrinkSections = (owners, rawKidsDrinkSections) => {
+  const expectedContract = normalizeKidsDrinkSections(rawKidsDrinkSections);
+  const expectedRefs = new Set(expectedContract.drinkRefs);
+  const expectedCount = expectedContract.drinkRefs.length;
   const failures = [];
-  for (const expected of KIDS_DRINK_EXPECTATIONS) {
-    const owner = uniqueNamedOwner(owners, expected.name, () => true, 'product', failures);
+  for (const name of expectedContract.products) {
+    const owner = uniqueNamedOwner(owners, name, () => true, 'product', failures);
     if (!owner) continue;
-    const drinkSections = (owner.sections ?? []).filter((section) => String(section.__groupId) === String(DRINK_GROUP));
+    const drinkSections = (owner.sections ?? []).filter(
+      (section) => String(section.__groupId) === expectedContract.groupId,
+    );
     if (drinkSections.length !== 1) {
-      failures.push(`${expected.name}: expected exactly one required Boisson section, found ${drinkSections.length}`);
+      failures.push(
+        `${name}: expected exactly one required ${expectedContract.sectionName} section, found ${drinkSections.length}`,
+      );
       continue;
     }
     const [section] = drinkSections;
     const optionRefs = section.itemRefs ?? [];
     const distinctRefs = new Set(optionRefs);
-    const expectedRefs = new Set(KIDS_DRINK_SOURCE_REFS);
     const exactDrinkRefs =
-      optionRefs.length === expected.optionCount &&
-      distinctRefs.size === expected.optionCount &&
-      KIDS_DRINK_SOURCE_REFS.every((ref) => distinctRefs.has(ref)) &&
+      optionRefs.length === expectedCount &&
+      distinctRefs.size === expectedCount &&
+      expectedContract.drinkRefs.every((ref) => distinctRefs.has(ref)) &&
       optionRefs.every((ref) => expectedRefs.has(ref));
     if (
-      section.name !== 'Boisson' ||
-      !section.isRequired ||
-      section.minSelection !== 1 ||
-      section.maxSelection !== 1 ||
+      section.name !== expectedContract.sectionName ||
+      section.isRequired !== expectedContract.isRequired ||
+      section.minSelection !== expectedContract.minSelection ||
+      section.maxSelection !== expectedContract.maxSelection ||
       !exactDrinkRefs
     ) {
       failures.push(
-        `${expected.name}/${section.name}: drink choice must be Boisson, required 1..1 with ` +
-          `the exact ${expected.optionCount} source refs (emitted ${optionRefs.length}, ` +
-          `${section.minSelection}..${section.maxSelection})`,
+        `${name}/${section.name}: drink choice must be ${expectedContract.sectionName}, ` +
+          `${expectedContract.isRequired ? 'required' : 'optional'} ${expectedContract.minSelection}..` +
+          `${expectedContract.maxSelection} with the exact ${expectedCount} source refs ` +
+          `(emitted ${optionRefs.length}, ${section.minSelection}..${section.maxSelection})`,
       );
     }
   }
@@ -1683,6 +1706,7 @@ const runVerify = ({
   pending,
   unbuilt,
   partnerStructures,
+  kidsDrinkSections,
 }) => {
   // EVERY row that carries a recipe, products and components alike. NOT `products`: the 11 dishes
   // that became `type: menu` had their ingredients and sauce rule moved onto hidden carriers, and
@@ -1748,9 +1772,12 @@ const runVerify = ({
     ['no type=menu product carries its own (dead) recipe or sauce rule', verifyMenusCarryNoRecipe(products, menus)],
     [
       'every drink section names the REAL beverages, not hidden copies',
-      verifyDrinkSections(products, menus, components),
+      verifyDrinkSections(products, menus, components, decisions),
     ],
-    ['each Menu Enfant owns one required drink section', verifyKidsDrinkSections([...products, ...menus])],
+    [
+      'each Menu Enfant owns one required drink section',
+      verifyKidsDrinkSections([...products, ...menus], kidsDrinkSections),
+    ],
     ['every bundle section REQUIRES the count its name sells', verifySectionCounts(decisions, products, menus)],
     [
       'every bundle section and Plat resolves to something this run creates',
@@ -1786,7 +1813,7 @@ const main = async () => {
     return i === -1 ? undefined : argv[i + 1];
   };
 
-  const { dataset, decisions, categories, components, products, menus, merges } = await build({});
+  const { dataset, decisions, categories, components, products, menus, merges, kidsDrinkSections } = await build({});
   const pending = unconfirmedInUse(dataset, decisions);
   // Which groups actually reached a section — derived from the OUTPUT, so a group that
   // silently stopped being mapped shows up here rather than being assumed built.
@@ -1805,6 +1832,7 @@ const main = async () => {
       pending,
       unbuilt,
       partnerStructures: decisions.verification.partnerStructures,
+      kidsDrinkSections,
     });
     if (!ok) process.exit(1);
     return;

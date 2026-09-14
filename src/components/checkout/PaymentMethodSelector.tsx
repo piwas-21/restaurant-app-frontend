@@ -71,37 +71,28 @@ export default function PaymentMethodSelector({
       <div className={styles.paymentMethods}>
         {methods.map((method) => {
           const Icon = method.icon;
-          const isDisabled = method.disabled;
 
           return (
             <label
               key={method.value}
-              className={`${styles.paymentMethod} ${
-                effectiveSelectedMethod === method.value ? styles.selected : ''
-              } ${isDisabled ? styles.disabled : ''}`}
+              className={`${styles.paymentMethod} ${effectiveSelectedMethod === method.value ? styles.selected : ''}`}
             >
               <input
                 type="radio"
                 name="paymentMethod"
                 value={method.value}
                 checked={effectiveSelectedMethod === method.value}
-                onChange={() => !isDisabled && onMethodChange(method.value)}
+                onChange={() => onMethodChange(method.value)}
                 className={styles.paymentRadio}
-                disabled={isDisabled}
               />
               <div className={styles.paymentIcon}>
                 <Icon size={24} />
               </div>
               <div className={styles.paymentInfo}>
-                <span className={styles.paymentLabel}>
-                  {t(method.labelKey, method.label)}
-                  {isDisabled && <span className={styles.comingSoon}> ({t('coming_soon', 'Coming Soon')})</span>}
-                </span>
+                <span className={styles.paymentLabel}>{t(method.labelKey, method.label)}</span>
                 <span className={styles.paymentDescription}>{t(method.descriptionKey, method.description)}</span>
               </div>
-              {effectiveSelectedMethod === method.value && !isDisabled && (
-                <CheckCircle size={20} className={styles.checkmark} />
-              )}
+              {effectiveSelectedMethod === method.value && <CheckCircle size={20} className={styles.checkmark} />}
             </label>
           );
         })}

@@ -339,8 +339,9 @@ module.exports = {
     './src/hooks/checkout/useCheckoutReturn.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/components/checkout/CheckoutReturnPanel.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/components/checkout/CheckoutReturnView.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
-    // The selector is lower because its file holds the disabled-radio onChange guard, which the
-    // component renders but no offered method can reach. The row guards the availability branch.
+    // The selector row guards its availability and order-type rendering branches. Offered methods
+    // are enabled by construction, so disabled-placeholder rendering is deliberately not part of
+    // the component's contract.
     './src/components/checkout/PaymentMethodSelector.tsx': { statements: 84, branches: 85, functions: 65, lines: 84 },
     './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     // ── S11 — honest refunds (SOFRA-PAYMENTS-PLAN §5). ───────────────────────────────────────────

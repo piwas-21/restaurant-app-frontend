@@ -42,6 +42,25 @@ describe('offerablePaymentMethods', () => {
     expect(values).not.toContain(PaymentMethod.DebitCard);
   });
 
+  it('falls back to on-site methods when the online catalog entry is missing', () => {
+    const originalMethods = [...PAYMENT_METHODS];
+
+    try {
+      PAYMENT_METHODS.splice(
+        0,
+        PAYMENT_METHODS.length,
+        ...originalMethods.filter((method) => method.value !== PaymentMethod.OnlinePayment),
+      );
+
+      expect(offerablePaymentMethods(true, OrderType.Takeaway).map((method) => method.value)).toEqual([
+        PaymentMethod.Cash,
+        PaymentMethod.CreditCard,
+      ]);
+    } finally {
+      PAYMENT_METHODS.splice(0, PAYMENT_METHODS.length, ...originalMethods);
+    }
+  });
+
   it('does not mutate the shared catalog when enabling', () => {
     // Reads the MODULE-LEVEL array directly, which is the only assertion that can fail against an
     // in-place `forEach` flip. An earlier version of this test checked CreditCard's flag on the

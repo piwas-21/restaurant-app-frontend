@@ -102,6 +102,9 @@ const stamp = new Date()
   .replace(/\.\d{3}Z$/, 'Z');
 
 const getJson = async (baseUrl, endpoint) => {
+  // REVIEW EXEMPT: Standalone Node operator/rollback scope, not frontend runtime; this performs
+  // public read-only GETs against the strictly validated operator-provided HTTPS origin, so the
+  // centralized browser apiClient/session/env contract is inapplicable here.
   const response = await fetch(`${baseUrl}${endpoint}`);
   const text = await response.text();
   let body;

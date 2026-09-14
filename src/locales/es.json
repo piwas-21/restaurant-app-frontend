@@ -1474,7 +1474,6 @@
   "working_hours": "Horario de Apertura",
   "order_types": "Tipos de Pedido",
   "general_settings": "Configuración General",
-  "coming_soon": "Próximamente",
   "failed_to_load_working_hours": "Error al cargar el horario de apertura",
   "restaurant_currently_open": "El restaurante está actualmente ABIERTO",
   "restaurant_currently_closed": "El restaurante está actualmente CERRADO",

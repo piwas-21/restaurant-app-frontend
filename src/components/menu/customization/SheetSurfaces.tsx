@@ -12,7 +12,7 @@ import SpecialRequestSection from './SpecialRequestSection';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow } from '@/hooks/menu/useSheetFlow';
 import { useBundleOptionFlow } from '@/hooks/menu/useBundleOptionFlow';
-import { stepLabel, stepSkipLabel } from './stepLabel';
+import { stepHint, stepLabel, stepSkipLabel } from './stepLabel';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { SheetController } from '@/hooks/menu/useSheetFlow';
 import type { OrderType } from '@/types/order';
@@ -184,6 +184,7 @@ export function ProductFlowBody({
           title={stepLabel(step, t)}
           isRequired={step.isRequired}
           requiredLabel={t('required')}
+          hint={stepHint(step, t)}
           steady={isGuided}
         >
           <SheetStepContent

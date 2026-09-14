@@ -9,6 +9,7 @@ import ProductAdvancedFields from '@/components/admin/product/fields/ProductAdva
 import { ProductVariations } from '@/components/admin/product/ProductVariations';
 import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
 import ProductRecipeGroups from '@/components/admin/product/ProductRecipeGroups';
+import ProductCustomizationGroupsEditor from '@/components/admin/product/ProductCustomizationGroupsEditor';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
@@ -136,6 +137,14 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             register={form.register}
             control={form.control}
             errors={errors}
+            hasExplicitGroups={editor.customizationGroups.length > 0}
+          />
+          <ProductCustomizationGroupsEditor
+            groups={editor.customizationGroups}
+            ingredients={editor.detailedIngredients}
+            productId={product.id}
+            currentLanguage={editor.currentLanguage}
+            onChange={editor.changeCustomizationGroups}
           />
           <ProductAllergenFields control={form.control} />
         </>

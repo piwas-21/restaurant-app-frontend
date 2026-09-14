@@ -3,6 +3,8 @@
 import React from 'react';
 import VariationsSection from './VariationsSection';
 import IngredientStepsBody from './IngredientStepsBody';
+import CustomizationGroupSection from './CustomizationGroupSection';
+import { activeCustomizationGroups } from '@/utils/explicitCustomization';
 import SuggestedSideItemsSection from './SuggestedSideItemsSection';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
@@ -37,6 +39,8 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
     setSelectedIngredients,
     ingredientQuantities,
     setIngredientQuantities,
+    customizationSelections,
+    setCustomizationSelections,
     selectedSideItems,
     setSelectedSideItems,
   } = controller;
@@ -76,6 +80,22 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
         ingredientQuantities={ingredientQuantities}
         onSelectionChange={setSelectedIngredients}
         onQuantityChange={onQuantityChange}
+        onChoice={onChoice}
+        currentLanguage={currentLanguage}
+      />
+    );
+  }
+
+  if (step.kind === 'group' && step.group) {
+    return (
+      <CustomizationGroupSection
+        group={step.group}
+        groups={activeCustomizationGroups(product)}
+        ingredients={product.detailedIngredients ?? []}
+        selections={customizationSelections}
+        onSelectionsChange={setCustomizationSelections}
+        onIngredientSelectionChange={setSelectedIngredients}
+        onIngredientQuantityChange={onQuantityChange}
         onChoice={onChoice}
         currentLanguage={currentLanguage}
       />

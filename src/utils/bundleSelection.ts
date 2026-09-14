@@ -1,6 +1,11 @@
 import type { MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import { isFixedPlatSection } from './fixedPlatSection';
+import {
+  activeCustomizationGroups,
+  defaultCustomizationSelections,
+  ingredientIdsForSelections,
+} from './explicitCustomization';
 
 /**
  * Pure section-selection rules for the bundle body of the customization sheet (menu-bundles
@@ -30,6 +35,17 @@ export const bundleOptionKey = (sectionId: string, itemId: string) => `${section
  */
 export function buildBundleOption(sectionId: string, item: MenuSectionItem): SelectedMenuOption {
   const option: SelectedMenuOption = { sectionId, itemId: item.productId, quantity: 1 };
+  const groups = activeCustomizationGroups(item);
+  if (groups.length > 0) {
+    const customizationSelections = defaultCustomizationSelections(item);
+    const selectedIngredients = ingredientIdsForSelections(groups, customizationSelections);
+    return {
+      ...option,
+      customizationSelections,
+      selectedIngredients,
+      ingredientQuantities: Object.fromEntries(selectedIngredients.map((id) => [id, 1])),
+    };
+  }
   if (!item.detailedIngredients?.length) return option;
 
   const base = buildBaseIngredientSelection(item.detailedIngredients);

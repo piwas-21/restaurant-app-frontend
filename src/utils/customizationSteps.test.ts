@@ -43,6 +43,58 @@ const section = (overrides: Partial<MenuSection> = {}): MenuSection => ({
 });
 
 describe('buildProductSteps — the flow is DERIVED, so a simple item stays simple', () => {
+  it('uses explicit Tacos group order and suppresses the legacy ingredient/sauce split', () => {
+    const groups = ['Sauces', 'Viande', 'Extras', 'Ajouter légumes'].map((name, index) => ({
+      id: `g${index}`,
+      name,
+      displayOrder: index,
+      isRequired: index < 2,
+      minSelection: index < 2 ? 1 : 0,
+      maxSelection: index === 0 ? 2 : index === 1 ? 1 : 4,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [],
+    }));
+
+    const steps = buildProductSteps(
+      product({
+        customizationGroups: [groups[2], groups[0], groups[3], groups[1]],
+        detailedIngredients: [ingredient('onion'), ingredient('garlic', { kind: 'sauce' })],
+      }),
+    );
+
+    expect(steps.map((step) => step.title)).toEqual(['Sauces', 'Viande', 'Extras', 'Ajouter légumes', undefined]);
+    expect(steps.map((step) => step.kind)).toEqual(['group', 'group', 'group', 'group', 'review']);
+  });
+
+  it('gates an explicit group by membership count', () => {
+    const group = {
+      id: 'meat',
+      name: 'Viande',
+      displayOrder: 1,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [],
+    };
+    const step = buildProductSteps(product({ customizationGroups: [group] }))[0];
+    const baseGate = { selectedVariationId: null, selectedIngredients: [] };
+
+    expect(stepBlocker(step, baseGate)).toBe('group');
+    expect(
+      stepBlocker(step, {
+        ...baseGate,
+        customizationSelections: [{ groupId: group.id, options: [{ kind: 0, optionId: 'beef', quantity: 1 }] }],
+      }),
+    ).toBeNull();
+  });
+
   /**
    * The load-bearing rule of the whole redesign (MENU-CUSTOMIZATION-FLOW-PLAN §2). If a
    * one-decision item grew a stepper, every simple order would pay for the complex ones.

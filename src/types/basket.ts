@@ -5,6 +5,7 @@
  * Backend API: http://localhost:5221/api/Basket
  */
 import type { OrderType } from '@/types/order';
+import type { CustomizationGroupSelection } from '@/types/menu';
 
 /**
  * Menu item summary included in basket items for menu orders
@@ -132,6 +133,7 @@ export interface AddToBasketDto {
   specialInstructions?: string;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
+  customizationSelections?: CustomizationGroupSelection[];
   selectedSideItems?: Array<{ id: string; quantity: number }>;
   selectedMenuOptions?: Array<{
     sectionId: string;
@@ -140,6 +142,7 @@ export interface AddToBasketDto {
     specialInstructions?: string;
     selectedIngredients?: string[];
     ingredientQuantities?: Record<string, number>;
+    customizationSelections?: CustomizationGroupSelection[];
   }>;
 }
 

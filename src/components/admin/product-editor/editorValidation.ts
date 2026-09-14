@@ -29,6 +29,7 @@ export const SECTION_FIELDS: Readonly<Record<string, string>> = {
   variations: SECTION_IDS.pricing,
   suggestedSideItemIds: SECTION_IDS.options,
   allergens: SECTION_IDS.recipe,
+  customizationGroups: SECTION_IDS.recipe,
   // The three product-level sauce rules render inside `Recipe & dietary` too: #588 added the
   // Sauces group to that same section rather than a new one (SHARED-MODIFIERS-AND-SAUCES-PLAN D8),
   // and `sauceMax` carries a cross-field message, so it is a real blocker that needs a marker.

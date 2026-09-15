@@ -8,13 +8,14 @@ import { OrderType } from '@/types/order';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { needsTakeawayInfoModal } from '@/hooks/order/needsTakeawayInfoModal';
 import { useOrderTypeSwitch, type OrderTypeSwitchFlow } from '@/hooks/order/useOrderTypeSwitch';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 
 /**
  * Which follow-up modal to display. `table`/`address`/`takeaway` open after a
  * type is picked; `ordertype`/`contact` are the review-page "Edit" editors
  * (change the order type, or the contact info alone).
  */
-export type OrderTypeFollowUp = 'table' | 'address' | 'takeaway' | 'ordertype' | 'contact' | null;
+export type OrderTypeFollowUp = 'table' | 'dinein' | 'address' | 'takeaway' | 'ordertype' | 'contact' | null;
 
 interface FollowUpState {
   /**
@@ -24,8 +25,8 @@ interface FollowUpState {
    */
   followUp: OrderTypeFollowUp;
   /**
-   * Pick a type. DineIn and Delivery always open their detail modal
-   * (the modal also captures any missing customer info for guests).
+   * Pick a type. Delivery always opens its detail modal. DineIn opens table selection only when
+   * the tenant has reservations; otherwise the type commits without an unnecessary interruption.
    * Takeaway opens its info modal only when the customer needs to
    * provide name/email/phone — logged-in users with all three on file
    * commit silently and proceed straight to the cart.
@@ -71,7 +72,8 @@ interface FollowUpState {
  *      survives navigating between /menu, /cart and /checkout. No modal pops.
  *   2. Sidebar order-type toggle → `pickType(type)` commits the type
  *      to OrderTypeContext and opens the relevant detail modal:
- *        - DineIn → 'table' modal (always; also captures guest info)
+ *        - DineIn → table modal when reservations are enabled; otherwise no interruption
+ *          (a later blocked checkout opens the contact-only `dinein` follow-up)
  *        - Delivery → 'address' modal (always; also captures guest info)
  *        - Takeaway → 'takeaway' modal *only* if the user needs to
  *          provide name/email/phone (guest, OR logged-in with any of
@@ -87,11 +89,19 @@ interface FollowUpState {
  * (safe default — the modal asks for everything anyway).
  */
 export function useOrderTypeFollowUp(): FollowUpState {
-  const { setOrderType, setTable } = useOrderType();
+  const { state: orderTypeState, setOrderType, setTable } = useOrderType();
   const { hasTableContext, tableContext, setTableContext } = useTableContext();
   const { state: checkoutState } = useCheckout();
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
   const switchFlow = useOrderTypeSwitch();
+  const reservationsEnabled = useModuleEnabled('reservations');
+
+  // A module can be removed while a browser still carries an older table choice in localStorage.
+  // Clear that manual value once on the new entitlement. A QR scan is explicit physical context,
+  // not the table-picker feature, and keeps its stronger table signal.
+  useEffect(() => {
+    if (!reservationsEnabled && !hasTableContext && orderTypeState.table) setTable('');
+  }, [reservationsEnabled, hasTableContext, orderTypeState.table, setTable]);
 
   // QR-scan landing → pin DineIn + the scanned table.
   //
@@ -127,7 +137,14 @@ export function useOrderTypeFollowUp(): FollowUpState {
         loggedIn: isLoggedInForAnalytics(),
       });
       if (type === OrderType.DineIn) {
-        setFollowUp('table');
+        // Table selection is part of the reservations experience. A tenant without that module
+        // accepts a plain dine-in order through the same staff decision queue as takeaway and
+        // delivery. Only a blocked checkout asks for contact details (`forceModal`).
+        if (reservationsEnabled) {
+          setFollowUp('table');
+        } else {
+          setFollowUp(forceModal ? 'dinein' : null);
+        }
         return;
       }
       if (type === OrderType.Delivery) {
@@ -142,7 +159,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
         setFollowUp(null);
       }
     },
-    [setOrderType, checkoutState.customerInfo],
+    [setOrderType, checkoutState.customerInfo, reservationsEnabled],
   );
 
   const pickType = useCallback(

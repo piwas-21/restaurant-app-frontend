@@ -25,7 +25,7 @@ export interface CreateOrderCommand {
   customerEmail?: string;
   customerPhone?: string;
   type: OrderType;
-  tableNumber?: number;
+  tableNumber?: number | null;
   promoCode?: string;
   hasUserLimitDiscount?: boolean;
   userLimitAmount?: number;
@@ -78,7 +78,7 @@ export interface OrderDto {
   customerEmail?: string;
   customerPhone?: string;
   type: string;
-  tableNumber?: number;
+  tableNumber?: number | null;
   subTotal: number;
   tax: number;
   deliveryFee: number;

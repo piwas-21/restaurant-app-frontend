@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { OrderDto, OrderType } from '@/types/order';
 import { X, Clock, CheckCircle, XCircle, Package } from 'lucide-react';
 import styles from './QuickConfirmModal.module.css';
+import { orderTypeLabel } from '@/utils/orderTypeLabels';
 
 interface QuickConfirmModalProps {
   order: OrderDto | null;
@@ -52,8 +53,11 @@ export default function QuickConfirmModal({ order, isOpen, onClose, onConfirm, o
     }
   };
 
-  const orderTypeEmoji = order.type === OrderType.Takeaway ? '🛍️' : '🚚';
-  const orderTypeLabel = order.type === OrderType.Takeaway ? 'Takeaway' : 'Delivery';
+  const orderType = order.type as OrderType;
+  let orderTypeEmoji = '🚚';
+  if (orderType === OrderType.DineIn) orderTypeEmoji = '🍽️';
+  if (orderType === OrderType.Takeaway) orderTypeEmoji = '🛍️';
+  const localizedOrderType = orderTypeLabel(orderType, t);
 
   return (
     <>
@@ -90,7 +94,7 @@ export default function QuickConfirmModal({ order, isOpen, onClose, onConfirm, o
             <div className={styles.summaryRow}>
               <span className={styles.label}>{t('type', 'Type')}</span>
               <span className={styles.valueBadge}>
-                {orderTypeEmoji} {orderTypeLabel}
+                {orderTypeEmoji} {localizedOrderType}
               </span>
             </div>
             <div className={styles.summaryRow}>

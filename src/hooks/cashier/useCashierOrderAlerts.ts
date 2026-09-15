@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { OrderDto, OrderType } from '@/types/order';
 import { AutoPrintSettings } from '@/types/cashier';
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
+import { isQuickConfirmCandidate } from '@/lib/quickConfirmEligibility';
 
 // Any order arriving within this window after mount is silently marked
 // "seen" — covers the initial REST→SSE handover, React Strict Mode's
@@ -32,7 +33,7 @@ export interface UseCashierOrderAlertsReturn {
 /**
  * Watches the orders list for new arrivals and status transitions, plays
  * sounds + visual flash for new orders, optionally fires auto-print, and
- * queues pending non-Dine-in orders for the quick-confirm modal.
+ * queues pending takeaway, delivery and tableless dine-in orders for the quick-confirm modal.
  */
 export function useCashierOrderAlerts({
   orders,
@@ -72,9 +73,7 @@ export function useCashierOrderAlerts({
       seenOrderIdsRef.current.add(order.id);
       notifyNewOrder(order.orderNumber || order.id, order.customerName || '');
 
-      const isQuickConfirmCandidate =
-        order.type !== OrderType.DineIn && order.status === 'Pending' && !dismissedOrders.has(order.id);
-      if (isQuickConfirmCandidate) ordersForModal.push(order.id);
+      if (isQuickConfirmCandidate(order) && !dismissedOrders.has(order.id)) ordersForModal.push(order.id);
 
       if (autoPrintSettings.enabled) maybeAutoPrint(order, autoPrintSettings, t);
     });

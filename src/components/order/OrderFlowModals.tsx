@@ -25,7 +25,7 @@ interface OrderFlowModalsProps {
 }
 
 /**
- * Renders the table + address follow-up modals as a single cluster
+ * Renders table, contact and address follow-up modals as a single cluster
  * driven by `useOrderTypeFollowUp`. Sidebar's order-type toggle calls
  * `followUp.pickType(type)`; this component shows the matching modal.
  *
@@ -69,12 +69,13 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
           prefilled; narrowing to only-what's-missing (right for the takeaway
           pick) left a complete profile looking at an empty dialog. */}
       <TakeawayInfoModal
-        isOpen={followUp.followUp === 'takeaway' || followUp.followUp === 'contact'}
+        isOpen={followUp.followUp === 'dinein' || followUp.followUp === 'takeaway' || followUp.followUp === 'contact'}
         onClose={followUp.closeFollowUp}
         onConfirm={followUp.closeFollowUp}
         title={followUp.followUp === 'contact' ? t('edit_contact_title', 'Edit your details') : undefined}
         requiredFields={contactRequiredFields}
         editAll={followUp.followUp === 'contact'}
+        source={followUp.followUp === 'dinein' ? 'dinein_modal' : 'takeaway_modal'}
       />
 
       {/* Review page "Edit Order Details" — pick a type, then its detail modal opens. Suppressed

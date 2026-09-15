@@ -45,6 +45,8 @@ interface TakeawayInfoModalProps {
    * it with no fields at all.
    */
   editAll?: boolean;
+  /** Analytics source for the shared customer-details form. */
+  source?: 'dinein_modal' | 'takeaway_modal';
 }
 
 /**
@@ -71,12 +73,13 @@ export default function TakeawayInfoModal({
   title,
   requiredFields,
   editAll,
+  source = 'takeaway_modal',
 }: Readonly<TakeawayInfoModalProps>) {
   const { t } = useTranslation();
   const guest = useGuestCustomerInfo({
     requiredFields: requiredFields ?? TAKEAWAY_REQUIRED_FIELDS,
     enabled: isOpen,
-    source: 'takeaway_modal',
+    source,
     editAll,
   });
 

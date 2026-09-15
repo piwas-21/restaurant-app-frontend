@@ -6,6 +6,7 @@ const mockSetOrderType = jest.fn();
 const mockSetTable = jest.fn();
 // Complete customer info, so needsTakeawayInfoModal() returns false by default.
 const mockCustomerInfo = { name: 'Guest', email: 'g@test.local', phone: '+41791234567' };
+let mockReservationsEnabled = true;
 
 // Mutable so a test can put the hook on a QR-scan landing. `setTableContext` writes back into it,
 // mirroring the real provider — the "already pinned" marker has to survive a REMOUNT, which is the
@@ -23,7 +24,7 @@ const mockTableState = {
 };
 
 // `state` is read by the switch flow to short-circuit a re-pick of the type already in force.
-const mockOrderTypeState = { orderType: null as string | null };
+const mockOrderTypeState = { orderType: null as string | null, table: '' };
 jest.mock('@/contexts/OrderTypeContext', () => ({
   useOrderType: () => ({ state: mockOrderTypeState, setOrderType: mockSetOrderType, setTable: mockSetTable }),
 }));
@@ -35,6 +36,9 @@ jest.mock('@/contexts/TableContext', () => ({
 }));
 jest.mock('@/contexts/CheckoutContext', () => ({
   useCheckout: () => ({ state: { customerInfo: mockCustomerInfo } }),
+}));
+jest.mock('@/contexts/ModulesContext', () => ({
+  useModuleEnabled: () => mockReservationsEnabled,
 }));
 jest.mock('@/services/userService', () => ({ getCurrentUser: jest.fn() }));
 jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, trackEvent: jest.fn() }));
@@ -61,6 +65,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockTableState.hasTableContext = false;
   mockTableState.tableContext = { tableId: null, tableNumber: '', dineInPinned: false };
+  mockReservationsEnabled = true;
+  mockOrderTypeState.table = '';
 });
 
 // G1. A physical scan is the strongest signal there is, so it wins over a stored choice — the
@@ -127,6 +133,42 @@ describe('useOrderTypeFollowUp — QR scan pins dine-in (gap G1)', () => {
 });
 
 describe('useOrderTypeFollowUp', () => {
+  it('commits DineIn without table selection when reservations are disabled', async () => {
+    mockReservationsEnabled = false;
+    const { result } = renderHook(() => useOrderTypeFollowUp());
+
+    await act(async () => result.current.pickType(OrderType.DineIn));
+
+    expect(mockSetOrderType).toHaveBeenCalledWith(OrderType.DineIn);
+    expect(result.current.followUp).toBeNull();
+  });
+
+  it('clears a stale manually selected table when reservations are disabled', () => {
+    mockReservationsEnabled = false;
+    mockOrderTypeState.table = '12';
+
+    renderHook(() => useOrderTypeFollowUp());
+
+    expect(mockSetTable).toHaveBeenCalledWith('');
+  });
+
+  it('does not rewrite an already empty table when reservations are disabled', () => {
+    mockReservationsEnabled = false;
+
+    renderHook(() => useOrderTypeFollowUp());
+
+    expect(mockSetTable).not.toHaveBeenCalled();
+  });
+
+  it('collects DineIn contact details, not a table, when checkout is blocked', async () => {
+    mockReservationsEnabled = false;
+    const { result } = renderHook(() => useOrderTypeFollowUp());
+
+    await act(async () => result.current.pickType(OrderType.DineIn, 'sidebar', true));
+
+    expect(result.current.followUp).toBe('dinein');
+  });
+
   it('forceModal opens the Takeaway modal even when the profile is already complete (Edit path)', async () => {
     const { result } = renderHook(() => useOrderTypeFollowUp());
     // pickType is async + drives its own state updates; waitFor absorbs the flush (no manual act).

@@ -6,6 +6,7 @@ import { OrderDto } from '@/types/order';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { getOrderStatusColor } from '@/utils/orderStatusColor';
 import styles from '../OrderDetails.module.css';
+import { isQuickConfirmCandidate } from '@/lib/quickConfirmEligibility';
 
 interface OrderDetailsActionBarProps {
   order: OrderDto;
@@ -43,8 +44,8 @@ export default function OrderDetailsActionBar({
   return (
     <div className={styles.stickyActionBar}>
       <div className={styles.actionBarGrid}>
-        {/* Quick Confirm for Takeaway/Delivery Pending Orders */}
-        {onQuickConfirm && order.status === 'Pending' && (order.type === 'Takeaway' || order.type === 'Delivery') && (
+        {/* Quick Confirm for pending takeaway/delivery and reservationless dine-in orders. */}
+        {onQuickConfirm && isQuickConfirmCandidate(order) && (
           <button
             className={`${styles.actionButton} ${styles.actionButtonSuccess}`}
             onClick={() => onQuickConfirm(order.id)}

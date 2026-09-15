@@ -28,12 +28,23 @@ jest.mock('./DeliveryAddressModal', () => ({
 }));
 jest.mock('./TakeawayInfoModal', () => ({
   __esModule: true,
-  default: ({ isOpen, title, requiredFields }: { isOpen: boolean; title?: string; requiredFields?: string[] }) => (
+  default: ({
+    isOpen,
+    title,
+    requiredFields,
+    source,
+  }: {
+    isOpen: boolean;
+    title?: string;
+    requiredFields?: string[];
+    source?: string;
+  }) => (
     <div
       data-testid="contact"
       data-open={String(isOpen)}
       data-title={title ?? ''}
       data-required={(requiredFields ?? []).join(',')}
+      data-source={source ?? ''}
     />
   ),
 }));
@@ -95,6 +106,16 @@ describe('OrderFlowModals — Edit editors', () => {
     renderWith('takeaway');
     expect(screen.getByTestId('contact')).toHaveAttribute('data-open', 'true');
     expect(screen.getByTestId('contact')).toHaveAttribute('data-title', '');
+  });
+
+  it('opens name-and-email collection for reservationless DineIn without opening a table', () => {
+    renderWith('dinein');
+    expect(screen.getByTestId('contact').dataset).toMatchObject({
+      open: 'true',
+      required: 'name,email',
+      source: 'dinein_modal',
+    });
+    expect(screen.getByTestId('table')).toHaveAttribute('data-open', 'false');
   });
 });
 

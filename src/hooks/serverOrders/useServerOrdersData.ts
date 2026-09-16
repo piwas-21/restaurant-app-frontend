@@ -1,18 +1,37 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getDineInOrders, getTablesWithStatus, ServerTableDto } from '@/services/serverService';
+import {
+  ACTIVE_ORDER_STATUS_FILTER,
+  getDineInOrders,
+  getTablesWithStatus,
+  ServerTableDto,
+} from '@/services/serverService';
 import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_START_DELAY_MS = 100;
 
+async function getInitialOrders(): Promise<OrderDto[]> {
+  const [recentOrders, activeOrders] = await Promise.all([
+    getDineInOrders(),
+    getDineInOrders({ status: ACTIVE_ORDER_STATUS_FILTER }),
+  ]);
+
+  const ordersById = new Map<string, OrderDto>();
+  for (const order of recentOrders.items || []) ordersById.set(order.id, order);
+  for (const order of activeOrders.items || []) ordersById.set(order.id, order);
+  return [...ordersById.values()];
+}
+
 export interface UseServerOrdersDataReturn {
   orders: OrderDto[];
   tables: ServerTableDto[];
   isLoading: boolean;
   error: string | null;
+  /** True when the visible snapshot may be stale because a refresh failed. */
+  isStale: boolean;
   /** Replace error state — used by the parent hook to surface mutation errors. */
   setError: (msg: string | null) => void;
   /** Apply an updater to the orders list — used by the SSE stream and mutations. */
@@ -32,7 +51,9 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [tables, setTables] = useState<ServerTableDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [tablesError, setTablesError] = useState<string | null>(null);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const isMountedRef = useRef(true);
   const lastPolledAtRef = useRef<Date | null>(null);
@@ -41,15 +62,16 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
   const fetchOrders = useCallback(async (modifiedSince?: Date) => {
     if (!isMountedRef.current) return;
     try {
-      setError(null);
-      const result = await getDineInOrders(modifiedSince ? { modifiedSince } : undefined);
+      const resultItems = modifiedSince
+        ? (await getDineInOrders({ modifiedSince })).items || []
+        : await getInitialOrders();
       if (!isMountedRef.current) return;
 
-      if (modifiedSince && result.items && result.items.length > 0) {
+      if (modifiedSince && resultItems.length > 0) {
         // Incremental update: merge new/updated orders.
         setOrders((prev) => {
           const newOrders = [...prev];
-          for (const order of result.items) {
+          for (const order of resultItems) {
             const existingIndex = newOrders.findIndex((o) => o.id === order.id);
             if (existingIndex >= 0) {
               newOrders[existingIndex] = order;
@@ -60,14 +82,16 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
           return newOrders;
         });
       } else if (!modifiedSince) {
-        setOrders(result.items || []);
+        setOrders(resultItems);
       }
       lastPolledAtRef.current = new Date();
+      setOrdersError(null);
+      setMutationError(null);
       setIsLoading(false);
     } catch (err) {
       if (!isMountedRef.current) return;
       const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
-      setError(errorMessage);
+      setOrdersError(errorMessage);
       setIsLoading(false);
       console.error('Error fetching orders:', err);
     }
@@ -79,11 +103,19 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
     if (!isMountedRef.current) return;
     try {
       const tablesWithStatus = await getTablesWithStatus();
-      if (isMountedRef.current) setTables(tablesWithStatus);
+      if (isMountedRef.current) {
+        setTables(tablesWithStatus);
+        setTablesError(null);
+        setMutationError(null);
+      }
     } catch (err) {
+      if (isMountedRef.current) setTablesError(getErrorMessage(err) ?? 'Failed to load tables');
       console.error('Error fetching tables:', err);
     }
   }, []);
+
+  const setError = useCallback((msg: string | null) => setMutationError(msg), []);
+  const error = mutationError ?? ordersError ?? tablesError;
 
   // Mount-once: initial fetch + start the 5s polling cycle (incremental
   // via `modifiedSince`). Matches pre-split behaviour exactly.
@@ -121,6 +153,7 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
     tables,
     isLoading,
     error,
+    isStale: Boolean(error),
     setError,
     setOrders,
     refreshOrders,

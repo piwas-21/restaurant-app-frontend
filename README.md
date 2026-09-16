@@ -99,20 +99,23 @@ Pre-commit hook blocks direct commits to `main`, `develop`, and `master`. Branch
 
 Configured in **Settings → Repository → Protected Branches**:
 
-| Branch | Allowed to push | Allowed to merge | Force push |
-|---|---|---|---|
-| `main` | No one | Maintainers | Disabled |
-| `develop` | No one | Maintainers + Developers | Disabled |
+| Branch    | Allowed to push | Allowed to merge         | Force push |
+| --------- | --------------- | ------------------------ | ---------- |
+| `main`    | No one          | Maintainers              | Disabled   |
+| `develop` | No one          | Maintainers + Developers | Disabled   |
 
 All MRs require the pipeline to pass before merge.
 
 ## Environment variables
 
-| Variable | Purpose | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_API_URL` | Backend API base URL | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod |
-| `NEXT_PUBLIC_IMAGE_BASE_URL` | Image CDN / S3 base | E.g. S3 bucket URL |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client (public) | Per-environment value |
+| Variable                                    | Purpose                             | Notes                                                                            |
+| ------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`                       | Backend API base URL                | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod |
+| `NEXT_PUBLIC_IMAGE_BASE_URL`                | Image CDN / S3 base                 | E.g. S3 bucket URL                                                               |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`              | Google OAuth client (public)        | Per-environment value                                                            |
+| `NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS` | Cashier tenant-day refresh interval | Positive milliseconds                                                            |
+| `NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE`        | Legacy waiter order page size       | Positive integer; defaults to `100`                                              |
+| `NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES`        | Active-order safety read ceiling    | Positive integer; defaults to `1000`                                             |
 
 Read variables via `src/lib/config.ts` (typed export), never `process.env.NEXT_PUBLIC_*` scattered across components.
 
@@ -124,11 +127,11 @@ Required sections: summary, sprint-task link, acceptance-criteria coverage, back
 
 ## Documentation
 
-| File | Purpose |
-|---|---|
-| [CLAUDE.md](CLAUDE.md) | Agent rules — auto-loaded |
-| [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Design system patterns |
-| [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) | Coding conventions |
-| [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) | Security findings + status |
-| [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
-| [docs/adr/](docs/adr/) | Architecture Decision Records |
+| File                                                             | Purpose                                                           |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [CLAUDE.md](CLAUDE.md)                                           | Agent rules — auto-loaded                                         |
+| [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)                   | Design system patterns                                            |
+| [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) | Coding conventions                                                |
+| [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)                 | Security findings + status                                        |
+| [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md)                     | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
+| [docs/adr/](docs/adr/)                                           | Architecture Decision Records                                     |

@@ -17,12 +17,11 @@ export type { Product, ProductCategoryLink, ProductVariation, Category } from '.
 export type { UserDto, FidelityPointBalanceDto, CustomerDiscountRuleDto } from './server/customers';
 
 export {
+  ACTIVE_ORDER_STATUS_FILTER,
   getDineInOrders,
   updateOrderStatus,
   markOrderCompleted,
-  completeAllTableOrders,
   getOrderById,
-  getOrdersForTable,
   createServerOrder,
 } from './server/orders';
 export {
@@ -46,9 +45,7 @@ import {
   getDineInOrders,
   updateOrderStatus,
   markOrderCompleted,
-  completeAllTableOrders,
   getOrderById,
-  getOrdersForTable,
   createServerOrder,
 } from './server/orders';
 import {
@@ -75,9 +72,7 @@ export const serverService = {
   getUpcomingReservations,
   updateOrderStatus,
   markOrderCompleted,
-  completeAllTableOrders,
   getOrderById,
-  getOrdersForTable,
   closeTable,
   openTable,
   releaseTable,

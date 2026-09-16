@@ -1,7 +1,7 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ServerTableDto, closeTable, openTable, releaseTable, completeAllTableOrders } from '@/services/serverService';
+import { ServerTableDto, closeTable, openTable, releaseTable } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
@@ -15,6 +15,7 @@ interface TableDetailsModalProps {
   onUpdateOrderStatus: (orderId: string, status: string) => void;
   onTakeOrder: () => void;
   onTableStatusChanged: () => void;
+  isStale: boolean;
 }
 
 export default function TableDetailsModal({
@@ -24,6 +25,7 @@ export default function TableDetailsModal({
   onUpdateOrderStatus,
   onTakeOrder,
   onTableStatusChanged,
+  isStale,
 }: TableDetailsModalProps) {
   const { t } = useTranslation();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -60,6 +62,11 @@ export default function TableDetailsModal({
   };
 
   const activeOrders = orders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
+  let closeTableTitle: string | undefined;
+  if (isStale) closeTableTitle = t('server.snapshot_stale', 'Refresh before changing table availability.');
+  else if (activeOrders.length > 0) {
+    closeTableTitle = t('server.close_hint', 'Complete all orders before closing the table');
+  }
 
   const handleCloseTable = async () => {
     try {
@@ -125,6 +132,11 @@ export default function TableDetailsModal({
 
         <div className={styles.content}>
           {error && <div className={styles.errorBanner}>{error}</div>}
+          {isStale && (
+            <div className={styles.staleBanner} role="alert">
+              {t('server.snapshot_stale', 'Data may be out of date. Refresh before closing or releasing the table.')}
+            </div>
+          )}
 
           {/* Table Actions */}
           <div className={styles.section}>
@@ -138,34 +150,13 @@ export default function TableDetailsModal({
 
               {/* Mark as Available button for reserved tables */}
               {table.status === 'reserved' && (
-                <button className={styles.releaseTableButton} onClick={handleReleaseTable} disabled={isUpdating}>
-                  {isUpdating ? '...' : '✅'} {t('server.mark_available', 'Mark as Available')}
-                </button>
-              )}
-
-              {/* Mark as Available button for occupied tables with no active orders in UI */}
-              {table.status === 'occupied' && activeOrders.length === 0 && (
                 <button
                   className={styles.releaseTableButton}
-                  onClick={async () => {
-                    try {
-                      setIsUpdating(true);
-                      setError(null);
-                      // Complete any lingering orders in the database for this table
-                      const result = await completeAllTableOrders(table.tableNumber);
-
-                      if (result.totalProcessed > 0) {
-                      }
-
-                      onTableStatusChanged();
-                      onClose();
-                    } catch (err) {
-                      console.error('Failed to free table:', err);
-                      setError(getErrorMessage(err) ?? 'Failed to free table');
-                      setIsUpdating(false);
-                    }
-                  }}
-                  disabled={isUpdating}
+                  onClick={handleReleaseTable}
+                  disabled={isUpdating || isStale}
+                  title={
+                    isStale ? t('server.snapshot_stale', 'Refresh before changing table availability.') : undefined
+                  }
                 >
                   {isUpdating ? '...' : '✅'} {t('server.mark_available', 'Mark as Available')}
                 </button>
@@ -186,8 +177,8 @@ export default function TableDetailsModal({
                 <button
                   className={styles.closeTableButton}
                   onClick={handleCloseTable}
-                  disabled={isUpdating || activeOrders.length > 0}
-                  title={activeOrders.length > 0 ? 'Complete all orders first' : ''}
+                  disabled={isUpdating || isStale || activeOrders.length > 0}
+                  title={closeTableTitle}
                 >
                   {isUpdating ? '...' : '🔒'} {t('server.close_table', 'Close Table')}
                 </button>

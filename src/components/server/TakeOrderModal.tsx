@@ -50,11 +50,6 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
               error={order.error}
               customerName={order.customerName}
               onCustomerNameChange={order.setCustomerName}
-              selectedUser={order.selectedUser}
-              onUserSelect={order.handleUserSelect}
-              orderSubtotal={order.orderSubtotal}
-              pointsToRedeem={order.pointsToRedeem}
-              onPointsChange={order.setPointsToRedeem}
               orderItems={order.orderItems}
               onUpdateQuantity={order.updateQuantity}
               onRemoveItem={order.removeItem}

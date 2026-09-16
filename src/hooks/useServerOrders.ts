@@ -13,6 +13,7 @@ interface UseServerOrdersReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
+  isStale: boolean;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
   refreshOrders: () => Promise<void>;
@@ -32,10 +33,25 @@ interface UseServerOrdersReturn {
  * (`src/app/server/page.tsx`) need no changes.
  */
 export function useServerOrders(): UseServerOrdersReturn {
-  const { orders, tables, isLoading, error, setError, setOrders, refreshOrders, refreshTables, isMountedRef } =
-    useServerOrdersData();
+  const {
+    orders,
+    tables,
+    isLoading,
+    error: dataError,
+    isStale: dataIsStale,
+    setError,
+    setOrders,
+    refreshOrders,
+    refreshTables,
+    isMountedRef,
+  } = useServerOrdersData();
 
-  const { isConnected, lastEventTime, connectionState } = useServerOrdersStream({
+  const {
+    isConnected,
+    lastEventTime,
+    connectionState,
+    error: streamError,
+  } = useServerOrdersStream({
     onOrderUpdate: (updater) => {
       if (isMountedRef.current) setOrders(updater);
     },
@@ -65,6 +81,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           }),
         );
         await refreshTables();
+        setError(null);
         return mergedOrder || updatedOrder;
       } catch (err) {
         const errorMessage = getErrorMessage(err) ?? 'Failed to update status';
@@ -85,7 +102,8 @@ export function useServerOrders(): UseServerOrdersReturn {
     tables,
     isConnected,
     isLoading,
-    error,
+    error: dataError || streamError,
+    isStale: dataIsStale || Boolean(streamError),
     lastEventTime,
     connectionState,
     refreshOrders,

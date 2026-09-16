@@ -264,6 +264,17 @@ describe('TakeOrderModal', () => {
     expect(screen.getByRole('button', { name: 'Place Order' })).toBeDisabled();
   });
 
+  it('does not show unverified customer loyalty or discount controls in the waiter flow', async () => {
+    setup();
+
+    await screen.findByText('Margherita');
+
+    expect(screen.queryByText('Fidelity Points')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Member Discount/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Registered')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Customer name (optional)')).toBeInTheDocument();
+  });
+
   it('opens the customization modal when a product is clicked', async () => {
     setup();
     fireEvent.click(await screen.findByRole('button', { name: /Margherita/ }));
@@ -343,8 +354,6 @@ describe('TakeOrderModal', () => {
       ],
       undefined,
       undefined,
-      undefined,
-      undefined,
     );
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -358,6 +367,8 @@ describe('TakeOrderModal', () => {
 
     expect(await screen.findByText('Table 5 already has an open order')).toBeInTheDocument();
     expect(onOrderCreated).not.toHaveBeenCalled();
+    expect(screen.getAllByText('Margherita')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Place Order' })).toBeEnabled();
   });
 
   // A plain `Error` here is a CLIENT-side bug, and its text ("Cannot read properties of undefined")

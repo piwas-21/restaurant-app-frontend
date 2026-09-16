@@ -63,6 +63,7 @@ const serverProps = {
   connectionState: 'connected' as const,
   lastEventTime: null,
   error: null,
+  isStale: false,
   statusFilter: 'active',
   onStatusFilterChange: jest.fn(),
 };

@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import BaseModal from './BaseModal';
+import modalStyles from './BaseModal.module.css';
 
 // Stub react-i18next so the t() fallback ("Close") is returned without
 // requiring the i18next provider in the test tree.
@@ -32,7 +33,7 @@ describe('BaseModal', () => {
     expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument();
   });
 
-  it('sets accessibility attributes on the dialog (role, aria-modal, aria-labelledby)', () => {
+  it('uses native dialog semantics with an accessible title', () => {
     render(
       <BaseModal isOpen onClose={() => {}} title="A11y title">
         <p>body</p>
@@ -41,7 +42,8 @@ describe('BaseModal', () => {
     // getByRole with `name` resolves the accessible name via aria-labelledby,
     // so this implicitly verifies the title element is correctly linked.
     const dialog = screen.getByRole('dialog', { name: /a11y title/i });
-    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog.tagName).toBe('DIALOG');
+    expect(dialog).toHaveAttribute('open');
     expect(dialog).toHaveAttribute('aria-labelledby');
   });
 
@@ -53,6 +55,21 @@ describe('BaseModal', () => {
       </BaseModal>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('invokes onClose from the native backdrop button without nesting the dialog in it', () => {
+    const onClose = jest.fn();
+    render(
+      <BaseModal isOpen onClose={onClose} title="t">
+        <button>Body action</button>
+      </BaseModal>,
+    );
+
+    const backdrop = screen.getByRole('button', { name: 'Dismiss' });
+    const dialog = screen.getByRole('dialog');
+    expect(backdrop).not.toContainElement(dialog);
+    fireEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -125,6 +142,39 @@ describe('BaseModal', () => {
     background.remove();
   });
 
+  it('keeps Escape ownership with the top-most nested modal', () => {
+    const parentClose = jest.fn();
+    const childClose = jest.fn();
+    render(
+      <BaseModal isOpen onClose={parentClose} title="Parent">
+        <BaseModal isOpen onClose={childClose} title="Child">
+          <button>Child action</button>
+        </BaseModal>
+      </BaseModal>,
+    );
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(childClose).toHaveBeenCalledTimes(1);
+    expect(parentClose).not.toHaveBeenCalled();
+  });
+
+  it('consumes the mapped close and responsive-sheet classes in the DOM', () => {
+    render(
+      <BaseModal isOpen onClose={() => {}} title="Soup" presentation="responsive-sheet">
+        <p>Modifiers</p>
+      </BaseModal>,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Soup' });
+    expect(dialog).toHaveClass(modalStyles.dialog, modalStyles.responsiveSheetDialog);
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toHaveClass(
+      modalStyles.overlay,
+      modalStyles.responsiveSheetOverlay,
+    );
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass(modalStyles.closeButton);
+  });
+
   it('does not allow a pending action to be dismissed', () => {
     const onClose = jest.fn();
     render(
@@ -134,7 +184,7 @@ describe('BaseModal', () => {
     );
 
     fireEvent.keyDown(window, { key: 'Escape' });
-    fireEvent.click(screen.getByRole('dialog').parentElement!);
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(screen.getByRole('button', { name: 'Close' })).toBeDisabled();

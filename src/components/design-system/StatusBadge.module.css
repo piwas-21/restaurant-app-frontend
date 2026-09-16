@@ -8,6 +8,20 @@
   white-space: nowrap;
 }
 
+.sm {
+  font-size: 0.75rem;
+}
+
+.md {
+  font-size: 0.8125rem;
+}
+
+.lg {
+  font-size: 0.9375rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.625rem;
+}
+
 /* #592. `--success-color` (#4caf50 light) under white ink is 2.78:1 — a serious axe finding on the
    product editor's `Active` badge. `--success-color-darker` is the token the design system already
    defines FOR THIS: 5.13:1 in light. Dark mode is unaffected in kind — `--text-on-primary` flips to

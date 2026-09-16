@@ -31,4 +31,22 @@ describe('StatusBadge', () => {
     expect(el.className).toContain('extra');
     expect(el.className).toContain('success');
   });
+
+  it('uses native output semantics when an explicit accessible name is supplied', () => {
+    render(
+      <StatusBadge tone="success" ariaLabel="Occupied">
+        O
+      </StatusBadge>,
+    );
+
+    const badge = screen.getByLabelText('Occupied');
+    expect(badge.tagName).toBe('OUTPUT');
+    expect(badge).toHaveClass('badge', 'success');
+    expect(badge).toHaveTextContent('O');
+  });
+
+  it('preserves generic span semantics for existing visible-label consumers', () => {
+    const { container } = render(<StatusBadge>Active</StatusBadge>);
+    expect(container.querySelector('span')).not.toHaveAttribute('role');
+  });
 });

@@ -1,0 +1,149 @@
+.shell {
+  min-block-size: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--page-canvas);
+  color: var(--text-primary);
+}
+
+.shellHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  min-block-size: 3.5rem;
+  padding-block: var(--space-2, 0.5rem);
+  padding-inline: var(--space-4, 1rem);
+  border-block-end: 1px solid var(--border-default);
+  background: var(--surface-primary);
+}
+
+.identity,
+.shellActions,
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.identity,
+.shellActions {
+  min-inline-size: 0;
+}
+
+.identityText {
+  display: grid;
+  min-inline-size: 0;
+  gap: 0.125rem;
+}
+
+.tenant,
+.location,
+.user {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tenant {
+  font-weight: 700;
+}
+
+.location,
+.user {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.nav {
+  order: -1;
+  flex-wrap: wrap;
+}
+
+.navLink,
+.iconButton,
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 3rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 0.5rem);
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  padding-block: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navLink[data-active='true'] {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--surface-secondary);
+}
+
+.iconButton,
+.backButton {
+  padding: 0.5rem;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.38fr) minmax(0, 1fr);
+  min-block-size: 0;
+}
+
+.splitMaster,
+.splitDetail {
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+}
+
+.splitMaster {
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.single {
+  display: block;
+}
+
+.single .splitMaster[data-hidden='true'] {
+  display: none;
+}
+
+.single .splitDetail[data-hidden='true'] {
+  display: none;
+}
+
+.splitDetail {
+  padding: var(--space-2, 0.5rem);
+}
+
+[dir='rtl'] .backButton svg {
+  transform: scaleX(-1);
+}
+
+.navLink:focus-visible,
+.iconButton:focus-visible,
+.backButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 63.9375rem) {
+  .shellHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .nav {
+    inline-size: 100%;
+    order: 3;
+  }
+
+  .splitMaster {
+    border-inline-end: 0;
+  }
+}

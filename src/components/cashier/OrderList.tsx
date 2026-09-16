@@ -89,6 +89,7 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
         const status = orderStatusPresentation(order.status, t);
         const statusBadgeModifier = BADGE_FILL_CLASS[status.fill];
         const isSelected = selectedOrderId === order.id;
+        const tableLabel = order.tableLabel?.trim() || order.tableNumber;
 
         return (
           <div
@@ -116,8 +117,8 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
             <div className={styles.orderCardBody}>
               <div className={styles.orderCustomer}>
                 <span className={styles.customerName}>{order.customerName || t('guest', 'Guest')}</span>
-                {order.type === OrderType.DineIn && order.tableNumber && (
-                  <span className={styles.tableNumber}>Table {order.tableNumber}</span>
+                {order.type === OrderType.DineIn && tableLabel && (
+                  <span className={styles.tableNumber}>Table {tableLabel}</span>
                 )}
               </div>
 

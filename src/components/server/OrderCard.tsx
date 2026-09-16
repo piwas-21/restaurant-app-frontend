@@ -8,6 +8,7 @@ import { nextOrderStatuses, orderStatusLabel, orderStatusMeta } from '@/lib/orde
 import { OrderDto, OrderStatus, OrderType } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from './OrderCard.module.css';
 
 interface OrderCardProps {
@@ -54,15 +55,18 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
 
   const nextStatus = primaryNextStatus(order);
   const nextAction = nextStatus ? NEXT_ACTION[nextStatus] : undefined;
+  const tableLabel = getOrderTableLabel(order);
 
   return (
     <div className={`${styles.card} ${styles[orderStatusMeta(order.status)?.className ?? ''] ?? ''}`}>
       <div className={styles.header}>
         <div className={styles.orderInfo}>
           <span className={styles.orderNumber}>#{order.orderNumber}</span>
-          <span className={styles.tableNumber}>
-            {t('server.table', 'Table')} {order.tableNumber}
-          </span>
+          {tableLabel && (
+            <span className={styles.tableNumber}>
+              {t('server.table', 'Table')} {tableLabel}
+            </span>
+          )}
         </div>
         <div className={styles.statusBadge}>{orderStatusLabel(order.status, t)}</div>
       </div>

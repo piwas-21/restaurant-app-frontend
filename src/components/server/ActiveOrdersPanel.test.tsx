@@ -20,6 +20,14 @@ function order(id: string, orderNumber: string, status: string): OrderDto {
   } as unknown as OrderDto;
 }
 
+function tableOrder(id: string, tableId: string | null, tableNumber: number | null): OrderDto {
+  return {
+    ...order(id, id, 'Pending'),
+    tableId,
+    tableNumber,
+  } as OrderDto;
+}
+
 describe('ActiveOrdersPanel', () => {
   it('does not apply a second active-only filter to the explicit All view', () => {
     render(
@@ -34,5 +42,24 @@ describe('ActiveOrdersPanel', () => {
     expect(screen.getByText('#1001')).toBeInTheDocument();
     expect(screen.getByText('#1002')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'All Orders' })).toBeInTheDocument();
+  });
+
+  it('matches a selected table by stable ID, with numeric fallback only for legacy orders', () => {
+    render(
+      <ActiveOrdersPanel
+        orders={[
+          tableOrder('stable-match', 'table-qa', null),
+          tableOrder('stable-mismatch', 'other-table', 7),
+          tableOrder('legacy-match', null, 7),
+        ]}
+        selectedTableId="table-qa"
+        selectedTableNumber="7"
+        onStatusChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('#stable-match')).toBeInTheDocument();
+    expect(screen.getByText('#legacy-match')).toBeInTheDocument();
+    expect(screen.queryByText('#stable-mismatch')).not.toBeInTheDocument();
   });
 });

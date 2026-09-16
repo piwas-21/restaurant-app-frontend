@@ -8,6 +8,7 @@ import { OrderDto } from '@/types/order';
 import { TableDto, ReservationDto, ApiResponse, PagedResult as ReservationPagedResult } from '@/types/reservation';
 import { getTenantToday } from '@/services/tenantTimeService';
 import { isCalendarDay, todayOnDevice } from '@/utils/calendarDay';
+import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import { getDineInOrders } from './orders';
 
 const RESERVATION_IMMINENT_WINDOW_MS = 30 * 60 * 1000;
@@ -72,7 +73,7 @@ export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
   const imminentDeadline = new Date(now.getTime() + RESERVATION_IMMINENT_WINDOW_MS);
 
   return tables.map((table) => {
-    const tableOrders = orders.filter((order) => order.tableNumber?.toString() === table.tableNumber);
+    const tableOrders = orders.filter((order) => orderBelongsToTable(order, table.id, table.tableNumber));
     const upcomingReservation = reservations.find((res) => res.tableId === table.id);
 
     let status: ServerTableDto['status'] = 'available';

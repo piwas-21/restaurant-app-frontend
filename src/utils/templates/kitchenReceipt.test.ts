@@ -31,6 +31,20 @@ describe('generateKitchenReceiptHtml — single-kitchen bundle', () => {
   });
 });
 
+describe('generateKitchenReceiptHtml — table identity', () => {
+  it('prints an alphanumeric table label when the numeric compatibility field is null', () => {
+    const order = singleKitchenBundleOrder();
+    order.tableId = 'table-qa';
+    order.tableLabel = 'T-QA';
+    order.tableNumber = null;
+
+    const html = generateKitchenReceiptHtml(order, 'FrontKitchen');
+
+    expect(html).not.toBeNull();
+    expect(html).toContain('- Table T-QA');
+  });
+});
+
 describe('generateKitchenReceiptHtml — General Kitchen', () => {
   it('shows every all-unassigned line, including nested descendants', () => {
     const html = generateKitchenReceiptHtml(allUnassignedOrder(), 'GeneralKitchen');

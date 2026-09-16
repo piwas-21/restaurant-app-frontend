@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ServerTableDto, closeTable, openTable, releaseTable } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
+import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './TableDetailsModal.module.css';
@@ -61,7 +62,8 @@ export default function TableDetailsModal({
     }
   };
 
-  const activeOrders = orders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
+  const tableOrders = orders.filter((order) => orderBelongsToTable(order, table.id, table.tableNumber));
+  const activeOrders = tableOrders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
   let closeTableTitle: string | undefined;
   if (isStale) closeTableTitle = t('server.snapshot_stale', 'Refresh before changing table availability.');
   else if (activeOrders.length > 0) {

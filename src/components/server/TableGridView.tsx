@@ -5,20 +5,26 @@ import TableCard from './TableCard';
 import styles from './TableGridView.module.css';
 
 interface TableGridViewProps {
-  tables: ServerTableDto[];
-  selectedTableNumber: string | null;
-  onSelectTable: (tableNumber: string) => void;
-  isLoading?: boolean;
+  readonly tables: readonly ServerTableDto[];
+  readonly selectedTableNumber: string | null;
+  readonly selectedTableId?: string | null;
+  readonly onSelectTable: (tableNumber: string, tableId: string) => void;
+  readonly isLoading?: boolean;
 }
 
-export default function TableGridView({ tables, selectedTableNumber, onSelectTable, isLoading }: TableGridViewProps) {
+export default function TableGridView({
+  tables,
+  selectedTableNumber,
+  selectedTableId,
+  onSelectTable,
+  isLoading,
+}: TableGridViewProps) {
   const { t } = useTranslation();
 
-  // Sort tables by table number
+  // Sort labels naturally without stripping characters: labels such as T-QA are valid table
+  // identities and must not collapse into the same numeric bucket as another labelled table.
   const sortedTables = [...tables].sort((a, b) => {
-    const numA = parseInt(a.tableNumber.replace(/\D/g, '')) || 0;
-    const numB = parseInt(b.tableNumber.replace(/\D/g, '')) || 0;
-    return numA - numB;
+    return a.tableNumber.localeCompare(b.tableNumber, undefined, { numeric: true, sensitivity: 'base' });
   });
 
   // Calculate stats
@@ -68,8 +74,8 @@ export default function TableGridView({ tables, selectedTableNumber, onSelectTab
           <TableCard
             key={table.id}
             table={table}
-            isSelected={table.tableNumber === selectedTableNumber}
-            onClick={() => onSelectTable(table.tableNumber)}
+            isSelected={selectedTableId ? table.id === selectedTableId : table.tableNumber === selectedTableNumber}
+            onClick={() => onSelectTable(table.tableNumber, table.id)}
           />
         ))}
       </div>

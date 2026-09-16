@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { updateOrderStatus as updateOrderStatusService, ServerTableDto } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
+import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import { useServerOrdersData } from './serverOrders/useServerOrdersData';
 import { useServerOrdersStream, ConnectionState } from './serverOrders/useServerOrdersStream';
 
@@ -19,7 +20,7 @@ interface UseServerOrdersReturn {
   refreshOrders: () => Promise<void>;
   refreshTables: () => Promise<void>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
-  getOrdersForTable: (tableNumber: string) => OrderDto[];
+  getOrdersForTable: (tableNumber: string, tableId?: string) => OrderDto[];
 }
 
 /**
@@ -93,7 +94,8 @@ export function useServerOrders(): UseServerOrdersReturn {
   );
 
   const getOrdersForTable = useCallback(
-    (tableNumber: string) => orders.filter((order) => order.tableNumber?.toString() === tableNumber),
+    (tableNumber: string, tableId?: string) =>
+      orders.filter((order) => orderBelongsToTable(order, tableId, tableNumber)),
     [orders],
   );
 

@@ -9,6 +9,7 @@ import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
 import { selectItemsForKitchen } from '../orderItemTree';
 import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -118,6 +119,7 @@ export const generateKitchenReceiptHtml = (
 
   // Kitchen type label
   const kitchenLabel = getKitchenLabel(kitchenType, translate);
+  const tableLabel = getOrderTableLabel(order);
 
   // Build items with or without prices
   const itemsHtml = filteredItems.map((item) => buildKitchenItemHtml(item, translate, showPrices)).join('');
@@ -201,7 +203,7 @@ export const generateKitchenReceiptHtml = (
             ${escapeHtml(order.orderNumber)} - ${new Date(order.orderDate).toLocaleDateString()} ${new Date(order.orderDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
           <div>
-            <strong>Type:</strong> ${escapeHtml(getOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && order.tableNumber ? ` - Table ${order.tableNumber}` : ''}
+            <strong>Type:</strong> ${escapeHtml(getOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && tableLabel ? ` - Table ${escapeHtml(tableLabel)}` : ''}
           </div>
         </div>
 

@@ -1,12 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
+import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import OrderCard from './OrderCard';
 import styles from './ActiveOrdersPanel.module.css';
 
 interface ActiveOrdersPanelProps {
   orders: OrderDto[];
   selectedTableNumber: string | null;
+  selectedTableId?: string | null;
   onStatusChange: (orderId: string, status: string) => void;
   statusFilter?: string;
   isLoading?: boolean;
@@ -16,6 +18,7 @@ interface ActiveOrdersPanelProps {
 export default function ActiveOrdersPanel({
   orders,
   selectedTableNumber,
+  selectedTableId,
   onStatusChange,
   statusFilter = 'active',
   isLoading,
@@ -26,7 +29,7 @@ export default function ActiveOrdersPanel({
   // Filtering belongs to the page-level status selector. Applying an active-only filter here as
   // well made the explicit "All" view silently drop Completed and Cancelled orders.
   const displayedOrders = selectedTableNumber
-    ? orders.filter((order) => order.tableNumber?.toString() === selectedTableNumber)
+    ? orders.filter((order) => orderBelongsToTable(order, selectedTableId, selectedTableNumber))
     : orders;
 
   // Sort by order date (newest first)

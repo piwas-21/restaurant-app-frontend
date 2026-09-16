@@ -31,6 +31,7 @@ import styles from '../../styles/ConfirmationPage.module.css';
 import ConfirmationSuccessHeader from './ConfirmationSuccessHeader';
 import CheckoutReturnView from '@/components/checkout/CheckoutReturnView';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 
 function ConfirmationContent() {
   const { t } = useTranslation();
@@ -208,10 +209,10 @@ function ConfirmationContent() {
                   <span className={styles.infoLabel}>{t('order_date', 'Order Date')}:</span>
                   <span className={styles.infoValue}>{formatDate(order.orderDate)}</span>
                 </div>
-                {order.tableNumber && (
+                {getOrderTableLabel(order) && (
                   <div className={styles.infoRow}>
                     <span className={styles.infoLabel}>{t('table_number', 'Table Number')}:</span>
-                    <span className={styles.infoValue}>{order.tableNumber}</span>
+                    <span className={styles.infoValue}>{getOrderTableLabel(order)}</span>
                   </div>
                 )}
                 {order.deliveryAddress && (

@@ -3,6 +3,7 @@
  * Split from `serverService.ts` (Sprint 2 frontend baseline ratchet).
  */
 
+import { SERVER_ORDER_MAX_PAGES, SERVER_ORDER_PAGE_SIZE } from '@/lib/config';
 import { apiClient } from '@/utils/apiClient';
 import {
   OrderDto,
@@ -13,21 +14,26 @@ import {
   CreateOrderCommand,
   OrderType,
 } from '@/types/order';
-import { ApiResponse } from '@/types/reservation';
 
-export async function getDineInOrders(filters?: {
+export const ACTIVE_ORDER_STATUS_FILTER = 'Pending,Confirmed,Preparing,Ready';
+
+const ACTIVE_ORDER_STATUSES = new Set(ACTIVE_ORDER_STATUS_FILTER.split(','));
+
+type DineInOrderFilters = {
   status?: string;
   tableNumber?: number;
   page?: number;
   pageSize?: number;
   modifiedSince?: Date;
-}): Promise<PagedResult<OrderDto>> {
+};
+
+async function getDineInOrdersPage(filters?: DineInOrderFilters): Promise<PagedResult<OrderDto>> {
   const params = new URLSearchParams();
   params.append('type', 'DineIn');
 
   if (filters) {
     if (filters.status) params.append('status', filters.status);
-    if (filters.tableNumber) params.append('tableNumber', filters.tableNumber.toString());
+    if (filters.tableNumber !== undefined) params.append('tableNumber', filters.tableNumber.toString());
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
     if (filters.modifiedSince) params.append('modifiedSince', filters.modifiedSince.toISOString());
@@ -42,6 +48,60 @@ export async function getDineInOrders(filters?: {
   }
 
   return response.data;
+}
+
+function pageHasMore(result: PagedResult<OrderDto>, currentPage: number): boolean {
+  return result.hasNextPage === true || result.totalPages > currentPage;
+}
+
+function isActiveStatusFilter(status?: string): boolean {
+  return status?.split(',').some((value) => ACTIVE_ORDER_STATUSES.has(value.trim())) === true;
+}
+
+function shouldWalkAllPages(filters?: DineInOrderFilters): boolean {
+  return (
+    filters?.tableNumber !== undefined || filters?.modifiedSince !== undefined || isActiveStatusFilter(filters?.status)
+  );
+}
+
+export async function getDineInOrders(filters?: DineInOrderFilters): Promise<PagedResult<OrderDto>> {
+  const requestedPage = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? SERVER_ORDER_PAGE_SIZE;
+  const firstPage = await getDineInOrdersPage({ ...filters, page: requestedPage, pageSize });
+
+  // The default read feeds the All view and is deliberately bounded to recent rows. Only
+  // server-filtered active/table reads and modified-since deltas may walk further pages: those
+  // are the reads that can establish whether a table is safe to close. Explicit page requests
+  // retain their single-page semantics for callers that genuinely own pagination.
+  const firstPageHasNext = pageHasMore(firstPage, requestedPage);
+  if (filters?.page !== undefined || !shouldWalkAllPages(filters) || requestedPage !== 1 || !firstPageHasNext) {
+    return firstPage;
+  }
+
+  const itemsById = new Map(firstPage.items.map((order) => [order.id, order]));
+  let page = requestedPage + 1;
+  let hasNextPage: boolean = firstPageHasNext;
+  while (hasNextPage && page <= SERVER_ORDER_MAX_PAGES) {
+    const nextPage = await getDineInOrdersPage({ ...filters, page, pageSize });
+    for (const order of nextPage.items) itemsById.set(order.id, order);
+    hasNextPage = pageHasMore(nextPage, page);
+    if (nextPage.items.length === 0) break;
+    page += 1;
+  }
+
+  if (hasNextPage) {
+    throw new Error('The waiter order list is too large to load safely');
+  }
+
+  const items = [...itemsById.values()];
+  return {
+    ...firstPage,
+    items,
+    page: 1,
+    pageSize,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
 }
 
 export async function updateOrderStatus(orderId: string, newStatus: string, notes?: string): Promise<OrderDto> {
@@ -66,35 +126,6 @@ export async function markOrderCompleted(orderId: string): Promise<OrderDto> {
   return updateOrderStatus(orderId, 'Completed', 'All items served to table');
 }
 
-/**
- * Backend intelligently handles order transitions (active → completed,
- * pending/empty → cancelled) and returns counts per outcome.
- */
-export async function completeAllTableOrders(tableNumber: string): Promise<{
-  completedCount: number;
-  cancelledCount: number;
-  totalProcessed: number;
-}> {
-  const response = await apiClient.post<
-    ApiResponse<{
-      completedCount: number;
-      cancelledCount: number;
-      totalProcessed: number;
-      processedOrderNumbers: string[];
-    }>
-  >(`/api/orders/table/${tableNumber}/complete-all`, {}, { requireAuth: true });
-
-  if (!response.success || !response.data) {
-    throw new Error(response.message || 'Failed to complete table orders');
-  }
-
-  return {
-    completedCount: response.data.completedCount,
-    cancelledCount: response.data.cancelledCount,
-    totalProcessed: response.data.totalProcessed,
-  };
-}
-
 export async function getOrderById(orderId: string): Promise<OrderDto> {
   const response = await apiClient.get<OrderDtoApiResponse>(`/api/orders/${orderId}`, {
     requireAuth: true,
@@ -107,22 +138,11 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
   return response.data;
 }
 
-export async function getOrdersForTable(tableNumber: string): Promise<OrderDto[]> {
-  const result = await getDineInOrders({
-    tableNumber: parseInt(tableNumber, 10),
-    status: 'Pending,Confirmed,Preparing,Ready',
-    pageSize: 50,
-  });
-  return result.items || [];
-}
-
 export async function createServerOrder(
   tableNumber: number,
   items: CreateOrderItemDto[],
   customerName?: string,
   notes?: string,
-  userId?: string,
-  pointsToRedeem?: number,
 ): Promise<OrderDto> {
   const orderCommand: CreateOrderCommand = {
     type: OrderType.DineIn,
@@ -130,8 +150,6 @@ export async function createServerOrder(
     items,
     customerName: customerName || `Table ${tableNumber}`,
     notes,
-    userId: userId || undefined,
-    pointsToRedeem: pointsToRedeem || undefined,
   };
 
   const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders', orderCommand, { requireAuth: true });

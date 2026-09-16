@@ -8,6 +8,7 @@ interface ServerHeaderProps {
   connectionState: 'connecting' | 'connected' | 'disconnected' | 'error';
   lastEventTime: Date | null;
   error: string | null;
+  isStale: boolean;
   statusFilter: string;
   onStatusFilterChange: (filter: string) => void;
 }
@@ -17,12 +18,14 @@ export default function ServerHeader({
   connectionState,
   lastEventTime,
   error,
+  isStale,
   statusFilter,
   onStatusFilterChange,
 }: ServerHeaderProps) {
   const { t, i18n } = useTranslation();
 
   const getConnectionStatusClass = () => {
+    if (isStale) return styles.statusStale;
     switch (connectionState) {
       case 'connected':
         return styles.statusConnected;
@@ -37,6 +40,7 @@ export default function ServerHeader({
   };
 
   const getConnectionStatusText = () => {
+    if (isStale) return t('server.status_stale', 'Stale data');
     switch (connectionState) {
       case 'connected':
         return t('server.connected', 'Connected');
@@ -78,7 +82,12 @@ export default function ServerHeader({
       </div>
 
       <div className={styles.rightSection}>
-        <div className={`${styles.connectionStatus} ${getConnectionStatusClass()}`}>
+        <div
+          className={`${styles.connectionStatus} ${getConnectionStatusClass()}`}
+          role="status"
+          aria-live="polite"
+          aria-label={isStale ? t('server.snapshot_stale', 'Data may be out of date.') : undefined}
+        >
           <span className={styles.statusDot}></span>
           <span className={styles.statusText}>{getConnectionStatusText()}</span>
         </div>

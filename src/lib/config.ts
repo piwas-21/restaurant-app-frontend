@@ -114,3 +114,14 @@ export const CASHIER_TENANT_DAY_REFRESH_MS =
   Number.isSafeInteger(configuredCashierTenantDayRefreshMs) && configuredCashierTenantDayRefreshMs > 0
     ? configuredCashierTenantDayRefreshMs
     : undefined;
+
+function positiveIntegerConfig(raw: string | undefined, fallback: number): number {
+  const configured = Number((raw ?? '').trim());
+  return Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
+}
+
+/** Page size used by the legacy waiter-order compatibility read. */
+export const SERVER_ORDER_PAGE_SIZE = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE, 100);
+
+/** Fail-closed ceiling for safety-critical active-order page walking. */
+export const SERVER_ORDER_MAX_PAGES = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES, 1000);

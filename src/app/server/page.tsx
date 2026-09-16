@@ -14,6 +14,7 @@ export default function ServerPage() {
     isConnected,
     isLoading,
     error,
+    isStale,
     lastEventTime,
     connectionState,
     updateOrderStatus,
@@ -102,6 +103,7 @@ export default function ServerPage() {
         connectionState={connectionState}
         lastEventTime={lastEventTime}
         error={error}
+        isStale={isStale}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
       />
@@ -128,6 +130,7 @@ export default function ServerPage() {
             orders={filteredOrders}
             selectedTableNumber={selectedTableNumber}
             onStatusChange={handleStatusChange}
+            statusFilter={statusFilter}
             isLoading={isLoading}
             error={error}
           />
@@ -143,6 +146,7 @@ export default function ServerPage() {
           onUpdateOrderStatus={handleStatusChange}
           onTakeOrder={handleTakeOrder}
           onTableStatusChanged={handleTableStatusChanged}
+          isStale={isStale}
         />
       )}
 

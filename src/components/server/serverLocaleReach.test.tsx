@@ -98,6 +98,7 @@ describe('#610 — the waiter clocks follow the APP language, not the browser', 
         connectionState="connected"
         lastEventTime={at}
         error={null}
+        isStale={false}
         statusFilter="active"
         onStatusFilterChange={jest.fn()}
       />,
@@ -126,5 +127,26 @@ describe('#610 — the waiter clocks follow the APP language, not the browser', 
     const expected = at.toLocaleTimeString(mockLocale, HM);
     expect(expected).not.toBe(at.toLocaleTimeString([], HM));
     expect(screen.getByText(new RegExp(expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))).toBeInTheDocument();
+  });
+});
+
+describe('server connection truth', () => {
+  it('does not announce Connected when the data snapshot is stale', () => {
+    render(
+      <ServerHeader
+        isConnected
+        connectionState="connected"
+        lastEventTime={null}
+        error={null}
+        isStale
+        statusFilter="active"
+        onStatusFilterChange={jest.fn()}
+      />,
+    );
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Stale data');
+    expect(status).not.toHaveTextContent('Connected');
+    expect(status).toHaveAccessibleName('Data may be out of date.');
   });
 });

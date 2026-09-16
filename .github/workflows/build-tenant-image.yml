@@ -39,48 +39,48 @@ on:
         description: "Tenant's public domain (no scheme), e.g. demo.sofrapiwas.com"
         required: true
       image_tag:
-        description: "GHCR tag to publish, e.g. tenant-demo (convention: tenant-<registry slug>)"
+        description: 'GHCR tag to publish, e.g. tenant-demo (convention: tenant-<registry slug>)'
         required: true
       google_client_id:
         description: "Google OAuth web client id for this tenant ('' disables Google login; the shared client only allows registered JS origins)"
         required: false
-        default: ""
+        default: ''
       restaurant_name:
         description: "Tenant display name baked into page metadata (registry `name`, e.g. Demo Restaurant). Empty = neutral 'Restaurant' title — pass it for any real tenant"
         required: false
-        default: ""
+        default: ''
       branding_url:
         description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: icon.svg, icon-192.png, icon-512.png, icon-maskable-512.png, hero.png, placeholder.png). An archive with icon.svg but not all three PNGs FAILS the build — the PNGs are the installed app's home-screen icon. NO logo — since O6 the logo is runtime data uploaded in tenant admin. Empty = SofraPiwas default assets"
         required: false
-        default: ""
+        default: ''
       branding_dir:
-        description: "Repo-relative dir of committed branding assets (same filenames and same icon-set rule as branding_url) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none"
+        description: 'Repo-relative dir of committed branding assets (same filenames and same icon-set rule as branding_url) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none'
         required: false
-        default: ""
+        default: ''
       template:
-        description: "UI template baked into the bundle (registry `template:` field, ADR-006): classic | craft"
+        description: 'UI template baked into the bundle (registry `template:` field, ADR-006): classic | craft'
         required: false
-        default: "classic"
+        default: 'classic'
       currency:
-        description: "ISO 4217 currency code baked into price formatting (registry `currency:` field, deploy repo; pairs with backend LocalizationSettings.Currency), e.g. CHF, EUR"
+        description: 'ISO 4217 currency code baked into price formatting (registry `currency:` field, deploy repo; pairs with backend LocalizationSettings.Currency), e.g. CHF, EUR'
         required: false
-        default: "CHF"
+        default: 'CHF'
       locale:
         description: "BCP-47 locale that places/punctuates the price (registry `locale:` field, deploy repo): de-CH renders 'EUR 8.00', fr-FR renders '8,00 €'"
         required: false
-        default: "de-CH"
+        default: 'de-CH'
       pwa_theme_color:
-        description: "Web app manifest theme_color, #rrggbb (browser/OS chrome around the installed app). EMPTY DEFAULTS TO RUMI RED #c00000 — pass it for any tenant with another palette"
+        description: 'Web app manifest theme_color, #rrggbb (browser/OS chrome around the installed app). EMPTY DEFAULTS TO RUMI RED #c00000 — pass it for any tenant with another palette'
         required: false
-        default: ""
+        default: ''
       pwa_background_color:
-        description: "Web app manifest background_color, #rrggbb (splash screen while the installed app boots). EMPTY DEFAULTS TO #ffffff"
+        description: 'Web app manifest background_color, #rrggbb (splash screen while the installed app boots). EMPTY DEFAULTS TO #ffffff'
         required: false
-        default: ""
+        default: ''
       source_ref:
-        description: "Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run was dispatched on. Pass the released SHA from a workflow_run caller, which would otherwise get the default branch"
+        description: 'Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run was dispatched on. Pass the released SHA from a workflow_run caller, which would otherwise get the default branch'
         required: false
-        default: ""
+        default: ''
   # Reusable entry point (same inputs, typed) so an automated caller can rebuild a
   # tenant image from the caller's ref without duplicating the build logic — used by
   # build-demo-tenant.yml to rebuild tenant-demo from develop-tip on every develop push
@@ -93,58 +93,58 @@ on:
         required: true
         type: string
       image_tag:
-        description: "GHCR tag to publish, e.g. tenant-demo"
+        description: 'GHCR tag to publish, e.g. tenant-demo'
         required: true
         type: string
       google_client_id:
         description: "Google OAuth web client id ('' disables Google login)"
         required: false
-        default: ""
+        default: ''
         type: string
       restaurant_name:
-        description: "Tenant display name baked into page metadata"
+        description: 'Tenant display name baked into page metadata'
         required: false
-        default: ""
+        default: ''
         type: string
       branding_url:
-        description: "HTTPS URL of a .tar.gz branding archive (empty = repo defaults)"
+        description: 'HTTPS URL of a .tar.gz branding archive (empty = repo defaults)'
         required: false
-        default: ""
+        default: ''
         type: string
       branding_dir:
-        description: "Repo-relative dir of committed branding assets — icon.svg, the three manifest PNGs, hero.png, placeholder.png (alternative to branding_url; empty = none)"
+        description: 'Repo-relative dir of committed branding assets — icon.svg, the three manifest PNGs, hero.png, placeholder.png (alternative to branding_url; empty = none)'
         required: false
-        default: ""
+        default: ''
         type: string
       template:
-        description: "UI template baked into the bundle: classic | craft"
+        description: 'UI template baked into the bundle: classic | craft'
         required: false
-        default: "classic"
+        default: 'classic'
         type: string
       currency:
-        description: "ISO 4217 currency code, e.g. CHF, EUR"
+        description: 'ISO 4217 currency code, e.g. CHF, EUR'
         required: false
-        default: "CHF"
+        default: 'CHF'
         type: string
       locale:
-        description: "BCP-47 locale for price formatting, e.g. de-CH, fr-FR"
+        description: 'BCP-47 locale for price formatting, e.g. de-CH, fr-FR'
         required: false
-        default: "de-CH"
+        default: 'de-CH'
         type: string
       pwa_theme_color:
-        description: "Manifest theme_color #rrggbb; empty defaults to RUMI red #c00000"
+        description: 'Manifest theme_color #rrggbb; empty defaults to RUMI red #c00000'
         required: false
-        default: ""
+        default: ''
         type: string
       pwa_background_color:
-        description: "Manifest background_color #rrggbb; empty defaults to #ffffff"
+        description: 'Manifest background_color #rrggbb; empty defaults to #ffffff'
         required: false
-        default: ""
+        default: ''
         type: string
       source_ref:
-        description: "Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run is on — which for a workflow_run caller is the DEFAULT BRANCH, not what the upstream run built"
+        description: 'Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run is on — which for a workflow_run caller is the DEFAULT BRANCH, not what the upstream run built'
         required: false
-        default: ""
+        default: ''
         type: string
 
 concurrency:
@@ -377,6 +377,8 @@ jobs:
             NEXT_PUBLIC_IMAGE_BASE_URL=https://${{ inputs.tenant_domain }}
             NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
             NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS=600000
+            NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE=100
+            NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES=1000
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
             NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
             NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}

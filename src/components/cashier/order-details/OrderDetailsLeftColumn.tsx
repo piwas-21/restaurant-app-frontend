@@ -18,6 +18,7 @@ interface OrderDetailsLeftColumnProps {
  */
 export default function OrderDetailsLeftColumn({ order }: OrderDetailsLeftColumnProps) {
   const { t } = useTranslation();
+  const tableLabel = order.tableLabel?.trim() || order.tableNumber;
 
   return (
     <div className={styles.leftColumn}>
@@ -46,10 +47,10 @@ export default function OrderDetailsLeftColumn({ order }: OrderDetailsLeftColumn
               <span className={styles.infoValue}>{order.customerPhone}</span>
             </div>
           )}
-          {order.type === 'DineIn' && order.tableNumber && (
+          {order.type === 'DineIn' && tableLabel && (
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>{t('table', 'Table')}</span>
-              <span className={`${styles.infoValue} ${styles.infoValueLarge}`}>#{order.tableNumber}</span>
+              <span className={`${styles.infoValue} ${styles.infoValueLarge}`}>{tableLabel}</span>
             </div>
           )}
         </div>

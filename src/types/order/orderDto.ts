@@ -79,6 +79,10 @@ export interface OrderDto {
   customerPhone?: string;
   type: string;
   tableNumber?: number | null;
+  /** Stable table identity for dine-in orders (additive S2 response field). */
+  tableId?: string | null;
+  /** Display label for a table, including labels that are not numeric (for example, T-QA). */
+  tableLabel?: string | null;
   subTotal: number;
   tax: number;
   deliveryFee: number;

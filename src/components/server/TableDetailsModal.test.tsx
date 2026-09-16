@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import TableDetailsModal from './TableDetailsModal';
 import type { ServerTableDto } from '@/services/serverService';
+import type { OrderDto } from '@/types/order';
 import { singleKitchenBundleOrder, nestedBundleOrder } from '@/utils/__fixtures__/bundleOrderFixture';
 
 jest.mock('react-i18next', () => ({
@@ -68,5 +69,16 @@ describe('TableDetailsModal — bundle components', () => {
     );
     expect(screen.getByRole('button', { name: /Mark as Available/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Close Table/ })).toBeDisabled();
+  });
+
+  it('keeps same-number orders from another stable table out of the modal', () => {
+    const matching = { ...singleKitchenBundleOrder(), tableId: table.id, tableNumber: null } as OrderDto;
+    const otherTable = { ...nestedBundleOrder(), tableId: 'table-2', tableNumber: 4 } as OrderDto;
+
+    renderModal([matching, otherTable]);
+
+    expect(screen.getByText(/Active Orders \(1\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Mezze Combo/)).toBeInTheDocument();
+    expect(screen.queryByText(/Mezze Selection/)).not.toBeInTheDocument();
   });
 });

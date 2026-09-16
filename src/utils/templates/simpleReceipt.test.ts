@@ -59,3 +59,17 @@ describe('generateSimpleReceiptHtml — payment method labels', () => {
     expect(html).not.toContain('CreditCard');
   });
 });
+
+describe('generateSimpleReceiptHtml — table identity', () => {
+  it('prints an alphanumeric table label when the numeric compatibility field is null', () => {
+    const order = singleKitchenBundleOrder();
+    order.tableId = 'table-qa';
+    order.tableLabel = 'T-QA';
+    order.tableNumber = null;
+
+    const html = generateSimpleReceiptHtml(order);
+
+    expect(html).toContain('- Table T-QA');
+    expect(html).not.toContain('undefined');
+  });
+});

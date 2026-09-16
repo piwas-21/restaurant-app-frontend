@@ -1,0 +1,177 @@
+.actionButton,
+.removeButton,
+.stepButton,
+.quantityInput {
+  min-block-size: 3rem;
+}
+
+.actionButton,
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 0.5rem);
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  padding-block: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
+  cursor: pointer;
+}
+
+.primary,
+.actionButton[data-variant='primary'] {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.notice,
+.strip,
+.bar,
+.draft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+}
+
+.notice,
+.draft {
+  padding-block: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.notice[data-tone='success'] {
+  border-color: var(--feedback-success);
+}
+
+.notice[data-tone='warning'] {
+  border-color: var(--feedback-warning);
+}
+
+.notice[data-tone='danger'] {
+  border-color: var(--feedback-danger);
+}
+
+.notice[data-tone='info'] {
+  border-color: var(--feedback-info);
+}
+
+.detailLabel {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.bar {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  justify-content: space-between;
+  min-block-size: 3.5rem;
+  padding-block-start: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
+  padding-block-end: calc(var(--space-2, 0.5rem) + env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 0 var(--border-default);
+}
+
+.barActions,
+.noticeActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.barTotal {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.strip {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding-block: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
+}
+
+.stripMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+}
+
+.metric,
+.noticeContent {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.metricValue {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.stepButton,
+.removeButton {
+  inline-size: 3rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.stepButton:disabled,
+.removeButton:disabled,
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.quantityInput {
+  inline-size: 4rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.operationId {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.actionButton:focus-visible,
+.removeButton:focus-visible,
+.stepButton:focus-visible,
+.quantityInput:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionButton,
+  .stepButton,
+  .removeButton {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}

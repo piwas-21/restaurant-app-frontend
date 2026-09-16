@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useId, useRef, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { createContext, useContext, useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import styles from './BaseModal.module.css';
+import BaseModalSurface from './BaseModalSurface';
 
 export type BaseModalSize = 'sm' | 'md' | 'lg';
+export type BaseModalPresentation = 'modal' | 'responsive-sheet';
 
 const focusableSelector = [
   'a[href]',
@@ -18,7 +19,22 @@ const focusableSelector = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');
 
-function focusableElements(dialog: HTMLElement): HTMLElement[] {
+// Keep an explicit portal stack so only the nested top modal owns Escape and Tab.
+const modalStack: HTMLDialogElement[] = [];
+const ModalLayerContext = createContext(0);
+
+function isTopMostModal(dialog: HTMLDialogElement | null): boolean {
+  if (!dialog) return false;
+  const dialogs = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]'));
+  const top = dialogs.reduce<HTMLDialogElement | null>((current, candidate) => {
+    const currentLayer = Number(current?.dataset.modalLayer ?? '-1');
+    const candidateLayer = Number(candidate.dataset.modalLayer ?? '0');
+    return candidateLayer >= currentLayer ? candidate : current;
+  }, null);
+  return (top ?? dialogs.at(-1) ?? modalStack.at(-1)) === dialog;
+}
+
+function focusableElements(dialog: HTMLDialogElement): HTMLElement[] {
   return Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter(
     (element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true',
   );
@@ -40,6 +56,8 @@ export interface BaseModalProps {
    * For finer control, use `className` to override `max-width` directly.
    */
   size?: BaseModalSize;
+  /** Keep the centered modal on wide screens and dock it to the bottom on narrow screens. */
+  presentation?: BaseModalPresentation;
   /**
    * Extra className appended to the dialog box. Use for content-specific
    * width/padding overrides (e.g. a wider variant for the customization
@@ -57,19 +75,7 @@ export interface BaseModalProps {
   isPending?: boolean;
 }
 
-/**
- * Standard modal overlay (CLAUDE.md frontend §5 rule 2). Provides:
- *  - Portal-rendered backdrop + dialog
- *  - role="dialog", aria-modal="true", aria-labelledby pointing at the title
- *  - ESC and backdrop-click dismissal (each opt-out-able)
- *  - X close button with translated aria-label
- *  - body-scroll lock, initial focus, focus containment and return focus
- *  - dismissal protection while a caller-owned action is pending
- *
- * Replaces the ad-hoc createPortal+overlay pattern that's been duplicated
- * across CustomizationModal, ZReportModal, AlertDialog-style components.
- * Migration to this primitive is gradual — see issue #16.
- */
+/** Shared portal modal with focus containment, nested ownership, pending protection and sheet presentation. */
 export default function BaseModal({
   isOpen,
   onClose,
@@ -77,24 +83,24 @@ export default function BaseModal({
   children,
   footer,
   size = 'md',
+  presentation = 'modal',
   className,
   disableBackdropClose,
   disableEscapeClose,
   isPending = false,
-}: BaseModalProps) {
+}: Readonly<BaseModalProps>) {
   const { t } = useTranslation();
-  // useId is SSR-safe and idiomatic; previous Math.random in useRef worked
-  // but would have mismatched if the dialog were ever server-rendered.
+  const modalLayer = useContext(ModalLayerContext);
   const titleId = `base-modal-title-${useId()}`;
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const canDismiss = !isPending;
-
-  // ESC dismissal and Tab containment are global because focus can briefly be outside the
-  // dialog during mount. Containment makes the portal a true modal for keyboard users.
+  const layer = modalLayer + 1;
+  const layerStyle = { '--modal-layer': layer } as CSSProperties;
   useEffect(() => {
     if (!isOpen) return;
     const handler = (event: KeyboardEvent) => {
+      if (!isTopMostModal(dialogRef.current)) return;
       if (event.key === 'Escape' && canDismiss && !disableEscapeClose) {
         onClose();
         return;
@@ -126,9 +132,6 @@ export default function BaseModal({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [canDismiss, disableEscapeClose, isOpen, onClose]);
-
-  // Lock body scroll while open. Restore the previous overflow value on
-  // close so that a host page with its own overflow rules isn't stomped on.
   useEffect(() => {
     if (!isOpen) return;
     const previous = document.body.style.overflow;
@@ -137,62 +140,60 @@ export default function BaseModal({
       document.body.style.overflow = previous;
     };
   }, [isOpen]);
-
-  // Capture the invoking control before moving focus into the dialog. On close, restoring it
-  // keeps a keyboard user in the same task context instead of dropping them at document start.
   useEffect(() => {
     if (!isOpen) return;
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+    modalStack.push(dialog);
     const initial = dialog && focusableElements(dialog)[0];
-    (initial ?? dialog)?.focus();
+    if (isTopMostModal(dialog)) (initial ?? dialog)?.focus();
 
     return () => {
+      const stackIndex = modalStack.lastIndexOf(dialog);
+      if (stackIndex >= 0) modalStack.splice(stackIndex, 1);
       const returnFocus = returnFocusRef.current;
       if (returnFocus?.isConnected) returnFocus.focus();
       returnFocusRef.current = null;
     };
   }, [isOpen]);
-
-  if (!isOpen) return null;
-  if (typeof document === 'undefined') return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const handleBackdrop = () => {
-    if (canDismiss && !disableBackdropClose) onClose();
+    if (isTopMostModal(dialogRef.current) && canDismiss && !disableBackdropClose) onClose();
   };
 
-  return createPortal(
-    <div className={styles.overlay} onClick={handleBackdrop}>
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className={[styles.dialog, styles[`size_${size}`], className].filter(Boolean).join(' ')}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={styles.header}>
-          {/* `auto`, not inherited: a modal title may be product-authored (the customization
-              sheet passes the item name). For a locale string it is inert — an Arabic UI string
-              resolves rtl either way. DESIGN-SYSTEM.md §8.2. */}
-          <h2 id={titleId} dir="auto" className={styles.title}>
-            {title}
-          </h2>
+  return (
+    <ModalLayerContext.Provider value={layer}>
+      {createPortal(
+        <>
           <button
             type="button"
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label={t('close', 'Close')}
+            className={[styles.overlay, presentation === 'responsive-sheet' && styles.responsiveSheetOverlay]
+              .filter(Boolean)
+              .join(' ')}
+            style={layerStyle}
+            onClick={handleBackdrop}
+            aria-label={t('dismiss', 'Dismiss')}
             disabled={!canDismiss}
+          />
+          <BaseModalSurface
+            dialogRef={dialogRef}
+            titleId={titleId}
+            title={title}
+            footer={footer}
+            size={size}
+            presentation={presentation}
+            layer={layer}
+            className={className}
+            isPending={!canDismiss}
+            onClose={onClose}
           >
-            <X size={20} />
-          </button>
-        </div>
-        <div className={styles.body}>{children}</div>
-        {footer && <div className={styles.footer}>{footer}</div>}
-      </div>
-    </div>,
-    document.body,
+            {children}
+          </BaseModalSurface>
+        </>,
+        document.body,
+      )}
+    </ModalLayerContext.Provider>
   );
 }

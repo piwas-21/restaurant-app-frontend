@@ -6,6 +6,7 @@ import BundlePanel from './BundlePanel';
 import BundleMediaPanel from './BundleMediaPanel';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
+import OfferVersionsSection from './OfferVersionsSection';
 import { buildItemSections } from './itemEditorSections';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
 import type { EditorSection } from './EditorShell';
@@ -55,12 +56,15 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       // a title that is not there would float. The bundle's five-section nav is #580, not #573.
       label: t('details'),
       node: (
-        <BundlePanel
-          register={form.register}
-          errors={form.formState.errors}
-          menuDefinition={editor.menuDefinition}
-          onChange={editor.changeMenuDefinition}
-        />
+        <>
+          <BundlePanel
+            register={form.register}
+            errors={form.formState.errors}
+            menuDefinition={editor.menuDefinition}
+            onChange={editor.changeMenuDefinition}
+          />
+          <OfferVersionsSection product={product} onCreated={context.onOfferCreated} allowQuickCreate={false} />
+        </>
       ),
     },
     {

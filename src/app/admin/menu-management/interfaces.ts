@@ -160,8 +160,8 @@ export interface Product {
   type: string;
   imageUrl: string | null;
   images: ProductImage[];
-  /** Present on menu rows once the backend exposes the offer-family relation. */
-  menuDefinition?: MenuDefinition;
+  /** Flat summary fields returned by `ProductSummaryDto`; bundle definitions are detail-only. */
+  categoryNames?: string[];
   parentOfferProductId?: string | null;
   parentOfferVariationId?: string | null;
 }

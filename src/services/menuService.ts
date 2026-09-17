@@ -93,6 +93,29 @@ export const getProducts = async (
   return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
 };
 
+/**
+ * Reads every menu page for admin relationship pickers. A fixed first-page read silently hid
+ * valid candidates once a tenant had more than 100 menus; stop on the server's page count (or an
+ * empty page) and de-duplicate ids defensively if a concurrent write shifts a page boundary.
+ */
+export const getAllMenuBundles = async (): Promise<Product[]> => {
+  const pageSize = 100;
+  const byId = new Map<string, Product>();
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const response = await getProducts(page, pageSize, null, { type: 'Menu', includeComponents: true });
+    if (!response.success) throw new Error(response.message || 'Failed to load menu bundles');
+    response.data.items.forEach((product) => byId.set(product.id, product));
+    if (response.data.items.length === 0) break;
+    totalPages = Math.max(page, response.data.totalPages || Math.ceil(response.data.totalCount / pageSize) || 1);
+    page += 1;
+  }
+
+  return [...byId.values()];
+};
+
 export const createProduct = async (productData: CreateProductData) => {
   try {
     return await apiClient.post(PRODUCTS_API_URL, productData);

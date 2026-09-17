@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
-import { getProducts } from '@/services/menuService';
+import { getAllMenuBundles } from '@/services/menuService';
 import { linkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
+import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { ProductDetails, Product, Variation } from '@/app/admin/menu-management/interfaces';
 import styles from './QuickMenuVersionModal.module.css';
@@ -20,8 +21,7 @@ interface LinkExistingMenuModalProps {
   readonly onLinked: () => void;
 }
 
-const parentId = (menu: Product): string | null =>
-  menu.parentOfferProductId ?? menu.menuDefinition?.parentOfferProductId ?? null;
+const parentId = (menu: Product): string | null => menu.parentOfferProductId ?? null;
 
 /** Safe migration surface for an existing bundle. It previews the chosen menu before the
  * relationship-only endpoint is called; no menu sections are sent or rewritten. */
@@ -35,7 +35,16 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selected = bundles.find((bundle) => bundle.id === selectedId);
-  const variation = product.variations.find((candidate: Variation) => candidate.id === variationId);
+  const activeVariations = getActiveOfferVariations(product);
+  const variation = activeVariations.find((candidate: Variation) => candidate.id === variationId);
+  const variationRequired = requiresOfferVariation(product);
+  const parentCategories = new Set(
+    (product.categories ?? []).map((category) => category.categoryName.trim().toLowerCase()),
+  );
+  const selectedCategories = selected?.categoryNames;
+  const categoryMismatch =
+    selectedCategories !== undefined &&
+    selectedCategories.every((category) => !parentCategories.has(category.trim().toLowerCase()));
 
   useEffect(() => {
     tRef.current = t;
@@ -47,20 +56,14 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     setVariationId('');
     setError(null);
     setIsLoading(true);
-    void getProducts(1, 100, null, { type: 'Menu', includeComponents: true })
-      .then((response) => {
-        if (!response.success) {
-          setError(response.message || tRef.current('error_loading_menu_bundles'));
-          return;
-        }
-        setBundles(response.data.items.filter((bundle) => isMenuBundle(bundle) && parentId(bundle) !== product.id));
-      })
+    void getAllMenuBundles()
+      .then((items) => setBundles(items.filter((bundle) => isMenuBundle(bundle) && parentId(bundle) !== product.id)))
       .catch((caught) => setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles')))
       .finally(() => setIsLoading(false));
   }, [isOpen, product.id]);
 
   const save = async () => {
-    if (!selectedId) return;
+    if (!selectedId || (variationRequired && !variation)) return;
     setIsSaving(true);
     setError(null);
     try {
@@ -86,7 +89,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={t('menu_bundles')}
+      title={t('link_existing_menu_version', 'Link existing menu version')}
       size="md"
       isPending={isSaving}
       footer={
@@ -94,8 +97,13 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
           <button type="button" className={modalStyles.cancelButton} onClick={onClose} disabled={isSaving}>
             {t('cancel')}
           </button>
-          <button type="button" className={modalStyles.submitButton} onClick={save} disabled={!selectedId || isSaving}>
-            {isSaving ? t('saving') : t('save')}
+          <button
+            type="button"
+            className={modalStyles.submitButton}
+            onClick={save}
+            disabled={!selectedId || (variationRequired && !variation) || isSaving}
+          >
+            {isSaving ? t('saving') : t('link_menu_version', 'Link menu version')}
           </button>
         </div>
       }
@@ -115,17 +123,22 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
             </select>
           </FormField>
         )}
-        {product.variations.length > 0 && (
-          <FormField label={t('product_variations')}>
+        {variationRequired && (
+          <FormField
+            label={t('product_variations')}
+            error={
+              activeVariations.length === 0
+                ? t('no_active_variations', 'No active variations are available')
+                : undefined
+            }
+          >
             <select value={variationId} onChange={(event) => setVariationId(event.target.value)}>
               <option value="">{t('select_product')}</option>
-              {product.variations
-                .filter((candidate) => Boolean(candidate.id))
-                .map((candidate) => (
-                  <option key={candidate.id} value={candidate.id}>
-                    {candidate.name}
-                  </option>
-                ))}
+              {activeVariations.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
             </select>
           </FormField>
         )}
@@ -135,6 +148,27 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
             <Link href={`/admin/menu-management/${selected.id}`} target="_blank">
               {t('details')}
             </Link>
+          </p>
+        )}
+        {selected && selectedCategories !== undefined && (
+          <div className={styles.categoryList} aria-label={t('category')}>
+            {selectedCategories.length > 0 ? (
+              selectedCategories.map((category) => (
+                <span className={styles.category} key={category}>
+                  {category}
+                </span>
+              ))
+            ) : (
+              <span className={styles.category}>{t('no_categories', 'No categories')}</span>
+            )}
+          </div>
+        )}
+        {selected && categoryMismatch && (
+          <p role="alert" className={styles.warning}>
+            {t(
+              'category_mismatch_warning',
+              'This menu has no category in common with the parent product. Linking will keep the menu formula unchanged.',
+            )}
           </p>
         )}
         {error && (

@@ -49,4 +49,16 @@ describe('groupProductsIntoOfferRows', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ kind: 'family', menuOffers: [{ id: 'menu-a' }, { id: 'menu-b' }] });
   });
+
+  it('does not duplicate a child when the API returns it before its anchor', () => {
+    const rows = groupProductsIntoOfferRows([row('menu', 'menu', 'base'), row('base', 'mainItem')]);
+
+    expect(rows).toEqual([
+      {
+        kind: 'family',
+        anchor: expect.objectContaining({ id: 'base' }),
+        menuOffers: [expect.objectContaining({ id: 'menu' })],
+      },
+    ]);
+  });
 });

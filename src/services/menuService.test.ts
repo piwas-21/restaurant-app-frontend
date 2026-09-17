@@ -1,6 +1,7 @@
 import { ApiError, apiClient } from '@/utils/apiClient';
 import { OrderType } from '@/types/order';
-import { getFeaturedSpecial, getProductById, getProducts } from './menuService';
+import { getAllMenuBundles, getFeaturedSpecial, getProductById, getProducts } from './menuService';
+import type { Product } from '@/app/admin/menu-management/interfaces';
 
 /**
  * `getProducts` gained the customer's order type (S4). The server does NOT filter on it — it
@@ -42,6 +43,35 @@ describe('getProducts — RequestedOrderType', () => {
     await getProducts(1, 10, null, { type: 'Menu' }, OrderType.DineIn);
 
     expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=10&RequestedOrderType=DineIn&Type=Menu');
+  });
+});
+
+describe('getAllMenuBundles — relationship picker pagination', () => {
+  it('reads every reported page and keeps each menu once', async () => {
+    const menu = (id: string): Product => ({
+      id,
+      name: id,
+      description: '',
+      basePrice: 10,
+      isActive: true,
+      isAvailable: true,
+      type: 'menu',
+      imageUrl: null,
+      images: [],
+    });
+    mockedGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: { items: [menu('menu-1')], totalCount: 2, totalPages: 2, page: 1, pageSize: 100 },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { items: [menu('menu-1'), menu('menu-2')], totalCount: 2, totalPages: 2, page: 2, pageSize: 100 },
+      });
+
+    await expect(getAllMenuBundles()).resolves.toEqual([menu('menu-1'), menu('menu-2')]);
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    expect(mockedGet.mock.calls[1][0]).toBe('/api/Products?Page=2&PageSize=100&Type=Menu&IncludeComponents=true');
   });
 });
 

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import { getProducts } from '@/services/menuService';
+import { getAllMenuBundles } from '@/services/menuService';
 import { unlinkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { serverMessage } from '@/utils/apiFormErrors';
@@ -17,12 +17,16 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 interface OfferVersionsSectionProps {
   readonly product: ProductDetails;
   readonly onCreated?: (menuId: string) => void;
+  readonly allowQuickCreate?: boolean;
 }
 
-const parentId = (menu: Product): string | null =>
-  menu.parentOfferProductId ?? menu.menuDefinition?.parentOfferProductId ?? null;
+const parentId = (menu: Product): string | null => menu.parentOfferProductId ?? null;
 
-export default function OfferVersionsSection({ product, onCreated }: OfferVersionsSectionProps) {
+export default function OfferVersionsSection({
+  product,
+  onCreated,
+  allowQuickCreate = true,
+}: OfferVersionsSectionProps) {
   const { t } = useTranslation();
   const tRef = useRef(t);
   const [offers, setOffers] = useState<Product[]>([]);
@@ -39,12 +43,8 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getProducts(1, 100, null, { type: 'Menu', includeComponents: true });
-      if (!response.success) {
-        setError(response.message || tRef.current('error_loading_menu_bundles'));
-      } else {
-        setOffers(response.data.items.filter((menu) => isMenuBundle(menu) && parentId(menu) === product.id));
-      }
+      const bundles = await getAllMenuBundles();
+      setOffers(bundles.filter((menu) => isMenuBundle(menu) && parentId(menu) === product.id));
     } catch (caught) {
       setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
@@ -76,6 +76,9 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
     onCreated?.(menuId);
   };
 
+  // Components are option-only carriers and cannot anchor a public offer family.
+  if (product.isComponent) return null;
+
   return (
     <section className={styles.section} aria-labelledby="offer-versions-heading">
       <div className={styles.header}>
@@ -89,15 +92,17 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
             className={`${adminStyles.adminButton} ${adminStyles.add}`}
             onClick={() => setModal('link')}
           >
-            {t('menu_bundles')}
+            {t('link_existing_menu_version', 'Link existing menu version')}
           </button>
-          <button
-            type="button"
-            className={`${adminStyles.adminButton} ${adminStyles.add}`}
-            onClick={() => setModal('create')}
-          >
-            {t('create_menu_bundle')}
-          </button>
+          {allowQuickCreate && (
+            <button
+              type="button"
+              className={`${adminStyles.adminButton} ${adminStyles.add}`}
+              onClick={() => setModal('create')}
+            >
+              {t('create_menu_version', 'Create menu version')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -125,7 +130,7 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
                   className={`${adminStyles.adminButton} ${adminStyles.delete}`}
                   onClick={() => setUnlinking(offer)}
                 >
-                  {t('remove')}
+                  {t('unlink_menu_version', 'Unlink menu version')}
                 </button>
               </div>
             </li>
@@ -138,12 +143,14 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
         </p>
       )}
 
-      <QuickMenuVersionModal
-        isOpen={modal === 'create'}
-        product={product}
-        onClose={() => setModal(null)}
-        onCreated={handleCreated}
-      />
+      {allowQuickCreate && (
+        <QuickMenuVersionModal
+          isOpen={modal === 'create'}
+          product={product}
+          onClose={() => setModal(null)}
+          onCreated={handleCreated}
+        />
+      )}
       <LinkExistingMenuModal
         isOpen={modal === 'link'}
         product={product}
@@ -157,7 +164,10 @@ export default function OfferVersionsSection({ product, onCreated }: OfferVersio
         isOpen={unlinking !== null}
         onClose={() => setUnlinking(null)}
         onConfirm={unlink}
-        message={t('delete_confirmation')}
+        message={t(
+          'unlink_menu_version_confirmation',
+          'Unlink this menu version from the product? The menu and existing orders will be kept.',
+        )}
       />
     </section>
   );

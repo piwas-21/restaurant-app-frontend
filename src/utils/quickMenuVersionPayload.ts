@@ -1,6 +1,11 @@
 import type { ProductDetails, Variation } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinitionData } from '@/services/menuBundleService';
 
+export const MENU_VERSION_NAME_MAX_LENGTH = 100;
+
+export const defaultMenuVersionName = (productName: string): string =>
+  `Menu ${productName}`.slice(0, MENU_VERSION_NAME_MAX_LENGTH);
+
 export function buildQuickMenuVersionDefinition(product: ProductDetails, variation?: Variation): MenuDefinitionData {
   const variationId = variation?.id ?? null;
   return {
@@ -38,21 +43,30 @@ export function buildQuickMenuVersionDefinition(product: ProductDetails, variati
   };
 }
 
-export function buildQuickMenuVersionPayload(product: ProductDetails, price: number, variation?: Variation) {
-  const content =
+export function buildQuickMenuVersionPayload(
+  product: ProductDetails,
+  name: string,
+  price: number,
+  variation?: Variation,
+) {
+  const sourceContent =
     product.content && typeof product.content === 'object'
       ? (product.content as Record<string, { name: string; description?: string }>)
-      : { en: { name: product.name, description: product.description ?? '' } };
+      : { en: { name, description: product.description ?? '' } };
+  const content = Object.fromEntries(
+    Object.entries(sourceContent).map(([language, entry]) => [language, { ...entry, name }]),
+  );
   return {
-    name: `Menu ${product.name}`,
+    name,
     description: product.description ?? '',
     basePrice: price,
-    isActive: true,
-    isAvailable: true,
+    isActive: product.isActive,
+    isAvailable: product.isAvailable,
     isSpecial: false,
     type: 'menu' as const,
     preparationTimeMinutes: product.preparationTimeMinutes ?? 0,
     displayOrder: product.displayOrder ?? 0,
+    allergens: product.allergens ?? [],
     categoryIds: product.categories.map((category) => category.categoryId).filter(Boolean),
     primaryCategoryId:
       product.primaryCategory?.id ?? product.categories.find((category) => category.isPrimary)?.categoryId,

@@ -16,7 +16,7 @@ export type GroupedOfferRow = OfferFamilyRow | IndependentOfferRow;
 
 const linkedParentId = (product: Product): string | null => {
   if (!isMenuBundle(product)) return null;
-  return product.parentOfferProductId ?? product.menuDefinition?.parentOfferProductId ?? null;
+  return product.parentOfferProductId ?? null;
 };
 
 /**
@@ -41,6 +41,11 @@ export function groupProductsIntoOfferRows(products: Product[]): GroupedOfferRow
   const rows: GroupedOfferRow[] = [];
   products.forEach((product) => {
     if (consumed.has(product.id)) return;
+    // The API orders a page by name, not by relationship. If a child sorts before its anchor,
+    // defer it until the anchor row so the child is never rendered once independently and again
+    // underneath its family.
+    const parentId = linkedParentId(product);
+    if (parentId && byId.has(parentId)) return;
     const menuOffers = offersByParent.get(product.id);
     if (!menuOffers || menuOffers.length === 0) {
       rows.push({ kind: 'independent', product });

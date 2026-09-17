@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 import ProductEditorPage from '@/components/admin/product-editor/ProductEditorPage';
@@ -27,30 +28,43 @@ const QUICK_ADD_ROUTE = `${LIST_ROUTE}?new=item`;
  * sections editor IS the screen, and there is no three-field version of it.
  */
 const NewProductRoute = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBundle = isMenuBundle({ type: searchParams.get('type') });
   const hasOfferPrefill = searchParams.get('prefill') === 'offer';
   const blankProduct = useMemo(() => emptyProductDetails(true), []);
   const [initialProduct, setInitialProduct] = useState<ProductDetails | null>(null);
+  const [prefillError, setPrefillError] = useState<string | null>(null);
   const prefillConsumed = useRef(false);
 
   useEffect(() => {
-    if (!isBundle) router.replace(QUICK_ADD_ROUTE);
-  }, [isBundle, router]);
-
-  useEffect(() => {
+    if (!isBundle) {
+      if (hasOfferPrefill) {
+        setPrefillError('menu_version_prefill_invalid');
+      } else {
+        router.replace(QUICK_ADD_ROUTE);
+      }
+      return;
+    }
     // Effects are replayed in React Strict Mode. The session value is intentionally one-shot, so
     // guard consumption or the replay would turn a valid quick-create prefill into a blank editor.
     if (hasOfferPrefill && !prefillConsumed.current) {
       prefillConsumed.current = true;
       const prefill = consumeMenuVersionPrefill();
-      setInitialProduct(prefill ? productFromMenuVersionPrefill(prefill) : blankProduct);
+      if (prefill?.isBundle === true) {
+        setInitialProduct(productFromMenuVersionPrefill(prefill));
+      } else {
+        setPrefillError('menu_version_prefill_invalid');
+      }
       return;
     }
     if (!hasOfferPrefill) setInitialProduct(blankProduct);
-  }, [blankProduct, hasOfferPrefill]);
+  }, [blankProduct, hasOfferPrefill, isBundle, router]);
 
+  if (prefillError) {
+    return <div role="alert">{t(prefillError)}</div>;
+  }
   if (!isBundle || !initialProduct) return null;
 
   return (

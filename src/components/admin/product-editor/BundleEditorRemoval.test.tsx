@@ -100,7 +100,9 @@ const bundle: ProductDetails = {
         isRequired: false,
         minSelection: 0,
         maxSelection: 1,
-        items: [],
+        items: [
+          { id: 'item-3', productId: 'p3', productName: 'Water', additionalPrice: 0, displayOrder: 0, isDefault: true },
+        ],
       },
     ],
   },

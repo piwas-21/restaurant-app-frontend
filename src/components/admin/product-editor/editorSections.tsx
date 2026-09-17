@@ -47,7 +47,7 @@ export { SECTION_IDS } from './editorSectionTypes';
  * the CREATE route only, where there is no product id to upload against yet.
  */
 function bundleSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t, product, isCreate } = context;
+  const { editor, t, product, isCreate, onNavigate } = context;
   const { form } = editor;
 
   return [
@@ -73,6 +73,7 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
             <OfferVersionsSection
               product={product}
               onCreateRequested={context.onOfferCreateRequested}
+              onNavigate={onNavigate}
               allowQuickCreate={false}
             />
           )}

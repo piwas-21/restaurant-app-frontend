@@ -142,6 +142,11 @@ export default function BundlePanel({
           sections={menuDefinition.sections}
           onChange={(sections) => onChange({ ...menuDefinition, sections })}
         />
+        {errors.menuDefinition && (
+          <p className={modalStyles.errorMessage} role="alert">
+            {String(errors.menuDefinition.message || t('menu_definition_invalid'))}
+          </p>
+        )}
       </section>
     </>
   );

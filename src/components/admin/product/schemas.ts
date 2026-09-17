@@ -145,7 +145,10 @@ const baseProductSchema = z.object({
   type: z.enum(productTypes),
   kitchenType: z.enum(['None', 'FrontKitchen', 'BackKitchen']).default('None'),
   allergens: z.array(z.string()).optional(),
-  categoryIds: z.array(z.string()).min(1, 'Select at least one category'),
+  categoryIds: z
+    .array(z.string().min(1, 'Category is required'))
+    .min(1, 'Select at least one category')
+    .refine((ids) => new Set(ids).size === ids.length, 'Category ids must be unique'),
   primaryCategoryId: z.string().min(1, 'Primary category is required'),
   variations: z.array(variationSchema).default([]),
   content: z
@@ -207,26 +210,51 @@ const sauceGroupRules = (
 
 // Menu Definition Schemas
 const menuSectionItemSchema = z.object({
+  id: z.string().nullish(),
   productId: z.string().min(1, 'Product is required'),
-  productVariationId: z.string().nullish(),
-  additionalPrice: z.coerce.number().min(0).default(0),
-  displayOrder: z.coerce.number().int().default(0),
+  productVariationId: z.string().min(1).nullish(),
+  additionalPrice: z.coerce.number().finite().min(0).default(0),
+  displayOrder: z.coerce.number().int().min(0).default(0),
   isDefault: z.boolean().default(false),
 });
 
-const menuSectionSchema = z.object({
-  // Both `Guid?` and `string?` on the wire (`MenuSectionDto`), and `toMenuDefinitionState` hands the
-  // fetched sections to the form verbatim — so a bundle section saved without a description refused
-  // every save of that bundle, exactly as a variation without one did (#638).
-  id: z.string().nullish(),
-  name: z.string().min(1, 'Section name is required'),
-  description: optionalText(),
-  displayOrder: z.coerce.number().int().default(0),
-  isRequired: z.boolean().default(true),
-  minSelection: z.coerce.number().int().min(0).default(1),
-  maxSelection: z.coerce.number().int().min(1).default(1),
-  items: z.array(menuSectionItemSchema).default([]),
-});
+const menuSectionSchema = z
+  .object({
+    // Both `Guid?` and `string?` on the wire (`MenuSectionDto`), and `toMenuDefinitionState` hands the
+    // fetched sections to the form verbatim — so a bundle section saved without a description refused
+    // every save of that bundle, exactly as a variation without one did (#638).
+    id: z.string().nullish(),
+    name: z.string().trim().min(1, 'Section name is required'),
+    description: optionalText(),
+    displayOrder: z.coerce.number().int().min(0).default(0),
+    isRequired: z.boolean().default(true),
+    minSelection: z.coerce.number().int().min(0).default(1),
+    maxSelection: z.coerce.number().int().min(1).default(1),
+    items: z.array(menuSectionItemSchema).min(1, 'Add at least one item to this section'),
+  })
+  .superRefine((section, ctx) => {
+    if (section.minSelection > section.maxSelection) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['minSelection'], message: 'Minimum cannot exceed maximum' });
+    }
+    if (section.maxSelection > section.items.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['maxSelection'],
+        message: 'Maximum cannot exceed item count',
+      });
+    }
+    if (section.isRequired && section.minSelection < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['minSelection'],
+        message: 'Required sections need a minimum',
+      });
+    }
+    const itemIds = section.items.map((item) => item.id).filter((id): id is string => Boolean(id));
+    if (new Set(itemIds).size !== itemIds.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['items'], message: 'Item ids must be unique' });
+    }
+  });
 
 const menuDefinitionSchema = z.object({
   id: z.string().nullish(),
@@ -290,6 +318,15 @@ export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS
 // They were unreachable while every bundle edit 400'd on the product endpoint (#213); now
 // that bundles reach /api/Menus, an unbounded field 400s server-side with no field-level
 // error surfaced, so the client has to state the same contract.
+const completeMenuDefinitionSchema = menuDefinitionSchema
+  .extend({ sections: z.array(menuSectionSchema).min(1, 'Add at least one section') })
+  .superRefine((definition, ctx) => {
+    const sectionIds = definition.sections.map((section) => section.id).filter((id): id is string => Boolean(id));
+    if (new Set(sectionIds).size !== sectionIds.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sections'], message: 'Section ids must be unique' });
+    }
+  });
+
 const baseMenuBundleSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   description: z.string().max(500, 'Description cannot exceed 500 characters').nullish(),
@@ -311,8 +348,11 @@ const baseMenuBundleSchema = z.object({
       },
       { message: 'Each language can only be used once' },
     ),
-  menuDefinition: menuDefinitionSchema,
-  categoryIds: z.array(z.string()).default([]),
+  menuDefinition: completeMenuDefinitionSchema,
+  categoryIds: z
+    .array(z.string().min(1, 'Category is required'))
+    .default([])
+    .refine((ids) => new Set(ids).size === ids.length, 'Category ids must be unique'),
   primaryCategoryId: z.string().nullish(),
   // Same field and same bounds as an item's. It has to be in the schema, not merely in the payload:
   // zod strips unknown keys, so a bundle form that carries the mask outside the schema silently

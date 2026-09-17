@@ -2553,8 +2553,6 @@
   "link_menu_version": "Collega versione menu",
   "menu_bundle_name_required": "Il nome della versione menu è obbligatorio",
   "menu_bundle_name_too_long": "Il nome della versione menu deve contenere al massimo 100 caratteri",
-  "menu_version_draft_warning": "Questa azione crea una bozza inattiva. Controlla e completa le sezioni nell’editor completo del menu prima di pubblicarla.",
-  "menu_version_draft_complete": "Completa le sezioni della bozza prima di pubblicarla.",
   "no_active_variations": "Nessuna variazione attiva disponibile",
   "no_categories": "Nessuna categoria",
   "product_variations": "Varianti del prodotto",
@@ -2564,6 +2562,8 @@
   "menu_version_main_section": "Principale",
   "continue_to_bundle_editor": "Continua all’editor completo",
   "menu_version_prefill_warning": "Controlla questi valori precompilati e completa l’editor completo del menu. Nulla viene salvato finché non salvi il menu.",
+  "menu_version_prefill_invalid": "Il passaggio del menu manca, è scaduto o non è valido. Riavvia la versione del menu.",
+  "menu_definition_invalid": "Aggiungi almeno una sezione con un articolo a questo menu.",
   "current_menu_parent": "Attualmente collegato a: {{parentName}}",
   "reassign_menu_confirmation": "Questo menu è attualmente collegato a {{parentName}}. Ricollegarlo a questo prodotto? Il collegamento esistente verrà sostituito."
 }

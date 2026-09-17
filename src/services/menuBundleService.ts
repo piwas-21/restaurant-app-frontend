@@ -1,5 +1,6 @@
 import { apiClient } from '@/utils/apiClient';
 import type { OrderType } from '@/types/order';
+export { normalizeMenuBundleProduct } from '@/utils/normalizeMenuBundleProduct';
 
 /**
  * The `/api/Menus` half of what used to be one `menuService.ts`.
@@ -76,9 +77,11 @@ export const updateMenuBundle = async (id: string, menuData: unknown) => {
   }
 };
 
-export const getMenuBundleById = async (id: string) => {
+export const getMenuBundleById = async (id: string, signal?: AbortSignal) => {
   try {
-    return await apiClient.get(`${MENUS_API_URL}/${id}`);
+    return await (signal
+      ? apiClient.get(`${MENUS_API_URL}/${id}`, { signal })
+      : apiClient.get(`${MENUS_API_URL}/${id}`));
   } catch (error) {
     console.error('Get Menu Bundle Failed:', error);
     throw error;

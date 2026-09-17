@@ -18,6 +18,7 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 interface OfferVersionsSectionProps {
   readonly product: ProductDetails;
   readonly onCreateRequested?: (prefill: MenuVersionPrefill) => void;
+  readonly onNavigate?: (href: string) => void;
   readonly allowQuickCreate?: boolean;
 }
 
@@ -26,6 +27,7 @@ const parentId = (menu: Product): string | null => menu.parentOfferProductId ?? 
 export default function OfferVersionsSection({
   product,
   onCreateRequested,
+  onNavigate,
   allowQuickCreate = true,
 }: OfferVersionsSectionProps) {
   const { t } = useTranslation();
@@ -35,6 +37,9 @@ export default function OfferVersionsSection({
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<'create' | 'link' | null>(null);
   const [unlinking, setUnlinking] = useState<Product | null>(null);
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const requestSequence = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     tRef.current = t;
@@ -42,26 +47,38 @@ export default function OfferVersionsSection({
 
   const load = useCallback(async () => {
     if (!product.id) return;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const sequence = ++requestSequence.current;
     setIsLoading(true);
     setError(null);
     try {
-      const bundles = await getAllMenuBundles();
+      const bundles = await getAllMenuBundles(controller.signal);
+      if (controller.signal.aborted || sequence !== requestSequence.current) return;
       setOffers(bundles.filter((menu) => isMenuBundle(menu) && parentId(menu) === product.id));
     } catch (caught) {
+      if (controller.signal.aborted || sequence !== requestSequence.current) return;
       setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoading(false);
     }
   }, [product.id]);
 
   useEffect(() => {
     void load();
+    return () => {
+      requestSequence.current += 1;
+      abortRef.current?.abort();
+    };
   }, [load]);
 
   const unlink = async () => {
-    if (!unlinking) return;
+    if (!unlinking || isUnlinking) return;
+    const target = unlinking;
+    setIsUnlinking(true);
     try {
-      const response = await unlinkMenuOffer(unlinking.id);
+      const response = await unlinkMenuOffer(target.id);
       if (!response.success) {
         setError(serverMessage(response) ?? tRef.current('error_loading_menu_bundles'));
       } else {
@@ -70,6 +87,8 @@ export default function OfferVersionsSection({
       }
     } catch (caught) {
       setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+    } finally {
+      setIsUnlinking(false);
     }
   };
 
@@ -132,6 +151,11 @@ export default function OfferVersionsSection({
                 <Link
                   className={`${adminStyles.adminButton} ${adminStyles.view}`}
                   href={`/admin/menu-management/${offer.id}`}
+                  onClick={(event) => {
+                    if (!onNavigate) return;
+                    event.preventDefault();
+                    onNavigate(`/admin/menu-management/${offer.id}`);
+                  }}
                 >
                   {t('details')}
                 </Link>
@@ -172,7 +196,9 @@ export default function OfferVersionsSection({
       />
       <ConfirmationModal
         isOpen={unlinking !== null}
-        onClose={() => setUnlinking(null)}
+        onClose={() => {
+          if (!isUnlinking) setUnlinking(null);
+        }}
         onConfirm={unlink}
         message={t(
           'unlink_menu_version_confirmation',

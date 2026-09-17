@@ -17,6 +17,8 @@ export interface EditorSectionsContext {
   readonly isCreate: boolean;
   readonly isBundle: boolean;
   readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
+  /** Route an offer detail link through the page's dirty-navigation guard. */
+  readonly onNavigate?: (href: string) => void;
 }
 
 /**

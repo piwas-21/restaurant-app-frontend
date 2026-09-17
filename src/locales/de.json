@@ -2551,8 +2551,6 @@
   "link_menu_version": "Menüversion verknüpfen",
   "menu_bundle_name_required": "Der Name der Menüversion ist erforderlich",
   "menu_bundle_name_too_long": "Der Name der Menüversion darf höchstens 100 Zeichen lang sein",
-  "menu_version_draft_warning": "Dadurch wird ein inaktiver Entwurf erstellt. Prüfen und vervollständigen Sie die Abschnitte im vollständigen Menüeditor, bevor Sie ihn veröffentlichen.",
-  "menu_version_draft_complete": "Vervollständigen Sie die Entwurfsabschnitte vor der Veröffentlichung.",
   "no_active_variations": "Keine aktiven Varianten verfügbar",
   "no_categories": "Keine Kategorien",
   "product_variations": "Produktvarianten",
@@ -2562,6 +2560,8 @@
   "menu_version_main_section": "Hauptgericht",
   "continue_to_bundle_editor": "Zum vollständigen Editor",
   "menu_version_prefill_warning": "Prüfen Sie diese vorausgefüllten Werte und vervollständigen Sie den Menüeditor. Gespeichert wird erst beim Speichern des Menüs.",
+  "menu_version_prefill_invalid": "Die Menüübergabe fehlt, ist abgelaufen oder ungültig. Starten Sie die Menüversion erneut.",
+  "menu_definition_invalid": "Fügen Sie diesem Menü mindestens einen Abschnitt mit einem Artikel hinzu.",
   "current_menu_parent": "Derzeit verknüpft mit: {{parentName}}",
   "reassign_menu_confirmation": "Dieses Menü ist derzeit mit {{parentName}} verknüpft. Neu mit diesem Produkt verknüpfen? Die bestehende Verknüpfung wird ersetzt."
 }

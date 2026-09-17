@@ -2551,8 +2551,6 @@
   "link_menu_version": "Link menu version",
   "menu_bundle_name_required": "Menu version name is required",
   "menu_bundle_name_too_long": "Menu version name must be 100 characters or fewer",
-  "menu_version_draft_warning": "This creates an inactive draft. Review and complete its sections in the full bundle editor before publishing.",
-  "menu_version_draft_complete": "Complete the draft sections before publishing.",
   "no_active_variations": "No active variations are available",
   "no_categories": "No categories",
   "product_variations": "Product variations",
@@ -2562,6 +2560,8 @@
   "menu_version_main_section": "Main",
   "continue_to_bundle_editor": "Continue to full editor",
   "menu_version_prefill_warning": "Review these prefilled values, then complete the full bundle editor. Nothing is saved until you save the bundle.",
+  "menu_version_prefill_invalid": "This menu handoff is missing, expired, or invalid. Start the menu version again.",
+  "menu_definition_invalid": "Add at least one section with one item to this menu.",
   "current_menu_parent": "Currently linked to: {{parentName}}",
   "reassign_menu_confirmation": "This menu is currently linked to {{parentName}}. Reassign it to this product? The existing link will be replaced."
 }

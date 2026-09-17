@@ -14,6 +14,7 @@ import EditorSideRail from './EditorSideRail';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
 import { productHeaderBadges, productHeaderMenuActions } from './productEditorHeader';
 import { useEditorErrors } from '@/hooks/admin/useEditorErrors';
+import { useEditorNavigationGuard } from '@/hooks/admin/useEditorNavigationGuard';
 import styles from './ProductEditorPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -34,6 +35,7 @@ interface ProductEditorPageProps {
   /** Optional callback that routes a quick offer prefill to the full bundle editor. */
   readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
   readonly onDelete?: () => void;
+  readonly onNavigate?: (href: string) => void;
   readonly onBack: () => void;
 }
 
@@ -60,13 +62,13 @@ export default function ProductEditorPage({
   onSaved,
   onOfferCreateRequested,
   onDelete,
+  onNavigate,
   onBack,
 }: ProductEditorPageProps) {
   const { t } = useTranslation();
   const editor = useProductEditorForm({ product, isBundle, mode, onSaved });
   const { form } = editor;
   const { errors } = form.formState;
-  const [isDiscardOpen, setIsDiscardOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(TAB_ITEM);
   // D13's error surface: how many fields are wrong, which sections hold them, where the first is.
   const validation = useEditorErrors({
@@ -87,18 +89,23 @@ export default function ProductEditorPage({
   // the resolver blocks an incomplete one. Edit gates on isDirty so the commit is deliberate.
   const saveDisabled = editor.isSubmitting || (!isCreate && !editor.isDirty);
 
-  // Guard the one exit that discards silently. Save is gated on isDirty, so the only
-  // way to lose work is leaving with pending edits — confirm before that. (Full beforeunload /
-  // route interception is a follow-up; this closes the in-page path.)
-  const handleBack = () => {
-    if (editor.isDirty) {
-      setIsDiscardOpen(true);
-    } else {
-      onBack();
-    }
-  };
+  const navigation = useEditorNavigationGuard({
+    isDirty: editor.isDirty,
+    onBack,
+    onOfferCreateRequested,
+    onDelete,
+    onNavigate,
+  });
 
-  const context = { editor, t, product, isCreate, isBundle, onOfferCreateRequested };
+  const context = {
+    editor,
+    t,
+    product,
+    isCreate,
+    isBundle,
+    onOfferCreateRequested: navigation.handleOfferCreate,
+    onNavigate: navigation.handleOfferNavigate,
+  };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
 
   // S10's meter. Only a SAVED ITEM gets one — see `EditorSideRail`'s prop for why a bundle and the
@@ -122,9 +129,14 @@ export default function ProductEditorPage({
         title={pageTitle}
         backLabel={t('editor_back_to_menu')}
         backAriaLabel={t('editor_back_to_menu_label')}
-        onBack={handleBack}
+        onBack={navigation.handleBack}
         headerBadges={productHeaderBadges({ t, isBundle, isCreate, typeLabel, isLive })}
-        headerMenuActions={productHeaderMenuActions({ t, isBundle, isCreate, onDelete })}
+        headerMenuActions={productHeaderMenuActions({
+          t,
+          isBundle,
+          isCreate,
+          onDelete: navigation.handleDelete,
+        })}
         headerMenuLabel={t('editor_more_actions')}
         tabs={[
           { id: TAB_ITEM, label: t('item') },
@@ -166,7 +178,7 @@ export default function ProductEditorPage({
             <button
               type="button"
               className={modalStyles.cancelButton}
-              onClick={handleBack}
+              onClick={navigation.handleBack}
               disabled={editor.isSubmitting}
             >
               {t('back')}
@@ -185,12 +197,9 @@ export default function ProductEditorPage({
       />
 
       <ConfirmationModal
-        isOpen={isDiscardOpen}
-        onClose={() => setIsDiscardOpen(false)}
-        onConfirm={() => {
-          setIsDiscardOpen(false);
-          onBack();
-        }}
+        isOpen={navigation.isDiscardOpen}
+        onClose={navigation.closeDiscard}
+        onConfirm={navigation.confirmDiscard}
         message={t('discard_unsaved_changes_message')}
       />
     </>

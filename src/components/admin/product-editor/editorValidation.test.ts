@@ -81,9 +81,9 @@ describe('editorValidation — the field→section map matches the schema', () =
   it('leaves nothing unmapped except the five that no section renders', () => {
     // `isActive`/`isAvailable`/`isSpecial` live in the side RAIL (S2) — an error there would have
     // no nav entry to mark, and all three are booleans with defaults that cannot fail.
-    // `content` is the Translations TAB (`isTranslationsField` handles it), `menuDefinition` is a
-    // bundle's, and a bundle keeps one panel rather than §4's seven sections (§9.5).
-    const exempt = ['isActive', 'isAvailable', 'isSpecial', 'content', 'menuDefinition'];
+    // `content` is the Translations TAB (`isTranslationsField` handles it), while the active
+    // flags live in the side rail. Bundle composition is part of the Basics panel now.
+    const exempt = ['isActive', 'isAvailable', 'isSpecial', 'content'];
     const unmapped = schemaFields.filter((field) => !(field in SECTION_FIELDS));
 
     expect(unmapped.sort()).toEqual(exempt.sort());

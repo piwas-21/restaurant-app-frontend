@@ -35,6 +35,7 @@ const ProductEditorRoute = () => {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
+  const [prefillWriteError, setPrefillWriteError] = useState(false);
 
   const handleConfirmDelete = async () => {
     if (!product) return;
@@ -92,12 +93,17 @@ const ProductEditorRoute = () => {
         isBundle={productIsBundle}
         onSaved={refetch}
         onOfferCreateRequested={(prefill) => {
-          writeMenuVersionPrefill(prefill);
-          router.push(`${LIST_ROUTE}/new?type=menu&prefill=offer`);
+          if (writeMenuVersionPrefill(prefill)) {
+            router.push(`${LIST_ROUTE}/new?type=menu&prefill=offer`);
+          } else {
+            setPrefillWriteError(true);
+          }
         }}
         onDelete={() => setIsConfirmationOpen(true)}
+        onNavigate={(href) => router.push(href)}
         onBack={() => router.push(LIST_ROUTE)}
       />
+      {prefillWriteError && <p role="alert">{t('menu_version_prefill_invalid')}</p>}
 
       <ConfirmationModal
         isOpen={isConfirmationOpen}

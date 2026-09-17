@@ -2559,8 +2559,6 @@
   "link_menu_version": "ربط إصدار القائمة",
   "menu_bundle_name_required": "اسم إصدار القائمة مطلوب",
   "menu_bundle_name_too_long": "يجب ألا يتجاوز اسم إصدار القائمة 100 حرف",
-  "menu_version_draft_warning": "سيؤدي هذا إلى إنشاء مسودة غير نشطة. راجع أقسامها وأكملها في محرر القائمة الكامل قبل نشرها.",
-  "menu_version_draft_complete": "أكمل أقسام المسودة قبل النشر.",
   "no_active_variations": "لا توجد تنويعات نشطة متاحة",
   "no_categories": "لا توجد فئات",
   "product_variations": "تنويعات المنتج",
@@ -2570,6 +2568,8 @@
   "menu_version_main_section": "الطبق الرئيسي",
   "continue_to_bundle_editor": "المتابعة إلى المحرر الكامل",
   "menu_version_prefill_warning": "راجع القيم المعبأة مسبقًا وأكمل محرر القائمة الكامل. لن يتم حفظ أي شيء حتى تحفظ القائمة.",
+  "menu_version_prefill_invalid": "بيانات نقل القائمة مفقودة أو منتهية أو غير صالحة. ابدأ إصدار القائمة من جديد.",
+  "menu_definition_invalid": "أضف قسمًا واحدًا على الأقل يحتوي على عنصر إلى هذه القائمة.",
   "current_menu_parent": "مرتبط حاليًا بالمنتج: {{parentName}}",
   "reassign_menu_confirmation": "هذه القائمة مرتبطة حاليًا بالمنتج {{parentName}}. هل تريد إعادة ربطها بهذا المنتج؟ سيتم استبدال الارتباط الحالي."
 }

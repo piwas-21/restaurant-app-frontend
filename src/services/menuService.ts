@@ -68,6 +68,7 @@ export const getProducts = async (
   // staff caller, and the category the owner just hid sat in the All list anyway. Admin/staff
   // callers omit it and keep seeing everything (they manage the flag). A guest needs no flag.
   guestAllView?: boolean,
+  signal?: AbortSignal,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
   let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
   if (categoryId) {
@@ -90,18 +91,27 @@ export const getProducts = async (
   if (typeQuery?.includeComponents) {
     url += `&IncludeComponents=true`;
   }
-  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
+  return (await (signal ? apiClient.get(url, { signal }) : apiClient.get(url))) as {
+    success: boolean;
+    message: string;
+    data: PaginatedProducts;
+    errors: unknown;
+  };
 };
 
 /** Reads every capped API page before client-side family grouping or relationship picking. */
-export const getAllProducts = async (categoryId?: string | null, typeQuery?: ProductTypeQuery): Promise<Product[]> => {
+export const getAllProducts = async (
+  categoryId?: string | null,
+  typeQuery?: ProductTypeQuery,
+  signal?: AbortSignal,
+): Promise<Product[]> => {
   const pageSize = 100;
   const byId = new Map<string, Product>();
   let page = 1;
   let totalPages = 1;
 
   while (page <= totalPages) {
-    const response = await getProducts(page, pageSize, categoryId, typeQuery);
+    const response = await getProducts(page, pageSize, categoryId, typeQuery, undefined, undefined, signal);
     if (!response.success) throw new Error(response.message || 'Failed to load menu items');
     response.data.items.forEach((product) => byId.set(product.id, product));
     if (response.data.items.length === 0) break;
@@ -112,8 +122,8 @@ export const getAllProducts = async (categoryId?: string | null, typeQuery?: Pro
   return [...byId.values()];
 };
 
-export const getAllMenuBundles = async (): Promise<Product[]> =>
-  getAllProducts(null, { type: 'Menu', includeComponents: true });
+export const getAllMenuBundles = async (signal?: AbortSignal): Promise<Product[]> =>
+  getAllProducts(null, { type: 'Menu', includeComponents: true }, signal);
 
 export const createProduct = async (productData: CreateProductData) => {
   try {
@@ -124,8 +134,10 @@ export const createProduct = async (productData: CreateProductData) => {
   }
 };
 
-export const getProductById = async (productId: string) => {
-  return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
+export const getProductById = async (productId: string, signal?: AbortSignal) => {
+  return await (signal
+    ? apiClient.get(`${PRODUCTS_API_URL}/${productId}`, { signal })
+    : apiClient.get(`${PRODUCTS_API_URL}/${productId}`));
 };
 
 /**

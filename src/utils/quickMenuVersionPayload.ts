@@ -4,6 +4,8 @@ import type { MenuDefinition } from '@/types/menu';
 export const MENU_VERSION_NAME_MAX_LENGTH = 100;
 
 export interface MenuVersionPrefill {
+  /** Marker that prevents an offer prefill from being consumed by the item-create route. */
+  isBundle: true;
   name: string;
   description: string;
   basePrice: number;
@@ -50,6 +52,7 @@ export function buildQuickMenuVersionDefinition(
           {
             id: 'temp-main-item',
             productId: product.id,
+            productName: product.name,
             productVariationId: variationId,
             additionalPrice: 0,
             displayOrder: 0,
@@ -81,6 +84,7 @@ export function buildQuickMenuVersionPrefill(
   );
 
   return {
+    isBundle: true,
     name,
     description: product.description ?? '',
     basePrice: price,

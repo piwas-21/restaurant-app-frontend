@@ -2551,8 +2551,6 @@
   "link_menu_version": "Menuversie koppelen",
   "menu_bundle_name_required": "Naam van menuversie is verplicht",
   "menu_bundle_name_too_long": "De naam van de menuversie mag maximaal 100 tekens bevatten",
-  "menu_version_draft_warning": "Hiermee maakt u een inactieve conceptversie. Controleer en voltooi de secties in de volledige menu-editor voordat u deze publiceert.",
-  "menu_version_draft_complete": "Voltooi de conceptsecties voordat u publiceert.",
   "no_active_variations": "Geen actieve varianten beschikbaar",
   "no_categories": "Geen categorieën",
   "product_variations": "Productvarianten",
@@ -2562,6 +2560,8 @@
   "menu_version_main_section": "Hoofdgerecht",
   "continue_to_bundle_editor": "Doorgaan naar volledige editor",
   "menu_version_prefill_warning": "Controleer deze vooraf ingevulde waarden en voltooi de volledige menu-editor. Er wordt niets opgeslagen totdat u het menu opslaat.",
+  "menu_version_prefill_invalid": "De menuoverdracht ontbreekt, is verlopen of ongeldig. Start de menuversie opnieuw.",
+  "menu_definition_invalid": "Voeg minstens één sectie met één item aan dit menu toe.",
   "current_menu_parent": "Momenteel gekoppeld aan: {{parentName}}",
   "reassign_menu_confirmation": "Dit menu is momenteel gekoppeld aan {{parentName}}. Opnieuw aan dit product koppelen? De bestaande koppeling wordt vervangen."
 }

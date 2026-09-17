@@ -53,7 +53,7 @@ describe('useProductEditorFetch — why the product could not be opened (E9)', (
     const { result } = renderHook(() => useProductEditorFetch('b1'));
 
     await waitFor(() => expect(result.current.product).toMatchObject({ id: 'b1', schedule: '11:00' }));
-    expect(mockBundle).toHaveBeenCalledWith('b1');
+    expect(mockBundle.mock.calls.some(([id]) => id === 'b1')).toBe(true);
   });
 
   it('does not make the extra request for a plain product', async () => {
@@ -63,5 +63,43 @@ describe('useProductEditorFetch — why the product could not be opened (E9)', (
     await waitFor(() => expect(result.current.product).toEqual(PRODUCT));
     expect(mockBundle).not.toHaveBeenCalled();
     expect(result.current.error).toBeNull();
+  });
+
+  it('keeps the newest product when an older request resolves last', async () => {
+    let resolveFirst: ((value: unknown) => void) | undefined;
+    let resolveSecond: ((value: unknown) => void) | undefined;
+    mockProduct.mockImplementation(
+      (id: string) =>
+        new Promise((resolve) => {
+          if (id === 'p1') resolveFirst = resolve;
+          if (id === 'p2') resolveSecond = resolve;
+        }),
+    );
+    const { result, rerender } = renderHook(({ id }) => useProductEditorFetch(id), { initialProps: { id: 'p1' } });
+    rerender({ id: 'p2' });
+
+    resolveSecond?.({ success: true, data: { ...PRODUCT, id: 'p2' } });
+    await waitFor(() => expect(result.current.product?.id).toBe('p2'));
+    resolveFirst?.({ success: true, data: { ...PRODUCT, id: 'p1' } });
+    await Promise.resolve();
+    expect(result.current.product?.id).toBe('p2');
+  });
+
+  it('keeps product categories and primary placement when the bundle DTO omits them', async () => {
+    mockProduct.mockResolvedValue({
+      success: true,
+      data: {
+        ...BUNDLE,
+        categories: [{ categoryId: 'cat-1', categoryName: 'Lunch', isPrimary: true }],
+        primaryCategory: { id: 'cat-1', name: 'Lunch' },
+      },
+    });
+    mockBundle.mockResolvedValue({ success: true, data: { ...BUNDLE, schedule: '11:00', categories: [] } });
+    const { result } = renderHook(() => useProductEditorFetch('b1'));
+
+    await waitFor(() => expect(result.current.product?.primaryCategory).toEqual({ id: 'cat-1', name: 'Lunch' }));
+    expect(result.current.product?.categories).toEqual([
+      { categoryId: 'cat-1', categoryName: 'Lunch', isPrimary: true },
+    ]);
   });
 });

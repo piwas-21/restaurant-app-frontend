@@ -778,7 +778,20 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     displayOrder: 0,
     content: { en: { name: 'Menu Kebab', description: 'combo' } },
     allergens: ['gluten', 'sesame'],
-    menuDefinition: { isAlwaysAvailable: true, sections: [] },
+    menuDefinition: {
+      isAlwaysAvailable: true,
+      sections: [
+        {
+          id: 'section-1',
+          name: 'Main',
+          displayOrder: 0,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 1,
+          items: [{ id: 'item-1', productId: 'p1', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+        },
+      ],
+    },
   } as unknown as ProductDetails;
 
   const saveBundleUntouched = async (product: ProductDetails) => {

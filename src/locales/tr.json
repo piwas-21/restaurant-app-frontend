@@ -2551,8 +2551,6 @@
   "link_menu_version": "Menü sürümünü bağla",
   "menu_bundle_name_required": "Menü sürümünün adı zorunludur",
   "menu_bundle_name_too_long": "Menü sürümünün adı 100 karakter veya daha az olmalıdır",
-  "menu_version_draft_warning": "Bu işlem etkin olmayan bir taslak oluşturur. Yayınlamadan önce tam menü düzenleyicide bölümleri inceleyip tamamlayın.",
-  "menu_version_draft_complete": "Yayınlamadan önce taslak bölümlerini tamamlayın.",
   "no_active_variations": "Kullanılabilir etkin varyasyon yok",
   "no_categories": "Kategori yok",
   "product_variations": "Ürün varyasyonları",
@@ -2562,6 +2560,8 @@
   "menu_version_main_section": "Ana ürün",
   "continue_to_bundle_editor": "Tam düzenleyiciye devam et",
   "menu_version_prefill_warning": "Bu önceden doldurulmuş değerleri inceleyip tam menü düzenleyicide tamamlayın. Menü siz kaydedene kadar hiçbir şey kaydedilmez.",
+  "menu_version_prefill_invalid": "Menü aktarımı eksik, süresi dolmuş veya geçersiz. Menü sürümünü yeniden başlatın.",
+  "menu_definition_invalid": "Bu menüye en az bir öğe içeren bir bölüm ekleyin.",
   "current_menu_parent": "Şu anda bağlı olduğu ürün: {{parentName}}",
   "reassign_menu_confirmation": "Bu menü şu anda {{parentName}} ürününe bağlı. Bu ürüne yeniden bağlansın mı? Mevcut bağlantı değiştirilecek."
 }

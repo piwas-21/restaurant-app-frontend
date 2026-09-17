@@ -5,12 +5,11 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import { getAllProducts } from '@/services/menuService';
 import { linkMenuOffer } from '@/services/menuOfferFamilyService';
-import { isMenuBundle } from '@/utils/productTypeFilter';
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import { serverMessage } from '@/utils/apiFormErrors';
-import type { ProductDetails, Product, Variation } from '@/app/admin/menu-management/interfaces';
+import type { ProductDetails, Variation } from '@/app/admin/menu-management/interfaces';
+import { useLinkExistingMenuLoader } from '@/hooks/admin/useLinkExistingMenuLoader';
 import LinkExistingMenuPreview from './LinkExistingMenuPreview';
 import styles from './QuickMenuVersionModal.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
@@ -22,21 +21,21 @@ interface LinkExistingMenuModalProps {
   readonly onLinked: () => void;
 }
 
-const parentId = (menu: Product): string | null => menu.parentOfferProductId ?? null;
-
 /** Safe migration surface for an existing bundle. It previews the chosen menu before the
  * relationship-only endpoint is called; no menu sections are sent or rewritten. */
 export default function LinkExistingMenuModal({ isOpen, product, onClose, onLinked }: LinkExistingMenuModalProps) {
   const { t } = useTranslation();
   const tRef = useRef(t);
-  const [bundles, setBundles] = useState<Product[]>([]);
-  const [parentNames, setParentNames] = useState<Record<string, string>>({});
   const [selectedId, setSelectedId] = useState('');
   const [variationId, setVariationId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isReassignConfirmOpen, setIsReassignConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  const { bundles, parentNames, isLoading, loadError } = useLinkExistingMenuLoader({
+    isOpen,
+    productId: product.id,
+  });
   const selected = bundles.find((bundle) => bundle.id === selectedId);
   const activeVariations = getActiveOfferVariations(product);
   const variation = activeVariations.find((candidate: Variation) => candidate.id === variationId);
@@ -57,24 +56,23 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   }, [t]);
 
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isOpen) return;
     setSelectedId('');
     setVariationId('');
     setError(null);
     setIsReassignConfirmOpen(false);
-    setIsLoading(true);
-    void getAllProducts(null, { includeMenus: true, includeComponents: true })
-      .then((items) => {
-        const names = Object.fromEntries(items.map((item) => [item.id, item.name]));
-        setParentNames(names);
-        setBundles(items.filter((bundle) => isMenuBundle(bundle) && parentId(bundle) !== product.id));
-      })
-      .catch((caught) => setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles')))
-      .finally(() => setIsLoading(false));
   }, [isOpen, product.id]);
 
   const linkSelected = async () => {
     if (!selectedId || (variationRequired && !variation)) return;
+    if (isSaving) return;
     setIsSaving(true);
     setError(null);
     try {
@@ -82,6 +80,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
         parentOfferProductId: product.id,
         parentOfferVariationId: variation?.id ?? null,
       });
+      if (!mountedRef.current) return;
       if (!response.success) {
         setError(serverMessage(response) ?? tRef.current('error_loading_menu_bundles'));
         return;
@@ -89,9 +88,9 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
       onLinked();
       onClose();
     } catch (caught) {
-      setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+      if (mountedRef.current) setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
-      setIsSaving(false);
+      if (mountedRef.current) setIsSaving(false);
     }
   };
 
@@ -103,6 +102,9 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     }
     void linkSelected();
   };
+
+  const visibleError =
+    error ?? (loadError ? (serverMessage(loadError) ?? tRef.current('error_loading_menu_bundles')) : null);
 
   return (
     <BaseModal
@@ -170,9 +172,9 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
             categoryMismatch={categoryMismatch}
           />
         )}
-        {error && (
+        {visibleError && (
           <p role="alert" className={styles.error}>
-            {error}
+            {visibleError}
           </p>
         )}
       </div>

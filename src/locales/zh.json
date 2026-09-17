@@ -2549,8 +2549,6 @@
   "link_menu_version": "关联菜单版本",
   "menu_bundle_name_required": "菜单版本名称为必填项",
   "menu_bundle_name_too_long": "菜单版本名称不得超过100个字符",
-  "menu_version_draft_warning": "这将创建一个未启用的草稿。发布前请在完整菜单编辑器中检查并完成其分区。",
-  "menu_version_draft_complete": "发布前请完成草稿分区。",
   "no_active_variations": "没有可用的启用变体",
   "no_categories": "没有分类",
   "product_variations": "产品变体",
@@ -2560,6 +2558,8 @@
   "menu_version_main_section": "主菜",
   "continue_to_bundle_editor": "继续完整编辑器",
   "menu_version_prefill_warning": "请检查这些预填值，并在完整菜单编辑器中完成设置。保存菜单前不会保存任何内容。",
+  "menu_version_prefill_invalid": "菜单传递缺失、已过期或无效。请重新开始菜单版本。",
+  "menu_definition_invalid": "请为此菜单添加至少一个包含商品的分区。",
   "current_menu_parent": "当前关联至：{{parentName}}",
   "reassign_menu_confirmation": "此菜单当前关联至{{parentName}}。要将它重新关联到此产品吗？现有关联将被替换。"
 }

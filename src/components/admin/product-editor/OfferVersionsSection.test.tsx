@@ -124,4 +124,47 @@ describe('OfferVersionsSection', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'link_existing_menu_version' })).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: 'create_menu_version' })).not.toBeInTheDocument();
   });
+
+  it('ignores a stale bundle-list response after the parent product changes', async () => {
+    let resolveFirst: ((value: Product[]) => void) | undefined;
+    let resolveSecond: ((value: Product[]) => void) | undefined;
+    (getAllMenuBundles as jest.Mock)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+      );
+    const { rerender } = render(<OfferVersionsSection product={parent} />);
+    rerender(<OfferVersionsSection product={{ ...parent, id: 'owner-2', name: 'Other product' }} />);
+
+    resolveSecond?.([bundle('menu-2', 'owner-2')]);
+    await waitFor(() => expect(screen.getByText('menu-2')).toBeInTheDocument());
+    resolveFirst?.([bundle('menu-1', 'product-1')]);
+    await Promise.resolve();
+    expect(screen.queryByText('menu-1')).not.toBeInTheDocument();
+  });
+
+  it('does not send duplicate unlink requests while the first one is pending', async () => {
+    let resolveUnlink: ((value: { success: boolean }) => void) | undefined;
+    (unlinkMenuOffer as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUnlink = resolve;
+        }),
+    );
+    render(<OfferVersionsSection product={parent} />);
+    await waitFor(() => expect(screen.getByText('menu-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'unlink_menu_version' }));
+    fireEvent.click(screen.getByRole('button', { name: 'yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'yes' }));
+    expect(unlinkMenuOffer).toHaveBeenCalledTimes(1);
+    resolveUnlink?.({ success: true });
+  });
 });

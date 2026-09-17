@@ -71,4 +71,47 @@ describe('menu version prefill', () => {
       sections: [{ name: 'Main' }],
     });
   });
+
+  it('rejects a corrupted nested id before consuming the handoff', () => {
+    const prefill = buildQuickMenuVersionPrefill(source, 'Broken menu', 14, undefined, 'Main');
+    const corrupted = {
+      nonce: 'nonce-1',
+      expiresAt: Date.now() + 60_000,
+      prefill: {
+        ...prefill,
+        menuDefinition: {
+          ...prefill.menuDefinition,
+          sections: [
+            {
+              ...prefill.menuDefinition.sections[0],
+              items: [{ ...prefill.menuDefinition.sections[0].items[0], productId: '' }],
+            },
+          ],
+        },
+      },
+    };
+    window.sessionStorage.setItem(MENU_VERSION_PREFILL_STORAGE_KEY, JSON.stringify(corrupted));
+
+    expect(consumeMenuVersionPrefill()).toBeNull();
+    expect(window.sessionStorage.getItem(MENU_VERSION_PREFILL_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it('rejects an expired or non-bundle envelope without opening a standalone draft', () => {
+    const prefill = buildQuickMenuVersionPrefill(source, 'Expired menu', 14, undefined, 'Main');
+    window.sessionStorage.setItem(
+      MENU_VERSION_PREFILL_STORAGE_KEY,
+      JSON.stringify({ nonce: 'nonce-1', expiresAt: Date.now() - 1, prefill }),
+    );
+    expect(consumeMenuVersionPrefill()).toBeNull();
+
+    window.sessionStorage.setItem(
+      MENU_VERSION_PREFILL_STORAGE_KEY,
+      JSON.stringify({
+        nonce: 'nonce-2',
+        expiresAt: Date.now() + 60_000,
+        prefill: { ...prefill, isBundle: false },
+      }),
+    );
+    expect(consumeMenuVersionPrefill()).toBeNull();
+  });
 });

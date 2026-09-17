@@ -55,7 +55,7 @@ export default function OfferFamilyChoiceModal({
     if (!family || !anchorTarget) return [];
     return [anchorTarget, ...family.menuOffers]
       .filter((target) => {
-        const variationMatches = !variationId || !target.parentVariationId || target.parentVariationId === variationId;
+        const variationMatches = target === anchorTarget || (target.parentVariationId ?? null) === variationId;
         const filterMatches = !activeFilterIds || matchesFilters(target, activeFilterIds);
         return variationMatches && filterMatches;
       })

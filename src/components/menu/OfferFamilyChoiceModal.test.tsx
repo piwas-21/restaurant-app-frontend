@@ -39,6 +39,7 @@ const family: CatalogOfferFamily = {
       kind: 'bundle',
       name: 'Menu Tacos 1 Viande',
       price: 13,
+      parentVariationId: 'large',
     },
   ],
   categoryIds: ['tacos'],
@@ -104,6 +105,7 @@ describe('OfferFamilyChoiceModal', () => {
     );
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
+    fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
     expect(screen.getByRole('radio', { name: 'Meal CHF 13.00' })).toBeDisabled();
   });
 
@@ -135,7 +137,63 @@ describe('OfferFamilyChoiceModal', () => {
     );
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
+    fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
     expect(screen.queryByRole('radio', { name: /Item only/ })).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Meal CHF 13.00' })).toBeInTheDocument();
+  });
+
+  it('shows only the exact variation menu and keeps the anchor separate', async () => {
+    const familyWithVariationMenus: CatalogOfferFamily = {
+      ...family,
+      id: 'family-chicken-pieces',
+      anchor: { ...family.anchor, id: 'chicken', name: 'Chicken', price: 10 },
+      menuOffers: [
+        { productId: 'menu-chicken-base', kind: 'bundle', name: 'Base menu', price: 14, parentVariationId: null },
+        { productId: 'menu-chicken-six', kind: 'bundle', name: '6-piece menu', price: 15, parentVariationId: 'six' },
+        {
+          productId: 'menu-chicken-twelve',
+          kind: 'bundle',
+          name: '12-piece menu',
+          price: 18,
+          parentVariationId: 'twelve',
+        },
+      ],
+      variationOptions: [
+        { id: 'six', name: '6 pieces', price: 10 },
+        { id: 'twelve', name: '12 pieces', price: 14 },
+      ],
+    };
+
+    render(<OfferFamilyChoiceModal family={familyWithVariationMenus} onClose={jest.fn()} onSelect={jest.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole('radio', { name: '6 pieces' })).toBeChecked());
+    expect(screen.getByRole('radio', { name: 'Item only CHF 10.00' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Meal CHF 15.00' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Meal CHF 14.00' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Meal CHF 18.00' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: '12 pieces' }));
+
+    expect(screen.getByRole('radio', { name: 'Item only CHF 14.00' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Meal CHF 18.00' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Meal CHF 14.00' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Meal CHF 15.00' })).not.toBeInTheDocument();
+  });
+
+  it('shows the base menu only when no variation is selected', async () => {
+    const familyWithBaseMenu: CatalogOfferFamily = {
+      ...family,
+      id: 'family-base-menu',
+      menuOffers: [
+        { productId: 'menu-base', kind: 'bundle', name: 'Base menu', price: 14, parentVariationId: null },
+        { productId: 'menu-six', kind: 'bundle', name: '6-piece menu', price: 15, parentVariationId: 'six' },
+      ],
+      variationOptions: [],
+    };
+
+    render(<OfferFamilyChoiceModal family={familyWithBaseMenu} onClose={jest.fn()} onSelect={jest.fn()} />);
+
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Meal CHF 14.00' })).toBeInTheDocument());
+    expect(screen.queryByRole('radio', { name: 'Meal CHF 15.00' })).not.toBeInTheDocument();
   });
 });

@@ -44,6 +44,10 @@ export default function MenuOfferFamiliesOnePage({
   const filters = useMenuFilters(cards);
   const isFiltered = filters.activeIds.size > 0;
   const heroVisible = !featuredFilterable || matchesFilters(featuredFilterable, filters.activeIds);
+  const categorylessFamilies = families.filter((family) => family.categoryIds.length === 0);
+  const visibleCategorylessFamilies = categorylessFamilies.filter((family) =>
+    matchesFilters(toOfferFamilyFilterItem(family), filters.activeIds),
+  );
 
   if (state.isLoading && families.length === 0) {
     return (
@@ -140,6 +144,41 @@ export default function MenuOfferFamiliesOnePage({
           </section>
         );
       })}
+
+      {categorylessFamilies.length > 0 && (!isFiltered || visibleCategorylessFamilies.length > 0) && (
+        <section
+          id={onePageSectionId('offer-family-other')}
+          className={styles.section}
+          aria-labelledby="category-heading-offer-family-other"
+        >
+          <MenuSectionStatus
+            headingId="category-heading-offer-family-other"
+            title={t('offer_family_other_category')}
+            description={undefined}
+            isLoading={state.isLoading}
+            errorMessage={state.error}
+            isEmpty={!state.isLoading && !state.error && visibleCategorylessFamilies.length === 0}
+            loadingMessage={t('loading_items')}
+            emptyMessage={t('no_items_in_category', { categoryName: t('offer_family_other_category') })}
+            emptyHeading={isFiltered ? t('menu_state_filtered_heading') : t('menu_state_empty_heading')}
+            errorHeading={t('menu_state_error_heading')}
+            retryLabel={t('retry')}
+            browseLabel={t('browse_full_menu')}
+            onRetry={state.error ? state.refetch : undefined}
+          />
+          {!state.isLoading && !state.error && visibleCategorylessFamilies.length > 0 && (
+            <MenuList
+              products={[]}
+              bundles={[]}
+              families={visibleCategorylessFamilies}
+              onOpenItem={onOpenItem}
+              onFeedbackSuccess={() => {}}
+              onSwitchOrderType={onSwitchOrderType}
+              offerFamilyFilterIds={filters.activeIds}
+            />
+          )}
+        </section>
+      )}
     </div>
   );
 }

@@ -2541,5 +2541,6 @@
   "offer_family_menu": "套餐",
   "offer_family_meal": "套餐",
   "offer_family_choose_size": "选择规格",
-  "offer_family_choose_mode": "您想怎么点？"
+  "offer_family_choose_mode": "您想怎么点？",
+  "offer_family_other_category": "其他优惠"
 }

@@ -50,6 +50,21 @@ const family: CatalogOfferFamily = {
 };
 
 describe('OfferFamilyChoiceModal', () => {
+  it('uses the localized anchor content as the modal title', () => {
+    render(
+      <OfferFamilyChoiceModal
+        family={{
+          ...family,
+          anchor: { ...family.anchor, name: 'Fallback title', content: { en: { name: 'Localized title' } } },
+        }}
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('dialog', { name: 'Localized title' })).toBeInTheDocument();
+  });
+
   it('projects a selected size onto the item target and passes it to the next sheet', async () => {
     const onSelect = jest.fn();
     render(<OfferFamilyChoiceModal family={family} onClose={jest.fn()} onSelect={onSelect} />);
@@ -90,6 +105,19 @@ describe('OfferFamilyChoiceModal', () => {
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
     expect(screen.getByRole('radio', { name: 'Meal CHF 13.00' })).toBeDisabled();
+  });
+
+  it('disables an inactive target even when its schedule and channel allow ordering', async () => {
+    render(
+      <OfferFamilyChoiceModal
+        family={{ ...family, anchor: { ...family.anchor, isActive: false } }}
+        onClose={jest.fn()}
+        onSelect={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
+    expect(screen.getByRole('radio', { name: 'Item only CHF 9.00' })).toBeDisabled();
   });
 
   it('offers only targets matching an active allergen filter', async () => {

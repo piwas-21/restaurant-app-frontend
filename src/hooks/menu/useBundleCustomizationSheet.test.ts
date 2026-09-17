@@ -204,6 +204,38 @@ describe('useBundleCustomizationSheet', () => {
     expect(result.current.isOpen).toBe(false);
   });
 
+  it('preserves a variation-linked section item in the basket payload', async () => {
+    const variationBundle: MenuBundleItem = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        sections: bundle.menuDefinition.sections.map((section, index) =>
+          index === 0
+            ? {
+                ...section,
+                items: section.items.map((item) => ({ ...item, productVariationId: 'large-portion' })),
+              }
+            : section,
+        ),
+      },
+    };
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() => result.current.openForBundle(variationBundle));
+    act(() => result.current.toggleOption(variationBundle.menuDefinition.sections[1], 'coke'));
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedMenuOptions: expect.arrayContaining([
+          expect.objectContaining({ itemId: 'burger', productVariationId: 'large-portion' }),
+        ]),
+      }),
+    );
+  });
+
   it('prices a drill-in ingredient change and carries it into the add payload', async () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(bundle));

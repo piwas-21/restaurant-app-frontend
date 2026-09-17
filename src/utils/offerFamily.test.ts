@@ -25,6 +25,86 @@ const dto = {
 };
 
 describe('offer-family mapper', () => {
+  it('maps the backend ProductSummaryDto JSON shape without dropping type, base price, or gallery', () => {
+    const backendJson = {
+      id: 'sandwich',
+      name: 'Sandwich Kebab',
+      description: 'Freshly grilled.',
+      basePrice: 9.5,
+      imageUrl: null,
+      isActive: true,
+      isAvailable: true,
+      isSpecial: false,
+      hideBaseProduct: false,
+      isComponent: false,
+      type: 'mainItem',
+      ingredients: ['beef'],
+      detailedIngredients: [],
+      allergens: ['gluten'],
+      categoryNames: ['Mains'],
+      images: [
+        { id: 'image-secondary', url: '/secondary.jpg', altText: null, isPrimary: false, sortOrder: 2 },
+        {
+          id: 'image-primary',
+          url: '/primary.jpg',
+          cardUrl: '/primary-card.webp',
+          altText: 'Kebab sandwich',
+          isPrimary: true,
+          sortOrder: 1,
+        },
+      ],
+      content: { en: { name: 'Sandwich Kebab', description: 'Freshly grilled.' } },
+      primaryCategoryName: 'Mains',
+      variationCount: 1,
+      variations: [{ id: 'regular', name: 'Regular', priceModifier: 0, isActive: true, displayOrder: 1 }],
+      suggestedSideItems: [],
+      availability: { canOrder: true, reason: 'Available', allowedOrderTypes: ['Takeaway'] },
+    };
+
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-sandwich',
+      anchor: backendJson,
+      menuOffers: [
+        {
+          productId: 'menu-sandwich',
+          parentVariationId: 'regular',
+          price: 12.5,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: ['Takeaway'] },
+          scheduleAvailable: true,
+          allergens: ['gluten'],
+        },
+      ],
+      categoryIds: ['cat-mains'],
+      startingPrice: 9.5,
+    });
+
+    expect(family?.anchor).toMatchObject({
+      kind: 'product',
+      price: 9.5,
+      imageUrl: '/primary-card.webp',
+      imageCount: 2,
+      isActive: true,
+    });
+    expect(family?.anchor.images).toEqual([
+      { url: '/primary.jpg', cardUrl: '/primary-card.webp', alt: 'Kebab sandwich' },
+      { url: '/secondary.jpg', alt: 'Sandwich Kebab' },
+    ]);
+    expect(family?.menuOffers[0]).toMatchObject({
+      productId: 'menu-sandwich',
+      offerMode: 'meal',
+      name: '',
+      parentVariationId: 'regular',
+    });
+  });
+
+  it('recognises a ProductSummaryDto menu type as a bundle anchor', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'standalone-menu',
+      anchor: { id: 'standalone-menu', name: 'Family Menu', type: 'menu', basePrice: 15 },
+    });
+    expect(family?.anchor).toMatchObject({ kind: 'bundle', isBundle: true });
+  });
+
   it('keeps the anchor card and menu target as separate operational identities', () => {
     const family = mapCatalogOfferFamilyDto(dto);
 
@@ -35,7 +115,7 @@ describe('offer-family mapper', () => {
     expect(family?.menuOffers[0]).toMatchObject({
       productId: 'menu-tacos',
       kind: 'bundle',
-      name: 'menu-tacos',
+      name: '',
       price: 12,
       scheduleAvailable: false,
     });
@@ -53,6 +133,44 @@ describe('offer-family mapper', () => {
     expect(card.offerFamily?.menuOffers[0].productId).toBe('menu-tacos');
   });
 
+  it('keeps a family card actionable when only its linked menu is available', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-fallback',
+      anchor: {
+        id: 'dish',
+        name: 'Dish',
+        type: 'mainItem',
+        basePrice: 8,
+        isAvailable: false,
+        availability: { canOrder: false, reason: 'Unavailable', allowedOrderTypes: ['Takeaway'] },
+      },
+      menuOffers: [
+        {
+          productId: 'menu-dish',
+          price: 11,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: ['Takeaway'] },
+          scheduleAvailable: true,
+        },
+      ],
+    });
+
+    const card = toCatalogItemFromOfferFamily(family!);
+    expect(card.isAvailable).toBe(true);
+    expect(card.availability?.canOrder).toBe(true);
+  });
+
+  it('blocks a standalone bundle anchor when its schedule verdict is false', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-standalone-menu',
+      anchor: { id: 'standalone-menu', name: 'Lunch Menu', type: 'menu', basePrice: 14, isAvailable: true },
+      anchorScheduleAvailable: false,
+    });
+
+    const card = toCatalogItemFromOfferFamily(family!);
+    expect(card.isAvailable).toBe(false);
+    expect(card.availability).toMatchObject({ canOrder: false, reason: 'Unavailable' });
+  });
+
   it('rejects malformed anchors while accepting name-free menu target rows', () => {
     expect(mapCatalogOfferFamilyDto({ id: 'missing-name', anchor: { productId: 'product' } })).toBeNull();
     expect(
@@ -61,6 +179,6 @@ describe('offer-family mapper', () => {
         anchor: { productId: 'product', name: 'Dish', price: 5 },
         menuOffers: [{ productId: 'menu', kind: 'bundle', price: 7 }],
       })?.menuOffers,
-    ).toMatchObject([{ productId: 'menu', kind: 'bundle', name: 'menu' }]);
+    ).toMatchObject([{ productId: 'menu', kind: 'bundle', name: '' }]);
   });
 });

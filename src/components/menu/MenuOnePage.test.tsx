@@ -212,6 +212,23 @@ describe('MenuOnePage — sections', () => {
     expect(listProps[0].bundles).toEqual([]);
   });
 
+  it('renders categoryless families in an Other offers section', () => {
+    const orphanFamily = { ...family, id: 'family-independent', categoryIds: [] };
+    render(
+      <MenuOnePage
+        {...shared}
+        controller={controller()}
+        offerFamilies={[orphanFamily]}
+        offerFamiliesState={{ ...familyState, families: [orphanFamily] }}
+      />,
+    );
+
+    const headings = screen.getAllByTestId('status').map((el) => el.getAttribute('data-heading'));
+    expect(headings).toContain('category-heading-offer-family-other');
+    expect(listProps).toHaveLength(1);
+    expect(listProps[0].families?.map((entry) => entry.id)).toEqual(['family-independent']);
+  });
+
   it('lists each bundle in its category section AND keeps the full bundles listing at the foot', () => {
     render(<MenuOnePage {...shared} controller={controller()} />);
 

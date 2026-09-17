@@ -7,6 +7,8 @@ import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomization
 import { useDrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { CatalogItem, MenuBundleItem } from '@/types/menu';
 import type { CatalogOfferFamily, CatalogOfferTarget } from '@/types/menu/offerFamily';
+import { matchesFilters } from '@/hooks/menu/useMenuFilters';
+import { anchorTargetForFamily, isOfferTargetOrderable } from '@/utils/offerFamily';
 
 interface UseCatalogSheetArgs {
   /** Resolves a bundle id back to its full definition (the browse list already carries it). */
@@ -82,13 +84,14 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
     (target: CatalogOfferTarget) => {
       setOfferFamily(null);
       if (target.bundle) {
-        openForBundle(target.bundle);
+        openForBundle(target.bundle, { availability: target.availability, offerMode: target.offerMode });
         return;
       }
       openForProductId(target.productId, {
         forceSheet: true,
         availability: target.availability,
         selectedVariationId: target.parentVariationId,
+        offerMode: target.offerMode,
       });
     },
     [openForBundle, openForProductId],
@@ -97,6 +100,33 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   const openForCatalogItem = useCallback(
     (item: CatalogItem, opts?: OpenSheetOptions) => {
       if (item.offerFamily && item.offerFamily.menuOffers.length > 0) {
+        const family = item.offerFamily;
+        const filterIds = opts?.offerFamilyFilterIds;
+        const anchor = anchorTargetForFamily(family);
+        const targets = [anchor, ...family.menuOffers]
+          .map((target) =>
+            target.offerMode
+              ? target
+              : { ...target, offerMode: target === anchor ? ('item' as const) : ('meal' as const) },
+          )
+          .filter(
+            (target) =>
+              (!filterIds || filterIds.size === 0 || matchesFilters(target, filterIds)) &&
+              isOfferTargetOrderable(target),
+          );
+        // A single valid mode should not force the guest through a choice screen. If the target
+        // still has multiple sizes, the product sheet owns that variation step; mode and size are
+        // not two copies of the same question.
+        if (targets.length === 1) {
+          const target = targets[0];
+          const onlyVariation = family.variationOptions?.[0];
+          const resolvedTarget =
+            target === anchor && onlyVariation
+              ? { ...target, parentVariationId: onlyVariation.id, price: onlyVariation.price ?? target.price }
+              : target;
+          selectOfferTarget(resolvedTarget);
+          return;
+        }
         openForOfferFamily(item.offerFamily, opts?.offerFamilyFilterIds);
         return;
       }
@@ -119,12 +149,15 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
       // same object the card judged rather than a copy that could disagree.
       const found = findBundle?.(item.id);
       if (found) {
-        openForBundle(found);
+        openForBundle(found, {
+          availability: item.availability,
+          offerMode: item.offerFamily ? 'item' : undefined,
+        });
         return;
       }
-      openForProductId(item.id, opts);
+      openForProductId(item.id, { ...opts, availability: item.availability });
     },
-    [findBundle, openForBundle, openForOfferFamily, openForProductId],
+    [findBundle, openForBundle, openForOfferFamily, openForProductId, selectOfferTarget],
   );
 
   return {

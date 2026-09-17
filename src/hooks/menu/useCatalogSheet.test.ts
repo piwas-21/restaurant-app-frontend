@@ -100,6 +100,108 @@ describe('useCatalogSheet — order-type verdict handover (§9.10)', () => {
     expect(mockOpenForProduct).toHaveBeenCalledWith('family-single', expect.anything());
   });
 
+  it('opens the only orderable linked menu directly when the anchor is unavailable', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+    const fallbackFamily: CatalogOfferFamily = {
+      ...family,
+      anchor: product(BLOCKED),
+      menuOffers: [{ ...family.menuOffers[0], availability: ORDERABLE }],
+    };
+
+    act(() =>
+      result.current.openForCatalogItem({ ...product(BLOCKED), id: fallbackFamily.id, offerFamily: fallbackFamily }),
+    );
+
+    expect(result.current.offerFamily).toBeNull();
+    expect(mockOpenForProduct).toHaveBeenCalledWith(
+      'menu-p1',
+      expect.objectContaining({ forceSheet: true, offerMode: 'meal', availability: ORDERABLE }),
+    );
+  });
+
+  it('opens the only orderable mode directly even when the product still owns size selection', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+    const oneModeFamily: CatalogOfferFamily = {
+      ...family,
+      anchor: product(BLOCKED),
+      variationOptions: [
+        { id: 'small', name: 'Small', price: 12 },
+        { id: 'large', name: 'Large', price: 15 },
+      ],
+      menuOffers: [{ ...family.menuOffers[0], availability: ORDERABLE }],
+    };
+
+    act(() =>
+      result.current.openForCatalogItem({ ...product(BLOCKED), id: oneModeFamily.id, offerFamily: oneModeFamily }),
+    );
+
+    expect(result.current.offerFamily).toBeNull();
+    expect(mockOpenForProduct).toHaveBeenCalledWith(
+      'menu-p1',
+      expect.objectContaining({ forceSheet: true, offerMode: 'meal', availability: ORDERABLE }),
+    );
+  });
+
+  it('keeps the chooser when filters leave no valid target rather than bypassing the filter', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+    const filter = new Set(['claim:vegan']);
+
+    act(() =>
+      result.current.openForCatalogItem(
+        { ...product(ORDERABLE), id: family.id, offerFamily: family },
+        { offerFamilyFilterIds: filter },
+      ),
+    );
+
+    expect(result.current.offerFamily).toEqual(family);
+    expect(mockOpenForProduct).not.toHaveBeenCalled();
+  });
+
+  it('hands a standalone scheduled bundle verdict into the bundle sheet', () => {
+    const { result } = renderHook(() =>
+      useCatalogSheet({
+        findBundle: (id) =>
+          ({
+            id,
+            name: 'Standalone menu',
+            basePrice: 14,
+            isActive: true,
+            isAvailable: true,
+            isSpecial: false,
+            displayOrder: 1,
+            menuDefinition: { sections: [] },
+          }) as unknown as import('@/types/menu').MenuBundleItem,
+      }),
+    );
+    const blockedSchedule: CatalogItem = {
+      kind: 'bundle',
+      id: 'standalone-menu',
+      name: 'Standalone menu',
+      price: 14,
+      isBundle: true,
+      isAvailable: false,
+      availability: { canOrder: false, reason: 'Unavailable', allowedOrderTypes: [OrderType.Takeaway] },
+      offerFamily: {
+        ...family,
+        id: 'standalone-menu',
+        menuOffers: [],
+        anchor: {
+          ...family.anchor,
+          id: 'standalone-menu',
+          isBundle: true,
+        },
+        anchorScheduleAvailable: false,
+      },
+    };
+
+    act(() => result.current.openForCatalogItem(blockedSchedule));
+
+    expect(mockOpenForBundle).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'standalone-menu' }),
+      expect.objectContaining({ availability: blockedSchedule.availability, offerMode: 'item' }),
+    );
+  });
+
   it('carries the card verdict into the sheet', () => {
     const { result } = renderHook(() => useCatalogSheet());
 

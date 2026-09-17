@@ -68,6 +68,8 @@ export interface CatalogItem {
   priceEditability?: PriceEditability;
   allergens?: string[];
   isSpecial?: boolean;
+  /** The server's active flag, kept separate from channel availability. */
+  isActive?: boolean;
   isAvailable?: boolean;
   /** Products only: the card's summary line resolves these to localized names. */
   detailedIngredients?: ProductIngredient[];

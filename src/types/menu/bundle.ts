@@ -51,6 +51,8 @@ export interface MenuSection {
 export interface MenuSectionItem extends SauceGroupCarrier {
   id: string;
   productId: string;
+  /** Optional variation selected by a variation-aware linked menu (O6 contract). */
+  productVariationId?: string | null;
   productName?: string;
   additionalPrice: number;
   displayOrder: number;
@@ -68,6 +70,8 @@ export interface MenuSectionItem extends SauceGroupCarrier {
 export interface SelectedMenuOption {
   sectionId: string;
   itemId: string;
+  /** Preserves a variation-aware section item through to SelectedMenuOptionDto. */
+  productVariationId?: string | null;
   quantity: number;
   // Nested customization for this item
   specialInstructions?: string;

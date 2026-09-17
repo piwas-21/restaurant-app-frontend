@@ -139,6 +139,8 @@ export interface AddToBasketDto {
     sectionId: string;
     itemId: string;
     quantity: number;
+    /** O6: menu section options may target an exact product variation. */
+    productVariationId?: string | null;
     specialInstructions?: string;
     selectedIngredients?: string[];
     ingredientQuantities?: Record<string, number>;

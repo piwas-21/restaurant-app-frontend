@@ -4,6 +4,9 @@ import type { CatalogItem } from './catalogItem';
 /** The public catalogue presentation mode stored on RestaurantInfo. */
 export type BundlePresentationMode = 'legacySeparate' | 'categoryOffers';
 
+/** Presentation role, deliberately independent of the stored ProductType. */
+export type OfferMode = 'item' | 'meal';
+
 /** The compact target summary returned by the catalogue aggregate. */
 export interface CatalogOfferTarget {
   productId: string;
@@ -11,15 +14,18 @@ export interface CatalogOfferTarget {
   parentVariationId?: string | null;
   variationName?: string | null;
   name: string;
-  description?: string;
+  description?: string | null;
   content?: Partial<Record<string, { name: string; description?: string }>>;
   price: number;
-  imageUrl?: string;
+  imageUrl?: string | null;
   isActive?: boolean;
   isAvailable?: boolean;
   availability?: ItemAvailability;
+  isSpecial?: boolean;
   /** False when the linked menu is outside its configured day/time window. */
   scheduleAvailable?: boolean;
+  /** The family card uses this to label the target, never `kind` (storage plumbing). */
+  offerMode?: OfferMode;
   allergens?: string[];
   /** A summary endpoint may include the detail for a bundle; usually it is fetched on open. */
   bundle?: MenuBundleItem;
@@ -34,6 +40,8 @@ export interface CatalogOfferFamily {
   menuOffers: CatalogOfferTarget[];
   categoryIds: string[];
   startingPrice: number;
+  /** Backend verdict for the anchor's own menu schedule, when the anchor is a bundle. */
+  anchorScheduleAvailable?: boolean;
   variationOptions?: CatalogOfferVariation[];
 }
 
@@ -50,16 +58,28 @@ export interface CatalogOfferFamilyDto {
   menuOffers?: CatalogOfferTargetDto[];
   categoryIds?: string[];
   startingPrice?: number | string;
+  /** Additive anchor schedule verdict; omitted means no restriction is known. */
+  anchorScheduleAvailable?: boolean;
 }
 
 export interface CatalogOfferSummaryDto {
   productId?: string;
   id?: string;
   kind?: 'product' | 'bundle' | string;
+  /** ProductSummaryDto's ProductType enum, serialised as `mainItem`/`menu`. */
+  type?: string;
   name?: string;
-  description?: string;
+  description?: string | null;
   content?: Record<string, { name?: string; description?: string }>;
-  imageUrl?: string;
+  imageUrl?: string | null;
+  images?: Array<{
+    id?: string;
+    url?: string;
+    cardUrl?: string | null;
+    altText?: string | null;
+    isPrimary?: boolean;
+    sortOrder?: number;
+  }>;
   price?: number | string;
   /** ProductSummaryDto calls this field BasePrice; price is accepted for early contract drafts. */
   basePrice?: number | string;
@@ -67,7 +87,15 @@ export interface CatalogOfferSummaryDto {
   isAvailable?: boolean;
   isSpecial?: boolean;
   allergens?: string[] | null;
-  availability?: ItemAvailability;
+  ingredients?: string[] | null;
+  categoryNames?: string[];
+  primaryCategoryName?: string | null;
+  variationCount?: number;
+  suggestedSideItems?: unknown[];
+  availableOrderTypes?: number | null;
+  hideBaseProduct?: boolean;
+  isComponent?: boolean;
+  availability?: CatalogOfferAvailabilityDto;
   variations?: Array<{
     id?: string;
     name?: string;
@@ -76,6 +104,13 @@ export interface CatalogOfferSummaryDto {
     isActive?: boolean;
   }>;
   isBundle?: boolean;
+}
+
+/** Wire availability nested in ProductSummaryDto; enum values are JSON strings. */
+export interface CatalogOfferAvailabilityDto {
+  canOrder?: boolean;
+  reason?: string;
+  allowedOrderTypes?: string[];
 }
 
 export interface CatalogOfferTargetDto extends CatalogOfferSummaryDto {

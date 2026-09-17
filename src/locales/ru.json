@@ -2547,5 +2547,6 @@
   "offer_family_menu": "Комбо",
   "offer_family_meal": "Набор",
   "offer_family_choose_size": "Выберите размер",
-  "offer_family_choose_mode": "Как вы хотите заказать?"
+  "offer_family_choose_mode": "Как вы хотите заказать?",
+  "offer_family_other_category": "Другие предложения"
 }

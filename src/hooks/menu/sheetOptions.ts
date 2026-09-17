@@ -1,4 +1,5 @@
 import type { ItemAvailability } from '@/types/menu';
+import type { OfferMode } from '@/types/menu/offerFamily';
 
 /**
  * Options for opening the customization sheet (`useItemCustomizationSheet` /
@@ -29,6 +30,8 @@ export interface OpenSheetOptions {
   availability?: ItemAvailability;
   /** Variation selected in the offer-family step; avoids asking for the same size twice. */
   selectedVariationId?: string | null;
+  /** The family purchase mode selected before this sheet opened. */
+  offerMode?: OfferMode;
   /** Active family filters, so the mode step only offers matching underlying targets. */
   offerFamilyFilterIds?: ReadonlySet<string>;
 }

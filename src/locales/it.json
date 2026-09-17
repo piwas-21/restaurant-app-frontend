@@ -2545,5 +2545,6 @@
   "offer_family_menu": "Menù",
   "offer_family_meal": "Pasto",
   "offer_family_choose_size": "Scegli una dimensione",
-  "offer_family_choose_mode": "Come lo desideri?"
+  "offer_family_choose_mode": "Come lo desideri?",
+  "offer_family_other_category": "Altre offerte"
 }

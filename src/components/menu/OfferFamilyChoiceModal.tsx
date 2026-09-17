@@ -6,6 +6,7 @@ import BaseModal from '@/components/design-system/BaseModal';
 import { formatPlainCurrency } from '@/utils/currency';
 import { matchesFilters } from '@/hooks/menu/useMenuFilters';
 import type { CatalogOfferFamily, CatalogOfferTarget } from '@/types/menu/offerFamily';
+import { anchorTargetForFamily } from '@/utils/offerFamily';
 import styles from './OfferFamilyChoiceModal.module.css';
 
 const EMPTY_VARIATIONS: NonNullable<CatalogOfferFamily['variationOptions']> = [];
@@ -15,7 +16,12 @@ function targetKey(target: CatalogOfferTarget): string {
 }
 
 function targetIsUnavailable(target: CatalogOfferTarget): boolean {
-  return target.scheduleAvailable === false || target.availability?.canOrder === false || target.isAvailable === false;
+  return (
+    target.isActive === false ||
+    target.scheduleAvailable === false ||
+    target.availability?.canOrder === false ||
+    target.isAvailable === false
+  );
 }
 
 interface OfferFamilyChoiceModalProps {
@@ -36,33 +42,28 @@ export default function OfferFamilyChoiceModal({
   const [variationId, setVariationId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState('');
   const language = (i18n.language || 'en').split('-')[0];
+  const familyTitle =
+    family?.anchor.content?.[language]?.name || family?.anchor.content?.en?.name || family?.anchor.name || '';
 
-  const anchorTarget = useMemo<CatalogOfferTarget | null>(() => {
-    if (!family) return null;
-    return {
-      productId: family.anchor.id,
-      kind: family.anchor.isBundle ? 'bundle' : 'product',
-      name: family.anchor.name,
-      description: family.anchor.description,
-      content: family.anchor.content,
-      price: family.anchor.price,
-      imageUrl: family.anchor.imageUrl,
-      isActive: true,
-      isAvailable: family.anchor.isAvailable,
-      availability: family.anchor.availability,
-      allergens: family.anchor.allergens,
-      isSpecial: family.anchor.isSpecial,
-    };
-  }, [family]);
+  const anchorTarget = useMemo<CatalogOfferTarget | null>(
+    () => (family ? anchorTargetForFamily(family) : null),
+    [family],
+  );
 
   const variations = family?.variationOptions ?? EMPTY_VARIATIONS;
   const targets = useMemo(() => {
     if (!family || !anchorTarget) return [];
-    return [anchorTarget, ...family.menuOffers].filter((target) => {
-      const variationMatches = !variationId || !target.parentVariationId || target.parentVariationId === variationId;
-      const filterMatches = !activeFilterIds || matchesFilters(target, activeFilterIds);
-      return variationMatches && filterMatches;
-    });
+    return [anchorTarget, ...family.menuOffers]
+      .filter((target) => {
+        const variationMatches = !variationId || !target.parentVariationId || target.parentVariationId === variationId;
+        const filterMatches = !activeFilterIds || matchesFilters(target, activeFilterIds);
+        return variationMatches && filterMatches;
+      })
+      .map((target) =>
+        target.offerMode
+          ? target
+          : { ...target, offerMode: target === anchorTarget ? ('item' as const) : ('meal' as const) },
+      );
   }, [activeFilterIds, anchorTarget, family, variationId]);
 
   useEffect(() => {
@@ -102,7 +103,7 @@ export default function OfferFamilyChoiceModal({
     <BaseModal
       isOpen
       onClose={onClose}
-      title={family.anchor.name}
+      title={familyTitle}
       size="sm"
       footer={
         <div className={styles.footer}>
@@ -146,8 +147,8 @@ export default function OfferFamilyChoiceModal({
       <fieldset className={styles.group}>
         <legend>{t('offer_family_choose_mode')}</legend>
         <div className={styles.options} role="radiogroup" aria-label={t('offer_family_choose_mode')}>
-          {targets.map((target, index) => {
-            const isMeal = index > 0 || target.kind === 'bundle';
+          {targets.map((target) => {
+            const isMeal = target.offerMode === 'meal';
             const unavailable = targetIsUnavailable(target);
             const displayPrice =
               target.productId === anchorTarget.productId && variationId

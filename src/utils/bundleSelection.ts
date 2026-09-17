@@ -34,7 +34,12 @@ export const bundleOptionKey = (sectionId: string, itemId: string) => `${section
  * null) — this guard buys no price protection, and none is needed.
  */
 export function buildBundleOption(sectionId: string, item: MenuSectionItem): SelectedMenuOption {
-  const option: SelectedMenuOption = { sectionId, itemId: item.productId, quantity: 1 };
+  const option: SelectedMenuOption = {
+    sectionId,
+    itemId: item.productId,
+    quantity: 1,
+    ...(item.productVariationId ? { productVariationId: item.productVariationId } : {}),
+  };
   const groups = activeCustomizationGroups(item);
   if (groups.length > 0) {
     const customizationSelections = defaultCustomizationSelections(item);

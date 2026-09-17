@@ -94,6 +94,15 @@ describe('buildBundleOption — base-recipe seeding', () => {
       quantity: 1,
     });
   });
+
+  it('carries a variation-linked child into SelectedMenuOptionDto payload shape', () => {
+    expect(buildBundleOption('main', item({ productId: 'burger', productVariationId: 'large-portion' }))).toEqual({
+      sectionId: 'main',
+      itemId: 'burger',
+      productVariationId: 'large-portion',
+      quantity: 1,
+    });
+  });
 });
 
 describe('buildDefaultBundleSelection', () => {

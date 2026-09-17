@@ -187,10 +187,11 @@ const createNonce = (): string | null => {
     try {
       const nonce = window.crypto.randomUUID();
       return nonceSchema.safeParse(nonce).success ? nonce : null;
-    } catch (_) {
+    } catch (error: unknown) {
       // A cryptographic API failure must fail closed; the caller turns the false result into the
-      // editor's existing handoff error instead of persisting a predictable nonce. The thrown value
-      // is intentionally ignored because the caller only needs the fail-closed result.
+      // editor's existing handoff error instead of persisting a predictable nonce. Keep the error
+      // visible for diagnosing browser support or security-context failures.
+      console.warn('Could not create a secure menu version handoff nonce', error);
       return null;
     }
   }
@@ -199,9 +200,10 @@ const createNonce = (): string | null => {
       const bytes = new Uint8Array(16);
       window.crypto.getRandomValues(bytes);
       return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-    } catch (_) {
+    } catch (error: unknown) {
       // Do not fall back to Math.random for a cross-route handoff token when the secure API fails;
-      // the thrown value is intentionally ignored because the caller only needs the null result.
+      // report the failure and return null so the caller can show its existing handoff error.
+      console.warn('Could not create a secure menu version handoff nonce', error);
       return null;
     }
   }

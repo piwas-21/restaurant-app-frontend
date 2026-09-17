@@ -318,4 +318,33 @@ describe('MenuContent — offer-family All visibility', () => {
     );
     expect(listProps.at(-1)?.families?.map((family) => family.id)).toEqual(['family-hidden-all']);
   });
+
+  it('uses page semantics when All hides 13 of 102 server rows from a 100-row page', () => {
+    const pageFamilies = Array.from({ length: 100 }, (_, index) => ({
+      ...hiddenFamily,
+      id: `family-${index}`,
+      visibleInAll: index < 87,
+    }));
+    const pagedState: UsePublicOfferFamiliesReturn = {
+      ...hiddenFamilyState,
+      families: pageFamilies,
+      totalCount: 102,
+      totalPages: 2,
+    };
+
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[]}
+        menuBundles={[]}
+        offerFamilies={pageFamilies}
+        offerFamiliesState={pagedState}
+      />,
+    );
+
+    expect(listProps.at(-1)?.families).toHaveLength(87);
+    expect(screen.getByText('menu_page_info')).toBeInTheDocument();
+    expect(screen.queryByText('showing_items')).not.toBeInTheDocument();
+  });
 });

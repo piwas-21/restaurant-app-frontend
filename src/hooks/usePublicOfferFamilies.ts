@@ -38,7 +38,10 @@ function readPage(response: Awaited<ReturnType<typeof getCatalogOfferFamilies>>)
 }
 
 /** Loads the server-grouped public offer families for the categoryOffers presentation path. */
-export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamiliesReturn {
+export function usePublicOfferFamilies(
+  enabled: boolean,
+  categoryId: string | null = null,
+): UsePublicOfferFamiliesReturn {
   const { state: orderTypeState, hydrated: orderTypeHydrated } = useOrderType();
   const orderType = orderTypeState.orderType;
   const [families, setFamilies] = useState<CatalogOfferFamily[]>([]);
@@ -57,49 +60,53 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
     orderTypeRef.current = orderType;
   }, [orderType]);
 
-  const fetchFamilies = useCallback(async (requestedPage: number, requestedOrderType?: typeof orderType) => {
-    const pageNumber = Math.max(1, Math.trunc(requestedPage));
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const localId = ++requestId.current;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await getCatalogOfferFamilies({
-        page: pageNumber,
-        pageSize: OFFER_FAMILY_PAGE_SIZE,
-        requestedOrderType,
-        signal: controller.signal,
-      });
-      if (localId !== requestId.current) return;
-      if (response.success === false) {
+  const fetchFamilies = useCallback(
+    async (requestedPage: number, requestedOrderType?: typeof orderType) => {
+      const pageNumber = Math.max(1, Math.trunc(requestedPage));
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const localId = ++requestId.current;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await getCatalogOfferFamilies({
+          page: pageNumber,
+          pageSize: OFFER_FAMILY_PAGE_SIZE,
+          categoryId,
+          requestedOrderType,
+          signal: controller.signal,
+        });
+        if (localId !== requestId.current) return;
+        if (response.success === false) {
+          setFamilies([]);
+          setError(errorMessage(response.message, 'Failed to fetch menu offers'));
+          return;
+        }
+        const page = readPage(response);
+        const resolvedPageSize = page.pageSize ?? OFFER_FAMILY_PAGE_SIZE;
+        const totalPageCount = Math.max(
+          1,
+          page.totalPages ?? Math.ceil((page.totalCount ?? page.items?.length ?? 0) / resolvedPageSize),
+        );
+        const resolvedPage = Math.min(Math.max(1, page.page ?? pageNumber), totalPageCount);
+        const mappedFamilies = (page.items ?? []).map(mapCatalogOfferFamilyDto).filter(isFamily);
+        currentPageRef.current = resolvedPage;
+        totalPagesRef.current = totalPageCount;
+        setFamilies(mappedFamilies);
+        setCurrentPage(resolvedPage);
+        setTotalPages(totalPageCount);
+        setTotalCount(page.totalCount ?? mappedFamilies.length);
+      } catch (error_: unknown) {
+        if (controller.signal.aborted || localId !== requestId.current) return;
         setFamilies([]);
-        setError(errorMessage(response.message, 'Failed to fetch menu offers'));
-        return;
+        setError(errorMessage(error_, 'Failed to fetch menu offers'));
+      } finally {
+        if (!controller.signal.aborted && localId === requestId.current) setIsLoading(false);
       }
-      const page = readPage(response);
-      const resolvedPageSize = page.pageSize ?? OFFER_FAMILY_PAGE_SIZE;
-      const totalPageCount = Math.max(
-        1,
-        page.totalPages ?? Math.ceil((page.totalCount ?? page.items?.length ?? 0) / resolvedPageSize),
-      );
-      const resolvedPage = Math.min(Math.max(1, page.page ?? pageNumber), totalPageCount);
-      const mappedFamilies = (page.items ?? []).map(mapCatalogOfferFamilyDto).filter(isFamily);
-      currentPageRef.current = resolvedPage;
-      totalPagesRef.current = totalPageCount;
-      setFamilies(mappedFamilies);
-      setCurrentPage(resolvedPage);
-      setTotalPages(totalPageCount);
-      setTotalCount(page.totalCount ?? mappedFamilies.length);
-    } catch (error_: unknown) {
-      if (controller.signal.aborted || localId !== requestId.current) return;
-      setFamilies([]);
-      setError(errorMessage(error_, 'Failed to fetch menu offers'));
-    } finally {
-      if (!controller.signal.aborted && localId === requestId.current) setIsLoading(false);
-    }
-  }, []);
+    },
+    [categoryId],
+  );
 
   useEffect(() => {
     if (!enabled || !orderTypeHydrated) {

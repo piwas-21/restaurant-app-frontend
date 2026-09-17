@@ -4,15 +4,13 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
-
 import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
-import { ALL_ITEMS_KEY, usePublicMenu } from '@/hooks/usePublicMenu';
+import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY, usePublicMenu } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
-
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuOrderOverlays from '@/components/menu/MenuOrderOverlays';
 import MenuCategoryNavigation from '@/components/menu/MenuCategoryNavigation';
@@ -57,7 +55,9 @@ export default function MenuPage() {
     refetch,
   } = usePublicMenu(!isOnePage && !isCategoryOffers);
   const onePage = useOnePageMenu(isOnePage && !isCategoryOffers);
-  const offerFamilies = usePublicOfferFamilies(isCategoryOffers);
+  const offerFamilyCategoryId =
+    !isOnePage && selectedView !== ALL_ITEMS_KEY && selectedView !== MENU_BUNDLES_KEY ? selectedView : null;
+  const offerFamilies = usePublicOfferFamilies(isCategoryOffers, offerFamilyCategoryId);
   // One-page mode owns its category fetch even when legacy item pipelines are stood down. Tabs
   // retain the lightweight category/selection half of usePublicMenu in grouped mode.
   const categoriesForNav = isOnePage ? onePage.categories : publicCategories;

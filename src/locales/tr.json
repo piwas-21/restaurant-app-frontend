@@ -853,6 +853,7 @@
   "no_qr_code": "Bu masa için henüz QR kodu oluşturulmamış",
   "clear_table_selection": "Masa Seçimini Temizle",
   "showing_items": "{{total}} öğeden {{start}}-{{end}} gösteriliyor",
+  "menu_page_info": "{{totalPages}} sayfadan {{page}}. sayfa",
   "point_rules_desc": "Sipariş tutarlarına göre puan kazanma kurallarını yönetin",
   "create_rule": "Kural Oluştur",
   "show_active_only": "Yalnızca aktif olanları göster",

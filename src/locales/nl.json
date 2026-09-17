@@ -977,6 +977,7 @@
   "product_count": "Producten",
   "yes": "Ja",
   "showing_items": "Items {{start}}-{{end}} van {{total}}",
+  "menu_page_info": "Pagina {{page}} van {{totalPages}}",
   "point_rules_desc": "Beheer regels voor het verdienen van punten op basis van bestelbedragen",
   "create_rule": "Regel aanmaken",
   "show_active_only": "Alleen actieve tonen",

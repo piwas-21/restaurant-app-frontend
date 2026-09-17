@@ -841,6 +841,7 @@
   "product_count": "Товары",
   "yes": "Да",
   "showing_items": "Показано {{start}}-{{end}} из {{total}} элементов",
+  "menu_page_info": "Страница {{page}} из {{totalPages}}",
   "point_rules_desc": "Управление правилами начисления баллов на основе суммы заказа",
   "create_rule": "Создать правило",
   "show_active_only": "Показать только активные",

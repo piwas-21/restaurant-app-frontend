@@ -895,6 +895,7 @@
   "product_count": "产品数量",
   "yes": "是",
   "showing_items": "显示 {{start}}-{{end}} 项，共 {{total}} 项",
+  "menu_page_info": "第 {{page}} 页，共 {{totalPages}} 页",
   "point_rules_desc": "根据订单金额管理积分获取规则",
   "create_rule": "创建规则",
   "show_active_only": "仅显示启用的",

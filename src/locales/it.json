@@ -847,6 +847,7 @@
   "no_qr_code": "Non è ancora stato generato un codice QR per questo tavolo",
   "clear_table_selection": "Cancella Selezione Tavolo",
   "showing_items": "Visualizzazione di {{start}}-{{end}} su {{total}} elementi",
+  "menu_page_info": "Pagina {{page}} di {{totalPages}}",
   "point_rules_desc": "Gestisci le regole di guadagno punti in base agli importi degli ordini",
   "create_rule": "Crea Regola",
   "show_active_only": "Mostra solo attive",

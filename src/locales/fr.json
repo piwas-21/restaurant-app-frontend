@@ -848,6 +848,7 @@
   "no_qr_code": "Aucun code QR n'a encore été généré pour cette table",
   "clear_table_selection": "Effacer la Sélection de Table",
   "showing_items": "Affichage de {{start}}-{{end}} sur {{total}} éléments",
+  "menu_page_info": "Page {{page}} sur {{totalPages}}",
   "point_rules_desc": "Gérer les règles d'obtention de points en fonction des montants des commandes",
   "create_rule": "Créer une Règle",
   "show_active_only": "Afficher uniquement les actives",

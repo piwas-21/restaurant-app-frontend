@@ -6,10 +6,7 @@ import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilie
 import styles from './MenuContent.module.css';
 
 interface MenuOfferFamilyPaginationProps {
-  state: Pick<
-    UsePublicOfferFamiliesReturn,
-    'currentPage' | 'totalPages' | 'totalCount' | 'pageSize' | 'onPageChange' | 'isLoading'
-  >;
+  state: Pick<UsePublicOfferFamiliesReturn, 'currentPage' | 'totalPages' | 'totalCount' | 'onPageChange' | 'isLoading'>;
   hidden?: boolean;
 }
 
@@ -17,9 +14,6 @@ interface MenuOfferFamilyPaginationProps {
 export default function MenuOfferFamilyPagination({ state, hidden = false }: MenuOfferFamilyPaginationProps) {
   const { t } = useTranslation();
   if (hidden || state.totalCount <= 0) return null;
-
-  const start = (state.currentPage - 1) * state.pageSize + 1;
-  const end = Math.min(state.currentPage * state.pageSize, state.totalCount);
 
   return (
     <>
@@ -31,7 +25,9 @@ export default function MenuOfferFamilyPagination({ state, hidden = false }: Men
           isLoading={state.isLoading}
         />
       )}
-      <p className={styles.paginationInfo}>{t('showing_items', { start, end, total: state.totalCount })}</p>
+      <p className={styles.paginationInfo}>
+        {t('menu_page_info', { page: state.currentPage, totalPages: state.totalPages })}
+      </p>
     </>
   );
 }

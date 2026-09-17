@@ -63,6 +63,7 @@ describe('usePublicOfferFamilies — bounded guest pagination', () => {
     expect(mockGetCatalogOfferFamilies).toHaveBeenCalledWith({
       page: 1,
       pageSize: 100,
+      categoryId: null,
       requestedOrderType: null,
       signal: expect.any(AbortSignal),
     });
@@ -85,6 +86,7 @@ describe('usePublicOfferFamilies — bounded guest pagination', () => {
     expect(mockGetCatalogOfferFamilies).toHaveBeenLastCalledWith({
       page: 2,
       pageSize: 100,
+      categoryId: null,
       requestedOrderType: null,
       signal: expect.any(AbortSignal),
     });
@@ -100,5 +102,19 @@ describe('usePublicOfferFamilies — bounded guest pagination', () => {
     });
 
     expect(mockGetCatalogOfferFamilies).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes a selected category to the server so tab counts exclude other categories', async () => {
+    const { result } = renderHook(() => usePublicOfferFamilies(true, 'cat-main'));
+
+    await waitFor(() => expect(result.current.families).toHaveLength(1));
+
+    expect(mockGetCatalogOfferFamilies).toHaveBeenCalledWith({
+      page: 1,
+      pageSize: 100,
+      categoryId: 'cat-main',
+      requestedOrderType: null,
+      signal: expect.any(AbortSignal),
+    });
   });
 });

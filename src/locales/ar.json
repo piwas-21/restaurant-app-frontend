@@ -847,6 +847,7 @@
   "no_qr_code": "لم يتم إنشاء رمز الاستجابة السريعة لهذه الطاولة بعد",
   "clear_table_selection": "مسح اختيار الطاولة",
   "showing_items": "عرض {{start}}-{{end}} من {{total}} عنصر",
+  "menu_page_info": "الصفحة {{page}} من {{totalPages}}",
   "point_rules_desc": "إدارة قواعد كسب النقاط بناءً على مبالغ الطلبات",
   "create_rule": "إنشاء قاعدة",
   "show_active_only": "إظهار النشطة فقط",

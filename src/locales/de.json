@@ -844,6 +844,7 @@
   "no_qr_code": "Für diesen Tisch wurde noch kein QR-Code generiert",
   "clear_table_selection": "Tischauswahl Löschen",
   "showing_items": "{{start}}-{{end}} von {{total}} Elementen werden angezeigt",
+  "menu_page_info": "Seite {{page}} von {{totalPages}}",
   "point_rules_desc": "Punktevergabe-Regeln basierend auf Bestellbeträgen verwalten",
   "create_rule": "Regel Erstellen",
   "show_active_only": "Nur aktive anzeigen",

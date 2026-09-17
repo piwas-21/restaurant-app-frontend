@@ -847,6 +847,7 @@
   "no_qr_code": "Aún no se ha generado un código QR para esta mesa",
   "clear_table_selection": "Limpiar Selección de Mesa",
   "showing_items": "Mostrando {{start}}-{{end}} de {{total}} elementos",
+  "menu_page_info": "Página {{page}} de {{totalPages}}",
   "point_rules_desc": "Gestionar reglas de obtención de puntos según montos de pedidos",
   "create_rule": "Crear Regla",
   "show_active_only": "Mostrar solo activas",

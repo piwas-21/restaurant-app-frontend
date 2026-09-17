@@ -977,6 +977,7 @@
   "product_count": "Products",
   "yes": "Yes",
   "showing_items": "Showing {{start}}-{{end}} of {{total}} items",
+  "menu_page_info": "Page {{page}} of {{totalPages}}",
   "point_rules_desc": "Manage point earning rules based on order amounts",
   "create_rule": "Create Rule",
   "show_active_only": "Show active only",

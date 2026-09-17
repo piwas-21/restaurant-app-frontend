@@ -7,8 +7,8 @@ import type { CatalogOfferFamily, CatalogOfferFamilyDto } from '@/types/menu/off
 import { mapCatalogOfferFamilyDto } from '@/utils/offerFamily';
 import { errorMessage } from '@/hooks/publicMenu/pipeline';
 
-// The current Catalog endpoint caps PageSize at 100. Fetching the remaining pages here keeps the
-// public family path complete for larger tenants while preserving one filterable in-memory list.
+// The current Catalog endpoint caps PageSize at 100. The guest path renders one server page at a
+// time so a growing tenant catalogue cannot be materialized into one browser request.
 export const OFFER_FAMILY_PAGE_SIZE = 100;
 
 interface CatalogPageShape {
@@ -27,6 +27,7 @@ export interface UsePublicOfferFamiliesReturn {
   totalPages: number;
   totalCount: number;
   pageSize: number;
+  onPageChange: (page: number) => void;
   refetch: () => Promise<void>;
 }
 
@@ -48,8 +49,16 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
   const [totalCount, setTotalCount] = useState(0);
   const requestId = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
+  const currentPageRef = useRef(1);
+  const totalPagesRef = useRef(1);
+  const orderTypeRef = useRef(orderType);
 
-  const fetchFamilies = useCallback(async (requestedOrderType?: typeof orderType) => {
+  useEffect(() => {
+    orderTypeRef.current = orderType;
+  }, [orderType]);
+
+  const fetchFamilies = useCallback(async (requestedPage: number, requestedOrderType?: typeof orderType) => {
+    const pageNumber = Math.max(1, Math.trunc(requestedPage));
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -58,7 +67,7 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
     setError(null);
     try {
       const response = await getCatalogOfferFamilies({
-        page: 1,
+        page: pageNumber,
         pageSize: OFFER_FAMILY_PAGE_SIZE,
         requestedOrderType,
         signal: controller.signal,
@@ -75,24 +84,14 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
         1,
         page.totalPages ?? Math.ceil((page.totalCount ?? page.items?.length ?? 0) / resolvedPageSize),
       );
-      const allItems = [...(page.items ?? [])];
-      for (let currentPage = 2; currentPage <= totalPageCount; currentPage += 1) {
-        const nextResponse = await getCatalogOfferFamilies({
-          page: currentPage,
-          pageSize: OFFER_FAMILY_PAGE_SIZE,
-          requestedOrderType,
-          signal: controller.signal,
-        });
-        if (localId !== requestId.current) return;
-        if (nextResponse.success === false) {
-          throw new Error(errorMessage(nextResponse.message, 'Failed to fetch menu offers'));
-        }
-        allItems.push(...(readPage(nextResponse).items ?? []));
-      }
-      setFamilies(allItems.map(mapCatalogOfferFamilyDto).filter(isFamily));
-      setCurrentPage(page.page ?? 1);
+      const resolvedPage = Math.min(Math.max(1, page.page ?? pageNumber), totalPageCount);
+      const mappedFamilies = (page.items ?? []).map(mapCatalogOfferFamilyDto).filter(isFamily);
+      currentPageRef.current = resolvedPage;
+      totalPagesRef.current = totalPageCount;
+      setFamilies(mappedFamilies);
+      setCurrentPage(resolvedPage);
       setTotalPages(totalPageCount);
-      setTotalCount(page.totalCount ?? allItems.length);
+      setTotalCount(page.totalCount ?? mappedFamilies.length);
     } catch (error_: unknown) {
       if (controller.signal.aborted || localId !== requestId.current) return;
       setFamilies([]);
@@ -110,7 +109,9 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
       setIsLoading(false);
       return;
     }
-    void fetchFamilies(orderType);
+    currentPageRef.current = 1;
+    totalPagesRef.current = 1;
+    void fetchFamilies(1, orderType);
     return () => {
       requestId.current += 1;
       abortRef.current?.abort();
@@ -118,11 +119,37 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
     };
   }, [enabled, orderType, orderTypeHydrated, fetchFamilies]);
 
-  const refetch = useCallback(async () => {
-    await fetchFamilies(orderType);
-  }, [fetchFamilies, orderType]);
+  const onPageChange = useCallback(
+    (requestedPage: number) => {
+      if (
+        !enabled ||
+        !Number.isInteger(requestedPage) ||
+        requestedPage < 1 ||
+        requestedPage > totalPagesRef.current ||
+        requestedPage === currentPageRef.current
+      ) {
+        return;
+      }
+      void fetchFamilies(requestedPage, orderTypeRef.current);
+    },
+    [enabled, fetchFamilies],
+  );
 
-  return { families, isLoading, error, currentPage, totalPages, totalCount, pageSize: OFFER_FAMILY_PAGE_SIZE, refetch };
+  const refetch = useCallback(async () => {
+    await fetchFamilies(currentPageRef.current, orderTypeRef.current);
+  }, [fetchFamilies]);
+
+  return {
+    families,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize: OFFER_FAMILY_PAGE_SIZE,
+    onPageChange,
+    refetch,
+  };
 }
 
 function isFamily(value: CatalogOfferFamily | null): value is CatalogOfferFamily {

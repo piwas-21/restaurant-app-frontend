@@ -13,6 +13,7 @@ import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import { surfaceOr } from '@/templates/resolve-surface';
 import MenuFilters from '@/components/menu/MenuFilters';
 import MenuList from '@/components/menu/MenuList';
+import MenuOfferFamilyPagination from '@/components/menu/MenuOfferFamilyPagination';
 import { onePageSectionId } from '@/hooks/useOnePageMenu';
 import styles from './MenuOnePage.module.css';
 import { toOfferFamilyFilterItem } from '@/utils/offerFamily';
@@ -191,6 +192,8 @@ export default function MenuOfferFamiliesOnePage({
           )}
         </section>
       )}
+
+      <MenuOfferFamilyPagination state={state} hidden={isFiltered || state.isLoading || displayError !== null} />
     </div>
   );
 }

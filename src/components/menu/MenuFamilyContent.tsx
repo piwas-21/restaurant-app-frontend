@@ -8,6 +8,7 @@ import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuFilters from '@/components/menu/MenuFilters';
 import MenuList from '@/components/menu/MenuList';
+import MenuOfferFamilyPagination from '@/components/menu/MenuOfferFamilyPagination';
 import { toOfferFamilyFilterItem } from '@/utils/offerFamily';
 import { surfaceOr } from '@/templates/resolve-surface';
 
@@ -105,6 +106,8 @@ export default function MenuFamilyContent({
           featuredSlot={showFeatured ? featuredSlot : undefined}
         />
       )}
+
+      <MenuOfferFamilyPagination state={state} hidden={isFiltered || state.isLoading || displayError !== null} />
     </section>
   );
 }

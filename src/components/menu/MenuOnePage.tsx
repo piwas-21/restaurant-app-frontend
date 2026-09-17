@@ -53,8 +53,8 @@ interface MenuOnePageProps {
  *  - **One filter row for the whole page**, above the sections: the chips tally every
  *    loaded dish, and each section filters itself with the same active set. A row per
  *    section would be N copies of the same controls.
- *  - **No pagination and no per-section count line**: one section holds one whole
- *    category under the same 200-item bound the tabs view filters against.
+ *  - **No per-section count line**: offer-family pages use one shared pagination
+ *    control after all category sections, keeping the one-page flow coherent.
  *  - A section the active chips empty is skipped entirely — on a page this long, a
  *    run of "nothing matches" headings under a sticky bar reads as breakage.
  */

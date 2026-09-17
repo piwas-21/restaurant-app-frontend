@@ -175,6 +175,7 @@ const familyState: UsePublicOfferFamiliesReturn = {
   totalPages: 1,
   totalCount: 1,
   pageSize: 100,
+  onPageChange: jest.fn(),
   refetch: jest.fn(async () => undefined),
 };
 

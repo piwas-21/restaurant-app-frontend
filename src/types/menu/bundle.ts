@@ -13,6 +13,10 @@ import type { CustomizationGroupSelection, ProductCustomizationGroup } from './c
  */
 export interface MenuDefinition {
   id: string;
+  /** The commercial offer this menu upgrades; absent means an independent bundle. */
+  parentOfferProductId?: string | null;
+  /** Optional exact variation this menu upgrades. */
+  parentOfferVariationId?: string | null;
   isAlwaysAvailable: boolean;
   startTime?: string; // HH:mm format
   endTime?: string; // HH:mm format

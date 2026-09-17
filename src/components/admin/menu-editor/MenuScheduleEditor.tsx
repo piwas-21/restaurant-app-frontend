@@ -119,6 +119,18 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
           </div>
         </>
       )}
+
+      <div className={styles.parentOfferSummary} aria-label={t('menu_bundles')}>
+        <span className={styles.parentOfferLabel}>{t('menu_bundles')}</span>
+        {menuDefinition.parentOfferProductId ? (
+          <output>
+            {menuDefinition.parentOfferProductId}
+            {menuDefinition.parentOfferVariationId ? ` · ${menuDefinition.parentOfferVariationId}` : ''}
+          </output>
+        ) : (
+          <output>{t('no_products_found')}</output>
+        )}
+      </div>
     </div>
   );
 };

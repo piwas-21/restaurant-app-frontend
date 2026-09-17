@@ -40,6 +40,8 @@ export function emptyProductDetails(isBundle: boolean): ProductDetails {
 /** A bundle with no saved definition still needs one to edit against. */
 export const EMPTY_MENU_DEFINITION: MenuDefinition = {
   id: '',
+  parentOfferProductId: null,
+  parentOfferVariationId: null,
   isAlwaysAvailable: true,
   availableMonday: true,
   availableTuesday: true,

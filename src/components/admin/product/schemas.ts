@@ -208,6 +208,7 @@ const sauceGroupRules = (
 // Menu Definition Schemas
 const menuSectionItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
+  productVariationId: z.string().nullish(),
   additionalPrice: z.coerce.number().min(0).default(0),
   displayOrder: z.coerce.number().int().default(0),
   isDefault: z.boolean().default(false),
@@ -229,6 +230,8 @@ const menuSectionSchema = z.object({
 
 const menuDefinitionSchema = z.object({
   id: z.string().nullish(),
+  parentOfferProductId: z.string().nullish(),
+  parentOfferVariationId: z.string().nullish(),
   isAlwaysAvailable: z.boolean().default(true),
   startTime: z.string().nullable().optional(),
   endTime: z.string().nullable().optional(),

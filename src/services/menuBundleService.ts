@@ -19,6 +19,7 @@ export { MENUS_API_URL };
 
 export interface MenuSectionItemData {
   productId: string;
+  productVariationId?: string | null;
   additionalPrice: number;
   displayOrder: number;
   isDefault: boolean;
@@ -42,6 +43,8 @@ export interface MenuSectionData {
 }
 
 export interface MenuDefinitionData {
+  parentOfferProductId?: string | null;
+  parentOfferVariationId?: string | null;
   isAlwaysAvailable: boolean;
   startTime?: string | null;
   endTime?: string | null;

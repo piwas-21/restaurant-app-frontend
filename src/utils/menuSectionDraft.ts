@@ -8,6 +8,7 @@ import type { MenuDefinition, MenuSection } from '@/types/menu';
 export interface CleanMenuSectionItem {
   id?: string;
   productId: string;
+  productVariationId?: string | null;
   additionalPrice: number;
   displayOrder: number;
   isDefault: boolean;
@@ -52,6 +53,7 @@ export function stripTemporaryMenuSectionIds(sections: readonly MenuSection[]): 
           displayOrder: item.displayOrder,
           isDefault: item.isDefault,
         };
+        if (item.productVariationId) cleanedItem.productVariationId = item.productVariationId;
         if (isPersistedMenuId(item.id)) {
           cleanedItem.id = item.id;
         }

@@ -15,6 +15,7 @@ export interface EditorSectionsContext {
   readonly product: ProductDetails;
   readonly isCreate: boolean;
   readonly isBundle: boolean;
+  readonly onOfferCreated?: (menuId: string) => void;
 }
 
 /**

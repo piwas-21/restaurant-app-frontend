@@ -12,6 +12,7 @@ import ProductRecipeGroups from '@/components/admin/product/ProductRecipeGroups'
 import ProductCustomizationGroupsEditor from '@/components/admin/product/ProductCustomizationGroupsEditor';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
+import OfferVersionsSection from './OfferVersionsSection';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
 import type { EditorSection } from './EditorShell';
 
@@ -49,15 +50,18 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       showHeading: true,
       description: t('editor_section_basics_description'),
       node: (
-        <ProductBasicsFields
-          register={form.register}
-          errors={errors}
-          control={form.control}
-          setValue={form.setValue}
-          categories={editor.categories}
-          categoriesError={editor.categoriesError}
-          selectedCategoryIds={editor.selectedCategoryIds}
-        />
+        <>
+          <ProductBasicsFields
+            register={form.register}
+            errors={errors}
+            control={form.control}
+            setValue={form.setValue}
+            categories={editor.categories}
+            categoriesError={editor.categoriesError}
+            selectedCategoryIds={editor.selectedCategoryIds}
+          />
+          {product.id && <OfferVersionsSection product={product} onCreated={context.onOfferCreated} />}
+        </>
       ),
     },
     {

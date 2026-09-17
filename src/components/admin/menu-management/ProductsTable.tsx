@@ -9,6 +9,7 @@ import { Product } from '@/app/admin/menu-management/interfaces';
 import { MenuTypeFilter, isMenuBundle } from '@/utils/productTypeFilter';
 import { getSummaryRowCompleteness, type CompletenessFieldId } from '@/lib/productCompleteness';
 import gapStyles from './ProductsTable.module.css';
+import { groupProductsIntoOfferRows, type OfferFamilyRow } from '@/utils/offerFamilyGrouping';
 
 interface ProductsTableProps {
   products: Product[];
@@ -63,6 +64,117 @@ function ProductRowGaps({
   );
 }
 
+function ProductActions({
+  product,
+  onEdit,
+  onDelete,
+}: {
+  readonly product: Product;
+  readonly onEdit: (product: Product) => void;
+  readonly onDelete: (product: Product) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className={gapStyles.actions}>
+      <button onClick={() => onEdit(product)} className={`${styles.adminButton} ${styles.edit}`}>
+        {t('edit')}
+      </button>
+      <button onClick={() => onDelete(product)} className={`${styles.adminButton} ${styles.delete}`}>
+        {t('delete')}
+      </button>
+      <Link
+        href={`/admin/menu-management/${product.id}?type=${isMenuBundle(product) ? 'menu' : 'product'}`}
+        className={`${styles.adminButton} ${styles.view}`}
+      >
+        {t('details')}
+      </Link>
+    </div>
+  );
+}
+
+function ProductTableRow({
+  product,
+  labels,
+  onEdit,
+  onDelete,
+  nested = false,
+}: {
+  readonly product: Product;
+  readonly labels: Record<CompletenessFieldId, string>;
+  readonly onEdit: (product: Product) => void;
+  readonly onDelete: (product: Product) => void;
+  readonly nested?: boolean;
+}) {
+  const { t } = useTranslation();
+  return (
+    <tr className={nested ? gapStyles.nestedRow : undefined}>
+      <td>
+        {nested && (
+          <span className={gapStyles.indentMark} aria-hidden="true">
+            ↳
+          </span>
+        )}
+        {product.name}
+        <ProductRowGaps product={product} labels={labels} />
+      </td>
+      <td>{formatPlainCurrency(product.basePrice)}</td>
+      <td>{product.isActive ? t('yes') : t('no')}</td>
+      <td>{product.isAvailable ? t('yes') : t('no')}</td>
+      <td className={styles.actionsCell}>
+        <ProductActions product={product} onEdit={onEdit} onDelete={onDelete} />
+      </td>
+    </tr>
+  );
+}
+
+function OfferFamilyRows({
+  family,
+  labels,
+  onEdit,
+  onDelete,
+}: {
+  readonly family: OfferFamilyRow;
+  readonly labels: Record<CompletenessFieldId, string>;
+  readonly onEdit: (product: Product) => void;
+  readonly onDelete: (product: Product) => void;
+}) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = React.useState(true);
+  const offerCount = family.menuOffers.length + 1;
+
+  return (
+    <React.Fragment key={family.anchor.id}>
+      <tr className={gapStyles.familyRow}>
+        <td>
+          <button
+            type="button"
+            className={gapStyles.expandButton}
+            aria-expanded={expanded}
+            aria-label={expanded ? t('collapse') : t('expand')}
+            onClick={() => setExpanded((value) => !value)}
+          >
+            {expanded ? '−' : '+'}
+          </button>
+          <strong>{family.anchor.name}</strong>
+          <span className={gapStyles.familySummary}>
+            {offerCount} {t('menu_bundles')}
+          </span>
+        </td>
+        <td>{formatPlainCurrency(family.anchor.basePrice)}</td>
+        <td>{family.anchor.isActive ? t('yes') : t('no')}</td>
+        <td>{family.anchor.isAvailable ? t('yes') : t('no')}</td>
+        <td className={styles.actionsCell}>
+          <ProductActions product={family.anchor} onEdit={onEdit} onDelete={onDelete} />
+        </td>
+      </tr>
+      {expanded &&
+        family.menuOffers.map((offer) => (
+          <ProductTableRow key={offer.id} product={offer} labels={labels} onEdit={onEdit} onDelete={onDelete} nested />
+        ))}
+    </React.Fragment>
+  );
+}
+
 const ProductsTable: React.FC<ProductsTableProps> = ({
   products,
   isLoading,
@@ -100,34 +212,25 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
         </thead>
         <tbody>
           {products.length > 0 ? (
-            products.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  {product.name}
-                  <ProductRowGaps product={product} labels={gapLabels} />
-                </td>
-                <td>{formatPlainCurrency(product.basePrice)}</td>
-                <td>{product.isActive ? t('yes') : t('no')}</td>
-                <td>{product.isAvailable ? t('yes') : t('no')}</td>
-                <td className={styles.actionsCell}>
-                  <button onClick={() => onEdit(product)} className={`${styles.adminButton} ${styles.edit}`}>
-                    {t('edit')}
-                  </button>
-                  <button onClick={() => onDelete(product)} className={`${styles.adminButton} ${styles.delete}`}>
-                    {t('delete')}
-                  </button>
-                  <Link
-                    // Per ROW, not per view: an "All" list mixes both kinds, so the
-                    // active filter cannot say what an individual row is. (Slice 7 PR2c
-                    // drops this param entirely — the detail page derives type itself.)
-                    href={`/admin/menu-management/${product.id}?type=${isMenuBundle(product) ? 'menu' : 'product'}`}
-                    className={`${styles.adminButton} ${styles.view}`}
-                  >
-                    {t('details')}
-                  </Link>
-                </td>
-              </tr>
-            ))
+            groupProductsIntoOfferRows(products).map((row) =>
+              row.kind === 'family' ? (
+                <OfferFamilyRows
+                  key={row.anchor.id}
+                  family={row}
+                  labels={gapLabels}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ) : (
+                <ProductTableRow
+                  key={row.product.id}
+                  product={row.product}
+                  labels={gapLabels}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ),
+            )
           ) : (
             <tr>
               <td colSpan={5}>{emptyMessage}</td>

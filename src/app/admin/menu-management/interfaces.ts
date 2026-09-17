@@ -160,6 +160,10 @@ export interface Product {
   type: string;
   imageUrl: string | null;
   images: ProductImage[];
+  /** Present on menu rows once the backend exposes the offer-family relation. */
+  menuDefinition?: MenuDefinition;
+  parentOfferProductId?: string | null;
+  parentOfferVariationId?: string | null;
 }
 
 export interface Category {

@@ -30,6 +30,8 @@ interface ProductEditorPageProps {
   /** `create` on the /new route (empty defaults → POST), `edit` on `[productId]` (→ PUT). */
   readonly mode?: 'create' | 'edit';
   readonly onSaved: () => void;
+  /** Optional navigation callback after quick menu creation. */
+  readonly onOfferCreated?: (menuId: string) => void;
   readonly onDelete?: () => void;
   readonly onBack: () => void;
 }
@@ -55,6 +57,7 @@ export default function ProductEditorPage({
   isBundle,
   mode = 'edit',
   onSaved,
+  onOfferCreated,
   onDelete,
   onBack,
 }: ProductEditorPageProps) {
@@ -94,7 +97,7 @@ export default function ProductEditorPage({
     }
   };
 
-  const context = { editor, t, product, isCreate, isBundle };
+  const context = { editor, t, product, isCreate, isBundle, onOfferCreated };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
 
   // S10's meter. Only a SAVED ITEM gets one — see `EditorSideRail`'s prop for why a bundle and the

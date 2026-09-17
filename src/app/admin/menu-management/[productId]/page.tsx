@@ -90,6 +90,7 @@ const ProductEditorRoute = () => {
         product={product}
         isBundle={productIsBundle}
         onSaved={refetch}
+        onOfferCreated={(menuId) => router.push(`${LIST_ROUTE}/${menuId}`)}
         onDelete={() => setIsConfirmationOpen(true)}
         onBack={() => router.push(LIST_ROUTE)}
       />

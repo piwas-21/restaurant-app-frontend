@@ -35,6 +35,13 @@
   color: var(--text-primary);
 }
 
+.offerOptions {
+  margin: -0.125rem 0 0.5rem;
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* `rounded-[10px] border border-outline-variant overflow-hidden flex flex-col
     shadow-[0_1px_3px_rgba(0,0,0,.06)] hover:bg-surface-container-lowest transition-colors` */
 .menuItem {

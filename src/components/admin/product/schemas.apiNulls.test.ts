@@ -1,4 +1,4 @@
-import { editMenuBundleSchema, editProductSchema } from './schemas';
+import { createMenuBundleSchema, editMenuBundleSchema, editProductSchema } from './schemas';
 import { toBundleDefaults, toItemDefaults } from '@/utils/productEditorDefaults';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -103,7 +103,7 @@ describe('editor schemas — the nulls the API really sends', () => {
             isRequired: true,
             minSelection: 1,
             maxSelection: 1,
-            items: [],
+            items: [{ id: 'i1', productId: 'p1', additionalPrice: 0, displayOrder: 0, isDefault: true }],
           },
         ],
       },
@@ -121,5 +121,46 @@ describe('editor schemas — the nulls the API really sends', () => {
     } as unknown as ProductDetails;
 
     expect(editProductSchema.safeParse(toItemDefaults(noName)).success).toBe(false);
+  });
+
+  it('rejects empty composition and inconsistent section limits before submit', () => {
+    const valid = toBundleDefaults({
+      ...bundle,
+      menuDefinition: {
+        ...(bundle.menuDefinition as object),
+        sections: [
+          {
+            id: 's1',
+            name: 'Starter',
+            description: null,
+            displayOrder: 0,
+            isRequired: true,
+            minSelection: 1,
+            maxSelection: 1,
+            items: [{ id: 'i1', productId: 'p1', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+          },
+        ],
+      },
+    } as unknown as ProductDetails);
+    const empty = { ...valid, menuDefinition: { ...valid.menuDefinition, sections: [] } };
+    expect(createMenuBundleSchema.safeParse(empty).success).toBe(false);
+
+    const emptyItems = {
+      ...valid,
+      menuDefinition: {
+        ...valid.menuDefinition,
+        sections: [{ ...valid.menuDefinition.sections[0], items: [] }],
+      },
+    };
+    expect(createMenuBundleSchema.safeParse(emptyItems).success).toBe(false);
+
+    const invalidLimits = {
+      ...valid,
+      menuDefinition: {
+        ...valid.menuDefinition,
+        sections: [{ ...valid.menuDefinition.sections[0], minSelection: 2, maxSelection: 1 }],
+      },
+    };
+    expect(createMenuBundleSchema.safeParse(invalidLimits).success).toBe(false);
   });
 });

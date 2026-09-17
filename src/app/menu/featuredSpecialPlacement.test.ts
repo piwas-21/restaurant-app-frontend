@@ -22,6 +22,7 @@ import { join } from 'node:path';
  * different way. It catches the regressions that actually happened.
  */
 const SOURCE = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
+const LAYOUT = readFileSync(join(__dirname, '../../components/menu/MenuCatalogLayout.tsx'), 'utf8');
 // The overlays (customization sheets + basket slide-over + follow-up modals) moved out of the
 // page when it grew the one-page layout branch — they are shared by both layouts verbatim.
 const OVERLAYS = readFileSync(join(__dirname, '../../components/menu/MenuOrderOverlays.tsx'), 'utf8');
@@ -34,15 +35,17 @@ describe('Chef’s Special placement on the menu page', () => {
     // `CraftFeaturedSpecial` — and passes the ELEMENT down. Resolving it inside `MenuList` would
     // bundle craft's module into classic's build (T4).
     expect(SOURCE).toContain("surfaceOr('FeaturedSpecial'");
-    // Built ONCE as a slot element before the layout branch, then handed to whichever body
-    // renders — the tabs `MenuContent` and the one-page `MenuOnePage` are its two consumers.
-    // A slot built per-branch would either render the surface resolution twice or let one
-    // layout drift out of the hero's wiring.
+    // Built ONCE as a slot element before the layout controller, then fanned out by that
+    // controller to whichever body renders — the tabs `MenuContent` and the one-page
+    // `MenuOnePage` are its two consumers. A slot built per-branch would either render the
+    // surface resolution twice or let one layout drift out of the hero's wiring.
     const slotStart = SOURCE.indexOf('const featuredSlot =');
     expect(slotStart).toBeGreaterThan(-1);
     expect(SOURCE.slice(slotStart)).toContain('<FeaturedSpecialComponent');
     expect(SOURCE.match(/<FeaturedSpecialComponent/g)).toHaveLength(1);
-    expect(SOURCE.match(/featuredSlot=\{featuredSlot\}/g)).toHaveLength(2);
+    expect(SOURCE.match(/featuredSlot=\{featuredSlot\}/g)).toHaveLength(1);
+    expect(LAYOUT.match(/featuredSlot=\{featuredSlot\}/g)).toHaveLength(1);
+    expect(LAYOUT).toContain('<MenuContent {...menuContentProps} />');
   });
 
   it('renders the hero inside the grid, as its first cell', () => {

@@ -160,6 +160,12 @@ export interface Product {
   type: string;
   imageUrl: string | null;
   images: ProductImage[];
+  /** Mirrors backend `ProductSummaryDto.IsComponent`; option-only rows cannot join an offer family. */
+  isComponent?: boolean;
+  /** Flat summary fields returned by `ProductSummaryDto`; bundle definitions are detail-only. */
+  categoryNames?: string[];
+  parentOfferProductId?: string | null;
+  parentOfferVariationId?: string | null;
 }
 
 export interface Category {

@@ -42,6 +42,7 @@ export default function SheetStepContent({
         onJump={onJump}
         specialInstructions={controller.specialInstructions}
         onInstructionsChange={controller.setSpecialInstructions}
+        offerMode={controller.offerMode}
       />
     );
   }

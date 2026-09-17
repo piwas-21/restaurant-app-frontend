@@ -18,9 +18,15 @@ import styles from './CraftCategoryNav.module.css';
 // the CSS can compose the tilt with the hover-lift; no raw colours inline.
 const TILTS = ['-2deg', '1.5deg', '-0.75deg', '2deg', '-1.25deg'];
 
-export default function CraftCategoryNav({ categories, selectedView, onSelect, allLabel }: Readonly<CategoryNavProps>) {
-  const tabs = useCategoryTabs(categories, allLabel);
-  const nav = useCategoryNavScroll(categories.length);
+export default function CraftCategoryNav({
+  categories,
+  selectedView,
+  onSelect,
+  allLabel,
+  hideBundles,
+}: Readonly<CategoryNavProps>) {
+  const tabs = useCategoryTabs(categories, allLabel, hideBundles);
+  const nav = useCategoryNavScroll(`${categories.length}:${hideBundles ? 'hidden' : 'shown'}`);
 
   return (
     <CategoryNavShell styles={styles} showNavArrows={tabs.length > 5} {...nav}>

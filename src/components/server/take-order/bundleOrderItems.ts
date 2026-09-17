@@ -29,14 +29,21 @@ export function buildBundleOrderItem(product: Product, bundle: MenuBundleItem, r
 export function buildBundleChildItems(bundle: BundleOrderSelection, parentQuantity: number): CreateOrderItemDto[] {
   return bundle.selectedOptions.flatMap((option) => {
     const section = bundle.sections.find((candidate) => candidate.id === option.sectionId);
-    const selectedItem = section?.items.find((candidate) => candidate.productId === option.itemId);
+    const selectedItem = section?.items.find(
+      (candidate) =>
+        candidate.productId === option.itemId &&
+        (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
+    );
     if (!selectedItem) return [];
 
     return [
       {
         productId: option.itemId,
         quantity: parentQuantity * option.quantity,
-        unitPrice: selectedItem.additionalPrice,
+        unitPrice: selectedItem.additionalPrice + (selectedItem.productVariationPriceModifier ?? 0),
+        ...(selectedItem.productVariationId !== undefined
+          ? { productVariationId: selectedItem.productVariationId ?? undefined }
+          : {}),
         specialInstructions: option.specialInstructions,
         selectedIngredientIds: option.selectedIngredients,
         ingredientQuantities: option.ingredientQuantities,

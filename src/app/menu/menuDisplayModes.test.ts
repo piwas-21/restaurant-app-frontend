@@ -26,6 +26,9 @@ function withoutComments(source: string): string {
 
 const SOURCE = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
 const PAGE_SRC = withoutComments(SOURCE);
+const LAYOUT_SRC = withoutComments(
+  readFileSync(join(__dirname, '../../components/menu/MenuCatalogLayout.tsx'), 'utf8'),
+);
 const ONE_PAGE = withoutComments(readFileSync(join(__dirname, '../../components/menu/MenuOnePage.tsx'), 'utf8'));
 const SETTINGS_HOOK = withoutComments(readFileSync(join(__dirname, '../../hooks/useMenuDisplaySettings.ts'), 'utf8'));
 
@@ -37,33 +40,30 @@ describe('the menu-display layout branch', () => {
     expect(SETTINGS_HOOK).toContain("? 'onepage' : 'tabs'");
   });
 
-  it('is written `isOnePage ? one-page : tabs-tree`, so tabs remains the default branch', () => {
-    const gate = PAGE_SRC.indexOf('isOnePage ? (');
-    const onePageBody = PAGE_SRC.indexOf('<MenuOnePage');
-    const tabsBody = PAGE_SRC.indexOf('<div className={styles.menuLayout}>');
+  it('delegates the `isOnePage` branch to the shared catalog layout', () => {
+    expect(PAGE_SRC).toContain('<MenuCatalogLayout');
+    expect(PAGE_SRC).toContain('isOnePage={isOnePage}');
+    const gate = LAYOUT_SRC.indexOf('if (isOnePage)');
+    const onePageBody = LAYOUT_SRC.indexOf('<MenuOnePage');
+    const tabsBody = LAYOUT_SRC.indexOf('<div className={styles.menuLayout}>');
     expect(gate).toBeGreaterThan(-1);
     expect(onePageBody).toBeGreaterThan(gate);
     expect(tabsBody).toBeGreaterThan(onePageBody);
   });
 
-  it('stands the tabs pipeline down only while the one-page layout owns the page', () => {
-    // `enabled` is `!isOnePage`: tabs (the default) passes `true` — behaviourally identical
-    // to the pre-feature call with no argument.
-    expect(PAGE_SRC).toContain('usePublicMenu(!isOnePage)');
-    expect(PAGE_SRC).toContain('useOnePageMenu(isOnePage)');
+  it('stands legacy item pipelines down while the selected aggregate path owns the page', () => {
+    expect(PAGE_SRC).toContain('usePublicMenu(!isOnePage && !isCategoryOffers)');
+    expect(PAGE_SRC).toContain('useOnePageMenu(isOnePage && !isCategoryOffers)');
   });
 
-  it("keeps the tabs tree's shape the page's other gates already pin", () => {
-    // Byte-identical rendering rests on the same tree the sticky-offset and hero tests
-    // assert; both must still find their markers after the branch.
-    expect(PAGE_SRC).toContain('<CategoryNav');
-    expect(PAGE_SRC).toContain('className={styles.menuLayout}');
-    expect(PAGE_SRC).toContain('<MenuContent');
+  it("keeps the layout controller's shared wiring behind the page's other gates", () => {
+    expect(LAYOUT_SRC).toContain('className={styles.menuLayout}');
+    expect(LAYOUT_SRC).toContain('<MenuContent');
     // The setting reaches the tabs body as the additive prop (default false = today).
-    expect(PAGE_SRC).toContain('showBundlesOnAllView={displaySettings.showBundlesOnAllTab}');
+    expect(PAGE_SRC).toContain('showBundlesOnAllView: displaySettings.showBundlesOnAllTab');
     // The one-page body takes the same shared wiring: the page's sheet, its follow-up and
     // the one featured-special slot.
-    expect(PAGE_SRC.slice(PAGE_SRC.indexOf('<MenuOnePage'))).toContain('controller={onePage}');
+    expect(LAYOUT_SRC.slice(LAYOUT_SRC.indexOf('<MenuOnePage'))).toContain('controller={onePage}');
   });
 
   it('the one-page body renders real sections from the controller, not placeholders', () => {

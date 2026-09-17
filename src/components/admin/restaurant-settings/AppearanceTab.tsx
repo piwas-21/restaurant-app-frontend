@@ -12,6 +12,7 @@ import { revalidateTenantTheme } from '@/app/actions/revalidateTenantTheme';
 import { toUpdateCommand } from './appearanceCommand';
 import MenuDisplaySection from './MenuDisplaySection';
 import type { MenuLayout } from '@/types/restaurantInfo';
+import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 import styles from './AppearanceTab.module.css';
 
 // English fallbacks so the picker is usable even before a locale ships the key
@@ -33,6 +34,7 @@ export default function AppearanceTab() {
   const [selected, setSelected] = useState<string | null>(null);
   const [menuLayout, setMenuLayout] = useState<MenuLayout>('tabs');
   const [showBundles, setShowBundles] = useState(false);
+  const [bundlePresentationMode, setBundlePresentationMode] = useState<BundlePresentationMode>('legacySeparate');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function AppearanceTab() {
       // the shipped defaults, never as an accidental layout change on open.
       setMenuLayout(info.menuLayout ?? 'tabs');
       setShowBundles(info.showMenuBundlesOnAllTab ?? false);
+      setBundlePresentationMode(info.bundlePresentationMode ?? 'legacySeparate');
     }
   }, [info]);
 
@@ -62,15 +65,24 @@ export default function AppearanceTab() {
   const current = info.themePaletteKey ?? null;
   const currentLayout = info.menuLayout ?? 'tabs';
   const currentShowBundles = info.showMenuBundlesOnAllTab ?? false;
+  const currentBundlePresentationMode = info.bundlePresentationMode ?? 'legacySeparate';
   // One Save for the tab: a palette choice and either menu-display choice are all
   // dirty-tracked against the same server state and ride one full-upsert PUT.
-  const isDirty = selected !== current || menuLayout !== currentLayout || showBundles !== currentShowBundles;
+  const isDirty =
+    selected !== current ||
+    menuLayout !== currentLayout ||
+    showBundles !== currentShowBundles ||
+    bundlePresentationMode !== currentBundlePresentationMode;
 
   const save = async () => {
     setIsSaving(true);
     try {
       const response = await updateRestaurantInfo(
-        toUpdateCommand(info, selected, { menuLayout, showBundlesOnAllTab: showBundles }),
+        toUpdateCommand(info, selected, {
+          menuLayout,
+          showBundlesOnAllTab: showBundles,
+          bundlePresentationMode,
+        }),
       );
       if (response.success) {
         invalidateRestaurantInfoCache();
@@ -162,7 +174,9 @@ export default function AppearanceTab() {
       <MenuDisplaySection
         menuLayout={menuLayout}
         showBundlesOnAllTab={showBundles}
+        bundlePresentationMode={bundlePresentationMode}
         onLayoutChange={setMenuLayout}
+        onBundlePresentationModeChange={setBundlePresentationMode}
         onShowBundlesChange={setShowBundles}
         disabled={isSaving}
       />

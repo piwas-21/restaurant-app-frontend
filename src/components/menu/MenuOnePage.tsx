@@ -15,6 +15,7 @@ import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import { surfaceOr } from '@/templates/resolve-surface';
 import MenuFilters from '@/components/menu/MenuFilters';
 import MenuList from '@/components/menu/MenuList';
+import MenuOfferFamiliesOnePage from '@/components/menu/MenuOfferFamiliesOnePage';
 import styles from './MenuOnePage.module.css';
 
 // The active template's status override (craft's Amatic heading + kraft skeleton)
@@ -34,6 +35,8 @@ interface MenuOnePageProps {
   featuredSlot?: ReactNode;
   /** The special's own filter data, so it filters with its section (see MenuContent). */
   featuredFilterable?: { allergens?: string[]; isSpecial?: boolean };
+  offerFamilies?: import('@/types/menu').CatalogOfferFamily[];
+  offerFamiliesState?: import('@/hooks/usePublicOfferFamilies').UsePublicOfferFamiliesReturn;
 }
 
 /**
@@ -50,8 +53,8 @@ interface MenuOnePageProps {
  *  - **One filter row for the whole page**, above the sections: the chips tally every
  *    loaded dish, and each section filters itself with the same active set. A row per
  *    section would be N copies of the same controls.
- *  - **No pagination and no per-section count line**: one section holds one whole
- *    category under the same 200-item bound the tabs view filters against.
+ *  - **No per-section count line**: offer-family pages use one shared pagination
+ *    control after all category sections, keeping the one-page flow coherent.
  *  - A section the active chips empty is skipped entirely — on a page this long, a
  *    run of "nothing matches" headings under a sticky bar reads as breakage.
  */
@@ -61,6 +64,8 @@ export default function MenuOnePage({
   onSwitchOrderType,
   featuredSlot,
   featuredFilterable,
+  offerFamilies,
+  offerFamiliesState,
 }: Readonly<MenuOnePageProps>) {
   const { t } = useTranslation();
   const { sections, menuBundles, bundlesState, refetchCategory, refetchBundles } = controller;
@@ -103,6 +108,20 @@ export default function MenuOnePage({
     }
     return shown.size;
   }, [sections, menuBundles, filters.activeIds]);
+
+  if (offerFamilies && offerFamiliesState) {
+    return (
+      <MenuOfferFamiliesOnePage
+        categories={controller.categories}
+        families={offerFamilies}
+        state={offerFamiliesState}
+        onOpenItem={onOpenItem}
+        onSwitchOrderType={onSwitchOrderType}
+        featuredSlot={featuredSlot}
+        featuredFilterable={featuredFilterable}
+      />
+    );
+  }
 
   return (
     <div>

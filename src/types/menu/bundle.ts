@@ -13,6 +13,10 @@ import type { CustomizationGroupSelection, ProductCustomizationGroup } from './c
  */
 export interface MenuDefinition {
   id: string;
+  /** The commercial offer this menu upgrades; absent means an independent bundle. */
+  parentOfferProductId?: string | null;
+  /** Optional exact variation this menu upgrades. */
+  parentOfferVariationId?: string | null;
   isAlwaysAvailable: boolean;
   startTime?: string; // HH:mm format
   endTime?: string; // HH:mm format
@@ -51,6 +55,12 @@ export interface MenuSection {
 export interface MenuSectionItem extends SauceGroupCarrier {
   id: string;
   productId: string;
+  /** Optional variation selected by a variation-aware linked menu (O6 contract). */
+  productVariationId?: string | null;
+  /** Localized variation label supplied by the bundle detail mapper, when this option targets one. */
+  productVariationName?: string | null;
+  /** Authoritative variation modifier copied from the option product's variation. */
+  productVariationPriceModifier?: number | null;
   productName?: string;
   additionalPrice: number;
   displayOrder: number;
@@ -68,6 +78,10 @@ export interface MenuSectionItem extends SauceGroupCarrier {
 export interface SelectedMenuOption {
   sectionId: string;
   itemId: string;
+  /** Preserves a variation-aware section item through to SelectedMenuOptionDto. */
+  productVariationId?: string | null;
+  /** Read-side modifier for local line-price preview; basket serialization strips it. */
+  productVariationPriceModifier?: number | null;
   quantity: number;
   // Nested customization for this item
   specialInstructions?: string;

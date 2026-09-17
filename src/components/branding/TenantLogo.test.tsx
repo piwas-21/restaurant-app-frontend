@@ -19,6 +19,7 @@ const info = (overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfoDto => 
   logoDarkUrl: null,
   interiorImageUrl: null,
   phoneNumbers: [],
+  currency: 'CHF',
   ...overrides,
 });
 

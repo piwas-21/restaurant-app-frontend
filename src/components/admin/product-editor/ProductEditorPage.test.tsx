@@ -429,7 +429,21 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('drops a temporary menu-definition id, keeping a persisted one', async () => {
     const fresh = {
       ...bundle,
-      menuDefinition: { ...EMPTY_MENU_DEFINITION, id: 'temp-555', sections: [] },
+      menuDefinition: {
+        ...EMPTY_MENU_DEFINITION,
+        id: 'temp-555',
+        sections: [
+          {
+            id: 'temp-section',
+            name: 'Main',
+            displayOrder: 0,
+            isRequired: true,
+            minSelection: 1,
+            maxSelection: 1,
+            items: [{ id: 'temp-item', productId: 'p9', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+          },
+        ],
+      },
     } as ProductDetails;
     const { nameInput } = await renderEditor(fresh, true);
 
@@ -461,7 +475,22 @@ describe('ProductEditorPage — the create route drives the same page', () => {
   });
 
   it('routes a new bundle to the create-bundle endpoint, not update', async () => {
-    const { nameInput, container } = await renderEditor(emptyProductDetails(true), true, 'create');
+    const createBundle = emptyProductDetails(true);
+    createBundle.menuDefinition = {
+      ...EMPTY_MENU_DEFINITION,
+      sections: [
+        {
+          id: '',
+          name: 'Main',
+          displayOrder: 0,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 1,
+          items: [{ id: '', productId: 'p9', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+        },
+      ],
+    };
+    const { nameInput, container } = await renderEditor(createBundle, true, 'create');
 
     fireEvent.change(nameInput, { target: { value: 'Lunch Combo' } });
     // createMenuBundleSchema requires basePrice > 0 (stricter than the item schema).

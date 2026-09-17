@@ -38,7 +38,7 @@ export interface CategoryTab {
   notice: CategoryTabNotice | null;
 }
 
-export function useCategoryTabs(categories: ApiCategory[], allLabel: string): CategoryTab[] {
+export function useCategoryTabs(categories: ApiCategory[], allLabel: string, hideBundles = false): CategoryTab[] {
   const { t, i18n } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
@@ -71,7 +71,7 @@ export function useCategoryTabs(categories: ApiCategory[], allLabel: string): Ca
 
   return [
     { id: ALL_ITEMS_KEY, label: allLabel, notice: null },
-    { id: MENU_BUNDLES_KEY, label: t('menu_bundles'), notice: null },
+    ...(hideBundles ? [] : [{ id: MENU_BUNDLES_KEY, label: t('menu_bundles'), notice: null }]),
     ...categories.map((cat) => ({
       id: cat.id,
       label: getCategoryDisplayName(cat.name, t),

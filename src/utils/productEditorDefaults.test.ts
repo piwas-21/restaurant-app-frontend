@@ -101,12 +101,12 @@ describe('toItemDefaults / toBundleDefaults', () => {
     expect(toItemDefaults(product({ availableOrderTypes: 7 })).availableOrderTypes).toBe(7);
   });
 
-  it('seeds a bundle with no category fields at all', () => {
+  it('carries bundle category placement through the full editor defaults', () => {
     const defaults = toBundleDefaults(product({ type: 'menu' })) as Record<string, unknown>;
 
     expect(defaults.type).toBe('menu');
-    expect(defaults).not.toHaveProperty('categoryIds');
-    expect(defaults).not.toHaveProperty('primaryCategoryId');
+    expect(defaults.categoryIds).toEqual(['cat-a', 'cat-b']);
+    expect(defaults.primaryCategoryId).toBe('cat-b');
     expect(defaults).not.toHaveProperty('variations');
     expect(defaults).not.toHaveProperty('suggestedSideItemIds');
     expect(defaults.id).toBe('p1');

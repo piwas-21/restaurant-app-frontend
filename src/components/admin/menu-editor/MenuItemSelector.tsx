@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './MenuEditor.module.css';
 import { MenuSectionItem } from '@/types/menu';
 import { searchProducts } from '@/services/productService';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { formatPlainCurrency } from '@/utils/currency';
 
 interface MenuItemSelectorProps {
   items: MenuSectionItem[];
@@ -26,15 +27,18 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const searchSequence = useRef(0);
 
   // Debounced search
   useEffect(() => {
     if (searchQuery.length < 2) {
+      searchSequence.current += 1;
       setSearchResults([]);
       setShowResults(false);
       return;
     }
 
+    const sequence = ++searchSequence.current;
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
@@ -47,15 +51,17 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
         // envelope that has never existed: `data` is the PAGINATED object, so that arm could only
         // ever put a non-array into the results state and crash the `.map` below it.
         const response = await searchProducts(searchQuery, { includeComponents: true });
+        if (sequence !== searchSequence.current) return;
         if (response.success && response.data) {
           setSearchResults(response.data.items ?? []);
           setShowResults(true);
         }
       } catch (error) {
+        if (sequence !== searchSequence.current) return;
         console.error('Error searching products:', error);
         setSearchResults([]);
       } finally {
-        setIsSearching(false);
+        if (sequence === searchSequence.current) setIsSearching(false);
       }
     }, 300);
 
@@ -159,7 +165,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
             {searchResults.map((product) => (
               <div key={product.id} onClick={() => addItem(product)} className={styles.searchResultItem}>
                 <div>{product.name}</div>
-                <div className={styles.helpText}>${product.basePrice.toFixed(2)}</div>
+                <div className={styles.helpText}>{formatPlainCurrency(product.basePrice)}</div>
               </div>
             ))}
           </div>

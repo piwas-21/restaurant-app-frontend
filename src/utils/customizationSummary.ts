@@ -292,6 +292,6 @@ export function optionStepIsSkippable(
 /** The names a bundle section step reports — the options picked, in the section's own order. */
 export function bundleStepSummary(section: MenuSection, selectedOptions: readonly SelectedMenuOption[]): string[] {
   return section.items
-    .filter((item) => findBundleOption(selectedOptions, section.id, item.productId))
-    .map((item) => item.productName ?? '');
+    .filter((item) => findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId))
+    .map((item) => [item.productName, item.productVariationName].filter(Boolean).join(' · '));
 }

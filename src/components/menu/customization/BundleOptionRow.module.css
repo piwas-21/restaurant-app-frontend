@@ -56,6 +56,11 @@
   color: var(--text-primary);
 }
 
+.variation {
+  font-weight: 400;
+  color: var(--text-muted, var(--text-secondary));
+}
+
 /* `--brand-primary-elevated`, not plain brand. A selected row paints itself `--surface-secondary`
    (`.row.selected` below) and the whole panel is that surface too, where plain `--brand-primary`
    measures 4.16:1 in dark — an AA fail on a price, and a pairing

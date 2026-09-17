@@ -4,7 +4,8 @@ import React, { useMemo, type ReactNode } from 'react';
 import DefaultMenuCard from './MenuCard';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { toCatalogItemFromBundle, toCatalogItemFromProduct } from '@/utils/catalogItem';
-import type { CatalogItem, MenuItem, MenuBundleItem } from '@/types/menu';
+import { toCatalogItemFromOfferFamily } from '@/utils/offerFamily';
+import type { CatalogItem, MenuItem, MenuBundleItem, CatalogOfferFamily } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import styles from './MenuContent.module.css';
@@ -14,6 +15,10 @@ import { useTranslation } from 'react-i18next';
 export interface MenuListProps {
   products: MenuItem[];
   bundles: MenuBundleItem[];
+  /** Server-grouped commercial cards; when present, products/bundles are ignored. */
+  families?: CatalogOfferFamily[];
+  /** Active family filters carried into the purchase-mode choice. */
+  offerFamilyFilterIds?: ReadonlySet<string>;
   /** Opens the shared customization sheet — the page owns it, so the featured banner shares it. */
   onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   onFeedbackSuccess: (dishId: string) => void;
@@ -48,6 +53,8 @@ const MenuCard = surfaceOr('MenuCard', DefaultMenuCard);
 export default function MenuList({
   products,
   bundles,
+  families,
+  offerFamilyFilterIds,
   onOpenItem,
   onFeedbackSuccess,
   onSwitchOrderType,
@@ -57,8 +64,11 @@ export default function MenuList({
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
   const items = useMemo(
-    () => [...products.map(toCatalogItemFromProduct), ...bundles.map(toCatalogItemFromBundle)],
-    [products, bundles],
+    () =>
+      families
+        ? families.map(toCatalogItemFromOfferFamily)
+        : [...products.map(toCatalogItemFromProduct), ...bundles.map(toCatalogItemFromBundle)],
+    [bundles, families, products],
   );
 
   return (
@@ -72,7 +82,9 @@ export default function MenuList({
         <MenuCard
           key={`${item.id}-${currentLanguage}`}
           item={item}
-          onOpen={onOpenItem}
+          onOpen={(nextItem, options) =>
+            onOpenItem(nextItem, offerFamilyFilterIds ? { ...options, offerFamilyFilterIds } : options)
+          }
           onFeedbackSuccess={onFeedbackSuccess}
           onSwitchOrderType={onSwitchOrderType}
         />

@@ -12,10 +12,11 @@ import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
 import type { CustomizationGroupSelection, DetailedProduct, MenuBundleItem } from '@/types/menu';
+import type { OfferMode } from '@/types/menu/offerFamily';
 
 interface UseItemCustomizationSheetArgs {
   /** Hand-off for an id that turns out to be a combo — see `toBundleItemFromDetail` for why. */
-  onBundleDetected?: (bundle: MenuBundleItem) => void;
+  onBundleDetected?: (bundle: MenuBundleItem, opts?: Pick<OpenSheetOptions, 'availability' | 'offerMode'>) => void;
   /** Fired after a successful add — the menu page uses it to animate the cart button. */
   onAdded?: () => void;
   /** Commits the drinks step's own basket lines, AFTER this line was accepted (§3.4). */
@@ -41,7 +42,6 @@ export function useItemCustomizationSheet({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [quantity, setQuantity] = useState(1);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
@@ -49,7 +49,7 @@ export function useItemCustomizationSheet({
   const [customizationSelections, setCustomizationSelections] = useState<CustomizationGroupSelection[]>([]);
   const [selectedSideItems, setSelectedSideItems] = useState<SelectedSide[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
-
+  const [offerMode, setOfferMode] = useState<OfferMode | undefined>(undefined);
   // One success path for both direct-add and the sheet button.
   const notifyAdded = useCallback(
     (added: Pick<DetailedProduct, 'content' | 'name'>) => {
@@ -58,12 +58,11 @@ export function useItemCustomizationSheet({
     },
     [notifyItemAdded, onAdded, currentLanguage],
   );
-
   const close = useCallback(() => {
     setIsOpen(false);
     setProduct(null);
+    setOfferMode(undefined);
   }, []);
-
   const openForProduct = useCallback(
     async (productId: string, opts?: OpenSheetOptions) => {
       if (isOpeningRef.current) return;
@@ -81,7 +80,7 @@ export function useItemCustomizationSheet({
         // A combo belongs in the bundle sheet; the caller's availability verdict still wins (§9.2).
         const bundle = toBundleItemFromDetail(detail, opts?.availability);
         if (bundle && onBundleDetected) {
-          onBundleDetected(bundle);
+          onBundleDetected(bundle, { availability: opts?.availability, offerMode: opts?.offerMode });
           return;
         }
 
@@ -98,7 +97,8 @@ export function useItemCustomizationSheet({
         setIngredientQuantities(seed.ingredientQuantities);
         setCustomizationSelections(seed.customizationSelections);
         setSelectedSideItems(seed.selectedSideItems);
-        setSelectedVariationId(seed.selectedVariationId);
+        setSelectedVariationId(opts?.selectedVariationId ?? seed.selectedVariationId);
+        setOfferMode(opts?.offerMode);
         setQuantity(1);
         setSpecialInstructions('');
         setProduct(opts?.availability ? { ...detail, availability: opts.availability } : detail);
@@ -113,11 +113,9 @@ export function useItemCustomizationSheet({
     },
     [addItem, notifyAdded, notifyAddFailed, onBundleDetected],
   );
-
   const title = product ? localizedName(product, currentLanguage) : '';
   // Same fallback chain as the browse card (Track F/F3).
   const description = product ? localizedDescription(product, currentLanguage) : undefined;
-
   const selection = {
     quantity,
     selectedVariationId,
@@ -182,6 +180,7 @@ export function useItemCustomizationSheet({
     setQuantity,
     selectedVariationId,
     setSelectedVariationId,
+    offerMode,
     selectedIngredients,
     setSelectedIngredients,
     ingredientQuantities,

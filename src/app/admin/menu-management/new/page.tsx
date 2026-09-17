@@ -1,11 +1,14 @@
 'use client';
 
-import React, { Suspense, useEffect, useMemo } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 import ProductEditorPage from '@/components/admin/product-editor/ProductEditorPage';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
+import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { consumeMenuVersionPrefill, productFromMenuVersionPrefill } from '@/utils/menuVersionPrefill';
 
 const LIST_ROUTE = '/admin/menu-management';
 /** Where an item-create request goes now: the list, with the quick-add modal already open. */
@@ -25,23 +28,48 @@ const QUICK_ADD_ROUTE = `${LIST_ROUTE}?new=item`;
  * sections editor IS the screen, and there is no three-field version of it.
  */
 const NewProductRoute = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isBundle = isMenuBundle({ type: searchParams.get('type') });
+  const hasOfferPrefill = searchParams.get('prefill') === 'offer';
+  const blankProduct = useMemo(() => emptyProductDetails(true), []);
+  const [initialProduct, setInitialProduct] = useState<ProductDetails | null>(null);
+  const [prefillError, setPrefillError] = useState<string | null>(null);
+  const prefillConsumed = useRef(false);
 
   useEffect(() => {
-    if (!isBundle) router.replace(QUICK_ADD_ROUTE);
-  }, [isBundle, router]);
+    if (!isBundle) {
+      if (hasOfferPrefill) {
+        setPrefillError('menu_version_prefill_invalid');
+      } else {
+        router.replace(QUICK_ADD_ROUTE);
+      }
+      return;
+    }
+    // Effects are replayed in React Strict Mode. The session value is intentionally one-shot, so
+    // guard consumption or the replay would turn a valid quick-create prefill into a blank editor.
+    if (hasOfferPrefill && !prefillConsumed.current) {
+      prefillConsumed.current = true;
+      const prefill = consumeMenuVersionPrefill();
+      if (prefill?.isBundle === true) {
+        setInitialProduct(productFromMenuVersionPrefill(prefill));
+      } else {
+        setPrefillError('menu_version_prefill_invalid');
+      }
+      return;
+    }
+    if (!hasOfferPrefill) setInitialProduct(blankProduct);
+  }, [blankProduct, hasOfferPrefill, isBundle, router]);
 
-  // Memoised so a re-render does not mint a fresh object and re-run the form's reset effect,
-  // which would wipe whatever the admin has typed.
-  const blankProduct = useMemo(() => emptyProductDetails(true), []);
-
-  if (!isBundle) return null;
+  if (prefillError) {
+    return <div role="alert">{t(prefillError)}</div>;
+  }
+  if (!isBundle || !initialProduct) return null;
 
   return (
     <ProductEditorPage
-      product={blankProduct}
+      product={initialProduct}
       isBundle
       mode="create"
       onSaved={() => router.push(LIST_ROUTE)}

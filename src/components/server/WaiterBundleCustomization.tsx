@@ -100,10 +100,10 @@ export default function WaiterBundleCustomization({
           selectedOptions={selectedOptions}
           minSelectionError={errorsBySection.get(section.id)}
           currentLanguage={currentLanguage}
-          onToggleOption={(nextSection, itemId) => {
-            setSelectedOptions((previous) => toggleBundleOption(nextSection, previous, itemId));
+          onToggleOption={(nextSection, itemId, productVariationId) => {
+            setSelectedOptions((previous) => toggleBundleOption(nextSection, previous, itemId, productVariationId));
             setExpandedOptionKey((previous) =>
-              previous === bundleOptionKey(nextSection.id, itemId) ? null : previous,
+              previous === bundleOptionKey(nextSection.id, itemId, productVariationId) ? null : previous,
             );
           }}
           // The staff modal EXPANDS the option's panel in place — the efficient shape for a counter
@@ -111,12 +111,14 @@ export default function WaiterBundleCustomization({
           // option's guided screen inside `ItemCustomizationSheet`.
           inlinePanel={{
             expandedOptionKey,
-            onToggle: (sectionId, itemId) => {
-              const key = bundleOptionKey(sectionId, itemId);
+            onToggle: (sectionId, itemId, productVariationId) => {
+              const key = bundleOptionKey(sectionId, itemId, productVariationId);
               setExpandedOptionKey((previous) => (previous === key ? null : key));
             },
-            onChange: (sectionId, itemId, patch) =>
-              setSelectedOptions((previous) => updateBundleOption(previous, sectionId, itemId, patch)),
+            onChange: (sectionId, itemId, patch, productVariationId) =>
+              setSelectedOptions((previous) =>
+                updateBundleOption(previous, sectionId, itemId, patch, productVariationId),
+              ),
           }}
         />
       ))}

@@ -86,9 +86,16 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
 
   const updateSectionItems = useCallback(
     (index: number, items: MenuSectionItem[]) => {
-      updateSection(index, { items });
+      const section = localSections[index];
+      if (!section) return;
+      // Removing an option can make the previous maximum exceed the remaining item count.
+      // Keep the draft saveable while still letting the empty state surface the required-item
+      // validation when the last option is removed.
+      const maxSelection = Math.max(1, Math.min(section.maxSelection, items.length));
+      const minSelection = Math.min(section.minSelection, maxSelection);
+      updateSection(index, { items, minSelection, maxSelection });
     },
-    [updateSection],
+    [localSections, updateSection],
   );
 
   const confirmRemoveSection = useCallback((index: number) => setSectionToDelete(index), []);

@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
+import { useOfferFamilyRows } from '@/hooks/useOfferFamilyRows';
 import { deleteMenuBundle } from '@/services/menuBundleService';
 import { deleteProduct } from '@/services/productService';
 import {
@@ -29,20 +30,10 @@ const MenuManagementContent = () => {
   const categoryName = searchParams.get('categoryName');
   const [typeFilter, setTypeFilter] = useState<MenuTypeFilter>('all');
 
-  const {
-    products,
-    categories,
-    selectedCategoryId,
-    isLoading,
-    error,
-    currentPage,
-    totalPages,
-    totalCount,
-    pageSize,
-    handleCategoryChange,
-    handlePageChange,
-    fetchProducts,
-  } = useMenuManagement(typeFilter);
+  const { products, categories, selectedCategoryId, isLoading, error, handleCategoryChange, fetchProducts } =
+    useMenuManagement(typeFilter);
+  const { rows, currentPage, totalPages, totalCount, pageSize, searchQuery, setSearchQuery, handlePageChange } =
+    useOfferFamilyRows(products);
 
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
@@ -114,6 +105,14 @@ const MenuManagementContent = () => {
                 </option>
               ))}
             </select>
+            <input
+              type="search"
+              aria-label={t('search')}
+              placeholder={t('search')}
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className={styles.adminSelect}
+            />
             {/* Create is its own component since S3: an item is a quick-add modal (D3) and a
                 bundle is still a page, and the page has no room for either flow's state. */}
             <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />
@@ -121,7 +120,8 @@ const MenuManagementContent = () => {
         </PageHeader>
         <div className={styles.adminContent}>
           <ProductsTable
-            products={products}
+            products={[]}
+            rows={rows}
             isLoading={isLoading}
             error={error}
             onEdit={handleEdit}
@@ -130,7 +130,7 @@ const MenuManagementContent = () => {
           />
 
           {/* Pagination */}
-          {!isLoading && products.length > 0 && (
+          {!isLoading && totalCount > 0 && (
             <>
               <Pagination
                 currentPage={currentPage}

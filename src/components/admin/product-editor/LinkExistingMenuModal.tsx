@@ -91,8 +91,8 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
       }
       onLinked();
       onClose();
-    } catch (caught) {
-      if (mountedRef.current) setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+    } catch (error_) {
+      if (mountedRef.current) setError(serverMessage(error_) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
       if (mountedRef.current) setIsSaving(false);
     }

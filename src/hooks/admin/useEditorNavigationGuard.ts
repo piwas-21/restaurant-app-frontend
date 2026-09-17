@@ -71,8 +71,9 @@ export function useEditorNavigationGuard({
 
     window.addEventListener('popstate', handlePopState, true);
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // preventDefault is the supported way to request the browser's native unsaved-changes
+      // prompt; assigning returnValue is deprecated and no longer needed by current browsers.
       event.preventDefault();
-      event.returnValue = '';
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {

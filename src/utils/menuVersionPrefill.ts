@@ -187,10 +187,10 @@ const createNonce = (): string | null => {
     try {
       const nonce = window.crypto.randomUUID();
       return nonceSchema.safeParse(nonce).success ? nonce : null;
-    } catch (error: unknown) {
+    } catch (_) {
       // A cryptographic API failure must fail closed; the caller turns the false result into the
-      // editor's existing handoff error instead of persisting a predictable nonce.
-      void error;
+      // editor's existing handoff error instead of persisting a predictable nonce. The thrown value
+      // is intentionally ignored because the caller only needs the fail-closed result.
       return null;
     }
   }
@@ -199,9 +199,9 @@ const createNonce = (): string | null => {
       const bytes = new Uint8Array(16);
       window.crypto.getRandomValues(bytes);
       return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-    } catch (error: unknown) {
-      // Do not fall back to Math.random for a cross-route handoff token when the secure API fails.
-      void error;
+    } catch (_) {
+      // Do not fall back to Math.random for a cross-route handoff token when the secure API fails;
+      // the thrown value is intentionally ignored because the caller only needs the null result.
       return null;
     }
   }
@@ -247,8 +247,9 @@ export function consumeMenuVersionPrefill(): MenuVersionPrefill | null {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
-  } catch (error: unknown) {
-    void error;
+  } catch (_) {
+    // Invalid JSON is intentionally ignored; the validated envelope remains available for a later
+    // handoff attempt instead of exposing a parser implementation detail to the editor.
     return null;
   }
   const envelope = envelopeSchema.safeParse(parsed);

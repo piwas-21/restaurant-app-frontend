@@ -31,9 +31,7 @@ export default function LinkExistingMenuPreview({
         </Link>
       </p>
       {currentParentName && (
-        <p role="status" className={styles.warning}>
-          {t('current_menu_parent', { parentName: currentParentName })}
-        </p>
+        <output className={styles.warning}>{t('current_menu_parent', { parentName: currentParentName })}</output>
       )}
       {selectedCategories !== undefined && (
         <div className={styles.categoryList} aria-label={t('category')}>

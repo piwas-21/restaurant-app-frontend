@@ -151,9 +151,7 @@ export default function QuickMenuVersionModal({
         <p className={styles.summary}>
           {watchedName} · {selectedVariation?.name ?? t('base_price')} · {formatPlainCurrency(summaryPrice)}
         </p>
-        <p className={styles.warning} role="status">
-          {t('menu_version_prefill_warning')}
-        </p>
+        <output className={styles.warning}>{t('menu_version_prefill_warning')}</output>
         <FormField label={t('menu_bundle_name')} error={errors.name?.message ?? schemaError('name')}>
           <input type="text" maxLength={MENU_VERSION_NAME_MAX_LENGTH} {...register('name')} />
         </FormField>

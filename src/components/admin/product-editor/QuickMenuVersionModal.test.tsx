@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import QuickMenuVersionModal from './QuickMenuVersionModal';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -49,11 +49,9 @@ describe('QuickMenuVersionModal', () => {
     const price = screen.getByRole('spinbutton');
     const variation = screen.getByRole('combobox', { name: 'product_variations' });
 
-    await act(async () => {
-      fireEvent.change(price, { target: { value: '0' } });
-    });
+    fireEvent.change(price, { target: { value: '0' } });
+    await waitFor(() => expect(price).toHaveAttribute('aria-invalid', 'true'));
 
-    expect(price).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByText('admin_edit_price_invalid')).toBeInTheDocument();
     expect(variation).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByRole('button', { name: 'continue_to_bundle_editor' })).toBeDisabled();
@@ -76,14 +74,10 @@ describe('QuickMenuVersionModal', () => {
     const name = screen.getByRole('textbox', { name: 'menu_bundle_name' });
 
     expect(name).toHaveValue('Menu Tacos 1 Viande');
-    await act(async () => {
-      fireEvent.change(name, { target: { value: '' } });
-    });
-    expect(screen.getByText('menu_bundle_name_required')).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.change(name, { target: { value: 'x'.repeat(101) } });
-    });
-    expect(screen.getByText('menu_bundle_name_too_long')).toBeInTheDocument();
+    fireEvent.change(name, { target: { value: '' } });
+    await waitFor(() => expect(screen.getByText('menu_bundle_name_required')).toBeInTheDocument());
+    fireEvent.change(name, { target: { value: 'x'.repeat(101) } });
+    await waitFor(() => expect(screen.getByText('menu_bundle_name_too_long')).toBeInTheDocument());
     expect(name).toHaveAttribute('maxLength', '100');
   });
 

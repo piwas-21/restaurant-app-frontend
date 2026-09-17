@@ -72,9 +72,9 @@ export default function OfferVersionsSection({
       const bundles = await getAllMenuBundles(controller.signal);
       if (!mountedRef.current || controller.signal.aborted || sequence !== requestSequence.current) return;
       setOffers(bundles.filter((menu) => isMenuBundle(menu) && parentId(menu) === product.id));
-    } catch (caught) {
+    } catch (error_) {
       if (!mountedRef.current || controller.signal.aborted || sequence !== requestSequence.current) return;
-      setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+      setError(serverMessage(error_) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
       if (mountedRef.current && !controller.signal.aborted && sequence === requestSequence.current) {
         setIsLoading(false);
@@ -105,9 +105,9 @@ export default function OfferVersionsSection({
         setUnlinking(null);
         await load();
       }
-    } catch (caught) {
+    } catch (error_) {
       if (mountedRef.current && sequence === mutationSequence.current) {
-        setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+        setError(serverMessage(error_) ?? tRef.current('error_loading_menu_bundles'));
       }
     } finally {
       if (mountedRef.current && sequence === mutationSequence.current) setIsUnlinking(false);

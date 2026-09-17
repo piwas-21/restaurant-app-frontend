@@ -61,8 +61,8 @@ export function useLinkExistingMenuLoader({ isOpen, productId, parentEligible = 
           ),
         );
       })
-      .catch((caught) => {
-        if (!controller.signal.aborted && sequence === requestSequence.current) setLoadError(caught);
+      .catch((error) => {
+        if (!controller.signal.aborted && sequence === requestSequence.current) setLoadError(error);
       })
       .finally(() => {
         if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoading(false);

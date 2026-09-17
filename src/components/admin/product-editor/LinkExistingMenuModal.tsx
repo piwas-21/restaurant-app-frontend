@@ -8,6 +8,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { linkMenuOffer } from '@/services/menuOfferFamilyService';
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import { serverMessage } from '@/utils/apiFormErrors';
+import { formatPlainCurrency } from '@/utils/currency';
 import type { ProductDetails, Variation } from '@/app/admin/menu-management/interfaces';
 import { useLinkExistingMenuLoader } from '@/hooks/admin/useLinkExistingMenuLoader';
 import LinkExistingMenuPreview from './LinkExistingMenuPreview';
@@ -32,11 +33,14 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   const [isReassignConfirmOpen, setIsReassignConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mountedRef = useRef(true);
+  const parentEligible = !product.isComponent && !product.menuDefinition?.parentOfferProductId;
   const { bundles, parentNames, isLoading, loadError } = useLinkExistingMenuLoader({
     isOpen,
     productId: product.id,
+    parentEligible,
   });
   const selected = bundles.find((bundle) => bundle.id === selectedId);
+  const selectedLinkable = Boolean(parentEligible && selected && !selected.isComponent);
   const activeVariations = getActiveOfferVariations(product);
   const variation = activeVariations.find((candidate: Variation) => candidate.id === variationId);
   const variationRequired = requiresOfferVariation(product);
@@ -71,7 +75,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   }, [isOpen, product.id]);
 
   const linkSelected = async () => {
-    if (!selectedId || (variationRequired && !variation)) return;
+    if (!selectedId || !selectedLinkable || (variationRequired && !variation)) return;
     if (isSaving) return;
     setIsSaving(true);
     setError(null);
@@ -95,7 +99,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   };
 
   const save = () => {
-    if (!selectedId || (variationRequired && !variation)) return;
+    if (!selectedId || !selectedLinkable || (variationRequired && !variation)) return;
     if (needsReassignment) {
       setIsReassignConfirmOpen(true);
       return;
@@ -122,7 +126,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
             type="button"
             className={modalStyles.submitButton}
             onClick={save}
-            disabled={!selectedId || (variationRequired && !variation) || isSaving}
+            disabled={!selectedLinkable || (variationRequired && !variation) || isSaving}
           >
             {isSaving ? t('saving') : t('link_menu_version', 'Link menu version')}
           </button>
@@ -138,7 +142,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
               <option value="">{t('select_product')}</option>
               {bundles.map((bundle) => (
                 <option key={bundle.id} value={bundle.id}>
-                  {bundle.name} · {bundle.basePrice}
+                  {bundle.name} · {formatPlainCurrency(bundle.basePrice)}
                 </option>
               ))}
             </select>

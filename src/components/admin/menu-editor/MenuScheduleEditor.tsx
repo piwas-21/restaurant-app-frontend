@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 interface MenuScheduleEditorProps {
   menuDefinition: MenuDefinition;
   onChange: (menuDefinition: MenuDefinition) => void;
+  parentProductName?: string;
+  parentVariationName?: string;
 }
 
 const DAYS_OF_WEEK = [
@@ -22,8 +24,26 @@ const DAYS_OF_WEEK = [
   { key: 'availableSunday', label: 'sunday' },
 ] as const;
 
-const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition, onChange }) => {
+const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({
+  menuDefinition,
+  onChange,
+  parentProductName,
+  parentVariationName,
+}) => {
   const { t } = useTranslation();
+
+  const parentItem = menuDefinition.parentOfferProductId
+    ? menuDefinition.sections
+        .flatMap((section) => section.items)
+        .find(
+          (item) =>
+            item.productId === menuDefinition.parentOfferProductId &&
+            (!menuDefinition.parentOfferVariationId ||
+              item.productVariationId === menuDefinition.parentOfferVariationId),
+        )
+    : undefined;
+  const resolvedParentProductName = parentProductName ?? parentItem?.productName;
+  const resolvedParentVariationName = parentVariationName ?? parentItem?.productVariationName;
 
   // Controlled/live (slice 7 PR2e): every edit propagates straight to the page's form state,
   // whose single Save is the only commit point (owner call). This used to buffer locally behind
@@ -124,8 +144,10 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
         <span className={styles.parentOfferLabel}>{t('menu_bundles')}</span>
         {menuDefinition.parentOfferProductId ? (
           <output>
-            {menuDefinition.parentOfferProductId}
-            {menuDefinition.parentOfferVariationId ? ` · ${menuDefinition.parentOfferVariationId}` : ''}
+            {resolvedParentProductName ?? menuDefinition.parentOfferProductId}
+            {menuDefinition.parentOfferVariationId
+              ? ` · ${resolvedParentVariationName ?? menuDefinition.parentOfferVariationId}`
+              : ''}
           </output>
         ) : (
           <output>{t('no_products_found')}</output>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
-import { TENANT_CURRENCY } from '@/utils/currency';
+import { formatPlainCurrency, TENANT_CURRENCY } from '@/utils/currency';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import {
   buildQuickMenuVersionPrefill,
@@ -101,7 +101,8 @@ export default function QuickMenuVersionModal({
     >
       <div className={styles.form}>
         <p className={styles.summary}>
-          {name} · {variation?.name ?? t('base_price')} · {TENANT_CURRENCY}
+          {name} · {variation?.name ?? t('base_price')} ·{' '}
+          {formatPlainCurrency(variation?.finalPrice ?? product.basePrice)}
         </p>
         <p className={styles.warning} role="status">
           {t('menu_version_prefill_warning')}
@@ -130,7 +131,7 @@ export default function QuickMenuVersionModal({
               <option value="">{t('select_product')}</option>
               {activeVariations.map((candidate) => (
                 <option key={candidate.id} value={candidate.id}>
-                  {candidate.name} · {candidate.finalPrice}
+                  {candidate.name} · {formatPlainCurrency(candidate.finalPrice)}
                 </option>
               ))}
             </select>

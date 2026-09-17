@@ -8,6 +8,7 @@ import { getAllMenuBundles } from '@/services/menuService';
 import { unlinkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { serverMessage } from '@/utils/apiFormErrors';
+import { formatPlainCurrency } from '@/utils/currency';
 import type { Product, ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 import QuickMenuVersionModal from './QuickMenuVersionModal';
@@ -39,36 +40,52 @@ export default function OfferVersionsSection({
   const [unlinking, setUnlinking] = useState<Product | null>(null);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const requestSequence = useRef(0);
+  const mutationSequence = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     tRef.current = t;
   }, [t]);
 
   const load = useCallback(async () => {
-    if (!product.id) return;
+    if (!product.id || product.isComponent || product.menuDefinition?.parentOfferProductId || !mountedRef.current) {
+      return;
+    }
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     const sequence = ++requestSequence.current;
-    setIsLoading(true);
-    setError(null);
+    if (mountedRef.current) {
+      setIsLoading(true);
+      setError(null);
+    }
     try {
       const bundles = await getAllMenuBundles(controller.signal);
-      if (controller.signal.aborted || sequence !== requestSequence.current) return;
+      if (!mountedRef.current || controller.signal.aborted || sequence !== requestSequence.current) return;
       setOffers(bundles.filter((menu) => isMenuBundle(menu) && parentId(menu) === product.id));
     } catch (caught) {
-      if (controller.signal.aborted || sequence !== requestSequence.current) return;
+      if (!mountedRef.current || controller.signal.aborted || sequence !== requestSequence.current) return;
       setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
     } finally {
-      if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoading(false);
+      if (mountedRef.current && !controller.signal.aborted && sequence === requestSequence.current) {
+        setIsLoading(false);
+      }
     }
-  }, [product.id]);
+  }, [product.id, product.isComponent, product.menuDefinition?.parentOfferProductId]);
 
   useEffect(() => {
     void load();
     return () => {
       requestSequence.current += 1;
+      mutationSequence.current += 1;
       abortRef.current?.abort();
     };
   }, [load]);
@@ -76,9 +93,11 @@ export default function OfferVersionsSection({
   const unlink = async () => {
     if (!unlinking || isUnlinking) return;
     const target = unlinking;
+    const sequence = ++mutationSequence.current;
     setIsUnlinking(true);
     try {
       const response = await unlinkMenuOffer(target.id);
+      if (!mountedRef.current || sequence !== mutationSequence.current) return;
       if (!response.success) {
         setError(serverMessage(response) ?? tRef.current('error_loading_menu_bundles'));
       } else {
@@ -86,9 +105,11 @@ export default function OfferVersionsSection({
         await load();
       }
     } catch (caught) {
-      setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+      if (mountedRef.current && sequence === mutationSequence.current) {
+        setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles'));
+      }
     } finally {
-      setIsUnlinking(false);
+      if (mountedRef.current && sequence === mutationSequence.current) setIsUnlinking(false);
     }
   };
 
@@ -99,7 +120,7 @@ export default function OfferVersionsSection({
 
   // Components are option-only carriers and cannot anchor a public offer family. An unsaved
   // bundle has no id to load or link, so the section is intentionally absent on the new route.
-  if (!product.id || product.isComponent) return null;
+  if (!product.id || product.isComponent || product.menuDefinition?.parentOfferProductId) return null;
 
   return (
     <section className={styles.section} aria-labelledby="offer-versions-heading">
@@ -137,7 +158,7 @@ export default function OfferVersionsSection({
               <div>
                 <span className={styles.offerName}>{offer.name}</span>
                 <span className={styles.offerMeta}>
-                  {offer.basePrice} ·{' '}
+                  {formatPlainCurrency(offer.basePrice)} ·{' '}
                   {offer.parentOfferVariationId
                     ? `${t('variation')}: ${
                         product.variations.find((variation) => variation.id === offer.parentOfferVariationId)?.name ??

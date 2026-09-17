@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OfferVersionsSection from './OfferVersionsSection';
 import { getAllMenuBundles, getAllProducts } from '@/services/menuService';
 import { linkMenuOffer, unlinkMenuOffer } from '@/services/menuOfferFamilyService';
@@ -95,6 +95,7 @@ describe('OfferVersionsSection', () => {
     expect(screen.getByText('unlink_menu_version_confirmation')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
     await waitFor(() => expect(unlinkMenuOffer).toHaveBeenCalledWith('menu-1'));
+    await waitFor(() => expect(getAllMenuBundles).toHaveBeenCalledTimes(2));
   });
 
   it('requires an active variation before linking a menu version', async () => {
@@ -125,6 +126,31 @@ describe('OfferVersionsSection', () => {
     expect(screen.queryByRole('button', { name: 'create_menu_version' })).not.toBeInTheDocument();
   });
 
+  it('does not let a linked menu become an offer-family parent', () => {
+    const linkedMenu = {
+      ...parent,
+      type: 'menu',
+      menuDefinition: {
+        id: 'definition-1',
+        parentOfferProductId: 'owner-1',
+        parentOfferVariationId: null,
+        isAlwaysAvailable: true,
+        availableMonday: true,
+        availableTuesday: true,
+        availableWednesday: true,
+        availableThursday: true,
+        availableFriday: true,
+        availableSaturday: true,
+        availableSunday: true,
+        sections: [],
+      },
+    };
+
+    const { container } = render(<OfferVersionsSection product={linkedMenu} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('ignores a stale bundle-list response after the parent product changes', async () => {
     let resolveFirst: ((value: Product[]) => void) | undefined;
     let resolveSecond: ((value: Product[]) => void) | undefined;
@@ -144,10 +170,13 @@ describe('OfferVersionsSection', () => {
     const { rerender } = render(<OfferVersionsSection product={parent} />);
     rerender(<OfferVersionsSection product={{ ...parent, id: 'owner-2', name: 'Other product' }} />);
 
-    resolveSecond?.([bundle('menu-2', 'owner-2')]);
+    await act(async () => {
+      resolveSecond?.([bundle('menu-2', 'owner-2')]);
+    });
     await waitFor(() => expect(screen.getByText('menu-2')).toBeInTheDocument());
-    resolveFirst?.([bundle('menu-1', 'product-1')]);
-    await Promise.resolve();
+    await act(async () => {
+      resolveFirst?.([bundle('menu-1', 'product-1')]);
+    });
     expect(screen.queryByText('menu-1')).not.toBeInTheDocument();
   });
 
@@ -165,6 +194,32 @@ describe('OfferVersionsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
     expect(unlinkMenuOffer).toHaveBeenCalledTimes(1);
-    resolveUnlink?.({ success: true });
+    await waitFor(async () => {
+      await act(async () => {
+        resolveUnlink?.({ success: true });
+      });
+      expect(unlinkMenuOffer).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not update state when an unlink resolves after unmount', async () => {
+    let resolveUnlink: ((value: { success: boolean }) => void) | undefined;
+    (unlinkMenuOffer as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUnlink = resolve;
+        }),
+    );
+    const { unmount } = render(<OfferVersionsSection product={parent} />);
+    await waitFor(() => expect(screen.getByText('menu-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'unlink_menu_version' }));
+    fireEvent.click(screen.getByRole('button', { name: 'yes' }));
+    unmount();
+
+    await act(async () => {
+      resolveUnlink?.({ success: true });
+      await Promise.resolve();
+    });
+    expect(unlinkMenuOffer).toHaveBeenCalledTimes(1);
   });
 });

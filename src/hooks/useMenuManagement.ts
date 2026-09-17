@@ -22,16 +22,31 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     tRef.current = t;
   }, [t]);
   const { enqueueSnackbar } = useSnackbar();
+  const enqueueSnackbarRef = useRef(enqueueSnackbar);
+  useEffect(() => {
+    enqueueSnackbarRef.current = enqueueSnackbar;
+  }, [enqueueSnackbar]);
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
   const requestSequence = useRef(0);
   const activeRequestKey = useRef('');
+  const categoryRequestSequence = useRef(0);
+  const mountedRef = useRef(true);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      requestSequence.current += 1;
+      categoryRequestSequence.current += 1;
+    };
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     const requestKey = `${typeFilter}:${selectedCategoryId ?? 'all'}`;
@@ -56,26 +71,34 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
 
       // A category/type key change starts a newer full-catalogue request. Older responses,
       // including errors and their loading-finally handlers, must not overwrite that newer state.
-      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setProducts(items);
       }
     } catch (e) {
-      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setError(getErrorMessage(e) ?? fallback());
       }
     } finally {
-      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setIsLoading(false);
       }
     }
   }, [typeFilter, selectedCategoryId]);
 
   useEffect(() => {
+    let cancelled = false;
+    const sequence = ++categoryRequestSequence.current;
     const fetchCategories = async () => {
       try {
         // Fetch all categories for dropdown
         const response = await getCategories(1, 100);
-        if (response.success && Array.isArray(response.data?.items)) {
+        if (
+          !cancelled &&
+          mountedRef.current &&
+          sequence === categoryRequestSequence.current &&
+          response.success &&
+          Array.isArray(response.data?.items)
+        ) {
           setCategories(response.data.items);
         }
       } catch (e) {
@@ -84,9 +107,12 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         // control the admin may not even be using. Same shape as `useCategoryChannelsAdmin`.
         // Until #400 this branch was unreachable — `getCategories` answered a dead backend with
         // invented categories — so an empty dropdown had no failure to report in the first place.
-        enqueueSnackbar(getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'), {
-          variant: 'error',
-        });
+        if (!cancelled && mountedRef.current && sequence === categoryRequestSequence.current) {
+          enqueueSnackbarRef.current(
+            getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'),
+            { variant: 'error' },
+          );
+        }
       }
     };
     // Internal try/catch absorbs errors — `void` for fire-and-forget.
@@ -95,7 +121,10 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     // Mount-only ON PURPOSE. `enqueueSnackbar` is read only inside the catch, at the moment the
     // fetch fails; listing it would tie this fetch to notistack's identity for no gain. (`t` is not
     // listed either, but that is not what the disable is for — it is read through `tRef`.)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+      categoryRequestSequence.current += 1;
+    };
   }, []);
 
   // Fetch when the type filter or category changes

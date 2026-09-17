@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
@@ -36,9 +36,24 @@ const ProductEditorRoute = () => {
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
   const [prefillWriteError, setPrefillWriteError] = useState(false);
+  const mountedRef = useRef(true);
+  const deleteRequestSequence = useRef(0);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      deleteRequestSequence.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    deleteRequestSequence.current += 1;
+  }, [productId]);
 
   const handleConfirmDelete = async () => {
     if (!product) return;
+    const sequence = ++deleteRequestSequence.current;
 
     // Keyed off the fetched product, never the URL hint — the same rule PR2b established
     // for the list, where a mismatched discriminator deleted a bundle via deleteProduct.
@@ -47,6 +62,8 @@ const ProductEditorRoute = () => {
       message?: string;
       data?: string;
     };
+
+    if (!mountedRef.current || sequence !== deleteRequestSequence.current) return;
 
     setIsConfirmationOpen(false);
     setResultModalMessage(response.data || response.message || '');

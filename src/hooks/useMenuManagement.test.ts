@@ -130,6 +130,24 @@ describe('useMenuManagement — what the admin actually reads', () => {
 
     expect(mockGetAllProducts).toHaveBeenCalledTimes(1);
   });
+
+  it('ignores a category response that settles after the hook unmounts', async () => {
+    let rejectCategories!: (error: unknown) => void;
+    mockGetCategories.mockReturnValue(
+      new Promise((_, reject) => {
+        rejectCategories = reject;
+      }) as never,
+    );
+    const { unmount } = renderHook(() => useMenuManagement('all'));
+
+    unmount();
+    await act(async () => {
+      rejectCategories(new ApiError(503, 'Categories unavailable'));
+      await Promise.resolve();
+    });
+
+    expect(mockEnqueueSnackbar).not.toHaveBeenCalled();
+  });
 });
 
 /**

@@ -62,6 +62,8 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   /** Authoritative variation modifier copied from the option product's variation. */
   productVariationPriceModifier?: number | null;
   productName?: string;
+  /** Server-resolved source variation name, present on menu bundle detail responses. */
+  productVariationName?: string;
   additionalPrice: number;
   displayOrder: number;
   isDefault: boolean;

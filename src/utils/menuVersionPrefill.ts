@@ -8,6 +8,7 @@ export const MENU_VERSION_PREFILL_TTL_MS = 5 * 60 * 1000;
 
 const nonEmptyId = z.string().trim().min(1, 'An id is required');
 const optionalId = nonEmptyId.nullish();
+const menuTime = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Time must use HH:mm');
 
 const categorySchema = z.object({
   categoryId: nonEmptyId,
@@ -68,8 +69,8 @@ const menuDefinitionSchema = z
     parentOfferProductId: nonEmptyId,
     parentOfferVariationId: optionalId,
     isAlwaysAvailable: z.boolean(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
+    startTime: menuTime.optional(),
+    endTime: menuTime.optional(),
     availableMonday: z.boolean(),
     availableTuesday: z.boolean(),
     availableWednesday: z.boolean(),
@@ -91,6 +92,31 @@ const menuDefinitionSchema = z
       }
       sectionIds.add(section.id);
     });
+
+    const parentItems = definition.sections.flatMap((section) =>
+      section.items.filter((item) => item.productId === definition.parentOfferProductId),
+    );
+    if (parentItems.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['parentOfferProductId'],
+        message: 'The menu must contain its parent product',
+      });
+    } else if (definition.parentOfferVariationId) {
+      if (!parentItems.some((item) => item.productVariationId === definition.parentOfferVariationId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['parentOfferVariationId'],
+          message: 'The parent variation must be used by its parent product item',
+        });
+      }
+    } else if (parentItems.some((item) => item.productVariationId != null)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['parentOfferVariationId'],
+        message: 'A base offer cannot carry a parent variation',
+      });
+    }
   });
 
 const contentSchema = z.record(
@@ -141,34 +167,57 @@ export function isMenuVersionPrefill(value: unknown): value is MenuVersionPrefil
 
 interface MenuVersionPrefillEnvelope {
   nonce: string;
+  createdAt: number;
   expiresAt: number;
   prefill: MenuVersionPrefill;
 }
 
+const generatedNoncePattern = /^[a-f0-9]{32}$/;
+const nonceSchema = z.union([z.string().uuid(), z.string().regex(generatedNoncePattern)]);
+
 const envelopeSchema = z.object({
-  nonce: z.string().trim().min(1),
-  expiresAt: z.number().finite(),
+  nonce: nonceSchema,
+  createdAt: z.number().int().nonnegative(),
+  expiresAt: z.number().int().nonnegative(),
   prefill: menuVersionPrefillSchema,
 });
 
-const createNonce = (): string => {
+const createNonce = (): string | null => {
   if (typeof window !== 'undefined' && typeof window.crypto?.randomUUID === 'function') {
-    return window.crypto.randomUUID();
+    try {
+      const nonce = window.crypto.randomUUID();
+      return nonceSchema.safeParse(nonce).success ? nonce : null;
+    } catch (error: unknown) {
+      // A cryptographic API failure must fail closed; the caller turns the false result into the
+      // editor's existing handoff error instead of persisting a predictable nonce.
+      void error;
+      return null;
+    }
   }
   if (typeof window !== 'undefined' && typeof window.crypto?.getRandomValues === 'function') {
-    const bytes = new Uint8Array(16);
-    window.crypto.getRandomValues(bytes);
-    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    try {
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    } catch (error: unknown) {
+      // Do not fall back to Math.random for a cross-route handoff token when the secure API fails.
+      void error;
+      return null;
+    }
   }
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return null;
 };
 
 /** Store a validated, expiring handoff without allowing storage failures to create a blank editor. */
 export function writeMenuVersionPrefill(prefill: MenuVersionPrefill): boolean {
   if (typeof window === 'undefined' || !isMenuVersionPrefill(prefill)) return false;
+  const createdAt = Date.now();
+  const nonce = createNonce();
+  if (!nonce) return false;
   const envelope: MenuVersionPrefillEnvelope = {
-    nonce: createNonce(),
-    expiresAt: Date.now() + MENU_VERSION_PREFILL_TTL_MS,
+    nonce,
+    createdAt,
+    expiresAt: createdAt + MENU_VERSION_PREFILL_TTL_MS,
     prefill,
   };
   try {
@@ -203,7 +252,16 @@ export function consumeMenuVersionPrefill(): MenuVersionPrefill | null {
     return null;
   }
   const envelope = envelopeSchema.safeParse(parsed);
-  if (!envelope.success || envelope.data.expiresAt <= Date.now()) return null;
+  const now = Date.now();
+  if (
+    !envelope.success ||
+    envelope.data.createdAt > now ||
+    envelope.data.expiresAt <= now ||
+    envelope.data.expiresAt <= envelope.data.createdAt ||
+    envelope.data.expiresAt > envelope.data.createdAt + MENU_VERSION_PREFILL_TTL_MS
+  ) {
+    return null;
+  }
   try {
     window.sessionStorage.removeItem(MENU_VERSION_PREFILL_STORAGE_KEY);
   } catch (error: unknown) {

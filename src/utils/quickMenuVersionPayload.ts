@@ -53,6 +53,7 @@ export function buildQuickMenuVersionDefinition(
             id: 'temp-main-item',
             productId: product.id,
             productName: product.name,
+            productVariationName: variation?.name,
             productVariationId: variationId,
             additionalPrice: 0,
             displayOrder: 0,

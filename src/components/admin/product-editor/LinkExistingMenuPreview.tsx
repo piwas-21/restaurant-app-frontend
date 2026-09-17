@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import type { Product } from '@/app/admin/menu-management/interfaces';
+import { formatPlainCurrency } from '@/utils/currency';
 import styles from './QuickMenuVersionModal.module.css';
 
 interface LinkExistingMenuPreviewProps {
@@ -24,7 +25,7 @@ export default function LinkExistingMenuPreview({
   return (
     <>
       <p className={styles.summary}>
-        {t('preview')}: {productName} · {selected.name} · {selected.basePrice}{' '}
+        {t('preview')}: {productName} · {selected.name} · {formatPlainCurrency(selected.basePrice)}{' '}
         <Link href={`/admin/menu-management/${selected.id}`} target="_blank">
           {t('details')}
         </Link>

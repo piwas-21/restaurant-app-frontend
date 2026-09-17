@@ -47,8 +47,12 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const requestId = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchFamilies = useCallback(async (requestedOrderType?: typeof orderType) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     const localId = ++requestId.current;
     setIsLoading(true);
     setError(null);
@@ -57,6 +61,7 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
         page: 1,
         pageSize: OFFER_FAMILY_PAGE_SIZE,
         requestedOrderType,
+        signal: controller.signal,
       });
       if (localId !== requestId.current) return;
       if (response.success === false) {
@@ -76,6 +81,7 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
           page: currentPage,
           pageSize: OFFER_FAMILY_PAGE_SIZE,
           requestedOrderType,
+          signal: controller.signal,
         });
         if (localId !== requestId.current) return;
         if (nextResponse.success === false) {
@@ -88,17 +94,28 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
       setTotalPages(totalPageCount);
       setTotalCount(page.totalCount ?? allItems.length);
     } catch (error_: unknown) {
-      if (localId !== requestId.current) return;
+      if (controller.signal.aborted || localId !== requestId.current) return;
       setFamilies([]);
       setError(errorMessage(error_, 'Failed to fetch menu offers'));
     } finally {
-      if (localId === requestId.current) setIsLoading(false);
+      if (!controller.signal.aborted && localId === requestId.current) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!enabled || !orderTypeHydrated) return;
+    if (!enabled || !orderTypeHydrated) {
+      requestId.current += 1;
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setIsLoading(false);
+      return;
+    }
     void fetchFamilies(orderType);
+    return () => {
+      requestId.current += 1;
+      abortRef.current?.abort();
+      abortRef.current = null;
+    };
   }, [enabled, orderType, orderTypeHydrated, fetchFamilies]);
 
   const refetch = useCallback(async () => {

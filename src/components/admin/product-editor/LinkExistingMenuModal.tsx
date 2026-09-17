@@ -9,9 +9,10 @@ import { linkMenuOffer } from '@/services/menuOfferFamilyService';
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import { serverMessage } from '@/utils/apiFormErrors';
 import { formatPlainCurrency } from '@/utils/currency';
-import type { ProductDetails, Variation } from '@/app/admin/menu-management/interfaces';
+import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { useLinkExistingMenuLoader } from '@/hooks/admin/useLinkExistingMenuLoader';
 import LinkExistingMenuPreview from './LinkExistingMenuPreview';
+import { parseLinkExistingMenuSelection } from './linkExistingMenuSelection';
 import styles from './QuickMenuVersionModal.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -42,8 +43,13 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   const selected = bundles.find((bundle) => bundle.id === selectedId);
   const selectedLinkable = Boolean(parentEligible && selected && !selected.isComponent);
   const activeVariations = getActiveOfferVariations(product);
-  const variation = activeVariations.find((candidate: Variation) => candidate.id === variationId);
   const variationRequired = requiresOfferVariation(product);
+  const activeVariationIds = new Set(
+    activeVariations.map((candidate) => candidate.id).filter((id): id is string => Boolean(id)),
+  );
+  const linkableMenuIds = new Set(
+    bundles.filter((bundle) => parentEligible && !bundle.isComponent).map((bundle) => bundle.id),
+  );
   const parentCategories = new Set(
     (product.categories ?? []).map((category) => category.categoryName.trim().toLowerCase()),
   );
@@ -58,14 +64,12 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   useEffect(() => {
     tRef.current = t;
   }, [t]);
-
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };
   }, []);
-
   useEffect(() => {
     if (!isOpen) return;
     setSelectedId('');
@@ -74,15 +78,20 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     setIsReassignConfirmOpen(false);
   }, [isOpen, product.id]);
 
+  const parseSelection = () =>
+    parseLinkExistingMenuSelection(selectedId, variationId, linkableMenuIds, activeVariationIds, variationRequired);
+
   const linkSelected = async () => {
-    if (!selectedId || !selectedLinkable || (variationRequired && !variation)) return;
     if (isSaving) return;
+    const selection = parseSelection();
+    if (!selection.success) return;
+    const selectedVariation = activeVariations.find((candidate) => candidate.id === selection.data.variationId);
     setIsSaving(true);
     setError(null);
     try {
-      const response = await linkMenuOffer(selectedId, {
+      const response = await linkMenuOffer(selection.data.menuId, {
         parentOfferProductId: product.id,
-        parentOfferVariationId: variation?.id ?? null,
+        parentOfferVariationId: selectedVariation?.id ?? null,
       });
       if (!mountedRef.current) return;
       if (!response.success) {
@@ -99,7 +108,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   };
 
   const save = () => {
-    if (!selectedId || !selectedLinkable || (variationRequired && !variation)) return;
+    if (!parseSelection().success) return;
     if (needsReassignment) {
       setIsReassignConfirmOpen(true);
       return;
@@ -109,12 +118,11 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
 
   const visibleError =
     error ?? (loadError ? (serverMessage(loadError) ?? tRef.current('error_loading_menu_bundles')) : null);
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={t('link_existing_menu_version', 'Link existing menu version')}
+      title={t('link_existing_menu_version')}
       size="md"
       isPending={isSaving}
       footer={
@@ -126,9 +134,9 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
             type="button"
             className={modalStyles.submitButton}
             onClick={save}
-            disabled={!selectedLinkable || (variationRequired && !variation) || isSaving}
+            disabled={!selectedLinkable || (variationRequired && !activeVariationIds.has(variationId)) || isSaving}
           >
-            {isSaving ? t('saving') : t('link_menu_version', 'Link menu version')}
+            {isSaving ? t('saving') : t('link_menu_version')}
           </button>
         </div>
       }
@@ -151,11 +159,7 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
         {variationRequired && (
           <FormField
             label={t('product_variations')}
-            error={
-              activeVariations.length === 0
-                ? t('no_active_variations', 'No active variations are available')
-                : undefined
-            }
+            error={activeVariations.length === 0 ? t('no_active_variations') : undefined}
           >
             <select value={variationId} onChange={(event) => setVariationId(event.target.value)}>
               <option value="">{t('select_product')}</option>

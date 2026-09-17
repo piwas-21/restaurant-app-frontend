@@ -34,37 +34,27 @@ export default function MenuDisplaySection({
 }>) {
   const { t } = useTranslation();
 
-  const layouts: Array<{ value: MenuLayout; labelKey: string; hintKey: string; fallback: string; hint: string }> = [
+  const layouts: Array<{ value: MenuLayout; labelKey: string; hintKey: string }> = [
     {
       value: 'tabs',
       labelKey: 'menu_layout_tabs',
       hintKey: 'menu_layout_tabs_hint',
-      fallback: 'Category tabs',
-      hint: 'Guests switch between All items, Menu Bundles and one tab per category.',
     },
     {
       value: 'onepage',
       labelKey: 'menu_layout_onepage',
       hintKey: 'menu_layout_onepage_hint',
-      fallback: 'One page',
-      hint: 'All categories on one page; the category bar scrolls to each section.',
     },
   ];
 
   return (
     <section aria-labelledby="menu-display-heading" className={styles.menuDisplaySection}>
       <h3 id="menu-display-heading" className={styles.menuDisplayTitle}>
-        {t('appearance_menu_display_title', 'Menu display')}
+        {t('appearance_menu_display_title')}
       </h3>
-      <p className={styles.hint}>
-        {t('appearance_menu_display_desc', 'Choose how guests browse your menu. Saved with the Appearance settings.')}
-      </p>
+      <p className={styles.hint}>{t('appearance_menu_display_desc')}</p>
 
-      <div
-        className={`${styles.grid} ${styles.layoutGrid}`}
-        role="radiogroup"
-        aria-label={t('menu_layout_title', 'Menu layout')}
-      >
+      <div className={`${styles.grid} ${styles.layoutGrid}`} role="radiogroup" aria-label={t('menu_layout_title')}>
         {layouts.map((layout) => {
           const active = menuLayout === layout.value;
           return (
@@ -72,59 +62,50 @@ export default function MenuDisplaySection({
               key={layout.value}
               type="button"
               role="radio"
-              aria-label={t(layout.labelKey, layout.fallback)}
+              aria-label={t(layout.labelKey)}
               aria-checked={active}
               disabled={disabled}
               className={`${styles.option} ${styles.optionColumn} ${active ? styles.active : ''}`}
               onClick={() => onLayoutChange(layout.value)}
             >
-              <span className={styles.optionLabel}>{t(layout.labelKey, layout.fallback)}</span>
-              <span className={styles.optionHint}>{t(layout.hintKey, layout.hint)}</span>
+              <span className={styles.optionLabel}>{t(layout.labelKey)}</span>
+              <span className={styles.optionHint}>{t(layout.hintKey)}</span>
             </button>
           );
         })}
       </div>
 
       <div className={styles.menuDisplayCheckbox}>
-        <h4 className={styles.menuDisplayTitle}>{t('menu_bundle_presentation_title', 'Bundle presentation')}</h4>
-        <p className={styles.hint}>
-          {t(
-            'menu_bundle_presentation_desc',
-            'Choose whether linked menu offers appear with their anchor item or in a separate bundle view.',
-          )}
-        </p>
+        <h4 className={styles.menuDisplayTitle}>{t('menu_bundle_presentation_title')}</h4>
+        <p className={styles.hint}>{t('menu_bundle_presentation_desc')}</p>
         <div
           className={`${styles.grid} ${styles.layoutGrid}`}
           role="radiogroup"
-          aria-label={t('menu_bundle_presentation_title', 'Bundle presentation')}
+          aria-label={t('menu_bundle_presentation_title')}
         >
           <button
             type="button"
             role="radio"
-            aria-label={t('menu_bundle_presentation_legacy', 'Separate bundle view')}
+            aria-label={t('menu_bundle_presentation_legacy')}
             aria-checked={bundlePresentationMode === 'legacySeparate'}
             disabled={disabled}
             className={`${styles.option} ${styles.optionColumn} ${bundlePresentationMode === 'legacySeparate' ? styles.active : ''}`}
             onClick={() => onBundlePresentationModeChange('legacySeparate')}
           >
-            <span className={styles.optionLabel}>{t('menu_bundle_presentation_legacy', 'Separate bundle view')}</span>
-            <span className={styles.optionHint}>
-              {t('menu_bundle_presentation_legacy_hint', 'Keep the technical Menu Bundles view for guests.')}
-            </span>
+            <span className={styles.optionLabel}>{t('menu_bundle_presentation_legacy')}</span>
+            <span className={styles.optionHint}>{t('menu_bundle_presentation_legacy_hint')}</span>
           </button>
           <button
             type="button"
             role="radio"
-            aria-label={t('menu_bundle_presentation_category', 'Offers in categories')}
+            aria-label={t('menu_bundle_presentation_category')}
             aria-checked={bundlePresentationMode === 'categoryOffers'}
             disabled={disabled}
             className={`${styles.option} ${styles.optionColumn} ${bundlePresentationMode === 'categoryOffers' ? styles.active : ''}`}
             onClick={() => onBundlePresentationModeChange('categoryOffers')}
           >
-            <span className={styles.optionLabel}>{t('menu_bundle_presentation_category', 'Offers in categories')}</span>
-            <span className={styles.optionHint}>
-              {t('menu_bundle_presentation_category_hint', 'Show one card with an Item or Meal choice.')}
-            </span>
+            <span className={styles.optionLabel}>{t('menu_bundle_presentation_category')}</span>
+            <span className={styles.optionHint}>{t('menu_bundle_presentation_category_hint')}</span>
           </button>
         </div>
       </div>
@@ -132,11 +113,8 @@ export default function MenuDisplaySection({
       {bundlePresentationMode === 'legacySeparate' && (
         <div className={styles.menuDisplayCheckbox}>
           <CheckboxField
-            label={t('show_bundles_on_all_tab', 'Show menu bundles under All items')}
-            description={t(
-              'show_bundles_on_all_tab_hint',
-              'Combos appear as their own group on the guest All items tab.',
-            )}
+            label={t('show_bundles_on_all_tab')}
+            description={t('show_bundles_on_all_tab_hint')}
             checked={showBundlesOnAllTab}
             onChange={onShowBundlesChange}
             disabled={disabled}

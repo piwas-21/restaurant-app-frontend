@@ -9,6 +9,7 @@ export interface CatalogQuery {
   pageSize?: number;
   categoryId?: string | null;
   requestedOrderType?: OrderType | null;
+  signal?: AbortSignal;
 }
 
 /** Public catalogue aggregate; grouping and pagination stay server-owned. */
@@ -19,5 +20,8 @@ export async function getCatalogOfferFamilies(query: CatalogQuery = {}): Promise
   if (query.categoryId) params.set('categoryId', query.categoryId);
   if (query.requestedOrderType) params.set('requestedOrderType', query.requestedOrderType);
   const suffix = params.toString();
-  return apiClient.get<CatalogOfferFamilyResponse>(suffix ? `${CATALOG_API_URL}?${suffix}` : CATALOG_API_URL);
+  const endpoint = suffix ? `${CATALOG_API_URL}?${suffix}` : CATALOG_API_URL;
+  return query.signal
+    ? apiClient.get<CatalogOfferFamilyResponse>(endpoint, { signal: query.signal })
+    : apiClient.get<CatalogOfferFamilyResponse>(endpoint);
 }

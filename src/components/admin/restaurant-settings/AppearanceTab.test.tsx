@@ -15,7 +15,14 @@ import type { RestaurantInfoDto } from '@/types/restaurantInfo';
  * the full-upsert guard exists to prevent.
  */
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, arg?: unknown) => (typeof arg === 'string' ? arg : key) }),
+  useTranslation: () => ({
+    t: (key: string, arg?: unknown) =>
+      ({
+        menu_layout_onepage: 'One page',
+        menu_layout_tabs: 'Category tabs',
+        menu_bundle_presentation_category: 'Offers in categories',
+      })[key] ?? (typeof arg === 'string' ? arg : key),
+  }),
 }));
 jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: jest.fn() }) }));
 jest.mock('@/hooks/useRestaurantInfo', () => ({

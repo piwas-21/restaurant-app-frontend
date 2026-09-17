@@ -136,7 +136,7 @@ export default function OfferVersionsSection({
             className={`${adminStyles.adminButton} ${adminStyles.add}`}
             onClick={() => setModal('link')}
           >
-            {t('link_existing_menu_version', 'Link existing menu version')}
+            {t('link_existing_menu_version')}
           </button>
           {allowQuickCreate && (
             <button
@@ -144,7 +144,7 @@ export default function OfferVersionsSection({
               className={`${adminStyles.adminButton} ${adminStyles.add}`}
               onClick={() => setModal('create')}
             >
-              {t('create_menu_version', 'Create menu version')}
+              {t('create_menu_version')}
             </button>
           )}
         </div>
@@ -188,7 +188,7 @@ export default function OfferVersionsSection({
                   className={`${adminStyles.adminButton} ${adminStyles.delete}`}
                   onClick={() => setUnlinking(offer)}
                 >
-                  {t('unlink_menu_version', 'Unlink menu version')}
+                  {t('unlink_menu_version')}
                 </button>
               </div>
             </li>
@@ -224,10 +224,7 @@ export default function OfferVersionsSection({
           if (!isUnlinking) setUnlinking(null);
         }}
         onConfirm={unlink}
-        message={t(
-          'unlink_menu_version_confirmation',
-          'Unlink this menu version from the product? The menu and existing orders will be kept.',
-        )}
+        message={t('unlink_menu_version_confirmation')}
       />
     </section>
   );

@@ -28,4 +28,12 @@ describe('getCatalogOfferFamilies — request', () => {
 
     expect(mockedGet).toHaveBeenCalledWith('/api/Catalog?page=1&pageSize=100');
   });
+
+  it('passes an abort signal through to the catalogue request', async () => {
+    const signal = new AbortController().signal;
+
+    await getCatalogOfferFamilies({ page: 1, pageSize: 100, signal });
+
+    expect(mockedGet).toHaveBeenCalledWith('/api/Catalog?page=1&pageSize=100', { signal });
+  });
 });

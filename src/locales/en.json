@@ -2544,5 +2544,18 @@
   "offer_family_meal": "Meal",
   "offer_family_choose_size": "Choose a size",
   "offer_family_choose_mode": "How would you like it?",
-  "offer_family_other_category": "Other offers"
+  "offer_family_other_category": "Other offers",
+  "category_mismatch_warning": "This menu has no category in common with the parent product. Linking will keep the menu formula unchanged.",
+  "create_menu_version": "Create menu version",
+  "link_existing_menu_version": "Link existing menu version",
+  "link_menu_version": "Link menu version",
+  "menu_bundle_name_required": "Menu version name is required",
+  "menu_bundle_name_too_long": "Menu version name must be 100 characters or fewer",
+  "menu_version_draft_warning": "This creates an inactive draft. Review and complete its sections in the full bundle editor before publishing.",
+  "menu_version_draft_complete": "Complete the draft sections before publishing.",
+  "no_active_variations": "No active variations are available",
+  "no_categories": "No categories",
+  "product_variations": "Product variations",
+  "unlink_menu_version": "Unlink menu version",
+  "unlink_menu_version_confirmation": "Unlink this menu version from the product? The menu and existing orders will be kept."
 }

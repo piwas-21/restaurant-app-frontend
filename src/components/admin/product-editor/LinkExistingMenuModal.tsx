@@ -68,7 +68,6 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     setError(null);
     try {
       const response = await linkMenuOffer(selectedId, {
-        menuProductId: selectedId,
         parentOfferProductId: product.id,
         parentOfferVariationId: variation?.id ?? null,
       });

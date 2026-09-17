@@ -2546,5 +2546,18 @@
   "offer_family_meal": "Pasto",
   "offer_family_choose_size": "Scegli una dimensione",
   "offer_family_choose_mode": "Come lo desideri?",
-  "offer_family_other_category": "Altre offerte"
+  "offer_family_other_category": "Altre offerte",
+  "category_mismatch_warning": "Questo menu non ha categorie in comune con il prodotto principale. Il collegamento lascerà invariata la formula del menu.",
+  "create_menu_version": "Crea versione menu",
+  "link_existing_menu_version": "Collega versione menu esistente",
+  "link_menu_version": "Collega versione menu",
+  "menu_bundle_name_required": "Il nome della versione menu è obbligatorio",
+  "menu_bundle_name_too_long": "Il nome della versione menu deve contenere al massimo 100 caratteri",
+  "menu_version_draft_warning": "Questa azione crea una bozza inattiva. Controlla e completa le sezioni nell’editor completo del menu prima di pubblicarla.",
+  "menu_version_draft_complete": "Completa le sezioni della bozza prima di pubblicarla.",
+  "no_active_variations": "Nessuna variazione attiva disponibile",
+  "no_categories": "Nessuna categoria",
+  "product_variations": "Varianti del prodotto",
+  "unlink_menu_version": "Scollega versione menu",
+  "unlink_menu_version_confirmation": "Scollegare questa versione menu dal prodotto? Il menu e gli ordini esistenti verranno mantenuti."
 }

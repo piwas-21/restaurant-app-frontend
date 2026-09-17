@@ -2546,5 +2546,18 @@
   "offer_family_meal": "Comida",
   "offer_family_choose_size": "Elige un tamaño",
   "offer_family_choose_mode": "¿Cómo lo quieres?",
-  "offer_family_other_category": "Otras ofertas"
+  "offer_family_other_category": "Otras ofertas",
+  "category_mismatch_warning": "Este menú no comparte ninguna categoría con el producto principal. La vinculación mantendrá intacta la fórmula del menú.",
+  "create_menu_version": "Crear versión de menú",
+  "link_existing_menu_version": "Vincular versión de menú existente",
+  "link_menu_version": "Vincular versión de menú",
+  "menu_bundle_name_required": "Se requiere el nombre de la versión del menú",
+  "menu_bundle_name_too_long": "El nombre de la versión del menú debe tener 100 caracteres o menos",
+  "menu_version_draft_warning": "Esto crea un borrador inactivo. Revise y complete sus secciones en el editor completo del menú antes de publicarlo.",
+  "menu_version_draft_complete": "Complete las secciones del borrador antes de publicarlo.",
+  "no_active_variations": "No hay variaciones activas disponibles",
+  "no_categories": "Sin categorías",
+  "product_variations": "Variaciones del producto",
+  "unlink_menu_version": "Desvincular versión de menú",
+  "unlink_menu_version_confirmation": "¿Desvincular esta versión de menú del producto? El menú y los pedidos existentes se conservarán."
 }

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
-import CheckboxField from '@/components/design-system/CheckboxField';
 import FormField from '@/components/design-system/FormField';
 import { createMenuBundle } from '@/services/menuBundleService';
 import { serverMessage } from '@/utils/apiFormErrors';
@@ -18,14 +17,13 @@ import {
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import styles from './QuickMenuVersionModal.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
-
+import QuickMenuVersionConfirmations from './QuickMenuVersionConfirmations';
 interface QuickMenuVersionModalProps {
   readonly isOpen: boolean;
   readonly product: ProductDetails;
   readonly onClose: () => void;
   readonly onCreated: (menuId: string) => void;
 }
-
 export default function QuickMenuVersionModal({ isOpen, product, onClose, onCreated }: QuickMenuVersionModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState(defaultMenuVersionName(product.name));
@@ -38,15 +36,14 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
   const [channelsConfirmed, setChannelsConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const activeVariations = getActiveOfferVariations(product);
   const variation = activeVariations.find((candidate) => candidate.id === variationId);
   const requiresVariation = requiresOfferVariation(product);
   const nameError =
     name.trim().length === 0
-      ? t('menu_bundle_name_required', 'Menu version name is required')
+      ? t('menu_bundle_name_required')
       : name.length > MENU_VERSION_NAME_MAX_LENGTH
-        ? t('menu_bundle_name_too_long', 'Menu version name must be 100 characters or fewer')
+        ? t('menu_bundle_name_too_long')
         : undefined;
   const resolvedPrice = Number.parseFloat(price);
   const canSubmit =
@@ -127,6 +124,9 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
         <p className={styles.summary}>
           {name} · {variation?.name ?? t('base_price')} · {TENANT_CURRENCY}
         </p>
+        <p className={styles.warning} role="status">
+          {t('menu_version_draft_warning')}
+        </p>
 
         <FormField label={t('menu_bundle_name')} error={nameError}>
           <input
@@ -168,17 +168,18 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
           />
         </FormField>
 
-        <div className={styles.confirmations}>
-          <CheckboxField label={t('menu_sections')} checked={sectionsConfirmed} onChange={setSectionsConfirmed} />
-          <CheckboxField label={t('base_price')} checked={priceConfirmed} onChange={setPriceConfirmed} />
-          <CheckboxField label={t('category')} checked={categoriesConfirmed} onChange={setCategoriesConfirmed} />
-          <CheckboxField
-            label={t('menu_availability_schedule')}
-            checked={scheduleConfirmed}
-            onChange={setScheduleConfirmed}
-          />
-          <CheckboxField label={t('product_order_types')} checked={channelsConfirmed} onChange={setChannelsConfirmed} />
-        </div>
+        <QuickMenuVersionConfirmations
+          sectionsConfirmed={sectionsConfirmed}
+          priceConfirmed={priceConfirmed}
+          categoriesConfirmed={categoriesConfirmed}
+          scheduleConfirmed={scheduleConfirmed}
+          channelsConfirmed={channelsConfirmed}
+          onSectionsChange={setSectionsConfirmed}
+          onPriceChange={setPriceConfirmed}
+          onCategoriesChange={setCategoriesConfirmed}
+          onScheduleChange={setScheduleConfirmed}
+          onChannelsChange={setChannelsConfirmed}
+        />
 
         <div className={styles.categoryList} aria-label={t('category')}>
           {product.categories.map((category) => (

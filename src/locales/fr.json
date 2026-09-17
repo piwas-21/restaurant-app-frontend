@@ -2546,5 +2546,18 @@
   "offer_family_meal": "Menu",
   "offer_family_choose_size": "Choisissez une taille",
   "offer_family_choose_mode": "Comment le souhaitez-vous ?",
-  "offer_family_other_category": "Autres offres"
+  "offer_family_other_category": "Autres offres",
+  "category_mismatch_warning": "Ce menu n’a aucune catégorie en commun avec le produit parent. La liaison conservera la formule du menu inchangée.",
+  "create_menu_version": "Créer une version de menu",
+  "link_existing_menu_version": "Lier une version de menu existante",
+  "link_menu_version": "Lier la version du menu",
+  "menu_bundle_name_required": "Le nom de la version du menu est obligatoire",
+  "menu_bundle_name_too_long": "Le nom de la version du menu doit comporter 100 caractères ou moins",
+  "menu_version_draft_warning": "Cette action crée un brouillon inactif. Vérifiez et complétez ses sections dans l’éditeur complet du menu avant de le publier.",
+  "menu_version_draft_complete": "Complétez les sections du brouillon avant de le publier.",
+  "no_active_variations": "Aucune variation active disponible",
+  "no_categories": "Aucune catégorie",
+  "product_variations": "Variantes du produit",
+  "unlink_menu_version": "Dissocier la version du menu",
+  "unlink_menu_version_confirmation": "Dissocier cette version du menu du produit ? Le menu et les commandes existantes seront conservés."
 }

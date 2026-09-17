@@ -2542,5 +2542,18 @@
   "offer_family_meal": "套餐",
   "offer_family_choose_size": "选择规格",
   "offer_family_choose_mode": "您想怎么点？",
-  "offer_family_other_category": "其他优惠"
+  "offer_family_other_category": "其他优惠",
+  "category_mismatch_warning": "此菜单与主产品没有共同分类。关联后菜单配方将保持不变。",
+  "create_menu_version": "创建菜单版本",
+  "link_existing_menu_version": "关联现有菜单版本",
+  "link_menu_version": "关联菜单版本",
+  "menu_bundle_name_required": "菜单版本名称为必填项",
+  "menu_bundle_name_too_long": "菜单版本名称不得超过100个字符",
+  "menu_version_draft_warning": "这将创建一个未启用的草稿。发布前请在完整菜单编辑器中检查并完成其分区。",
+  "menu_version_draft_complete": "发布前请完成草稿分区。",
+  "no_active_variations": "没有可用的启用变体",
+  "no_categories": "没有分类",
+  "product_variations": "产品变体",
+  "unlink_menu_version": "取消关联菜单版本",
+  "unlink_menu_version_confirmation": "要取消此菜单版本与产品的关联吗？菜单和现有订单将会保留。"
 }

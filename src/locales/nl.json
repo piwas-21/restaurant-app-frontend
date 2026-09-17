@@ -2544,5 +2544,18 @@
   "offer_family_meal": "Maaltijd",
   "offer_family_choose_size": "Kies een formaat",
   "offer_family_choose_mode": "Hoe wil je het?",
-  "offer_family_other_category": "Andere aanbiedingen"
+  "offer_family_other_category": "Andere aanbiedingen",
+  "category_mismatch_warning": "Dit menu heeft geen categorie gemeen met het hoofdproduct. Bij koppelen blijft de menusamenstelling ongewijzigd.",
+  "create_menu_version": "Menuversie maken",
+  "link_existing_menu_version": "Bestaande menuversie koppelen",
+  "link_menu_version": "Menuversie koppelen",
+  "menu_bundle_name_required": "Naam van menuversie is verplicht",
+  "menu_bundle_name_too_long": "De naam van de menuversie mag maximaal 100 tekens bevatten",
+  "menu_version_draft_warning": "Hiermee maakt u een inactieve conceptversie. Controleer en voltooi de secties in de volledige menu-editor voordat u deze publiceert.",
+  "menu_version_draft_complete": "Voltooi de conceptsecties voordat u publiceert.",
+  "no_active_variations": "Geen actieve varianten beschikbaar",
+  "no_categories": "Geen categorieën",
+  "product_variations": "Productvarianten",
+  "unlink_menu_version": "Menuversie ontkoppelen",
+  "unlink_menu_version_confirmation": "Deze menuversie van het product ontkoppelen? Het menu en bestaande bestellingen blijven behouden."
 }

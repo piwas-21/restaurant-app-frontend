@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useMenuManagement } from './useMenuManagement';
-import { getProducts } from '@/services/menuService';
+import { getAllProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
 
@@ -19,7 +19,7 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-const mockGetProducts = getProducts as jest.MockedFunction<typeof getProducts>;
+const mockGetAllProducts = getAllProducts as jest.MockedFunction<typeof getAllProducts>;
 const mockGetCategories = getCategories as jest.MockedFunction<typeof getCategories>;
 
 const emptyPage = {
@@ -31,13 +31,13 @@ const emptyPage = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetProducts.mockResolvedValue(emptyPage as never);
+  mockGetAllProducts.mockResolvedValue([]);
   mockGetCategories.mockResolvedValue(emptyPage as never);
 });
 
 describe('useMenuManagement — what the admin actually reads', () => {
   it("surfaces the server's own sentence when the product fetch throws", async () => {
-    mockGetProducts.mockRejectedValue(new ApiError(503, 'Menu service is restarting'));
+    mockGetAllProducts.mockRejectedValue(new ApiError(503, 'Menu service is restarting'));
     const { result } = renderHook(() => useMenuManagement('all'));
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
@@ -45,7 +45,7 @@ describe('useMenuManagement — what the admin actually reads', () => {
   });
 
   it('falls back to a CONTEXTUAL sentence when the server authored none', async () => {
-    mockGetProducts.mockRejectedValue(new ApiError(500, ''));
+    mockGetAllProducts.mockRejectedValue(new ApiError(500, ''));
     const { result } = renderHook(() => useMenuManagement('all'));
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
@@ -81,7 +81,7 @@ describe('useMenuManagement — what the admin actually reads', () => {
   });
 
   it('does not leak a raw non-ApiError throw to the screen', async () => {
-    mockGetProducts.mockRejectedValue(new TypeError('Failed to fetch'));
+    mockGetAllProducts.mockRejectedValue(new TypeError('Failed to fetch'));
     const { result } = renderHook(() => useMenuManagement('all'));
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
@@ -90,13 +90,13 @@ describe('useMenuManagement — what the admin actually reads', () => {
   });
 
   it('does not retry in a loop when the product load fails', async () => {
-    mockGetProducts.mockRejectedValue(new ApiError(500, 'down'));
+    mockGetAllProducts.mockRejectedValue(new ApiError(500, 'down'));
     const { result } = renderHook(() => useMenuManagement('all'));
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(mockGetProducts).toHaveBeenCalledTimes(1);
+    expect(mockGetAllProducts).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -113,7 +113,7 @@ describe('useMenuManagement — what the admin actually reads', () => {
  * becomes a query-string parameter.
  */
 describe('useMenuManagement — the option-only opt-in', () => {
-  const queryArg = (call: number) => mockGetProducts.mock.calls[call][3];
+  const queryArg = (call: number) => mockGetAllProducts.mock.calls[call][1];
 
   // jsdom implements no scrolling, and `handlePageChange` smooth-scrolls to the top.
   beforeEach(() => {
@@ -123,7 +123,7 @@ describe('useMenuManagement — the option-only opt-in', () => {
   it('asks for option-only items so a hidden item stays editable', async () => {
     renderHook(() => useMenuManagement('all'));
 
-    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalled());
     expect(queryArg(0)).toEqual(expect.objectContaining({ includeComponents: true }));
   });
 
@@ -134,25 +134,24 @@ describe('useMenuManagement — the option-only opt-in', () => {
   it('keeps the type chip alongside it', async () => {
     renderHook(() => useMenuManagement('bundles'));
 
-    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalled());
     expect(queryArg(0)).toEqual({ type: 'Menu', includeComponents: true });
   });
 
   it('asks on the items chip too, where the query is otherwise empty', async () => {
     renderHook(() => useMenuManagement('items'));
 
-    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalled());
     expect(queryArg(0)).toEqual({ includeComponents: true });
   });
 
-  it('keeps asking on a page change, not only on the first load', async () => {
+  it('loads the complete catalogue once so page changes stay client-side', async () => {
     const { result } = renderHook(() => useMenuManagement('all'));
-    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalled());
 
-    await act(async () => result.current.handlePageChange(2));
+    await act(async () => result.current.fetchProducts());
 
-    const lastCall = mockGetProducts.mock.calls.length - 1;
-    expect(mockGetProducts.mock.calls[lastCall][0]).toBe(2);
-    expect(queryArg(lastCall)).toEqual(expect.objectContaining({ includeComponents: true }));
+    expect(mockGetAllProducts).toHaveBeenCalledTimes(2);
+    expect(mockGetAllProducts.mock.calls[1][1]).toEqual(expect.objectContaining({ includeComponents: true }));
   });
 });

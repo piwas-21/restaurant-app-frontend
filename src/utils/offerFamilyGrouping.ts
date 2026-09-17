@@ -58,3 +58,12 @@ export function groupProductsIntoOfferRows(products: Product[]): GroupedOfferRow
   });
   return rows;
 }
+
+export function filterOfferRows(rows: GroupedOfferRow[], query: string): GroupedOfferRow[] {
+  const normalized = query.trim().toLocaleLowerCase();
+  if (!normalized) return rows;
+  return rows.filter((row) => {
+    const products = row.kind === 'family' ? [row.anchor, ...row.menuOffers] : [row.product];
+    return products.some((product) => product.name.toLocaleLowerCase().includes(normalized));
+  });
+}

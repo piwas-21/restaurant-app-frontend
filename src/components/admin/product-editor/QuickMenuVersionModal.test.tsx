@@ -37,6 +37,7 @@ describe('QuickMenuVersionModal', () => {
   it('requires explicit confirmation of sections, price, categories, schedule and channels', () => {
     render(<QuickMenuVersionModal isOpen product={product} onClose={jest.fn()} onCreated={jest.fn()} />);
 
+    expect(screen.getByRole('status')).toHaveTextContent('menu_version_draft_warning');
     expect(screen.getByRole('button', { name: 'create_menu_version' })).toBeDisabled();
     expect(screen.getAllByRole('checkbox')).toHaveLength(5);
   });
@@ -45,6 +46,7 @@ describe('QuickMenuVersionModal', () => {
     render(<QuickMenuVersionModal isOpen product={product} onClose={jest.fn()} onCreated={jest.fn()} />);
     const name = screen.getByRole('textbox', { name: 'menu_bundle_name' });
 
+    expect(name).toHaveValue('Draft menu · Tacos 1 Viande');
     fireEvent.change(name, { target: { value: '' } });
     expect(screen.getByText('menu_bundle_name_required')).toBeInTheDocument();
     fireEvent.change(name, { target: { value: 'x'.repeat(101) } });
@@ -69,6 +71,9 @@ describe('QuickMenuVersionModal', () => {
 
     await waitFor(() => expect(createMenuBundle).toHaveBeenCalledTimes(1));
     const payload = (createMenuBundle as jest.Mock).mock.calls[0][0];
+    expect(payload.name).toBe('Menu Tacos XL');
+    expect(payload.isActive).toBe(false);
+    expect(payload.isAvailable).toBe(false);
     expect(payload.categoryIds).toEqual(['cat-1']);
     expect(payload.content).toEqual({ en: { name: 'Menu Tacos XL', description: 'Tacos' } });
     expect(payload.menuDefinition.parentOfferProductId).toBe('product-1');

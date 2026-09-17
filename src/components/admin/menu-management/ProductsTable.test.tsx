@@ -80,6 +80,17 @@ describe('ProductsTable — a row carries its own kind', () => {
     expect(links[0]).toHaveAttribute('href', '/admin/menu-management/bundle-1?type=menu');
     expect(links[1]).toHaveAttribute('href', '/admin/menu-management/item-1?type=product');
   });
+
+  it('keeps anchor gaps and names/prices every offer in a family summary', () => {
+    renderTable([
+      { ...itemRow, description: '', images: [] },
+      { ...bundleRow, name: 'Menu Margherita', basePrice: 24, parentOfferProductId: 'item-1' },
+    ]);
+
+    expect(screen.getByText('product_needs_photo')).toBeInTheDocument();
+    expect(screen.getByText('Menu Margherita · CHF 24.00')).toBeInTheDocument();
+    expect(screen.queryByText(/menu_bundles/)).not.toBeInTheDocument();
+  });
 });
 
 describe('ProductsTable — filter only picks the wording', () => {

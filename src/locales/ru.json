@@ -2548,5 +2548,18 @@
   "offer_family_meal": "Набор",
   "offer_family_choose_size": "Выберите размер",
   "offer_family_choose_mode": "Как вы хотите заказать?",
-  "offer_family_other_category": "Другие предложения"
+  "offer_family_other_category": "Другие предложения",
+  "category_mismatch_warning": "У этого меню нет общей категории с основным товаром. Связывание не изменит состав меню.",
+  "create_menu_version": "Создать версию меню",
+  "link_existing_menu_version": "Связать существующую версию меню",
+  "link_menu_version": "Связать версию меню",
+  "menu_bundle_name_required": "Укажите название версии меню",
+  "menu_bundle_name_too_long": "Название версии меню не должно превышать 100 символов",
+  "menu_version_draft_warning": "Будет создан неактивный черновик. Проверьте и заполните его разделы в полном редакторе меню перед публикацией.",
+  "menu_version_draft_complete": "Заполните разделы черновика перед публикацией.",
+  "no_active_variations": "Нет доступных активных вариантов",
+  "no_categories": "Нет категорий",
+  "product_variations": "Варианты товара",
+  "unlink_menu_version": "Отвязать версию меню",
+  "unlink_menu_version_confirmation": "Отвязать эту версию меню от товара? Меню и существующие заказы будут сохранены."
 }

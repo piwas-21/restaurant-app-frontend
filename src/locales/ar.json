@@ -2552,5 +2552,18 @@
   "offer_family_meal": "وجبة",
   "offer_family_choose_size": "اختر الحجم",
   "offer_family_choose_mode": "كيف تريده؟",
-  "offer_family_other_category": "عروض أخرى"
+  "offer_family_other_category": "عروض أخرى",
+  "category_mismatch_warning": "لا يشارك هذا العرض أي فئة مع المنتج الأساسي. سيُبقي الربط محتوى العرض دون تغيير.",
+  "create_menu_version": "إنشاء إصدار قائمة",
+  "link_existing_menu_version": "ربط إصدار قائمة موجود",
+  "link_menu_version": "ربط إصدار القائمة",
+  "menu_bundle_name_required": "اسم إصدار القائمة مطلوب",
+  "menu_bundle_name_too_long": "يجب ألا يتجاوز اسم إصدار القائمة 100 حرف",
+  "menu_version_draft_warning": "سيؤدي هذا إلى إنشاء مسودة غير نشطة. راجع أقسامها وأكملها في محرر القائمة الكامل قبل نشرها.",
+  "menu_version_draft_complete": "أكمل أقسام المسودة قبل النشر.",
+  "no_active_variations": "لا توجد تنويعات نشطة متاحة",
+  "no_categories": "لا توجد فئات",
+  "product_variations": "تنويعات المنتج",
+  "unlink_menu_version": "إلغاء ربط إصدار القائمة",
+  "unlink_menu_version_confirmation": "هل تريد إلغاء ربط إصدار القائمة هذا من المنتج؟ ستبقى القائمة والطلبات الحالية محفوظة."
 }

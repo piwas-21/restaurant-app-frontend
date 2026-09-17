@@ -73,7 +73,6 @@ describe('OfferVersionsSection', () => {
 
     await waitFor(() =>
       expect(linkMenuOffer).toHaveBeenCalledWith('menu-2', {
-        menuProductId: 'menu-2',
         parentOfferProductId: 'product-1',
         parentOfferVariationId: null,
       }),

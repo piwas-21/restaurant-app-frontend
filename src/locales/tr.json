@@ -2544,5 +2544,18 @@
   "offer_family_meal": "Menü",
   "offer_family_choose_size": "Boyut seçin",
   "offer_family_choose_mode": "Nasıl almak istersiniz?",
-  "offer_family_other_category": "Diğer teklifler"
+  "offer_family_other_category": "Diğer teklifler",
+  "category_mismatch_warning": "Bu menü, ana ürünle ortak bir kategoriye sahip değil. Bağlamak menü içeriğini değiştirmeyecektir.",
+  "create_menu_version": "Menü sürümü oluştur",
+  "link_existing_menu_version": "Mevcut menü sürümünü bağla",
+  "link_menu_version": "Menü sürümünü bağla",
+  "menu_bundle_name_required": "Menü sürümünün adı zorunludur",
+  "menu_bundle_name_too_long": "Menü sürümünün adı 100 karakter veya daha az olmalıdır",
+  "menu_version_draft_warning": "Bu işlem etkin olmayan bir taslak oluşturur. Yayınlamadan önce tam menü düzenleyicide bölümleri inceleyip tamamlayın.",
+  "menu_version_draft_complete": "Yayınlamadan önce taslak bölümlerini tamamlayın.",
+  "no_active_variations": "Kullanılabilir etkin varyasyon yok",
+  "no_categories": "Kategori yok",
+  "product_variations": "Ürün varyasyonları",
+  "unlink_menu_version": "Menü sürümünün bağlantısını kaldır",
+  "unlink_menu_version_confirmation": "Bu menü sürümünün ürünle bağlantısı kaldırılsın mı? Menü ve mevcut siparişler korunacaktır."
 }

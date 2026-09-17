@@ -8,17 +8,15 @@ jest.mock('@/utils/apiClient', () => ({
 describe('menuOfferFamilyService', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('uses the narrow PATCH relationship endpoint and keeps the menu id in the command body', async () => {
+  it('uses the narrow PATCH relationship endpoint with only parent ids in the body', async () => {
     (apiClient.patch as jest.Mock).mockResolvedValue({ success: true });
 
     await linkMenuOffer('menu-1', {
-      menuProductId: 'menu-1',
       parentOfferProductId: 'product-1',
       parentOfferVariationId: 'variation-1',
     });
 
     expect(apiClient.patch).toHaveBeenCalledWith('/api/Menus/menu-1/offer-parent', {
-      menuProductId: 'menu-1',
       parentOfferProductId: 'product-1',
       parentOfferVariationId: 'variation-1',
     });

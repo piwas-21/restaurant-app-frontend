@@ -208,6 +208,25 @@ describe('offer-family mapper', () => {
     expect(toCatalogItemFromOfferFamily(family!).priceIsFrom).toBe(true);
   });
 
+  it('does not say from when choices share the same effective price', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-equal-priced-variation',
+      anchor: {
+        id: 'dish',
+        name: 'Dish',
+        basePrice: 10,
+        isActive: true,
+        isAvailable: true,
+        variations: [{ id: 'same-price', name: 'Same price', priceModifier: 0, isActive: true }],
+      },
+      startingPrice: 10,
+    });
+
+    expect(family).not.toBeNull();
+    expect(effectiveOrderablePriceChoices(family!)).toEqual([10, 10]);
+    expect(toCatalogItemFromOfferFamily(family!).priceIsFrom).toBe(false);
+  });
+
   it('does not let inactive variations or unavailable menu targets create a from label', () => {
     const family = mapCatalogOfferFamilyDto({
       id: 'family-one-effective-choice',

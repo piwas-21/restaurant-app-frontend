@@ -182,7 +182,7 @@ export function toCatalogItemFromOfferFamily(family: CatalogOfferFamily): Catalo
     ...family.anchor,
     id: family.id,
     price: family.startingPrice,
-    priceIsFrom: effectivePrices.length > 1,
+    priceIsFrom: new Set(effectivePrices).size > 1,
     // A linked meal can remain orderable while its anchor is not. The card's verdict must then be
     // the valid target's verdict; otherwise `MenuCard` removes Add before the guest can choose it.
     isAvailable: Boolean(availableTarget),

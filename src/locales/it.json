@@ -1792,6 +1792,12 @@
   "menu_layout_onepage_hint": "Tutte le categorie su una pagina; la barra delle categorie scorre a ogni sezione.",
   "show_bundles_on_all_tab": "Mostra i Pacchetti Menu sotto „Tutti“",
   "show_bundles_on_all_tab_hint": "I pacchetti compaiono come gruppo dedicato nella scheda „Tutti“ per gli ospiti.",
+  "menu_bundle_presentation_title": "Presentazione dei pacchetti",
+  "menu_bundle_presentation_desc": "Scegli dove mostrare agli ospiti le offerte menu collegate.",
+  "menu_bundle_presentation_legacy": "Vista pacchetti separata",
+  "menu_bundle_presentation_legacy_hint": "Mantieni la vista tecnica dei Pacchetti Menu per gli ospiti.",
+  "menu_bundle_presentation_category": "Offerte nelle categorie",
+  "menu_bundle_presentation_category_hint": "Mostra una scheda con la scelta Prodotto o Menu.",
   "logo_desc": "Carica il tuo logo e comparirà subito nell'intestazione — nessuna ricostruzione necessaria. Senza logo viene mostrato il nome del tuo ristorante come testo.",
   "logo_light_title": "Logo",
   "logo_light_hint": "Mostrato su sfondi chiari, e ovunque se ne carichi uno solo.",
@@ -2532,5 +2538,12 @@
   "cashier.operational_note_save": "Salva nota",
   "cashier.operational_note_saving": "Salvataggio…",
   "cashier.operational_note_load_error": "Impossibile caricare le note operative.",
-  "cashier.operational_note_save_error": "Impossibile salvare la nota."
+  "cashier.operational_note_save_error": "Impossibile salvare la nota.",
+  "offer_family_options": "Opzioni d'ordine",
+  "offer_family_a_la_carte": "Alla carta",
+  "offer_family_item_only": "Solo prodotto",
+  "offer_family_menu": "Menù",
+  "offer_family_meal": "Pasto",
+  "offer_family_choose_size": "Scegli una dimensione",
+  "offer_family_choose_mode": "Come lo desideri?"
 }

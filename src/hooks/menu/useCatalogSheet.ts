@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
 import { useDrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { CatalogItem, MenuBundleItem } from '@/types/menu';
+import type { CatalogOfferFamily, CatalogOfferTarget } from '@/types/menu/offerFamily';
 
 interface UseCatalogSheetArgs {
   /** Resolves a bundle id back to its full definition (the browse list already carries it). */
@@ -23,6 +24,8 @@ interface UseCatalogSheetArgs {
  * Only one sheet is ever open, so rendering both is safe — each returns null while closed.
  */
 export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {}) {
+  const [offerFamily, setOfferFamily] = useState<CatalogOfferFamily | null>(null);
+  const [offerFamilyFilterIds, setOfferFamilyFilterIds] = useState<ReadonlySet<string>>(new Set());
   // ONE upsell for both bodies (MENU-CUSTOMIZATION-FLOW-PLAN §3.4). It lives here rather than in
   // either controller so the drinks list is fetched once for the page, and so neither controller
   // learns about a second basket line: `onLineAdded` fires only after its own add was accepted, so
@@ -65,8 +68,38 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
     [openForProduct],
   );
 
+  const openForOfferFamily = useCallback((family: CatalogOfferFamily, filterIds?: ReadonlySet<string>) => {
+    setOfferFamilyFilterIds(filterIds ?? new Set());
+    setOfferFamily(family);
+  }, []);
+
+  const closeOfferFamily = useCallback(() => {
+    setOfferFamily(null);
+    setOfferFamilyFilterIds(new Set());
+  }, []);
+
+  const selectOfferTarget = useCallback(
+    (target: CatalogOfferTarget) => {
+      setOfferFamily(null);
+      if (target.bundle) {
+        openForBundle(target.bundle);
+        return;
+      }
+      openForProductId(target.productId, {
+        forceSheet: true,
+        availability: target.availability,
+        selectedVariationId: target.parentVariationId,
+      });
+    },
+    [openForBundle, openForProductId],
+  );
+
   const openForCatalogItem = useCallback(
     (item: CatalogItem, opts?: OpenSheetOptions) => {
+      if (item.offerFamily && item.offerFamily.menuOffers.length > 0) {
+        openForOfferFamily(item.offerFamily, opts?.offerFamilyFilterIds);
+        return;
+      }
       if (!item.isBundle) {
         // Carry the card's own per-order-type verdict in, so the sheet cannot offer an add the card
         // just refused (§9.10).
@@ -91,8 +124,19 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
       }
       openForProductId(item.id, opts);
     },
-    [openForBundle, findBundle, openForProductId],
+    [findBundle, openForBundle, openForOfferFamily, openForProductId],
   );
 
-  return { product, bundle, drinks, openForCatalogItem, openForProductId };
+  return {
+    product,
+    bundle,
+    drinks,
+    offerFamily,
+    offerFamilyFilterIds,
+    closeOfferFamily,
+    selectOfferTarget,
+    openForOfferFamily,
+    openForCatalogItem,
+    openForProductId,
+  };
 }

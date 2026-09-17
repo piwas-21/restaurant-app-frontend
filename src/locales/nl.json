@@ -1790,6 +1790,12 @@
   "menu_layout_onepage_hint": "Alle categorieën op één pagina; de categoriebalk scrollt naar elke sectie.",
   "show_bundles_on_all_tab": "Menubundels tonen onder „Alles“",
   "show_bundles_on_all_tab_hint": "Bundels verschijnen als eigen groep op het tabblad „Alles“ voor gasten.",
+  "menu_bundle_presentation_title": "Bundelweergave",
+  "menu_bundle_presentation_desc": "Kies waar gekoppelde menu-aanbiedingen voor gasten verschijnen.",
+  "menu_bundle_presentation_legacy": "Afzonderlijke bundelweergave",
+  "menu_bundle_presentation_legacy_hint": "De technische weergave Menubundels voor gasten behouden.",
+  "menu_bundle_presentation_category": "Aanbiedingen in categorieën",
+  "menu_bundle_presentation_category_hint": "Eén kaart tonen met de keuze product of maaltijd.",
   "logo_desc": "Upload uw logo en het verschijnt direct in uw koptekst — geen herbouw nodig. Zonder logo wordt de naam van uw restaurant als tekst getoond.",
   "logo_light_title": "Logo",
   "logo_light_hint": "Wordt op lichte achtergronden getoond, en overal als u er maar één uploadt.",
@@ -2530,5 +2536,12 @@
   "cashier.operational_note_save": "Notitie opslaan",
   "cashier.operational_note_saving": "Opslaan…",
   "cashier.operational_note_load_error": "Kan operationele notities niet laden.",
-  "cashier.operational_note_save_error": "Kan de notitie niet opslaan."
+  "cashier.operational_note_save_error": "Kan de notitie niet opslaan.",
+  "offer_family_options": "Bestelopties",
+  "offer_family_a_la_carte": "Los bestellen",
+  "offer_family_item_only": "Alleen product",
+  "offer_family_menu": "Maaltijdmenu",
+  "offer_family_meal": "Maaltijd",
+  "offer_family_choose_size": "Kies een formaat",
+  "offer_family_choose_mode": "Hoe wil je het?"
 }

@@ -4,6 +4,7 @@ import { usePublicMenu, MENU_BUNDLES_KEY } from './usePublicMenu';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { getProducts } from '@/services/menuService';
 import { getPublicMenuBundles } from '@/services/menuBundleService';
+import type { ApiCategory } from '@/types/menu';
 
 /**
  * The seam the whole S4 slice rests on: the guest's channel actually reaching `GET /api/Products`.
@@ -19,8 +20,9 @@ jest.mock('@/services/menuService', () => ({
 jest.mock('@/services/menuBundleService', () => ({
   getPublicMenuBundles: jest.fn(),
 }));
+let mockCategories: ApiCategory[] = [];
 jest.mock('./publicMenu/usePublicMenuCategories', () => ({
-  usePublicMenuCategories: () => [],
+  usePublicMenuCategories: () => mockCategories,
 }));
 
 const mockOrderType = useOrderType as jest.Mock;
@@ -38,8 +40,23 @@ function setOrderTypeContext(orderType: OrderType | null, hydrated: boolean) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockCategories = [];
   mockGetProducts.mockResolvedValue({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
   mockGetBundles.mockResolvedValue({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+});
+
+describe('usePublicMenu — disabled item pipelines retain catalogue navigation', () => {
+  it('still returns categories and the All selection for category-offers tabs', () => {
+    mockCategories = [{ id: 'cat-tacos', name: 'Tacos' }];
+    setOrderTypeContext(null, false);
+
+    const { result } = renderHook(() => usePublicMenu(false));
+
+    expect(result.current.categories).toEqual(mockCategories);
+    expect(result.current.selectedView).toBe('all');
+    expect(mockGetProducts).not.toHaveBeenCalled();
+    expect(mockGetBundles).not.toHaveBeenCalled();
+  });
 });
 
 describe('usePublicMenu — the guest channel reaches the products fetch', () => {

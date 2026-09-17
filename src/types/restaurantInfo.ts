@@ -9,6 +9,7 @@
  */
 
 import type { ApiResponse } from '@/types/order';
+import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 
 /**
  * How the public /menu presents the catalogue. Mirrors the backend
@@ -72,6 +73,8 @@ export interface RestaurantInfoDto {
    * reads as `false` — the All tab stays products-only, the shipped behaviour.
    */
   showMenuBundlesOnAllTab?: boolean;
+  /** New presentation path; absent preserves the legacy menu surface. */
+  bundlePresentationMode?: BundlePresentationMode | null;
 }
 
 /** Which stored logo an upload or delete addresses. Mirrors the backend `LogoVariant`. */
@@ -95,6 +98,8 @@ export interface UpdateRestaurantInfoCommand {
   menuLayout: MenuLayout;
   /** Always sent: same full-upsert reason. */
   showMenuBundlesOnAllTab: boolean;
+  /** Full-upsert field; legacy backends ignore it or return their default. */
+  bundlePresentationMode?: BundlePresentationMode;
 }
 
 export interface AddPhoneNumberCommand {

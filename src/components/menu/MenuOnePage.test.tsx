@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import MenuOnePage from './MenuOnePage';
-import type { MenuItem, MenuBundleItem } from '@/types/menu';
+import type { MenuItem, MenuBundleItem, CatalogOfferFamily } from '@/types/menu';
 import type { UseOnePageMenuReturn } from '@/hooks/useOnePageMenu';
+import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilies';
 
 /**
  * The one-page layout body (menuLayout = "onepage"). Pinned here: sections in nav
@@ -20,11 +21,21 @@ jest.mock('react-i18next', () => ({
         : key,
   }),
 }));
-const listProps: Array<{ products: MenuItem[]; bundles: MenuBundleItem[]; featuredSlot?: unknown }> = [];
+const listProps: Array<{
+  products: MenuItem[];
+  bundles: MenuBundleItem[];
+  families?: CatalogOfferFamily[];
+  featuredSlot?: unknown;
+}> = [];
 jest.mock(
   './MenuList',
   () =>
-    function MockMenuList(props: { products: MenuItem[]; bundles: MenuBundleItem[]; featuredSlot?: unknown }) {
+    function MockMenuList(props: {
+      products: MenuItem[];
+      bundles: MenuBundleItem[];
+      families?: CatalogOfferFamily[];
+      featuredSlot?: unknown;
+    }) {
       listProps.push(props);
       return null;
     },
@@ -148,6 +159,25 @@ const shared = {
   onSwitchOrderType: jest.fn(),
 };
 
+const family: CatalogOfferFamily = {
+  id: 'family-tacos',
+  anchor: { kind: 'product', id: 'tacos', name: 'Tacos 1 Viande', price: 9, isBundle: false },
+  menuOffers: [{ productId: 'menu-tacos', kind: 'bundle', name: 'Menu Tacos 1 Viande', price: 12 }],
+  categoryIds: ['cat-mains'],
+  startingPrice: 9,
+};
+
+const familyState: UsePublicOfferFamiliesReturn = {
+  families: [family],
+  isLoading: false,
+  error: null,
+  currentPage: 1,
+  totalPages: 1,
+  totalCount: 1,
+  pageSize: 100,
+  refetch: jest.fn(async () => undefined),
+};
+
 beforeEach(() => {
   listProps.length = 0;
   filterProps.length = 0;
@@ -167,6 +197,19 @@ describe('MenuOnePage — sections', () => {
     // Section titles go through the same name mapper the tabs use; with this suite's
     // pass-through t() the mapper falls back to the API name (its documented behaviour).
     expect(screen.getAllByTestId('status')[0].getAttribute('data-title')).toBe('Starters');
+  });
+
+  it('renders grouped families once per assigned category and suppresses the technical bundles section', () => {
+    render(
+      <MenuOnePage {...shared} controller={controller()} offerFamilies={[family]} offerFamiliesState={familyState} />,
+    );
+
+    const headings = screen.getAllByTestId('status').map((el) => el.getAttribute('data-heading'));
+    expect(headings).toEqual(['category-heading-cat-starters', 'category-heading-cat-mains']);
+    expect(listProps).toHaveLength(1);
+    expect(listProps[0].families?.map((entry) => entry.id)).toEqual(['family-tacos']);
+    expect(listProps[0].products).toEqual([]);
+    expect(listProps[0].bundles).toEqual([]);
   });
 
   it('lists each bundle in its category section AND keeps the full bundles listing at the foot', () => {

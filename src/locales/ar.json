@@ -1798,6 +1798,12 @@
   "menu_layout_onepage_hint": "جميع الفئات في صفحة واحدة; ينتقل شريط الفئات إلى كل قسم.",
   "show_bundles_on_all_tab": "إظهار حزم القائمة ضمن „الكل“",
   "show_bundles_on_all_tab_hint": "تظهر الحزم كمجموعة مستقلة في تبويب „الكل“ للضيوف.",
+  "menu_bundle_presentation_title": "طريقة عرض الحزم",
+  "menu_bundle_presentation_desc": "اختر مكان ظهور عروض القائمة المرتبطة للضيوف.",
+  "menu_bundle_presentation_legacy": "عرض الحزم المنفصل",
+  "menu_bundle_presentation_legacy_hint": "الإبقاء على عرض حزم القائمة التقني للضيوف.",
+  "menu_bundle_presentation_category": "العروض ضمن الفئات",
+  "menu_bundle_presentation_category_hint": "عرض بطاقة واحدة مع اختيار المنتج أو الوجبة.",
   "logo_desc": "حمّل شعارك ليظهر في الترويسة على الفور — دون إعادة بناء. بدون شعار، يُعرض اسم مطعمك كنص.",
   "logo_light_title": "الشعار",
   "logo_light_hint": "يظهر على الخلفيات الفاتحة، وفي كل مكان إذا رفعت شعاراً واحداً فقط.",
@@ -2538,5 +2544,12 @@
   "cashier.operational_note_save": "حفظ الملاحظة",
   "cashier.operational_note_saving": "جارٍ الحفظ…",
   "cashier.operational_note_load_error": "تعذر تحميل ملاحظات التشغيل.",
-  "cashier.operational_note_save_error": "تعذر حفظ الملاحظة."
+  "cashier.operational_note_save_error": "تعذر حفظ الملاحظة.",
+  "offer_family_options": "خيارات الطلب",
+  "offer_family_a_la_carte": "حسب الطلب",
+  "offer_family_item_only": "المنتج فقط",
+  "offer_family_menu": "وجبة",
+  "offer_family_meal": "وجبة",
+  "offer_family_choose_size": "اختر الحجم",
+  "offer_family_choose_mode": "كيف تريده؟"
 }

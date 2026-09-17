@@ -27,4 +27,8 @@ export interface OpenSheetOptions {
    * on `FeaturedSpecialDto`). It was never a re-fetch problem: there was no field to guard on.
    */
   availability?: ItemAvailability;
+  /** Variation selected in the offer-family step; avoids asking for the same size twice. */
+  selectedVariationId?: string | null;
+  /** Active family filters, so the mode step only offers matching underlying targets. */
+  offerFamilyFilterIds?: ReadonlySet<string>;
 }

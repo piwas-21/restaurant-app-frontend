@@ -1,6 +1,7 @@
 'use client';
 
 import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
+import OfferFamilyChoiceModal from '@/components/menu/OfferFamilyChoiceModal';
 import CartSheet from '@/components/order/CartSheet';
 import OrderFlowModals from '@/components/order/OrderFlowModals';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
@@ -41,6 +42,12 @@ export default function MenuOrderOverlays({
           the way out has to reach the page's follow-up instance to open its modal. */}
       <ItemCustomizationSheet controller={sheet.product} onSwitchOrderType={onSwitchOrderType} drinks={sheet.drinks} />
       <ItemCustomizationSheet controller={sheet.bundle} onSwitchOrderType={onSwitchOrderType} drinks={sheet.drinks} />
+      <OfferFamilyChoiceModal
+        family={sheet.offerFamily}
+        activeFilterIds={sheet.offerFamilyFilterIds}
+        onClose={sheet.closeOfferFamily}
+        onSelect={sheet.selectOfferTarget}
+      />
 
       {/* Closed while an order-type conflict is being confirmed. The sheet hosts the very toggle
           that raises the confirm, so leaving it open stacks two BaseModals — and both register a

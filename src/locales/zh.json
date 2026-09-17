@@ -1788,6 +1788,12 @@
   "menu_layout_onepage_hint": "所有分类在同一页面；分类栏可滚动到各个部分。",
   "show_bundles_on_all_tab": "在“全部”下显示菜单套餐",
   "show_bundles_on_all_tab_hint": "套餐将以独立分组显示在客人的“全部”标签页中。",
+  "menu_bundle_presentation_title": "套餐展示方式",
+  "menu_bundle_presentation_desc": "选择关联的菜单优惠在客人页面中的显示位置。",
+  "menu_bundle_presentation_legacy": "单独的套餐页面",
+  "menu_bundle_presentation_legacy_hint": "为客人保留技术性的菜单套餐页面。",
+  "menu_bundle_presentation_category": "分类中的优惠",
+  "menu_bundle_presentation_category_hint": "显示一张可选择单品或套餐的卡片。",
   "logo_desc": "上传您的标志，它会立即出现在页眉中，无需重新构建。没有标志时，将以文字显示您的餐厅名称。",
   "logo_light_title": "标志",
   "logo_light_hint": "显示在浅色背景上；如果您只上传一个，则在所有位置使用。",
@@ -2528,5 +2534,12 @@
   "cashier.operational_note_save": "保存备注",
   "cashier.operational_note_saving": "正在保存…",
   "cashier.operational_note_load_error": "无法加载运营备注。",
-  "cashier.operational_note_save_error": "无法保存备注。"
+  "cashier.operational_note_save_error": "无法保存备注。",
+  "offer_family_options": "点餐选项",
+  "offer_family_a_la_carte": "单点",
+  "offer_family_item_only": "仅单品",
+  "offer_family_menu": "套餐",
+  "offer_family_meal": "套餐",
+  "offer_family_choose_size": "选择规格",
+  "offer_family_choose_mode": "您想怎么点？"
 }

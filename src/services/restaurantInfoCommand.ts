@@ -34,6 +34,7 @@ export function toFullUpdateCommand(
     // fallbacks are the shipped defaults (tabs layout, products-only All tab).
     menuLayout: info.menuLayout ?? 'tabs',
     showMenuBundlesOnAllTab: info.showMenuBundlesOnAllTab ?? false,
+    bundlePresentationMode: info.bundlePresentationMode ?? 'legacySeparate',
     ...overrides,
   };
 }

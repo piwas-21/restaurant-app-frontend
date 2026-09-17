@@ -1790,6 +1790,12 @@
   "menu_layout_onepage_hint": "Alle Kategorien auf einer Seite; die Kategorie-Leiste springt zu jedem Abschnitt.",
   "show_bundles_on_all_tab": "Menü-Bundles unter „Alle“ anzeigen",
   "show_bundles_on_all_tab_hint": "Bundles erscheinen als eigene Gruppe auf dem „Alle“-Tab für Gäste.",
+  "menu_bundle_presentation_title": "Bundle-Darstellung",
+  "menu_bundle_presentation_desc": "Wählen Sie, wo verknüpfte Menüangebote für Gäste erscheinen.",
+  "menu_bundle_presentation_legacy": "Separate Bundle-Ansicht",
+  "menu_bundle_presentation_legacy_hint": "Die technische Menü-Bundles-Ansicht für Gäste beibehalten.",
+  "menu_bundle_presentation_category": "Angebote in Kategorien",
+  "menu_bundle_presentation_category_hint": "Eine Karte mit der Auswahl Artikel oder Menü anzeigen.",
   "logo_desc": "Laden Sie Ihr Logo hoch und es erscheint sofort in Ihrer Kopfzeile — kein Neuaufbau nötig. Ohne Logo wird stattdessen der Name Ihres Restaurants als Text angezeigt.",
   "logo_light_title": "Logo",
   "logo_light_hint": "Wird auf hellen Hintergründen angezeigt — und überall, wenn Sie nur eines hochladen.",
@@ -2530,5 +2536,12 @@
   "cashier.operational_note_save": "Notiz speichern",
   "cashier.operational_note_saving": "Wird gespeichert…",
   "cashier.operational_note_load_error": "Betriebsnotizen konnten nicht geladen werden.",
-  "cashier.operational_note_save_error": "Die Notiz konnte nicht gespeichert werden."
+  "cashier.operational_note_save_error": "Die Notiz konnte nicht gespeichert werden.",
+  "offer_family_options": "Bestelloptionen",
+  "offer_family_a_la_carte": "Einzeln",
+  "offer_family_item_only": "Nur Artikel",
+  "offer_family_menu": "Menü",
+  "offer_family_meal": "Menü",
+  "offer_family_choose_size": "Größe wählen",
+  "offer_family_choose_mode": "Wie möchtest du es?"
 }

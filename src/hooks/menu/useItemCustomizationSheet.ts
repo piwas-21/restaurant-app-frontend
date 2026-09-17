@@ -98,7 +98,7 @@ export function useItemCustomizationSheet({
         setIngredientQuantities(seed.ingredientQuantities);
         setCustomizationSelections(seed.customizationSelections);
         setSelectedSideItems(seed.selectedSideItems);
-        setSelectedVariationId(seed.selectedVariationId);
+        setSelectedVariationId(opts?.selectedVariationId ?? seed.selectedVariationId);
         setQuantity(1);
         setSpecialInstructions('');
         setProduct(opts?.availability ? { ...detail, availability: opts.availability } : detail);

@@ -65,6 +65,12 @@ describe('useCategoryTabs', () => {
     const { result } = renderHook(() => useCategoryTabs([], 'All'));
     expect(result.current).toHaveLength(2);
   });
+
+  it('omits the technical Menu Bundles tab for grouped category offers', () => {
+    const { result } = renderHook(() => useCategoryTabs(categories, 'All', true));
+    expect(result.current.map((tab) => tab.id)).toEqual([ALL_ITEMS_KEY, 'c1', 'c2']);
+    expect(result.current.some((tab) => tab.id === MENU_BUNDLES_KEY)).toBe(false);
+  });
 });
 
 describe('useCategoryTabs — channel restriction chip (§4.4)', () => {

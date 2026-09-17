@@ -1790,6 +1790,12 @@
   "menu_layout_onepage_hint": "All categories on one page; the category bar scrolls to each section.",
   "show_bundles_on_all_tab": "Show menu bundles under All items",
   "show_bundles_on_all_tab_hint": "Bundles appear as their own group on the guest All items tab.",
+  "menu_bundle_presentation_title": "Bundle presentation",
+  "menu_bundle_presentation_desc": "Choose where linked menu offers appear for guests.",
+  "menu_bundle_presentation_legacy": "Separate bundle view",
+  "menu_bundle_presentation_legacy_hint": "Keep the technical Menu Bundles view for guests.",
+  "menu_bundle_presentation_category": "Offers in categories",
+  "menu_bundle_presentation_category_hint": "Show one card with an Item or Meal choice.",
   "logo_desc": "Upload your logo and it appears in your header straight away — no rebuild needed. With no logo, your restaurant name is shown as text instead.",
   "logo_light_title": "Logo",
   "logo_light_hint": "Shown on light backgrounds, and everywhere if you upload only one.",
@@ -2530,5 +2536,12 @@
   "cashier.operational_note_save": "Save note",
   "cashier.operational_note_saving": "Saving…",
   "cashier.operational_note_load_error": "Could not load operational notes.",
-  "cashier.operational_note_save_error": "Could not save the note."
+  "cashier.operational_note_save_error": "Could not save the note.",
+  "offer_family_options": "Order options",
+  "offer_family_a_la_carte": "A la carte",
+  "offer_family_item_only": "Item only",
+  "offer_family_menu": "Menu",
+  "offer_family_meal": "Meal",
+  "offer_family_choose_size": "Choose a size",
+  "offer_family_choose_mode": "How would you like it?"
 }

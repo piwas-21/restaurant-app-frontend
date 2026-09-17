@@ -1,6 +1,8 @@
 import React, { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MenuItem, MenuBundleItem, CatalogItem } from '@/types/menu';
+import type { CatalogOfferFamily } from '@/types/menu/offerFamily';
+import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilies';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
@@ -9,6 +11,7 @@ import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuFilters from '@/components/menu/MenuFilters';
 import MenuList from '@/components/menu/MenuList';
+import MenuFamilyContent from '@/components/menu/MenuFamilyContent';
 import Pagination from '@/components/common/Pagination';
 import { surfaceOr } from '@/templates/resolve-surface';
 import styles from './MenuContent.module.css';
@@ -18,13 +21,7 @@ import styles from './MenuContent.module.css';
 // time, so classic never bundles the craft version (T4).
 const MenuSectionStatus = surfaceOr('MenuSectionStatus', DefaultMenuSectionStatus);
 
-/**
- * Which "there is nothing here" sentence the active view earns.
- *
- * Two different emptinesses, and telling them apart is the point: "this category has no dishes"
- * needs a link to the full menu, while "your filters match nothing" needs the filters cleared —
- * offering "Browse full menu" there would throw away a choice the guest just made.
- */
+/** Which "there is nothing here" sentence the active view earns. */
 function emptyMessageFor(
   // `TFunction`'s own overloads, borrowed off the hook rather than re-typed: hand-writing a
   // `(key, options) => string` shape here does not satisfy them.
@@ -42,7 +39,7 @@ function errorKeyFor(selectedView: string, isMenuBundlesView: boolean): string {
   return isMenuBundlesView ? 'error_loading_menu_bundles' : 'error_loading_menu_items';
 }
 
-interface MenuContentProps {
+export interface MenuContentProps {
   selectedView: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
   categoryDisplayName: string;
   /** The tenant's own blurb for this category, when it has one. Blank on most categories. */
@@ -78,9 +75,19 @@ interface MenuContentProps {
    * under the product grid (page 1 only — see the render note below).
    */
   showBundlesOnAllView?: boolean;
+  /** Server-grouped offer families; presence selects the noise-free presentation path. */
+  offerFamilies?: CatalogOfferFamily[];
+  offerFamiliesState?: UsePublicOfferFamiliesReturn;
 }
 
-export default function MenuContent({
+export default function MenuContent(props: MenuContentProps) {
+  if (props.offerFamilies !== undefined && props.offerFamiliesState) {
+    return <MenuFamilyContent {...props} families={props.offerFamilies} state={props.offerFamiliesState} />;
+  }
+  return <LegacyMenuContent {...props} />;
+}
+
+function LegacyMenuContent({
   selectedView,
   categoryDisplayName,
   categoryDescription,
@@ -110,7 +117,7 @@ export default function MenuContent({
   const groupedBundles = groupedBundlesFor(selectedView, isAllView, isMenuBundlesView, showAllViewBundles, menuBundles);
   // One widened element type, so a single filter instance serves every view: an allergen chip has
   // to count the tab's bundles too, or "No gluten 3" hides a matching combo from its own tally.
-  const sourceItems: (MenuItem | MenuBundleItem)[] = isMenuBundlesView
+  const sourceItems: (MenuItem | MenuBundleItem | CatalogItem)[] = isMenuBundlesView
     ? menuBundles
     : [...currentMenuItems, ...groupedBundles];
   const filters = useMenuFilters(sourceItems);
@@ -124,14 +131,10 @@ export default function MenuContent({
   // so the grid gets none; the Bundles view's grid shows the filtered list itself.
   const bundlesOnAllView = showAllViewBundles ? [] : displayBundles;
   const listBundles = isMenuBundlesView ? (displayItems as MenuBundleItem[]) : bundlesOnAllView;
-
   const displayError = errorLoadingItems
     ? t(errorKeyFor(selectedView, isMenuBundlesView), { categoryName: categoryDisplayName })
     : null;
 
-  // Two different emptinesses, and telling them apart is the whole point: "this category has no
-  // dishes" needs a link to the full menu, while "your filters match nothing" needs the filters
-  // cleared — offering "Browse full menu" there would throw away a choice the guest just made.
   const emptyMessage = emptyMessageFor(t, { isFiltered, isMenuBundlesView, categoryDisplayName });
 
   const loadingMessage = isMenuBundlesView ? t('loading_menu_bundles') : t('loading_items', 'Loading items...');

@@ -2,6 +2,7 @@
 
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import type { MenuLayout } from '@/types/restaurantInfo';
+import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 
 /**
  * The two per-tenant menu-display settings (mcdoner partner request), read off
@@ -16,6 +17,7 @@ import type { MenuLayout } from '@/types/restaurantInfo';
 export interface MenuDisplaySettings {
   menuLayout: MenuLayout;
   showBundlesOnAllTab: boolean;
+  bundlePresentationMode: BundlePresentationMode;
   /** True until the restaurant-info read settles; callers render tabs meanwhile. */
   isLoading: boolean;
 }
@@ -26,6 +28,7 @@ export function useMenuDisplaySettings(): MenuDisplaySettings {
   return {
     menuLayout: info?.menuLayout === 'onepage' ? 'onepage' : 'tabs',
     showBundlesOnAllTab: info?.showMenuBundlesOnAllTab === true,
+    bundlePresentationMode: info?.bundlePresentationMode === 'categoryOffers' ? 'categoryOffers' : 'legacySeparate',
     isLoading,
   };
 }

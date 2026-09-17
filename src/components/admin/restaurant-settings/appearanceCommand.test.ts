@@ -20,10 +20,19 @@ const info: RestaurantInfoDto = {
   phoneNumbers: [],
   menuLayout: 'tabs',
   showMenuBundlesOnAllTab: false,
+  bundlePresentationMode: 'legacySeparate',
 };
 
-const menuDisplayTabs = { menuLayout: 'tabs', showBundlesOnAllTab: false } as const;
-const menuDisplayOnePage = { menuLayout: 'onepage', showBundlesOnAllTab: true } as const;
+const menuDisplayTabs = {
+  menuLayout: 'tabs',
+  showBundlesOnAllTab: false,
+  bundlePresentationMode: 'legacySeparate',
+} as const;
+const menuDisplayOnePage = {
+  menuLayout: 'onepage',
+  showBundlesOnAllTab: true,
+  bundlePresentationMode: 'categoryOffers',
+} as const;
 
 describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
   it('carries every current field so a palette save cannot wipe them', () => {
@@ -41,10 +50,11 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
       themePaletteKey: 'saffron',
       menuLayout: 'onepage',
       showMenuBundlesOnAllTab: true,
+      bundlePresentationMode: 'categoryOffers',
     });
   });
 
-  it('sends all 13 command fields (the full upsert, no more no less)', () => {
+  it('sends all 14 command fields (the full upsert, no more no less)', () => {
     expect(Object.keys(toUpdateCommand(info, 'saffron', menuDisplayOnePage)).sort()).toEqual(
       [
         'addressLine1',
@@ -58,6 +68,7 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
         'name',
         'postalCode',
         'showMenuBundlesOnAllTab',
+        'bundlePresentationMode',
         'themePaletteKey',
         'website',
       ].sort(),
@@ -86,10 +97,12 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
     const command = toUpdateCommand(info, 'saffron', menuDisplayOnePage);
     expect(command.menuLayout).toBe('onepage');
     expect(command.showMenuBundlesOnAllTab).toBe(true);
+    expect(command.bundlePresentationMode).toBe('categoryOffers');
 
     // And the tab's own defaults write the shipped behaviour back.
     const defaults = toUpdateCommand(info, null, menuDisplayTabs);
     expect(defaults.menuLayout).toBe('tabs');
     expect(defaults.showMenuBundlesOnAllTab).toBe(false);
+    expect(defaults.bundlePresentationMode).toBe('legacySeparate');
   });
 });

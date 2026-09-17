@@ -16,11 +16,19 @@ export interface CategoryNavProps {
   selectedView: string;
   onSelect: (value: string) => void;
   allLabel: string;
+  /** The aggregate catalogue renders bundles in their parent categories, so no technical tab. */
+  hideBundles?: boolean;
 }
 
-export default function CategoryNav({ categories, selectedView, onSelect, allLabel }: Readonly<CategoryNavProps>) {
-  const tabs = useCategoryTabs(categories, allLabel);
-  const nav = useCategoryNavScroll(categories.length);
+export default function CategoryNav({
+  categories,
+  selectedView,
+  onSelect,
+  allLabel,
+  hideBundles,
+}: Readonly<CategoryNavProps>) {
+  const tabs = useCategoryTabs(categories, allLabel, hideBundles);
+  const nav = useCategoryNavScroll(`${categories.length}:${hideBundles ? 'hidden' : 'shown'}`);
 
   // Underline-indicated tabs (classic); the sticky bar + scroll arrows live in the shared shell.
   // No arrow gate is passed on purpose. `useCategoryNavScroll` already measures whether there is

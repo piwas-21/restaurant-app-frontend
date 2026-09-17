@@ -1,7 +1,8 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import type { CatalogItem, ItemAvailability } from '@/types/menu';
 import { useCatalogSheet } from './useCatalogSheet';
+import type { CatalogOfferFamily } from '@/types/menu/offerFamily';
 
 /**
  * The catalog entry point onto the customization sheet, and specifically the §9.10 guard: a blocked
@@ -54,6 +55,14 @@ const product = (availability?: ItemAvailability): CatalogItem => ({
   availability,
 });
 
+const family: CatalogOfferFamily = {
+  id: 'family-p1',
+  anchor: product(ORDERABLE),
+  menuOffers: [{ productId: 'menu-p1', kind: 'bundle', name: 'Menu Dürüm', price: 15 }],
+  categoryIds: ['cat-main'],
+  startingPrice: 12,
+};
+
 /** The options `openForProduct` was called with. */
 function openedWith() {
   return mockOpenForProduct.mock.calls[0]?.[1];
@@ -62,6 +71,35 @@ function openedWith() {
 beforeEach(() => jest.clearAllMocks());
 
 describe('useCatalogSheet — order-type verdict handover (§9.10)', () => {
+  it('opens a purchase-mode choice for a family and carries its active filters', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+
+    act(() => {
+      result.current.openForCatalogItem(
+        { ...product(ORDERABLE), id: family.id, offerFamily: family },
+        { offerFamilyFilterIds: new Set(['claim:vegan']) },
+      );
+    });
+
+    expect(result.current.offerFamily).toEqual(family);
+    expect(result.current.offerFamilyFilterIds).toEqual(new Set(['claim:vegan']));
+    expect(mockOpenForProduct).not.toHaveBeenCalled();
+  });
+
+  it('skips the mode step for a family with only its anchor offer', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+    const anchorOnly = {
+      ...product(ORDERABLE),
+      id: 'family-single',
+      offerFamily: { ...family, id: 'family-single', menuOffers: [] },
+    };
+
+    act(() => result.current.openForCatalogItem(anchorOnly));
+
+    expect(result.current.offerFamily).toBeNull();
+    expect(mockOpenForProduct).toHaveBeenCalledWith('family-single', expect.anything());
+  });
+
   it('carries the card verdict into the sheet', () => {
     const { result } = renderHook(() => useCatalogSheet());
 

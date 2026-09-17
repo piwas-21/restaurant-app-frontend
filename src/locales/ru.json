@@ -1794,6 +1794,12 @@
   "menu_layout_onepage_hint": "Все категории на одной странице; панель категорий прокручивается к каждому разделу.",
   "show_bundles_on_all_tab": "Показывать наборы меню на вкладке «Все»",
   "show_bundles_on_all_tab_hint": "Наборы отображаются отдельной группой на гостевой вкладке «Все».",
+  "menu_bundle_presentation_title": "Отображение наборов",
+  "menu_bundle_presentation_desc": "Выберите, где гостям показывать связанные предложения меню.",
+  "menu_bundle_presentation_legacy": "Отдельный раздел наборов",
+  "menu_bundle_presentation_legacy_hint": "Сохранить технический раздел наборов меню для гостей.",
+  "menu_bundle_presentation_category": "Предложения в категориях",
+  "menu_bundle_presentation_category_hint": "Показывать одну карточку с выбором блюда или набора.",
   "logo_desc": "Загрузите логотип — он сразу появится в шапке, пересборка не нужна. Без логотипа отображается название вашего ресторана текстом.",
   "logo_light_title": "Логотип",
   "logo_light_hint": "Показывается на светлом фоне — и везде, если вы загрузите только один.",
@@ -2534,5 +2540,12 @@
   "cashier.operational_note_save": "Сохранить заметку",
   "cashier.operational_note_saving": "Сохранение…",
   "cashier.operational_note_load_error": "Не удалось загрузить рабочие заметки.",
-  "cashier.operational_note_save_error": "Не удалось сохранить заметку."
+  "cashier.operational_note_save_error": "Не удалось сохранить заметку.",
+  "offer_family_options": "Варианты заказа",
+  "offer_family_a_la_carte": "А la carte",
+  "offer_family_item_only": "Только блюдо",
+  "offer_family_menu": "Комбо",
+  "offer_family_meal": "Набор",
+  "offer_family_choose_size": "Выберите размер",
+  "offer_family_choose_mode": "Как вы хотите заказать?"
 }

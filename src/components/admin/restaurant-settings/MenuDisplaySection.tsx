@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import type { MenuLayout } from '@/types/restaurantInfo';
+import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 import styles from './AppearanceTab.module.css';
 
 /**
@@ -17,13 +18,17 @@ import styles from './AppearanceTab.module.css';
 export default function MenuDisplaySection({
   menuLayout,
   showBundlesOnAllTab,
+  bundlePresentationMode,
   onLayoutChange,
+  onBundlePresentationModeChange,
   onShowBundlesChange,
   disabled,
 }: Readonly<{
   menuLayout: MenuLayout;
   showBundlesOnAllTab: boolean;
+  bundlePresentationMode: BundlePresentationMode;
   onLayoutChange: (layout: MenuLayout) => void;
+  onBundlePresentationModeChange: (mode: BundlePresentationMode) => void;
   onShowBundlesChange: (show: boolean) => void;
   disabled?: boolean;
 }>) {
@@ -81,18 +86,64 @@ export default function MenuDisplaySection({
       </div>
 
       <div className={styles.menuDisplayCheckbox}>
-        <CheckboxField
-          label={t('show_bundles_on_all_tab', 'Show menu bundles under All items')}
-          description={t(
-            'show_bundles_on_all_tab_hint',
-            'Combos appear as their own group on the guest All items tab.',
+        <h4 className={styles.menuDisplayTitle}>{t('menu_bundle_presentation_title', 'Bundle presentation')}</h4>
+        <p className={styles.hint}>
+          {t(
+            'menu_bundle_presentation_desc',
+            'Choose whether linked menu offers appear with their anchor item or in a separate bundle view.',
           )}
-          checked={showBundlesOnAllTab}
-          onChange={onShowBundlesChange}
-          disabled={disabled}
-          data-testid="show-bundles-on-all-tab"
-        />
+        </p>
+        <div
+          className={`${styles.grid} ${styles.layoutGrid}`}
+          role="radiogroup"
+          aria-label={t('menu_bundle_presentation_title', 'Bundle presentation')}
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-label={t('menu_bundle_presentation_legacy', 'Separate bundle view')}
+            aria-checked={bundlePresentationMode === 'legacySeparate'}
+            disabled={disabled}
+            className={`${styles.option} ${styles.optionColumn} ${bundlePresentationMode === 'legacySeparate' ? styles.active : ''}`}
+            onClick={() => onBundlePresentationModeChange('legacySeparate')}
+          >
+            <span className={styles.optionLabel}>{t('menu_bundle_presentation_legacy', 'Separate bundle view')}</span>
+            <span className={styles.optionHint}>
+              {t('menu_bundle_presentation_legacy_hint', 'Keep the technical Menu Bundles view for guests.')}
+            </span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-label={t('menu_bundle_presentation_category', 'Offers in categories')}
+            aria-checked={bundlePresentationMode === 'categoryOffers'}
+            disabled={disabled}
+            className={`${styles.option} ${styles.optionColumn} ${bundlePresentationMode === 'categoryOffers' ? styles.active : ''}`}
+            onClick={() => onBundlePresentationModeChange('categoryOffers')}
+          >
+            <span className={styles.optionLabel}>{t('menu_bundle_presentation_category', 'Offers in categories')}</span>
+            <span className={styles.optionHint}>
+              {t('menu_bundle_presentation_category_hint', 'Show one card with an Item or Meal choice.')}
+            </span>
+          </button>
+        </div>
       </div>
+
+      {bundlePresentationMode === 'legacySeparate' && (
+        <div className={styles.menuDisplayCheckbox}>
+          <CheckboxField
+            label={t('show_bundles_on_all_tab', 'Show menu bundles under All items')}
+            description={t(
+              'show_bundles_on_all_tab_hint',
+              'Combos appear as their own group on the guest All items tab.',
+            )}
+            checked={showBundlesOnAllTab}
+            onChange={onShowBundlesChange}
+            disabled={disabled}
+            data-testid="show-bundles-on-all-tab"
+          />
+        </div>
+      )}
     </section>
   );
 }

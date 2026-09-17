@@ -1790,6 +1790,12 @@
   "menu_layout_onepage_hint": "Tüm kategoriler tek sayfada; kategori çubuğu her bölüme kaydırılır.",
   "show_bundles_on_all_tab": "Menü paketlerini „Tümü“ altında göster",
   "show_bundles_on_all_tab_hint": "Paketler, misafirlerin „Tümü“ sekmesinde ayrı bir grup olarak görünür.",
+  "menu_bundle_presentation_title": "Paket sunumu",
+  "menu_bundle_presentation_desc": "Bağlı menü tekliflerinin misafirlere nerede görüneceğini seçin.",
+  "menu_bundle_presentation_legacy": "Ayrı paket görünümü",
+  "menu_bundle_presentation_legacy_hint": "Misafirler için teknik Menü Paketleri görünümünü koruyun.",
+  "menu_bundle_presentation_category": "Kategorilerde teklifler",
+  "menu_bundle_presentation_category_hint": "Ürün veya Menü seçimi olan tek kart gösterin.",
   "logo_desc": "Logonuzu yükleyin, üst bilgide hemen görünsün — yeniden derleme gerekmez. Logo yoksa restoranınızın adı metin olarak gösterilir.",
   "logo_light_title": "Logo",
   "logo_light_hint": "Açık arka planlarda gösterilir; yalnızca bir tane yüklerseniz her yerde kullanılır.",
@@ -2530,5 +2536,12 @@
   "cashier.operational_note_save": "Notu kaydet",
   "cashier.operational_note_saving": "Kaydediliyor…",
   "cashier.operational_note_load_error": "Operasyon notları yüklenemedi.",
-  "cashier.operational_note_save_error": "Not kaydedilemedi."
+  "cashier.operational_note_save_error": "Not kaydedilemedi.",
+  "offer_family_options": "Sipariş seçenekleri",
+  "offer_family_a_la_carte": "Tekli seçim",
+  "offer_family_item_only": "Sadece ürün",
+  "offer_family_menu": "Menü",
+  "offer_family_meal": "Menü",
+  "offer_family_choose_size": "Boyut seçin",
+  "offer_family_choose_mode": "Nasıl almak istersiniz?"
 }

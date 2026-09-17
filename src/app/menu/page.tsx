@@ -14,14 +14,15 @@ import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
-import MenuContent from '@/components/menu/MenuContent';
-import MenuOnePage from '@/components/menu/MenuOnePage';
 import MenuOrderOverlays from '@/components/menu/MenuOrderOverlays';
-import DefaultCategoryNav from '@/components/menu/CategoryNav';
+import MenuCategoryNavigation from '@/components/menu/MenuCategoryNavigation';
+import MenuCatalogLayout from '@/components/menu/MenuCatalogLayout';
+import type { MenuContentProps } from '@/components/menu/MenuContent';
 import DefaultFeaturedSpecial from '@/components/menu/FeaturedSpecial';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import { useMenuCart } from '@/hooks/menu/useMenuCart';
 import { useMenuDisplaySettings } from '@/hooks/useMenuDisplaySettings';
+import { usePublicOfferFamilies } from '@/hooks/usePublicOfferFamilies';
 import { useOnePageMenu } from '@/hooks/useOnePageMenu';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
@@ -30,21 +31,17 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 // shared defaults (classic) — resolved at build time, so classic never bundles craft (T4).
 // `OrderFlowSidebar` is no longer among them: /menu has no rail, and /cart resolves its own.
 const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
-const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
 
 export default function MenuPage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
-  // The tenant's menu-display settings (mcdoner partner request). `tabs` is the answer until
-  // the read settles and on any backend that predates the fields, so the page renders exactly
-  // today's tree by default. The settings decide which data pipeline runs BEFORE either is
-  // mounted: in the one-page layout the tabs pipeline is stood down and the one-page
-  // controller's per-category fetches own the page.
+  // The settings choose the layout/data pipeline; legacy tabs remain the fallback while settings settle.
   const displaySettings = useMenuDisplaySettings();
   const isOnePage = displaySettings.menuLayout === 'onepage';
+  const isCategoryOffers = displaySettings.bundlePresentationMode === 'categoryOffers';
   const {
-    categories: categoriesForNav,
+    categories: publicCategories,
     selectedView,
     setSelectedView,
     items: currentMenuItems,
@@ -57,15 +54,18 @@ export default function MenuPage() {
     pageSize,
     onPageChange,
     refetch,
-  } = usePublicMenu(!isOnePage);
-  const onePage = useOnePageMenu(isOnePage);
+  } = usePublicMenu(!isOnePage && !isCategoryOffers);
+  const onePage = useOnePageMenu(isOnePage && !isCategoryOffers);
+  const offerFamilies = usePublicOfferFamilies(isCategoryOffers);
+  // One-page mode owns its category fetch even when legacy item pipelines are stood down. Tabs
+  // retain the lightweight category/selection half of usePublicMenu in grouped mode.
+  const categoriesForNav = isOnePage ? onePage.categories : publicCategories;
   // One bundles list for the sheet's lookup, whichever layout is on screen.
   const menuBundles = isOnePage ? onePage.menuBundles : tabsMenuBundles;
 
   const { featuredSpecial } = useFeaturedSpecial();
 
-  // The basket's totals, the slide-over's open state and the add pulse — one owner, because the
-  // sticky bar's button, the floating button and the sheet all read them.
+  // The basket's totals, slide-over state and add pulse have one owner.
   const cart = useMenuCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
   const stickyNavOffset = useStickyNavOffset();
@@ -113,6 +113,32 @@ export default function MenuPage() {
   // today, so nothing renders — the field exists on `CategoryDto` and the design has a paragraph
   // there, and a tenant that fills it in gets it without another release.
   const categoryDescription = categoriesForNav.find((category) => category.id === selectedView)?.description;
+  const featuredFilterable = featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined;
+  const familyProps: Pick<MenuContentProps, 'offerFamilies' | 'offerFamiliesState'> = isCategoryOffers
+    ? { offerFamilies: offerFamilies.families, offerFamiliesState: offerFamilies }
+    : {};
+  const menuContentProps: MenuContentProps = {
+    selectedView,
+    categoryDisplayName,
+    categoryDescription,
+    isLoadingItems,
+    errorLoadingItems,
+    currentMenuItems,
+    menuBundles,
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+    onPageChange,
+    onOpenItem: sheet.openForCatalogItem,
+    onSwitchOrderType: switchOrderTypeFromCard,
+    onRetry: refetch,
+    onBrowseFullMenu: () => setSelectedView(ALL_ITEMS_KEY),
+    showBundlesOnAllView: displaySettings.showBundlesOnAllTab,
+    featuredFilterable,
+    featuredSlot,
+    ...familyProps,
+  };
 
   return (
     // `style` carries the sticky-nav offset the category bar reads — a computed value, which is
@@ -127,60 +153,32 @@ export default function MenuPage() {
           phone guest scrolled the whole promotion before the tabs appeared, then watched them jump
           when it scrolled past.
 
-          The basket has ONE entry point on this page — the floating button below. A second copy
-          lived in this bar for a while and did the same job from the other corner. */}
-      {categoriesForNav.length > 0 && (
-        <CategoryNav
-          categories={categoriesForNav}
-          /* Tabs layout: the bar swaps the view. One-page layout: the SAME bar — and the
-             SAME craft surface override — jumps the page to the section instead, which is
-             why the tabs (All, Menu Bundles, one per category) are unchanged up there. */
-          selectedView={isOnePage ? onePage.activeSectionId : selectedView}
-          onSelect={isOnePage ? onePage.selectSection : setSelectedView}
-          allLabel={t('all_categories_nav')}
-        />
-      )}
+          The basket has ONE entry point on this page — the floating button below. */}
+      <MenuCategoryNavigation
+        categories={categoriesForNav}
+        isOnePage={isOnePage}
+        activeSectionId={onePage.activeSectionId}
+        selectedView={selectedView}
+        onSelectSection={onePage.selectSection}
+        onSelectView={setSelectedView}
+        allLabel={t('all_categories_nav')}
+        hideBundles={isCategoryOffers}
+      />
 
       {/* The Chef's Special is the grid's FIRST CELL in both layouts. The page resolves the
           template SURFACE — classic one hero, craft `CraftFeaturedSpecial` — and hands the
           element down; resolving it inside a list would bundle craft into classic. */}
-      {isOnePage ? (
-        <MenuOnePage
-          controller={onePage}
-          onOpenItem={sheet.openForCatalogItem}
-          onSwitchOrderType={switchOrderTypeFromCard}
-          featuredFilterable={featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined}
-          featuredSlot={featuredSlot}
-        />
-      ) : (
-        <div className={styles.menuLayout}>
-          <MenuContent
-            selectedView={selectedView}
-            categoryDisplayName={categoryDisplayName}
-            categoryDescription={categoryDescription}
-            isLoadingItems={isLoadingItems}
-            errorLoadingItems={errorLoadingItems}
-            currentMenuItems={currentMenuItems}
-            menuBundles={menuBundles}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            pageSize={pageSize}
-            onPageChange={onPageChange}
-            onOpenItem={sheet.openForCatalogItem}
-            // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
-            // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
-            // its own instance would set the type and swallow the table/address/contact step.
-            onSwitchOrderType={switchOrderTypeFromCard}
-            // Retry — the copy has promised "Please try again." since before a control existed.
-            onRetry={refetch}
-            onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
-            showBundlesOnAllView={displaySettings.showBundlesOnAllTab}
-            featuredFilterable={featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined}
-            featuredSlot={featuredSlot}
-          />
-        </div>
-      )}
+      <MenuCatalogLayout
+        isOnePage={isOnePage}
+        onePage={onePage}
+        menuContentProps={menuContentProps}
+        onOpenItem={sheet.openForCatalogItem}
+        onSwitchOrderType={switchOrderTypeFromCard}
+        featuredFilterable={featuredFilterable}
+        featuredSlot={featuredSlot}
+        offerFamilies={familyProps.offerFamilies}
+        offerFamiliesState={familyProps.offerFamiliesState}
+      />
 
       <FloatingCartButton
         itemCount={cart.itemCount}

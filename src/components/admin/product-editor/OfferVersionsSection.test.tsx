@@ -65,6 +65,20 @@ describe('OfferVersionsSection', () => {
     expect(screen.getByRole('link', { name: 'details' })).toHaveAttribute('href', '/admin/menu-management/menu-1');
   });
 
+  it('uses shared status badges for available and unavailable offers', async () => {
+    (getAllMenuBundles as jest.Mock).mockResolvedValueOnce([
+      bundle('menu-available', 'product-1'),
+      { ...bundle('menu-unavailable', 'product-1'), isAvailable: false },
+    ]);
+
+    render(<OfferVersionsSection product={parent} />);
+
+    await waitFor(() => expect(screen.getByText('menu-available')).toBeInTheDocument());
+    expect(screen.getByText('available')).toHaveClass('badge', 'success');
+    expect(screen.getByText('unavailable')).toHaveClass('badge', 'neutral');
+    expect(screen.queryByText('no')).not.toBeInTheDocument();
+  });
+
   it('previews and links an existing menu through the narrow relation command', async () => {
     render(<OfferVersionsSection product={parent} />);
     await waitFor(() => expect(screen.getByText('menu-1')).toBeInTheDocument());

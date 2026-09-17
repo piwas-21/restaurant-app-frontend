@@ -1,42 +1,49 @@
 'use client';
 
+import type { Control } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import { useTranslation } from 'react-i18next';
+import {
+  QUICK_MENU_VERSION_CONFIRMATION_FIELDS,
+  type QuickMenuVersionConfirmationField,
+  type QuickMenuVersionFormInput,
+  type QuickMenuVersionFormValues,
+} from '@/schemas/quickMenuVersion.schema';
 import styles from './QuickMenuVersionModal.module.css';
 
 interface QuickMenuVersionConfirmationsProps {
-  readonly sectionsConfirmed: boolean;
-  readonly priceConfirmed: boolean;
-  readonly categoriesConfirmed: boolean;
-  readonly scheduleConfirmed: boolean;
-  readonly channelsConfirmed: boolean;
-  readonly onSectionsChange: (checked: boolean) => void;
-  readonly onPriceChange: (checked: boolean) => void;
-  readonly onCategoriesChange: (checked: boolean) => void;
-  readonly onScheduleChange: (checked: boolean) => void;
-  readonly onChannelsChange: (checked: boolean) => void;
+  readonly control: Control<QuickMenuVersionFormInput, unknown, QuickMenuVersionFormValues>;
+  readonly schemaErrors: Readonly<Partial<Record<QuickMenuVersionConfirmationField, string>>>;
 }
 
-export default function QuickMenuVersionConfirmations({
-  sectionsConfirmed,
-  priceConfirmed,
-  categoriesConfirmed,
-  scheduleConfirmed,
-  channelsConfirmed,
-  onSectionsChange,
-  onPriceChange,
-  onCategoriesChange,
-  onScheduleChange,
-  onChannelsChange,
-}: QuickMenuVersionConfirmationsProps) {
+const FIELD_LABELS: Readonly<Record<QuickMenuVersionConfirmationField, string>> = {
+  sectionsConfirmed: 'menu_sections',
+  priceConfirmed: 'base_price',
+  categoriesConfirmed: 'category',
+  scheduleConfirmed: 'menu_availability_schedule',
+  channelsConfirmed: 'product_order_types',
+};
+
+export default function QuickMenuVersionConfirmations({ control, schemaErrors }: QuickMenuVersionConfirmationsProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.confirmations}>
-      <CheckboxField label={t('menu_sections')} checked={sectionsConfirmed} onChange={onSectionsChange} />
-      <CheckboxField label={t('base_price')} checked={priceConfirmed} onChange={onPriceChange} />
-      <CheckboxField label={t('category')} checked={categoriesConfirmed} onChange={onCategoriesChange} />
-      <CheckboxField label={t('menu_availability_schedule')} checked={scheduleConfirmed} onChange={onScheduleChange} />
-      <CheckboxField label={t('product_order_types')} checked={channelsConfirmed} onChange={onChannelsChange} />
+      {QUICK_MENU_VERSION_CONFIRMATION_FIELDS.map((fieldName) => (
+        <Controller
+          key={fieldName}
+          name={fieldName}
+          control={control}
+          render={({ field, fieldState }) => (
+            <CheckboxField
+              label={t(FIELD_LABELS[fieldName])}
+              checked={field.value}
+              onChange={field.onChange}
+              error={fieldState.error?.message ?? schemaErrors[fieldName]}
+            />
+          )}
+        />
+      ))}
     </div>
   );
 }

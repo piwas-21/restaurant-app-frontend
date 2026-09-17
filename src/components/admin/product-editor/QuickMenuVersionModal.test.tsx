@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import QuickMenuVersionModal from './QuickMenuVersionModal';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -44,14 +44,45 @@ describe('QuickMenuVersionModal', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(5);
   });
 
-  it('keeps the generated name editable and validates the backend length limit', () => {
+  it('rejects invalid price and missing variation through the handoff schema', async () => {
+    render(<QuickMenuVersionModal isOpen product={product} onClose={jest.fn()} onCreateRequested={jest.fn()} />);
+    const price = screen.getByRole('spinbutton');
+    const variation = screen.getByRole('combobox', { name: 'product_variations' });
+
+    await act(async () => {
+      fireEvent.change(price, { target: { value: '0' } });
+    });
+
+    expect(price).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByText('admin_edit_price_invalid')).toBeInTheDocument();
+    expect(variation).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('button', { name: 'continue_to_bundle_editor' })).toBeDisabled();
+  });
+
+  it('rejects the handoff until every confirmation field passes the schema', () => {
+    render(<QuickMenuVersionModal isOpen product={product} onClose={jest.fn()} onCreateRequested={jest.fn()} />);
+
+    const confirmations = screen.getAllByRole('checkbox');
+
+    confirmations.forEach((confirmation) => {
+      expect(confirmation).toHaveAttribute('aria-invalid', 'true');
+    });
+    expect(screen.getAllByRole('alert')).toHaveLength(6);
+    expect(screen.getByRole('button', { name: 'continue_to_bundle_editor' })).toBeDisabled();
+  });
+
+  it('keeps the generated name editable and validates the backend length limit', async () => {
     render(<QuickMenuVersionModal isOpen product={product} onClose={jest.fn()} onCreateRequested={jest.fn()} />);
     const name = screen.getByRole('textbox', { name: 'menu_bundle_name' });
 
     expect(name).toHaveValue('Menu Tacos 1 Viande');
-    fireEvent.change(name, { target: { value: '' } });
+    await act(async () => {
+      fireEvent.change(name, { target: { value: '' } });
+    });
     expect(screen.getByText('menu_bundle_name_required')).toBeInTheDocument();
-    fireEvent.change(name, { target: { value: 'x'.repeat(101) } });
+    await act(async () => {
+      fireEvent.change(name, { target: { value: 'x'.repeat(101) } });
+    });
     expect(screen.getByText('menu_bundle_name_too_long')).toBeInTheDocument();
     expect(name).toHaveAttribute('maxLength', '100');
   });

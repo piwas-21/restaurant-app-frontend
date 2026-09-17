@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import { getAllMenuBundles } from '@/services/menuService';
 import { unlinkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
@@ -165,7 +166,9 @@ export default function OfferVersionsSection({
                         offer.parentOfferVariationId
                       } · `
                     : ''}
-                  {offer.isAvailable ? t('available') : t('no')}
+                  <StatusBadge tone={offer.isAvailable ? 'success' : 'neutral'}>
+                    {offer.isAvailable ? t('available') : t('unavailable')}
+                  </StatusBadge>
                 </span>
               </div>
               <div className={styles.actions}>

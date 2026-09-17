@@ -5,6 +5,8 @@ import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import type { MenuListProps } from './MenuList';
 import type { MenuFilterOption } from '@/hooks/menu/useMenuFilters';
 import type { MenuItem, MenuBundleItem } from '@/types/menu';
+import type { CatalogOfferFamily } from '@/types/menu/offerFamily';
+import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilies';
 
 /**
  * Issue B: a combo is listed under the tabs of the categories its main dish belongs to, in the
@@ -88,6 +90,25 @@ const base = {
 
 const viande = combo('LIBANAISE 1 VIANDE', ['cat-libanaise', 'cat-viande']);
 const dessert = combo('DESSERT COMBO', ['cat-dessert']);
+
+const hiddenFamily: CatalogOfferFamily = {
+  id: 'family-hidden-all',
+  anchor: { kind: 'product', id: 'hidden-dish', name: 'Hidden dish', price: 8, isBundle: false },
+  menuOffers: [],
+  categoryIds: ['cat-viande'],
+  startingPrice: 8,
+  visibleInAll: false,
+};
+const hiddenFamilyState: UsePublicOfferFamiliesReturn = {
+  families: [hiddenFamily],
+  isLoading: false,
+  error: null,
+  currentPage: 1,
+  totalPages: 1,
+  totalCount: 1,
+  pageSize: 100,
+  refetch: jest.fn(async () => undefined),
+};
 
 beforeEach(() => {
   listProps.length = 0;
@@ -267,5 +288,33 @@ describe('MenuContent — the tenant "bundles on All" setting (mcdoner partner r
     expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
     const mainList = listProps.at(-1)!;
     expect(mainList.products.map((p) => p.id)).toEqual(['kefta']);
+  });
+});
+
+describe('MenuContent — offer-family All visibility', () => {
+  it('keeps a family hidden from All while retaining its exact category tab', () => {
+    render(
+      <MenuContent
+        {...base}
+        selectedView={ALL_ITEMS_KEY}
+        currentMenuItems={[]}
+        menuBundles={[]}
+        offerFamilies={[hiddenFamily]}
+        offerFamiliesState={hiddenFamilyState}
+      />,
+    );
+    expect(listProps).toHaveLength(0);
+
+    render(
+      <MenuContent
+        {...base}
+        selectedView="cat-viande"
+        currentMenuItems={[]}
+        menuBundles={[]}
+        offerFamilies={[hiddenFamily]}
+        offerFamiliesState={hiddenFamilyState}
+      />,
+    );
+    expect(listProps.at(-1)?.families?.map((family) => family.id)).toEqual(['family-hidden-all']);
   });
 });

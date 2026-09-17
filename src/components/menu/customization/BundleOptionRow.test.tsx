@@ -13,7 +13,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-const item = (additionalPrice: number): MenuSectionItem =>
+const item = (additionalPrice: number, variation?: Partial<MenuSectionItem>): MenuSectionItem =>
   ({
     id: 'opt-1',
     productId: 'prod-1',
@@ -21,6 +21,7 @@ const item = (additionalPrice: number): MenuSectionItem =>
     additionalPrice,
     displayOrder: 0,
     isDefault: false,
+    ...variation,
   }) as MenuSectionItem;
 
 const renderRow = (additionalPrice: number) =>
@@ -49,5 +50,23 @@ describe('BundleOptionRow — the price mark', () => {
 
     expect(screen.getByText(/^\+/)).toBeInTheDocument();
     expect(screen.queryByText('menu_option_free')).not.toBeInTheDocument();
+  });
+
+  it('shows the variation label and combines its modifier with the section surcharge', () => {
+    render(
+      <BundleOptionRow
+        item={item(1, { productVariationId: 'large', productVariationName: 'Large', productVariationPriceModifier: 2 })}
+        sectionId="section-1"
+        inputType="radio"
+        isSelected={false}
+        isDisabled={false}
+        currentLanguage="en"
+        onToggle={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Frites')).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('Large'))).toBeInTheDocument();
+    expect(screen.getByText(/^\+/).textContent).toContain('3.00');
   });
 });

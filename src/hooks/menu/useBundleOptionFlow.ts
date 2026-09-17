@@ -35,13 +35,22 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     if (!customizing) return null;
     return sections
       .find((section) => section.id === customizing.sectionId)
-      ?.items.find((candidate) => candidate.productId === customizing.itemId);
+      ?.items.find(
+        (candidate) =>
+          candidate.productId === customizing.itemId &&
+          (candidate.productVariationId ?? null) === (customizing.productVariationId ?? null),
+      );
   }, [customizing, sections]);
 
   const option = useMemo(
     () =>
       item && customizing && bundle
-        ? findBundleOption(bundle.selectedOptions, customizing.sectionId, customizing.itemId)
+        ? findBundleOption(
+            bundle.selectedOptions,
+            customizing.sectionId,
+            customizing.itemId,
+            customizing.productVariationId,
+          )
         : undefined,
     [item, customizing, bundle],
   );
@@ -70,7 +79,9 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     sauceMin: sauceRule.min,
     sauceIds,
     // The OPTION, not the sheet: moving from one option's screen to another must start at step one.
-    resetKey: customizing ? `${customizing.sectionId}::${customizing.itemId}` : '',
+    resetKey: customizing
+      ? `${customizing.sectionId}::${customizing.itemId}::${customizing.productVariationId ?? 'base'}`
+      : '',
   });
 
   /**
@@ -98,7 +109,7 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
   const patch = useCallback(
     (p: Partial<SelectedMenuOption>) => {
       if (!customizing || !bundle) return;
-      bundle.setOptionCustomization(customizing.sectionId, customizing.itemId, p);
+      bundle.setOptionCustomization(customizing.sectionId, customizing.itemId, p, customizing.productVariationId);
     },
     [customizing, bundle],
   );

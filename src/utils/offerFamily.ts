@@ -136,6 +136,7 @@ export function mapCatalogOfferFamilyDto(dto: CatalogOfferFamilyDto): CatalogOff
     menuOffers,
     categoryIds: normaliseIds(dto.categoryIds),
     startingPrice: parsePrice(dto.startingPrice ?? Math.min(...prices)),
+    visibleInAll: dto.visibleInAll,
     anchorScheduleAvailable: dto.anchorScheduleAvailable,
     variationOptions: (dto.anchor.variations ?? [])
       .filter(

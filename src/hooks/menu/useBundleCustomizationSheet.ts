@@ -108,18 +108,18 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const visibleErrors = useMemo(() => (showValidation ? selectionErrors : []), [showValidation, selectionErrors]);
 
   const toggleOption = useCallback(
-    (section: MenuSection, itemId: string) => {
-      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
+    (section: MenuSection, itemId: string, productVariationId?: string | null) => {
+      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId, productVariationId));
       // Close the option's screen if its option just went away, so re-picking it later doesn't
       // silently reopen it; a selection change in the walked section kills the walk.
-      forgetTouredOption(section.id, itemId);
+      forgetTouredOption(section.id, itemId, productVariationId);
     },
     [forgetTouredOption],
   );
 
   const setOptionCustomization = useCallback(
-    (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => {
-      setSelectedOptions((prev) => updateBundleOption(prev, sectionId, itemId, patch));
+    (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>, productVariationId?: string | null) => {
+      setSelectedOptions((prev) => updateBundleOption(prev, sectionId, itemId, patch, productVariationId));
     },
     [],
   );

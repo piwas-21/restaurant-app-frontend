@@ -12,6 +12,12 @@ interface UseBundleOptionTourArgs {
   selectedOptions: readonly SelectedMenuOption[];
 }
 
+export interface BundleOptionLocator {
+  sectionId: string;
+  itemId: string;
+  productVariationId?: string | null;
+}
+
 /**
  * Which option's guided customization screen is open, and whether it is part of a GUIDED walk
  * (partner feedback 2026-09): picking an option that has ingredients/sauces advances straight
@@ -27,8 +33,8 @@ interface UseBundleOptionTourArgs {
  */
 export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOptionTourArgs) {
   /** The option whose guided customization screen is open (the 2026-09 override of #175's inline
-   * drill-in). Keyed by section+item, resolved by the sheet against the payload. */
-  const [customizingOption, setCustomizingOption] = useState<{ sectionId: string; itemId: string } | null>(null);
+   * drill-in). Keyed by section+item+variation, resolved by the sheet against the payload. */
+  const [customizingOption, setCustomizingOption] = useState<BundleOptionLocator | null>(null);
   /** The section being walked as a guided tour. Null on a review visit. */
   const [tourSectionId, setTourSectionId] = useState<string | null>(null);
 
@@ -42,14 +48,14 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   }, []);
 
   /** REVIEW entry — the row's Customize affordance. Done returns to the section, no walk. */
-  const openForReview = useCallback((sectionId: string, itemId: string) => {
-    setCustomizingOption({ sectionId, itemId });
+  const openForReview = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
+    setCustomizingOption({ sectionId, itemId, ...(productVariationId != null ? { productVariationId } : {}) });
     setTourSectionId(null);
   }, []);
 
   /** GUIDED entry for a fresh RADIO pick — the pick IS the navigation. */
-  const beginAt = useCallback((sectionId: string, itemId: string) => {
-    setCustomizingOption({ sectionId, itemId });
+  const beginAt = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
+    setCustomizingOption({ sectionId, itemId, ...(productVariationId != null ? { productVariationId } : {}) });
     setTourSectionId(sectionId);
   }, []);
 
@@ -61,10 +67,16 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   const begin = useCallback(
     (section: MenuSection): boolean => {
       const first = section.items.find(
-        (item) => optionHasCustomization(item) && findBundleOption(selectedOptions, section.id, item.productId),
+        (item) =>
+          optionHasCustomization(item) &&
+          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
       );
       if (!first) return false;
-      setCustomizingOption({ sectionId: section.id, itemId: first.productId });
+      setCustomizingOption({
+        sectionId: section.id,
+        itemId: first.productId,
+        ...(first.productVariationId != null ? { productVariationId: first.productVariationId } : {}),
+      });
       setTourSectionId(section.id);
       return true;
     },
@@ -84,15 +96,27 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
       close();
       return 'done';
     }
-    const walkedIndex = section.items.findIndex((item) => item.productId === customizingOption.itemId);
+    const walkedIndex = section.items.findIndex(
+      (item) =>
+        item.productId === customizingOption.itemId &&
+        (item.productVariationId ?? null) === (customizingOption.productVariationId ?? null),
+    );
     const next = section.items
       .slice(walkedIndex + 1)
-      .find((item) => optionHasCustomization(item) && findBundleOption(selectedOptions, section.id, item.productId));
+      .find(
+        (item) =>
+          optionHasCustomization(item) &&
+          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
+      );
     if (!next) {
       close();
       return 'done';
     }
-    setCustomizingOption({ sectionId: section.id, itemId: next.productId });
+    setCustomizingOption({
+      sectionId: section.id,
+      itemId: next.productId,
+      ...(next.productVariationId != null ? { productVariationId: next.productVariationId } : {}),
+    });
     return 'advanced';
   }, [tourSectionId, sections, customizingOption, selectedOptions, close]);
 
@@ -100,8 +124,14 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   const reset = close;
 
   /** The sheet's toggle: deselecting the option on screen (or in a walked section) kills the walk. */
-  const handleDeselection = useCallback((sectionId: string, itemId: string) => {
-    setCustomizingOption((prev) => (prev?.sectionId === sectionId && prev.itemId === itemId ? null : prev));
+  const handleDeselection = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
+    setCustomizingOption((prev) =>
+      prev?.sectionId === sectionId &&
+      prev.itemId === itemId &&
+      (prev.productVariationId ?? null) === (productVariationId ?? null)
+        ? null
+        : prev,
+    );
     setTourSectionId((prev) => (prev === sectionId ? null : prev));
   }, []);
 

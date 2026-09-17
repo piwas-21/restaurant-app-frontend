@@ -229,6 +229,21 @@ describe('MenuOnePage — sections', () => {
     expect(listProps[0].families?.map((entry) => entry.id)).toEqual(['family-independent']);
   });
 
+  it('retains a family hidden from All in its exact one-page category section', () => {
+    const hiddenFamily = { ...family, id: 'family-hidden-all', categoryIds: ['cat-mains'], visibleInAll: false };
+    render(
+      <MenuOnePage
+        {...shared}
+        controller={controller()}
+        offerFamilies={[hiddenFamily]}
+        offerFamiliesState={{ ...familyState, families: [hiddenFamily] }}
+      />,
+    );
+
+    expect(listProps).toHaveLength(1);
+    expect(listProps[0].families?.map((entry) => entry.id)).toEqual(['family-hidden-all']);
+  });
+
   it('lists each bundle in its category section AND keeps the full bundles listing at the foot', () => {
     render(<MenuOnePage {...shared} controller={controller()} />);
 

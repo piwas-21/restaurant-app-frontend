@@ -53,6 +53,10 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   productId: string;
   /** Optional variation selected by a variation-aware linked menu (O6 contract). */
   productVariationId?: string | null;
+  /** Localized variation label supplied by the bundle detail mapper, when this option targets one. */
+  productVariationName?: string | null;
+  /** Authoritative variation modifier copied from the option product's variation. */
+  productVariationPriceModifier?: number | null;
   productName?: string;
   additionalPrice: number;
   displayOrder: number;
@@ -72,6 +76,8 @@ export interface SelectedMenuOption {
   itemId: string;
   /** Preserves a variation-aware section item through to SelectedMenuOptionDto. */
   productVariationId?: string | null;
+  /** The server-authoritative modifier for the selected variation, carried in the basket payload. */
+  productVariationPriceModifier?: number | null;
   quantity: number;
   // Nested customization for this item
   specialInstructions?: string;

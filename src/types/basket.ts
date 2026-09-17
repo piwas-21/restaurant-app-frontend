@@ -141,6 +141,8 @@ export interface AddToBasketDto {
     quantity: number;
     /** O6: menu section options may target an exact product variation. */
     productVariationId?: string | null;
+    /** O6: preserve the authoritative modifier used to price that variation. */
+    productVariationPriceModifier?: number | null;
     specialInstructions?: string;
     selectedIngredients?: string[];
     ingredientQuantities?: Record<string, number>;

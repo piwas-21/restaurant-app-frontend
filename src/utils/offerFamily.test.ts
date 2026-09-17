@@ -159,6 +159,13 @@ describe('offer-family mapper', () => {
     expect(card.availability?.canOrder).toBe(true);
   });
 
+  it('preserves the backend All-view visibility verdict without changing category placement data', () => {
+    const family = mapCatalogOfferFamilyDto({ ...dto, visibleInAll: false });
+
+    expect(family?.visibleInAll).toBe(false);
+    expect(family?.categoryIds).toEqual(['tacos-category']);
+  });
+
   it('blocks a standalone bundle anchor when its schedule verdict is false', () => {
     const family = mapCatalogOfferFamilyDto({
       id: 'family-standalone-menu',

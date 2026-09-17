@@ -231,4 +231,31 @@ describe('waiter bundle order mapping', () => {
       },
     ]);
   });
+
+  it('matches same-product bundle children by variation and preserves the charged modifier', () => {
+    const regular = { ...drinkSection.items[0], id: 'regular-coke', productVariationId: null };
+    const large = {
+      ...drinkSection.items[0],
+      id: 'large-coke',
+      productVariationId: 'large',
+      productVariationPriceModifier: 2,
+      additionalPrice: 1,
+    };
+    const section = { ...drinkSection, items: [regular, large], maxSelection: 2 };
+    const selectedOptions = [
+      { sectionId: section.id, itemId: 'coke', productVariationId: null, quantity: 1 },
+      {
+        sectionId: section.id,
+        itemId: 'coke',
+        productVariationId: 'large',
+        productVariationPriceModifier: 2,
+        quantity: 1,
+      },
+    ];
+
+    expect(buildBundleChildItems({ sections: [section], selectedOptions }, 1)).toEqual([
+      expect.objectContaining({ productId: 'coke', unitPrice: 0 }),
+      expect.objectContaining({ productId: 'coke', productVariationId: 'large', unitPrice: 3 }),
+    ]);
+  });
 });

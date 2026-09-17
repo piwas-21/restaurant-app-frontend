@@ -40,6 +40,8 @@ export interface CatalogOfferFamily {
   menuOffers: CatalogOfferTarget[];
   categoryIds: string[];
   startingPrice: number;
+  /** False hides this family from the All view while preserving its exact category placements. */
+  visibleInAll?: boolean;
   /** Backend verdict for the anchor's own menu schedule, when the anchor is a bundle. */
   anchorScheduleAvailable?: boolean;
   variationOptions?: CatalogOfferVariation[];
@@ -58,6 +60,8 @@ export interface CatalogOfferFamilyDto {
   menuOffers?: CatalogOfferTargetDto[];
   categoryIds?: string[];
   startingPrice?: number | string;
+  /** Additive backend visibility verdict for the All view; omitted means visible for compatibility. */
+  visibleInAll?: boolean;
   /** Additive anchor schedule verdict; omitted means no restriction is known. */
   anchorScheduleAvailable?: boolean;
 }

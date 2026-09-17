@@ -1,6 +1,7 @@
 import {
   buildBundleOption,
   buildDefaultBundleSelection,
+  bundleOptionKey,
   countSectionSelections,
   findBundleOption,
   findBundleSelectionErrors,
@@ -96,10 +97,16 @@ describe('buildBundleOption — base-recipe seeding', () => {
   });
 
   it('carries a variation-linked child into SelectedMenuOptionDto payload shape', () => {
-    expect(buildBundleOption('main', item({ productId: 'burger', productVariationId: 'large-portion' }))).toEqual({
+    expect(
+      buildBundleOption(
+        'main',
+        item({ productId: 'burger', productVariationId: 'large-portion', productVariationPriceModifier: 2.5 }),
+      ),
+    ).toEqual({
       sectionId: 'main',
       itemId: 'burger',
       productVariationId: 'large-portion',
+      productVariationPriceModifier: 2.5,
       quantity: 1,
     });
   });
@@ -231,6 +238,28 @@ describe('updateBundleOption / findBundleOption / countSectionSelections', () =>
     // still counts once.
     expect(countSectionSelections(selected, 's1')).toBe(2);
     expect(countSectionSelections(selected, 'missing')).toBe(0);
+  });
+
+  it('keeps same-product options with different variations independently selectable and customizable', () => {
+    const regular = item({ id: 'regular', productId: 'drink', productVariationId: null });
+    const large = item({
+      id: 'large',
+      productId: 'drink',
+      productVariationId: 'large',
+      productVariationPriceModifier: 2,
+    });
+    const sectionWithVariations = section({ id: 'drinks', maxSelection: 2, items: [regular, large] });
+    const withRegular = toggleBundleOption(sectionWithVariations, [], regular.productId, regular.productVariationId);
+    const both = toggleBundleOption(sectionWithVariations, withRegular, large.productId, large.productVariationId);
+
+    expect(both).toHaveLength(2);
+    expect(findBundleOption(both, 'drinks', 'drink', null)?.productVariationId).toBeNull();
+    expect(findBundleOption(both, 'drinks', 'drink', 'large')?.productVariationId).toBe('large');
+
+    const updated = updateBundleOption(both, 'drinks', 'drink', { specialInstructions: 'extra ice' }, 'large');
+    expect(findBundleOption(updated, 'drinks', 'drink', 'large')?.specialInstructions).toBe('extra ice');
+    expect(findBundleOption(updated, 'drinks', 'drink', null)?.specialInstructions).toBeUndefined();
+    expect(bundleOptionKey('drinks', 'drink', null)).not.toBe(bundleOptionKey('drinks', 'drink', 'large'));
   });
 });
 

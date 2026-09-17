@@ -40,11 +40,22 @@ export default function MenuOfferFamiliesOnePage({
   featuredFilterable,
 }: Readonly<MenuOfferFamiliesOnePageProps>) {
   const { t } = useTranslation();
-  const cards = useMemo(() => families.map(toOfferFamilyFilterItem), [families]);
+  // Category-linked families stay visible in their exact sections even when hidden from All. An
+  // unlinked family has no exact placement, so its fallback "Other offers" section follows the All
+  // visibility verdict and does not reintroduce a family the tenant deliberately hid.
+  const cards = useMemo(
+    () =>
+      families
+        .filter((family) => family.categoryIds.length > 0 || family.visibleInAll !== false)
+        .map(toOfferFamilyFilterItem),
+    [families],
+  );
   const filters = useMenuFilters(cards);
   const isFiltered = filters.activeIds.size > 0;
   const heroVisible = !featuredFilterable || matchesFilters(featuredFilterable, filters.activeIds);
-  const categorylessFamilies = families.filter((family) => family.categoryIds.length === 0);
+  const categorylessFamilies = families.filter(
+    (family) => family.categoryIds.length === 0 && family.visibleInAll !== false,
+  );
   const visibleCategorylessFamilies = categorylessFamilies.filter((family) =>
     matchesFilters(toOfferFamilyFilterItem(family), filters.activeIds),
   );

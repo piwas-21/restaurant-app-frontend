@@ -195,6 +195,9 @@ function explicitGroupPrice(
 export interface SelectedBundleOption {
   sectionId: string;
   itemId: string;
+  productVariationId?: string | null;
+  /** Copied from the authoritative menu-section row; do not recompute from a stale product list. */
+  productVariationPriceModifier?: number | null;
   quantity: number;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
@@ -203,6 +206,8 @@ export interface SelectedBundleOption {
 
 export interface PriceableBundleSectionItem {
   productId: string;
+  productVariationId?: string | null;
+  productVariationPriceModifier?: number | null;
   additionalPrice: number;
   detailedIngredients?: readonly PriceableIngredient[];
   /**
@@ -231,10 +236,18 @@ export function bundleLineUnitPrice(params: {
 
   for (const option of params.selectedOptions) {
     const section = params.sections.find((s) => s.id === option.sectionId);
-    const item = section?.items.find((i) => i.productId === option.itemId);
+    const item = section?.items.find(
+      (candidate) =>
+        candidate.productId === option.itemId &&
+        (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
+    );
     if (!item) continue;
 
-    total += item.additionalPrice * option.quantity;
+    // The modifier on the selected payload is authoritative. It is also mirrored on the section
+    // row for display; preferring the payload prevents a stale product variation lookup from
+    // silently charging a different amount than the backend-validated selection.
+    const variationModifier = option.productVariationPriceModifier ?? item.productVariationPriceModifier ?? 0;
+    total += (item.additionalPrice + variationModifier) * option.quantity;
     let ingredientDelta = ingredientCustomizationPrice(
       item.detailedIngredients,
       option.selectedIngredients ?? [],

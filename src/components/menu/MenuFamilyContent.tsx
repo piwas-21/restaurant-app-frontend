@@ -39,7 +39,11 @@ export default function MenuFamilyContent({
 }: Readonly<MenuFamilyContentProps>) {
   const { t } = useTranslation();
   const isAllView = selectedView === ALL_ITEMS_KEY;
-  const familiesForView = families.filter((family) => isAllView || family.categoryIds.includes(selectedView));
+  // `visibleInAll` is an All-view presentation rule, not a category assignment. A family hidden
+  // from All must still render when a guest opens one of its exact category tabs.
+  const familiesForView = families.filter((family) =>
+    isAllView ? family.visibleInAll !== false : family.categoryIds.includes(selectedView),
+  );
   const cards = familiesForView.map(toOfferFamilyFilterItem);
   const filters = useMenuFilters(cards);
   const displayItems = filters.filtered;

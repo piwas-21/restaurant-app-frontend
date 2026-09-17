@@ -24,6 +24,7 @@ import { useMenuCart } from '@/hooks/menu/useMenuCart';
 import { useMenuDisplaySettings } from '@/hooks/useMenuDisplaySettings';
 import { usePublicOfferFamilies } from '@/hooks/usePublicOfferFamilies';
 import { useOnePageMenu } from '@/hooks/useOnePageMenu';
+import { useOfferFamilyPresentationReset } from '@/hooks/menu/useOfferFamilyPresentationReset';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
@@ -60,6 +61,7 @@ export default function MenuPage() {
   // One-page mode owns its category fetch even when legacy item pipelines are stood down. Tabs
   // retain the lightweight category/selection half of usePublicMenu in grouped mode.
   const categoriesForNav = isOnePage ? onePage.categories : publicCategories;
+  useOfferFamilyPresentationReset(displaySettings.isLoading, isCategoryOffers, selectedView, setSelectedView);
   // One bundles list for the sheet's lookup, whichever layout is on screen.
   const menuBundles = isOnePage ? onePage.menuBundles : tabsMenuBundles;
 

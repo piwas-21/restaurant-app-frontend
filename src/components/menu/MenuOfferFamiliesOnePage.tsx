@@ -40,6 +40,7 @@ export default function MenuOfferFamiliesOnePage({
   featuredFilterable,
 }: Readonly<MenuOfferFamiliesOnePageProps>) {
   const { t } = useTranslation();
+  const displayError = state.error ? t('error_loading_menu_items') : null;
   // Category-linked families stay visible in their exact sections even when hidden from All. An
   // unlinked family has no exact placement, so its fallback "Other offers" section follows the All
   // visibility verdict and does not reintroduce a family the tenant deliberately hid.
@@ -77,13 +78,13 @@ export default function MenuOfferFamiliesOnePage({
       />
     );
   }
-  if (state.error && families.length === 0) {
+  if (displayError && families.length === 0) {
     return (
       <MenuSectionStatus
         headingId="category-heading-all"
         title={t('all_categories_nav')}
         isLoading={false}
-        errorMessage={state.error}
+        errorMessage={displayError}
         isEmpty={false}
         loadingMessage={t('loading_items')}
         emptyMessage={t('no_items_in_category', { categoryName: t('all_categories_nav') })}
@@ -130,17 +131,17 @@ export default function MenuOfferFamiliesOnePage({
               title={getCategoryDisplayName(category.name, t)}
               description={category.description}
               isLoading={state.isLoading}
-              errorMessage={state.error}
-              isEmpty={!state.isLoading && !state.error && visibleFamilies.length === 0}
+              errorMessage={displayError}
+              isEmpty={!state.isLoading && !displayError && visibleFamilies.length === 0}
               loadingMessage={t('loading_items')}
               emptyMessage={t('no_items_in_category', { categoryName: category.name })}
               emptyHeading={isFiltered ? t('menu_state_filtered_heading') : t('menu_state_empty_heading')}
               errorHeading={t('menu_state_error_heading')}
               retryLabel={t('retry')}
               browseLabel={t('browse_full_menu')}
-              onRetry={state.error ? state.refetch : undefined}
+              onRetry={displayError ? state.refetch : undefined}
             />
-            {!state.isLoading && !state.error && visibleFamilies.length > 0 && (
+            {!state.isLoading && !displayError && visibleFamilies.length > 0 && (
               <MenuList
                 products={[]}
                 bundles={[]}
@@ -167,17 +168,17 @@ export default function MenuOfferFamiliesOnePage({
             title={t('offer_family_other_category')}
             description={undefined}
             isLoading={state.isLoading}
-            errorMessage={state.error}
-            isEmpty={!state.isLoading && !state.error && visibleCategorylessFamilies.length === 0}
+            errorMessage={displayError}
+            isEmpty={!state.isLoading && !displayError && visibleCategorylessFamilies.length === 0}
             loadingMessage={t('loading_items')}
             emptyMessage={t('no_items_in_category', { categoryName: t('offer_family_other_category') })}
             emptyHeading={isFiltered ? t('menu_state_filtered_heading') : t('menu_state_empty_heading')}
             errorHeading={t('menu_state_error_heading')}
             retryLabel={t('retry')}
             browseLabel={t('browse_full_menu')}
-            onRetry={state.error ? state.refetch : undefined}
+            onRetry={displayError ? state.refetch : undefined}
           />
-          {!state.isLoading && !state.error && visibleCategorylessFamilies.length > 0 && (
+          {!state.isLoading && !displayError && visibleCategorylessFamilies.length > 0 && (
             <MenuList
               products={[]}
               bundles={[]}

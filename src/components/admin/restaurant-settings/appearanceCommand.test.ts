@@ -18,6 +18,7 @@ const info: RestaurantInfoDto = {
   logoDarkUrl: null,
   interiorImageUrl: null,
   phoneNumbers: [],
+  currency: 'CHF',
   menuLayout: 'tabs',
   showMenuBundlesOnAllTab: false,
   bundlePresentationMode: 'legacySeparate',
@@ -51,10 +52,11 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
       menuLayout: 'onepage',
       showMenuBundlesOnAllTab: true,
       bundlePresentationMode: 'categoryOffers',
+      currency: 'CHF',
     });
   });
 
-  it('sends all 14 command fields (the full upsert, no more no less)', () => {
+  it('sends all 15 command fields (the full upsert, no more no less)', () => {
     expect(Object.keys(toUpdateCommand(info, 'saffron', menuDisplayOnePage)).sort()).toEqual(
       [
         'addressLine1',
@@ -69,6 +71,7 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
         'postalCode',
         'showMenuBundlesOnAllTab',
         'bundlePresentationMode',
+        'currency',
         'themePaletteKey',
         'website',
       ].sort(),
@@ -98,6 +101,7 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
     expect(command.menuLayout).toBe('onepage');
     expect(command.showMenuBundlesOnAllTab).toBe(true);
     expect(command.bundlePresentationMode).toBe('categoryOffers');
+    expect(command.currency).toBe('CHF');
 
     // And the tab's own defaults write the shipped behaviour back.
     const defaults = toUpdateCommand(info, null, menuDisplayTabs);

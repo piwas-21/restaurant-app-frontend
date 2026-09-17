@@ -47,6 +47,7 @@ function infoFixture(overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfo
     logoDarkUrl: null,
     interiorImageUrl: null,
     phoneNumbers: [],
+    currency: 'CHF',
     menuLayout: 'tabs',
     showMenuBundlesOnAllTab: false,
     bundlePresentationMode: 'legacySeparate',
@@ -119,6 +120,7 @@ describe('AppearanceTab — menu display settings', () => {
     expect(command.showMenuBundlesOnAllTab).toBe(false);
     expect(command.bundlePresentationMode).toBe('legacySeparate');
     expect(command.themePaletteKey).toBeNull();
+    expect(command.currency).toBe('CHF');
     expect(command.name).toBe('Rumi');
     // And the singleton's other settings are not reset by the save.
     expect(command).not.toHaveProperty('logoUrl');

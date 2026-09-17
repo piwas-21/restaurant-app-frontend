@@ -63,6 +63,8 @@ export interface RestaurantInfoDto {
    */
   interiorImageUrl: string | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
+  /** The tenant's declared ISO-4217 alpha-3 display currency, or null while undeclared. */
+  currency: string | null;
   /**
    * The tenant's menu layout choice. Optional on the wire: a backend that predates the
    * field omits it, and absence reads as `'tabs'` — the shipped behaviour.
@@ -100,6 +102,8 @@ export interface UpdateRestaurantInfoCommand {
   showMenuBundlesOnAllTab: boolean;
   /** Full-upsert field; legacy backends ignore it or return their default. */
   bundlePresentationMode?: BundlePresentationMode;
+  /** Always sent: the PUT is a full upsert and omitted currency would clear it. */
+  currency: string | null;
 }
 
 export interface AddPhoneNumberCommand {

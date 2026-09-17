@@ -110,6 +110,40 @@ describe('BasketService', () => {
       expect(result.items[0]?.quantity).toBe(2);
     });
 
+    it('strips the read-side variation modifier from the exact basket request payload', async () => {
+      const request = {
+        productId: 'menu-1',
+        quantity: 1,
+        selectedMenuOptions: [
+          {
+            sectionId: 'section-1',
+            itemId: 'product-1',
+            productVariationId: 'variation-large',
+            productVariationPriceModifier: 3.5,
+            quantity: 1,
+            specialInstructions: 'well done',
+          },
+        ],
+      } satisfies Parameters<typeof basketServiceModule.addItemToBasket>[0];
+      mockApiClient.post.mockResolvedValue({ data: createMockBasket() });
+
+      await basketServiceModule.addItemToBasket(request);
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Basket/items', {
+        productId: 'menu-1',
+        quantity: 1,
+        selectedMenuOptions: [
+          {
+            sectionId: 'section-1',
+            itemId: 'product-1',
+            productVariationId: 'variation-large',
+            quantity: 1,
+            specialInstructions: 'well done',
+          },
+        ],
+      });
+    });
+
     it('should handle add item errors', async () => {
       const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
       const error = new Error('Product not found');

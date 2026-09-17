@@ -177,18 +177,40 @@ function normaliseIds(ids: string[] | undefined): string[] {
 export function toCatalogItemFromOfferFamily(family: CatalogOfferFamily): CatalogItem {
   const anchor = anchorTargetForFamily(family);
   const availableTarget = [anchor, ...family.menuOffers].find(isOfferTargetOrderable);
+  const effectivePrices = effectiveOrderablePriceChoices(family);
   return {
     ...family.anchor,
     id: family.id,
     price: family.startingPrice,
-    priceIsFrom:
-      family.anchor.priceIsFrom === true || family.menuOffers.length > 0 || (family.variationOptions?.length ?? 0) > 1,
+    priceIsFrom: effectivePrices.length > 1,
     // A linked meal can remain orderable while its anchor is not. The card's verdict must then be
     // the valid target's verdict; otherwise `MenuCard` removes Add before the guest can choose it.
     isAvailable: Boolean(availableTarget),
     availability: cardAvailability(family, availableTarget),
     offerFamily: family,
   };
+}
+
+/**
+ * Return the purchase choices a guest can actually select at this moment. The backend's catalog
+ * builder uses the same gates: a visible base row (unless hidden), active variations on an
+ * orderable anchor, and orderable linked menu targets. This is intentionally not a count of raw
+ * DTO rows — an inactive variation or blocked menu must not turn an exact price into a misleading
+ * "from" label.
+ */
+export function effectiveOrderablePriceChoices(family: CatalogOfferFamily): number[] {
+  const anchor = anchorTargetForFamily(family);
+  const prices: number[] = [];
+  if (isOfferTargetOrderable(anchor)) {
+    if (!family.anchor.priceIsFrom) prices.push(family.anchor.price);
+    prices.push(
+      ...(family.variationOptions ?? [])
+        .map((variation) => variation.price)
+        .filter((price): price is number => price !== undefined && Number.isFinite(price)),
+    );
+  }
+  prices.push(...family.menuOffers.filter(isOfferTargetOrderable).map((offer) => offer.price));
+  return prices.filter((price) => Number.isFinite(price));
 }
 
 /** Filter one commercial family by its orderable targets while keeping one card identity. */

@@ -30,6 +30,7 @@ function infoFixture(overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfo
     logoDarkUrl: null,
     interiorImageUrl: null,
     phoneNumbers: [],
+    currency: 'CHF',
     ...overrides,
   };
 }

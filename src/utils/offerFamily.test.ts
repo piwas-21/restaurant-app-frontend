@@ -1,4 +1,4 @@
-import { mapCatalogOfferFamilyDto, toCatalogItemFromOfferFamily } from './offerFamily';
+import { effectiveOrderablePriceChoices, mapCatalogOfferFamilyDto, toCatalogItemFromOfferFamily } from './offerFamily';
 
 const dto = {
   id: 'family-tacos',
@@ -187,5 +187,71 @@ describe('offer-family mapper', () => {
         menuOffers: [{ productId: 'menu', kind: 'bundle', price: 7 }],
       })?.menuOffers,
     ).toMatchObject([{ productId: 'menu', kind: 'bundle', name: '' }]);
+  });
+
+  it('marks the card as from when the base and one active variation are both orderable', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-base-and-one-variation',
+      anchor: {
+        id: 'dish',
+        name: 'Dish',
+        basePrice: 8,
+        isActive: true,
+        isAvailable: true,
+        variations: [{ id: 'large', name: 'Large', priceModifier: 2, isActive: true }],
+      },
+      startingPrice: 8,
+    });
+
+    expect(family).not.toBeNull();
+    expect(effectiveOrderablePriceChoices(family!)).toEqual([8, 10]);
+    expect(toCatalogItemFromOfferFamily(family!).priceIsFrom).toBe(true);
+  });
+
+  it('does not let inactive variations or unavailable menu targets create a from label', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-one-effective-choice',
+      anchor: {
+        id: 'dish',
+        name: 'Dish',
+        basePrice: 8,
+        isActive: true,
+        isAvailable: true,
+        variations: [{ id: 'inactive', name: 'Inactive', priceModifier: 1, isActive: false }],
+      },
+      menuOffers: [
+        {
+          productId: 'menu',
+          price: 12,
+          scheduleAvailable: false,
+          availability: { canOrder: false, allowedOrderTypes: ['Takeaway'] },
+        },
+      ],
+      startingPrice: 8,
+    });
+
+    expect(family).not.toBeNull();
+    expect(effectiveOrderablePriceChoices(family!)).toEqual([8]);
+    expect(toCatalogItemFromOfferFamily(family!).priceIsFrom).toBe(false);
+  });
+
+  it('treats a hidden base plus one active variation as one effective price, not from', () => {
+    const family = mapCatalogOfferFamilyDto({
+      id: 'family-hidden-base-one-variation',
+      anchor: {
+        id: 'dish',
+        name: 'Dish',
+        basePrice: 8,
+        hideBaseProduct: true,
+        isActive: true,
+        isAvailable: true,
+        variations: [{ id: 'large', name: 'Large', priceModifier: 2, isActive: true }],
+      },
+      startingPrice: 10,
+    });
+
+    expect(family).not.toBeNull();
+    expect(effectiveOrderablePriceChoices(family!)).toEqual([10]);
+    expect(toCatalogItemFromOfferFamily(family!).priceIsFrom).toBe(false);
   });
 });

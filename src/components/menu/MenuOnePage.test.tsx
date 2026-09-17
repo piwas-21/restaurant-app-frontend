@@ -358,6 +358,20 @@ describe('MenuOnePage — sections', () => {
     expect(refetchCategory).not.toHaveBeenCalled();
   });
 
+  it('localizes the grouped-family load error instead of rendering server text', () => {
+    render(
+      <MenuOnePage
+        {...shared}
+        controller={controller()}
+        offerFamilies={[]}
+        offerFamiliesState={{ ...familyState, families: [], error: 'database details leaked' }}
+      />,
+    );
+
+    expect(screen.getByTestId('status')).toHaveAttribute('data-error', 'error_loading_menu_items');
+    expect(screen.getByTestId('status')).not.toHaveAttribute('data-error', 'database details leaked');
+  });
+
   it('renders one page-wide filter row, hidden while any section loads', () => {
     render(<MenuOnePage {...shared} controller={controller()} />);
     expect(filterProps).toHaveLength(1);

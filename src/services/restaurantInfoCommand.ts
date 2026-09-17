@@ -35,6 +35,7 @@ export function toFullUpdateCommand(
     menuLayout: info.menuLayout ?? 'tabs',
     showMenuBundlesOnAllTab: info.showMenuBundlesOnAllTab ?? false,
     bundlePresentationMode: info.bundlePresentationMode ?? 'legacySeparate',
+    currency: info.currency ?? null,
     ...overrides,
   };
 }

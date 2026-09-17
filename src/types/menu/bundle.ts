@@ -76,7 +76,7 @@ export interface SelectedMenuOption {
   itemId: string;
   /** Preserves a variation-aware section item through to SelectedMenuOptionDto. */
   productVariationId?: string | null;
-  /** The server-authoritative modifier for the selected variation, carried in the basket payload. */
+  /** Read-side modifier for local line-price preview; basket serialization strips it. */
   productVariationPriceModifier?: number | null;
   quantity: number;
   // Nested customization for this item

@@ -196,7 +196,7 @@ export interface SelectedBundleOption {
   sectionId: string;
   itemId: string;
   productVariationId?: string | null;
-  /** Copied from the authoritative menu-section row; do not recompute from a stale product list. */
+  /** Copied from the read-side menu-section row for preview pricing; never sent to the server. */
   productVariationPriceModifier?: number | null;
   quantity: number;
   selectedIngredients?: string[];
@@ -243,9 +243,9 @@ export function bundleLineUnitPrice(params: {
     );
     if (!item) continue;
 
-    // The modifier on the selected payload is authoritative. It is also mirrored on the section
-    // row for display; preferring the payload prevents a stale product variation lookup from
-    // silently charging a different amount than the backend-validated selection.
+    // The selected read-side payload is seeded from the section row and is used only for the live
+    // preview. The network serializer removes this field; the backend resolves the final amount
+    // from productVariationId.
     const variationModifier = option.productVariationPriceModifier ?? item.productVariationPriceModifier ?? 0;
     total += (item.additionalPrice + variationModifier) * option.quantity;
     let ingredientDelta = ingredientCustomizationPrice(

@@ -37,6 +37,17 @@ const buildOrder = (overrides: Partial<Record<string, unknown>> = {}): OrderDto 
   }) as unknown as OrderDto;
 
 describe('the primary next action comes from the shared transition table', () => {
+  it('displays an alphanumeric table label without numeric coercion', () => {
+    render(
+      <OrderCard
+        order={buildOrder({ tableId: 'table-qa', tableLabel: 'T-QA', tableNumber: null })}
+        onStatusChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Table T-QA')).toBeInTheDocument();
+  });
+
   it.each([
     ['Pending', OrderType.DineIn, 'Confirm Order', 'Confirmed'],
     ['Confirmed', OrderType.DineIn, 'Start Preparing', 'Preparing'],

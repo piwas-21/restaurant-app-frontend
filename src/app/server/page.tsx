@@ -14,6 +14,7 @@ export default function ServerPage() {
     isConnected,
     isLoading,
     error,
+    isStale,
     lastEventTime,
     connectionState,
     updateOrderStatus,
@@ -23,6 +24,7 @@ export default function ServerPage() {
   } = useServerOrders();
 
   const [selectedTableNumber, setSelectedTableNumber] = useState<string | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('active');
   const [showTableModal, setShowTableModal] = useState(false);
   const [showTakeOrderModal, setShowTakeOrderModal] = useState(false);
@@ -41,20 +43,23 @@ export default function ServerPage() {
   // Get selected table data
   const selectedTable = useMemo(() => {
     if (!selectedTableNumber) return null;
-    return tables.find((t) => t.tableNumber === selectedTableNumber) || null;
-  }, [tables, selectedTableNumber]);
+    return (
+      tables.find((t) => t.id === selectedTableId) ?? tables.find((t) => t.tableNumber === selectedTableNumber) ?? null
+    );
+  }, [tables, selectedTableId, selectedTableNumber]);
 
   // Handle table selection
   const handleSelectTable = useCallback(
-    (tableNumber: string) => {
-      if (selectedTableNumber === tableNumber) {
+    (tableNumber: string, tableId: string) => {
+      if (selectedTableId === tableId) {
         // Double-click opens modal
         setShowTableModal(true);
       } else {
         setSelectedTableNumber(tableNumber);
+        setSelectedTableId(tableId);
       }
     },
-    [selectedTableNumber],
+    [selectedTableId],
   );
 
   // Handle status change
@@ -72,6 +77,7 @@ export default function ServerPage() {
   // Clear selection
   const handleClearSelection = useCallback(() => {
     setSelectedTableNumber(null);
+    setSelectedTableId(null);
     setShowTableModal(false);
     setShowTakeOrderModal(false);
   }, []);
@@ -102,6 +108,7 @@ export default function ServerPage() {
         connectionState={connectionState}
         lastEventTime={lastEventTime}
         error={error}
+        isStale={isStale}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
       />
@@ -112,6 +119,7 @@ export default function ServerPage() {
           <TableGridView
             tables={tables}
             selectedTableNumber={selectedTableNumber}
+            selectedTableId={selectedTableId}
             onSelectTable={handleSelectTable}
             isLoading={isLoading && tables.length === 0}
           />
@@ -127,7 +135,9 @@ export default function ServerPage() {
           <ActiveOrdersPanel
             orders={filteredOrders}
             selectedTableNumber={selectedTableNumber}
+            selectedTableId={selectedTableId}
             onStatusChange={handleStatusChange}
+            statusFilter={statusFilter}
             isLoading={isLoading}
             error={error}
           />
@@ -138,11 +148,12 @@ export default function ServerPage() {
       {showTableModal && selectedTable && (
         <TableDetailsModal
           table={selectedTable}
-          orders={getOrdersForTable(selectedTable.tableNumber)}
+          orders={getOrdersForTable(selectedTable.tableNumber, selectedTable.id)}
           onClose={() => setShowTableModal(false)}
           onUpdateOrderStatus={handleStatusChange}
           onTakeOrder={handleTakeOrder}
           onTableStatusChanged={handleTableStatusChanged}
+          isStale={isStale}
         />
       )}
 

@@ -116,6 +116,18 @@ describe('useMenuFilters — counts are LIVE', () => {
 });
 
 describe('useMenuFilters — what it filters', () => {
+  it('keeps a family when one underlying offer matches the active chips', () => {
+    const family: FilterableItem & { name: string } = {
+      name: 'Tacos',
+      filterTargets: [dish('A la carte', ['gluten']), dish('Menu', ['vegan'])],
+    };
+    const { result } = renderHook(() => useMenuFilters([family]));
+
+    act(() => result.current.toggle('claim:vegan'));
+
+    expect(namesOf(result.current.filtered)).toEqual(['Tacos']);
+  });
+
   it('shows everything until a chip is pressed', () => {
     const { result } = renderHook(() => useMenuFilters(MENU));
     expect(namesOf(result.current.filtered)).toEqual(['Beyti', 'Salad', 'Baklava', 'Ayran', 'Plain rice']);

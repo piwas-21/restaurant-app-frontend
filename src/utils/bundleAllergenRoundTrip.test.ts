@@ -31,7 +31,20 @@ const bundle = (allergens?: string[]) =>
     displayOrder: 0,
     content: {},
     allergens,
-    menuDefinition: { isAlwaysAvailable: true, sections: [] },
+    menuDefinition: {
+      isAlwaysAvailable: true,
+      sections: [
+        {
+          id: 'section-1',
+          name: 'Main',
+          displayOrder: 0,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 1,
+          items: [{ id: 'item-1', productId: 'p1', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+        },
+      ],
+    },
   }) as unknown as ProductDetails;
 
 describe('a bundle save that never touches allergens keeps them', () => {
@@ -45,7 +58,7 @@ describe('a bundle save that never touches allergens keeps them', () => {
     // which `productFormUtils` then turns into `[]`. Being in the defaults is not enough.
     const parsed = createMenuBundleSchema.parse({
       ...toBundleDefaults(bundle(['gluten'])),
-      menuDefinition: { isAlwaysAvailable: true, sections: [] },
+      menuDefinition: toBundleDefaults(bundle(['gluten'])).menuDefinition,
     });
 
     expect(parsed.allergens).toEqual(['gluten']);

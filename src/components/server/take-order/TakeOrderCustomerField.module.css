@@ -1,0 +1,18 @@
+.customerInfo {
+  margin-bottom: 0.75rem;
+}
+
+.customerInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.customerInput:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}

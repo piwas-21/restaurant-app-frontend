@@ -183,6 +183,10 @@ export default function MenuCard({
           </p>
         )}
 
+        {item.offerFamily && item.offerFamily.menuOffers.length > 0 && (
+          <p className={styles.offerOptions}>{t('offer_family_options')}</p>
+        )}
+
         {/* An `info` notice is a sentence about where this dish CAN be ordered, so it reads as part
             of the copy and stays in the text column. The blocked one goes in the foot instead —
             see below. */}
@@ -200,9 +204,6 @@ export default function MenuCard({
         <div className={footStyles.footRow}>
           <span className={footStyles.footPrice} aria-label={`${t('checkout_total_label')} ${priceText}`}>
             <span className={footStyles.priceValue}>{priceText}</span>
-            {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an
-                effect keyed on that boolean, and a useState setter is the referentially stable
-                identity the contract needs. An inline arrow would re-fire it on every render. */}
             <AdminPriceEditor item={item} onPriceChange={setPrice} onEditingChange={setPriceEditing} />
           </span>
 

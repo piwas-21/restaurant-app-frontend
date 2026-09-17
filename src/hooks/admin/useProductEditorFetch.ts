@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getProductById } from '@/services/menuService';
 import { getMenuBundleById } from '@/services/menuBundleService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { serverMessage } from '@/utils/apiFormErrors';
+import { normalizeMenuBundleProduct } from '@/utils/normalizeMenuBundleProduct';
 import { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
 /**
@@ -21,10 +22,16 @@ export function useProductEditorFetch(productId: string) {
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestSequence = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
   const refetch = useCallback(async () => {
     if (!productId) return;
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const sequence = ++requestSequence.current;
     setIsLoading(true);
     setError(null);
     try {
@@ -32,12 +39,13 @@ export function useProductEditorFetch(productId: string) {
       // type filter, so it returns a bundle too, carrying `type: 'menu'`. A bundle then needs
       // its proper shape — MenuBundleDto formats the schedule times as strings, ProductDto as
       // raw TimeSpans — so re-fetch via the Menus endpoint. One extra request, bundles only.
-      const productResponse = (await getProductById(productId)) as {
+      const productResponse = (await getProductById(productId, controller.signal)) as {
         success: boolean;
         data?: ProductDetails;
         message?: string;
       };
 
+      if (controller.signal.aborted || sequence !== requestSequence.current) return;
       if (!productResponse.success || !productResponse.data) {
         // The RESOLVED refusal, and the one that actually fires: `ProductsController.GetProduct`
         // returns `Ok(result)` unconditionally, so `GetProductByIdQuery`'s
@@ -55,14 +63,15 @@ export function useProductEditorFetch(productId: string) {
         return;
       }
 
-      const bundleResponse = (await getMenuBundleById(productId)) as {
+      const bundleResponse = (await getMenuBundleById(productId, controller.signal)) as {
         success: boolean;
         data?: ProductDetails;
         message?: string;
       };
 
+      if (controller.signal.aborted || sequence !== requestSequence.current) return;
       if (bundleResponse.success && bundleResponse.data) {
-        setProduct(bundleResponse.data);
+        setProduct(normalizeMenuBundleProduct(productResponse.data, bundleResponse.data));
       } else {
         // Near-dead — `MenusController` returns `NotFound(result)`, so a missing bundle THROWS and
         // lands in the catch. Aligned anyway: two readers of one shape that disagree is how the
@@ -70,6 +79,7 @@ export function useProductEditorFetch(productId: string) {
         setError(serverMessage(bundleResponse) ?? t('product_not_found'));
       }
     } catch (err) {
+      if (controller.signal.aborted || sequence !== requestSequence.current || isAbortError(err)) return;
       // Both fetches go through `apiClient`, which THROWS on every non-2xx — so a 403 (not an
       // admin for this tenant), a 409 and a genuine 404 all landed here and all printed "Product
       // not found", when only one of them meant it. `serverMessage` reads the thrown shape AND a
@@ -82,16 +92,27 @@ export function useProductEditorFetch(productId: string) {
       // Telling an admin their session lapsed is a change in `apiClient`, not here.
       setError(serverMessage(err) ?? t('product_not_found'));
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted && sequence === requestSequence.current) setIsLoading(false);
     }
   }, [productId, t]);
 
   useEffect(() => {
     // `refetch` sets its own error state; fire-and-forget.
     void refetch();
+    return () => {
+      requestSequence.current += 1;
+      abortRef.current?.abort();
+    };
   }, [refetch]);
 
   return { product, isLoading, error, refetch };
+}
+
+function isAbortError(error: unknown): boolean {
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) return error.name === 'AbortError';
+  if (!error || typeof error !== 'object') return false;
+  const candidate = error as { name?: unknown; cause?: { name?: unknown } };
+  return candidate.name === 'AbortError' || candidate.cause?.name === 'AbortError';
 }
 
 export default useProductEditorFetch;

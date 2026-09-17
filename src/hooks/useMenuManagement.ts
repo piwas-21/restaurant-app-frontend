@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import { getProducts } from '@/services/menuService';
+import { getAllProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { Product, Category } from '@/app/admin/menu-management/interfaces';
 import { MenuTypeFilter, toProductTypeQuery } from '@/utils/productTypeFilter';
@@ -22,71 +22,83 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     tRef.current = t;
   }, [t]);
   const { enqueueSnackbar } = useSnackbar();
-  const _router = useRouter();
+  const enqueueSnackbarRef = useRef(enqueueSnackbar);
+  useEffect(() => {
+    enqueueSnackbarRef.current = enqueueSnackbar;
+  }, [enqueueSnackbar]);
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
-  const typeFilterRef = useRef(typeFilter);
+  const requestSequence = useRef(0);
+  const activeRequestKey = useRef('');
+  const categoryRequestSequence = useRef(0);
+  const mountedRef = useRef(true);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(initialCategoryId);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 20;
-
-  const fetchProducts = useCallback(
-    async (page: number = 1) => {
-      const requestFilter = typeFilter; // Capture which filter this request is for
-      setIsLoading(true);
-      setError(null);
-      const fallback = () => tRef.current('failed_to_load_menu_items', 'Failed to load menu items');
-      try {
-        // One endpoint for all three chips, so paging + the category filter behave
-        // identically across them (the old tabs hit two endpoints with independent
-        // pagination, which is why "All" was not expressible — backend #189).
-        // `includeComponents` is the ADMIN's opt-in (frontend #631). Option-only items are hidden
-        // from `GET /api/Products` by default because a guest cannot order one on its own — but the
-        // admin who ticks that box has to keep seeing the item afterwards, or it disappears from
-        // the only screen that can untick it. It rides ALONGSIDE the type chip, never instead of
-        // it: an option-only item is a plain item, so every chip must still be able to show one.
-        const response = await getProducts(page, pageSize, selectedCategoryId, {
-          ...toProductTypeQuery(typeFilter),
-          includeComponents: true,
-        });
-
-        // Only update state if we're still on the same filter (check against ref)
-        if (requestFilter === typeFilterRef.current) {
-          if (response.success) {
-            setProducts(response.data.items);
-            setTotalPages(response.data.totalPages || 1);
-            setTotalCount(response.data.totalCount || 0);
-            setCurrentPage(page);
-          } else {
-            setError(response.message || fallback());
-          }
-        }
-      } catch (e) {
-        if (requestFilter === typeFilterRef.current) {
-          setError(getErrorMessage(e) ?? fallback());
-        }
-      } finally {
-        if (requestFilter === typeFilterRef.current) {
-          setIsLoading(false);
-        }
-      }
-    },
-    [typeFilter, selectedCategoryId, pageSize],
-  );
 
   useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      requestSequence.current += 1;
+      categoryRequestSequence.current += 1;
+    };
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
+    const requestKey = `${typeFilter}:${selectedCategoryId ?? 'all'}`;
+    const sequence = ++requestSequence.current;
+    activeRequestKey.current = requestKey;
+    setIsLoading(true);
+    setError(null);
+    const fallback = () => tRef.current('failed_to_load_menu_items', 'Failed to load menu items');
+    try {
+      // One endpoint for all three chips, so paging + the category filter behave
+      // identically across them (the old tabs hit two endpoints with independent
+      // pagination, which is why "All" was not expressible — backend #189).
+      // `includeComponents` is the ADMIN's opt-in (frontend #631). Option-only items are hidden
+      // from `GET /api/Products` by default because a guest cannot order one on its own — but the
+      // admin who ticks that box has to keep seeing the item afterwards, or it disappears from
+      // the only screen that can untick it. It rides ALONGSIDE the type chip, never instead of
+      // it: an option-only item is a plain item, so every chip must still be able to show one.
+      const items = await getAllProducts(selectedCategoryId, {
+        ...toProductTypeQuery(typeFilter),
+        includeComponents: true,
+      });
+
+      // A category/type key change starts a newer full-catalogue request. Older responses,
+      // including errors and their loading-finally handlers, must not overwrite that newer state.
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+        setProducts(items);
+      }
+    } catch (e) {
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+        setError(getErrorMessage(e) ?? fallback());
+      }
+    } finally {
+      if (mountedRef.current && sequence === requestSequence.current && activeRequestKey.current === requestKey) {
+        setIsLoading(false);
+      }
+    }
+  }, [typeFilter, selectedCategoryId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const sequence = ++categoryRequestSequence.current;
     const fetchCategories = async () => {
       try {
         // Fetch all categories for dropdown
         const response = await getCategories(1, 100);
-        if (response.success && Array.isArray(response.data?.items)) {
+        if (
+          !cancelled &&
+          mountedRef.current &&
+          sequence === categoryRequestSequence.current &&
+          response.success &&
+          Array.isArray(response.data?.items)
+        ) {
           setCategories(response.data.items);
         }
       } catch (e) {
@@ -95,9 +107,12 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         // control the admin may not even be using. Same shape as `useCategoryChannelsAdmin`.
         // Until #400 this branch was unreachable — `getCategories` answered a dead backend with
         // invented categories — so an empty dropdown had no failure to report in the first place.
-        enqueueSnackbar(getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'), {
-          variant: 'error',
-        });
+        if (!cancelled && mountedRef.current && sequence === categoryRequestSequence.current) {
+          enqueueSnackbarRef.current(
+            getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'),
+            { variant: 'error' },
+          );
+        }
       }
     };
     // Internal try/catch absorbs errors — `void` for fire-and-forget.
@@ -106,16 +121,17 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     // Mount-only ON PURPOSE. `enqueueSnackbar` is read only inside the catch, at the moment the
     // fetch fails; listing it would tie this fetch to notistack's identity for no gain. (`t` is not
     // listed either, but that is not what the disable is for — it is read through `tRef`.)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+      categoryRequestSequence.current += 1;
+    };
   }, []);
 
   // Fetch when the type filter or category changes
   useEffect(() => {
-    typeFilterRef.current = typeFilter; // Update ref so a stale in-flight response is dropped
     // Reset to page 1 when the filter OR category changes — the old page number is
     // meaningless against a different result set.
-    setCurrentPage(1);
-    void fetchProducts(1);
+    void fetchProducts();
   }, [typeFilter, selectedCategoryId, fetchProducts]);
 
   // Clear the category when the type chip changes.
@@ -142,26 +158,13 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     // Removed router.push which was clearing params/state unnecessarily
   };
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      void fetchProducts(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    [fetchProducts],
-  );
-
   return {
     products,
     categories,
     selectedCategoryId,
     isLoading,
     error,
-    currentPage,
-    totalPages,
-    totalCount,
-    pageSize,
     handleCategoryChange,
-    handlePageChange,
-    fetchProducts: (page?: number) => fetchProducts(page || currentPage),
+    fetchProducts,
   };
 };

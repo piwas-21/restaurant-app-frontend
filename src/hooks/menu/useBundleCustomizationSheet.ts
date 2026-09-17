@@ -14,6 +14,8 @@ import {
 } from '@/utils/bundleSelection';
 import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import type { MenuBundleItem, MenuSection, SelectedMenuOption } from '@/types/menu';
+import type { OpenSheetOptions } from './sheetOptions';
+import type { OfferMode } from '@/types/menu/offerFamily';
 
 interface UseBundleCustomizationSheetArgs {
   /** Fired after a successful add — the menu page uses it to animate the cart button. */
@@ -43,8 +45,8 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedMenuOption[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [offerMode, setOfferMode] = useState<OfferMode | undefined>(undefined);
   const [showValidation, setShowValidation] = useState(false);
-
   const sections = useMemo(() => bundle?.menuDefinition?.sections ?? [], [bundle]);
 
   // The per-option screens' navigation — which option is up, guided walk or review (own hook).
@@ -60,20 +62,18 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     reset: resetOptionTour,
     handleDeselection: forgetTouredOption,
   } = optionTour;
-
   const title = bundle ? localizedName(bundle, currentLanguage) : '';
   // The shared display chain, so a combo whose description was never translated shows the plain one
   // instead of nothing — the product sheet's F3 gap, which this hook had a copy of.
   const description = bundle ? localizedDescription(bundle, currentLanguage) : undefined;
-
   const close = useCallback(() => {
     setIsOpen(false);
     setBundle(null);
+    setOfferMode(undefined);
     resetOptionTour();
   }, [resetOptionTour]);
-
   const openForBundle = useCallback(
-    (next: MenuBundleItem) => {
+    (next: MenuBundleItem, opts?: Pick<OpenSheetOptions, 'availability' | 'offerMode'>) => {
       if (!next.menuDefinition) {
         // A malformed payload, not a server rejection — there is no guest-facing reason to pass on,
         // so this deliberately lands on the generic fallback.
@@ -86,12 +86,12 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
       setSpecialInstructions('');
       resetOptionTour();
       setShowValidation(false);
-      setBundle(next);
+      setOfferMode(opts?.offerMode);
+      setBundle(opts?.availability ? { ...next, availability: opts.availability } : next);
       setIsOpen(true);
     },
     [notifyAddFailed, resetOptionTour],
   );
-
   const linePrice = useLinePrice({
     kind: 'bundle',
     basePrice: bundle?.basePrice ?? 0,
@@ -99,7 +99,6 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     sections,
     selectedOptions,
   });
-
   // Derived, so a section's error clears the moment it is satisfied. Held back until the guest has
   // actually tried to add — a freshly-opened sheet does not greet them with red text.
   const selectionErrors = useMemo(
@@ -109,18 +108,18 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const visibleErrors = useMemo(() => (showValidation ? selectionErrors : []), [showValidation, selectionErrors]);
 
   const toggleOption = useCallback(
-    (section: MenuSection, itemId: string) => {
-      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
+    (section: MenuSection, itemId: string, productVariationId?: string | null) => {
+      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId, productVariationId));
       // Close the option's screen if its option just went away, so re-picking it later doesn't
       // silently reopen it; a selection change in the walked section kills the walk.
-      forgetTouredOption(section.id, itemId);
+      forgetTouredOption(section.id, itemId, productVariationId);
     },
     [forgetTouredOption],
   );
 
   const setOptionCustomization = useCallback(
-    (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => {
-      setSelectedOptions((prev) => updateBundleOption(prev, sectionId, itemId, patch));
+    (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>, productVariationId?: string | null) => {
+      setSelectedOptions((prev) => updateBundleOption(prev, sectionId, itemId, patch, productVariationId));
     },
     [],
   );
@@ -176,6 +175,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     sections,
     title,
     description,
+    offerMode,
     currentLanguage,
     quantity,
     setQuantity,

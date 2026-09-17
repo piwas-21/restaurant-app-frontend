@@ -1,5 +1,6 @@
 import type { ProductIngredient, DietaryTag, MenuItemImage } from './shared';
 import type { ItemAvailability } from './availability';
+import type { CatalogOfferFamily } from './offerFamily';
 
 /**
  * CatalogItem — the unified card view-model for the merged `MenuCard` (menu-bundles redesign #175,
@@ -9,6 +10,11 @@ import type { ItemAvailability } from './availability';
  * opened; this carries only what a card renders.
  */
 export type CatalogItemKind = 'product' | 'bundle';
+
+export interface CatalogFilterTarget {
+  allergens?: string[];
+  isSpecial?: boolean;
+}
 
 /**
  * `'editable'`, or the reason it is not. A union rather than a boolean-plus-reason pair so the two
@@ -62,6 +68,8 @@ export interface CatalogItem {
   priceEditability?: PriceEditability;
   allergens?: string[];
   isSpecial?: boolean;
+  /** The server's active flag, kept separate from channel availability. */
+  isActive?: boolean;
   isAvailable?: boolean;
   /** Products only: the card's summary line resolves these to localized names. */
   detailedIngredients?: ProductIngredient[];
@@ -84,4 +92,8 @@ export interface CatalogItem {
    * COMPONENT is refused at add time by the server (§9.3).
    */
   availability?: ItemAvailability;
+  /** Present on the category-offers path; keeps the card identity separate from order targets. */
+  offerFamily?: CatalogOfferFamily;
+  /** Family targets used to evaluate allergen/special filters without merging their identities. */
+  filterTargets?: CatalogFilterTarget[];
 }

@@ -1,10 +1,12 @@
 import type { MenuLayout, RestaurantInfoDto, UpdateRestaurantInfoCommand } from '@/types/restaurantInfo';
+import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 import { toFullUpdateCommand } from '@/services/restaurantInfoCommand';
 
 /** The menu-display section's own choices, saved with the palette through one full-upsert PUT. */
 export interface MenuDisplaySettingsInput {
   menuLayout: MenuLayout;
   showBundlesOnAllTab: boolean;
+  bundlePresentationMode: BundlePresentationMode;
 }
 
 /**
@@ -24,5 +26,6 @@ export function toUpdateCommand(
     themePaletteKey,
     menuLayout: menuDisplay.menuLayout,
     showMenuBundlesOnAllTab: menuDisplay.showBundlesOnAllTab,
+    bundlePresentationMode: menuDisplay.bundlePresentationMode,
   });
 }

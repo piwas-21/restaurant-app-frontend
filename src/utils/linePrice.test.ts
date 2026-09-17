@@ -191,6 +191,42 @@ describe('bundleLineUnitPrice', () => {
     });
     expect(price).toBe(8);
   });
+
+  it('matches same-product options by variation and charges the authoritative variation modifier', () => {
+    const variationSections = [
+      {
+        id: 'drink',
+        items: [
+          { productId: 'drink', productVariationId: null, additionalPrice: 1 },
+          {
+            productId: 'drink',
+            productVariationId: 'large',
+            productVariationPriceModifier: 2.5,
+            additionalPrice: 1,
+          },
+        ],
+      },
+    ];
+
+    const price = bundleLineUnitPrice({
+      basePrice: 10,
+      sections: variationSections,
+      selectedOptions: [
+        { sectionId: 'drink', itemId: 'drink', productVariationId: null, quantity: 1 },
+        {
+          sectionId: 'drink',
+          itemId: 'drink',
+          productVariationId: 'large',
+          productVariationPriceModifier: 2.5,
+          quantity: 1,
+        },
+      ],
+    });
+
+    // Backend MenuBundleSelectionRules.PriceFor = AdditionalPrice + loaded variation modifier:
+    // 10 + (1 + 0) + (1 + 2.5).
+    expect(price).toBe(14.5);
+  });
 });
 
 describe('lineTotal', () => {

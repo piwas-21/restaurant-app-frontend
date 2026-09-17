@@ -196,7 +196,10 @@ describe('useItemCustomizationSheet', () => {
       await result.current.openForProduct('combo');
     });
 
-    expect(onBundleDetected).toHaveBeenCalledWith(expect.objectContaining({ id: 'combo', basePrice: 20 }));
+    expect(onBundleDetected).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'combo', basePrice: 20 }),
+      expect.objectContaining({ availability: undefined, offerMode: undefined }),
+    );
     expect(result.current.isOpen).toBe(false);
     // Critically: it must not fall through to the no-options branch and silently add the combo
     // with none of its sections chosen.
@@ -433,6 +436,9 @@ describe('useItemCustomizationSheet — the card verdict rides along (§9.10)', 
     expect(onBundleDetected).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'combo',
+        availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+      }),
+      expect.objectContaining({
         availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
       }),
     );

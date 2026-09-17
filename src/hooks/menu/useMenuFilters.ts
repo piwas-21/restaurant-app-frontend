@@ -7,6 +7,8 @@ import { getAllergenInfo, type AllergenKind } from '@/lib/allergens';
 export interface FilterableItem {
   allergens?: string[];
   isSpecial?: boolean;
+  /** An offer family is a match when at least one of its underlying targets matches. */
+  filterTargets?: ReadonlyArray<FilterableItem>;
 }
 
 export type MenuFilterKind = 'claim' | 'without' | 'special';
@@ -57,7 +59,11 @@ function tally(items: FilterableItem[]) {
 
 /** The canonical token set for one item, resolved once so aliases (`dairy` → `milk`) collapse. */
 function canonicalTokens(item: FilterableItem): Set<string> {
-  return new Set((item.allergens ?? []).map((a) => getAllergenInfo(a).canonical));
+  const tokens = new Set((item.allergens ?? []).map((a) => getAllergenInfo(a).canonical));
+  for (const target of item.filterTargets ?? []) {
+    for (const token of canonicalTokens(target)) tokens.add(token);
+  }
+  return tokens;
 }
 
 /**
@@ -70,6 +76,9 @@ function canonicalTokens(item: FilterableItem): Set<string> {
  */
 export function matchesFilters(item: FilterableItem, activeIds: ReadonlySet<string>): boolean {
   if (activeIds.size === 0) return true;
+  if (item.filterTargets && item.filterTargets.length > 0) {
+    return item.filterTargets.some((target) => matchesFilters(target, activeIds));
+  }
   const tokens = canonicalTokens(item);
   for (const id of activeIds) {
     if (id === SPECIAL_FILTER_ID) {

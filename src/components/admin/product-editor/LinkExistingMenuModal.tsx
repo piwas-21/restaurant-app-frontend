@@ -1,0 +1,200 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import BaseModal from '@/components/design-system/BaseModal';
+import FormField from '@/components/design-system/FormField';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { linkMenuOffer } from '@/services/menuOfferFamilyService';
+import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
+import { serverMessage } from '@/utils/apiFormErrors';
+import { formatPlainCurrency } from '@/utils/currency';
+import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { useLinkExistingMenuLoader } from '@/hooks/admin/useLinkExistingMenuLoader';
+import LinkExistingMenuPreview from './LinkExistingMenuPreview';
+import { parseLinkExistingMenuSelection } from './linkExistingMenuSelection';
+import styles from './QuickMenuVersionModal.module.css';
+import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+
+interface LinkExistingMenuModalProps {
+  readonly isOpen: boolean;
+  readonly product: ProductDetails;
+  readonly onClose: () => void;
+  readonly onLinked: () => void;
+}
+
+/** Safe migration surface for an existing bundle. It previews the chosen menu before the
+ * relationship-only endpoint is called; no menu sections are sent or rewritten. */
+export default function LinkExistingMenuModal({ isOpen, product, onClose, onLinked }: LinkExistingMenuModalProps) {
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  const [selectedId, setSelectedId] = useState('');
+  const [variationId, setVariationId] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isReassignConfirmOpen, setIsReassignConfirmOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
+  const parentEligible = !product.isComponent && !product.menuDefinition?.parentOfferProductId;
+  const { bundles, parentNames, isLoading, loadError } = useLinkExistingMenuLoader({
+    isOpen,
+    productId: product.id,
+    parentEligible,
+  });
+  const selected = bundles.find((bundle) => bundle.id === selectedId);
+  const selectedLinkable = Boolean(parentEligible && selected && !selected.isComponent);
+  const activeVariations = getActiveOfferVariations(product);
+  const variationRequired = requiresOfferVariation(product);
+  const activeVariationIds = new Set(
+    activeVariations.map((candidate) => candidate.id).filter((id): id is string => Boolean(id)),
+  );
+  const linkableMenuIds = new Set(
+    bundles.filter((bundle) => parentEligible && !bundle.isComponent).map((bundle) => bundle.id),
+  );
+  const parentCategories = new Set(
+    (product.categories ?? []).map((category) => category.categoryName.trim().toLowerCase()),
+  );
+  const selectedCategories = selected?.categoryNames;
+  const categoryMismatch =
+    selectedCategories !== undefined &&
+    selectedCategories.every((category) => !parentCategories.has(category.trim().toLowerCase()));
+  const currentParentId = selected?.parentOfferProductId ?? null;
+  const currentParentName = currentParentId ? (parentNames[currentParentId] ?? currentParentId) : null;
+  const needsReassignment = Boolean(currentParentId && currentParentId !== product.id);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!isOpen) return;
+    setSelectedId('');
+    setVariationId('');
+    setError(null);
+    setIsReassignConfirmOpen(false);
+  }, [isOpen, product.id]);
+
+  const parseSelection = () =>
+    parseLinkExistingMenuSelection(selectedId, variationId, linkableMenuIds, activeVariationIds, variationRequired);
+
+  const linkSelected = async () => {
+    if (isSaving) return;
+    const selection = parseSelection();
+    if (!selection.success) return;
+    const selectedVariation = activeVariations.find((candidate) => candidate.id === selection.data.variationId);
+    setIsSaving(true);
+    setError(null);
+    try {
+      const response = await linkMenuOffer(selection.data.menuId, {
+        parentOfferProductId: product.id,
+        parentOfferVariationId: selectedVariation?.id ?? null,
+      });
+      if (!mountedRef.current) return;
+      if (!response.success) {
+        setError(serverMessage(response) ?? tRef.current('error_loading_menu_bundles'));
+        return;
+      }
+      onLinked();
+      onClose();
+    } catch (error_) {
+      if (mountedRef.current) setError(serverMessage(error_) ?? tRef.current('error_loading_menu_bundles'));
+    } finally {
+      if (mountedRef.current) setIsSaving(false);
+    }
+  };
+
+  const save = () => {
+    if (!parseSelection().success) return;
+    if (needsReassignment) {
+      setIsReassignConfirmOpen(true);
+      return;
+    }
+    void linkSelected();
+  };
+
+  const visibleError =
+    error ?? (loadError ? (serverMessage(loadError) ?? tRef.current('error_loading_menu_bundles')) : null);
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('link_existing_menu_version')}
+      size="md"
+      isPending={isSaving}
+      footer={
+        <div className={styles.footer}>
+          <button type="button" className={modalStyles.cancelButton} onClick={onClose} disabled={isSaving}>
+            {t('cancel')}
+          </button>
+          <button
+            type="button"
+            className={modalStyles.submitButton}
+            onClick={save}
+            disabled={!selectedLinkable || (variationRequired && !activeVariationIds.has(variationId)) || isSaving}
+          >
+            {isSaving ? t('saving') : t('link_menu_version')}
+          </button>
+        </div>
+      }
+    >
+      <div className={styles.form}>
+        {isLoading && <p>{t('loading_menu_bundles')}</p>}
+        {!isLoading && bundles.length === 0 && <p>{t('no_menu_bundles_found')}</p>}
+        {!isLoading && bundles.length > 0 && (
+          <FormField label={t('menu_bundles')}>
+            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
+              <option value="">{t('select_product')}</option>
+              {bundles.map((bundle) => (
+                <option key={bundle.id} value={bundle.id}>
+                  {bundle.name} · {formatPlainCurrency(bundle.basePrice)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        )}
+        {variationRequired && (
+          <FormField
+            label={t('product_variations')}
+            error={activeVariations.length === 0 ? t('no_active_variations') : undefined}
+          >
+            <select value={variationId} onChange={(event) => setVariationId(event.target.value)}>
+              <option value="">{t('select_product')}</option>
+              {activeVariations.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        )}
+        {selected && (
+          <LinkExistingMenuPreview
+            productName={product.name}
+            selected={selected}
+            currentParentName={currentParentName}
+            selectedCategories={selectedCategories}
+            categoryMismatch={categoryMismatch}
+          />
+        )}
+        {visibleError && (
+          <p role="alert" className={styles.error}>
+            {visibleError}
+          </p>
+        )}
+      </div>
+      <ConfirmationModal
+        isOpen={isReassignConfirmOpen}
+        onClose={() => setIsReassignConfirmOpen(false)}
+        onConfirm={() => {
+          setIsReassignConfirmOpen(false);
+          void linkSelected();
+        }}
+        message={t('reassign_menu_confirmation', { parentName: currentParentName ?? '' })}
+      />
+    </BaseModal>
+  );
+}

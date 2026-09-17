@@ -9,12 +9,12 @@ import { apiClient } from '@/utils/apiClient';
 import {
   BasketDto,
   BasketSummaryDto,
-  AddToBasketDto,
   UpdateBasketItemDto,
   ApplyPromoCodeRequest,
   BasketDtoApiResponse,
   BasketSummaryDtoApiResponse,
 } from '@/types/basket';
+import { toAddToBasketRequest, type AddToBasketInput } from './basketRequest';
 
 /**
  * Get current user's basket
@@ -50,9 +50,9 @@ export async function getBasketSummary(): Promise<BasketSummaryDto | null> {
  * @param item - Item details to add
  * @returns Updated basket
  */
-export async function addItemToBasket(item: AddToBasketDto): Promise<BasketDto> {
+export async function addItemToBasket(item: AddToBasketInput): Promise<BasketDto> {
   try {
-    const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/items', item);
+    const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/items', toAddToBasketRequest(item));
     if (!response.data) {
       // HTTP 200 + `success:false`, which on this endpoint means `AddToBasketCommand` caught an
       // InvalidOperationException. Every DELIBERATE rejection now throws a domain exception and

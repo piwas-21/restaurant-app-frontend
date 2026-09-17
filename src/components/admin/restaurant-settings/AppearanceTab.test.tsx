@@ -15,7 +15,14 @@ import type { RestaurantInfoDto } from '@/types/restaurantInfo';
  * the full-upsert guard exists to prevent.
  */
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, arg?: unknown) => (typeof arg === 'string' ? arg : key) }),
+  useTranslation: () => ({
+    t: (key: string, arg?: unknown) =>
+      ({
+        menu_layout_onepage: 'One page',
+        menu_layout_tabs: 'Category tabs',
+        menu_bundle_presentation_category: 'Offers in categories',
+      })[key] ?? (typeof arg === 'string' ? arg : key),
+  }),
 }));
 jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: jest.fn() }) }));
 jest.mock('@/hooks/useRestaurantInfo', () => ({
@@ -47,8 +54,10 @@ function infoFixture(overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfo
     logoDarkUrl: null,
     interiorImageUrl: null,
     phoneNumbers: [],
+    currency: 'CHF',
     menuLayout: 'tabs',
     showMenuBundlesOnAllTab: false,
+    bundlePresentationMode: 'legacySeparate',
     ...overrides,
   };
 }
@@ -84,6 +93,19 @@ describe('AppearanceTab — menu display settings', () => {
     expect(screen.getByTestId('show-bundles-on-all-tab')).toBeChecked();
   });
 
+  it('renders grouped offers mode and hides the legacy All-tab toggle', () => {
+    mockUseRestaurantInfo.mockReturnValue({
+      info: infoFixture({ bundlePresentationMode: 'categoryOffers', showMenuBundlesOnAllTab: true }),
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    renderTab();
+
+    expect(screen.getByRole('radio', { name: 'Offers in categories' })).toBeChecked();
+    expect(screen.queryByTestId('show-bundles-on-all-tab')).not.toBeInTheDocument();
+  });
+
   it('Save stays disabled until a control changes', () => {
     renderTab();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
@@ -103,7 +125,9 @@ describe('AppearanceTab — menu display settings', () => {
     expect(command.menuLayout).toBe('onepage');
     // Unchanged fields ride along untouched — the PUT wipes anything omitted.
     expect(command.showMenuBundlesOnAllTab).toBe(false);
+    expect(command.bundlePresentationMode).toBe('legacySeparate');
     expect(command.themePaletteKey).toBeNull();
+    expect(command.currency).toBe('CHF');
     expect(command.name).toBe('Rumi');
     // And the singleton's other settings are not reset by the save.
     expect(command).not.toHaveProperty('logoUrl');
@@ -119,6 +143,18 @@ describe('AppearanceTab — menu display settings', () => {
     const command = mockUpdate.mock.calls[0][0];
     expect(command.showMenuBundlesOnAllTab).toBe(true);
     expect(command.menuLayout).toBe('tabs');
+    expect(command.bundlePresentationMode).toBe('legacySeparate');
+  });
+
+  it('saves grouped offers mode through the same full-upsert command', async () => {
+    renderTab();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Offers in categories' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalledTimes(1));
+    expect(mockUpdate.mock.calls[0][0].bundlePresentationMode).toBe('categoryOffers');
+    expect(mockUpdate.mock.calls[0][0].menuLayout).toBe('tabs');
   });
 
   it('reports success and refreshes the cache after a save', async () => {

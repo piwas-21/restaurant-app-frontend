@@ -29,6 +29,7 @@ export default function BundleOptionCustomizationScreen({ flow }: Readonly<{ flo
   const { t } = useTranslation();
   const { item, option, step } = flow;
   if (!step) return null;
+  const optionLabel = [item.productName, item.productVariationName].filter(Boolean).join(' · ');
 
   let stepContent = (
     <IngredientStepsBody
@@ -69,16 +70,11 @@ export default function BundleOptionCustomizationScreen({ flow }: Readonly<{ flo
   return (
     <div className={styles.screen}>
       <div className={styles.header}>
-        <button
-          type="button"
-          className={styles.back}
-          onClick={flow.close}
-          aria-label={`${t('back')} — ${item.productName}`}
-        >
+        <button type="button" className={styles.back} onClick={flow.close} aria-label={`${t('back')} — ${optionLabel}`}>
           {/* One glyph, mirrored by the stylesheet under [dir='rtl'] — the progress rail's rule. */}
           <ChevronLeft size={20} aria-hidden="true" />
           <span className={styles.headerName} dir="auto">
-            {item.productName}
+            {optionLabel}
           </span>
         </button>
       </div>

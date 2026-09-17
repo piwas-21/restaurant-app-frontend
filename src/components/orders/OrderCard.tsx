@@ -27,6 +27,7 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 // tone one had already drifted: it painted `Confirmed` 'warning' where every other surface reads
 // 'info' from the module.
 import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from '@/app/styles/OrdersPage.module.css';
 
 interface OrderCardProps {
@@ -138,10 +139,10 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
             </div>
           )}
 
-          {order.type === 'DineIn' && order.tableNumber && (
+          {order.type === 'DineIn' && getOrderTableLabel(order) && (
             <div className={styles.detailSection}>
               <h4 className={styles.detailTitle}>{t('table_number', 'Table Number')}</h4>
-              <p className={styles.tableNumber}>{order.tableNumber}</p>
+              <p className={styles.tableNumber}>{getOrderTableLabel(order)}</p>
             </div>
           )}
 

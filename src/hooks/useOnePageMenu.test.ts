@@ -71,10 +71,12 @@ describe('useOnePageMenu — data', () => {
   });
 
   it('fetches nothing when disabled — the tabs layout owns the page', async () => {
-    renderHook(() => useOnePageMenu(false));
+    const { result } = renderHook(() => useOnePageMenu(false));
     await act(async () => {
       await Promise.resolve();
     });
+    expect(result.current.categories).toEqual(CATEGORIES);
+    expect(result.current.activeSectionId).toBe('all');
     expect(mockGetProducts).not.toHaveBeenCalled();
     expect(mockGetBundles).not.toHaveBeenCalled();
   });

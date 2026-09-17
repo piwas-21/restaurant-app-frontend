@@ -115,6 +115,15 @@
   background-color: #ef4444;
 }
 
+.statusStale {
+  color: var(--status-warning);
+}
+
+.statusStale .statusDot {
+  background-color: var(--status-warning);
+  animation: none;
+}
+
 .statusText {
   color: var(--button-text-color, #fff);
 }

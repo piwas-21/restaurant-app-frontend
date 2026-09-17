@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { updateOrderStatus as updateOrderStatusService, ServerTableDto } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
+import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import { useServerOrdersData } from './serverOrders/useServerOrdersData';
 import { useServerOrdersStream, ConnectionState } from './serverOrders/useServerOrdersStream';
 
@@ -13,12 +14,13 @@ interface UseServerOrdersReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
+  isStale: boolean;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
   refreshOrders: () => Promise<void>;
   refreshTables: () => Promise<void>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
-  getOrdersForTable: (tableNumber: string) => OrderDto[];
+  getOrdersForTable: (tableNumber: string, tableId?: string) => OrderDto[];
 }
 
 /**
@@ -32,10 +34,25 @@ interface UseServerOrdersReturn {
  * (`src/app/server/page.tsx`) need no changes.
  */
 export function useServerOrders(): UseServerOrdersReturn {
-  const { orders, tables, isLoading, error, setError, setOrders, refreshOrders, refreshTables, isMountedRef } =
-    useServerOrdersData();
+  const {
+    orders,
+    tables,
+    isLoading,
+    error: dataError,
+    isStale: dataIsStale,
+    setError,
+    setOrders,
+    refreshOrders,
+    refreshTables,
+    isMountedRef,
+  } = useServerOrdersData();
 
-  const { isConnected, lastEventTime, connectionState } = useServerOrdersStream({
+  const {
+    isConnected,
+    lastEventTime,
+    connectionState,
+    error: streamError,
+  } = useServerOrdersStream({
     onOrderUpdate: (updater) => {
       if (isMountedRef.current) setOrders(updater);
     },
@@ -65,6 +82,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           }),
         );
         await refreshTables();
+        setError(null);
         return mergedOrder || updatedOrder;
       } catch (err) {
         const errorMessage = getErrorMessage(err) ?? 'Failed to update status';
@@ -76,7 +94,8 @@ export function useServerOrders(): UseServerOrdersReturn {
   );
 
   const getOrdersForTable = useCallback(
-    (tableNumber: string) => orders.filter((order) => order.tableNumber?.toString() === tableNumber),
+    (tableNumber: string, tableId?: string) =>
+      orders.filter((order) => orderBelongsToTable(order, tableId, tableNumber)),
     [orders],
   );
 
@@ -85,7 +104,8 @@ export function useServerOrders(): UseServerOrdersReturn {
     tables,
     isConnected,
     isLoading,
-    error,
+    error: dataError || streamError,
+    isStale: dataIsStale || Boolean(streamError),
     lastEventTime,
     connectionState,
     refreshOrders,

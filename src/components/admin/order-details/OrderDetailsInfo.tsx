@@ -19,6 +19,7 @@ import { OrderDto } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { formatOrderPrice, formatOrderDate } from '@/utils/orderDetailsFormatters';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from '../OrderDetailsModal.module.css';
 
 interface OrderDetailsInfoProps {
@@ -81,12 +82,12 @@ export default function OrderDetailsInfo({ order }: OrderDetailsInfoProps) {
               {t('order_created', 'Order created')}: {formatOrderDate(order.orderDate)}
             </div>
           </div>
-          {order.type === 'DineIn' && order.tableNumber && (
+          {order.type === 'DineIn' && getOrderTableLabel(order) && (
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>{t('table_number', 'Table Number')}</span>
               <div className={styles.infoValue}>
                 <UtensilsCrossed size={16} />
-                {t('table', 'Table')} {order.tableNumber}
+                {t('table', 'Table')} {getOrderTableLabel(order)}
               </div>
             </div>
           )}

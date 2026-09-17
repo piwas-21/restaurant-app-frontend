@@ -1,0 +1,5 @@
+/* Shared stacking contexts. Nested modal layers add their small runtime offset to these bases. */
+:root {
+  --z-modal-backdrop: 9999;
+  --z-modal-surface: 10000;
+}

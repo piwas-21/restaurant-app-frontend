@@ -15,7 +15,13 @@ import {
  */
 
 /** Identifies one option inside the bundle — the drill-in disclosure key. */
-export const bundleOptionKey = (sectionId: string, itemId: string) => `${sectionId}::${itemId}`;
+export const bundleOptionKey = (sectionId: string, itemId: string, productVariationId?: string | null) =>
+  `${sectionId}::${itemId}::${productVariationId ?? 'base'}`;
+
+/** Variation identity is part of an option identity; an omitted id means the product's base row. */
+function matchesVariation(actual: string | null | undefined, expected: string | null | undefined): boolean {
+  return (actual ?? null) === (expected ?? null);
+}
 
 /**
  * One chosen option, seeded with the base-recipe ingredient selection so the line starts at the
@@ -34,7 +40,15 @@ export const bundleOptionKey = (sectionId: string, itemId: string) => `${section
  * null) — this guard buys no price protection, and none is needed.
  */
 export function buildBundleOption(sectionId: string, item: MenuSectionItem): SelectedMenuOption {
-  const option: SelectedMenuOption = { sectionId, itemId: item.productId, quantity: 1 };
+  const option: SelectedMenuOption = {
+    sectionId,
+    itemId: item.productId,
+    quantity: 1,
+    ...(item.productVariationId !== undefined ? { productVariationId: item.productVariationId } : {}),
+    ...(item.productVariationPriceModifier !== undefined && item.productVariationPriceModifier !== null
+      ? { productVariationPriceModifier: item.productVariationPriceModifier }
+      : {}),
+  };
   const groups = activeCustomizationGroups(item);
   if (groups.length > 0) {
     const customizationSelections = defaultCustomizationSelections(item);
@@ -76,8 +90,14 @@ export function findBundleOption(
   selectedOptions: readonly SelectedMenuOption[],
   sectionId: string,
   itemId: string,
+  productVariationId?: string | null,
 ): SelectedMenuOption | undefined {
-  return selectedOptions.find((option) => option.sectionId === sectionId && option.itemId === itemId);
+  return selectedOptions.find(
+    (option) =>
+      option.sectionId === sectionId &&
+      option.itemId === itemId &&
+      matchesVariation(option.productVariationId, productVariationId),
+  );
 }
 
 /**
@@ -103,11 +123,14 @@ export function toggleBundleOption(
   section: MenuSection,
   selectedOptions: readonly SelectedMenuOption[],
   itemId: string,
+  productVariationId?: string | null,
 ): SelectedMenuOption[] {
-  const item = section.items.find((candidate) => candidate.productId === itemId);
+  const item = section.items.find(
+    (candidate) => candidate.productId === itemId && matchesVariation(candidate.productVariationId, productVariationId),
+  );
   if (!item) return [...selectedOptions];
 
-  const isSelected = Boolean(findBundleOption(selectedOptions, section.id, itemId));
+  const isSelected = Boolean(findBundleOption(selectedOptions, section.id, itemId, item.productVariationId));
 
   if (section.maxSelection === 1) {
     if (isSelected) return [...selectedOptions];
@@ -118,7 +141,14 @@ export function toggleBundleOption(
   }
 
   if (isSelected) {
-    return selectedOptions.filter((option) => !(option.sectionId === section.id && option.itemId === itemId));
+    return selectedOptions.filter(
+      (option) =>
+        !(
+          option.sectionId === section.id &&
+          option.itemId === itemId &&
+          matchesVariation(option.productVariationId, item.productVariationId)
+        ),
+    );
   }
 
   if (countSectionSelections(selectedOptions, section.id) >= section.maxSelection) {
@@ -137,9 +167,15 @@ export function updateBundleOption(
   sectionId: string,
   itemId: string,
   patch: Partial<SelectedMenuOption>,
+  productVariationId?: string | null,
 ): SelectedMenuOption[] {
   return selectedOptions.map((option) => {
-    if (option.sectionId !== sectionId || option.itemId !== itemId) return option;
+    if (
+      option.sectionId !== sectionId ||
+      option.itemId !== itemId ||
+      !matchesVariation(option.productVariationId, productVariationId)
+    )
+      return option;
     const updated = { ...option, ...patch };
     if (patch.ingredientQuantities) {
       updated.ingredientQuantities = { ...option.ingredientQuantities, ...patch.ingredientQuantities };

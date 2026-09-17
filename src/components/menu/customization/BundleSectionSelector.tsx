@@ -12,8 +12,13 @@ import styles from './BundleSectionSelector.module.css';
 /** Inline-expansion mode: the staff modal expands a selected option's panel under its row. */
 export interface BundleSectionInlinePanel {
   expandedOptionKey: string | null;
-  onToggle: (sectionId: string, itemId: string) => void;
-  onChange: (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>) => void;
+  onToggle: (sectionId: string, itemId: string, productVariationId?: string | null) => void;
+  onChange: (
+    sectionId: string,
+    itemId: string,
+    patch: Partial<SelectedMenuOption>,
+    productVariationId?: string | null,
+  ) => void;
 }
 
 interface BundleSectionSelectorProps {
@@ -22,13 +27,13 @@ interface BundleSectionSelectorProps {
   /** The section's unmet `minSelection`, present only once the guest has tried to add. */
   minSelectionError?: number;
   currentLanguage: string;
-  onToggleOption: (section: MenuSection, itemId: string) => void;
+  onToggleOption: (section: MenuSection, itemId: string, productVariationId?: string | null) => void;
   /**
    * GUEST sheet: tapping Customize on a selected option opens the option's guided customization
    * screen, which the sheet itself hosts (BundleOptionCustomizationScreen — the 2026-09 owner
    * decision superseding #175's inline drill-in). The selector only raises the intent.
    */
-  onCustomizeOption?: (sectionId: string, itemId: string) => void;
+  onCustomizeOption?: (sectionId: string, itemId: string, productVariationId?: string | null) => void;
   /** STAFF modal: expand the option's editing panel inline instead of navigating. */
   inlinePanel?: BundleSectionInlinePanel;
   /**
@@ -69,30 +74,44 @@ export default function BundleSectionSelector({
       : t('choose_range', { min: section.minSelection, max: section.maxSelection });
 
   /** What Customize opens for this option — navigation (guest) or inline disclosure (staff). */
-  const customizeProps = (itemId: string) => {
+  const customizeProps = (item: (typeof section.items)[number]) => {
+    const { productId: itemId, productVariationId } = item;
     if (inlinePanel) {
-      const key = bundleOptionKey(section.id, itemId);
+      const key = bundleOptionKey(section.id, itemId, productVariationId);
+      const legacyBaseKey = `${section.id}::${itemId}`;
       return {
-        onCustomize: () => inlinePanel.onToggle(section.id, itemId),
-        customizeExpanded: inlinePanel.expandedOptionKey === key,
-        customizePanelId: `bundle-option-panel-${section.id}-${itemId}`,
+        onCustomize: () => {
+          if (productVariationId == null) inlinePanel.onToggle(section.id, itemId);
+          else inlinePanel.onToggle(section.id, itemId, productVariationId);
+        },
+        customizeExpanded:
+          inlinePanel.expandedOptionKey === key ||
+          (productVariationId == null && inlinePanel.expandedOptionKey === legacyBaseKey),
+        customizePanelId: `bundle-option-panel-${key}`,
       };
     }
-    return { onCustomize: () => onCustomizeOption?.(section.id, itemId) };
+    return {
+      onCustomize: () => {
+        if (productVariationId == null) onCustomizeOption?.(section.id, itemId);
+        else onCustomizeOption?.(section.id, itemId, productVariationId);
+      },
+    };
   };
 
   /** The row, then — staff mode only — the expanded panel under it. */
   const renderOption = (item: (typeof section.items)[number], extra: { hideSelectionControl?: boolean }) => {
-    const option = findBundleOption(selectedOptions, section.id, item.productId);
+    const option = findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId);
     const panelVisible = Boolean(
       inlinePanel &&
-      (extra.hideSelectionControl || inlinePanel.expandedOptionKey === bundleOptionKey(section.id, item.productId)),
+      (extra.hideSelectionControl ||
+        inlinePanel.expandedOptionKey === bundleOptionKey(section.id, item.productId, item.productVariationId) ||
+        (item.productVariationId == null && inlinePanel.expandedOptionKey === `${section.id}::${item.productId}`)),
     );
-    const panelId = `bundle-option-panel-${section.id}-${item.productId}`;
+    const panelId = `bundle-option-panel-${bundleOptionKey(section.id, item.productId, item.productVariationId)}`;
     // A fixed Plat's Customize still NAVIGATES in the guest sheet; the staff modal keeps its panel
     // permanently open where the redundant radio picker used to be (P3), so it needs no Customize
     // affordance on top — every other selected option gets the navigation props.
-    const navigateAffordance = customizeProps(item.productId);
+    const navigateAffordance = customizeProps(item);
     let customizeAffordance:
       | typeof navigateAffordance
       | { onCustomize: undefined; customizeExpanded: undefined; customizePanelId: undefined } = navigateAffordance;
@@ -109,7 +128,10 @@ export default function BundleSectionSelector({
           isSelected={Boolean(option)}
           isDisabled={!option && !isRadio && selectedCount >= section.maxSelection}
           currentLanguage={currentLanguage}
-          onToggle={() => onToggleOption(section, item.productId)}
+          onToggle={() => {
+            if (item.productVariationId == null) onToggleOption(section, item.productId);
+            else onToggleOption(section, item.productId, item.productVariationId);
+          }}
           {...customizeAffordance}
           {...extra}
         />
@@ -120,13 +142,36 @@ export default function BundleSectionSelector({
             option={option}
             currentLanguage={currentLanguage}
             onSelectionChange={(selected) =>
-              inlinePanel.onChange(section.id, item.productId, { selectedIngredients: selected })
+              item.productVariationId == null
+                ? inlinePanel.onChange(section.id, item.productId, { selectedIngredients: selected })
+                : inlinePanel.onChange(
+                    section.id,
+                    item.productId,
+                    { selectedIngredients: selected },
+                    item.productVariationId,
+                  )
             }
             onQuantityChange={(ingredientId, quantity) =>
-              inlinePanel.onChange(section.id, item.productId, { ingredientQuantities: { [ingredientId]: quantity } })
+              item.productVariationId == null
+                ? inlinePanel.onChange(section.id, item.productId, {
+                    ingredientQuantities: { [ingredientId]: quantity },
+                  })
+                : inlinePanel.onChange(
+                    section.id,
+                    item.productId,
+                    { ingredientQuantities: { [ingredientId]: quantity } },
+                    item.productVariationId,
+                  )
             }
             onInstructionsChange={(instructions) =>
-              inlinePanel.onChange(section.id, item.productId, { specialInstructions: instructions || undefined })
+              item.productVariationId == null
+                ? inlinePanel.onChange(section.id, item.productId, { specialInstructions: instructions || undefined })
+                : inlinePanel.onChange(
+                    section.id,
+                    item.productId,
+                    { specialInstructions: instructions || undefined },
+                    item.productVariationId,
+                  )
             }
           />
         )}

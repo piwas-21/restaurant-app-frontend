@@ -24,10 +24,6 @@
   margin-bottom: 0.75rem;
 }
 
-.customerInfo {
-  margin-bottom: 0.75rem;
-}
-
 .orderItems {
   flex: 1;
   overflow-y: auto;

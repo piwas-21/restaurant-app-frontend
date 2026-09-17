@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import TableDetailsModal from './TableDetailsModal';
 import type { ServerTableDto } from '@/services/serverService';
+import type { OrderDto } from '@/types/order';
 import { singleKitchenBundleOrder, nestedBundleOrder } from '@/utils/__fixtures__/bundleOrderFixture';
 
 jest.mock('react-i18next', () => ({
@@ -12,7 +13,6 @@ jest.mock('@/services/serverService', () => ({
   closeTable: jest.fn(),
   openTable: jest.fn(),
   releaseTable: jest.fn(),
-  completeAllTableOrders: jest.fn(),
 }));
 
 const table: ServerTableDto = {
@@ -29,15 +29,19 @@ const table: ServerTableDto = {
   status: 'occupied',
 };
 
-const renderModal = (orders = [singleKitchenBundleOrder()]) =>
+const renderModal = (
+  orders = [singleKitchenBundleOrder()],
+  options: { status?: ServerTableDto['status']; isStale?: boolean } = {},
+) =>
   render(
     <TableDetailsModal
-      table={table}
+      table={{ ...table, status: options.status ?? table.status }}
       orders={orders}
       onClose={jest.fn()}
       onUpdateOrderStatus={jest.fn()}
       onTakeOrder={jest.fn()}
       onTableStatusChanged={jest.fn()}
+      isStale={options.isStale ?? false}
     />,
   );
 
@@ -55,5 +59,26 @@ describe('TableDetailsModal — bundle components', () => {
 
     expect(screen.getByText(/Mezze Selection/)).toBeInTheDocument();
     expect(screen.getByText(/Hummus/)).toBeInTheDocument();
+  });
+
+  it('blocks close and release actions while the table snapshot is stale', () => {
+    renderModal([], { status: 'reserved', isStale: true });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Data may be out of date. Refresh before closing or releasing the table.',
+    );
+    expect(screen.getByRole('button', { name: /Mark as Available/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Close Table/ })).toBeDisabled();
+  });
+
+  it('keeps same-number orders from another stable table out of the modal', () => {
+    const matching = { ...singleKitchenBundleOrder(), tableId: table.id, tableNumber: null } as OrderDto;
+    const otherTable = { ...nestedBundleOrder(), tableId: 'table-2', tableNumber: 4 } as OrderDto;
+
+    renderModal([matching, otherTable]);
+
+    expect(screen.getByText(/Active Orders \(1\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Mezze Combo/)).toBeInTheDocument();
+    expect(screen.queryByText(/Mezze Selection/)).not.toBeInTheDocument();
   });
 });

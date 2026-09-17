@@ -68,6 +68,7 @@ export const getProducts = async (
   // staff caller, and the category the owner just hid sat in the All list anyway. Admin/staff
   // callers omit it and keep seeing everything (they manage the flag). A guest needs no flag.
   guestAllView?: boolean,
+  signal?: AbortSignal,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
   let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
   if (categoryId) {
@@ -90,8 +91,49 @@ export const getProducts = async (
   if (typeQuery?.includeComponents) {
     url += `&IncludeComponents=true`;
   }
-  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
+  return (await (signal ? apiClient.get(url, { signal }) : apiClient.get(url))) as {
+    success: boolean;
+    message: string;
+    data: PaginatedProducts;
+    errors: unknown;
+  };
 };
+
+/**
+ * Local offer-family grouping is deliberately bounded. The admin menu screen needs the complete
+ * set of rows that it groups, but it must not turn an unexpectedly large tenant catalogue into an
+ * unbounded browser read. Ten pages at the API's maximum page size cover 1,000 rows; larger
+ * catalogues fail explicitly so the UI never presents a silently incomplete family list.
+ */
+export const MAX_PRODUCT_PAGES_FOR_LOCAL_GROUPING = 10;
+
+export const getAllProducts = async (
+  categoryId?: string | null,
+  typeQuery?: ProductTypeQuery,
+  signal?: AbortSignal,
+): Promise<Product[]> => {
+  const pageSize = 100;
+  const byId = new Map<string, Product>();
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages && page <= MAX_PRODUCT_PAGES_FOR_LOCAL_GROUPING) {
+    const response = await getProducts(page, pageSize, categoryId, typeQuery, undefined, undefined, signal);
+    if (!response.success) throw new Error(response.message || 'Failed to load menu items');
+    response.data.items.forEach((product) => byId.set(product.id, product));
+    if (response.data.items.length === 0) break;
+    totalPages = Math.max(page, response.data.totalPages || Math.ceil(response.data.totalCount / pageSize) || 1);
+    if (totalPages > MAX_PRODUCT_PAGES_FOR_LOCAL_GROUPING) {
+      throw new Error('Menu catalogue is too large to group locally');
+    }
+    page += 1;
+  }
+
+  return [...byId.values()];
+};
+
+export const getAllMenuBundles = async (signal?: AbortSignal): Promise<Product[]> =>
+  getAllProducts(null, { type: 'Menu', includeComponents: true }, signal);
 
 export const createProduct = async (productData: CreateProductData) => {
   try {
@@ -102,8 +144,10 @@ export const createProduct = async (productData: CreateProductData) => {
   }
 };
 
-export const getProductById = async (productId: string) => {
-  return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
+export const getProductById = async (productId: string, signal?: AbortSignal) => {
+  return await (signal
+    ? apiClient.get(`${PRODUCTS_API_URL}/${productId}`, { signal })
+    : apiClient.get(`${PRODUCTS_API_URL}/${productId}`));
 };
 
 /**

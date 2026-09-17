@@ -1,20 +1,14 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
-import { UserDto } from '@/services/serverService';
-import CustomerSearchInput from '../CustomerSearchInput';
-import CustomerInfoPanel from '../CustomerInfoPanel';
+import FormField from '@/components/design-system/FormField';
 import { OrderItem } from './orderItems';
+import customerStyles from './TakeOrderCustomerField.module.css';
 import styles from './TakeOrderSummaryPanel.module.css';
 
 interface TakeOrderSummaryPanelProps {
   error: string | null;
   customerName: string;
   onCustomerNameChange: (value: string) => void;
-  selectedUser: UserDto | null;
-  onUserSelect: (user: UserDto | null) => void;
-  orderSubtotal: number;
-  pointsToRedeem: number;
-  onPointsChange: (points: number) => void;
   orderItems: OrderItem[];
   onUpdateQuantity: (index: number, quantity: number) => void;
   onRemoveItem: (index: number) => void;
@@ -29,11 +23,6 @@ export default function TakeOrderSummaryPanel({
   error,
   customerName,
   onCustomerNameChange,
-  selectedUser,
-  onUserSelect,
-  orderSubtotal,
-  pointsToRedeem,
-  onPointsChange,
   orderItems,
   onUpdateQuantity,
   onRemoveItem,
@@ -51,23 +40,16 @@ export default function TakeOrderSummaryPanel({
 
       {error && <div className={styles.error}>{error}</div>}
 
-      <div className={styles.customerInfo}>
-        <CustomerSearchInput
+      <FormField className={customerStyles.customerInfo} label={t('server.customer_name', 'Customer name (optional)')}>
+        <input
+          id="server-customer-name"
+          type="text"
+          className={customerStyles.customerInput}
           value={customerName}
-          selectedUser={selectedUser}
-          onValueChange={onCustomerNameChange}
-          onUserSelect={onUserSelect}
+          onChange={(event) => onCustomerNameChange(event.target.value)}
+          autoComplete="off"
         />
-      </div>
-
-      {selectedUser && (
-        <CustomerInfoPanel
-          user={selectedUser}
-          orderTotal={orderSubtotal}
-          pointsToRedeem={pointsToRedeem}
-          onPointsChange={onPointsChange}
-        />
-      )}
+      </FormField>
 
       <div className={styles.orderItems}>
         {orderItems.length === 0 ? (

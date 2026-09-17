@@ -44,11 +44,12 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
       selectedOptions={selectedOptions}
       minSelectionError={minSelectionError}
       currentLanguage={currentLanguage}
-      onToggleOption={(toggledSection, itemId) => {
+      onToggleOption={(toggledSection, itemId, productVariationId) => {
         // A no-op toggle (re-picking the selected radio) neither advances nor re-opens anything:
         // the guest is already where the pick puts them.
-        const wasSelected = Boolean(findBundleOption(selectedOptions, toggledSection.id, itemId));
-        toggleOption(toggledSection, itemId);
+        const wasSelected = Boolean(findBundleOption(selectedOptions, toggledSection.id, itemId, productVariationId));
+        if (productVariationId == null) toggleOption(toggledSection, itemId);
+        else toggleOption(toggledSection, itemId, productVariationId);
         if (wasSelected) return;
         // Partner feedback 2026-09: picking an option that has ingredients/sauces IS the
         // navigation — the sheet advances straight into its guided screens, no Customize tap. On
@@ -56,8 +57,11 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
         // section keeps the guest on the rows (they may pick several) and the walk starts when
         // they Continue. An option with nothing further to configure announces the choice, and
         // the section auto-advances as before.
-        if (hasOwnCustomization(toggledSection, itemId)) {
-          if (toggledSection.maxSelection === 1) beginOptionTourAt(toggledSection.id, itemId);
+        if (hasOwnCustomization(toggledSection, itemId, productVariationId)) {
+          if (toggledSection.maxSelection === 1) {
+            if (productVariationId == null) beginOptionTourAt(toggledSection.id, itemId);
+            else beginOptionTourAt(toggledSection.id, itemId, productVariationId);
+          }
           return;
         }
         onChoice();
@@ -69,8 +73,11 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
 }
 
 /** Does picking this option open a customization screen the guest would be carried past? */
-function hasOwnCustomization(section: MenuSection, productId: string): boolean {
-  const item = section.items.find((candidate) => candidate.productId === productId);
+function hasOwnCustomization(section: MenuSection, productId: string, productVariationId?: string | null): boolean {
+  const item = section.items.find(
+    (candidate) =>
+      candidate.productId === productId && (candidate.productVariationId ?? null) === (productVariationId ?? null),
+  );
   return (
     (item?.customizationGroups?.some((group) => group.isActive) ?? false) ||
     (item?.detailedIngredients?.length ?? 0) > 0

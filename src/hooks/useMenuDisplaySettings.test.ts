@@ -30,6 +30,7 @@ function infoFixture(overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfo
     logoDarkUrl: null,
     interiorImageUrl: null,
     phoneNumbers: [],
+    currency: 'CHF',
     ...overrides,
   };
 }
@@ -85,6 +86,28 @@ describe('useMenuDisplaySettings — defaults are the shipped behaviour', () => 
     expect(result.current.menuLayout).toBe('onepage');
     expect(result.current.showBundlesOnAllTab).toBe(true);
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('reads the grouped category-offers presentation mode when enabled by the tenant', () => {
+    mockUseRestaurantInfo.mockReturnValue({
+      info: infoFixture({ bundlePresentationMode: 'categoryOffers' }),
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    const { result } = renderHook(() => useMenuDisplaySettings());
+    expect(result.current.bundlePresentationMode).toBe('categoryOffers');
+  });
+
+  it('falls back to separate bundles for an unknown presentation mode', () => {
+    mockUseRestaurantInfo.mockReturnValue({
+      info: infoFixture({ bundlePresentationMode: 'unexpected' as RestaurantInfoDto['bundlePresentationMode'] }),
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    const { result } = renderHook(() => useMenuDisplaySettings());
+    expect(result.current.bundlePresentationMode).toBe('legacySeparate');
   });
 
   it('reads an unknown layout value as tabs, never as one-page', () => {

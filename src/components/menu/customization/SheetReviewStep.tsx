@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import SpecialRequestSection from './SpecialRequestSection';
 import { stepLabel } from './stepLabel';
 import type { CustomizationStep } from '@/utils/customizationSteps';
+import type { OfferMode } from '@/types/menu/offerFamily';
 import styles from './SheetReviewStep.module.css';
 
 export interface ReviewRow {
@@ -12,11 +13,20 @@ export interface ReviewRow {
   values: string[];
 }
 
+function modeKeyFor(language: string, offerMode: OfferMode): string {
+  if (language === 'fr') {
+    return offerMode === 'meal' ? 'offer_family_menu' : 'offer_family_a_la_carte';
+  }
+  return offerMode === 'meal' ? 'offer_family_meal' : 'offer_family_item_only';
+}
+
 interface SheetReviewStepProps {
   rows: readonly ReviewRow[];
   onJump: (step: CustomizationStep) => void;
   specialInstructions: string;
   onInstructionsChange: (instructions: string) => void;
+  /** The family mode selected before entering this existing review step. */
+  offerMode?: OfferMode;
 }
 
 /**
@@ -33,12 +43,24 @@ export default function SheetReviewStep({
   onJump,
   specialInstructions,
   onInstructionsChange,
+  offerMode,
 }: Readonly<SheetReviewStepProps>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = (i18n.language || 'en').split('-')[0];
+  let modeLabel: string | null = null;
+  if (offerMode !== undefined) {
+    modeLabel = t(modeKeyFor(language, offerMode));
+  }
 
   return (
     <>
       <dl className={styles.list}>
+        {modeLabel && (
+          <div className={styles.row} data-testid="offer-family-review-mode">
+            <dt className={styles.term}>{t('offer_family_choose_mode')}</dt>
+            <dd className={styles.value}>{modeLabel}</dd>
+          </div>
+        )}
         {rows.map(({ step, values }) => {
           const label = stepLabel(step, t);
           return (

@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 
 /**
  * What every section builder is handed (MENU-ITEM-EDITOR-REDESIGN-PLAN S1/S2).
@@ -15,6 +16,9 @@ export interface EditorSectionsContext {
   readonly product: ProductDetails;
   readonly isCreate: boolean;
   readonly isBundle: boolean;
+  readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
+  /** Route an offer detail link through the page's dirty-navigation guard. */
+  readonly onNavigate?: (href: string) => void;
 }
 
 /**

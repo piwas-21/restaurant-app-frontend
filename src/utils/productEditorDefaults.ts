@@ -40,6 +40,8 @@ export function emptyProductDetails(isBundle: boolean): ProductDetails {
 /** A bundle with no saved definition still needs one to edit against. */
 export const EMPTY_MENU_DEFINITION: MenuDefinition = {
   id: '',
+  parentOfferProductId: null,
+  parentOfferVariationId: null,
   isAlwaysAvailable: true,
   availableMonday: true,
   availableTuesday: true,
@@ -132,17 +134,17 @@ export function resolveSideItemIds(product: ProductDetails): string[] {
 }
 
 /**
- * Form defaults for a bundle. Deliberately carries no category / variation / ingredient
- * fields: `MenuBundleDto` returns none of them, so there is nothing to seed and
- * `editMenuBundleSchema` declares none. A bundle's categories are preserved server-side
- * (backend #192) precisely because the client never sends them.
+ * Form defaults for a bundle. Variations and ingredients remain absent from the bundle contract;
+ * category ids are carried when a summary or quick-offer prefill supplies them so the full editor
+ * can preserve the commercial placement on create.
  *
  * The two shapes are NOT interchangeable — an item is validated by `editProductSchema`
- * (which requires at least one category) and a bundle by `editMenuBundleSchema` (no category
- * field, requires a menuDefinition) — so the caller picks the one matching its resolver
+ * (which requires at least one category) and a bundle by `editMenuBundleSchema` (requires a
+ * menuDefinition) — so the caller picks the one matching its resolver
  * rather than passing a selector flag through one function.
  */
 export function toBundleDefaults(product: ProductDetails) {
+  const categoryIds = resolveCategoryIds(product);
   return {
     id: product.id,
     name: product.name || '',
@@ -153,6 +155,8 @@ export function toBundleDefaults(product: ProductDetails) {
     isSpecial: product.isSpecial ?? false,
     type: 'menu' as const,
     content: flattenContent(product.content, product.name || ''),
+    categoryIds,
+    primaryCategoryId: resolvePrimaryCategoryId(product, categoryIds) || null,
     preparationTimeMinutes: product.preparationTimeMinutes || 0,
     displayOrder: product.displayOrder || 0,
     // Required by editMenuBundleSchema, so it has to be a form VALUE or validation fails and

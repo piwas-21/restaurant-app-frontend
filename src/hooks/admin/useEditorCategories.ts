@@ -42,9 +42,6 @@ export function useEditorCategories(isBundle: boolean) {
   const { message, capture, clear } = useApiError();
 
   useEffect(() => {
-    // Bundles have no category control (MenuBundleDto carries none), so don't fetch for them.
-    if (isBundle) return;
-
     // The editor can be unmounted mid-flight (the admin navigates back off a slow load). Without
     // this the late answer would write state on a dead component — and, worse for a failure, park
     // an error sentence on a screen that has moved on.

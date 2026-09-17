@@ -204,6 +204,132 @@ describe('useBundleCustomizationSheet', () => {
     expect(result.current.isOpen).toBe(false);
   });
 
+  it('preserves a variation-linked section item in the basket payload', async () => {
+    const variationBundle: MenuBundleItem = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        sections: bundle.menuDefinition.sections.map((section, index) =>
+          index === 0
+            ? {
+                ...section,
+                items: section.items.map((item) => ({ ...item, productVariationId: 'large-portion' })),
+              }
+            : section,
+        ),
+      },
+    };
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() => result.current.openForBundle(variationBundle));
+    act(() => result.current.toggleOption(variationBundle.menuDefinition.sections[1], 'coke'));
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedMenuOptions: expect.arrayContaining([
+          expect.objectContaining({ itemId: 'burger', productVariationId: 'large-portion' }),
+        ]),
+      }),
+    );
+  });
+
+  it('keeps same-product variation options independent through customization, payload and total', async () => {
+    const regularIce = { ...cheese, id: 'regular-ice', name: 'Ice', price: 0 };
+    const largeIce = { ...bacon, id: 'large-ice', name: 'Ice', price: 3 };
+    const variationBundle: MenuBundleItem = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        sections: bundle.menuDefinition.sections.map((section, index) =>
+          index === 1
+            ? {
+                ...section,
+                maxSelection: 2,
+                items: [
+                  {
+                    ...section.items[0],
+                    id: 'regular-water',
+                    productId: 'water',
+                    productVariationId: null,
+                    productVariationName: 'Regular',
+                    productVariationPriceModifier: 0,
+                    detailedIngredients: [regularIce],
+                  },
+                  {
+                    ...section.items[0],
+                    id: 'large-water',
+                    productId: 'water',
+                    productVariationId: 'large',
+                    productVariationName: 'Large',
+                    productVariationPriceModifier: 2,
+                    additionalPrice: 1,
+                    detailedIngredients: [largeIce],
+                  },
+                ],
+              }
+            : section,
+        ),
+      },
+    };
+    const drinkSection = variationBundle.menuDefinition.sections[1];
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() => result.current.openForBundle(variationBundle));
+    act(() => result.current.toggleOption(drinkSection, 'water', null));
+    act(() => result.current.toggleOption(drinkSection, 'water', 'large'));
+    act(() =>
+      result.current.setOptionCustomization(
+        drinkSection.id,
+        'water',
+        {
+          selectedIngredients: ['large-ice'],
+          ingredientQuantities: { 'large-ice': 1 },
+          specialInstructions: 'less ice',
+        },
+        'large',
+      ),
+    );
+
+    // 20 base + 4 burger + regular (0) + large (1 + 2 variation) + large ice (3).
+    expect(result.current.linePrice.unitPrice).toBe(30);
+    expect(result.current.selectedOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemId: 'water',
+          productVariationId: null,
+          productVariationPriceModifier: 0,
+        }),
+        expect.objectContaining({
+          itemId: 'water',
+          productVariationId: 'large',
+          productVariationPriceModifier: 2,
+          selectedIngredients: ['large-ice'],
+          specialInstructions: 'less ice',
+        }),
+      ]),
+    );
+
+    await act(async () => {
+      await result.current.addToCart();
+    });
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedMenuOptions: expect.arrayContaining([
+          expect.objectContaining({ itemId: 'water', productVariationId: null, productVariationPriceModifier: 0 }),
+          expect.objectContaining({
+            itemId: 'water',
+            productVariationId: 'large',
+            productVariationPriceModifier: 2,
+            specialInstructions: 'less ice',
+          }),
+        ]),
+      }),
+    );
+  });
+
   it('prices a drill-in ingredient change and carries it into the add payload', async () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(bundle));

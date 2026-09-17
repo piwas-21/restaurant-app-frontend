@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
@@ -12,6 +12,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { useProductEditorFetch } from '@/hooks/admin/useProductEditorFetch';
+import { writeMenuVersionPrefill } from '@/utils/menuVersionPrefill';
 
 const LIST_ROUTE = '/admin/menu-management';
 
@@ -34,9 +35,25 @@ const ProductEditorRoute = () => {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
+  const [prefillWriteError, setPrefillWriteError] = useState(false);
+  const mountedRef = useRef(true);
+  const deleteRequestSequence = useRef(0);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      deleteRequestSequence.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    deleteRequestSequence.current += 1;
+  }, [productId]);
 
   const handleConfirmDelete = async () => {
     if (!product) return;
+    const sequence = ++deleteRequestSequence.current;
 
     // Keyed off the fetched product, never the URL hint — the same rule PR2b established
     // for the list, where a mismatched discriminator deleted a bundle via deleteProduct.
@@ -45,6 +62,8 @@ const ProductEditorRoute = () => {
       message?: string;
       data?: string;
     };
+
+    if (!mountedRef.current || sequence !== deleteRequestSequence.current) return;
 
     setIsConfirmationOpen(false);
     setResultModalMessage(response.data || response.message || '');
@@ -90,9 +109,18 @@ const ProductEditorRoute = () => {
         product={product}
         isBundle={productIsBundle}
         onSaved={refetch}
+        onOfferCreateRequested={(prefill) => {
+          if (writeMenuVersionPrefill(prefill)) {
+            router.push(`${LIST_ROUTE}/new?type=menu&prefill=offer`);
+          } else {
+            setPrefillWriteError(true);
+          }
+        }}
         onDelete={() => setIsConfirmationOpen(true)}
+        onNavigate={(href) => router.push(href)}
         onBack={() => router.push(LIST_ROUTE)}
       />
+      {prefillWriteError && <p role="alert">{t('menu_version_prefill_invalid')}</p>}
 
       <ConfirmationModal
         isOpen={isConfirmationOpen}

@@ -34,6 +34,8 @@ const OFFSET_HOOK = withoutComments(readFileSync(join(__dirname, '../../hooks/me
 const MENU_PAGE = readFileSync(join(__dirname, '../../app/menu/page.tsx'), 'utf8');
 const MENU_CONTENT = readFileSync(join(__dirname, 'MenuContent.tsx'), 'utf8');
 const TABLE_BANNER = readFileSync(join(__dirname, '../TableBanner.tsx'), 'utf8');
+const CATEGORY_NAV = '<MenuCategoryNavigation';
+const CATALOG_LAYOUT = '<MenuCatalogLayout';
 
 /** The offset of a marker in the menu page's source, so "before/after" questions are answerable. */
 function pageIndexOf(needle: string): number {
@@ -117,9 +119,9 @@ describe('the category bar is page chrome, not a column widget', () => {
     // Assert the bar is on the page BEFORE asserting where it is not. "Not inside the layout" is
     // equally true of a page that does not render it at all — which is what this looked like
     // before the hoist, and the first draft of this test passed against that source.
-    expect(pageIndexOf('<CategoryNav')).toBeGreaterThan(0);
-    const layoutStart = pageIndexOf('className={styles.menuLayout}');
-    expect(MENU_PAGE.slice(layoutStart).includes('<CategoryNav')).toBe(false);
+    expect(pageIndexOf(CATEGORY_NAV)).toBeGreaterThan(0);
+    const layoutStart = pageIndexOf(CATALOG_LAYOUT);
+    expect(MENU_PAGE.slice(layoutStart).includes(CATEGORY_NAV)).toBe(false);
   });
 
   it('renders above everything else on the page, including the hero (D7)', () => {
@@ -131,8 +133,8 @@ describe('the category bar is page chrome, not a column widget', () => {
     // `MenuContent` in its `styles.menuLayout` div, one-page `MenuOnePage` in its branch), so
     // the ordering to pin is "the bar comes before BOTH content bodies". The hero's own slot
     // wiring remains `featuredSpecialPlacement.test.ts`'s subject.
-    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('className={styles.menuLayout}'));
-    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('<MenuOnePage'));
+    expect(pageIndexOf(CATEGORY_NAV)).toBeLessThan(pageIndexOf(CATALOG_LAYOUT));
+    expect(pageIndexOf(CATEGORY_NAV)).toBeLessThan(pageIndexOf(CATALOG_LAYOUT));
   });
 
   it('is not rendered by the column component it was lifted out of', () => {

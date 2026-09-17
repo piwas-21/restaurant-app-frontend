@@ -8,6 +8,7 @@ import { formatCurrency } from '../currency';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
+import { getOrderTableLabel } from '@/utils/orderTableLabel';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -58,6 +59,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
   const orderDate = new Date(order.orderDate);
   const dateStr = orderDate.toLocaleDateString();
   const timeStr = orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const tableLabel = getOrderTableLabel(order);
 
   // Delivery address
   const deliveryAddress =
@@ -107,7 +109,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
             ${escapeHtml(order.orderNumber)} - ${dateStr} ${timeStr}
           </div>
           <div>
-            <strong>${translate('type', 'Type')}:</strong> ${escapeHtml(getOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && order.tableNumber ? ` - Table ${order.tableNumber}` : ''}
+            <strong>${translate('type', 'Type')}:</strong> ${escapeHtml(getOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && tableLabel ? ` - Table ${escapeHtml(tableLabel)}` : ''}
           </div>
         </div>
 

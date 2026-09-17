@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, FieldValues, UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import CategoryChips from '@/components/admin/product/fields/CategoryChips';
+import type { Category } from '@/components/admin/product/types';
 import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEditor';
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
 import { INTEGER_INPUT_PROPS, MONEY_INPUT_PROPS } from '@/components/admin/product/numberInputProps';
@@ -15,6 +17,11 @@ interface BundlePanelProps {
   // readonly: S6759 — component props are never mutated.
   readonly register: UseFormRegister<FieldValues>;
   readonly errors: FieldErrors<FieldValues>;
+  readonly control: Control<FieldValues>;
+  readonly setValue: UseFormSetValue<FieldValues>;
+  readonly categories: Category[];
+  readonly selectedCategoryIds: string[];
+  readonly showCategories?: boolean;
   readonly menuDefinition: MenuDefinition;
   readonly onChange: (menuDefinition: MenuDefinition) => void;
 }
@@ -26,18 +33,26 @@ interface BundlePanelProps {
  * (`BundleMediaPanel`), the one surface named after what it does. This panel edits identity,
  * price and flags; its section heading says Details, not Media.
  *
- * The fields are ported from `EditMenuBundleModal`, not composed from `ProductBasicInfo` /
- * `ProductDetails` — those carry item-only controls (categories, kitchen type, a type chooser)
- * that a bundle cannot support: `MenuBundleDto` returns none of that data, so they would have
- * nothing to seed from, and `editMenuBundleSchema` declares no such fields.
- * A bundle's categories survive precisely because the client never sends them (backend #192).
+ * The fields are ported from `EditMenuBundleModal`, with category chips added for full-editor
+ * prefills. Bundles still do not expose item-only kitchen/type/variation controls, while category
+ * ids are accepted by the bundle commands and preserved through the editor.
  *
  * `allergens` is NOT in that list any more: `MenuBundleDto` carries it since backend #477. It is
  * still not edited here, for a different reason — there is no write path (backend #478), and
  * `productFormUtils` already puts `allergens: []` into every bundle PUT, so a control added before
  * the server accepts the field would silently discard what the admin typed.
  */
-export default function BundlePanel({ register, errors, menuDefinition, onChange }: BundlePanelProps) {
+export default function BundlePanel({
+  register,
+  errors,
+  control,
+  setValue,
+  categories,
+  selectedCategoryIds,
+  showCategories = false,
+  menuDefinition,
+  onChange,
+}: BundlePanelProps) {
   const { t } = useTranslation();
 
   return (
@@ -95,6 +110,19 @@ export default function BundlePanel({ register, errors, menuDefinition, onChange
           </div>
         </div>
       </div>
+
+      {(showCategories || selectedCategoryIds.length > 0) && (
+        <fieldset className={modalStyles.formGroup}>
+          <legend>{t('categories')}</legend>
+          <CategoryChips
+            control={control}
+            setValue={setValue}
+            categories={categories}
+            selectedCategoryIds={selectedCategoryIds}
+          />
+          {errors.categoryIds && <p className={modalStyles.errorMessage}>{String(errors.categoryIds.message)}</p>}
+        </fieldset>
+      )}
 
       {/*
         No wrapper headings: both editors render their own <h3>. The modals wrapped them

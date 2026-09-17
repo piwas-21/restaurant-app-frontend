@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
-import { getAllMenuBundles } from '@/services/menuService';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { getAllProducts } from '@/services/menuService';
 import { linkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { ProductDetails, Product, Variation } from '@/app/admin/menu-management/interfaces';
+import LinkExistingMenuPreview from './LinkExistingMenuPreview';
 import styles from './QuickMenuVersionModal.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -29,10 +30,12 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   const { t } = useTranslation();
   const tRef = useRef(t);
   const [bundles, setBundles] = useState<Product[]>([]);
+  const [parentNames, setParentNames] = useState<Record<string, string>>({});
   const [selectedId, setSelectedId] = useState('');
   const [variationId, setVariationId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isReassignConfirmOpen, setIsReassignConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selected = bundles.find((bundle) => bundle.id === selectedId);
   const activeVariations = getActiveOfferVariations(product);
@@ -45,6 +48,9 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
   const categoryMismatch =
     selectedCategories !== undefined &&
     selectedCategories.every((category) => !parentCategories.has(category.trim().toLowerCase()));
+  const currentParentId = selected?.parentOfferProductId ?? null;
+  const currentParentName = currentParentId ? (parentNames[currentParentId] ?? currentParentId) : null;
+  const needsReassignment = Boolean(currentParentId && currentParentId !== product.id);
 
   useEffect(() => {
     tRef.current = t;
@@ -55,14 +61,19 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     setSelectedId('');
     setVariationId('');
     setError(null);
+    setIsReassignConfirmOpen(false);
     setIsLoading(true);
-    void getAllMenuBundles()
-      .then((items) => setBundles(items.filter((bundle) => isMenuBundle(bundle) && parentId(bundle) !== product.id)))
+    void getAllProducts(null, { includeMenus: true, includeComponents: true })
+      .then((items) => {
+        const names = Object.fromEntries(items.map((item) => [item.id, item.name]));
+        setParentNames(names);
+        setBundles(items.filter((bundle) => isMenuBundle(bundle) && parentId(bundle) !== product.id));
+      })
       .catch((caught) => setError(serverMessage(caught) ?? tRef.current('error_loading_menu_bundles')))
       .finally(() => setIsLoading(false));
   }, [isOpen, product.id]);
 
-  const save = async () => {
+  const linkSelected = async () => {
     if (!selectedId || (variationRequired && !variation)) return;
     setIsSaving(true);
     setError(null);
@@ -82,6 +93,15 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const save = () => {
+    if (!selectedId || (variationRequired && !variation)) return;
+    if (needsReassignment) {
+      setIsReassignConfirmOpen(true);
+      return;
+    }
+    void linkSelected();
   };
 
   return (
@@ -142,33 +162,13 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
           </FormField>
         )}
         {selected && (
-          <p className={styles.summary}>
-            {t('preview')}: {product.name} · {selected.name} · {selected.basePrice}{' '}
-            <Link href={`/admin/menu-management/${selected.id}`} target="_blank">
-              {t('details')}
-            </Link>
-          </p>
-        )}
-        {selected && selectedCategories !== undefined && (
-          <div className={styles.categoryList} aria-label={t('category')}>
-            {selectedCategories.length > 0 ? (
-              selectedCategories.map((category) => (
-                <span className={styles.category} key={category}>
-                  {category}
-                </span>
-              ))
-            ) : (
-              <span className={styles.category}>{t('no_categories', 'No categories')}</span>
-            )}
-          </div>
-        )}
-        {selected && categoryMismatch && (
-          <p role="alert" className={styles.warning}>
-            {t(
-              'category_mismatch_warning',
-              'This menu has no category in common with the parent product. Linking will keep the menu formula unchanged.',
-            )}
-          </p>
+          <LinkExistingMenuPreview
+            productName={product.name}
+            selected={selected}
+            currentParentName={currentParentName}
+            selectedCategories={selectedCategories}
+            categoryMismatch={categoryMismatch}
+          />
         )}
         {error && (
           <p role="alert" className={styles.error}>
@@ -176,6 +176,15 @@ export default function LinkExistingMenuModal({ isOpen, product, onClose, onLink
           </p>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={isReassignConfirmOpen}
+        onClose={() => setIsReassignConfirmOpen(false)}
+        onConfirm={() => {
+          setIsReassignConfirmOpen(false);
+          void linkSelected();
+        }}
+        message={t('reassign_menu_confirmation', { parentName: currentParentName ?? '' })}
+      />
     </BaseModal>
   );
 }

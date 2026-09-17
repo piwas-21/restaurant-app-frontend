@@ -312,6 +312,8 @@ const baseMenuBundleSchema = z.object({
       { message: 'Each language can only be used once' },
     ),
   menuDefinition: menuDefinitionSchema,
+  categoryIds: z.array(z.string()).default([]),
+  primaryCategoryId: z.string().nullish(),
   // Same field and same bounds as an item's. It has to be in the schema, not merely in the payload:
   // zod strips unknown keys, so a bundle form that carries the mask outside the schema silently
   // sends nothing — and because the bundle PUT assigns the column unconditionally, "sends nothing"

@@ -9,6 +9,7 @@ import { unlinkMenuOffer } from '@/services/menuOfferFamilyService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { Product, ProductDetails } from '@/app/admin/menu-management/interfaces';
+import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 import QuickMenuVersionModal from './QuickMenuVersionModal';
 import LinkExistingMenuModal from './LinkExistingMenuModal';
 import styles from './OfferVersionsSection.module.css';
@@ -16,7 +17,7 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 
 interface OfferVersionsSectionProps {
   readonly product: ProductDetails;
-  readonly onCreated?: (menuId: string) => void;
+  readonly onCreateRequested?: (prefill: MenuVersionPrefill) => void;
   readonly allowQuickCreate?: boolean;
 }
 
@@ -24,13 +25,13 @@ const parentId = (menu: Product): string | null => menu.parentOfferProductId ?? 
 
 export default function OfferVersionsSection({
   product,
-  onCreated,
+  onCreateRequested,
   allowQuickCreate = true,
 }: OfferVersionsSectionProps) {
   const { t } = useTranslation();
   const tRef = useRef(t);
   const [offers, setOffers] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(Boolean(product.id));
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<'create' | 'link' | null>(null);
   const [unlinking, setUnlinking] = useState<Product | null>(null);
@@ -40,6 +41,7 @@ export default function OfferVersionsSection({
   }, [t]);
 
   const load = useCallback(async () => {
+    if (!product.id) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -71,13 +73,14 @@ export default function OfferVersionsSection({
     }
   };
 
-  const handleCreated = (menuId: string) => {
+  const handleCreateRequested = (prefill: MenuVersionPrefill) => {
     setModal(null);
-    onCreated?.(menuId);
+    onCreateRequested?.(prefill);
   };
 
-  // Components are option-only carriers and cannot anchor a public offer family.
-  if (product.isComponent) return null;
+  // Components are option-only carriers and cannot anchor a public offer family. An unsaved
+  // bundle has no id to load or link, so the section is intentionally absent on the new route.
+  if (!product.id || product.isComponent) return null;
 
   return (
     <section className={styles.section} aria-labelledby="offer-versions-heading">
@@ -115,7 +118,14 @@ export default function OfferVersionsSection({
               <div>
                 <span className={styles.offerName}>{offer.name}</span>
                 <span className={styles.offerMeta}>
-                  {offer.basePrice} · {offer.isAvailable ? t('available') : t('no')}
+                  {offer.basePrice} ·{' '}
+                  {offer.parentOfferVariationId
+                    ? `${t('variation')}: ${
+                        product.variations.find((variation) => variation.id === offer.parentOfferVariationId)?.name ??
+                        offer.parentOfferVariationId
+                      } · `
+                    : ''}
+                  {offer.isAvailable ? t('available') : t('no')}
                 </span>
               </div>
               <div className={styles.actions}>
@@ -148,7 +158,7 @@ export default function OfferVersionsSection({
           isOpen={modal === 'create'}
           product={product}
           onClose={() => setModal(null)}
-          onCreated={handleCreated}
+          onCreateRequested={handleCreateRequested}
         />
       )}
       <LinkExistingMenuModal

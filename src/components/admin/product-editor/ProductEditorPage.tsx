@@ -6,6 +6,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import { getProductCompleteness } from '@/lib/productCompleteness';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
 import EditorErrorSummary from './EditorErrorSummary';
@@ -30,8 +31,8 @@ interface ProductEditorPageProps {
   /** `create` on the /new route (empty defaults → POST), `edit` on `[productId]` (→ PUT). */
   readonly mode?: 'create' | 'edit';
   readonly onSaved: () => void;
-  /** Optional navigation callback after quick menu creation. */
-  readonly onOfferCreated?: (menuId: string) => void;
+  /** Optional callback that routes a quick offer prefill to the full bundle editor. */
+  readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
   readonly onDelete?: () => void;
   readonly onBack: () => void;
 }
@@ -57,7 +58,7 @@ export default function ProductEditorPage({
   isBundle,
   mode = 'edit',
   onSaved,
-  onOfferCreated,
+  onOfferCreateRequested,
   onDelete,
   onBack,
 }: ProductEditorPageProps) {
@@ -97,7 +98,7 @@ export default function ProductEditorPage({
     }
   };
 
-  const context = { editor, t, product, isCreate, isBundle, onOfferCreated };
+  const context = { editor, t, product, isCreate, isBundle, onOfferCreateRequested };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
 
   // S10's meter. Only a SAVED ITEM gets one — see `EditorSideRail`'s prop for why a bundle and the

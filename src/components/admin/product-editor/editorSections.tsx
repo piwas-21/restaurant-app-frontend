@@ -27,9 +27,10 @@ export { SECTION_IDS } from './editorSectionTypes';
 
 /**
  * A bundle is NOT re-grouped by S2, and that is a decision rather than an omission: §4's item
- * sections are built from controls `MenuBundleDto` does not carry (no categories, kitchen type,
- * variations or ingredients), so a combo keeps the single `BundlePanel` its data supports plus the
- * order-type mask. §4's "Composition" variant is a later slice.
+ * sections are built from controls `MenuBundleDto` does not carry (kitchen type, variations or
+ * ingredients), so a combo keeps the single `BundlePanel` its data supports plus the order-type
+ * mask. Category chips are included when a bundle carries placement data for a full-editor create.
+ * §4's "Composition" variant is a later slice.
  *
  * `allergens` used to be on that list and no longer is — backend #477 added it to `MenuBundleDto`
  * and #702 carries it through the guest chain. It is still absent from this editor, but that is now
@@ -46,7 +47,7 @@ export { SECTION_IDS } from './editorSectionTypes';
  * the CREATE route only, where there is no product id to upload against yet.
  */
 function bundleSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t, product } = context;
+  const { editor, t, product, isCreate } = context;
   const { form } = editor;
 
   return [
@@ -60,10 +61,21 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
           <BundlePanel
             register={form.register}
             errors={form.formState.errors}
+            control={form.control}
+            setValue={form.setValue}
+            categories={editor.categories}
+            selectedCategoryIds={editor.selectedCategoryIds}
+            showCategories={isCreate}
             menuDefinition={editor.menuDefinition}
             onChange={editor.changeMenuDefinition}
           />
-          <OfferVersionsSection product={product} onCreated={context.onOfferCreated} allowQuickCreate={false} />
+          {product.id && (
+            <OfferVersionsSection
+              product={product}
+              onCreateRequested={context.onOfferCreateRequested}
+              allowQuickCreate={false}
+            />
+          )}
         </>
       ),
     },

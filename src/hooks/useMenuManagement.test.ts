@@ -1,8 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import type { ChangeEvent } from 'react';
 import { useMenuManagement } from './useMenuManagement';
 import { getAllProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
+import type { Product } from '@/app/admin/menu-management/interfaces';
 
 jest.mock('@/services/menuService');
 jest.mock('@/services/categoryService');
@@ -36,6 +38,36 @@ beforeEach(() => {
 });
 
 describe('useMenuManagement — what the admin actually reads', () => {
+  it('does not let an older category catalogue overwrite a newer one', async () => {
+    let resolveFirst!: (items: Product[]) => void;
+    const first = new Promise<Product[]>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const newer: Product = {
+      id: 'new-category-item',
+      name: 'New category item',
+      description: '',
+      basePrice: 10,
+      isActive: true,
+      isAvailable: true,
+      type: 'mainItem',
+      imageUrl: null,
+      images: [],
+    };
+    mockGetAllProducts.mockImplementation((categoryId) => (categoryId ? Promise.resolve([newer]) : first));
+    const { result } = renderHook(() => useMenuManagement('all'));
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      result.current.handleCategoryChange({ target: { value: 'category-2' } } as ChangeEvent<HTMLSelectElement>);
+    });
+    await waitFor(() => expect(mockGetAllProducts).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.products).toEqual([newer]));
+
+    await act(async () => resolveFirst([]));
+    expect(result.current.products).toEqual([newer]);
+  });
+
   it("surfaces the server's own sentence when the product fetch throws", async () => {
     mockGetAllProducts.mockRejectedValue(new ApiError(503, 'Menu service is restarting'));
     const { result } = renderHook(() => useMenuManagement('all'));

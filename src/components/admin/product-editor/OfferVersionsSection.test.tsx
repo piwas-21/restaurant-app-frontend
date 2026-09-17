@@ -1,12 +1,12 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OfferVersionsSection from './OfferVersionsSection';
-import { getAllMenuBundles } from '@/services/menuService';
+import { getAllMenuBundles, getAllProducts } from '@/services/menuService';
 import { linkMenuOffer, unlinkMenuOffer } from '@/services/menuOfferFamilyService';
 import type { ProductDetails, Product } from '@/app/admin/menu-management/interfaces';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
-jest.mock('@/services/menuService', () => ({ getAllMenuBundles: jest.fn() }));
+jest.mock('@/services/menuService', () => ({ getAllMenuBundles: jest.fn(), getAllProducts: jest.fn() }));
 jest.mock('@/services/menuOfferFamilyService', () => ({ linkMenuOffer: jest.fn(), unlinkMenuOffer: jest.fn() }));
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
 
@@ -46,7 +46,12 @@ describe('OfferVersionsSection', () => {
     jest.clearAllMocks();
     (getAllMenuBundles as jest.Mock).mockResolvedValue([
       bundle('menu-1', 'product-1', ['Tacos']),
-      bundle('menu-2', undefined, ['Drinks']),
+      bundle('menu-2', 'owner-2', ['Drinks']),
+    ]);
+    (getAllProducts as jest.Mock).mockResolvedValue([
+      bundle('menu-1', 'product-1', ['Tacos']),
+      bundle('menu-2', 'owner-2', ['Drinks']),
+      { ...parent, id: 'owner-2', name: 'Other product' },
     ]);
     (linkMenuOffer as jest.Mock).mockResolvedValue({ success: true });
     (unlinkMenuOffer as jest.Mock).mockResolvedValue({ success: true });
@@ -65,11 +70,14 @@ describe('OfferVersionsSection', () => {
     await waitFor(() => expect(screen.getByText('menu-1')).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: 'link_existing_menu_version' }));
-    await waitFor(() => expect(getAllMenuBundles).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getAllProducts).toHaveBeenCalledTimes(1));
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'menu-2' } });
     expect(screen.getByText(/preview: Tacos 1 Viande · menu-2/)).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('category_mismatch_warning');
+    expect(screen.getByRole('status')).toHaveTextContent('current_menu_parent');
     fireEvent.click(screen.getByRole('button', { name: 'link_menu_version' }));
+    expect(screen.getByText('reassign_menu_confirmation')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'yes' }));
 
     await waitFor(() =>
       expect(linkMenuOffer).toHaveBeenCalledWith('menu-2', {

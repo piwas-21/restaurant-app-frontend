@@ -60,7 +60,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             categoriesError={editor.categoriesError}
             selectedCategoryIds={editor.selectedCategoryIds}
           />
-          {product.id && <OfferVersionsSection product={product} onCreated={context.onOfferCreated} />}
+          {product.id && <OfferVersionsSection product={product} onCreateRequested={context.onOfferCreateRequested} />}
         </>
       ),
     },

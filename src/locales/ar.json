@@ -2565,5 +2565,11 @@
   "no_categories": "لا توجد فئات",
   "product_variations": "تنويعات المنتج",
   "unlink_menu_version": "إلغاء ربط إصدار القائمة",
-  "unlink_menu_version_confirmation": "هل تريد إلغاء ربط إصدار القائمة هذا من المنتج؟ ستبقى القائمة والطلبات الحالية محفوظة."
+  "unlink_menu_version_confirmation": "هل تريد إلغاء ربط إصدار القائمة هذا من المنتج؟ ستبقى القائمة والطلبات الحالية محفوظة.",
+  "suggested_menu_version_name": "قائمة {{productName}}",
+  "menu_version_main_section": "الطبق الرئيسي",
+  "continue_to_bundle_editor": "المتابعة إلى المحرر الكامل",
+  "menu_version_prefill_warning": "راجع القيم المعبأة مسبقًا وأكمل محرر القائمة الكامل. لن يتم حفظ أي شيء حتى تحفظ القائمة.",
+  "current_menu_parent": "مرتبط حاليًا بالمنتج: {{parentName}}",
+  "reassign_menu_confirmation": "هذه القائمة مرتبطة حاليًا بالمنتج {{parentName}}. هل تريد إعادة ربطها بهذا المنتج؟ سيتم استبدال الارتباط الحالي."
 }

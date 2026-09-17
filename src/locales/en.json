@@ -2557,5 +2557,11 @@
   "no_categories": "No categories",
   "product_variations": "Product variations",
   "unlink_menu_version": "Unlink menu version",
-  "unlink_menu_version_confirmation": "Unlink this menu version from the product? The menu and existing orders will be kept."
+  "unlink_menu_version_confirmation": "Unlink this menu version from the product? The menu and existing orders will be kept.",
+  "suggested_menu_version_name": "Menu {{productName}}",
+  "menu_version_main_section": "Main",
+  "continue_to_bundle_editor": "Continue to full editor",
+  "menu_version_prefill_warning": "Review these prefilled values, then complete the full bundle editor. Nothing is saved until you save the bundle.",
+  "current_menu_parent": "Currently linked to: {{parentName}}",
+  "reassign_menu_confirmation": "This menu is currently linked to {{parentName}}. Reassign it to this product? The existing link will be replaced."
 }

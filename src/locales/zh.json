@@ -2555,5 +2555,11 @@
   "no_categories": "没有分类",
   "product_variations": "产品变体",
   "unlink_menu_version": "取消关联菜单版本",
-  "unlink_menu_version_confirmation": "要取消此菜单版本与产品的关联吗？菜单和现有订单将会保留。"
+  "unlink_menu_version_confirmation": "要取消此菜单版本与产品的关联吗？菜单和现有订单将会保留。",
+  "suggested_menu_version_name": "{{productName}}菜单",
+  "menu_version_main_section": "主菜",
+  "continue_to_bundle_editor": "继续完整编辑器",
+  "menu_version_prefill_warning": "请检查这些预填值，并在完整菜单编辑器中完成设置。保存菜单前不会保存任何内容。",
+  "current_menu_parent": "当前关联至：{{parentName}}",
+  "reassign_menu_confirmation": "此菜单当前关联至{{parentName}}。要将它重新关联到此产品吗？现有关联将被替换。"
 }

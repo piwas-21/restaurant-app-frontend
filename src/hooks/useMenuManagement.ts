@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { getAllProducts } from '@/services/menuService';
@@ -22,10 +22,10 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     tRef.current = t;
   }, [t]);
   const { enqueueSnackbar } = useSnackbar();
-  const _router = useRouter();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
-  const typeFilterRef = useRef(typeFilter);
+  const requestSequence = useRef(0);
+  const activeRequestKey = useRef('');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -34,7 +34,9 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchProducts = useCallback(async () => {
-    const requestFilter = typeFilter; // Capture which filter this request is for
+    const requestKey = `${typeFilter}:${selectedCategoryId ?? 'all'}`;
+    const sequence = ++requestSequence.current;
+    activeRequestKey.current = requestKey;
     setIsLoading(true);
     setError(null);
     const fallback = () => tRef.current('failed_to_load_menu_items', 'Failed to load menu items');
@@ -52,16 +54,17 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         includeComponents: true,
       });
 
-      // Only update state if we're still on the same filter (check against ref)
-      if (requestFilter === typeFilterRef.current) {
+      // A category/type key change starts a newer full-catalogue request. Older responses,
+      // including errors and their loading-finally handlers, must not overwrite that newer state.
+      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setProducts(items);
       }
     } catch (e) {
-      if (requestFilter === typeFilterRef.current) {
+      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setError(getErrorMessage(e) ?? fallback());
       }
     } finally {
-      if (requestFilter === typeFilterRef.current) {
+      if (sequence === requestSequence.current && activeRequestKey.current === requestKey) {
         setIsLoading(false);
       }
     }
@@ -97,7 +100,6 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
 
   // Fetch when the type filter or category changes
   useEffect(() => {
-    typeFilterRef.current = typeFilter; // Update ref so a stale in-flight response is dropped
     // Reset to page 1 when the filter OR category changes — the old page number is
     // meaningless against a different result set.
     void fetchProducts();

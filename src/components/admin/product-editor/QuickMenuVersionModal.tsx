@@ -4,15 +4,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
-import { createMenuBundle } from '@/services/menuBundleService';
-import { serverMessage } from '@/utils/apiFormErrors';
 import { TENANT_CURRENCY } from '@/utils/currency';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import {
-  buildQuickMenuVersionPayload,
-  defaultMenuVersionName,
-  extractCreatedId,
+  buildQuickMenuVersionPrefill,
   MENU_VERSION_NAME_MAX_LENGTH,
+  type MenuVersionPrefill,
 } from '@/utils/quickMenuVersionPayload';
 import { getActiveOfferVariations, requiresOfferVariation } from '@/utils/offerFamilyVariation';
 import styles from './QuickMenuVersionModal.module.css';
@@ -22,11 +19,17 @@ interface QuickMenuVersionModalProps {
   readonly isOpen: boolean;
   readonly product: ProductDetails;
   readonly onClose: () => void;
-  readonly onCreated: (menuId: string) => void;
+  readonly onCreateRequested: (prefill: MenuVersionPrefill) => void;
 }
-export default function QuickMenuVersionModal({ isOpen, product, onClose, onCreated }: QuickMenuVersionModalProps) {
+export default function QuickMenuVersionModal({
+  isOpen,
+  product,
+  onClose,
+  onCreateRequested,
+}: QuickMenuVersionModalProps) {
   const { t } = useTranslation();
-  const [name, setName] = useState(defaultMenuVersionName(product.name));
+  const suggestedName = () => t('suggested_menu_version_name', { productName: product.name });
+  const [name, setName] = useState(suggestedName);
   const [price, setPrice] = useState(String(product.basePrice));
   const [variationId, setVariationId] = useState<string>('');
   const [sectionsConfirmed, setSectionsConfirmed] = useState(false);
@@ -34,8 +37,6 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
   const [categoriesConfirmed, setCategoriesConfirmed] = useState(false);
   const [scheduleConfirmed, setScheduleConfirmed] = useState(false);
   const [channelsConfirmed, setChannelsConfirmed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const activeVariations = getActiveOfferVariations(product);
   const variation = activeVariations.find((candidate) => candidate.id === variationId);
   const requiresVariation = requiresOfferVariation(product);
@@ -58,7 +59,7 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
     (!requiresVariation || Boolean(variation?.id));
 
   const reset = () => {
-    setName(defaultMenuVersionName(product.name));
+    setName(suggestedName());
     setPrice(String(product.basePrice));
     setVariationId('');
     setSectionsConfirmed(false);
@@ -66,35 +67,19 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
     setCategoriesConfirmed(false);
     setScheduleConfirmed(false);
     setChannelsConfirmed(false);
-    setError(null);
   };
 
   const close = () => {
-    if (isSubmitting) return;
     reset();
     onClose();
   };
 
-  const save = async () => {
+  const save = () => {
     if (!canSubmit) return;
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const response = await createMenuBundle(
-        buildQuickMenuVersionPayload(product, name.trim(), resolvedPrice, variation),
-      );
-      const id = extractCreatedId(response);
-      if (!id) {
-        setError(serverMessage(response) ?? t('error_loading_menu_bundles'));
-        return;
-      }
-      reset();
-      onCreated(id);
-    } catch (caught) {
-      setError(serverMessage(caught) ?? t('error_loading_menu_bundles'));
-    } finally {
-      setIsSubmitting(false);
-    }
+    onCreateRequested(
+      buildQuickMenuVersionPrefill(product, name.trim(), resolvedPrice, variation, t('menu_version_main_section')),
+    );
+    reset();
   };
 
   return (
@@ -103,19 +88,13 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
       onClose={close}
       title={t('create_menu_version', 'Create menu version')}
       size="md"
-      isPending={isSubmitting}
       footer={
         <div className={styles.footer}>
-          <button type="button" className={modalStyles.cancelButton} onClick={close} disabled={isSubmitting}>
+          <button type="button" className={modalStyles.cancelButton} onClick={close}>
             {t('cancel')}
           </button>
-          <button
-            type="button"
-            className={modalStyles.submitButton}
-            onClick={save}
-            disabled={!canSubmit || isSubmitting}
-          >
-            {isSubmitting ? t('saving') : t('create_menu_version', 'Create menu version')}
+          <button type="button" className={modalStyles.submitButton} onClick={save} disabled={!canSubmit}>
+            {t('continue_to_bundle_editor')}
           </button>
         </div>
       }
@@ -125,7 +104,7 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
           {name} · {variation?.name ?? t('base_price')} · {TENANT_CURRENCY}
         </p>
         <p className={styles.warning} role="status">
-          {t('menu_version_draft_warning')}
+          {t('menu_version_prefill_warning')}
         </p>
 
         <FormField label={t('menu_bundle_name')} error={nameError}>
@@ -188,12 +167,6 @@ export default function QuickMenuVersionModal({ isOpen, product, onClose, onCrea
             </span>
           ))}
         </div>
-
-        {error && (
-          <p role="alert" className={styles.error}>
-            {error}
-          </p>
-        )}
       </div>
     </BaseModal>
   );

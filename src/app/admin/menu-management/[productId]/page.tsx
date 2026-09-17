@@ -12,6 +12,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { useProductEditorFetch } from '@/hooks/admin/useProductEditorFetch';
+import { writeMenuVersionPrefill } from '@/utils/menuVersionPrefill';
 
 const LIST_ROUTE = '/admin/menu-management';
 
@@ -90,7 +91,10 @@ const ProductEditorRoute = () => {
         product={product}
         isBundle={productIsBundle}
         onSaved={refetch}
-        onOfferCreated={(menuId) => router.push(`${LIST_ROUTE}/${menuId}`)}
+        onOfferCreateRequested={(prefill) => {
+          writeMenuVersionPrefill(prefill);
+          router.push(`${LIST_ROUTE}/new?type=menu&prefill=offer`);
+        }}
         onDelete={() => setIsConfirmationOpen(true)}
         onBack={() => router.push(LIST_ROUTE)}
       />

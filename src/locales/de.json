@@ -2557,5 +2557,11 @@
   "no_categories": "Keine Kategorien",
   "product_variations": "Produktvarianten",
   "unlink_menu_version": "Menüversion trennen",
-  "unlink_menu_version_confirmation": "Diese Menüversion vom Produkt trennen? Das Menü und bestehende Bestellungen bleiben erhalten."
+  "unlink_menu_version_confirmation": "Diese Menüversion vom Produkt trennen? Das Menü und bestehende Bestellungen bleiben erhalten.",
+  "suggested_menu_version_name": "Menü {{productName}}",
+  "menu_version_main_section": "Hauptgericht",
+  "continue_to_bundle_editor": "Zum vollständigen Editor",
+  "menu_version_prefill_warning": "Prüfen Sie diese vorausgefüllten Werte und vervollständigen Sie den Menüeditor. Gespeichert wird erst beim Speichern des Menüs.",
+  "current_menu_parent": "Derzeit verknüpft mit: {{parentName}}",
+  "reassign_menu_confirmation": "Dieses Menü ist derzeit mit {{parentName}} verknüpft. Neu mit diesem Produkt verknüpfen? Die bestehende Verknüpfung wird ersetzt."
 }

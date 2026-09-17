@@ -2561,5 +2561,11 @@
   "no_categories": "Нет категорий",
   "product_variations": "Варианты товара",
   "unlink_menu_version": "Отвязать версию меню",
-  "unlink_menu_version_confirmation": "Отвязать эту версию меню от товара? Меню и существующие заказы будут сохранены."
+  "unlink_menu_version_confirmation": "Отвязать эту версию меню от товара? Меню и существующие заказы будут сохранены.",
+  "suggested_menu_version_name": "Меню {{productName}}",
+  "menu_version_main_section": "Основное блюдо",
+  "continue_to_bundle_editor": "Перейти в полный редактор",
+  "menu_version_prefill_warning": "Проверьте эти предварительно заполненные значения и завершите работу в полном редакторе меню. Данные не сохраняются, пока вы не сохраните меню.",
+  "current_menu_parent": "Сейчас связано с товаром: {{parentName}}",
+  "reassign_menu_confirmation": "Это меню сейчас связано с {{parentName}}. Связать его с этим товаром заново? Текущая связь будет заменена."
 }

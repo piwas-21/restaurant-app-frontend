@@ -59,8 +59,6 @@ interface SubmitEditProductFormParams {
   fallbackMessage: string;
   /** The product was written, its photos were not — see `uploadStagedImages`. */
   onImageUploadFailed: ImageUploadFailureReporter;
-  preventDraftActivation?: boolean;
-  draftActivationMessage?: string;
 }
 
 type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
@@ -345,13 +343,7 @@ export const submitEditProductForm = async ({
   onClose,
   fallbackMessage,
   onImageUploadFailed,
-  preventDraftActivation,
-  draftActivationMessage,
 }: SubmitEditProductFormParams) => {
-  if (preventDraftActivation && data.isActive) {
-    setError('root', { message: draftActivationMessage ?? 'Complete the draft sections before publishing.' });
-    return;
-  }
   setIsSubmitting(true);
   try {
     const parseNum = (val: any, fallback: number): number => {

@@ -2559,5 +2559,11 @@
   "no_categories": "Sin categorías",
   "product_variations": "Variaciones del producto",
   "unlink_menu_version": "Desvincular versión de menú",
-  "unlink_menu_version_confirmation": "¿Desvincular esta versión de menú del producto? El menú y los pedidos existentes se conservarán."
+  "unlink_menu_version_confirmation": "¿Desvincular esta versión de menú del producto? El menú y los pedidos existentes se conservarán.",
+  "suggested_menu_version_name": "Menú {{productName}}",
+  "menu_version_main_section": "Principal",
+  "continue_to_bundle_editor": "Continuar al editor completo",
+  "menu_version_prefill_warning": "Revise estos valores preseleccionados y complete el editor completo del menú. No se guardará nada hasta guardar el menú.",
+  "current_menu_parent": "Actualmente vinculado a: {{parentName}}",
+  "reassign_menu_confirmation": "Este menú está vinculado actualmente a {{parentName}}. ¿Vincularlo de nuevo a este producto? Se reemplazará el vínculo existente."
 }

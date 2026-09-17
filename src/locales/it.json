@@ -2559,5 +2559,11 @@
   "no_categories": "Nessuna categoria",
   "product_variations": "Varianti del prodotto",
   "unlink_menu_version": "Scollega versione menu",
-  "unlink_menu_version_confirmation": "Scollegare questa versione menu dal prodotto? Il menu e gli ordini esistenti verranno mantenuti."
+  "unlink_menu_version_confirmation": "Scollegare questa versione menu dal prodotto? Il menu e gli ordini esistenti verranno mantenuti.",
+  "suggested_menu_version_name": "Menu combinato {{productName}}",
+  "menu_version_main_section": "Principale",
+  "continue_to_bundle_editor": "Continua all’editor completo",
+  "menu_version_prefill_warning": "Controlla questi valori precompilati e completa l’editor completo del menu. Nulla viene salvato finché non salvi il menu.",
+  "current_menu_parent": "Attualmente collegato a: {{parentName}}",
+  "reassign_menu_confirmation": "Questo menu è attualmente collegato a {{parentName}}. Ricollegarlo a questo prodotto? Il collegamento esistente verrà sostituito."
 }

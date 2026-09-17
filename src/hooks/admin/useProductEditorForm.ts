@@ -162,8 +162,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       onClose: () => {},
       fallbackMessage: t('unexpected_error', 'An unexpected error occurred.'),
       onImageUploadFailed: (reason) => reportProductImageUploadFailure(t, 'edit', reason),
-      preventDraftActivation: isBundle && product.name.startsWith('Draft menu · ') && !isMenuDefinitionDirty,
-      draftActivationMessage: t('menu_version_draft_complete', 'Complete the draft sections before publishing.'),
     });
   }, onInvalidSubmit);
 

@@ -2557,5 +2557,11 @@
   "no_categories": "Kategori yok",
   "product_variations": "Ürün varyasyonları",
   "unlink_menu_version": "Menü sürümünün bağlantısını kaldır",
-  "unlink_menu_version_confirmation": "Bu menü sürümünün ürünle bağlantısı kaldırılsın mı? Menü ve mevcut siparişler korunacaktır."
+  "unlink_menu_version_confirmation": "Bu menü sürümünün ürünle bağlantısı kaldırılsın mı? Menü ve mevcut siparişler korunacaktır.",
+  "suggested_menu_version_name": "{{productName}} menüsü",
+  "menu_version_main_section": "Ana ürün",
+  "continue_to_bundle_editor": "Tam düzenleyiciye devam et",
+  "menu_version_prefill_warning": "Bu önceden doldurulmuş değerleri inceleyip tam menü düzenleyicide tamamlayın. Menü siz kaydedene kadar hiçbir şey kaydedilmez.",
+  "current_menu_parent": "Şu anda bağlı olduğu ürün: {{parentName}}",
+  "reassign_menu_confirmation": "Bu menü şu anda {{parentName}} ürününe bağlı. Bu ürüne yeniden bağlansın mı? Mevcut bağlantı değiştirilecek."
 }

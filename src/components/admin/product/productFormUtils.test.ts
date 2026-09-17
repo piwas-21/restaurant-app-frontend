@@ -92,25 +92,6 @@ const submit = async (data: Record<string, unknown>) => {
 beforeEach(() => jest.clearAllMocks());
 
 describe('submitEditProductForm — update endpoint dispatch', () => {
-  it('keeps a quick-created draft inactive until the full editor changes its sections', async () => {
-    await submitEditProductForm({
-      data: bundleFormData() as never,
-      product: { id: 'bundle-1', name: 'Draft menu · Pizza Combo' },
-      imageFiles: [],
-      setIsSubmitting: jest.fn(),
-      setError,
-      onProductUpdated,
-      onClose: () => {},
-      fallbackMessage: 'translated fallback',
-      onImageUploadFailed,
-      preventDraftActivation: true,
-      draftActivationMessage: 'draft must be completed',
-    });
-
-    expect(setError).toHaveBeenCalledWith('root', { message: 'draft must be completed' });
-    expect(updateMenuBundle).not.toHaveBeenCalled();
-  });
-
   // Regression: a bundle used to be sent to PUT /api/Products, whose validator requires at least
   // one category. The bundle form has no category field, so it always sent categoryIds: [] and the
   // backend rejected every bundle edit with "At least one category is required".

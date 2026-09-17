@@ -11,7 +11,7 @@ interface MenuOfferFamilyPaginationProps {
 }
 
 /** Keeps the aggregate guest path paginated without hiding families beyond the first server page. */
-export default function MenuOfferFamilyPagination({ state, hidden = false }: MenuOfferFamilyPaginationProps) {
+export default function MenuOfferFamilyPagination({ state, hidden = false }: Readonly<MenuOfferFamilyPaginationProps>) {
   const { t } = useTranslation();
   if (hidden || state.totalCount <= 0) return null;
 

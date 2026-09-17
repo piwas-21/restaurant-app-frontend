@@ -25,12 +25,21 @@ function mapAvailability(dto: CatalogOfferAvailabilityDto | undefined): ItemAvai
   );
   if (allowedOrderTypes.length === 0) return undefined;
   const canOrder = dto.canOrder !== false;
-  const reason = AVAILABILITY_REASONS.has(dto.reason as AvailabilityReason)
-    ? (dto.reason as AvailabilityReason)
-    : canOrder
-      ? 'Available'
-      : 'WrongOrderType';
+  let reason: AvailabilityReason;
+  if (AVAILABILITY_REASONS.has(dto.reason as AvailabilityReason)) {
+    reason = dto.reason as AvailabilityReason;
+  } else if (canOrder) {
+    reason = 'Available';
+  } else {
+    reason = 'WrongOrderType';
+  }
   return { canOrder, reason, allowedOrderTypes };
+}
+
+function priceEditabilityFor(summary: CatalogOfferSummaryDto, isBundle: boolean): CatalogItem['priceEditability'] {
+  if (isBundle) return 'bundle';
+  if ((summary.variations?.length ?? 0) > 0) return 'variations';
+  return 'editable';
 }
 
 function mapContent(content: CatalogOfferSummaryDto['content'], fallbackName: string) {
@@ -85,7 +94,7 @@ function toCardSummary(summary: CatalogOfferSummaryDto, id: string): CatalogItem
     images,
     price: parsePrice(summary.price ?? summary.basePrice),
     isBundle,
-    priceEditability: isBundle ? 'bundle' : (summary.variations?.length ?? 0) > 0 ? 'variations' : 'editable',
+    priceEditability: priceEditabilityFor(summary, isBundle),
     allergens: Array.isArray(summary.allergens) ? summary.allergens : [],
     isSpecial: summary.isSpecial,
     isActive: summary.isActive,

@@ -69,7 +69,7 @@ export interface CatalogOfferFamilyDto {
 export interface CatalogOfferSummaryDto {
   productId?: string;
   id?: string;
-  kind?: 'product' | 'bundle' | string;
+  kind?: string;
   /** ProductSummaryDto's ProductType enum, serialised as `mainItem`/`menu`. */
   type?: string;
   name?: string;

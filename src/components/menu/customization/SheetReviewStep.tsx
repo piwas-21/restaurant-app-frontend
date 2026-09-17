@@ -13,6 +13,13 @@ export interface ReviewRow {
   values: string[];
 }
 
+function modeKeyFor(language: string, offerMode: OfferMode): string {
+  if (language === 'fr') {
+    return offerMode === 'meal' ? 'offer_family_menu' : 'offer_family_a_la_carte';
+  }
+  return offerMode === 'meal' ? 'offer_family_meal' : 'offer_family_item_only';
+}
+
 interface SheetReviewStepProps {
   rows: readonly ReviewRow[];
   onJump: (step: CustomizationStep) => void;
@@ -40,12 +47,10 @@ export default function SheetReviewStep({
 }: Readonly<SheetReviewStepProps>) {
   const { t, i18n } = useTranslation();
   const language = (i18n.language || 'en').split('-')[0];
-  const modeLabel =
-    offerMode === undefined
-      ? null
-      : language === 'fr'
-        ? t(offerMode === 'meal' ? 'offer_family_menu' : 'offer_family_a_la_carte')
-        : t(offerMode === 'meal' ? 'offer_family_meal' : 'offer_family_item_only');
+  let modeLabel: string | null = null;
+  if (offerMode !== undefined) {
+    modeLabel = t(modeKeyFor(language, offerMode));
+  }
 
   return (
     <>

@@ -154,8 +154,13 @@ export default function OfferFamilyChoiceModal({
               target.productId === anchorTarget.productId && variationId
                 ? (selectedVariation?.price ?? target.price)
                 : target.price;
+            const optionLabel = `${isMeal ? mealLabel : itemOnlyLabel} ${formatPlainCurrency(displayPrice)}`;
             return (
-              <label key={`${target.productId}-${target.parentVariationId ?? 'base'}`} className={styles.option}>
+              <label
+                key={`${target.productId}-${target.parentVariationId ?? 'base'}`}
+                className={styles.option}
+                aria-label={optionLabel}
+              >
                 <input
                   type="radio"
                   name={`${family.id}-mode`}

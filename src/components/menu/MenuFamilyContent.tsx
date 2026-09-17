@@ -20,9 +20,9 @@ interface MenuFamilyContentProps {
   families: CatalogOfferFamily[];
   state: UsePublicOfferFamiliesReturn;
   onOpenItem: MenuContentProps['onOpenItem'];
-  onSwitchOrderType?: MenuContentProps['onSwitchOrderType'];
+  onSwitchOrderType: MenuContentProps['onSwitchOrderType'];
   featuredSlot?: ReactNode;
-  featuredFilterable?: MenuContentProps['featuredFilterable'];
+  featuredFilterable: MenuContentProps['featuredFilterable'];
 }
 
 /** Renders the aggregate family list for both tabs and one-page category-offer paths. */

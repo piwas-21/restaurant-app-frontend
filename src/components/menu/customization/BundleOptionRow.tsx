@@ -66,6 +66,15 @@ export default function BundleOptionRow({
     : (item.ingredients ?? []).join(', ');
   const variationName = item.productVariationName?.trim();
   const optionPrice = item.additionalPrice + (item.productVariationPriceModifier ?? 0);
+  let optionPriceText = t('menu_option_free');
+  let optionPriceClass = styles.free;
+  if (optionPrice > 0) {
+    optionPriceText = `+${formatPlainCurrency(optionPrice)}`;
+    optionPriceClass = styles.price;
+  } else if (optionPrice < 0) {
+    optionPriceText = formatPlainCurrency(optionPrice);
+    optionPriceClass = styles.price;
+  }
 
   const details = (
     <div className={styles.details}>
@@ -80,13 +89,7 @@ export default function BundleOptionRow({
           Uniform across options — a drink or the dish row at 0 is exactly as included as the
           frites are.
         */}
-        {optionPrice > 0 ? (
-          <span className={styles.price}>+{formatPlainCurrency(optionPrice)}</span>
-        ) : optionPrice < 0 ? (
-          <span className={styles.price}>{formatPlainCurrency(optionPrice)}</span>
-        ) : (
-          <span className={styles.free}>{t('menu_option_free')}</span>
-        )}
+        <span className={optionPriceClass}>{optionPriceText}</span>
       </div>
       {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
       {item.allergens && item.allergens.length > 0 && (

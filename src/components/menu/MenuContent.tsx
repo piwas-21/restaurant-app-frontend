@@ -63,10 +63,7 @@ export interface MenuContentProps {
   onBrowseFullMenu?: () => void;
   /** The Chef's Special hero — the grid's first cell, spanning two columns. See `MenuList`. */
   featuredSlot?: ReactNode;
-  /**
-   * The special's own allergens, so it can be FILTERED by the same rule as the grid rather than
-   * withheld. The slot above is an opaque element — this is the data behind it.
-   */
+  /** The special's allergens, so it filters with the grid rather than being withheld. */
   featuredFilterable?: { allergens?: string[]; isSpecial?: boolean };
   /**
    * The tenant's "menu bundles on the All tab" setting (mcdoner partner request). Off — the
@@ -80,11 +77,18 @@ export interface MenuContentProps {
   offerFamiliesState?: UsePublicOfferFamiliesReturn;
 }
 
-export default function MenuContent(props: MenuContentProps) {
-  if (props.offerFamilies !== undefined && props.offerFamiliesState) {
-    return <MenuFamilyContent {...props} families={props.offerFamilies} state={props.offerFamiliesState} />;
+export default function MenuContent({ offerFamilies, offerFamiliesState, ...legacyProps }: Readonly<MenuContentProps>) {
+  if (offerFamilies !== undefined && offerFamiliesState) {
+    const familyContentProps = {
+      ...legacyProps,
+      families: offerFamilies,
+      state: offerFamiliesState,
+      onSwitchOrderType: legacyProps.onSwitchOrderType,
+      featuredFilterable: legacyProps.featuredFilterable,
+    };
+    return <MenuFamilyContent {...familyContentProps} />;
   }
-  return <LegacyMenuContent {...props} />;
+  return <LegacyMenuContent {...legacyProps} />;
 }
 
 function LegacyMenuContent({
@@ -107,7 +111,7 @@ function LegacyMenuContent({
   featuredSlot,
   featuredFilterable,
   showBundlesOnAllView = false,
-}: MenuContentProps) {
+}: Readonly<MenuContentProps>) {
   const { t } = useTranslation();
 
   const isMenuBundlesView = selectedView === MENU_BUNDLES_KEY;

@@ -87,10 +87,10 @@ export function usePublicOfferFamilies(enabled: boolean): UsePublicOfferFamilies
       setCurrentPage(page.page ?? 1);
       setTotalPages(totalPageCount);
       setTotalCount(page.totalCount ?? allItems.length);
-    } catch (caught: unknown) {
+    } catch (error_: unknown) {
       if (localId !== requestId.current) return;
       setFamilies([]);
-      setError(errorMessage(caught, 'Failed to fetch menu offers'));
+      setError(errorMessage(error_, 'Failed to fetch menu offers'));
     } finally {
       if (localId === requestId.current) setIsLoading(false);
     }

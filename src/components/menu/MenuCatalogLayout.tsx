@@ -13,9 +13,9 @@ interface MenuCatalogLayoutProps {
   onePage: UseOnePageMenuReturn;
   menuContentProps: MenuContentProps;
   onOpenItem: MenuContentProps['onOpenItem'];
-  onSwitchOrderType?: MenuContentProps['onSwitchOrderType'];
+  onSwitchOrderType: MenuContentProps['onSwitchOrderType'];
   featuredSlot?: ReactNode;
-  featuredFilterable?: MenuContentProps['featuredFilterable'];
+  featuredFilterable: MenuContentProps['featuredFilterable'];
   offerFamilies?: CatalogOfferFamily[];
   offerFamiliesState?: UsePublicOfferFamiliesReturn;
 }

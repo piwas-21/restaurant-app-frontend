@@ -1,0 +1,35 @@
+.map {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  min-height: 20rem;
+  overflow: auto;
+  padding: 0.5rem;
+}
+.map svg {
+  min-width: 34rem;
+}
+.message {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  min-height: 18rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+.retry {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  min-height: 3rem;
+  padding: 0.6rem 1rem;
+}
+.retry:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}

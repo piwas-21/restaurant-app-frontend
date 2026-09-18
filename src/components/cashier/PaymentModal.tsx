@@ -1,5 +1,4 @@
 'use client';
-
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
@@ -27,6 +26,7 @@ interface PaymentModalProps {
 
 export interface PaymentModalData {
   operationId: string;
+  expectedVersion?: number;
   amount: number;
   paymentMethod: string;
   transactionId?: string;
@@ -100,6 +100,7 @@ export default function PaymentModal({
     try {
       await onConfirm({
         amount: paymentAmount,
+        expectedVersion: order?.version,
         paymentMethod: method,
         transactionId: transactionId || undefined,
         paymentNotes: notes || undefined,

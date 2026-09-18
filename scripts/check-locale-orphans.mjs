@@ -72,6 +72,16 @@ const DYNAMIC_PREFIXES = [
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the
   // receipt family above: i18next appends the CLDR category, so no literal exists per category.
   'ingredient_translations_unsaved_',
+  // The cashier workspace plural families are called as t('<base>', { count }) and i18next appends
+  // the CLDR category itself, so only the base exists at the callsite. Family-scoped prefixes:
+  //   cashier.workspace.open_count   — CashierWorkspaceShell.tsx open-orders attention badge
+  //   cashier.tables.capacity        — CashierTableList.tsx seat count
+  //   cashier.tables.rounds          — CashierTableList.tsx ordering-round count
+  //   cashier.tables.legacy_orders   — CashierTableList.tsx out-of-session order count
+  'cashier.workspace.open_count_',
+  'cashier.tables.capacity_',
+  'cashier.tables.rounds_',
+  'cashier.tables.legacy_orders_',
   'my_reservations_status_',
   'order_status_',
   'payment_status_',

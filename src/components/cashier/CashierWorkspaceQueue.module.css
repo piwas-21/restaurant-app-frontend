@@ -1,0 +1,160 @@
+.queuePane {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+.queueToolbar {
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+.searchForm {
+  display: flex;
+  gap: 0.5rem;
+}
+.searchInput,
+.filterSelect {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font: inherit;
+  min-height: 2.75rem;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+}
+.searchField {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.searchInput {
+  width: 100%;
+}
+.searchSubmit {
+  background: var(--brand-primary);
+  border: 0;
+  border-radius: 6px;
+  color: var(--text-on-primary);
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.85rem;
+}
+.searchSubmit:hover,
+.searchSubmit:focus-visible {
+  background: var(--brand-primary-hover);
+}
+.filterGrid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.filterField {
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 0.25rem;
+}
+.filterSelect {
+  width: 100%;
+}
+.historyFilters {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(8rem, 0.7fr) minmax(0, 1fr);
+}
+.historyDayStatus {
+  align-self: end;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding-bottom: 0.6rem;
+}
+.historyDayError {
+  align-items: center;
+  background: var(--feedback-danger-xlight);
+  color: var(--feedback-danger-dark);
+  display: flex;
+  font-size: 0.8rem;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.45rem 0.6rem;
+}
+.historyDateFields {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.stateMessage,
+.ticketState {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  justify-content: center;
+  min-height: 10rem;
+  padding: 1rem;
+  text-align: center;
+}
+.stateMessage[role='alert'] {
+  color: var(--feedback-danger-dark);
+}
+.stateMessageWarning {
+  align-items: center;
+  background: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+}
+.stateAction {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.65rem;
+}
+.resultCount {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin: 0;
+}
+.pagination {
+  align-items: center;
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.7rem;
+}
+.pagination span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+@media (max-width: 760px) {
+  .filterGrid,
+  .historyDateFields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.searchInput:focus-visible,
+.filterSelect:focus-visible,
+.stateAction:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}

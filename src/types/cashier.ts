@@ -10,7 +10,11 @@ export interface CashierOrdersFilters {
   tableNumber?: number;
   page?: number;
   pageSize?: number;
+  /** A single server-named tenant calendar day. */
   tenantDay?: string;
+  /** Inclusive date-only bounds resolved in the tenant timezone by the backend. */
+  tenantStartDay?: string;
+  tenantEndDay?: string;
   startDate?: Date;
   endDate?: Date;
   modifiedSince?: Date;

@@ -96,6 +96,8 @@ export interface OrderDto {
   isFullyPaid: boolean;
   status: string;
   paymentStatus: string;
+  /** Server-issued aggregate version used for conditional staff mutations. */
+  version: number;
   isFocusOrder: boolean;
   priority?: number;
   focusReason?: string;

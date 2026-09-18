@@ -1,0 +1,78 @@
+.orderList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.orderListItem {
+  border-bottom: 1px solid var(--border-default);
+}
+.orderListItem:last-child {
+  border-bottom: 0;
+}
+.orderRow {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: 0.4rem;
+  min-height: 7.5rem;
+  padding: 0.85rem;
+  text-align: start;
+  width: 100%;
+}
+.orderRow:hover {
+  background: var(--surface-secondary);
+}
+.orderRowSelected {
+  background: var(--surface-secondary);
+  box-shadow: inset 4px 0 var(--brand-primary);
+}
+.orderRowTop,
+.orderRowMeta,
+.orderRowBottom {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+.orderRowMeta {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  justify-content: flex-start;
+}
+.orderRowBottom {
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+.orderRowMeta time {
+  margin-inline-start: auto;
+}
+.orderNumber {
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+.paymentState {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+.amountDue {
+  color: var(--feedback-danger-dark);
+  font-weight: 700;
+}
+.amountCredit {
+  color: var(--feedback-warning-text);
+  font-weight: 700;
+}
+.amountSettled {
+  color: var(--feedback-success-text);
+  font-weight: 700;
+}
+
+.orderRow:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}

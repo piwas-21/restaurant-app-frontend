@@ -47,11 +47,17 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   if (isLoading) return null;
   const role = user?.role.toLowerCase();
 
-  // Cashier: Show only Cashier link
+  // Cashier: land on the route-backed Orders workspace. The legacy `/cashier` page remains
+  // available for existing bookmarks while the redesign rolls out.
   if (role === 'cashier') {
     if (!cashierEnabled) return null;
+    const cashierWorkspaceActive = pathname === '/cashier' || pathname.startsWith('/cashier/');
     return (
-      <Link href="/cashier" className={`nav-link ${pathname === '/cashier' ? 'active' : ''}`} onClick={onNavigate}>
+      <Link
+        href="/cashier/orders"
+        className={`nav-link ${cashierWorkspaceActive ? 'active' : ''}`}
+        onClick={onNavigate}
+      >
         <Receipt size={18} />
         <span>{t('nav_cashier', 'Cashier')}</span>
       </Link>

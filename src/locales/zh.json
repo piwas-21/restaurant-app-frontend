@@ -2537,7 +2537,7 @@
   "cashier.operational_note_load_error": "无法加载运营备注。",
   "cashier.operational_note_save_error": "无法保存备注。",
   "offer_family_options": "点餐选项",
-  "offer_family_a_la_carte": "单点",
+  "offer_family_confirm": "下单",
   "offer_family_item_only": "仅单品",
   "offer_family_menu": "菜单",
   "offer_family_choose_size": "选择规格",

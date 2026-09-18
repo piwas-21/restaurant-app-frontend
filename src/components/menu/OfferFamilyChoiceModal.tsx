@@ -79,7 +79,7 @@ export default function OfferFamilyChoiceModal({
   }, [targetId, targets]);
 
   if (!family || !anchorTarget) return null;
-  const itemOnlyLabel = language === 'fr' ? t('offer_family_a_la_carte') : t('offer_family_item_only');
+  const itemOnlyLabel = t('offer_family_item_only');
   const menuLabel = t('offer_family_menu');
   const selectedVariation = variations.find((variation) => variation.id === variationId);
   const selectedTarget = targets.find((target) => targetKey(target) === targetId) ?? targets[0];
@@ -105,6 +105,10 @@ export default function OfferFamilyChoiceModal({
       onClose={onClose}
       title={familyTitle}
       size="sm"
+      /* Docked bottom sheet on phones (≤30rem): the centered dialog's `90vh` is iOS Safari's LARGE
+         viewport, so the footer lands under the URL bar and the choice is unreachable. `90dvh`
+         tracks the real viewport. Wide screens keep the centered dialog. */
+      presentation="responsive-sheet"
       footer={
         <div className={styles.footer}>
           <button type="button" className={styles.cancelButton} onClick={onClose}>
@@ -116,7 +120,7 @@ export default function OfferFamilyChoiceModal({
             onClick={() => selectedTargetWithVariation && onSelect(selectedTargetWithVariation)}
             disabled={!selectedTargetWithVariation || selectedTargetUnavailable}
           >
-            {t('continue')}
+            {t('offer_family_confirm')}
           </button>
         </div>
       }

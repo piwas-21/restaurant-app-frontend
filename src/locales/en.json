@@ -2539,7 +2539,7 @@
   "cashier.operational_note_load_error": "Could not load operational notes.",
   "cashier.operational_note_save_error": "Could not save the note.",
   "offer_family_options": "Order options",
-  "offer_family_a_la_carte": "A la carte",
+  "offer_family_confirm": "Order",
   "offer_family_item_only": "Item only",
   "offer_family_menu": "Menu",
   "offer_family_choose_size": "Choose a size",

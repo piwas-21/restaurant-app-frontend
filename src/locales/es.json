@@ -2541,7 +2541,7 @@
   "cashier.operational_note_load_error": "No se pudieron cargar las notas operativas.",
   "cashier.operational_note_save_error": "No se pudo guardar la nota.",
   "offer_family_options": "Opciones de pedido",
-  "offer_family_a_la_carte": "A la carta",
+  "offer_family_confirm": "Pedir",
   "offer_family_item_only": "Solo producto",
   "offer_family_menu": "Menú",
   "offer_family_choose_size": "Elige un tamaño",

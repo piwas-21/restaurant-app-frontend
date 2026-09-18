@@ -2547,7 +2547,7 @@
   "cashier.operational_note_load_error": "تعذر تحميل ملاحظات التشغيل.",
   "cashier.operational_note_save_error": "تعذر حفظ الملاحظة.",
   "offer_family_options": "خيارات الطلب",
-  "offer_family_a_la_carte": "حسب الطلب",
+  "offer_family_confirm": "اطلب",
   "offer_family_item_only": "المنتج فقط",
   "offer_family_menu": "قائمة",
   "offer_family_choose_size": "اختر الحجم",

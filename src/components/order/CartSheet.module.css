@@ -1,33 +1,12 @@
 /* Sheet-mode override of BaseModal's centered-dialog defaults. The `.sheet` class is appended to
    BaseModal's `.dialog`, so positioning is overridden by the cascade — keep this file scoped to
-   layout, not the dialog's own colors / borders / shadow which BaseModal owns. */
+   layout, not the dialog's own colors / borders / shadow which BaseModal owns.
 
-/* ── Phone: a bottom sheet ──────────────────────────────────────────────────────────────────── */
-.sheet {
-  /* Pin to the bottom edge of the overlay (the overlay is a flex container; centering is the
-     BaseModal default). */
-  align-self: flex-end;
-
-  width: 100%;
-  max-width: 560px;
-
-  /* Generous body height while still leaving room to dismiss by tapping the backdrop above. */
-  max-height: 80vh;
-
-  /* Round only the top corners — the bottom flush against the screen. */
-  border-radius: 18px 18px 0 0;
-
-  animation: sheetSlideUp 0.25s ease-out;
-}
-
-@keyframes sheetSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
+   PHONES are gone from this file on purpose (2026-09-18): the basket now passes
+   `presentation="responsive-sheet"`, so BaseModal docks it with a definite 90dvh height. The
+   bespoke phone rules that lived here (align-self + an 80vh cap over the same auto-height flex
+   column) were exactly the layout WebKit collapsed to a ~90px strip on real iOS Safari; the
+   shared sheet replaces them, so this file only shapes the DESKTOP slide-over. */
 
 /* ── Desktop: a right-edge slide-over ───────────────────────────────────────────────────────── */
 /* 769px, matching the width at which the page stops being a list of rows. The panel takes the

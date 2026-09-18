@@ -2539,7 +2539,7 @@
   "cashier.operational_note_load_error": "Betriebsnotizen konnten nicht geladen werden.",
   "cashier.operational_note_save_error": "Die Notiz konnte nicht gespeichert werden.",
   "offer_family_options": "Bestelloptionen",
-  "offer_family_a_la_carte": "Einzeln",
+  "offer_family_confirm": "Bestellen",
   "offer_family_item_only": "Nur Artikel",
   "offer_family_menu": "Menü",
   "offer_family_choose_size": "Größe wählen",

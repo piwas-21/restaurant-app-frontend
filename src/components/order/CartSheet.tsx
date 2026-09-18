@@ -12,7 +12,7 @@ import styles from './CartSheet.module.css';
 // default (classic) — resolved at build time, so classic never bundles craft (T4).
 const CartContents = surfaceOr('CartContents', DefaultCartContents);
 
-interface CartSheetProps {
+export interface CartSheetProps {
   isOpen: boolean;
   onClose: () => void;
   /** Wired so the toggle's clicks can trigger the table/address modals. */
@@ -39,11 +39,17 @@ export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSh
   const { t } = useTranslation();
 
   return (
+    // Docked bottom sheet on phones (BaseModal ≤30rem): the basket is a phone-first, scrollable
+    // surface, so it takes the shared definite-height sheet like the customization flows. The
+    // bespoke phone CSS this used to carry (align-self + 80vh cap) was the same auto-height flex
+    // column WebKit collapsed to a strip (2026-09-18 staging report) — the shared presentation
+    // replaces it; the desktop slide-over (>=769px) stays defined in the module CSS.
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title={t('shopping_basket', 'Shopping Basket')}
       className={styles.sheet}
+      presentation="responsive-sheet"
     >
       <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="cart_sheet" />
     </BaseModal>

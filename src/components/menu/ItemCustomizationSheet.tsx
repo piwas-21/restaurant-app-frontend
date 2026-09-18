@@ -135,8 +135,18 @@ export default function ItemCustomizationSheet({
     t,
   });
 
+  // Docked bottom sheet on phones (≤30rem): the centered dialog's `90vh` is iOS Safari's LARGE
+  // viewport, so the action bar lands under the URL bar and the flow "does not fit the screen".
+  // `90dvh` tracks the real viewport; wide screens keep the centered dialog.
   return (
-    <BaseModal isOpen={isOpen} onClose={dismiss} title={title} size="lg" footer={footer}>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={dismiss}
+      title={title}
+      size="lg"
+      presentation="responsive-sheet"
+      footer={footer}
+    >
       <div className={styles.body}>
         {optionFlow ? (
           // The per-option screen REPLACES the bundle body: the intro above describes the combo,

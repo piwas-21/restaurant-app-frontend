@@ -2539,7 +2539,7 @@
   "cashier.operational_note_load_error": "Operasyon notları yüklenemedi.",
   "cashier.operational_note_save_error": "Not kaydedilemedi.",
   "offer_family_options": "Sipariş seçenekleri",
-  "offer_family_a_la_carte": "Tekli seçim",
+  "offer_family_confirm": "Sipariş ver",
   "offer_family_item_only": "Sadece ürün",
   "offer_family_menu": "Menü",
   "offer_family_choose_size": "Boyut seçin",

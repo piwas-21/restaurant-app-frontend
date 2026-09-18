@@ -17,7 +17,7 @@ import {
   tableSessionEligibleOutstanding,
 } from '@/lib/cashierTableSession';
 import { staffTableOrderHref } from '@/lib/cashierWorkspace';
-import { sessionStatusLabel } from '@/lib/cashierTableLabels';
+import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
@@ -59,6 +59,7 @@ export default function CashierTableSessionPanel({
 }: CashierTableSessionPanelProps) {
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const tableDisplay = sessionTableDisplay(session, t);
   const actions = tableSessionActions(session);
   const operationLocked = isMutating || pendingOperation !== null;
   const writesLocked = operationLocked || isStale;
@@ -94,7 +95,7 @@ export default function CashierTableSessionPanel({
           </StaffButton>
           <p className={styles.eyebrow}>{t('cashier.tables.session')}</p>
           <h2 id="cashier-table-session-title" dir="auto">
-            {t('cashier.tables.table_number', { table: session.tableNumber })}
+            {tableDisplay}
           </h2>
           <p className={styles.muted}>{t('cashier.tables.opened', { time: opened })}</p>
         </div>
@@ -136,13 +137,17 @@ export default function CashierTableSessionPanel({
                 ? t('cashier.tables.payment_unknown')
                 : t('cashier.tables.close_unknown')}
           </span>
-          {pendingOperation.status === 'Unknown' && pendingOperation.kind === 'payment' && (
+          {pendingOperation.status === 'Unknown' && (
             <StaffButton onClick={() => void onReconcilePendingOperation().catch(() => undefined)}>
               {t('cashier.tables.operation_retry')}
             </StaffButton>
           )}
           {pendingOperation.status === 'Unknown' && (
-            <p className={styles.muted}>{t('cashier.tables.reconciliation_unavailable')}</p>
+            <p className={styles.muted}>
+              {pendingOperation.kind === 'payment'
+                ? t('cashier.tables.reconciliation_unavailable')
+                : t('cashier.tables.close_recheck_hint')}
+            </p>
           )}
         </div>
       )}
@@ -199,7 +204,7 @@ export default function CashierTableSessionPanel({
           </div>
         }
       >
-        <p>{t('cashier.tables.close_confirm_message', { table: session.tableNumber })}</p>
+        <p>{t('cashier.tables.close_confirm_message', { table: tableDisplay })}</p>
         <p className={styles.muted}>
           {formatTableMoney(tableSessionEligibleOutstanding(session), session) ?? t('cashier.tables.currency_unknown')}
         </p>

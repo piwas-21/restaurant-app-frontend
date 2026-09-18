@@ -70,3 +70,25 @@ describe('CashierTableList', () => {
     separators.forEach((separator) => expect(separator).toHaveAttribute('aria-hidden', 'true'));
   });
 });
+
+it('renders a label-only visit under its configured label and passes plural counts', () => {
+  const labelOnlySession: TableServiceSessionDto = {
+    ...session,
+    serviceSessionId: 'session-tqa',
+    tableNumber: null,
+    tableLabel: 'T-QA',
+  };
+  const labelEntry: CashierTableEntry = {
+    table: { ...table, id: 'table-tqa', tableNumber: '' },
+    session: labelOnlySession,
+    status: 'occupied',
+  };
+  render(<CashierTableList entries={[labelEntry]} selectedTableNumber={null} onSelectTable={jest.fn()} />);
+
+  expect(screen.getByText('T-QA')).toBeInTheDocument();
+  expect(screen.queryByText(/Table null/)).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /cashier\.tables\.select_table:T-QA/ })).toBeInTheDocument();
+  // The counted sentences go through the count option so i18next resolves the plural family.
+  expect(screen.getByText('cashier.tables.capacity:4')).toBeInTheDocument();
+  expect(screen.getByText('cashier.tables.rounds:2')).toBeInTheDocument();
+});

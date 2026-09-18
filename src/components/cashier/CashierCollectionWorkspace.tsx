@@ -28,7 +28,12 @@ export default function CashierCollectionWorkspace() {
   const pendingBlocksNavigation = Boolean(collection.pendingPayment && collection.pendingPayment.status !== 'Refused');
   const isPending = collection.isMutating || collection.isCheckingPayment;
   const navigationDisabled = isPending || pendingBlocksNavigation;
-  const queueState = collection.isLoading ? 'loading' : !collection.order && collection.error ? 'unavailable' : 'ready';
+  // No ?order= is a deliberate resting screen, not a queue health failure.
+  const queueState = collection.isLoading
+    ? 'loading'
+    : collection.order || !route.selectedOrderId
+      ? 'ready'
+      : 'unavailable';
   const returnToOrder = useCallback(() => {
     if (route.selectedOrderId) route.navigateToOrder(route.selectedOrderId);
     else route.navigateToOrders();

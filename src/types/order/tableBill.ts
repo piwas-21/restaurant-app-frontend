@@ -9,7 +9,8 @@ import type { TableBillRoundDto } from './tableBillRound';
  * neither Completed nor Cancelled.
  */
 export interface TableBillDto {
-  tableNumber: number;
+  /** Null for label-only visits; the session's tableLabel carries the display name then. */
+  tableNumber: number | null;
   /** Explicit durable visit identity; null on the legacy table-number bill. */
   serviceSessionId?: string | null;
   /** Optimistic-concurrency version for an explicit visit. */

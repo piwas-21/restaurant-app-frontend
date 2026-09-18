@@ -65,7 +65,7 @@ export default function CashierTableMap({
     [activePlan, entryByNumber, onSelectTable],
   );
   const formatLabel = useCallback(
-    (table: FloorPlanTableGeometry, state: TableRenderState) => {
+    (table: FloorPlanTableGeometry, _state: TableRenderState) => {
       const entry = entryByNumber.get(tableNumberKey(table.tableNumber));
       const status = entry ? tableStatusLabel(entry.status, t) : t('cashier.tables.status_available');
       const balance = entry?.session
@@ -74,10 +74,8 @@ export default function CashierTableMap({
         : t('cashier.tables.no_balance');
       return t('cashier.tables.map_label', {
         table: table.tableNumber,
-        seats: table.maxGuests,
         status,
         amount: balance,
-        state,
       });
     },
     [entryByNumber, t],

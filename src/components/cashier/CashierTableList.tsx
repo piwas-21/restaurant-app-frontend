@@ -5,7 +5,7 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { formatTableMoney, tableNumberKey, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
-import { tableStatusLabel } from '@/lib/cashierTableLabels';
+import { sessionTableDisplay, tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableList.module.css';
 
 type BadgeTone = 'success' | 'warning' | 'neutral';
@@ -39,6 +39,9 @@ export default function CashierTableList({
       {entries.map((entry) => {
         const { table, session, status } = entry;
         const number = table.tableNumber;
+        const displayName = session
+          ? sessionTableDisplay(session, t)
+          : t('cashier.tables.table_number', { table: number });
         const selected = selectedTableNumber !== null && tableNumberKey(selectedTableNumber) === tableNumberKey(number);
         const balance = session
           ? (formatTableMoney(tableSessionEligibleOutstanding(session), session) ??
@@ -59,22 +62,22 @@ export default function CashierTableList({
               type="button"
               className={styles.card}
               aria-pressed={selected}
-              aria-label={t('cashier.tables.select_table', { table: number })}
+              aria-label={t('cashier.tables.select_table', { table: displayName })}
               onClick={() => onSelectTable(number, session?.serviceSessionId)}
               disabled={disabled}
             >
               <span className={styles.header}>
                 <span className={styles.number} dir="auto">
-                  {t('cashier.tables.table_number', { table: number })}
+                  {displayName}
                 </span>
                 <StatusBadge tone={tone(status)}>{tableStatusLabel(status, t)}</StatusBadge>
               </span>
               <span className={styles.meta}>
-                <span>{t('cashier.tables.capacity', { seats: table.maxGuests })}</span>
+                <span>{t('cashier.tables.capacity', { count: table.maxGuests })}</span>
                 {session && (
                   <>
                     <span aria-hidden="true"> · </span>
-                    <span>{t('cashier.tables.rounds', { rounds: session.roundCount })}</span>
+                    <span>{t('cashier.tables.rounds', { count: session.roundCount })}</span>
                   </>
                 )}
                 {(status === 'legacy' || status === 'conflict') && (
@@ -82,7 +85,7 @@ export default function CashierTableList({
                     <span aria-hidden="true"> · </span>
                     <span>
                       {t('cashier.tables.legacy_orders', {
-                        orders: session?.legacyActiveOrderCount ?? table.activeOrderCount ?? 0,
+                        count: session?.legacyActiveOrderCount ?? table.activeOrderCount ?? 0,
                       })}
                     </span>
                   </>

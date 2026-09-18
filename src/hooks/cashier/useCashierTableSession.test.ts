@@ -7,7 +7,7 @@ import {
   getTableServiceSession,
   lookupTableServiceSessionPaymentOperation,
 } from '@/services/tableServiceSessionService';
-import { persistPendingTablePayment } from '@/lib/cashierTablePending';
+import { persistPendingTableClose, persistPendingTablePayment } from '@/lib/cashierTablePending';
 import { useCashierTableSession } from './useCashierTableSession';
 
 jest.mock('@/services/tableServiceSessionService');
@@ -199,4 +199,40 @@ describe('useCashierTableSession', () => {
     });
     expect(result.current.session).toEqual(expect.objectContaining({ version: 5, outstanding: 0 }));
   });
+});
+
+it('resolves an unknown close as committed through a guarded re-read and clears the lock', async () => {
+  persistPendingTableClose('session-1', 4);
+  const closed = session({ status: 'Closed', closedAt: '2026-09-12T20:00:00Z' });
+  mockedGet.mockResolvedValue(closed);
+  const { result } = renderHook(() => useCashierTableSession('session-1'));
+  await waitFor(() =>
+    expect(result.current.pendingOperation).toEqual(expect.objectContaining({ kind: 'close', status: 'Unknown' })),
+  );
+
+  await act(async () => {
+    await result.current.reconcilePendingOperation();
+  });
+  expect(mockedClose).not.toHaveBeenCalled();
+  expect(result.current.pendingOperation).toBeNull();
+  expect(result.current.session).toEqual(closed);
+  expect(result.current.error).toBeNull();
+  expect(window.sessionStorage.getItem('cashier.pending-table-operation')).toBeNull();
+});
+
+it('resolves an unknown close as still-open so a retry stays a deliberate decision', async () => {
+  persistPendingTableClose('session-1', 4);
+  mockedGet.mockResolvedValue(session());
+  const { result } = renderHook(() => useCashierTableSession('session-1'));
+  await waitFor(() =>
+    expect(result.current.pendingOperation).toEqual(expect.objectContaining({ kind: 'close', status: 'Unknown' })),
+  );
+
+  await act(async () => {
+    await result.current.reconcilePendingOperation();
+  });
+  expect(mockedClose).not.toHaveBeenCalled();
+  expect(result.current.pendingOperation).toBeNull();
+  expect(result.current.error).toBe('cashier.tables.close_not_recorded');
+  expect(result.current.session?.status).toBe('Open');
 });

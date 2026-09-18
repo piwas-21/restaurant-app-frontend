@@ -129,3 +129,22 @@ describe('useCashierTables', () => {
     );
   });
 });
+
+it('keeps a label-only visit visible under its configured label instead of a null table number', async () => {
+  const labelOnly: TableServiceSessionDto = {
+    ...session('session-tqa', 1),
+    serviceSessionId: 'session-tqa',
+    tableNumber: null,
+    tableLabel: 'T-QA',
+  };
+  mockedSessions.mockResolvedValue([session('session-4', 4), labelOnly]);
+  const { result } = renderHook(() => useCashierTables());
+  await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+  const numbers = result.current.entries.map((entry) => entry.table.tableNumber);
+  expect(numbers).toContain('T-QA');
+  expect(numbers).not.toContain('null');
+  const labelEntry = result.current.entries.find((entry) => entry.table.tableNumber === 'T-QA');
+  expect(labelEntry?.session?.serviceSessionId).toBe('session-tqa');
+  expect(labelEntry?.status).toBe('occupied');
+});

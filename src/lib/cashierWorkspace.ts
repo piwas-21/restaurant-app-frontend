@@ -8,10 +8,18 @@ export const CASHIER_TABLES_PATH = '/cashier/tables' as const;
 /** Existing waiter/staff order route; it creates legacy table orders until membership is shipped. */
 export const STAFF_ORDER_PATH = '/server' as const;
 
-export function staffTableOrderHref(tableNumber: string | number, serviceSessionId?: string): string {
-  const params = new URLSearchParams({ tableNumber: String(tableNumber) });
+export function staffTableOrderHref(
+  tableNumber: string | number | null | undefined,
+  serviceSessionId?: string,
+): string {
+  const params = new URLSearchParams();
+  // A label-only visit has no number to hand over; the session id still identifies the visit.
+  if (tableNumber !== null && tableNumber !== undefined && String(tableNumber).trim() !== '') {
+    params.set('tableNumber', String(tableNumber));
+  }
   if (serviceSessionId) params.set('serviceSessionId', serviceSessionId);
-  return `${STAFF_ORDER_PATH}?${params.toString()}`;
+  const query = params.toString();
+  return query === '' ? STAFF_ORDER_PATH : `${STAFF_ORDER_PATH}?${query}`;
 }
 
 export interface CashierWorkspaceRoute {

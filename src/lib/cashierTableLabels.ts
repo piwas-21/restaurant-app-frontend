@@ -1,7 +1,23 @@
 import type { CashierTableStatus } from '@/hooks/cashier/useCashierTables';
-import type { TableServiceSessionStatus } from '@/types/order';
+import type { TableServiceSessionDto, TableServiceSessionStatus } from '@/types/order';
 
-type Translate = (key: string) => string;
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+/**
+ * One display name per visit: the server-configured label wins, then the table number, and a
+ * label-only visit stays visible instead of rendering "Table null" (backend TableNumber is nullable).
+ */
+export function sessionTableDisplay(
+  session: Pick<TableServiceSessionDto, 'tableNumber' | 'tableLabel'>,
+  t: Translate,
+): string {
+  const label = session.tableLabel?.trim();
+  if (label) return label;
+  if (session.tableNumber !== null && session.tableNumber !== undefined) {
+    return t('cashier.tables.table_number', { table: session.tableNumber });
+  }
+  return t('cashier.tables.unnamed_table');
+}
 
 export function tableStatusLabel(status: CashierTableStatus, t: Translate): string {
   if (status === 'occupied') return t('cashier.tables.status_occupied');

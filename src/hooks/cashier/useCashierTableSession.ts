@@ -17,7 +17,7 @@ import {
 import { getErrorMessage } from '@/utils/apiClient';
 import { isPaymentOutcomeUnknown } from './usePaymentReconciliation';
 import type { CashierTableSessionState } from './cashierTableSessionTypes';
-import { reconcilePendingTablePayment } from './reconcilePendingTablePayment';
+import { reconcilePendingTableOperation } from './reconcilePendingTableOperation';
 import {
   beginTableSessionMutation,
   finishTableSessionMutation,
@@ -167,9 +167,9 @@ export function useCashierTableSession(serviceSessionId: string | null): Cashier
     }
   }, [pendingOperation, refresh, serviceSessionId, session]);
   const reconcilePendingOperation = useCallback(async (): Promise<void> => {
-    if (!serviceSessionId || !pendingOperation || pendingOperation.kind !== 'payment') return;
-    if (pendingOperation.status !== 'Unknown' || inFlightRef.current) return;
-    await reconcilePendingTablePayment({
+    if (!serviceSessionId || !pendingOperation || pendingOperation.status !== 'Unknown') return;
+    if (inFlightRef.current) return;
+    await reconcilePendingTableOperation({
       serviceSessionId,
       pendingOperation,
       mountedRef,

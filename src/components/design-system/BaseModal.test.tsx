@@ -225,4 +225,16 @@ describe('BaseModal', () => {
     expect(docked).toMatch(/block-size:\s*90dvh/);
     expect(docked).toMatch(/max-block-size:\s*90dvh/);
   });
+
+  // The other half of the 2026-09-18 collapse: `.body` used the `flex: 1` shorthand — basis 0% —
+  // and an overflow child with a 0% basis contributes nothing to an auto-height flex column, so
+  // WebKit settled CENTERED dialogs at header + footer + a strip too (basket, change-order-type).
+  // Basis auto puts the body's content back into the container's intrinsic sizing. Layout is
+  // invisible to jsdom; this pins the source like the docked-height ratchet above.
+  it('sizes the scrollable body with flex-basis auto so auto-height dialogs grow to their content', () => {
+    const css = readFileSync(join(__dirname, 'BaseModal.module.css'), 'utf8');
+    const body = css.slice(css.indexOf('.body {'), css.indexOf('.footer {'));
+    expect(body).toMatch(/flex:\s*1 1 auto/);
+    expect(body).not.toMatch(/flex:\s*1;/);
+  });
 });

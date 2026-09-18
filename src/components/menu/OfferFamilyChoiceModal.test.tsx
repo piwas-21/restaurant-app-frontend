@@ -3,17 +3,27 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OfferFamilyChoiceModal from './OfferFamilyChoiceModal';
 import type { CatalogOfferFamily } from '@/types/menu/offerFamily';
 
+/**
+ * The UI language is read per render off a global the tests set, so a test can act as a French
+ * guest. The table carries ONE language's strings: which string a key resolves to is i18next's
+ * job, and this file's job is to catch the component OVERRIDING that choice (the removed
+ * `language === 'fr'` label hack used to swap keys behind i18next's back).
+ *
+ * `continue` is deliberately ABSENT from the table: the confirm button must read the
+ * `offer_family_confirm` key, and a leftover `t('continue')` would render the raw key and fail
+ * every button lookup below.
+ */
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    i18n: { language: 'en' },
+    i18n: { language: (globalThis as unknown as Record<string, string>).__OFFER_FAMILY_MOCK_LANGUAGE__ },
     t: (key: string, fallback?: unknown) =>
       typeof fallback === 'string'
         ? fallback
         : ((
             {
               cancel: 'Cancel',
-              continue: 'Continue',
               close: 'Close',
+              offer_family_confirm: 'Order',
               offer_family_item_only: 'Item only',
               offer_family_menu: 'Menu',
               offer_family_choose_size: 'Choose a size',
@@ -51,6 +61,14 @@ const family: CatalogOfferFamily = {
 };
 
 describe('OfferFamilyChoiceModal', () => {
+  beforeEach(() => {
+    (globalThis as unknown as Record<string, string>).__OFFER_FAMILY_MOCK_LANGUAGE__ = 'en';
+  });
+
+  afterEach(() => {
+    delete (globalThis as unknown as Record<string, string | undefined>).__OFFER_FAMILY_MOCK_LANGUAGE__;
+  });
+
   it('uses the localized anchor content as the modal title', () => {
     render(
       <OfferFamilyChoiceModal
@@ -75,7 +93,7 @@ describe('OfferFamilyChoiceModal', () => {
 
     expect(screen.getByRole('radio', { name: 'Item only CHF 12.00' })).toBeChecked();
     fireEvent.click(screen.getByRole('radio', { name: 'Menu CHF 13.00' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Order' }));
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ productId: 'menu-tacos', kind: 'bundle', price: 13 }),
@@ -88,7 +106,7 @@ describe('OfferFamilyChoiceModal', () => {
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
     fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Order' }));
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ productId: 'tacos', kind: 'product', parentVariationId: 'large', price: 12 }),
@@ -178,6 +196,32 @@ describe('OfferFamilyChoiceModal', () => {
     expect(screen.getByRole('radio', { name: 'Menu CHF 18.00' })).toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: 'Menu CHF 14.00' })).not.toBeInTheDocument();
     expect(screen.queryByRole('radio', { name: 'Menu CHF 15.00' })).not.toBeInTheDocument();
+  });
+
+  it('resolves the mode labels through i18next in every language (no hardcoded French override)', async () => {
+    (globalThis as unknown as Record<string, string>).__OFFER_FAMILY_MOCK_LANGUAGE__ = 'fr';
+    render(<OfferFamilyChoiceModal family={family} onClose={jest.fn()} onSelect={jest.fn()} />);
+
+    // The linked menu is large-only, so pick the size to get BOTH modes on screen.
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
+    fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
+
+    // The mock table holds the same strings for every language — so these two assertions can only
+    // pass if the component lets i18next pick the label. The removed `language === 'fr'` branch
+    // swapped the KEY behind i18next's back and rendered `offer_family_a_la_carte` (raw key here).
+    expect(screen.getByRole('radio', { name: 'Item only CHF 12.00' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Menu CHF 13.00' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /^offer_family_/ })).not.toBeInTheDocument();
+  });
+
+  it('confirms through the offer-family order label and docks to the bottom on phones', () => {
+    render(<OfferFamilyChoiceModal family={family} onClose={jest.fn()} onSelect={jest.fn()} />);
+
+    const confirm = screen.getByRole('button', { name: 'Order' });
+    expect(confirm).toBeEnabled();
+    // responsive-sheet: ≤30rem the dialog docks to the bottom on a `90dvh` budget — the iOS Safari
+    // fix. See BaseModal.module.css.
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'responsive-sheet');
   });
 
   it('shows the base menu only when no variation is selected', async () => {

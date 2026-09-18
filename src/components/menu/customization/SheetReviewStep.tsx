@@ -13,9 +13,8 @@ export interface ReviewRow {
   values: string[];
 }
 
-function modeKeyFor(language: string, offerMode: OfferMode): string {
-  if (offerMode === 'meal') return 'offer_family_menu';
-  return language === 'fr' ? 'offer_family_a_la_carte' : 'offer_family_item_only';
+function modeKeyFor(offerMode: OfferMode): string {
+  return offerMode === 'meal' ? 'offer_family_menu' : 'offer_family_item_only';
 }
 
 interface SheetReviewStepProps {
@@ -43,11 +42,10 @@ export default function SheetReviewStep({
   onInstructionsChange,
   offerMode,
 }: Readonly<SheetReviewStepProps>) {
-  const { t, i18n } = useTranslation();
-  const language = (i18n.language || 'en').split('-')[0];
+  const { t } = useTranslation();
   let modeLabel: string | null = null;
   if (offerMode !== undefined) {
-    modeLabel = t(modeKeyFor(language, offerMode));
+    modeLabel = t(modeKeyFor(offerMode));
   }
 
   return (

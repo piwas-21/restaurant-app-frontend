@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
+import { QUEUE_SEARCH_MAX, queueSearchSchema } from '@/schemas/cashierQueueSearch.schema';
 import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
 import { ORDER_STATUSES, orderStatusLabel } from '@/lib/orderStatus';
 import type { CashierQueueState } from '@/types/cashier';
@@ -94,7 +95,12 @@ export default function CashierReadOnlyQueuePanel({
               className={styles.searchInput}
               type="search"
               value={searchQuery}
-              onChange={(event) => onSearchChange(event.target.value)}
+              maxLength={QUEUE_SEARCH_MAX}
+              onChange={(event) => {
+                // The parsed value is the only thing that reaches the URL and the API query.
+                const parsed = queueSearchSchema.safeParse({ search: event.target.value });
+                if (parsed.success) onSearchChange(parsed.data.search);
+              }}
               placeholder={t('cashier.workspace.search_placeholder')}
             />
           </FormField>

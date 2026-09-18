@@ -97,6 +97,16 @@ describe('ItemCustomizationSheet — order-type guard', () => {
     expect(screen.queryByText('Takeaway and Delivery only')).not.toBeInTheDocument();
   });
 
+  // Mobile fit (mcdoner feedback, 2026-09-18): the guided steps were a centered dialog sized to
+  // `90vh` — iOS Safari's LARGE viewport — so the action bar landed under the URL bar and the
+  // next screens "did not fit". responsive-sheet docks the dialog to the bottom on ≤30rem with a
+  // `90dvh` budget (BaseModal.module.css) and keeps the centered dialog on wide screens.
+  it('presents itself as a responsive bottom sheet on phones', () => {
+    render(<ItemCustomizationSheet controller={controller()} />);
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'responsive-sheet');
+  });
+
   it('READS the handed-over verdict — the link the whole guard hangs on', () => {
     const availability = { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] };
 

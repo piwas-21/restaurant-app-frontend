@@ -2539,7 +2539,7 @@
   "cashier.operational_note_load_error": "Kan operationele notities niet laden.",
   "cashier.operational_note_save_error": "Kan de notitie niet opslaan.",
   "offer_family_options": "Bestelopties",
-  "offer_family_a_la_carte": "Los bestellen",
+  "offer_family_confirm": "Bestellen",
   "offer_family_item_only": "Alleen product",
   "offer_family_menu": "Menu",
   "offer_family_choose_size": "Kies een formaat",

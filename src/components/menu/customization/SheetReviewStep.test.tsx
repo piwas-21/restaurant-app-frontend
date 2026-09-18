@@ -32,4 +32,22 @@ describe('SheetReviewStep offer-family mode', () => {
 
     expect(screen.getByTestId('offer-family-review-mode')).toHaveTextContent('How would you like it?Menu');
   });
+
+  // Regression (mcdoner feedback, 2026-09-18): the item-only label was once picked by a
+  // `language === 'fr'` branch that swapped the KEY behind i18next's back, so a French guest saw
+  // “À la carte” where every other language saw their own item-only translation. The mock table
+  // is language-independent ON PURPOSE: this passes only if the component never overrides it.
+  it('labels the item-only mode through i18next, with no French-specific key override', () => {
+    render(
+      <SheetReviewStep
+        rows={[]}
+        offerMode="item"
+        onJump={jest.fn()}
+        specialInstructions=""
+        onInstructionsChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('offer-family-review-mode')).toHaveTextContent('How would you like it?Item only');
+  });
 });

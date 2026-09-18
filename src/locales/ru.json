@@ -2543,7 +2543,7 @@
   "cashier.operational_note_load_error": "Не удалось загрузить рабочие заметки.",
   "cashier.operational_note_save_error": "Не удалось сохранить заметку.",
   "offer_family_options": "Варианты заказа",
-  "offer_family_a_la_carte": "А la carte",
+  "offer_family_confirm": "Заказать",
   "offer_family_item_only": "Только блюдо",
   "offer_family_menu": "Меню",
   "offer_family_choose_size": "Выберите размер",

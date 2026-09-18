@@ -15,7 +15,7 @@ jest.mock('react-i18next', () => ({
               continue: 'Continue',
               close: 'Close',
               offer_family_item_only: 'Item only',
-              offer_family_meal: 'Meal',
+              offer_family_menu: 'Menu',
               offer_family_choose_size: 'Choose a size',
               offer_family_choose_mode: 'How would you like it?',
             } as Record<string, string>
@@ -74,7 +74,7 @@ describe('OfferFamilyChoiceModal', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
 
     expect(screen.getByRole('radio', { name: 'Item only CHF 12.00' })).toBeChecked();
-    fireEvent.click(screen.getByRole('radio', { name: 'Meal CHF 13.00' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Menu CHF 13.00' }));
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     expect(onSelect).toHaveBeenCalledWith(
@@ -106,7 +106,7 @@ describe('OfferFamilyChoiceModal', () => {
 
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
     fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
-    expect(screen.getByRole('radio', { name: 'Meal CHF 13.00' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Menu CHF 13.00' })).toBeDisabled();
   });
 
   it('disables an inactive target even when its schedule and channel allow ordering', async () => {
@@ -139,7 +139,7 @@ describe('OfferFamilyChoiceModal', () => {
     await waitFor(() => expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked());
     fireEvent.click(screen.getByRole('radio', { name: 'Large' }));
     expect(screen.queryByRole('radio', { name: /Item only/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Meal CHF 13.00' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Menu CHF 13.00' })).toBeInTheDocument();
   });
 
   it('shows only the exact variation menu and keeps the anchor separate', async () => {
@@ -168,16 +168,16 @@ describe('OfferFamilyChoiceModal', () => {
 
     await waitFor(() => expect(screen.getByRole('radio', { name: '6 pieces' })).toBeChecked());
     expect(screen.getByRole('radio', { name: 'Item only CHF 10.00' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Meal CHF 15.00' })).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Meal CHF 14.00' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Meal CHF 18.00' })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Menu CHF 15.00' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Menu CHF 14.00' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Menu CHF 18.00' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('radio', { name: '12 pieces' }));
 
     expect(screen.getByRole('radio', { name: 'Item only CHF 14.00' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Meal CHF 18.00' })).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Meal CHF 14.00' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Meal CHF 15.00' })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Menu CHF 18.00' })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Menu CHF 14.00' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: 'Menu CHF 15.00' })).not.toBeInTheDocument();
   });
 
   it('shows the base menu only when no variation is selected', async () => {
@@ -193,7 +193,7 @@ describe('OfferFamilyChoiceModal', () => {
 
     render(<OfferFamilyChoiceModal family={familyWithBaseMenu} onClose={jest.fn()} onSelect={jest.fn()} />);
 
-    await waitFor(() => expect(screen.getByRole('radio', { name: 'Meal CHF 14.00' })).toBeInTheDocument());
-    expect(screen.queryByRole('radio', { name: 'Meal CHF 15.00' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Menu CHF 14.00' })).toBeInTheDocument());
+    expect(screen.queryByRole('radio', { name: 'Menu CHF 15.00' })).not.toBeInTheDocument();
   });
 });

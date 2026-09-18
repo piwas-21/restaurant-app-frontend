@@ -14,10 +14,8 @@ export interface ReviewRow {
 }
 
 function modeKeyFor(language: string, offerMode: OfferMode): string {
-  if (language === 'fr') {
-    return offerMode === 'meal' ? 'offer_family_menu' : 'offer_family_a_la_carte';
-  }
-  return offerMode === 'meal' ? 'offer_family_meal' : 'offer_family_item_only';
+  if (offerMode === 'meal') return 'offer_family_menu';
+  return language === 'fr' ? 'offer_family_a_la_carte' : 'offer_family_item_only';
 }
 
 interface SheetReviewStepProps {

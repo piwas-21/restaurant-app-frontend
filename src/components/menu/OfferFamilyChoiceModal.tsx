@@ -80,7 +80,7 @@ export default function OfferFamilyChoiceModal({
 
   if (!family || !anchorTarget) return null;
   const itemOnlyLabel = language === 'fr' ? t('offer_family_a_la_carte') : t('offer_family_item_only');
-  const mealLabel = language === 'fr' ? t('offer_family_menu') : t('offer_family_meal');
+  const menuLabel = t('offer_family_menu');
   const selectedVariation = variations.find((variation) => variation.id === variationId);
   const selectedTarget = targets.find((target) => targetKey(target) === targetId) ?? targets[0];
   // The anchor is the same product for every size. Keep it as one radio option, but project the
@@ -154,7 +154,7 @@ export default function OfferFamilyChoiceModal({
               target.productId === anchorTarget.productId && variationId
                 ? (selectedVariation?.price ?? target.price)
                 : target.price;
-            const optionLabel = `${isMeal ? mealLabel : itemOnlyLabel} ${formatPlainCurrency(displayPrice)}`;
+            const optionLabel = `${isMeal ? menuLabel : itemOnlyLabel} ${formatPlainCurrency(displayPrice)}`;
             return (
               <label
                 key={`${target.productId}-${target.parentVariationId ?? 'base'}`}
@@ -170,7 +170,7 @@ export default function OfferFamilyChoiceModal({
                   disabled={unavailable}
                 />
                 <span className={styles.optionCopy}>
-                  <span>{isMeal ? mealLabel : itemOnlyLabel}</span>
+                  <span>{isMeal ? menuLabel : itemOnlyLabel}</span>
                   <span className={styles.price}>{formatPlainCurrency(displayPrice)}</span>
                 </span>
               </label>

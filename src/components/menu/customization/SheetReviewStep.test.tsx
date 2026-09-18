@@ -8,7 +8,7 @@ jest.mock('react-i18next', () => ({
     t: (key: string) =>
       ({
         offer_family_choose_mode: 'How would you like it?',
-        offer_family_meal: 'Meal',
+        offer_family_menu: 'Menu',
         offer_family_item_only: 'Item only',
         step_nothing_selected: 'None',
         step_change: 'Change',
@@ -19,7 +19,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('SheetReviewStep offer-family mode', () => {
-  it('keeps the selected Meal label in the existing review summary', () => {
+  it('keeps the selected Menu label in the existing review summary', () => {
     render(
       <SheetReviewStep
         rows={[]}
@@ -30,6 +30,6 @@ describe('SheetReviewStep offer-family mode', () => {
       />,
     );
 
-    expect(screen.getByTestId('offer-family-review-mode')).toHaveTextContent('How would you like it?Meal');
+    expect(screen.getByTestId('offer-family-review-mode')).toHaveTextContent('How would you like it?Menu');
   });
 });

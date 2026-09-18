@@ -2794,5 +2794,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} طلب خارجي",
   "cashier.tables.unnamed_table": "طاولة بدون اسم",
   "cashier.tables.close_not_recorded": "لم يُسجَّل الإغلاق. الزيارة لا تزال مفتوحة — راجع الفاتورة ثم أغلقها مرة أخرى.",
-  "cashier.tables.close_recheck_hint": "تحقق من الزيارة مرة أخرى لمعرفة ما إذا كان الإغلاق قد سُجّل."
+  "cashier.tables.close_recheck_hint": "تحقق من الزيارة مرة أخرى لمعرفة ما إذا كان الإغلاق قد سُجّل.",
+  "cashier.workspace.not_authorized": "ليست لديك صلاحية الوصول إلى مساحة عمل الكاشير."
 }

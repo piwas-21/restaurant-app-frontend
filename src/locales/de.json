@@ -2770,5 +2770,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} ältere Bestellungen",
   "cashier.tables.unnamed_table": "Unbenannter Tisch",
   "cashier.tables.close_not_recorded": "Das Schließen wurde nicht erfasst. Der Besuch ist noch offen — prüfen Sie die Rechnung und schließen Sie ihn erneut.",
-  "cashier.tables.close_recheck_hint": "Prüfen Sie den Besuch erneut, um zu erfahren, ob das Schließen erfasst wurde."
+  "cashier.tables.close_recheck_hint": "Prüfen Sie den Besuch erneut, um zu erfahren, ob das Schließen erfasst wurde.",
+  "cashier.workspace.not_authorized": "Sie haben keinen Zugriff auf den Kassenarbeitsbereich."
 }

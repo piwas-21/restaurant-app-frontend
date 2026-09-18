@@ -2770,5 +2770,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} eski sipariş",
   "cashier.tables.unnamed_table": "Adsız masa",
   "cashier.tables.close_not_recorded": "Kapatma kaydedilmedi. Ziyaret hâlâ açık — hesabı gözden geçirin ve yeniden kapatın.",
-  "cashier.tables.close_recheck_hint": "Kapatmanın kaydedilip kaydedilmediğini öğrenmek için ziyareti yeniden kontrol edin."
+  "cashier.tables.close_recheck_hint": "Kapatmanın kaydedilip kaydedilmediğini öğrenmek için ziyareti yeniden kontrol edin.",
+  "cashier.workspace.not_authorized": "Kasa çalışma alanına erişiminiz yok."
 }

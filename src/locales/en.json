@@ -2770,5 +2770,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} legacy orders",
   "cashier.tables.unnamed_table": "Unnamed table",
   "cashier.tables.close_not_recorded": "The close was not recorded. The visit is still open — review the bill, then close it again.",
-  "cashier.tables.close_recheck_hint": "Check the visit again to learn whether the close was recorded."
+  "cashier.tables.close_recheck_hint": "Check the visit again to learn whether the close was recorded.",
+  "cashier.workspace.not_authorized": "You do not have access to the cashier workspace."
 }

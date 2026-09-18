@@ -23,6 +23,8 @@ describe('CashierLayout authorization', () => {
     );
 
     expect(screen.queryByText('private queue')).not.toBeInTheDocument();
+    // An unauthorized but signed-in user reads why the screen is empty instead of a blank page.
+    expect(screen.getByText('cashier.workspace.not_authorized')).toBeInTheDocument();
     expect(mockPush).toHaveBeenCalledWith('/');
   });
 

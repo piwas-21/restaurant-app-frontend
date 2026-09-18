@@ -2782,5 +2782,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} стороннего заказа",
   "cashier.tables.unnamed_table": "Стол без названия",
   "cashier.tables.close_not_recorded": "Закрытие не зафиксировано. Визит всё ещё открыт — проверьте счёт и закройте его снова.",
-  "cashier.tables.close_recheck_hint": "Проверьте визит ещё раз, чтобы узнать, зафиксировано ли закрытие."
+  "cashier.tables.close_recheck_hint": "Проверьте визит ещё раз, чтобы узнать, зафиксировано ли закрытие.",
+  "cashier.workspace.not_authorized": "У вас нет доступа к рабочей области кассира."
 }

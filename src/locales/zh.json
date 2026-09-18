@@ -2764,5 +2764,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} 张会话外订单",
   "cashier.tables.unnamed_table": "未命名桌台",
   "cashier.tables.close_not_recorded": "关闭操作未被记录。该用餐仍在进行中——请核对账单后再次关闭。",
-  "cashier.tables.close_recheck_hint": "请再次查询该用餐，以确认关闭是否已被记录。"
+  "cashier.tables.close_recheck_hint": "请再次查询该用餐，以确认关闭是否已被记录。",
+  "cashier.workspace.not_authorized": "您无权访问收银工作区。"
 }

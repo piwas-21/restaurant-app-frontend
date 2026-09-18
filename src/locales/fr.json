@@ -2776,5 +2776,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} commandes externes",
   "cashier.tables.unnamed_table": "Table sans nom",
   "cashier.tables.close_not_recorded": "La clôture n'a pas été enregistrée. La visite est toujours ouverte — vérifiez l'addition, puis clôturez à nouveau.",
-  "cashier.tables.close_recheck_hint": "Vérifiez à nouveau la visite pour savoir si la clôture a été enregistrée."
+  "cashier.tables.close_recheck_hint": "Vérifiez à nouveau la visite pour savoir si la clôture a été enregistrée.",
+  "cashier.workspace.not_authorized": "Vous n'avez pas accès à l'espace de travail caisse."
 }

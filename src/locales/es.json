@@ -2776,5 +2776,6 @@
   "cashier.tables.legacy_orders_other": "{{count}} pedidos externos",
   "cashier.tables.unnamed_table": "Mesa sin nombre",
   "cashier.tables.close_not_recorded": "El cierre no quedó registrado. La visita sigue abierta: revisa la cuenta y vuelve a cerrarla.",
-  "cashier.tables.close_recheck_hint": "Vuelve a consultar la visita para saber si el cierre quedó registrado."
+  "cashier.tables.close_recheck_hint": "Vuelve a consultar la visita para saber si el cierre quedó registrado.",
+  "cashier.workspace.not_authorized": "No tienes acceso al área de trabajo de caja."
 }

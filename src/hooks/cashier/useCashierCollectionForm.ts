@@ -11,9 +11,9 @@ import {
 import { paymentModalSchema } from '@/components/cashier/paymentModalSchema';
 import type {
   CashierCollectionFormController,
+  CashierCollectionPaymentOutcome,
   UseCashierCollectionFormOptions,
 } from './useCashierCollectionForm.types';
-import type { CashierCollectionPaymentOutcome } from './useCashierCollectionForm.types';
 
 const initialAmount = (order: OrderDto): string => (order.remainingAmount > 0 ? order.remainingAmount.toFixed(2) : '');
 

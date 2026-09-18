@@ -14,7 +14,8 @@ export interface TableServiceSessionDto {
   /** Server-configured display label; empty for plain numbered tables. */
   tableLabel?: string;
   currency?: string | null;
-  status: TableServiceSessionStatus | string;
+  /** Server lifecycle value; known values are documented by TableServiceSessionStatus. */
+  status: string;
   version: number;
   openedAt: string;
   closedAt?: string | null;

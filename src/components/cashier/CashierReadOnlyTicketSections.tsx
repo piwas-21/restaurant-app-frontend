@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
-import type { OrderDto, OrderItemDto, OrderPaymentDto } from '@/types/order';
+import type { OrderItemDto, OrderPaymentDto } from '@/types/order';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import StatusBadge from '@/components/design-system/StatusBadge';
@@ -72,7 +72,7 @@ export function TicketItems({
 }: {
   readonly items: readonly OrderItemDto[];
   readonly t: TFunction;
-  readonly currency?: OrderDto['currency'];
+  readonly currency?: string | null;
 }) {
   if (items.length === 0) return <p className={styles.emptyMessage}>{t('cashier.workspace.no_items')}</p>;
 
@@ -108,7 +108,7 @@ export function PaymentRows({
 }: {
   readonly payments: readonly OrderPaymentDto[];
   readonly t: TFunction;
-  readonly currency?: OrderDto['currency'];
+  readonly currency?: string | null;
 }) {
   if (payments.length === 0) return <p className={styles.emptyMessage}>{t('cashier.workspace.no_payments')}</p>;
   return (

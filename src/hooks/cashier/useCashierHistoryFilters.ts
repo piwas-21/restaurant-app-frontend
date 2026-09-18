@@ -23,7 +23,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
   const statusFilter = params.get('status') ?? 'all';
   const paymentStatusFilter = params.get('paymentStatus') ?? 'all';
   const orderTypeFilter = params.get('orderType') ?? 'all';
-  const [searchQuery, setSearchQueryDraft] = useState(submittedSearch);
+  const [searchDraft, setSearchDraft] = useState(submittedSearch);
   const searchRef = useRef(submittedSearch);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tenantDay, setTenantDay] = useState<string>();
@@ -96,7 +96,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
   useEffect(() => {
     if (submittedSearch === searchRef.current) return;
     searchRef.current = submittedSearch;
-    setSearchQueryDraft(submittedSearch);
+    setSearchDraft(submittedSearch);
   }, [submittedSearch]);
   useEffect(
     () => () => {
@@ -111,7 +111,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
   const setSearchQuery = useCallback(
     (value: string) => {
       searchRef.current = value;
-      setSearchQueryDraft(value);
+      setSearchDraft(value);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
@@ -175,7 +175,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
     range,
     fromDay,
     toDay,
-    searchQuery,
+    searchQuery: searchDraft,
     statusFilter,
     paymentStatusFilter,
     orderTypeFilter,

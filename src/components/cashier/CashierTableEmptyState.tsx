@@ -23,14 +23,14 @@ export default function CashierTableEmptyState({
 }: CashierTableEmptyStateProps) {
   const { t } = useTranslation();
   const canOpen = entry.status === 'available';
-  const message =
-    entry.status === 'legacy' || entry.status === 'conflict'
-      ? t('cashier.tables.legacy_table')
-      : entry.status === 'reserved'
-        ? t('cashier.tables.reserved_table')
-        : canOpen
-          ? t('cashier.tables.no_session')
-          : t('cashier.tables.closed_table');
+  let message = t('cashier.tables.closed_table');
+  if (entry.status === 'legacy' || entry.status === 'conflict') {
+    message = t('cashier.tables.legacy_table');
+  } else if (entry.status === 'reserved') {
+    message = t('cashier.tables.reserved_table');
+  } else if (canOpen) {
+    message = t('cashier.tables.no_session');
+  }
   return (
     <section className={styles.session} aria-labelledby="cashier-table-empty-title">
       <header className={styles.header}>

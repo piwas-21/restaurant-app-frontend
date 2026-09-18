@@ -56,11 +56,10 @@ export default function CashierCollectionForm({
   onReturnToOrder,
 }: CashierCollectionFormProps) {
   const pendingLabel = isCheckingPayment ? t('cashier.payment_checking') : t('common.loading');
-  const submitLabel = isPending
-    ? pendingLabel
-    : method === PaymentMethod.Cash
-      ? t('cashier.add_payment')
-      : t('cashier.record_card_payment');
+  let submitLabel = pendingLabel;
+  if (!isPending) {
+    submitLabel = method === PaymentMethod.Cash ? t('cashier.add_payment') : t('cashier.record_card_payment');
+  }
 
   return (
     <form className={styles.form} onSubmit={onSubmit} noValidate>

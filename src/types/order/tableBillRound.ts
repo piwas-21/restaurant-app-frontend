@@ -13,7 +13,8 @@ export interface OrderPermittedActionDto {
 
 export interface TableBillRoundDto {
   order: OrderDto;
-  settlementState: TableBillRoundSettlementState | string;
+  /** Server settlement state; known values are documented by TableBillRoundSettlementState. */
+  settlementState: string;
   outstanding: number;
   refundedAmount: number;
   credit: number;

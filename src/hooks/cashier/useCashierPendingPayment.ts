@@ -90,6 +90,8 @@ export function useCashierPendingPayment({
         setPendingPayment({ ...saved, status: 'Unavailable' });
         setError('cashier.payment_check_failed');
       } catch (_error) {
+        // A failed lookup leaves the operation 'Unavailable'; the error is surfaced as a state the
+        // cashier can retry, so swallowing the value here is the deliberate handling.
         if (mountedRef.current && requestId === requestNumberRef.current) {
           setPendingPayment({ ...saved, status: 'Unavailable' });
           setError('cashier.payment_check_failed');
@@ -160,7 +162,7 @@ export function useCashierPendingPayment({
   }, [pendingPayment, resume]);
 
   const abandonPendingPayment = useCallback(() => {
-    if (!pendingPayment || pendingPayment.status !== 'Unknown') return;
+    if (pendingPayment?.status !== 'Unknown') return;
     requestNumberRef.current += 1;
     cancelReconciliation();
     clearPendingPayment(pendingPayment.operationId);

@@ -12,6 +12,7 @@ import {
   tableOrderSettlementState,
   tableSessionCredit,
   tableSessionEligibleOutstanding,
+  type TableOrderSettlementState,
 } from '@/lib/cashierTableSession';
 import styles from './CashierTableSession.module.css';
 
@@ -22,18 +23,23 @@ interface CashierTableSessionBillProps {
 
 type DisplayRound = Pick<TableBillRoundDto, 'settlementState' | 'outstanding' | 'credit'> & { order: OrderDto };
 
+function settlementStateFor(settlement: TableOrderSettlementState): DisplayRound['settlementState'] {
+  switch (settlement) {
+    case 'eligible':
+      return 'EligibleDebt';
+    case 'credit':
+      return 'Credit';
+    case 'refunded':
+      return 'Refunded';
+    case 'settled':
+      return 'Settled';
+    default:
+      return 'Cancelled';
+  }
+}
+
 function fallbackRound(order: OrderDto): DisplayRound {
-  const settlement = tableOrderSettlementState(order);
-  const settlementState =
-    settlement === 'eligible'
-      ? 'EligibleDebt'
-      : settlement === 'credit'
-        ? 'Credit'
-        : settlement === 'refunded'
-          ? 'Refunded'
-          : settlement === 'settled'
-            ? 'Settled'
-            : 'Cancelled';
+  const settlementState = settlementStateFor(tableOrderSettlementState(order));
   return {
     order,
     settlementState,

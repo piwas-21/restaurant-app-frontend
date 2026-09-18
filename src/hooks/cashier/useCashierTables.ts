@@ -6,9 +6,9 @@ import { getCashierTables } from '@/services/server/tables';
 import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
-import { mergeCashierTableEntries, type CashierTableEntry, type CashierTableStatus } from '@/lib/cashierTableEntries';
+import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
 
-export type { CashierTableEntry, CashierTableStatus };
+export type { CashierTableEntry, CashierTableStatus } from '@/lib/cashierTableEntries';
 export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
 
 export interface CashierTablesState {
@@ -72,7 +72,7 @@ export function useCashierTables(): CashierTablesState {
     async (tableNumber: string) => {
       const key = tableNumberKey(tableNumber);
       const entry = entries.find((candidate) => tableNumberKey(candidate.table.tableNumber) === key);
-      if (!entry || entry.status !== 'available') throw new Error('cashier.tables.open_failed');
+      if (entry?.status !== 'available') throw new Error('cashier.tables.open_failed');
       const normalized = tableNumber.trim();
       if (!/^\d+$/.test(normalized)) throw new Error('cashier.tables.invalid_table');
       const numericTable = Number(normalized);

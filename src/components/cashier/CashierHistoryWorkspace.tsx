@@ -11,32 +11,37 @@ import CashierReadOnlyDestination from './CashierReadOnlyDestination';
 export default function CashierHistoryWorkspace() {
   const { t } = useTranslation();
   const filters = useCashierHistoryFilters();
+  const blockedWhileClockUnavailable = filters.tenantDayLoading ? 'loading' : 'unavailable';
   const queue = useCashierHistoryOrders(filters.query, {
     enabled: filters.rangeReady,
     // A refresh of the tenant clock must not turn an already-valid query into a second queue fetch.
     // The loading state is only meaningful while there is no usable range yet.
-    blockedState: filters.rangeReady ? 'unavailable' : filters.tenantDayLoading ? 'loading' : 'unavailable',
+    blockedState: filters.rangeReady ? 'unavailable' : blockedWhileClockUnavailable,
   });
   const route = useCashierOrderRoute();
   const selection = useCashierOrderSelection(queue.orders, route.selectedOrderId);
   const effectiveQueueState =
     filters.range !== 'custom' && filters.tenantDayError && filters.tenantDay ? 'stale' : queue.queueState;
-  const rangeError =
-    !filters.rangeReady && filters.range === 'custom'
-      ? filters.tenantDayLoading
-        ? null
-        : t('cashier.workspace.history_select_dates')
-      : !filters.rangeReady && filters.tenantDayError
-        ? filters.tenantDayErrorMessage || t('cashier.workspace.tenant_day_unavailable')
-        : null;
+  let rangeError: string | null = null;
+  if (filters.range === 'custom') {
+    if (!filters.rangeReady) {
+      rangeError = filters.tenantDayLoading ? null : t('cashier.workspace.history_select_dates');
+    }
+  } else if (!filters.rangeReady && filters.tenantDayError) {
+    rangeError = filters.tenantDayErrorMessage || t('cashier.workspace.tenant_day_unavailable');
+  }
 
+  const refreshQuietly = (refresh: () => void | Promise<unknown>) => {
+    // A manual retry owns its own error surface through the queue state; nothing is swallowed here.
+    void Promise.resolve(refresh()).catch(() => undefined);
+  };
   const retry = () => {
     if (filters.range === 'custom') {
-      if (filters.rangeReady) void queue.refreshOrders();
+      if (filters.rangeReady) refreshQuietly(queue.refreshOrders);
       return;
     }
-    if (filters.tenantDayError) void filters.refreshTenantDay();
-    if (filters.rangeReady) void queue.refreshOrders();
+    if (filters.tenantDayError) refreshQuietly(filters.refreshTenantDay);
+    if (filters.rangeReady) refreshQuietly(queue.refreshOrders);
   };
   const canRetry = filters.rangeReady || (filters.range !== 'custom' && filters.tenantDayError);
 

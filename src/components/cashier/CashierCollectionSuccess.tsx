@@ -5,6 +5,20 @@ import type { OrderDto } from '@/types/order';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import styles from './CashierCollection.module.css';
 
+function remainingMessageFor(
+  remaining: number,
+  order: OrderDto,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  if (remaining > 0) {
+    return t('cashier.collection.remaining', { amount: formatOrderCurrency(remaining, order) });
+  }
+  if (remaining < 0) {
+    return t('cashier.collection.credit', { amount: formatOrderCurrency(Math.abs(remaining), order) });
+  }
+  return t('cashier.collection.settled');
+}
+
 interface LastPayment {
   readonly applied: number;
   readonly change: number;
@@ -28,12 +42,7 @@ export default function CashierCollectionSuccess({
 }: CashierCollectionSuccessProps) {
   const { t } = useTranslation();
   const [receiptChoice, setReceiptChoice] = useState<'printed' | 'skipped' | null>(null);
-  const remainingMessage =
-    payment.remaining > 0
-      ? t('cashier.collection.remaining', { amount: formatOrderCurrency(payment.remaining, order) })
-      : payment.remaining < 0
-        ? t('cashier.collection.credit', { amount: formatOrderCurrency(Math.abs(payment.remaining), order) })
-        : t('cashier.collection.settled');
+  const remainingMessage = remainingMessageFor(payment.remaining, order, t);
   return (
     <div className={styles.successPanel} role="status" aria-live="polite">
       <CheckCircle size={20} aria-hidden="true" />
@@ -45,10 +54,12 @@ export default function CashierCollectionSuccess({
         )}
         <p>{remainingMessage}</p>
         {receiptChoice && (
-          <p role="status">
-            {receiptChoice === 'printed'
-              ? t('cashier.collection.receipt_printed')
-              : t('cashier.collection.receipt_skipped')}
+          <p>
+            <output>
+              {receiptChoice === 'printed'
+                ? t('cashier.collection.receipt_printed')
+                : t('cashier.collection.receipt_skipped')}
+            </output>
           </p>
         )}
       </div>

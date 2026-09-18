@@ -21,19 +21,26 @@ function messageFor(error: string | null, t: (key: string) => string): string | 
   return error.startsWith('cashier.') ? t(error) : error;
 }
 
+function collectionQueueState(isLoading: boolean, hasOrder: boolean, hasSelectedOrder: boolean) {
+  if (isLoading) return 'loading';
+  // No ?order= is a deliberate resting screen, not a queue health failure.
+  if (hasOrder || !hasSelectedOrder) return 'ready';
+  return 'unavailable';
+}
+
 export default function CashierCollectionWorkspace() {
   const { t } = useTranslation();
   const route = useCashierOrderRoute();
   const collection = useCashierCollection(route.selectedOrderId);
-  const pendingBlocksNavigation = Boolean(collection.pendingPayment && collection.pendingPayment.status !== 'Refused');
+  const pendingStatus = collection.pendingPayment?.status;
+  const pendingBlocksNavigation = pendingStatus !== undefined && pendingStatus !== 'Refused';
   const isPending = collection.isMutating || collection.isCheckingPayment;
   const navigationDisabled = isPending || pendingBlocksNavigation;
-  // No ?order= is a deliberate resting screen, not a queue health failure.
-  const queueState = collection.isLoading
-    ? 'loading'
-    : collection.order || !route.selectedOrderId
-      ? 'ready'
-      : 'unavailable';
+  const queueState = collectionQueueState(
+    collection.isLoading,
+    Boolean(collection.order),
+    route.selectedOrderId !== null,
+  );
   const returnToOrder = useCallback(() => {
     if (route.selectedOrderId) route.navigateToOrder(route.selectedOrderId);
     else route.navigateToOrders();
@@ -98,10 +105,10 @@ export default function CashierCollectionWorkspace() {
               <StatusBadge tone="neutral">{paymentStatusLabel(collection.order.paymentStatus, t)}</StatusBadge>
             </div>
           </header>
-          <div className={styles.balanceCard} role="status">
+          <output className={styles.balanceCard}>
             <span>{t('cashier.workspace.amount_due')}</span>
             <strong>{formatOrderCurrency(collection.order.remainingAmount, collection.order)}</strong>
-          </div>
+          </output>
           <p>{t('cashier.collection.no_due')}</p>
         </section>
       )}

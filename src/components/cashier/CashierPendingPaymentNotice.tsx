@@ -18,11 +18,12 @@ export default function CashierPendingPaymentNotice({
   t,
 }: CashierPendingPaymentNoticeProps) {
   const checking = pendingPayment.status === 'Checking';
-  const labelKey = checking
-    ? 'cashier.payment_checking'
-    : pendingPayment.status === 'Unknown'
-      ? 'cashier.payment_result_unknown'
-      : 'cashier.payment_check_failed';
+  let labelKey = 'cashier.payment_check_failed';
+  if (checking) {
+    labelKey = 'cashier.payment_checking';
+  } else if (pendingPayment.status === 'Unknown') {
+    labelKey = 'cashier.payment_result_unknown';
+  }
   return (
     <div className={styles.notice} role="status" aria-live="polite">
       <StatusBadge tone={checking ? 'info' : 'warning'}>{t(labelKey)}</StatusBadge>

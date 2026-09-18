@@ -30,6 +30,7 @@ function readStored(): StoredPendingPayment | null {
     const parsed: unknown = JSON.parse(raw);
     return typeof parsed === 'object' && parsed !== null ? (parsed as StoredPendingPayment) : null;
   } catch (_error) {
+    // A corrupted or unreadable draft must behave like no draft; the server lookup stays the truth.
     return null;
   }
 }

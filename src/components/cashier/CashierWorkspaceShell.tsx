@@ -56,10 +56,10 @@ function QueueHealth({ queueState, isConnected }: Pick<CashierWorkspaceShellProp
   const Icon = HEALTH_ICONS[presentation.tone];
 
   return (
-    <div className={`${styles.health} ${HEALTH_CLASSES[presentation.tone]}`} role="status">
+    <output className={`${styles.health} ${HEALTH_CLASSES[presentation.tone]}`}>
       <Icon aria-hidden="true" size={16} />
       <span>{t(presentation.labelKey)}</span>
-    </div>
+    </output>
   );
 }
 
@@ -135,15 +135,9 @@ export default function CashierWorkspaceShell({
         </nav>
         <div className={styles.actions}>
           <QueueHealth queueState={queueState} isConnected={isConnected} />
-          {navigationDisabled && (
-            <span className="sr-only" role="status">
-              {t('cashier.collection.payment_in_progress')}
-            </span>
-          )}
+          {navigationDisabled && <output className="sr-only">{t('cashier.collection.payment_in_progress')}</output>}
           {operationalCount.state !== 'ready' && (
-            <span className="sr-only" role="status">
-              {t(operationalCount.statusMessageKey)}
-            </span>
+            <output className="sr-only">{t(operationalCount.statusMessageKey)}</output>
           )}
           <div className={styles.preferences}>
             <LanguageSwitcher />

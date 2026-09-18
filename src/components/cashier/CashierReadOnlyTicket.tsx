@@ -42,6 +42,12 @@ function channelLabel(type: string, t: TFunction): string {
   return t('cashier.workspace.channel_unknown');
 }
 
+function dueLabel(due: number, t: (key: string) => string): string {
+  if (due > 0) return t('cashier.workspace.amount_due');
+  if (due < 0) return t('cashier.workspace.credit');
+  return t('cashier.workspace.settled');
+}
+
 export default function CashierReadOnlyTicket({
   order,
   isLoading = false,
@@ -166,13 +172,7 @@ export default function CashierReadOnlyTicket({
             <strong>{formatOrderCurrency(order.totalPaid, order)}</strong>
           </div>
           <div className={styles.moneyTotal}>
-            <span>
-              {due > 0
-                ? t('cashier.workspace.amount_due')
-                : due < 0
-                  ? t('cashier.workspace.credit')
-                  : t('cashier.workspace.settled')}
-            </span>
+            <span>{dueLabel(due, t)}</span>
             <strong>{formatOrderCurrency(Math.abs(due), order)}</strong>
           </div>
         </div>

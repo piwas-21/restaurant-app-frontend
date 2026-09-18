@@ -33,6 +33,26 @@ function amountDue(order: OrderDto): number {
   return order.total - order.totalPaid;
 }
 
+function amountPresentation(
+  due: number,
+  order: OrderDto,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): { className: string; label: string } {
+  if (due > 0) {
+    return {
+      className: styles.amountDue,
+      label: t('cashier.workspace.due_value', { amount: formatOrderCurrency(due, order) }),
+    };
+  }
+  if (due < 0) {
+    return {
+      className: styles.amountCredit,
+      label: t('cashier.workspace.credit_value', { amount: formatOrderCurrency(Math.abs(due), order) }),
+    };
+  }
+  return { className: styles.amountSettled, label: t('cashier.workspace.settled') };
+}
+
 export default function CashierReadOnlyOrderList({
   orders,
   selectedOrderId,
@@ -46,6 +66,7 @@ export default function CashierReadOnlyOrderList({
     <ul className={styles.orderList} aria-label={t('cashier.workspace.order_list')}>
       {orders.map((order) => {
         const due = amountDue(order);
+        const duePresentation = amountPresentation(due, order, t);
         const selected = selectedOrderId?.toLowerCase() === order.id.toLowerCase();
         return (
           <li key={order.id} className={styles.orderListItem}>
@@ -75,13 +96,7 @@ export default function CashierReadOnlyOrderList({
               </span>
               <span className={styles.orderRowBottom}>
                 <span dir="auto">{order.customerName || t('cashier.workspace.guest')}</span>
-                <span className={due > 0 ? styles.amountDue : due < 0 ? styles.amountCredit : styles.amountSettled}>
-                  {due > 0
-                    ? t('cashier.workspace.due_value', { amount: formatOrderCurrency(due, order) })
-                    : due < 0
-                      ? t('cashier.workspace.credit_value', { amount: formatOrderCurrency(Math.abs(due), order) })
-                      : t('cashier.workspace.settled')}
-                </span>
+                <span className={duePresentation.className}>{duePresentation.label}</span>
               </span>
               <span className={styles.paymentState}>{paymentStatusLabel(order.paymentStatus, t)}</span>
             </button>

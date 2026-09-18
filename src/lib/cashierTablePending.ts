@@ -46,6 +46,7 @@ function readStored(): StoredOperation | null {
     const value: unknown = JSON.parse(raw);
     return typeof value === 'object' && value !== null ? (value as StoredOperation) : null;
   } catch (_error) {
+    // A corrupted or unreadable record must behave like no pending operation; nothing is reposted.
     return null;
   }
 }

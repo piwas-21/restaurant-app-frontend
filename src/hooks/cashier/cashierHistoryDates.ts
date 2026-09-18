@@ -1,11 +1,11 @@
 import { addCalendarDays, daysBetween, isCalendarDay } from '@/utils/calendarDay';
 import type { CashierHistoryRange } from './cashierHistoryTypes';
 
-const HISTORY_RANGES: readonly CashierHistoryRange[] = ['today', 'yesterday', 'week', 'custom'];
+const HISTORY_RANGES: ReadonlySet<string> = new Set<string>(['today', 'yesterday', 'week', 'custom']);
 const MONDAY_ANCHOR = '1970-01-05';
 
 function readRange(value: string | null): CashierHistoryRange {
-  return value && HISTORY_RANGES.includes(value as CashierHistoryRange) ? (value as CashierHistoryRange) : 'today';
+  return value && HISTORY_RANGES.has(value) ? (value as CashierHistoryRange) : 'today';
 }
 
 function readPage(value: string | null): number {

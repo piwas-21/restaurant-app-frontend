@@ -17,9 +17,9 @@ export function formatCashierDateTime(
       // A missing timezone is an unavailable tenant context, not permission to guess with UTC.
       timeZone,
     }).format(date);
-  } catch (error: unknown) {
-    // A bad server timezone is surfaced as the caller's localized fallback, never as the device zone.
-    void error;
+  } catch (_error: unknown) {
+    // A bad server timezone surfaces as the caller's localized fallback, never as the device zone;
+    // the error itself carries nothing user-actionable beyond that fallback, so it is ignored here.
     return fallback;
   }
 }

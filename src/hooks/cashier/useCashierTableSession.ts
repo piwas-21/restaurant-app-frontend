@@ -167,7 +167,7 @@ export function useCashierTableSession(serviceSessionId: string | null): Cashier
     }
   }, [pendingOperation, refresh, serviceSessionId, session]);
   const reconcilePendingOperation = useCallback(async (): Promise<void> => {
-    if (!serviceSessionId || !pendingOperation || pendingOperation.status !== 'Unknown') return;
+    if (!serviceSessionId || pendingOperation?.status !== 'Unknown') return;
     if (inFlightRef.current) return;
     await reconcilePendingTableOperation({
       serviceSessionId,

@@ -43,6 +43,11 @@ function displayError(error: string | null, t: (key: string) => string): string 
   return error.startsWith('cashier.') ? t(error) : error;
 }
 
+function pendingNoticeLabel(operation: PendingTableOperation, t: (key: string) => string): string {
+  if (operation.status === 'Checking') return t('cashier.tables.operation_checking');
+  return operation.kind === 'payment' ? t('cashier.tables.payment_unknown') : t('cashier.tables.close_unknown');
+}
+
 export default function CashierTableSessionPanel({
   session,
   timeZone,
@@ -130,13 +135,7 @@ export default function CashierTableSessionPanel({
       )}
       {pendingOperation && (
         <div className={styles.notice} role="status" aria-live="polite">
-          <span>
-            {pendingOperation.status === 'Checking'
-              ? t('cashier.tables.operation_checking')
-              : pendingOperation.kind === 'payment'
-                ? t('cashier.tables.payment_unknown')
-                : t('cashier.tables.close_unknown')}
-          </span>
+          <span>{pendingNoticeLabel(pendingOperation, t)}</span>
           {pendingOperation.status === 'Unknown' && (
             <StaffButton onClick={() => void onReconcilePendingOperation().catch(() => undefined)}>
               {t('cashier.tables.operation_retry')}

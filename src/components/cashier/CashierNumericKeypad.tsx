@@ -18,7 +18,7 @@ export default function CashierNumericKeypad({ value, disabled, onChange, t }: C
   const clear = () => onChange('');
 
   return (
-    <div className={styles.numericKeypad} role="group" aria-label={t('cashier.collection.keypad')}>
+    <fieldset className={styles.numericKeypad} aria-label={t('cashier.collection.keypad')}>
       {[...'123456789'].map((digit) => (
         <button
           type="button"
@@ -55,6 +55,6 @@ export default function CashierNumericKeypad({ value, disabled, onChange, t }: C
       <button type="button" className={styles.keypadClear} onClick={clear} disabled={disabled || value.length === 0}>
         {t('cashier.collection.keypad_clear')}
       </button>
-    </div>
+    </fieldset>
   );
 }

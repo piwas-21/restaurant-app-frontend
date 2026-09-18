@@ -1,5 +1,5 @@
 import type { CashierTableStatus } from '@/hooks/cashier/useCashierTables';
-import type { TableServiceSessionDto, TableServiceSessionStatus } from '@/types/order';
+import type { TableServiceSessionDto } from '@/types/order';
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
@@ -28,6 +28,6 @@ export function tableStatusLabel(status: CashierTableStatus, t: Translate): stri
   return t('cashier.tables.status_available');
 }
 
-export function sessionStatusLabel(status: TableServiceSessionStatus | string, t: Translate): string {
+export function sessionStatusLabel(status: string, t: Translate): string {
   return status === 'Closed' ? t('cashier.tables.status_closed') : t('cashier.tables.status_open');
 }

@@ -119,7 +119,7 @@ export default function CashierTablesWorkspace() {
             <p className={styles.description}>{t('cashier.workspace.tables_description')}</p>
           </div>
           <div className={styles.headerActions}>
-            <div className={styles.viewToggle} role="group" aria-label={t('cashier.tables.view_toggle')}>
+            <fieldset className={styles.viewToggle} aria-label={t('cashier.tables.view_toggle')}>
               <StaffButton
                 variant={view === 'map' ? 'primary' : 'secondary'}
                 className={styles.viewButton}
@@ -136,7 +136,7 @@ export default function CashierTablesWorkspace() {
               >
                 <List size={17} aria-hidden="true" /> {t('cashier.tables.list')}
               </StaffButton>
-            </div>
+            </fieldset>
             <StaffButton onClick={refresh} disabled={navigationDisabled || tables.isLoading}>
               <RefreshCw size={17} aria-hidden="true" /> {t('cashier.workspace.refresh')}
             </StaffButton>

@@ -1,5 +1,8 @@
 .numericKeypad {
+  border: 0;
   direction: ltr;
+  margin: 0;
+  padding: 0;
   display: grid;
   gap: 0.5rem;
   grid-template-columns: repeat(3, minmax(4rem, 1fr));

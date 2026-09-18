@@ -153,14 +153,14 @@ export default function CashierReadOnlyQueuePanel({
         </p>
       </div>
       {queueState === 'stale' && (
-        <div className={styles.stateMessageWarning} role="status">
+        <output className={styles.stateMessageWarning}>
           <span>{t('cashier.workspace.queue_stale')}</span>
           {onRetry && (
             <button type="button" className={styles.stateAction} onClick={onRetry} disabled={isLoading}>
               {t('cashier.workspace.retry')}
             </button>
           )}
-        </div>
+        </output>
       )}
       {isLoading && orders.length === 0 && (
         <output className={styles.stateMessage}>{t('cashier.workspace.queue_loading')}</output>

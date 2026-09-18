@@ -66,9 +66,7 @@ export default function CashierCollectionWorkspace() {
   }, [navigationDisabled]);
 
   const hasOutcome = Boolean(
-    collection.order &&
-    collection.outcomeOrderId &&
-    collection.outcomeOrderId.toLowerCase() === collection.order.id.toLowerCase(),
+    collection.order && collection.outcomeOrderId?.toLowerCase() === collection.order.id.toLowerCase(),
   );
   const canShowCollection = Boolean(
     collection.order && !collection.isLoading && (canCollectPayment(collection.order) || hasOutcome),

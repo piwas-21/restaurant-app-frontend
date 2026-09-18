@@ -4,7 +4,7 @@
  * Lifted out of `ProductCustomization.tsx` unchanged when that component was split into a hook and
  * a render (frontend §4: the file was 401 LOC against a 250 limit and BASELINED, which is debt, not
  * permission). `ProductCustomization` re-exports every one of them, so the existing importers —
- * `take-order/useTakeOrder.ts`, `take-order/orderItems.ts` — keep their import path.
+ * `take-order/useTakeOrder.ts`, `catalog/orderItems.ts` — keep one shapes module.
  */
 
 import type { PriceableIngredientKind } from '@/utils/priceableIngredient';

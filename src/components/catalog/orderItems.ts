@@ -12,10 +12,14 @@ import { CreateOrderItemDto } from '@/types/order';
 import type { BundleOrderSelection } from './bundleOrderItems';
 import { buildBundleChildItems } from './bundleOrderItems';
 export { mapMenuProducts } from './menuProductMapper';
-import { CustomizationResult } from '../ProductCustomization';
+import { CustomizationResult } from './ProductCustomization';
 
 export interface OrderItem {
-  product: Product;
+  /**
+   * Only the identity is read here (payload, dedup) — the catalog grid owns the rest of the
+   * product. A cashier ticket resumed from a draft carries exactly this stub.
+   */
+  product: Pick<Product, 'id' | 'name'>;
   quantity: number;
   variationId?: string;
   variationName?: string;
@@ -70,7 +74,11 @@ function dedupKey(result: {
  * quantity is incremented; otherwise a new line with a built note string is
  * appended. The dedup key and note format are load-bearing — preserve exactly.
  */
-export function addCustomizedItem(prev: OrderItem[], product: Product, result: CustomizationResult): OrderItem[] {
+export function addCustomizedItem(
+  prev: OrderItem[],
+  product: Pick<Product, 'id' | 'name'>,
+  result: CustomizationResult,
+): OrderItem[] {
   // Check if identical item already exists
   const key = dedupKey(result);
   const existingIndex = prev.findIndex(

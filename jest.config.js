@@ -248,14 +248,14 @@ module.exports = {
     // `src/components/**/*.tsx` does not reach a colocated `.ts`, so all three need naming or their
     // suites would be deletable with a green gate.
     'src/hooks/admin/useEditorCategories.ts',
-    'src/components/server/useProductCustomizationDetails.ts',
-    'src/components/server/useProductCustomizationSheet.ts',
+    'src/components/catalog/useProductCustomizationDetails.ts',
+    'src/components/catalog/useProductCustomizationSheet.ts',
     // S7 — the waiter sheet's half of the ONE price math. Neither `src/utils` nor a `.ts`
     // colocated under `src/components` is collected wholesale, so without these three rows the
     // cross-sheet property test could be deleted with a fully green gate.
     'src/utils/priceableIngredient.ts',
-    'src/components/server/waiterSelection.ts',
-    'src/components/server/useWaiterIngredientSelection.ts',
+    'src/components/catalog/waiterSelection.ts',
+    'src/components/catalog/useWaiterIngredientSelection.ts',
     // The smart-skip checkout decision. `src/lib` is not collected wholesale, so without this row
     // the suite that pins the per-order-type profile floor is deletable with a fully green gate.
     'src/lib/checkout/profileCompleteness.ts',
@@ -1762,7 +1762,7 @@ module.exports = {
     // count is the point of the pin.
     // Measured with CI's own command (`npx jest --ci --coverage`), pinned at actual − 1pt.
     './src/hooks/admin/useEditorCategories.ts': { statements: 95, branches: 69, functions: 99, lines: 99 },
-    './src/components/server/useProductCustomizationDetails.ts': {
+    './src/components/catalog/useProductCustomizationDetails.ts': {
       statements: 87,
       branches: 67,
       functions: 99,
@@ -1776,7 +1776,7 @@ module.exports = {
     // `__tests__/ProductCustomization.pricing.test.tsx` and by the cross-sheet property test. At
     // the old floor every one of those suites could have been deleted with a green gate.
     // Measured with CI's own command (`npx jest --ci --coverage`), pinned at actual − ~1pt.
-    './src/components/server/useProductCustomizationSheet.ts': {
+    './src/components/catalog/useProductCustomizationSheet.ts': {
       statements: 99,
       branches: 85,
       functions: 99,
@@ -1788,8 +1788,8 @@ module.exports = {
     // which is the defect the slice exists to end. `priceableIngredient` in particular is the
     // input contract — dropping a field there is exactly how the divergence happened.
     './src/utils/priceableIngredient.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
-    './src/components/server/waiterSelection.ts': { statements: 99, branches: 88, functions: 99, lines: 99 },
-    './src/components/server/useWaiterIngredientSelection.ts': {
+    './src/components/catalog/waiterSelection.ts': { statements: 99, branches: 88, functions: 99, lines: 99 },
+    './src/components/catalog/useWaiterIngredientSelection.ts': {
       statements: 99,
       branches: 79,
       functions: 99,
@@ -1797,10 +1797,10 @@ module.exports = {
     },
     // The remaining branch is the `ingredientQuantities[id] ?? 1` fallback, unreachable through the
     // UI: a selected ingredient always carries a recorded quantity.
-    './src/components/server/WaiterExtrasSection.tsx': { statements: 99, branches: 95, functions: 99, lines: 99 },
+    './src/components/catalog/WaiterExtrasSection.tsx': { statements: 99, branches: 95, functions: 99, lines: 99 },
     // The render. Lower because the file is the whole sheet and the tests drive its money and its
     // dialog, not its allergen block; the row guards those, not the file.
-    './src/components/server/ProductCustomization.tsx': {
+    './src/components/catalog/ProductCustomization.tsx': {
       statements: 85,
       branches: 90,
       functions: 79,

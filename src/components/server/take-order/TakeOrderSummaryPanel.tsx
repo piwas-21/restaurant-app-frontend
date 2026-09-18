@@ -1,7 +1,7 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
-import { OrderItem } from './orderItems';
+import { OrderItem } from '@/components/catalog/orderItems';
 import customerStyles from './TakeOrderCustomerField.module.css';
 import styles from './TakeOrderSummaryPanel.module.css';
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/components/AuthContext';
 import { Loader2 } from 'lucide-react';
+import styles from './layout.module.css';
 
 interface CashierLayoutProps {
   children: React.ReactNode;
@@ -36,7 +37,7 @@ export default function CashierLayout({ children }: CashierLayoutProps) {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div className={styles.centerScreen}>
         <Loader2 size={48} style={{ animation: 'spin 1s linear infinite' }} />
       </div>
     );
@@ -51,7 +52,7 @@ export default function CashierLayout({ children }: CashierLayoutProps) {
     // Signed in without the cashier role: say so instead of a blank page while the
     // redirect home runs (somebody logged in on the counter tablet sees this panel).
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }} role="alert">
+      <div className={styles.centerScreen} role="alert">
         <p>{t('cashier.workspace.not_authorized')}</p>
       </div>
     );

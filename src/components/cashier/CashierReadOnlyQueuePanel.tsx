@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
 import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
 import { ORDER_STATUSES, orderStatusLabel } from '@/lib/orderStatus';
 import type { CashierQueueState } from '@/types/cashier';
@@ -82,17 +83,21 @@ export default function CashierReadOnlyQueuePanel({
             onSearchSubmit();
           }}
         >
-          <label className="sr-only" htmlFor={`${destination}-search`}>
-            {t('cashier.workspace.search')}
-          </label>
-          <input
-            id={`${destination}-search`}
-            className={styles.searchInput}
-            type="search"
-            value={searchQuery}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={t('cashier.workspace.search_placeholder')}
-          />
+          <FormField
+            label={t('cashier.workspace.search')}
+            srOnlyLabel
+            htmlFor={`${destination}-search`}
+            className={styles.searchField}
+          >
+            <input
+              id={`${destination}-search`}
+              className={styles.searchInput}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={t('cashier.workspace.search_placeholder')}
+            />
+          </FormField>
           <button type="submit" className={styles.searchSubmit} aria-label={t('cashier.workspace.search')}>
             <Search aria-hidden="true" size={18} />
           </button>

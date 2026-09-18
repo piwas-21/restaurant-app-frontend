@@ -29,8 +29,13 @@
   min-width: 0;
   padding: 0.5rem 0.65rem;
 }
-.searchInput {
+.searchField {
+  display: flex;
   flex: 1 1 auto;
+  min-width: 0;
+}
+
+.searchInput {
   width: 100%;
 }
 .searchSubmit {

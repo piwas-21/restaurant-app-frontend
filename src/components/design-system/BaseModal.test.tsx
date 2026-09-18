@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import BaseModal from './BaseModal';
@@ -207,5 +209,20 @@ describe('BaseModal', () => {
       </BaseModal>,
     );
     expect(screen.getByRole('dialog').className).toContain('size_md');
+  });
+
+  // Regression ratchet (2026-09-18, mcdoner/staging): the docked phone sheet is an auto-height
+  // flex column with an `overflow-y: auto` body, and an overflow child contributes nothing to a
+  // container's intrinsic size — so WebKit on real iOS Safari can settle the sheet at
+  // header + footer + a ~90px scrolling strip. jsdom cannot see layout, so this pins the SOURCE
+  // the fix lives in: the docked dialog carries a definite `block-size`, which removes the
+  // auto-height resolution no engine can get wrong. Verified in WebKit against staging: a 260px
+  // collapse sim showed a 90px body over 444px of content; with the definite height the sheet
+  // renders at 760px with everything visible.
+  it('sizes the docked phone sheet with a definite block-size, not only a max cap', () => {
+    const css = readFileSync(join(__dirname, 'BaseModal.module.css'), 'utf8');
+    const docked = css.slice(css.indexOf('.responsiveSheetDialog'), css.indexOf('@media (prefers-reduced-motion'));
+    expect(docked).toMatch(/block-size:\s*90dvh/);
+    expect(docked).toMatch(/max-block-size:\s*90dvh/);
   });
 });

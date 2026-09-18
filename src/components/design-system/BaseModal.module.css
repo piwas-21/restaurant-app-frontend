@@ -107,7 +107,15 @@
 .body {
   padding: 1.5rem;
   overflow-y: auto;
-  flex: 1;
+  /* flex-basis AUTO, not the `flex: 1` shorthand's 0%. The dialog is an auto-height flex column
+     with this overflow child inside, and an overflow child contributes nothing to a container's
+     intrinsic size — so with a 0% basis WebKit (real iOS Safari) settles auto-height dialogs at
+     header + footer + a ~90px scrolling strip while desktop engines grow them (2026-09-18
+     staging report: basket, change-order-type). Basis auto puts the body's content back into the
+     container's intrinsic sizing: small dialogs stay content-sized, tall ones grow to the
+     max-height cap and scroll here. Docked sheets additionally pin a definite block-size
+     (.responsiveSheetDialog) so there is no auto-height resolution to disagree about at all. */
+  flex: 1 1 auto;
   color: var(--text-color);
 }
 

@@ -1,3 +1,5 @@
+import type { TableOccupancyDto } from './tableOccupancy';
+
 export enum ReservationStatus {
   Pending = 0,
   Confirmed = 1,
@@ -14,10 +16,8 @@ export const ReservationStatusLabel: Record<ReservationStatus, string> = {
   [ReservationStatus.NoShow]: 'NoShow',
 };
 
-// Shape/size/rotation removed 2026-07-23 (uniform table marker — see
-// docs/plans/RESERVATIONS-REVAMP-PLAN.md §3.2). The backend keeps returning
-// the legacy fields until its own cleanup PR; extra JSON props are harmless.
-export interface TableDto {
+// Shape/size/rotation removed 2026-07-23; legacy wire fields remain harmless (RESERVATIONS-REVAMP §3.2).
+export interface TableDto extends TableOccupancyDto {
   id: string;
   tableNumber: string;
   maxGuests: number;
@@ -29,7 +29,6 @@ export interface TableDto {
   qrCodeData?: string;
   qrCodeGeneratedAt?: string;
 }
-
 export interface ReservationDto {
   id: string;
   customerId?: string;

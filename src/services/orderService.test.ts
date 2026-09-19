@@ -34,6 +34,7 @@ describe('OrderService', () => {
     userId: 'user-123',
     status: 'Pending',
     paymentStatus: 'Pending',
+    version: 0,
     type: 'DineIn',
     tableNumber: 5,
     customerName: 'John Doe',

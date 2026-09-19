@@ -81,6 +81,13 @@ export function useTableBill() {
       if (!isMountedRef.current) return false;
       setIsPaying(true);
       setError(null);
+      if (bill.tableNumber === null) {
+        // The legacy bill endpoint is number-addressed; a label-only visit belongs to the
+        // session flow and must not be charged against a guessed number.
+        setError(t('cashier.table_bill.error.payment'));
+        setIsPaying(false);
+        return false;
+      }
       try {
         // The bill ON SCREEN is the tender's target — not the (possibly edited) input.
         const updated = await addTableBillPayment(bill.tableNumber, paymentData);

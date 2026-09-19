@@ -5,7 +5,7 @@ import { getProductById } from '@/services/menuService';
 import type { AddItemPayload } from '@/components/cart/cartTypes';
 import type { CreateOrderItemDto } from '@/types/order';
 import { useProductCustomizationSheet } from '../useProductCustomizationSheet';
-import { addCustomizedItem, buildOrderItems, type OrderItem } from '../take-order/orderItems';
+import { addCustomizedItem, buildOrderItems, type OrderItem } from '../orderItems';
 import type { CustomizationResult, DetailedIngredient, ProductVariation } from '../productCustomizationTypes';
 
 /**

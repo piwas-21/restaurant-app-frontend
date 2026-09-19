@@ -1,13 +1,18 @@
 import FormField from '@/components/design-system/FormField';
-import { formatPlainCurrency } from '@/utils/currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
 import styles from './PaymentModal.module.css';
 
 interface CashReceivedFieldsProps {
   readonly amount: string;
   readonly received: string;
+  readonly currency?: string | null;
+  readonly suggestions?: readonly number[];
   readonly disabled: boolean;
+  readonly error?: string;
+
   readonly onReceivedChange: (value: string) => void;
   readonly onExact: () => void;
+  readonly onSuggestion?: (value: number) => void;
   readonly t: (key: string) => string;
 }
 
@@ -15,18 +20,24 @@ interface CashReceivedFieldsProps {
 export default function CashReceivedFields({
   amount,
   received,
+  currency,
+  suggestions = [],
   disabled,
+  error,
   onReceivedChange,
   onExact,
+  onSuggestion,
   t,
 }: CashReceivedFieldsProps) {
   const applied = Number.parseFloat(amount) || 0;
   const cashReceived = Number.parseFloat(received) || 0;
   const change = Math.max(0, cashReceived - applied);
+  const formatCash = (value: number) =>
+    currency === null ? t('cashier.tables.currency_unknown') : formatOrderCurrency(value, { currency });
 
   return (
     <div>
-      <FormField label={t('cashier.cash_received')}>
+      <FormField label={t('cashier.cash_received')} error={error}>
         <input
           type="number"
           className={styles.input}
@@ -37,11 +48,29 @@ export default function CashReceivedFields({
           disabled={disabled}
         />
       </FormField>
-      <button type="button" className={styles.maxButton} onClick={onExact} disabled={disabled || !amount}>
-        {t('cashier.cash_exact')}
-      </button>
-      <output>
-        {t('cashier.cash_change')}: <strong>{formatPlainCurrency(change)}</strong>
+      <div className={styles.cashSuggestionGroup}>
+        {suggestions.length > 1 && (
+          <span className={styles.cashSuggestionLabel}>{t('cashier.collection.cash_suggestions')}</span>
+        )}
+        <div className={styles.cashSuggestions}>
+          <button type="button" className={styles.maxButton} onClick={onExact} disabled={disabled || !amount}>
+            {t('cashier.cash_exact')}
+          </button>
+          {suggestions.slice(1).map((suggestion) => (
+            <button
+              type="button"
+              className={styles.maxButton}
+              key={suggestion}
+              onClick={() => onSuggestion?.(suggestion)}
+              disabled={disabled || !onSuggestion}
+            >
+              {formatCash(suggestion)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <output aria-live="polite">
+        {t('cashier.cash_change')}: <strong>{formatCash(change)}</strong>
       </output>
     </div>
   );

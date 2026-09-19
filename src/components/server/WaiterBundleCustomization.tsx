@@ -15,7 +15,7 @@ import {
 } from '@/utils/bundleSelection';
 import type { MenuBundleItem, SelectedMenuOption } from '@/types/menu';
 import { buildWaiterBundleDefaultSelection } from './take-order/waiterBundleSelection';
-import styles from './ProductCustomization.module.css';
+import styles from '@/components/catalog/ProductCustomization.module.css';
 
 export interface WaiterBundleCustomizationResult {
   selectedOptions: SelectedMenuOption[];

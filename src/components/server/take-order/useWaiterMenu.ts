@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCategories, type Category, type Product } from '@/services/serverService';
 import { getProducts } from '@/services/menuService';
 import { getMenuBundleById } from '@/services/menuBundleService';
-import { mapMenuProducts } from './menuProductMapper';
+import { mapMenuProducts } from '@/components/catalog/menuProductMapper';
 import type { MenuBundleItem } from '@/types/menu';
 
 /** The waiter grid: ordinary products plus menu parents, never option-only components. */

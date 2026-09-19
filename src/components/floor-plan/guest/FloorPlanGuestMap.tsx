@@ -21,6 +21,7 @@ const STATUS_LABEL: Record<TableRenderState, readonly [string, string]> = {
   available: ['available', 'Available'],
   dim: ['available', 'Available'],
   selected: ['selected', 'Selected'],
+  occupied: ['table_occupied', 'Occupied'],
   booked: ['booked', 'Booked'],
   small: ['table_smaller_than_party', 'smaller than your party — combine with another table'],
 };

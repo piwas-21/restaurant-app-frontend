@@ -23,18 +23,32 @@ import { SseDiagnostics } from '@/types/diagnostics';
 import type { CashierOrdersFilters } from '@/types/cashier';
 
 /**
- * Names the restaurant calendar day for the queue window. This stays in the cashier service so
- * the POS does not need the reservation-specific tenant-day cache/analytics bundle at first
- * paint. Undefined is deliberately safe: the caller omits its date filter rather than guessing
- * from a counter tablet's clock (#545).
+ * The server context used by cashier date windows and order timestamps. Date ranges use the
+ * date-only tenantStartDay/tenantEndDay fields below so the backend, not a browser clock, resolves
+ * DST. Keeping the timezone beside the day prevents a device in a different zone from relabelling
+ * a tenant order at the midnight boundary.
  */
-export async function getCashierTenantDay(): Promise<string | undefined> {
-  const response = await apiClient.get<{ data?: { date?: unknown } }>('/api/tenant/today', {
+export interface CashierTenantContext {
+  readonly date?: string;
+  readonly timeZone?: string;
+}
+
+export async function getCashierTenantContext(): Promise<CashierTenantContext | undefined> {
+  const response = await apiClient.get<{ data?: { date?: unknown; timeZone?: unknown } }>('/api/tenant/today', {
     requireAuth: true,
   });
-  const day = response.data?.date;
+  const rawDate = response.data?.date;
+  const rawTimeZone = response.data?.timeZone;
+  const date = typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : undefined;
+  const timeZone = typeof rawTimeZone === 'string' && rawTimeZone.trim() ? rawTimeZone.trim() : undefined;
 
-  return typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : undefined;
+  return date || timeZone ? { date, timeZone } : undefined;
+}
+
+/** Backwards-compatible day-only facade for the legacy cashier date-range hook. */
+export async function getCashierTenantDay(): Promise<string | undefined> {
+  const context = await getCashierTenantContext();
+  return context?.date;
 }
 
 /**
@@ -88,11 +102,13 @@ function appendCashierOrderFilters(
 }
 
 function appendCashierDateFilters(params: URLSearchParams, filters: CashierOrdersFilters, scope: string): void {
-  // Operational has no date bounds by contract. Keep the old date parameters only for callers
-  // that explicitly request the generic All scope.
+  // Operational has no date bounds by contract. Keep date parameters only for callers
+  // that explicitly request the generic All scope; tenant day fields are date-only and backend-owned.
   if (scope === 'Operational') return;
 
   if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
+  if (filters.tenantStartDay) params.append('tenantStartDay', filters.tenantStartDay);
+  if (filters.tenantEndDay) params.append('tenantEndDay', filters.tenantEndDay);
   if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
   if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
 }
@@ -134,6 +150,8 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
  */
 export interface AddPaymentRequest {
   operationId: string;
+  /** Server-issued order version observed when the cashier opened the tender. */
+  expectedVersion?: number;
   paymentMethod: string;
   amount: number;
   transactionId?: string;

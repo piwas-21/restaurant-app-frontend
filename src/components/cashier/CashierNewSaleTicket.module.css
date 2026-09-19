@@ -1,0 +1,168 @@
+.ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 360px;
+  flex-shrink: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-primary);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.count {
+  color: var(--text-secondary);
+}
+
+.empty {
+  color: var(--text-secondary);
+}
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border-extra-light);
+  border-radius: 8px;
+}
+
+.lineMain {
+  display: flex;
+  flex-direction: column;
+}
+
+.lineName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.lineDetail {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lineControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.quantityButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.quantityValue {
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.linePrice {
+  color: var(--text-primary);
+}
+
+.removeButton {
+  border: none;
+  background: none;
+  color: var(--feedback-error);
+  min-height: 44px;
+  padding: 0 0.5rem;
+  cursor: pointer;
+}
+
+.undoButton {
+  align-self: flex-start;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-primary);
+  color: var(--brand-primary);
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+}
+
+.notesField {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.notes {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.6rem;
+}
+
+.totalValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.reviewButton {
+  min-height: 56px;
+  border: none;
+  border-radius: 10px;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reviewButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

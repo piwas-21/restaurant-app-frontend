@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import ProductCustomization from './ProductCustomization';
+import ProductCustomization from '../ProductCustomization';
 import { getProductById } from '@/services/menuService';
 import { ApiError } from '@/utils/apiClient';
 

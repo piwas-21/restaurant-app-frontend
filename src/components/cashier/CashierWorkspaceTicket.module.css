@@ -1,0 +1,197 @@
+.ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.backButton {
+  align-self: flex-start;
+  display: inline-flex;
+}
+.ticketHeader {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding-bottom: 0.8rem;
+}
+.ticketHeader h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  margin: 0.15rem 0;
+}
+.ticketHeader time {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+.eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.ticketBadges {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.ticketMeta {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  margin: 0;
+}
+.ticketMeta div {
+  min-width: 0;
+}
+.ticketMeta dt {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 0.3rem;
+}
+.ticketMeta dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+.ticketSection {
+  border-top: 1px solid var(--border-default);
+  padding-top: 0.8rem;
+}
+.ticketSection h3 {
+  align-items: center;
+  display: flex;
+  font-size: 1rem;
+  gap: 0.4rem;
+  margin: 0 0 0.65rem;
+}
+.ticketItems,
+.paymentRows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ticketItem,
+.paymentRow {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+}
+.ticketItem:last-child,
+.paymentRow:last-child {
+  border-bottom: 0;
+}
+.ticketItemContent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ticketItemMain {
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.ticketItemMain strong {
+  overflow-wrap: anywhere;
+}
+.ticketItemQuantity {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-width: 2rem;
+}
+.ticketItemPrice,
+.paymentRow > span:last-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.itemSecondary,
+.itemInstruction {
+  color: var(--text-secondary);
+  display: block;
+  font-size: 0.8rem;
+}
+.itemInstruction {
+  font-style: italic;
+  margin-top: 0.2rem;
+}
+.childItems {
+  border-inline-start: 2px solid var(--border-default);
+  margin: 0.3rem 0 0 2.5rem;
+  padding-inline-start: 0.5rem;
+  width: 100%;
+}
+.childItems .ticketItem {
+  border-bottom: 0;
+  padding-block: 0.3rem;
+}
+.notes {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.moneyRows {
+  display: grid;
+  gap: 0.4rem;
+}
+.moneyRows > div {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+.moneyTotal {
+  border-top: 2px solid var(--border-default);
+  font-size: 1.1rem;
+  margin-top: 0.3rem;
+  padding-top: 0.6rem;
+}
+.emptyMessage {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ticketState {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  justify-content: center;
+  min-height: 10rem;
+  padding: 1rem;
+  text-align: center;
+}
+.ticketError {
+  color: var(--feedback-danger-dark);
+}
+
+.collectButton {
+  align-items: center;
+  align-self: flex-start;
+  background: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  border-radius: 6px;
+  color: var(--text-on-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: 0.45rem;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.collectButton:hover,
+.collectButton:focus-visible {
+  background: var(--brand-primary-hover);
+}
+
+.collectButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}

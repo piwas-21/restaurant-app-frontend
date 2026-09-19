@@ -1,0 +1,43 @@
+.numericKeypad {
+  border: 0;
+  direction: ltr;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(4rem, 1fr));
+  max-width: 24rem;
+}
+.keypadButton,
+.keypadClear {
+  align-items: center;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 3.5rem;
+  padding: 0.5rem;
+}
+.keypadClear {
+  grid-column: 1 / -1;
+  font-size: 1rem;
+}
+.keypadButton:hover,
+.keypadButton:focus-visible,
+.keypadClear:hover,
+.keypadClear:focus-visible {
+  background: var(--surface-primary);
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.keypadButton:disabled,
+.keypadClear:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}

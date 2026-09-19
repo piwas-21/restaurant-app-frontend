@@ -1,0 +1,198 @@
+.collection {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  width: 100%;
+}
+.collectionHeader {
+  align-items: flex-start;
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.backButton,
+.secondaryButton,
+.submitButton {
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 650;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+}
+.backButton,
+.secondaryButton {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+.submitButton {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  min-height: 3.75rem;
+}
+.backButton:focus-visible,
+.secondaryButton:focus-visible,
+.submitButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.backButton:disabled,
+.secondaryButton:disabled,
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.orderIdentity h1 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  margin: 0.15rem 0;
+}
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.statuses {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.balanceCard {
+  align-items: center;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.25rem 0.75rem;
+  grid-template-columns: 1fr auto;
+  padding: 1rem 1.25rem;
+}
+.balanceCard span,
+.balanceCard small {
+  color: var(--text-secondary);
+}
+.balanceCard strong {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  grid-row: span 2;
+}
+.pendingNotice {
+  align-items: center;
+  background: var(--feedback-warning-xlight);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem;
+}
+.collectionGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.8fr);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.formError {
+  background: var(--feedback-danger-xlight);
+  border: 1px solid var(--feedback-danger);
+  border-radius: 6px;
+  color: var(--feedback-danger-dark);
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+}
+.formActions,
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.formActions {
+  background: var(--surface-primary);
+  bottom: 0;
+  padding-top: 0.5rem;
+  position: sticky;
+}
+.formActions button {
+  flex: 1 1 10rem;
+}
+.paymentHistory {
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 1rem;
+}
+.historyTotals {
+  border-bottom: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+}
+.historyTotals > div {
+  display: flex;
+  justify-content: space-between;
+}
+.successPanel {
+  align-items: flex-start;
+  background: var(--feedback-success-xlight);
+  border: 1px solid var(--feedback-success);
+  border-radius: 8px;
+  color: var(--text-primary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+.successPanel > div {
+  flex: 1 1 12rem;
+}
+.successPanel p {
+  margin: 0.2rem 0 0;
+}
+.successActions {
+  flex-basis: 100%;
+  justify-content: flex-end;
+}
+@media (max-width: 900px) {
+  .collectionHeader {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .statuses {
+    align-items: flex-start;
+    flex-direction: row;
+    grid-column: 1 / -1;
+  }
+  .collectionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .collectionHeader {
+    grid-template-columns: 1fr;
+  }
+  .backButton,
+  .statuses {
+    justify-self: stretch;
+  }
+  .statuses {
+    flex-wrap: wrap;
+  }
+  .formActions button {
+    flex-basis: 100%;
+  }
+}

@@ -3,7 +3,7 @@ import { parseServerTableNumber, useTakeOrder } from '../useTakeOrder';
 import { getProducts } from '@/services/menuService';
 import { createServerOrder } from '@/services/serverService';
 import type { Product } from '@/services/server/menu';
-import type { CustomizationResult } from '../../ProductCustomization';
+import type { CustomizationResult } from '@/components/catalog/ProductCustomization';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),

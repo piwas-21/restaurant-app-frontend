@@ -40,3 +40,26 @@ describe('resolveDineInSession', () => {
     await expect(resolveDineInSession(12)).rejects.toThrow('down');
   });
 });
+it('picks the most recently opened visit when a table carries several', async () => {
+  mockSessions.mockResolvedValueOnce([
+    session({ serviceSessionId: 'session-old', openedAt: '2026-09-18T18:00:00Z' }),
+    session({ serviceSessionId: 'session-new', openedAt: '2026-09-18T20:30:00Z' }),
+  ]);
+
+  await expect(resolveDineInSession(12)).resolves.toBe('session-new');
+});
+
+it('keeps the earlier visit when it is the newer one in list order', async () => {
+  mockSessions.mockResolvedValueOnce([
+    session({ serviceSessionId: 'session-new', openedAt: '2026-09-18T21:00:00Z' }),
+    session({ serviceSessionId: 'session-old', openedAt: '2026-09-18T19:00:00Z' }),
+  ]);
+
+  await expect(resolveDineInSession(12)).resolves.toBe('session-new');
+});
+
+it('answers null when the matching visit carries no session id', async () => {
+  mockSessions.mockResolvedValueOnce([{ tableNumber: 12, status: 'Open', serviceSessionId: undefined }]);
+
+  await expect(resolveDineInSession(12)).resolves.toBeNull();
+});

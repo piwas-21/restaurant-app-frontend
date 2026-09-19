@@ -3,12 +3,11 @@
 import type { Ref } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
+import { ArrowLeft, CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderDto } from '@/types/order';
-import { ArrowLeft } from 'lucide-react';
 import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
 import CashierStatusBadges from './CashierStatusBadges';
 import CashierTicketActions from './CashierTicketActions';

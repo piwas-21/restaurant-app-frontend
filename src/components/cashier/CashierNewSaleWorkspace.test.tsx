@@ -141,7 +141,10 @@ describe('CashierNewSaleWorkspace', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Product X is not available for this channel.');
   });
 
-  it('renders an i18n-keyed refusal through the locale, not the raw key', () => {
+  it('surfaces a keyed refusal through the alert region', () => {
+    // With the identity t() mock the rendered key IS the translated form, so this suite proves
+    // the ROUTING (error -> role="alert"), not the translation; locale rendering is owned by
+    // the serverLocaleReach suite and the locale gates.
     mockSale.mockReturnValue(saleState({ error: 'cashier.new_sale.no_open_session' }));
     render(<CashierNewSaleWorkspace />);
 

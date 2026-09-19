@@ -11,6 +11,10 @@ import { getActiveTableServiceSessions } from '@/services/tableServiceSessionSer
  */
 export async function resolveDineInSession(tableNumber: number): Promise<string | null> {
   const sessions = await getActiveTableServiceSessions();
-  const match = sessions.find((session) => session.status === 'Open' && session.tableNumber === tableNumber);
-  return match?.serviceSessionId ?? null;
+  const matches = sessions.filter((session) => session.status === 'Open' && session.tableNumber === tableNumber);
+  if (matches.length === 0) return null;
+  // A table normally has one open visit; if the data ever carries several, the most recently
+  // opened one is the party the cashier is looking at — never an arbitrary array-order pick.
+  const match = matches.reduce((left, right) => (right.openedAt > left.openedAt ? right : left));
+  return match.serviceSessionId;
 }

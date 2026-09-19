@@ -45,6 +45,51 @@ describe('cashierNewSaleDraft — persist/resume', () => {
     expect(readCashierNewSaleDraft()).toBeNull();
   });
 });
+it('round-trips a fully-populated line without dropping sides or ingredient diffs', () => {
+  // B1 regression: the reader used to restore only variation/notes/ingredient-selection and
+  // silently drop sideItems and the added/removed ingredient diffs — money lost on resume.
+  const fullLine = line({
+    product: { id: 'product-9', name: 'Burger' },
+    quantity: 1,
+    unitPrice: 12.5,
+    variationId: 'var-2',
+    variationName: 'Double',
+    notes: 'no onions',
+    addedIngredients: [{ id: 'ing-1', name: 'Bacon', price: 2, quantity: 1 }],
+    removedIngredients: [{ id: 'ing-2', name: 'Pickles', price: 0, quantity: 0 }],
+    selectedIngredientIds: ['ing-1'],
+    ingredientQuantities: { 'ing-1': 1 },
+    sideItems: [{ id: 'side-3', name: 'Fries', quantity: 1, price: 4.5 }],
+  });
+  persistCashierNewSaleDraft({ channel: OrderType.Takeaway, lines: [fullLine] });
+
+  expect(readCashierNewSaleDraft()?.lines).toEqual([fullLine]);
+});
+
+it('defends ingredientQuantities against non-numeric values in a tampered payload', () => {
+  window.sessionStorage.setItem(
+    'cashier.new-sale-draft',
+    JSON.stringify({
+      version: CASHIER_NEW_SALE_DRAFT_VERSION,
+      channel: 'Takeaway',
+      lines: [
+        {
+          ...line(),
+          ingredientQuantities: { 'ing-1': 'many', 'ing-2': 2 },
+          addedIngredients: [{ id: 'ing-1', name: 'Bacon' }],
+          sideItems: [{ id: 'side-3', name: 'Fries', quantity: 1, price: 4.5 }],
+        },
+      ],
+    }),
+  );
+
+  const restored = readCashierNewSaleDraft()?.lines[0];
+  // The tampered entry is dropped, the valid one survives; malformed change/side rows are
+  // filtered out entirely rather than smuggled into the wire payload.
+  expect(restored?.ingredientQuantities).toEqual({ 'ing-2': 2 });
+  expect(restored?.addedIngredients).toBeUndefined();
+  expect(restored?.sideItems).toEqual([{ id: 'side-3', name: 'Fries', quantity: 1, price: 4.5 }]);
+});
 
 describe('cashierNewSaleDraft — defensive reading', () => {
   it.each([

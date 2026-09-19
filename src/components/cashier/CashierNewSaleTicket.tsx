@@ -44,6 +44,9 @@ export default function CashierNewSaleTicket({
   const { t } = useTranslation();
   const total = quote ? quote.total : ticketTotal;
   const lineCount = lines.reduce((sum, line) => sum + line.quantity, 0);
+  // While a review is in flight the ticket is frozen: an edit mid-review would invalidate the
+  // quoted price, drop the stored operation id and make the next retry mint a fresh one.
+  const reviewLocked = disabled || phase === 'reviewing';
 
   return (
     <section className={styles.ticket} aria-label={t('cashier.new_sale.ticket_label')}>
@@ -69,6 +72,7 @@ export default function CashierNewSaleTicket({
                   className={styles.quantityButton}
                   aria-label={t('cashier.new_sale.decrease_quantity', { name: line.product.name })}
                   onClick={() => onSetQuantity(index, line.quantity - 1)}
+                  disabled={reviewLocked}
                 >
                   −
                 </button>
@@ -78,6 +82,7 @@ export default function CashierNewSaleTicket({
                   className={styles.quantityButton}
                   aria-label={t('cashier.new_sale.increase_quantity', { name: line.product.name })}
                   onClick={() => onSetQuantity(index, line.quantity + 1)}
+                  disabled={reviewLocked}
                 >
                   +
                 </button>
@@ -88,6 +93,7 @@ export default function CashierNewSaleTicket({
                 className={styles.removeButton}
                 aria-label={t('cashier.new_sale.remove_line', { name: line.product.name })}
                 onClick={() => onRemove(index)}
+                disabled={reviewLocked}
               >
                 {t('cashier.new_sale.remove')}
               </button>
@@ -97,7 +103,7 @@ export default function CashierNewSaleTicket({
       </ul>
 
       {canUndo && (
-        <button type="button" className={styles.undoButton} onClick={onUndo}>
+        <button type="button" className={styles.undoButton} onClick={onUndo} disabled={reviewLocked}>
           {t('cashier.new_sale.undo')}
         </button>
       )}
@@ -111,6 +117,8 @@ export default function CashierNewSaleTicket({
         value={notes}
         placeholder={t('cashier.new_sale.notes_placeholder')}
         onChange={(event) => onNotesChange(event.target.value)}
+        readOnly={reviewLocked}
+        aria-busy={phase === 'reviewing'}
       />
 
       <div className={styles.totalRow}>

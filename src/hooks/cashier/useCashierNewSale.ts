@@ -74,39 +74,6 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     [draft, sheetProduct],
   );
 
-  const review = useCallback(async () => {
-    if (!state.channel || state.lines.length === 0 || phase !== 'idle') return;
-    setError(null);
-    setPhase('reviewing');
-    const outcome = await reviewCounterSale({
-      channel: state.channel,
-      lines: state.lines,
-      notes: state.notes,
-      tableNumber: state.tableNumber,
-      storedOperationId: state.clientOperationId,
-    });
-
-    // Remember the operation id this pass used so a retry of the SAME ticket replays it; any
-    // draft mutation has already dropped it from the state, so this write only survives while
-    // the ticket is unchanged.
-    if (outcome.operationId && outcome.operationId !== state.clientOperationId) {
-      draft.setOperationId(outcome.operationId);
-    }
-    if (outcome.quote) setQuote(outcome.quote);
-
-    if (outcome.status === 'committed') {
-      // Empty the in-memory ticket first so the persist effect that follows clears the stored
-      // draft (and stays cleared), instead of rewriting the sold ticket on the next write.
-      draft.reset();
-      clearCashierNewSaleDraft();
-      setPhase('idle');
-      onCreated(outcome.orderId as string);
-      return;
-    }
-    setPhase('idle');
-    setError(outcome.error ?? null);
-  }, [draft, onCreated, phase, state]);
-
   // A quoted price belongs to the exact ticket it quoted. Any content change — channel, lines,
   // notes, table — invalidates it, so the next review quotes again (plan §5.3.5: a channel
   // change reprices against server rules, never silently).
@@ -120,6 +87,43 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     lastContentKeyRef.current = contentKey;
     setQuote(null);
   }, [contentKey]);
+
+  const review = useCallback(async () => {
+    if (!state.channel || state.lines.length === 0 || phase !== 'idle') return;
+    setError(null);
+    setPhase('reviewing');
+    // The pass is bound to the exact ticket it quoted. The ticket is frozen in the UI while the
+    // review runs; this key is the second line of defense, so a stale outcome can never be
+    // adopted onto a ticket the cashier has since changed.
+    const reviewedContentKey = contentKey;
+    const outcome = await reviewCounterSale({
+      channel: state.channel,
+      lines: state.lines,
+      notes: state.notes,
+      tableNumber: state.tableNumber,
+      storedOperationId: state.clientOperationId,
+    });
+
+    // Remember the operation id this pass used so a retry of the SAME ticket replays it; any
+    // draft mutation has already dropped it from the state, so this write only survives while
+    // the ticket is unchanged.
+    if (outcome.operationId && outcome.operationId !== state.clientOperationId && reviewedContentKey === contentKey) {
+      draft.setOperationId(outcome.operationId);
+    }
+    if (outcome.quote && reviewedContentKey === contentKey) setQuote(outcome.quote);
+
+    if (outcome.status === 'committed') {
+      // Empty the in-memory ticket first so the persist effect that follows clears the stored
+      // draft (and stays cleared), instead of rewriting the sold ticket on the next write.
+      draft.reset();
+      clearCashierNewSaleDraft();
+      setPhase('idle');
+      onCreated(outcome.orderId as string);
+      return;
+    }
+    setPhase('idle');
+    setError(outcome.error ?? null);
+  }, [contentKey, draft, onCreated, phase, state]);
 
   const ticketTotal = useMemo(
     () => state.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),

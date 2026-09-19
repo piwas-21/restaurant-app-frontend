@@ -37,7 +37,8 @@ test('a walk-up counter sale creates one collectible order', async ({ cashierUse
       .click();
     const ticket = page.getByRole('region', { name: 'Current ticket' });
     await expect(ticket.getByText(PRODUCT)).toBeVisible({ timeout: 10_000 });
-    await expect(ticket.getByText(/15[.,]00/)).toBeVisible();
+    // The amount shows twice (line price and total row): the first match is enough here.
+    await expect(ticket.getByText(/15[.,]00/).first()).toBeVisible();
 
     // Order notes ride the draft into the created order.
     await page.getByLabel('Order notes').fill('E2E counter order');

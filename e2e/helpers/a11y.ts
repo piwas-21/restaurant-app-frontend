@@ -27,13 +27,9 @@ export async function expectNoA11yViolations(page: Page, opts: A11yOptions = {})
   }
   const results = await builder.analyze();
 
-  const blocking = results.violations.filter(
-    (v) => v.impact === 'critical' || v.impact === 'serious',
-  );
+  const blocking = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
 
-  const moderate = results.violations.filter(
-    (v) => v.impact === 'moderate' || v.impact === 'minor',
-  );
+  const moderate = results.violations.filter((v) => v.impact === 'moderate' || v.impact === 'minor');
   if (moderate.length > 0) {
     // eslint-disable-next-line no-console
     console.warn(

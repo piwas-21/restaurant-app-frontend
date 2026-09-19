@@ -40,7 +40,7 @@ describe('useLoginForm', () => {
   it.each([
     ['Admin', '/admin/dashboard'],
     ['Customer', '/account'],
-    ['Cashier', '/cashier'],
+    ['Cashier', '/cashier/orders'],
     ['KitchenStaff', '/kitchen-staff'],
     ['Server', '/server'],
     ['wizard', '/'], // unknown role → home
@@ -57,7 +57,7 @@ describe('useLoginForm', () => {
   });
 
   it.each([
-    ['Cashier', '/cashier'],
+    ['Cashier', '/cashier/orders'],
     ['KitchenStaff', '/kitchen-staff'],
     ['Server', '/server'],
   ])('sends %s home instead of to a module this tenant did not buy', async (role) => {
@@ -87,7 +87,7 @@ describe('useLoginForm', () => {
       result.current.setPassword('secret1');
     });
     await act(async () => result.current.handleSubmit(submit));
-    expect(mockPush).toHaveBeenCalledWith('/cashier');
+    expect(mockPush).toHaveBeenCalledWith('/cashier/orders');
   });
 
   it('falls back to home (no crash) when the success envelope has no role', async () => {

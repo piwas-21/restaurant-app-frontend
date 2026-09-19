@@ -135,7 +135,7 @@ authedTest(
       await modal.getByRole('button', { name: /^confirm$/i }).click();
       await expect(modal).toBeHidden({ timeout: 5_000 });
 
-        // #541: toasts first, wait registered before the click (shared helper).
+      // #541: toasts first, wait registered before the click (shared helper).
       await proceedViaSidebarExpectingNavigation(page, sidebar);
     } finally {
       await context.close();

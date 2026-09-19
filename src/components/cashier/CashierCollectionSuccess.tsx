@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import BaseModal from '@/components/design-system/BaseModal';
 import type { OrderDto } from '@/types/order';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import styles from './CashierCollection.module.css';
@@ -33,6 +34,12 @@ interface CashierCollectionSuccessProps {
   readonly onPrintReceipt?: (order: OrderDto) => void;
 }
 
+/**
+ * The committed-tender confirmation, as a centered modal (pilot feedback: the inline panel sat
+ * at the bottom of the collection column where it was missed). Closing the modal returns to the
+ * order — the tender is already recorded, so dismissal is safe; the outcome stays visible on
+ * the order itself.
+ */
 export default function CashierCollectionSuccess({
   order,
   payment,
@@ -44,10 +51,9 @@ export default function CashierCollectionSuccess({
   const [receiptChoice, setReceiptChoice] = useState<'printed' | 'skipped' | null>(null);
   const remainingMessage = remainingMessageFor(payment.remaining, order, t);
   return (
-    <div className={styles.successPanel} role="status" aria-live="polite">
-      <CheckCircle size={20} aria-hidden="true" />
-      <div>
-        <strong>{t('cashier.collection.success')}</strong>
+    <BaseModal title={t('cashier.collection.success')} onClose={onReturnToOrder} isOpen>
+      <div className={styles.successBody} role="status" aria-live="polite">
+        <CheckCircle size={20} aria-hidden="true" />
         <p>{t('cashier.collection.applied', { amount: formatOrderCurrency(payment.applied, order) })}</p>
         {payment.change > 0 && (
           <p>{t('cashier.collection.change', { amount: formatOrderCurrency(payment.change, order) })}</p>
@@ -79,13 +85,13 @@ export default function CashierCollectionSuccess({
         </button>
       </div>
       <div className={styles.successActions}>
-        <button type="button" className={styles.secondaryButton} onClick={onNextSale}>
+        <button type="button" className={styles.submitButton} onClick={onNextSale}>
           {t('cashier.collection.next_sale')}
         </button>
         <button type="button" className={styles.secondaryButton} onClick={onReturnToOrder}>
           {t('cashier.collection.return_order')}
         </button>
       </div>
-    </div>
+    </BaseModal>
   );
 }

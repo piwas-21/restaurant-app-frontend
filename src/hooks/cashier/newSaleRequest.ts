@@ -1,5 +1,6 @@
 import { OrderType, type StaffCounterOrderRequest } from '@/types/order';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
+import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { buildOrderItems } from '@/components/catalog/orderItems';
 
 /**
@@ -28,15 +29,24 @@ export interface CounterSaleInput {
   notes: string;
   tableNumber?: number;
   serviceSessionId?: string;
+  contact?: CashierNewSaleContact;
 }
 
 export function buildCounterSaleRequest(input: CounterSaleInput): StaffCounterOrderRequest {
   const dineIn = input.channel === OrderType.DineIn;
+  const delivery = input.channel === OrderType.Delivery;
   return {
     type: input.channel,
     items: buildOrderItems(input.lines),
     notes: input.notes.trim() || undefined,
     paymentState: 'Unpaid',
+    customerName: input.contact?.customerName,
+    customerPhone: input.contact?.customerPhone,
+    // The wire field exists only for delivery (the server validator refuses it elsewhere); the
+    // quote echoes the same payload so the reviewed price includes the channel's terms.
+    ...(delivery && input.contact?.deliveryAddress !== undefined
+      ? { deliveryAddress: input.contact.deliveryAddress }
+      : {}),
     ...(dineIn && input.tableNumber !== undefined ? { tableNumber: input.tableNumber } : {}),
     ...(dineIn && input.serviceSessionId !== undefined ? { serviceSessionId: input.serviceSessionId } : {}),
   };

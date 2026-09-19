@@ -31,6 +31,7 @@ export default function CashierOrdersWorkspace() {
       selectedOrder={selection.order}
       selectedOrderLoading={selection.isLoading}
       selectedOrderError={selection.error}
+      onOrderChanged={() => void queue.refreshOrders()}
       searchQuery={filters.searchQuery}
       statusFilter={filters.statusFilter}
       paymentStatusFilter={filters.paymentStatusFilter}

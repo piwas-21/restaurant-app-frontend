@@ -3,15 +3,15 @@
 import type { Ref } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
+import { ArrowLeft, CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
-import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
 import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
-import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
-import StatusBadge from '@/components/design-system/StatusBadge';
+import CashierStatusBadges from './CashierStatusBadges';
+import CashierTicketActions from './CashierTicketActions';
+import viewStyles from './CashierWorkspaceView.module.css';
 import styles from './CashierWorkspaceTicket.module.css';
 
 interface CashierReadOnlyTicketProps {
@@ -20,6 +20,8 @@ interface CashierReadOnlyTicketProps {
   readonly error?: string | null;
   readonly onBack?: () => void;
   readonly onCollect?: (orderId: string) => void;
+  /** Notifies the host that a ticket action mutated the order, so it can refresh its data. */
+  readonly onOrderChanged?: () => void;
   readonly timeZone?: string;
   readonly backButtonRef?: Ref<HTMLButtonElement>;
   readonly headingRef?: Ref<HTMLHeadingElement>;
@@ -54,6 +56,7 @@ export default function CashierReadOnlyTicket({
   error,
   onBack,
   onCollect,
+  onOrderChanged,
   timeZone,
   backButtonRef,
   headingRef,
@@ -61,7 +64,13 @@ export default function CashierReadOnlyTicket({
 }: CashierReadOnlyTicketProps) {
   const { t, i18n } = useTranslation();
   const backButton = onBack ? (
-    <button type="button" ref={backButtonRef} className={styles.backButton} onClick={onBack}>
+    <button
+      type="button"
+      ref={backButtonRef}
+      className={`${styles.backButton} ${viewStyles.backButton}`}
+      onClick={onBack}
+    >
+      <ArrowLeft size={17} aria-hidden="true" />
       {t('cashier.workspace.back_to_list')}
     </button>
   ) : null;
@@ -102,10 +111,7 @@ export default function CashierReadOnlyTicket({
           </h2>
           <time dateTime={order.orderDate}>{formatDate(order.orderDate, i18n.language, timeZone, t)}</time>
         </div>
-        <div className={styles.ticketBadges}>
-          <OrderStatusBadge status={order.status} />
-          <StatusBadge tone="neutral">{paymentStatusLabel(order.paymentStatus, t)}</StatusBadge>
-        </div>
+        <CashierStatusBadges order={order} />
       </header>
 
       <dl className={styles.ticketMeta}>
@@ -157,6 +163,7 @@ export default function CashierReadOnlyTicket({
         </section>
       )}
 
+      <CashierTicketActions order={order} onOrderChanged={onOrderChanged} />
       <section className={styles.ticketSection} aria-labelledby="cashier-ticket-payment">
         <h3 id="cashier-ticket-payment">
           <CreditCard size={18} aria-hidden="true" />

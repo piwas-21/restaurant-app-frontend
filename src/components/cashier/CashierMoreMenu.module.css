@@ -1,0 +1,63 @@
+.wrapper {
+  position: relative;
+}
+.trigger {
+  align-items: center;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 650;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+}
+.trigger:hover,
+.trigger:focus-visible {
+  background: var(--surface-secondary);
+}
+.trigger:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.trigger[aria-expanded='true'] {
+  background: var(--surface-secondary);
+}
+.menu {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0.35rem 0 0;
+  min-width: 12rem;
+  padding: 0.3rem;
+  inset-inline-end: 0;
+  position: absolute;
+  top: 100%;
+  z-index: 30;
+}
+.item {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.65rem;
+  text-align: start;
+  white-space: nowrap;
+}
+.item:hover,
+.item:focus-visible {
+  background: var(--surface-secondary);
+}
+.item:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 1px;
+}

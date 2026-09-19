@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { OrderType } from '@/types/order';
 import { addCustomizedItem } from '@/components/catalog/orderItems';
 import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
@@ -11,6 +11,7 @@ import {
   readCashierNewSaleDraft,
   type CashierNewSaleDraftLine,
 } from '@/lib/cashierNewSaleDraft';
+import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { defaultChannelFor, parseTableNumber } from './newSaleRequest';
 
 /**
@@ -24,6 +25,7 @@ export interface NewSaleDraftState {
   lines: CashierNewSaleDraftLine[];
   notes: string;
   tableNumber: string;
+  contact?: CashierNewSaleContact;
   clientOperationId?: string;
 }
 
@@ -33,6 +35,8 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
   const [state, setState] = useState<NewSaleDraftState>(EMPTY_NEW_SALE_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [lastRemoved, setLastRemoved] = useState<{ line: CashierNewSaleDraftLine; index: number } | null>(null);
+  // `?channel=DineIn&table=N` (Add round on the Tables screen) is applied exactly once per mount.
+  const appliedEntryParamsRef = useRef(false);
 
   // Restore the draft after a navigation; a foreign version reads as none and starts empty.
   useEffect(() => {
@@ -43,6 +47,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
         lines: stored.lines,
         notes: stored.notes ?? '',
         tableNumber: stored.tableNumber ? String(stored.tableNumber) : '',
+        contact: stored.contact,
         clientOperationId: stored.clientOperationId,
       });
     }
@@ -60,6 +65,22 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     );
   }, [hydrated, channelsLoading, enabled]);
 
+  // Entry deep link (Add round): preselect the channel and its table ONCE after hydration and
+  // the enabled-channel list answer, so neither effect can clobber it. A channel the tenant no
+  // longer offers is ignored rather than bounced later.
+  useEffect(() => {
+    if (!hydrated || channelsLoading || appliedEntryParamsRef.current) return;
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tableParam = params.get('table');
+    const channelParam = params.get('channel');
+    if (channelParam !== 'DineIn' || tableParam === null) return;
+    const table = parseTableNumber(tableParam);
+    if (table === null || !enabled.includes(OrderType.DineIn)) return;
+    appliedEntryParamsRef.current = true;
+    setState((current) => ({ ...current, channel: OrderType.DineIn, tableNumber: String(table) }));
+  }, [hydrated, channelsLoading, enabled]);
+
   // Persist the moving draft; an emptied ticket clears the stored one instead of leaving a ghost.
   useEffect(() => {
     if (!hydrated) return;
@@ -75,6 +96,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
       lines: state.lines,
       notes: state.notes,
       tableNumber: state.channel === OrderType.DineIn ? (tableNumber ?? undefined) : undefined,
+      contact: state.contact,
       clientOperationId: state.clientOperationId,
     });
   }, [state, hydrated]);
@@ -102,6 +124,10 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
   const setNotes = useCallback((notes: string) => mutate((current) => ({ ...current, notes })), [mutate]);
   const setTableNumber = useCallback(
     (tableNumber: string) => mutate((current) => ({ ...current, tableNumber })),
+    [mutate],
+  );
+  const setContact = useCallback(
+    (contact: CashierNewSaleContact) => mutate((current) => ({ ...current, contact })),
     [mutate],
   );
 
@@ -150,6 +176,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     setChannel,
     setNotes,
     setTableNumber,
+    setContact,
     addLine,
     reset,
     setOperationId,

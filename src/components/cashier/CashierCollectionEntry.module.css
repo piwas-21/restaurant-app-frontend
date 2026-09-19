@@ -1,0 +1,27 @@
+.entryGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+.entryFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 26rem;
+}
+/* Landscape: the amount/cash fields sit beside a full-size keypad instead of stretching
+   into long inputs with dead space to the keypad's right (pilot feedback). */
+@media (min-width: 900px) {
+  .entryGrid {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  }
+}
+.keypad {
+  max-width: none;
+}

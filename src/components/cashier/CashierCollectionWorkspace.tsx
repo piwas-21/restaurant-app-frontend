@@ -11,10 +11,8 @@ import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { CASHIER_ORDERS_PATH } from '@/lib/cashierWorkspace';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
-import { paymentStatusLabel } from '@/lib/paymentStatus';
-import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
-import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './CashierCollection.module.css';
+import CashierStatusBadges from './CashierStatusBadges';
 
 function messageFor(error: string | null, t: (key: string) => string): string | null {
   if (!error) return null;
@@ -98,10 +96,7 @@ export default function CashierCollectionWorkspace() {
                 {collection.order.orderNumber}
               </h1>
             </div>
-            <div className={styles.statuses}>
-              <OrderStatusBadge status={collection.order.status} />
-              <StatusBadge tone="neutral">{paymentStatusLabel(collection.order.paymentStatus, t)}</StatusBadge>
-            </div>
+            <CashierStatusBadges order={collection.order} />
           </header>
           <output className={styles.balanceCard}>
             <span>{t('cashier.workspace.amount_due')}</span>

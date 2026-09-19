@@ -98,7 +98,7 @@
 .collectionGrid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.8fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(15rem, 0.7fr);
 }
 .form {
   display: flex;
@@ -114,8 +114,7 @@
   margin: 0;
   padding: 0.65rem 0.8rem;
 }
-.formActions,
-.successActions {
+.formActions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -147,26 +146,21 @@
   display: flex;
   justify-content: space-between;
 }
-.successPanel {
+.successBody {
   align-items: flex-start;
-  background: var(--feedback-success-xlight);
-  border: 1px solid var(--feedback-success);
-  border-radius: 8px;
-  color: var(--text-primary);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 1rem;
+  flex-direction: column;
+  gap: 0.4rem;
 }
-.successPanel > div {
-  flex: 1 1 12rem;
-}
-.successPanel p {
-  margin: 0.2rem 0 0;
+.successBody p {
+  margin: 0;
 }
 .successActions {
-  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   justify-content: flex-end;
+  margin-top: 0.5rem;
 }
 @media (max-width: 900px) {
   .collectionHeader {

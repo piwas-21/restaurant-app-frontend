@@ -253,3 +253,74 @@ describe('useCashierNewSale — review', () => {
     expect(mockReview).not.toHaveBeenCalled();
   });
 });
+
+describe('useCashierNewSale — delivery contact', () => {
+  async function deliverySale() {
+    mockGetDetail.mockResolvedValue(detail());
+    const rendered = await renderSale();
+    await act(async () => {
+      await rendered.result.current.tapProduct({ id: 'product-1', name: 'Espresso' } as never);
+    });
+    await act(async () => {
+      rendered.result.current.setChannel(OrderType.Delivery);
+    });
+    return rendered;
+  }
+
+  it('blocks a delivery review without an address and never calls the server', async () => {
+    const { result } = await deliverySale();
+
+    await act(async () => {
+      await result.current.review();
+    });
+
+    expect(result.current.error).toBe('cashier.new_sale.address_required');
+    expect(result.current.phase).toBe('idle');
+    expect(mockReview).not.toHaveBeenCalled();
+  });
+
+  it('hands the contact to the review pass once the address is entered', async () => {
+    const { result } = await deliverySale();
+    mockReview.mockResolvedValue({ status: 'committed', operationId: 'op-1', orderId: 'order-9', quote });
+
+    await act(async () => {
+      result.current.setContact({
+        customerName: 'Ada',
+        deliveryAddress: {
+          addressLine1: 'Musterstrasse 1',
+          city: 'Genève',
+          postalCode: '1201',
+          country: 'CH',
+        },
+      });
+    });
+
+    await act(async () => {
+      await result.current.review();
+    });
+
+    expect(mockReview).toHaveBeenCalledTimes(1);
+    expect(mockReview.mock.calls[0][0].contact?.customerName).toBe('Ada');
+    expect(mockReview.mock.calls[0][0].contact?.deliveryAddress?.addressLine1).toBe('Musterstrasse 1');
+  });
+
+  it('drops the quoted price when the contact changes — the ticket must be re-quoted', async () => {
+    const { result } = await deliverySale();
+    mockReview.mockResolvedValue({ status: 'refused', quote, operationId: 'op-1', error: 'nope' });
+
+    await act(async () => {
+      result.current.setContact({
+        deliveryAddress: { addressLine1: 'Musterstrasse 1', city: 'Genève', postalCode: '1201', country: 'CH' },
+      });
+    });
+    await act(async () => {
+      await result.current.review();
+    });
+    expect(result.current.quote).toEqual(quote);
+
+    await act(async () => {
+      result.current.setContact({ customerPhone: '+4122000000' });
+    });
+    expect(result.current.quote).toBeNull();
+  });
+});

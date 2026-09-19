@@ -1,18 +1,15 @@
 import type { OrderType } from '@/types/order';
+import { readStoredContact, type CashierNewSaleContact } from './cashierNewSaleContact';
 
 /**
  * The one unsent counter-sale draft (cashier POS redesign plan §5.3.7).
  *
- * Modelled on `cashierPendingPayment.ts`: sessionStorage, a defensive reader that treats a
- * corrupted or foreign payload as "no draft", and writes that are best effort — a blocked
- * storage area must never stop the till from selling. Exactly ONE draft exists per device,
- * and it survives navigation between the workspace destinations; it is cleared when its
- * order is created (the created order then lives at the collection route).
+ * Modelled on `cashierPendingPayment.ts`: sessionStorage, a defensive reader, best-effort
+ * writes. Exactly ONE draft exists per device; it survives workspace navigation and is
+ * cleared when its order is created (the order then lives at the collection route).
  *
- * The store is VERSIONED. A stored draft whose version is not the current one is dropped on
- * read, never merged — a draft the code cannot reason about exactly is a draft that could
- * post a line the cashier did not see. The lines are the serialized projection of the shared
- * catalog `OrderItem` (bundle-free: the counter path adds products, not menu parents).
+ * The store is VERSIONED: a stored draft whose version is not the current one is dropped on
+ * read, never merged. Lines are the serialized projection of the shared catalog `OrderItem`.
  */
 
 export const CASHIER_NEW_SALE_DRAFT_VERSION = 1;
@@ -47,6 +44,8 @@ export interface CashierNewSaleDraft {
   notes?: string;
   /** Dine-in only: the table the sale is attached to, resolved to a session at review time. */
   tableNumber?: number;
+  /** Who the sale is for; delivery carries the address (see cashierNewSaleContact.ts). */
+  contact?: CashierNewSaleContact;
   /**
    * The create operation key, minted on the first create attempt and reused for every retry
    * of the SAME payload; reset whenever the draft content changes. Reusing it with a changed
@@ -61,6 +60,7 @@ interface StoredDraft {
   readonly lines?: unknown;
   readonly notes?: unknown;
   readonly tableNumber?: unknown;
+  readonly contact?: unknown;
   readonly clientOperationId?: unknown;
 }
 
@@ -170,6 +170,7 @@ export function readCashierNewSaleDraft(): CashierNewSaleDraft | null {
         typeof stored.tableNumber === 'number' && Number.isInteger(stored.tableNumber) && stored.tableNumber > 0
           ? stored.tableNumber
           : undefined,
+      contact: readStoredContact(stored.contact),
       clientOperationId: asOptionalString(stored.clientOperationId),
     };
   } catch (_error) {

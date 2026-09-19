@@ -34,7 +34,9 @@ export function useCashierCollectionForm({
   const [amount, setAmount] = useState(() => initialAmount(order));
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
   const [received, setReceived] = useState(() => initialAmount(order));
-  const [transactionId, setTransactionId] = useState('');
+  // Prefilled with the order id (pilot feedback): a recorded card tender then carries a
+  // meaningful reference by default, and the cashier can still overwrite or clear it.
+  const [transactionId, setTransactionId] = useState(() => order.id);
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [lastPayment, setLastPayment] = useState<CashierCollectionPaymentOutcome | null>(recoveredPayment ?? null);
@@ -53,7 +55,7 @@ export function useCashierCollectionForm({
     setAmount(nextAmount);
     setReceived(nextAmount);
     setMethod(PaymentMethod.Cash);
-    setTransactionId('');
+    setTransactionId(order.id);
     setNotes('');
     setError(null);
     setLastPayment(null);
@@ -138,7 +140,7 @@ export function useCashierCollectionForm({
         setAmount(initialAmount(updated));
         setReceived(initialAmount(updated));
         setMethod(PaymentMethod.Cash);
-        setTransactionId('');
+        setTransactionId(updated.id);
         setNotes('');
         setError(null);
         resetOperation();

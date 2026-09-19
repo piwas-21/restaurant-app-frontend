@@ -15,6 +15,6 @@ export async function resolveDineInSession(tableNumber: number): Promise<string 
   if (matches.length === 0) return null;
   // A table normally has one open visit; if the data ever carries several, the most recently
   // opened one is the party the cashier is looking at — never an arbitrary array-order pick.
-  const match = matches.reduce((left, right) => (right.openedAt > left.openedAt ? right : left));
-  return match.serviceSessionId;
+  const match = matches.reduce((left, right) => (right.openedAt > left.openedAt ? right : left), matches[0]);
+  return match?.serviceSessionId ?? null;
 }

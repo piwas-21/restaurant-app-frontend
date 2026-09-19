@@ -134,7 +134,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
   /** Restore the most recent removal at its old position; only works while the line is unsent. */
   const undoRemove = useCallback(() => {
     const removal = lastRemoved;
-    if (!removal || !removal.line) return;
+    if (removal?.line === undefined) return;
     setLastRemoved(null);
     setState((current) => {
       const lines = [...current.lines];

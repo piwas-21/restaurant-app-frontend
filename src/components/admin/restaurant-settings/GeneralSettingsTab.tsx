@@ -150,7 +150,7 @@ export default function GeneralSettingsTab() {
         {/* The declared display currency (ISO-4217). Until this field existed it could only be
             set through the API, so tenants silently ran undeclared and every money surface fell
             back to build-time defaults or "currency unavailable". Clearing it is a valid state. */}
-        <FormField label={t('general_settings_currency', 'Currency (ISO-4217)')} error={errors.currency?.message}>
+        <FormField label={t('general_settings_currency')} error={errors.currency?.message}>
           <input type="text" maxLength={3} placeholder="CHF" {...register('currency')} />
         </FormField>
       </fieldset>

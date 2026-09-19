@@ -6,7 +6,7 @@ const valid = {
   city: 'Genève',
   postalCode: '1201',
   country: 'Switzerland',
-  email: 'hello@rumirestaurant.ch',
+  email: 'ada@example.com',
 };
 
 describe('restaurantInfoSchema — currency', () => {

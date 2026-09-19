@@ -1721,6 +1721,7 @@
   "general_settings_contact": "联系",
   "general_settings_email": "邮箱",
   "general_settings_website": "网站",
+"general_settings_currency": "货币 (ISO-4217)",
   "general_settings_name": "名称",
   "general_settings_save_success": "设置已保存",
   "general_settings_save_failed": "保存失败",

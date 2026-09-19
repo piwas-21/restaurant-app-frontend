@@ -1725,6 +1725,7 @@
   "general_settings_contact": "Contatto",
   "general_settings_email": "Email",
   "general_settings_website": "Sito web",
+"general_settings_currency": "Valuta (ISO-4217)",
   "general_settings_name": "Nome",
   "general_settings_save_success": "Impostazioni salvate",
   "general_settings_save_failed": "Salvataggio fallito",

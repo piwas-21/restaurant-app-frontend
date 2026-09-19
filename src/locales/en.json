@@ -1723,6 +1723,7 @@
   "general_settings_contact": "Contact",
   "general_settings_email": "Email",
   "general_settings_website": "Website",
+"general_settings_currency": "Currency (ISO-4217)",
   "general_settings_name": "Name",
   "general_settings_save_success": "Settings saved",
   "general_settings_save_failed": "Failed to save",

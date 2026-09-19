@@ -43,6 +43,10 @@ export interface CashierNewSaleDraft {
   /** Channel the sale is entered on. A change here is a NEW quote, never a silent repricing. */
   channel: OrderType;
   lines: CashierNewSaleDraftLine[];
+  /** Order-level notes for the kitchen; line notes live on the lines themselves. */
+  notes?: string;
+  /** Dine-in only: the table the sale is attached to, resolved to a session at review time. */
+  tableNumber?: number;
   /**
    * The create operation key, minted on the first create attempt and reused for every retry
    * of the SAME payload; reset whenever the draft content changes. Reusing it with a changed
@@ -55,6 +59,8 @@ interface StoredDraft {
   readonly version?: unknown;
   readonly channel?: unknown;
   readonly lines?: unknown;
+  readonly notes?: unknown;
+  readonly tableNumber?: unknown;
   readonly clientOperationId?: unknown;
 }
 
@@ -113,6 +119,11 @@ export function readCashierNewSaleDraft(): CashierNewSaleDraft | null {
     return {
       channel: stored.channel as CashierNewSaleDraft['channel'],
       lines,
+      notes: asOptionalString(stored.notes),
+      tableNumber:
+        typeof stored.tableNumber === 'number' && Number.isInteger(stored.tableNumber) && stored.tableNumber > 0
+          ? stored.tableNumber
+          : undefined,
       clientOperationId: asOptionalString(stored.clientOperationId),
     };
   } catch (_error) {

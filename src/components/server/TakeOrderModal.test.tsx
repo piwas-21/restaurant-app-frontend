@@ -41,7 +41,7 @@ jest.mock('@/services/serverService', () => {
 
 // Replace the customization modal with a deterministic confirm button so the
 // tests drive the orchestrator/hook without ProductCustomization's own fetch.
-jest.mock('./ProductCustomization', () => ({
+jest.mock('@/components/catalog/ProductCustomization', () => ({
   __esModule: true,
   default: function MockProductCustomization({
     product,

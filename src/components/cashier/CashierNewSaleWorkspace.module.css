@@ -1,0 +1,26 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 0.9rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--feedback-error);
+}
+
+.panels {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .panels {
+    flex-direction: column-reverse;
+  }
+}

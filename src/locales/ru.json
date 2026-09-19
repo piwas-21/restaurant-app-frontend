@@ -1665,6 +1665,7 @@
   "general_settings_email": "Эл. почта",
   "general_settings_website": "Веб-сайт",
 "general_settings_currency": "Валюта (ISO-4217)",
+"general_settings_currency_invalid": "Валюта должна быть трёхбуквенным кодом ISO-4217 (например, CHF)",
   "general_settings_name": "Название",
   "general_settings_save_success": "Настройки сохранены",
   "general_settings_save_failed": "Не удалось сохранить",

@@ -1722,6 +1722,7 @@
   "general_settings_email": "邮箱",
   "general_settings_website": "网站",
 "general_settings_currency": "货币 (ISO-4217)",
+"general_settings_currency_invalid": "货币必须为 3 位字母的 ISO-4217 代码（例如 CHF）",
   "general_settings_name": "名称",
   "general_settings_save_success": "设置已保存",
   "general_settings_save_failed": "保存失败",

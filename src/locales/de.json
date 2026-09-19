@@ -1722,6 +1722,7 @@
   "general_settings_email": "E-Mail",
   "general_settings_website": "Webseite",
 "general_settings_currency": "Währung (ISO-4217)",
+"general_settings_currency_invalid": "Die Währung muss ein 3-stelliger ISO-4217-Code sein (z. B. CHF)",
   "general_settings_name": "Name",
   "general_settings_save_success": "Einstellungen gespeichert",
   "general_settings_save_failed": "Speichern fehlgeschlagen",

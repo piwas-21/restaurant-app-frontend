@@ -73,7 +73,7 @@ export const restaurantInfoSchema = z.object({
     .string()
     .trim()
     .transform((value) => value.toUpperCase())
-    .refine((value) => value === '' || /^[A-Z]{3}$/.test(value), 'Currency must be a 3-letter ISO-4217 code (e.g. CHF)')
+    .refine((value) => value === '' || /^[A-Z]{3}$/.test(value), 'general_settings_currency_invalid')
     .transform((value) => (value === '' ? null : value))
     .nullable()
     .default(null),

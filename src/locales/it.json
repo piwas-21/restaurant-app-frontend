@@ -1726,6 +1726,7 @@
   "general_settings_email": "Email",
   "general_settings_website": "Sito web",
 "general_settings_currency": "Valuta (ISO-4217)",
+"general_settings_currency_invalid": "La valuta deve essere un codice ISO-4217 di 3 lettere (es. CHF)",
   "general_settings_name": "Nome",
   "general_settings_save_success": "Impostazioni salvate",
   "general_settings_save_failed": "Salvataggio fallito",

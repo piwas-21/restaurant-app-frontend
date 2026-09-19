@@ -42,6 +42,19 @@ jest.mock('@/components/catalog/ProductCustomization', () => ({
   __esModule: true,
   default: () => <div data-testid="customization-sheet" />,
 }));
+jest.mock('./CashierNewSaleDetailsModal', () => ({
+  __esModule: true,
+  default: (props: { onApply: (c: unknown) => void; onClose: () => void }) => (
+    <div data-testid="details-modal">
+      <button type="button" data-testid="details-apply" onClick={() => props.onApply({ customerName: 'Ada' })}>
+        apply
+      </button>
+      <button type="button" data-testid="details-close" onClick={() => props.onClose()}>
+        close
+      </button>
+    </div>
+  ),
+}));
 
 const mockSale = useCashierNewSale as jest.Mock;
 const mockCatalog = useCashierCatalog as jest.Mock;
@@ -70,6 +83,8 @@ function saleState(overrides: Record<string, unknown> = {}) {
     sheetProduct: null,
     tapPendingId: null,
     lastRemoved: null,
+    contact: undefined,
+    setContact: jest.fn(),
     setChannel: jest.fn(),
     setNotes: jest.fn(),
     setTableNumber: jest.fn(),
@@ -173,5 +188,69 @@ describe('CashierNewSaleWorkspace', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'cashier.new_sale.undo' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'cashier.new_sale.undo' }));
     expect(undoRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CashierNewSaleWorkspace — the delivery details sheet', () => {
+  it('opens the details sheet when the review blocks on a missing address', async () => {
+    mockSale.mockReturnValue(
+      saleState({ channel: OrderType.Delivery, lines: [line], error: 'cashier.new_sale.address_required' }),
+    );
+    render(<CashierNewSaleWorkspace />);
+
+    await waitFor(() => expect(screen.getByTestId('details-modal')).toBeInTheDocument());
+  });
+
+  it('does not mount the details sheet while no review block exists', () => {
+    mockSale.mockReturnValue(saleState({ channel: OrderType.Delivery, lines: [line], contact: undefined }));
+    render(<CashierNewSaleWorkspace />);
+
+    expect(screen.queryByTestId('details-modal')).not.toBeInTheDocument();
+  });
+
+  it('keeps the channel bar updated with the contact state', () => {
+    mockSale.mockReturnValue(
+      saleState({
+        channel: OrderType.Delivery,
+        lines: [line],
+        contact: {
+          deliveryAddress: { addressLine1: 'Musterstrasse 1', city: 'Genève', postalCode: '1201', country: 'CH' },
+        },
+        setContact: jest.fn(),
+      }),
+    );
+    render(<CashierNewSaleWorkspace />);
+
+    const button = screen.getByRole('button', { name: /details_delivery_button/ });
+    expect(button.className).not.toContain('detailsMissing');
+  });
+});
+
+describe('CashierNewSaleWorkspace — the sheet interactions', () => {
+  it('opens the sheet from the channel bar, applies the contact, and closes it', async () => {
+    const setContact = jest.fn();
+    mockSale.mockReturnValue(saleState({ channel: OrderType.Delivery, lines: [line], setContact }));
+    render(<CashierNewSaleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: /details_delivery_button/ }));
+    await screen.findByTestId('details-modal');
+
+    fireEvent.click(screen.getByTestId('details-apply'));
+    expect(setContact).toHaveBeenCalledWith({ customerName: 'Ada' });
+
+    fireEvent.click(screen.getByTestId('details-close'));
+    expect(screen.queryByTestId('details-modal')).not.toBeInTheDocument();
+  });
+
+  it('taps a catalog product onto the ticket', async () => {
+    const tapProduct = jest.fn().mockResolvedValue(undefined);
+    mockSale.mockReturnValue(saleState({ tapProduct }));
+    mockCatalog.mockReturnValue(
+      catalogState({ products: [{ id: 'product-1', name: 'Espresso', basePrice: 3.5 }] as never }),
+    );
+    render(<CashierNewSaleWorkspace />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.new_sale.add_product' }));
+    await waitFor(() => expect(tapProduct).toHaveBeenCalledWith(expect.objectContaining({ id: 'product-1' })));
   });
 });

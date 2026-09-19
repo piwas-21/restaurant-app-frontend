@@ -119,12 +119,14 @@
   cursor: pointer;
 }
 
-.notesLabel {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.notesField {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .notes {
+  width: 100%;
   min-height: 64px;
   resize: vertical;
   padding: 0.5rem;

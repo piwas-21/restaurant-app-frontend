@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { OrderDto } from '@/types/order';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
@@ -108,18 +109,21 @@ export default function CashierNewSaleTicket({
         </button>
       )}
 
-      <label className={styles.notesLabel} htmlFor="cashier-new-sale-notes">
-        {t('cashier.new_sale.notes_label')}
-      </label>
-      <textarea
-        id="cashier-new-sale-notes"
-        className={styles.notes}
-        value={notes}
-        placeholder={t('cashier.new_sale.notes_placeholder')}
-        onChange={(event) => onNotesChange(event.target.value)}
-        readOnly={reviewLocked}
-        aria-busy={phase === 'reviewing'}
-      />
+      <FormField
+        label={t('cashier.new_sale.notes_label')}
+        htmlFor="cashier-new-sale-notes"
+        className={styles.notesField}
+      >
+        <textarea
+          id="cashier-new-sale-notes"
+          className={styles.notes}
+          value={notes}
+          placeholder={t('cashier.new_sale.notes_placeholder')}
+          onChange={(event) => onNotesChange(event.target.value)}
+          readOnly={reviewLocked}
+          aria-busy={phase === 'reviewing'}
+        />
+      </FormField>
 
       <div className={styles.totalRow}>
         <span>{t('cashier.new_sale.total_label')}</span>

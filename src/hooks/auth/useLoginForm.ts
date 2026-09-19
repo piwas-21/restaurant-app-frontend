@@ -21,7 +21,7 @@ import { useModules } from '@/contexts/ModulesContext';
 const ROLE_ROUTES: Record<string, string> = {
   admin: '/admin/dashboard',
   customer: '/account',
-  cashier: '/cashier/orders',
+  cashier: '/cashier',
   kitchenstaff: '/kitchen-staff',
   server: '/server',
 };

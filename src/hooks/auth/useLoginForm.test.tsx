@@ -40,7 +40,7 @@ describe('useLoginForm', () => {
   it.each([
     ['Admin', '/admin/dashboard'],
     ['Customer', '/account'],
-    ['Cashier', '/cashier/orders'],
+    ['Cashier', '/cashier'],
     ['KitchenStaff', '/kitchen-staff'],
     ['Server', '/server'],
     ['wizard', '/'], // unknown role → home
@@ -56,12 +56,10 @@ describe('useLoginForm', () => {
     expect(mockPush).toHaveBeenCalledWith(route);
   });
 
-  // The handler only reads the role; each row's unused second column lives in a
-  // trailing comment (uniform arity keeps tsc happy, unique lines keep Sonar calm).
   it.each([
-    ['Cashier'], // would have been /cashier/orders
-    ['KitchenStaff'], // /kitchen-staff
-    ['Server'], // /server
+    ['Cashier', '/cashier'],
+    ['KitchenStaff', '/kitchen-staff'],
+    ['Server', '/server'],
   ])('sends %s home instead of to a module this tenant did not buy', async (role) => {
     // Otherwise the first screen after login is the blocked page, with a role-scoped nav
     // that now has nothing left in it — the one combination that leaves a bare screen (O5).
@@ -89,7 +87,7 @@ describe('useLoginForm', () => {
       result.current.setPassword('secret1');
     });
     await act(async () => result.current.handleSubmit(submit));
-    expect(mockPush).toHaveBeenCalledWith('/cashier/orders');
+    expect(mockPush).toHaveBeenCalledWith('/cashier');
   });
 
   it('falls back to home (no crash) when the success envelope has no role', async () => {

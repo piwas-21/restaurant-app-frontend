@@ -52,7 +52,7 @@ const STEP_ROUTES: Readonly<Record<string, string | null>> = {
   'tables-qr': '/admin/table-layout-editor',
   staff: '/admin/member-management',
   'kitchen-board': '/kitchen-staff',
-  cashier: '/cashier',
+  cashier: '/cashier/orders',
   server: '/server',
   reservations: '/admin/reservations-management',
   loyalty: '/admin/point-rules',

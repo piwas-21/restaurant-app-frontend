@@ -120,11 +120,7 @@ test.beforeAll(async ({ request, baseURL }) => {
   storageStatePath = file;
 });
 
-test('a signed-in admin opens a product and gets all seven editor sections', async ({
-  browser,
-  request,
-  baseURL,
-}) => {
+test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, request, baseURL }) => {
   test.skip(!storageStatePath, skipReason);
 
   // A generous budget, spent only ONCE and only on CI. `webServer` is `next dev`, which compiles a

@@ -32,6 +32,12 @@ export default function CashierNewSaleWorkspace() {
   return (
     <CashierWorkspaceShell activeDestination="new" queueState="ready" navigationDisabled={reviewing}>
       <div className={styles.layout}>
+        <header>
+          <h1 id="cashier-new-sale-title" className={styles.destinationTitle}>
+            {t('cashier.workspace.new_sale')}
+          </h1>
+          <p className={styles.destinationDescription}>{t('cashier.workspace.new_sale_description')}</p>
+        </header>
         <CashierNewSaleChannelBar
           enabled={sale.channelsEnabled}
           loading={sale.channelsLoading}

@@ -70,7 +70,6 @@ module.exports = {
     // outside this list does not fail: jest reports "coverage data not found" and moves on.
     'src/hooks/useOrders.ts',
     'src/hooks/useCashierOrders.ts',
-    'src/hooks/cashier/useCashierManualRefresh.ts',
     'src/contexts/TableContext.tsx',
     'src/hooks/admin/useProductEditorFetch.ts',
     // S3 (quick-add create): the hook holds the write, the util holds the payload contract.
@@ -366,7 +365,6 @@ module.exports = {
     // invisible to every other gate: dropping it type-checks, lints and renders — it just leaves a
     // product with no orderable option and a guest facing a 400 they cannot act on.
     './src/utils/baseProductVisibility.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
-    './src/components/cashier/RefundPaymentPicker.tsx': { statements: 100, branches: 100, functions: 100, lines: 100 },
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
     // the one that reports a re-read failure only when the write succeeded, are invisible to every
@@ -386,12 +384,6 @@ module.exports = {
     // in a chore: MR, do not lower them.
     './src/hooks/useOrders.ts': { statements: 94, branches: 82, functions: 75, lines: 94 },
     './src/hooks/useCashierOrders.ts': { statements: 56, branches: 38, functions: 26, lines: 65 },
-    './src/hooks/cashier/useCashierManualRefresh.ts': {
-      statements: 99,
-      branches: 99,
-      functions: 99,
-      lines: 99,
-    },
     './src/contexts/TableContext.tsx': { statements: 80, branches: 79, functions: 56, lines: 83 },
     './src/components/account/DeleteAccountSection.tsx': {
       statements: 99,
@@ -409,12 +401,6 @@ module.exports = {
     // date-reading head of the file, not its template.
     './src/utils/zReportDay.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/utils/zReportExportUtils.ts': { statements: 70, branches: 59, functions: 41, lines: 68 },
-    './src/components/cashier/diagnostics/ServerDiagnosticsSection.tsx': {
-      statements: 71,
-      branches: 65,
-      functions: 49,
-      lines: 73,
-    },
     './src/components/checkout/FidelityPointsCheckout.tsx': {
       statements: 76,
       branches: 62,

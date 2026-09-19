@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { useAuth } from '@/components/AuthContext';
 import { getCategories } from '@/services/categoryService';
-import CashierHeader from '@/components/cashier/CashierHeader';
 import ServerHeader from '@/components/server/ServerHeader';
 
 jest.mock('@/services/categoryService');
@@ -44,20 +43,6 @@ function signedInAs(role: string) {
   });
 }
 
-const cashierProps = {
-  isConnected: true,
-  isRefreshing: false,
-  audioEnabled: false,
-  soundType: 'bell' as never,
-  repeatUntilMouseMoves: false,
-  onRefresh: jest.fn(),
-  onToggleAudio: jest.fn(),
-  onSoundTypeChange: jest.fn(),
-  onTestSound: jest.fn(),
-  onToggleRepeat: jest.fn(),
-  onOpenQRScanner: jest.fn(),
-};
-
 const serverProps = {
   isConnected: true,
   connectionState: 'connected' as const,
@@ -80,27 +65,21 @@ beforeEach(() => {
  * (an import dropped in a header refactor) would leave every other test green.
  */
 describe('the pinned order-type toggle on the floor screens', () => {
-  it.each([
-    ['cashier', () => render(<CashierHeader {...cashierProps} />)],
-    ['server', () => render(<ServerHeader {...serverProps} />)],
-  ])('is mounted on the %s screen for an admin signed in on the till', async (_surface, renderHeader) => {
-    signedInAs('Admin');
-    renderHeader();
+  // Mounted header under a role: the helper keeps the two scenarios' shared
+  // scaffolding in one place (Sonar counts duplicated lines in new code).
+  const mountServerHeaderAs = (role: string) => {
+    signedInAs(role);
+    render(<ServerHeader {...serverProps} />);
+  };
 
+  it('is mounted on the server screen for an admin signed in on the till', async () => {
+    mountServerHeaderAs('Admin');
     expect(await screen.findByText('Wraps: closed to Dine In · for 25 min')).toBeInTheDocument();
   });
 
-  it.each([
-    ['cashier', 'Cashier', () => render(<CashierHeader {...cashierProps} />)],
-    ['server', 'Server', () => render(<ServerHeader {...serverProps} />)],
-  ])(
-    'renders nothing on the %s screen under its own role, whose token the writer would 403',
-    async (_surface, role, renderHeader) => {
-      signedInAs(role);
-      renderHeader();
-
-      expect(screen.queryByRole('button', { name: /Order type availability/ })).not.toBeInTheDocument();
-      await waitFor(() => expect(mockGetCategories).not.toHaveBeenCalled());
-    },
-  );
+  it('renders nothing on the server screen under its own role, whose token the writer would 403', async () => {
+    mountServerHeaderAs('Server');
+    expect(screen.queryByRole('button', { name: /Order type availability/ })).not.toBeInTheDocument();
+    await waitFor(() => expect(mockGetCategories).not.toHaveBeenCalled());
+  });
 });

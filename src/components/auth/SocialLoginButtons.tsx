@@ -40,7 +40,7 @@ export default function SocialLoginButtons({ styles = defaultStyles }: Readonly<
               router.push('/account');
               break;
             case 'cashier':
-              router.push('/cashier');
+              router.push('/cashier/orders');
               break;
             case 'kitchen-staff':
               router.push('/kitchen-staff');

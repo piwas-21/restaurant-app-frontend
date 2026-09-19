@@ -16,7 +16,7 @@ if (!existsSync(activeTemplateDir)) {
     .join(', ');
   throw new Error(
     `NEXT_PUBLIC_TEMPLATE="${ACTIVE_TEMPLATE}" is not a known UI template ` +
-      `(no such directory: ${activeTemplateDir}). Available templates: ${available}. See docs/TEMPLATES.md.`
+      `(no such directory: ${activeTemplateDir}). Available templates: ${available}. See docs/TEMPLATES.md.`,
   );
 }
 
@@ -65,6 +65,13 @@ const imageBaseRemotePatterns = (() => {
 const nextConfig: NextConfig = {
   // Enable standalone output for Docker containers
   output: 'standalone',
+
+  // The legacy single-page cashier was removed once the route-backed workspace cut over
+  // (cashier POS redesign §13.8). `/cashier` bookmarks land on the workspace's default
+  // destination; `permanent` so browsers/devices stop re-asking for the dead route.
+  async redirects() {
+    return [{ source: '/cashier', destination: '/cashier/orders', permanent: true }];
+  },
 
   experimental: {
     // allowedDevOrigins can be added if needed for cloud workstations

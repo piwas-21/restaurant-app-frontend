@@ -16,3 +16,4 @@ export * from './order/tableBill';
 export * from './order/tableBillRound';
 export * from './order/paymentOperation';
 export * from './order/tableServiceSession';
+export * from './order/staffCounterOrder';

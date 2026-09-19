@@ -4,7 +4,7 @@ import TakeOrderModal from './TakeOrderModal';
 import { getCategories, createServerOrder } from '@/services/serverService';
 import { getProducts } from '@/services/menuService';
 import { getMenuBundleById } from '@/services/menuBundleService';
-import type { CustomizationResult } from './ProductCustomization';
+import type { CustomizationResult } from '@/components/catalog/ProductCustomization';
 import { ApiError } from '@/utils/apiClient';
 
 // Stub react-i18next so t() returns the inline fallback (fallback ?? key),
@@ -41,7 +41,7 @@ jest.mock('@/services/serverService', () => {
 
 // Replace the customization modal with a deterministic confirm button so the
 // tests drive the orchestrator/hook without ProductCustomization's own fetch.
-jest.mock('./ProductCustomization', () => ({
+jest.mock('@/components/catalog/ProductCustomization', () => ({
   __esModule: true,
   default: function MockProductCustomization({
     product,

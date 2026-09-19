@@ -1,5 +1,5 @@
-import { buildBundleOrderItem, buildBundleChildItems } from '../bundleOrderItems';
-import { buildOrderItems } from '../orderItems';
+import { buildBundleOrderItem, buildBundleChildItems } from '@/components/catalog/bundleOrderItems';
+import { buildOrderItems } from '@/components/catalog/orderItems';
 import { buildWaiterBundleDefaultSelection } from '../waiterBundleSelection';
 import { toggleBundleOption } from '@/utils/bundleSelection';
 import type { MenuBundleItem, MenuSection } from '@/types/menu';

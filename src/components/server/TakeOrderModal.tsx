@@ -1,4 +1,4 @@
-import ProductCustomization from './ProductCustomization';
+import ProductCustomization from '@/components/catalog/ProductCustomization';
 import WaiterBundleCustomization from './WaiterBundleCustomization';
 import { useTranslation } from 'react-i18next';
 import { useTakeOrder } from './take-order/useTakeOrder';

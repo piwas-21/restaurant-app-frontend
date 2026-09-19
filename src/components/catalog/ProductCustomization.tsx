@@ -14,8 +14,8 @@ import type {
 import styles from './ProductCustomization.module.css';
 import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
 
-// Re-exported so the existing importers (`take-order/useTakeOrder.ts`, `take-order/orderItems.ts`)
-// keep their path while the shapes live in one place.
+// Re-exported so the existing importers (`take-order/useTakeOrder.ts`, `catalog/orderItems.ts`)
+// keep one shapes module while the sheet lives in the shared catalog home.
 export type {
   CustomizationResult,
   DetailedIngredient,

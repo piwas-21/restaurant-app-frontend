@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { createServerOrder } from '@/services/serverService';
 import { CreateOrderItemDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
-import { CustomizationResult } from '../ProductCustomization';
+import { CustomizationResult } from '@/components/catalog/ProductCustomization';
 import type { WaiterBundleCustomizationResult } from '../WaiterBundleCustomization';
-import { OrderItem, addCustomizedItem, buildOrderItems } from './orderItems';
-import { buildBundleOrderItem } from './bundleOrderItems';
+import { OrderItem, addCustomizedItem, buildOrderItems } from '@/components/catalog/orderItems';
+import { buildBundleOrderItem } from '@/components/catalog/bundleOrderItems';
 import { useWaiterMenu } from './useWaiterMenu';
 
 interface UseTakeOrderParams {

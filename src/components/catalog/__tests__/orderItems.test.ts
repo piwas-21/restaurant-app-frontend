@@ -1,6 +1,6 @@
 import { mapMenuProducts, addCustomizedItem, OrderItem } from '../orderItems';
 import type { Product } from '@/services/serverService';
-import type { CustomizationResult } from '../../ProductCustomization';
+import type { CustomizationResult } from '../ProductCustomization';
 
 /**
  * Pure-logic tests for the take-order helpers. These lock the load-bearing

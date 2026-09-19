@@ -1,7 +1,9 @@
 /** Route metadata for the route-backed cashier workspace destinations. */
-export type CashierWorkspaceDestination = 'orders' | 'history' | 'tables';
+export type CashierWorkspaceDestination = 'orders' | 'new' | 'history' | 'tables';
 
 export const CASHIER_ORDERS_PATH = '/cashier/orders' as const;
+/** Counter-sale destination: catalog on the left, persistent ticket on the right. */
+export const CASHIER_NEW_SALE_PATH = '/cashier/new' as const;
 /** Focused tender route. It is not a navigation destination because it needs an order target. */
 export const CASHIER_COLLECTION_PATH = '/cashier/collection' as const;
 export const CASHIER_TABLES_PATH = '/cashier/tables' as const;
@@ -35,6 +37,12 @@ export const CASHIER_WORKSPACE_ROUTES: readonly CashierWorkspaceRoute[] = [
     href: CASHIER_ORDERS_PATH,
     labelKey: 'cashier.workspace.orders',
     descriptionKey: 'cashier.workspace.orders_description',
+  },
+  {
+    destination: 'new',
+    href: CASHIER_NEW_SALE_PATH,
+    labelKey: 'cashier.workspace.new_sale',
+    descriptionKey: 'cashier.workspace.new_sale_description',
   },
   {
     destination: 'history',

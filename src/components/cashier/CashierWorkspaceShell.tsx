@@ -19,7 +19,9 @@ import {
   type CashierWorkspaceDestination,
 } from '@/lib/cashierWorkspace';
 import type { CashierQueueState } from '@/types/cashier';
+import CashierMoreMenu from './CashierMoreMenu';
 import styles from './CashierWorkspaceShell.module.css';
+import healthStyles from './CashierWorkspaceHealth.module.css';
 
 interface CashierWorkspaceShellProps {
   readonly activeDestination: CashierWorkspaceDestination;
@@ -33,10 +35,10 @@ interface CashierWorkspaceShellProps {
 type HealthTone = 'loading' | 'success' | 'warning' | 'danger';
 
 const HEALTH_CLASSES: Record<HealthTone, string> = {
-  loading: styles.healthWarning,
-  success: styles.healthSuccess,
-  warning: styles.healthWarning,
-  danger: styles.healthDanger,
+  loading: healthStyles.healthWarning,
+  success: healthStyles.healthSuccess,
+  warning: healthStyles.healthWarning,
+  danger: healthStyles.healthDanger,
 };
 
 const HEALTH_ICONS = { loading: LoaderCircle, success: CircleCheck, warning: CircleDot, danger: CircleAlert };
@@ -56,7 +58,7 @@ function QueueHealth({ queueState, isConnected }: Pick<CashierWorkspaceShellProp
   const Icon = HEALTH_ICONS[presentation.tone];
 
   return (
-    <output className={`${styles.health} ${HEALTH_CLASSES[presentation.tone]}`}>
+    <output className={`${healthStyles.health} ${HEALTH_CLASSES[presentation.tone]}`}>
       <Icon aria-hidden="true" size={16} />
       <span>{t(presentation.labelKey)}</span>
     </output>
@@ -135,6 +137,7 @@ export default function CashierWorkspaceShell({
         </nav>
         <div className={styles.actions}>
           <QueueHealth queueState={queueState} isConnected={isConnected} />
+          <CashierMoreMenu />
           {navigationDisabled && <output className="sr-only">{t('cashier.collection.payment_in_progress')}</output>}
           {operationalCount.state !== 'ready' && (
             <output className="sr-only">{t(operationalCount.statusMessageKey)}</output>

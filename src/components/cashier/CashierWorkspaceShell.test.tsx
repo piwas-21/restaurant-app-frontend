@@ -21,6 +21,11 @@ jest.mock('@/components/ThemeSwitcher', () => ({
 jest.mock('@/components/UserMenu', () => ({ __esModule: true, default: () => <button type="button">User</button> }));
 jest.mock('@/components/branding/TenantLogo', () => ({ __esModule: true, default: () => <span>Tenant</span> }));
 jest.mock('@/hooks/useRestaurantInfo', () => ({ useRestaurantInfo: () => ({ info: null }) }));
+// The More menu pulls the audio engine and three modals; the shell test is about navigation.
+jest.mock('./CashierMoreMenu', () => ({
+  __esModule: true,
+  default: () => <button type="button">More</button>,
+}));
 jest.mock('@/hooks/cashier/useCashierOperationalCount', () => ({
   useCashierOperationalCount: () => ({
     count: 2,

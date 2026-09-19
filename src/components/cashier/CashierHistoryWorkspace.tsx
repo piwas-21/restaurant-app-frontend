@@ -66,6 +66,7 @@ export default function CashierHistoryWorkspace() {
       additionalFilters={<CashierHistoryFilters filters={filters} />}
       onSelectOrder={route.navigateWithOrder}
       onCollect={route.navigateToCollection}
+      onOrderChanged={() => refreshQuietly(queue.refreshOrders)}
       onBack={route.clearOrder}
       onSearchChange={filters.setSearchQuery}
       onSearchSubmit={filters.submitSearch}

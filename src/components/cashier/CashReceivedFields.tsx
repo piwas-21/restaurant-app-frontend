@@ -32,8 +32,10 @@ export default function CashReceivedFields({
   const applied = Number.parseFloat(amount) || 0;
   const cashReceived = Number.parseFloat(received) || 0;
   const change = Math.max(0, cashReceived - applied);
-  const formatCash = (value: number) =>
-    currency === null ? t('cashier.tables.currency_unknown') : formatOrderCurrency(value, { currency });
+  // Same resolution as the balance card beside it: the order's currency, else the tenant
+  // default. The old strict-null branch alone rendered "Currency unavailable" for the change
+  // while every other amount on the page showed tenant money (pilot feedback).
+  const formatCash = (value: number) => formatOrderCurrency(value, { currency });
 
   return (
     <div>

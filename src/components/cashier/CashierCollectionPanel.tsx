@@ -6,12 +6,10 @@ import type { AddPaymentRequest } from '@/services/cashierService';
 import type { OrderDto } from '@/types/order';
 import { orderCurrency, formatOrderCurrency } from '@/lib/cashierMoney';
 import type { PendingPaymentOperation } from '@/lib/cashierPendingPayment';
-import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { CashierCollectionPaymentOutcome } from '@/hooks/cashier/useCashierCollectionForm.types';
 import { useCashierCollectionForm } from '@/hooks/cashier/useCashierCollectionForm';
-import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
-import StatusBadge from '@/components/design-system/StatusBadge';
 import CashierCollectionForm from './CashierCollectionForm';
+import CashierStatusBadges from './CashierStatusBadges';
 import CashierCollectionPaymentHistory from './CashierCollectionPaymentHistory';
 import CashierCollectionSuccess from './CashierCollectionSuccess';
 import CashierPendingPaymentNotice from './CashierPendingPaymentNotice';
@@ -76,10 +74,7 @@ export default function CashierCollectionPanel({
           </h1>
           <p>{t('cashier.collection.description', { order: order.orderNumber })}</p>
         </div>
-        <div className={styles.statuses}>
-          <OrderStatusBadge status={order.status} />
-          <StatusBadge tone="neutral">{paymentStatusLabel(order.paymentStatus, t)}</StatusBadge>
-        </div>
+        <CashierStatusBadges order={order} />
       </header>
       <div className={styles.balanceCard} aria-live="polite">
         <span>{t('cashier.workspace.amount_due')}</span>

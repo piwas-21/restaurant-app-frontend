@@ -7,6 +7,13 @@
   min-width: 0;
   width: 100%;
 }
+/* Orders/History fill the bounded shell exactly: the grid keeps the remaining height and each
+   pane scrolls internally (the shell owns the >=1024px height bound). */
+@media (min-width: 1024px) {
+  .destination {
+    height: 100%;
+  }
+}
 .destinationHeader {
   align-items: flex-start;
   display: flex;

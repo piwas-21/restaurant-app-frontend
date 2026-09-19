@@ -2,7 +2,7 @@
   background: var(--surface-primary);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  min-height: 20rem;
+  min-height: 26rem;
   overflow: auto;
   padding: 0.5rem;
 }

@@ -31,12 +31,6 @@
   margin: 0;
   text-transform: uppercase;
 }
-.ticketBadges {
-  align-items: flex-end;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
 .ticketMeta {
   display: grid;
   gap: 0.65rem;

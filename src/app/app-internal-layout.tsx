@@ -86,10 +86,11 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     width: '100%',
   };
 
-  const mainStyles: CSSProperties = {
-    padding: isHomePage ? '0' : '1rem',
-    flexGrow: 1,
-  };
+  // The cashier workspace owns its full-height shell (sticky header + internal pane scrolling);
+  // the generic 1rem page padding and free-growing main would make the queue scroll the page.
+  const mainStyles: CSSProperties = isCashierWorkspace
+    ? { padding: '0', height: '100dvh', overflowY: 'auto', flexGrow: 1 }
+    : { padding: isHomePage ? '0' : '1rem', flexGrow: 1 };
 
   const footerStyles: CSSProperties = {
     padding: '2rem 1rem',

@@ -130,38 +130,24 @@
   min-width: 0;
 }
 
-.health {
-  align-items: center;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  gap: 0.35rem;
-  min-height: 2rem;
-  padding: 0.25rem 0.6rem;
-  white-space: nowrap;
-}
-
-.healthSuccess {
-  background: var(--feedback-success-xlight);
-  color: var(--feedback-success-text);
-}
-
-.healthWarning {
-  background: var(--feedback-warning-xlight);
-  color: var(--feedback-warning-text);
-}
-
-.healthDanger {
-  background: var(--feedback-danger-xlight);
-  color: var(--feedback-danger-dark);
-}
-
 .content {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
   padding: 0.75rem;
+}
+
+/* Landscape tablet and up: the shell IS the viewport, so the queue and ticket panes scroll
+   inside themselves instead of the whole page (pilot feedback: reaching the queue's lower
+   orders by scrolling the page). Below 1024px destinations stack and this container scrolls. */
+@media (min-width: 1024px) {
+  .workspace {
+    height: 100%;
+  }
+  .content {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 }
 
 @media (max-width: 900px) {

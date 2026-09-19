@@ -1,4 +1,4 @@
-import type { CreateOrderItemDto } from './dtos';
+import type { CreateOrderDeliveryAddressDto, CreateOrderItemDto } from './dtos';
 import type { OrderType } from './enums';
 
 /**
@@ -28,6 +28,8 @@ export interface StaffCounterOrderRequest {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
+  /** Delivery channel only (the server validator refuses it on other channels). */
+  deliveryAddress?: CreateOrderDeliveryAddressDto;
   promoCode?: string;
   /** Not supported for staff counter orders: the server accepts `0`/absent only. */
   pointsToRedeem?: number;

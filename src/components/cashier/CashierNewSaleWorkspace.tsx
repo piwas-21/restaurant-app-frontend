@@ -1,11 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import ProductCustomization from '@/components/catalog/ProductCustomization';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierNewSaleChannelBar from './CashierNewSaleChannelBar';
 import CashierNewSaleCatalog from './CashierNewSaleCatalog';
 import CashierNewSaleTicket from './CashierNewSaleTicket';
+
+// The per-channel details sheet is opened on demand; keeping it out of the route bundle is
+// what keeps /cashier/new inside its First-Load-JS budget.
+const CashierNewSaleDetailsModal = dynamic(() => import('./CashierNewSaleDetailsModal'));
 import { useCashierCatalog } from '@/hooks/cashier/useCashierCatalog';
 import { useCashierNewSale } from '@/hooks/cashier/useCashierNewSale';
 import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
@@ -28,6 +34,14 @@ export default function CashierNewSaleWorkspace() {
   const catalog = useCashierCatalog();
   const sale = useCashierNewSale({ onCreated: route.navigateToCollection });
   const reviewing = sale.phase !== 'idle';
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  // Delivery without an address is refused BEFORE any server call; the sheet opens on the
+  // exact fields the review is missing instead of showing a sentence with nowhere to act.
+  useEffect(() => {
+    if (sale.error === 'cashier.new_sale.address_required') setDetailsOpen(true);
+  }, [sale.error]);
+  const detailsComplete =
+    sale.contact !== undefined && (sale.channel !== 'Delivery' || Boolean(sale.contact.deliveryAddress?.addressLine1));
 
   return (
     <CashierWorkspaceShell activeDestination="new" queueState="ready" navigationDisabled={reviewing}>
@@ -46,6 +60,8 @@ export default function CashierNewSaleWorkspace() {
           tableNumber={sale.tableNumber}
           onTableNumberChange={sale.setTableNumber}
           disabled={reviewing}
+          onOpenDetails={() => setDetailsOpen(true)}
+          detailsComplete={detailsComplete}
         />
         {sale.error && !sale.sheetProduct && (
           <p className={styles.error} role="alert">
@@ -82,6 +98,15 @@ export default function CashierNewSaleWorkspace() {
           />
         </div>
       </div>
+      {detailsOpen && (
+        <CashierNewSaleDetailsModal
+          isOpen
+          channel={sale.channel}
+          contact={sale.contact}
+          onApply={sale.setContact}
+          onClose={() => setDetailsOpen(false)}
+        />
+      )}
       {sale.sheetProduct && (
         <ProductCustomization
           product={sale.sheetProduct}

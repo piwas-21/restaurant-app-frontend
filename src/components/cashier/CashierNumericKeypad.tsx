@@ -6,10 +6,12 @@ interface CashierNumericKeypadProps {
   readonly disabled: boolean;
   readonly onChange: (value: string) => void;
   readonly t: (key: string) => string;
+  /** Extra layout class from the host form (e.g. dropping the default max width). */
+  readonly className?: string;
 }
 
 /** Large, touch-safe keypad for the cash amount field. */
-export default function CashierNumericKeypad({ value, disabled, onChange, t }: CashierNumericKeypadProps) {
+export default function CashierNumericKeypad({ value, disabled, onChange, t, className }: CashierNumericKeypadProps) {
   const append = (digit: string) => {
     if (digit === '.' && value.includes('.')) return;
     onChange(digit === '.' && value.length === 0 ? '0.' : `${value}${digit}`);
@@ -18,7 +20,7 @@ export default function CashierNumericKeypad({ value, disabled, onChange, t }: C
   const clear = () => onChange('');
 
   return (
-    <fieldset className={styles.numericKeypad} aria-label={t('cashier.collection.keypad')}>
+    <fieldset className={`${styles.numericKeypad} ${className ?? ''}`} aria-label={t('cashier.collection.keypad')}>
       {[...'123456789'].map((digit) => (
         <button
           type="button"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { OrderDto } from '@/types/order';
+import { OrderType, type OrderDto } from '@/types/order';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
 import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
 import { getProductById } from '@/services/menuService';
@@ -78,8 +78,8 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   // notes, table — invalidates it, so the next review quotes again (plan §5.3.5: a channel
   // change reprices against server rules, never silently).
   const contentKey = useMemo(
-    () => JSON.stringify([state.channel, state.lines, state.notes, state.tableNumber]),
-    [state.channel, state.lines, state.notes, state.tableNumber],
+    () => JSON.stringify([state.channel, state.lines, state.notes, state.tableNumber, state.contact]),
+    [state.channel, state.lines, state.notes, state.tableNumber, state.contact],
   );
   const lastContentKeyRef = useRef(contentKey);
   useEffect(() => {
@@ -91,6 +91,13 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   const review = useCallback(async () => {
     if (!state.channel || state.lines.length === 0 || phase !== 'idle') return;
     setError(null);
+    // Delivery needs its address before anything else can happen; the sheet (not a dead-end
+    // sentence) is the answer. The server would refuse, but the cashier should not need a
+    // round trip to learn a field is missing.
+    if (state.channel === OrderType.Delivery && !state.contact?.deliveryAddress?.addressLine1) {
+      setError('cashier.new_sale.address_required');
+      return;
+    }
     setPhase('reviewing');
     // The pass is bound to the exact ticket it quoted. The ticket is frozen in the UI while the
     // review runs; this key is the second line of defense, so a stale outcome can never be
@@ -101,6 +108,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
       lines: state.lines,
       notes: state.notes,
       tableNumber: state.tableNumber,
+      contact: state.contact,
       storedOperationId: state.clientOperationId,
     });
 
@@ -137,6 +145,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     lines: state.lines,
     notes: state.notes,
     tableNumber: state.tableNumber,
+    contact: state.contact,
     ticketTotal,
     quote,
     phase,
@@ -147,6 +156,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     setChannel: draft.setChannel,
     setNotes: draft.setNotes,
     setTableNumber: draft.setTableNumber,
+    setContact: draft.setContact,
     setLineQuantity: draft.setLineQuantity,
     removeLine: draft.removeLine,
     undoRemove: draft.undoRemove,

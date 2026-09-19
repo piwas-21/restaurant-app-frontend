@@ -1,5 +1,6 @@
 import { OrderType, type OrderDto } from '@/types/order';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
+import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { getErrorMessage } from '@/utils/apiClient';
 import { createStaffCounterOrder, quoteStaffCounterOrder } from '@/services/staffCounterOrderService';
 import { resolveDineInSession } from './newSaleSession';
@@ -34,6 +35,7 @@ export async function reviewCounterSale(input: {
   lines: readonly CashierNewSaleDraftLine[];
   notes: string;
   tableNumber: string;
+  contact?: CashierNewSaleContact;
   storedOperationId?: string;
 }): Promise<ReviewOutcome> {
   const tableNumber = input.channel === OrderType.DineIn ? parseTableNumber(input.tableNumber) : null;
@@ -58,6 +60,7 @@ export async function reviewCounterSale(input: {
     notes: input.notes,
     tableNumber: tableNumber ?? undefined,
     serviceSessionId,
+    contact: input.contact,
   });
   // Minted on the first create attempt and reused for every retry of THIS ticket; any draft
   // mutation drops it, so a timeout after commit replays the same order instead of minting a

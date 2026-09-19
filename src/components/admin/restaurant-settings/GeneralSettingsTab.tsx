@@ -45,6 +45,7 @@ export default function GeneralSettingsTab() {
         longitude: info.longitude,
         email: info.email,
         website: info.website ?? null,
+        currency: info.currency ?? null,
       });
     }
   }, [info, reset]);
@@ -70,6 +71,7 @@ export default function GeneralSettingsTab() {
           longitude: data.longitude,
           email: data.email,
           website: data.website || null,
+          currency: data.currency ?? null,
         }),
       );
       if (response.success) {
@@ -145,6 +147,15 @@ export default function GeneralSettingsTab() {
             <input type="number" step="any" {...register('longitude', emptyAsNullNumber)} />
           </FormField>
         </div>
+        {/* The declared display currency (ISO-4217). Until this field existed it could only be
+            set through the API, so tenants silently ran undeclared and every money surface fell
+            back to build-time defaults or "currency unavailable". Clearing it is a valid state. */}
+        <FormField
+          label={t('general_settings_currency')}
+          error={errors.currency?.message ? t(errors.currency.message) : undefined}
+        >
+          <input type="text" maxLength={3} placeholder="CHF" {...register('currency')} />
+        </FormField>
       </fieldset>
 
       <fieldset className={styles.fieldset}>

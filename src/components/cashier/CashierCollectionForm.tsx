@@ -9,6 +9,7 @@ import PaymentAmountField from './PaymentAmountField';
 import PaymentMethodField from './PaymentMethodField';
 import PaymentReferenceFields from './PaymentReferenceFields';
 import styles from './CashierCollection.module.css';
+import entry from './CashierCollectionEntry.module.css';
 
 interface CashierCollectionFormProps {
   readonly order: OrderDto;
@@ -63,38 +64,50 @@ export default function CashierCollectionForm({
 
   return (
     <form className={styles.form} onSubmit={onSubmit} noValidate>
-      <PaymentAmountField
-        amount={amount}
-        remainingBalance={Math.max(0, order.remainingAmount)}
-        disabled={isPending}
-        error={error}
-        onAmountChange={onAmountChange}
-        onSetMaxAmount={onSetMaxAmount}
-        t={t}
-      />
-      <CashierNumericKeypad value={amount} disabled={isPending} onChange={onAmountChange} t={t} />
-      {method === PaymentMethod.Cash && (
-        <CashReceivedFields
-          amount={amount}
-          received={received}
-          currency={order.currency}
-          suggestions={cashSuggestions(order.remainingAmount)}
+      <div className={entry.entryGrid}>
+        <div className={entry.entryFields}>
+          <PaymentAmountField
+            amount={amount}
+            remainingBalance={Math.max(0, order.remainingAmount)}
+            disabled={isPending}
+            error={error}
+            onAmountChange={onAmountChange}
+            onSetMaxAmount={onSetMaxAmount}
+            t={t}
+          />
+          {method === PaymentMethod.Cash && (
+            <CashReceivedFields
+              amount={amount}
+              received={received}
+              currency={order.currency}
+              suggestions={cashSuggestions(order.remainingAmount)}
+              disabled={isPending}
+              onReceivedChange={onReceivedChange}
+              onExact={onExactCash}
+              onSuggestion={onCashSuggestion}
+              t={t}
+            />
+          )}
+        </div>
+        <CashierNumericKeypad
+          value={amount}
           disabled={isPending}
-          onReceivedChange={onReceivedChange}
-          onExact={onExactCash}
-          onSuggestion={onCashSuggestion}
+          onChange={onAmountChange}
+          t={t}
+          className={entry.keypad}
+        />
+      </div>
+      <div className={entry.stack}>
+        <PaymentMethodField method={method} disabled={isPending} onChange={onMethodChange} t={t} />
+        <PaymentReferenceFields
+          transactionId={transactionId}
+          notes={notes}
+          disabled={isPending}
+          onTransactionIdChange={onTransactionChange}
+          onNotesChange={onNotesChange}
           t={t}
         />
-      )}
-      <PaymentMethodField method={method} disabled={isPending} onChange={onMethodChange} t={t} />
-      <PaymentReferenceFields
-        transactionId={transactionId}
-        notes={notes}
-        disabled={isPending}
-        onTransactionIdChange={onTransactionChange}
-        onNotesChange={onNotesChange}
-        t={t}
-      />
+      </div>
       {error && (
         <p className={styles.formError} role="alert">
           {error}

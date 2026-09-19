@@ -18,10 +18,10 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   justify-content: center;
-  min-height: 3.5rem;
+  min-height: 3.75rem;
   padding: 0.5rem;
 }
 .keypadClear {

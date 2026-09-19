@@ -158,6 +158,11 @@
   fill: var(--feedback-warning-xlight);
   stroke: var(--feedback-warning-text);
 }
+/* The number flips with the pale occupied top: --fp-ink tracks --text-primary (near-white in
+   dark mode, invisible on that fill); the warning TEXT token reads on it in BOTH themes. */
+.table[data-state='occupied'] .num {
+  fill: var(--feedback-warning-text);
+}
 .table[data-state='booked'] .tableTop {
   fill: url(#fp-hatch);
 }

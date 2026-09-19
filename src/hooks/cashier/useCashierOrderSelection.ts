@@ -30,6 +30,9 @@ function queueFingerprint(order: OrderDto | null): string {
     order.totalPaid,
     order.remainingAmount,
     order.isFullyPaid,
+    // Focus flips are invisible to money/status identity; without this the focused detail
+    // would keep showing the pre-toggle state after a ticket action (see CashierTicketActions).
+    order.isFocusOrder === true,
     payments,
   ].join('|');
 }

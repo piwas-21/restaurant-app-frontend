@@ -41,3 +41,44 @@
 .tableField {
   min-width: 180px;
 }
+
+.detailsButton {
+  align-items: center;
+  align-self: flex-start;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 650;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+}
+.detailsButton:hover,
+.detailsButton:focus-visible {
+  background: var(--surface-secondary);
+}
+.detailsButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+.detailsButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.detailsState {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8rem;
+  justify-content: center;
+  min-height: 1.3rem;
+  min-width: 1.3rem;
+}
+.detailsMissing {
+  border-color: var(--feedback-warning);
+  color: var(--feedback-warning-text);
+}

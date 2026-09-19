@@ -1,0 +1,51 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.postalRow {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 2fr 1fr 1fr;
+}
+.footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.secondaryButton,
+.applyButton {
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 650;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
+}
+.secondaryButton {
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+.applyButton {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+.applyButton:hover,
+.applyButton:focus-visible {
+  background: var(--brand-primary-hover);
+}
+.secondaryButton:focus-visible,
+.applyButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+@media (max-width: 560px) {
+  .postalRow {
+    grid-template-columns: 1fr;
+  }
+}

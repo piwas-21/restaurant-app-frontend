@@ -1,0 +1,26 @@
+.health {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.6rem;
+  white-space: nowrap;
+}
+
+.healthSuccess {
+  background: var(--feedback-success-xlight);
+  color: var(--feedback-success-text);
+}
+
+.healthWarning {
+  background: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+}
+
+.healthDanger {
+  background: var(--feedback-danger-xlight);
+  color: var(--feedback-danger-dark);
+}

@@ -62,6 +62,21 @@ export const restaurantInfoSchema = z.object({
     .nullable()
     .or(z.literal('').transform(() => null))
     .default(null),
+  /**
+   * The tenant's declared display currency (ISO-4217 alpha-3). Nullable BY DESIGN: null is a
+   * STATE ("undeclared"), and backend money resolution treats it as such — the order display
+   * resolver and the table-session reader fall back to it only when a tender/session carries
+   * none. Cleared means undeclared, never a literal 'null' string. Normalised to upper-case so
+   * a lowercase 'chf' cannot split the currency vocabulary.
+   */
+  currency: z
+    .string()
+    .trim()
+    .transform((value) => value.toUpperCase())
+    .refine((value) => value === '' || /^[A-Z]{3}$/.test(value), 'general_settings_currency_invalid')
+    .transform((value) => (value === '' ? null : value))
+    .nullable()
+    .default(null),
 });
 
 // Input = pre-default shape (what RHF stores). Output = post-default

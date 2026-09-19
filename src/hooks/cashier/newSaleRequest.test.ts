@@ -95,3 +95,50 @@ describe('buildCounterSaleRequest — the wire contract', () => {
     expect(delivery.serviceSessionId).toBeUndefined();
   });
 });
+
+describe('buildCounterSaleRequest — customer and delivery contact', () => {
+  const line: CashierNewSaleDraftLine = { product: { id: 'p1', name: 'Burger' }, quantity: 1, unitPrice: 10 };
+
+  const address = {
+    addressLine1: 'Musterstrasse 1',
+    addressLine2: 'Top 2',
+    city: 'Genève',
+    postalCode: '1201',
+    country: 'CH',
+    deliveryInstructions: 'Ring twice',
+  };
+
+  it('carries the customer fields and, on delivery, the address', () => {
+    const request = buildCounterSaleRequest({
+      channel: OrderType.Delivery,
+      lines: [line],
+      notes: '',
+      contact: { customerName: 'Ada', customerPhone: '+4122000000', deliveryAddress: address },
+    });
+
+    expect(request.customerName).toBe('Ada');
+    expect(request.customerPhone).toBe('+4122000000');
+    expect(request.deliveryAddress).toEqual(address);
+    expect(request.tableNumber).toBeUndefined();
+    expect(request.serviceSessionId).toBeUndefined();
+  });
+
+  it('never carries a delivery address on takeaway or dine-in', () => {
+    for (const channel of [OrderType.Takeaway, OrderType.DineIn]) {
+      const request = buildCounterSaleRequest({
+        channel,
+        lines: [line],
+        notes: '',
+        contact: { customerName: 'Ada', deliveryAddress: address },
+      });
+      expect(request.deliveryAddress).toBeUndefined();
+      expect(request.customerName).toBe('Ada');
+    }
+  });
+
+  it('omits the address key entirely when the sale has no contact', () => {
+    const request = buildCounterSaleRequest({ channel: OrderType.Delivery, lines: [line], notes: '' });
+    expect('deliveryAddress' in request).toBe(false);
+    expect(request.customerName).toBeUndefined();
+  });
+});

@@ -59,3 +59,41 @@ describe('CashierNewSaleChannelBar', () => {
     expect(screen.getByRole('radio', { name: 'order_type_takeaway' })).toBeDisabled();
   });
 });
+
+describe('CashierNewSaleChannelBar — the per-channel details affordance', () => {
+  it('opens the details sheet from the bar and reports an incomplete delivery', () => {
+    const onOpenDetails = jest.fn();
+    render(
+      <CashierNewSaleChannelBar
+        {...baseProps({ selected: OrderType.Delivery, onOpenDetails, detailsComplete: false })}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: /cashier\.new_sale\.details_delivery_button/ });
+    fireEvent.click(button);
+    expect(onOpenDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks a complete delivery and switches the label on non-delivery channels', () => {
+    const { rerender } = render(
+      <CashierNewSaleChannelBar
+        {...baseProps({ selected: OrderType.Delivery, onOpenDetails: jest.fn(), detailsComplete: true })}
+      />,
+    );
+    const delivery = screen.getByRole('button', { name: /details_delivery_button/ });
+    expect(delivery.className).not.toContain('detailsMissing');
+
+    rerender(
+      <CashierNewSaleChannelBar
+        {...baseProps({ selected: OrderType.Takeaway, onOpenDetails: jest.fn(), detailsComplete: false })}
+      />,
+    );
+    expect(screen.getByRole('button', { name: /cashier\.new_sale\.details_button/ })).toBeInTheDocument();
+  });
+
+  it('offers no details affordance before a channel is selected', () => {
+    render(<CashierNewSaleChannelBar {...baseProps({ selected: null, onOpenDetails: jest.fn() })} />);
+
+    expect(screen.queryByRole('button', { name: /details/ })).toBeNull();
+  });
+});

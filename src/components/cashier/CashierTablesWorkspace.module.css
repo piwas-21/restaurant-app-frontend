@@ -79,6 +79,13 @@
   gap: 0.75rem;
   min-height: 0;
 }
+/* With no visit selected the map/list is the whole work area — a lone 40%-width column left
+   the plan cramped (pilot feedback). Once a visit is selected the two-pane grid returns. */
+@media (min-width: 1024px) {
+  .grid:not(.hasSelection) .listPane {
+    grid-column: 1 / -1;
+  }
+}
 .listScroll {
   min-height: 0;
   overflow: auto;

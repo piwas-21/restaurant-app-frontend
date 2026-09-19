@@ -16,7 +16,7 @@ import {
   tableSessionCurrency,
   tableSessionEligibleOutstanding,
 } from '@/lib/cashierTableSession';
-import { staffTableOrderHref } from '@/lib/cashierWorkspace';
+import { CASHIER_NEW_SALE_PATH, staffTableOrderHref } from '@/lib/cashierWorkspace';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
@@ -165,9 +165,12 @@ export default function CashierTableSessionPanel({
           {t('cashier.tables.print_bill')}
         </StaffButton>
         {addRoundAllowed ? (
+          // Add round goes to the workspace New sale composer with the table preselected
+          // (pilot feedback), not the legacy waiter page. The review resolves the open visit
+          // from the table number, so the session id does not need to travel.
           <Link
             className={`btn btn-secondary ${buttonStyles.touch}`}
-            href={staffTableOrderHref(session.tableNumber, session.serviceSessionId)}
+            href={`${CASHIER_NEW_SALE_PATH}?channel=DineIn&table=${encodeURIComponent(String(session.tableNumber ?? ''))}`}
           >
             {t('cashier.tables.add_round')}
           </Link>

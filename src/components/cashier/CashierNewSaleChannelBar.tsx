@@ -15,6 +15,9 @@ interface CashierNewSaleChannelBarProps {
   readonly tableNumber: string;
   readonly onTableNumberChange: (value: string) => void;
   readonly disabled?: boolean;
+  /** Per-channel customer/delivery sheet (delivery NEEDS its address before review). */
+  readonly onOpenDetails?: () => void;
+  readonly detailsComplete?: boolean;
 }
 
 /**
@@ -31,6 +34,8 @@ export default function CashierNewSaleChannelBar({
   tableNumber,
   onTableNumberChange,
   disabled = false,
+  onOpenDetails,
+  detailsComplete = false,
 }: CashierNewSaleChannelBarProps) {
   const { t } = useTranslation();
 
@@ -72,6 +77,21 @@ export default function CashierNewSaleChannelBar({
             onChange={(event) => onTableNumberChange(event.target.value)}
           />
         </FormField>
+      )}
+      {onOpenDetails && selected !== null && (
+        <button
+          type="button"
+          className={`${styles.detailsButton} ${selected === OrderType.Delivery && !detailsComplete ? styles.detailsMissing : ''}`}
+          onClick={onOpenDetails}
+          disabled={disabled}
+        >
+          {selected === OrderType.Delivery
+            ? t('cashier.new_sale.details_delivery_button')
+            : t('cashier.new_sale.details_button')}
+          <span className={styles.detailsState} aria-hidden="true">
+            {detailsComplete ? '✓' : '…'}
+          </span>
+        </button>
       )}
     </section>
   );

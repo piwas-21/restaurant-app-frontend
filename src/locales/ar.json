@@ -1730,6 +1730,8 @@
   "general_settings_contact": "اتصال",
   "general_settings_email": "البريد الإلكتروني",
   "general_settings_website": "الموقع الإلكتروني",
+"general_settings_currency": "العملة (ISO-4217)",
+"general_settings_currency_invalid": "يجب أن تكون العملة رمز ISO-4217 مكوّنًا من 3 أحرف (مثل CHF)",
   "general_settings_name": "الاسم",
   "general_settings_save_success": "تم حفظ الإعدادات",
   "general_settings_save_failed": "فشل الحفظ",

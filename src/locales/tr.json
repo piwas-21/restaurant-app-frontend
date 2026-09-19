@@ -1723,6 +1723,8 @@
   "general_settings_contact": "İletişim",
   "general_settings_email": "E-posta",
   "general_settings_website": "Web sitesi",
+"general_settings_currency": "Para birimi (ISO-4217)",
+"general_settings_currency_invalid": "Para birimi 3 haneli bir ISO-4217 kodu olmalıdır (örn. CHF)",
   "general_settings_name": "İsim",
   "general_settings_save_success": "Ayarlar kaydedildi",
   "general_settings_save_failed": "Kaydedilemedi",

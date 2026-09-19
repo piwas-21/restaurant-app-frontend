@@ -1723,6 +1723,8 @@
   "general_settings_contact": "Contact",
   "general_settings_email": "E-mail",
   "general_settings_website": "Website",
+"general_settings_currency": "Valuta (ISO-4217)",
+"general_settings_currency_invalid": "Valuta moet een 3-letterige ISO-4217-code zijn (bijv. CHF)",
   "general_settings_name": "Naam",
   "general_settings_save_success": "Instellingen opgeslagen",
   "general_settings_save_failed": "Kon niet opslaan",

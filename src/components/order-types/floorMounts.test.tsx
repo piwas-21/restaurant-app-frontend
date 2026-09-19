@@ -65,17 +65,20 @@ beforeEach(() => {
  * (an import dropped in a header refactor) would leave every other test green.
  */
 describe('the pinned order-type toggle on the floor screens', () => {
-  it('is mounted on the server screen for an admin signed in on the till', async () => {
-    signedInAs('Admin');
+  // Mounted header under a role: the helper keeps the two scenarios' shared
+  // scaffolding in one place (Sonar counts duplicated lines in new code).
+  const mountServerHeaderAs = (role: string) => {
+    signedInAs(role);
     render(<ServerHeader {...serverProps} />);
+  };
 
+  it('is mounted on the server screen for an admin signed in on the till', async () => {
+    mountServerHeaderAs('Admin');
     expect(await screen.findByText('Wraps: closed to Dine In · for 25 min')).toBeInTheDocument();
   });
 
   it('renders nothing on the server screen under its own role, whose token the writer would 403', async () => {
-    signedInAs('Server');
-    render(<ServerHeader {...serverProps} />);
-
+    mountServerHeaderAs('Server');
     expect(screen.queryByRole('button', { name: /Order type availability/ })).not.toBeInTheDocument();
     await waitFor(() => expect(mockGetCategories).not.toHaveBeenCalled());
   });

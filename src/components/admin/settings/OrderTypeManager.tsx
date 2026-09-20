@@ -1,104 +1,82 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { orderTypeConfigurationService, OrderTypeConfigurationDto } from '@/services/orderTypeConfigurationService';
-import { OrderType } from '@/types/order';
-import { Utensils, Store, Truck } from 'lucide-react';
+import { z } from 'zod';
+import { Store, Truck, Utensils } from 'lucide-react';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import { getErrorMessage } from '@/utils/apiClient';
-import { enqueueSnackbar } from 'notistack';
+import FormField from '@/components/design-system/FormField';
+import {
+  MAX_REVIEW_WINDOW_MINUTES,
+  MIN_REVIEW_WINDOW_MINUTES,
+  type OrderTypeConfigurationDto,
+} from '@/services/orderTypeConfigurationService';
+import { OrderType } from '@/types/order';
+import { confirmationFlowOf, reviewWindowOf, useOrderTypeManager } from '@/hooks/admin/useOrderTypeManager';
 import styles from './OrderTypeManager.module.css';
+import flowStyles from './OrderTypeConfirmationSettings.module.css';
+
+const confirmationFlowSchema = z.enum(['direct', 'acknowledge']);
+const reviewWindowSchema = z.coerce.number().int().min(MIN_REVIEW_WINDOW_MINUTES).max(MAX_REVIEW_WINDOW_MINUTES);
 
 export default function OrderTypeManager() {
   const { t } = useTranslation();
-  const [configurations, setConfigurations] = useState<OrderTypeConfigurationDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  // Confirmation modal state
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { configurations, loading, saving, updateEnabled, updateConfirmationFlow, updateReviewWindow } =
+    useOrderTypeManager();
   const [pendingOrderType, setPendingOrderType] = useState<OrderType | null>(null);
-
-  useEffect(() => {
-    // fetchConfigurations has its own try/catch (toasts on failure);
-    // fire-and-forget. Mount-only initial fetch; fetchConfigurations is a
-    // stable closure over component state — including it in deps would
-    // not change behaviour.
-    void fetchConfigurations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchConfigurations = async () => {
-    try {
-      setLoading(true);
-      const data = await orderTypeConfigurationService.getAll();
-      setConfigurations(data);
-    } catch (e) {
-      enqueueSnackbar(
-        getErrorMessage(e) ?? t('failed_to_load_configurations', 'Failed to load order type configurations'),
-        {
-          variant: 'error',
-        },
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [reviewWindowDrafts, setReviewWindowDrafts] = useState<Partial<Record<OrderType, string>>>({});
+  const [reviewWindowErrors, setReviewWindowErrors] = useState<Partial<Record<OrderType, string>>>({});
 
   const handleToggle = async (orderType: OrderType, currentlyEnabled: boolean) => {
-    const newEnabledState = !currentlyEnabled;
-
-    // Show confirmation modal when disabling
-    if (!newEnabledState) {
+    if (currentlyEnabled) {
       setPendingOrderType(orderType);
-      setShowConfirmModal(true);
       return;
     }
-
-    // If enabling, proceed directly
-    await updateOrderType(orderType, newEnabledState);
+    await updateEnabled(orderType, true);
   };
 
   const handleConfirmDisable = async () => {
     if (!pendingOrderType) return;
-
-    setShowConfirmModal(false);
-    await updateOrderType(pendingOrderType, false);
+    const orderType = pendingOrderType;
     setPendingOrderType(null);
+    await updateEnabled(orderType, false);
   };
 
-  const handleCancelDisable = () => {
-    setShowConfirmModal(false);
-    setPendingOrderType(null);
+  const clearReviewWindowDraft = (orderType: OrderType) => {
+    setReviewWindowDrafts((current) => {
+      const next = { ...current };
+      delete next[orderType];
+      return next;
+    });
   };
 
-  const updateOrderType = async (orderType: OrderType, isEnabled: boolean) => {
-    try {
-      setSaving(true);
+  const handleReviewWindowBlur = async (configuration: OrderTypeConfigurationDto) => {
+    const draft = reviewWindowDrafts[configuration.orderType];
+    if (draft === undefined) return;
 
-      await orderTypeConfigurationService.update({
-        orderType,
-        isEnabled,
-      });
-
-      // Update local state
-      setConfigurations((prev) =>
-        prev.map((config) => (config.orderType === orderType ? { ...config, isEnabled } : config)),
-      );
-
-      enqueueSnackbar(t('order_type_updated_successfully', 'Order type updated successfully'), {
-        variant: 'success',
-      });
-    } catch (e) {
-      // A refused toggle is usually a rule, not an outage — "this order type has open orders",
-      // "delivery is not configured". Replacing that with the generic loses the only actionable part.
-      enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_update_order_type', 'Failed to update order type'), {
-        variant: 'error',
-      });
-    } finally {
-      setSaving(false);
+    const parsed = reviewWindowSchema.safeParse(draft);
+    if (!parsed.success) {
+      setReviewWindowErrors((current) => ({
+        ...current,
+        [configuration.orderType]: t(
+          'admin.order_type.review_window_error',
+          'Enter a whole number from {{min}} to {{max}} minutes.',
+          { min: MIN_REVIEW_WINDOW_MINUTES, max: MAX_REVIEW_WINDOW_MINUTES },
+        ),
+      }));
+      return;
     }
+
+    setReviewWindowErrors((current) => ({ ...current, [configuration.orderType]: undefined }));
+    if (parsed.data !== reviewWindowOf(configuration)) {
+      await updateReviewWindow(configuration.orderType, parsed.data);
+    }
+    clearReviewWindowDraft(configuration.orderType);
+  };
+
+  const handleFlowChange = (configuration: OrderTypeConfigurationDto, value: string) => {
+    const parsed = confirmationFlowSchema.safeParse(value);
+    if (parsed.success) void updateConfirmationFlow(configuration.orderType, parsed.data);
   };
 
   const getOrderTypeName = (orderType: OrderType): string => {
@@ -109,8 +87,6 @@ export default function OrderTypeManager() {
         return t('order_type_takeaway', 'Takeaway');
       case OrderType.Delivery:
         return t('order_type_delivery', 'Delivery');
-      default:
-        return orderType;
     }
   };
 
@@ -122,8 +98,6 @@ export default function OrderTypeManager() {
         return <Store size={28} />;
       case OrderType.Delivery:
         return <Truck size={28} />;
-      default:
-        return null;
     }
   };
 
@@ -135,8 +109,6 @@ export default function OrderTypeManager() {
         return t('order_type_takeaway_desc', 'Pick up your order');
       case OrderType.Delivery:
         return t('order_type_delivery_desc', 'We deliver to your address');
-      default:
-        return '';
     }
   };
 
@@ -151,49 +123,117 @@ export default function OrderTypeManager() {
   return (
     <div className={styles.container}>
       <div className={styles.configurationsGrid}>
-        {configurations.map((config) => (
-          <div
-            key={config.orderType}
-            className={`${styles.configCard} ${config.isEnabled ? styles.enabled : styles.disabled}`}
-          >
-            <div className={styles.cardHeader}>
-              <div className={styles.iconWrapper}>{getOrderTypeIcon(config.orderType)}</div>
-              <div className={styles.cardInfo}>
-                <h3 className={styles.cardTitle}>{getOrderTypeName(config.orderType)}</h3>
-                <p className={styles.cardDescription}>{getOrderTypeDescription(config.orderType)}</p>
-              </div>
-            </div>
+        {configurations.map((configuration) => {
+          const titleId = `order-type-${configuration.orderType}`;
+          const flow = confirmationFlowOf(configuration);
+          const supportsConfirmationFlow = configuration.orderType !== OrderType.DineIn;
+          const reviewWindow = reviewWindowDrafts[configuration.orderType] ?? String(reviewWindowOf(configuration));
 
-            <div className={styles.cardActions}>
-              <div
-                className={`${styles.statusBadge} ${config.isEnabled ? styles.statusEnabled : styles.statusDisabled}`}
-              >
-                {config.isEnabled ? t('order_type_enabled', 'Enabled') : t('order_type_disabled', 'Disabled')}
+          return (
+            <div
+              key={configuration.orderType}
+              className={`${styles.configCard} ${configuration.isEnabled ? styles.enabled : styles.disabled}`}
+            >
+              <div className={styles.cardHeader}>
+                <div className={styles.iconWrapper}>{getOrderTypeIcon(configuration.orderType)}</div>
+                <div className={styles.cardInfo}>
+                  <h3 id={titleId} className={styles.cardTitle}>
+                    {getOrderTypeName(configuration.orderType)}
+                  </h3>
+                  <p className={styles.cardDescription}>{getOrderTypeDescription(configuration.orderType)}</p>
+                </div>
               </div>
-              <label className={styles.toggleSwitch}>
-                <input
-                  type="checkbox"
-                  checked={config.isEnabled}
-                  onChange={() => handleToggle(config.orderType, config.isEnabled)}
-                  disabled={saving}
-                />
-                <span className={styles.toggleSlider}></span>
-              </label>
+
+              {supportsConfirmationFlow && (
+                <div className={flowStyles.settings}>
+                  <FormField
+                    label={`${getOrderTypeName(configuration.orderType)} ${t(
+                      'admin.order_type.confirmation_flow',
+                      'Confirmation flow',
+                    )}`}
+                    className={flowStyles.field}
+                  >
+                    <select
+                      className={flowStyles.select}
+                      value={flow}
+                      disabled={saving}
+                      onChange={(event) => handleFlowChange(configuration, event.target.value)}
+                    >
+                      <option value="direct">{t('admin.order_type.flow_direct', 'Confirm directly')}</option>
+                      <option value="acknowledge">
+                        {t('admin.order_type.flow_acknowledge', 'Review and acknowledge')}
+                      </option>
+                    </select>
+                  </FormField>
+
+                  {flow === 'acknowledge' && (
+                    <FormField
+                      label={`${getOrderTypeName(configuration.orderType)} ${t(
+                        'admin.order_type.review_window_minutes',
+                        'Review window (minutes)',
+                      )}`}
+                      error={reviewWindowErrors[configuration.orderType]}
+                      className={flowStyles.field}
+                    >
+                      <input
+                        className={flowStyles.numberInput}
+                        type="number"
+                        inputMode="numeric"
+                        min={MIN_REVIEW_WINDOW_MINUTES}
+                        max={MAX_REVIEW_WINDOW_MINUTES}
+                        step={1}
+                        value={reviewWindow}
+                        disabled={saving}
+                        onChange={(event) => {
+                          setReviewWindowDrafts((current) => ({
+                            ...current,
+                            [configuration.orderType]: event.target.value,
+                          }));
+                          setReviewWindowErrors((current) => ({
+                            ...current,
+                            [configuration.orderType]: undefined,
+                          }));
+                        }}
+                        onBlur={() => void handleReviewWindowBlur(configuration)}
+                      />
+                    </FormField>
+                  )}
+                </div>
+              )}
+
+              <div className={styles.cardActions}>
+                <div
+                  className={`${styles.statusBadge} ${
+                    configuration.isEnabled ? styles.statusEnabled : styles.statusDisabled
+                  }`}
+                >
+                  {configuration.isEnabled ? t('order_type_enabled', 'Enabled') : t('order_type_disabled', 'Disabled')}
+                </div>
+                <label className={styles.toggleSwitch}>
+                  <input
+                    type="checkbox"
+                    aria-label={getOrderTypeName(configuration.orderType)}
+                    checked={configuration.isEnabled}
+                    onChange={() => void handleToggle(configuration.orderType, configuration.isEnabled)}
+                    disabled={saving}
+                  />
+                  <span className={styles.toggleSlider}></span>
+                </label>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
-        isOpen={showConfirmModal}
-        onClose={handleCancelDisable}
-        onConfirm={handleConfirmDisable}
+        isOpen={pendingOrderType !== null}
+        onClose={() => setPendingOrderType(null)}
+        onConfirm={() => void handleConfirmDisable()}
         message={
           pendingOrderType
             ? t(
                 'confirm_disable_order_type',
-                `Are you sure you want to disable {{orderType}}? Customers will not be able to select this option.`,
+                'Are you sure you want to disable {{orderType}}? Customers will not be able to select this option.',
                 { orderType: getOrderTypeName(pendingOrderType) },
               )
             : ''

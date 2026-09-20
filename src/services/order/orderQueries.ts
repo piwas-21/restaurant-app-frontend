@@ -5,6 +5,8 @@
 
 import { apiClient } from '@/utils/apiClient';
 import {
+  GuestOrderStatusDto,
+  GuestOrderStatusApiResponse,
   OrderDto,
   OrderQueryFilters,
   FocusOrdersQueryFilters,
@@ -69,6 +71,23 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
     console.error('Error fetching order:', error);
     throw error;
   }
+}
+
+/**
+ * Anonymous guest order watch (order confirmation flows, backend S1). Shares the checkout-status
+ * rate bucket, so the ONLY caller is the guest confirmation screen's slow poll (>= 15s). A wrong
+ * or missing token is a 404, which the caller renders as "order not found", not as an error to
+ * retry. The backend currently accepts the bearer only as a query parameter, so it can appear
+ * in API access logs; it is intentionally a separate read-only token for this four-field
+ * projection. The browser PAGE keeps it in the URL fragment so it is not sent as a referrer.
+ */
+export async function getGuestOrderStatus(orderId: string, token: string): Promise<GuestOrderStatusDto> {
+  const params = new URLSearchParams({ orderId, token });
+  const response = await apiClient.get<GuestOrderStatusApiResponse>(`/api/Orders/guest-status?${params}`);
+  if (!response.data) {
+    throw new Error('Failed to fetch guest order status');
+  }
+  return response.data;
 }
 
 /**

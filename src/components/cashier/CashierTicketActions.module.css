@@ -36,6 +36,15 @@
   border-color: var(--feedback-warning);
   color: var(--feedback-warning-text);
 }
+.primaryAction {
+  min-height: 3rem;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+.primaryAction:hover {
+  background: var(--brand-primary-hover);
+}
 .actionError {
   background: var(--feedback-danger-xlight);
   border: 1px solid var(--feedback-danger);

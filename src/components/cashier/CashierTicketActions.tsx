@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { BellRing, Printer, ChefHat } from 'lucide-react';
+import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { OrderType } from '@/types/order';
 import type { OrderDto } from '@/types/order';
-import { toggleFocusOrder } from '@/services/cashierService';
+import { approveOrder, rejectOrder, toggleFocusOrder } from '@/services/cashierService';
+import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { getErrorMessage } from '@/utils/apiClient';
 import FocusOrderDialog from './FocusOrderDialog';
+import CashierConfirmModal from './CashierConfirmModal';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import styles from './CashierTicketActions.module.css';
 
@@ -24,7 +27,10 @@ interface CashierTicketActionsProps {
  */
 export default function CashierTicketActions({ order, onOrderChanged }: CashierTicketActionsProps) {
   const { t } = useTranslation();
+  const { flowByType } = useConfirmationFlowConfig();
+  const flowForOrder = flowLookup(flowByType);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusBusy, setFocusBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -47,9 +53,26 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
     }
   };
 
+  // The pending hand-off gate (order confirmation flows): a pending takeaway/delivery order is
+  // waiting on THIS cashier — approve/confirm is the one emphasized action (plan §5.2), ahead of
+  // print/notes. Dine-in auto-confirms at creation and never reaches this branch.
+  const isPendingHandoff =
+    order.status === 'Pending' && (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
+  const confirmationFlow = flowForOrder(order.type)?.flow ?? 'direct';
+
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>
       <div className={styles.row}>
+        {isPendingHandoff && (
+          <button
+            type="button"
+            className={`${styles.actionButton} ${styles.primaryAction}`}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <CheckCircle size={17} aria-hidden="true" />
+            {t(confirmationFlow === 'acknowledge' ? 'cashier.approve_order_action' : 'cashier.confirm_order_action')}
+          </button>
+        )}
         <button type="button" className={styles.actionButton} onClick={printKitchen}>
           <ChefHat size={17} aria-hidden="true" />
           {t('cashier.workspace.print_kitchen')}
@@ -84,6 +107,20 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
       {notesOpen && (
         <OrderDetailsNotesSection order={order} notesExpanded={notesOpen} setNotesExpanded={setNotesOpen} />
       )}
+      <CashierConfirmModal
+        order={order}
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={async (orderId, preparationMinutes) => {
+          await approveOrder(orderId, preparationMinutes);
+          onOrderChanged?.();
+        }}
+        onReject={async (orderId, reason) => {
+          await rejectOrder(orderId, reason);
+          onOrderChanged?.();
+        }}
+        confirmationFlow={confirmationFlow}
+      />
       <FocusOrderDialog
         order={order}
         isOpen={focusOpen}

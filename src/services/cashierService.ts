@@ -250,6 +250,36 @@ export async function cancelOrder(orderId: string, reason?: string): Promise<Ord
 }
 
 /**
+ * Approve a pending order by id with a preparation time (order confirmation flows, plan S2).
+ * This is the deleted `quickConfirmOrder` semantics without its search round-trip: the server's
+ * long-preparation branch keeps the EXISTING customer-approval sub-flow (`PendingApproval`), so a long prep still
+ * asks the customer to approve the wait via the M10 links.
+ */
+export async function approveOrder(orderId: string, preparationMinutes: number, notes?: string): Promise<OrderDto> {
+  // The backend owns the long-delay threshold and promotes this request to PendingApproval
+  // when customer consent is required. The client must never duplicate that workflow rule.
+  const response = await apiClient.post<OrderDtoApiResponse>(
+    `/api/orders/${orderId}/approve`,
+    { preparationMinutes, notes },
+    { requireAuth: true },
+  );
+
+  if (!response.data) {
+    throw new Error('Failed to approve order');
+  }
+
+  return response.data;
+}
+
+/**
+ * Reject a pending order by id — the customer-facing rejection IS the existing cancel (M9).
+ * A reason is required so the record says why the guest's order never went through.
+ */
+export async function rejectOrder(orderId: string, cancellationReason: string): Promise<OrderDto> {
+  return cancelOrder(orderId, cancellationReason);
+}
+
+/**
  * Toggle focus order status
  */
 export async function toggleFocusOrder(

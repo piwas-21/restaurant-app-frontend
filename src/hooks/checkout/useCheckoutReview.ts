@@ -1,13 +1,7 @@
 'use client';
 
-// Page logic for /checkout/review, extracted from the former 405-LOC inline page
-// (thin-orchestrator rule §5.1; also unit-testable + shareable by any template).
-// Verbatim lift: payment/points/tip state, display tax (useCheckoutTax), the
-// place-order submit (buildOrderCommand), and the confirmation modal +
-// auth-aware close routing. The prereq guard now lives in
-// useCheckoutPrereqGuard, which owns its store-hydration gate; the success
-// modal in useOrderConfirmationModal; the online-payment branch in
-// useOnlineCheckout (S8).
+// Checkout review page logic: payment/points/tip state and placement.
+// Dedicated hooks own guards, tax, online payment, and confirmation routing.
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -29,6 +23,8 @@ import { useCheckoutPrereqGuard } from './useCheckoutPrereqGuard';
 import { useOrderConfirmationModal } from './useOrderConfirmationModal';
 import { useOnlinePaymentAvailability } from './useOnlinePaymentAvailability';
 import { useOnlineCheckout } from './useOnlineCheckout';
+import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
+import { resolvePublicConfirmationFlow } from '@/services/orderTypeConfigurationService';
 
 export function useCheckoutReview() {
   const { t } = useTranslation();
@@ -55,6 +51,8 @@ export function useCheckoutReview() {
   }, [effectivePaymentMethod, selectedPaymentMethod]);
 
   const confirmation = useOrderConfirmationModal();
+  const { flowByType } = useConfirmationFlowConfig();
+  const flowForType = flowLookup(flowByType);
   const onlinePaymentAvailable = useOnlinePaymentAvailability();
   const { payOnline } = useOnlineCheckout();
 
@@ -133,6 +131,10 @@ export function useCheckoutReview() {
         orderNumber: createdOrder.orderNumber,
         customerEmail: checkoutState.customerInfo?.email || '',
         paymentMethod: effectivePaymentMethod,
+        guestStatusToken: createdOrder.guestStatusToken,
+        confirmationFlow:
+          flowForType(createdOrder.type)?.flow ??
+          (await resolvePublicConfirmationFlow(createdOrder.type as OrderTypeEnum)),
       });
 
       // Reset BOTH contexts: OrderTypeContext persists its own copy, so without

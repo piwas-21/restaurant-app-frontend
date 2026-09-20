@@ -67,6 +67,9 @@ const DYNAMIC_PREFIXES = [
   // `t('ingredient_translations_receipt_products', { count })` — the receipt sentence ("applied
   // to N products"). i18next appends the CLDR category itself, so no literal exists per category.
   'ingredient_translations_receipt_products_',
+  // Order review promise uses t('checkout.review_received_body', { count }); i18next appends
+  // the locale's CLDR plural category at runtime.
+  'checkout.review_received_body_',
   // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
   // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the

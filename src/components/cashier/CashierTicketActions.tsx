@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { OrderType } from '@/types/order';
@@ -10,9 +11,12 @@ import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useCon
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { getErrorMessage } from '@/utils/apiClient';
 import FocusOrderDialog from './FocusOrderDialog';
-import CashierConfirmModal from './CashierConfirmModal';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import styles from './CashierTicketActions.module.css';
+
+// Approval/rejection is opened on demand. Its Zod schemas and modal UI do not belong in the
+// cashier route's initial bundle while the operator is only reading the queue.
+const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr: false });
 
 interface CashierTicketActionsProps {
   readonly order: OrderDto;
@@ -107,20 +111,22 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
       {notesOpen && (
         <OrderDetailsNotesSection order={order} notesExpanded={notesOpen} setNotesExpanded={setNotesOpen} />
       )}
-      <CashierConfirmModal
-        order={order}
-        isOpen={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={async (orderId, preparationMinutes) => {
-          await approveOrder(orderId, preparationMinutes);
-          onOrderChanged?.();
-        }}
-        onReject={async (orderId, reason) => {
-          await rejectOrder(orderId, reason);
-          onOrderChanged?.();
-        }}
-        confirmationFlow={confirmationFlow}
-      />
+      {confirmOpen && (
+        <CashierConfirmModal
+          order={order}
+          isOpen
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={async (orderId, preparationMinutes) => {
+            await approveOrder(orderId, preparationMinutes);
+            onOrderChanged?.();
+          }}
+          onReject={async (orderId, reason) => {
+            await rejectOrder(orderId, reason);
+            onOrderChanged?.();
+          }}
+          confirmationFlow={confirmationFlow}
+        />
+      )}
       <FocusOrderDialog
         order={order}
         isOpen={focusOpen}

@@ -77,10 +77,13 @@
 }
 .divider {
   align-items: center;
+  border: 0;
   color: var(--text-secondary);
   display: flex;
   font-size: 0.8rem;
   gap: 0.6rem;
+  margin: 0;
+  width: 100%;
 }
 .divider::before,
 .divider::after {

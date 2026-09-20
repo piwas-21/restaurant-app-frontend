@@ -138,7 +138,7 @@ export default function CashierConfirmModal({
             {t('cashier.confirm_now')}
           </button>
 
-          <div className={styles.divider} role="separator" />
+          <hr className={styles.divider} />
 
           <p className={styles.sectionLabel}>{t('cashier.confirm_with_preparation')}</p>
           <div className={styles.presets}>
@@ -176,7 +176,7 @@ export default function CashierConfirmModal({
             {t('common.confirm')}
           </button>
 
-          <div className={`${styles.divider} ${styles.dividerDanger}`} role="separator" />
+          <hr className={`${styles.divider} ${styles.dividerDanger}`} />
 
           <button
             type="button"

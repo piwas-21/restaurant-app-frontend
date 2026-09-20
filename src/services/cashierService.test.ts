@@ -5,6 +5,8 @@ import {
   getCashierTenantDay,
   getPaymentOperation,
   refundPayment,
+  approveOrder,
+  rejectOrder,
 } from './cashierService';
 import { PaymentMethod, type OrderPaymentDto } from '@/types/order';
 
@@ -153,5 +155,31 @@ describe('getCashierTenantDay', () => {
     mockGet.mockResolvedValueOnce({ data: { date: 'not-a-day' }, success: true });
 
     await expect(getCashierTenantDay()).resolves.toBeUndefined();
+  });
+});
+
+describe('cashierService order confirmation actions', () => {
+  it.each([0, 10, 15, 45])('leaves the status decision to the backend for %i minutes', async (minutes) => {
+    mockPost.mockResolvedValueOnce({ data: { id: 'order-1' }, success: true });
+
+    await approveOrder('order-1', minutes);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/orders/order-1/approve',
+      { preparationMinutes: minutes, notes: undefined },
+      { requireAuth: true },
+    );
+  });
+
+  it('uses the existing cancellation endpoint and preserves the required reason', async () => {
+    mockPost.mockResolvedValueOnce({ data: { id: 'order-1' }, success: true });
+
+    await rejectOrder('order-1', 'Kitchen closed');
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/orders/order-1/cancel',
+      { orderId: 'order-1', cancellationReason: 'Kitchen closed' },
+      { requireAuth: true },
+    );
   });
 });

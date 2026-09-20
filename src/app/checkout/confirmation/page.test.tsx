@@ -1,10 +1,16 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import ConfirmationPage from './page';
 import { mixedKitchenBundleOrder } from '@/utils/__fixtures__/bundleOrderFixture';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+  useTranslation: () => ({
+    t: (key: string, fallbackOrOptions?: string | { defaultValue?: string; count?: number }) => {
+      if (typeof fallbackOrOptions === 'string') return fallbackOrOptions;
+      return (fallbackOrOptions?.defaultValue ?? key).replace('{{count}}', String(fallbackOrOptions?.count ?? ''));
+    },
+    i18n: { language: 'en' },
+  }),
 }));
 
 const mockSearchParams = new Map<string, string>();
@@ -21,10 +27,23 @@ jest.mock('@/services/adminTaxConfigurationService', () => ({
   adminTaxConfigurationService: { getActiveTaxConfiguration: jest.fn().mockResolvedValue(null) },
 }));
 
+const mockGetGuestOrderStatus = jest.fn();
+jest.mock('@/services/order/orderQueries', () => ({
+  getGuestOrderStatus: (...args: unknown[]) => mockGetGuestOrderStatus(...args),
+}));
+jest.mock('@/services/orderTypeConfigurationService', () => ({
+  orderTypeConfigurationService: {
+    getPublicConfirmationConfigurations: jest
+      .fn()
+      .mockResolvedValue([{ orderType: 'Takeaway', confirmationFlow: 'acknowledge', reviewWindowMinutes: 2 }]),
+  },
+}));
+
 describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
   beforeEach(() => {
     mockSearchParams.clear();
     jest.clearAllMocks();
+    window.history.replaceState(null, '', window.location.pathname);
   });
 
   it('renders a minimal confirmation (not the error page) when the fetch fails but the order number is known', async () => {
@@ -47,6 +66,64 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
 
     expect(await screen.findByText('Failed to load order details')).toBeInTheDocument();
   });
+
+  it('renders the live under-review state for a guest token even when the full receipt is unauthorized', async () => {
+    mockSearchParams.set('orderId', 'o1');
+    mockSearchParams.set('orderNumber', 'ORD-123');
+    window.location.hash = 't=read-token';
+    mockGetOrderById.mockRejectedValue(new Error('401 Unauthorized'));
+    let resolveStatus!: (value: {
+      orderNumber: string;
+      type: string;
+      status: string;
+      estimatedDeliveryTime: null;
+    }) => void;
+    mockGetGuestOrderStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolveStatus = resolve;
+      }),
+    );
+
+    render(<ConfirmationPage />);
+
+    expect(await screen.findByText('Loading your order...')).toBeInTheDocument();
+    expect(screen.queryByText('Order not found')).not.toBeInTheDocument();
+    expect(screen.queryByText('Order Received')).not.toBeInTheDocument();
+    act(() => {
+      resolveStatus({
+        orderNumber: 'ORD-123',
+        type: 'Takeaway',
+        status: 'Pending',
+        estimatedDeliveryTime: null,
+      });
+    });
+    expect(await screen.findByRole('heading', { name: 'We have received your order' })).toBeInTheDocument();
+    expect(mockGetGuestOrderStatus).toHaveBeenCalledWith('o1', 'read-token');
+    expect(screen.queryByText(/failed to load order/i)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['Confirmed', 'Your order is approved', 'order_status_confirmed'],
+    ['Cancelled', 'The restaurant could not accept this order', 'order_status_cancelled'],
+  ])('uses live %s status throughout an authenticated acknowledge receipt', async (status, heading, statusKey) => {
+    mockSearchParams.set('orderId', 'o1');
+    mockSearchParams.set('orderNumber', 'ORD-123');
+    window.location.hash = 't=read-token';
+    mockGetOrderById.mockResolvedValue({ ...mixedKitchenBundleOrder(), type: 'Takeaway', status: 'Pending' });
+    mockGetGuestOrderStatus.mockResolvedValue({
+      orderNumber: 'ORD-123',
+      type: 'Takeaway',
+      status,
+      estimatedDeliveryTime: status === 'Confirmed' ? '2026-09-20T12:30:00Z' : null,
+    });
+
+    render(<ConfirmationPage />);
+
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
+    expect(screen.getAllByText(statusKey)).toHaveLength(2);
+    expect(screen.queryByText('order_status_pending')).not.toBeInTheDocument();
+    expect(screen.queryByText('Estimated Preparation Time')).not.toBeInTheDocument();
+  });
 });
 
 /** How many times a name appears in the rendered page — the double-render guard. */
@@ -56,6 +133,7 @@ describe('ConfirmationPage — bundle order over the root-only items contract (b
   beforeEach(() => {
     mockSearchParams.clear();
     jest.clearAllMocks();
+    window.history.replaceState(null, '', window.location.pathname);
   });
 
   it('renders each bundle component exactly once, and counts lines rather than components', async () => {

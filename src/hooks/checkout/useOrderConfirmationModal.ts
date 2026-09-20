@@ -10,12 +10,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { PaymentMethod } from '@/types/order';
+import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
 
 export interface ConfirmedOrder {
   id: string;
   orderNumber: string;
   customerEmail: string;
   paymentMethod: PaymentMethod;
+  /**
+   * The guest status poll's bearer token (order confirmation flows): appended to the
+   * confirmation URL so the guest can watch the order move Pending → Approved without an
+   * account. Read-only — it authorises nothing but that one projection.
+   */
+  guestStatusToken?: string;
+  confirmationFlow?: ConfirmationFlow;
 }
 
 export function useOrderConfirmationModal() {
@@ -40,8 +48,15 @@ export function useOrderConfirmationModal() {
   const handleCloseConfirmationModal = () => {
     setShowConfirmationModal(false);
     if (!confirmedOrder) return;
-    if (isLoggedIn) {
-      router.push(`/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${confirmedOrder.orderNumber}`);
+    // With a status token the confirmation page serves guests too (it reads the anonymous
+    // guest-status endpoint instead of the auth-gated order read), so a guest who placed a
+    // delivery order watches the review/approval live like everyone else.
+    const isLiveGuest = confirmedOrder.confirmationFlow === 'acknowledge' && confirmedOrder.guestStatusToken;
+    if (isLoggedIn || isLiveGuest) {
+      const token = confirmedOrder.guestStatusToken ? `#t=${encodeURIComponent(confirmedOrder.guestStatusToken)}` : '';
+      router.push(
+        `/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${confirmedOrder.orderNumber}${token}`,
+      );
     } else {
       router.push('/menu');
     }

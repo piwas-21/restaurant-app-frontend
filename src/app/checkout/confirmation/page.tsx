@@ -32,6 +32,10 @@ import ConfirmationSuccessHeader from './ConfirmationSuccessHeader';
 import CheckoutReturnView from '@/components/checkout/CheckoutReturnView';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import OrderReviewStatus from '@/components/checkout/OrderReviewStatus';
+import GuestOrderLiveView from '@/components/checkout/GuestOrderLiveView';
+import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
+import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
 
 function ConfirmationContent() {
   const { t } = useTranslation();
@@ -40,6 +44,15 @@ function ConfirmationContent() {
 
   const orderId = searchParams.get('orderId');
   const orderNumber = searchParams.get('orderNumber');
+  const legacyQueryToken = searchParams.get('t');
+  const [fragmentToken, setFragmentToken] = useState<string | null>(null);
+  useEffect(() => {
+    setFragmentToken(new URLSearchParams(window.location.hash.slice(1)).get('t'));
+  }, []);
+  const guestStatusToken = fragmentToken ?? legacyQueryToken;
+  const guestWatch = useGuestOrderWatch(orderId, guestStatusToken);
+  const { flowByType } = useConfirmationFlowConfig();
+  const flowForType = flowLookup(flowByType);
 
   const [order, setOrder] = useState<OrderDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,7 +139,12 @@ function ConfirmationContent() {
     }
   };
 
-  if (isLoading) {
+  // A guest-safe status response is enough to render the live confirmation immediately;
+  // the auth-gated full receipt may still be loading (or may not be available for a guest).
+  if (
+    (isLoading && (!guestStatusToken || guestWatch.phase === 'loading')) ||
+    (guestStatusToken && guestWatch.phase === 'loading' && !order)
+  ) {
     return (
       <main className={styles.container}>
         <div className={styles.loadingState}>
@@ -134,6 +152,20 @@ function ConfirmationContent() {
           <p>{t('loading_order', 'Loading your order...')}</p>
         </div>
       </main>
+    );
+  }
+
+  const liveStatus = guestWatch.status;
+  const liveConfig = liveStatus ? flowForType(liveStatus.type) : null;
+
+  if (guestStatusToken && !order && (liveStatus || guestWatch.phase === 'unavailable')) {
+    return (
+      <GuestOrderLiveView
+        orderNumber={orderNumber}
+        status={liveStatus}
+        config={liveConfig}
+        unavailable={guestWatch.phase === 'unavailable'}
+      />
     );
   }
 
@@ -171,19 +203,39 @@ function ConfirmationContent() {
     );
   }
 
+  const confirmationConfig = liveStatus ? flowForType(liveStatus.type) : flowForType(order.type);
+  const effectiveStatus = liveStatus?.status ?? order.status;
+
   return (
     <main className={styles.container}>
       <div className={styles.content}>
-        <ConfirmationSuccessHeader orderNumber={orderNumber || order.orderNumber} />
+        {confirmationConfig?.flow !== 'acknowledge' && (
+          <ConfirmationSuccessHeader orderNumber={orderNumber || order.orderNumber} />
+        )}
 
-        {/* Estimated Time */}
-        <div className={styles.estimatedTime}>
-          <Clock size={32} className={styles.clockIcon} />
-          <div className={styles.timeInfo}>
-            <h2>{t('estimated_preparation_time', 'Estimated Preparation Time')}</h2>
-            <p className={styles.timeValue}>{getEstimatedTime(order.type)}</p>
+        <OrderReviewStatus
+          confirmationFlow={confirmationConfig?.flow ?? 'direct'}
+          orderNumber={orderNumber || order.orderNumber}
+          status={effectiveStatus}
+          estimatedDeliveryTime={liveStatus?.estimatedDeliveryTime ?? order.estimatedDeliveryTime}
+          reviewWindowMinutes={
+            (liveStatus ? flowForType(liveStatus.type) : flowForType(order.type))?.reviewWindowMinutes ?? 2
+          }
+          total={order.total}
+          currency={undefined}
+        />
+
+        {/* The legacy generic estimate remains direct-flow only. Acknowledge flow shows the
+            cashier's actual promised time in OrderReviewStatus after approval. */}
+        {confirmationConfig?.flow !== 'acknowledge' && (
+          <div className={styles.estimatedTime}>
+            <Clock size={32} className={styles.clockIcon} />
+            <div className={styles.timeInfo}>
+              <h2>{t('estimated_preparation_time', 'Estimated Preparation Time')}</h2>
+              <p className={styles.timeValue}>{getEstimatedTime(order.type)}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className={styles.gridLayout}>
           {/* Left Column - Order Details */}
@@ -202,7 +254,7 @@ function ConfirmationContent() {
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('status', 'Status')}:</span>
                   <span className={`${styles.infoValue} ${styles.statusBadge}`}>
-                    {orderStatusLabel(order.status, t)}
+                    {orderStatusLabel(effectiveStatus, t)}
                   </span>
                 </div>
                 <div className={styles.infoRow}>

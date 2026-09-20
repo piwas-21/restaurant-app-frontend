@@ -1,6 +1,7 @@
 'use client';
 
 import type { Ref } from 'react';
+import dynamic from 'next/dynamic';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
@@ -10,9 +11,12 @@ import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderDto } from '@/types/order';
 import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
 import CashierStatusBadges from './CashierStatusBadges';
-import CashierTicketActions from './CashierTicketActions';
 import viewStyles from './CashierWorkspaceView.module.css';
 import styles from './CashierWorkspaceTicket.module.css';
+
+// Printing, focus, notes, and approval are needed only after an operator selects a ticket.
+// Keep their PDF and modal dependencies out of the queue's initial route bundle.
+const CashierTicketActions = dynamic(() => import('./CashierTicketActions'));
 
 interface CashierReadOnlyTicketProps {
   readonly order: OrderDto | null;

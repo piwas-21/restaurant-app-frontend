@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Home, ShoppingBag } from 'lucide-react';
@@ -54,26 +55,33 @@ export default function OrderConfirmationModal({
     router.push('/menu');
   };
 
+  let statusContent: ReactNode;
+  if (guestWatch.status) {
+    statusContent = (
+      <OrderReviewStatus
+        confirmationFlow={guestWatch.status.confirmationFlow}
+        status={guestWatch.status.status}
+        estimatedDeliveryTime={guestWatch.status.estimatedDeliveryTime}
+        reviewWindowMinutes={guestWatch.status.reviewWindowMinutes}
+        reviewDeadlineUtc={guestWatch.status.reviewDeadlineUtc}
+      />
+    );
+  } else if (confirmationFlow === 'direct') {
+    statusContent = <OrderReviewStatus confirmationFlow="direct" status="Pending" />;
+  } else {
+    statusContent = (
+      <p className={styles.message} aria-live="polite">
+        {t(
+          'order_confirmation_message',
+          'We have received your order. This screen will update as soon as the restaurant responds.',
+        )}
+      </p>
+    );
+  }
+
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={t('order_received', 'Order Received')}>
-      {guestWatch.status ? (
-        <OrderReviewStatus
-          confirmationFlow={guestWatch.status.confirmationFlow}
-          status={guestWatch.status.status}
-          estimatedDeliveryTime={guestWatch.status.estimatedDeliveryTime}
-          reviewWindowMinutes={guestWatch.status.reviewWindowMinutes}
-          reviewDeadlineUtc={guestWatch.status.reviewDeadlineUtc}
-        />
-      ) : confirmationFlow === 'direct' ? (
-        <OrderReviewStatus confirmationFlow="direct" status="Pending" />
-      ) : (
-        <p className={styles.message} aria-live="polite">
-          {t(
-            'order_confirmation_message',
-            'We have received your order. This screen will update as soon as the restaurant responds.',
-          )}
-        </p>
-      )}
+      {statusContent}
 
       {paymentMethod === PaymentMethod.CreditCard && (
         <p role="note" className={styles.paymentReminder}>

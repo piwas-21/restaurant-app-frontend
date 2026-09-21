@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import ServerPage from './page';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
@@ -33,5 +34,17 @@ describe('/server takeaway entry', () => {
 
     expect(screen.getByTestId('table-grid')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'server.takeaway.link' })).toHaveAttribute('href', '/server/takeaway');
+    expect(screen.getByRole('main')).toHaveAttribute('data-workspace-variant', 'v1');
+  });
+
+  it('selects the isolated V2 entry seam while keeping the safe V1 fallback', () => {
+    render(
+      <TenantFeaturesProvider features={{ serverWorkspaceV2: true }}>
+        <ServerPage />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.getByTestId('table-grid')).toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveAttribute('data-workspace-variant', 'v2-fallback');
   });
 });

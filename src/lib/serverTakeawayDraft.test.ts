@@ -65,9 +65,12 @@ describe('serverTakeawayDraft', () => {
   });
 
   it('removes corrupt stored JSON after a failed read', () => {
+    const warning = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     window.sessionStorage.setItem('server.takeaway-draft', '{broken');
 
     expect(readServerTakeawayDraft()).toBeNull();
     expect(window.sessionStorage.getItem('server.takeaway-draft')).toBeNull();
+    expect(warning).toHaveBeenCalledWith('Discarding an unreadable Server takeaway draft.', expect.any(SyntaxError));
+    warning.mockRestore();
   });
 });

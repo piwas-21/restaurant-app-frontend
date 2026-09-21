@@ -113,8 +113,9 @@ export function readServerTakeawayDraft(): ServerTakeawayDraft | null {
       notes: optionalString(stored.notes),
       clientOperationId: optionalString(stored.clientOperationId),
     };
-  } catch (_error: unknown) {
+  } catch (error: unknown) {
     // Corrupt browser state is not authoritative; remove it so later reads do not repeat the failure.
+    console.warn('Discarding an unreadable Server takeaway draft.', error);
     clearServerTakeawayDraft();
     return null;
   }

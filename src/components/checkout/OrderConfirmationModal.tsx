@@ -80,10 +80,10 @@ export default function OrderConfirmationModal({
     );
   } else if (guestStatusToken) {
     statusContent = (
-      <div className={styles.statusNotice} role="status">
+      <output className={styles.statusNotice}>
         <Loader2 className={styles.spinner} aria-hidden="true" />
         <p>{t('loading_order', 'Loading your order...')}</p>
-      </div>
+      </output>
     );
   } else if (confirmationFlow === 'direct') {
     statusContent = <OrderReviewStatus confirmationFlow="direct" status="Pending" />;

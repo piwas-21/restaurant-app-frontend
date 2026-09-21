@@ -2781,6 +2781,7 @@
   "checkout.review_received_body_zero": "يراجع المطعم طلبك. نرد عادةً خلال {{count}} دقائق.",
   "checkout.review_received_body_other": "يراجع المطعم طلبك. نرد عادةً خلال {{count}} دقيقة.",
   "checkout.direct_pending_body": "طلبك بانتظار تأكيد المطعم. ستُحدَّث هذه الشاشة فور رد المطعم.",
+  "checkout.live_status_unavailable": "التحديثات المباشرة غير متاحة مؤقتًا. تم استلام طلبك؛ استخدم تتبع الطلب للمحاولة مرة أخرى أو تحقق من بريدك الإلكتروني.",
   "checkout.review_received_title": "لقد استلمنا طلبك",
   "checkout.review_total": "إجمالي الطلب",
   "checkout.review_timer_label": "الرد المتوقع خلال",

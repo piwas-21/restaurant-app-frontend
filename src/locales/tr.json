@@ -2749,6 +2749,7 @@
   "checkout.review_received_body_one": "Restoran siparişinizi inceliyor. Genellikle {{count}} dakika içinde yanıt veririz.",
   "checkout.review_received_body_other": "Restoran siparişinizi inceliyor. Genellikle {{count}} dakika içinde yanıt veririz.",
   "checkout.direct_pending_body": "Siparişiniz restoran onayı bekliyor. Restoran yanıt verir vermez bu ekran güncellenecek.",
+  "checkout.live_status_unavailable": "Canlı güncellemeler geçici olarak kullanılamıyor. Siparişiniz alındı; tekrar denemek için Siparişi Takip Et seçeneğini kullanın veya e-postanızı kontrol edin.",
   "checkout.review_received_title": "Siparişinizi aldık",
   "checkout.review_total": "Sipariş toplamı",
   "checkout.review_timer_label": "Tahmini yanıt süresi",

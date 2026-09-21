@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Home, ShoppingBag } from 'lucide-react';
+import { AlertTriangle, Home, Loader2, ShoppingBag } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
 import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
 import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
@@ -65,6 +65,25 @@ export default function OrderConfirmationModal({
         reviewWindowMinutes={guestWatch.status.reviewWindowMinutes}
         reviewDeadlineUtc={guestWatch.status.reviewDeadlineUtc}
       />
+    );
+  } else if (guestStatusToken && guestWatch.phase === 'unavailable') {
+    statusContent = (
+      <div className={`${styles.statusNotice} ${styles.statusError}`} role="alert">
+        <AlertTriangle aria-hidden="true" />
+        <p>
+          {t(
+            'checkout.live_status_unavailable',
+            'Live updates are temporarily unavailable. Your order was received; use Track Order to retry or check your email.',
+          )}
+        </p>
+      </div>
+    );
+  } else if (guestStatusToken) {
+    statusContent = (
+      <div className={styles.statusNotice} role="status">
+        <Loader2 className={styles.spinner} aria-hidden="true" />
+        <p>{t('loading_order', 'Loading your order...')}</p>
+      </div>
     );
   } else if (confirmationFlow === 'direct') {
     statusContent = <OrderReviewStatus confirmationFlow="direct" status="Pending" />;

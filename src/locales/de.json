@@ -2749,6 +2749,7 @@
   "checkout.review_received_body_one": "Das Restaurant prüft Ihre Bestellung. Normalerweise erhalten Sie innerhalb von {{count}} Minute eine Antwort.",
   "checkout.review_received_body_other": "Das Restaurant prüft Ihre Bestellung. Normalerweise erhalten Sie innerhalb von {{count}} Minuten eine Antwort.",
   "checkout.direct_pending_body": "Ihre Bestellung wartet auf die Bestätigung des Restaurants. Diese Ansicht wird aktualisiert, sobald das Restaurant antwortet.",
+  "checkout.live_status_unavailable": "Live-Aktualisierungen sind vorübergehend nicht verfügbar. Ihre Bestellung wurde empfangen; versuchen Sie es über Bestellung verfolgen erneut oder prüfen Sie Ihre E-Mails.",
   "checkout.review_received_title": "Wir haben Ihre Bestellung erhalten",
   "checkout.review_total": "Bestellsumme",
   "checkout.review_timer_label": "Voraussichtliche Antwort in",

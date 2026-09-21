@@ -2749,6 +2749,7 @@
   "checkout.review_received_body_one": "Het restaurant beoordeelt je bestelling. Meestal ontvang je binnen {{count}} minuut een reactie.",
   "checkout.review_received_body_other": "Het restaurant beoordeelt je bestelling. Meestal ontvang je binnen {{count}} minuten een reactie.",
   "checkout.direct_pending_body": "Je bestelling wacht op bevestiging van het restaurant. Dit scherm wordt bijgewerkt zodra het restaurant reageert.",
+  "checkout.live_status_unavailable": "Live-updates zijn tijdelijk niet beschikbaar. Je bestelling is ontvangen; gebruik Bestelling volgen om het opnieuw te proberen of controleer je e-mail.",
   "checkout.review_received_title": "We hebben je bestelling ontvangen",
   "checkout.review_total": "Totaalbedrag bestelling",
   "checkout.review_timer_label": "Verwachte reactie over",

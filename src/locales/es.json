@@ -2757,6 +2757,7 @@
   "checkout.review_received_body_one": "El restaurante está revisando tu pedido. Normalmente responde en un plazo de {{count}} minuto.",
   "checkout.review_received_body_other": "El restaurante está revisando tu pedido. Normalmente responde en un plazo de {{count}} minutos.",
   "checkout.direct_pending_body": "Tu pedido está esperando la confirmación del restaurante. Esta pantalla se actualizará en cuanto responda.",
+  "checkout.live_status_unavailable": "Las actualizaciones en directo no están disponibles temporalmente. Tu pedido se ha recibido; usa Seguir pedido para volver a intentarlo o revisa tu correo electrónico.",
   "checkout.review_received_title": "Hemos recibido tu pedido",
   "checkout.review_total": "Total del pedido",
   "checkout.review_timer_label": "Respuesta prevista en",

@@ -2757,6 +2757,7 @@
   "checkout.review_received_body_one": "Il ristorante sta esaminando il tuo ordine. Di solito risponde entro {{count}} minuto.",
   "checkout.review_received_body_other": "Il ristorante sta esaminando il tuo ordine. Di solito risponde entro {{count}} minuti.",
   "checkout.direct_pending_body": "Il tuo ordine è in attesa della conferma del ristorante. Questa schermata si aggiornerà non appena il ristorante risponderà.",
+  "checkout.live_status_unavailable": "Gli aggiornamenti in tempo reale non sono temporaneamente disponibili. Il tuo ordine è stato ricevuto; usa Traccia ordine per riprovare o controlla la tua e-mail.",
   "checkout.review_received_title": "Abbiamo ricevuto il tuo ordine",
   "checkout.review_total": "Totale ordine",
   "checkout.review_timer_label": "Risposta prevista tra",

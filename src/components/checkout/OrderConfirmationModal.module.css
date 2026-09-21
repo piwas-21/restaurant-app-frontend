@@ -15,6 +15,39 @@
   margin: 0 0 1.5rem 0;
 }
 
+.statusNotice {
+  align-items: center;
+  background: var(--feedback-info-xlight);
+  border: 1px solid var(--feedback-info);
+  border-radius: var(--modal-body-option-radius, 8px);
+  color: var(--text-color);
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.statusNotice p {
+  line-height: 1.5;
+  margin: 0;
+}
+
+.statusError {
+  background: var(--feedback-warning-xlight);
+  border-color: var(--feedback-warning);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .paymentReminder {
   color: var(--text-color);
   text-align: center;

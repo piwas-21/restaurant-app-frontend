@@ -2749,6 +2749,7 @@
   "checkout.review_received_body_one": "The restaurant is reviewing it. We usually reply within {{count}} minute.",
   "checkout.review_received_body_other": "The restaurant is reviewing it. We usually reply within {{count}} minutes.",
   "checkout.direct_pending_body": "Your order is awaiting restaurant confirmation. This screen will update as soon as the restaurant responds.",
+  "checkout.live_status_unavailable": "Live updates are temporarily unavailable. Your order was received; use Track Order to retry or check your email.",
   "checkout.review_received_title": "We have received your order",
   "checkout.review_total": "Order total",
   "checkout.review_timer_label": "Expected response in",

@@ -2741,6 +2741,7 @@
   "checkout.review_cancelled_title": "商家无法接受此订单",
   "checkout.review_received_body_other": "商家正在审核您的订单，通常会在 {{count}} 分钟内回复。",
   "checkout.direct_pending_body": "您的订单正在等待商家确认。商家回复后，此页面会立即更新。",
+  "checkout.live_status_unavailable": "实时更新暂时不可用。您的订单已收到；请使用“跟踪订单”重试，或检查您的电子邮件。",
   "checkout.review_received_title": "我们已收到您的订单",
   "checkout.review_total": "订单总额",
   "checkout.review_timer_label": "预计回复倒计时",

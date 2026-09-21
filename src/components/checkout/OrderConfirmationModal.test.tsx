@@ -69,6 +69,22 @@ describe('OrderConfirmationModal payment reminder', () => {
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
+  it('shows an explicit loading state while the first live status read is pending', () => {
+    render(<OrderConfirmationModal {...props} paymentMethod={PaymentMethod.Cash} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading your order...');
+  });
+
+  it('keeps the order details and recovery action visible when live status is unavailable', () => {
+    mockUseGuestOrderWatch.mockReturnValue({ status: null, phase: 'unavailable' });
+
+    render(<OrderConfirmationModal {...props} paymentMethod={PaymentMethod.Cash} />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/live updates are temporarily unavailable/i);
+    expect(screen.getByText('ORD-1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Track Order' })).toBeInTheDocument();
+  });
+
   it('shows the reviewed-order countdown returned by the guest status endpoint', () => {
     mockUseGuestOrderWatch.mockReturnValue({
       phase: 'reviewing',

@@ -30,9 +30,9 @@ import {
  *      register variant is already covered in customer/smart-skip-checkout.
  *   5. Sidebar Proceed routes straight to /checkout/review (smart-skip
  *      via CheckoutContext — guest flow).
- *   6. Confirm the order from /checkout/review and assert
- *      /checkout/confirmation lands.
- *   7. a11y scan on the landing /menu view.
+ *   6. Confirm the order from /checkout/review, dismiss the live modal,
+ *      and assert the tokenized guest confirmation page lands.
+ *   7. Return to /menu and verify the next order starts clean.
  *
  * Cleanup: a guest order doesn't create a User row, so there's no
  * deleteUserByEmail equivalent. Orders accumulate in the test DB; the
@@ -165,18 +165,25 @@ test.describe('checkout-guest: public ordering as guest', () => {
     const dialog = page.getByRole('dialog', { name: /order received/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
 
-    // --- Regression (bug 2): a GUEST can't read the auth-gated /checkout/confirmation order-details
-    // page, so dismissing the modal must land on /menu — NOT a "Failed to load order details"
-    // error page. ---
+    // --- Regression (bug 2): a guest cannot read the auth-gated full receipt, but the order-create
+    // response carries a separate read-only status token. Dismissing the modal must preserve the
+    // live status route — not drop the order at /menu or show "Failed to load order details". ---
     // #541: the redirect wait is registered BEFORE the dismissal, so the test awaits the app's
     // own navigation; the dismissal itself is asserted web-first right after, so an Escape that
     // fails to close fails as "modal still open" instead of a bare URL poll that spent its whole
     // timeout blaming the redirect.
-    const menuNavigation = page.waitForURL(/\/menu$/, { timeout: 15_000 });
+    const confirmationNavigation = page.waitForURL(
+      (url) => url.pathname === '/checkout/confirmation' && /^#t=.+/.test(url.hash),
+      { timeout: 15_000 },
+    );
     await page.keyboard.press('Escape'); // BaseModal owns ESC-to-close.
     await expect(dialog).toBeHidden({ timeout: 10_000 });
-    await menuNavigation;
+    await confirmationNavigation;
     await expect(page.getByText(/failed to load order/i)).toHaveCount(0);
+
+    const menuNavigation = page.waitForURL(/\/menu$/, { timeout: 15_000 });
+    await page.getByRole('button', { name: /back to menu/i }).click();
+    await menuNavigation;
 
     // --- Regression (bug 3): placing an order resets the order type (both contexts), so the next
     // order starts from a clean toggle — no stale "active" selection that leaves Proceed a no-op. ---

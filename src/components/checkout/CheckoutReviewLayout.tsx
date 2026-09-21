@@ -65,6 +65,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
     confirmedOrder,
     isLoggedIn,
     handleCloseConfirmationModal,
+    handleTrackOrder,
     handlePlaceOrder,
     formatPrice,
     formatTotal,
@@ -87,11 +88,15 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
     return (
       <OrderConfirmationModal
         isOpen={showConfirmationModal}
+        orderId={confirmedOrder.id}
         orderNumber={confirmedOrder.orderNumber}
         customerEmail={confirmedOrder.customerEmail || ''}
         paymentMethod={confirmedOrder.paymentMethod}
+        guestStatusToken={confirmedOrder.guestStatusToken}
+        confirmationFlow={confirmedOrder.confirmationFlow}
         isLoggedIn={isLoggedIn}
         onClose={handleCloseConfirmationModal}
+        onTrackOrder={handleTrackOrder}
       />
     );
   }

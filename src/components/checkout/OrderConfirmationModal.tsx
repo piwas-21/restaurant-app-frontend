@@ -2,18 +2,25 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, Home, ShoppingBag } from 'lucide-react';
+import { Home, ShoppingBag } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
+import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
+import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
 import BaseModal from '@/components/design-system/BaseModal';
+import OrderReviewStatus from './OrderReviewStatus';
 import styles from './OrderConfirmationModal.module.css';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
+  orderId: string;
   orderNumber: string;
   customerEmail: string;
   paymentMethod: PaymentMethod;
+  guestStatusToken?: string;
+  confirmationFlow?: ConfirmationFlow;
   isLoggedIn: boolean;
   onClose: () => void;
+  onTrackOrder: () => void;
 }
 
 /**
@@ -29,18 +36,19 @@ interface OrderConfirmationModalProps {
  */
 export default function OrderConfirmationModal({
   isOpen,
+  orderId,
   orderNumber,
   customerEmail,
   paymentMethod,
+  guestStatusToken,
+  confirmationFlow = 'direct',
   isLoggedIn,
   onClose,
+  onTrackOrder,
 }: OrderConfirmationModalProps) {
   const router = useRouter();
   const { t } = useTranslation();
-
-  const handleViewOrders = () => {
-    router.push('/orders');
-  };
+  const guestWatch = useGuestOrderWatch(orderId, guestStatusToken ?? null);
 
   const handleBackToMenu = () => {
     router.push('/menu');
@@ -48,18 +56,24 @@ export default function OrderConfirmationModal({
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={t('order_received', 'Order Received')}>
-      <div className={styles.iconContainer}>
-        <div className={styles.successIcon}>
-          <CheckCircle size={80} />
-        </div>
-      </div>
-
-      <p className={styles.message}>
-        {t(
-          'order_confirmation_message',
-          'Thank you for your order. We have received it and will start preparing it shortly.',
-        )}
-      </p>
+      {guestWatch.status ? (
+        <OrderReviewStatus
+          confirmationFlow={guestWatch.status.confirmationFlow}
+          status={guestWatch.status.status}
+          estimatedDeliveryTime={guestWatch.status.estimatedDeliveryTime}
+          reviewWindowMinutes={guestWatch.status.reviewWindowMinutes}
+          reviewDeadlineUtc={guestWatch.status.reviewDeadlineUtc}
+        />
+      ) : confirmationFlow === 'direct' ? (
+        <OrderReviewStatus confirmationFlow="direct" status="Pending" />
+      ) : (
+        <p className={styles.message} aria-live="polite">
+          {t(
+            'order_confirmation_message',
+            'We have received your order. This screen will update as soon as the restaurant responds.',
+          )}
+        </p>
+      )}
 
       {paymentMethod === PaymentMethod.CreditCard && (
         <p role="note" className={styles.paymentReminder}>
@@ -77,15 +91,15 @@ export default function OrderConfirmationModal({
 
       {customerEmail && (
         <div className={styles.emailInfo}>
-          <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation email sent to:')}</span>
+          <span className={styles.emailLabel}>{t('order_updates_sent_to', 'Order updates will be sent to:')}</span>
           <span className={styles.email}>{customerEmail}</span>
         </div>
       )}
 
       <div className={styles.actions}>
-        {isLoggedIn ? (
+        {guestStatusToken || isLoggedIn ? (
           <>
-            <button type="button" className={styles.primaryButton} onClick={handleViewOrders}>
+            <button type="button" className={styles.primaryButton} onClick={onTrackOrder}>
               <ShoppingBag size={20} />
               {t('track_order', 'Track Order')}
             </button>

@@ -26,7 +26,7 @@ export default function ConfirmationSuccessHeader({ orderNumber, children }: Rea
       <p className={styles.successSubtitle}>
         {t(
           'order_confirmation_message',
-          'Thank you for your order. We have received it and will start preparing it shortly.',
+          'We have received your order. This screen will update as soon as the restaurant responds.',
         )}
       </p>
       <div className={styles.orderNumber}>

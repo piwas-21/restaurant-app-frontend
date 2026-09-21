@@ -2,7 +2,7 @@
 // provider so a rollout flag never flashes a different workspace after hydration.
 // `cache: no-store` is deliberate: this is an emergency rollback switch, not catalog data.
 const SERVER_API_BASE = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL;
-const FEATURE_REQUEST_TIMEOUT_MS = 3_000;
+const FEATURE_REQUEST_TIMEOUT_MS = Number(process.env.TENANT_FEATURES_REQUEST_TIMEOUT_MS);
 
 export interface TenantFeatures {
   serverWorkspaceV2: boolean;
@@ -22,7 +22,9 @@ const DEFAULT_FEATURES: TenantFeatures = { serverWorkspaceV2: false };
  * malformed response, or a network error all keep the established Server Workspace V1.
  */
 export async function getTenantFeatures(): Promise<TenantFeatures> {
-  if (!SERVER_API_BASE) return { ...DEFAULT_FEATURES };
+  if (!SERVER_API_BASE || !Number.isSafeInteger(FEATURE_REQUEST_TIMEOUT_MS) || FEATURE_REQUEST_TIMEOUT_MS <= 0) {
+    return { ...DEFAULT_FEATURES };
+  }
 
   try {
     const response = await fetch(`${SERVER_API_BASE}/api/tenant/features`, {

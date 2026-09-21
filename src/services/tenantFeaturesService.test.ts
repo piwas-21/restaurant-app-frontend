@@ -4,6 +4,7 @@ describe('getTenantFeatures', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env.NEXT_PUBLIC_API_URL = 'http://backend.test';
+    process.env.TENANT_FEATURES_REQUEST_TIMEOUT_MS = '3000';
     delete process.env.API_INTERNAL_URL;
     // The service captures the server API base at module load, so each case gets a clean
     // configuration boundary just like the tenant-modules service tests.
@@ -74,6 +75,16 @@ describe('getTenantFeatures', () => {
     jest.resetModules();
     delete process.env.NEXT_PUBLIC_API_URL;
     delete process.env.API_INTERNAL_URL;
+    const { getTenantFeatures: fresh } = await import('./tenantFeaturesService');
+    mockFetch(() => Promise.reject(new Error('should not be called')));
+
+    await expect(fresh()).resolves.toEqual({ serverWorkspaceV2: false });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it.each(['', '0', '-1', 'not-a-number'])('fails closed for invalid timeout configuration %p', async (timeout) => {
+    jest.resetModules();
+    process.env.TENANT_FEATURES_REQUEST_TIMEOUT_MS = timeout;
     const { getTenantFeatures: fresh } = await import('./tenantFeaturesService');
     mockFetch(() => Promise.reject(new Error('should not be called')));
 

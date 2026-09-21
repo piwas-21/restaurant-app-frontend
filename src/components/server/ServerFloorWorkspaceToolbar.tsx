@@ -6,6 +6,7 @@ import type { ConnectionState } from '@/lib/operationalStatus';
 import type { ServerFloorView } from '@/hooks/serverWorkspace/useServerFloorViewState';
 import type { FloorPlanDocument } from '@/types/floorPlan';
 import styles from './ServerFloorWorkspace.module.css';
+import toolbarStyles from './ServerFloorWorkspaceToolbar.module.css';
 
 interface ServerFloorWorkspaceToolbarProps {
   view: ServerFloorView;
@@ -13,9 +14,11 @@ interface ServerFloorWorkspaceToolbarProps {
   zones: FloorPlanDocument[];
   connectionState: ConnectionState;
   lastConfirmed?: string;
+  searchQuery: string;
   onRetry: () => void;
   onViewChange: (view: ServerFloorView) => void;
   onZoneChange: (zoneId: string | null) => void;
+  onSearchChange: (query: string) => void;
 }
 
 export default function ServerFloorWorkspaceToolbar({
@@ -24,9 +27,11 @@ export default function ServerFloorWorkspaceToolbar({
   zones,
   connectionState,
   lastConfirmed,
+  searchQuery,
   onRetry,
   onViewChange,
   onZoneChange,
+  onSearchChange,
 }: Readonly<ServerFloorWorkspaceToolbarProps>) {
   const { t } = useTranslation();
 
@@ -74,6 +79,16 @@ export default function ServerFloorWorkspaceToolbar({
         ))}
       </div>
       <div className={styles.toolbarActions}>
+        <label className={toolbarStyles.searchField}>
+          <span className={toolbarStyles.srOnly}>{t('server.search_tables', 'Search tables')}</span>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={t('server.search_tables', 'Search tables')}
+            aria-label={t('server.search_tables', 'Search tables')}
+          />
+        </label>
         <ConnectionStateBanner state={connectionState} lastConfirmed={lastConfirmed} onRetry={onRetry} />
       </div>
       <ul className={styles.legend} aria-label={t('server.table_state_legend', 'Table state legend')}>

@@ -1510,6 +1510,8 @@
   "server.status_reserved": "Réservée",
   "server.status_closed": "Fermée",
   "server.status_ready": "Prête",
+  "server.search_tables": "Rechercher des tables",
+  "server.no_matching_tables": "Aucune table ne correspond à votre recherche.",
   "server.actions": "Actions",
   "server.capabilities": "Capacités disponibles",
   "server.capabilities_not_wired": "Informatif uniquement ; les commandes ne sont pas encore connectées.",

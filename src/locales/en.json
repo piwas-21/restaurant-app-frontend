@@ -1508,6 +1508,8 @@
   "server.status_reserved": "Reserved",
   "server.status_closed": "Closed",
   "server.status_ready": "Ready",
+  "server.search_tables": "Search tables",
+  "server.no_matching_tables": "No tables match your search.",
   "server.actions": "Actions",
   "server.capabilities": "Available capabilities",
   "server.capabilities_not_wired": "Informational only; controls are not wired yet.",

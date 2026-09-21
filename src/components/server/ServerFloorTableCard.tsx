@@ -59,6 +59,8 @@ function serviceState(state: KnownServerFloorTableState): TableServiceState | nu
       return 'available';
     case 'Open':
       return 'occupied';
+    case 'Ready':
+      return 'ready';
     case 'Reserved':
       return 'reserved';
     case 'Inactive':

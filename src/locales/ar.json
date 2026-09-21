@@ -1515,6 +1515,8 @@
   "server.status_reserved": "محجوزة",
   "server.status_closed": "مغلقة",
   "server.status_ready": "جاهزة",
+  "server.search_tables": "ابحث عن الطاولات",
+  "server.no_matching_tables": "لا توجد طاولات تطابق بحثك.",
   "server.actions": "الإجراءات",
   "server.capabilities": "القدرات المتاحة",
   "server.capabilities_not_wired": "للمعلومات فقط؛ عناصر التحكم غير موصولة بعد.",

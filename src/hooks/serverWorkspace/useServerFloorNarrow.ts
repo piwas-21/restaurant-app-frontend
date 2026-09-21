@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from 'react';
 
-/** Matches the staff workspace's single-pane breakpoint without coupling layout to a router. */
-export function useServerFloorNarrow(): boolean {
-  const [isNarrow, setIsNarrow] = useState(false);
+/** Matches phones only; tablets keep the spatial map and desktop workspace. */
+export function useServerFloorNarrow(): boolean | null {
+  // `null` keeps the server render and the first browser render identical;
+  // the responsive default is applied only after matchMedia is available.
+  const [isNarrow, setIsNarrow] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const media = window.matchMedia('(max-width: 1023px)');
+    if (typeof window.matchMedia !== 'function') {
+      setIsNarrow(false);
+      return;
+    }
+    const media = window.matchMedia('(max-width: 767px)');
     const update = () => setIsNarrow(media.matches);
     update();
     media.addEventListener?.('change', update);

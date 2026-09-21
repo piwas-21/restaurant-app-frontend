@@ -1510,6 +1510,8 @@
   "server.status_reserved": "Reservada",
   "server.status_closed": "Cerrada",
   "server.status_ready": "Lista",
+  "server.search_tables": "Buscar mesas",
+  "server.no_matching_tables": "Ninguna mesa coincide con tu búsqueda.",
   "server.actions": "Acciones",
   "server.capabilities": "Capacidades disponibles",
   "server.capabilities_not_wired": "Solo informativo; los controles aún no están conectados.",

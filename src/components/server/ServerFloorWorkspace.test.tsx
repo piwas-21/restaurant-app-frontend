@@ -43,6 +43,7 @@ jest.mock('@/components/floor-plan/FloorPlanScene', () => ({
 }));
 
 const mockUseFloor = useServerFloorSnapshot as jest.MockedFunction<typeof useServerFloorSnapshot>;
+const originalMatchMedia = window.matchMedia;
 
 const snapshot: ServerFloorSnapshot = {
   serverTime: '2026-09-21T10:00:00Z',
@@ -154,6 +155,10 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia });
+});
+
 describe('ServerFloorWorkspace', () => {
   it('exposes an accessible spatial map and authoritative selected table card', () => {
     render(<ServerFloorWorkspace />);
@@ -170,23 +175,25 @@ describe('ServerFloorWorkspace', () => {
     expect(screen.getByRole('list', { name: 'Table state legend' })).toBeInTheDocument();
   });
 
-  it('routes a narrow-screen map selection directly to the table shell', async () => {
-    const originalMatchMedia = window.matchMedia;
+  it('defaults narrow screens to the accessible list and routes its table action', async () => {
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: jest.fn(() => ({
         matches: true,
-        media: '(max-width: 1023px)',
+        media: '(max-width: 767px)',
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
       })),
     });
 
     render(<ServerFloorWorkspace />);
-    fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'List' })).toHaveAttribute('aria-pressed', 'true'));
+    expect(screen.queryByRole('region', { name: 'Main room' })).not.toBeInTheDocument();
+    const tableLink = screen.getAllByRole('link', { name: 'Open table details' })[0];
+    tableLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    fireEvent.click(tableLink);
 
     await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/server/tables/table-1'));
-    Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia });
   });
 
   it('switches to a complete list and filters by zone without losing route identities', () => {
@@ -294,5 +301,83 @@ describe('ServerFloorWorkspace', () => {
 
     expect(screen.getByText('Table details unavailable')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getAllByRole('link', { name: 'Open table details' })).toHaveLength(1);
+  });
+
+  it('clears a selected table when a refresh changes its state to an unknown value', async () => {
+    const { rerender } = render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
+    expect(screen.getByText('CHF 20.00')).toBeInTheDocument();
+
+    mockUseFloor.mockReturnValue({
+      snapshot: {
+        ...snapshot,
+        tables: [{ ...snapshot.tables[0], state: 'FutureState' }, snapshot.tables[1]],
+      },
+      isLoading: false,
+      isStale: false,
+      error: null,
+      connectionState: 'connected',
+      refresh: jest.fn(async () => undefined),
+    });
+    rerender(<ServerFloorWorkspace />);
+
+    await waitFor(() => expect(screen.queryByText('CHF 20.00')).not.toBeInTheDocument());
+    expect(screen.getByText('Select')).toBeInTheDocument();
+  });
+
+  it('renders Ready distinctly in the service strip and map legend', () => {
+    mockUseFloor.mockReturnValue({
+      snapshot: {
+        ...snapshot,
+        tables: [{ ...snapshot.tables[0], state: 'Ready' }, snapshot.tables[1]],
+      },
+      isLoading: false,
+      isStale: false,
+      error: null,
+      connectionState: 'connected',
+      refresh: jest.fn(async () => undefined),
+    });
+
+    render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'List' }));
+
+    const readyCard = screen.getAllByRole('article')[0];
+    expect(readyCard).toHaveAttribute('data-state', 'Ready');
+    expect(within(readyCard).getByLabelText('server.status_ready')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Table state legend' })).toHaveTextContent('Ready');
+  });
+
+  it('searches the authoritative table snapshot across zones', () => {
+    render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'List' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search tables' }), { target: { value: '2' } });
+
+    expect(screen.getAllByRole('link', { name: 'Open table details' })).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Open table details' })).toHaveAttribute('href', '/server/tables/table-2');
+  });
+
+  it('renders more than 100 tables without truncating the floor list', () => {
+    const manyTables = Array.from({ length: 120 }, (_, index) => ({
+      ...snapshot.tables[1],
+      tableId: `table-${index + 1}`,
+      tableLabel: String(index + 1),
+      zoneId: 'zone-1',
+      zoneName: 'Main room',
+      positionX: 1 + (index % 10),
+      positionY: 1 + Math.floor(index / 10),
+    }));
+    mockUseFloor.mockReturnValue({
+      snapshot: { ...snapshot, tables: manyTables },
+      isLoading: false,
+      isStale: false,
+      error: null,
+      connectionState: 'connected',
+      refresh: jest.fn(async () => undefined),
+    });
+
+    render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'List' }));
+
+    expect(screen.getAllByRole('link', { name: 'Open table details' })).toHaveLength(120);
   });
 });

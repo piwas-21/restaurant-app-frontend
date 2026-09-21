@@ -1506,6 +1506,8 @@
   "server.status_reserved": "Reserviert",
   "server.status_closed": "Geschlossen",
   "server.status_ready": "Bereit",
+  "server.search_tables": "Tische suchen",
+  "server.no_matching_tables": "Keine Tische passen zu Ihrer Suche.",
   "server.actions": "Aktionen",
   "server.capabilities": "Verfügbare Funktionen",
   "server.capabilities_not_wired": "Nur Information; die Steuerelemente sind noch nicht verbunden.",

@@ -46,9 +46,27 @@ export function readServerFloorViewState(): ServerFloorViewState {
 }
 
 export function useServerFloorViewState() {
-  const [state, setState] = useState<ServerFloorViewState>(() => readServerFloorViewState());
+  // Keep the first render identical on the server and browser. Reading
+  // sessionStorage in a state initializer makes a previously selected List
+  // view differ from the server-rendered Map view during hydration.
+  const [state, setState] = useState<ServerFloorViewState>(() => ({ ...DEFAULT_STATE }));
+  const [hydrated, setHydrated] = useState(false);
+  const [hasStoredPreference, setHasStoredPreference] = useState(false);
 
   useEffect(() => {
+    const store = storage();
+    if (store) {
+      const stored = store.getItem(STORAGE_KEY);
+      if (stored) {
+        setState(readServerFloorViewState());
+        setHasStoredPreference(true);
+      }
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !hasStoredPreference) return;
     const store = storage();
     if (!store) return;
     try {
@@ -57,13 +75,19 @@ export function useServerFloorViewState() {
       // A blocked or full session store must not prevent floor service.
       warnStorageFailure(error);
     }
-  }, [state]);
+  }, [hasStoredPreference, hydrated, state]);
 
-  const setView = useCallback((view: ServerFloorView) => setState((current) => ({ ...current, view })), []);
-  const setZoneId = useCallback((zoneId: string | null) => setState((current) => ({ ...current, zoneId })), []);
+  const setView = useCallback((view: ServerFloorView) => {
+    setHasStoredPreference(true);
+    setState((current) => ({ ...current, view }));
+  }, []);
+  const setZoneId = useCallback((zoneId: string | null) => {
+    setHasStoredPreference(true);
+    setState((current) => ({ ...current, zoneId }));
+  }, []);
   const setScrollTop = useCallback((scrollTop: number) => setState((current) => ({ ...current, scrollTop })), []);
 
-  return { ...state, setView, setZoneId, setScrollTop };
+  return { ...state, hydrated, hasStoredPreference, setView, setZoneId, setScrollTop };
 }
 
 export { STORAGE_KEY as SERVER_FLOOR_VIEW_STORAGE_KEY };

@@ -25,4 +25,18 @@ describe('server floor view state', () => {
 
     expect(readServerFloorViewState()).toEqual({ view: 'list', zoneId: 'zone-2', scrollTop: 240 });
   });
+
+  it('hydrates a stored preference after the deterministic map first render', () => {
+    window.sessionStorage.setItem(
+      SERVER_FLOOR_VIEW_STORAGE_KEY,
+      JSON.stringify({ view: 'list', zoneId: 'zone-2', scrollTop: 120 }),
+    );
+
+    const { result } = renderHook(() => useServerFloorViewState());
+
+    expect(result.current.hydrated).toBe(true);
+    expect(result.current.hasStoredPreference).toBe(true);
+    expect(result.current.view).toBe('list');
+    expect(result.current.zoneId).toBe('zone-2');
+  });
 });

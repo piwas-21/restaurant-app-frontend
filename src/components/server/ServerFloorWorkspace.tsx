@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import type { TableRenderState } from '@/components/floor-plan/sceneTypes';
 import { useServerFloorSnapshot } from '@/hooks/serverWorkspace/useServerFloorSnapshot';
@@ -13,106 +12,71 @@ import { useServerFloorNarrow } from '@/hooks/serverWorkspace/useServerFloorNarr
 import { useServerFloorViewState } from '@/hooks/serverWorkspace/useServerFloorViewState';
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
 import type { ServerFloorTable } from '@/types/serverWorkspace';
-import { isKnownServerFloorTableState, toFloorPlanShape } from '@/types/serverWorkspace';
+import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
 import ServerFloorTableCard from './ServerFloorTableCard';
 import ServerFloorMapPanel from './ServerFloorMapPanel';
+import { geometryFor, renderState, tableLabel } from './serverFloorPresentation';
 import ServerFloorWorkspaceToolbar from './ServerFloorWorkspaceToolbar';
 import styles from './ServerFloorWorkspace.module.css';
 
 const EMPTY_TABLES: ServerFloorTable[] = [];
 const EMPTY_ZONES: FloorPlanDocument[] = [];
 
-function renderState(table: ServerFloorTable, selected: boolean): TableRenderState {
-  if (selected) return 'selected';
-  if (!isKnownServerFloorTableState(table.state)) return 'unavailable';
-  if (table.state === 'Reserved') return 'booked';
-  if (table.state === 'Open' || table.state === 'Ready' || table.state === 'Ambiguous') return 'occupied';
-  if (table.state === 'Inactive') return 'dim';
-  return 'available';
-}
-
-function geometryFor(table: ServerFloorTable): FloorPlanTableGeometry {
-  return {
-    id: table.tableId,
-    tableNumber: table.tableLabel,
-    maxGuests: table.maxGuests,
-    isActive: table.isActive,
-    isOutdoor: table.isOutdoor,
-    positionX: table.positionX,
-    positionY: table.positionY,
-    width: table.width,
-    height: table.height,
-    shape: toFloorPlanShape(table.shape),
-    rotation: table.rotation,
-  };
-}
-
-function statusLabelKey(state: string): string {
-  switch (state) {
-    case 'Ready':
-      return 'server.status_ready';
-    case 'Reserved':
-      return 'server.status_reserved';
-    case 'Open':
-      return 'server.status_occupied';
-    case 'Inactive':
-      return 'server.status_closed';
-    case 'Ambiguous':
-      return 'cashier.tables.status_legacy';
-    case 'Available':
-      return 'server.status_available';
-    default:
-      return 'unavailable';
-  }
-}
-
-function tableLabel(table: ServerFloorTable, t: TFunction) {
-  const statusKey = statusLabelKey(table.state);
-  const statusFallback = isKnownServerFloorTableState(table.state) ? table.state : t('unavailable', 'Unavailable');
-  return t('table_marker_aria', 'Table {{number}}, {{seats}} seats, {{status}}', {
-    number: table.tableLabel,
-    seats: table.maxGuests,
-    status: t(statusKey, statusFallback),
-  });
-}
-
 export default function ServerFloorWorkspace() {
   const { t } = useTranslation();
   const router = useRouter();
   const floor = useServerFloorSnapshot();
   const viewState = useServerFloorViewState();
-  const { view, zoneId, scrollTop, setView, setZoneId, setScrollTop } = viewState;
+  const { view, zoneId, scrollTop, hydrated, hasStoredPreference, setView, setZoneId, setScrollTop } = viewState;
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const isNarrow = useServerFloorNarrow();
-  const listRef = useServerFloorListScroll(view, scrollTop, setScrollTop);
+  const effectiveView = hydrated && isNarrow === true && !hasStoredPreference ? 'list' : view;
+  const listRef = useServerFloorListScroll(effectiveView, scrollTop, setScrollTop);
+
+  useEffect(() => {
+    if (hydrated && isNarrow === true && !hasStoredPreference && view !== 'list') setView('list');
+  }, [hasStoredPreference, hydrated, isNarrow, setView, view]);
 
   const zones = floor.snapshot?.zones ?? EMPTY_ZONES;
   const tables = floor.snapshot?.tables ?? EMPTY_TABLES;
   const resolvedZoneId = zoneId && zones.some((zone) => zone.id === zoneId) ? zoneId : null;
   const activeZoneId = resolvedZoneId ?? zones[0]?.id ?? null;
   const selectedZone = zones.find((zone) => zone.id === activeZoneId) ?? zones[0] ?? null;
-  const visibleTables = useMemo(
-    () => (resolvedZoneId ? tables.filter((table) => table.zoneId === resolvedZoneId) : tables),
-    [tables, resolvedZoneId],
-  );
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const visibleTables = useMemo(() => {
+    const zoneTables = resolvedZoneId ? tables.filter((table) => table.zoneId === resolvedZoneId) : tables;
+    if (!normalizedSearchQuery) return zoneTables;
+    return zoneTables.filter((table) =>
+      [table.tableLabel, table.zoneName ?? ''].some((value) => value.toLowerCase().includes(normalizedSearchQuery)),
+    );
+  }, [normalizedSearchQuery, tables, resolvedZoneId]);
   const mapDocuments = useMemo<FloorPlanDocument[]>(() => {
-    const sourceZones = resolvedZoneId ? (selectedZone ? [selectedZone] : []) : zones;
+    const sourceZones = resolvedZoneId
+      ? selectedZone
+        ? [selectedZone]
+        : []
+      : zones.filter((zone) => visibleTables.some((table) => table.zoneId === zone.id));
     return sourceZones.map((zone) => ({
       ...zone,
-      tables: tables.filter((table) => table.zoneId === zone.id).map(geometryFor),
+      tables: visibleTables.filter((table) => table.zoneId === zone.id).map(geometryFor),
     }));
-  }, [resolvedZoneId, selectedZone, tables, zones]);
+  }, [resolvedZoneId, selectedZone, visibleTables, zones]);
   const mapTables = useMemo(
     () =>
       resolvedZoneId
         ? visibleTables
-        : tables.filter((table) => table.zoneId != null && zones.some((zone) => zone.id === table.zoneId)),
-    [resolvedZoneId, tables, visibleTables, zones],
+        : visibleTables.filter((table) => table.zoneId != null && zones.some((zone) => zone.id === table.zoneId)),
+    [resolvedZoneId, visibleTables, zones],
   );
   const mapHasTables = mapDocuments.some((document) => document.tables.length > 0);
   const selectedTable = tables.find((table) => table.tableId === selectedTableId) ?? null;
   const selectedTableForView =
-    selectedTable && (!resolvedZoneId || selectedTable.zoneId === resolvedZoneId) ? selectedTable : null;
+    selectedTable &&
+    isKnownServerFloorTableState(selectedTable.state) &&
+    visibleTables.some((table) => table.tableId === selectedTable.tableId)
+      ? selectedTable
+      : null;
   const states = useMemo<Record<string, TableRenderState>>(
     () =>
       Object.fromEntries(
@@ -126,12 +90,12 @@ export default function ServerFloorWorkspace() {
   }, [setZoneId, zoneId, zones]);
 
   useEffect(() => {
-    if (!selectedTable) {
+    if (!selectedTable || !isKnownServerFloorTableState(selectedTable.state)) {
       if (selectedTableId) setSelectedTableId(null);
       return;
     }
-    if (resolvedZoneId && selectedTable.zoneId !== resolvedZoneId) setSelectedTableId(null);
-  }, [resolvedZoneId, selectedTable, selectedTableId]);
+    if (!visibleTables.some((table) => table.tableId === selectedTable.tableId)) setSelectedTableId(null);
+  }, [selectedTable, selectedTableId, visibleTables]);
 
   const selectTable = useCallback(
     (tableId: string) => {
@@ -186,14 +150,16 @@ export default function ServerFloorWorkspace() {
         )}
 
         <ServerFloorWorkspaceToolbar
-          view={view}
+          view={effectiveView}
           zoneId={resolvedZoneId}
           zones={zones}
           connectionState={floor.connectionState}
           lastConfirmed={floor.snapshot?.serverTime}
+          searchQuery={searchQuery}
           onRetry={() => void floor.refresh()}
           onViewChange={setView}
           onZoneChange={setZoneId}
+          onSearchChange={setSearchQuery}
         />
 
         {!floor.snapshot && floor.isLoading && <div className={styles.statePanel}>{t('loading', 'Loading')}</div>}
@@ -209,11 +175,11 @@ export default function ServerFloorWorkspace() {
           <div className={styles.statePanel}>{t('no_tables_here', 'No tables in this area right now.')}</div>
         )}
 
-        {floor.snapshot && tables.length > 0 && view === 'map' && !mapHasTables && (
+        {floor.snapshot && tables.length > 0 && effectiveView === 'map' && !mapHasTables && (
           <div className={styles.statePanel}>{t('no_tables_here', 'No tables in this area right now.')}</div>
         )}
 
-        {floor.snapshot && mapHasTables && view === 'map' && (
+        {floor.snapshot && mapHasTables && effectiveView === 'map' && (
           <ServerFloorMapPanel
             documents={mapDocuments}
             states={states}
@@ -223,11 +189,15 @@ export default function ServerFloorWorkspace() {
           />
         )}
 
-        {floor.snapshot && tables.length > 0 && view === 'list' && (
+        {floor.snapshot && tables.length > 0 && effectiveView === 'list' && (
           <section ref={listRef} className={styles.listPanel} aria-label={t('list', 'List')}>
             <div className={styles.tableList}>
               {visibleTables.length === 0 ? (
-                <p className={styles.empty}>{t('no_tables_here', 'No tables in this area right now.')}</p>
+                <p className={styles.empty}>
+                  {normalizedSearchQuery
+                    ? t('server.no_matching_tables', 'No tables match your search.')
+                    : t('no_tables_here', 'No tables in this area right now.')}
+                </p>
               ) : (
                 visibleTables.map((table) => (
                   <ServerFloorTableCard

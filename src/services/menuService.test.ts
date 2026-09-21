@@ -46,6 +46,14 @@ describe('getProducts — RequestedOrderType', () => {
   });
 });
 
+describe('getProductById — RequestedOrderType', () => {
+  it('resolves detail availability for the staff order channel', async () => {
+    await getProductById('product-1', undefined, OrderType.Takeaway);
+
+    expect(requestedUrl()).toBe('/api/Products/product-1?RequestedOrderType=Takeaway');
+  });
+});
+
 describe('getAllMenuBundles — relationship picker pagination', () => {
   it('reads every reported page and keeps each menu once', async () => {
     const menu = (id: string): Product => ({

@@ -87,6 +87,9 @@ const DYNAMIC_PREFIXES = [
   'cashier.tables.legacy_orders_',
   //   cashier.new_sale.items_count     — CashierNewSaleTicket.tsx ticket line count
   'cashier.new_sale.items_count_',
+  // `src/components/server/takeaway/ServerTakeawayTicket.tsx` calls
+  // `t('server.takeaway.item_count', { count })`; i18next appends each locale's CLDR category.
+  'server.takeaway.item_count_',
   'my_reservations_status_',
   'order_status_',
   'payment_status_',

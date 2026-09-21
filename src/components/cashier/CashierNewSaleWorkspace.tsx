@@ -113,6 +113,7 @@ export default function CashierNewSaleWorkspace() {
           isOpen
           onClose={sale.closeSheet}
           onConfirm={sale.confirmCustomization}
+          requestedOrderType={sale.channel}
         />
       )}
     </CashierWorkspaceShell>

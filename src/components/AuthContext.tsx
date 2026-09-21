@@ -3,6 +3,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { refreshToken } from '@/services/authService';
+import { clearServerTakeawayDraft } from '@/lib/serverTakeawayDraft';
 
 interface User {
   firstName: string;
@@ -48,11 +49,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
+            clearServerTakeawayDraft();
             setUser(null);
           }
+        } else {
+          clearServerTakeawayDraft();
         }
       } catch (error) {
         console.error('Failed to validate session', error);
+        clearServerTakeawayDraft();
       } finally {
         setIsLoading(false);
       }
@@ -86,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // their basket.
     localStorage.removeItem('rumi_saved_customer_info');
     localStorage.removeItem('rumi_checkout_state');
+    clearServerTakeawayDraft();
     setUser(null);
     router.push('/');
   };

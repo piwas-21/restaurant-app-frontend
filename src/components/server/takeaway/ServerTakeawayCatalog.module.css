@@ -1,0 +1,105 @@
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+.productOnlyNote {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.searchLabel {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.search {
+  min-block-size: 3rem;
+  width: min(100%, 28rem);
+  padding-inline: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+}
+
+.categoryChip,
+.retry {
+  min-block-size: 3rem;
+  padding-inline: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.status,
+.statusError {
+  color: var(--text-secondary);
+}
+
+.statusError {
+  color: var(--feedback-error);
+}
+
+.retry {
+  color: var(--text-primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-2, 0.5rem);
+  align-content: start;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  min-block-size: 6rem;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.tile:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.tileName {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tilePrice {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}

@@ -5,6 +5,7 @@ import { useTakeOrder } from './take-order/useTakeOrder';
 import TakeOrderMenuPanel from './take-order/TakeOrderMenuPanel';
 import TakeOrderSummaryPanel from './take-order/TakeOrderSummaryPanel';
 import styles from './TakeOrderModal.module.css';
+import { OrderType } from '@/types/order';
 
 interface TakeOrderModalProps {
   tableNumber: string;
@@ -70,6 +71,7 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
           isOpen={!!order.selectedProductForCustomization}
           onClose={() => order.setSelectedProductForCustomization(null)}
           onConfirm={order.handleCustomizationConfirm}
+          requestedOrderType={OrderType.DineIn}
         />
       )}
       {order.selectedBundleForCustomization && (

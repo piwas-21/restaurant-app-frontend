@@ -8,7 +8,7 @@
  */
 
 import type { PriceableIngredientKind } from '@/utils/priceableIngredient';
-import type { ProductType } from '@/types/menu';
+import type { ItemAvailability, ProductType } from '@/types/menu';
 
 /** A per-language name/description block, as `ProductDto.Content` sends it. */
 export type LocalizedContent = Record<string, { name?: string; description?: string } | undefined>;
@@ -110,6 +110,7 @@ export interface ProductCustomizationDetail {
   name: string;
   basePrice: number;
   hideBaseProduct?: boolean;
+  availability?: ItemAvailability;
   /**
    * How many sauce rows the product includes at no charge (S6, backend #429).
    *

@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/utils/apiClient';
 import { ApiResponse } from '@/types/reservation';
+import type { ItemAvailability } from '@/types/menu';
 
 export interface Product {
   id: string;
@@ -18,6 +19,7 @@ export interface Product {
   primaryCategoryId?: string;
   imageUrl?: string;
   variations?: ProductVariation[];
+  availability?: ItemAvailability;
 }
 
 export interface ProductCategoryLink {

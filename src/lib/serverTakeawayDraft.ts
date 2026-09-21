@@ -114,6 +114,7 @@ export function readServerTakeawayDraft(): ServerTakeawayDraft | null {
       clientOperationId: optionalString(stored.clientOperationId),
     };
   } catch (_error: unknown) {
+    // Corrupt or blocked browser storage is not authoritative; start with a clean in-memory draft.
     return null;
   }
 }

@@ -27,11 +27,11 @@ export type {
 } from './productCustomizationTypes';
 
 interface ProductCustomizationProps {
-  product: Product;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (result: CustomizationResult) => void;
-  requestedOrderType?: OrderType | null;
+  readonly product: Product;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: (result: CustomizationResult) => void;
+  readonly requestedOrderType?: OrderType | null;
 }
 
 /**

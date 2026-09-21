@@ -1,4 +1,3 @@
-import { decideProductTap } from '@/components/catalog/productTap';
 import type { ProductTapDecision } from '@/components/catalog/productTap';
 
 /**
@@ -11,4 +10,4 @@ import type { ProductTapDecision } from '@/components/catalog/productTap';
 export type TapDecision = ProductTapDecision;
 
 /** Cashier-compatible name retained while the decision logic is shared with Server. */
-export const decideTap = decideProductTap;
+export { decideProductTap as decideTap } from '@/components/catalog/productTap';

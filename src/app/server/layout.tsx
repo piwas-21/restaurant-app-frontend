@@ -1,39 +1,13 @@
-'use client';
+import type { ReactNode } from 'react';
+import { getTenantFeatures } from '@/services/tenantFeaturesService';
+import ServerLayoutClient from './server-layout-client';
 
-import { useEffect, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
-import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/components/AuthContext';
-import styles from './layout.module.css';
-
-export default function ServerLayout({ children }: { readonly children: ReactNode }) {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const { user, isLoading } = useAuth();
-  const role = user?.role?.toLowerCase();
-  const authorized = role === 'server' || role === 'admin';
-
-  useEffect(() => {
-    if (isLoading) return;
-    if (!user) router.push('/auth/login');
-    else if (!authorized) router.push('/');
-  }, [authorized, isLoading, router, user]);
-
-  if (isLoading) {
-    return (
-      <div className={styles.centerScreen} aria-label={t('loading')}>
-        <Loader2 className={styles.spinner} aria-hidden="true" size={48} />
-      </div>
-    );
-  }
-  if (!user) return null;
-  if (!authorized) {
-    return (
-      <div className={styles.centerScreen} role="alert">
-        <p>{t('server.takeaway.not_authorized')}</p>
-      </div>
-    );
-  }
-  return <>{children}</>;
+/**
+ * Reads the tenant-wide server rollout only for the server route subtree. Keeping this fetch
+ * out of the root layout prevents the emergency no-store switch from making every app route
+ * dynamic, while the nested client provider covers both /server and /server/takeaway.
+ */
+export default async function ServerLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const features = await getTenantFeatures();
+  return <ServerLayoutClient features={features}>{children}</ServerLayoutClient>;
 }

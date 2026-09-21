@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
 import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import styles from '../styles/ServerPage.module.css';
 
-export default function ServerPage() {
+type ServerWorkspaceVariant = 'v1' | 'v2-fallback';
+
+function ServerWorkspaceV1({ variant = 'v1' }: Readonly<{ variant?: ServerWorkspaceVariant }>) {
   const { t } = useTranslation();
   const {
     orders,
@@ -103,7 +106,7 @@ export default function ServerPage() {
   }, [refreshOrders, refreshTables]);
 
   return (
-    <main className={styles.pageContainer}>
+    <main className={styles.pageContainer} data-workspace-variant={variant}>
       <ServerHeader
         isConnected={isConnected}
         connectionState={connectionState}
@@ -174,4 +177,20 @@ export default function ServerPage() {
       )}
     </main>
   );
+}
+
+/**
+ * V2's full floor workspace is still being delivered. Keeping its entry seam explicit lets
+ * rollout tests and future work target one component without routing an enabled tenant into a
+ * broken or redirecting page. Until that implementation lands, the established V1 workspace is
+ * the safe fallback for an enabled tenant.
+ */
+function ServerWorkspaceV2Fallback() {
+  return <ServerWorkspaceV1 variant="v2-fallback" />;
+}
+
+export default function ServerPage() {
+  const { serverWorkspaceV2 } = useTenantFeatures();
+
+  return serverWorkspaceV2 ? <ServerWorkspaceV2Fallback /> : <ServerWorkspaceV1 />;
 }

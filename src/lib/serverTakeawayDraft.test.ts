@@ -63,4 +63,11 @@ describe('serverTakeawayDraft', () => {
     clearServerTakeawayDraft();
     expect(readServerTakeawayDraft()).toBeNull();
   });
+
+  it('removes corrupt stored JSON after a failed read', () => {
+    window.sessionStorage.setItem('server.takeaway-draft', '{broken');
+
+    expect(readServerTakeawayDraft()).toBeNull();
+    expect(window.sessionStorage.getItem('server.takeaway-draft')).toBeNull();
+  });
 });

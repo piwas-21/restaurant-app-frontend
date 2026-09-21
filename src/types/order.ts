@@ -10,6 +10,7 @@ export * from './order/enums';
 export * from './order/common';
 export * from './order/dtos';
 export * from './order/orderDto';
+export * from './order/guestOrderStatusDto';
 export * from './order/commands';
 export * from './order/zReport';
 export * from './order/tableBill';

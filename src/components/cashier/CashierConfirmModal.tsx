@@ -1,20 +1,14 @@
 'use client';
-
-// Pending delivery/takeaway decision: approve/confirm now, set preparation time, or reject.
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { z } from 'zod';
 import BaseModal from '@/components/design-system/BaseModal';
 import FormField from '@/components/design-system/FormField';
 import type { OrderDto } from '@/types/order';
 import { formatCurrency } from '@/utils/currency';
 import { getErrorMessage } from '@/utils/apiClient';
+import { channelLabel, customMinutesSchema, PRESET_MINUTES } from './cashierConfirmModalConfig';
 import CashierRejectConfirmModal from './CashierRejectConfirmModal';
 import styles from './CashierConfirmModal.module.css';
-
-const customMinutesSchema = z.object({ minutes: z.coerce.number().int().min(1).max(600) });
-
-const PRESET_MINUTES = [15, 30, 45];
 
 interface CashierConfirmModalProps {
   readonly order: OrderDto | null;
@@ -24,13 +18,6 @@ interface CashierConfirmModalProps {
   readonly onReject: (orderId: string, reason: string) => Promise<void>;
   /** The tenant's flow for THIS order's type; unknown/unavailable reads as direct. */
   readonly confirmationFlow?: 'direct' | 'acknowledge';
-}
-
-function channelLabel(type: string, t: (key: string) => string): string {
-  if (type === 'DineIn') return t('cashier.workspace.channel_dine_in');
-  if (type === 'Delivery') return t('cashier.workspace.channel_delivery');
-  if (type === 'Takeaway') return t('cashier.workspace.channel_takeaway');
-  return type;
 }
 
 export default function CashierConfirmModal({
@@ -47,6 +34,7 @@ export default function CashierConfirmModal({
   const [customMinutes, setCustomMinutes] = useState('');
   const [customError, setCustomError] = useState<string | null>(null);
   const [cancelStepOpen, setCancelStepOpen] = useState(false);
+  const isReviewFlow = confirmationFlow === 'acknowledge';
 
   useEffect(() => {
     if (isOpen) return;
@@ -129,18 +117,23 @@ export default function CashierConfirmModal({
             </p>
           )}
 
-          <button
-            type="button"
-            className={`${styles.actionButton} ${styles.primaryAction}`}
-            onClick={() => void runConfirm(0)}
-            disabled={busy}
-          >
-            {t('cashier.confirm_now')}
-          </button>
+          {!isReviewFlow && (
+            <>
+              <button
+                type="button"
+                className={`${styles.actionButton} ${styles.primaryAction}`}
+                onClick={() => void runConfirm(0)}
+                disabled={busy}
+              >
+                {t('cashier.confirm_now')}
+              </button>
+              <hr className={styles.divider} />
+            </>
+          )}
 
-          <hr className={styles.divider} />
-
-          <p className={styles.sectionLabel}>{t('cashier.confirm_with_preparation')}</p>
+          <p className={styles.sectionLabel}>
+            {t(isReviewFlow ? 'cashier.choose_preparation_time' : 'cashier.confirm_with_preparation')}
+          </p>
           <div className={styles.presets}>
             {PRESET_MINUTES.map((minutes) => (
               <button
@@ -150,7 +143,7 @@ export default function CashierConfirmModal({
                 onClick={() => void runConfirm(minutes)}
                 disabled={busy}
               >
-                {t('cashier.confirm_preset_minutes', { minutes })}
+                {t(isReviewFlow ? 'cashier.approve_preset_minutes' : 'cashier.confirm_preset_minutes', { minutes })}
               </button>
             ))}
           </div>
@@ -172,8 +165,13 @@ export default function CashierConfirmModal({
               disabled={busy}
             />
           </FormField>
-          <button type="button" className={styles.actionButton} onClick={submitCustom} disabled={busy}>
-            {t('common.confirm')}
+          <button
+            type="button"
+            className={`${styles.actionButton} ${isReviewFlow ? styles.primaryAction : ''}`}
+            onClick={submitCustom}
+            disabled={busy}
+          >
+            {t(isReviewFlow ? 'cashier.approve_order_action' : 'common.confirm')}
           </button>
 
           <hr className={`${styles.divider} ${styles.dividerDanger}`} />
@@ -184,7 +182,7 @@ export default function CashierConfirmModal({
             onClick={() => setCancelStepOpen(true)}
             disabled={busy}
           >
-            {t('cancel_order')}
+            {t(isReviewFlow ? 'cashier.reject_order_action' : 'cancel_order')}
           </button>
         </div>
       </BaseModal>
@@ -194,6 +192,7 @@ export default function CashierConfirmModal({
         onClose={() => setCancelStepOpen(false)}
         onReject={(reason) => runReject(reason)}
         isBusy={busy}
+        isRejection={isReviewFlow}
       />
     </>
   );

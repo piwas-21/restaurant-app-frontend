@@ -18,6 +18,7 @@ interface CashierRejectConfirmModalProps {
   readonly onClose: () => void;
   readonly onReject: (reason: string) => Promise<void>;
   readonly isBusy: boolean;
+  readonly isRejection?: boolean;
 }
 
 export default function CashierRejectConfirmModal({
@@ -25,6 +26,7 @@ export default function CashierRejectConfirmModal({
   onClose,
   onReject,
   isBusy,
+  isRejection = false,
 }: CashierRejectConfirmModalProps) {
   const { t } = useTranslation();
   const [reason, setReason] = useState('');
@@ -50,12 +52,12 @@ export default function CashierRejectConfirmModal({
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={() => void runReject()}
-      title={t('cashier.cancel_order_confirm_title')}
+      title={t(isRejection ? 'cashier.reject_order_confirm_title' : 'cashier.cancel_order_confirm_title')}
       variant="danger"
-      confirmLabel={t('cancel_order')}
+      confirmLabel={t(isRejection ? 'cashier.reject_order_action' : 'cancel_order')}
       isConfirming={isBusy}
     >
-      <p className={styles.alertBody}>{t('cancel_order_warning')}</p>
+      <p className={styles.alertBody}>{t(isRejection ? 'cashier.reject_order_warning' : 'cancel_order_warning')}</p>
       <FormField label={t('cancellation_reason')} error={error ?? undefined} className={styles.customField}>
         <textarea
           value={reason}

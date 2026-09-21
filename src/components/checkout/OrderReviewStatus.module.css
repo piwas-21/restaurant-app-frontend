@@ -49,15 +49,36 @@
   width: 100%;
 }
 .progressFill {
-  animation-duration: var(--review-duration);
-  animation-fill-mode: forwards;
-  animation-name: review-progress;
-  animation-timing-function: linear;
   background: var(--feedback-info);
   border-radius: inherit;
   display: block;
   height: 100%;
-  min-width: 8%;
+  transition: width 1s linear;
+  width: var(--review-progress);
+}
+.timerRow {
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+.timerRow > span {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+.countdown {
+  color: var(--feedback-info-dark);
+  font-size: clamp(1.8rem, 7vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.overdue {
+  color: var(--feedback-warning-dark) !important;
+  font-weight: 650;
+  margin-top: 0.75rem !important;
 }
 .approved {
   background: var(--feedback-success-xlight);
@@ -76,18 +97,9 @@
 .total {
   margin-top: 0.6rem !important;
 }
-@keyframes review-progress {
-  from {
-    width: 8%;
-  }
-  to {
-    width: 100%;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .progressFill {
-    animation: none;
-    width: 65%;
+    transition: none;
   }
 }
 

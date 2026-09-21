@@ -3,7 +3,7 @@
 // The customer-facing acknowledgement/approval state (order confirmation flows, plan S3).
 // This deliberately sits above the receipt rather than replacing it. It is also the complete
 // guest-safe view when the auth-gated receipt cannot load.
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/utils/currency';
@@ -17,6 +17,7 @@ interface OrderReviewStatusProps {
   readonly status: string;
   readonly estimatedDeliveryTime?: string | null;
   readonly reviewWindowMinutes: number;
+  readonly reviewDeadlineUtc?: string | null;
   readonly total?: number;
   readonly currency?: string;
 }
@@ -30,16 +31,38 @@ function readyTime(value: string | null | undefined, locale: string): string | n
   return parsed.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
+function secondsUntil(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const deadline = new Date(value).getTime();
+  if (Number.isNaN(deadline)) return null;
+  return Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+}
+
+function countdownLabel(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
 export default function OrderReviewStatus({
   confirmationFlow,
   orderNumber,
   status,
   estimatedDeliveryTime,
   reviewWindowMinutes,
+  reviewDeadlineUtc,
   total,
   currency,
 }: OrderReviewStatusProps) {
   const { t, i18n } = useTranslation();
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(() => secondsUntil(reviewDeadlineUtc));
+
+  useEffect(() => {
+    const update = () => setRemainingSeconds(secondsUntil(reviewDeadlineUtc));
+    update();
+    if (!reviewDeadlineUtc) return;
+    const timer = window.setInterval(update, 1_000);
+    return () => window.clearInterval(timer);
+  }, [reviewDeadlineUtc]);
 
   if (confirmationFlow !== 'acknowledge') return null;
 
@@ -72,30 +95,6 @@ export default function OrderReviewStatus({
     );
   }
 
-  if (status === 'PendingApproval') {
-    const time = readyTime(estimatedDeliveryTime, i18n.language);
-    return (
-      <section className={`${styles.panel} ${styles.reviewing}`} aria-live="polite">
-        <Clock3 aria-hidden="true" />
-        <div>
-          <div className={styles.headingRow}>
-            <h2>{t('checkout.review_delay_title', 'Please approve the longer wait')}</h2>
-            <StatusBadge tone="warning">{t('order_status_pending_approval')}</StatusBadge>
-          </div>
-          {orderLine}
-          {time && <p>{t('checkout.review_approved_ready_time', 'Expected ready time: {{time}}', { time })}</p>}
-          <p>
-            {t(
-              'checkout.review_delay_body',
-              'The restaurant needs your approval for a longer wait. Check your email to respond.',
-            )}
-          </p>
-          {totalLine}
-        </div>
-      </section>
-    );
-  }
-
   if (approvedStatuses.has(status)) {
     const time = readyTime(estimatedDeliveryTime, i18n.language);
     return (
@@ -118,8 +117,13 @@ export default function OrderReviewStatus({
     );
   }
 
+  const reviewSeconds = Math.max(1, reviewWindowMinutes) * 60;
+  const progress =
+    remainingSeconds === null ? 100 : Math.min(100, Math.max(0, Math.round((remainingSeconds / reviewSeconds) * 100)));
+  const isOverdue = remainingSeconds === 0;
+
   return (
-    <section className={`${styles.panel} ${styles.reviewing}`} aria-live="polite">
+    <section className={`${styles.panel} ${styles.reviewing}`}>
       <Clock3 aria-hidden="true" />
       <div className={styles.reviewBody}>
         <div className={styles.headingRow}>
@@ -133,13 +137,33 @@ export default function OrderReviewStatus({
             defaultValue: 'The restaurant is reviewing it. We usually reply within {{count}} minute.',
           })}
         </p>
-        <div className={styles.progressTrack} aria-hidden="true">
-          {/* Dynamic exception: CSS owns the animation; inline sets only its duration variable. */}
-          <span
-            className={styles.progressFill}
-            style={{ '--review-duration': `${Math.max(1, reviewWindowMinutes) * 60}s` } as CSSProperties}
-          />
+        <div className={styles.timerRow}>
+          <span>{t('checkout.review_timer_label', 'Expected response in')}</span>
+          <time className={styles.countdown} aria-hidden="true">
+            {remainingSeconds === null
+              ? countdownLabel(Math.max(1, reviewWindowMinutes) * 60)
+              : countdownLabel(remainingSeconds)}
+          </time>
         </div>
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-label={t('checkout.review_timer_label', 'Expected response in')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+        >
+          {/* Dynamic exception: the server-anchored remaining percentage cannot be a static class. */}
+          <span className={styles.progressFill} style={{ '--review-progress': `${progress}%` } as CSSProperties} />
+        </div>
+        {isOverdue && (
+          <p className={styles.overdue} role="status">
+            {t(
+              'checkout.review_overdue',
+              'The review is taking longer than expected. Keep this page open; we will update it as soon as the restaurant responds.',
+            )}
+          </p>
+        )}
         {totalLine}
       </div>
     </section>

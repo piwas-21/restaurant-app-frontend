@@ -156,14 +156,11 @@ function ConfirmationContent() {
   }
 
   const liveStatus = guestWatch.status;
-  const liveConfig = liveStatus ? flowForType(liveStatus.type) : null;
-
   if (guestStatusToken && !order && (liveStatus || guestWatch.phase === 'unavailable')) {
     return (
       <GuestOrderLiveView
         orderNumber={orderNumber}
         status={liveStatus}
-        config={liveConfig}
         unavailable={guestWatch.phase === 'unavailable'}
       />
     );
@@ -203,7 +200,9 @@ function ConfirmationContent() {
     );
   }
 
-  const confirmationConfig = liveStatus ? flowForType(liveStatus.type) : flowForType(order.type);
+  const confirmationConfig = liveStatus
+    ? { flow: liveStatus.confirmationFlow, reviewWindowMinutes: liveStatus.reviewWindowMinutes }
+    : flowForType(order.type);
   const effectiveStatus = liveStatus?.status ?? order.status;
 
   return (
@@ -218,9 +217,8 @@ function ConfirmationContent() {
           orderNumber={orderNumber || order.orderNumber}
           status={effectiveStatus}
           estimatedDeliveryTime={liveStatus?.estimatedDeliveryTime ?? order.estimatedDeliveryTime}
-          reviewWindowMinutes={
-            (liveStatus ? flowForType(liveStatus.type) : flowForType(order.type))?.reviewWindowMinutes ?? 2
-          }
+          reviewWindowMinutes={confirmationConfig?.reviewWindowMinutes ?? 2}
+          reviewDeadlineUtc={liveStatus?.reviewDeadlineUtc}
           total={order.total}
           currency={undefined}
         />

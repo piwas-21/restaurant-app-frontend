@@ -18,8 +18,10 @@ it('does not put the direct-flow preparation promise above an acknowledge cancel
         type: 'Takeaway',
         status: 'Cancelled',
         estimatedDeliveryTime: null,
+        confirmationFlow: 'acknowledge',
+        reviewWindowMinutes: 2,
+        reviewDeadlineUtc: '2026-09-20T12:02:00Z',
       }}
-      config={{ flow: 'acknowledge', reviewWindowMinutes: 2 }}
       unavailable={false}
     />,
   );

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import OrderReviewStatus from './OrderReviewStatus';
 
 jest.mock('react-i18next', () => ({
@@ -39,10 +39,29 @@ describe('OrderReviewStatus', () => {
     expect(screen.getByRole('heading', { name: 'We have received your order' })).toBeInTheDocument();
     expect(screen.getByText('order_status_pending')).toBeInTheDocument();
     expect(screen.getByText(/within 2 minutes/)).toBeInTheDocument();
-    expect(container.querySelector('[aria-hidden="true"] span')).not.toBeNull();
+    expect(screen.getByText('2:00')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     rerender(<OrderReviewStatus confirmationFlow="direct" status="Pending" reviewWindowMinutes={2} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('anchors the countdown to the server deadline instead of restarting on render', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-09-20T12:00:00Z'));
+    render(
+      <OrderReviewStatus
+        confirmationFlow="acknowledge"
+        status="Pending"
+        reviewWindowMinutes={2}
+        reviewDeadlineUtc="2026-09-20T12:02:00Z"
+      />,
+    );
+
+    expect(screen.getByText('2:00')).toBeInTheDocument();
+    act(() => jest.advanceTimersByTime(1_000));
+    expect(screen.getByText('1:59')).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('uses singular review-window copy for one minute', () => {
@@ -68,7 +87,7 @@ describe('OrderReviewStatus', () => {
     expect(screen.queryByText('We have received your order')).not.toBeInTheDocument();
   });
 
-  it('shows the existing customer-action step for a preparation time over ten minutes', () => {
+  it('keeps an older PendingApproval row restaurant-owned in the acknowledge flow', () => {
     render(
       <OrderReviewStatus
         confirmationFlow="acknowledge"
@@ -78,9 +97,9 @@ describe('OrderReviewStatus', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', { name: 'Please approve the longer wait' })).toBeInTheDocument();
-    expect(screen.getByText(/Check your email to respond/)).toBeInTheDocument();
-    expect(screen.queryByText('We have received your order')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'We have received your order' })).toBeInTheDocument();
+    expect(screen.queryByText(/approve the longer wait/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Check your email to respond/i)).not.toBeInTheDocument();
   });
 
   it('renders a cancellation without exposing any private order fields', () => {

@@ -7,18 +7,16 @@ import { AlertCircle, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import type { GuestOrderStatusDto } from '@/types/order';
-import type { ConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
 import OrderReviewStatus from './OrderReviewStatus';
 import styles from '@/app/styles/ConfirmationPage.module.css';
 
 interface GuestOrderLiveViewProps {
   readonly orderNumber: string | null;
   readonly status: GuestOrderStatusDto | null;
-  readonly config: ConfirmationFlowConfig | null;
   readonly unavailable: boolean;
 }
 
-export default function GuestOrderLiveView({ orderNumber, status, config, unavailable }: GuestOrderLiveViewProps) {
+export default function GuestOrderLiveView({ orderNumber, status, unavailable }: GuestOrderLiveViewProps) {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -41,11 +39,12 @@ export default function GuestOrderLiveView({ orderNumber, status, config, unavai
     <main className={styles.container}>
       <div className={styles.content}>
         <OrderReviewStatus
-          confirmationFlow={config?.flow ?? 'acknowledge'}
+          confirmationFlow={status.confirmationFlow}
           orderNumber={orderNumber || status.orderNumber}
           status={status.status}
           estimatedDeliveryTime={status.estimatedDeliveryTime}
-          reviewWindowMinutes={config?.reviewWindowMinutes ?? 2}
+          reviewWindowMinutes={status.reviewWindowMinutes}
+          reviewDeadlineUtc={status.reviewDeadlineUtc}
         />
         <button type="button" onClick={() => router.push('/menu')} className={styles.menuButton}>
           <Home size={20} />

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import ServerFloorWorkspace from './ServerFloorWorkspace';
 import { useServerFloorSnapshot } from '@/hooks/serverWorkspace/useServerFloorSnapshot';
+import { SERVER_FLOOR_VIEW_STORAGE_KEY } from '@/hooks/serverWorkspace/useServerFloorViewState';
 import type { ServerFloorSnapshot } from '@/types/serverWorkspace';
 
 jest.mock('react-i18next', () => ({
@@ -238,6 +239,41 @@ describe('ServerFloorWorkspace', () => {
     expect(within(screen.getByRole('alert')).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
+  it('preserves a persisted zone while a delayed snapshot is loading', async () => {
+    window.sessionStorage.setItem(
+      SERVER_FLOOR_VIEW_STORAGE_KEY,
+      JSON.stringify({ view: 'map', zoneId: 'zone-2', scrollTop: 0 }),
+    );
+    mockUseFloor.mockReturnValue({
+      snapshot: null,
+      isLoading: true,
+      isStale: false,
+      error: null,
+      connectionState: 'reconnecting',
+      refresh: jest.fn(async () => undefined),
+    });
+
+    const { rerender } = render(<ServerFloorWorkspace />);
+
+    expect(JSON.parse(window.sessionStorage.getItem(SERVER_FLOOR_VIEW_STORAGE_KEY) ?? '{}')).toMatchObject({
+      zoneId: 'zone-2',
+    });
+
+    mockUseFloor.mockReturnValue({
+      snapshot,
+      isLoading: false,
+      isStale: false,
+      error: null,
+      connectionState: 'connected',
+      refresh: jest.fn(async () => undefined),
+    });
+    rerender(<ServerFloorWorkspace />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Terrace' })).toHaveAttribute('aria-pressed', 'true'),
+    );
+  });
+
   it('keeps legacy outstanding balance visible while flagging the table for review', () => {
     mockUseFloor.mockReturnValue({
       snapshot: {
@@ -281,6 +317,22 @@ describe('ServerFloorWorkspace', () => {
 
     expect(screen.getByText('No tables in this area right now.')).toBeInTheDocument();
     expect(screen.queryByLabelText('Restaurant floor plan')).not.toBeInTheDocument();
+  });
+
+  it('keeps empty zones in the Everywhere map when search is inactive', () => {
+    mockUseFloor.mockReturnValue({
+      snapshot: { ...snapshot, tables: [snapshot.tables[0]] },
+      isLoading: false,
+      isStale: false,
+      error: null,
+      connectionState: 'connected',
+      refresh: jest.fn(async () => undefined),
+    });
+
+    render(<ServerFloorWorkspace />);
+
+    expect(screen.getByRole('region', { name: 'Main room' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Terrace' })).toBeInTheDocument();
   });
 
   it('fails closed for an unknown backend table state', () => {
@@ -354,6 +406,13 @@ describe('ServerFloorWorkspace', () => {
 
     expect(screen.getAllByRole('link', { name: 'Open table details' })).toHaveLength(1);
     expect(screen.getByRole('link', { name: 'Open table details' })).toHaveAttribute('href', '/server/tables/table-2');
+  });
+
+  it('announces when a map search has no matching tables', () => {
+    render(<ServerFloorWorkspace />);
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search tables' }), { target: { value: 'missing' } });
+
+    expect(screen.getByText('No tables match your search.')).toBeInTheDocument();
   });
 
   it('renders more than 100 tables without truncating the floor list', () => {

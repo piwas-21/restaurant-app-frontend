@@ -55,12 +55,14 @@ export function useServerFloorViewState() {
 
   useEffect(() => {
     const store = storage();
-    if (store) {
-      const stored = store.getItem(STORAGE_KEY);
+    try {
+      const stored = store?.getItem(STORAGE_KEY);
       if (stored) {
         setState(readServerFloorViewState());
         setHasStoredPreference(true);
       }
+    } catch (error) {
+      warnStorageFailure(error);
     }
     setHydrated(true);
   }, []);

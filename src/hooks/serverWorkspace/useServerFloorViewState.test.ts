@@ -39,4 +39,23 @@ describe('server floor view state', () => {
     expect(result.current.view).toBe('list');
     expect(result.current.zoneId).toBe('zone-2');
   });
+
+  it('hydrates safely when session storage cannot be read', () => {
+    const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('storage access denied');
+    });
+    const warning = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    try {
+      const { result } = renderHook(() => useServerFloorViewState());
+
+      expect(result.current.hydrated).toBe(true);
+      expect(result.current.hasStoredPreference).toBe(false);
+      expect(result.current.view).toBe('map');
+      expect(warning).toHaveBeenCalled();
+    } finally {
+      getItem.mockRestore();
+      warning.mockRestore();
+    }
+  });
 });

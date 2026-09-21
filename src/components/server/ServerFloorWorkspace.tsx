@@ -56,12 +56,14 @@ export default function ServerFloorWorkspace() {
       ? selectedZone
         ? [selectedZone]
         : []
-      : zones.filter((zone) => visibleTables.some((table) => table.zoneId === zone.id));
+      : normalizedSearchQuery
+        ? zones.filter((zone) => visibleTables.some((table) => table.zoneId === zone.id))
+        : zones;
     return sourceZones.map((zone) => ({
       ...zone,
       tables: visibleTables.filter((table) => table.zoneId === zone.id).map(geometryFor),
     }));
-  }, [resolvedZoneId, selectedZone, visibleTables, zones]);
+  }, [normalizedSearchQuery, resolvedZoneId, selectedZone, visibleTables, zones]);
   const mapTables = useMemo(
     () =>
       resolvedZoneId
@@ -86,8 +88,8 @@ export default function ServerFloorWorkspace() {
   );
 
   useEffect(() => {
-    if (zoneId && !zones.some((zone) => zone.id === zoneId)) setZoneId(null);
-  }, [setZoneId, zoneId, zones]);
+    if (floor.snapshot && zoneId && !zones.some((zone) => zone.id === zoneId)) setZoneId(null);
+  }, [floor.snapshot, setZoneId, zoneId, zones]);
 
   useEffect(() => {
     if (!selectedTable || !isKnownServerFloorTableState(selectedTable.state)) {
@@ -176,7 +178,11 @@ export default function ServerFloorWorkspace() {
         )}
 
         {floor.snapshot && tables.length > 0 && effectiveView === 'map' && !mapHasTables && (
-          <div className={styles.statePanel}>{t('no_tables_here', 'No tables in this area right now.')}</div>
+          <div className={styles.statePanel}>
+            {normalizedSearchQuery
+              ? t('server.no_matching_tables', 'No tables match your search.')
+              : t('no_tables_here', 'No tables in this area right now.')}
+          </div>
         )}
 
         {floor.snapshot && mapHasTables && effectiveView === 'map' && (

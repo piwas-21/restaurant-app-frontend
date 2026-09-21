@@ -169,7 +169,6 @@ export function useCheckoutReview() {
   const customerHasDiscount = (cartState.basket?.customerDiscount || 0) > 0 || (cartState.basket?.discount || 0) > 0;
   const formatPrice = (price: number) => formatCurrency(price);
   const formatTotal = (total: number) => formatPlainCurrency(total, customerHasDiscount ? 0 : 2);
-
   return {
     t,
     checkoutState,
@@ -190,6 +189,7 @@ export function useCheckoutReview() {
     confirmedOrder: confirmation.confirmedOrder,
     isLoggedIn: confirmation.isLoggedIn,
     handleCloseConfirmationModal: confirmation.handleCloseConfirmationModal,
+    handleTrackOrder: confirmation.handleTrackOrder,
     handlePlaceOrder,
     formatPrice,
     formatTotal,

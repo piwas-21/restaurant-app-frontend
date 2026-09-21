@@ -8,7 +8,7 @@ import { CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/utils/currency';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
+import { DEFAULT_REVIEW_WINDOW_MINUTES, type ConfirmationFlow } from '@/services/orderTypeConfigurationService';
 import styles from './OrderReviewStatus.module.css';
 
 interface OrderReviewStatusProps {
@@ -16,13 +16,17 @@ interface OrderReviewStatusProps {
   readonly orderNumber?: string;
   readonly status: string;
   readonly estimatedDeliveryTime?: string | null;
-  readonly reviewWindowMinutes: number;
+  readonly reviewWindowMinutes?: number;
   readonly reviewDeadlineUtc?: string | null;
   readonly total?: number;
   readonly currency?: string;
 }
 
 const approvedStatuses = new Set(['Confirmed', 'Preparing', 'Ready', 'Completed']);
+
+export function isApprovedOrderStatus(status: string): boolean {
+  return approvedStatuses.has(status);
+}
 
 function readyTime(value: string | null | undefined, locale: string): string | null {
   if (!value) return null;
@@ -48,7 +52,7 @@ export default function OrderReviewStatus({
   orderNumber,
   status,
   estimatedDeliveryTime,
-  reviewWindowMinutes,
+  reviewWindowMinutes = DEFAULT_REVIEW_WINDOW_MINUTES,
   reviewDeadlineUtc,
   total,
   currency,
@@ -63,8 +67,6 @@ export default function OrderReviewStatus({
     const timer = window.setInterval(update, 1_000);
     return () => window.clearInterval(timer);
   }, [reviewDeadlineUtc]);
-
-  if (confirmationFlow !== 'acknowledge') return null;
 
   const orderLine = orderNumber ? (
     <p className={styles.orderNumber}>
@@ -95,7 +97,7 @@ export default function OrderReviewStatus({
     );
   }
 
-  if (approvedStatuses.has(status)) {
+  if (isApprovedOrderStatus(status)) {
     const time = readyTime(estimatedDeliveryTime, i18n.language);
     return (
       <section className={`${styles.panel} ${styles.approved}`} aria-live="polite">
@@ -110,6 +112,28 @@ export default function OrderReviewStatus({
             {time
               ? t('checkout.review_approved_ready_time', 'Expected ready time: {{time}}', { time })
               : t('checkout.review_approved_body', 'The restaurant is preparing your order now.')}
+          </p>
+          {totalLine}
+        </div>
+      </section>
+    );
+  }
+
+  if (confirmationFlow === 'direct') {
+    return (
+      <section className={`${styles.panel} ${styles.reviewing}`} aria-live="polite">
+        <Clock3 aria-hidden="true" />
+        <div className={styles.reviewBody}>
+          <div className={styles.headingRow}>
+            <h2>{t('checkout.review_received_title', 'We have received your order')}</h2>
+            <StatusBadge tone="info">{t('order_status_pending')}</StatusBadge>
+          </div>
+          {orderLine}
+          <p>
+            {t(
+              'checkout.direct_pending_body',
+              'Your order is awaiting restaurant confirmation. This screen will update as soon as the restaurant responds.',
+            )}
           </p>
           {totalLine}
         </div>

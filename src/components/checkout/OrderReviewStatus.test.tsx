@@ -26,7 +26,7 @@ jest.mock('react-i18next', () => ({
 
 describe('OrderReviewStatus', () => {
   it('shows a bounded review window only for the acknowledge flow', () => {
-    const { container, rerender } = render(
+    const { rerender } = render(
       <OrderReviewStatus
         confirmationFlow="acknowledge"
         status="Pending"
@@ -43,7 +43,9 @@ describe('OrderReviewStatus', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     rerender(<OrderReviewStatus confirmationFlow="direct" status="Pending" reviewWindowMinutes={2} />);
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole('heading', { name: 'We have received your order' })).toBeInTheDocument();
+    expect(screen.getByText(/awaiting restaurant confirmation/i)).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('anchors the countdown to the server deadline instead of restarting on render', () => {
@@ -126,5 +128,15 @@ describe('OrderReviewStatus', () => {
     expect(screen.getByRole('heading', { name: 'The restaurant could not accept this order' })).toBeInTheDocument();
     expect(screen.getByText('order_status_cancelled')).toBeInTheDocument();
     expect(screen.getByText(/cancellation details/)).toBeInTheDocument();
+  });
+
+  it('renders the restaurant decision for the direct flow too', () => {
+    const { rerender } = render(
+      <OrderReviewStatus confirmationFlow="direct" status="Confirmed" reviewWindowMinutes={2} />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Your order is approved' })).toBeInTheDocument();
+    rerender(<OrderReviewStatus confirmationFlow="direct" status="Cancelled" reviewWindowMinutes={2} />);
+    expect(screen.getByRole('heading', { name: 'The restaurant could not accept this order' })).toBeInTheDocument();
   });
 });

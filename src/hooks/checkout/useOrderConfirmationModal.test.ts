@@ -38,7 +38,7 @@ describe('useOrderConfirmationModal', () => {
     );
   });
 
-  it('keeps the existing menu behavior for a direct-flow guest even when a token exists', async () => {
+  it('routes a direct-flow guest with a token to the live confirmation page', async () => {
     const { result } = renderHook(() => useOrderConfirmationModal());
     act(() =>
       result.current.setConfirmedOrder({ ...confirmed, guestStatusToken: 'read-token', confirmationFlow: 'direct' }),
@@ -47,7 +47,7 @@ describe('useOrderConfirmationModal', () => {
 
     act(() => result.current.handleCloseConfirmationModal());
 
-    expect(mockPush).toHaveBeenCalledWith('/menu');
+    expect(mockPush).toHaveBeenCalledWith('/checkout/confirmation?orderId=order-id&orderNumber=ORD-42#t=read-token');
   });
 
   it('keeps the existing confirmation route for a signed-in customer without a token', async () => {

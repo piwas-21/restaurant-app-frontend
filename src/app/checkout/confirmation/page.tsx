@@ -32,7 +32,7 @@ import ConfirmationSuccessHeader from './ConfirmationSuccessHeader';
 import CheckoutReturnView from '@/components/checkout/CheckoutReturnView';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
-import OrderReviewStatus from '@/components/checkout/OrderReviewStatus';
+import OrderReviewStatus, { isApprovedOrderStatus } from '@/components/checkout/OrderReviewStatus';
 import GuestOrderLiveView from '@/components/checkout/GuestOrderLiveView';
 import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
 import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
@@ -225,7 +225,7 @@ function ConfirmationContent() {
 
         {/* The legacy generic estimate remains direct-flow only. Acknowledge flow shows the
             cashier's actual promised time in OrderReviewStatus after approval. */}
-        {confirmationConfig?.flow !== 'acknowledge' && (
+        {confirmationConfig?.flow !== 'acknowledge' && isApprovedOrderStatus(effectiveStatus) && (
           <div className={styles.estimatedTime}>
             <Clock size={32} className={styles.clockIcon} />
             <div className={styles.timeInfo}>

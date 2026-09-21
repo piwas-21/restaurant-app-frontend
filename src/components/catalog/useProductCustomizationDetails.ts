@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getProductById } from '@/services/menuService';
 import { useApiError } from '@/hooks/useApiError';
 import type { ProductCustomizationDetail } from './productCustomizationTypes';
+import type { OrderType } from '@/types/order';
 
 /**
  * The customization payload behind the waiter's sheet, and the SENTENCE for when it does not
@@ -23,7 +24,11 @@ import type { ProductCustomizationDetail } from './productCustomizationTypes';
  * options would have been. A toast would be wrong here — it outlives nothing and the sheet would
  * still be blank behind it.
  */
-export function useProductCustomizationDetails(productId: string | undefined, isOpen: boolean) {
+export function useProductCustomizationDetails(
+  productId: string | undefined,
+  isOpen: boolean,
+  requestedOrderType?: OrderType | null,
+) {
   const { t } = useTranslation();
   // `t` through a ref so it is not a dependency: i18next replaces it on a language change and a
   // test stub replaces it on every render, either of which would re-fetch for no reason.
@@ -46,12 +51,12 @@ export function useProductCustomizationDetails(productId: string | undefined, is
     const fallback = tRef.current('error_loading_product', 'Failed to load product details');
     setIsLoading(true);
     try {
-      const response = (await getProductById(productId)) as {
+      const response = (await getProductById(productId, undefined, requestedOrderType)) as {
         success: boolean;
         data?: ProductCustomizationDetail;
       };
       if (attempt !== attemptRef.current) return;
-      if (!response.success || !response.data) {
+      if (!response.success || !response.data || response.data.availability?.canOrder === false) {
         // Keep the sheet empty rather than showing the previous product's options beside a
         // failure — but SAY so. `capture` reads the resolved shape as well as the thrown one.
         setDetail(null);
@@ -67,7 +72,7 @@ export function useProductCustomizationDetails(productId: string | undefined, is
     } finally {
       if (attempt === attemptRef.current) setIsLoading(false);
     }
-  }, [productId, capture, clear]);
+  }, [productId, requestedOrderType, capture, clear]);
 
   useEffect(() => {
     if (!isOpen || !productId) return;

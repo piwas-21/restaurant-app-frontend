@@ -13,6 +13,7 @@ import type {
 } from './productCustomizationTypes';
 import styles from './ProductCustomization.module.css';
 import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
+import type { OrderType } from '@/types/order';
 
 // Re-exported so the existing importers (`take-order/useTakeOrder.ts`, `catalog/orderItems.ts`)
 // keep one shapes module while the sheet lives in the shared catalog home.
@@ -30,6 +31,7 @@ interface ProductCustomizationProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (result: CustomizationResult) => void;
+  requestedOrderType?: OrderType | null;
 }
 
 /**
@@ -40,9 +42,15 @@ interface ProductCustomizationProps {
  * it replaces had no `role="dialog"`, no ESC, no focus move and no scroll lock. The layout is
  * otherwise unchanged — a waiter is entering an order at speed and this screen must stay fast.
  */
-export default function ProductCustomization({ product, isOpen, onClose, onConfirm }: ProductCustomizationProps) {
+export default function ProductCustomization({
+  product,
+  isOpen,
+  onClose,
+  onConfirm,
+  requestedOrderType,
+}: ProductCustomizationProps) {
   const { t } = useTranslation();
-  const sheet = useProductCustomizationSheet({ product, isOpen, onClose, onConfirm });
+  const sheet = useProductCustomizationSheet({ product, isOpen, onClose, onConfirm, requestedOrderType });
 
   // Four flat branches rather than a ternary chain: the failure one is the point of the block, and
   // burying it two levels into a nested `?:` is how it stayed unwritten for as long as it did.

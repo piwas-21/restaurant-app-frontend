@@ -1,4 +1,5 @@
 import type { Product } from '@/services/serverService';
+import type { ItemAvailability } from '@/types/menu';
 
 /** The subset of `/api/Products` read by the waiter grid. */
 interface RawMenuProduct {
@@ -13,6 +14,7 @@ interface RawMenuProduct {
   primaryCategoryId?: string;
   imageUrl?: string;
   variations?: NonNullable<Product['variations']>;
+  availability?: ItemAvailability;
 }
 
 /** Project a public-menu response onto the staff grid's product shape. */
@@ -29,5 +31,6 @@ export function mapMenuProducts(items: readonly unknown[]): Product[] {
     primaryCategoryId: p.primaryCategoryId,
     imageUrl: p.imageUrl,
     variations: p.variations,
+    availability: p.availability,
   }));
 }

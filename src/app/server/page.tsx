@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
 import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
@@ -112,6 +113,12 @@ export default function ServerPage() {
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
       />
+
+      <div className={styles.pageActions}>
+        <Link className={styles.takeawayLink} href="/server/takeaway">
+          {t('server.takeaway.link')}
+        </Link>
+      </div>
 
       <div className={styles.mainContent}>
         {/* Left Panel - Table Grid */}

@@ -144,10 +144,15 @@ export const createProduct = async (productData: CreateProductData) => {
   }
 };
 
-export const getProductById = async (productId: string, signal?: AbortSignal) => {
+export const getProductById = async (
+  productId: string,
+  signal?: AbortSignal,
+  requestedOrderType?: OrderType | null,
+) => {
+  const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
   return await (signal
-    ? apiClient.get(`${PRODUCTS_API_URL}/${productId}`, { signal })
-    : apiClient.get(`${PRODUCTS_API_URL}/${productId}`));
+    ? apiClient.get(`${PRODUCTS_API_URL}/${productId}${query}`, { signal })
+    : apiClient.get(`${PRODUCTS_API_URL}/${productId}${query}`));
 };
 
 /**

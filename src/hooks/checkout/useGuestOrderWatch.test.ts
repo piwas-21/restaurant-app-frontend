@@ -13,6 +13,9 @@ const pending = {
   type: 'Takeaway',
   status: 'Pending',
   estimatedDeliveryTime: null,
+  confirmationFlow: 'acknowledge' as const,
+  reviewWindowMinutes: 2,
+  reviewDeadlineUtc: '2026-09-20T12:02:00Z',
 };
 
 beforeEach(() => {
@@ -34,7 +37,7 @@ describe('useGuestOrderWatch', () => {
     expect(result.current.status).toEqual(pending);
   });
 
-  it('polls every 15 seconds while pending and stops after approval', async () => {
+  it('polls every five seconds while pending and stops after approval', async () => {
     getStatus
       .mockResolvedValueOnce(pending)
       .mockResolvedValueOnce({ ...pending, status: 'Confirmed', estimatedDeliveryTime: '2026-09-20T12:30:00Z' });
@@ -42,13 +45,13 @@ describe('useGuestOrderWatch', () => {
     await waitFor(() => expect(result.current.phase).toBe('reviewing'));
 
     await act(async () => {
-      jest.advanceTimersByTime(15_000);
+      jest.advanceTimersByTime(5_000);
       await Promise.resolve();
     });
     await waitFor(() => expect(result.current.phase).toBe('approved'));
 
     act(() => {
-      jest.advanceTimersByTime(45_000);
+      jest.advanceTimersByTime(15_000);
     });
     expect(getStatus).toHaveBeenCalledTimes(2);
   });
@@ -58,30 +61,46 @@ describe('useGuestOrderWatch', () => {
     const { result } = renderHook(() => useGuestOrderWatch('order-id', 'read-token'));
     await waitFor(() => expect(result.current.phase).toBe('reviewing'));
 
-    act(() => jest.advanceTimersByTime(15_000));
+    act(() => jest.advanceTimersByTime(5_000));
     expect(getStatus).toHaveBeenCalledTimes(1);
 
     visibility.mockReturnValue('visible');
     await act(async () => {
-      jest.advanceTimersByTime(15_000);
+      jest.advanceTimersByTime(5_000);
       await Promise.resolve();
     });
     expect(getStatus).toHaveBeenCalledTimes(2);
     visibility.mockRestore();
   });
 
-  it('stops polling when a long preparation time enters the existing customer-approval flow', async () => {
+  it('keeps polling an acknowledge order if an older row is still PendingApproval', async () => {
     getStatus.mockResolvedValueOnce({
       ...pending,
       status: 'PendingApproval',
       estimatedDeliveryTime: '2026-09-20T13:00:00Z',
     });
     const { result } = renderHook(() => useGuestOrderWatch('order-id', 'read-token'));
-    await waitFor(() => expect(result.current.phase).toBe('delay-approval'));
+    await waitFor(() => expect(result.current.phase).toBe('reviewing'));
 
-    act(() => {
-      jest.advanceTimersByTime(45_000);
+    await act(async () => {
+      jest.advanceTimersByTime(5_000);
+      await Promise.resolve();
     });
+    expect(getStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('leaves the legacy direct-flow delay with the customer', async () => {
+    getStatus.mockResolvedValueOnce({
+      ...pending,
+      confirmationFlow: 'direct',
+      status: 'PendingApproval',
+      estimatedDeliveryTime: '2026-09-20T13:00:00Z',
+      reviewDeadlineUtc: null,
+    });
+    const { result } = renderHook(() => useGuestOrderWatch('order-id', 'read-token'));
+
+    await waitFor(() => expect(result.current.phase).toBe('delay-approval'));
+    act(() => jest.advanceTimersByTime(15_000));
     expect(getStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -97,7 +116,7 @@ describe('useGuestOrderWatch', () => {
 
     expect(result.current.phase).toBe('loading');
     await act(async () => {
-      jest.advanceTimersByTime(15_000);
+      jest.advanceTimersByTime(5_000);
       await Promise.resolve();
     });
     await waitFor(() => expect(result.current.phase).toBe('reviewing'));

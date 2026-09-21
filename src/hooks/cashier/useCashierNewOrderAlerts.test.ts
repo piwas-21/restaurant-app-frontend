@@ -25,6 +25,7 @@ const order = (id: string, overrides: Partial<OrderDto> = {}): OrderDto =>
   }) as OrderDto;
 
 const notify = jest.fn();
+const queuePending = jest.fn();
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -50,6 +51,24 @@ describe('useCashierNewOrderAlerts', () => {
     rerender({ orders: [order('new')], loading: false });
 
     expect(notify).toHaveBeenCalledWith('ORD-new', 'Ada');
+  });
+
+  it('hands a new Pending order to the workspace decision queue', () => {
+    const { rerender } = renderHook(
+      ({ orders }) =>
+        useCashierNewOrderAlerts({
+          orders,
+          isInitialLoading: false,
+          notifyNewOrder: notify,
+          onPendingOrder: queuePending,
+        }),
+      { initialProps: { orders: [] as OrderDto[] } },
+    );
+    const arriving = order('review');
+
+    rerender({ orders: [arriving] });
+
+    expect(queuePending).toHaveBeenCalledWith(arriving);
   });
 
   it('announces each new order once — the seen-set, not the array length', () => {

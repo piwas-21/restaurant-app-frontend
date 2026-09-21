@@ -77,6 +77,9 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
       type: string;
       status: string;
       estimatedDeliveryTime: null;
+      confirmationFlow: 'acknowledge';
+      reviewWindowMinutes: number;
+      reviewDeadlineUtc: string;
     }) => void;
     mockGetGuestOrderStatus.mockReturnValue(
       new Promise((resolve) => {
@@ -95,6 +98,9 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
         type: 'Takeaway',
         status: 'Pending',
         estimatedDeliveryTime: null,
+        confirmationFlow: 'acknowledge',
+        reviewWindowMinutes: 2,
+        reviewDeadlineUtc: '2026-09-20T12:02:00Z',
       });
     });
     expect(await screen.findByRole('heading', { name: 'We have received your order' })).toBeInTheDocument();
@@ -115,6 +121,9 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
       type: 'Takeaway',
       status,
       estimatedDeliveryTime: status === 'Confirmed' ? '2026-09-20T12:30:00Z' : null,
+      confirmationFlow: 'acknowledge',
+      reviewWindowMinutes: 2,
+      reviewDeadlineUtc: '2026-09-20T12:02:00Z',
     });
 
     render(<ConfirmationPage />);

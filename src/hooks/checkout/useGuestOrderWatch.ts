@@ -3,15 +3,14 @@
 // The guest confirmation screen's live watch (order confirmation flows, plan S3): polls the
 // anonymous guest-status endpoint while the order is still awaiting the restaurant's decision,
 // stops the moment it is decided (Confirmed/Cancelled/Completed) or the tab is hidden, and
-// reports the phase the acknowledgement header renders. 15s cadence — the endpoint shares the
-// checkout-status rate bucket with the rest of the checkout's polling, budgeted for exactly
-// this cadence.
+// reports the phase the acknowledgement header renders. Its dedicated rate bucket supports this
+// responsive cadence without competing with a diner's payment-settlement return.
 import { useEffect, useRef, useState } from 'react';
 import { getGuestOrderStatus } from '@/services/order/orderQueries';
 import type { GuestOrderStatusDto } from '@/types/order';
 import { isNotFoundError } from '@/utils/apiClient';
 
-const POLL_INTERVAL_MS = 15_000;
+const POLL_INTERVAL_MS = 5_000;
 
 export type GuestOrderPhase = 'loading' | 'reviewing' | 'approved' | 'delay-approval' | 'decided' | 'unavailable';
 
@@ -20,14 +19,14 @@ interface UseGuestOrderWatchResult {
   phase: GuestOrderPhase;
 }
 
-function phaseFor(status: string | undefined): GuestOrderPhase {
-  switch (status) {
+function phaseFor(status: GuestOrderStatusDto | null): GuestOrderPhase {
+  switch (status?.status) {
     case 'Pending':
       return 'reviewing';
     case 'PendingApproval':
-      // The >10-minute prep branch: the guest must approve the wait themselves (M10 links) —
-      // a different screen than the review animation.
-      return 'delay-approval';
+      // Reviewed orders remain restaurant-owned even if an older row reached the legacy delay
+      // state before this contract shipped. Keep watching for the cashier's final decision.
+      return status.confirmationFlow === 'acknowledge' ? 'reviewing' : 'delay-approval';
     case 'Confirmed':
     case 'Preparing':
     case 'Ready':
@@ -62,11 +61,11 @@ export function useGuestOrderWatch(orderId: string | null, token: string | null)
         const next = await getGuestOrderStatus(orderId, token);
         if (cancelled) return;
         setStatus(next);
-        setPhase(phaseFor(next.status));
+        setPhase(phaseFor(next));
       } catch (error) {
         if (cancelled) return;
         // Only the backend's indistinguishable unknown-id/wrong-token 404 is terminal. A network
-        // loss, 429 or 5xx keeps the last state and the 15-second retry alive.
+        // loss, 429 or 5xx keeps the last state and the five-second retry alive.
         if (isNotFoundError(error)) setPhase('unavailable');
       }
     };
@@ -94,8 +93,8 @@ export function useGuestOrderWatch(orderId: string | null, token: string | null)
     };
   }, [orderId, token]);
 
-  // Stop once the restaurant decides. PendingApproval now waits on the customer through the
-  // existing M10 email links; polling the restaurant does not advance that decision.
+  // Stop once the restaurant decides. The direct flow's legacy PendingApproval still waits on the
+  // customer; acknowledge flow never does and therefore keeps watching that older state.
   const shouldPoll = phase === 'reviewing' || phase === 'loading';
   useEffect(() => {
     if (!shouldPoll && timerRef.current) {

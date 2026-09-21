@@ -41,20 +41,26 @@
   min-width: 0;
 }
 .progressTrack {
+  appearance: none;
   background: var(--surface-secondary);
+  border: 0;
   border-radius: 999px;
   height: 0.5rem;
   margin-top: 0.8rem;
   overflow: hidden;
   width: 100%;
 }
-.progressFill {
+.progressTrack::-webkit-progress-bar {
+  background: var(--surface-secondary);
+  border-radius: inherit;
+}
+.progressTrack::-webkit-progress-value {
   background: var(--feedback-info);
   border-radius: inherit;
-  display: block;
-  height: 100%;
-  transition: width 1s linear;
-  width: var(--review-progress);
+}
+.progressTrack::-moz-progress-bar {
+  background: var(--feedback-info);
+  border-radius: inherit;
 }
 .timerRow {
   align-items: flex-end;
@@ -77,6 +83,7 @@
 }
 .overdue {
   color: var(--feedback-warning-dark) !important;
+  display: block;
   font-weight: 650;
   margin-top: 0.75rem !important;
 }
@@ -97,12 +104,6 @@
 .total {
   margin-top: 0.6rem !important;
 }
-@media (prefers-reduced-motion: reduce) {
-  .progressFill {
-    transition: none;
-  }
-}
-
 .panel .orderNumber {
   color: var(--text-primary);
   margin-bottom: 0.35rem;

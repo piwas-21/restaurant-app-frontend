@@ -3,7 +3,7 @@
 // The customer-facing acknowledgement/approval state (order confirmation flows, plan S3).
 // This deliberately sits above the receipt rather than replacing it. It is also the complete
 // guest-safe view when the auth-gated receipt cannot load.
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/utils/currency';
@@ -145,24 +145,19 @@ export default function OrderReviewStatus({
               : countdownLabel(remainingSeconds)}
           </time>
         </div>
-        <div
+        <progress
           className={styles.progressTrack}
-          role="progressbar"
           aria-label={t('checkout.review_timer_label', 'Expected response in')}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progress}
-        >
-          {/* Dynamic exception: the server-anchored remaining percentage cannot be a static class. */}
-          <span className={styles.progressFill} style={{ '--review-progress': `${progress}%` } as CSSProperties} />
-        </div>
+          max={100}
+          value={progress}
+        />
         {isOverdue && (
-          <p className={styles.overdue} role="status">
+          <output className={styles.overdue}>
             {t(
               'checkout.review_overdue',
               'The review is taking longer than expected. Keep this page open; we will update it as soon as the restaurant responds.',
             )}
-          </p>
+          </output>
         )}
         {totalLine}
       </div>

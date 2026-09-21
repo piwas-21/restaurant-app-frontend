@@ -64,6 +64,24 @@ describe('OrderReviewStatus', () => {
     jest.useRealTimers();
   });
 
+  it('keeps the order pending when the response target has elapsed', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-09-20T12:03:00Z'));
+    render(
+      <OrderReviewStatus
+        confirmationFlow="acknowledge"
+        status="Pending"
+        reviewWindowMinutes={2}
+        reviewDeadlineUtc="2026-09-20T12:02:00Z"
+      />,
+    );
+
+    expect(screen.getByText('0:00')).toBeInTheDocument();
+    expect(screen.getByText(/taking longer than expected/)).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveValue(0);
+    jest.useRealTimers();
+  });
+
   it('uses singular review-window copy for one minute', () => {
     render(<OrderReviewStatus confirmationFlow="acknowledge" status="Pending" reviewWindowMinutes={1} />);
 

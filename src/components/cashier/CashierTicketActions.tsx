@@ -60,9 +60,10 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
   // The pending hand-off gate (order confirmation flows): a pending takeaway/delivery order is
   // waiting on THIS cashier — approve/confirm is the one emphasized action (plan §5.2), ahead of
   // print/notes. Dine-in auto-confirms at creation and never reaches this branch.
-  const isPendingHandoff =
-    order.status === 'Pending' && (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
   const confirmationFlow = flowForOrder(order.type)?.flow ?? 'direct';
+  const isPendingHandoff =
+    (order.status === 'Pending' || (order.status === 'PendingApproval' && confirmationFlow === 'acknowledge')) &&
+    (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
 
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>

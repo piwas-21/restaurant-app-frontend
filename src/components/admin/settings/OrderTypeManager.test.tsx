@@ -73,8 +73,8 @@ describe('OrderTypeManager confirmation settings', () => {
     expect(await screen.findByRole('combobox', { name: 'Takeaway Confirmation flow' })).toHaveValue('direct');
     expect(screen.getByRole('combobox', { name: 'Delivery Confirmation flow' })).toHaveValue('acknowledge');
     expect(screen.queryByRole('combobox', { name: 'Dine In Confirmation flow' })).not.toBeInTheDocument();
-    expect(screen.getByRole('spinbutton', { name: 'Delivery Review window (minutes)' })).toHaveValue(5);
-    expect(screen.queryByRole('spinbutton', { name: 'Takeaway Review window (minutes)' })).not.toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: 'Delivery Review target (minutes)' })).toHaveValue(5);
+    expect(screen.queryByRole('spinbutton', { name: 'Takeaway Review target (minutes)' })).not.toBeInTheDocument();
   });
 
   it('persists acknowledge with the existing review window and reveals its input', async () => {
@@ -91,12 +91,12 @@ describe('OrderTypeManager confirmation settings', () => {
         reviewWindowMinutes: 2,
       }),
     );
-    expect(await screen.findByRole('spinbutton', { name: 'Takeaway Review window (minutes)' })).toHaveValue(2);
+    expect(await screen.findByRole('spinbutton', { name: 'Takeaway Review target (minutes)' })).toHaveValue(2);
   });
 
   it('persists only an integer review window from 1 through 60', async () => {
     render(<OrderTypeManager />);
-    const input = await screen.findByRole('spinbutton', { name: 'Delivery Review window (minutes)' });
+    const input = await screen.findByRole('spinbutton', { name: 'Delivery Review target (minutes)' });
 
     fireEvent.change(input, { target: { value: '61' } });
     fireEvent.blur(input);
@@ -144,7 +144,7 @@ describe('OrderTypeManager confirmation settings', () => {
       }),
     );
     await waitFor(() =>
-      expect(screen.queryByRole('spinbutton', { name: 'Delivery Review window (minutes)' })).not.toBeInTheDocument(),
+      expect(screen.queryByRole('spinbutton', { name: 'Delivery Review target (minutes)' })).not.toBeInTheDocument(),
     );
   });
 });

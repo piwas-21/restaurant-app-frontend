@@ -26,7 +26,6 @@ export default function OrderTypeManager() {
   const [pendingOrderType, setPendingOrderType] = useState<OrderType | null>(null);
   const [reviewWindowDrafts, setReviewWindowDrafts] = useState<Partial<Record<OrderType, string>>>({});
   const [reviewWindowErrors, setReviewWindowErrors] = useState<Partial<Record<OrderType, string>>>({});
-
   const handleToggle = async (orderType: OrderType, currentlyEnabled: boolean) => {
     if (currentlyEnabled) {
       setPendingOrderType(orderType);
@@ -161,16 +160,23 @@ export default function OrderTypeManager() {
                     >
                       <option value="direct">{t('admin.order_type.flow_direct', 'Confirm directly')}</option>
                       <option value="acknowledge">
-                        {t('admin.order_type.flow_acknowledge', 'Review and acknowledge')}
+                        {t('admin.order_type.flow_acknowledge', 'Review before accepting')}
                       </option>
                     </select>
                   </FormField>
+                  <p className={flowStyles.hint}>
+                    {t(
+                      flow === 'acknowledge'
+                        ? 'admin.order_type.flow_acknowledge_help'
+                        : 'admin.order_type.flow_direct_help',
+                    )}
+                  </p>
 
                   {flow === 'acknowledge' && (
                     <FormField
                       label={`${getOrderTypeName(configuration.orderType)} ${t(
                         'admin.order_type.review_window_minutes',
-                        'Review window (minutes)',
+                        'Review target (minutes)',
                       )}`}
                       error={reviewWindowErrors[configuration.orderType]}
                       className={flowStyles.field}

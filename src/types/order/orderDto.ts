@@ -129,22 +129,9 @@ export interface OrderDto {
 }
 
 /**
- * The anonymous guest-status read (`GET /api/orders/guest-status`): a deliberate MINIMUM —
- * no address, payments or notes. Unknown id OR wrong token answers 404, so "not found"
- * cannot leak an order's existence.
- */
-export interface GuestOrderStatusDto {
-  orderNumber: string;
-  type: string;
-  status: string;
-  estimatedDeliveryTime?: string | null;
-}
-
-/**
  * Order API response types
  */
 export type OrderDtoApiResponse = ApiResponse<OrderDto>;
-export type GuestOrderStatusApiResponse = ApiResponse<GuestOrderStatusDto>;
 export type OrderDtoListApiResponse = ApiResponse<OrderDto[]>;
 export type OrderDtoPagedResultApiResponse = ApiResponse<PagedResult<OrderDto>>;
 export type OrderPaymentDtoApiResponse = ApiResponse<OrderPaymentDto>;

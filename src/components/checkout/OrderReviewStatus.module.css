@@ -41,23 +41,51 @@
   min-width: 0;
 }
 .progressTrack {
+  appearance: none;
   background: var(--surface-secondary);
+  border: 0;
   border-radius: 999px;
   height: 0.5rem;
   margin-top: 0.8rem;
   overflow: hidden;
   width: 100%;
 }
-.progressFill {
-  animation-duration: var(--review-duration);
-  animation-fill-mode: forwards;
-  animation-name: review-progress;
-  animation-timing-function: linear;
+.progressTrack::-webkit-progress-bar {
+  background: var(--surface-secondary);
+  border-radius: inherit;
+}
+.progressTrack::-webkit-progress-value {
   background: var(--feedback-info);
   border-radius: inherit;
+}
+.progressTrack::-moz-progress-bar {
+  background: var(--feedback-info);
+  border-radius: inherit;
+}
+.timerRow {
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+.timerRow > span {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+.countdown {
+  color: var(--feedback-info-dark);
+  font-size: clamp(1.8rem, 7vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.overdue {
+  color: var(--feedback-warning-dark) !important;
   display: block;
-  height: 100%;
-  min-width: 8%;
+  font-weight: 650;
+  margin-top: 0.75rem !important;
 }
 .approved {
   background: var(--feedback-success-xlight);
@@ -76,21 +104,6 @@
 .total {
   margin-top: 0.6rem !important;
 }
-@keyframes review-progress {
-  from {
-    width: 8%;
-  }
-  to {
-    width: 100%;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .progressFill {
-    animation: none;
-    width: 65%;
-  }
-}
-
 .panel .orderNumber {
   color: var(--text-primary);
   margin-bottom: 0.35rem;

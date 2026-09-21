@@ -2,9 +2,8 @@
 
 // New-order alerts for the orders workspace (order confirmation flows, plan S2): the workspace's
 // SSE stream already refreshes the queue, so the ONLY job left here is the attention signal —
-// the configured notification sound, once per newly arrived Pending order. Deliberately NOT the
-// deleted legacy behaviour: no modal auto-open, no focus takeover, no auto-print, no viewport
-// flash. The cashier keeps whatever they are doing; the queue itself shows the new row.
+// the configured notification sound, once per newly arrived Pending order, plus handing that order
+// to the workspace's review-flow decision queue. The hook itself never owns focus or UI.
 import { useEffect, useRef } from 'react';
 import type { OrderDto } from '@/types/order';
 
@@ -16,6 +15,8 @@ export interface UseCashierNewOrderAlertsOptions {
   readonly isInitialLoading: boolean;
   /** The configured sound + visible toast. */
   readonly notifyNewOrder: (orderNumber: string, customerName: string) => void;
+  /** Hands a new Pending order to the workspace's review-flow decision queue. */
+  readonly onPendingOrder?: (order: OrderDto) => void;
 }
 
 /**
@@ -36,6 +37,7 @@ export function useCashierNewOrderAlerts({
   orders,
   isInitialLoading,
   notifyNewOrder,
+  onPendingOrder,
 }: UseCashierNewOrderAlertsOptions): void {
   const seenOrderIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
@@ -55,7 +57,10 @@ export function useCashierNewOrderAlerts({
     unseen.forEach((order) => rememberSeen(seenOrderIdsRef.current, order.id));
     unseen
       .filter((order) => order.status === 'Pending')
-      .forEach((order) => notifyNewOrder(order.orderNumber || order.id, order.customerName || ''));
+      .forEach((order) => {
+        notifyNewOrder(order.orderNumber || order.id, order.customerName || '');
+        onPendingOrder?.(order);
+      });
     // notifyNewOrder is a useCallback in useNotification; re-announcing on its identity change
     // would double-play a sound for the same order — the seen-set is the actual contract.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -3,6 +3,7 @@ describe('getTenantFeatures', () => {
 
   beforeEach(() => {
     jest.resetModules();
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     process.env.NEXT_PUBLIC_API_URL = 'http://backend.test';
     process.env.TENANT_FEATURES_REQUEST_TIMEOUT_MS = '3000';
     delete process.env.API_INTERNAL_URL;

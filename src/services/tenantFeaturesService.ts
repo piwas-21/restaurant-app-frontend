@@ -37,10 +37,8 @@ export async function getTenantFeatures(): Promise<TenantFeatures> {
     if (body?.success !== true) return { ...DEFAULT_FEATURES };
     const enabled = body?.data?.serverWorkspaceV2;
     return typeof enabled === 'boolean' ? { serverWorkspaceV2: enabled } : { ...DEFAULT_FEATURES };
-  } catch (_error) {
-    // IGNORED ON PURPOSE: rollout discovery is a presentation-only, fail-closed seam. A
-    // timeout, older backend, or malformed response must retain the established V1 workspace;
-    // there is no user-facing error surface before this server layout renders.
+  } catch (error) {
+    console.warn('Could not read tenant rollout features; retaining Server Workspace V1', error);
     return { ...DEFAULT_FEATURES };
   }
 }

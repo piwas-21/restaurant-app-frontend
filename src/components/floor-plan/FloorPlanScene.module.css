@@ -44,6 +44,7 @@
 
 /* ── ink variants (mapped from symbol primitives) ─────────────────────────── */
 .ln,
+.lnThin,
 .scenery {
   fill: none;
   stroke-linecap: round;
@@ -54,11 +55,8 @@
   stroke-width: var(--fp-w);
 }
 .lnThin {
-  fill: none;
   stroke: var(--fp-ink);
   stroke-width: var(--fp-w-thin);
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 .fill {
   fill: var(--fp-fill);
@@ -135,10 +133,12 @@
   stroke: var(--fp-ink);
   stroke-width: var(--fp-w-thin);
 }
-.tableHit {
+.tableHit,
+.itemHit {
   cursor: pointer;
 }
-.table:focus-visible {
+.table:focus-visible,
+.itemHit:focus-visible {
   outline: 2px solid var(--fp-accent);
   outline-offset: 2px;
 }
@@ -172,18 +172,16 @@
 .table[data-state='dim'] {
   opacity: 0.24;
 }
+.table[data-state='unavailable'] {
+  opacity: 0.48;
+}
+.table[data-state='unavailable'] .tableTop,
+.table[data-state='unavailable'] .chair {
+  fill: var(--surface-secondary);
+  stroke: var(--text-secondary);
+}
 .tableHit[data-state='available']:hover .tableTop {
   stroke-width: calc(var(--fp-w) * 1.6);
-}
-
-/* Placed items are inert scenery on the guest map; the editor makes them
-   focusable objects, and only then do they take a cursor and a focus ring. */
-.itemHit {
-  cursor: pointer;
-}
-.itemHit:focus-visible {
-  outline: 2px solid var(--fp-accent);
-  outline-offset: 2px;
 }
 
 /* ── editor grid ──────────────────────────────────────────────────────────── */

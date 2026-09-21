@@ -14,7 +14,7 @@ export type SceneStyles = Readonly<Record<string, string>>;
  * depends on this — only the fill / opacity does — which is why the map and the
  * editor stay pixel-identical.
  */
-export type TableRenderState = 'available' | 'selected' | 'occupied' | 'booked' | 'small' | 'dim';
+export type TableRenderState = 'available' | 'selected' | 'occupied' | 'booked' | 'small' | 'dim' | 'unavailable';
 
 /**
  * How a table's selection was triggered. The guest map ignores this and just

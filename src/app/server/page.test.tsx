@@ -27,6 +27,10 @@ jest.mock('@/components/server', () => ({
   TableDetailsModal: () => null,
   TakeOrderModal: () => null,
 }));
+jest.mock('@/components/server/ServerFloorWorkspace', () => ({
+  __esModule: true,
+  default: () => <div data-testid="server-floor-v2" />,
+}));
 
 describe('/server takeaway entry', () => {
   it('exposes an accessible route action without changing the table workspace', () => {
@@ -44,7 +48,7 @@ describe('/server takeaway entry', () => {
       </TenantFeaturesProvider>,
     );
 
-    expect(screen.getByTestId('table-grid')).toBeInTheDocument();
-    expect(screen.getByRole('main')).toHaveAttribute('data-workspace-variant', 'v2-fallback');
+    expect(screen.getByTestId('server-floor-v2')).toBeInTheDocument();
+    expect(screen.queryByTestId('table-grid')).not.toBeInTheDocument();
   });
 });

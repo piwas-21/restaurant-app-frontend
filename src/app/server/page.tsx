@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
 import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
+import ServerFloorWorkspace from '@/components/server/ServerFloorWorkspace';
 import styles from '../styles/ServerPage.module.css';
 
 type ServerWorkspaceVariant = 'v1' | 'v2-fallback';
@@ -179,18 +180,12 @@ function ServerWorkspaceV1({ variant = 'v1' }: Readonly<{ variant?: ServerWorksp
   );
 }
 
-/**
- * V2's full floor workspace is still being delivered. Keeping its entry seam explicit lets
- * rollout tests and future work target one component without routing an enabled tenant into a
- * broken or redirecting page. Until that implementation lands, the established V1 workspace is
- * the safe fallback for an enabled tenant.
- */
-function ServerWorkspaceV2Fallback() {
-  return <ServerWorkspaceV1 variant="v2-fallback" />;
+function ServerWorkspaceV2() {
+  return <ServerFloorWorkspace />;
 }
 
 export default function ServerPage() {
   const { serverWorkspaceV2 } = useTenantFeatures();
 
-  return serverWorkspaceV2 ? <ServerWorkspaceV2Fallback /> : <ServerWorkspaceV1 />;
+  return serverWorkspaceV2 ? <ServerWorkspaceV2 /> : <ServerWorkspaceV1 />;
 }

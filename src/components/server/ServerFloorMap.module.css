@@ -1,0 +1,80 @@
+.workspaceBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(19rem, 0.75fr);
+  gap: var(--space-3, 0.75rem);
+  min-block-size: 0;
+}
+
+.spatialPanel {
+  min-inline-size: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+}
+
+.zoneMaps {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+}
+
+.zoneMap {
+  min-inline-size: 0;
+  overflow: hidden;
+  border-block-end: 1px solid var(--border-default);
+}
+
+.zoneMap:last-child {
+  border-block-end: 0;
+}
+
+.zoneTitle {
+  margin: 0;
+  padding: var(--space-3, 0.75rem) var(--space-3, 0.75rem) 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.stage {
+  min-block-size: min(62vh, 42rem);
+  touch-action: none;
+  background: var(--surface-primary);
+}
+
+.stage :global(svg) {
+  min-block-size: min(62vh, 42rem);
+}
+
+.mapControls {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-2, 0.5rem);
+  border-block-start: 1px solid var(--border-default);
+}
+
+.detailPanel {
+  min-inline-size: 0;
+  max-block-size: min(70vh, 48rem);
+  overflow: auto;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+}
+
+.detailPanel {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2, 0.5rem);
+}
+
+@media (max-width: 64rem) {
+  .workspaceBody {
+    grid-template-columns: 1fr;
+  }
+
+  .detailPanel {
+    max-block-size: none;
+  }
+}

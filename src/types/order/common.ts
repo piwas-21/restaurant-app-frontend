@@ -24,4 +24,6 @@ export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   errors?: string[];
+  /** Stable backend discriminator for a refused operation. */
+  errorCode?: string;
 }

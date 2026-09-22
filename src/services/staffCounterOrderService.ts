@@ -2,9 +2,12 @@ import { apiClient } from '@/utils/apiClient';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type {
   CreateStaffCounterOrderCommand,
+  CreateStaffRoundCommand,
   OrderDto,
   OrderDtoApiResponse,
   ReleaseStaffCounterOrderCommand,
+  StaffRoundOperationLookupApiResponse,
+  StaffRoundOperationLookupDto,
   StaffCounterOrderRequest,
 } from '@/types/order';
 
@@ -59,6 +62,21 @@ export async function releaseStaffCounterOrder(
   const response = await apiClient.post<OrderDtoApiResponse>(
     `${BASE_PATH}/${encodeURIComponent(orderId)}/release`,
     command,
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
+/** Create one idempotent dine-in round against an already-authoritative table session. */
+export async function createStaffRound(command: CreateStaffRoundCommand): Promise<OrderDto> {
+  const response = await apiClient.post<OrderDtoApiResponse>(`${BASE_PATH}/round`, command, { requireAuth: true });
+  return requireData(response);
+}
+
+/** Resolve a round create after a timeout or other unknown transport outcome. */
+export async function lookupStaffRoundOperation(operationId: string): Promise<StaffRoundOperationLookupDto> {
+  const response = await apiClient.get<StaffRoundOperationLookupApiResponse>(
+    `${BASE_PATH}/round/operations/${encodeURIComponent(operationId)}`,
     { requireAuth: true },
   );
   return requireData(response);

@@ -2894,5 +2894,20 @@
   "server.tasks.delivery_failed": "The task could not be updated. Try again.",
   "server.tasks.version_conflict": "This order changed. The task list was refreshed.",
   "server.tasks.load_failed": "Tasks could not be loaded. Try again.",
-  "server.tasks.session_mismatch": "This task belongs to a different table visit. Refresh the task list before continuing."
+  "server.tasks.session_mismatch": "This task belongs to a different table visit. Refresh the task list before continuing.",
+  "server.bill.title": "Bill and visit",
+  "server.bill.operation_failed": "The bill action could not be completed. Refresh and try again.",
+  "server.bill.close_blocked_handoff": "Resolve or cancel the cashier request before closing this visit.",
+  "server.bill.close_blocked_legacy": "A manager must resolve the unassigned table orders before closing.",
+  "server.bill.close_blocked_balance": "Collect or send the remaining balance to Cashier before closing.",
+  "server.bill.close_blocked_rounds": "Every round must be completed or cancelled before closing.",
+  "server.bill.handoff_pending": "Cashier collection requested for {{amount}}.",
+  "server.bill.print_dialog_opened": "The browser print dialog opened. Confirm paper output separately.",
+  "server.bill.collect": "Collect payment",
+  "server.bill.send_to_cashier": "Send to Cashier",
+  "server.bill.cancel_handoff": "Cancel cashier request",
+  "server.bill.close_visit": "Close visit",
+  "server.bill.close_confirm_title": "Close this visit?",
+  "server.bill.close_confirm_message": "Close the current visit for table {{table}}?",
+  "cashier.tables.payment_requested": "Payment requested"
 }

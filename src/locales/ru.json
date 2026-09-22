@@ -2912,5 +2912,20 @@
   "server.tasks.delivery_failed": "Не удалось обновить задачу. Повторите попытку.",
   "server.tasks.version_conflict": "Заказ изменён. Список задач обновлён.",
   "server.tasks.load_failed": "Не удалось загрузить задачи. Повторите попытку.",
-  "server.tasks.session_mismatch": "Эта задача относится к другому визиту за столом. Обновите список перед продолжением."
+  "server.tasks.session_mismatch": "Эта задача относится к другому визиту за столом. Обновите список перед продолжением.",
+  "server.bill.title": "Счёт и визит",
+  "server.bill.operation_failed": "Не удалось выполнить действие со счётом. Обновите данные и повторите попытку.",
+  "server.bill.close_blocked_handoff": "Завершите или отмените запрос кассиру перед закрытием визита.",
+  "server.bill.close_blocked_legacy": "Менеджер должен разобрать непривязанные заказы до закрытия.",
+  "server.bill.close_blocked_balance": "Примите оплату или отправьте остаток кассиру до закрытия.",
+  "server.bill.close_blocked_rounds": "Все раунды должны быть завершены или отменены до закрытия.",
+  "server.bill.handoff_pending": "Кассиру отправлен запрос на {{amount}}.",
+  "server.bill.print_dialog_opened": "Открыто окно печати браузера. Отдельно подтвердите печать на бумаге.",
+  "server.bill.collect": "Принять оплату",
+  "server.bill.send_to_cashier": "Отправить кассиру",
+  "server.bill.cancel_handoff": "Отменить запрос кассиру",
+  "server.bill.close_visit": "Закрыть визит",
+  "server.bill.close_confirm_title": "Закрыть этот визит?",
+  "server.bill.close_confirm_message": "Закрыть текущий визит для стола {{table}}?",
+  "cashier.tables.payment_requested": "Запрошена оплата"
 }

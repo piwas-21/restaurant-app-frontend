@@ -125,3 +125,9 @@ export const SERVER_ORDER_PAGE_SIZE = positiveIntegerConfig(process.env.NEXT_PUB
 
 /** Fail-closed ceiling for safety-critical active-order page walking. */
 export const SERVER_ORDER_MAX_PAGES = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES, 1000);
+
+/** Polling cadence for cashier/server reconciliation of payment handoff state. */
+export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
+  process.env.NEXT_PUBLIC_STAFF_PAYMENT_HANDOFF_REFRESH_MS,
+  15_000,
+);

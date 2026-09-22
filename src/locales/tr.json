@@ -2894,5 +2894,20 @@
   "server.tasks.delivery_failed": "Görev güncellenemedi. Tekrar deneyin.",
   "server.tasks.version_conflict": "Bu sipariş değişti. Görev listesi yenilendi.",
   "server.tasks.load_failed": "Görevler yüklenemedi. Tekrar deneyin.",
-  "server.tasks.session_mismatch": "Bu görev farklı bir masa ziyaretine ait. Devam etmeden önce görev listesini yenileyin."
+  "server.tasks.session_mismatch": "Bu görev farklı bir masa ziyaretine ait. Devam etmeden önce görev listesini yenileyin.",
+  "server.bill.title": "Hesap ve ziyaret",
+  "server.bill.operation_failed": "Hesap işlemi tamamlanamadı. Yenileyip tekrar deneyin.",
+  "server.bill.close_blocked_handoff": "Bu ziyareti kapatmadan önce kasa talebini tamamlayın veya iptal edin.",
+  "server.bill.close_blocked_legacy": "Atanmamış masa siparişlerini kapatmadan önce bir yönetici çözmelidir.",
+  "server.bill.close_blocked_balance": "Kapatmadan önce kalan tutarı tahsil edin veya kasaya gönderin.",
+  "server.bill.close_blocked_rounds": "Kapatmadan önce tüm turlar tamamlanmalı veya iptal edilmelidir.",
+  "server.bill.handoff_pending": "{{amount}} için kasa tahsilat talebi gönderildi.",
+  "server.bill.print_dialog_opened": "Tarayıcı yazdırma penceresi açıldı. Kağıt çıktısını ayrıca doğrulayın.",
+  "server.bill.collect": "Ödeme al",
+  "server.bill.send_to_cashier": "Kasaya gönder",
+  "server.bill.cancel_handoff": "Kasa talebini iptal et",
+  "server.bill.close_visit": "Ziyareti kapat",
+  "server.bill.close_confirm_title": "Bu ziyaret kapatılsın mı?",
+  "server.bill.close_confirm_message": "{{table}} masası için mevcut ziyaret kapatılsın mı?",
+  "cashier.tables.payment_requested": "Ödeme istendi"
 }

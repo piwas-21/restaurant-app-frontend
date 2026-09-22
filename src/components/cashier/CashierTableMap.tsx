@@ -67,7 +67,9 @@ export default function CashierTableMap({
   const formatLabel = useCallback(
     (table: FloorPlanTableGeometry, _state: TableRenderState) => {
       const entry = entryByNumber.get(tableNumberKey(table.tableNumber));
-      const status = entry ? tableStatusLabel(entry.status, t) : t('cashier.tables.status_available');
+      let status = t('cashier.tables.status_available');
+      if (entry) status = tableStatusLabel(entry.status, t);
+      if (entry?.session?.hasPendingPaymentHandoff) status = t('cashier.tables.payment_requested');
       const balance = entry?.session
         ? (formatTableMoney(tableSessionEligibleOutstanding(entry.session), entry.session) ??
           t('cashier.tables.currency_unknown'))

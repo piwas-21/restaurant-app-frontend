@@ -133,6 +133,18 @@ export default function CashierTableSessionPanel({
           </Link>
         </div>
       )}
+      {session.hasPendingPaymentHandoff && session.paymentHandoff && (
+        <div className={styles.notice} role="status" aria-live="polite">
+          <StatusBadge tone="warning">{t('cashier.tables.payment_requested')}</StatusBadge>
+          <span>
+            {t('server.bill.handoff_pending', {
+              amount:
+                formatTableMoney(session.paymentHandoff.requestedAmount, session) ??
+                t('cashier.tables.currency_unknown'),
+            })}
+          </span>
+        </div>
+      )}
       {pendingOperation && (
         <div className={styles.notice} role="status" aria-live="polite">
           <span>{pendingNoticeLabel(pendingOperation, t)}</span>

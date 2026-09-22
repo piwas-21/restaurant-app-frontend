@@ -2903,5 +2903,20 @@
   "server.tasks.delivery_failed": "No se pudo actualizar la tarea. Inténtalo de nuevo.",
   "server.tasks.version_conflict": "Este pedido cambió. Se actualizó la lista de tareas.",
   "server.tasks.load_failed": "No se pudieron cargar las tareas. Inténtalo de nuevo.",
-  "server.tasks.session_mismatch": "Esta tarea pertenece a otra visita de mesa. Actualiza la lista antes de continuar."
+  "server.tasks.session_mismatch": "Esta tarea pertenece a otra visita de mesa. Actualiza la lista antes de continuar.",
+  "server.bill.title": "Cuenta y visita",
+  "server.bill.operation_failed": "No se pudo completar la acción de la cuenta. Actualiza e inténtalo de nuevo.",
+  "server.bill.close_blocked_handoff": "Resuelve o cancela la solicitud a caja antes de cerrar esta visita.",
+  "server.bill.close_blocked_legacy": "Un responsable debe resolver los pedidos sin asignar antes del cierre.",
+  "server.bill.close_blocked_balance": "Cobra o envía el saldo restante a caja antes de cerrar.",
+  "server.bill.close_blocked_rounds": "Todas las rondas deben completarse o cancelarse antes de cerrar.",
+  "server.bill.handoff_pending": "Cobro solicitado a caja por {{amount}}.",
+  "server.bill.print_dialog_opened": "Se abrió el diálogo de impresión del navegador. Confirma por separado la salida en papel.",
+  "server.bill.collect": "Cobrar pago",
+  "server.bill.send_to_cashier": "Enviar a caja",
+  "server.bill.cancel_handoff": "Cancelar solicitud a caja",
+  "server.bill.close_visit": "Cerrar visita",
+  "server.bill.close_confirm_title": "¿Cerrar esta visita?",
+  "server.bill.close_confirm_message": "¿Cerrar la visita actual de la mesa {{table}}?",
+  "cashier.tables.payment_requested": "Pago solicitado"
 }

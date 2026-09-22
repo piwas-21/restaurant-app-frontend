@@ -2894,5 +2894,20 @@
   "server.tasks.delivery_failed": "De taak kon niet worden bijgewerkt. Probeer opnieuw.",
   "server.tasks.version_conflict": "Deze bestelling is gewijzigd. De takenlijst is vernieuwd.",
   "server.tasks.load_failed": "Taken konden niet worden geladen. Probeer opnieuw.",
-  "server.tasks.session_mismatch": "Deze taak hoort bij een ander tafelbezoek. Vernieuw de takenlijst voordat je doorgaat."
+  "server.tasks.session_mismatch": "Deze taak hoort bij een ander tafelbezoek. Vernieuw de takenlijst voordat je doorgaat.",
+  "server.bill.title": "Rekening en bezoek",
+  "server.bill.operation_failed": "De rekeningactie kon niet worden voltooid. Vernieuw en probeer opnieuw.",
+  "server.bill.close_blocked_handoff": "Rond het kassaverzoek af of annuleer het voordat u dit bezoek sluit.",
+  "server.bill.close_blocked_legacy": "Een beheerder moet niet-toegewezen tafelbestellingen eerst oplossen.",
+  "server.bill.close_blocked_balance": "Incasseer het restbedrag of stuur het naar de kassa voordat u sluit.",
+  "server.bill.close_blocked_rounds": "Alle rondes moeten voltooid of geannuleerd zijn voordat u sluit.",
+  "server.bill.handoff_pending": "Kassa-incasso aangevraagd voor {{amount}}.",
+  "server.bill.print_dialog_opened": "Het afdrukvenster van de browser is geopend. Controleer de papieruitvoer apart.",
+  "server.bill.collect": "Betaling innen",
+  "server.bill.send_to_cashier": "Naar kassa sturen",
+  "server.bill.cancel_handoff": "Kassaverzoek annuleren",
+  "server.bill.close_visit": "Bezoek sluiten",
+  "server.bill.close_confirm_title": "Dit bezoek sluiten?",
+  "server.bill.close_confirm_message": "Het huidige bezoek voor tafel {{table}} sluiten?",
+  "cashier.tables.payment_requested": "Betaling aangevraagd"
 }

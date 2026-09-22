@@ -29,7 +29,7 @@ function newestSession(
   serviceSessionId: string,
 ): TableServiceSessionDto | null {
   return sessions.reduce<TableServiceSessionDto | null>((current, candidate) => {
-    if (!candidate || candidate.serviceSessionId !== serviceSessionId) return current;
+    if (candidate?.serviceSessionId !== serviceSessionId) return current;
     return !current || candidate.version >= current.version ? candidate : current;
   }, null);
 }

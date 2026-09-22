@@ -84,7 +84,6 @@ export function useTableServiceSession(serviceSessionId: string | null): TableSe
     if (typeof window === 'undefined' || (!pendingOperation && !isMutating)) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      event.returnValue = '';
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);

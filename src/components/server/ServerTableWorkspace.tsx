@@ -90,7 +90,7 @@ export default function ServerTableWorkspace({ tableId, state }: ServerTableWork
         </header>
 
         {state.isStale && (
-          <output className={styles.staleNotice} role="status" aria-live="polite">
+          <output className={styles.staleNotice} aria-live="polite">
             {t('server.status_stale')} · {t('server.last_confirmed')}
           </output>
         )}

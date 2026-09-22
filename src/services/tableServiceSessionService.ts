@@ -9,6 +9,9 @@ import type {
   TableServiceSessionListApiResponse,
   TableServiceSessionPaymentOperationLookupApiResponse,
   TableServiceSessionPaymentOperationLookupDto,
+  TableServicePaymentHandoffDto,
+  TableServicePaymentHandoffListApiResponse,
+  TableServicePaymentHandoffMutationRequest,
 } from '@/types/order';
 
 const BASE_PATH = '/api/table-service-sessions';
@@ -86,6 +89,40 @@ export async function closeTableServiceSession(
     request,
     { requireAuth: true },
   );
+  return requireData(response);
+}
+
+/** Create one idempotent, version-pinned request for Cashier to collect this visit. */
+export async function requestTableServicePaymentHandoff(
+  serviceSessionId: string,
+  request: TableServicePaymentHandoffMutationRequest,
+): Promise<TableServiceSessionDto> {
+  const response = await apiClient.post<TableServiceSessionApiResponse>(
+    `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/payment-handoff`,
+    request,
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
+/** Cancel the current pending handoff without changing the bill or recording a tender. */
+export async function cancelTableServicePaymentHandoff(
+  serviceSessionId: string,
+  request: TableServicePaymentHandoffMutationRequest,
+): Promise<TableServiceSessionDto> {
+  const response = await apiClient.post<TableServiceSessionApiResponse>(
+    `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/payment-handoff/cancel`,
+    request,
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
+/** Cashier/Admin queue, oldest collection request first. */
+export async function getPendingTableServicePaymentHandoffs(): Promise<TableServicePaymentHandoffDto[]> {
+  const response = await apiClient.get<TableServicePaymentHandoffListApiResponse>(`${BASE_PATH}/payment-handoffs`, {
+    requireAuth: true,
+  });
   return requireData(response);
 }
 

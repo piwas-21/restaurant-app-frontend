@@ -6,6 +6,26 @@ import type { OrderPaymentDto } from './dtos';
 /** Lifecycle values emitted by the durable table-service-session contract (#533). */
 export type TableServiceSessionStatus = 'Open' | 'Closed';
 
+export type TableServicePaymentHandoffStatus = 'Requested' | 'Resolved' | 'Cancelled';
+
+/** Durable Server-to-Cashier collection request for one explicit visit. */
+export interface TableServicePaymentHandoffDto {
+  handoffId: string;
+  serviceSessionId: string;
+  operationId: string;
+  tableId?: string | null;
+  tableNumber: number | null;
+  tableLabel: string;
+  expectedVersion: number;
+  requestedAmount: number;
+  requestedCurrency?: string | null;
+  status: TableServicePaymentHandoffStatus;
+  requestedAt: string;
+  resolvedAt?: string | null;
+  resolvedPaymentOperationId?: string | null;
+  cancelledAt?: string | null;
+}
+
 /** One durable visit at a table, including every member round in its bill. */
 export interface TableServiceSessionDto {
   serviceSessionId: string;
@@ -28,10 +48,13 @@ export interface TableServiceSessionDto {
   eligibleOutstanding?: number;
   /** Server-authoritative action decisions; omitted by pre-follow-up backends. */
   canCollect?: boolean;
+  canRequestPaymentHandoff?: boolean;
+  hasPendingPaymentHandoff?: boolean;
   canClose?: boolean;
   hasUnassignedActiveOrders?: boolean;
   legacyActiveOrderCount?: number;
   bill: TableBillDto;
+  paymentHandoff?: TableServicePaymentHandoffDto | null;
 }
 
 /** Open one visit by stable table identity or retain the numeric cashier compatibility key. */
@@ -59,8 +82,14 @@ export interface CloseTableServiceSessionRequest {
   expectedVersion: number;
 }
 
+export interface TableServicePaymentHandoffMutationRequest {
+  operationId: string;
+  expectedVersion: number;
+}
+
 export type TableServiceSessionApiResponse = ApiResponse<TableServiceSessionDto>;
 export type TableServiceSessionListApiResponse = ApiResponse<TableServiceSessionDto[]>;
+export type TableServicePaymentHandoffListApiResponse = ApiResponse<TableServicePaymentHandoffDto[]>;
 
 /** Read-only result of looking up one table-session payment operation. */
 export type TableServiceSessionPaymentOperationStatus = 'Committed' | 'Unknown';

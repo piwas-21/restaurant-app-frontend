@@ -8,6 +8,7 @@ import {
 } from '@/services/tableServiceSessionService';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
+import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
 
 interface ServerTableBillActions {
   readonly session: TableServiceSessionDto | null;
@@ -22,8 +23,6 @@ interface ServerTableBillActions {
   readonly reconcilePendingOperation: () => Promise<void>;
   readonly refresh: () => Promise<void>;
 }
-
-const HANDOFF_REFRESH_INTERVAL_MS = 15_000;
 
 function newestSession(
   sessions: readonly (TableServiceSessionDto | null)[],
@@ -61,7 +60,7 @@ export function useServerTableBillActions(
 
   useEffect(() => {
     if (isSessionMutating || handoffMutating) return;
-    const interval = window.setInterval(() => void refreshSession(), HANDOFF_REFRESH_INTERVAL_MS);
+    const interval = window.setInterval(() => void refreshSession(), STAFF_PAYMENT_HANDOFF_REFRESH_MS);
     return () => window.clearInterval(interval);
   }, [handoffMutating, isSessionMutating, refreshSession]);
 

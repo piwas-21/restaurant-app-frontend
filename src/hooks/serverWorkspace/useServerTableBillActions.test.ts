@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useTableServiceSession, type TableServiceSessionState } from '@/hooks/table-service/useTableServiceSession';
 import { requestTableServicePaymentHandoff } from '@/services/tableServiceSessionService';
 import type { TableServiceSessionDto } from '@/types/order';
+import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
 import { useServerTableBillActions } from './useServerTableBillActions';
 
 jest.mock('@/hooks/table-service/useTableServiceSession');
@@ -64,7 +65,7 @@ describe('useServerTableBillActions', () => {
     jest.useFakeTimers();
     renderHook(() => useServerTableBillActions(session('session-1', 1), jest.fn()));
 
-    act(() => jest.advanceTimersByTime(15_000));
+    act(() => jest.advanceTimersByTime(STAFF_PAYMENT_HANDOFF_REFRESH_MS));
 
     expect(refresh).toHaveBeenCalledTimes(1);
     jest.useRealTimers();

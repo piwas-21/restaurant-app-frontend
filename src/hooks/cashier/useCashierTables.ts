@@ -7,11 +7,10 @@ import { getActiveTableServiceSessions, openTableServiceSession } from '@/servic
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
+import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
 
 export type { CashierTableEntry, CashierTableStatus } from '@/lib/cashierTableEntries';
 export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
-
-const HANDOFF_REFRESH_INTERVAL_MS = 15_000;
 
 export interface CashierTablesState {
   readonly entries: readonly CashierTableEntry[];
@@ -68,7 +67,7 @@ export function useCashierTables(): CashierTablesState {
 
   useEffect(() => {
     void refresh();
-    const interval = window.setInterval(() => void refresh(), HANDOFF_REFRESH_INTERVAL_MS);
+    const interval = window.setInterval(() => void refresh(), STAFF_PAYMENT_HANDOFF_REFRESH_MS);
     return () => window.clearInterval(interval);
   }, [refresh]);
 

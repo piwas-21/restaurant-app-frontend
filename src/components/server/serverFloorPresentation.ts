@@ -49,12 +49,16 @@ function statusLabelKey(state: string): string {
   }
 }
 
-export function tableLabel(table: ServerFloorTable, t: TFunction): string {
+export function tableStatusLabel(table: ServerFloorTable, t: TFunction): string {
   const statusKey = statusLabelKey(table.state);
   const statusFallback = isKnownServerFloorTableState(table.state) ? table.state : t('unavailable', 'Unavailable');
+  return t(statusKey, statusFallback);
+}
+
+export function tableLabel(table: ServerFloorTable, t: TFunction): string {
   return t('table_marker_aria', 'Table {{number}}, {{seats}} seats, {{status}}', {
     number: table.tableLabel,
     seats: table.maxGuests,
-    status: t(statusKey, statusFallback),
+    status: tableStatusLabel(table, t),
   });
 }

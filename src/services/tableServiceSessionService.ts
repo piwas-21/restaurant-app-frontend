@@ -3,6 +3,7 @@ import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type {
   AddTableServiceSessionPaymentRequest,
   CloseTableServiceSessionRequest,
+  OpenTableServiceSessionRequest,
   TableServiceSessionApiResponse,
   TableServiceSessionDto,
   TableServiceSessionListApiResponse,
@@ -35,12 +36,21 @@ export async function getActiveTableServiceSessions(): Promise<TableServiceSessi
 }
 
 /** Open one explicit table visit; the server owns currency and duplicate-session checks. */
-export async function openTableServiceSession(tableNumber: number, currency?: string): Promise<TableServiceSessionDto> {
-  const response = await apiClient.post<TableServiceSessionApiResponse>(
-    BASE_PATH,
-    { tableNumber, ...(currency ? { currency } : {}) },
-    { requireAuth: true },
-  );
+export function openTableServiceSession(tableNumber: number, currency?: string): Promise<TableServiceSessionDto>;
+export function openTableServiceSession(request: OpenTableServiceSessionRequest): Promise<TableServiceSessionDto>;
+export async function openTableServiceSession(
+  input: number | OpenTableServiceSessionRequest,
+  currency?: string,
+): Promise<TableServiceSessionDto> {
+  const payload =
+    typeof input === 'number'
+      ? { tableNumber: input, ...(currency ? { currency } : {}) }
+      : {
+          ...(input.tableId ? { tableId: input.tableId } : {}),
+          ...(input.tableNumber !== undefined ? { tableNumber: input.tableNumber } : {}),
+          ...(input.currency ? { currency: input.currency } : {}),
+        };
+  const response = await apiClient.post<TableServiceSessionApiResponse>(BASE_PATH, payload, { requireAuth: true });
   return requireData(response);
 }
 

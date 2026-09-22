@@ -61,6 +61,13 @@ describe('table service session contract', () => {
     await expect(openTableServiceSession(7)).resolves.toEqual(session);
     expect(mockPost).toHaveBeenLastCalledWith('/api/table-service-sessions', { tableNumber: 7 }, { requireAuth: true });
 
+    await expect(openTableServiceSession({ tableId: 'table-7' })).resolves.toEqual(session);
+    expect(mockPost).toHaveBeenLastCalledWith(
+      '/api/table-service-sessions',
+      { tableId: 'table-7' },
+      { requireAuth: true },
+    );
+
     const payment = {
       operationId: '11111111-1111-4111-8111-111111111111',
       expectedVersion: 4,

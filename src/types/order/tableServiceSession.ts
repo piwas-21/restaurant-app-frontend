@@ -9,6 +9,8 @@ export type TableServiceSessionStatus = 'Open' | 'Closed';
 /** One durable visit at a table, including every member round in its bill. */
 export interface TableServiceSessionDto {
   serviceSessionId: string;
+  /** Stable configured table identity; additive to the legacy table-number projection. */
+  tableId?: string | null;
   /** Null for label-only visits (for example a configured "T-QA" table without a number). */
   tableNumber: number | null;
   /** Server-configured display label; empty for plain numbered tables. */
@@ -30,6 +32,13 @@ export interface TableServiceSessionDto {
   hasUnassignedActiveOrders?: boolean;
   legacyActiveOrderCount?: number;
   bill: TableBillDto;
+}
+
+/** Open one visit by stable table identity or retain the numeric cashier compatibility key. */
+export interface OpenTableServiceSessionRequest {
+  tableId?: string;
+  tableNumber?: number;
+  currency?: string;
 }
 
 /** Idempotent, version-aware tender payload for one table visit. */

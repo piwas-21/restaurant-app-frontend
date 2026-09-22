@@ -1,0 +1,88 @@
+.bill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.billScroll {
+  max-height: min(38rem, 48dvh);
+  overflow: auto;
+}
+
+.round {
+  border-block-start: 1px solid var(--border-default);
+  padding-block: 0.75rem;
+}
+
+.round:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.roundHeader,
+.line,
+.totalRow {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.roundHeader {
+  flex-wrap: wrap;
+}
+
+.roundIdentity {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.roundTime,
+.lineName,
+.muted {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lineList {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.line {
+  align-items: flex-start;
+  padding-block: 0.3rem;
+}
+
+.lineName {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.lineTotal,
+.totalValue {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.totals {
+  border-block-start: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.4rem;
+  padding-block-start: 0.75rem;
+}
+
+.totalRow strong {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .billScroll {
+    max-height: none;
+  }
+}

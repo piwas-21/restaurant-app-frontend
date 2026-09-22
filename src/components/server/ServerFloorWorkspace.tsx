@@ -17,6 +17,7 @@ import ServerFloorTableCard from './ServerFloorTableCard';
 import ServerFloorMapPanel from './ServerFloorMapPanel';
 import { geometryFor, renderState, tableLabel } from './serverFloorPresentation';
 import ServerFloorWorkspaceToolbar from './ServerFloorWorkspaceToolbar';
+import ServerTasksBadge from './tasks/ServerTasksBadge';
 import styles from './ServerFloorWorkspace.module.css';
 
 const EMPTY_TABLES: ServerFloorTable[] = [];
@@ -124,6 +125,7 @@ export default function ServerFloorWorkspace() {
 
   const navItems = [
     { href: '/server/floor', label: t('server.table', 'Floor'), active: true },
+    { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
     { href: '/server/takeaway', label: t('server.takeaway.link') },
   ];
 

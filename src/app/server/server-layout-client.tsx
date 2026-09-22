@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { TenantFeaturesProvider, type TenantFeaturesState } from '@/contexts/TenantFeaturesContext';
+import { ServerTaskSummaryProvider } from '@/contexts/ServerTaskContext';
 import styles from './layout.module.css';
 
 export default function ServerLayoutClient({
@@ -40,7 +41,7 @@ export default function ServerLayoutClient({
       </div>
     );
   } else {
-    content = children;
+    content = features.serverWorkspaceV2 ? <ServerTaskSummaryProvider>{children}</ServerTaskSummaryProvider> : children;
   }
 
   return <TenantFeaturesProvider features={features}>{content}</TenantFeaturesProvider>;

@@ -11,10 +11,13 @@ import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
 import type { ServerTableBlocker, ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
 import { tableStatusLabel } from './serverFloorPresentation';
 import styles from './ServerTableWorkspace.module.css';
+import ServerTasksBadge from './tasks/ServerTasksBadge';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
   readonly state: ServerTableSessionState;
+  readonly requestedSessionId?: string;
+  readonly requestedOrderId?: string;
 }
 
 function statusTone(state: string): StatusBadgeTone {
@@ -51,13 +54,23 @@ function tableLabel(table: ServerTableSessionState['table'], tableId: string, t:
   return t('cashier.tables.table_number', 'Table {{table}}', { table: tableId });
 }
 
-export default function ServerTableWorkspace({ tableId, state }: ServerTableWorkspaceProps) {
+export default function ServerTableWorkspace({
+  tableId,
+  state,
+  requestedSessionId,
+  requestedOrderId,
+}: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
   const knownState = table && isKnownServerFloorTableState(table.state) ? table.state : null;
   const blockerMessage = blockerCopy(state.blocker, t);
+  const requestedSessionMismatch = Boolean(
+    requestedSessionId && state.session && requestedSessionId !== state.session.serviceSessionId,
+  );
+  const requestedSessionUnavailable = Boolean(requestedSessionId && !state.isLoading && !state.session);
+  const taskContextBlocked = requestedSessionMismatch || requestedSessionUnavailable;
   const roundHref = session
     ? `/server/tables/${encodeURIComponent(tableId)}/order?serviceSessionId=${encodeURIComponent(session.serviceSessionId)}`
     : null;
@@ -66,6 +79,7 @@ export default function ServerTableWorkspace({ tableId, state }: ServerTableWork
     <StaffWorkspaceShell
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
+        { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
         { href: '/server/takeaway', label: t('server.takeaway.link') },
       ]}
       connectionState={state.floorConnectionState}
@@ -142,6 +156,15 @@ export default function ServerTableWorkspace({ tableId, state }: ServerTableWork
                 {blockerMessage}
               </div>
             )}
+            {(requestedSessionMismatch || requestedSessionUnavailable) && (
+              <div className={styles.warning} role="alert">
+                {t(
+                  'server.tasks.session_mismatch',
+                  'This task belongs to a different table visit. Refresh the task list before continuing.',
+                )}
+                {requestedOrderId && <span dir="auto"> · {requestedOrderId}</span>}
+              </div>
+            )}
             {table.reservation && (
               <p className={styles.reservation}>
                 <strong>{t('server.upcoming_reservation', 'Upcoming Reservation')}:</strong>{' '}
@@ -172,7 +195,7 @@ export default function ServerTableWorkspace({ tableId, state }: ServerTableWork
                 </button>
               )}
               {roundHref &&
-                (state.canAddRound ? (
+                (state.canAddRound && !taskContextBlocked ? (
                   <Link className={styles.secondaryAction} href={roundHref}>
                     {t('cashier.tables.add_round')}
                   </Link>

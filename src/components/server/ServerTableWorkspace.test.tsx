@@ -135,6 +135,26 @@ describe('ServerTableWorkspace', () => {
     );
   });
 
+  it('blocks table actions when a task deep link points at an older service session', () => {
+    render(
+      <ServerTableWorkspace
+        tableId="table-1"
+        requestedSessionId="session-old"
+        requestedOrderId="order-old"
+        state={state({
+          table: table({ state: 'Open' }),
+          session,
+          canStartTable: false,
+          canAddRound: true,
+        })}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('This task belongs to a different table visit.');
+    expect(screen.getByRole('button', { name: 'Add round' })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: 'Add round' })).not.toBeInTheDocument();
+  });
+
   it('disables start for reserved, stale, and unknown blockers', () => {
     const { rerender } = render(
       <ServerTableWorkspace

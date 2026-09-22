@@ -18,6 +18,7 @@ import ServerTableRoundCatalog from './ServerTableRoundCatalog';
 import ServerTableRoundTicket from './ServerTableRoundTicket';
 import { serverTableRoundBlocker, serverTableRoundMessage } from './serverTableRoundMessages';
 import styles from './ServerTableRoundWorkspace.module.css';
+import ServerTasksBadge from '@/components/server/tasks/ServerTasksBadge';
 
 interface Props {
   readonly tableId: string;
@@ -37,6 +38,7 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
     <StaffWorkspaceShell
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
+        { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
         { href: `/server/tables/${encodeURIComponent(tableId)}`, label: label },
       ]}
       connectionState={state.floorConnectionState}

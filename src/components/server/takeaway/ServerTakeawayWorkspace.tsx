@@ -10,11 +10,14 @@ import OperationalSplitView from '@/components/design-system/OperationalSplitVie
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { useAuth } from '@/components/AuthContext';
+import { useServerTaskSummary } from '@/contexts/ServerTaskContext';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { OrderType } from '@/types/order';
 import { useServerTakeaway } from '@/hooks/serverTakeaway/useServerTakeaway';
 import ServerTakeawayCatalog from './ServerTakeawayCatalog';
 import ServerTakeawayTicket from './ServerTakeawayTicket';
 import styles from './ServerTakeawayWorkspace.module.css';
+import ServerTasksBadge from '@/components/server/tasks/ServerTasksBadge';
 
 function messageFor(error: string | null, translate: (key: string) => string): string | null {
   if (!error) return null;
@@ -24,6 +27,8 @@ function messageFor(error: string | null, translate: (key: string) => string): s
 export default function ServerTakeawayWorkspace() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { serverWorkspaceV2 } = useTenantFeatures();
+  const taskSummary = useServerTaskSummary();
   const takeaway = useServerTakeaway();
   const [detailOpen, setDetailOpen] = useState(false);
   const reviewing = takeaway.phase !== 'idle';
@@ -33,13 +38,25 @@ export default function ServerTakeawayWorkspace() {
     if (takeaway.items.length > 0) setDetailOpen(true);
   }, [takeaway.items.length]);
 
-  const navItems = [
-    { href: '/server', label: t('server.takeaway.server_tasks') },
-    { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
-  ];
+  const navItems = serverWorkspaceV2
+    ? [
+        { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
+        { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
+        { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
+      ]
+    : [
+        { href: '/server', label: t('server.takeaway.server_tasks') },
+        { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
+      ];
 
   return (
-    <StaffWorkspaceShell navItems={navItems} className={styles.shell}>
+    <StaffWorkspaceShell
+      navItems={navItems}
+      connectionState={serverWorkspaceV2 ? taskSummary.connectionState : undefined}
+      lastConfirmed={serverWorkspaceV2 ? taskSummary.lastConfirmed : undefined}
+      onRetryConnection={serverWorkspaceV2 ? () => void taskSummary.refresh() : undefined}
+      className={styles.shell}
+    >
       <div className={styles.workspace}>
         <header className={styles.heading}>
           <div>

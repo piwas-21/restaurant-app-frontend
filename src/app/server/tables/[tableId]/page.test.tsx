@@ -3,18 +3,35 @@ import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { useServerTableSession } from '@/hooks/serverWorkspace/useServerTableSession';
 import ServerTablePage from './page';
 
-jest.mock('next/navigation', () => ({ useParams: () => ({ tableId: 'table%2F1' }) }));
+let mockSearchParams = new URLSearchParams();
+jest.mock('next/navigation', () => ({
+  useParams: () => ({ tableId: 'table%2F1' }),
+  useSearchParams: () => mockSearchParams,
+}));
 jest.mock('@/app/server/page', () => ({ __esModule: true, default: () => <div data-testid="legacy-server" /> }));
 jest.mock('@/hooks/serverWorkspace/useServerTableSession');
 jest.mock('@/components/server/ServerTableWorkspace', () => ({
   __esModule: true,
-  default: ({ tableId }: { tableId: string }) => <div data-testid="server-table-workspace">{tableId}</div>,
+  default: ({
+    tableId,
+    requestedSessionId,
+    requestedOrderId,
+  }: {
+    tableId: string;
+    requestedSessionId?: string;
+    requestedOrderId?: string;
+  }) => (
+    <div data-testid="server-table-workspace" data-session-id={requestedSessionId} data-order-id={requestedOrderId}>
+      {tableId}
+    </div>
+  ),
 }));
 
 const mockUseTableSession = useServerTableSession as jest.MockedFunction<typeof useServerTableSession>;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSearchParams = new URLSearchParams();
   mockUseTableSession.mockReturnValue({
     table: null,
     session: null,
@@ -46,7 +63,8 @@ describe('/server/tables/[tableId]', () => {
     expect(mockUseTableSession).not.toHaveBeenCalled();
   });
 
-  it('decodes and passes only the stable table identity to the V2 workspace', () => {
+  it('decodes the table identity and preserves task session context', () => {
+    mockSearchParams = new URLSearchParams('serviceSessionId=session-7&orderId=order-9');
     render(
       <TenantFeaturesProvider features={{ serverWorkspaceV2: true }}>
         <ServerTablePage />
@@ -54,6 +72,9 @@ describe('/server/tables/[tableId]', () => {
     );
 
     expect(mockUseTableSession).toHaveBeenCalledWith('table/1');
-    expect(screen.getByTestId('server-table-workspace')).toHaveTextContent('table/1');
+    const workspace = screen.getByTestId('server-table-workspace');
+    expect(workspace).toHaveTextContent('table/1');
+    expect(workspace).toHaveAttribute('data-session-id', 'session-7');
+    expect(workspace).toHaveAttribute('data-order-id', 'order-9');
   });
 });

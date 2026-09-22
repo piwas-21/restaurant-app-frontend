@@ -1,7 +1,7 @@
-import { test as base, request, type APIRequestContext } from '@playwright/test';
+import { test as base, request, type APIRequestContext, type TestInfo } from '@playwright/test';
 import { rm } from 'node:fs/promises';
 import { deleteUserByEmail, promoteE2EUser } from '../helpers/db';
-import { apiBaseUrl } from '../helpers/config';
+import { apiBaseUrl, frontendBaseUrl } from '../helpers/config';
 import { writeAuthStorageState } from '../helpers/storageState';
 
 /**
@@ -32,7 +32,7 @@ import { writeAuthStorageState } from '../helpers/storageState';
  *   6. Teardown deletes the user by exact email.
  */
 
-export interface CashierUser {
+export interface StaffUser {
   firstName: string;
   lastName: string;
   email: string;
@@ -40,6 +40,14 @@ export interface CashierUser {
   accessToken: string;
   refreshToken: string;
   storageStatePath: string;
+}
+
+export type CashierUser = StaffUser;
+
+interface StaffFixtureConfig {
+  role: 'Cashier' | 'Server';
+  storageRole: 'cashier' | 'server';
+  fixtureName: 'cashierUser' | 'serverUser';
 }
 
 interface ApiResponse<T> {
@@ -61,104 +69,117 @@ interface AuthResponseData {
 }
 
 export const test = base.extend<{ cashierUser: CashierUser }>({
-  cashierUser: async ({ baseURL }, use, testInfo) => {
-    const frontendOrigin = baseURL ?? 'http://localhost:3000';
+  cashierUser: async ({ baseURL }, use, testInfo) =>
+    usePromotedStaffUser(baseURL, use, testInfo, {
+      role: 'Cashier',
+      storageRole: 'cashier',
+      fixtureName: 'cashierUser',
+    }),
+});
 
-    const email = `e2e-cashier-${testInfo.testId}-${Date.now()}@test.local`;
-    const password = 'Test123!Pass'; // pragma: allowlist secret -- e2e fixture only
-    const firstName = 'E2E';
-    const lastName = 'Cashier';
+export async function usePromotedStaffUser(
+  baseURL: string | undefined,
+  use: (user: StaffUser) => Promise<void>,
+  testInfo: TestInfo,
+  config: StaffFixtureConfig,
+): Promise<void> {
+  const frontendOrigin = baseURL ?? frontendBaseUrl();
+  const email = `e2e-${config.storageRole}-${testInfo.testId}-${Date.now()}@test.local`;
+  const password = 'Test123!Pass'; // pragma: allowlist secret -- e2e fixture only
+  const firstName = 'E2E';
+  const lastName = config.role;
 
-    const ctx = await request.newContext({ baseURL: apiBaseUrl() });
+  const ctx = await request.newContext({ baseURL: apiBaseUrl() });
+  try {
+    await registerCustomer(ctx, { firstName, lastName, email, password }, config.fixtureName);
+    const promoted = await promoteE2EUser(email, config.role);
+    if (promoted !== 1) {
+      throw new Error(`${config.fixtureName}: promote-to-${config.role} rowCount=${promoted}, expected 1`);
+    }
+    const auth = await loginUser(ctx, { email, password }, config.fixtureName);
+    if (auth.role !== config.role) {
+      throw new Error(`${config.fixtureName}: login returned role=${auth.role}, expected ${config.role}`);
+    }
+
+    const storageStatePath = await writeAuthStorageState({
+      frontendOrigin,
+      accessToken: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      user: {
+        firstName: auth.firstName,
+        lastName: auth.lastName,
+        email: auth.email,
+        role: auth.role,
+        accessToken: auth.accessToken,
+      },
+      role: config.storageRole,
+      slug: testInfo.testId,
+    });
+
+    const user: StaffUser = {
+      firstName,
+      lastName,
+      email,
+      password,
+      accessToken: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      storageStatePath,
+    };
+
     try {
-      await registerCustomer(ctx, { firstName, lastName, email, password });
-      const promoted = await promoteE2EUser(email, 'Cashier');
-      if (promoted !== 1) {
-        throw new Error(`cashierUser: promote-to-Cashier rowCount=${promoted}, expected 1`);
-      }
-      const auth = await loginUser(ctx, { email, password });
-      if (auth.role !== 'Cashier') {
-        throw new Error(`cashierUser: login returned role=${auth.role}, expected Cashier`);
-      }
-
-      const storageStatePath = await writeAuthStorageState({
-        frontendOrigin,
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
-        user: {
-          firstName: auth.firstName,
-          lastName: auth.lastName,
-          email: auth.email,
-          role: auth.role,
-          accessToken: auth.accessToken,
-        },
-        role: 'cashier',
-        slug: testInfo.testId,
-      });
-
-      const user: CashierUser = {
-        firstName,
-        lastName,
-        email,
-        password,
-        accessToken: auth.accessToken,
-        refreshToken: auth.refreshToken,
-        storageStatePath,
-      };
-
-      try {
-        await use(user);
-      } finally {
-        // Drop the per-test storageState file so e2e/.auth/ doesn't
-        // accumulate stale credentials between runs. `force: true`
-        // means missing-file isn't an error if a prior failure
-        // already removed it.
-        try {
-          await rm(storageStatePath, { force: true });
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.warn(`[cashierUser] teardown failed to remove storageState ${storageStatePath}:`, err);
-        }
-      }
+      await use(user);
     } finally {
-      await ctx.dispose();
+      // Drop the per-test storageState file so e2e/.auth/ doesn't
+      // accumulate stale credentials between runs. `force: true`
+      // means missing-file isn't an error if a prior failure
+      // already removed it.
       try {
-        await deleteUserByEmail(email);
+        await rm(storageStatePath, { force: true });
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.warn(`[cashierUser] teardown failed to delete ${email}:`, err);
+        console.warn(`[${config.fixtureName}] teardown failed to remove storageState ${storageStatePath}:`, err);
       }
     }
-  },
-});
+  } finally {
+    await ctx.dispose();
+    try {
+      await deleteUserByEmail(email);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn(`[${config.fixtureName}] teardown failed to delete generated user for ${testInfo.testId}:`, err);
+    }
+  }
+}
 
 async function registerCustomer(
   ctx: APIRequestContext,
   payload: { firstName: string; lastName: string; email: string; password: string },
+  fixtureName: string,
 ): Promise<void> {
   const response = await ctx.post('/api/User/register/customer', {
     data: { ...payload, confirmPassword: payload.password },
   });
   if (!response.ok()) {
-    throw new Error(`cashierUser: register customer failed ${response.status()} ${await response.text()}`);
+    throw new Error(`${fixtureName}: register customer failed ${response.status()} ${await response.text()}`);
   }
   const body = (await response.json()) as ApiResponse<AuthResponseData>;
   if (!body.success) {
-    throw new Error(`cashierUser: register rejected: ${body.message ?? body.errors?.join(', ')}`);
+    throw new Error(`${fixtureName}: register rejected: ${body.message ?? body.errors?.join(', ')}`);
   }
 }
 
 async function loginUser(
   ctx: APIRequestContext,
   payload: { email: string; password: string },
+  fixtureName: string,
 ): Promise<AuthResponseData> {
   const response = await ctx.post('/api/Auth/login', { data: payload });
   if (!response.ok()) {
-    throw new Error(`cashierUser: login failed ${response.status()} ${await response.text()}`);
+    throw new Error(`${fixtureName}: login failed ${response.status()} ${await response.text()}`);
   }
   const body = (await response.json()) as ApiResponse<AuthResponseData>;
   if (!body.success || !body.data) {
-    throw new Error(`cashierUser: login rejected: ${body.message ?? body.errors?.join(', ')}`);
+    throw new Error(`${fixtureName}: login rejected: ${body.message ?? body.errors?.join(', ')}`);
   }
   return body.data;
 }

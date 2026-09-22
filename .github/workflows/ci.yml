@@ -575,6 +575,7 @@ jobs:
       # deployed host and grants nothing outside these ~4 minutes.
       SeedSettings__AdminEmail: e2e-admin@test.local
       SeedSettings__AdminPassword: E2e-Only!Pass9 # pragma: allowlist secret
+      TenantFeatures__ServerWorkspaceV2: 'true'
       # Frontend / Playwright config
       # The same credential for `e2e/helpers/adminAuth.ts`, which reads `.env.local` first and
       # then the environment. CI must NOT get a dotfile: writing a credential into the
@@ -641,7 +642,7 @@ jobs:
       # by prefix — the same variables `dotnet run` used to inherit.
       - name: Start backend (published image)
         run: |
-          env | grep -E '^(ASPNETCORE_|ConnectionStrings__|JwtSettings__|EmailSettings__|CorsSettings__|SeedSettings__)' > /tmp/backend.env
+          env | grep -E '^(ASPNETCORE_|ConnectionStrings__|JwtSettings__|EmailSettings__|CorsSettings__|SeedSettings__|TenantFeatures__)' > /tmp/backend.env
           docker run -d --name rumi-backend --network host --env-file /tmp/backend.env "$BACKEND_IMAGE"
 
       - name: Wait for backend health

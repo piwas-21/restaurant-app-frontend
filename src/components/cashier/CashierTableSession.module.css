@@ -93,7 +93,7 @@
 }
 .notice {
   background: var(--feedback-info-xlight);
-  color: var(--feedback-info-dark);
+  color: var(--feedback-info-text);
 }
 .warning {
   background: var(--feedback-warning-xlight);

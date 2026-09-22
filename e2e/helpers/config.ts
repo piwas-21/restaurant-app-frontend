@@ -8,3 +8,11 @@
 export function apiBaseUrl(): string {
   return process.env.E2E_API_BASE_URL ?? 'http://localhost:5221';
 }
+
+export function frontendBaseUrl(): string {
+  const value = process.env.E2E_BASE_URL;
+  if (!value) {
+    throw new Error('E2E_BASE_URL is required');
+  }
+  return value;
+}

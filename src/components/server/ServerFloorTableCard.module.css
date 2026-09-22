@@ -1,0 +1,117 @@
+.tableCard {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+}
+
+.tableCard[data-selected='true'] {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-primary);
+}
+
+.tableCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+}
+
+.tableHeading {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.tableLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 3rem;
+  padding-inline: var(--space-2, 0.5rem);
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tableLink:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.tableLink[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.tableMetrics {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  margin: 0;
+}
+
+.tableMetrics div {
+  display: grid;
+  gap: 0.125rem;
+  min-inline-size: 5rem;
+}
+
+.tableMetrics dt,
+.tableMetrics dd {
+  margin: 0;
+}
+
+.tableMetrics dt {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.tableMetrics dd {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.reservation {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.capabilitySummary {
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.capabilitySummary > strong {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.actionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actionList li {
+  min-block-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-2, 0.5rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--chip-radius, 999px);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}

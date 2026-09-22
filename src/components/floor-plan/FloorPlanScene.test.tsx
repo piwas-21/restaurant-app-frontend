@@ -98,6 +98,22 @@ describe('FloorPlanScene', () => {
     expect(container.querySelector('[data-table-id="t1"]')).not.toHaveAttribute('role', 'button');
   });
 
+  it('does not make an unavailable table interactive', () => {
+    const onSelectTable = jest.fn();
+    const { container } = render(
+      <FloorPlanScene
+        document={floorPlanFixture()}
+        onSelectTable={onSelectTable}
+        tableStates={{ t1: 'unavailable' }}
+      />,
+    );
+    const table = container.querySelector('[data-table-id="t1"]');
+    expect(table).toHaveAttribute('data-state', 'unavailable');
+    expect(table).not.toHaveAttribute('role', 'button');
+    fireEvent.click(table!);
+    expect(onSelectTable).not.toHaveBeenCalled();
+  });
+
   it('KEEPS a smaller-than-the-party table selectable — it warns, it does not forbid', () => {
     // Disabling `small` dead-ended every party larger than the biggest table: all
     // tables greyed out, nothing selectable, no explanation. Combining tables is the

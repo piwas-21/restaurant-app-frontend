@@ -1,6 +1,6 @@
 import type { StatusBadgeTone } from '@/components/design-system/StatusBadge';
 
-export type TableServiceState = 'available' | 'occupied' | 'reserved' | 'closed';
+export type TableServiceState = 'available' | 'occupied' | 'ready' | 'reserved' | 'closed';
 export type ConnectionState = 'connected' | 'reconnecting' | 'stale' | 'offline';
 /** Legacy stream values accepted while Cashier adopts the canonical vocabulary. */
 export type ConnectionStateInput = ConnectionState | 'connecting' | 'disconnected' | 'error';
@@ -15,6 +15,7 @@ export interface OperationalStatusMeta {
 export const TABLE_SERVICE_STATUS_META: Readonly<Record<TableServiceState, OperationalStatusMeta>> = {
   available: { i18nKey: 'server.status_available', tone: 'success' },
   occupied: { i18nKey: 'server.status_occupied', tone: 'info' },
+  ready: { i18nKey: 'server.status_ready', tone: 'success' },
   reserved: { i18nKey: 'server.status_reserved', tone: 'warning' },
   closed: { i18nKey: 'server.status_closed', tone: 'neutral' },
 };

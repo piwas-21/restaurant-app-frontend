@@ -20,7 +20,7 @@ export function readServerTableRoundFavorites(scope: string | null): string[] {
   if (!scope || typeof window === 'undefined') return [];
   try {
     const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as StoredFavorites | null;
-    if (!stored || stored.scope !== scope || !Array.isArray(stored.productIds)) return [];
+    if (stored?.scope !== scope || !Array.isArray(stored?.productIds)) return [];
     return stored.productIds
       .filter((id): id is string => typeof id === 'string' && Boolean(id.trim()))
       .slice(0, MAX_FAVORITES);

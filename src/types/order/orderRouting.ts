@@ -1,13 +1,10 @@
 /** Additive mirror of the durable printer-routing projection on OrderDto. */
-export type DevicePrintTarget = string;
-export type DevicePrintStatus = string;
-
 export interface OrderRoutingStateDto {
   id: string;
   jobId: string;
   revision: number;
-  target: DevicePrintTarget;
-  status: DevicePrintStatus;
+  target: string;
+  status: string;
   deviceId?: string | null;
   failureReason?: string | null;
   lastAcknowledgedAt?: string | null;

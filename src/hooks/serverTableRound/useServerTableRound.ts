@@ -76,8 +76,8 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
         const decision = decideProductTap(response.data);
         if (decision.kind === 'sheet') setSelectedProduct(product);
         else mutate((current) => addCustomizedItem(current, product, decision.result));
-      } catch (caught: unknown) {
-        setError(getErrorMessage(caught) ?? 'server.round.product_unavailable');
+      } catch (error_: unknown) {
+        setError(getErrorMessage(error_) ?? 'server.round.product_unavailable');
       } finally {
         setTapPendingId(null);
       }

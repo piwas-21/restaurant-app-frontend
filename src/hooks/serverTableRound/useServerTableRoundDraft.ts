@@ -21,7 +21,7 @@ export function useServerTableRoundDraft(
   const auth = useOptionalAuth();
   const staffUserId = auth?.user?.email;
   const [items, setItems] = useState<OrderItem[]>([]);
-  const [notes, setNotesState] = useState('');
+  const [notes, setNotes] = useState('');
   const [operationId, setOperationId] = useState<string | undefined>();
   const [quote, setQuote] = useState<OrderDto | null>(null);
   const [createdOrder, setCreatedOrder] = useState<OrderDto | null>(null);
@@ -31,7 +31,7 @@ export function useServerTableRoundDraft(
   useEffect(() => {
     if (!sessionId || !sessionMatchesQuery) {
       setItems([]);
-      setNotesState('');
+      setNotes('');
       setOperationId(undefined);
       setQuote(null);
       setDraftRecovered(false);
@@ -42,7 +42,7 @@ export function useServerTableRoundDraft(
     }
     const stored = readServerTableRoundDraft(tableId, sessionId, staffUserId);
     setItems(stored?.items ?? []);
-    setNotesState(stored?.notes ?? '');
+    setNotes(stored?.notes ?? '');
     setOperationId(stored?.clientOperationId);
     setDraftRecovered(Boolean(stored));
     setQuote(null);
@@ -75,8 +75,8 @@ export function useServerTableRoundDraft(
     setCreatedOrder(null);
     setOperationState('idle');
   }, []);
-  const setNotes = useCallback((value: string) => {
-    setNotesState(value);
+  const updateNotes = useCallback((value: string) => {
+    setNotes(value);
     setOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
@@ -84,7 +84,7 @@ export function useServerTableRoundDraft(
   }, []);
   const discardDraft = useCallback(() => {
     setItems([]);
-    setNotesState('');
+    setNotes('');
     setOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
@@ -96,7 +96,7 @@ export function useServerTableRoundDraft(
     setCreatedOrder(order);
     setOperationState('committed');
     setItems([]);
-    setNotesState('');
+    setNotes('');
     setOperationId(undefined);
     setDraftRecovered(false);
     clearServerTableRoundDraft();
@@ -114,7 +114,7 @@ export function useServerTableRoundDraft(
     setQuote,
     setOperationState,
     setDraftRecovered,
-    setNotes,
+    setNotes: updateNotes,
     mutate,
     discardDraft,
     markCommitted,

@@ -109,6 +109,9 @@ export default function ServerTableRoundCatalog({
         {products.map((product) => {
           const favorite = favoriteIds.includes(product.id);
           const unavailable = product.availability?.canOrder === false;
+          let kindLabel = t('server.round.item');
+          if (isMenuBundle(product)) kindLabel = t('server.round.bundle');
+          if (unavailable) kindLabel = t('server.round.unavailable_for_dine_in');
           return (
             <article key={product.id} className={`${styles.tile} ${unavailable ? styles.unavailable : ''}`}>
               <button
@@ -134,13 +137,7 @@ export default function ServerTableRoundCatalog({
                 <span className={styles.name} dir="auto">
                   {product.name}
                 </span>
-                <span className={styles.kind}>
-                  {unavailable
-                    ? t('server.round.unavailable_for_dine_in')
-                    : isMenuBundle(product)
-                      ? t('server.round.bundle')
-                      : t('server.round.item')}
-                </span>
+                <span className={styles.kind}>{kindLabel}</span>
                 <span className={styles.price}>{formatPlainCurrency(product.basePrice)}</span>
               </button>
             </article>

@@ -3,7 +3,8 @@ import type { ApiResponse } from '@/types/order/common';
 
 export type KnownServerFloorTableState = 'Available' | 'Open' | 'Ready' | 'Reserved' | 'Ambiguous' | 'Inactive';
 /** Keeps the known literals narrow while allowing additive backend states to arrive safely. */
-type UnknownServerFloorTableState = string & {};
+type UnknownServerFloorTableState = string & { readonly __unknownServerFloorTableState?: never };
+type UnknownServerFloorTableShape = string & { readonly __unknownServerFloorTableShape?: never };
 export type ServerFloorTableState = KnownServerFloorTableState | UnknownServerFloorTableState;
 
 const KNOWN_TABLE_STATES: ReadonlySet<KnownServerFloorTableState> = new Set([
@@ -65,7 +66,7 @@ export interface ServerFloorTable {
   positionY: number;
   width: number;
   height: number;
-  shape: FloorPlanTableShape | (string & {});
+  shape: FloorPlanTableShape | UnknownServerFloorTableShape;
   rotation: number;
   state: ServerFloorTableState;
   activeRoundCount: number;

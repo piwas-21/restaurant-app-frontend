@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import ServerFloorWorkspace from './ServerFloorWorkspace';
 import { useServerFloorSnapshot } from '@/hooks/serverWorkspace/useServerFloorSnapshot';
 import { SERVER_FLOOR_VIEW_STORAGE_KEY } from '@/hooks/serverWorkspace/useServerFloorViewState';
-import type { ServerFloorSnapshot } from '@/types/serverWorkspace';
+import type { ServerFloorSnapshot, ServerFloorTableState } from '@/types/serverWorkspace';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -339,7 +339,7 @@ describe('ServerFloorWorkspace', () => {
     mockUseFloor.mockReturnValue({
       snapshot: {
         ...snapshot,
-        tables: [{ ...snapshot.tables[0], state: 'FutureState' }, snapshot.tables[1]],
+        tables: [{ ...snapshot.tables[0], state: 'FutureState' as ServerFloorTableState }, snapshot.tables[1]],
       },
       isLoading: false,
       isStale: false,
@@ -363,7 +363,7 @@ describe('ServerFloorWorkspace', () => {
     mockUseFloor.mockReturnValue({
       snapshot: {
         ...snapshot,
-        tables: [{ ...snapshot.tables[0], state: 'FutureState' }, snapshot.tables[1]],
+        tables: [{ ...snapshot.tables[0], state: 'FutureState' as ServerFloorTableState }, snapshot.tables[1]],
       },
       isLoading: false,
       isStale: false,

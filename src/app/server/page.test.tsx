@@ -41,14 +41,14 @@ describe('/server takeaway entry', () => {
     expect(screen.getByRole('main')).toHaveAttribute('data-workspace-variant', 'v1');
   });
 
-  it('selects the isolated V2 entry seam while keeping the safe V1 fallback', () => {
+  it('selects the isolated V2 entry seam while keeping the safe V1 fallback', async () => {
     render(
       <TenantFeaturesProvider features={{ serverWorkspaceV2: true }}>
         <ServerPage />
       </TenantFeaturesProvider>,
     );
 
-    expect(screen.getByTestId('server-floor-v2')).toBeInTheDocument();
+    expect(await screen.findByTestId('server-floor-v2')).toBeInTheDocument();
     expect(screen.queryByTestId('table-grid')).not.toBeInTheDocument();
   });
 });

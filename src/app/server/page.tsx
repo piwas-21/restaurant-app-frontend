@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
 import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
-import ServerFloorWorkspace from '@/components/server/ServerFloorWorkspace';
 import styles from '../styles/ServerPage.module.css';
+
+const ServerFloorWorkspace = dynamic(() => import('@/components/server/ServerFloorWorkspace'));
 
 type ServerWorkspaceVariant = 'v1' | 'v2-fallback';
 

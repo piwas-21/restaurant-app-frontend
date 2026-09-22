@@ -39,6 +39,7 @@ export function buildBundleChildItems(bundle: BundleOrderSelection, parentQuanti
     return [
       {
         productId: option.itemId,
+        sectionId: option.sectionId,
         quantity: parentQuantity * option.quantity,
         unitPrice: selectedItem.additionalPrice + (selectedItem.productVariationPriceModifier ?? 0),
         ...(selectedItem.productVariationId !== undefined

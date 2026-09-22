@@ -2,11 +2,14 @@ import { apiClient } from '@/utils/apiClient';
 import { PaymentMethod, type TableServiceSessionDto } from '@/types/order';
 import {
   addTableServiceSessionPayment,
+  cancelTableServicePaymentHandoff,
   closeTableServiceSession,
   getActiveTableServiceSessions,
   getTableServiceSession,
+  getPendingTableServicePaymentHandoffs,
   lookupTableServiceSessionPaymentOperation,
   openTableServiceSession,
+  requestTableServicePaymentHandoff,
 } from './tableServiceSessionService';
 
 jest.mock('@/utils/apiClient', () => ({
@@ -61,6 +64,13 @@ describe('table service session contract', () => {
     await expect(openTableServiceSession(7)).resolves.toEqual(session);
     expect(mockPost).toHaveBeenLastCalledWith('/api/table-service-sessions', { tableNumber: 7 }, { requireAuth: true });
 
+    await expect(openTableServiceSession({ tableId: 'table-7' })).resolves.toEqual(session);
+    expect(mockPost).toHaveBeenLastCalledWith(
+      '/api/table-service-sessions',
+      { tableId: 'table-7' },
+      { requireAuth: true },
+    );
+
     const payment = {
       operationId: '11111111-1111-4111-8111-111111111111',
       expectedVersion: 4,
@@ -89,6 +99,28 @@ describe('table service session contract', () => {
     expect(mockGet).toHaveBeenCalledWith('/api/table-service-sessions/session%2F1/payments/operations/op%2F1', {
       requireAuth: true,
     });
+  });
+
+  it('requests, lists, and cancels a version-pinned cashier handoff', async () => {
+    const mutation = { operationId: '22222222-2222-4222-8222-222222222222', expectedVersion: 4 };
+    mockPost.mockResolvedValue({ success: true, data: session });
+
+    await expect(requestTableServicePaymentHandoff('session/1', mutation)).resolves.toEqual(session);
+    expect(mockPost).toHaveBeenLastCalledWith('/api/table-service-sessions/session%2F1/payment-handoff', mutation, {
+      requireAuth: true,
+    });
+
+    const handoff = { handoffId: 'handoff-1', serviceSessionId: 'session-1', status: 'Requested' };
+    mockGet.mockResolvedValue({ success: true, data: [handoff] });
+    await expect(getPendingTableServicePaymentHandoffs()).resolves.toEqual([handoff]);
+    expect(mockGet).toHaveBeenLastCalledWith('/api/table-service-sessions/payment-handoffs', { requireAuth: true });
+
+    await expect(cancelTableServicePaymentHandoff('session/1', mutation)).resolves.toEqual(session);
+    expect(mockPost).toHaveBeenLastCalledWith(
+      '/api/table-service-sessions/session%2F1/payment-handoff/cancel',
+      mutation,
+      { requireAuth: true },
+    );
   });
 
   it('does not turn a failed envelope into a successful empty session', async () => {

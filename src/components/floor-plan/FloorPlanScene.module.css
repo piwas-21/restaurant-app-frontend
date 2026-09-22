@@ -4,9 +4,7 @@
    its dark mode for free (no hex lives in a *.module.css — S15 T1 gate). Only
    the NON-colour scalars (stroke weight, number font, the craft rough filter)
    differ per skin and are overridden by the template `skinClassName`. Structure
-   is skin-invariant, which is what keeps the guest map and admin editor
-   pixel-identical. */
-
+   is skin-invariant, which is what keeps the guest map and admin editor pixel-identical. */
 .scene {
   /* colour roles → semantic tokens (identical expression per skin; the token
      VALUES differ per template + dark mode, so the plan re-skins automatically) */
@@ -20,30 +18,27 @@
   --fp-flag: var(--brand-accent);
   --fp-on-accent: var(--text-on-primary);
   --fp-faint: var(--border-default);
-
   /* skin scalars — classic defaults; the craft skin class overrides them */
   --fp-w: 1.7;
   --fp-w-thin: 1.05;
   --fp-num-font: inherit;
   --fp-rough: none;
-
   display: block;
   width: 100%;
   height: auto;
   background: var(--fp-paper);
   touch-action: none;
 }
-
 .scene text {
   user-select: none;
 }
-
 .rough {
   filter: var(--fp-rough);
 }
 
 /* ── ink variants (mapped from symbol primitives) ─────────────────────────── */
 .ln,
+.lnThin,
 .scenery {
   fill: none;
   stroke-linecap: round;
@@ -54,11 +49,8 @@
   stroke-width: var(--fp-w);
 }
 .lnThin {
-  fill: none;
   stroke: var(--fp-ink);
   stroke-width: var(--fp-w-thin);
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 .fill {
   fill: var(--fp-fill);
@@ -135,10 +127,12 @@
   stroke: var(--fp-ink);
   stroke-width: var(--fp-w-thin);
 }
-.tableHit {
+.tableHit,
+.itemHit {
   cursor: pointer;
 }
-.table:focus-visible {
+.table:focus-visible,
+.itemHit:focus-visible {
   outline: 2px solid var(--fp-accent);
   outline-offset: 2px;
 }
@@ -163,6 +157,14 @@
 .table[data-state='occupied'] .num {
   fill: var(--feedback-warning-text);
 }
+.table[data-state='ready'] .tableTop,
+.table[data-state='ready'] .chair {
+  fill: var(--feedback-success-xlight);
+  stroke: var(--feedback-success);
+}
+.table[data-state='ready'] .num {
+  fill: var(--feedback-success);
+}
 .table[data-state='booked'] .tableTop {
   fill: url(#fp-hatch);
 }
@@ -172,18 +174,16 @@
 .table[data-state='dim'] {
   opacity: 0.24;
 }
+.table[data-state='unavailable'] {
+  opacity: 0.48;
+}
+.table[data-state='unavailable'] .tableTop,
+.table[data-state='unavailable'] .chair {
+  fill: var(--surface-secondary);
+  stroke: var(--text-secondary);
+}
 .tableHit[data-state='available']:hover .tableTop {
   stroke-width: calc(var(--fp-w) * 1.6);
-}
-
-/* Placed items are inert scenery on the guest map; the editor makes them
-   focusable objects, and only then do they take a cursor and a focus ring. */
-.itemHit {
-  cursor: pointer;
-}
-.itemHit:focus-visible {
-  outline: 2px solid var(--fp-accent);
-  outline-offset: 2px;
 }
 
 /* ── editor grid ──────────────────────────────────────────────────────────── */

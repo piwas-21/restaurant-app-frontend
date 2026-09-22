@@ -12,6 +12,9 @@ export function tableStatusLabel(state: TableRenderState, maxGuests: number, par
   if (state === 'occupied') {
     return t('table_occupied', 'Occupied');
   }
+  if (state === 'ready') {
+    return t('server.status_ready', 'Ready');
+  }
   if (state === 'booked') {
     return t('booked', 'Booked');
   }

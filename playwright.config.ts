@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { frontendBaseUrl } from './e2e/helpers/config';
 
 /**
  * Playwright E2E configuration.
@@ -32,6 +33,10 @@ function devServerCommand(): string {
   }
   return 'npm run dev';
 }
+
+const e2eBaseUrl = frontendBaseUrl();
+const e2ePort = new URL(e2eBaseUrl).port || '3000';
+
 export default defineConfig({
   testDir: './e2e/tests',
   testMatch: '**/*.e2e.ts',
@@ -51,7 +56,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
+    baseURL: e2eBaseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -73,7 +78,7 @@ export default defineConfig({
     ? undefined
     : {
         command: devServerCommand(),
-        url: 'http://localhost:3000',
+        url: e2eBaseUrl,
         reuseExistingServer: !process.env.CI,
         stdout: 'ignore',
         stderr: 'pipe',
@@ -81,10 +86,12 @@ export default defineConfig({
         env: {
           TZ: 'UTC',
           LANG: 'en_US.UTF-8',
+          PORT: e2ePort,
           // Pin the dev server's backend URL to E2E_API_BASE_URL so browser-side
           // fetches don't fall through to whatever .env.local has (e.g. a stale
           // staging URL). Fixture-level request.* calls already use this value.
           NEXT_PUBLIC_API_URL: process.env.E2E_API_BASE_URL ?? 'http://localhost:5221',
+          TENANT_FEATURES_REQUEST_TIMEOUT_MS: process.env.TENANT_FEATURES_REQUEST_TIMEOUT_MS ?? '3000',
         },
       },
 });

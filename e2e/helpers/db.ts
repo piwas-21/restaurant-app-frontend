@@ -19,7 +19,7 @@ const E2E_USER_PREFIX = 'e2e-';
 
 let pool: Pool | undefined;
 
-function getPool(): Pool {
+export function getE2EDbPool(): Pool {
   if (!pool) {
     const connectionString = process.env.E2E_DATABASE_URL;
     if (!connectionString) {
@@ -56,7 +56,7 @@ export async function closeDbPool(): Promise<void> {
  */
 export async function deleteUserByEmail(email: string): Promise<number> {
   assertE2EEmail(email);
-  const pool = getPool();
+  const pool = getE2EDbPool();
 
   // FK constraints to "Users" are RESTRICT, so dependents must go first.
   // Resolve the id once; absent == already cleaned (return 0, idempotent).
@@ -88,7 +88,7 @@ export async function deleteUserByEmail(email: string): Promise<number> {
  * Filters by normalized prefix `E2E-` so unrelated rows are never touched.
  */
 export async function purgeE2EUsers(): Promise<number> {
-  const result = await getPool().query('DELETE FROM "Users" WHERE normalized_email LIKE $1', [
+  const result = await getE2EDbPool().query('DELETE FROM "Users" WHERE normalized_email LIKE $1', [
     `${E2E_USER_PREFIX.toUpperCase()}%`,
   ]);
   return result.rowCount ?? 0;
@@ -113,7 +113,7 @@ export async function promoteE2EUser(
   role: 'Admin' | 'Cashier' | 'KitchenStaff' | 'Server',
 ): Promise<number> {
   assertE2EEmail(email);
-  const result = await getPool().query(
+  const result = await getE2EDbPool().query(
     'UPDATE "Users" SET role = $1, email_confirmed = TRUE WHERE normalized_email = $2',
     [role, email.toUpperCase()],
   );

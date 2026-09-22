@@ -151,6 +151,7 @@ describe('waiter bundle order mapping', () => {
         childItems: [
           {
             productId: 'sandwich-kebab',
+            sectionId: 'plat',
             quantity: 2,
             unitPrice: 0,
             specialInstructions: 'well grilled',
@@ -160,6 +161,7 @@ describe('waiter bundle order mapping', () => {
           },
           {
             productId: 'coke',
+            sectionId: 'drink',
             quantity: 2,
             unitPrice: 0,
             specialInstructions: undefined,
@@ -169,6 +171,7 @@ describe('waiter bundle order mapping', () => {
           },
           {
             productId: 'baklava',
+            sectionId: 'dessert',
             quantity: 2,
             unitPrice: 1.5,
             specialInstructions: undefined,
@@ -222,6 +225,7 @@ describe('waiter bundle order mapping', () => {
     expect(buildBundleChildItems({ sections: [meat], selectedOptions: chosen }, 1)).toEqual([
       {
         productId: 'beef',
+        sectionId: 'meat',
         quantity: 1,
         unitPrice: 1,
         specialInstructions: undefined,
@@ -254,8 +258,8 @@ describe('waiter bundle order mapping', () => {
     ];
 
     expect(buildBundleChildItems({ sections: [section], selectedOptions }, 1)).toEqual([
-      expect.objectContaining({ productId: 'coke', unitPrice: 0 }),
-      expect.objectContaining({ productId: 'coke', productVariationId: 'large', unitPrice: 3 }),
+      expect.objectContaining({ productId: 'coke', sectionId: section.id, unitPrice: 0 }),
+      expect.objectContaining({ productId: 'coke', sectionId: section.id, productVariationId: 'large', unitPrice: 3 }),
     ]);
   });
 });

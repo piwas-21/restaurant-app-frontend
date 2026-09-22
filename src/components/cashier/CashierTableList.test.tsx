@@ -69,6 +69,18 @@ describe('CashierTableList', () => {
     expect(separators).toHaveLength(2);
     separators.forEach((separator) => expect(separator).toHaveAttribute('aria-hidden', 'true'));
   });
+
+  it('shows the canonical payment-requested status for a server handoff', () => {
+    const requestedEntry: CashierTableEntry = {
+      ...entry,
+      session: { ...session, hasPendingPaymentHandoff: true },
+    };
+
+    render(<CashierTableList entries={[requestedEntry]} selectedTableNumber={null} onSelectTable={jest.fn()} />);
+
+    expect(screen.getByText('cashier.tables.payment_requested')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAccessibleName(/cashier\.tables\.payment_requested/);
+  });
 });
 
 it('renders a label-only visit under its configured label and passes plural counts', () => {

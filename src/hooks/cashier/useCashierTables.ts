@@ -7,6 +7,7 @@ import { getActiveTableServiceSessions, openTableServiceSession } from '@/servic
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
+import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
 
 export type { CashierTableEntry, CashierTableStatus } from '@/lib/cashierTableEntries';
 export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
@@ -66,6 +67,8 @@ export function useCashierTables(): CashierTablesState {
 
   useEffect(() => {
     void refresh();
+    const interval = window.setInterval(() => void refresh(), STAFF_PAYMENT_HANDOFF_REFRESH_MS);
+    return () => window.clearInterval(interval);
   }, [refresh]);
 
   const createSession = useCallback(

@@ -6,6 +6,7 @@ import { isBaseRowHidden } from '@/utils/baseProductVisibility';
 import { toPriceableIngredients } from '@/utils/priceableIngredient';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { Product } from '@/services/serverService';
+import type { OrderType } from '@/types/order';
 import { useProductCustomizationDetails } from './useProductCustomizationDetails';
 import { useWaiterIngredientSelection } from './useWaiterIngredientSelection';
 import { buildCustomizationResult } from './waiterSelection';
@@ -17,7 +18,6 @@ import type {
   SuggestedSideItem,
 } from './productCustomizationTypes';
 
-/** The first variation in display order — this screen's stand-in for the guest sheet's first radio. */
 function firstActive(variations: ProductVariation[]): ProductVariation | null {
   return [...variations].sort((a, b) => a.displayOrder - b.displayOrder)[0] ?? null;
 }
@@ -32,6 +32,7 @@ interface UseProductCustomizationSheetOptions {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (result: CustomizationResult) => void;
+  requestedOrderType?: OrderType | null;
 }
 
 /**
@@ -51,11 +52,12 @@ export function useProductCustomizationSheet({
   isOpen,
   onClose,
   onConfirm,
+  requestedOrderType,
 }: UseProductCustomizationSheetOptions) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
-  const { detail, isLoading, error, reload } = useProductCustomizationDetails(product?.id, isOpen);
+  const { detail, isLoading, error, reload } = useProductCustomizationDetails(product?.id, isOpen, requestedOrderType);
   const ingredientSelection = useWaiterIngredientSelection();
   const { seedFromBaseRecipe } = ingredientSelection;
 
@@ -75,7 +77,6 @@ export function useProductCustomizationSheet({
     [allIngredients],
   );
   const sideItems: SuggestedSideItem[] = useMemo(() => detail?.suggestedSideItems ?? [], [detail]);
-  // ONE input contract for the ONE price math — see utils/priceableIngredient.ts.
   const priceableIngredients = useMemo(() => toPriceableIngredients(allIngredients), [allIngredients]);
 
   // Seed the selections from whatever just arrived (and clear them when nothing did).

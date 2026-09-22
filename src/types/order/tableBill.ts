@@ -9,8 +9,12 @@ import type { TableBillRoundDto } from './tableBillRound';
  * neither Completed nor Cancelled.
  */
 export interface TableBillDto {
+  /** Stable configured table identity, when the bill belongs to a physical table. */
+  tableId?: string | null;
   /** Null for label-only visits; the session's tableLabel carries the display name then. */
   tableNumber: number | null;
+  /** Server-configured table label, including non-numeric labels. */
+  tableLabel?: string | null;
   /** Explicit durable visit identity; null on the legacy table-number bill. */
   serviceSessionId?: string | null;
   /** Optimistic-concurrency version for an explicit visit. */

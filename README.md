@@ -111,6 +111,7 @@ All MRs require the pipeline to pass before merge.
 | Variable                                    | Purpose                             | Notes                                                                            |
 | ------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_API_URL`                       | Backend API base URL                | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod |
+| `TENANT_FEATURES_REQUEST_TIMEOUT_MS`        | Server rollout-feature fetch timeout | Positive milliseconds; fail-closed when absent or invalid |
 | `NEXT_PUBLIC_IMAGE_BASE_URL`                | Image CDN / S3 base                 | E.g. S3 bucket URL                                                               |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`              | Google OAuth client (public)        | Per-environment value                                                            |
 | `NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS` | Cashier tenant-day refresh interval | Positive milliseconds                                                            |

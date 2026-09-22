@@ -84,7 +84,7 @@ function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<T
   // to forbid. Disabling it dead-ended any party bigger than the largest table:
   // every table went grey and nothing could be picked, so combining two tables —
   // the documented answer to a large party — was impossible.
-  const clickable = Boolean(onSelectTable) && state !== 'booked';
+  const clickable = Boolean(onSelectTable) && state !== 'booked' && state !== 'unavailable';
   const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
     if (clickable && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();

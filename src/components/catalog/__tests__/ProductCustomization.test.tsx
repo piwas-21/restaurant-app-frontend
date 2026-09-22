@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ProductCustomization from '../ProductCustomization';
 import { getProductById } from '@/services/menuService';
 import { ApiError } from '@/utils/apiClient';
+import { OrderType } from '@/types/order';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -150,6 +151,24 @@ describe('ProductCustomization — a sheet that could not load says why', () => 
     await waitFor(() => expect(screen.getByText('Revani').closest('button')?.className).toContain('selected'));
     // Exactly two requests: the failure and the retry. One `load` behind both.
     expect(getProductById).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('ProductCustomization — channel-aware detail', () => {
+  it('refetches and validates detail for the requested order type', async () => {
+    (getProductById as jest.Mock).mockResolvedValueOnce(detail(false));
+
+    render(
+      <ProductCustomization
+        product={{ id: 'p1', name: 'Soup', basePrice: 6 } as never}
+        isOpen
+        onClose={jest.fn()}
+        onConfirm={jest.fn()}
+        requestedOrderType={OrderType.Takeaway}
+      />,
+    );
+
+    await waitFor(() => expect(getProductById).toHaveBeenCalledWith('p1', undefined, OrderType.Takeaway));
   });
 });
 

@@ -8,5 +8,6 @@
   outline-offset: 2px;
 }
 .touch:disabled {
+  opacity: 1;
   cursor: not-allowed;
 }

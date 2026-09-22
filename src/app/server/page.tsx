@@ -1,12 +1,19 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
 import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import styles from '../styles/ServerPage.module.css';
 
-export default function ServerPage() {
+const ServerFloorWorkspace = dynamic(() => import('@/components/server/ServerFloorWorkspace'));
+
+type ServerWorkspaceVariant = 'v1' | 'v2-fallback';
+
+function ServerWorkspaceV1({ variant = 'v1' }: Readonly<{ variant?: ServerWorkspaceVariant }>) {
   const { t } = useTranslation();
   const {
     orders,
@@ -102,7 +109,7 @@ export default function ServerPage() {
   }, [refreshOrders, refreshTables]);
 
   return (
-    <main className={styles.pageContainer}>
+    <main className={styles.pageContainer} data-workspace-variant={variant}>
       <ServerHeader
         isConnected={isConnected}
         connectionState={connectionState}
@@ -112,6 +119,12 @@ export default function ServerPage() {
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
       />
+
+      <div className={styles.pageActions}>
+        <Link className={styles.takeawayLink} href="/server/takeaway">
+          {t('server.takeaway.link')}
+        </Link>
+      </div>
 
       <div className={styles.mainContent}>
         {/* Left Panel - Table Grid */}
@@ -167,4 +180,14 @@ export default function ServerPage() {
       )}
     </main>
   );
+}
+
+function ServerWorkspaceV2() {
+  return <ServerFloorWorkspace />;
+}
+
+export default function ServerPage() {
+  const { serverWorkspaceV2 } = useTenantFeatures();
+
+  return serverWorkspaceV2 ? <ServerWorkspaceV2 /> : <ServerWorkspaceV1 />;
 }

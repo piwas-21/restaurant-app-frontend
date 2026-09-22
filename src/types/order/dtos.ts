@@ -61,11 +61,11 @@ export interface CreateOrderItemDto {
   unitPrice: number;
   customizationPrice?: number;
   specialInstructions?: string;
-  // The ids that ARE on the dish, as `AddToBasketDto.selectedIngredients` means it. Its PRESENCE
-  // makes the server price the line and IGNORE the declared prices (backend #430); an empty array
-  // is a real answer ("all optional off"), so OMITTING it is what keeps the declared price.
+  // IDs on the dish. Presence triggers server pricing (backend #430); empty means all optional off,
+  // while omission preserves the declared price.
   selectedIngredientIds?: string[];
   ingredientQuantities?: Record<string, number>; // Ingredient quantities for kitchen print
+  sectionId?: string; // Owning section for a staff-priced bundle child.
   childItems?: CreateOrderItemDto[]; // Child items (e.g. side items, additionals)
   // Child rows only (backend #318): bundle component vs true side. On the CREATE shape because a
   // child row is WRITTEN, not just read — the waiter sheet posts its side items with it.

@@ -104,7 +104,10 @@ export function mergeCashierTableEntries(
     });
   });
 
-  return entries.sort((left, right) =>
-    left.table.tableNumber.localeCompare(right.table.tableNumber, undefined, { numeric: true }),
-  );
+  return entries.sort((left, right) => {
+    const handoffOrder =
+      Number(Boolean(right.session?.hasPendingPaymentHandoff)) -
+      Number(Boolean(left.session?.hasPendingPaymentHandoff));
+    return handoffOrder || left.table.tableNumber.localeCompare(right.table.tableNumber, undefined, { numeric: true });
+  });
 }

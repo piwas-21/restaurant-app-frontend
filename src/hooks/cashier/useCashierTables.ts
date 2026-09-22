@@ -11,6 +11,8 @@ import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierT
 export type { CashierTableEntry, CashierTableStatus } from '@/lib/cashierTableEntries';
 export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
 
+const HANDOFF_REFRESH_INTERVAL_MS = 15_000;
+
 export interface CashierTablesState {
   readonly entries: readonly CashierTableEntry[];
   readonly queueState: 'loading' | 'ready' | 'stale' | 'unavailable';
@@ -66,6 +68,8 @@ export function useCashierTables(): CashierTablesState {
 
   useEffect(() => {
     void refresh();
+    const interval = window.setInterval(() => void refresh(), HANDOFF_REFRESH_INTERVAL_MS);
+    return () => window.clearInterval(interval);
   }, [refresh]);
 
   const createSession = useCallback(

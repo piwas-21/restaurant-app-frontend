@@ -2930,5 +2930,20 @@
   "server.tasks.delivery_failed": "تعذر تحديث المهمة. حاول مرة أخرى.",
   "server.tasks.version_conflict": "تغير الطلب. تم تحديث قائمة المهام.",
   "server.tasks.load_failed": "تعذر تحميل المهام. حاول مرة أخرى.",
-  "server.tasks.session_mismatch": "تنتمي هذه المهمة إلى زيارة طاولة مختلفة. حدّث قائمة المهام قبل المتابعة."
+  "server.tasks.session_mismatch": "تنتمي هذه المهمة إلى زيارة طاولة مختلفة. حدّث قائمة المهام قبل المتابعة.",
+  "server.bill.title": "الفاتورة والزيارة",
+  "server.bill.operation_failed": "تعذر إكمال إجراء الفاتورة. حدّث الصفحة وحاول مجددًا.",
+  "server.bill.close_blocked_handoff": "أكمل طلب الصندوق أو ألغِه قبل إغلاق هذه الزيارة.",
+  "server.bill.close_blocked_legacy": "يجب على المدير معالجة الطلبات غير المرتبطة قبل الإغلاق.",
+  "server.bill.close_blocked_balance": "حصّل الرصيد المتبقي أو أرسله إلى الصندوق قبل الإغلاق.",
+  "server.bill.close_blocked_rounds": "يجب إكمال جميع الجولات أو إلغاؤها قبل الإغلاق.",
+  "server.bill.handoff_pending": "طُلب التحصيل من الصندوق بمبلغ {{amount}}.",
+  "server.bill.print_dialog_opened": "فُتحت نافذة الطباعة في المتصفح. أكّد الطباعة الورقية بشكل منفصل.",
+  "server.bill.collect": "تحصيل الدفع",
+  "server.bill.send_to_cashier": "إرسال إلى الصندوق",
+  "server.bill.cancel_handoff": "إلغاء طلب الصندوق",
+  "server.bill.close_visit": "إغلاق الزيارة",
+  "server.bill.close_confirm_title": "إغلاق هذه الزيارة؟",
+  "server.bill.close_confirm_message": "إغلاق الزيارة الحالية للطاولة {{table}}؟",
+  "cashier.tables.payment_requested": "تم طلب الدفع"
 }

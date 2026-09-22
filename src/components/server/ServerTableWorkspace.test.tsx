@@ -4,6 +4,22 @@ import type { ServerFloorTable } from '@/types/serverWorkspace';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
 import ServerTableWorkspace from './ServerTableWorkspace';
 
+jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
+  useServerTableBillActions: (baseSession: TableServiceSessionDto) => ({
+    session: baseSession,
+    isLoading: false,
+    isMutating: false,
+    isStale: false,
+    error: null,
+    requestHandoff: jest.fn(),
+    cancelHandoff: jest.fn(),
+    submitPayment: jest.fn(),
+    closeSession: jest.fn(),
+    reconcilePendingOperation: jest.fn(),
+    refresh: jest.fn(),
+  }),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {

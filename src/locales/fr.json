@@ -2903,5 +2903,20 @@
   "server.tasks.delivery_failed": "Impossible de mettre à jour la tâche. Réessayez.",
   "server.tasks.version_conflict": "Cette commande a changé. La liste des tâches a été actualisée.",
   "server.tasks.load_failed": "Impossible de charger les tâches. Réessayez.",
-  "server.tasks.session_mismatch": "Cette tâche appartient à une autre visite de table. Actualisez la liste avant de continuer."
+  "server.tasks.session_mismatch": "Cette tâche appartient à une autre visite de table. Actualisez la liste avant de continuer.",
+  "server.bill.title": "Addition et service",
+  "server.bill.operation_failed": "L’action sur l’addition n’a pas abouti. Actualisez puis réessayez.",
+  "server.bill.close_blocked_handoff": "Traitez ou annulez la demande à la caisse avant de clôturer ce service.",
+  "server.bill.close_blocked_legacy": "Un responsable doit résoudre les commandes non attribuées avant la clôture.",
+  "server.bill.close_blocked_balance": "Encaissez ou envoyez le solde à la caisse avant de clôturer.",
+  "server.bill.close_blocked_rounds": "Toutes les commandes doivent être terminées ou annulées avant la clôture.",
+  "server.bill.handoff_pending": "Encaissement demandé à la caisse pour {{amount}}.",
+  "server.bill.print_dialog_opened": "La fenêtre d’impression du navigateur est ouverte. Vérifiez séparément la sortie papier.",
+  "server.bill.collect": "Encaisser",
+  "server.bill.send_to_cashier": "Envoyer à la caisse",
+  "server.bill.cancel_handoff": "Annuler la demande caisse",
+  "server.bill.close_visit": "Clôturer le service",
+  "server.bill.close_confirm_title": "Clôturer ce service ?",
+  "server.bill.close_confirm_message": "Clôturer le service en cours pour la table {{table}} ?",
+  "cashier.tables.payment_requested": "Paiement demandé"
 }

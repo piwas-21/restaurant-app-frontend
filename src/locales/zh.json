@@ -2885,5 +2885,20 @@
   "server.tasks.delivery_failed": "无法更新任务。请重试。",
   "server.tasks.version_conflict": "订单已更改。任务列表已刷新。",
   "server.tasks.load_failed": "无法加载任务。请重试.",
-  "server.tasks.session_mismatch": "此任务属于另一次用餐。请刷新任务列表后再继续。"
+  "server.tasks.session_mismatch": "此任务属于另一次用餐。请刷新任务列表后再继续。",
+  "server.bill.title": "账单与用餐",
+  "server.bill.operation_failed": "账单操作未完成。请刷新后重试。",
+  "server.bill.close_blocked_handoff": "关闭本次用餐前，请先完成或取消收银请求。",
+  "server.bill.close_blocked_legacy": "关闭前须由经理处理未归属的餐桌订单。",
+  "server.bill.close_blocked_balance": "关闭前请收取余款或发送给收银员。",
+  "server.bill.close_blocked_rounds": "关闭前必须完成或取消所有轮次。",
+  "server.bill.handoff_pending": "已向收银员请求收取 {{amount}}。",
+  "server.bill.print_dialog_opened": "浏览器打印窗口已打开。请另行确认纸质输出。",
+  "server.bill.collect": "收取付款",
+  "server.bill.send_to_cashier": "发送给收银员",
+  "server.bill.cancel_handoff": "取消收银请求",
+  "server.bill.close_visit": "关闭本次用餐",
+  "server.bill.close_confirm_title": "关闭本次用餐？",
+  "server.bill.close_confirm_message": "关闭餐桌 {{table}} 的当前用餐？",
+  "cashier.tables.payment_requested": "已请求付款"
 }

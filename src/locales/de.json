@@ -2894,5 +2894,20 @@
   "server.tasks.delivery_failed": "Die Aufgabe konnte nicht aktualisiert werden. Erneut versuchen.",
   "server.tasks.version_conflict": "Diese Bestellung wurde geändert. Die Aufgabenliste wurde aktualisiert.",
   "server.tasks.load_failed": "Aufgaben konnten nicht geladen werden. Erneut versuchen.",
-  "server.tasks.session_mismatch": "Diese Aufgabe gehört zu einem anderen Tischbesuch. Aktualisieren Sie die Aufgabenliste, bevor Sie fortfahren."
+  "server.tasks.session_mismatch": "Diese Aufgabe gehört zu einem anderen Tischbesuch. Aktualisieren Sie die Aufgabenliste, bevor Sie fortfahren.",
+  "server.bill.title": "Rechnung und Besuch",
+  "server.bill.operation_failed": "Die Rechnungsaktion konnte nicht abgeschlossen werden. Aktualisieren und erneut versuchen.",
+  "server.bill.close_blocked_handoff": "Die Kassenanfrage vor dem Schließen abschließen oder stornieren.",
+  "server.bill.close_blocked_legacy": "Nicht zugeordnete Tischbestellungen müssen zuerst von einer Leitung geklärt werden.",
+  "server.bill.close_blocked_balance": "Den Restbetrag kassieren oder vor dem Schließen an die Kasse senden.",
+  "server.bill.close_blocked_rounds": "Vor dem Schließen müssen alle Runden abgeschlossen oder storniert sein.",
+  "server.bill.handoff_pending": "Kassenzahlung über {{amount}} angefordert.",
+  "server.bill.print_dialog_opened": "Der Browser-Druckdialog wurde geöffnet. Papierausgabe separat bestätigen.",
+  "server.bill.collect": "Zahlung kassieren",
+  "server.bill.send_to_cashier": "An Kasse senden",
+  "server.bill.cancel_handoff": "Kassenanfrage stornieren",
+  "server.bill.close_visit": "Besuch schließen",
+  "server.bill.close_confirm_title": "Diesen Besuch schließen?",
+  "server.bill.close_confirm_message": "Den aktuellen Besuch für Tisch {{table}} schließen?",
+  "cashier.tables.payment_requested": "Zahlung angefordert"
 }

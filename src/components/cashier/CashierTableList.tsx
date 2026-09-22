@@ -43,6 +43,9 @@ export default function CashierTableList({
           ? sessionTableDisplay(session, t)
           : t('cashier.tables.table_number', { table: number });
         const selected = selectedTableNumber !== null && tableNumberKey(selectedTableNumber) === tableNumberKey(number);
+        const accessibleLabel = session?.hasPendingPaymentHandoff
+          ? `${t('cashier.tables.select_table', { table: displayName })}, ${t('cashier.tables.payment_requested')}`
+          : t('cashier.tables.select_table', { table: displayName });
         const balance = session
           ? (formatTableMoney(tableSessionEligibleOutstanding(session), session) ??
             t('cashier.tables.currency_unknown'))
@@ -62,7 +65,7 @@ export default function CashierTableList({
               type="button"
               className={styles.card}
               aria-pressed={selected}
-              aria-label={t('cashier.tables.select_table', { table: displayName })}
+              aria-label={accessibleLabel}
               onClick={() => onSelectTable(number, session?.serviceSessionId)}
               disabled={disabled}
             >
@@ -96,6 +99,11 @@ export default function CashierTableList({
                   <span>{t('cashier.tables.opened', { time: opened })}</span>
                   <span aria-hidden="true"> · </span>
                   <span>{t('cashier.tables.age', { minutes: session.ageMinutes })}</span>
+                </span>
+              )}
+              {session?.hasPendingPaymentHandoff && (
+                <span className={styles.meta}>
+                  <StatusBadge tone="warning">{t('cashier.tables.payment_requested')}</StatusBadge>
                 </span>
               )}
               <span className={styles.balance}>

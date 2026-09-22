@@ -2903,5 +2903,20 @@
   "server.tasks.delivery_failed": "Impossibile aggiornare l'attività. Riprova.",
   "server.tasks.version_conflict": "L'ordine è cambiato. L'elenco attività è stato aggiornato.",
   "server.tasks.load_failed": "Impossibile caricare le attività. Riprova.",
-  "server.tasks.session_mismatch": "Questa attività appartiene a una visita diversa. Aggiorna l’elenco prima di continuare."
+  "server.tasks.session_mismatch": "Questa attività appartiene a una visita diversa. Aggiorna l’elenco prima di continuare.",
+  "server.bill.title": "Conto e visita",
+  "server.bill.operation_failed": "L’azione sul conto non è riuscita. Aggiorna e riprova.",
+  "server.bill.close_blocked_handoff": "Completa o annulla la richiesta alla cassa prima di chiudere la visita.",
+  "server.bill.close_blocked_legacy": "Un responsabile deve risolvere gli ordini non assegnati prima della chiusura.",
+  "server.bill.close_blocked_balance": "Incassa o invia il saldo alla cassa prima di chiudere.",
+  "server.bill.close_blocked_rounds": "Tutti i giri devono essere completati o annullati prima della chiusura.",
+  "server.bill.handoff_pending": "Incasso alla cassa richiesto per {{amount}}.",
+  "server.bill.print_dialog_opened": "La finestra di stampa del browser è aperta. Verifica separatamente la stampa su carta.",
+  "server.bill.collect": "Incassa pagamento",
+  "server.bill.send_to_cashier": "Invia alla cassa",
+  "server.bill.cancel_handoff": "Annulla richiesta cassa",
+  "server.bill.close_visit": "Chiudi visita",
+  "server.bill.close_confirm_title": "Chiudere questa visita?",
+  "server.bill.close_confirm_message": "Chiudere la visita corrente per il tavolo {{table}}?",
+  "cashier.tables.payment_requested": "Pagamento richiesto"
 }

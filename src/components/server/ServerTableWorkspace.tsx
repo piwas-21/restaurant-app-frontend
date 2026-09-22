@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
-import TableServiceSessionBill from '@/components/table-service/TableServiceSessionBill';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
 import type { ServerTableBlocker, ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
 import { tableStatusLabel } from './serverFloorPresentation';
 import styles from './ServerTableWorkspace.module.css';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
+import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
@@ -206,7 +206,13 @@ export default function ServerTableWorkspace({
                 ))}
             </div>
 
-            {session && <TableServiceSessionBill session={session} />}
+            {session && (
+              <ServerTableBillWorkspace
+                session={session}
+                actionsBlocked={taskContextBlocked || state.isStale}
+                refreshWorkspace={state.refresh}
+              />
+            )}
           </>
         )}
       </div>

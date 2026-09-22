@@ -99,6 +99,19 @@ describe('useCashierTables', () => {
     );
   });
 
+  it('prioritizes a table whose server requested cashier payment', async () => {
+    mockedSessions.mockResolvedValue([
+      session('session-4', 4),
+      { ...session('session-5', 5), hasPendingPaymentHandoff: true },
+    ]);
+
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    expect(result.current.entries[0]?.session?.serviceSessionId).toBe('session-5');
+    expect(result.current.entries[0]?.session?.hasPendingPaymentHandoff).toBe(true);
+  });
+
   it('does not let a refresh started before opening overwrite the new session', async () => {
     const pendingTables = deferred<TableDto[]>();
     const pendingSessions = deferred<TableServiceSessionDto[]>();

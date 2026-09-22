@@ -77,13 +77,16 @@ export function useServerFloorSnapshot(): ServerFloorSnapshotState {
   }, [refresh]);
 
   const isStale = Boolean(error && snapshot);
-  const connectionState: ConnectionState = isStale
-    ? 'stale'
-    : error
-      ? 'offline'
-      : isLoading
-        ? 'reconnecting'
-        : 'connected';
+  let connectionState: ConnectionState;
+  if (isStale) {
+    connectionState = 'stale';
+  } else if (error) {
+    connectionState = 'offline';
+  } else if (isLoading) {
+    connectionState = 'reconnecting';
+  } else {
+    connectionState = 'connected';
+  }
 
   return { snapshot, isLoading, isStale, error, connectionState, refresh };
 }

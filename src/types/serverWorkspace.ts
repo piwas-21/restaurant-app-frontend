@@ -2,7 +2,9 @@ import type { FloorPlanDocument, FloorPlanTableShape } from '@/types/floorPlan';
 import type { ApiResponse } from '@/types/order/common';
 
 export type KnownServerFloorTableState = 'Available' | 'Open' | 'Ready' | 'Reserved' | 'Ambiguous' | 'Inactive';
-export type ServerFloorTableState = KnownServerFloorTableState | string;
+/** Keeps the known literals narrow while allowing additive backend states to arrive safely. */
+type UnknownServerFloorTableState = string & {};
+export type ServerFloorTableState = KnownServerFloorTableState | UnknownServerFloorTableState;
 
 const KNOWN_TABLE_STATES: ReadonlySet<KnownServerFloorTableState> = new Set([
   'Available',
@@ -63,7 +65,7 @@ export interface ServerFloorTable {
   positionY: number;
   width: number;
   height: number;
-  shape: FloorPlanTableShape | string;
+  shape: FloorPlanTableShape | (string & {});
   rotation: number;
   state: ServerFloorTableState;
   activeRoundCount: number;

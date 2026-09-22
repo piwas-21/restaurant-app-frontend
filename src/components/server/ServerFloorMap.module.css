@@ -61,9 +61,6 @@
   border: 1px solid var(--border-default);
   border-radius: var(--modal-body-option-radius, 0.5rem);
   background: var(--surface-primary);
-}
-
-.detailPanel {
   display: grid;
   align-content: start;
   gap: var(--space-2, 0.5rem);

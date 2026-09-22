@@ -52,13 +52,14 @@ export default function ServerFloorWorkspace() {
     );
   }, [normalizedSearchQuery, tables, resolvedZoneId]);
   const mapDocuments = useMemo<FloorPlanDocument[]>(() => {
-    const sourceZones = resolvedZoneId
-      ? selectedZone
-        ? [selectedZone]
-        : []
-      : normalizedSearchQuery
-        ? zones.filter((zone) => visibleTables.some((table) => table.zoneId === zone.id))
-        : zones;
+    let sourceZones: FloorPlanDocument[];
+    if (resolvedZoneId) {
+      sourceZones = selectedZone ? [selectedZone] : [];
+    } else if (normalizedSearchQuery) {
+      sourceZones = zones.filter((zone) => visibleTables.some((table) => table.zoneId === zone.id));
+    } else {
+      sourceZones = zones;
+    }
     return sourceZones.map((zone) => ({
       ...zone,
       tables: visibleTables.filter((table) => table.zoneId === zone.id).map(geometryFor),
@@ -146,9 +147,9 @@ export default function ServerFloorWorkspace() {
         </header>
 
         {floor.isStale && (
-          <p className={styles.staleNotice} role="status">
+          <output className={styles.staleNotice} aria-live="polite" aria-atomic="true">
             {t('server.status_stale', 'Stale data')} · {t('server.last_confirmed', 'Last confirmed')}
-          </p>
+          </output>
         )}
 
         <ServerFloorWorkspaceToolbar

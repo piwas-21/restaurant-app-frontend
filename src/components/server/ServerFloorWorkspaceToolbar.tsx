@@ -37,7 +37,8 @@ export default function ServerFloorWorkspaceToolbar({
 
   return (
     <div className={styles.toolbar} aria-label={t('floor_plan', 'Floor plan')}>
-      <div className={styles.viewToggle} role="group" aria-label={t('cashier.tables.view_toggle', 'Table view')}>
+      <fieldset className={styles.viewToggle}>
+        <legend className={toolbarStyles.srOnly}>{t('cashier.tables.view_toggle', 'Table view')}</legend>
         <button
           type="button"
           className={styles.control}
@@ -54,8 +55,9 @@ export default function ServerFloorWorkspaceToolbar({
         >
           {t('list', 'List')}
         </button>
-      </div>
-      <div className={styles.zoneList} role="group" aria-label={t('floor_plan', 'Floor plan')}>
+      </fieldset>
+      <fieldset className={styles.zoneList}>
+        <legend className={toolbarStyles.srOnly}>{t('floor_plan', 'Floor plan')}</legend>
         <button
           type="button"
           className={styles.control}
@@ -77,7 +79,7 @@ export default function ServerFloorWorkspaceToolbar({
             {zone.name}
           </button>
         ))}
-      </div>
+      </fieldset>
       <div className={styles.toolbarActions}>
         <label className={toolbarStyles.searchField}>
           <span className={toolbarStyles.srOnly}>{t('server.search_tables', 'Search tables')}</span>

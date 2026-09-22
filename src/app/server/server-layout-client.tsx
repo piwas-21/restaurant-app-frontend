@@ -28,9 +28,9 @@ export default function ServerLayoutClient({
   let content: ReactNode;
   if (isLoading) {
     content = (
-      <div className={styles.centerScreen} aria-label={t('loading')}>
+      <output className={styles.centerScreen} aria-label={t('loading')}>
         <Loader2 className={styles.spinner} aria-hidden="true" size={48} />
-      </div>
+      </output>
     );
   } else if (!user) {
     content = null;

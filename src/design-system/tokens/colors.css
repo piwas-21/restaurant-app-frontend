@@ -204,6 +204,7 @@
   --feedback-info-light: #66bcc9;
   --feedback-info-xlight: #8ae0ee;
   --feedback-info-dark: #156a77;
+  --feedback-info-text: #0f5964;
 
   /* Status hues (charts + order-status indicators) — same value in both themes,
      moved verbatim from globals.css; the DESIGN-SYSTEM.md §2.3 bg/text/border/dot

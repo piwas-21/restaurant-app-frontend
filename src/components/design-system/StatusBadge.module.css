@@ -40,13 +40,13 @@
 
 .danger {
   background: var(--error-background);
-  color: var(--error-color);
+  color: var(--feedback-error-text);
   border: 1px solid var(--error-border);
 }
 
 .info {
-  background: var(--info-color);
-  color: var(--button-text-color);
+  background: var(--info-color-dark);
+  color: var(--text-on-accent);
 }
 
 /* #592. Two defects in one rule. The measured one: #666 on #ddd is 4.23:1, a near miss that axe

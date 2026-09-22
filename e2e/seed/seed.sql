@@ -11,6 +11,9 @@
 
 BEGIN;
 
+-- Staff table settlement requires one authoritative tenant currency.
+UPDATE "RestaurantInfo" SET currency = 'CHF' WHERE currency IS NULL;
+
 -- 1) Category
 INSERT INTO categories (
     id, name, description, display_order, image_url,
@@ -186,7 +189,7 @@ INSERT INTO product_descriptions (
 -- PascalCase quoted; columns snake_case.
 INSERT INTO "Tables" (
     id, table_number, max_guests, is_active, is_outdoor,
-    position_x, position_y, width, height, created_by
+    position_x, position_y, width, height, shape, rotation, created_by
 ) VALUES (
     '00000000-0000-0000-0000-00000000007a',
     'T1',
@@ -197,6 +200,8 @@ INSERT INTO "Tables" (
     0,
     80,
     80,
+    'rectangle',
+    0,
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 

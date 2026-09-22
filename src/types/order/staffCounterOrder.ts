@@ -1,5 +1,7 @@
 import type { CreateOrderDeliveryAddressDto, CreateOrderItemDto } from './dtos';
-import type { OrderType } from './enums';
+import { OrderType } from './enums';
+import type { ApiResponse } from './common';
+import type { OrderDto } from './orderDto';
 
 /**
  * Payment state accepted when a counter order is created. Both values describe an UNPAID
@@ -57,3 +59,23 @@ export interface ReleaseStaffCounterOrderCommand {
   clientOperationId: string;
   expectedVersion: number;
 }
+
+/** POST /api/staff/orders/round; stable table-service round contract. */
+export interface CreateStaffRoundCommand extends StaffCounterOrderRequest {
+  clientOperationId: string;
+  releaseToKitchen: boolean;
+  type: OrderType.DineIn;
+  tableId: string;
+  serviceSessionId: string;
+  paymentState: 'Unpaid';
+}
+
+export type StaffRoundOperationLookupStatus = 'Unknown' | 'Committed';
+
+export interface StaffRoundOperationLookupDto {
+  operationId: string;
+  status: StaffRoundOperationLookupStatus;
+  order?: OrderDto | null;
+}
+
+export type StaffRoundOperationLookupApiResponse = ApiResponse<StaffRoundOperationLookupDto>;

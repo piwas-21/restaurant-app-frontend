@@ -14,6 +14,8 @@ import {
   OrderPaymentDto,
   OrderStatusHistoryDto,
 } from './dtos';
+import type { OrderPermittedActionDto } from './tableBillRound';
+import type { OrderRoutingStateDto } from './orderRouting';
 
 /**
  * Create order command (request)
@@ -83,6 +85,8 @@ export interface OrderDto {
   tableId?: string | null;
   /** Display label for a table, including labels that are not numeric (for example, T-QA). */
   tableLabel?: string | null;
+  /** Explicit visit membership for staff-created dine-in rounds. */
+  serviceSessionId?: string | null;
   subTotal: number;
   tax: number;
   deliveryFee: number;
@@ -96,6 +100,10 @@ export interface OrderDto {
   isFullyPaid: boolean;
   status: string;
   paymentStatus: string;
+  /** Whether the order was deliberately released to the kitchen. */
+  isKitchenReleased?: boolean;
+  kitchenReleasedAt?: string | null;
+  kitchenReleasedBy?: string | null;
   /** Server-issued aggregate version used for conditional staff mutations. */
   version: number;
   isFocusOrder: boolean;
@@ -121,6 +129,8 @@ export interface OrderDto {
   items: OrderItemDto[];
   payments: OrderPaymentDto[];
   statusHistory: OrderStatusHistoryDto[];
+  permittedActions?: OrderPermittedActionDto[] | null;
+  routingStates?: OrderRoutingStateDto[] | null;
   /**
    * Per-order guest token (plan S3): lets the guest WATCH their own order via the anonymous
    * guest-status endpoint without holding any staff credential. Creation response only.

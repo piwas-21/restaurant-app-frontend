@@ -77,11 +77,12 @@ export const updateMenuBundle = async (id: string, menuData: unknown) => {
   }
 };
 
-export const getMenuBundleById = async (id: string, signal?: AbortSignal) => {
+export const getMenuBundleById = async (id: string, signal?: AbortSignal, requestedOrderType?: OrderType | null) => {
   try {
+    const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
     return await (signal
-      ? apiClient.get(`${MENUS_API_URL}/${id}`, { signal })
-      : apiClient.get(`${MENUS_API_URL}/${id}`));
+      ? apiClient.get(`${MENUS_API_URL}/${id}${query}`, { signal })
+      : apiClient.get(`${MENUS_API_URL}/${id}${query}`));
   } catch (error) {
     console.error('Get Menu Bundle Failed:', error);
     throw error;

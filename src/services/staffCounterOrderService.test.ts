@@ -1,6 +1,12 @@
 import { apiClient } from '@/utils/apiClient';
-import { createStaffCounterOrder, quoteStaffCounterOrder, releaseStaffCounterOrder } from './staffCounterOrderService';
-import { OrderType, type OrderDto, type StaffCounterOrderRequest } from '@/types/order';
+import {
+  createStaffCounterOrder,
+  createStaffRound,
+  lookupStaffRoundOperation,
+  quoteStaffCounterOrder,
+  releaseStaffCounterOrder,
+} from './staffCounterOrderService';
+import { OrderType, type CreateStaffRoundCommand, type OrderDto, type StaffCounterOrderRequest } from '@/types/order';
 
 jest.mock('@/utils/apiClient', () => ({
   ...jest.requireActual('@/utils/apiClient'),
@@ -121,5 +127,48 @@ describe('releaseStaffCounterOrder', () => {
     await expect(
       releaseStaffCounterOrder('order-1', { clientOperationId: 'op-9', expectedVersion: 4 }),
     ).rejects.toThrow();
+  });
+});
+
+describe('staff round contract', () => {
+  const command: CreateStaffRoundCommand = {
+    type: OrderType.DineIn,
+    tableId: 'T-QA/3',
+    serviceSessionId: 'session-1',
+    paymentState: 'Unpaid' as const,
+    items: REQUEST.items,
+    clientOperationId: 'round-operation-1',
+    releaseToKitchen: true,
+  };
+
+  it('posts the stable table/session round shape', async () => {
+    mockPost.mockResolvedValueOnce({ success: true, data: order({ type: 'DineIn', serviceSessionId: 'session-1' }) });
+
+    await expect(createStaffRound(command)).resolves.toEqual(order({ type: 'DineIn', serviceSessionId: 'session-1' }));
+    expect(mockPost).toHaveBeenCalledWith('/api/staff/orders/round', command, { requireAuth: true });
+  });
+
+  it('rejects a coded 200 failure envelope', async () => {
+    mockPost.mockResolvedValueOnce({
+      success: false,
+      errorCode: 'TableServiceSessionStale',
+      errors: ['The table service session is no longer open.'],
+    });
+
+    await expect(createStaffRound(command)).rejects.toMatchObject({ errorCode: 'TableServiceSessionStale' });
+  });
+
+  it('looks up the same encoded operation id after an unknown result', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: { operationId: command.clientOperationId, status: 'Committed', order: order({ type: 'DineIn' }) },
+    });
+
+    await expect(lookupStaffRoundOperation(command.clientOperationId)).resolves.toMatchObject({
+      status: 'Committed',
+    });
+    expect(apiClient.get).toHaveBeenCalledWith('/api/staff/orders/round/operations/round-operation-1', {
+      requireAuth: true,
+    });
   });
 });

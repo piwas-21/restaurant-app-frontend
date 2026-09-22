@@ -2857,6 +2857,7 @@
   "server.round.empty": "أضف عناصر لبدء الجولة.",
   "server.round.notes": "ملاحظة للمطبخ",
   "server.round.notes_placeholder": "ماذا يجب أن يعرف المطبخ؟",
+  "server.round.notes_too_long": "يجب ألا تتجاوز ملاحظة المطبخ {{max}} حرفًا.",
   "server.round.payment_unpaid": "غير مدفوع",
   "server.round.actions": "إجراءات الجولة",
   "server.round.send": "إرسال إلى المطبخ",

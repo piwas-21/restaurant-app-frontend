@@ -2821,6 +2821,7 @@
   "server.round.empty": "Turu başlatmak için ürün ekleyin.",
   "server.round.notes": "Mutfak notu",
   "server.round.notes_placeholder": "Mutfak ne bilmeli?",
+  "server.round.notes_too_long": "Mutfak notu en fazla {{max}} karakter olabilir.",
   "server.round.payment_unpaid": "Ödenmedi",
   "server.round.actions": "Tur işlemleri",
   "server.round.send": "Mutfağa gönder",

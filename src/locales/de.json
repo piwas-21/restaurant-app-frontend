@@ -2821,6 +2821,7 @@
   "server.round.empty": "Artikel hinzufügen, um die Runde zu starten.",
   "server.round.notes": "Küchennotiz",
   "server.round.notes_placeholder": "Was muss die Küche wissen?",
+  "server.round.notes_too_long": "Die Küchennotiz darf höchstens {{max}} Zeichen lang sein.",
   "server.round.payment_unpaid": "Unbezahlt",
   "server.round.actions": "Rundenaktionen",
   "server.round.send": "An Küche senden",

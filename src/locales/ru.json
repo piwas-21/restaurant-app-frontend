@@ -2839,6 +2839,7 @@
   "server.round.empty": "Добавьте позиции, чтобы начать раунд.",
   "server.round.notes": "Примечание кухне",
   "server.round.notes_placeholder": "Что должна знать кухня?",
+  "server.round.notes_too_long": "Примечание кухне должно быть не длиннее {{max}} символов.",
   "server.round.payment_unpaid": "Не оплачено",
   "server.round.actions": "Действия раунда",
   "server.round.send": "Отправить на кухню",

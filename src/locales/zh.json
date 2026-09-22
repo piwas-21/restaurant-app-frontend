@@ -2812,6 +2812,7 @@
   "server.round.empty": "添加菜品以开始回合。",
   "server.round.notes": "厨房备注",
   "server.round.notes_placeholder": "厨房需要知道什么？",
+  "server.round.notes_too_long": "厨房备注不能超过 {{max}} 个字符。",
   "server.round.payment_unpaid": "未付款",
   "server.round.actions": "回合操作",
   "server.round.send": "发送到厨房",

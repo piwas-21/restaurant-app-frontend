@@ -2821,6 +2821,7 @@
   "server.round.empty": "Voeg items toe om de ronde te starten.",
   "server.round.notes": "Keukenopmerking",
   "server.round.notes_placeholder": "Wat moet de keuken weten?",
+  "server.round.notes_too_long": "De keukenopmerking mag maximaal {{max}} tekens bevatten.",
   "server.round.payment_unpaid": "Onbetaald",
   "server.round.actions": "Ronde-acties",
   "server.round.send": "Naar keuken sturen",

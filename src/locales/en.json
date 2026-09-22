@@ -2821,6 +2821,7 @@
   "server.round.empty": "Add items to start the round.",
   "server.round.notes": "Kitchen note",
   "server.round.notes_placeholder": "Anything the kitchen should know?",
+  "server.round.notes_too_long": "Keep the kitchen note to {{max}} characters or fewer.",
   "server.round.payment_unpaid": "Unpaid",
   "server.round.actions": "Round actions",
   "server.round.send": "Send to kitchen",

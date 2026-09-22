@@ -7,6 +7,7 @@ import StickyActionBar from '@/components/design-system/StickyActionBar';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import type { OrderDto, OrderRoutingStateDto } from '@/types/order';
 import type { OrderItem } from '@/components/catalog/orderItems';
+import { SERVER_TABLE_ROUND_NOTES_MAX_LENGTH, serverTableRoundNotesSchema } from '@/schemas/serverTableRound.schema';
 import { formatPlainCurrency } from '@/utils/currency';
 import styles from './ServerTableRoundTicket.module.css';
 
@@ -73,6 +74,13 @@ export default function ServerTableRoundTicket({
   const { t } = useTranslation();
   const locked = phase !== 'idle' || operationState === 'unknown' || !canCompose;
   const total = quote?.total ?? ticketTotal;
+  const notesValid = serverTableRoundNotesSchema.safeParse(notes).success;
+  const notesError = notesValid
+    ? undefined
+    : t('server.round.notes_too_long', { max: SERVER_TABLE_ROUND_NOTES_MAX_LENGTH });
+  const review = () => {
+    if (serverTableRoundNotesSchema.safeParse(notes).success) onReview();
+  };
   return (
     <section className={styles.ticket} aria-label={t('server.round.ticket')}>
       <header className={styles.header}>
@@ -112,13 +120,19 @@ export default function ServerTableRoundTicket({
           ))}
         </ul>
       )}
-      <FormField label={t('server.round.notes')} htmlFor="server-round-notes" className={styles.notesField}>
+      <FormField
+        label={t('server.round.notes')}
+        error={notesError}
+        htmlFor="server-round-notes"
+        className={styles.notesField}
+      >
         <textarea
           id="server-round-notes"
           className={styles.notes}
           value={notes}
           onChange={(event) => onNotesChange(event.target.value)}
           readOnly={locked}
+          maxLength={SERVER_TABLE_ROUND_NOTES_MAX_LENGTH}
           placeholder={t('server.round.notes_placeholder')}
         />
       </FormField>
@@ -131,7 +145,12 @@ export default function ServerTableRoundTicket({
           </>
         }
         primaryAction={
-          <button type="button" className={styles.send} onClick={onReview} disabled={locked || items.length === 0}>
+          <button
+            type="button"
+            className={styles.send}
+            onClick={review}
+            disabled={locked || items.length === 0 || !notesValid}
+          >
             {phase === 'reviewing' ? t('server.round.sending') : t('server.round.send')}
           </button>
         }

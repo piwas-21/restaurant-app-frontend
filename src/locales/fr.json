@@ -2830,6 +2830,7 @@
   "server.round.empty": "Ajoutez des articles pour commencer.",
   "server.round.notes": "Note cuisine",
   "server.round.notes_placeholder": "Que doit savoir la cuisine ?",
+  "server.round.notes_too_long": "La note cuisine doit contenir au maximum {{max}} caractères.",
   "server.round.payment_unpaid": "Non payé",
   "server.round.actions": "Actions du tour",
   "server.round.send": "Envoyer en cuisine",

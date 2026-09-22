@@ -149,7 +149,20 @@ export default function ServerTasksWorkspace() {
     <StaffWorkspaceShell
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
-        { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), active: true, badge: <span>{total}</span> },
+        {
+          href: '/server/tasks',
+          label: t('server.tasks.title', 'Tasks'),
+          active: true,
+          badge: (
+            <StatusBadge
+              size="sm"
+              tone={total > 0 ? 'warning' : 'neutral'}
+              ariaLabel={t('server.tasks.badge', '{{count}} open tasks', { count: total })}
+            >
+              {total}
+            </StatusBadge>
+          ),
+        },
         { href: '/server/takeaway', label: t('server.takeaway.link') },
       ]}
       connectionState={connectionState(states)}

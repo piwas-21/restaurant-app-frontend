@@ -44,7 +44,8 @@ export async function getServerTaskFeed(options: GetServerTaskFeedOptions = {}):
   if (options.cursor) params.set('cursor', options.cursor);
   if (options.pageSize !== undefined) params.set('pageSize', String(options.pageSize));
   const query = params.toString();
-  const response = await apiClient.get<ServerTaskFeedApiResponse>(`${TASKS_ENDPOINT}${query ? `?${query}` : ''}`, {
+  const endpoint = query ? `${TASKS_ENDPOINT}?${query}` : TASKS_ENDPOINT;
+  const response = await apiClient.get<ServerTaskFeedApiResponse>(endpoint, {
     requireAuth: true,
   });
   return requireTaskFeed(response);

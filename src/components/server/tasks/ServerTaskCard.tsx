@@ -84,7 +84,7 @@ function tableHref(task: ServerServiceTask): string | null {
   const params = new URLSearchParams();
   if (task.serviceSessionId) params.set('serviceSessionId', task.serviceSessionId);
   params.set('orderId', task.orderId);
-  return `/server/tables/${encodeURIComponent(task.tableId)}${params.toString() ? `?${params}` : ''}`;
+  return `/server/tables/${encodeURIComponent(task.tableId)}?${params.toString()}`;
 }
 
 export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCardProps) {

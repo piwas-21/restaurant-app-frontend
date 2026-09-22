@@ -30,9 +30,15 @@ export const initialServerTaskFeedState: ServerTaskFeedState = {
   loaded: false,
 };
 
+function bucketRank(bucket: ServerServiceTask['bucket']): number {
+  if (bucket === 'Ready') return 0;
+  if (bucket === 'Overdue') return 1;
+  return 2;
+}
+
 function compareTasks(left: ServerServiceTask, right: ServerServiceTask): number {
-  const leftBucket = left.bucket === 'Ready' ? 0 : left.bucket === 'Overdue' ? 1 : 2;
-  const rightBucket = right.bucket === 'Ready' ? 0 : right.bucket === 'Overdue' ? 1 : 2;
+  const leftBucket = bucketRank(left.bucket);
+  const rightBucket = bucketRank(right.bucket);
   if (leftBucket !== rightBucket) return leftBucket - rightBucket;
   const byTime = Date.parse(left.actionableAt) - Date.parse(right.actionableAt);
   if (Number.isFinite(byTime) && byTime !== 0) return byTime;

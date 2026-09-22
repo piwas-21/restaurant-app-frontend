@@ -130,10 +130,10 @@ export function useServerTaskCount(enabled = true): ServerTaskCountState {
       setCount(feed.totalCount);
       setLastConfirmed(feed.serverTime);
       setConnectionState('connected');
-    } catch (_reason: unknown) {
+    } catch (reason: unknown) {
       if (!mountedRef.current) return;
-      // The shell surfaces this failure as stale/offline. Raw backend/device text is deliberately
-      // not rendered in route chrome because it may contain untranslated operational diagnostics.
+      console.error('Failed to refresh server task count:', reason);
+      // The shell surfaces this failure as stale/offline without rendering raw operational diagnostics.
       setConnectionState(confirmedRef.current ? 'stale' : 'offline');
     }
   }, [enabled]);

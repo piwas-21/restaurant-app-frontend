@@ -21,6 +21,12 @@ const BUCKET_COPY: Readonly<Record<ServerTaskBucket, readonly [string, string]>>
   exception: ['server.tasks.bucket_exception', 'Exception'],
 };
 
+function bucketTone(bucket: ServerTaskBucket): 'success' | 'warning' | 'danger' {
+  if (bucket === 'ready') return 'success';
+  if (bucket === 'exception') return 'danger';
+  return 'warning';
+}
+
 function connectionState(states: readonly ServerTasksState[]) {
   if (states.some((state) => state.error && !state.loaded)) return 'offline' as const;
   if (states.some((state) => state.isStale)) return 'stale' as const;
@@ -33,7 +39,7 @@ function latestServerTime(states: readonly ServerTasksState[]): string | null {
     states
       .map((state) => state.serverTime)
       .filter((value): value is string => Boolean(value))
-      .sort()
+      .sort((left, right) => left.localeCompare(right))
       .at(-1) ?? null
   );
 }
@@ -65,39 +71,40 @@ interface BucketPanelProps {
 
 function BucketPanel({ bucket, state, busyOrderId, onDeliver }: BucketPanelProps) {
   const { t } = useTranslation();
+  let content;
+  if (state.error && !state.loaded) {
+    content = (
+      <div className={styles.statePanel} role="alert">
+        <p>{t(state.error, state.error)}</p>
+        <button type="button" className={styles.retry} onClick={() => void state.refresh()}>
+          {t('retry', 'Retry')}
+        </button>
+      </div>
+    );
+  } else if (state.items.length === 0 && state.isLoading) {
+    content = (
+      <div className={styles.statePanel} aria-live="polite">
+        {t('server.tasks.loading', 'Loading tasks…')}
+      </div>
+    );
+  } else if (state.items.length === 0) {
+    content = <p className={styles.empty}>{t('server.tasks.empty', 'No tasks in this bucket.')}</p>;
+  } else {
+    content = (
+      <div className={styles.taskList}>
+        {state.items.map((task) => (
+          <ServerTaskCard key={task.orderId} task={task} isBusy={busyOrderId === task.orderId} onDeliver={onDeliver} />
+        ))}
+      </div>
+    );
+  }
   return (
     <section className={styles.bucketPanel} aria-labelledby={`server-task-bucket-${bucket}`}>
       <header className={styles.bucketHeader}>
         <h2 id={`server-task-bucket-${bucket}`}>{bucketTitle(bucket, t)}</h2>
-        <StatusBadge tone={bucket === 'ready' ? 'success' : bucket === 'exception' ? 'danger' : 'warning'}>
-          {state.totalCount}
-        </StatusBadge>
+        <StatusBadge tone={bucketTone(bucket)}>{state.totalCount}</StatusBadge>
       </header>
-      {state.error && !state.loaded ? (
-        <div className={styles.statePanel} role="alert">
-          <p>{t(state.error, state.error)}</p>
-          <button type="button" className={styles.retry} onClick={() => void state.refresh()}>
-            {t('retry', 'Retry')}
-          </button>
-        </div>
-      ) : state.items.length === 0 && state.isLoading ? (
-        <div className={styles.statePanel} aria-live="polite">
-          {t('server.tasks.loading', 'Loading tasks…')}
-        </div>
-      ) : state.items.length === 0 ? (
-        <p className={styles.empty}>{t('server.tasks.empty', 'No tasks in this bucket.')}</p>
-      ) : (
-        <div className={styles.taskList}>
-          {state.items.map((task) => (
-            <ServerTaskCard
-              key={task.orderId}
-              task={task}
-              isBusy={busyOrderId === task.orderId}
-              onDeliver={onDeliver}
-            />
-          ))}
-        </div>
-      )}
+      {content}
       {state.hasMore && (
         <button
           type="button"
@@ -179,10 +186,7 @@ export default function ServerTasksWorkspace() {
                 onClick={() => setSelectedBucket(bucket)}
               >
                 <span>{bucketTitle(bucket, t)}</span>
-                <StatusBadge
-                  tone={bucket === 'ready' ? 'success' : bucket === 'exception' ? 'danger' : 'warning'}
-                  size="sm"
-                >
+                <StatusBadge tone={bucketTone(bucket)} size="sm">
                   {state.totalCount}
                 </StatusBadge>
               </button>

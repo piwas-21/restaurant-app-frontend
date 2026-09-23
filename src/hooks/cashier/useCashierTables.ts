@@ -28,6 +28,13 @@ export interface CashierTablesState {
   readonly repairSuccess: boolean;
 }
 
+async function openResolvedTableSession(tableId: string, tableNumber: string): Promise<TableServiceSessionDto> {
+  if (tableId) return openTableServiceSession({ tableId });
+  const numericTable = Number(tableNumber);
+  if (Number.isSafeInteger(numericTable) && numericTable > 0) return openTableServiceSession(numericTable);
+  throw new Error('cashier.tables.invalid_table');
+}
+
 export function useCashierTables(): CashierTablesState {
   const [entries, setEntries] = useState<CashierTableEntry[]>([]);
   const [queueState, setQueueState] = useState<CashierTablesState['queueState']>('loading');
@@ -97,14 +104,7 @@ export function useCashierTables(): CashierTablesState {
       try {
         const tableId = entry.table.id.trim();
         const normalized = tableNumber.trim();
-        const numericTable = Number(normalized);
-        const session = tableId
-          ? await openTableServiceSession({ tableId })
-          : Number.isSafeInteger(numericTable) && numericTable > 0
-            ? await openTableServiceSession(numericTable)
-            : (() => {
-                throw new Error('cashier.tables.invalid_table');
-              })();
+        const session = await openResolvedTableSession(tableId, normalized);
         if (mountedRef.current) {
           setEntries((current) => {
             const next = current.filter((candidate) => candidate.table.id !== entry.table.id);

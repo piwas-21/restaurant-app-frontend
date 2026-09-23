@@ -112,7 +112,7 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
         </p>
       )}
       {results.length > 0 && (
-        <div id={resultsId} role="region" aria-live="polite" aria-label={t('staff_customer.results')}>
+        <section id={resultsId} aria-live="polite" aria-label={t('staff_customer.results')}>
           <ul className={styles.results}>
             {results.map((customer) => (
               <li key={customer.id}>
@@ -123,7 +123,7 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
       <div className={styles.manual}>
         <FormField label={t('staff_customer.name')} htmlFor={`staff-customer-name-${id}`}>

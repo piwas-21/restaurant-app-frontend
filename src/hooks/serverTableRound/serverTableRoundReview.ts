@@ -6,6 +6,7 @@ import {
 } from '@/services/staffCounterOrderService';
 import { ApiError, getErrorMessage } from '@/utils/apiClient';
 import { buildServerTableRoundCommand } from './serverTableRoundRequest';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
 import type { OrderItem } from '@/components/catalog/orderItems';
 
 export type ServerTableRoundOutcomeStatus = 'committed' | 'refused' | 'unknown';
@@ -62,6 +63,8 @@ export async function reviewServerTableRound(input: {
   readonly serviceSessionId: string;
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  readonly customer?: StaffCustomerSelection;
+  readonly loyaltyEnabled?: boolean;
   readonly storedOperationId?: string;
 }): Promise<ServerTableRoundReviewOutcome> {
   const operationId = input.storedOperationId ?? crypto.randomUUID();

@@ -98,3 +98,19 @@
   cursor: not-allowed;
   opacity: 0.6;
 }
+.customerAction {
+  justify-self: start;
+  min-block-size: 3rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.customerAction:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

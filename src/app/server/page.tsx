@@ -11,9 +11,7 @@ import styles from '../styles/ServerPage.module.css';
 
 const ServerFloorWorkspace = dynamic(() => import('@/components/server/ServerFloorWorkspace'));
 
-type ServerWorkspaceVariant = 'v1' | 'v2-fallback';
-
-function ServerWorkspaceV1({ variant = 'v1' }: Readonly<{ variant?: ServerWorkspaceVariant }>) {
+function ServerWorkspaceV1() {
   const { t } = useTranslation();
   const {
     orders,
@@ -109,7 +107,7 @@ function ServerWorkspaceV1({ variant = 'v1' }: Readonly<{ variant?: ServerWorksp
   }, [refreshOrders, refreshTables]);
 
   return (
-    <main className={styles.pageContainer} data-workspace-variant={variant}>
+    <main className={styles.pageContainer} data-workspace-variant="v1">
       <ServerHeader
         isConnected={isConnected}
         connectionState={connectionState}

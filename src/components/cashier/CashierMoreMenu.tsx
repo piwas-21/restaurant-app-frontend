@@ -12,9 +12,7 @@ type MorePanel = 'zreport' | 'sound' | 'autoprint' | null;
 
 /**
  * The workspace "More" menu (POS plan §5.1): the occasional, non-order-specific operations —
- * Z report, notification sound, auto-print settings — that the legacy cashier header carried
- * as permanent buttons. Pilot feedback: the workspace destinations shipped without any of
- * them. Diagnostics stays on the legacy page until the shell owns the SSE internals it reads.
+ * Z report, notification sound and auto-print settings — kept away from the routine order path.
  */
 export default function CashierMoreMenu() {
   const { t } = useTranslation();

@@ -9,12 +9,16 @@ import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { cashierNewSaleContactSchema } from '@/schemas/cashierNewSaleContact.schema';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import styles from './CashierNewSaleDetailsModal.module.css';
+import StaffCustomerPicker from '@/components/staff/StaffCustomerPicker';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
 
 interface CashierNewSaleDetailsModalProps {
   readonly isOpen: boolean;
   readonly channel: OrderType | null;
   readonly contact?: CashierNewSaleContact;
   readonly onApply: (contact: CashierNewSaleContact) => void;
+  readonly customerSelection?: StaffCustomerSelection;
+  readonly onCustomerChange: (value: StaffCustomerSelection | undefined) => void;
   readonly onClose: () => void;
 }
 
@@ -30,6 +34,8 @@ export default function CashierNewSaleDetailsModal({
   channel,
   contact,
   onApply,
+  customerSelection,
+  onCustomerChange,
   onClose,
 }: CashierNewSaleDetailsModalProps) {
   const { t } = useTranslation();
@@ -70,7 +76,11 @@ export default function CashierNewSaleDetailsModal({
     setValues((current) => ({ ...current, [field]: event.target.value }));
 
   const apply = () => {
-    const parsed = cashierNewSaleContactSchema(channel).safeParse(values);
+    const parsed = cashierNewSaleContactSchema(channel).safeParse({
+      ...values,
+      customerName: customerSelection?.customerName ?? '',
+      customerPhone: customerSelection?.customerPhone ?? '',
+    });
     if (!parsed.success) {
       const errors: Partial<Record<FieldName, string>> = {};
       for (const issue of parsed.error.issues) {
@@ -85,8 +95,7 @@ export default function CashierNewSaleDetailsModal({
     const v = parsed.data;
     const deliveryOnly = channel === OrderType.Delivery;
     onApply({
-      ...(v.customerName.trim() !== '' ? { customerName: v.customerName.trim() } : {}),
-      ...(v.customerPhone.trim() !== '' ? { customerPhone: v.customerPhone.trim() } : {}),
+      ...contact,
       ...(deliveryOnly && v.addressLine1.trim() !== ''
         ? {
             deliveryAddress: {
@@ -123,12 +132,7 @@ export default function CashierNewSaleDetailsModal({
       }
     >
       <div className={styles.fields}>
-        <FormField label={t('cashier.new_sale.details_name')} htmlFor="cashier-contact-name">
-          <input id="cashier-contact-name" value={values.customerName} onChange={set('customerName')} />
-        </FormField>
-        <FormField label={t('cashier.new_sale.details_phone')} htmlFor="cashier-contact-phone">
-          <input id="cashier-contact-phone" type="tel" value={values.customerPhone} onChange={set('customerPhone')} />
-        </FormField>
+        <StaffCustomerPicker value={customerSelection} onChange={onCustomerChange} />
         {delivery && (
           <>
             <FormField

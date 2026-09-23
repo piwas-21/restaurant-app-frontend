@@ -8,7 +8,7 @@ import { useFloorPlanDocument } from '@/hooks/floorPlan/useFloorPlanDocument';
 import type { FloorPlanTableGeometry } from '@/types/floorPlan';
 import type { TableRenderState } from '@/components/floor-plan/sceneTypes';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
-import { formatTableMoney, tableNumberKey, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
+import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableMap.module.css';
 
@@ -35,9 +35,15 @@ export default function CashierTableMap({
 }: CashierTableMapProps) {
   const { t } = useTranslation();
   const { document, status, retry } = useFloorPlanDocument();
-  const entryByNumber = useMemo(
-    () => new Map(entries.map((entry) => [tableNumberKey(entry.table.tableNumber), entry])),
+  const entryById = useMemo(() => new Map(entries.map((entry) => [entry.table.id, entry])), [entries]);
+  const entryByExactLabel = useMemo(
+    () => new Map(entries.map((entry) => [entry.table.tableNumber.trim().toLocaleLowerCase(), entry])),
     [entries],
+  );
+  const entryForGeometry = useCallback(
+    (table: FloorPlanTableGeometry) =>
+      entryById.get(table.id) ?? entryByExactLabel.get(table.tableNumber.trim().toLocaleLowerCase()),
+    [entryByExactLabel, entryById],
   );
   const activePlan = useMemo(
     () => (document ? { ...document, tables: document.tables.filter((table) => table.isActive) } : null),
@@ -46,27 +52,27 @@ export default function CashierTableMap({
   const states = useMemo(() => {
     const next: Record<string, TableRenderState> = {};
     activePlan?.tables.forEach((table) => {
-      const entry = entryByNumber.get(tableNumberKey(table.tableNumber));
+      const entry = entryForGeometry(table);
       if (entry)
         next[table.id] = mapState(
           entry,
-          tableNumberKey(selectedTableNumber ?? '') === tableNumberKey(table.tableNumber),
+          selectedTableNumber?.trim().toLocaleLowerCase() === entry.table.tableNumber.trim().toLocaleLowerCase(),
         );
     });
     return next;
-  }, [activePlan, entryByNumber, selectedTableNumber]);
+  }, [activePlan, entryForGeometry, selectedTableNumber]);
   const selectGeometry = useCallback(
     (id: string) => {
       const geometry = activePlan?.tables.find((table) => table.id === id);
       if (!geometry) return;
-      const entry = entryByNumber.get(tableNumberKey(geometry.tableNumber));
+      const entry = entryForGeometry(geometry);
       if (entry) onSelectTable(entry.table.tableNumber, entry.session?.serviceSessionId);
     },
-    [activePlan, entryByNumber, onSelectTable],
+    [activePlan, entryForGeometry, onSelectTable],
   );
   const formatLabel = useCallback(
     (table: FloorPlanTableGeometry, _state: TableRenderState) => {
-      const entry = entryByNumber.get(tableNumberKey(table.tableNumber));
+      const entry = entryForGeometry(table);
       let status = t('cashier.tables.status_available');
       if (entry) status = tableStatusLabel(entry.status, t);
       if (entry?.session?.hasPendingPaymentHandoff) status = t('cashier.tables.payment_requested');
@@ -80,7 +86,7 @@ export default function CashierTableMap({
         amount: balance,
       });
     },
-    [entryByNumber, t],
+    [entryForGeometry, t],
   );
 
   if (status === 'loading') return <div className={styles.message}>{t('cashier.tables.map_loading')}</div>;

@@ -1,4 +1,6 @@
 import type { OrderItem } from '@/components/catalog/orderItems';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import { readStaffCustomerSelection } from '@/types/staffCustomer';
 
 export const SERVER_TAKEAWAY_DRAFT_VERSION = 1;
 const STORAGE_KEY = 'server.takeaway-draft';
@@ -6,6 +8,7 @@ const STORAGE_KEY = 'server.takeaway-draft';
 export interface ServerTakeawayDraft {
   readonly items: OrderItem[];
   readonly notes?: string;
+  readonly customer?: StaffCustomerSelection;
   readonly clientOperationId?: string;
 }
 
@@ -13,6 +16,7 @@ interface StoredDraft {
   readonly version?: unknown;
   readonly items?: unknown;
   readonly notes?: unknown;
+  readonly customer?: unknown;
   readonly clientOperationId?: unknown;
 }
 
@@ -111,6 +115,7 @@ export function readServerTakeawayDraft(): ServerTakeawayDraft | null {
     return {
       items,
       notes: optionalString(stored.notes),
+      customer: readStaffCustomerSelection(stored.customer),
       clientOperationId: optionalString(stored.clientOperationId),
     };
   } catch (error: unknown) {

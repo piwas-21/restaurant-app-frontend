@@ -6,6 +6,7 @@ import { getTableServiceSession, openTableServiceSession } from '@/services/tabl
 import type { TableServiceSessionDto } from '@/types/order';
 import { blockerFor, normalizeTableId, type ServerTableSessionState } from './serverTableSessionState';
 import { useServerFloorSnapshot } from './useServerFloorSnapshot';
+import { useServerLegacyRepair } from './useServerLegacyRepair';
 
 export type { ServerTableBlocker, ServerTableSessionState } from './serverTableSessionState';
 
@@ -133,6 +134,24 @@ export function useServerTableSession(tableId: string): ServerTableSessionState 
     }
   }, [floor, floorVersion, isLoading, isStarting, normalizedTableId, table]);
 
+  const { isRepairingLegacyOrders, repairSuccess, repairLegacyOrders } = useServerLegacyRepair({
+    table,
+    session,
+    normalizedTableId,
+    floorVersion,
+    floorIsStale: floor.isStale,
+    refreshFloor: floor.refresh,
+    isLoading,
+    isStarting,
+    mountedRef,
+    requestRef,
+    pendingOpenedSessionRef,
+    loadedIdentityRef,
+    setSession,
+    setIsStale,
+    setError,
+  });
+
   const blocker = blockerFor(table, floor.isStale || isStale, session, isLoading);
   const canStartTable =
     Boolean(table) &&
@@ -157,6 +176,8 @@ export function useServerTableSession(tableId: string): ServerTableSessionState 
     session,
     isLoading: floor.isLoading || isLoading,
     isStarting,
+    isRepairingLegacyOrders,
+    repairSuccess,
     isStale: floor.isStale || isStale,
     error: floor.error ?? error,
     blocker,
@@ -166,6 +187,7 @@ export function useServerTableSession(tableId: string): ServerTableSessionState 
       await Promise.all([floor.refresh(), refresh()]);
     },
     startTable,
+    repairLegacyOrders,
     canStartTable,
     canAddRound,
   };

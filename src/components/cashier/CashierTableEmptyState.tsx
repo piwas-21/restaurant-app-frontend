@@ -13,6 +13,8 @@ interface CashierTableEmptyStateProps {
   readonly isOpening: boolean;
   readonly onBack: () => void;
   readonly onOpenSession: () => void;
+  readonly isRepairingLegacyOrders?: boolean;
+  readonly onResolveLegacyOrders?: () => void;
 }
 
 export default function CashierTableEmptyState({
@@ -20,6 +22,8 @@ export default function CashierTableEmptyState({
   isOpening,
   onBack,
   onOpenSession,
+  isRepairingLegacyOrders = false,
+  onResolveLegacyOrders,
 }: CashierTableEmptyStateProps) {
   const { t } = useTranslation();
   const canOpen = entry.status === 'available';
@@ -50,6 +54,15 @@ export default function CashierTableEmptyState({
       {canOpen && (
         <StaffButton variant="primary" onClick={onOpenSession} disabled={isOpening}>
           {isOpening ? t('cashier.tables.opening') : t('cashier.tables.open_session')}
+        </StaffButton>
+      )}
+      {(entry.status === 'legacy' || entry.status === 'conflict') && (
+        <StaffButton
+          variant="primary"
+          onClick={onResolveLegacyOrders}
+          disabled={isOpening || isRepairingLegacyOrders || !onResolveLegacyOrders}
+        >
+          {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
         </StaffButton>
       )}
     </section>

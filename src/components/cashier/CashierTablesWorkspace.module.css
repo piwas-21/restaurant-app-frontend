@@ -3,7 +3,10 @@
   flex: 1 1 auto;
   flex-direction: column;
   gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
   width: 100%;
 }
 .header {
@@ -71,7 +74,11 @@
 }
 .listPane,
 .detailPane {
+  min-height: 0;
   min-width: 0;
+}
+.detailPane {
+  overflow: auto;
 }
 .listPane {
   display: flex;
@@ -87,6 +94,8 @@
   }
 }
 .listScroll {
+  display: flex;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
 }
@@ -106,18 +115,27 @@
   color: var(--feedback-danger-dark);
   padding: 0.7rem 0.8rem;
 }
+.notice {
+  background: var(--feedback-success-xlight);
+  border: 1px solid var(--feedback-success);
+  border-radius: 6px;
+  color: var(--text-primary);
+  padding: 0.7rem 0.8rem;
+}
 @media (max-width: 1023px) {
   .grid {
     display: block;
+    height: 100%;
+  }
+  .listPane,
+  .detailPane {
+    height: 100%;
   }
   .hasSelection .listPane {
     display: none;
   }
   .hasSelection .detailPane {
     display: block;
-  }
-  .listScroll {
-    overflow: visible;
   }
 }
 @media (max-width: 640px) {

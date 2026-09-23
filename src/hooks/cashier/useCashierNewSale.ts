@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OrderType, type OrderDto } from '@/types/order';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
 import { getProductById } from '@/services/menuService';
 import type { Product } from '@/services/serverService';
@@ -27,6 +28,7 @@ interface UseCashierNewSaleOptions {
 
 export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   const { enabled, loading: channelsLoading } = useEnabledOrderTypes();
+  const loyaltyEnabled = useModuleEnabled('loyalty');
   const draft = useNewSaleDraft(enabled, channelsLoading);
   const { state } = draft;
 
@@ -109,6 +111,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
       notes: state.notes,
       tableNumber: state.tableNumber,
       contact: state.contact,
+      loyaltyEnabled,
       storedOperationId: state.clientOperationId,
     });
 
@@ -131,7 +134,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     }
     setPhase('idle');
     setError(outcome.error ?? null);
-  }, [contentKey, draft, onCreated, phase, state]);
+  }, [contentKey, draft, loyaltyEnabled, onCreated, phase, state]);
 
   const ticketTotal = useMemo(
     () => state.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),

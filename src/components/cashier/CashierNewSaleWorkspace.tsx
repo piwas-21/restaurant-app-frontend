@@ -8,6 +8,7 @@ import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierNewSaleChannelBar from './CashierNewSaleChannelBar';
 import CashierNewSaleCatalog from './CashierNewSaleCatalog';
 import CashierNewSaleTicket from './CashierNewSaleTicket';
+import { contactWithCustomerSelection, customerSelectionFromContact } from '@/lib/cashierNewSaleContact';
 
 // The per-channel details sheet is opened on demand; keeping it out of the route bundle is
 // what keeps /cashier/new inside its First-Load-JS budget.
@@ -86,6 +87,7 @@ export default function CashierNewSaleWorkspace() {
             lines={sale.lines}
             ticketTotal={sale.ticketTotal}
             quote={sale.quote}
+            customer={customerSelectionFromContact(sale.contact)}
             phase={sale.phase}
             notes={sale.notes}
             onNotesChange={sale.setNotes}
@@ -103,6 +105,8 @@ export default function CashierNewSaleWorkspace() {
           isOpen
           channel={sale.channel}
           contact={sale.contact}
+          customerSelection={customerSelectionFromContact(sale.contact)}
+          onCustomerChange={(selection) => sale.setContact(contactWithCustomerSelection(sale.contact, selection))}
           onApply={sale.setContact}
           onClose={() => setDetailsOpen(false)}
         />

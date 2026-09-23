@@ -33,7 +33,7 @@ export interface StaffCounterOrderRequest {
   /** Delivery channel only (the server validator refuses it on other channels). */
   deliveryAddress?: CreateOrderDeliveryAddressDto;
   promoCode?: string;
-  /** Not supported for staff counter orders: the server accepts `0`/absent only. */
+  /** Loyalty points requested for redemption against this attributed customer. */
   pointsToRedeem?: number;
   tip?: number;
   notes?: string;

@@ -1,4 +1,4 @@
-import { mergeTests, type Browser, type BrowserContext, type Page, type ViewportSize } from '@playwright/test';
+import { expect, mergeTests, type Browser, type BrowserContext, type Page, type ViewportSize } from '@playwright/test';
 import { test as cashierTest } from '../../fixtures/cashierUser';
 import { test as serverTest } from '../../fixtures/serverUser';
 import { expectNoA11yViolations } from '../../helpers/a11y';
@@ -75,6 +75,12 @@ for (const { name, viewport } of VIEWPORTS) {
       contexts.push(cashier.context);
       await server.page.goto('/server/floor');
       await server.page.getByTestId('server-floor-workspace').waitFor();
+      await expect(server.page.locator('footer')).toHaveCount(0);
+      const floorViewport = await server.page.evaluate(() => ({
+        clientHeight: document.documentElement.clientHeight,
+        scrollHeight: document.documentElement.scrollHeight,
+      }));
+      expect(floorViewport.scrollHeight).toBeLessThanOrEqual(floorViewport.clientHeight + 2);
       await expectNoA11yViolations(server.page);
       await server.page.getByRole('button', { name: 'List', exact: true }).click();
       const floorCard = server.page.locator('article').filter({ hasText: table.tableNumber });

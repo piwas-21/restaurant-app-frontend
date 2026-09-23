@@ -45,6 +45,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
   const cashierModuleEnabled = useModuleEnabled('cashier');
   const isCashierWorkspace = cashierModuleEnabled && isCashierWorkspacePath(pathname ?? '');
+  const isServerWorkspace = pathname === '/server' || pathname.startsWith('/server/');
+  const isStaffWorkspace = isCashierWorkspace || isServerWorkspace;
   const _router = useRouter();
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
@@ -86,11 +88,17 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     width: '100%',
   };
 
-  // The cashier workspace owns its full-height shell (sticky header + internal pane scrolling);
-  // the generic 1rem page padding and free-growing main would make the queue scroll the page.
-  const mainStyles: CSSProperties = isCashierWorkspace
-    ? { padding: '0', height: '100dvh', overflowY: 'auto', flexGrow: 1 }
-    : { padding: isHomePage ? '0' : '1rem', flexGrow: 1 };
+  // Staff workspaces own their full-height shell and pane scrolling. Letting the shared
+  // page chrome scroll as well creates competing scroll roots on touch screens.
+  let mainStyles: CSSProperties = { padding: isHomePage ? '0' : '1rem', flexGrow: 1 };
+  if (isServerWorkspace) {
+    // V1 remains the fail-closed fallback during rollout and still owns page scrolling.
+    // V2 fills this box and keeps its own panes bounded.
+    mainStyles = { padding: '0', height: '100dvh', minHeight: 0, overflow: 'auto', flexGrow: 1 };
+  }
+  if (isCashierWorkspace) {
+    mainStyles = { padding: '0', height: '100dvh', minHeight: 0, overflow: 'hidden', flexGrow: 1 };
+  }
 
   const footerStyles: CSSProperties = {
     padding: '2rem 1rem',
@@ -128,7 +136,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
             {adminSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         )}
-        {!isCashierWorkspace && (
+        {!isStaffWorkspace && (
           <header style={headerStyles} className={isHomePage && theme !== 'dark' ? 'home-overlay-header' : undefined}>
             <div
               style={{
@@ -204,7 +212,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
           </header>
         )}
         <main style={mainStyles}>{children}</main>
-        {!isHomePage && !isCashierWorkspace && (
+        {!isHomePage && !isStaffWorkspace && (
           <footer style={footerStyles}>
             <p>
               {/* Name from the RestaurantInfo API (issue #125); baked build-time

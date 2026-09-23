@@ -31,4 +31,21 @@ describe('buildServerTakeawayRequest', () => {
     expect(request.notes).toBeUndefined();
     expect(request.paymentState).toBe('Unpaid');
   });
+
+  it('keeps customer attribution when loyalty is off and gates redemption', () => {
+    const customer = {
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      currentPoints: 120,
+      pointsToRedeem: 50,
+    };
+    const attributed = buildServerTakeawayRequest({ items: [item], notes: '', customer });
+    expect(attributed).toMatchObject({ customerUserId: 'user-7', customerEmail: 'ada@example.test' });
+    expect(attributed).not.toHaveProperty('pointsToRedeem');
+    expect(
+      buildServerTakeawayRequest({ items: [item], notes: '', customer, loyaltyEnabled: true }).pointsToRedeem,
+    ).toBe(50);
+  });
 });

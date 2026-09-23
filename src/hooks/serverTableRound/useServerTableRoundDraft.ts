@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useOptionalAuth } from '@/components/AuthContext';
 import type { OrderDto } from '@/types/order';
 import type { OrderItem } from '@/components/catalog/orderItems';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 import {
   clearServerTableRoundDraft,
   persistServerTableRoundDraft,
@@ -18,10 +20,12 @@ export function useServerTableRoundDraft(
   sessionMatchesQuery: boolean,
   sessionResolved: boolean,
 ) {
+  const loyaltyEnabled = useModuleEnabled('loyalty');
   const auth = useOptionalAuth();
   const staffUserId = auth?.user?.email;
   const [items, setItems] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState('');
+  const [customer, setCustomer] = useState<StaffCustomerSelection | undefined>();
   const [operationId, setOperationId] = useState<string | undefined>();
   const [quote, setQuote] = useState<OrderDto | null>(null);
   const [createdOrder, setCreatedOrder] = useState<OrderDto | null>(null);
@@ -32,6 +36,7 @@ export function useServerTableRoundDraft(
     if (!sessionId || !sessionMatchesQuery) {
       setItems([]);
       setNotes('');
+      setCustomer(undefined);
       setOperationId(undefined);
       setQuote(null);
       setDraftRecovered(false);
@@ -43,6 +48,7 @@ export function useServerTableRoundDraft(
     const stored = readServerTableRoundDraft(tableId, sessionId, staffUserId);
     setItems(stored?.items ?? []);
     setNotes(stored?.notes ?? '');
+    setCustomer(stored?.customer);
     setOperationId(stored?.clientOperationId);
     setDraftRecovered(Boolean(stored));
     setQuote(null);
@@ -52,7 +58,7 @@ export function useServerTableRoundDraft(
 
   useEffect(() => {
     if (!sessionId || !sessionMatchesQuery) return;
-    if (!items.length && !notes.trim() && !operationId) {
+    if (!items.length && !notes.trim() && !operationId && !customer) {
       clearServerTableRoundDraft();
       return;
     }
@@ -62,11 +68,12 @@ export function useServerTableRoundDraft(
         serviceSessionId: sessionId,
         items,
         notes,
+        customer,
         clientOperationId: operationId,
       },
       staffUserId,
     );
-  }, [items, notes, operationId, sessionId, sessionMatchesQuery, staffUserId, tableId]);
+  }, [customer, items, notes, operationId, sessionId, sessionMatchesQuery, staffUserId, tableId]);
 
   const mutate = useCallback((change: (current: OrderItem[]) => OrderItem[]) => {
     setItems(change);
@@ -82,9 +89,17 @@ export function useServerTableRoundDraft(
     setCreatedOrder(null);
     setOperationState('idle');
   }, []);
+  const updateCustomer = useCallback((value: StaffCustomerSelection | undefined) => {
+    setCustomer(value);
+    setOperationId(undefined);
+    setQuote(null);
+    setCreatedOrder(null);
+    setOperationState('idle');
+  }, []);
   const discardDraft = useCallback(() => {
     setItems([]);
     setNotes('');
+    setCustomer(undefined);
     setOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
@@ -97,6 +112,7 @@ export function useServerTableRoundDraft(
     setOperationState('committed');
     setItems([]);
     setNotes('');
+    setCustomer(undefined);
     setOperationId(undefined);
     setDraftRecovered(false);
     clearServerTableRoundDraft();
@@ -104,6 +120,8 @@ export function useServerTableRoundDraft(
   return {
     items,
     notes,
+    customer,
+    loyaltyEnabled,
     operationId,
     quote,
     createdOrder,
@@ -115,6 +133,7 @@ export function useServerTableRoundDraft(
     setOperationState,
     setDraftRecovered,
     setNotes: updateNotes,
+    setCustomer: updateCustomer,
     mutate,
     discardDraft,
     markCommitted,

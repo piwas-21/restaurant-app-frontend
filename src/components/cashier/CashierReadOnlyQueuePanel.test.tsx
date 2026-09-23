@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import CashierReadOnlyQueuePanel from './CashierReadOnlyQueuePanel';
 import type { OrderDto } from '@/types/order';
+import styles from './CashierWorkspaceQueue.module.css';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -99,5 +100,18 @@ describe('CashierReadOnlyQueuePanel', () => {
     rerender(<CashierReadOnlyQueuePanel {...props({ queueState: 'unavailable', orders: [] })} />);
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByText('cashier.workspace.queue_unavailable')).toBeInTheDocument();
+  });
+
+  it('keeps the order list in the dedicated scroll viewport above pagination', () => {
+    const { container } = render(
+      <CashierReadOnlyQueuePanel
+        {...props({ pagination: { totalCount: 51, page: 1, pageSize: 50, totalPages: 2 } })}
+      />,
+    );
+
+    const viewport = container.querySelector(`.${styles.orderListViewport}`);
+    expect(viewport).toBeInTheDocument();
+    expect(viewport?.querySelector('ul')).toBeInTheDocument();
+    expect(container.querySelector(`.${styles.pagination}`)).toBeInTheDocument();
   });
 });

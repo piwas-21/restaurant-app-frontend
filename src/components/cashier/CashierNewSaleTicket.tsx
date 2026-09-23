@@ -5,12 +5,15 @@ import FormField from '@/components/design-system/FormField';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { OrderDto } from '@/types/order';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import StaffCustomerSummary from '@/components/staff/StaffCustomerSummary';
 import styles from './CashierNewSaleTicket.module.css';
 
 interface CashierNewSaleTicketProps {
   readonly lines: readonly CashierNewSaleDraftLine[];
   readonly ticketTotal: number;
   readonly quote: OrderDto | null;
+  readonly customer?: StaffCustomerSelection;
   readonly phase: 'idle' | 'reviewing';
   readonly notes: string;
   readonly onNotesChange: (value: string) => void;
@@ -32,6 +35,7 @@ export default function CashierNewSaleTicket({
   lines,
   ticketTotal,
   quote,
+  customer,
   phase,
   notes,
   onNotesChange,
@@ -129,6 +133,8 @@ export default function CashierNewSaleTicket({
         <span>{t('cashier.new_sale.total_label')}</span>
         <span className={styles.totalValue}>{formatPlainCurrency(total)}</span>
       </div>
+
+      <StaffCustomerSummary selection={customer} />
 
       <button
         type="button"

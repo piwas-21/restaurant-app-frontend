@@ -1,9 +1,16 @@
 .shell {
-  min-block-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
   display: grid;
   grid-template-rows: auto 1fr;
+  overflow: hidden;
   background: var(--page-canvas);
   color: var(--text-primary);
+}
+
+.shell > main {
+  min-block-size: 0;
+  overflow: hidden;
 }
 
 .shellHeader {
@@ -90,8 +97,9 @@
 
 .split {
   display: grid;
-  grid-template-columns: minmax(17rem, 0.38fr) minmax(0, 1fr);
+  grid-template-columns: var(--staff-workspace-columns, minmax(17rem, 0.38fr) minmax(0, 1fr));
   min-block-size: 0;
+  overflow: hidden;
 }
 
 .splitMaster,
@@ -107,6 +115,8 @@
 
 .single {
   display: block;
+  min-block-size: 0;
+  overflow: hidden;
 }
 
 .single .splitMaster[data-hidden='true'] {

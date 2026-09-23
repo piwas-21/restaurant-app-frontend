@@ -3,6 +3,7 @@ import { createStaffCounterOrder, quoteStaffCounterOrder } from '@/services/staf
 import { getErrorMessage } from '@/utils/apiClient';
 import { buildServerTakeawayRequest } from './serverTakeawayRequest';
 import type { OrderItem } from '@/components/catalog/orderItems';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
 
 export interface ServerTakeawayReviewOutcome {
   readonly status: 'committed' | 'refused';
@@ -15,6 +16,8 @@ export interface ServerTakeawayReviewOutcome {
 export async function reviewServerTakeaway(input: {
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  readonly customer?: StaffCustomerSelection;
+  readonly loyaltyEnabled?: boolean;
   readonly storedOperationId?: string;
 }): Promise<ServerTakeawayReviewOutcome> {
   const request: StaffCounterOrderRequest = buildServerTakeawayRequest(input);

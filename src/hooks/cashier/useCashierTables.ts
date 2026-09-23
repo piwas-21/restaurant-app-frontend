@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TableServiceSessionDto } from '@/types/order';
 import { getCashierTables } from '@/services/server/tables';
-import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
+import {
+  getActiveTableServiceSessions,
+  openTableServiceSession,
+  repairLegacyTableServiceSession,
+} from '@/services/tableServiceSessionService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
@@ -20,6 +24,15 @@ export interface CashierTablesState {
   readonly error: string | null;
   readonly refresh: () => Promise<void>;
   readonly openSession: (tableNumber: string) => Promise<TableServiceSessionDto>;
+  readonly repairLegacyOrders: (tableId: string) => Promise<TableServiceSessionDto>;
+  readonly repairSuccess: boolean;
+}
+
+async function openResolvedTableSession(tableId: string, tableNumber: string): Promise<TableServiceSessionDto> {
+  if (tableId) return openTableServiceSession({ tableId });
+  const numericTable = Number(tableNumber);
+  if (Number.isSafeInteger(numericTable) && numericTable > 0) return openTableServiceSession(numericTable);
+  throw new Error('cashier.tables.invalid_table');
 }
 
 export function useCashierTables(): CashierTablesState {
@@ -28,6 +41,7 @@ export function useCashierTables(): CashierTablesState {
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [repairSuccess, setRepairSuccess] = useState(false);
   const requestRef = useRef(0);
   const mutationRef = useRef(0);
   const inFlightRef = useRef(false);
@@ -73,13 +87,12 @@ export function useCashierTables(): CashierTablesState {
 
   const createSession = useCallback(
     async (tableNumber: string) => {
+      const exact = tableNumber.trim().toLocaleLowerCase();
+      const exactEntry = entries.find((candidate) => candidate.table.tableNumber.trim().toLocaleLowerCase() === exact);
       const key = tableNumberKey(tableNumber);
-      const entry = entries.find((candidate) => tableNumberKey(candidate.table.tableNumber) === key);
+      const compatibleEntries = entries.filter((candidate) => tableNumberKey(candidate.table.tableNumber) === key);
+      const entry = exactEntry ?? (compatibleEntries.length === 1 ? compatibleEntries[0] : undefined);
       if (entry?.status !== 'available') throw new Error('cashier.tables.open_failed');
-      const normalized = tableNumber.trim();
-      if (!/^\d+$/.test(normalized)) throw new Error('cashier.tables.invalid_table');
-      const numericTable = Number(normalized);
-      if (!Number.isSafeInteger(numericTable) || numericTable <= 0) throw new Error('cashier.tables.invalid_table');
       if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
       const mutationId = ++mutationRef.current;
       // A refresh started before this write must not be allowed to overwrite the new session.
@@ -89,14 +102,15 @@ export function useCashierTables(): CashierTablesState {
       setIsMutating(true);
       setError(null);
       try {
-        const session = await openTableServiceSession(numericTable);
+        const tableId = entry.table.id.trim();
+        const normalized = tableNumber.trim();
+        const session = await openResolvedTableSession(tableId, normalized);
         if (mountedRef.current) {
           setEntries((current) => {
-            const key = tableNumberKey(tableNumber);
-            const next = current.filter((entry) => tableNumberKey(entry.table.tableNumber) !== key);
-            const table = current.find((entry) => tableNumberKey(entry.table.tableNumber) === key)?.table ?? {
+            const next = current.filter((candidate) => candidate.table.id !== entry.table.id);
+            const table = current.find((candidate) => candidate.table.id === entry.table.id)?.table ?? {
               id: `session-${session.serviceSessionId}`,
-              tableNumber: String(numericTable),
+              tableNumber: normalized,
               maxGuests: 0,
               isActive: true,
               isOutdoor: false,
@@ -123,5 +137,54 @@ export function useCashierTables(): CashierTablesState {
     [entries],
   );
 
-  return { entries, queueState, isLoading, isMutating, error, refresh, openSession: createSession };
+  const repairLegacyOrders = useCallback(async (tableId: string): Promise<TableServiceSessionDto> => {
+    if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+    if (!tableId.trim()) {
+      const refusal = new Error('cashier.tables.legacy_repair_failed');
+      setError(refusal.message);
+      setRepairSuccess(false);
+      throw refusal;
+    }
+    const mutationId = ++mutationRef.current;
+    requestRef.current += 1;
+    setIsLoading(false);
+    inFlightRef.current = true;
+    setIsMutating(true);
+    setError(null);
+    setRepairSuccess(false);
+    try {
+      const repaired = await repairLegacyTableServiceSession(tableId);
+      if (mountedRef.current && mutationId === mutationRef.current) {
+        setEntries((current) =>
+          current.map((entry) =>
+            entry.table.id === tableId ? { ...entry, session: repaired, status: 'occupied' } : entry,
+          ),
+        );
+        setRepairSuccess(true);
+      }
+      return repaired;
+    } catch (reason: unknown) {
+      if (mountedRef.current && mutationId === mutationRef.current) {
+        setError(getErrorMessage(reason) ?? 'cashier.tables.legacy_repair_failed');
+      }
+      throw reason;
+    } finally {
+      if (mutationId === mutationRef.current) {
+        inFlightRef.current = false;
+        if (mountedRef.current) setIsMutating(false);
+      }
+    }
+  }, []);
+
+  return {
+    entries,
+    queueState,
+    isLoading,
+    isMutating,
+    error,
+    refresh,
+    openSession: createSession,
+    repairLegacyOrders,
+    repairSuccess,
+  };
 }

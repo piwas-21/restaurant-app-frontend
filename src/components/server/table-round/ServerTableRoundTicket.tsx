@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import FormField from '@/components/design-system/FormField';
 import QuantityStepper from '@/components/design-system/QuantityStepper';
 import StickyActionBar from '@/components/design-system/StickyActionBar';
@@ -10,11 +11,16 @@ import type { OrderItem } from '@/components/catalog/orderItems';
 import { SERVER_TABLE_ROUND_NOTES_MAX_LENGTH, serverTableRoundNotesSchema } from '@/schemas/serverTableRound.schema';
 import { formatPlainCurrency } from '@/utils/currency';
 import styles from './ServerTableRoundTicket.module.css';
+import StaffCustomerSummary from '@/components/staff/StaffCustomerSummary';
+import StaffCustomerModal from '@/components/staff/StaffCustomerModal';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
 
 interface Props {
   readonly items: readonly OrderItem[];
   readonly ticketTotal: number;
   readonly quote: OrderDto | null;
+  readonly customer?: StaffCustomerSelection;
+  readonly onCustomerChange: (value: StaffCustomerSelection | undefined) => void;
   readonly createdOrder: OrderDto | null;
   readonly phase: 'idle' | 'reviewing' | 'reconciling';
   readonly operationState: 'idle' | 'committed' | 'failed' | 'unknown';
@@ -61,6 +67,8 @@ export default function ServerTableRoundTicket({
   items,
   ticketTotal,
   quote,
+  customer,
+  onCustomerChange,
   createdOrder,
   phase,
   operationState,
@@ -72,6 +80,7 @@ export default function ServerTableRoundTicket({
   canCompose,
 }: Props) {
   const { t } = useTranslation();
+  const [customerOpen, setCustomerOpen] = useState(false);
   const locked = phase !== 'idle' || operationState === 'unknown' || !canCompose;
   const total = quote?.total ?? ticketTotal;
   const notesValid = serverTableRoundNotesSchema.safeParse(notes).success;
@@ -136,6 +145,17 @@ export default function ServerTableRoundTicket({
           placeholder={t('server.round.notes_placeholder')}
         />
       </FormField>
+      <button type="button" className={styles.customerAction} onClick={() => setCustomerOpen(true)} disabled={locked}>
+        {customer ? t('staff_customer.edit') : t('staff_customer.add')}
+      </button>
+      <StaffCustomerSummary selection={customer} />
+      <StaffCustomerModal
+        isOpen={customerOpen}
+        selection={customer}
+        disabled={locked}
+        onChange={onCustomerChange}
+        onClose={() => setCustomerOpen(false)}
+      />
       <StickyActionBar
         ariaLabel={t('server.round.actions')}
         context={t('server.round.payment_unpaid')}

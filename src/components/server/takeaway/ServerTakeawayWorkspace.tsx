@@ -141,6 +141,8 @@ export default function ServerTakeawayWorkspace() {
               items={takeaway.items}
               ticketTotal={takeaway.ticketTotal}
               quote={takeaway.quote}
+              customer={takeaway.customer}
+              onCustomerChange={takeaway.setCustomer}
               phase={takeaway.phase}
               notes={takeaway.notes}
               onNotesChange={takeaway.setNotes}

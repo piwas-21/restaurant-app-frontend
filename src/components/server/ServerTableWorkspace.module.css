@@ -1,13 +1,14 @@
 .shell {
-  min-block-size: 100vh;
   background: var(--surface-secondary);
 }
 
 .workspace {
   display: grid;
   gap: var(--space-3, 0.75rem);
-  min-block-size: calc(100vh - 4rem);
+  block-size: 100%;
+  min-block-size: 0;
   padding: var(--space-4, 1rem);
+  overflow: auto;
 }
 
 .heading,
@@ -136,6 +137,7 @@
 }
 
 .warning,
+.success,
 .reservation,
 .staleNotice,
 .loadingNotice {
@@ -144,6 +146,11 @@
   border: 1px solid var(--feedback-warning);
   background: var(--feedback-warning-xlight);
   color: var(--text-primary);
+}
+
+.success {
+  border-color: var(--feedback-success);
+  background: var(--feedback-success-xlight);
 }
 
 .reservation {

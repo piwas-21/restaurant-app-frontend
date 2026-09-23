@@ -30,6 +30,7 @@ export interface CounterSaleInput {
   tableNumber?: number;
   serviceSessionId?: string;
   contact?: CashierNewSaleContact;
+  loyaltyEnabled?: boolean;
 }
 
 export function buildCounterSaleRequest(input: CounterSaleInput): StaffCounterOrderRequest {
@@ -41,7 +42,12 @@ export function buildCounterSaleRequest(input: CounterSaleInput): StaffCounterOr
     notes: input.notes.trim() || undefined,
     paymentState: 'Unpaid',
     customerName: input.contact?.customerName,
+    customerUserId: input.contact?.customerUserId,
+    customerEmail: input.contact?.customerEmail,
     customerPhone: input.contact?.customerPhone,
+    ...(input.loyaltyEnabled && input.contact?.customerUserId && input.contact.pointsToRedeem
+      ? { pointsToRedeem: input.contact.pointsToRedeem }
+      : {}),
     // The wire field exists only for delivery (the server validator refuses it elsewhere); the
     // quote echoes the same payload so the reviewed price includes the channel's terms.
     ...(delivery && input.contact?.deliveryAddress !== undefined

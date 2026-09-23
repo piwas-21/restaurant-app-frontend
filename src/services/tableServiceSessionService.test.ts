@@ -10,6 +10,7 @@ import {
   lookupTableServiceSessionPaymentOperation,
   openTableServiceSession,
   requestTableServicePaymentHandoff,
+  repairLegacyTableServiceSession,
 } from './tableServiceSessionService';
 
 jest.mock('@/utils/apiClient', () => ({
@@ -87,6 +88,17 @@ describe('table service session contract', () => {
     expect(mockPost).toHaveBeenLastCalledWith(
       '/api/table-service-sessions/session-1/close',
       { expectedVersion: 5 },
+      { requireAuth: true },
+    );
+  });
+
+  it('repairs legacy orders by stable table id and returns the authoritative visit', async () => {
+    mockPost.mockResolvedValue({ success: true, data: session });
+
+    await expect(repairLegacyTableServiceSession(' table-7 ')).resolves.toEqual(session);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/table-service-sessions/repair-legacy',
+      { tableId: 'table-7' },
       { requireAuth: true },
     );
   });

@@ -91,7 +91,7 @@ export default function ServerFloorMapPanel({
   const { t } = useTranslation();
 
   return (
-    <div className={styles.workspaceBody}>
+    <div className={styles.workspaceBody} data-has-selection={selectedTable ? 'true' : 'false'}>
       <section className={styles.spatialPanel} aria-label={t('restaurant_floor_plan', 'Restaurant floor plan')}>
         <div className={styles.zoneMaps}>
           {documents.map((document) => (

@@ -35,6 +35,11 @@ test('the cashier lands on a working Orders workspace', async ({ cashierUser, br
     // Workspace destinations only: no New sale assertion here (its own spec pins it), and no
     // public site footer inside the POS surface (plan §5.2).
     await expect(page.locator('footer')).toHaveCount(0);
+    const viewport = await page.evaluate(() => ({
+      clientHeight: document.documentElement.clientHeight,
+      scrollHeight: document.documentElement.scrollHeight,
+    }));
+    expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight + 2);
 
     // The seeded kitchen-routing order is Pending, so it is active work: it must be listed by the
     // operational queue and open its ticket when selected.

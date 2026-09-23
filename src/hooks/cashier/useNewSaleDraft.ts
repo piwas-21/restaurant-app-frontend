@@ -127,7 +127,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     [mutate],
   );
   const setContact = useCallback(
-    (contact: CashierNewSaleContact) => mutate((current) => ({ ...current, contact })),
+    (contact: CashierNewSaleContact | undefined) => mutate((current) => ({ ...current, contact })),
     [mutate],
   );
 

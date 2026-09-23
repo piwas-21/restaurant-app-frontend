@@ -55,12 +55,14 @@ const session: TableServiceSessionDto = {
 const entry: CashierTableEntry = { table, session, status: 'occupied' };
 
 describe('CashierTableList', () => {
-  it('normalizes table numbers for selection and keeps metadata separators decorative', () => {
-    const { container } = render(
+  it('keeps leading-zero table labels distinct and metadata separators decorative', () => {
+    const { container, rerender } = render(
       <CashierTableList entries={[entry]} selectedTableNumber="1" onSelectTable={jest.fn()} />,
     );
 
     const card = screen.getByRole('button', { name: /cashier\.tables\.select_table/ });
+    expect(card).toHaveAttribute('aria-pressed', 'false');
+    rerender(<CashierTableList entries={[entry]} selectedTableNumber="01" onSelectTable={jest.fn()} />);
     expect(card).toHaveAttribute('aria-pressed', 'true');
 
     const separators = Array.from(container.querySelectorAll('span[aria-hidden="true"]')).filter(

@@ -176,6 +176,11 @@ export default function ServerTableWorkspace({
                 {t(state.error, state.error)}
               </div>
             )}
+            {state.repairSuccess && (
+              <div className={styles.success} role="status" aria-live="polite">
+                {t('cashier.tables.legacy_repair_success')}
+              </div>
+            )}
 
             {state.isLoading && !session && (
               <output className={styles.loadingNotice} aria-live="polite">
@@ -184,6 +189,19 @@ export default function ServerTableWorkspace({
             )}
 
             <div className={styles.actionRow}>
+              {(state.blocker === 'legacy' || state.blocker === 'ambiguous') &&
+                table.permittedActions.includes('ReviewLegacy') && (
+                  <button
+                    type="button"
+                    className={styles.primaryAction}
+                    onClick={() => void state.repairLegacyOrders().catch(() => undefined)}
+                    disabled={state.isRepairingLegacyOrders || state.isStale || state.isStarting}
+                  >
+                    {state.isRepairingLegacyOrders
+                      ? t('cashier.tables.legacy_repairing')
+                      : t('cashier.tables.resolve_legacy_orders')}
+                  </button>
+                )}
               {!session && table.state === 'Available' && (
                 <button
                   type="button"
@@ -209,7 +227,7 @@ export default function ServerTableWorkspace({
             {session && (
               <ServerTableBillWorkspace
                 session={session}
-                actionsBlocked={taskContextBlocked || state.isStale}
+                actionsBlocked={taskContextBlocked || state.isStale || state.isRepairingLegacyOrders}
                 refreshWorkspace={state.refresh}
               />
             )}

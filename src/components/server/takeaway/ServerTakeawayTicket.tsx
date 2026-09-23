@@ -1,18 +1,24 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import FormField from '@/components/design-system/FormField';
 import QuantityStepper from '@/components/design-system/QuantityStepper';
 import StickyActionBar from '@/components/design-system/StickyActionBar';
 import type { OrderDto } from '@/types/order';
 import type { OrderItem } from '@/components/catalog/orderItems';
 import { formatPlainCurrency } from '@/utils/currency';
+import StaffCustomerSummary from '@/components/staff/StaffCustomerSummary';
+import StaffCustomerModal from '@/components/staff/StaffCustomerModal';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
 import styles from './ServerTakeawayTicket.module.css';
 
 interface ServerTakeawayTicketProps {
   readonly items: readonly OrderItem[];
   readonly ticketTotal: number;
   readonly quote: OrderDto | null;
+  readonly customer?: StaffCustomerSelection;
+  readonly onCustomerChange: (value: StaffCustomerSelection | undefined) => void;
   readonly phase: 'idle' | 'reviewing';
   readonly notes: string;
   readonly onNotesChange: (value: string) => void;
@@ -28,6 +34,8 @@ export default function ServerTakeawayTicket({
   items,
   ticketTotal,
   quote,
+  customer,
+  onCustomerChange,
   phase,
   notes,
   onNotesChange,
@@ -39,6 +47,7 @@ export default function ServerTakeawayTicket({
   disabled,
 }: ServerTakeawayTicketProps) {
   const { t } = useTranslation();
+  const [customerOpen, setCustomerOpen] = useState(false);
   const total = quote?.total ?? ticketTotal;
   const locked = disabled || phase === 'reviewing';
 
@@ -89,6 +98,17 @@ export default function ServerTakeawayTicket({
           readOnly={locked}
         />
       </FormField>
+      <button type="button" className={styles.customerAction} onClick={() => setCustomerOpen(true)} disabled={locked}>
+        {customer ? t('staff_customer.edit') : t('staff_customer.add')}
+      </button>
+      <StaffCustomerSummary selection={customer} />
+      <StaffCustomerModal
+        isOpen={customerOpen}
+        selection={customer}
+        disabled={locked}
+        onChange={onCustomerChange}
+        onClose={() => setCustomerOpen(false)}
+      />
       <StickyActionBar
         ariaLabel={t('server.takeaway.actions')}
         context={t('server.takeaway.payment_unpaid')}

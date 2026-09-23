@@ -2,7 +2,11 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { TableDto } from '@/types/reservation';
 import type { TableServiceSessionDto } from '@/types/order';
 import { getCashierTables } from '@/services/server/tables';
-import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
+import {
+  getActiveTableServiceSessions,
+  openTableServiceSession,
+  repairLegacyTableServiceSession,
+} from '@/services/tableServiceSessionService';
 import { useCashierTables } from './useCashierTables';
 
 jest.mock('@/services/server/tables');
@@ -11,6 +15,7 @@ jest.mock('@/services/tableServiceSessionService');
 const mockedTables = jest.mocked(getCashierTables);
 const mockedSessions = jest.mocked(getActiveTableServiceSessions);
 const mockedOpen = jest.mocked(openTableServiceSession);
+const mockedRepair = jest.mocked(repairLegacyTableServiceSession);
 const session = (id: string, tableNumber: number): TableServiceSessionDto => ({
   serviceSessionId: id,
   tableNumber,
@@ -84,7 +89,39 @@ describe('useCashierTables', () => {
     expect(mockedOpen).not.toHaveBeenCalled();
   });
 
-  it('opens only an explicit numeric table and exposes the returned durable session', async () => {
+  it('repairs a legacy-only table by stable identity and adopts the returned visit', async () => {
+    const repaired = session('repaired-session', 2);
+    mockedRepair.mockResolvedValue(repaired);
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    await act(async () => {
+      await result.current.repairLegacyOrders('t2');
+    });
+
+    expect(mockedRepair).toHaveBeenCalledWith('t2');
+    expect(result.current.entries.find((entry) => entry.table.id === 't2')).toMatchObject({
+      status: 'occupied',
+      session: repaired,
+    });
+    expect(result.current.repairSuccess).toBe(true);
+  });
+
+  it('keeps a localized refusal visible when the repair is rejected', async () => {
+    mockedRepair.mockRejectedValue(new Error('server refusal'));
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    await act(async () => {
+      await expect(result.current.repairLegacyOrders('t2')).rejects.toThrow('server refusal');
+    });
+
+    expect(result.current.error).toBe('cashier.tables.legacy_repair_failed');
+    expect(result.current.repairSuccess).toBe(false);
+    expect(result.current.isMutating).toBe(false);
+  });
+
+  it('opens a configured table by stable id and exposes the returned durable session', async () => {
     const opened = session('session-1', 1);
     mockedOpen.mockResolvedValue(opened);
     const { result } = renderHook(() => useCashierTables());
@@ -93,10 +130,79 @@ describe('useCashierTables', () => {
     await act(async () => {
       await result.current.openSession('01');
     });
-    expect(mockedOpen).toHaveBeenCalledWith(1);
+    expect(mockedOpen).toHaveBeenCalledWith({ tableId: 't1' });
     expect(result.current.entries.find((entry) => entry.table.tableNumber === '01')?.session?.serviceSessionId).toBe(
       'session-1',
     );
+  });
+
+  it('opens an alphanumeric configured table by stable id', async () => {
+    mockedTables.mockResolvedValueOnce([
+      {
+        id: 'table-11a',
+        tableNumber: '11a',
+        maxGuests: 4,
+        isActive: true,
+        isOutdoor: false,
+        positionX: 1,
+        positionY: 1,
+      },
+    ]);
+    mockedSessions.mockResolvedValueOnce([]);
+    const opened = { ...session('session-11a', 11), tableNumber: null, tableLabel: '11a' };
+    mockedOpen.mockResolvedValue(opened);
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    await act(async () => {
+      await result.current.openSession('11a');
+    });
+
+    expect(mockedOpen).toHaveBeenCalledWith({ tableId: 'table-11a' });
+    expect(result.current.entries.find((entry) => entry.table.tableNumber === '11a')?.session?.serviceSessionId).toBe(
+      'session-11a',
+    );
+  });
+
+  it('keeps leading-zero table labels distinct when opening by stable id', async () => {
+    mockedTables.mockResolvedValueOnce([
+      { id: 'table-1', tableNumber: '1', maxGuests: 2, isActive: true, isOutdoor: false, positionX: 1, positionY: 1 },
+      {
+        id: 'table-01',
+        tableNumber: '01',
+        maxGuests: 2,
+        isActive: true,
+        isOutdoor: false,
+        positionX: 2,
+        positionY: 1,
+      },
+    ]);
+    mockedSessions.mockResolvedValueOnce([]);
+    mockedOpen.mockResolvedValue(session('session-01', 1));
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    await act(async () => {
+      await result.current.openSession('01');
+    });
+
+    expect(mockedOpen).toHaveBeenCalledWith({ tableId: 'table-01' });
+    expect(result.current.entries.find((entry) => entry.table.id === 'table-1')?.session).toBeNull();
+    expect(result.current.entries.find((entry) => entry.table.id === 'table-01')?.session?.serviceSessionId).toBe(
+      'session-01',
+    );
+  });
+
+  it('keeps an opening failure visible to the cashier', async () => {
+    mockedOpen.mockRejectedValue(new Error('cashier.tables.open_failed'));
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    await act(async () => {
+      await expect(result.current.openSession('01')).rejects.toThrow('cashier.tables.open_failed');
+    });
+
+    expect(result.current.error).toBe('cashier.tables.open_failed');
   });
 
   it('prioritizes a table whose server requested cashier payment', async () => {

@@ -119,6 +119,7 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
         serviceSessionId: sessionId,
         items: draft.items,
         notes: draft.notes,
+        customer: draft.customer,
         clientOperationId: operationId,
       },
       auth?.user?.email,
@@ -128,6 +129,8 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
       serviceSessionId: sessionId,
       items: draft.items,
       notes: draft.notes,
+      customer: draft.customer,
+      loyaltyEnabled: draft.loyaltyEnabled,
       storedOperationId: operationId,
     });
     if (outcome.quote) draft.setQuote(outcome.quote);

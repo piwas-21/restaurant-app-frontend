@@ -148,6 +148,8 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
               items={round.items}
               ticketTotal={round.ticketTotal}
               quote={round.quote}
+              customer={round.customer}
+              onCustomerChange={round.setCustomer}
               createdOrder={round.createdOrder}
               phase={round.phase}
               operationState={round.operationState}

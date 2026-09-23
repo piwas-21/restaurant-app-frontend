@@ -10,6 +10,7 @@ const base = (overrides: Record<string, unknown> = {}) => ({
   isOpen: true,
   channel: OrderType.Takeaway as OrderType,
   contact: undefined,
+  onCustomerChange: jest.fn(),
   onApply: jest.fn(),
   onClose: jest.fn(),
   ...overrides,
@@ -19,15 +20,19 @@ describe('CashierNewSaleDetailsModal', () => {
   it('applies a takeaway contact without any address fields', () => {
     const onApply = jest.fn();
     const onClose = jest.fn();
-    render(<CashierNewSaleDetailsModal {...base({ onApply, onClose })} />);
+    const onCustomerChange = jest.fn();
+    render(<CashierNewSaleDetailsModal {...base({ onApply, onClose, onCustomerChange })} />);
 
     // Takeaway renders no address section at all — a counter cashier has nobody to ask.
     expect(screen.queryByLabelText('cashier.new_sale.details_country')).toBeNull();
 
-    fireEvent.change(screen.getByLabelText('cashier.new_sale.details_name'), { target: { value: 'Ada' } });
+    fireEvent.change(screen.getByLabelText('staff_customer.name'), { target: { value: 'Ada' } });
+    expect(onCustomerChange).toHaveBeenCalledWith(
+      expect.objectContaining({ customerName: 'Ada', customerUserId: undefined }),
+    );
     fireEvent.click(screen.getByRole('button', { name: 'cashier.new_sale.details_apply' }));
 
-    expect(onApply).toHaveBeenCalledWith({ customerName: 'Ada' });
+    expect(onApply).toHaveBeenCalledWith({});
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 

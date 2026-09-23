@@ -2660,8 +2660,6 @@
   "cashier.new_sale.details_title": "بيانات العميل",
   "cashier.new_sale.details_delivery_title": "تفاصيل التسليم",
   "cashier.new_sale.details_apply": "حفظ البيانات",
-  "cashier.new_sale.details_name": "اسم العميل",
-  "cashier.new_sale.details_phone": "الهاتف",
   "cashier.new_sale.details_address": "العنوان (الشارع والرقم)",
   "cashier.new_sale.details_address2": "تفاصيل إضافية للعنوان",
   "cashier.new_sale.details_city": "المدينة",

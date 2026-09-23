@@ -2648,8 +2648,6 @@
   "cashier.new_sale.details_title": "Klantgegevens",
   "cashier.new_sale.details_delivery_title": "Bezorggegevens",
   "cashier.new_sale.details_apply": "Gegevens opslaan",
-  "cashier.new_sale.details_name": "Naam klant",
-  "cashier.new_sale.details_phone": "Telefoon",
   "cashier.new_sale.details_address": "Adres (straat en nummer)",
   "cashier.new_sale.details_address2": "Adres toevoeging",
   "cashier.new_sale.details_city": "Stad",

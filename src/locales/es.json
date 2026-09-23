@@ -2651,8 +2651,6 @@
   "cashier.new_sale.details_title": "Datos del cliente",
   "cashier.new_sale.details_delivery_title": "Detalles de entrega",
   "cashier.new_sale.details_apply": "Guardar datos",
-  "cashier.new_sale.details_name": "Nombre del cliente",
-  "cashier.new_sale.details_phone": "Teléfono",
   "cashier.new_sale.details_address": "Dirección (calle y número)",
   "cashier.new_sale.details_address2": "Complemento de dirección",
   "cashier.new_sale.details_city": "Ciudad",

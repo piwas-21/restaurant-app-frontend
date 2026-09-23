@@ -2648,8 +2648,6 @@
   "cashier.new_sale.details_title": "Kundendaten",
   "cashier.new_sale.details_delivery_title": "Lieferdetails",
   "cashier.new_sale.details_apply": "Details speichern",
-  "cashier.new_sale.details_name": "Kundenname",
-  "cashier.new_sale.details_phone": "Telefon",
   "cashier.new_sale.details_address": "Adresse (Straße und Nr.)",
   "cashier.new_sale.details_address2": "Adresszusatz",
   "cashier.new_sale.details_city": "Stadt",

@@ -2645,8 +2645,6 @@
   "cashier.new_sale.details_title": "客户信息",
   "cashier.new_sale.details_delivery_title": "配送信息",
   "cashier.new_sale.details_apply": "保存信息",
-  "cashier.new_sale.details_name": "客户姓名",
-  "cashier.new_sale.details_phone": "电话",
   "cashier.new_sale.details_address": "地址（街道和门牌号）",
   "cashier.new_sale.details_address2": "地址补充",
   "cashier.new_sale.details_city": "城市",

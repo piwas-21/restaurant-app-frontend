@@ -2654,8 +2654,6 @@
   "cashier.new_sale.details_title": "Данные клиента",
   "cashier.new_sale.details_delivery_title": "Данные доставки",
   "cashier.new_sale.details_apply": "Сохранить данные",
-  "cashier.new_sale.details_name": "Имя клиента",
-  "cashier.new_sale.details_phone": "Телефон",
   "cashier.new_sale.details_address": "Адрес (улица и дом)",
   "cashier.new_sale.details_address2": "Дополнение к адресу",
   "cashier.new_sale.details_city": "Город",

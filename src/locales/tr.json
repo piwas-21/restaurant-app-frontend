@@ -2648,8 +2648,6 @@
   "cashier.new_sale.details_title": "Müşteri bilgileri",
   "cashier.new_sale.details_delivery_title": "Teslimat bilgileri",
   "cashier.new_sale.details_apply": "Bilgileri kaydet",
-  "cashier.new_sale.details_name": "Müşteri adı",
-  "cashier.new_sale.details_phone": "Telefon",
   "cashier.new_sale.details_address": "Adres (sokak ve numara)",
   "cashier.new_sale.details_address2": "Adres ek bilgisi",
   "cashier.new_sale.details_city": "Şehir",

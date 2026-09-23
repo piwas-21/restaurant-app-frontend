@@ -294,6 +294,7 @@
     "selected": "Ausgewählter Kunde",
     "points_balance": "{{points}} Punkte verfügbar",
     "points_to_redeem": "Einzulösende Punkte",
+    "points_invalid": "Gib eine ganze Zahl zwischen 0 und {{maximum}} ein.",
     "points_redeem": "{{points}} Punkte einlösen",
     "clear": "Kunde entfernen",
     "add": "Kunde hinzufügen",

@@ -293,6 +293,7 @@
     "selected": "Cliente seleccionado",
     "points_balance": "{{points}} puntos disponibles",
     "points_to_redeem": "Puntos para canjear",
+    "points_invalid": "Introduce un número entero entre 0 y {{maximum}}.",
     "points_redeem": "Canjear {{points}} puntos",
     "clear": "Quitar cliente",
     "add": "Añadir cliente",

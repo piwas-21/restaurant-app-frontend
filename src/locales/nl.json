@@ -294,6 +294,7 @@
     "selected": "Geselecteerde klant",
     "points_balance": "{{points}} punten beschikbaar",
     "points_to_redeem": "In te wisselen punten",
+    "points_invalid": "Voer een geheel getal tussen 0 en {{maximum}} in.",
     "points_redeem": "{{points}} punten inwisselen",
     "clear": "Klant wissen",
     "add": "Klant toevoegen",

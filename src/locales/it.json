@@ -293,6 +293,7 @@
     "selected": "Cliente selezionato",
     "points_balance": "{{points}} punti disponibili",
     "points_to_redeem": "Punti da riscattare",
+    "points_invalid": "Inserisci un numero intero tra 0 e {{maximum}}.",
     "points_redeem": "Riscatta {{points}} punti",
     "clear": "Rimuovi cliente",
     "add": "Aggiungi cliente",

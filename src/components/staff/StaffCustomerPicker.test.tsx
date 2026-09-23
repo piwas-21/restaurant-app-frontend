@@ -53,4 +53,22 @@ describe('StaffCustomerPicker', () => {
     });
     expect(screen.queryByLabelText('staff_customer.points_to_redeem')).not.toBeInTheDocument();
   });
+
+  it('keeps invalid manual contact input local until it passes the Zod schema', () => {
+    const onChange = jest.fn();
+    render(
+      <ModulesProvider modules={['core', 'cashier']}>
+        <StaffCustomerPicker onChange={onChange} />
+      </ModulesProvider>,
+    );
+
+    const email = screen.getByLabelText('staff_customer.email');
+    fireEvent.change(email, { target: { value: 'not-an-email' } });
+    expect(email).toHaveValue('not-an-email');
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.change(email, { target: { value: 'ada@example.test' } });
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ customerEmail: 'ada@example.test' }));
+  });
 });

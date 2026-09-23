@@ -12,6 +12,7 @@ import {
   type StaffCustomerSelection,
 } from '@/types/staffCustomer';
 import styles from './StaffCustomerPicker.module.css';
+import { staffCustomerPickerSchema } from './staffCustomerPickerSchema';
 
 interface Props {
   readonly value?: StaffCustomerSelection;
@@ -30,6 +31,8 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
   const [results, setResults] = useState<StaffCustomerLookup[]>([]);
   const [loading, setLoading] = useState(false);
   const [lookupError, setLookupError] = useState(false);
+  const [draft, setDraft] = useState({ customerName: '', customerEmail: '', customerPhone: '', pointsToRedeem: '0' });
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof typeof draft, string>>>({});
   const requestRef = useRef(0);
 
   useEffect(() => {
@@ -72,16 +75,48 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
   const select = (customer: StaffCustomerLookup) => {
     setSearch('');
     setResults([]);
+    setFieldErrors({});
     onChange(customerSelectionFromLookup(customer));
   };
   const clear = () => {
     setSearch('');
     setResults([]);
+    setFieldErrors({});
+    setDraft({ customerName: '', customerEmail: '', customerPhone: '', pointsToRedeem: '0' });
     onChange(undefined);
   };
   const balance = Math.max(0, Math.floor(value?.currentPoints ?? 0));
   const maximum = Math.max(0, Math.floor(Math.min(balance, maxPointsToRedeem ?? balance)));
   const points = Math.max(0, Math.min(maximum, value?.pointsToRedeem ?? 0));
+
+  useEffect(() => {
+    setDraft({
+      customerName: value?.customerName ?? '',
+      customerEmail: value?.customerEmail ?? '',
+      customerPhone: value?.customerPhone ?? '',
+      pointsToRedeem: String(points),
+    });
+  }, [points, value?.customerEmail, value?.customerName, value?.customerPhone]);
+
+  const updateManualText = (field: 'customerName' | 'customerEmail' | 'customerPhone', raw: string) => {
+    setDraft((current) => ({ ...current, [field]: raw }));
+    const parsed = staffCustomerPickerSchema(maximum).shape[field].safeParse(raw);
+    setFieldErrors((current) => ({ ...current, [field]: parsed.success ? undefined : `${field}_invalid` }));
+    if (!parsed.success) return;
+    update({
+      [field]: parsed.data || undefined,
+      customerUserId: undefined,
+      currentPoints: undefined,
+      pointsToRedeem: undefined,
+    });
+  };
+
+  const updatePoints = (raw: string) => {
+    setDraft((current) => ({ ...current, pointsToRedeem: raw }));
+    const parsed = staffCustomerPickerSchema(maximum).shape.pointsToRedeem.safeParse(raw);
+    setFieldErrors((current) => ({ ...current, pointsToRedeem: parsed.success ? undefined : 'points_invalid' }));
+    if (parsed.success) update({ pointsToRedeem: parsed.data });
+  };
 
   return (
     <fieldset className={styles.picker} disabled={disabled}>
@@ -126,48 +161,39 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
         </section>
       )}
       <div className={styles.manual}>
-        <FormField label={t('staff_customer.name')} htmlFor={`staff-customer-name-${id}`}>
+        <FormField
+          label={t('staff_customer.name')}
+          htmlFor={`staff-customer-name-${id}`}
+          error={fieldErrors.customerName ? t('name_too_long') : undefined}
+        >
           <input
             id={`staff-customer-name-${id}`}
-            value={value?.customerName ?? ''}
-            onChange={(e) =>
-              update({
-                customerName: e.target.value,
-                customerUserId: undefined,
-                currentPoints: undefined,
-                pointsToRedeem: undefined,
-              })
-            }
+            value={draft.customerName}
+            onChange={(event) => updateManualText('customerName', event.target.value)}
           />
         </FormField>
-        <FormField label={t('staff_customer.email')} htmlFor={`staff-customer-email-${id}`}>
+        <FormField
+          label={t('staff_customer.email')}
+          htmlFor={`staff-customer-email-${id}`}
+          error={fieldErrors.customerEmail ? t('email_invalid') : undefined}
+        >
           <input
             id={`staff-customer-email-${id}`}
             type="email"
-            value={value?.customerEmail ?? ''}
-            onChange={(e) =>
-              update({
-                customerEmail: e.target.value,
-                customerUserId: undefined,
-                currentPoints: undefined,
-                pointsToRedeem: undefined,
-              })
-            }
+            value={draft.customerEmail}
+            onChange={(event) => updateManualText('customerEmail', event.target.value)}
           />
         </FormField>
-        <FormField label={t('staff_customer.phone')} htmlFor={`staff-customer-phone-${id}`}>
+        <FormField
+          label={t('staff_customer.phone')}
+          htmlFor={`staff-customer-phone-${id}`}
+          error={fieldErrors.customerPhone ? t('phone_invalid') : undefined}
+        >
           <input
             id={`staff-customer-phone-${id}`}
             type="tel"
-            value={value?.customerPhone ?? ''}
-            onChange={(e) =>
-              update({
-                customerPhone: e.target.value,
-                customerUserId: undefined,
-                currentPoints: undefined,
-                pointsToRedeem: undefined,
-              })
-            }
+            value={draft.customerPhone}
+            onChange={(event) => updateManualText('customerPhone', event.target.value)}
           />
         </FormField>
       </div>
@@ -177,19 +203,19 @@ export default function StaffCustomerPicker({ value, onChange, disabled = false,
             {t('staff_customer.selected')}: {value.customerName}
           </span>
           <span>{t('staff_customer.points_balance', { points: balance })}</span>
-          <FormField label={t('staff_customer.points_to_redeem')} htmlFor={`staff-customer-points-${id}`}>
+          <FormField
+            label={t('staff_customer.points_to_redeem')}
+            htmlFor={`staff-customer-points-${id}`}
+            error={fieldErrors.pointsToRedeem ? t('staff_customer.points_invalid', { maximum }) : undefined}
+          >
             <input
               id={`staff-customer-points-${id}`}
               type="number"
               min={0}
               max={maximum}
               step={1}
-              value={points}
-              onChange={(event) =>
-                update({
-                  pointsToRedeem: Math.max(0, Math.min(maximum, Math.floor(Number(event.target.value) || 0))),
-                })
-              }
+              value={draft.pointsToRedeem}
+              onChange={(event) => updatePoints(event.target.value)}
             />
           </FormField>
         </div>

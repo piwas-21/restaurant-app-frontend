@@ -235,6 +235,7 @@
     "selected": "Выбранный клиент",
     "points_balance": "Доступно баллов: {{points}}",
     "points_to_redeem": "Баллы для списания",
+    "points_invalid": "Введите целое число от 0 до {{maximum}}.",
     "points_redeem": "Списать {{points}} баллов",
     "clear": "Убрать клиента",
     "add": "Добавить клиента",

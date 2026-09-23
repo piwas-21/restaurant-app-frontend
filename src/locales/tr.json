@@ -293,6 +293,7 @@
     "selected": "Seçilen müşteri",
     "points_balance": "{{points}} puan kullanılabilir",
     "points_to_redeem": "Kullanılacak puan",
+    "points_invalid": "0 ile {{maximum}} arasında bir tam sayı girin.",
     "points_redeem": "{{points}} puan kullan",
     "clear": "Müşteriyi temizle",
     "add": "Müşteri ekle",

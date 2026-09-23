@@ -294,6 +294,7 @@
     "selected": "已选择的顾客",
     "points_balance": "可用积分：{{points}}",
     "points_to_redeem": "兑换积分",
+    "points_invalid": "请输入 0 到 {{maximum}} 之间的整数。",
     "points_redeem": "兑换 {{points}} 积分",
     "clear": "清除顾客",
     "add": "添加顾客",

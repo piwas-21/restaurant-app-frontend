@@ -294,6 +294,7 @@
     "selected": "Client sélectionné",
     "points_balance": "{{points}} points disponibles",
     "points_to_redeem": "Points à utiliser",
+    "points_invalid": "Saisissez un nombre entier entre 0 et {{maximum}}.",
     "points_redeem": "Utiliser {{points}} points",
     "clear": "Retirer le client",
     "add": "Ajouter un client",

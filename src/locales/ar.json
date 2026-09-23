@@ -293,6 +293,7 @@
     "selected": "العميل المحدد",
     "points_balance": "النقاط المتاحة: {{points}}",
     "points_to_redeem": "النقاط المراد استخدامها",
+    "points_invalid": "أدخل عددًا صحيحًا من 0 إلى {{maximum}}.",
     "points_redeem": "استخدام {{points}} نقطة",
     "clear": "إزالة العميل",
     "add": "إضافة عميل",

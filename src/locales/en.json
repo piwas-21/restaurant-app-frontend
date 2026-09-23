@@ -294,6 +294,7 @@
     "selected": "Selected customer",
     "points_balance": "{{points}} points available",
     "points_to_redeem": "Points to redeem",
+    "points_invalid": "Enter a whole number from 0 to {{maximum}}.",
     "points_redeem": "Redeem {{points}} points",
     "clear": "Clear customer",
     "add": "Add customer",

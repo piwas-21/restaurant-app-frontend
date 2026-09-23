@@ -16,7 +16,7 @@ import {
   tableSessionCurrency,
   tableSessionEligibleOutstanding,
 } from '@/lib/cashierTableSession';
-import { CASHIER_NEW_SALE_PATH, staffTableOrderHref } from '@/lib/cashierWorkspace';
+import { CASHIER_NEW_SALE_PATH } from '@/lib/cashierWorkspace';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
@@ -31,6 +31,8 @@ interface CashierTableSessionPanelProps {
   readonly isStale: boolean;
   readonly pendingOperation: PendingTableOperation | null;
   readonly hasLegacyConflict?: boolean;
+  readonly isRepairingLegacyOrders?: boolean;
+  readonly onResolveLegacyOrders?: () => void;
   readonly onBack: () => void;
   readonly onRefresh: () => void;
   readonly onSubmitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<void>;
@@ -56,6 +58,8 @@ export default function CashierTableSessionPanel({
   isStale,
   pendingOperation,
   hasLegacyConflict = false,
+  isRepairingLegacyOrders = false,
+  onResolveLegacyOrders,
   onBack,
   onRefresh,
   onSubmitPayment,
@@ -128,9 +132,13 @@ export default function CashierTableSessionPanel({
       {legacyConflict && (
         <div className={styles.warning} role="alert">
           <p>{t('cashier.tables.legacy_conflict')}</p>
-          <Link className={`btn btn-secondary ${buttonStyles.touch}`} href={staffTableOrderHref(session.tableNumber)}>
-            {t('cashier.tables.resolve_legacy_orders')}
-          </Link>
+          <StaffButton
+            variant="primary"
+            onClick={onResolveLegacyOrders}
+            disabled={operationLocked || isRepairingLegacyOrders || !onResolveLegacyOrders}
+          >
+            {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
+          </StaffButton>
         </div>
       )}
       {session.hasPendingPaymentHandoff && session.paymentHandoff && (

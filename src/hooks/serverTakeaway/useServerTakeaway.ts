@@ -14,13 +14,18 @@ import {
 } from '@/lib/serverTakeawayDraft';
 import { reviewServerTakeaway } from './serverTakeawayReview';
 import { useServerTakeawayCatalog } from './useServerTakeawayCatalog';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { useServerTakeawayTicketLines } from './useServerTakeawayTicketLines';
 type ReviewPhase = 'idle' | 'reviewing';
 type OperationState = 'idle' | 'committed' | 'failed';
 const EMPTY_ITEMS: OrderItem[] = [];
 export function useServerTakeaway() {
   const catalog = useServerTakeawayCatalog();
+  const loyaltyEnabled = useModuleEnabled('loyalty');
   const [items, setItems] = useState<OrderItem[]>(EMPTY_ITEMS);
   const [notes, setNotes] = useState('');
+  const [customer, setCustomer] = useState<StaffCustomerSelection | undefined>();
   const [clientOperationId, setClientOperationId] = useState<string | undefined>();
   const [hydrated, setHydrated] = useState(false);
   const [draftRecovered, setDraftRecovered] = useState(false);
@@ -32,12 +37,12 @@ export function useServerTakeaway() {
   const [lastOperationId, setLastOperationId] = useState<string | undefined>();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [tapPendingId, setTapPendingId] = useState<string | null>(null);
-  const [lastRemoved, setLastRemoved] = useState<{ item: OrderItem; index: number } | null>(null);
   useEffect(() => {
     const stored = readServerTakeawayDraft();
     if (stored) {
       setItems(stored.items);
       setNotes(stored.notes ?? '');
+      setCustomer(stored.customer);
       setClientOperationId(stored.clientOperationId);
       setDraftRecovered(true);
     }
@@ -49,8 +54,8 @@ export function useServerTakeaway() {
       clearServerTakeawayDraft();
       return;
     }
-    persistServerTakeawayDraft({ items, notes, clientOperationId });
-  }, [clientOperationId, hydrated, items, notes]);
+    persistServerTakeawayDraft({ items, notes, customer, clientOperationId });
+  }, [clientOperationId, customer, hydrated, items, notes]);
   const mutate = useCallback((change: (current: OrderItem[]) => OrderItem[]) => {
     setItems(change);
     setClientOperationId(undefined);
@@ -59,8 +64,17 @@ export function useServerTakeaway() {
     setOperationState('idle');
     setError(null);
   }, []);
+  const ticketLines = useServerTakeawayTicketLines(items, mutate);
   const updateNotes = useCallback((value: string) => {
     setNotes(value);
+    setClientOperationId(undefined);
+    setQuote(null);
+    setCreatedOrder(null);
+    setOperationState('idle');
+    setError(null);
+  }, []);
+  const updateCustomer = useCallback((value: StaffCustomerSelection | undefined) => {
+    setCustomer(value);
     setClientOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
@@ -101,37 +115,10 @@ export function useServerTakeaway() {
     },
     [mutate, selectedProduct],
   );
-  const setItemQuantity = useCallback(
-    (index: number, quantity: number) =>
-      mutate((current) =>
-        quantity <= 0
-          ? current.filter((_, itemIndex) => itemIndex !== index)
-          : current.map((item, itemIndex) => (itemIndex === index ? { ...item, quantity } : item)),
-      ),
-    [mutate],
-  );
-  const removeItem = useCallback(
-    (index: number) => {
-      const item = items[index];
-      if (!item) return;
-      setLastRemoved({ item, index });
-      mutate((current) => current.filter((_, itemIndex) => itemIndex !== index));
-    },
-    [items, mutate],
-  );
-  const undoRemove = useCallback(() => {
-    if (!lastRemoved) return;
-    const removal = lastRemoved;
-    setLastRemoved(null);
-    mutate((current) => {
-      const next = [...current];
-      next.splice(Math.min(removal.index, next.length), 0, removal.item);
-      return next;
-    });
-  }, [lastRemoved, mutate]);
   const discardDraft = useCallback(() => {
     setItems([]);
     setNotes('');
+    setCustomer(undefined);
     setClientOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
@@ -149,8 +136,14 @@ export function useServerTakeaway() {
     const operationId = clientOperationId ?? crypto.randomUUID();
     setClientOperationId(operationId);
     setLastOperationId(operationId);
-    persistServerTakeawayDraft({ items, notes, clientOperationId: operationId });
-    const outcome = await reviewServerTakeaway({ items, notes, storedOperationId: operationId });
+    persistServerTakeawayDraft({ items, notes, customer, clientOperationId: operationId });
+    const outcome = await reviewServerTakeaway({
+      items,
+      notes,
+      customer,
+      loyaltyEnabled,
+      storedOperationId: operationId,
+    });
     setClientOperationId(outcome.operationId);
     setLastOperationId(outcome.operationId);
     if (outcome.quote) setQuote(outcome.quote);
@@ -159,6 +152,7 @@ export function useServerTakeaway() {
       setOperationState('committed');
       setItems([]);
       setNotes('');
+      setCustomer(undefined);
       setQuote(null);
       setClientOperationId(undefined);
       setDraftRecovered(false);
@@ -168,14 +162,16 @@ export function useServerTakeaway() {
       setError(outcome.error ?? 'server.takeaway.review_failed');
     }
     setPhase('idle');
-  }, [clientOperationId, items, notes, phase]);
+  }, [clientOperationId, customer, items, loyaltyEnabled, notes, phase]);
   const ticketTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   return {
     ...catalog,
     catalogError: catalog.error,
     items,
     notes,
+    customer,
     setNotes: updateNotes,
+    setCustomer: updateCustomer,
     ticketTotal,
     quote,
     createdOrder,
@@ -186,13 +182,10 @@ export function useServerTakeaway() {
     draftRecovered,
     selectedProduct,
     tapPendingId,
-    lastRemoved,
     tapProduct,
     confirmCustomization,
     closeCustomization: () => setSelectedProduct(null),
-    setItemQuantity,
-    removeItem,
-    undoRemove,
+    ...ticketLines,
     review,
     discardDraft,
     resumeDraft: () => setDraftRecovered(false),

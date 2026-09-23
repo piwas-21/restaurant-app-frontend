@@ -44,6 +44,25 @@ describe('cashierNewSaleDraft — persist/resume', () => {
   it('reads as no draft on an empty tab', () => {
     expect(readCashierNewSaleDraft()).toBeNull();
   });
+
+  it('recovers customer attribution, points and delivery address together', () => {
+    const contact = {
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      currentPoints: 120,
+      pointsToRedeem: 50,
+      deliveryAddress: {
+        addressLine1: 'Rue du Rhône 1',
+        city: 'Genève',
+        postalCode: '1204',
+        country: 'CH',
+      },
+    };
+    persistCashierNewSaleDraft(draft({ channel: OrderType.Delivery, contact }));
+    expect(readCashierNewSaleDraft()?.contact).toEqual(contact);
+  });
 });
 it('round-trips a fully-populated line without dropping sides or ingredient diffs', () => {
   // B1 regression: the reader used to restore only variation/notes/ingredient-selection and

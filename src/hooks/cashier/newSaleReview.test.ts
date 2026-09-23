@@ -27,6 +27,36 @@ beforeEach(() => {
 });
 
 describe('reviewCounterSale — quote-before-create order of operations', () => {
+  it('sends customer identity and the requested redemption in the quote and create payloads', async () => {
+    mockQuote.mockResolvedValueOnce({ id: 'quote-1' });
+    mockCreate.mockResolvedValueOnce({ id: 'order-1' });
+    await reviewCounterSale({
+      channel: OrderType.Takeaway,
+      lines: [line],
+      notes: '',
+      tableNumber: '',
+      loyaltyEnabled: true,
+      contact: {
+        customerUserId: 'user-7',
+        customerName: 'Ada Lovelace',
+        customerEmail: 'ada@example.test',
+        customerPhone: '+41220000000',
+        pointsToRedeem: 40,
+      },
+    });
+
+    const quoted = mockQuote.mock.calls[0][0];
+    const created = mockCreate.mock.calls[0][0];
+    expect(quoted).toMatchObject({
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      pointsToRedeem: 40,
+    });
+    expect(created).toMatchObject({ ...quoted, clientOperationId: expect.any(String), releaseToKitchen: true });
+  });
+
   it('quotes first and only then creates, with an explicit kitchen release', async () => {
     const order = { id: 'order-1' };
     mockQuote.mockResolvedValueOnce(order);

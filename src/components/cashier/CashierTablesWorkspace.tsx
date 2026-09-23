@@ -9,60 +9,27 @@ import CashierTableMap from './CashierTableMap';
 import CashierTableList from './CashierTableList';
 import CashierTableEmptyState from './CashierTableEmptyState';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
-import { useCashierTables, type CashierTableEntry } from '@/hooks/cashier/useCashierTables';
+import { useCashierTables } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
 import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
-import { tableNumberKey } from '@/lib/cashierTableSession';
-import type { CashierQueueState } from '@/types/cashier';
+import { cashierTableQueueState, findSelectedCashierTableEntry } from '@/lib/cashierTableWorkspace';
+import type { TableServiceSessionDto } from '@/types/order';
 import styles from './CashierTablesWorkspace.module.css';
 
 type TableView = 'map' | 'list';
-
-function messageFor(error: string | null, t: (key: string) => string): string | null {
-  if (!error) return null;
-  return error.startsWith('cashier.') ? t(error) : error;
-}
-
-function findSelectedEntry(
-  entries: readonly CashierTableEntry[],
-  sessionId: string | null,
-  tableNumber: string | null,
-) {
-  if (sessionId) {
-    const normalized = sessionId.toLowerCase();
-    return entries.find((entry) => entry.session?.serviceSessionId.toLowerCase() === normalized) ?? null;
-  }
-  if (!tableNumber) return null;
-  const key = tableNumberKey(tableNumber);
-  return entries.find((entry) => tableNumberKey(entry.table.tableNumber) === key) ?? null;
-}
-
-function tableQueueState(
-  base: CashierQueueState,
-  sessionId: string | null,
-  sessionLoading: boolean,
-  sessionStale: boolean,
-  hasSession: boolean,
-  hasEntries: boolean,
-): CashierQueueState {
-  if (!sessionId) return base;
-  if (sessionLoading) return 'loading';
-  if (!sessionStale) return base;
-  if (hasSession || hasEntries) return 'stale';
-  return 'unavailable';
-}
 
 export default function CashierTablesWorkspace() {
   const { t } = useTranslation();
   const tables = useCashierTables();
   const route = useCashierTableRoute();
   const selectedFromList = useMemo(
-    () => findSelectedEntry(tables.entries, route.selectedSessionId, route.selectedTableNumber),
+    () => findSelectedCashierTableEntry(tables.entries, route.selectedSessionId, route.selectedTableNumber),
     [route.selectedSessionId, route.selectedTableNumber, tables.entries],
   );
+  const [recoveredSession, setRecoveredSession] = useState<TableServiceSessionDto | null>(null);
   const sessionId = route.selectedSessionId ?? selectedFromList?.session?.serviceSessionId ?? null;
-  const session = useCashierTableSession(sessionId);
+  const session = useCashierTableSession(sessionId, recoveredSession);
   const timeZoneState = useCashierTenantTimeZoneState();
   const timeZone = timeZoneState.timeZone;
   const [view, setView] = useState<TableView>('map');
@@ -72,7 +39,7 @@ export default function CashierTablesWorkspace() {
       : (selectedFromList?.table.tableNumber ?? route.selectedTableNumber);
   const hasSelection = Boolean(route.selectedSessionId || route.selectedTableNumber);
   const navigationDisabled = tables.isMutating || session.isMutating || session.pendingOperation !== null;
-  const queueState = tableQueueState(
+  const queueState = cashierTableQueueState(
     tables.queueState,
     sessionId,
     session.isLoading,
@@ -80,7 +47,7 @@ export default function CashierTablesWorkspace() {
     Boolean(session.session),
     tables.entries.length > 0,
   );
-  const selectedEntry = selectedFromList ?? findSelectedEntry(tables.entries, null, selectedTableNumber);
+  const selectedEntry = selectedFromList ?? findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber);
 
   useEffect(() => {
     if (!navigationDisabled || typeof window === 'undefined') return;
@@ -105,7 +72,15 @@ export default function CashierTablesWorkspace() {
   const openSession = useCallback(async () => {
     if (!selectedEntry) return;
     const opened = await tables.openSession(selectedEntry.table.tableNumber);
+    setRecoveredSession(null);
     route.navigateToSession(opened.serviceSessionId);
+  }, [route, selectedEntry, tables]);
+  const resolveLegacyOrders = useCallback(async () => {
+    if (!selectedEntry?.table.id) return;
+    const repaired = await tables.repairLegacyOrders(selectedEntry.table.id);
+    setRecoveredSession(repaired);
+    route.navigateToSession(repaired.serviceSessionId);
+    await tables.refresh();
   }, [route, selectedEntry, tables]);
 
   return (
@@ -144,7 +119,12 @@ export default function CashierTablesWorkspace() {
         </header>
         {tables.error && (
           <div className={styles.alert} role="alert">
-            {messageFor(tables.error, t)}
+            {tables.error.startsWith('cashier.') ? t(tables.error) : tables.error}
+          </div>
+        )}
+        {tables.repairSuccess && (
+          <div className={styles.notice} role="status" aria-live="polite">
+            {t('cashier.tables.legacy_repair_success')}
           </div>
         )}
         {timeZoneState.isLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
@@ -186,15 +166,17 @@ export default function CashierTablesWorkspace() {
                 {sessionId && session.isLoading && (
                   <output className={styles.state}>{t('cashier.tables.session_loading')}</output>
                 )}
-                {sessionId && !session.isLoading && session.session && (
+                {sessionId && session.session && (!session.isLoading || recoveredSession) && (
                   <CashierTableSessionPanel
                     session={session.session}
                     timeZone={timeZone}
                     error={session.error}
-                    isMutating={session.isMutating}
+                    isMutating={session.isMutating || session.isLoading || tables.isMutating}
                     isStale={session.isStale}
                     pendingOperation={session.pendingOperation}
                     hasLegacyConflict={selectedEntry?.status === 'conflict'}
+                    isRepairingLegacyOrders={tables.isMutating}
+                    onResolveLegacyOrders={() => void resolveLegacyOrders().catch(() => undefined)}
                     onBack={route.clearSelection}
                     onRefresh={() => void session.refresh()}
                     onSubmitPayment={async (payment) => {
@@ -210,7 +192,8 @@ export default function CashierTablesWorkspace() {
                 )}
                 {sessionId && !session.isLoading && !session.session && (
                   <div className={styles.alert} role="alert">
-                    {messageFor(session.error, t) ?? t('cashier.tables.session_unavailable')}
+                    {(session.error?.startsWith('cashier.') ? t(session.error) : session.error) ??
+                      t('cashier.tables.session_unavailable')}
                     <StaffButton onClick={route.clearSelection}>{t('cashier.tables.back')}</StaffButton>
                   </div>
                 )}
@@ -218,8 +201,10 @@ export default function CashierTablesWorkspace() {
                   <CashierTableEmptyState
                     entry={selectedEntry}
                     isOpening={tables.isMutating}
+                    isRepairingLegacyOrders={tables.isMutating}
                     onBack={route.clearSelection}
                     onOpenSession={() => void openSession().catch(() => undefined)}
+                    onResolveLegacyOrders={() => void resolveLegacyOrders().catch(() => undefined)}
                   />
                 )}
                 {!sessionId && !selectedEntry && (

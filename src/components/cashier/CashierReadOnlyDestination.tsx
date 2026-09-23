@@ -150,7 +150,9 @@ export default function CashierReadOnlyDestination({
             {t('cashier.workspace.refresh')}
           </button>
         </header>
-        <div className={`${styles.workspaceGrid} ${hasSelection ? styles.hasSelection : ''}`}>
+        <div
+          className={`${styles.workspaceGrid} ${destination === 'orders' ? styles.ordersGrid : ''} ${hasSelection ? styles.hasSelection : ''}`}
+        >
           <CashierReadOnlyQueuePanel
             destination={destination}
             orders={orders}

@@ -14,6 +14,8 @@ export interface ServerTableSessionState {
   readonly session: TableServiceSessionDto | null;
   readonly isLoading: boolean;
   readonly isStarting: boolean;
+  readonly isRepairingLegacyOrders: boolean;
+  readonly repairSuccess: boolean;
   readonly isStale: boolean;
   readonly error: string | null;
   readonly blocker: ServerTableBlocker;
@@ -21,6 +23,7 @@ export interface ServerTableSessionState {
   readonly floorLastConfirmed: string | null | undefined;
   readonly refresh: () => Promise<void>;
   readonly startTable: () => Promise<TableServiceSessionDto>;
+  readonly repairLegacyOrders: () => Promise<TableServiceSessionDto>;
   readonly canStartTable: boolean;
   readonly canAddRound: boolean;
 }

@@ -21,6 +21,34 @@ beforeEach(() => {
 });
 
 describe('reviewServerTakeaway', () => {
+  it('sends customer identity and enabled loyalty redemption to both quote and create', async () => {
+    const customer = {
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      pointsToRedeem: 40,
+    };
+    await reviewServerTakeaway({ items: [item], notes: '', customer, loyaltyEnabled: true });
+
+    expect(mockQuote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customerUserId: 'user-7',
+        customerName: 'Ada Lovelace',
+        customerEmail: 'ada@example.test',
+        customerPhone: '+41220000000',
+        pointsToRedeem: 40,
+      }),
+    );
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customerUserId: 'user-7',
+        customerEmail: 'ada@example.test',
+        pointsToRedeem: 40,
+      }),
+    );
+  });
+
   it('quotes before creating and reuses the persisted operation id', async () => {
     const calls: string[] = [];
     mockQuote.mockImplementation(async () => {

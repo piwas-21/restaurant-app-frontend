@@ -1,13 +1,20 @@
 .map {
+  display: flex;
+  flex: 1 1 auto;
   background: var(--surface-primary);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  min-height: 26rem;
-  overflow: auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.5rem;
 }
 .map svg {
-  min-width: 34rem;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 .message {
   align-items: center;
@@ -32,4 +39,13 @@
 .retry:focus-visible {
   outline: 3px solid var(--brand-primary);
   outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+  .map {
+    height: clamp(12rem, 45vh, 26rem);
+  }
+  .message {
+    min-height: clamp(10rem, 35vh, 18rem);
+  }
 }

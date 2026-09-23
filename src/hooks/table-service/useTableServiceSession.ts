@@ -1,5 +1,4 @@
 'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
 import {
@@ -24,8 +23,11 @@ import {
   isCurrentTableSessionMutation,
 } from '@/hooks/cashier/tableSessionMutation';
 export type { TableServiceSessionState } from './tableServiceSessionTypes';
-export function useTableServiceSession(serviceSessionId: string | null): TableServiceSessionState {
-  const [session, setSession] = useState<TableServiceSessionDto | null>(null);
+export function useTableServiceSession(
+  serviceSessionId: string | null,
+  initialSession?: TableServiceSessionDto | null,
+): TableServiceSessionState {
+  const [session, setSession] = useState<TableServiceSessionDto | null>(initialSession ?? null);
   const [isLoading, setIsLoading] = useState(Boolean(serviceSessionId));
   const [isMutating, setIsMutating] = useState(false);
   const [isStale, setIsStale] = useState(false);
@@ -71,7 +73,7 @@ export function useTableServiceSession(serviceSessionId: string | null): TableSe
   useEffect(() => {
     requestRef.current += 1;
     operationRef.current += 1;
-    setSession(null);
+    setSession(initialSession?.serviceSessionId === serviceSessionId ? initialSession : null);
     setError(null);
     setIsStale(false);
     setPendingOperation(readPendingTableOperation(serviceSessionId));
@@ -79,7 +81,7 @@ export function useTableServiceSession(serviceSessionId: string | null): TableSe
     setIsLoading(Boolean(serviceSessionId));
     inFlightRef.current = false;
     if (serviceSessionId) void refresh();
-  }, [refresh, serviceSessionId]);
+  }, [initialSession, refresh, serviceSessionId]);
   useEffect(() => {
     if (typeof window === 'undefined' || (!pendingOperation && !isMutating)) return;
     const warn = (event: BeforeUnloadEvent) => {
@@ -91,8 +93,7 @@ export function useTableServiceSession(serviceSessionId: string | null): TableSe
   const executePayment = useCallback(
     async (payment: AddTableServiceSessionPaymentRequest): Promise<TableServiceSessionDto> => {
       if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-      if (pendingOperation) throw new Error('cashier.tables.operation_pending');
-      if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+      if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
       const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
       const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
       persistPendingTablePayment(serviceSessionId, payment);
@@ -130,8 +131,7 @@ export function useTableServiceSession(serviceSessionId: string | null): TableSe
   );
   const executeClose = useCallback(async (): Promise<TableServiceSessionDto> => {
     if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-    if (pendingOperation) throw new Error('cashier.tables.operation_pending');
-    if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+    if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
     const expectedVersion = session.version;
     const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
     const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);

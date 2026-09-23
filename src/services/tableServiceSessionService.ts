@@ -38,6 +38,18 @@ export async function getActiveTableServiceSessions(): Promise<TableServiceSessi
   return requireData(response);
 }
 
+/** Attach repairable legacy table orders to the server's authoritative service visit. */
+export async function repairLegacyTableServiceSession(tableId: string): Promise<TableServiceSessionDto> {
+  const normalizedTableId = tableId.trim();
+  if (!normalizedTableId) throw new Error('cashier.tables.legacy_repair_failed');
+  const response = await apiClient.post<TableServiceSessionApiResponse>(
+    `${BASE_PATH}/repair-legacy`,
+    { tableId: normalizedTableId },
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
 /** Open one explicit table visit; the server owns currency and duplicate-session checks. */
 export function openTableServiceSession(tableNumber: number, currency?: string): Promise<TableServiceSessionDto>;
 export function openTableServiceSession(request: OpenTableServiceSessionRequest): Promise<TableServiceSessionDto>;

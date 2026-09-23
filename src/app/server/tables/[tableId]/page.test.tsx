@@ -37,6 +37,8 @@ beforeEach(() => {
     session: null,
     isLoading: false,
     isStarting: false,
+    isRepairingLegacyOrders: false,
+    repairSuccess: false,
     isStale: false,
     error: null,
     blocker: 'unavailable',
@@ -44,6 +46,9 @@ beforeEach(() => {
     floorLastConfirmed: null,
     refresh: jest.fn(async () => undefined),
     startTable: jest.fn(async () => {
+      throw new Error('not used');
+    }),
+    repairLegacyOrders: jest.fn(async () => {
       throw new Error('not used');
     }),
     canStartTable: false,

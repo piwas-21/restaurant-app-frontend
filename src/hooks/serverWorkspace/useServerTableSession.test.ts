@@ -1,6 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
-import { getTableServiceSession, openTableServiceSession } from '@/services/tableServiceSessionService';
+import {
+  getTableServiceSession,
+  openTableServiceSession,
+  repairLegacyTableServiceSession,
+} from '@/services/tableServiceSessionService';
 import { useServerFloorSnapshot } from './useServerFloorSnapshot';
 import { useServerTableSession } from './useServerTableSession';
 import type { ServerFloorSnapshot, ServerFloorTable } from '@/types/serverWorkspace';
@@ -10,6 +14,7 @@ jest.mock('./useServerFloorSnapshot');
 
 const mockGetSession = getTableServiceSession as jest.MockedFunction<typeof getTableServiceSession>;
 const mockOpenSession = openTableServiceSession as jest.MockedFunction<typeof openTableServiceSession>;
+const mockRepairLegacy = repairLegacyTableServiceSession as jest.MockedFunction<typeof repairLegacyTableServiceSession>;
 const mockUseFloor = useServerFloorSnapshot as jest.MockedFunction<typeof useServerFloorSnapshot>;
 
 const baseTable = (overrides: Partial<ServerFloorTable> = {}): ServerFloorTable => ({
@@ -95,9 +100,45 @@ beforeEach(() => {
   mockUseFloor.mockReturnValue(floorState(baseTable()));
   mockGetSession.mockResolvedValue(session());
   mockOpenSession.mockResolvedValue(session());
+  mockRepairLegacy.mockResolvedValue(session());
 });
 
 describe('useServerTableSession', () => {
+  it('repairs a reviewable ambiguous table and refreshes the floor snapshot', async () => {
+    const currentFloor = floorState(
+      baseTable({ state: 'Ambiguous', hasLegacyAmbiguity: true, permittedActions: ['ReviewLegacy'] }),
+    );
+    mockUseFloor.mockReturnValue(currentFloor);
+    const repaired = session({ serviceSessionId: 'repaired-session' });
+    mockRepairLegacy.mockResolvedValue(repaired);
+    const { result } = renderHook(() => useServerTableSession('table-1'));
+
+    await act(async () => {
+      await expect(result.current.repairLegacyOrders()).resolves.toEqual(repaired);
+    });
+
+    expect(mockRepairLegacy).toHaveBeenCalledWith('table-1');
+    expect(currentFloor.refresh).toHaveBeenCalledTimes(1);
+    expect(result.current.session).toEqual(repaired);
+    expect(result.current.repairSuccess).toBe(true);
+  });
+
+  it('keeps a localized refusal visible when the server rejects legacy repair', async () => {
+    mockUseFloor.mockReturnValue(
+      floorState(baseTable({ state: 'Ambiguous', hasLegacyAmbiguity: true, permittedActions: ['ReviewLegacy'] })),
+    );
+    mockRepairLegacy.mockRejectedValue(new Error('server refusal'));
+    const { result } = renderHook(() => useServerTableSession('table-1'));
+
+    await act(async () => {
+      await expect(result.current.repairLegacyOrders()).rejects.toThrow('server refusal');
+    });
+
+    expect(result.current.error).toBe('cashier.tables.legacy_repair_failed');
+    expect(result.current.repairSuccess).toBe(false);
+    expect(result.current.isRepairingLegacyOrders).toBe(false);
+  });
+
   it('starts an available table by stable table id and keeps the numeric caller out of the payload', async () => {
     const opened = session({ serviceSessionId: 'opened-session' });
     mockOpenSession.mockResolvedValue(opened);

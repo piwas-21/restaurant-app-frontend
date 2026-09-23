@@ -37,6 +37,7 @@ export async function reviewCounterSale(input: {
   tableNumber: string;
   contact?: CashierNewSaleContact;
   storedOperationId?: string;
+  loyaltyEnabled?: boolean;
 }): Promise<ReviewOutcome> {
   const tableNumber = input.channel === OrderType.DineIn ? parseTableNumber(input.tableNumber) : null;
   if (input.channel === OrderType.DineIn && tableNumber === null) {
@@ -61,6 +62,7 @@ export async function reviewCounterSale(input: {
     tableNumber: tableNumber ?? undefined,
     serviceSessionId,
     contact: input.contact,
+    loyaltyEnabled: input.loyaltyEnabled,
   });
   // Minted on the first create attempt and reused for every retry of THIS ticket; any draft
   // mutation drops it, so a timeout after commit replays the same order instead of minting a

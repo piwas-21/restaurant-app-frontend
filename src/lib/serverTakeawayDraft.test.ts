@@ -35,6 +35,18 @@ describe('serverTakeawayDraft', () => {
     expect(readServerTakeawayDraft()).toEqual(draft);
   });
 
+  it('recovers the selected customer with the operation id', () => {
+    const customer = {
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      currentPoints: 120,
+      pointsToRedeem: 50,
+    };
+    persistServerTakeawayDraft({ ...draft, customer });
+    expect(readServerTakeawayDraft()).toMatchObject({ customer, clientOperationId: 'op-1' });
+  });
+
   it('drops malformed customization rows instead of trusting session storage', () => {
     window.sessionStorage.setItem(
       'server.takeaway-draft',

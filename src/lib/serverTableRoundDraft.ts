@@ -1,4 +1,6 @@
 import type { OrderItem } from '@/components/catalog/orderItems';
+import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import { readStaffCustomerSelection } from '@/types/staffCustomer';
 import { decodeServerTableRoundItems } from './serverTableRoundDraftCodec';
 
 export const SERVER_TABLE_ROUND_DRAFT_VERSION = 1;
@@ -10,6 +12,7 @@ export interface ServerTableRoundDraft {
   readonly serviceSessionId: string;
   readonly items: OrderItem[];
   readonly notes: string;
+  readonly customer?: StaffCustomerSelection;
   readonly clientOperationId?: string;
 }
 
@@ -86,13 +89,21 @@ export function readServerTableRoundDraft(
           expiresAt: 0,
         }),
       );
-      return { tableId, serviceSessionId, items: [], notes: '', clientOperationId };
+      return {
+        tableId,
+        serviceSessionId,
+        items: [],
+        notes: '',
+        customer: readStaffCustomerSelection(value.customer),
+        clientOperationId,
+      };
     }
     return {
       tableId,
       serviceSessionId,
       items: decodeServerTableRoundItems(value.items),
       notes: typeof value.notes === 'string' ? value.notes : '',
+      customer: readStaffCustomerSelection(value.customer),
       clientOperationId,
     };
   } catch (error: unknown) {

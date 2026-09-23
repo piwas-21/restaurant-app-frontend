@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 .queueToolbar {
   border-bottom: 1px solid var(--border-default);
@@ -107,6 +107,17 @@
 }
 .stateMessage[role='alert'] {
   color: var(--feedback-danger-dark);
+}
+.orderListViewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.ordersOrderListViewport {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 .stateMessageWarning {
   align-items: center;

@@ -1,12 +1,21 @@
 .shell {
-  min-height: 100%;
+  min-height: 0;
 }
 .workspace {
   display: flex;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
   flex-direction: column;
   gap: var(--space-3, 0.75rem);
   padding: var(--space-4, 1rem);
+  overflow: hidden;
+}
+.workspace > :last-child {
+  --staff-workspace-columns: minmax(0, 1fr) minmax(22rem, 25rem);
+
+  flex: 1;
+  min-height: 0;
 }
 .heading {
   display: flex;
@@ -66,6 +75,10 @@
   align-items: flex-end;
 }
 @media (max-width: 48rem) {
+  .workspace {
+    overflow: auto;
+  }
+
   .heading,
   .identity {
     align-items: stretch;

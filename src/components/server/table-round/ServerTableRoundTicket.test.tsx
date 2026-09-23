@@ -35,6 +35,7 @@ describe('ServerTableRoundTicket', () => {
         onNotesChange={jest.fn()}
         onSetQuantity={jest.fn()}
         onRemove={jest.fn()}
+        onCustomerChange={jest.fn()}
         onReview={onReview}
         canCompose
       />,
@@ -62,6 +63,7 @@ describe('ServerTableRoundTicket', () => {
         onNotesChange={jest.fn()}
         onSetQuantity={jest.fn()}
         onRemove={jest.fn()}
+        onCustomerChange={jest.fn()}
         onReview={onReview}
         canCompose
       />,
@@ -84,6 +86,7 @@ describe('ServerTableRoundTicket', () => {
         onNotesChange={jest.fn()}
         onSetQuantity={jest.fn()}
         onRemove={jest.fn()}
+        onCustomerChange={jest.fn()}
         onReview={jest.fn()}
         canCompose
       />,

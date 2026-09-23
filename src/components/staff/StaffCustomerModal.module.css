@@ -1,0 +1,21 @@
+.done {
+  min-block-size: 3rem;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: var(--button-border-radius, 0.5rem);
+  background: var(--brand-primary);
+  color: var(--text-on-brand, white);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.done:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.done:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

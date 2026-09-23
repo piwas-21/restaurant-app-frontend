@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
-import { formatTableMoney, tableNumberKey, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
+import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { sessionTableDisplay, tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableList.module.css';
 
@@ -42,7 +42,9 @@ export default function CashierTableList({
         const displayName = session
           ? sessionTableDisplay(session, t)
           : t('cashier.tables.table_number', { table: number });
-        const selected = selectedTableNumber !== null && tableNumberKey(selectedTableNumber) === tableNumberKey(number);
+        const selected =
+          selectedTableNumber !== null &&
+          selectedTableNumber.trim().toLocaleLowerCase() === number.trim().toLocaleLowerCase();
         const accessibleLabel = session?.hasPendingPaymentHandoff
           ? `${t('cashier.tables.select_table', { table: displayName })}, ${t('cashier.tables.payment_requested')}`
           : t('cashier.tables.select_table', { table: displayName });

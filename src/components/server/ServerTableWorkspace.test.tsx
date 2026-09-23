@@ -25,6 +25,9 @@ jest.mock('react-i18next', () => ({
     t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
       const labels: Record<string, string> = {
         'server.open_table': 'Open Table',
+        'cashier.tables.resolve_legacy_orders': 'Resolve legacy orders',
+        'cashier.tables.legacy_repairing': 'Resolving legacy orders…',
+        'cashier.tables.legacy_repair_success': 'Legacy orders are now attached to the table visit.',
         'cashier.tables.bill': 'Full table bill',
         'cashier.tables.add_round': 'Add round',
         'cashier.tables.reserved_table': 'This table has an active reservation.',
@@ -104,6 +107,8 @@ function state(overrides: Partial<ServerTableSessionState> = {}): ServerTableSes
     session: null,
     isLoading: false,
     isStarting: false,
+    isRepairingLegacyOrders: false,
+    repairSuccess: false,
     isStale: false,
     error: null,
     blocker: 'none',
@@ -111,6 +116,7 @@ function state(overrides: Partial<ServerTableSessionState> = {}): ServerTableSes
     floorLastConfirmed: '2026-09-21T10:00:00Z',
     refresh: jest.fn(async () => undefined),
     startTable: jest.fn(async () => session),
+    repairLegacyOrders: jest.fn(async () => session),
     canStartTable: true,
     canAddRound: false,
     ...overrides,
@@ -118,6 +124,18 @@ function state(overrides: Partial<ServerTableSessionState> = {}): ServerTableSes
 }
 
 describe('ServerTableWorkspace', () => {
+  it('offers legacy recovery only for a reviewable legacy blocker', () => {
+    const current = state({
+      table: table({ state: 'Ambiguous', hasLegacyAmbiguity: true, permittedActions: ['ReviewLegacy'] }),
+      blocker: 'ambiguous',
+      canStartTable: false,
+    });
+    render(<ServerTableWorkspace tableId="table-1" state={current} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Resolve legacy orders' }));
+    expect(current.repairLegacyOrders).toHaveBeenCalledTimes(1);
+  });
+
   it('offers a 48px start action for an available table and leaves payment/close absent', () => {
     const current = state();
     render(<ServerTableWorkspace tableId="table-1" state={current} />);

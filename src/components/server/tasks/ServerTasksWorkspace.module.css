@@ -1,13 +1,15 @@
 .shell {
-  min-block-size: 100vh;
   background: var(--surface-secondary);
 }
 
 .workspace {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3, 0.75rem);
-  min-block-size: calc(100vh - 4rem);
+  block-size: 100%;
+  min-block-size: 0;
   padding: var(--space-4, 1rem);
+  overflow: hidden;
 }
 
 .heading,
@@ -92,6 +94,12 @@
 .panel,
 .bucketPanel {
   min-inline-size: 0;
+}
+
+.panel {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
 }
 
 .bucketPanel {

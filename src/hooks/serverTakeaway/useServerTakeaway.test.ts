@@ -53,6 +53,29 @@ describe('useServerTakeaway operation recovery', () => {
     expect(mockReview).toHaveBeenCalledWith(expect.objectContaining({ storedOperationId: persistedId }));
   });
 
+  it('persists customer selection and clears an operation key when the identity changes', async () => {
+    persistServerTakeawayDraft({ items: [item], clientOperationId: 'old-operation' });
+    const { result } = renderHook(() => useServerTakeaway());
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    act(() => {
+      result.current.setCustomer({
+        customerUserId: 'user-7',
+        customerName: 'Ada Lovelace',
+        customerEmail: 'ada@example.test',
+        currentPoints: 120,
+        pointsToRedeem: 30,
+      });
+    });
+
+    await waitFor(() =>
+      expect(readServerTakeawayDraft()).toMatchObject({
+        customer: { customerUserId: 'user-7', pointsToRedeem: 30 },
+      }),
+    );
+    expect(readServerTakeawayDraft()?.clientOperationId).toBeUndefined();
+  });
+
   it('refuses a product whose detail is blocked for takeaway', async () => {
     mockGetProduct.mockResolvedValue({
       success: true,

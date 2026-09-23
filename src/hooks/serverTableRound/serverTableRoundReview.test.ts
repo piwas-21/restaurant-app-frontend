@@ -57,6 +57,35 @@ it('quotes first and creates the exact stable round operation', async () => {
   );
 });
 
+it('sends customer identity and enabled loyalty redemption to quote and create', async () => {
+  const customer = {
+    customerUserId: 'user-7',
+    customerName: 'Ada Lovelace',
+    customerEmail: 'ada@example.test',
+    customerPhone: '+41220000000',
+    pointsToRedeem: 40,
+  };
+  await reviewServerTableRound({ ...input, customer, loyaltyEnabled: true });
+
+  expect(mockQuote).toHaveBeenCalledWith(
+    expect.objectContaining({
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      pointsToRedeem: 40,
+    }),
+  );
+  expect(mockCreate).toHaveBeenCalledWith(
+    expect.objectContaining({
+      customerUserId: 'user-7',
+      customerEmail: 'ada@example.test',
+      pointsToRedeem: 40,
+      clientOperationId: 'operation-1',
+    }),
+  );
+});
+
 it('maps a stale session refusal to stable translated copy', async () => {
   mockCreate.mockRejectedValue(
     new ApiError(200, 'Operation failed', ['The session is stale'], 'TableServiceSessionStale'),

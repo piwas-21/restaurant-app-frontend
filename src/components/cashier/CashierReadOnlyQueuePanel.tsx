@@ -168,33 +168,35 @@ export default function CashierReadOnlyQueuePanel({
           )}
         </output>
       )}
-      {isLoading && orders.length === 0 && (
-        <output className={styles.stateMessage}>{t('cashier.workspace.queue_loading')}</output>
-      )}
-      {!isLoading && queueState === 'unavailable' && (
-        <div className={styles.stateMessage} role="alert">
-          <span>
-            {error || t(isHistory ? 'cashier.workspace.history_unavailable' : 'cashier.workspace.queue_unavailable')}
-          </span>
-          {onRetry && (
-            <button type="button" className={styles.stateAction} onClick={onRetry}>
-              {t('cashier.workspace.retry')}
-            </button>
-          )}
-        </div>
-      )}
-      {!isLoading && queueState !== 'unavailable' && orders.length === 0 && (
-        <div className={styles.stateMessage}>{t('cashier.workspace.no_matches')}</div>
-      )}
-      {orders.length > 0 && (
-        <CashierReadOnlyOrderList
-          orders={orders}
-          selectedOrderId={selectedOrderId}
-          timeZone={timeZone}
-          onSelectOrder={onSelectOrder}
-          onOrderRowRef={onOrderRowRef}
-        />
-      )}
+      <div className={`${styles.orderListViewport} ${destination === 'orders' ? styles.ordersOrderListViewport : ''}`}>
+        {isLoading && orders.length === 0 && (
+          <output className={styles.stateMessage}>{t('cashier.workspace.queue_loading')}</output>
+        )}
+        {!isLoading && queueState === 'unavailable' && (
+          <div className={styles.stateMessage} role="alert">
+            <span>
+              {error || t(isHistory ? 'cashier.workspace.history_unavailable' : 'cashier.workspace.queue_unavailable')}
+            </span>
+            {onRetry && (
+              <button type="button" className={styles.stateAction} onClick={onRetry}>
+                {t('cashier.workspace.retry')}
+              </button>
+            )}
+          </div>
+        )}
+        {!isLoading && queueState !== 'unavailable' && orders.length === 0 && (
+          <div className={styles.stateMessage}>{t('cashier.workspace.no_matches')}</div>
+        )}
+        {orders.length > 0 && (
+          <CashierReadOnlyOrderList
+            orders={orders}
+            selectedOrderId={selectedOrderId}
+            timeZone={timeZone}
+            onSelectOrder={onSelectOrder}
+            onOrderRowRef={onOrderRowRef}
+          />
+        )}
+      </div>
       {pagination.totalPages > 1 && (
         <div className={styles.pagination}>
           <button

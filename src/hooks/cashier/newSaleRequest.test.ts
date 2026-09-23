@@ -141,4 +141,38 @@ describe('buildCounterSaleRequest — customer and delivery contact', () => {
     expect('deliveryAddress' in request).toBe(false);
     expect(request.customerName).toBeUndefined();
   });
+
+  it('attributes a selected customer without loyalty and sends redemptions only when enabled', () => {
+    const contact = {
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+      currentPoints: 120,
+      pointsToRedeem: 50,
+    };
+    const withoutLoyalty = buildCounterSaleRequest({
+      channel: OrderType.Takeaway,
+      lines: [line],
+      notes: '',
+      contact,
+      loyaltyEnabled: false,
+    });
+    expect(withoutLoyalty).toMatchObject({
+      customerUserId: 'user-7',
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.test',
+      customerPhone: '+41220000000',
+    });
+    expect(withoutLoyalty).not.toHaveProperty('pointsToRedeem');
+
+    const withLoyalty = buildCounterSaleRequest({
+      channel: OrderType.Takeaway,
+      lines: [line],
+      notes: '',
+      contact,
+      loyaltyEnabled: true,
+    });
+    expect(withLoyalty.pointsToRedeem).toBe(50);
+  });
 });

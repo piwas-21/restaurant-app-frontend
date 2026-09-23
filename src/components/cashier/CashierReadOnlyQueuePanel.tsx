@@ -168,7 +168,7 @@ export default function CashierReadOnlyQueuePanel({
           )}
         </output>
       )}
-      <div className={styles.orderListViewport}>
+      <div className={`${styles.orderListViewport} ${destination === 'orders' ? styles.ordersOrderListViewport : ''}`}>
         {isLoading && orders.length === 0 && (
           <output className={styles.stateMessage}>{t('cashier.workspace.queue_loading')}</output>
         )}

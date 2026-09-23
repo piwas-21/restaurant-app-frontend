@@ -95,4 +95,19 @@
     display: block;
     margin-top: 0;
   }
+
+  .ordersGrid {
+    display: flex;
+    flex-direction: column;
+  }
+  .ordersGrid > section {
+    flex: 1 1 0;
+    height: auto;
+  }
+  .ordersGrid:not(.hasSelection) > :last-child {
+    display: none;
+  }
+  .ordersGrid.hasSelection > :last-child {
+    flex: 1 1 auto;
+  }
 }

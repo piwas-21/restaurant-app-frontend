@@ -115,6 +115,10 @@
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
+.ordersOrderListViewport {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
 .stateMessageWarning {
   align-items: center;
   background: var(--feedback-warning-xlight);

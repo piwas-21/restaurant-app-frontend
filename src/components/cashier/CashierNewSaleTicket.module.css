@@ -166,3 +166,9 @@
   opacity: 0.55;
   cursor: default;
 }
+
+@media (max-width: 900px) {
+  .ticket {
+    width: 100%;
+  }
+}

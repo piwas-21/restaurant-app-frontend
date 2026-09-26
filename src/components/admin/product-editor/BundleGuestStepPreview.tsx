@@ -6,11 +6,18 @@ import { useTranslation } from 'react-i18next';
 import type { ItemAvailability, MenuDefinition, MenuSection } from '@/types/menu';
 import { OrderType } from '@/types/order';
 import { formatPlainCurrency } from '@/utils/currency';
+import BundlePriceQuotePreview from './BundlePriceQuotePreview';
 import styles from './BundleGuestStepPreview.module.css';
 
 interface BundleGuestStepPreviewProps {
   readonly menuDefinition: MenuDefinition;
   readonly availability?: ItemAvailability;
+  readonly quoteContext?: {
+    productId: string;
+    isDirty: boolean;
+    isActive: boolean;
+    isAvailable: boolean;
+  };
 }
 
 const ORDER_TYPE_LABELS: Record<OrderType, string> = {
@@ -44,7 +51,11 @@ function selectionRule(section: MenuSection, t: TFunction): string {
 }
 
 /** A small read-only preview of the actual ordered choices a guest will see. */
-export default function BundleGuestStepPreview({ menuDefinition, availability }: BundleGuestStepPreviewProps) {
+export default function BundleGuestStepPreview({
+  menuDefinition,
+  availability,
+  quoteContext,
+}: BundleGuestStepPreviewProps) {
   const { t } = useTranslation();
   const bundleAvailability = availabilityLabel(availability, t);
 
@@ -108,7 +119,11 @@ export default function BundleGuestStepPreview({ menuDefinition, availability }:
             ))}
         </ol>
       )}
-      <p className={styles.quoteNote}>{t('bundle_preview_quote_note')}</p>
+      {quoteContext ? (
+        <BundlePriceQuotePreview {...quoteContext} menuDefinition={menuDefinition} availability={availability} />
+      ) : (
+        <p className={styles.quoteNote}>{t('bundle_preview_quote_note')}</p>
+      )}
     </section>
   );
 }

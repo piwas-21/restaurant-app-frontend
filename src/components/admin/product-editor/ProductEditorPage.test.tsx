@@ -5,7 +5,11 @@ import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { EMPTY_MENU_DEFINITION } from '@/utils/productEditorDefaults';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
+  useTranslation: () => ({
+    t: (key: string, values?: Record<string, unknown>) =>
+      key.startsWith('bundle_quote_') && values ? `${key}:${Object.values(values).join(',')}` : key,
+    i18n: { language: 'en' },
+  }),
 }));
 
 jest.mock('@/services/productService', () => ({
@@ -28,12 +32,21 @@ jest.mock('@/services/globalIngredientService', () => ({
 jest.mock('@/services/categoryService', () => ({
   getCategories: jest.fn(async () => ({ success: true, data: { items: [{ id: 'cat-a', name: 'Pizza' }] } })),
 }));
+jest.mock('@/services/productQuoteService', () => ({
+  quoteProduct: jest.fn(async (productId: string) => ({
+    productId,
+    quantity: 1,
+    unitPrice: 21,
+    totalPrice: 21,
+  })),
+}));
 
 import { getCategories } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
 import { updateProduct, deleteProductImage } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
+import { quoteProduct } from '@/services/productQuoteService';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 
 const item: ProductDetails = {
@@ -508,6 +521,45 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     // which MenuDefinitionDto.Id (Guid?) accepts. The point is that "temp-555" never lands.
     expect(wire.menuDefinition.id).toBeNull();
     expect(JSON.stringify(wire)).not.toContain('temp-');
+  });
+});
+
+describe('ProductEditorPage — saved menu quote preview', () => {
+  it('drops the prior saved quote as soon as an unsaved surcharge changes', async () => {
+    if (!bundle.menuDefinition) throw new Error('Expected the menu fixture to have a definition');
+    const menuDefinition = bundle.menuDefinition;
+    const savedBundle = {
+      ...bundle,
+      id: '11111111-1111-1111-1111-111111111111',
+      menuDefinition: {
+        ...menuDefinition,
+        id: '22222222-2222-2222-2222-222222222222',
+        sections: menuDefinition.sections.map((section) => ({
+          ...section,
+          id: '33333333-3333-3333-3333-333333333333',
+          items: section.items.map((option) => ({ ...option, id: '44444444-4444-4444-4444-444444444444' })),
+        })),
+      },
+    } as ProductDetails;
+    const { container } = await renderEditor(savedBundle, true);
+
+    const quoteButton = screen.getByRole('button', { name: 'bundle_quote_request' });
+    expect(quoteButton).toBeEnabled();
+    fireEvent.click(quoteButton);
+    expect(await screen.findByText('bundle_quote_total:CHF 21.00')).toBeInTheDocument();
+    expect(quoteProduct).toHaveBeenCalledTimes(1);
+
+    const expandButton = container.querySelector('button[title="expand"]');
+    if (!(expandButton instanceof HTMLButtonElement)) throw new Error('Expected the menu section expand button');
+    fireEvent.click(expandButton);
+    const surcharge = container.querySelector('table input[type="number"]');
+    if (!(surcharge instanceof HTMLInputElement)) throw new Error('Expected the menu option surcharge field');
+    fireEvent.change(surcharge, { target: { value: '2.50' } });
+
+    expect(screen.queryByText('bundle_quote_total:CHF 21.00')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'bundle_quote_request' })).toBeDisabled();
+    expect(screen.getByText('bundle_quote_save_changes_first')).toBeInTheDocument();
+    expect(quoteProduct).toHaveBeenCalledTimes(1);
   });
 });
 

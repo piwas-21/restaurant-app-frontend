@@ -26,6 +26,10 @@ interface BundlePanelProps {
   readonly showCategories?: boolean;
   readonly menuDefinition: MenuDefinition;
   readonly availability?: ItemAvailability;
+  readonly productId: string;
+  readonly isDirty: boolean;
+  readonly isActive: boolean;
+  readonly isAvailable: boolean;
   readonly onChange: (menuDefinition: MenuDefinition) => void;
 }
 
@@ -53,6 +57,10 @@ export default function BundlePanel({
   showCategories = false,
   menuDefinition,
   availability,
+  productId,
+  isDirty,
+  isActive,
+  isAvailable,
   onChange,
 }: BundlePanelProps) {
   const { t } = useTranslation();
@@ -144,7 +152,11 @@ export default function BundlePanel({
           sections={menuDefinition.sections}
           onChange={(sections) => onChange({ ...menuDefinition, sections })}
         />
-        <BundleGuestStepPreview menuDefinition={menuDefinition} availability={availability} />
+        <BundleGuestStepPreview
+          menuDefinition={menuDefinition}
+          availability={availability}
+          quoteContext={{ productId, isDirty, isActive, isAvailable }}
+        />
         {errors.menuDefinition && (
           <p className={modalStyles.errorMessage} role="alert">
             {String(errors.menuDefinition.message || t('menu_definition_invalid'))}

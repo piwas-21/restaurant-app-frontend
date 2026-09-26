@@ -62,6 +62,10 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
             showCategories={isCreate}
             menuDefinition={editor.menuDefinition}
             availability={product.availability}
+            productId={product.id}
+            isDirty={editor.isDirty}
+            isActive={Boolean(form.watch('isActive'))}
+            isAvailable={Boolean(form.watch('isAvailable'))}
             onChange={editor.changeMenuDefinition}
           />
           {product.id && (

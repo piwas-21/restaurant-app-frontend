@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { MenuDefinition } from '@/types/menu';
 import { OrderType } from '@/types/order';
 import { quoteProduct } from '@/services/productQuoteService';
+import { bundleQuoteInputsSchema } from './bundlePriceQuoteUtils';
 import BundlePriceQuotePreview from './BundlePriceQuotePreview';
 
 jest.mock('react-i18next', () => ({
@@ -146,5 +147,28 @@ describe('BundlePriceQuotePreview', () => {
 
     expect(await screen.findByText('bundle_quote_result_heading_channel:order_type_dine_in')).toBeInTheDocument();
     expect(mockQuote).toHaveBeenCalledWith('menu-guid', expect.anything(), OrderType.DineIn);
+  });
+
+  it('validates quote quantity and channel before sending the request', async () => {
+    render(
+      <BundlePriceQuotePreview
+        productId="menu-guid"
+        menuDefinition={menuDefinition}
+        isDirty={false}
+        isActive
+        isAvailable
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'bundle_quote_quantity' }), {
+      target: { value: '0' },
+    });
+    expect(screen.getByText('bundle_quote_invalid_input')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'bundle_quote_request' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'bundle_quote_request' }));
+    expect(mockQuote).not.toHaveBeenCalled();
+
+    expect(mockQuote).not.toHaveBeenCalled();
+    expect(bundleQuoteInputsSchema.safeParse({ quantity: '2', requestedOrderType: 'Unsupported' }).success).toBe(false);
   });
 });

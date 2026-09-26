@@ -1,5 +1,7 @@
 import type { LanguageCode } from '@/config/languageConfig';
+import { boundedCatalogueSearchPageSize } from '@/config/catalogue';
 import { apiClient } from '@/utils/apiClient';
+export { resolveCatalogueTemplateText } from './catalogueTemplateText';
 
 export const CATALOGUE_TEMPLATE_TYPES = [
   'ingredient',
@@ -152,21 +154,6 @@ export type CatalogueTemplateRevision =
   | (CatalogueTemplateRevisionBase & { type: 'category'; payload: CatalogueCategoryPayload })
   | (CatalogueTemplateRevisionBase & { type: 'cuisine-pack'; payload: CatalogueCuisinePackPayload });
 
-export function resolveCatalogueTemplateText(
-  detail: CatalogueTemplateRevision,
-  locale: LanguageCode,
-): CatalogueTemplateTranslation {
-  const candidates = [...new Set([locale, ...detail.localeFallbacks, detail.sourceLocale])];
-  let name: string | undefined;
-  let description: string | undefined;
-  for (const candidate of candidates) {
-    const translation = detail.translations[candidate];
-    name ??= translation?.name;
-    description ??= translation?.description;
-  }
-  return { name: name ?? detail.name, description: description ?? detail.description ?? undefined };
-}
-
 export interface CatalogueTemplateListParams {
   readonly type?: CatalogueTemplateType | '';
   readonly cuisine?: string;
@@ -180,13 +167,16 @@ export const listCatalogueTemplates = (
   params: CatalogueTemplateListParams,
   signal?: AbortSignal,
 ): Promise<CatalogueTemplateListResponse> => {
-  const query = new URLSearchParams({ locale: params.locale, limit: String(params.limit ?? 24) });
+  const limit = boundedCatalogueSearchPageSize(params.limit);
+  const query = new URLSearchParams({ locale: params.locale, limit: String(limit) });
   if (params.type) query.set('type', params.type);
   if (params.cuisine?.trim()) query.set('cuisine', params.cuisine.trim());
   if (params.q?.trim()) query.set('q', params.q.trim());
   if (params.cursor) query.set('cursor', params.cursor);
-  const config = signal ? { signal } : undefined;
-  return apiClient.get<CatalogueTemplateListResponse>(`/api/catalogue/templates?${query.toString()}`, config);
+  return apiClient.get<CatalogueTemplateListResponse>(
+    `/api/catalogue/templates?${query.toString()}`,
+    signal ? { signal } : undefined,
+  );
 };
 
 export const getCatalogueTemplateRevision = (

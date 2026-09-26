@@ -52,17 +52,6 @@
   margin: 0.25rem 0;
 }
 
-.availability,
-.availabilityWarning {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
-
-.availabilityWarning {
-  color: var(--feedback-warning);
-  font-weight: 600;
-}
-
 .options {
   display: grid;
   gap: 0.25rem;

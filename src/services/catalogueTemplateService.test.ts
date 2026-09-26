@@ -39,6 +39,16 @@ describe('catalogueTemplateService', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/api/catalogue/templates/turkish-grill-set/revisions/3', undefined);
   });
 
+  it('clamps list page sizes to a bounded server request', async () => {
+    (apiClient.get as jest.Mock).mockResolvedValue({ items: [], nextCursor: null });
+
+    await listCatalogueTemplates({ locale: 'en', limit: 1000 });
+    await listCatalogueTemplates({ locale: 'en', limit: 0 });
+
+    expect((apiClient.get as jest.Mock).mock.calls[0][0]).toContain('limit=24');
+    expect((apiClient.get as jest.Mock).mock.calls[1][0]).toContain('limit=1');
+  });
+
   it('resolves translated fields through declared locale fallbacks before canonical copy', () => {
     const detail: CatalogueTemplateRevision = {
       schemaVersion: 1,

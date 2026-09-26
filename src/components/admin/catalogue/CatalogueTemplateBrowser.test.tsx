@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CatalogueTemplateBrowser from './CatalogueTemplateBrowser';
 import { getCatalogueTemplateRevision, listCatalogueTemplates } from '@/services/catalogueTemplateService';
 import type {
+  CatalogueTemplateDependency,
   CatalogueTemplateListResponse,
   CatalogueTemplateRevision,
   CatalogueTemplateSummary,
@@ -134,6 +135,24 @@ describe('CatalogueTemplateBrowser', () => {
 
     expect(await screen.findByText('lentil-soup')).toBeInTheDocument();
     expect(await screen.findByRole('status')).toHaveTextContent('catalogue_dependency_names_error:1');
+  });
+
+  it('reports dependency names omitted by the bounded preview', async () => {
+    const dependencies: CatalogueTemplateDependency[] = Array.from({ length: 30 }, (_, index) => ({
+      templateId: `extra-template-${index}`,
+      revision: 1,
+      role: 'ingredient',
+    }));
+    (getCatalogueTemplateRevision as jest.Mock).mockImplementation(async (id: string) => {
+      if (id === template.templateId) return { ...bundleDetail, dependencies };
+      return { ...soupDetail, templateId: id, name: id };
+    });
+    render(<CatalogueTemplateBrowser />);
+
+    await screen.findByText('Soup and bread menu');
+    fireEvent.click(screen.getByRole('button', { name: 'catalogue_preview' }));
+
+    expect(await screen.findByText('catalogue_dependency_preview_limit:6')).toBeInTheDocument();
   });
 
   it('walks opaque cursors forward and back without manufacturing page offsets', async () => {

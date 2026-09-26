@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CATALOGUE_PREVIEW_DEPENDENCY_CONCURRENCY, CATALOGUE_PREVIEW_MAX_DEPENDENCIES } from '@/config/catalogue';
 import type { CatalogueTemplateRevision, CatalogueTemplateSummary } from '@/services/catalogueTemplateService';
 import { getCatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 import { serverMessage } from '@/utils/apiFormErrors';
@@ -13,6 +14,7 @@ export function useCatalogueTemplatePreview(template: CatalogueTemplateSummary |
   const [detail, setDetail] = useState<CatalogueTemplateRevision | null>(null);
   const [dependencyDetails, setDependencyDetails] = useState<Record<string, CatalogueTemplateRevision>>({});
   const [unresolvedDependencyCount, setUnresolvedDependencyCount] = useState(0);
+  const [truncatedDependencyCount, setTruncatedDependencyCount] = useState(0);
   const [dependencyErrorMessage, setDependencyErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export function useCatalogueTemplatePreview(template: CatalogueTemplateSummary |
       setDetail(null);
       setDependencyDetails({});
       setUnresolvedDependencyCount(0);
+      setTruncatedDependencyCount(0);
       setDependencyErrorMessage(null);
       setError(null);
       setIsLoading(false);
@@ -36,13 +39,23 @@ export function useCatalogueTemplatePreview(template: CatalogueTemplateSummary |
     setDetail(null);
     setDependencyDetails({});
     setUnresolvedDependencyCount(0);
+    setTruncatedDependencyCount(0);
     setDependencyErrorMessage(null);
 
     void getCatalogueTemplateRevision(template.templateId, template.revision, controller.signal)
       .then(async (result) => {
         if (!current) return;
         setDetail(result);
-        const dependencies = result.dependencies.slice(0, 24);
+        const uniqueDependencies = [
+          ...new Map(
+            result.dependencies.map((dependency) => [
+              catalogueReferenceKey(dependency.templateId, dependency.revision),
+              dependency,
+            ]),
+          ).values(),
+        ];
+        const dependencies = uniqueDependencies.slice(0, CATALOGUE_PREVIEW_MAX_DEPENDENCIES);
+        const truncatedCount = Math.max(0, uniqueDependencies.length - dependencies.length);
         const resolved: Record<string, CatalogueTemplateRevision> = {};
         let unresolvedCount = 0;
         let firstDependencyError: string | null = null;
@@ -65,9 +78,14 @@ export function useCatalogueTemplatePreview(template: CatalogueTemplateSummary |
             }
           }
         };
-        await Promise.all(Array.from({ length: Math.min(4, dependencies.length) }, () => worker()));
+        await Promise.all(
+          Array.from({ length: Math.min(CATALOGUE_PREVIEW_DEPENDENCY_CONCURRENCY, dependencies.length) }, () =>
+            worker(),
+          ),
+        );
         if (current) setDependencyDetails(resolved);
         if (current) setUnresolvedDependencyCount(unresolvedCount);
+        if (current) setTruncatedDependencyCount(truncatedCount);
         if (current) setDependencyErrorMessage(firstDependencyError);
       })
       .catch((reason: unknown) => {
@@ -87,6 +105,7 @@ export function useCatalogueTemplatePreview(template: CatalogueTemplateSummary |
     detail,
     dependencyDetails,
     unresolvedDependencyCount,
+    truncatedDependencyCount,
     dependencyErrorMessage,
     isLoading,
     error,

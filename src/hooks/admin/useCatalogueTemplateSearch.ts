@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LanguageCode } from '@/config/languageConfig';
+import { CATALOGUE_SEARCH_PAGE_SIZE, CATALOGUE_SEARCH_QUERY_DEBOUNCE_MS } from '@/config/catalogue';
 import {
   listCatalogueTemplates,
   type CatalogueTemplateListResponse,
@@ -44,7 +45,7 @@ export function useCatalogueTemplateSearch(initialLocale: LanguageCode) {
   useEffect(() => {
     const timeout = window.setTimeout(
       () => setAppliedFilters(filters),
-      filters.query === appliedFilters.query ? 0 : 250,
+      filters.query === appliedFilters.query ? 0 : CATALOGUE_SEARCH_QUERY_DEBOUNCE_MS,
     );
     return () => window.clearTimeout(timeout);
   }, [filters, appliedFilters.query]);
@@ -64,7 +65,7 @@ export function useCatalogueTemplateSearch(initialLocale: LanguageCode) {
         q: appliedFilters.query,
         locale: appliedFilters.locale,
         cursor: currentCursor,
-        limit: 24,
+        limit: CATALOGUE_SEARCH_PAGE_SIZE,
       },
       controller.signal,
     )

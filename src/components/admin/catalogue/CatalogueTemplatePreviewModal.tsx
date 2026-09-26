@@ -34,8 +34,16 @@ export default function CatalogueTemplatePreviewModal({
   onClose,
 }: CatalogueTemplatePreviewModalProps) {
   const { t } = useTranslation();
-  const { detail, dependencyDetails, unresolvedDependencyCount, dependencyErrorMessage, isLoading, error, retry } =
-    useCatalogueTemplatePreview(template);
+  const {
+    detail,
+    dependencyDetails,
+    unresolvedDependencyCount,
+    truncatedDependencyCount,
+    dependencyErrorMessage,
+    isLoading,
+    error,
+    retry,
+  } = useCatalogueTemplatePreview(template);
   const localizedText = detail ? resolveCatalogueTemplateText(detail, locale) : null;
   const displayName = localizedText?.name || template?.displayName || '';
   const description = localizedText?.description ?? null;
@@ -95,6 +103,11 @@ export default function CatalogueTemplatePreviewModal({
                 <p className={styles.sourceNote} role="status">
                   {t('catalogue_dependency_names_error', { count: unresolvedDependencyCount })}
                   {dependencyErrorMessage && ` ${dependencyErrorMessage}`}
+                </p>
+              )}
+              {truncatedDependencyCount > 0 && (
+                <p className={styles.sourceNote} role="status">
+                  {t('catalogue_dependency_preview_limit', { count: truncatedDependencyCount })}
                 </p>
               )}
             </section>

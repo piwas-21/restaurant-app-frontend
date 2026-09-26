@@ -3,6 +3,7 @@
 import React from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import type { ItemAvailability, MenuDefinition, MenuSection } from '@/types/menu';
 import { OrderType } from '@/types/order';
 import { formatPlainCurrency } from '@/utils/currency';
@@ -68,9 +69,7 @@ export default function BundleGuestStepPreview({
         </div>
       </div>
       {bundleAvailability && (
-        <p className={availability?.canOrder ? styles.availability : styles.availabilityWarning}>
-          {bundleAvailability}
-        </p>
+        <StatusBadge tone={availability?.canOrder ? 'success' : 'warning'}>{bundleAvailability}</StatusBadge>
       )}
       {menuDefinition.sections.length === 0 ? (
         <p className={styles.empty}>{t('bundle_guest_preview_empty')}</p>
@@ -102,13 +101,9 @@ export default function BundleGuestStepPreview({
                               </span>
                             )}
                             {itemAvailability && (
-                              <span
-                                className={
-                                  item.availability?.canOrder ? styles.availability : styles.availabilityWarning
-                                }
-                              >
+                              <StatusBadge size="sm" tone={item.availability?.canOrder ? 'success' : 'warning'}>
                                 {itemAvailability}
-                              </span>
+                              </StatusBadge>
                             )}
                           </span>
                         </li>

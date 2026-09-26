@@ -11,7 +11,14 @@ import { serverMessage } from '@/utils/apiFormErrors';
 import { quoteProduct } from '@/services/productQuoteService';
 import type { ProductQuoteDto } from '@/services/productQuoteService';
 import styles from './BundlePriceQuotePreview.module.css';
-import { hasTemporarySelectionIds, optionOrderable, ORDER_TYPE_KEYS, toQuoteRequest } from './bundlePriceQuoteUtils';
+import {
+  BUNDLE_QUOTE_MAX_QUANTITY,
+  bundleQuoteInputsSchema,
+  hasTemporarySelectionIds,
+  optionOrderable,
+  ORDER_TYPE_KEYS,
+  toQuoteRequest,
+} from './bundlePriceQuoteUtils';
 
 interface BundlePriceQuotePreviewProps {
   readonly productId: string;
@@ -37,7 +44,7 @@ export default function BundlePriceQuotePreview({
   availability,
 }: BundlePriceQuotePreviewProps) {
   const { t } = useTranslation();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState('1');
   const [requestedOrderType, setRequestedOrderType] = useState<OrderType | ''>('');
   const [isPending, setIsPending] = useState(false);
   const [quote, setQuote] = useState<QuoteState | null>(null);
@@ -58,6 +65,11 @@ export default function BundlePriceQuotePreview({
   const menuOrderable = requestedOrderType
     ? (availability?.allowedOrderTypes.includes(requestedOrderType) ?? true)
     : (availability?.canOrder ?? true);
+  const inputValidation = bundleQuoteInputsSchema.safeParse({ quantity, requestedOrderType });
+  const inputIssues = inputValidation.success ? [] : inputValidation.error.issues;
+  const inputError = inputValidation.success ? undefined : t('bundle_quote_invalid_input');
+  const quantityError = inputIssues.some((issue) => issue.path[0] === 'quantity') ? inputError : undefined;
+  const channelError = inputIssues.some((issue) => issue.path[0] === 'requestedOrderType') ? inputError : undefined;
   const canQuote = Boolean(
     productId &&
     !isDirty &&
@@ -97,7 +109,8 @@ export default function BundlePriceQuotePreview({
   );
 
   const requestQuote = async () => {
-    if (!canQuote || !productId || isPending) return;
+    const parsedInputs = bundleQuoteInputsSchema.safeParse({ quantity, requestedOrderType });
+    if (!canQuote || !parsedInputs.success || !productId || isPending) return;
     const sequence = ++requestSequence.current;
     setIsPending(true);
     setQuote(null);
@@ -105,8 +118,8 @@ export default function BundlePriceQuotePreview({
     try {
       const value = await quoteProduct(
         productId,
-        toQuoteRequest(defaultSelections, quantity),
-        requestedOrderType || undefined,
+        toQuoteRequest(defaultSelections, parsedInputs.data.quantity),
+        parsedInputs.data.requestedOrderType || undefined,
       );
       if (sequence === requestSequence.current && currentKey.current === quoteKey) {
         setQuote({ key: quoteKey, value });
@@ -132,18 +145,18 @@ export default function BundlePriceQuotePreview({
         <p className={styles.description}>{t('bundle_quote_saved_configuration_note')}</p>
       </div>
       <div className={styles.controls}>
-        <FormField label={t('bundle_quote_quantity')}>
+        <FormField label={t('bundle_quote_quantity')} error={quantityError}>
           <input
             className={styles.fieldInput}
             type="number"
             min={1}
-            max={99}
+            max={BUNDLE_QUOTE_MAX_QUANTITY}
             step={1}
             value={quantity}
-            onChange={(event) => setQuantity(Math.max(1, Math.min(99, Number.parseInt(event.target.value, 10) || 1)))}
+            onChange={(event) => setQuantity(event.target.value)}
           />
         </FormField>
-        <FormField label={t('bundle_quote_channel')}>
+        <FormField label={t('bundle_quote_channel')} error={channelError}>
           <select
             className={styles.fieldInput}
             value={requestedOrderType}
@@ -161,7 +174,12 @@ export default function BundlePriceQuotePreview({
             ))}
           </select>
         </FormField>
-        <button type="button" className={styles.button} disabled={!canQuote || isPending} onClick={requestQuote}>
+        <button
+          type="button"
+          className={styles.button}
+          disabled={!canQuote || !inputValidation.success || isPending}
+          onClick={requestQuote}
+        >
           {isPending ? t('bundle_quote_pending') : t('bundle_quote_request')}
         </button>
       </div>

@@ -87,9 +87,13 @@ describe('BundleGuestStepPreview', () => {
     const steps = document.querySelector('ol') as HTMLOListElement;
     expect(within(steps).getAllByRole('listitem')[0]).toHaveTextContent('Mains');
     expect(within(steps).getAllByRole('listitem')[1]).toHaveTextContent('Drinks');
-    expect(screen.getByText('bundle_preview_wrong_channel:order_type_takeaway')).toBeInTheDocument();
+    const bundleStatus = screen.getByText('bundle_preview_wrong_channel:order_type_takeaway');
+    expect(bundleStatus).toBeInTheDocument();
+    expect(bundleStatus.closest('span')).toHaveClass('badge');
     expect(screen.getByText('bundle_preview_wrong_channel:order_type_delivery')).toBeInTheDocument();
-    expect(screen.getByText('bundle_preview_unavailable_settings')).toBeInTheDocument();
+    const optionStatus = screen.getByText('bundle_preview_unavailable_settings');
+    expect(optionStatus).toBeInTheDocument();
+    expect(optionStatus.closest('span')).toHaveClass('badge');
     expect(screen.getByText('bundle_preview_included_by_default')).toBeInTheDocument();
     expect(screen.getByText('+CHF 1.50')).toBeInTheDocument();
   });

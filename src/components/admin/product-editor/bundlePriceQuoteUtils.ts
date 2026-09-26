@@ -1,6 +1,18 @@
-import type { OrderType } from '@/types/order';
+import { z } from 'zod';
+import { OrderType } from '@/types/order';
 import type { MenuDefinition, SelectedMenuOption } from '@/types/menu';
 import type { ProductQuoteRequest } from '@/services/productQuoteService';
+
+export const BUNDLE_QUOTE_MAX_QUANTITY = 99;
+
+export const bundleQuoteInputsSchema = z.object({
+  quantity: z.coerce
+    .number({ message: 'bundle_quote_invalid_input' })
+    .int('bundle_quote_invalid_input')
+    .min(1, 'bundle_quote_invalid_input')
+    .max(BUNDLE_QUOTE_MAX_QUANTITY, 'bundle_quote_invalid_input'),
+  requestedOrderType: z.nativeEnum(OrderType).or(z.literal('')),
+});
 
 export const ORDER_TYPE_KEYS: Record<OrderType, string> = {
   DineIn: 'order_type_dine_in',

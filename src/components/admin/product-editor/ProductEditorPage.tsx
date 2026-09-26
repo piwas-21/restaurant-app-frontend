@@ -96,6 +96,7 @@ export default function ProductEditorPage({
     setActiveTab,
     setActiveSection: sectionNav.goTo,
     sections,
+    isBundle,
     itemTabId: TAB_ITEM,
     translationsTabId: TAB_TRANSLATIONS,
   });

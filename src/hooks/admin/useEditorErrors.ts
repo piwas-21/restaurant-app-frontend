@@ -21,6 +21,8 @@ interface UseEditorErrorsOptions {
   /** The focused section setter — item errors can now live in hidden tabpanels. */
   setActiveSection: (id: string) => void;
   sections: readonly EditorSection[];
+  /** Bundle allergens live in Basics, while item allergens live in Recipe & dietary. */
+  isBundle: boolean;
   itemTabId: string;
   translationsTabId: string;
 }
@@ -44,17 +46,18 @@ export function useEditorErrors({
   setActiveTab,
   setActiveSection,
   sections,
+  isBundle,
   itemTabId,
   translationsTabId,
 }: UseEditorErrorsOptions) {
   // `errors.root` is the FORM-level message: it already renders above the sections and has no
   // input, so counting it would offer a jump to nowhere. `collectErrorFields` drops it.
   const fields = collectErrorFields(errors);
-  const sectionIds = new Set(sectionIdsWithErrors(fields));
+  const sectionIds = new Set(sectionIdsWithErrors(fields, isBundle));
   const first = fields[0];
   const firstSection =
     first && !isTranslationsField(first.name)
-      ? sections.find((section) => section.id === sectionForField(first.name))
+      ? sections.find((section) => section.id === sectionForField(first.name, isBundle))
       : undefined;
   const firstLocation = first && isTranslationsField(first.name) ? t('editor_tab_translations') : firstSection?.label;
   const label =
@@ -73,11 +76,11 @@ export function useEditorErrors({
       setActiveTab(translationsTabId);
     } else {
       setActiveTab(itemTabId);
-      const sectionId = sectionForField(firstError.name);
+      const sectionId = sectionForField(firstError.name, isBundle);
       if (sectionId) setActiveSection(sectionId);
     }
-    setTimeout(() => jumpToField(firstError.name), 0);
-  }, [fields, itemTabId, setActiveSection, setActiveTab, submitCount, translationsTabId]);
+    setTimeout(() => jumpToField(firstError.name, isBundle), 0);
+  }, [fields, isBundle, itemTabId, setActiveSection, setActiveTab, submitCount, translationsTabId]);
 
   /** Mark the sections holding an error, for the nav's `!` (conformance gap G3, issue #579). */
   const decorate = (sections: readonly EditorSection[]): EditorSection[] =>
@@ -95,13 +98,13 @@ export function useEditorErrors({
     if (!firstError) return;
     if (isTranslationsField(firstError.name)) {
       setActiveTab(translationsTabId);
-      setTimeout(() => jumpToField(firstError.name), 0);
+      setTimeout(() => jumpToField(firstError.name, isBundle), 0);
       return;
     }
     setActiveTab(itemTabId);
-    const sectionId = sectionForField(firstError.name);
+    const sectionId = sectionForField(firstError.name, isBundle);
     if (sectionId) setActiveSection(sectionId);
-    setTimeout(() => jumpToField(firstError.name), 0);
+    setTimeout(() => jumpToField(firstError.name, isBundle), 0);
   };
 
   return {

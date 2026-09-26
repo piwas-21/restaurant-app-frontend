@@ -12,10 +12,12 @@ export interface EditorFieldError {
  * Which §4 section owns which registered field (slice S7, decision D13).
  *
  * Keyed by the ROOT of a registered path, so `variations.0.name` and `variations.2.priceModifier`
- * both resolve through `variations`. It is the only mapping in the redesign that has to be kept in
- * step with `itemEditorSections.tsx` by hand — `ProductEditorSections.test.tsx` already pins which
- * control renders in which section, and `editorValidation.test.ts` pins that every field this map
- * names is a field the schema really has, so a rename cannot rot it silently in both directions.
+ * both resolve through `variations`. The item mapping is kept in step with
+ * `itemEditorSections.tsx` by hand — `ProductEditorSections.test.tsx` already pins which control
+ * renders in which section, and `editorValidation.test.ts` pins that every field this map names is
+ * a field the schema really has, so a rename cannot rot it silently in both directions.
+ * `sectionForField` applies bundle overrides because the allergen control lives in Basics for
+ * bundles rather than Recipe & dietary.
  *
  * The three status flags live in the side RAIL, not in a section, so they map to nothing: a rail
  * error would have no nav entry to mark. They are booleans with defaults and cannot fail today.
@@ -98,15 +100,18 @@ export function collectErrorFields(errors: FieldErrors<FieldValues>): EditorFiel
 }
 
 /** The section that owns a registered path, or `undefined` for one no section renders. */
-export function sectionForField(name: string): string | undefined {
-  return SECTION_FIELDS[name.split('.')[0]];
+export function sectionForField(name: string, isBundle = false): string | undefined {
+  const field = name.split('.')[0];
+  // Bundle allergens render in Basics; item allergens render in Recipe & dietary.
+  if (isBundle && field === 'allergens') return SECTION_IDS.basics;
+  return SECTION_FIELDS[field];
 }
 
 /** The distinct sections holding at least one failing field, for the nav's error marker. */
-export function sectionIdsWithErrors(fields: readonly EditorFieldError[]): string[] {
+export function sectionIdsWithErrors(fields: readonly EditorFieldError[], isBundle = false): string[] {
   const ids = new Set<string>();
   for (const field of fields) {
-    const id = sectionForField(field.name);
+    const id = sectionForField(field.name, isBundle);
     if (id) ids.add(id);
   }
   return [...ids];
@@ -190,11 +195,11 @@ function nearestAnchor(name: string): HTMLElement | null {
  * chip actually asks — *"show me the problem"*. The owning section card is a fallback for a field
  * path with no input rendered.
  */
-export function jumpToField(name: string): boolean {
+export function jumpToField(name: string, isBundle = false): boolean {
   if (focusField(name)) return true;
   if (typeof document === 'undefined') return false;
 
-  const sectionId = sectionForField(name);
+  const sectionId = sectionForField(name, isBundle);
   const section = sectionId ? document.getElementById(sectionId) : null;
   if (!section) return false;
 

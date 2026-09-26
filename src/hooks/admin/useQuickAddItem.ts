@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { useForm, type FieldValues, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { quickAddItemSchema, type QuickAddItemFormData } from '@/components/admin/product/schemas';
+import { quickAddItemFormSchema, type QuickAddItemFormData } from '@/components/admin/product/schemas';
 import { submitProductForm } from '@/components/admin/product/productFormUtils';
 import { buildQuickAddItemPayload } from '@/utils/quickAddItemPayload';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
@@ -26,11 +26,11 @@ const NO_IMAGE_FILES: File[] = [];
 /**
  * The quick-add create form (MENU-ITEM-EDITOR-REDESIGN-PLAN, slice S3 / decision D3).
  *
- * Three questions — name, price, category — then a POST and the item's own edit page, which is
- * where photos become possible at all. It is deliberately NOT a second create implementation:
+ * Name, price, category, and an explicit internal-component role, then a POST and the item's own
+ * edit page, which is where photos become possible at all. It is deliberately NOT a second create implementation:
  *
- * - the resolver is `quickAddItemSchema`, `.pick()`ed from `createProductSchema`, so every bound
- *   and every message is the full editor's own (see `schemas.ts`);
+ * - the resolver is derived from the same create schema fields and applies the same role-aware
+ *   positive-price rule as the full editor (see `schemas.ts`);
  * - the payload is built by `buildQuickAddItemPayload`, which fills every field the modal does not
  *   ask for from the create route's own defaults and re-parses the result through the full create
  *   schema;
@@ -50,15 +50,23 @@ export function useQuickAddItem({ onCreated, onAddedAnother }: UseQuickAddItemOp
   const { categories, categoriesError } = useEditorCategories(false);
 
   const form = useForm<FieldValues>({
-    resolver: zodResolver(quickAddItemSchema as never) as Resolver<FieldValues>,
-    // `basePrice: ''` and not 0: the approved screen shows an empty box with a `0.00` placeholder,
-    // and `z.coerce.number()` reads '' as 0 — the very default `toItemDefaults` seeds. An admin who
-    // never touches the price therefore creates exactly the row the full editor would have.
-    defaultValues: { name: '', basePrice: '', categoryIds: [], primaryCategoryId: '' },
+    resolver: zodResolver(quickAddItemFormSchema as never) as Resolver<FieldValues>,
+    // Sellable items start with a blank price; selecting the internal role changes it to zero.
+    defaultValues: { name: '', basePrice: '', isComponent: false, categoryIds: [], primaryCategoryId: '' },
   });
 
   const { formState, setValue, watch } = form;
   const selectedCategoryId = (watch('primaryCategoryId') as string | undefined) ?? '';
+  const isComponent = Boolean(watch('isComponent'));
+
+  const setComponentRole = useCallback(
+    (enabled: boolean) => {
+      const shouldValidate = formState.isSubmitted;
+      setValue('isComponent', enabled, { shouldDirty: true, shouldValidate });
+      setValue('basePrice', enabled ? 0 : '', { shouldDirty: true, shouldValidate });
+    },
+    [formState.isSubmitted, setValue],
+  );
 
   const selectCategory = useCallback(
     (categoryId: string) => {
@@ -104,6 +112,8 @@ export function useQuickAddItem({ onCreated, onAddedAnother }: UseQuickAddItemOp
   return {
     form,
     errors: formState.errors,
+    isComponent,
+    setComponentRole,
     categories,
     categoriesError,
     selectedCategoryId,

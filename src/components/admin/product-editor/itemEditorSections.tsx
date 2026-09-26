@@ -178,7 +178,15 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       description: t('editor_section_advanced_description'),
       // `hasVariations` reads the LIVE field array, not `product.variations`: adding the first
       // variation must reveal `hideBaseProduct` in the same session, before any save.
-      node: <ProductAdvancedFields register={form.register} />,
+      node: (
+        <ProductAdvancedFields
+          register={form.register}
+          control={form.control}
+          productId={product.id}
+          variations={product.variations ?? []}
+          onNavigate={context.onNavigate}
+        />
+      ),
     },
   ];
 

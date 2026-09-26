@@ -63,15 +63,15 @@ const fill = (name: string, price: string, categoryId: string) => {
  * The quick-add create modal (MENU-ITEM-EDITOR-REDESIGN-PLAN, slice S3 / decision D3).
  *
  * `schemas.quickAdd.test.ts` proves the modal cannot ask a different question from the full
- * editor; this proves the surface: three fields, the editor's own refusals, one POST, and the
- * item's own edit page at the end of it.
+ * editor; this proves the surface: its three entry fields plus the explicit internal role, the
+ * editor's own refusals, one POST, and the item's own edit page at the end of it.
  */
-describe('QuickAddItemModal — create is three fields and a redirect (D3)', () => {
+describe('QuickAddItemModal — create is three entry fields, a role, and a redirect (D3)', () => {
   // Call counts only — `clearAllMocks` keeps each factory's own implementation, so the default
   // "created, id new-item-1" answer survives while `not.toHaveBeenCalled()` stays honest.
   beforeEach(() => jest.clearAllMocks());
 
-  it('asks for exactly name, price and category — nothing else', async () => {
+  it('asks for name, price, category and the internal-item role', async () => {
     await renderModal();
     // `BaseModal` portals to document.body, so the dialog — not the render container — is the tree.
     const dialog = screen.getByRole('dialog');
@@ -79,9 +79,12 @@ describe('QuickAddItemModal — create is three fields and a redirect (D3)', () 
     expect(screen.getByLabelText('item_name')).toBeInTheDocument();
     expect(screen.getByLabelText(/price/)).toBeInTheDocument();
     expect(screen.getByLabelText('category')).toBeInTheDocument();
-    // Three controls, and no fourth: the editor's own description, allergens, variations and —
-    // the divergence D3 deletes — its create-only staged image input.
-    expect(dialog.querySelectorAll('input, select, textarea')).toHaveLength(2 + 1);
+    const role = screen.getByRole('checkbox', { name: 'option_only_item' });
+    expect(role).not.toBeChecked();
+    expect(screen.getByText('option_only_item_help')).toBeInTheDocument();
+    // Three entry controls plus role, and no other fields: no description, allergens, variations,
+    // or the divergence D3 deletes, the create-only staged image input.
+    expect(dialog.querySelectorAll('input, select, textarea')).toHaveLength(4);
     expect(dialog.querySelector('input[type="file"]')).toBeNull();
     expect(dialog.querySelector('textarea')).toBeNull();
   });
@@ -131,6 +134,7 @@ describe('QuickAddItemModal — create is three fields and a redirect (D3)', () 
     expect(payload).toMatchObject({
       name: 'Margherita',
       basePrice: 14.5,
+      isComponent: false,
       categoryIds: ['cat-a'],
       primaryCategoryId: 'cat-a',
       // Everything the modal never asked about, sent anyway (plan §6: an omitted field is a
@@ -142,6 +146,40 @@ describe('QuickAddItemModal — create is three fields and a redirect (D3)', () 
     });
     // …and the admin's current language seeded exactly as the full create form seeded it.
     expect(payload.content).toEqual({ en: { name: 'Margherita', description: '' } });
+  });
+
+  it('sets zero when an internal item is selected and posts its role with that price', async () => {
+    await renderModal();
+
+    const price = screen.getByLabelText(/price/) as HTMLInputElement;
+    fireEvent.click(screen.getByRole('checkbox', { name: 'option_only_item' }));
+    expect(price.value).toBe('0');
+    fill('Menu-only side', '0', 'cat-b');
+    fireEvent.click(screen.getByRole('button', { name: 'quick_add_save_and_open' }));
+
+    await waitFor(() => expect(createProduct).toHaveBeenCalledTimes(1));
+    expect((createProduct as jest.Mock).mock.calls[0][0]).toMatchObject({
+      name: 'Menu-only side',
+      basePrice: 0,
+      isComponent: true,
+    });
+  });
+
+  it('clears zero when the internal role is turned off, then refuses a sellable zero price', async () => {
+    await renderModal();
+
+    const price = screen.getByLabelText(/price/) as HTMLInputElement;
+    const role = screen.getByRole('checkbox', { name: 'option_only_item' });
+    fireEvent.click(role);
+    expect(price.value).toBe('0');
+    fireEvent.click(role);
+    expect(price.value).toBe('');
+
+    fill('Sellable side', '0', 'cat-b');
+    fireEvent.click(screen.getByRole('button', { name: 'quick_add_save_and_open' }));
+
+    expect(await screen.findByText('Base price must be greater than 0')).toBeInTheDocument();
+    expect(createProduct).not.toHaveBeenCalled();
   });
 
   // D3: "Enter saves and re-opens the modal empty, because menu entry is a batch task." So the

@@ -1,4 +1,11 @@
-import { createProductSchema, QUICK_ADD_ITEM_FIELDS, quickAddItemSchema } from './schemas';
+import {
+  createProductFormSchema,
+  createProductSchema,
+  editProductSchema,
+  QUICK_ADD_ITEM_FIELDS,
+  quickAddItemFormSchema,
+  quickAddItemSchema,
+} from './schemas';
 import { buildQuickAddItemPayload } from '@/utils/quickAddItemPayload';
 import { emptyProductDetails, toItemDefaults } from '@/utils/productEditorDefaults';
 
@@ -18,8 +25,8 @@ import { emptyProductDetails, toItemDefaults } from '@/utils/productEditorDefaul
 describe('quick-add is a strict subset of the full create form (D3)', () => {
   const quickAddKeys = Object.keys(quickAddItemSchema.shape);
 
-  it('asks for exactly name, price and category', () => {
-    expect(quickAddKeys.sort()).toEqual(['basePrice', 'categoryIds', 'name', 'primaryCategoryId']);
+  it('asks for name, price, category, and whether the item is internal', () => {
+    expect(quickAddKeys.sort()).toEqual(['basePrice', 'categoryIds', 'isComponent', 'name', 'primaryCategoryId']);
     expect(Object.keys(QUICK_ADD_ITEM_FIELDS).sort()).toEqual(quickAddKeys.sort());
   });
 
@@ -34,7 +41,7 @@ describe('quick-add is a strict subset of the full create form (D3)', () => {
   });
 
   it('rejects what the full form rejects, with the full form’s message', () => {
-    const empty = { name: '', basePrice: -1, categoryIds: [], primaryCategoryId: '' };
+    const empty = { name: '', basePrice: -1, categoryIds: [], primaryCategoryId: '', isComponent: false };
     const quick = quickAddItemSchema.safeParse(empty);
     const full = createProductSchema.safeParse({ ...toItemDefaults(emptyProductDetails(false)), ...empty });
 
@@ -56,6 +63,7 @@ describe('quick-add is a strict subset of the full create form (D3)', () => {
       basePrice: 14.5,
       categoryIds: ['cat-a'],
       primaryCategoryId: 'cat-a',
+      isComponent: false,
     });
 
     // Every field of the create schema, named by the schema itself so a new column added there
@@ -92,7 +100,42 @@ describe('quick-add is a strict subset of the full create form (D3)', () => {
   it('strips the keys the create schema does not carry', () => {
     expect(toItemDefaults(emptyProductDetails(false))).toHaveProperty('displayOrder');
     expect(
-      buildQuickAddItemPayload({ name: 'x', basePrice: 1, categoryIds: ['c'], primaryCategoryId: 'c' }),
+      buildQuickAddItemPayload({
+        name: 'x',
+        basePrice: 1,
+        isComponent: false,
+        categoryIds: ['c'],
+        primaryCategoryId: 'c',
+      }),
     ).not.toHaveProperty('displayOrder');
+  });
+
+  it('allows zero only for internal components in create, quick-add, and edit validation', () => {
+    const component = {
+      name: 'Bundle side',
+      basePrice: 0,
+      isComponent: true,
+      categoryIds: ['cat-a'],
+      primaryCategoryId: 'cat-a',
+    };
+    const sellable = { ...component, isComponent: false };
+
+    expect(quickAddItemFormSchema.safeParse(component).success).toBe(true);
+    expect(
+      createProductFormSchema.safeParse({ ...toItemDefaults(emptyProductDetails(false)), ...component }).success,
+    ).toBe(true);
+    expect(quickAddItemFormSchema.safeParse(sellable).success).toBe(false);
+    expect(
+      createProductFormSchema.safeParse({ ...toItemDefaults(emptyProductDetails(false)), ...sellable }).success,
+    ).toBe(false);
+
+    const editValues = {
+      ...toItemDefaults(emptyProductDetails(false)),
+      ...component,
+      categoryIds: ['cat-a'],
+      primaryCategoryId: 'cat-a',
+    };
+    expect(editProductSchema.safeParse(editValues).success).toBe(true);
+    expect(editProductSchema.safeParse({ ...editValues, isComponent: false }).success).toBe(false);
   });
 });

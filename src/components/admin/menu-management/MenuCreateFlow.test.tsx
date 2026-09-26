@@ -65,6 +65,14 @@ describe('MenuCreateFlow — an item quick-adds, a bundle still gets a page (S3)
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('opens the read-only Sofra suggestion catalogue', async () => {
+    await renderFlow();
+
+    fireEvent.click(screen.getByRole('button', { name: 'browse_suggestions' }));
+
+    expect(mockPush).toHaveBeenCalledWith('/admin/menu-management/catalogue');
+  });
+
   it('still routes a bundle to its create page', async () => {
     await renderFlow();
 
@@ -81,6 +89,7 @@ describe('MenuCreateFlow — an item quick-adds, a bundle still gets a page (S3)
     await renderFlow(true);
 
     fireEvent.change(screen.getByLabelText('item_name'), { target: { value: 'Margherita' } });
+    fireEvent.change(screen.getByLabelText(/price/), { target: { value: '8.5' } });
     fireEvent.change(screen.getByLabelText('category'), { target: { value: 'cat-a' } });
     fireEvent.click(screen.getByRole('button', { name: 'quick_add_save_and_open' }));
 
@@ -91,6 +100,7 @@ describe('MenuCreateFlow — an item quick-adds, a bundle still gets a page (S3)
     const { onCreated } = await renderFlow(true);
 
     fireEvent.change(screen.getByLabelText('item_name'), { target: { value: 'Pepperoni' } });
+    fireEvent.change(screen.getByLabelText(/price/), { target: { value: '9' } });
     fireEvent.change(screen.getByLabelText('category'), { target: { value: 'cat-a' } });
     fireEvent.submit(screen.getByLabelText('item_name').closest('form') as HTMLFormElement);
 

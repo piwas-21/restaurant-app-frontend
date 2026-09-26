@@ -63,6 +63,9 @@ export default function MenuCreateFlow({ autoOpenQuickAdd = false, onCreated }: 
       <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={() => setStep('type')}>
         {t('create_new_product')}
       </button>
+      <button type="button" className={styles.adminButton} onClick={() => router.push(`${LIST_ROUTE}/catalogue`)}>
+        {t('browse_suggestions')}
+      </button>
 
       <NewProductTypeModal isOpen={step === 'type'} onClose={() => setStep('closed')} onSelect={handleTypeSelect} />
 

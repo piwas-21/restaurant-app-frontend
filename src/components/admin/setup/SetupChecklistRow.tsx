@@ -73,6 +73,12 @@ export default function SetupChecklistRow({
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       )}
+      {step.key === 'menu' && (
+        <Link href="/admin/menu-management/catalogue" className={styles.rowAction}>
+          {t('browse_sofra_suggestions')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      )}
     </li>
   );
 }

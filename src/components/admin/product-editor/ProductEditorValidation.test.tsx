@@ -63,6 +63,12 @@ const renderEditor = async () => {
   return { ...view, nameInput };
 };
 
+const saveThroughReview = async () => {
+  fireEvent.click(screen.getByTestId('editor-save'));
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+};
+
 /** Empty the required name and leave the field, which is what `onTouched` reacts to. */
 const emptyTheName = async (input: HTMLInputElement) => {
   fireEvent.change(input, { target: { value: '' } });
@@ -191,11 +197,11 @@ describe('editor validation — the save bar says how many and where (D13, gap G
 
   // The defect that made S7 worth a slice: a refused Save with no visible cause.
   it('jumps to the first error on a refused submit, and posts nothing', async () => {
-    const { nameInput, container } = await renderEditor();
+    const { nameInput } = await renderEditor();
     await emptyTheName(nameInput);
     (document.activeElement as HTMLElement)?.blur();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await saveThroughReview();
 
     // `waitFor`, not an `act()` wrapper (Sonar S8980 — `fireEvent` already flushes): the resolver
     // is async, so the refusal and the focus move land a microtask after the submit.
@@ -287,7 +293,7 @@ describe('editor validation — the save bar says how many and where (D13, gap G
 
     expect(await screen.findByText('Name is required for this language')).toBeInTheDocument();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await saveThroughReview();
     await waitFor(() =>
       expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary_in_section:1'),
     );

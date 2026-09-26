@@ -2961,7 +2961,7 @@
   "editor_review_menu_path": "Menu-aanbod",
   "editor_review_menu_summary": "Dit menu heeft {{count}} keuzestappen voor gasten.",
   "editor_review_menu_separate": "Menustappen worden apart ingesteld en zijn niet geladen op dit artikelscherm.",
-  "editor_review_offer_family_difference": "Dit menu is gekoppeld aan een los aanbod. Keuzes kunnen bewust verschillen; controleer beide routes.",
+  "editor_review_linked_offer_review": "Dit menu is gekoppeld aan een los aanbod. Vergelijk vóór het opslaan de keuzes en prijs in beide weergaven.",
   "editor_review_translation_gaps": "De productnaam ontbreekt in {{missing}} van de {{total}} gasttalen. Bestaande tekst in andere talen moet mogelijk nog op de vertaling worden gecontroleerd.",
   "editor_review_component_price": "Een intern menuonderdeel heeft normaal een basisprijs van nul. Controleer rol en prijs.",
   "editor_review_sellable_price": "Een verkoopbaar artikel moet een positieve basisprijs hebben.",

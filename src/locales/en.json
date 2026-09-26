@@ -2961,7 +2961,7 @@
   "editor_review_menu_path": "Menu offer",
   "editor_review_menu_summary": "This menu has {{count}} guest choice steps.",
   "editor_review_menu_separate": "Menu choice steps are configured separately and are not loaded on this item screen.",
-  "editor_review_offer_family_difference": "This menu is linked to a standalone offer. Their choices can differ intentionally; review both paths before saving.",
+  "editor_review_linked_offer_review": "This menu is linked to a standalone offer. Compare its choices and price with this menu before saving.",
   "editor_review_translation_gaps": "The product name is blank in {{missing}} of {{total}} guest locales. Existing text in other locales may still need translation review.",
   "editor_review_component_price": "An internal bundle component normally has a zero base price. Check its role and price.",
   "editor_review_sellable_price": "A sellable item needs a positive base price.",

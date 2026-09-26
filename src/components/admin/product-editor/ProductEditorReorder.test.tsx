@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -92,8 +92,16 @@ const renderEditor = async () => {
   return view.container;
 };
 
+const submitThroughReview = async (container: HTMLElement) => {
+  const save = container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement;
+  expect(save).toBeEnabled();
+  fireEvent.click(save);
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+};
+
 const submitAndReadPayload = async (container: HTMLElement) => {
-  fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+  await submitThroughReview(container);
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
 };

@@ -236,6 +236,36 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   });
 
+  it('requires the review even when a submit event has no submitter', async () => {
+    const { nameInput, container } = await renderEditor(item, false);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(updateProduct).not.toHaveBeenCalled();
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+  });
+
+  it('prompts for a manual comparison when linked through a parent variation', async () => {
+    const linkedBundle = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        parentOfferProductId: undefined,
+        parentOfferVariationId: 'variation-1',
+      },
+    } as ProductDetails;
+    const { nameInput } = await renderEditor(linkedBundle, true);
+    fireEvent.change(nameInput, { target: { value: 'Pizza Combo Revised' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(within(review).getByText('editor_review_linked_offer_review')).toBeInTheDocument();
+    expect(updateMenuBundle).not.toHaveBeenCalled();
+  });
+
   // The focused editor has one visible Save action for the shared form.
   it('renders exactly one Save button — the header duplicate is gone', async () => {
     const { container } = await renderEditor(item, false);

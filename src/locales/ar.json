@@ -2997,7 +2997,7 @@
   "editor_review_menu_path": "عرض الوجبة",
   "editor_review_menu_summary": "تحتوي هذه الوجبة على {{count}} خطوات اختيار للضيف.",
   "editor_review_menu_separate": "تُعد خطوات الوجبة بشكل منفصل ولا تُحمّل في شاشة الصنف هذه.",
-  "editor_review_offer_family_difference": "هذه الوجبة مرتبطة بعرض مستقل. قد تختلف الخيارات عمدًا؛ راجع المسارين.",
+  "editor_review_linked_offer_review": "هذه الوجبة مرتبطة بعرض مستقل. قارِن الخيارات والسعر في العرضين قبل الحفظ.",
   "editor_review_translation_gaps": "اسم المنتج فارغ في {{missing}} من {{total}} من لغات الضيوف. وقد تظل النصوص الموجودة باللغات الأخرى بحاجة إلى مراجعة الترجمة.",
   "editor_review_component_price": "عادةً يكون السعر الأساسي للمكوّن الداخلي في الوجبة صفرًا. تحقق من دوره وسعره.",
   "editor_review_sellable_price": "يحتاج الصنف القابل للبيع إلى سعر أساسي موجب.",

@@ -2961,7 +2961,7 @@
   "editor_review_menu_path": "Menüangebot",
   "editor_review_menu_summary": "Dieses Menü hat {{count}} Auswahlsschritte für Gäste.",
   "editor_review_menu_separate": "Menüschritte werden separat eingerichtet und sind auf dieser Artikelseite nicht geladen.",
-  "editor_review_offer_family_difference": "Dieses Menü ist mit einem Einzelangebot verknüpft. Die Auswahlregeln können sich absichtlich unterscheiden; prüfe beide Wege.",
+  "editor_review_linked_offer_review": "Dieses Menü ist mit einem Einzelangebot verknüpft. Vergleichen Sie vor dem Speichern Auswahl und Preis in beiden Ansichten.",
   "editor_review_translation_gaps": "Der Produktname ist in {{missing}} von {{total}} Gastsprachen leer. Vorhandene Texte in anderen Sprachen müssen möglicherweise noch geprüft werden.",
   "editor_review_component_price": "Eine interne Menükomponente hat normalerweise einen Grundpreis von null. Prüfe Typ und Preis.",
   "editor_review_sellable_price": "Ein verkaufbarer Artikel braucht einen positiven Grundpreis.",

@@ -2970,7 +2970,7 @@
   "editor_review_menu_path": "Oferta de menú",
   "editor_review_menu_summary": "Este menú tiene {{count}} pasos de elección para el cliente.",
   "editor_review_menu_separate": "Los pasos del menú se configuran por separado y no se cargan en esta pantalla.",
-  "editor_review_offer_family_difference": "Este menú está vinculado a una oferta individual. Las opciones pueden diferir intencionadamente; revisa ambos recorridos.",
+  "editor_review_linked_offer_review": "Este menú está vinculado a una oferta individual. Compara las opciones y el precio en ambas vistas antes de guardar.",
   "editor_review_translation_gaps": "El nombre del producto está vacío en {{missing}} de {{total}} idiomas para clientes. El texto existente en otros idiomas puede necesitar una revisión de traducción.",
   "editor_review_component_price": "Un componente interno de menú normalmente tiene precio base cero. Comprueba su función y precio.",
   "editor_review_sellable_price": "Un artículo vendible necesita un precio base positivo.",

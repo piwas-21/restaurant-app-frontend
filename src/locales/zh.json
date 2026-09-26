@@ -2952,7 +2952,7 @@
   "editor_review_menu_path": "套餐菜单",
   "editor_review_menu_summary": "此菜单包含 {{count}} 个顾客选择步骤。",
   "editor_review_menu_separate": "菜单步骤需要单独设置，本商品页面不会加载这些步骤。",
-  "editor_review_offer_family_difference": "此菜单关联了单点商品。两者选项可以有意不同；请分别检查两个流程。",
+  "editor_review_linked_offer_review": "此套餐关联了单点商品。保存前请比较两个视图中的选项和价格。",
   "editor_review_translation_gaps": "{{total}} 种顾客语言中有 {{missing}} 种缺少商品名称。其他语言中已有的文本仍可能需要翻译审核。",
   "editor_review_component_price": "菜单内部组件的基础价格通常为零。请检查其角色和价格。",
   "editor_review_sellable_price": "可销售商品需要大于零的基础价格。",

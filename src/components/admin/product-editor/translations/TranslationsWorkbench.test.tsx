@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import ProductEditorPage from '../ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -93,9 +93,17 @@ const targetField = (view: ReturnType<typeof within>, field: string, language: s
   ) as HTMLInputElement;
 
 const save = async (container: HTMLElement) => {
-  fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+  fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+};
+
+const confirmSaveReview = async (container: HTMLElement) => {
+  fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
 };
 
 beforeEach(() => jest.clearAllMocks());
@@ -258,9 +266,9 @@ describe('completeness reflects the strings that are really missing', () => {
 
 describe('the three old translation UIs are gone, not restyled', () => {
   it('has no per-row disclosure and no multilingual row list anywhere in the editor', async () => {
-    const { container } = await openWorkbench();
+    const { container, panel } = await openWorkbench();
 
-    expect(container.querySelectorAll('details')).toHaveLength(0);
+    expect(panel.querySelectorAll('details')).toHaveLength(0);
     expect(container.textContent).not.toContain('multilingual_content');
     expect(container.textContent).not.toContain('multilingual_names');
     expect(container.textContent).not.toContain('add_language_translation');
@@ -321,7 +329,7 @@ describe('the refusal this panel can produce, said where it happened', () => {
         target: { value: 'Tomate und Mozzarella' },
       },
     );
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await confirmSaveReview(container);
 
     const message = await view.findByRole('alert');
     expect(message).toHaveTextContent('Name is required for this language');
@@ -365,7 +373,7 @@ describe('the jump follows the language, not just the tab', () => {
     selectLocale(view, 'Deutsch');
     expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza').value).toBe('');
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await confirmSaveReview(container);
 
     const message = await view.findByRole('alert');
     expect(message).toHaveTextContent('Name is required for this language');
@@ -413,7 +421,7 @@ describe('leaving a cell validates it, although nothing here is registered', () 
 
     await waitFor(() =>
       expect(container.querySelector('[data-testid="editor-error-summary"]')).toHaveTextContent(
-        'editor_error_summary[count=1]',
+        'editor_error_summary_in_section[count=1,section=editor_section_pricing]',
       ),
     );
   });

@@ -2961,7 +2961,7 @@
   "editor_review_menu_path": "Menü teklifi",
   "editor_review_menu_summary": "Bu menüde misafir için {{count}} seçim adımı var.",
   "editor_review_menu_separate": "Menü adımları ayrı yapılandırılır ve bu ürün ekranında yüklenmez.",
-  "editor_review_offer_family_difference": "Bu menü tek başına satılan bir teklife bağlı. Seçenekler bilerek farklı olabilir; iki akışı da inceleyin.",
+  "editor_review_linked_offer_review": "Bu menü tek başına satılan bir teklife bağlı. Kaydetmeden önce iki ekrandaki seçenekleri ve fiyatı karşılaştırın.",
   "editor_review_translation_gaps": "{{total}} misafir dilinin {{missing}} tanesinde ürün adı boş. Diğer dillerdeki mevcut metinler çeviri incelemesi gerektirebilir.",
   "editor_review_component_price": "Menü içi bileşenin temel fiyatı genellikle sıfırdır. Rolünü ve fiyatını kontrol edin.",
   "editor_review_sellable_price": "Satılabilir bir ürünün temel fiyatı sıfırdan büyük olmalıdır.",

@@ -19,14 +19,6 @@ export function useEditorPreSaveReview({ formId, onSubmit }: UseEditorPreSaveRev
         void onSubmit(event);
         return;
       }
-      // The browser's real implicit-submit path names the form's associated Save button as its
-      // submitter. Synthetic form.submit events have none and remain useful for lower-level form
-      // contract tests without standing in for the visible Save flow.
-      const submitter = (event.nativeEvent as SubmitEvent).submitter;
-      if (!submitter) {
-        void onSubmit(event);
-        return;
-      }
       event.preventDefault();
       setIsOpen(true);
     },

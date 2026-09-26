@@ -32,7 +32,7 @@ function contentRows(value: unknown): ReviewContentRow[] {
   return Array.isArray(value) ? value.filter(isContentRow) : [];
 }
 
-function missingLocaleCount(rows: readonly ReviewContentRow[]): number {
+function missingNameLocaleCount(rows: readonly ReviewContentRow[]): number {
   const completed = new Set(rows.filter((row) => Boolean(row.name?.trim())).map((row) => row.language));
   return LANGUAGE_CODES.filter((locale) => !completed.has(locale)).length;
 }
@@ -56,7 +56,7 @@ export default function EditorPreSaveReview({
   const isComponent = Boolean(editor.form.getValues('isComponent'));
   const allergens = editor.form.getValues('allergens');
   const rows = contentRows(editor.form.getValues('content'));
-  const missingLocales = missingLocaleCount(rows);
+  const missingLocales = missingNameLocaleCount(rows);
   const variationsValue: unknown = editor.form.getValues('variations');
   const invalidVariationPriceCount = Array.isArray(variationsValue)
     ? variationsValue.filter((value) => {
@@ -69,7 +69,9 @@ export default function EditorPreSaveReview({
     (ingredient) => !ingredient.isActive,
   ).length;
   const menuDefinition = editor.menuDefinition as MenuDefinition;
-  const parentOffer = menuDefinition.parentOfferProductId;
+  const hasLinkedStandaloneOffer = Boolean(
+    menuDefinition.parentOfferProductId || menuDefinition.parentOfferVariationId,
+  );
 
   return (
     <BaseModal
@@ -105,7 +107,7 @@ export default function EditorPreSaveReview({
               ? t('editor_review_menu_summary', { count: menuDefinition.sections.length })
               : t('editor_review_menu_separate')}
           </p>
-          {parentOffer && <p>{t('editor_review_offer_family_difference')}</p>}
+          {hasLinkedStandaloneOffer && <p>{t('editor_review_linked_offer_review')}</p>}
         </section>
       </div>
       <ul className={styles.checks}>

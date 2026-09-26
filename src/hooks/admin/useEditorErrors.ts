@@ -1,20 +1,26 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import type { FieldErrors, FieldValues } from 'react-hook-form';
 import {
   collectErrorFields,
   isTranslationsField,
   jumpToField,
+  sectionForField,
   sectionIdsWithErrors,
 } from '@/components/admin/product-editor/editorValidation';
 import type { EditorSection } from '@/components/admin/product-editor/EditorShell';
 
 interface UseEditorErrorsOptions {
   errors: FieldErrors<FieldValues>;
+  submitCount: number;
   t: TFunction;
   /** The editor's tab setter — a translation error is only reachable on the other tab. */
   setActiveTab: (id: string) => void;
+  /** The focused section setter — item errors can now live in hidden tabpanels. */
+  setActiveSection: (id: string) => void;
+  sections: readonly EditorSection[];
   itemTabId: string;
   translationsTabId: string;
 }
@@ -31,11 +37,47 @@ interface UseEditorErrorsOptions {
  * `useCallback` would buy an identity nobody compares and cost a dependency array that cannot be
  * expressed honestly (the section set is rebuilt every render by definition).
  */
-export function useEditorErrors({ errors, t, setActiveTab, itemTabId, translationsTabId }: UseEditorErrorsOptions) {
+export function useEditorErrors({
+  errors,
+  submitCount,
+  t,
+  setActiveTab,
+  setActiveSection,
+  sections,
+  itemTabId,
+  translationsTabId,
+}: UseEditorErrorsOptions) {
   // `errors.root` is the FORM-level message: it already renders above the sections and has no
   // input, so counting it would offer a jump to nowhere. `collectErrorFields` drops it.
   const fields = collectErrorFields(errors);
   const sectionIds = new Set(sectionIdsWithErrors(fields));
+  const first = fields[0];
+  const firstSection =
+    first && !isTranslationsField(first.name)
+      ? sections.find((section) => section.id === sectionForField(first.name))
+      : undefined;
+  const firstLocation = first && isTranslationsField(first.name) ? t('editor_tab_translations') : firstSection?.label;
+  const label =
+    fields.length > 0 && firstLocation
+      ? t('editor_error_summary_in_section', { count: fields.length, section: firstLocation })
+      : t('editor_error_summary', { count: fields.length });
+  const lastSubmitCount = useRef(submitCount);
+
+  useEffect(() => {
+    if (submitCount === lastSubmitCount.current) return;
+    lastSubmitCount.current = submitCount;
+    const firstError = fields[0];
+    if (!firstError) return;
+
+    if (isTranslationsField(firstError.name)) {
+      setActiveTab(translationsTabId);
+    } else {
+      setActiveTab(itemTabId);
+      const sectionId = sectionForField(firstError.name);
+      if (sectionId) setActiveSection(sectionId);
+    }
+    setTimeout(() => jumpToField(firstError.name), 0);
+  }, [fields, itemTabId, setActiveSection, setActiveTab, submitCount, translationsTabId]);
 
   /** Mark the sections holding an error, for the nav's `!` (conformance gap G3, issue #579). */
   const decorate = (sections: readonly EditorSection[]): EditorSection[] =>
@@ -49,20 +91,22 @@ export function useEditorErrors({ errors, t, setActiveTab, itemTabId, translatio
    * panel is only mounted-and-hidden, never unmounted (§8.1), so the error survives the switch.
    */
   const jumpToFirst = () => {
-    const first = fields[0];
-    if (!first) return;
-    if (isTranslationsField(first.name)) {
+    const firstError = fields[0];
+    if (!firstError) return;
+    if (isTranslationsField(firstError.name)) {
       setActiveTab(translationsTabId);
-      setTimeout(() => jumpToField(first.name), 0);
+      setTimeout(() => jumpToField(firstError.name), 0);
       return;
     }
     setActiveTab(itemTabId);
-    jumpToField(first.name);
+    const sectionId = sectionForField(firstError.name);
+    if (sectionId) setActiveSection(sectionId);
+    setTimeout(() => jumpToField(firstError.name), 0);
   };
 
   return {
     count: fields.length,
-    label: t('editor_error_summary', { count: fields.length }),
+    label,
     decorate,
     jumpToFirst,
   };

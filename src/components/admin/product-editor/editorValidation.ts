@@ -132,13 +132,9 @@ export function isTranslationsField(name: string): boolean {
  * the fields that most need this — a variation's name, three levels down a field array — are
  * exactly the ones that do not have one.
  *
- * It does NOT force a hidden ancestor open, and that is deliberate: every `hidden` container in
- * this editor is React-controlled (the collapsed `Advanced` body, the inactive tab panel), so a
- * direct DOM write would be reverted on the next render and would desync the remembered collapse
- * state. The two real cases are handled where the state lives — the caller switches tab for a
- * translation error, and the one field left inside `Advanced` cannot fail today (`isComponent`, a
- * boolean with a default). The type select and `hideBaseProduct` left that section; both still have
- * defaults and still cannot fail, but neither is behind a collapse any more either.
+ * It does NOT force a hidden ancestor open: panel visibility is React-controlled, so a direct DOM
+ * write would be reverted on the next render. `useEditorErrors` switches to the owning tab and
+ * section first, then defers this focus move until React has exposed the panel.
  *
  * Returns whether anything was found, so a caller can stay silent rather than pretend it jumped.
  */
@@ -191,8 +187,8 @@ function nearestAnchor(name: string): HTMLElement | null {
  * Take the admin to a failing field, falling back to the SECTION that owns it.
  *
  * `focusField` answers "is there an input for this path"; this answers the question the save bar's
- * chip actually asks — *"show me the problem"* — which must always move the page somewhere. The
- * section card carries `tabIndex={-1}` for exactly this, and is what the sticky nav scrolls to.
+ * chip actually asks — *"show me the problem"*. The owning section card is a fallback for a field
+ * path with no input rendered.
  */
 export function jumpToField(name: string): boolean {
   if (focusField(name)) return true;

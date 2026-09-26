@@ -1,0 +1,81 @@
+.preview {
+  margin-block-start: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface-secondary);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.header p,
+.empty,
+.quoteNote {
+  margin: 0.375rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.steps {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding-inline-start: 1.5rem;
+}
+
+.step {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--surface-card);
+}
+
+.stepHeader,
+.options li,
+.optionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.stepHeader span,
+.description,
+.optionMeta {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.description {
+  margin: 0.25rem 0;
+}
+
+.availability,
+.availabilityWarning {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.availabilityWarning {
+  color: var(--feedback-warning);
+  font-weight: 600;
+}
+
+.options {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.optionMeta {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.quoteNote {
+  margin-block-start: 0.75rem;
+}

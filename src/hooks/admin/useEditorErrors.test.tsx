@@ -15,16 +15,20 @@ const sections: EditorSection[] = [
 
 const setup = (errors: Record<string, unknown>) => {
   const setActiveTab = jest.fn();
+  const setActiveSection = jest.fn();
   const { result } = renderHook(() =>
     useEditorErrors({
       errors: errors as never,
+      submitCount: 0,
       t,
       setActiveTab,
+      setActiveSection,
+      sections,
       itemTabId: 'item',
       translationsTabId: 'translations',
     }),
   );
-  return { result, setActiveTab };
+  return { result, setActiveTab, setActiveSection };
 };
 
 /**
@@ -68,17 +72,21 @@ describe('useEditorErrors — count, markers, and the jump (D13)', () => {
     const { result } = setup({ name: { message: 'a' }, basePrice: { message: 'b' } });
 
     expect(result.current.count).toBe(2);
-    expect(result.current.label).toBe('editor_error_summary:2');
+    expect(result.current.label).toBe('editor_error_summary_in_section:2');
   });
 
   it('stays on the item tab for a section field, and focuses it', () => {
+    jest.useFakeTimers();
     document.body.innerHTML = '<input name="name" />';
-    const { result, setActiveTab } = setup({ name: { message: 'Name is required' } });
+    const { result, setActiveTab, setActiveSection } = setup({ name: { message: 'Name is required' } });
 
     result.current.jumpToFirst();
 
     expect(setActiveTab).toHaveBeenCalledWith('item');
+    expect(setActiveSection).toHaveBeenCalledWith(SECTION_IDS.basics);
+    jest.runAllTimers();
     expect(document.activeElement).toBe(document.querySelector('input'));
+    jest.useRealTimers();
   });
 
   // The panel is `hidden`, so the tab has to change BEFORE the focus is attempted — and the focus

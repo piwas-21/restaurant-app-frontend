@@ -29,11 +29,10 @@ import type { EditorSection } from './EditorShell';
  * - base price left `Details` to sit with the variations whose `priceModifier` is relative to it;
  * - the 16 allergen chips left `Details` to sit under the ingredients they describe;
  * - the three status flags left `Details` for the side rail, which is visible from every section;
- * - the product type and `hideBaseProduct` are the once-a-lifetime controls, so they are the whole
- *   of **Advanced** — the ONLY collapsed section (D1).
+ * - the product type remains with identity in Basics; `hideBaseProduct` remains with variation
+ *   pricing, while Advanced contains internal component setup.
  *
- * `Advanced` collapses by HIDING its body, never by unmounting it: a registered field that leaves
- * the DOM is a value the PUT clears (plan §6). The same rule governs the rail.
+ * Each section is a focused tabpanel. Inactive panels stay mounted so registered values are kept.
  *
  * Every section carries the one-line `description` the approved screens draw under its title
  * (#573) — that line is what makes a card a card rather than a heading with a border.
@@ -175,9 +174,8 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
     {
       id: SECTION_IDS.advanced,
       label: t('editor_section_advanced'),
-      collapsible: true,
+      showHeading: true,
       description: t('editor_section_advanced_description'),
-      defaultCollapsed: true,
       // `hasVariations` reads the LIVE field array, not `product.variations`: adding the first
       // variation must reveal `hideBaseProduct` in the same session, before any save.
       node: <ProductAdvancedFields register={form.register} />,

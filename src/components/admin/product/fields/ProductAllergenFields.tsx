@@ -99,6 +99,7 @@ export default function ProductAllergenFields({ control }: ProductAllergenFields
                   {t('allergens_none')}
                 </button>
               </div>
+              {isEmpty && <p className={styles.unknownNote}>{t('allergens_empty_is_unknown')}</p>}
             </>
           );
         }}

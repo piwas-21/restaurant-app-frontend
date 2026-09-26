@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { FieldValues, UseFormRegister } from 'react-hook-form';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './ProductAdvancedFields.module.css';
+import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
 
 /** The `aria-describedby` target for the option-only checkbox — see the section header. */
 const IS_COMPONENT_HELP_ID = 'product-is-component-help';
@@ -56,6 +57,9 @@ export default function ProductAdvancedFields({ register }: ProductAdvancedField
         <p id={IS_COMPONENT_HELP_ID} className={styles.help}>
           {t('option_only_item_help')}
         </p>
+        <EditorHelpDisclosure label={t('option_only_item_help_label')}>
+          <p>{t('option_only_item_example')}</p>
+        </EditorHelpDisclosure>
       </div>
     </div>
   );

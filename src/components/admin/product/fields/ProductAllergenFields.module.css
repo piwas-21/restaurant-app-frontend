@@ -3,6 +3,12 @@
   margin-bottom: 1rem;
 }
 
+.unknownNote {
+  margin-block: 0.75rem 0;
+  color: var(--feedback-warning);
+  font-size: 0.875rem;
+}
+
 .head {
   display: flex;
   align-items: baseline;

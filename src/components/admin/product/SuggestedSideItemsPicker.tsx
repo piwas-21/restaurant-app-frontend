@@ -5,6 +5,7 @@ import { SuggestedSideItemsPickerProps } from './types';
 import { useSideItemDetails } from '@/hooks/admin/useSideItemDetails';
 import SideItemPickerModal from './SideItemPickerModal';
 import { sideItemLabel } from './sideItemPicker';
+import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -36,6 +37,10 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
       <h3>
         {t('suggested_side_items')} {t('optional')}
       </h3>
+      <p>{t('suggested_side_items_description')}</p>
+      <EditorHelpDisclosure label={t('suggested_side_items_help_label')}>
+        <p>{t('suggested_side_items_example')}</p>
+      </EditorHelpDisclosure>
       {errors.suggestedSideItemIds && <p className={modalStyles.errorMessage}>{errors.suggestedSideItemIds.message}</p>}
       {/* Why the names below may be ids rather than dishes. Without this the chips just read
           `Item 3f2a9c11...` with nothing to explain them. */}

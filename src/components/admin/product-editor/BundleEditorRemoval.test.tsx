@@ -122,7 +122,21 @@ const renderBundleEditor = async () => {
   await act(async () => {});
 };
 
-const sectionCard = (name: string) => screen.getByText(name).closest('div[class*="sectionCard"]') as HTMLElement;
+const saveThroughReview = async () => {
+  fireEvent.click(screen.getByTestId('editor-save'));
+  fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
+};
+
+const findSectionCard = (name: string) =>
+  Array.from(document.querySelectorAll<HTMLElement>('div[class*="sectionCard"]')).find(
+    (card) => card.querySelector('[class*="sectionName"]')?.textContent === name,
+  ) ?? null;
+
+const sectionCard = (name: string): HTMLElement => {
+  const card = findSectionCard(name);
+  if (!card) throw new Error(`Missing bundle section card: ${name}`);
+  return card;
+};
 
 /** One dirtying change so the page's Save (gated on isDirty in edit mode) is armed. */
 const dirtyForm = () => {
@@ -138,7 +152,7 @@ describe('bundle edit page — removing from Menu Sections (owner bug report)', 
     await renderBundleEditor();
 
     fireEvent.click(within(sectionCard('Mains')).getByTitle('expand'));
-    const kebabRow = screen.getByText('Kebab').closest('tr') as HTMLElement;
+    const kebabRow = within(sectionCard('Mains')).getByText('Kebab').closest('tr') as HTMLElement;
     fireEvent.click(within(kebabRow).getByTitle('remove_item'));
 
     expect(screen.getByText('Are you sure you want to remove this item?')).toBeInTheDocument();
@@ -151,16 +165,16 @@ describe('bundle edit page — removing from Menu Sections (owner bug report)', 
     await renderBundleEditor();
 
     fireEvent.click(within(sectionCard('Mains')).getByTitle('expand'));
-    const kebabRow = screen.getByText('Kebab').closest('tr') as HTMLElement;
+    const kebabRow = within(sectionCard('Mains')).getByText('Kebab').closest('tr') as HTMLElement;
     fireEvent.click(within(kebabRow).getByTitle('remove_item'));
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
 
     expect(screen.queryByText('Kebab')).not.toBeInTheDocument();
-    expect(screen.getByText('Fries')).toBeInTheDocument();
+    expect(within(sectionCard('Mains')).getByText('Fries')).toBeInTheDocument();
     expect(mockUpdateMenuBundle).not.toHaveBeenCalled();
 
     dirtyForm();
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(mockUpdateMenuBundle).toHaveBeenCalledTimes(1));
     const payload = mockUpdateMenuBundle.mock.calls[0][1];
@@ -185,12 +199,12 @@ describe('bundle edit page — removing from Menu Sections (owner bug report)', 
     fireEvent.click(within(sectionCard('Mains')).getByTitle('delete_section'));
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
 
-    expect(screen.queryByText('Mains')).not.toBeInTheDocument();
-    expect(screen.getByText('Drinks')).toBeInTheDocument();
+    expect(findSectionCard('Mains')).toBeNull();
+    expect(findSectionCard('Drinks')).not.toBeNull();
     expect(mockUpdateMenuBundle).not.toHaveBeenCalled();
 
     dirtyForm();
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(mockUpdateMenuBundle).toHaveBeenCalledTimes(1));
     const payload = mockUpdateMenuBundle.mock.calls[0][1];

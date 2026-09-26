@@ -22,8 +22,7 @@ export interface EditorSectionsContext {
 }
 
 /**
- * Section ids are DOM ids — the nav scrolls to them and the collapse preference is stored under
- * them, so renaming one silently discards a user's remembered choice for that section.
+ * Section ids link each tab to its mounted tabpanel, so keep them unique and stable.
  *
  * The order of the KEYS is the order of §4's seven sections, and `buildItemSections` renders them
  * in exactly that order: Basics · Media · Pricing & variations · Options & sides · Recipe &

@@ -26,18 +26,12 @@ export type { EditorSectionsContext } from './editorSectionTypes';
 export { SECTION_IDS } from './editorSectionTypes';
 
 /**
- * A bundle is NOT re-grouped by S2, and that is a decision rather than an omission: §4's item
- * sections are built from controls `MenuBundleDto` does not carry (kitchen type, variations or
- * ingredients), so a combo keeps the single `BundlePanel` its data supports plus the order-type
- * mask. Category chips are included when a bundle carries placement data for a full-editor create.
- * §4's "Composition" variant is a later slice.
+ * A bundle uses the fields its DTO supports: bundle identity, availability, allergens and menu
+ * sections. It does not share item-only kitchen, variation, ingredient or customization controls.
+ * Its sections remain one focused panel with a guest-step preview; media and translations have
+ * their own panels.
  *
- * `allergens` used to be on that list and no longer is — backend #477 added it to `MenuBundleDto`
- * and #702 carries it through the guest chain. It is still absent from this editor, but that is now
- * a GAP rather than a data limit: the write path is the missing half (backend #478), and adding the
- * control before it exists would offer an admin a field whose every save is discarded.
- *
- * S6 added the third as **Media, present and empty** (D11 / D5). Since 2026-09-10 it holds the
+ * Media holds the same managed gallery an item gets. Since 2026-09-10 it holds the
  * SAME managed gallery an item gets: `MenuBundleDto` DOES carry `images` (they are ProductImages
  * on the bundle's product row, served by `GET /api/Menus/{id}` and managed by the same
  * `/api/Products/{id}/images...` sub-resources) — the staged-only panel this section used to
@@ -67,6 +61,7 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
             selectedCategoryIds={editor.selectedCategoryIds}
             showCategories={isCreate}
             menuDefinition={editor.menuDefinition}
+            availability={product.availability}
             onChange={editor.changeMenuDefinition}
           />
           {product.id && (

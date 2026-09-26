@@ -70,6 +70,13 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   detailedIngredients?: DetailedIngredient[];
   customizationGroups?: ProductCustomizationGroup[];
   suggestedSideItems?: MenuSectionSuggestedSideItem[];
+  /** Server-resolved option orderability for the menu detail's requested order type. */
+  availability?: MenuSectionItemAvailability;
+}
+
+export interface MenuSectionItemAvailability extends ItemAvailability {
+  /** Whether the option inherits its order-type mask from its category. */
+  inheritsOrderTypes: boolean;
 }
 
 /**

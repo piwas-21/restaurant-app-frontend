@@ -184,24 +184,24 @@ export default function BundlePriceQuotePreview({
         </button>
       </div>
       {!productId && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('bundle_quote_save_before_preview')}
-        </p>
+        </output>
       )}
       {Boolean(productId && (isDirty || hasTemporaryIds)) && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('bundle_quote_save_changes_first')}
-        </p>
+        </output>
       )}
       {Boolean(productId && !isDirty && !hasTemporaryIds && (!isActive || !isAvailable)) && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('bundle_quote_requires_available_menu')}
-        </p>
+        </output>
       )}
       {Boolean(productId && !isDirty && !hasTemporaryIds && isActive && isAvailable && selectionErrors.length > 0) && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('bundle_quote_defaults_incomplete')}
-        </p>
+        </output>
       )}
       {Boolean(
         productId &&
@@ -212,9 +212,9 @@ export default function BundlePriceQuotePreview({
         selectionErrors.length === 0 &&
         (!menuOrderable || !selectedOrderable),
       ) && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('bundle_quote_selection_unavailable')}
-        </p>
+        </output>
       )}
       {currentError && (
         <p className={styles.error} role="alert">
@@ -222,7 +222,7 @@ export default function BundlePriceQuotePreview({
         </p>
       )}
       {currentQuote && (
-        <div className={styles.result} role="status" aria-live="polite">
+        <output className={styles.result} aria-live="polite">
           <strong>
             {requestedOrderType
               ? t('bundle_quote_result_heading_channel', { channel: t(ORDER_TYPE_KEYS[requestedOrderType]) })
@@ -230,7 +230,7 @@ export default function BundlePriceQuotePreview({
           </strong>
           <span>{t('bundle_quote_total', { amount: formatPlainCurrency(currentQuote.totalPrice) })}</span>
           <span>{t('bundle_quote_unit', { amount: formatPlainCurrency(currentQuote.unitPrice) })}</span>
-        </div>
+        </output>
       )}
     </section>
   );

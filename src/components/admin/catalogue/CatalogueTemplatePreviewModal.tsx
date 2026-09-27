@@ -51,11 +51,7 @@ export default function CatalogueTemplatePreviewModal({
   return (
     <BaseModal isOpen={template !== null} onClose={onClose} title={displayName || t('catalogue_preview')} size="lg">
       <div className={styles.previewBody}>
-        {isLoading && (
-          <p className={styles.loading} role="status">
-            {t('catalogue_preview_loading')}
-          </p>
-        )}
+        {isLoading && <output className={styles.loading}>{t('catalogue_preview_loading')}</output>}
         {error !== null && (
           <div>
             <p className={styles.error} role="alert">
@@ -100,15 +96,15 @@ export default function CatalogueTemplatePreviewModal({
                 </p>
               )}
               {unresolvedDependencyCount > 0 && (
-                <p className={styles.sourceNote} role="status">
+                <output className={styles.sourceNote}>
                   {t('catalogue_dependency_names_error', { count: unresolvedDependencyCount })}
                   {dependencyErrorMessage && ` ${dependencyErrorMessage}`}
-                </p>
+                </output>
               )}
               {truncatedDependencyCount > 0 && (
-                <p className={styles.sourceNote} role="status">
+                <output className={styles.sourceNote}>
                   {t('catalogue_dependency_preview_limit', { count: truncatedDependencyCount })}
-                </p>
+                </output>
               )}
             </section>
             <section className={styles.provenance}>

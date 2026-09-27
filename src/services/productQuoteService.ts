@@ -1,6 +1,5 @@
-import type { ApiResponse } from '@/types/order';
+import type { ApiResponse, OrderType } from '@/types/order';
 import type { AddToBasketDto } from '@/types/basket';
-import type { OrderType } from '@/types/order';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import { apiClient } from '@/utils/apiClient';
 

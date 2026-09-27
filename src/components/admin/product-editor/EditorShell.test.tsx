@@ -153,7 +153,7 @@ describe('EditorShell — focused section tabs', () => {
     const { container } = renderShell();
 
     const nav = screen.getByRole('tablist', { name: 'Sections' });
-    expect(nav.querySelectorAll(':scope > [role="tab"]').length).toBe(4);
+    expect(nav.querySelectorAll(':scope > [role="tab"]')).toHaveLength(4);
     expect(
       within(nav)
         .getAllByRole('tab')

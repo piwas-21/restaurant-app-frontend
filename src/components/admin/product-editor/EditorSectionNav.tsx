@@ -37,14 +37,12 @@ export default function EditorSectionNav({ entries, activeId, onSelect, label, i
         ? { ArrowDown: 1, ArrowUp: -1 }[event.key]
         : { ArrowRight: 1, ArrowLeft: -1 }[event.key];
     const currentIndex = entries.findIndex((entry) => entry.id === activeId);
-    const nextIndex =
-      event.key === 'Home'
-        ? 0
-        : event.key === 'End'
-          ? entries.length - 1
-          : step === undefined
-            ? -1
-            : (currentIndex + step + entries.length) % entries.length;
+    let nextIndex: number;
+    if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = entries.length - 1;
+    else if (step !== undefined && currentIndex >= 0) {
+      nextIndex = (currentIndex + step + entries.length) % entries.length;
+    } else return;
     if (nextIndex < 0 || nextIndex >= entries.length) return;
 
     event.preventDefault();

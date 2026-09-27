@@ -92,6 +92,7 @@ describe('BundlePriceQuotePreview', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'bundle_quote_request' }));
     expect(await screen.findByText('bundle_quote_total:CHF 20.00')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('bundle_quote_total:CHF 20.00');
 
     expect(mockQuote).toHaveBeenCalledTimes(1);
     expect(mockQuote).toHaveBeenCalledWith(
@@ -126,6 +127,7 @@ describe('BundlePriceQuotePreview', () => {
 
     expect(screen.getByRole('button', { name: 'bundle_quote_request' })).toBeDisabled();
     expect(screen.getByText('bundle_quote_save_changes_first')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('bundle_quote_save_changes_first');
     expect(mockQuote).not.toHaveBeenCalled();
   });
 

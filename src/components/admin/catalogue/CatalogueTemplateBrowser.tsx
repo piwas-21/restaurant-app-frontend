@@ -43,11 +43,7 @@ export default function CatalogueTemplateBrowser() {
           </button>
         </p>
       )}
-      {search.isLoading && (
-        <p className={styles.message} role="status">
-          {t('catalogue_loading')}
-        </p>
-      )}
+      {search.isLoading && <output className={styles.message}>{t('catalogue_loading')}</output>}
       {!search.isLoading && !search.error && search.templates.length === 0 && (
         <section className={styles.emptyState}>
           <h2>{t('catalogue_empty')}</h2>

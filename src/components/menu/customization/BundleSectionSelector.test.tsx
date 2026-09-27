@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import BundleSectionSelector from './BundleSectionSelector';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 // Stub react-i18next without a provider. A string second argument is i18next's defaultValue; an
 // object is interpolation, which we render as `key(a=1)` so tests can assert the values actually
@@ -18,6 +19,9 @@ jest.mock('react-i18next', () => ({
       return key;
     },
   }),
+}));
+jest.mock('@/hooks/checkout/useEnabledOrderTypes', () => ({
+  useEnabledOrderTypes: () => ({ enabled: ['DineIn', 'Takeaway'], loading: false }),
 }));
 
 const cheese = {
@@ -126,6 +130,95 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByRole('checkbox', { name: /Fries/ })).toBeEnabled();
     expect(screen.getByRole('checkbox', { name: /Salad/ })).toBeEnabled();
     expect(screen.getByRole('checkbox', { name: /Soup/ })).toBeDisabled();
+  });
+
+  it('keeps a channel-limited option selectable while the server resolves no chosen channel', () => {
+    const browseSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: true,
+            reason: 'Available',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: browseSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeEnabled();
+    expect(screen.queryByText(/availability_only_for/)).not.toBeInTheDocument();
+  });
+
+  it('disables a globally unavailable option and gives the guest a reason', () => {
+    const unavailableSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'Unavailable',
+            allowedOrderTypes: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: unavailableSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+  });
+
+  it('disables a channel-restricted option and names the channels where it can be ordered', () => {
+    const restrictedSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: restrictedSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('availability_only_for(orderTypes=Takeaway)')).toBeInTheDocument();
+  });
+
+  it('does not recommend a channel the restaurant has disabled', () => {
+    const disabledChannelSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Delivery],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: disabledChannelSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    expect(screen.queryByText(/Delivery only/)).not.toBeInTheDocument();
   });
 
   it('renders the section error only when one is supplied', () => {
@@ -252,6 +345,54 @@ describe('BundleSectionSelector', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Cheese/ })).toBeChecked();
+  });
+
+  it('announces required-selection errors for a fixed Plat in staff mode too', () => {
+    const fixedPlat: MenuSection = { ...section, name: 'Plat', items: [section.items[0]] };
+    const errorText = 'please_select_at_least_options(count=1)';
+
+    render(
+      <BundleSectionSelector
+        {...props({
+          section: fixedPlat,
+          selectedOptions: [],
+          minSelectionError: 1,
+          inlinePanel: { expandedOptionKey: null, onToggle: jest.fn(), onChange: jest.fn() },
+        })}
+      />,
+    );
+
+    const error = screen.getByRole('alert');
+    expect(error).toHaveTextContent(errorText);
+    expect(screen.getByRole('region', { name: 'Plat' })).toHaveAttribute('aria-describedby', error.id);
+  });
+
+  it('shows an unavailable fixed Plat as disabled when it has no selection control', () => {
+    const fixedPlat: MenuSection = {
+      ...section,
+      name: 'Plat',
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions: [], minSelectionError: 1 })} />);
+
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('availability_only_for(orderTypes=Takeaway)').closest('[aria-disabled="true"]'),
+    ).toBeInTheDocument();
+    const error = screen.getByRole('alert');
+    expect(error).toHaveTextContent('please_select_at_least_options(count=1)');
+    expect(screen.getByRole('region', { name: 'Plat' })).toHaveAttribute('aria-describedby', error.id);
   });
 
   it('keeps a genuinely multi-choice Plat as a picker (P3 negative control)', () => {

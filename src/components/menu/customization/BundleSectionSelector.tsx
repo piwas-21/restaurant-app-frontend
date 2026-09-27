@@ -101,6 +101,7 @@ export default function BundleSectionSelector({
   /** The row, then — staff mode only — the expanded panel under it. */
   const renderOption = (item: (typeof section.items)[number], extra: { hideSelectionControl?: boolean }) => {
     const option = findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId);
+    const isUnavailableForGuest = !inlinePanel && item.availability?.canOrder === false;
     const panelVisible = Boolean(
       inlinePanel &&
       (extra.hideSelectionControl ||
@@ -126,7 +127,8 @@ export default function BundleSectionSelector({
           sectionId={section.id}
           inputType={isRadio ? 'radio' : 'checkbox'}
           isSelected={Boolean(option)}
-          isDisabled={!option && !isRadio && selectedCount >= section.maxSelection}
+          isDisabled={!option && (isUnavailableForGuest || (!isRadio && selectedCount >= section.maxSelection))}
+          showAvailabilityReason={isUnavailableForGuest}
           currentLanguage={currentLanguage}
           onToggle={() => {
             if (item.productVariationId == null) onToggleOption(section, item.productId);
@@ -185,7 +187,16 @@ export default function BundleSectionSelector({
     const item = section.items[0];
 
     return (
-      <section className={styles.section} aria-label={section.name}>
+      <section
+        className={styles.section}
+        aria-label={section.name}
+        aria-describedby={minSelectionError !== undefined ? errorId : undefined}
+      >
+        {minSelectionError !== undefined && (
+          <p className={styles.error} id={errorId} role="alert">
+            {t('please_select_at_least_options', { count: minSelectionError })}
+          </p>
+        )}
         {renderOption(item, { hideSelectionControl: true })}
       </section>
     );

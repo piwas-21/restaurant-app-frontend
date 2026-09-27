@@ -49,7 +49,7 @@ function fieldIdentity(slot: TranslationSlot, editor: EditorSource, productId: s
     const id = ref.ingredientId;
     return isPersistedMenuId(id)
       ? { entityType: 'productIngredient' as const, entityId: id }
-      : { entityType: 'productIngredient' as const, clientKey: `ingredient:${id || ref.index}` }; // pragma: allowlist secret -- local draft key
+      : { entityType: 'productIngredient' as const, clientKey: `ingredient:${id ? id : ref.index}` }; // pragma: allowlist secret -- local draft key
   }
   const id = editor.menuDefinition.sections[ref.index]?.id;
   return isPersistedMenuId(id)

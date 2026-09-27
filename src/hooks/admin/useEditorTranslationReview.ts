@@ -9,6 +9,7 @@ import {
 } from '@/components/admin/product-editor/translations/translationReviewFields';
 import type { TranslationDecision, TranslationWorkbenchAdapter } from '@/services/translationWorkbenchService';
 import { translationWorkbenchService } from '@/services/translationWorkbenchService';
+import { getErrorMessage } from '@/utils/apiClient';
 import { useTranslationSuggestionBatch, type TranslationSuggestionEntry } from './useTranslationSuggestionBatch';
 import { createTranslationMetadataPatch } from '@/components/admin/product-editor/translations/translationReviewMetadata';
 import { buildReviewedTranslationOutcome } from '@/components/admin/product-editor/translations/reviewedTranslationOutcome';
@@ -47,13 +48,14 @@ export function useEditorTranslationReview({
   const acceptedIdsRef = useRef<Readonly<Record<string, string>>>({});
   const [staleCount, setStaleCount] = useState(0);
   const [reviewWriteError, setReviewWriteError] = useState(false);
+  const [reviewWriteErrorMessage, setReviewWriteErrorMessage] = useState<string | null>(null);
   useEffect(() => {
     if (!isOpen) {
       setStaleCount(0);
       setReviewWriteError(false);
+      setReviewWriteErrorMessage(null);
     }
   }, [isOpen]);
-
   const editorForm = editor.form;
   const editorVariationFields = editor.variations.fields;
   const editorIngredients = editor.detailedIngredients;
@@ -138,7 +140,6 @@ export function useEditorTranslationReview({
   );
 
   const unknownSourceLocaleFields = readFields().filter((field) => !field.sourceLocaleKnown);
-
   const submitDecisions = useCallback(async (): Promise<boolean> => {
     const selected = batchEntries.filter(
       (entry): entry is TranslationSuggestionEntry & { decision: ReviewedDecision } => entry.decision !== 'pending',
@@ -147,6 +148,7 @@ export function useEditorTranslationReview({
 
     try {
       setReviewWriteError(false);
+      setReviewWriteErrorMessage(null);
       const decisions: TranslationDecision[] = selected.map((entry) => ({
         suggestionId: entry.suggestion.suggestionId,
         decision: translationDecisionFor(entry.decision),
@@ -165,8 +167,8 @@ export function useEditorTranslationReview({
       acceptedIdsRef.current = outcome.acceptedIds;
       setStaleCount(outcome.staleCount);
       return true;
-    } catch (_reviewError) {
-      /* Intentionally expose a generic save failure; the parent editor owns server-error messaging. */
+    } catch (reviewError) {
+      setReviewWriteErrorMessage(getErrorMessage(reviewError));
       setBatchError(true);
       setReviewWriteError(true);
       return false;
@@ -185,7 +187,9 @@ export function useEditorTranslationReview({
     pendingLocales: batch.pendingLocales,
     manualReviewCount: batch.manualReviewCount,
     error: batch.error,
+    errorMessage: batch.errorMessage,
     reviewWriteError,
+    reviewWriteErrorMessage,
     staleCount,
     decide,
     edit,

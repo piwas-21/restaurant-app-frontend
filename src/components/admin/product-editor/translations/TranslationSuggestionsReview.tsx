@@ -84,7 +84,7 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
       )}
       {error && (
         <p className={styles.error} role="alert">
-          {t('translation_review_unavailable')}
+          {review.errorMessage ?? review.reviewWriteErrorMessage ?? t('translation_review_unavailable')}
         </p>
       )}
       {staleCount > 0 && (

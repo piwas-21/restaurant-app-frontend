@@ -47,4 +47,42 @@ describe('translation review identities for unsaved variations', () => {
     ).toBe(1);
     expect(form.setValue).toHaveBeenCalledWith('variations.0.content.fr.name', 'Grande', { shouldDirty: true });
   });
+
+  it('uses the ingredient index when a draft ingredient has a blank ID', () => {
+    const ingredients = [
+      {
+        id: '',
+        name: 'Cheese',
+        isOptional: false,
+        price: 0,
+        isIncludedInBasePrice: false,
+        isActive: true,
+        displayOrder: 0,
+        maxQuantity: 1,
+      },
+    ];
+    const editor = {
+      form: { getValues: jest.fn(() => ({ name: 'Pizza' })) },
+      variations: { fields: [] },
+      detailedIngredients: ingredients,
+      menuDefinition: { sections: [] },
+      changeIngredients: jest.fn(),
+      changeMenuDefinition: jest.fn(),
+    } as unknown as ReturnType<typeof useProductEditorForm>;
+
+    const field = buildTranslationReviewFields(
+      editor,
+      'product-1',
+      () => 'en',
+      () => true,
+    ).find((candidate) => candidate.slot.ref.target === 'ingredient');
+
+    expect(field?.input.fieldRef.clientKey).toBe('ingredient:0');
+    expect(
+      applyReviewedTranslations(editor, [{ fieldRef: field!.input.fieldRef, locale: 'fr', text: 'Fromage' }]),
+    ).toBe(1);
+    expect(editor.changeIngredients).toHaveBeenCalledWith([
+      expect.objectContaining({ id: '', content: { fr: { name: 'Fromage' } } }),
+    ]);
+  });
 });

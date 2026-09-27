@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getErrorMessage } from '@/utils/apiClient';
 import { loadTranslationSuggestionBatch } from '@/components/admin/product-editor/translations/translationReviewBatch';
 import {
   fieldReferenceKey,
@@ -33,6 +34,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
   const [providerStatus, setProviderStatus] = useState<'disabled' | 'ready' | null>(null);
   const [previewRows, setPreviewRows] = useState<TranslationFieldStatus[]>([]);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const requestedFields = useRef<TranslationReviewField[]>([]);
   const loadKey = useRef<string | null>(null);
 
@@ -42,6 +44,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
       setPhase(fields.length === 0 ? 'ready' : 'loading');
       setEntries([]);
       setError(false);
+      setErrorMessage(null);
       if (fields.length === 0) return;
       try {
         const result = await loadTranslationSuggestionBatch(
@@ -67,9 +70,9 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
           }),
         );
         setPhase('ready');
-      } catch (_requestError) {
-        /* Intentionally expose the review's generic error state without provider details. */
+      } catch (requestError) {
         if (loadKey.current !== key) return;
+        setErrorMessage(getErrorMessage(requestError));
         setError(true);
         setPhase('error');
       }
@@ -85,6 +88,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
       setPreviewRows([]);
       setProviderStatus(null);
       setError(false);
+      setErrorMessage(null);
       return;
     }
     const fields = readFields().filter((field) => field.sourceLocaleKnown);
@@ -118,6 +122,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
     pendingLocales,
     manualReviewCount,
     error,
+    errorMessage,
     setError,
     suggestMissing,
   };

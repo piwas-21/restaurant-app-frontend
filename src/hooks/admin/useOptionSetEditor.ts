@@ -24,7 +24,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   const [detail, setDetail] = useState<OptionSetDetail | null>(null);
   const [kind, setKind] = useState<OptionSetKind | ''>(initialKind ?? '');
   const [name, setName] = useState('');
-  const [sourceLocale, setSourceLocaleState] = useState<LanguageCode>(() =>
+  const [sourceLocale, setSourceLocale] = useState<LanguageCode>(() =>
     localeOrDefault(i18n.resolvedLanguage ?? i18n.language),
   );
   const [translations, setTranslations] = useState<Partial<Record<LanguageCode, string>>>({});
@@ -48,7 +48,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
       setDetail(loaded);
       setKind(loaded.kind);
       setName(loaded.name);
-      setSourceLocaleState(localeOrDefault(loaded.sourceLocale ?? 'en'));
+      setSourceLocale(localeOrDefault(loaded.sourceLocale ?? 'en'));
       setTranslations(loaded.translations ?? {});
       setEntries(loaded.entries);
       setVariationValidity({});
@@ -97,8 +97,8 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     setSaved(false);
     setIsDirty(true);
   }, []);
-  const setSourceLocale = useCallback((value: LanguageCode) => {
-    setSourceLocaleState(value);
+  const updateSourceLocale = useCallback((value: LanguageCode) => {
+    setSourceLocale(value);
     setSaved(false);
     setIsDirty(true);
   }, []);
@@ -143,7 +143,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
       setDetail(updated);
       setKind(updated.kind);
       setName(updated.name);
-      setSourceLocaleState(localeOrDefault(updated.sourceLocale ?? sourceLocale));
+      setSourceLocale(localeOrDefault(updated.sourceLocale ?? sourceLocale));
       setTranslations(updated.translations ?? localized);
       setEntries(updated.entries);
       setVariationValidity({});
@@ -166,7 +166,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     name,
     setName: updateName,
     sourceLocale,
-    setSourceLocale,
+    setSourceLocale: updateSourceLocale,
     translations,
     setTranslation,
     entries,

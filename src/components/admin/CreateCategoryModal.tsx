@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { categoryFormSchema, type CategoryFormValues } from './categoryFormSchema';
+import { categoryFormSchema, type CategoryFormInputValues, type CategoryFormValues } from './categoryFormSchema';
 import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
+import CategoryTranslationsFields from './CategoryTranslationsFields';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { createCategory, uploadCategoryImage } from '@/services/categoryService';
+import { omitNewBlankCategoryTranslations } from '@/types/categoryTranslations';
 import {
   applyCategoryFailure,
   reasonOr,
@@ -14,7 +16,10 @@ import {
 } from '@/lib/categoryFormErrors';
 
 /** @see categoryFormSchema — one object for both modals, so they cannot drift (#642). */
-export const createCategorySchema = categoryFormSchema;
+export const createCategorySchema = categoryFormSchema.refine((values) => values.sourceLocale !== null, {
+  path: ['sourceLocale'],
+  message: 'category_source_language_required',
+});
 
 type CreateCategoryFormValues = CategoryFormValues;
 
@@ -40,12 +45,14 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
     formState: { errors },
     setError,
     reset,
-  } = useForm<CreateCategoryFormValues>({
+  } = useForm<CategoryFormInputValues, unknown, CreateCategoryFormValues>({
     resolver: zodResolver(createCategorySchema),
     defaultValues: {
       isActive: true,
       isHiddenFromAllTab: false,
       displayOrder: 0,
+      translations: {},
+      sourceLocale: null,
     },
   });
 
@@ -65,6 +72,8 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         isActive: data.isActive,
         isHiddenFromAllTab: data.isHiddenFromAllTab,
         displayOrder: data.displayOrder,
+        translations: omitNewBlankCategoryTranslations(data.translations),
+        sourceLocale: data.sourceLocale,
       })) as CategoryApiResponse;
 
       if (!categoryResponse.success) {
@@ -144,6 +153,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             <textarea id="description" {...register('description')} />
             {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
           </div>
+          <CategoryTranslationsFields register={register} errors={errors} createMode />
           <div className={styles.formGroup}>
             <label htmlFor="imageFile">{t('category_image')}</label>
             <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />

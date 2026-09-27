@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import EditCategoryModal from './EditCategoryModal';
 import { updateCategory, uploadCategoryImage, reorderCategory } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
+import type { LanguageCode } from '@/config/languageConfig';
+import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -34,6 +36,8 @@ const category: {
   isActive: boolean;
   displayOrder: number;
   availableOrderTypes?: number | null;
+  translations: { fr: { name: string; description?: string }; nl: { name: string } };
+  sourceLocale: LanguageCode | null;
 } = {
   id: 'c1',
   name: 'Dürüm Wraps',
@@ -41,6 +45,11 @@ const category: {
   isActive: true,
   displayOrder: 0,
   availableOrderTypes: 6,
+  translations: {
+    fr: { name: 'Galettes', description: 'Galettes farcies' },
+    nl: { name: 'Gevulde pannenkoeken' },
+  },
+  sourceLocale: null,
 };
 
 const renderModal = (overrides: Partial<typeof category> = {}, onPartialSuccess = jest.fn()) => {
@@ -105,6 +114,37 @@ describe('EditCategoryModal — order-type availability', () => {
 
     await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
     expect(mockUpdateCategory).toHaveBeenCalledWith('c1', expect.objectContaining({ availableOrderTypes: null }));
+  });
+
+  it('preserves every locale and an unknown legacy source locale on an untouched save', async () => {
+    renderModal();
+    expect(screen.getByLabelText('editor_translations_target_languages').querySelectorAll('option')).toHaveLength(
+      LANGUAGE_CODES.length,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory).toHaveBeenCalledWith(
+      'c1',
+      expect.objectContaining({
+        translations: category.translations,
+        sourceLocale: null,
+      }),
+    );
+  });
+
+  it('updates one selected locale while leaving the other locale entries intact', async () => {
+    renderModal();
+    const translationName = screen.getAllByLabelText('editor_translations_target_field')[0];
+    fireEvent.change(translationName, { target: { value: 'Crêpes farcies' } });
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1].translations).toEqual({
+      fr: { name: 'Crêpes farcies', description: 'Galettes farcies' },
+      nl: { name: 'Gevulde pannenkoeken' },
+    });
   });
 });
 

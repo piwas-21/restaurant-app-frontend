@@ -42,6 +42,50 @@ export function getCategoryDisplayName(categoryName: string, translationFunction
   return translatedName !== translationKey ? translatedName : categoryName;
 }
 
+/** Resolve tenant-owned category text before the platform's built-in category vocabulary. */
+export function getLocalizedCategoryName(
+  category: ApiCategory,
+  locale: string,
+  translationFunction: (key: string) => string,
+): string {
+  const explicit = explicitCategoryText(category, locale, 'name');
+  if (explicit) return explicit;
+
+  return getCategoryDisplayName(category.name, translationFunction);
+}
+
+/** Use a localized description when populated, otherwise keep the category's base blurb. */
+export function getLocalizedCategoryDescription(category: ApiCategory, locale: string): string | null | undefined {
+  return explicitCategoryText(category, locale, 'description') ?? category.description;
+}
+
+export function getSelectedViewDescription(
+  selectedView: string,
+  categories: ApiCategory[],
+  locale: string,
+): string | undefined {
+  const category = categories.find((entry) => entry.id === selectedView);
+  const description = category ? getLocalizedCategoryDescription(category, locale) : undefined;
+  return description ?? undefined;
+}
+
+function explicitCategoryText(
+  category: ApiCategory,
+  locale: string,
+  field: 'name' | 'description',
+): string | undefined {
+  const locales = [...new Set([locale, baseLocale(locale)])];
+  for (const candidate of locales) {
+    const text = category.translations?.[candidate]?.[field];
+    if (text?.trim()) return text;
+  }
+  return undefined;
+}
+
+function baseLocale(locale: string): string {
+  return locale.toLowerCase().split(/[-_]/, 1)[0];
+}
+
 /**
  * The heading for a selected menu view.
  *
@@ -54,10 +98,11 @@ export function getSelectedViewLabel(
   selectedView: string,
   categories: ApiCategory[],
   translationFunction: (key: string) => string,
+  locale = 'en',
 ): string {
   if (selectedView === ALL_ITEMS_KEY) return translationFunction('all_categories_nav');
   if (selectedView === MENU_BUNDLES_KEY) return translationFunction('menu_bundles');
 
   const category = categories.find((c) => c.id === selectedView);
-  return category ? getCategoryDisplayName(category.name, translationFunction) : selectedView;
+  return category ? getLocalizedCategoryName(category, locale, translationFunction) : selectedView;
 }

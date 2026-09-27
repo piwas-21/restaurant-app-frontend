@@ -352,6 +352,7 @@
   "category_image_failed_generic": "the image was rejected",
   "category_reorder_failed_generic": "the new order was rejected",
   "category_name": "Category Name",
+  "category_source_language_required": "Choose a source language for this category.",
   "category_image": "Category Image",
   "is_active": "Active",
   "display_order": "Display Order",

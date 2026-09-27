@@ -9,7 +9,7 @@ import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY, usePublicMenu } from '@/hooks/usePubli
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import { surfaceOr } from '@/templates/resolve-surface';
-import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
+import { getSelectedViewDescription, getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuOrderOverlays from '@/components/menu/MenuOrderOverlays';
@@ -32,7 +32,7 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
 
 export default function MenuPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   // The settings choose the layout/data pipeline; legacy tabs remain the fallback while settings settle.
@@ -110,11 +110,9 @@ export default function MenuPage() {
     />
   ) : undefined;
 
-  const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t);
-  // The tenant's own blurb for the selected category, when it has one. `''` on every RUMI category
-  // today, so nothing renders — the field exists on `CategoryDto` and the design has a paragraph
-  // there, and a tenant that fills it in gets it without another release.
-  const categoryDescription = categoriesForNav.find((category) => category.id === selectedView)?.description;
+  const locale = i18n.language || 'en';
+  const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t, locale);
+  const categoryDescription = getSelectedViewDescription(selectedView, categoriesForNav, locale);
   const featuredFilterable = featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined;
   const familyProps: Pick<MenuContentProps, 'offerFamilies' | 'offerFamiliesState'> = isCategoryOffers
     ? { offerFamilies: offerFamilies.families, offerFamiliesState: offerFamilies }

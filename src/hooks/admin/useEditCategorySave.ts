@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { omitNewBlankCategoryTranslations, type CategoryTranslations } from '@/types/categoryTranslations';
 import { useTranslation } from 'react-i18next';
 import { reorderCategory, updateCategory, uploadCategoryImage } from '@/services/categoryService';
 import {
@@ -15,12 +16,16 @@ export interface EditableCategory {
   id: string;
   displayOrder: number;
   availableOrderTypes?: number | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
 }
 
 export interface EditCategoryValues {
   name: string;
   /** `string | null` for the reason `CategoryData.description` is — the wire sends both (#642). */
   description?: string | null;
+  translations: CategoryTranslations;
+  sourceLocale: string | null;
   isActive: boolean;
   isHiddenFromAllTab: boolean;
   displayOrder: number;
@@ -71,6 +76,8 @@ export function useEditCategorySave(
         // category's channel restriction on every unrelated rename (plan §9.1). The channel
         // matrix in restaurant settings stays the only writer.
         availableOrderTypes: category.availableOrderTypes ?? null,
+        translations: omitNewBlankCategoryTranslations(values.translations ?? {}, category.translations ?? {}),
+        sourceLocale: values.sourceLocale,
       };
       const categoryResponse = (await updateCategory(category.id, updateData)) as CategoryApiResponse;
 

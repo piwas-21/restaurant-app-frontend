@@ -354,6 +354,7 @@
   "category_image_failed_generic": "تم رفض الصورة",
   "category_reorder_failed_generic": "تم رفض الترتيب الجديد",
   "category_name": "اسم الفئة",
+  "category_source_language_required": "اختر اللغة المصدر لهذه الفئة.",
   "category_image": "صورة الفئة",
   "is_active": "نشط",
   "display_order": "ترتيب العرض",

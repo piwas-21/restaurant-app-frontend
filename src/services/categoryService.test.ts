@@ -60,9 +60,17 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
    * unconditionally, so an omitted field is a BLANKED field — and that is exactly how the
    * order-type mask itself got wiped by an unrelated edit the first time round.
    */
-  it('echoes name, description and isActive back, so the update cannot blank them', async () => {
+  it('echoes the full-replacement text and source fields so a channel change cannot blank them', async () => {
     await updateCategoryOrderTypes(
-      { id: 'c1', name: 'Dürüm Wraps', description: 'Wraps', isActive: true, isHiddenFromAllTab: true },
+      {
+        id: 'c1',
+        name: 'Dürüm Wraps',
+        description: 'Wraps',
+        translations: { fr: { name: 'Galettes', description: 'Galettes farcies' } },
+        sourceLocale: null,
+        isActive: true,
+        isHiddenFromAllTab: true,
+      },
       6,
     );
 
@@ -70,6 +78,8 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
       id: 'c1',
       name: 'Dürüm Wraps',
       description: 'Wraps',
+      translations: { fr: { name: 'Galettes', description: 'Galettes farcies' } },
+      sourceLocale: null,
       isActive: true,
       isHiddenFromAllTab: true,
       availableOrderTypes: 6,
@@ -86,6 +96,8 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
       id: 'c1',
       name: 'Grills',
       description: undefined,
+      translations: {},
+      sourceLocale: null,
       isActive: false,
       isHiddenFromAllTab: false,
       availableOrderTypes: null,

@@ -354,6 +354,7 @@
   "category_image_failed_generic": "la imagen fue rechazada",
   "category_reorder_failed_generic": "el nuevo orden fue rechazado",
   "category_name": "Nombre de la categoría",
+  "category_source_language_required": "Elige el idioma de origen de esta categoría.",
   "category_image": "Imagen de la categoría",
   "is_active": "Está activo",
   "display_order": "Orden de visualización",

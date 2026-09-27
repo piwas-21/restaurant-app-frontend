@@ -293,6 +293,7 @@
   "category_image_failed_generic": "изображение отклонено",
   "category_reorder_failed_generic": "новый порядок отклонён",
   "category_name": "Название категории",
+  "category_source_language_required": "Выберите исходный язык для этой категории.",
   "category_image": "Изображение категории",
   "is_active": "Активно",
   "display_order": "Порядок отображения",

@@ -1,6 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import { compressImageForUpload } from '@/utils/imageCompression';
 import type { Category } from '@/app/admin/menu-management/interfaces';
+import type { CategoryTranslations } from '@/types/categoryTranslations';
 
 const CATEGORIES_API_URL = '/api/Categories';
 
@@ -14,6 +15,8 @@ interface CategoryData {
    * could call this, and a coalesce in a caller is a rule nobody can see from the schema.
    */
   description?: string | null;
+  translations: CategoryTranslations;
+  sourceLocale: string | null;
   isActive: boolean;
   /**
    * Keep the category orderable on its own tab but out of the guest "All" list (partner request
@@ -47,6 +50,8 @@ export interface CategoryChannelEcho {
   id: string;
   name: string;
   description?: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
   isActive: boolean;
   isHiddenFromAllTab: boolean;
 }
@@ -69,6 +74,8 @@ export const updateCategoryOrderTypes = async (category: CategoryChannelEcho, av
     id: category.id,
     name: category.name,
     description: category.description ?? undefined,
+    translations: category.translations ?? {},
+    sourceLocale: category.sourceLocale ?? null,
     isActive: category.isActive,
     isHiddenFromAllTab: category.isHiddenFromAllTab,
     availableOrderTypes,

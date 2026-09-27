@@ -354,6 +354,7 @@
   "category_image_failed_generic": "görsel reddedildi",
   "category_reorder_failed_generic": "yeni sıralama reddedildi",
   "category_name": "Kategori Adı",
+  "category_source_language_required": "Bu kategori için kaynak dili seçin.",
   "category_image": "Kategori Görseli",
   "is_active": "Aktif mi",
   "display_order": "Görüntüleme Sırası",

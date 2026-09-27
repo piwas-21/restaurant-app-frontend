@@ -3,6 +3,8 @@ import { OrderType } from '@/types/order';
 
 import { IngredientKind, ItemAvailability, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
 import type { TranslationMetadata } from '@/types/translationMetadata';
+import type { CategoryTranslations } from '@/types/categoryTranslations';
+import type { LanguageCode } from '@/config/languageConfig';
 
 export interface ProductImage {
   id: string;
@@ -179,6 +181,8 @@ export interface Category {
   id: string;
   name: string;
   description?: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: LanguageCode | null;
   isActive: boolean;
   /** Orderable on its own tab but left out of the guest "All" list (`CategoryDto.IsHiddenFromAllTab`). */
   isHiddenFromAllTab?: boolean;

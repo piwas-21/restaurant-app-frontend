@@ -1,13 +1,16 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { categoryFormSchema, type CategoryFormValues } from './categoryFormSchema';
+import { categoryFormSchema, type CategoryFormInputValues, type CategoryFormValues } from './categoryFormSchema';
 import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
+import CategoryTranslationsFields from './CategoryTranslationsFields';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
 import { type SetCategoryError } from '@/lib/categoryFormErrors';
 import { useEditCategorySave } from '@/hooks/admin/useEditCategorySave';
+import type { CategoryTranslations } from '@/types/categoryTranslations';
+import type { LanguageCode } from '@/config/languageConfig';
 
 /** @see categoryFormSchema — one object for both modals, so they cannot drift (#642). */
 export const editCategorySchema = categoryFormSchema;
@@ -18,6 +21,8 @@ interface Category {
   id: string;
   name: string;
   description?: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: LanguageCode | null;
   isActive: boolean;
   isHiddenFromAllTab?: boolean;
   displayOrder: number;
@@ -48,7 +53,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     formState: { errors },
     setError,
     reset,
-  } = useForm<EditCategoryFormValues>({
+  } = useForm<CategoryFormInputValues, unknown, EditCategoryFormValues>({
     resolver: zodResolver(editCategorySchema),
   });
 
@@ -62,6 +67,8 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
       reset({
         name: category.name,
         description: category.description || '',
+        translations: category.translations ?? {},
+        sourceLocale: category.sourceLocale ?? null,
         isActive: category.isActive,
         isHiddenFromAllTab: category.isHiddenFromAllTab ?? false,
         displayOrder: category.displayOrder,
@@ -77,7 +84,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !category) return null;
 
   return (
     <div className={styles.modalOverlay}>
@@ -95,6 +102,13 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             <textarea id="description" {...register('description')} />
             {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
           </div>
+          <CategoryTranslationsFields
+            key={category?.id ?? 'new'}
+            register={register}
+            errors={errors}
+            initialTranslations={category.translations ?? {}}
+            initialSourceLocale={category.sourceLocale}
+          />
           <div className={styles.formGroup}>
             <label htmlFor="imageFile">{t('category_image_edit')}</label>
             <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />

@@ -355,6 +355,7 @@
   "category_image_failed_generic": "das Bild wurde abgelehnt",
   "category_reorder_failed_generic": "die neue Reihenfolge wurde abgelehnt",
   "category_name": "Kategoriename",
+  "category_source_language_required": "Wählen Sie die Quellsprache für diese Kategorie.",
   "category_image": "Kategorie­bild",
   "is_active": "Ist aktiv",
   "display_order": "Anzeigereihenfolge",

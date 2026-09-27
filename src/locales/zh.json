@@ -352,6 +352,7 @@
   "category_image_failed_generic": "图片被拒绝",
   "category_reorder_failed_generic": "新的排序被拒绝",
   "category_name": "分类名称",
+  "category_source_language_required": "请选择此类别的源语言。",
   "category_image": "分类图片",
   "is_active": "是否启用",
   "display_order": "显示顺序",

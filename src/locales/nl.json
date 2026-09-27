@@ -352,6 +352,7 @@
   "category_image_failed_generic": "de afbeelding is geweigerd",
   "category_reorder_failed_generic": "de nieuwe volgorde is geweigerd",
   "category_name": "Categorienaam",
+  "category_source_language_required": "Kies de brontaal voor deze categorie.",
   "category_image": "Categorieafbeelding",
   "is_active": "Actief",
   "display_order": "Weergavevolgorde",

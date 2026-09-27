@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { categoryFormSchema, type CategoryFormInputValues, type CategoryFormValues } from './categoryFormSchema';
-import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
 import CategoryTranslationsFields from './CategoryTranslationsFields';
-import TranslationSuggestionsReview from './product-editor/translations/TranslationSuggestionsReview';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import BaseModal from '@/components/design-system/BaseModal';
-import FormField from '@/components/design-system/FormField';
+import CategoryModalFormFields from './CategoryModalFormFields';
 import { useTranslation } from 'react-i18next';
 import { createCategory } from '@/services/categoryService';
 import { omitNewBlankCategoryTranslations } from '@/types/categoryTranslations';
@@ -137,38 +135,21 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={t('create_category')} size="lg" isPending={isSubmitting}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {errors.root && <p className={styles.errorMessage}>{errors.root.message}</p>}
-        <FormField label={t('category_name')} error={errors.name?.message} className={styles.formGroup}>
-          <input {...register('name')} />
-        </FormField>
-        <FormField label={t('description')} error={errors.description?.message} className={styles.formGroup}>
-          <textarea {...register('description')} />
-        </FormField>
-        <CategoryTranslationsFields
-          control={control}
+        <CategoryModalFormFields
           register={register}
           errors={errors}
-          createMode
-          onTranslationChange={translationReview.review.clearAcceptedSuggestionIds}
-        />
-        <details onToggle={translationReview.onToggle}>
-          <summary>{t('translation_review_title')}</summary>
-          <TranslationSuggestionsReview review={translationReview.review} showSourceLocaleChoices={false} />
-        </details>
-        <FormField
-          label={t('category_image')}
-          error={errors.imageFile?.message as string | undefined}
-          className={styles.formGroup}
+          imageLabel={t('category_image')}
+          review={translationReview.review}
+          onReviewToggle={translationReview.onToggle}
         >
-          <input type="file" accept="image/*" {...register('imageFile')} />
-        </FormField>
-        <FormField label={t('is_active')} className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-          <input type="checkbox" {...register('isActive')} />
-        </FormField>
-        <CategoryHiddenFromAllTabField register={register} />
-        <FormField label={t('display_order')} error={errors.displayOrder?.message} className={styles.formGroup}>
-          <input type="number" {...register('displayOrder')} />
-        </FormField>
+          <CategoryTranslationsFields
+            control={control}
+            register={register}
+            errors={errors}
+            createMode
+            onTranslationChange={translationReview.review.clearAcceptedSuggestionIds}
+          />
+        </CategoryModalFormFields>
         <div className={styles.buttonGroup}>
           <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
             {isSubmitting ? t('creating...') : t('create')}

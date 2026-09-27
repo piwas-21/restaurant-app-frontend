@@ -73,9 +73,11 @@ export default function CatalogueImportedItemChoices({ product, locale }: Props)
         <p className={styles.empty}>{t('catalogue_import_guest_no_choices')}</p>
       ) : (
         steps.map((step) => {
-          const heading = step.group
-            ? translatedContentName(step.group.content, locale, step.group.name)
-            : step.title || (step.titleKey ? t(step.titleKey) : step.kind);
+          let heading: string;
+          if (step.group) heading = translatedContentName(step.group.content, locale, step.group.name);
+          else if (step.title) heading = step.title;
+          else if (step.titleKey) heading = t(step.titleKey);
+          else heading = step.kind;
           let choices: { id: string; name: string; isDefault?: boolean; note?: string }[] = [];
           if (step.kind === 'variations') {
             const rows = (product.variations ?? []).filter((row) => row.isActive);

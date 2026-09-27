@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
@@ -28,6 +28,17 @@ export default function MenuCatalogueSuggestions({ query }: { readonly query: st
   const suggestions = useMenuCatalogueSuggestions(isOpen ? query : '', locale);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [preview, setPreview] = useState<CatalogueTemplateSummary | null>(null);
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (event.target instanceof Element && event.target.closest('[role="dialog"]')) return;
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
   const startImport = useCallback(
     (detail: CatalogueTemplateRevision, createNewCopy: boolean) => {
       const params = new URLSearchParams({
@@ -43,16 +54,7 @@ export default function MenuCatalogueSuggestions({ query }: { readonly query: st
   );
 
   return (
-    <div
-      className={styles.anchor}
-      onKeyDown={(event) => {
-        const isPreviewOpen = event.target instanceof Element && event.target.closest('[role="dialog"]');
-        if (event.key === 'Escape' && isOpen && !isPreviewOpen) {
-          setIsOpen(false);
-          triggerRef.current?.focus();
-        }
-      }}
-    >
+    <div className={styles.anchor}>
       <button
         ref={triggerRef}
         type="button"

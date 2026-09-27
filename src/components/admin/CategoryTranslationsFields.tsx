@@ -10,13 +10,13 @@ import type { CategoryTranslations } from '@/types/categoryTranslations';
 import styles from './CategoryTranslationsFields.module.css';
 
 interface CategoryTranslationsFieldsProps {
-  control: Control<CategoryFormInputValues>;
-  register: UseFormRegister<CategoryFormInputValues>;
-  errors: FieldErrors<CategoryFormInputValues>;
-  initialTranslations?: CategoryTranslations;
-  initialSourceLocale?: string | null;
-  createMode?: boolean;
-  onTranslationChange?: () => void;
+  readonly control: Control<CategoryFormInputValues>;
+  readonly register: UseFormRegister<CategoryFormInputValues>;
+  readonly errors: FieldErrors<CategoryFormInputValues>;
+  readonly initialTranslations?: CategoryTranslations;
+  readonly initialSourceLocale?: string | null;
+  readonly createMode?: boolean;
+  readonly onTranslationChange?: () => void;
 }
 
 function firstEditableLocale(translations: CategoryTranslations, sourceLocale?: string | null): LanguageCode {

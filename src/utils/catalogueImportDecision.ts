@@ -8,10 +8,11 @@ import { exactMaskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChanne
 
 export function catalogueImportDecisionForRequest(decision: CatalogueImportDecision): CatalogueImportDecisionWire {
   if (decision.resolution === 'Reuse') return reuseRequest(decision);
-  const { localEntityId, availableOrderTypes, ...createRequest } = decision;
-  void localEntityId;
+  const { availableOrderTypes, ...createRequest } = decision;
+  const request = { ...createRequest };
+  delete request.localEntityId;
   return {
-    ...createRequest,
+    ...request,
     ...(availableOrderTypes === undefined
       ? {}
       : { availableOrderTypes: availableOrderTypes === null ? null : exactMaskFromOrderTypes(availableOrderTypes) }),

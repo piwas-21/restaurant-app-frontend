@@ -126,6 +126,7 @@ export function useTranslationSuggestionBatch({
     setProviderStatus,
     setPreviewRows,
     setError,
+    setErrorMessage,
   });
 
   const targets = previewRows.flatMap((row) => row.targets);

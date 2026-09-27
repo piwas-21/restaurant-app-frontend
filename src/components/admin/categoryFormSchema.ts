@@ -5,7 +5,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const languageCodeSchema = z
   .string()
-  .refine((value): value is LanguageCode => LANGUAGE_CODES.some((locale) => locale === value));
+  .refine((value): value is LanguageCode => LANGUAGE_CODES.includes(value as LanguageCode));
 
 /**
  * THE category form schema — one object, used by both the create and the edit modal (#642).

@@ -1,4 +1,4 @@
-import { loadTranslationSuggestionBatch } from './translationReviewBatch';
+import { loadTranslationSuggestionBatch, translationDecisionFor } from './translationReviewBatch';
 import type {
   TranslationFieldInput,
   TranslationFieldStatus,
@@ -39,6 +39,16 @@ function adapter(rows: TranslationFieldStatus[] = []): jest.Mocked<TranslationWo
   review.mockResolvedValue({ decisions: [] });
   return { preview, suggest, review };
 }
+
+describe('translationDecisionFor', () => {
+  it.each([
+    ['accepted', 'accept'],
+    ['edited', 'edit'],
+    ['rejected', 'reject'],
+  ] as const)('maps %s to the workbench decision %s', (reviewStatus, workbenchDecision) => {
+    expect(translationDecisionFor(reviewStatus)).toBe(workbenchDecision);
+  });
+});
 
 describe('loadTranslationSuggestionBatch', () => {
   it('does not call suggestions for an unchanged complete template', async () => {

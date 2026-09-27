@@ -13,7 +13,7 @@ export function omitNewBlankCategoryTranslations(
 ): CategoryTranslations {
   return Object.fromEntries(
     Object.entries(translations).filter(([locale, entry]) => {
-      if (Object.prototype.hasOwnProperty.call(original, locale)) return true;
+      if (Object.hasOwn(original, locale)) return true;
       return entry.name.trim().length > 0 || Boolean(entry.description?.trim());
     }),
   );

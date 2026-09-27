@@ -111,7 +111,7 @@ export default function CatalogueImportGuestReview({ items }: { readonly items: 
           ))}
         </select>
       </FormField>
-      {loading && <p role="status">{t('loading')}…</p>}
+      {loading && <output>{t('loading')}…</output>}
       {error && (
         <p role="alert" className={styles.error}>
           {error}

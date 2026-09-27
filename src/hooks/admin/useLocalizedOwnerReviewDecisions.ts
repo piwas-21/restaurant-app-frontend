@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { getErrorMessage } from '@/utils/apiClient';
 import type { TranslationDecision, TranslationWorkbenchAdapter } from '@/services/translationWorkbenchService';
 import type { TranslationOwnerMetadataWrite } from '@/types/translationMetadata';
 import { buildReviewedTranslationOutcome } from '@/components/admin/product-editor/translations/reviewedTranslationOutcome';
 import { localizedReferenceKey } from '@/components/admin/product-editor/translations/translationReviewMetadata';
+import { translationDecisionFor } from '@/components/admin/product-editor/translations/translationReviewBatch';
 import type {
   TranslationReviewField,
   ReviewedTextChange,
@@ -14,6 +16,9 @@ import { fieldReferenceKey } from '@/components/admin/product-editor/translation
 import type { useTranslationSuggestionBatch } from './useTranslationSuggestionBatch';
 
 type Batch = ReturnType<typeof useTranslationSuggestionBatch>;
+type ReviewedEntry = Batch['entries'][number] & {
+  readonly decision: Exclude<Batch['entries'][number]['decision'], 'pending'>;
+};
 
 interface Options {
   readonly isOpen: boolean;
@@ -40,6 +45,7 @@ export function useLocalizedOwnerReviewDecisions({
   const acceptedSourcesRef = useRef<Readonly<Record<string, string>>>({});
   const [staleCount, setStaleCount] = useState(0);
   const [reviewWriteError, setReviewWriteError] = useState(false);
+  const [reviewWriteErrorMessage, setReviewWriteErrorMessage] = useState<string | null>(null);
   const entries = batch.entries;
   const setEntries = batch.setEntries;
   const requestedFields = batch.requestedFields;
@@ -107,13 +113,14 @@ export function useLocalizedOwnerReviewDecisions({
   }, [expectedContentVersion, readFields]);
 
   const submitDecisions = useCallback(async (): Promise<boolean> => {
-    const selected = entries.filter((entry) => entry.decision !== 'pending');
+    const selected = entries.filter((entry): entry is ReviewedEntry => entry.decision !== 'pending');
     if (selected.length === 0) return true;
     try {
       setReviewWriteError(false);
+      setReviewWriteErrorMessage(null);
       const decisions: TranslationDecision[] = selected.map((entry) => ({
         suggestionId: entry.suggestion.suggestionId,
-        decision: entry.decision === 'accepted' ? 'accept' : entry.decision === 'edited' ? 'edit' : 'reject',
+        decision: translationDecisionFor(entry.decision),
         ...(entry.decision === 'edited' ? { text: entry.text } : {}),
       }));
       const response = await adapter.review(decisions);
@@ -140,7 +147,7 @@ export function useLocalizedOwnerReviewDecisions({
       setStaleCount(outcome.staleCount);
       return true;
     } catch (error) {
-      void error;
+      setReviewWriteErrorMessage(getErrorMessage(error));
       setBatchError(true);
       setReviewWriteError(true);
       return false;
@@ -155,6 +162,7 @@ export function useLocalizedOwnerReviewDecisions({
     if (isOpen) return;
     setStaleCount(0);
     setReviewWriteError(false);
+    setReviewWriteErrorMessage(null);
   }, [isOpen]);
 
   return {
@@ -166,5 +174,6 @@ export function useLocalizedOwnerReviewDecisions({
     clearAcceptedSuggestionIds,
     staleCount,
     error: reviewWriteError,
+    reviewWriteErrorMessage,
   };
 }

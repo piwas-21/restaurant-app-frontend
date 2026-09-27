@@ -2,6 +2,7 @@ import type {
   TranslationFieldInput,
   TranslationFieldStatus,
   TranslationGenerationIntent,
+  TranslationDecision,
   TranslationPreviewResponse,
   TranslationSuggestionsResponse,
   TranslationWorkbenchAdapter,
@@ -12,6 +13,17 @@ import { LANGUAGE_CODES } from '@/config/languageConfig';
 export interface TranslationSuggestionBatch {
   readonly preview: TranslationPreviewResponse | null;
   readonly suggestions: TranslationSuggestionsResponse | null;
+}
+
+export function translationDecisionFor(decision: 'accepted' | 'edited' | 'rejected'): TranslationDecision['decision'] {
+  switch (decision) {
+    case 'accepted':
+      return 'accept';
+    case 'edited':
+      return 'edit';
+    case 'rejected':
+      return 'reject';
+  }
 }
 
 const fieldKey = (field: TranslationFieldInput): string =>
@@ -66,30 +78,24 @@ export async function loadTranslationSuggestionBatch(
       row,
     ]),
   );
-  const eligible =
-    generationIntent === 'explicitAlternative'
-      ? candidates.filter((field) => {
-          const row = byField.get(fieldKey(field));
-          return (
-            row !== undefined &&
-            row.targets.some(
-              (target) =>
-                targetLocales.includes(target.locale) &&
-                target.locale !== row.sourceLocale &&
-                Boolean(target.text?.trim()) &&
-                (target.provenance?.kind === 'manual' || target.provenance?.kind === 'legacyUnknown'),
-            )
-          );
-        })
-      : generationIntent === 'explicitFill'
-        ? candidates.filter((field) => {
-            const row = byField.get(fieldKey(field));
-            return row !== undefined && hasReviewableGap(row);
-          })
-        : candidates.filter((field) => {
-            const row = byField.get(fieldKey(field));
-            return row !== undefined && hasReviewableGap(row) && shouldSuggestOnSave(field, row);
-          });
+  const eligible = candidates.filter((field) => {
+    const row = byField.get(fieldKey(field));
+    if (!row) return false;
+    switch (generationIntent) {
+      case 'explicitAlternative':
+        return row.targets.some(
+          (target) =>
+            targetLocales.includes(target.locale) &&
+            target.locale !== row.sourceLocale &&
+            Boolean(target.text?.trim()) &&
+            (target.provenance?.kind === 'manual' || target.provenance?.kind === 'legacyUnknown'),
+        );
+      case 'explicitFill':
+        return hasReviewableGap(row);
+      case 'saveReview':
+        return hasReviewableGap(row) && shouldSuggestOnSave(field, row);
+    }
+  });
   if (eligible.length === 0) return { preview, suggestions: null };
 
   return {

@@ -60,7 +60,8 @@ export function useCategoryTranslationReview({
   );
   const onApply = useCallback(
     (changes: readonly ReviewedTextChange[]) => {
-      let localized: CategoryTranslations = { ...(getValues('translations') ?? {}) };
+      const existingTranslations = getValues('translations');
+      let localized: CategoryTranslations = existingTranslations ? { ...existingTranslations } : {};
       for (const change of changes) {
         if (change.fieldRef.entityType !== 'category') continue;
         const current = localized[change.locale] ?? { name: '' };

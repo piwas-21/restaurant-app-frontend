@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { useTranslationSuggestionBatch, type TranslationSuggestionEntry } from './useTranslationSuggestionBatch';
 import { createTranslationMetadataPatch } from '@/components/admin/product-editor/translations/translationReviewMetadata';
 import { buildReviewedTranslationOutcome } from '@/components/admin/product-editor/translations/reviewedTranslationOutcome';
+import { translationDecisionFor } from '@/components/admin/product-editor/translations/translationReviewBatch';
 import { useEditorSourceLocales } from './useEditorSourceLocales';
 
 type Editor = ReturnType<typeof useProductEditorForm>;
@@ -148,7 +149,7 @@ export function useEditorTranslationReview({
       setReviewWriteErrorMessage(null);
       const decisions: TranslationDecision[] = selected.map((entry) => ({
         suggestionId: entry.suggestion.suggestionId,
-        decision: entry.decision === 'accepted' ? 'accept' : entry.decision === 'edited' ? 'edit' : 'reject',
+        decision: translationDecisionFor(entry.decision),
         ...(entry.decision === 'edited' ? { text: entry.text } : {}),
       }));
       const response = await adapter.review(decisions);

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
+import { getErrorMessage } from '@/utils/apiClient';
 import { loadTranslationSuggestionBatch } from '@/components/admin/product-editor/translations/translationReviewBatch';
 import {
   fieldReferenceKey,
@@ -24,6 +25,7 @@ interface Options {
   readonly setProviderStatus: Dispatch<SetStateAction<'disabled' | 'ready' | null>>;
   readonly setPreviewRows: Dispatch<SetStateAction<TranslationFieldStatus[]>>;
   readonly setError: Dispatch<SetStateAction<boolean>>;
+  readonly setErrorMessage: Dispatch<SetStateAction<string | null>>;
 }
 
 export function useTranslationAlternativeSuggestion({
@@ -35,6 +37,7 @@ export function useTranslationAlternativeSuggestion({
   setProviderStatus,
   setPreviewRows,
   setError,
+  setErrorMessage,
 }: Options) {
   const requestId = useRef(0);
   return useCallback(
@@ -49,6 +52,7 @@ export function useTranslationAlternativeSuggestion({
       const currentRequestId = ++requestId.current;
       setPhase('loading');
       setError(false);
+      setErrorMessage(null);
       try {
         const result = await loadTranslationSuggestionBatch([field.input], adapter, 'explicitAlternative', [locale]);
         if (loadKey.current !== requestKey || requestId.current !== currentRequestId || !result.preview) return;
@@ -87,12 +91,12 @@ export function useTranslationAlternativeSuggestion({
         });
         setPhase('ready');
       } catch (requestError) {
-        void requestError;
         if (loadKey.current !== requestKey || requestId.current !== currentRequestId) return;
+        setErrorMessage(getErrorMessage(requestError));
         setError(true);
         setPhase('error');
       }
     },
-    [adapter, loadKey, readFields, setEntries, setError, setPhase, setPreviewRows, setProviderStatus],
+    [adapter, loadKey, readFields, setEntries, setError, setErrorMessage, setPhase, setPreviewRows, setProviderStatus],
   );
 }

@@ -7,9 +7,10 @@ import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import PageHeader from '@/components/admin/PageHeader';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import CatalogueImportItemReview from './CatalogueImportItemReview';
 import CatalogueImportPreviewReview from './CatalogueImportPreviewReview';
 import CatalogueImportCompletion from './CatalogueImportCompletion';
+import CatalogueImportSelectionReview from './CatalogueImportSelectionReview';
+import CatalogueRevisionChangesReview from './CatalogueRevisionChangesReview';
 import { useCatalogueImportWorkspace } from '@/hooks/admin/useCatalogueImportWorkspace';
 import { useCatalogueOptionPrices } from '@/hooks/admin/useCatalogueOptionPrices';
 import { importStatusLabelKey } from '@/services/catalogueImportService';
@@ -83,10 +84,12 @@ function ImportRoute() {
       </main>
     );
 
+  const session = flow.session;
   const canImport =
     Boolean(flow.preview) &&
     flow.preview?.version === flow.session.version &&
     !hasBlockers &&
+    flow.canManage &&
     !flow.isWorking &&
     !optionPrices.isLoading &&
     !optionPrices.error;
@@ -104,6 +107,11 @@ function ImportRoute() {
         <span>{t(flow.session.createNewCopy ? 'catalogue_import_copy_mode' : 'catalogue_import_reuse_mode')}</span>
       </div>
       <p className={styles.localDataNotice}>{t('catalogue_import_local_data_notice')}</p>
+      {!flow.canEditSelection && (
+        <p className={styles.locked}>
+          {t(flow.canManage ? 'catalogue_import_retry_scope_notice' : 'catalogue_import_selection_locked')}
+        </p>
+      )}
       {flow.error && (
         <p className={styles.error} role="alert">
           {t(flow.error)}
@@ -124,33 +132,37 @@ function ImportRoute() {
         </p>
       )}
       {optionPrices.isLoading && <output>{t('catalogue_import_price_details_loading')}</output>}
-      <section className={styles.itemList} aria-label={t('catalogue_import_template_items')}>
-        {flow.session.items.map((item) => {
-          const key = `${item.templateId}@${item.revision}`;
-          const decision = flow.decisions[key] ?? {
-            templateId: item.templateId,
-            revision: item.revision,
-            resolution: 'Create' as const,
-          };
-          return (
-            <CatalogueImportItemReview
-              key={key}
-              item={item}
-              decision={decision}
-              selected={flow.selectedIds.includes(item.templateId)}
-              priceRefs={optionPrices.byOwner[key] ?? []}
-              onSelectedChange={(selected) => flow.toggleSelection(item.templateId, selected)}
-              onDecisionChange={(patch) => flow.updateDecision(key, patch)}
-            />
-          );
-        })}
-      </section>
-      <CatalogueImportPreviewReview preview={flow.preview} onChooseCandidate={chooseCandidate} />
-      {flow.result && <CatalogueImportCompletion result={flow.result} changes={flow.revisionChanges} />}
+      <CatalogueImportSelectionReview
+        session={session}
+        selectedIds={flow.selectedIds}
+        decisions={flow.decisions}
+        priceRefsByOwner={optionPrices.byOwner}
+        canEditSelection={flow.canEditSelection}
+        canEditDecision={flow.canEditDecision}
+        onToggleSelection={(item, selected) => flow.toggleSelection(item.templateId, selected)}
+        onDecisionChange={(item, patch) => flow.updateDecision(`${item.templateId}@${item.revision}`, patch)}
+      />
+      <CatalogueImportPreviewReview
+        preview={flow.preview}
+        canChooseCandidate={(templateId, rev) => {
+          const item = session.items.find((entry) => entry.templateId === templateId && entry.revision === rev);
+          return item ? flow.canEditDecision(item) : false;
+        }}
+        onChooseCandidate={chooseCandidate}
+      />
+      {flow.result && <CatalogueImportCompletion result={flow.result} />}
+      {flow.result && (
+        <CatalogueRevisionChangesReview
+          changes={flow.revisionChanges}
+          isWorking={flow.isWorking}
+          error={flow.error}
+          onApply={(item, paths) => void flow.applyRevisionFields(item, paths)}
+        />
+      )}
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={flow.isWorking || optionPrices.isLoading || Boolean(optionPrices.error)}
+          disabled={!flow.canManage || flow.isWorking || optionPrices.isLoading || Boolean(optionPrices.error)}
           onClick={() => void flow.checkPreview()}
         >
           {t(flow.isWorking ? 'catalogue_import_working' : 'catalogue_import_check_preview')}

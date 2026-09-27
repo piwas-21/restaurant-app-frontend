@@ -34,7 +34,6 @@
 
 .itemList,
 .fields,
-.priceGrid,
 .preview,
 .completion {
   display: grid;
@@ -44,7 +43,6 @@
 .itemCard,
 .preview,
 .completion,
-.priceGrid,
 .revisionNotice {
   padding: 1rem;
   color: var(--text-primary);
@@ -58,12 +56,11 @@
 .preview h3,
 .completion h2,
 .completion h3,
-.priceGrid h3 {
+.revisionNotice h3 {
   margin: 0;
 }
 
 .itemHeading p,
-.priceGrid p,
 .activationNotice p,
 .revisionNotice p {
   margin: 0.35rem 0 0;

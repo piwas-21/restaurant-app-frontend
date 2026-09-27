@@ -143,20 +143,6 @@ export interface CatalogueImportResult {
   }>;
 }
 
-export interface CatalogueRevisionChanges {
-  readonly sessionId: string;
-  readonly items: Array<{
-    templateId: string;
-    adoptedRevision: number;
-    adoptedContentHash: string;
-    currentRevision?: number;
-    currentContentHash?: string;
-    withdrawn: boolean;
-    fields: Array<{ path: string; baseline: unknown; current: unknown; localValue: unknown; localChanged: boolean }>;
-    notice: string;
-  }>;
-}
-
 const sessionPath = (sessionId: string) => `/api/catalogue/import-sessions/${encodeURIComponent(sessionId)}`;
 
 export const getCataloguePreferences = (): Promise<CataloguePreferences> =>
@@ -194,6 +180,3 @@ export const importCatalogueSession = (
   sessionId: string,
   body: { expectedVersion: number; idempotencyKey: string },
 ): Promise<CatalogueImportResult> => apiClient.post(`${sessionPath(sessionId)}/import`, body, { requireAuth: true });
-
-export const getCatalogueRevisionChanges = (sessionId: string): Promise<CatalogueRevisionChanges> =>
-  apiClient.get(`${sessionPath(sessionId)}/revision-changes`, { requireAuth: true });

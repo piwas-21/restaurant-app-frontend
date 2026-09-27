@@ -7,8 +7,19 @@ import {
   updateCatalogueImportItems,
   type CatalogueImportDecision,
   type CatalogueImportPreview,
+  type CatalogueImportSessionItem,
 } from '@/services/catalogueImportService';
-import { getCatalogueRevisionChanges } from '@/services/catalogueImportService';
+import {
+  applyCatalogueRevisionChanges,
+  getCatalogueRevisionChanges,
+  type CatalogueRevisionChanges,
+} from '@/services/catalogueRevisionChangeService';
+import {
+  canEditCatalogueImportDecision,
+  canManageCatalogueImportSession,
+  catalogueImportDecisionFor,
+  catalogueImportDecisionForRequest,
+} from '@/utils/catalogueImportDecision';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCatalogueImportSession, type CatalogueImportStartOptions } from './useCatalogueImportSession';
 
@@ -29,25 +40,34 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     setSelectedIds(flow.session.items.filter((item) => item.isSelected).map((item) => item.templateId));
     setDecisions(
       Object.fromEntries(
-        flow.session.items.map((item) => [
-          itemKey(item.templateId, item.revision),
-          item.decision ?? { templateId: item.templateId, revision: item.revision, resolution: 'Create' },
-        ]),
+        flow.session.items.map((item) => [itemKey(item.templateId, item.revision), catalogueImportDecisionFor(item)]),
       ),
     );
   }, [flow.session]);
 
-  const toggleSelection = useCallback((templateId: string, selected: boolean) => {
-    setSelectedIds((current) =>
-      selected ? [...new Set([...current, templateId])] : current.filter((id) => id !== templateId),
-    );
-    setPreview(null);
-  }, []);
+  const toggleSelection = useCallback(
+    (templateId: string, selected: boolean) => {
+      if (!flow.session || flow.session.status !== 'Draft') return;
+      setSelectedIds((current) =>
+        selected ? [...new Set([...current, templateId])] : current.filter((id) => id !== templateId),
+      );
+      setPreview(null);
+    },
+    [flow.session],
+  );
 
-  const updateDecision = useCallback((key: string, patch: Partial<CatalogueImportDecision>) => {
-    setDecisions((current) => ({ ...current, [key]: { ...current[key], ...patch } }));
-    setPreview(null);
-  }, []);
+  const updateDecision = useCallback(
+    (key: string, patch: Partial<CatalogueImportDecision>) => {
+      const item = flow.session?.items.find((candidate) => itemKey(candidate.templateId, candidate.revision) === key);
+      if (!flow.session || !item || !canEditCatalogueImportDecision(flow.session, item)) return;
+      setDecisions((current) => ({
+        ...current,
+        [key]: { ...catalogueImportDecisionFor(item), ...current[key], ...patch },
+      }));
+      setPreview(null);
+    },
+    [flow.session],
+  );
 
   const chosenItems = useMemo(
     () => flow.session?.items.filter((item) => selectedIds.includes(item.templateId)) ?? [],
@@ -56,20 +76,48 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
 
   const persistDecisions = useCallback(async () => {
     if (!flow.session) return null;
+    if (!canManageCatalogueImportSession(flow.session)) return flow.session;
+    const retrying = flow.session.status === 'PartiallyImported' || flow.session.status === 'Failed';
     await updateCatalogueImportItems(flow.session.sessionId, {
       expectedVersion: flow.session.version,
       selectedTemplateIds: selectedIds,
-      decisions: chosenItems.map(
-        (item) =>
-          decisions[itemKey(item.templateId, item.revision)] ?? {
-            templateId: item.templateId,
-            revision: item.revision,
-            resolution: 'Create',
-          },
-      ),
+      decisions: chosenItems
+        .filter((item) => !retrying || item.status === 'Failed')
+        .map((item) =>
+          catalogueImportDecisionForRequest(
+            decisions[itemKey(item.templateId, item.revision)] ?? catalogueImportDecisionFor(item),
+          ),
+        ),
     });
     return flow.refresh(flow.session.sessionId);
   }, [chosenItems, decisions, flow, selectedIds]);
+
+  const applyRevisionFields = useCallback(
+    async (item: CatalogueRevisionChanges['items'][number], fieldPaths: readonly string[]) => {
+      if (!flow.session || !flow.revisionChanges || fieldPaths.length === 0) return;
+      if (item.withdrawn || item.currentRevision == null || !item.currentContentHash) return;
+      setIsWorking(true);
+      setActionError(null);
+      try {
+        await applyCatalogueRevisionChanges(flow.session.sessionId, {
+          expectedSessionVersion: flow.revisionChanges.sessionVersion,
+          templateId: item.templateId,
+          adoptedRevision: item.adoptedRevision,
+          currentRevision: item.currentRevision,
+          currentContentHash: item.currentContentHash,
+          expectedLocalHash: item.localHash,
+          fieldPaths,
+        });
+        await flow.refresh(flow.session.sessionId);
+        flow.setRevisionChanges(await getCatalogueRevisionChanges(flow.session.sessionId));
+      } catch (revisionError) {
+        setActionError(getErrorMessage(revisionError) ?? 'catalogue_revision_apply_error');
+      } finally {
+        setIsWorking(false);
+      }
+    },
+    [flow],
+  );
 
   const checkPreview = useCallback(async () => {
     if (!flow.session) return;
@@ -86,7 +134,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
   }, [flow.session, persistDecisions]);
 
   const runImport = useCallback(async () => {
-    if (!flow.session) return;
+    if (!flow.session || !canManageCatalogueImportSession(flow.session)) return;
     setIsWorking(true);
     setActionError(null);
     try {
@@ -128,6 +176,10 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     preview,
     result: flow.result,
     revisionChanges: flow.revisionChanges,
+    canManage: flow.session ? canManageCatalogueImportSession(flow.session) : false,
+    canEditSelection: flow.session?.status === 'Draft',
+    canEditDecision: (item: CatalogueImportSessionItem) =>
+      flow.session ? canEditCatalogueImportDecision(flow.session, item) : false,
     chosenItems,
     isLoading: flow.isLoading,
     isWorking,
@@ -136,5 +188,6 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     updateDecision,
     checkPreview,
     runImport,
+    applyRevisionFields,
   };
 }

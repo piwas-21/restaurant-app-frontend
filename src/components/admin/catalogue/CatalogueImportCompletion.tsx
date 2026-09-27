@@ -8,17 +8,10 @@ import {
   importItemStatusLabelKey,
   importStatusLabelKey,
   type CatalogueImportResult,
-  type CatalogueRevisionChanges,
 } from '@/services/catalogueImportService';
 import styles from './CatalogueImportWorkspace.module.css';
 
-export default function CatalogueImportCompletion({
-  result,
-  changes,
-}: {
-  readonly result: CatalogueImportResult;
-  readonly changes: CatalogueRevisionChanges | null;
-}) {
+export default function CatalogueImportCompletion({ result }: { readonly result: CatalogueImportResult }) {
   const { t } = useTranslation();
   return (
     <section className={styles.completion} aria-labelledby="catalogue-import-complete-heading">
@@ -55,24 +48,9 @@ export default function CatalogueImportCompletion({
           <h3>{t('catalogue_import_publish_review_title')}</h3>
           <p>{t('catalogue_import_inactive_notice')}</p>
           <p>{t('catalogue_import_publish_review_steps')}</p>
+          <p>{t('catalogue_import_post_activation_check')}</p>
         </aside>
       )}
-      {changes?.items.map((item) => (
-        <aside key={`${item.templateId}@${item.adoptedRevision}`} className={styles.revisionNotice}>
-          <h3>{t('catalogue_revision_change_title', { template: item.templateId })}</h3>
-          <p>{item.notice}</p>
-          {item.fields.filter((field) => field.localChanged).length > 0 && (
-            <ul>
-              {item.fields
-                .filter((field) => field.localChanged)
-                .map((field) => (
-                  <li key={field.path}>{field.path}</li>
-                ))}
-            </ul>
-          )}
-          <p>{t('catalogue_revision_change_advisory')}</p>
-        </aside>
-      ))}
     </section>
   );
 }

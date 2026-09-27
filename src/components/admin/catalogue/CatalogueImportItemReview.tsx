@@ -10,8 +10,6 @@ import {
   type CatalogueImportDecision,
   type CatalogueImportSessionItem,
 } from '@/services/catalogueImportService';
-import type { CatalogueOptionPriceRef } from '@/hooks/admin/useCatalogueOptionPrices';
-import CatalogueImportPriceReview from './CatalogueImportPriceReview';
 import CatalogueImportOperationalReview from './CatalogueImportOperationalReview';
 import styles from './CatalogueImportWorkspace.module.css';
 
@@ -19,7 +17,8 @@ interface Props {
   readonly item: CatalogueImportSessionItem;
   readonly decision: CatalogueImportDecision;
   readonly selected: boolean;
-  readonly priceRefs: readonly CatalogueOptionPriceRef[];
+  readonly canEditSelection: boolean;
+  readonly canEditDecision: boolean;
   readonly onSelectedChange: (selected: boolean) => void;
   readonly onDecisionChange: (patch: Partial<CatalogueImportDecision>) => void;
 }
@@ -28,7 +27,8 @@ export default function CatalogueImportItemReview({
   item,
   decision,
   selected,
-  priceRefs,
+  canEditSelection,
+  canEditDecision,
   onSelectedChange,
   onDecisionChange,
 }: Props) {
@@ -48,7 +48,12 @@ export default function CatalogueImportItemReview({
         <StatusBadge tone={statusTone}>{t(importItemStatusLabelKey(item.status))}</StatusBadge>
       </div>
       {item.isSelectable ? (
-        <CheckboxField label={t('catalogue_import_include_offer')} checked={selected} onChange={onSelectedChange} />
+        <CheckboxField
+          label={t('catalogue_import_include_offer')}
+          checked={selected}
+          disabled={!canEditSelection}
+          onChange={onSelectedChange}
+        />
       ) : (
         <p className={styles.locked}>
           {t(item.isRoot ? 'catalogue_import_root_locked' : 'catalogue_import_dependency_locked')}
@@ -69,6 +74,7 @@ export default function CatalogueImportItemReview({
           <FormField label={t('catalogue_import_resolution')}>
             <select
               value={decision.resolution}
+              disabled={!canEditDecision}
               onChange={(event) => onDecisionChange({ resolution: event.target.value as 'Create' | 'Reuse' })}
             >
               <option value="Create">{t('catalogue_import_create_new')}</option>
@@ -79,54 +85,60 @@ export default function CatalogueImportItemReview({
             <FormField label={t('catalogue_import_local_entity_id')}>
               <input
                 value={decision.localEntityId ?? item.localEntityId ?? ''}
+                disabled={!canEditDecision}
                 onChange={(event) => onDecisionChange({ localEntityId: event.target.value.trim() || undefined })}
               />
             </FormField>
           )}
-          <FormField label={t('catalogue_import_local_name')}>
-            <input
-              value={decision.localName ?? ''}
-              onChange={(event) => onDecisionChange({ localName: event.target.value })}
-            />
-          </FormField>
-          {item.displayName && (
-            <button
-              type="button"
-              className={styles.copyButton}
-              onClick={() => onDecisionChange({ localName: item.displayName })}
-            >
-              {t('catalogue_import_use_suggested_name')}
-            </button>
-          )}
-          <FormField label={t('catalogue_import_local_description')}>
-            <textarea
-              value={decision.localDescription ?? ''}
-              onChange={(event) => onDecisionChange({ localDescription: event.target.value })}
-              rows={3}
-            />
-          </FormField>
-          {item.description && (
-            <button
-              type="button"
-              className={styles.copyButton}
-              onClick={() => onDecisionChange({ localDescription: item.description ?? '' })}
-            >
-              {t('catalogue_import_use_suggested_description')}
-            </button>
+          {decision.resolution === 'Reuse' ? (
+            <p className={styles.referenceText}>{t('catalogue_import_reuse_preserves_local')}</p>
+          ) : (
+            <>
+              <FormField label={t('catalogue_import_local_name')}>
+                <input
+                  value={decision.localName ?? ''}
+                  disabled={!canEditDecision}
+                  onChange={(event) => onDecisionChange({ localName: event.target.value })}
+                />
+              </FormField>
+              {item.displayName && (
+                <button
+                  type="button"
+                  className={styles.copyButton}
+                  disabled={!canEditDecision}
+                  onClick={() => onDecisionChange({ localName: item.displayName })}
+                >
+                  {t('catalogue_import_use_suggested_name')}
+                </button>
+              )}
+              <FormField label={t('catalogue_import_local_description')}>
+                <textarea
+                  value={decision.localDescription ?? ''}
+                  disabled={!canEditDecision}
+                  onChange={(event) => onDecisionChange({ localDescription: event.target.value })}
+                  rows={3}
+                />
+              </FormField>
+              {item.description && (
+                <button
+                  type="button"
+                  className={styles.copyButton}
+                  disabled={!canEditDecision}
+                  onClick={() => onDecisionChange({ localDescription: item.description ?? '' })}
+                >
+                  {t('catalogue_import_use_suggested_description')}
+                </button>
+              )}
+            </>
           )}
           {itemIsProduct && (
             <CatalogueImportOperationalReview
               itemType={item.type}
               decision={decision}
               onDecisionChange={onDecisionChange}
+              disabled={!canEditDecision}
             />
           )}
-          <CatalogueImportPriceReview
-            templateType={item.type}
-            decision={decision}
-            priceRefs={priceRefs}
-            onDecisionChange={onDecisionChange}
-          />
         </div>
       )}
     </article>

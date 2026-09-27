@@ -22,45 +22,44 @@ const bundle: CatalogueImportSessionItem = {
   failureCode: null,
   decision: null,
 };
-const choicePrices = [{ key: 'size@4', name: 'Large size' }];
 const decision: CatalogueImportDecision = { templateId: 'bundle', revision: 2, resolution: 'Create' };
 
 describe('CatalogueImportItemReview', () => {
-  it('starts every tenant price and safety review field empty', () => {
+  it('keeps operational review in the item card and leaves tenant prices to the shared grid', () => {
     render(
       <CatalogueImportItemReview
         item={bundle}
         decision={decision}
         selected
-        priceRefs={choicePrices}
+        canEditSelection
+        canEditDecision
         onSelectedChange={jest.fn()}
         onDecisionChange={jest.fn()}
       />,
     );
 
-    expect(screen.getByRole('spinbutton', { name: 'catalogue_import_local_price' })).toHaveValue(null);
-    expect(screen.getByRole('spinbutton', { name: 'catalogue_import_price_for' })).toHaveValue(null);
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_ingredients' })).not.toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' })).not.toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_option_prices' })).not.toBeChecked();
     expect(screen.getByText(/Reviewed source description/)).toBeInTheDocument();
   });
 
-  it('asks for choice-rule review when reusing an existing option set without repricing it', () => {
+  it('does not ask for tenant operational values when reusing an existing option set', () => {
     const optionSet: CatalogueImportSessionItem = { ...bundle, templateId: 'set', type: 'option-set', isRoot: false };
     render(
       <CatalogueImportItemReview
         item={optionSet}
         decision={{ ...decision, templateId: 'set', resolution: 'Reuse' }}
         selected
-        priceRefs={choicePrices}
+        canEditSelection
+        canEditDecision
         onSelectedChange={jest.fn()}
         onDecisionChange={jest.fn()}
       />,
     );
 
     expect(screen.queryByRole('spinbutton', { name: 'catalogue_import_price_for' })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_choice_rules' })).not.toBeChecked();
+    expect(screen.getByText('catalogue_import_reuse_preserves_local')).toBeInTheDocument();
   });
 
   it('lets an admin explicitly use the reviewed template name', () => {
@@ -70,7 +69,8 @@ describe('CatalogueImportItemReview', () => {
         item={bundle}
         decision={decision}
         selected
-        priceRefs={[]}
+        canEditSelection
+        canEditDecision
         onSelectedChange={jest.fn()}
         onDecisionChange={onChange}
       />,
@@ -88,7 +88,8 @@ describe('CatalogueImportItemReview', () => {
         item={item}
         decision={{ ...decision, templateId: 'item' }}
         selected
-        priceRefs={[]}
+        canEditSelection
+        canEditDecision
         onSelectedChange={jest.fn()}
         onDecisionChange={onChange}
       />,
@@ -105,5 +106,23 @@ describe('CatalogueImportItemReview', () => {
 
     expect(onChange).toHaveBeenNthCalledWith(1, { localProductType: 'MainItem' });
     expect(onChange).toHaveBeenNthCalledWith(2, { intendedIsAvailable: false });
+  });
+
+  it('disables decisions and optional selection after import begins', () => {
+    render(
+      <CatalogueImportItemReview
+        item={{ ...bundle, isSelectable: true }}
+        decision={decision}
+        selected
+        canEditSelection={false}
+        canEditDecision={false}
+        onSelectedChange={jest.fn()}
+        onDecisionChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('checkbox', { name: 'catalogue_import_include_offer' })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: 'catalogue_import_resolution' })).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: 'catalogue_import_local_name' })).toBeDisabled();
   });
 });

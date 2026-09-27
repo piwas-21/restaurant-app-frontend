@@ -11,6 +11,7 @@ import styles from './CatalogueImportWorkspace.module.css';
 interface Props {
   readonly itemType: CatalogueTemplateType;
   readonly decision: CatalogueImportDecision;
+  readonly disabled: boolean;
   readonly onDecisionChange: (patch: Partial<CatalogueImportDecision>) => void;
 }
 
@@ -46,9 +47,9 @@ function toList(value: string): string[] {
     .filter(Boolean);
 }
 
-export default function CatalogueImportOperationalReview({ itemType, decision, onDecisionChange }: Props) {
+export default function CatalogueImportOperationalReview({ itemType, decision, onDecisionChange, disabled }: Props) {
   const { t } = useTranslation();
-  if (itemType !== 'item' && itemType !== 'bundle') return null;
+  if ((itemType !== 'item' && itemType !== 'bundle') || decision.resolution === 'Reuse') return null;
   const creating = decision.resolution === 'Create';
 
   return (
@@ -57,6 +58,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
         <FormField label={t('product_type')}>
           <select
             value={decision.localProductType ?? ''}
+            disabled={disabled}
             onChange={(event) =>
               onDecisionChange({
                 localProductType: (event.target.value || undefined) as CatalogueLocalProductType | undefined,
@@ -77,6 +79,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           <FormField label={t('catalogue_import_intended_availability')}>
             <select
               value={decision.intendedIsAvailable === undefined ? '' : String(decision.intendedIsAvailable)}
+              disabled={disabled}
               onChange={(event) => {
                 const value = event.target.value;
                 onDecisionChange({ intendedIsAvailable: value === '' ? undefined : value === 'true' });
@@ -90,21 +93,10 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           <p className={styles.referenceText}>{t('catalogue_import_import_visibility_note')}</p>
         </>
       )}
-      <FormField label={t('catalogue_import_local_price')}>
-        <input
-          type="number"
-          inputMode="decimal"
-          min="0"
-          step="0.01"
-          value={decision.localPrice ?? ''}
-          onChange={(event) =>
-            onDecisionChange({ localPrice: event.target.value === '' ? undefined : Number(event.target.value) })
-          }
-        />
-      </FormField>
       <FormField label={t('catalogue_import_local_ingredients')}>
         <textarea
           value={decision.ingredients?.join(', ') ?? ''}
+          disabled={disabled}
           onChange={(event) => onDecisionChange({ ingredients: toList(event.target.value) })}
           rows={2}
         />
@@ -112,6 +104,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
       <FormField label={t('catalogue_import_local_allergens')}>
         <textarea
           value={decision.allergens?.join(', ') ?? ''}
+          disabled={disabled}
           onChange={(event) => onDecisionChange({ allergens: toList(event.target.value) })}
           rows={2}
         />
@@ -121,6 +114,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           key={field.key}
           label={t(field.label)}
           checked={decision[field.key] === true}
+          disabled={disabled}
           onChange={(checked) => onDecisionChange({ [field.key]: checked })}
         />
       ))}
@@ -135,6 +129,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
                   ? 'inherit'
                   : 'custom'
             }
+            disabled={disabled}
             onChange={(event) => {
               if (event.target.value === 'inherit') onDecisionChange({ availableOrderTypes: null });
               else if (event.target.value === 'custom') onDecisionChange({ availableOrderTypes: [] });
@@ -152,6 +147,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
               key={type}
               label={t(orderTypeLabelKeys[type])}
               checked={decision.availableOrderTypes?.includes(type) ?? false}
+              disabled={disabled}
               onChange={(checked) => {
                 const current = decision.availableOrderTypes ?? [];
                 onDecisionChange({
@@ -166,6 +162,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           <FormField label={t('catalogue_import_kitchen_type')}>
             <select
               value={decision.kitchenType ?? ''}
+              disabled={disabled}
               onChange={(event) =>
                 onDecisionChange({
                   kitchenType: (event.target.value || undefined) as CatalogueImportDecision['kitchenType'],
@@ -183,6 +180,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           <CheckboxField
             label={t('catalogue_import_review_kitchen')}
             checked={decision.kitchenRoutingReviewed === true}
+            disabled={disabled}
             onChange={(checked) => onDecisionChange({ kitchenRoutingReviewed: checked })}
           />
         </>

@@ -8,10 +8,11 @@ import styles from './CatalogueImportWorkspace.module.css';
 
 interface Props {
   readonly preview: CatalogueImportPreview | null;
+  readonly canChooseCandidate: (templateId: string, revision: number) => boolean;
   readonly onChooseCandidate: (templateId: string, revision: number, candidate: { id: string }) => void;
 }
 
-export default function CatalogueImportPreviewReview({ preview, onChooseCandidate }: Props) {
+export default function CatalogueImportPreviewReview({ preview, canChooseCandidate, onChooseCandidate }: Props) {
   const { t } = useTranslation();
   if (!preview) return null;
   const selected = preview.items.filter((item) => item.isSelected);
@@ -33,7 +34,11 @@ export default function CatalogueImportPreviewReview({ preview, onChooseCandidat
               <ul className={styles.candidates}>
                 {item.candidates.map((candidate) => (
                   <li key={`${candidate.entityType}:${candidate.id}`}>
-                    <button type="button" onClick={() => onChooseCandidate(item.templateId, item.revision, candidate)}>
+                    <button
+                      type="button"
+                      disabled={!canChooseCandidate(item.templateId, item.revision)}
+                      onClick={() => onChooseCandidate(item.templateId, item.revision, candidate)}
+                    >
                       {t('catalogue_import_use_candidate', { name: candidate.name, type: candidate.entityType })}
                     </button>
                     <span>{candidate.categoryName ? ` · ${candidate.categoryName}` : ''}</span>

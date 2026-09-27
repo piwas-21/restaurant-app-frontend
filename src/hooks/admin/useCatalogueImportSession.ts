@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   getCatalogueImportSession,
-  getCatalogueRevisionChanges,
   startCatalogueImportSession,
   type CatalogueImportResult,
   type CatalogueImportSession,
-  type CatalogueRevisionChanges,
 } from '@/services/catalogueImportService';
+import { getCatalogueRevisionChanges, type CatalogueRevisionChanges } from '@/services/catalogueRevisionChangeService';
 import { getErrorMessage } from '@/utils/apiClient';
 
 export interface CatalogueImportStartOptions {

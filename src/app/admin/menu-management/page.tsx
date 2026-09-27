@@ -18,6 +18,7 @@ import styles from '@/app/styles/AdminPage.module.css';
 import MenuCreateFlow from '@/components/admin/menu-management/MenuCreateFlow';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
+import MenuCatalogueSuggestions from '@/components/admin/menu-management/MenuCatalogueSuggestions';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import Pagination from '@/components/common/Pagination';
@@ -132,6 +133,7 @@ const MenuManagementContent = () => {
             onDelete={handleDeleteClick}
             typeFilter={typeFilter}
           />
+          <MenuCatalogueSuggestions query={searchQuery} />
 
           {/* Pagination */}
           {!isLoading && totalCount > 0 && (

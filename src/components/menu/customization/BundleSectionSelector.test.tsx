@@ -20,6 +20,9 @@ jest.mock('react-i18next', () => ({
     },
   }),
 }));
+jest.mock('@/hooks/checkout/useEnabledOrderTypes', () => ({
+  useEnabledOrderTypes: () => ({ enabled: ['DineIn', 'Takeaway'], loading: false }),
+}));
 
 const cheese = {
   id: 'cheese',
@@ -195,6 +198,29 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByText('availability_only_for(orderTypes=Takeaway)')).toBeInTheDocument();
   });
 
+  it('does not recommend a channel the restaurant has disabled', () => {
+    const disabledChannelSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Delivery],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: disabledChannelSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+    expect(screen.queryByText(/Delivery only/)).not.toBeInTheDocument();
+  });
+
   it('renders the section error only when one is supplied', () => {
     const { rerender } = render(<BundleSectionSelector {...props()} />);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -319,6 +345,31 @@ describe('BundleSectionSelector', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Cheese/ })).toBeChecked();
+  });
+
+  it('shows an unavailable fixed Plat as disabled when it has no selection control', () => {
+    const fixedPlat: MenuSection = {
+      ...section,
+      name: 'Plat',
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions: [] })} />);
+
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('availability_only_for(orderTypes=Takeaway)').closest('[aria-disabled="true"]'),
+    ).toBeInTheDocument();
   });
 
   it('keeps a genuinely multi-choice Plat as a picker (P3 negative control)', () => {

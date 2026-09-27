@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import type { MenuSectionItem } from '@/types/menu';
+import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
+import { resolveChannelNotice } from '@/utils/channelNotice';
+import { orderTypeListLabel } from '@/utils/orderTypeLabels';
 import styles from './BundleOptionRow.module.css';
 
 interface BundleOptionRowProps {
@@ -15,8 +18,8 @@ interface BundleOptionRowProps {
   isSelected: boolean;
   /** This option cannot be picked because of availability or the section's `maxSelection`. */
   isDisabled: boolean;
-  /** Localized reason when the server says a guest cannot order this option on the chosen channel. */
-  disabledReason?: string;
+  /** Whether guest mode should show the server's reason for an unorderable option. */
+  showAvailabilityReason?: boolean;
   currentLanguage: string;
   onToggle: () => void;
   /**
@@ -50,7 +53,7 @@ export default function BundleOptionRow({
   inputType,
   isSelected,
   isDisabled,
-  disabledReason,
+  showAvailabilityReason = false,
   currentLanguage,
   onToggle,
   onCustomize,
@@ -95,7 +98,9 @@ export default function BundleOptionRow({
         <span className={optionPriceClass}>{optionPriceText}</span>
       </div>
       {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
-      {disabledReason && <div className={styles.ingredients}>{disabledReason}</div>}
+      {showAvailabilityReason && item.availability?.canOrder === false && (
+        <OptionAvailabilityReason availability={item.availability} currentLanguage={currentLanguage} />
+      )}
       {item.allergens && item.allergens.length > 0 && (
         <AllergenDisplay allergens={item.allergens} variant="compact" maxVisible={5} showLabel={false} />
       )}
@@ -105,7 +110,12 @@ export default function BundleOptionRow({
   return (
     <div className={styles.option}>
       {hideSelectionControl ? (
-        <div className={`${styles.row} ${styles.selected}`}>{details}</div>
+        <div
+          className={`${styles.row} ${isSelected ? styles.selected : ''} ${isDisabled ? styles.disabled : ''}`}
+          aria-disabled={isDisabled}
+        >
+          {details}
+        </div>
       ) : (
         <label className={`${styles.row} ${isSelected ? styles.selected : ''} ${isDisabled ? styles.disabled : ''}`}>
           <input
@@ -133,4 +143,45 @@ export default function BundleOptionRow({
       )}
     </div>
   );
+}
+
+function OptionAvailabilityReason({
+  availability,
+  currentLanguage,
+}: {
+  availability: NonNullable<MenuSectionItem['availability']>;
+  currentLanguage: string;
+}) {
+  if (availability.reason !== 'WrongOrderType') return <UnavailableReason />;
+  return <WrongOrderTypeReason availability={availability} currentLanguage={currentLanguage} />;
+}
+
+function UnavailableReason() {
+  const { t } = useTranslation();
+  return <div className={styles.ingredients}>{t('unavailable', 'Unavailable')}</div>;
+}
+
+function WrongOrderTypeReason({
+  availability,
+  currentLanguage,
+}: {
+  availability: NonNullable<MenuSectionItem['availability']>;
+  currentLanguage: string;
+}) {
+  const { t } = useTranslation();
+  const { enabled, loading } = useEnabledOrderTypes();
+  const notice = resolveChannelNotice({
+    allowed: availability.allowedOrderTypes,
+    enabled,
+    orderType: null,
+    canOrder: availability.canOrder,
+  });
+  const orderable = loading ? [] : (notice?.orderable ?? []);
+  const reason = orderable.length
+    ? t('availability_only_for', {
+        orderTypes: orderTypeListLabel(orderable, t, currentLanguage),
+      })
+    : t('unavailable', 'Unavailable');
+
+  return <div className={styles.ingredients}>{reason}</div>;
 }

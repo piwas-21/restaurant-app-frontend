@@ -71,18 +71,22 @@ export function buildBundleOption(sectionId: string, item: MenuSectionItem): Sel
 }
 
 /**
- * The sections' `isDefault` items, capped at each section's `maxSelection`.
+ * The sections' orderable `isDefault` items, capped at each section's `maxSelection`.
  *
  * A Kebab d'Ilhan fixed `Plat` is the one explicit exception: it has exactly one legal choice, so
  * the sheet selects that child even before the tenant-data write marks it default. The selected child
  * is still present in `selectedMenuOptions`; P3 removes only the redundant picker, never the payload.
+ * A server-blocked default is omitted so required-section validation can prevent an invalid add.
  */
 export function buildDefaultBundleSelection(sections: readonly MenuSection[]): SelectedMenuOption[] {
   return sections.flatMap((section) => {
     const items = isFixedPlatSection(section)
       ? section.items.slice(0, 1)
-      : section.items.filter((item) => item.isDefault).slice(0, section.maxSelection);
-    return items.map((item) => buildBundleOption(section.id, item));
+      : section.items.filter((item) => item.isDefault);
+    return items
+      .filter((item) => item.availability?.canOrder !== false)
+      .slice(0, section.maxSelection)
+      .map((item) => buildBundleOption(section.id, item));
   });
 }
 

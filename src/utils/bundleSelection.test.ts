@@ -10,6 +10,7 @@ import {
 } from './bundleSelection';
 import { bundleLineUnitPrice } from './linePrice';
 import type { DetailedIngredient, MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 const ing = (over: Partial<DetailedIngredient> & { id: string }): DetailedIngredient => ({
   name: over.id,
@@ -129,6 +130,32 @@ describe('buildDefaultBundleSelection', () => {
     ];
 
     expect(buildDefaultBundleSelection(sections).map((o) => o.itemId)).toEqual(['a', 'b']);
+  });
+
+  it('omits an unavailable fixed Plat so required-section validation blocks the add', () => {
+    const fixedPlat = section({
+      id: 'plat',
+      name: 'Plat',
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      items: [
+        item({
+          productId: 'burger',
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        }),
+      ],
+    });
+
+    const selected = buildDefaultBundleSelection([fixedPlat]);
+
+    expect(selected).toEqual([]);
+    expect(findBundleSelectionErrors([fixedPlat], selected)).toEqual([{ sectionId: 'plat', minSelection: 1 }]);
   });
 });
 

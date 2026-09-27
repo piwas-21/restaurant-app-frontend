@@ -15,6 +15,7 @@ interface Props {
   readonly entry: OptionSetEntry;
   readonly index: number;
   readonly selectedReferenceAvailable: boolean;
+  readonly isPersistedVariationUnchanged: boolean;
   readonly entryKey: string;
   readonly usedReferences: readonly string[];
   readonly onChange: (patch: Partial<OptionSetEntry>) => void;
@@ -31,6 +32,7 @@ export default function OptionSetEntryRow({
   entry,
   index,
   selectedReferenceAvailable,
+  isPersistedVariationUnchanged,
   entryKey,
   usedReferences,
   onChange,
@@ -45,11 +47,16 @@ export default function OptionSetEntryRow({
   const ingredientSet = kind === 'ingredient' || kind === 'sauce';
   const selectedId = ingredientSet ? (entry.globalIngredientId ?? '') : (entry.productId ?? '');
   const productId = ingredientSet ? undefined : entry.productId;
-  const variations = useOptionSetProductVariations(productId);
+  const [variationsRequested, setVariationsRequested] = React.useState(false);
+  const variations = useOptionSetProductVariations(productId, variationsRequested);
   const selectedVariation = variations.variations.find((variation) => variation.id === entry.productVariationId);
 
   useEffect(() => {
     if (!entry.productVariationId) {
+      onVariationValidityChange(entryKey, true);
+      return;
+    }
+    if (isPersistedVariationUnchanged) {
       onVariationValidityChange(entryKey, true);
       return;
     }
@@ -61,6 +68,7 @@ export default function OptionSetEntryRow({
   }, [
     entry.productVariationId,
     entryKey,
+    isPersistedVariationUnchanged,
     onVariationValidityChange,
     selectedVariation?.isActive,
     variations.isLoading,
@@ -95,6 +103,7 @@ export default function OptionSetEntryRow({
         <FormField label={t('option_set_entry_variation')}>
           <select
             value={entry.productVariationId ?? ''}
+            onFocus={() => setVariationsRequested(true)}
             onChange={(event) => {
               onVariationValidityChange(entryKey, null);
               onChange({ productVariationId: event.target.value || undefined });
@@ -117,9 +126,10 @@ export default function OptionSetEntryRow({
       )}
       {variations.isLoading && <output>{t('option_set_variations_loading')}</output>}
       {variations.error && <p role="alert">{t('option_set_variations_error')}</p>}
-      {entry.productVariationId && !selectedVariation?.isActive && !variations.isLoading && (
-        <p className={styles.unavailable}>{t('option_set_variation_unavailable')}</p>
-      )}
+      {entry.productVariationId &&
+        !isPersistedVariationUnchanged &&
+        !selectedVariation?.isActive &&
+        !variations.isLoading && <p className={styles.unavailable}>{t('option_set_variation_unavailable')}</p>}
       <div className={styles.actions}>
         <button type="button" onClick={() => onMove(-1)} disabled={!canMoveUp} aria-label={t('move_up')}>
           {t('move_up')}

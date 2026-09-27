@@ -11,6 +11,8 @@ import { getCatalogueRevisionChanges, type CatalogueRevisionChanges } from '@/se
 import { getErrorMessage } from '@/utils/apiClient';
 import { createIdempotencyKey } from '@/utils/idempotencyKey';
 
+const CATALOGUE_IMPORT_POLL_INTERVAL_MS = 2_000;
+
 export interface CatalogueImportStartOptions {
   readonly templateId: string;
   readonly revision: number;
@@ -52,6 +54,7 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
 
   const refresh = useCallback(async (sessionId: string) => {
     const loaded = await getCatalogueImportSession(sessionId);
+    setError(null);
     setSession(loaded);
     if (isFinished(loaded.status)) setResult(resultFromSession(loaded));
     return loaded;
@@ -127,18 +130,29 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
 
   useEffect(() => {
     if (session?.status !== 'Importing') return;
-    const timer = window.setTimeout(() => {
-      void refresh(session.sessionId)
-        .then((loaded) => {
-          if (isFinished(loaded.status)) {
-            return refreshRevisionChanges(session.sessionId);
-          }
-          return undefined;
-        })
-        .catch(() => undefined);
-    }, 2000);
-    return () => window.clearTimeout(timer);
-  }, [refresh, refreshRevisionChanges, session]);
+    const sessionId = session.sessionId;
+    let active = true;
+    let timer: number | undefined;
+    const poll = async () => {
+      try {
+        const loaded = await refresh(sessionId);
+        if (!active) return;
+        if (isFinished(loaded.status)) {
+          await refreshRevisionChanges(sessionId);
+          return;
+        }
+      } catch (pollError) {
+        if (!active) return;
+        setError(getErrorMessage(pollError) ?? 'catalogue_import_load_error');
+      }
+      if (active) timer = window.setTimeout(() => void poll(), CATALOGUE_IMPORT_POLL_INTERVAL_MS);
+    };
+    timer = window.setTimeout(() => void poll(), CATALOGUE_IMPORT_POLL_INTERVAL_MS);
+    return () => {
+      active = false;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [refresh, refreshRevisionChanges, session?.sessionId, session?.status]);
 
   return {
     session,

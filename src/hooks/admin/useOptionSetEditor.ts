@@ -2,22 +2,20 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
+import type { LanguageCode } from '@/config/languageConfig';
 import { createOptionSet, getOptionSet, updateOptionSet } from '@/services/optionSetService';
 import { getErrorMessage } from '@/utils/apiClient';
 import type { OptionSetDetail, OptionSetEntry, OptionSetKind } from '@/types/optionSet';
 import {
+  areOptionSetReferencesValid,
+  areOptionSetVariationsValid,
   buildOptionSetWriteRequest,
   createEmptyOptionSetEntry,
   isValidOptionSetDraft,
   moveOptionSetEntry,
+  optionSetLocaleOrDefault,
 } from '@/utils/optionSetEditorModel';
 import { useOptionSetReferences } from './useOptionSetReferences';
-
-function localeOrDefault(value: string): LanguageCode {
-  const locale = value.split('-')[0];
-  return LANGUAGE_CODES.includes(locale as LanguageCode) ? (locale as LanguageCode) : 'en';
-}
 
 export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   const { i18n } = useTranslation();
@@ -25,7 +23,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   const [kind, setKind] = useState<OptionSetKind | ''>(initialKind ?? '');
   const [name, setName] = useState('');
   const [sourceLocale, setSourceLocale] = useState<LanguageCode>(() =>
-    localeOrDefault(i18n.resolvedLanguage ?? i18n.language),
+    optionSetLocaleOrDefault(i18n.resolvedLanguage ?? i18n.language),
   );
   const [translations, setTranslations] = useState<Partial<Record<LanguageCode, string>>>({});
   const [entries, setEntries] = useState<OptionSetEntry[]>([]);
@@ -36,7 +34,8 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   const [isDirty, setIsDirty] = useState(false);
   const [variationValidity, setVariationValidity] = useState<Record<string, boolean | null>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const references = useOptionSetReferences(kind, entries);
+  const references = useOptionSetReferences(kind, entries, detail?.kind === kind ? detail.entries : []);
+  const resetConfirmedReferences = references.resetConfirmed;
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -45,10 +44,11 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     setErrorMessage(null);
     try {
       const loaded = await getOptionSet(id);
+      resetConfirmedReferences();
       setDetail(loaded);
       setKind(loaded.kind);
       setName(loaded.name);
-      setSourceLocale(localeOrDefault(loaded.sourceLocale ?? 'en'));
+      setSourceLocale(optionSetLocaleOrDefault(loaded.sourceLocale ?? 'en'));
       setTranslations(loaded.translations ?? {});
       setEntries(loaded.entries);
       setVariationValidity({});
@@ -59,7 +59,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     } finally {
       setIsLoadingDetail(false);
     }
-  }, [id]);
+  }, [id, resetConfirmedReferences]);
 
   useEffect(() => {
     void loadDetail();
@@ -92,11 +92,15 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     setSaved(false);
     setIsDirty(true);
   }, []);
-  const updateKind = useCallback((value: OptionSetKind | '') => {
-    setKind(value);
-    setSaved(false);
-    setIsDirty(true);
-  }, []);
+  const updateKind = useCallback(
+    (value: OptionSetKind | '') => {
+      resetConfirmedReferences();
+      setKind(value);
+      setSaved(false);
+      setIsDirty(true);
+    },
+    [resetConfirmedReferences],
+  );
   const updateSourceLocale = useCallback((value: LanguageCode) => {
     setSourceLocale(value);
     setSaved(false);
@@ -108,24 +112,13 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     setIsDirty(true);
   }, []);
   const markReferenceVerified = references.markReferenceVerified;
-  const isReferenceAvailable = references.isReferenceAvailable;
   const markVariationValidity = useCallback((entryKey: string, valid: boolean | null) => {
     setVariationValidity((current) => (current[entryKey] === valid ? current : { ...current, [entryKey]: valid }));
   }, []);
-  const referenceIsAvailable = useCallback(
-    (referenceKind: OptionSetKind, referenceId: string) => isReferenceAvailable(referenceKind, referenceId),
-    [isReferenceAvailable],
-  );
+  const referenceIsAvailable = references.isReferenceAvailable;
 
-  const referencesAreValid = kind
-    ? entries.every((entry) => {
-        const referenceId = kind === 'ingredient' || kind === 'sauce' ? entry.globalIngredientId : entry.productId;
-        return Boolean(referenceId && referenceIsAvailable(kind, referenceId));
-      })
-    : false;
-  const variationsAreValid = entries.every(
-    (entry, index) => !entry.productVariationId || variationValidity[entry.id ?? `new-${index}`] === true,
-  );
+  const referencesAreValid = areOptionSetReferencesValid(kind, entries, referenceIsAvailable);
+  const variationsAreValid = areOptionSetVariationsValid(entries, variationValidity);
 
   const save = useCallback(async () => {
     if (!kind || !isValidOptionSetDraft(kind, name, entries) || !referencesAreValid || !variationsAreValid) return null;
@@ -140,10 +133,11 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
       const updated = detail
         ? await updateOptionSet(detail.id, detail.version, request)
         : await createOptionSet(request);
+      resetConfirmedReferences();
       setDetail(updated);
       setKind(updated.kind);
       setName(updated.name);
-      setSourceLocale(localeOrDefault(updated.sourceLocale ?? sourceLocale));
+      setSourceLocale(optionSetLocaleOrDefault(updated.sourceLocale ?? sourceLocale));
       setTranslations(updated.translations ?? localized);
       setEntries(updated.entries);
       setVariationValidity({});
@@ -157,7 +151,17 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     } finally {
       setIsSaving(false);
     }
-  }, [detail, entries, kind, name, referencesAreValid, sourceLocale, translations, variationsAreValid]);
+  }, [
+    detail,
+    entries,
+    kind,
+    name,
+    resetConfirmedReferences,
+    referencesAreValid,
+    sourceLocale,
+    translations,
+    variationsAreValid,
+  ]);
 
   return {
     detail,
@@ -170,8 +174,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     translations,
     setTranslation,
     entries,
-    isLoading: isLoadingDetail || references.isLoading,
-    referencesError: references.error,
+    isLoading: isLoadingDetail,
     error,
     errorMessage,
     saved,
@@ -182,8 +185,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
       isValidOptionSetDraft(kind, name, entries) &&
       referencesAreValid &&
       variationsAreValid &&
-      !isLoadingDetail &&
-      !references.isLoading,
+      !isLoadingDetail,
     ),
     addEntry,
     updateEntry,
@@ -194,6 +196,5 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     referenceIsAvailable,
     save,
     reload: loadDetail,
-    reloadReferences: references.reload,
   };
 }

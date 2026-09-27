@@ -1,5 +1,31 @@
 import type { OptionSetDetail, OptionSetEntry, OptionSetKind, OptionSetWriteRequest } from '@/types/optionSet';
-import type { LanguageCode } from '@/config/languageConfig';
+import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
+
+export function optionSetLocaleOrDefault(value: string): LanguageCode {
+  const locale = value.split('-')[0];
+  return LANGUAGE_CODES.includes(locale as LanguageCode) ? (locale as LanguageCode) : 'en';
+}
+
+export function areOptionSetReferencesValid(
+  kind: OptionSetKind | '',
+  entries: readonly OptionSetEntry[],
+  isReferenceAvailable: (kind: OptionSetKind, id: string, entryId?: string) => boolean,
+): boolean {
+  return Boolean(
+    kind &&
+    entries.every((entry) => {
+      const id = kind === 'ingredient' || kind === 'sauce' ? entry.globalIngredientId : entry.productId;
+      return Boolean(id && isReferenceAvailable(kind, id, entry.id));
+    }),
+  );
+}
+
+export function areOptionSetVariationsValid(
+  entries: readonly OptionSetEntry[],
+  validity: Readonly<Record<string, boolean | null>>,
+): boolean {
+  return entries.every((entry, index) => !entry.productVariationId || validity[entry.id ?? `new-${index}`] === true);
+}
 
 export function createEmptyOptionSetEntry(displayOrder: number): OptionSetEntry {
   return {

@@ -23,15 +23,17 @@ function readData<T>(response: OptionSetApiResponse<T>): T {
   return response.data;
 }
 
-export async function searchOptionSets(filters: OptionSetListFilters = {}): Promise<OptionSetPage> {
+export async function searchOptionSets(
+  filters: OptionSetListFilters = {},
+  signal?: AbortSignal,
+): Promise<OptionSetPage> {
   const query = new URLSearchParams();
   if (filters.kind) query.set('kind', filters.kind);
   if (filters.query?.trim()) query.set('q', filters.query.trim());
   if (filters.cursor) query.set('cursor', filters.cursor);
   query.set('limit', String(filters.limit ?? 24));
-  return readData(
-    await apiClient.get<OptionSetApiResponse<OptionSetPage>>(`${API}?${query.toString()}`, { requireAuth: true }),
-  );
+  const options = { requireAuth: true, ...(signal ? { signal } : {}) };
+  return readData(await apiClient.get<OptionSetApiResponse<OptionSetPage>>(`${API}?${query.toString()}`, options));
 }
 
 export async function getOptionSet(id: string): Promise<OptionSetDetail> {

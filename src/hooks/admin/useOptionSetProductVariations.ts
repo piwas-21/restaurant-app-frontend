@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { getOptionSetProductVariations, type OptionSetProductVariation } from '@/services/optionSetReferenceService';
 
-export function useOptionSetProductVariations(productId?: string) {
+export function useOptionSetProductVariations(productId?: string, enabled = true) {
   const [variations, setVariations] = useState<OptionSetProductVariation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!productId) {
+    if (!productId || !enabled) {
       setVariations([]);
       setIsLoading(false);
       setError(false);
@@ -30,7 +30,7 @@ export function useOptionSetProductVariations(productId?: string) {
         if (!controller.signal.aborted) setIsLoading(false);
       });
     return () => controller.abort();
-  }, [productId]);
+  }, [enabled, productId]);
 
   return { variations, isLoading, error };
 }

@@ -64,14 +64,6 @@ export default function OptionSetEditorWorkspace({
       </PageHeader>
       {editor.detail && <p className={styles.notice}>{t('option_set_version', { version: editor.detail.version })}</p>}
       <p className={styles.notice}>{t('option_sets_description')}</p>
-      {editor.referencesError && (
-        <p role="alert" className={styles.error}>
-          {t('option_set_load_error')}{' '}
-          <button type="button" onClick={() => void editor.reloadReferences()}>
-            {t('retry')}
-          </button>
-        </p>
-      )}
       <form className={styles.form} onSubmit={(event) => void save(event)}>
         <FormField label={t('option_set_name')}>
           <input
@@ -146,6 +138,15 @@ export default function OptionSetEditorWorkspace({
                 .map((value) => value.slice(value.indexOf(':') + 1));
               const referenceId =
                 editor.kind === 'ingredient' || editor.kind === 'sauce' ? entry.globalIngredientId : entry.productId;
+              const originalEntry = editor.detail?.entries.find((candidate) => candidate.id === entry.id);
+              const isPersistedVariationUnchanged = Boolean(
+                editor.kind &&
+                editor.detail?.kind === editor.kind &&
+                entry.id &&
+                originalEntry &&
+                originalEntry.productId === entry.productId &&
+                originalEntry.productVariationId === entry.productVariationId,
+              );
               return (
                 <li key={entry.id ?? `new-${index}`}>
                   <OptionSetEntryRow
@@ -153,8 +154,10 @@ export default function OptionSetEditorWorkspace({
                     entry={entry}
                     index={index}
                     entryKey={entry.id ?? `new-${index}`}
+                    isPersistedVariationUnchanged={isPersistedVariationUnchanged}
                     selectedReferenceAvailable={
-                      !referenceId || Boolean(editor.kind && editor.referenceIsAvailable(editor.kind, referenceId))
+                      !referenceId ||
+                      Boolean(editor.kind && editor.referenceIsAvailable(editor.kind, referenceId, entry.id))
                     }
                     usedReferences={usedReferences}
                     onChange={(patch) => editor.updateEntry(index, patch)}

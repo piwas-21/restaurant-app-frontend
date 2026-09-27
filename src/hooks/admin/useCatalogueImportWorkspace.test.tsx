@@ -132,6 +132,8 @@ describe('useCatalogueImportWorkspace', () => {
     (applyCatalogueRevisionChanges as jest.Mock).mockResolvedValue({});
   });
 
+  afterEach(() => jest.useRealTimers());
+
   it('pins the requested revision, persists offer exclusions and checks blockers before import', async () => {
     (previewCatalogueImport as jest.Mock).mockResolvedValue({
       ...preview,
@@ -292,5 +294,26 @@ describe('useCatalogueImportWorkspace', () => {
     expect(result.current.revisionChanges).toEqual(emptyChanges);
     expect(result.current.revisionChangesState.status).toBe('loaded');
     expect(result.current.revisionChangesState.error).toBeNull();
+  });
+
+  it('surfaces a polling failure and retries the session refresh', async () => {
+    const importing: CatalogueImportSession = { ...session, status: 'Importing' };
+    const imported: CatalogueImportSession = { ...session, status: 'Imported' };
+    (getCatalogueImportSession as jest.Mock)
+      .mockResolvedValueOnce(importing)
+      .mockRejectedValueOnce(new Error('temporary status outage'))
+      .mockResolvedValueOnce(imported);
+    jest.useFakeTimers();
+    const { result } = renderHook(() => useCatalogueImportWorkspace({ ...options, sessionId: 'session-1' }));
+
+    await waitFor(() => expect(result.current.session?.status).toBe('Importing'));
+    await act(async () => jest.advanceTimersByTimeAsync(2_000));
+    expect(result.current.error).toBe('catalogue_import_load_error');
+
+    await act(async () => jest.advanceTimersByTimeAsync(2_000));
+
+    expect(result.current.session?.status).toBe('Imported');
+    expect(result.current.error).toBeNull();
+    expect(getCatalogueImportSession).toHaveBeenCalledTimes(3);
   });
 });

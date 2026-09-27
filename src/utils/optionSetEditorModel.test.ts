@@ -1,8 +1,11 @@
 import {
+  areOptionSetReferencesValid,
+  areOptionSetVariationsValid,
   buildOptionSetWriteRequest,
   createEmptyOptionSetEntry,
   isValidOptionSetDraft,
   moveOptionSetEntry,
+  optionSetLocaleOrDefault,
 } from './optionSetEditorModel';
 
 describe('optionSetEditorModel', () => {
@@ -49,5 +52,23 @@ describe('optionSetEditorModel', () => {
       ['b', 0],
       ['a', 1],
     ]);
+  });
+
+  it('validates persisted references and selected product variations by entry ID', () => {
+    const entry = { ...createEmptyOptionSetEntry(0), id: 'entry-1', globalIngredientId: 'ingredient-1' };
+    const isAvailable = jest.fn(() => true);
+
+    expect(areOptionSetReferencesValid('ingredient', [entry], isAvailable)).toBe(true);
+    expect(isAvailable).toHaveBeenCalledWith('ingredient', 'ingredient-1', 'entry-1');
+    expect(areOptionSetReferencesValid('', [entry], isAvailable)).toBe(false);
+    expect(areOptionSetVariationsValid([{ ...entry, productVariationId: 'variation-1' }], { 'entry-1': true })).toBe(
+      true,
+    );
+    expect(areOptionSetVariationsValid([{ ...entry, productVariationId: 'variation-1' }], {})).toBe(false);
+  });
+
+  it('normalizes regional locales and falls back to English for unsupported locales', () => {
+    expect(optionSetLocaleOrDefault('fr-CH')).toBe('fr');
+    expect(optionSetLocaleOrDefault('unsupported')).toBe('en');
   });
 });

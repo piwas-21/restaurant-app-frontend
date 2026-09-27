@@ -1,73 +1,36 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { MenuAuthoringCandidate } from '@/types/menuAuthoringSearch';
 import type { OptionSetEntry, OptionSetKind } from '@/types/optionSet';
-import { isOptionSetReferenceAvailable } from '@/services/optionSetReferenceService';
-
-const REFERENCE_CHECK_CONCURRENCY = 4;
 
 function referenceId(kind: OptionSetKind, entry: OptionSetEntry): string | undefined {
   return kind === 'ingredient' || kind === 'sauce' ? entry.globalIngredientId : entry.productId;
 }
 
-export function useOptionSetReferences(kind: OptionSetKind | '', entries: readonly OptionSetEntry[]) {
-  const [availability, setAvailability] = useState<Record<string, boolean>>({});
+function existingReferenceKey(kind: OptionSetKind, entry: OptionSetEntry): string | undefined {
+  const id = referenceId(kind, entry);
+  return entry.id && id ? `${entry.id}:${kind}:${id}` : undefined;
+}
+
+export function useOptionSetReferences(
+  kind: OptionSetKind | '',
+  entries: readonly OptionSetEntry[],
+  originalEntries: readonly OptionSetEntry[] = [],
+) {
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [reloadCount, setReloadCount] = useState(0);
+  const referenceKeys = useCallback(
+    (rows: readonly OptionSetEntry[]) =>
+      rows.flatMap((entry) => {
+        const key = kind ? existingReferenceKey(kind, entry) : undefined;
+        return key ? [key] : [];
+      }),
+    [kind],
+  );
+  const existingReferences = useMemo(() => new Set(referenceKeys(originalEntries)), [originalEntries, referenceKeys]);
+  const currentReferences = useMemo(() => new Set(referenceKeys(entries)), [entries, referenceKeys]);
 
-  const references = useMemo(() => {
-    if (!kind) return [];
-    return [...new Set(entries.map((entry) => referenceId(kind, entry)).filter((id): id is string => Boolean(id)))];
-  }, [entries, kind]);
-  const referenceKey = references.join('|');
-  const reload = useCallback(() => setReloadCount((count) => count + 1), []);
-
-  useEffect(() => {
-    if (!kind || referenceKey.length === 0) {
-      setIsLoading(false);
-      setError(false);
-      return;
-    }
-    let active = true;
-    const selectedReferences = referenceKey ? referenceKey.split('|') : [];
-    setIsLoading(true);
-    setError(false);
-    const check = async () => {
-      const next: Record<string, boolean> = {};
-      let failed = false;
-      for (let index = 0; index < selectedReferences.length; index += REFERENCE_CHECK_CONCURRENCY) {
-        const batch = selectedReferences.slice(index, index + REFERENCE_CHECK_CONCURRENCY);
-        const results = await Promise.all(
-          batch.map(async (id) => {
-            try {
-              return [id, await isOptionSetReferenceAvailable(kind, id)] as const;
-            } catch (_referenceError) {
-              /* Intentionally report availability as false and expose the aggregate retry state. */
-              failed = true;
-              return [id, false] as const;
-            }
-          }),
-        );
-        results.forEach(([id, isAvailable]) => {
-          next[`${kind}:${id}`] = isAvailable;
-        });
-      }
-      if (active) {
-        setAvailability((current) => ({ ...current, ...next }));
-        setError(failed);
-        setIsLoading(false);
-      }
-    };
-    void check();
-    return () => {
-      active = false;
-    };
-    // The joined key tracks only selected canonical IDs; name and price edits do not refetch.
-  }, [kind, referenceKey, reloadCount]);
-
+  const resetConfirmed = useCallback(() => setConfirmed({}), []);
   const markReferenceVerified = useCallback((referenceKind: OptionSetKind, candidate: MenuAuthoringCandidate) => {
     let matchesKind: boolean;
     if (referenceKind === 'ingredient' || referenceKind === 'sauce') {
@@ -84,10 +47,14 @@ export function useOptionSetReferences(kind: OptionSetKind | '', entries: readon
   }, []);
 
   const isReferenceAvailable = useCallback(
-    (referenceKind: OptionSetKind, id: string) =>
-      confirmed[`${referenceKind}:${id}`] ?? availability[`${referenceKind}:${id}`] ?? false,
-    [availability, confirmed],
+    (referenceKind: OptionSetKind, id: string, entryId?: string) => {
+      const key = `${entryId}:${referenceKind}:${id}`;
+      const isUnchangedSavedReference =
+        referenceKind === kind && entryId !== undefined && existingReferences.has(key) && currentReferences.has(key);
+      return isUnchangedSavedReference || (confirmed[`${referenceKind}:${id}`] ?? false);
+    },
+    [confirmed, currentReferences, existingReferences, kind],
   );
 
-  return { isLoading, error, isReferenceAvailable, markReferenceVerified, reload };
+  return { isReferenceAvailable, markReferenceVerified, resetConfirmed };
 }

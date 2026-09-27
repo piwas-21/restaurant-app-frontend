@@ -3103,6 +3103,7 @@
   "catalogue_preferences_title": "Cuisine preferences",
   "catalogue_preferences_intro": "Choose cuisines to filter or rank catalogue suggestions. This never selects items for import.",
   "catalogue_preferences_add_label": "Cuisine name",
+  "catalogue_preferences_invalid": "Enter a cuisine using letters or numbers.",
   "catalogue_preferences_add": "Add cuisine",
   "catalogue_preferences_selected": "Selected cuisines",
   "catalogue_preferences_remove": "Remove {{cuisine}}",
@@ -3206,6 +3207,7 @@
   "option_set_save": "Save option set",
   "option_set_saving": "Saving…",
   "option_set_save_error": "The option set could not be saved. Reload and resolve any version conflict.",
+  "option_set_validation_error": "Complete the required set and choice fields before saving.",
   "option_set_save_success": "Option set saved.",
   "option_set_entry_reference": "Canonical reference",
   "option_set_entry_name": "Local choice name",
@@ -3326,7 +3328,5 @@
   "select_option": "Select an option",
   "catalogue_revision_adopted_withdrawn": "The adopted revision was withdrawn. Review the current revision before applying any fields.",
   "catalogue_revision_unavailable": "No current published revision",
-  "catalogue_preferences_invalid": "Enter a cuisine using letters or numbers.",
-  "option_set_validation_error": "Complete the required set and choice fields before saving.",
   "catalogue_revision_changes_load_error": "Could not load template revision updates. Retry to check for withdrawal or update notices."
 }

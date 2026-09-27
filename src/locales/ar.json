@@ -3139,6 +3139,7 @@
   "catalogue_preferences_title": "تفضيلات المطبخ",
   "catalogue_preferences_intro": "اختر المطابخ لتصفية الاقتراحات أو ترتيبها. لا يؤدي ذلك إلى تحديد عناصر للاستيراد.",
   "catalogue_preferences_add_label": "اسم المطبخ",
+  "catalogue_preferences_invalid": "أدخل نوع مطبخ باستخدام الحروف أو الأرقام.",
   "catalogue_preferences_add": "إضافة مطبخ",
   "catalogue_preferences_selected": "المطابخ المحددة",
   "catalogue_preferences_remove": "إزالة {{cuisine}}",
@@ -3242,6 +3243,7 @@
   "option_set_save": "حفظ مجموعة الخيارات",
   "option_set_saving": "جارٍ الحفظ…",
   "option_set_save_error": "تعذر حفظ المجموعة. أعد تحميلها وحل تعارض الإصدار.",
+  "option_set_validation_error": "أكمل حقول المجموعة والخيارات المطلوبة قبل الحفظ.",
   "option_set_save_success": "تم حفظ مجموعة الخيارات.",
   "option_set_entry_reference": "المرجع الأساسي",
   "option_set_entry_name": "اسم الخيار المحلي",
@@ -3362,7 +3364,5 @@
   "select_option": "اختر خيارًا",
   "catalogue_revision_adopted_withdrawn": "تم سحب الإصدار المعتمد. راجع الإصدار الحالي قبل تطبيق أي حقول.",
   "catalogue_revision_unavailable": "لا توجد مراجعة منشورة حالية",
-  "catalogue_preferences_invalid": "أدخل نوع مطبخ باستخدام الحروف أو الأرقام.",
-  "option_set_validation_error": "أكمل حقول المجموعة والخيارات المطلوبة قبل الحفظ.",
   "catalogue_revision_changes_load_error": "تعذّر تحميل تحديثات القالب. أعد المحاولة للتحقق من إشعارات السحب أو التحديث."
 }

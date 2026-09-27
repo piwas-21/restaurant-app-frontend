@@ -3112,6 +3112,7 @@
   "catalogue_preferences_title": "Préférences culinaires",
   "catalogue_preferences_intro": "Choisissez des cuisines pour filtrer ou classer les suggestions. Cela ne sélectionne jamais d’articles à importer.",
   "catalogue_preferences_add_label": "Nom de cuisine",
+  "catalogue_preferences_invalid": "Saisissez une cuisine avec des lettres ou des chiffres.",
   "catalogue_preferences_add": "Ajouter une cuisine",
   "catalogue_preferences_selected": "Cuisines sélectionnées",
   "catalogue_preferences_remove": "Supprimer {{cuisine}}",
@@ -3215,6 +3216,7 @@
   "option_set_save": "Enregistrer le groupe",
   "option_set_saving": "Enregistrement…",
   "option_set_save_error": "Impossible d’enregistrer le groupe. Rechargez-le et résolvez tout conflit de version.",
+  "option_set_validation_error": "Renseignez les champs obligatoires du groupe et des choix avant l’enregistrement.",
   "option_set_save_success": "Groupe d’options enregistré.",
   "option_set_entry_reference": "Référence canonique",
   "option_set_entry_name": "Nom local du choix",
@@ -3335,7 +3337,5 @@
   "select_option": "Sélectionner une option",
   "catalogue_revision_adopted_withdrawn": "La révision adoptée a été retirée. Vérifiez la révision actuelle avant d’appliquer des champs.",
   "catalogue_revision_unavailable": "Aucune révision publiée actuelle",
-  "catalogue_preferences_invalid": "Saisissez une cuisine avec des lettres ou des chiffres.",
-  "option_set_validation_error": "Renseignez les champs obligatoires du groupe et des choix avant l’enregistrement.",
   "catalogue_revision_changes_load_error": "Impossible de charger les mises à jour du modèle. Réessayez pour vérifier les avis de retrait ou de mise à jour."
 }

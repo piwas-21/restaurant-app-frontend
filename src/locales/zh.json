@@ -3094,6 +3094,7 @@
   "catalogue_preferences_title": "菜系偏好",
   "catalogue_preferences_intro": "选择菜系以筛选或排序目录建议；这不会自动选择要导入的项目。",
   "catalogue_preferences_add_label": "菜系名称",
+  "catalogue_preferences_invalid": "请使用字母或数字输入菜系名称。",
   "catalogue_preferences_add": "添加菜系",
   "catalogue_preferences_selected": "已选菜系",
   "catalogue_preferences_remove": "移除 {{cuisine}}",
@@ -3197,6 +3198,7 @@
   "option_set_save": "保存选项组",
   "option_set_saving": "正在保存…",
   "option_set_save_error": "无法保存选项组。请重新加载并解决版本冲突。",
+  "option_set_validation_error": "保存前请填写选项组和选项的必填字段。",
   "option_set_save_success": "选项组已保存。",
   "option_set_entry_reference": "规范引用",
   "option_set_entry_name": "本地选项名称",
@@ -3317,7 +3319,5 @@
   "select_option": "选择一个选项",
   "catalogue_revision_adopted_withdrawn": "已撤回采用的修订版本。应用任何字段前，请先检查当前版本。",
   "catalogue_revision_unavailable": "没有当前已发布的修订版本",
-  "catalogue_preferences_invalid": "请使用字母或数字输入菜系名称。",
-  "option_set_validation_error": "保存前请填写选项组和选项的必填字段。",
   "catalogue_revision_changes_load_error": "无法加载模板更新。请重试以检查撤回或更新通知。"
 }

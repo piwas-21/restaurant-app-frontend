@@ -3103,6 +3103,7 @@
   "catalogue_preferences_title": "Küchenpräferenzen",
   "catalogue_preferences_intro": "Wählen Sie Küchen aus, um Vorschläge zu filtern oder zu sortieren. Dadurch werden keine Importartikel ausgewählt.",
   "catalogue_preferences_add_label": "Name der Küche",
+  "catalogue_preferences_invalid": "Geben Sie eine Küche mit Buchstaben oder Zahlen ein.",
   "catalogue_preferences_add": "Küche hinzufügen",
   "catalogue_preferences_selected": "Ausgewählte Küchen",
   "catalogue_preferences_remove": "{{cuisine}} entfernen",
@@ -3206,6 +3207,7 @@
   "option_set_save": "Optionsgruppe speichern",
   "option_set_saving": "Wird gespeichert…",
   "option_set_save_error": "Optionsgruppe konnte nicht gespeichert werden. Laden Sie sie neu und lösen Sie Versionskonflikte.",
+  "option_set_validation_error": "Füllen Sie vor dem Speichern die erforderlichen Gruppen- und Auswahlfelder aus.",
   "option_set_save_success": "Optionsgruppe gespeichert.",
   "option_set_entry_reference": "Kanonische Referenz",
   "option_set_entry_name": "Lokaler Optionsname",
@@ -3326,7 +3328,5 @@
   "select_option": "Option auswählen",
   "catalogue_revision_adopted_withdrawn": "Die übernommene Revision wurde zurückgezogen. Prüfen Sie die aktuelle Revision, bevor Sie Felder übernehmen.",
   "catalogue_revision_unavailable": "Keine aktuelle veröffentlichte Revision",
-  "catalogue_preferences_invalid": "Geben Sie eine Küche mit Buchstaben oder Zahlen ein.",
-  "option_set_validation_error": "Füllen Sie vor dem Speichern die erforderlichen Gruppen- und Auswahlfelder aus.",
   "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen."
 }

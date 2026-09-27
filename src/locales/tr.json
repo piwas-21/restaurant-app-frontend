@@ -3103,6 +3103,7 @@
   "catalogue_preferences_title": "Mutfak tercihleri",
   "catalogue_preferences_intro": "Katalog önerilerini filtrelemek veya sıralamak için mutfakları seçin. Bu seçimler içe aktarılacak ürünleri belirlemez.",
   "catalogue_preferences_add_label": "Mutfak adı",
+  "catalogue_preferences_invalid": "Harf veya sayı kullanarak bir mutfak adı girin.",
   "catalogue_preferences_add": "Mutfak ekle",
   "catalogue_preferences_selected": "Seçilen mutfaklar",
   "catalogue_preferences_remove": "{{cuisine}} mutfağını kaldır",
@@ -3206,6 +3207,7 @@
   "option_set_save": "Seçenek grubunu kaydet",
   "option_set_saving": "Kaydediliyor…",
   "option_set_save_error": "Seçenek grubu kaydedilemedi. Yeniden yükleyin ve sürüm çakışmasını çözün.",
+  "option_set_validation_error": "Kaydetmeden önce gerekli grup ve seçenek alanlarını doldurun.",
   "option_set_save_success": "Seçenek grubu kaydedildi.",
   "option_set_entry_reference": "Asıl kayıt",
   "option_set_entry_name": "Yerel seçenek adı",
@@ -3326,7 +3328,5 @@
   "select_option": "Seçenek belirleyin",
   "catalogue_revision_adopted_withdrawn": "Benimsenen revizyon geri çekildi. Alanları uygulamadan önce güncel revizyonu inceleyin.",
   "catalogue_revision_unavailable": "Güncel yayımlanmış revizyon yok",
-  "catalogue_preferences_invalid": "Harf veya sayı kullanarak bir mutfak adı girin.",
-  "option_set_validation_error": "Kaydetmeden önce gerekli grup ve seçenek alanlarını doldurun.",
   "catalogue_revision_changes_load_error": "Şablon güncellemeleri yüklenemedi. Geri çekilme veya güncelleme bildirimlerini kontrol etmek için yeniden deneyin."
 }

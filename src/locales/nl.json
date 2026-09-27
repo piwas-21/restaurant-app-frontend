@@ -3103,6 +3103,7 @@
   "catalogue_preferences_title": "Keukenvoorkeuren",
   "catalogue_preferences_intro": "Kies keukens om suggesties te filteren of te rangschikken. Dit selecteert nooit items voor import.",
   "catalogue_preferences_add_label": "Keukennaam",
+  "catalogue_preferences_invalid": "Voer een keuken in met letters of cijfers.",
   "catalogue_preferences_add": "Keuken toevoegen",
   "catalogue_preferences_selected": "Geselecteerde keukens",
   "catalogue_preferences_remove": "{{cuisine}} verwijderen",
@@ -3206,6 +3207,7 @@
   "option_set_save": "Optiegroep opslaan",
   "option_set_saving": "Opslaan…",
   "option_set_save_error": "De optiegroep kon niet worden opgeslagen. Laad opnieuw en los versieconflicten op.",
+  "option_set_validation_error": "Vul de verplichte groep- en keuzevelden in voordat je opslaat.",
   "option_set_save_success": "Optiegroep opgeslagen.",
   "option_set_entry_reference": "Canonieke verwijzing",
   "option_set_entry_name": "Lokale keuzenaam",
@@ -3326,7 +3328,5 @@
   "select_option": "Selecteer een optie",
   "catalogue_revision_adopted_withdrawn": "De overgenomen revisie is ingetrokken. Controleer de huidige revisie voordat je velden toepast.",
   "catalogue_revision_unavailable": "Geen actuele gepubliceerde revisie",
-  "catalogue_preferences_invalid": "Voer een keuken in met letters of cijfers.",
-  "option_set_validation_error": "Vul de verplichte groep- en keuzevelden in voordat je opslaat.",
   "catalogue_revision_changes_load_error": "De sjabloonupdates konden niet worden geladen. Probeer opnieuw om meldingen over intrekking of updates te controleren."
 }

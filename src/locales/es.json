@@ -3112,6 +3112,7 @@
   "catalogue_preferences_title": "Preferencias de cocina",
   "catalogue_preferences_intro": "Elige cocinas para filtrar u ordenar las sugerencias. Esto nunca selecciona elementos para importar.",
   "catalogue_preferences_add_label": "Nombre de cocina",
+  "catalogue_preferences_invalid": "Introduce una cocina con letras o números.",
   "catalogue_preferences_add": "Añadir cocina",
   "catalogue_preferences_selected": "Cocinas seleccionadas",
   "catalogue_preferences_remove": "Quitar {{cuisine}}",
@@ -3215,6 +3216,7 @@
   "option_set_save": "Guardar grupo de opciones",
   "option_set_saving": "Guardando…",
   "option_set_save_error": "No se pudo guardar el grupo. Vuelve a cargarlo y resuelve los conflictos de versión.",
+  "option_set_validation_error": "Completa los campos obligatorios del grupo y sus opciones antes de guardar.",
   "option_set_save_success": "Grupo de opciones guardado.",
   "option_set_entry_reference": "Referencia canónica",
   "option_set_entry_name": "Nombre local de la opción",
@@ -3335,7 +3337,5 @@
   "select_option": "Selecciona una opción",
   "catalogue_revision_adopted_withdrawn": "Se retiró la revisión adoptada. Revisa la revisión actual antes de aplicar campos.",
   "catalogue_revision_unavailable": "No hay una revisión publicada actual",
-  "catalogue_preferences_invalid": "Introduce una cocina con letras o números.",
-  "option_set_validation_error": "Completa los campos obligatorios del grupo y sus opciones antes de guardar.",
   "catalogue_revision_changes_load_error": "No se pudieron cargar las actualizaciones de la plantilla. Vuelve a intentarlo para revisar los avisos de retirada o actualización."
 }

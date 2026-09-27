@@ -10,6 +10,7 @@ import OptionSetEditorWorkspace from './OptionSetEditorWorkspace';
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn() }) }));
 jest.mock('@/hooks/admin/useOptionSetEditor', () => ({ useOptionSetEditor: () => mockEditorState }));
+jest.mock('./OptionSetEntryRow', () => () => null);
 jest.mock('@/services/translationWorkbenchService', () => ({
   translationWorkbenchService: { preview: jest.fn(), suggest: jest.fn(), review: jest.fn() },
 }));
@@ -24,7 +25,20 @@ const savedDetail: OptionSetDetail = {
   version: 2,
   entryCount: 0,
   attachmentCount: 0,
-  entries: [],
+  entries: [
+    {
+      name: 'Garlic sauce',
+      displayOrder: 0,
+      globalIngredientId: 'ingredient-1',
+      isOptional: true,
+      maxQuantity: 1,
+      price: 0,
+      isIncludedInBasePrice: false,
+      isRequired: false,
+      additionalPrice: 0,
+      isDefault: false,
+    },
+  ],
   attachments: [],
 };
 const mockSave = jest.fn();
@@ -39,7 +53,20 @@ const mockEditorState = {
   setSourceLocale: jest.fn(),
   translations: { en: 'Garlic sauce' },
   setTranslation: mockSetTranslation,
-  entries: [],
+  entries: [
+    {
+      name: 'Garlic sauce',
+      displayOrder: 0,
+      globalIngredientId: 'ingredient-1',
+      isOptional: true,
+      maxQuantity: 1,
+      price: 0,
+      isIncludedInBasePrice: false,
+      isRequired: false,
+      additionalPrice: 0,
+      isDefault: false,
+    },
+  ],
   isLoading: false,
   referencesError: null,
   error: null,

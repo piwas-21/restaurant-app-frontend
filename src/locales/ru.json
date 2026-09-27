@@ -3121,6 +3121,7 @@
   "catalogue_preferences_title": "Предпочтения по кухне",
   "catalogue_preferences_intro": "Выберите кухни для фильтрации или сортировки предложений. Это не выбирает элементы для импорта.",
   "catalogue_preferences_add_label": "Название кухни",
+  "catalogue_preferences_invalid": "Введите кухню, используя буквы или цифры.",
   "catalogue_preferences_add": "Добавить кухню",
   "catalogue_preferences_selected": "Выбранные кухни",
   "catalogue_preferences_remove": "Удалить: {{cuisine}}",
@@ -3224,6 +3225,7 @@
   "option_set_save": "Сохранить группу вариантов",
   "option_set_saving": "Сохранение…",
   "option_set_save_error": "Не удалось сохранить группу. Перезагрузите её и разрешите конфликт версий.",
+  "option_set_validation_error": "Заполните обязательные поля группы и вариантов перед сохранением.",
   "option_set_save_success": "Группа вариантов сохранена.",
   "option_set_entry_reference": "Основная ссылка",
   "option_set_entry_name": "Локальное название варианта",
@@ -3344,7 +3346,5 @@
   "select_option": "Выберите вариант",
   "catalogue_revision_adopted_withdrawn": "Принятая редакция отозвана. Проверьте текущую редакцию перед применением полей.",
   "catalogue_revision_unavailable": "Нет текущей опубликованной редакции",
-  "catalogue_preferences_invalid": "Введите кухню, используя буквы или цифры.",
-  "option_set_validation_error": "Заполните обязательные поля группы и вариантов перед сохранением.",
   "catalogue_revision_changes_load_error": "Не удалось загрузить обновления шаблона. Повторите попытку, чтобы проверить уведомления об отзыве или обновлении."
 }

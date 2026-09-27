@@ -214,7 +214,8 @@ describe('ProductEditorPage — the panels each kind can actually support', () =
     await renderEditor(bundle, true);
 
     expect(screen.getByText('menu_availability_schedule')).toBeInTheDocument();
-    expect(screen.getByText('menu_sections')).toBeInTheDocument();
+    const itemPanel = screen.getByRole('tabpanel', { name: 'item' });
+    expect(within(itemPanel).getByText('menu_sections')).toBeInTheDocument();
     expect(screen.queryByText('categories')).not.toBeInTheDocument();
     expect(screen.queryByText('product_variations')).not.toBeInTheDocument();
   });

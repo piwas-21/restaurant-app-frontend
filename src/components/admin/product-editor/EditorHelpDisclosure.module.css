@@ -46,7 +46,6 @@
   border-radius: 0.5rem;
   background: var(--surface-card);
   color: var(--text-primary);
-  box-shadow: var(--modal-shadow);
 }
 
 .content p {

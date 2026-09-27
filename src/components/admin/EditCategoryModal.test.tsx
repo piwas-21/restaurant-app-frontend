@@ -5,6 +5,8 @@ import { updateCategory, uploadCategoryImage, reorderCategory } from '@/services
 import { ApiError } from '@/utils/apiClient';
 import type { LanguageCode } from '@/config/languageConfig';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { translationWorkbenchService } from '@/services/translationWorkbenchService';
+import type { TranslationWorkbenchRequest } from '@/services/translationWorkbenchService';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -23,10 +25,33 @@ jest.mock('@/services/categoryService', () => ({
   uploadCategoryImage: jest.fn(async () => ({ success: true })),
   reorderCategory: jest.fn(async () => ({ success: true })),
 }));
+jest.mock('@/services/translationWorkbenchService', () => ({
+  translationWorkbenchService: { preview: jest.fn(), suggest: jest.fn(), review: jest.fn() },
+}));
 
 const mockUpdateCategory = updateCategory as jest.Mock;
 const mockUploadCategoryImage = uploadCategoryImage as jest.Mock;
 const mockReorderCategory = reorderCategory as jest.Mock;
+const workbench = translationWorkbenchService as jest.Mocked<typeof translationWorkbenchService>;
+
+function stubCategorySuggestions(request: TranslationWorkbenchRequest) {
+  return {
+    suggestions: [
+      {
+        suggestionId: 'suggestion-edit-category-de',
+        fieldRef: request.fields[0].fieldRef,
+        locale: 'de' as const,
+        sourceHash: 'category-source-hash',
+        text: 'Vorspeisen',
+        provider: 'stub',
+        model: 'stub',
+        status: 'suggested' as const,
+      },
+    ],
+    skipped: [],
+    providerStatus: 'ready' as const,
+  };
+}
 
 // 6 = takeaway|delivery, the restriction the client asked for on Dürüm.
 const category: {
@@ -38,6 +63,7 @@ const category: {
   availableOrderTypes?: number | null;
   translations: { fr: { name: string; description?: string }; nl: { name: string } };
   sourceLocale: LanguageCode | null;
+  translationMetadata?: { expectedContentVersion?: string };
 } = {
   id: 'c1',
   name: 'Dürüm Wraps',
@@ -71,6 +97,30 @@ beforeEach(() => {
   mockUpdateCategory.mockResolvedValue({ success: true });
   mockUploadCategoryImage.mockResolvedValue({ success: true });
   mockReorderCategory.mockResolvedValue({ success: true });
+  workbench.preview.mockImplementation(async (request) => ({
+    rows: request.fields.map((field) => ({
+      fieldRef: field.fieldRef,
+      sourceLocale: field.sourceLocale,
+      sourceHash: 'category-source-hash',
+      sourceText: field.sourceText,
+      targets: LANGUAGE_CODES.map((locale) => ({
+        locale,
+        status: locale === field.sourceLocale ? 'sourceCopy' : 'missing',
+        text: locale === field.sourceLocale ? field.sourceText : null,
+      })),
+    })),
+  }));
+  workbench.suggest.mockImplementation(async (request) => stubCategorySuggestions(request));
+  workbench.review.mockResolvedValue({
+    decisions: [
+      {
+        suggestionId: 'suggestion-edit-category-de',
+        decision: 'accept',
+        status: 'accepted',
+        text: 'Vorspeisen',
+      },
+    ],
+  });
 });
 
 describe('EditCategoryModal — order-type availability', () => {
@@ -177,6 +227,39 @@ describe('EditCategoryModal — order-type availability', () => {
       fr: { name: 'Crêpes farcies', description: 'Galettes farcies' },
       nl: { name: 'Gevulde pannenkoeken' },
     });
+  });
+
+  it('saves category workbench acceptance with the server content version', async () => {
+    renderModal({
+      sourceLocale: 'fr',
+      translationMetadata: { expectedContentVersion: 'category-content-v4' },
+    });
+    fireEvent.click(screen.getByText('translation_review_title', { selector: 'summary' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'translation_review_suggest_missing' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'translation_review_suggest_missing' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'translation_review_accept_field' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'translation_review_accept_field' }));
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(workbench.review).toHaveBeenCalledWith([
+      { suggestionId: 'suggestion-edit-category-de', decision: 'accept' },
+    ]);
+    expect(mockUpdateCategory.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        sourceLocale: 'fr',
+        translations: expect.objectContaining({ de: expect.objectContaining({ name: 'Vorspeisen' }) }),
+        translationMetadata: {
+          sourceLocales: { name: 'fr', description: 'fr' },
+          acceptedSuggestionIds: { 'name.de': 'suggestion-edit-category-de' },
+          expectedContentVersion: 'category-content-v4',
+        },
+      }),
+    );
   });
 });
 

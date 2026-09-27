@@ -76,6 +76,25 @@ describe('buildReviewedTranslationOutcome', () => {
     expect(outcome.staleCount).toBe(1);
   });
 
+  it('does not overwrite a target locale edited after the review snapshot', () => {
+    const changedField: TranslationReviewField = {
+      ...field,
+      slot: { ...field.slot, translations: { fr: 'Texte saisi à la main' } },
+    };
+    const outcome = buildReviewedTranslationOutcome({
+      decisions: [{ suggestionId: 'suggestion-1', decision: 'accept', status: 'accepted' }],
+      selected: [suggestion],
+      requestedFields: [field],
+      currentFields: [changedField],
+      previewRows: [previewRow],
+      acceptedIds: {},
+    });
+
+    expect(outcome.changes).toEqual([]);
+    expect(outcome.acceptedIds).toEqual({});
+    expect(outcome.staleCount).toBe(1);
+  });
+
   it('does not apply a reviewed suggestion after the translation context changes', () => {
     const snapshotField: TranslationReviewField = {
       ...field,

@@ -54,6 +54,8 @@ function sourceStillCurrent(
     snapshot.input.sourceText === current.input.sourceText &&
     snapshot.input.sourceLocale === current.input.sourceLocale &&
     sameContext(snapshot.input.context, current.input.context) &&
+    (snapshot.slot.translations[entry.suggestion.locale] ?? null) ===
+      (current.slot.translations[entry.suggestion.locale] ?? null) &&
     (snapshot.slot.translations[entry.suggestion.locale] ?? null) === (target.text ?? null) &&
     entry.suggestion.sourceHash === preview.sourceHash,
   );

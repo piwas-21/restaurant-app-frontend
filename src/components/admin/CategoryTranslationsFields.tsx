@@ -16,6 +16,7 @@ interface CategoryTranslationsFieldsProps {
   initialTranslations?: CategoryTranslations;
   initialSourceLocale?: string | null;
   createMode?: boolean;
+  onTranslationChange?: () => void;
 }
 
 function firstEditableLocale(translations: CategoryTranslations, sourceLocale?: string | null): LanguageCode {
@@ -33,6 +34,7 @@ export default function CategoryTranslationsFields({
   initialTranslations = {},
   initialSourceLocale,
   createMode = false,
+  onTranslationChange,
 }: CategoryTranslationsFieldsProps) {
   const { t } = useTranslation();
   const sourceLocale = useWatch({ control, name: 'sourceLocale' });
@@ -93,7 +95,7 @@ export default function CategoryTranslationsFields({
         })}
         error={errors.translations?.[selectedTargetLocale]?.name?.message}
       >
-        <input {...register(namePath)} />
+        <input {...register(namePath, { onChange: onTranslationChange })} />
       </FormField>
       <FormField
         label={t('editor_translations_target_field', {
@@ -102,7 +104,7 @@ export default function CategoryTranslationsFields({
         })}
         error={errors.translations?.[selectedTargetLocale]?.description?.message}
       >
-        <textarea {...register(descriptionPath)} />
+        <textarea {...register(descriptionPath, { onChange: onTranslationChange })} />
       </FormField>
     </fieldset>
   );

@@ -27,9 +27,9 @@ export function createTranslationMetadataPatch(
     const { input, slot } = field;
     const ref = input.fieldRef;
     let owner = product;
-    if (slot.ref.target === 'variation') owner = variations[slot.ref.index] ??= emptyOwner();
-    else if (slot.ref.target === 'ingredient') owner = ingredients[slot.ref.index] ??= emptyOwner();
-    else if (slot.ref.target === 'menuSection') owner = menuSections[slot.ref.index] ??= emptyOwner();
+    if (slot.ref?.target === 'variation') owner = variations[slot.ref.index] ??= emptyOwner();
+    else if (slot.ref?.target === 'ingredient') owner = ingredients[slot.ref.index] ??= emptyOwner();
+    else if (slot.ref?.target === 'menuSection') owner = menuSections[slot.ref.index] ??= emptyOwner();
     owner.sourceLocales[ref.fieldKey] = input.sourceLocale;
 
     for (const locale of LANGUAGE_CODES) {

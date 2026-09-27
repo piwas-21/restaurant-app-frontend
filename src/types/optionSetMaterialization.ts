@@ -5,10 +5,10 @@ export type OptionSetApplyStatus = 'applied' | 'unchanged' | 'conflict';
 export type OptionSetRowAction = 'add' | 'update' | 'remove' | 'preserve';
 
 export interface OptionSetTargetSettings {
-  readonly minSelection?: number;
-  readonly maxSelection?: number;
-  readonly includedFree?: number;
-  readonly displayOrder?: number;
+  readonly minSelection?: number | null;
+  readonly maxSelection?: number | null;
+  readonly includedFree?: number | null;
+  readonly displayOrder?: number | null;
   /** Explicitly clears the stored maximum for sauce attachments. */
   readonly clearMaxSelection?: boolean;
 }
@@ -69,6 +69,9 @@ export interface OptionSetTargetPreview {
   readonly currentCustomizationGroupVersion?: number;
   readonly conflicts: OptionSetMaterializationConflict[];
   readonly changes: OptionSetMaterializationChange[];
+  readonly currentSettings: OptionSetTargetSettings;
+  readonly proposedSettings: OptionSetTargetSettings;
+  readonly changedSettings: readonly string[];
 }
 
 export interface OptionSetMaterializationPreview {

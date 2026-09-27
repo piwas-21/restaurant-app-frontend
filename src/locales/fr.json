@@ -3299,6 +3299,7 @@
   "option_set_change_remove": "Retirer",
   "option_set_change_preserve": "Conserver la valeur locale",
   "option_set_no_field_changes": "Aucun champ modifié",
+  "option_set_setting_diff": "{{setting}} : {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Champs locaux conservés : {{fields}}",
   "option_set_preview_action": "Prévisualiser les cibles sélectionnées",
   "option_set_apply_action": "Appliquer les cibles prêtes",

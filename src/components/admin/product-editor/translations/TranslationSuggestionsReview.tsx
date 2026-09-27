@@ -9,8 +9,30 @@ import { directionFor } from '@/lib/textDirection';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import styles from './TranslationSuggestionsReview.module.css';
 
+type Review = ReturnType<typeof useEditorTranslationReview>;
+type ReviewPanelState = Pick<
+  Review,
+  | 'phase'
+  | 'entries'
+  | 'providerStatus'
+  | 'pendingLocales'
+  | 'manualReviewCount'
+  | 'alternativeTargets'
+  | 'error'
+  | 'staleCount'
+  | 'unknownSourceLocaleFields'
+  | 'acceptAll'
+  | 'suggestAlternative'
+  | 'setSourceLocaleFor'
+  | 'suggestMissing'
+  | 'edit'
+  | 'decide'
+> &
+  Partial<Pick<Review, 'errorMessage' | 'reviewWriteErrorMessage'>>;
+
 interface TranslationSuggestionsReviewProps {
-  readonly review: ReturnType<typeof useEditorTranslationReview>;
+  readonly review: ReviewPanelState;
+  readonly showSourceLocaleChoices?: boolean;
 }
 
 const decisionKey = {
@@ -27,7 +49,10 @@ const decisionTone = {
   rejected: 'warning',
 } as const;
 
-export default function TranslationSuggestionsReview({ review }: TranslationSuggestionsReviewProps) {
+export default function TranslationSuggestionsReview({
+  review,
+  showSourceLocaleChoices = true,
+}: TranslationSuggestionsReviewProps) {
   const { t } = useTranslation();
   const { phase, entries, providerStatus, pendingLocales, manualReviewCount, alternativeTargets, error, staleCount } =
     review;
@@ -93,23 +118,24 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
           <output className={styles.warning}>
             {t('translation_review_source_locale_missing', { count: review.unknownSourceLocaleFields.length })}
           </output>
-          {review.unknownSourceLocaleFields.map((field) => {
-            const label = field.slot.source
-              ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
-              : t(field.slot.fieldLabel);
-            return (
-              <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
-                <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
-                  <option value="">{t('translation_review_source_locale_required')}</option>
-                  {LANGUAGE_CODES.map((locale) => (
-                    <option key={locale} value={locale}>
-                      {getLanguageNativeName(locale)}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            );
-          })}
+          {showSourceLocaleChoices &&
+            review.unknownSourceLocaleFields.map((field) => {
+              const label = field.slot.source
+                ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
+                : t(field.slot.fieldLabel);
+              return (
+                <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
+                  <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
+                    <option value="">{t('translation_review_source_locale_required')}</option>
+                    {LANGUAGE_CODES.map((locale) => (
+                      <option key={locale} value={locale}>
+                        {getLanguageNativeName(locale)}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              );
+            })}
         </section>
       )}
       {providerStatus === 'disabled' && (

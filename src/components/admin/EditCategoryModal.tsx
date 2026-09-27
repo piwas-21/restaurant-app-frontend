@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { categoryFormSchema, type CategoryFormInputValues, type CategoryFormValues } from './categoryFormSchema';
 import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
 import CategoryTranslationsFields from './CategoryTranslationsFields';
+import TranslationSuggestionsReview from './product-editor/translations/TranslationSuggestionsReview';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
@@ -11,6 +12,8 @@ import { type SetCategoryError } from '@/lib/categoryFormErrors';
 import { useEditCategorySave } from '@/hooks/admin/useEditCategorySave';
 import type { CategoryTranslations } from '@/types/categoryTranslations';
 import type { LanguageCode } from '@/config/languageConfig';
+import type { TranslationMetadata } from '@/types/translationMetadata';
+import { useCategoryTranslationReview } from '@/hooks/admin/useCategoryTranslationReview';
 
 /** @see categoryFormSchema — one object for both modals, so they cannot drift (#642). */
 export const editCategorySchema = categoryFormSchema;
@@ -28,6 +31,7 @@ interface Category {
   displayOrder: number;
   /** Raw OrderChannels mask; `null` = every order type. Shown read-only, echoed back on save. */
   availableOrderTypes?: number | null;
+  translationMetadata?: TranslationMetadata;
 }
 
 interface EditCategoryModalProps {
@@ -54,6 +58,8 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     formState: { errors },
     setError,
     reset,
+    getValues,
+    setValue,
   } = useForm<CategoryFormInputValues, unknown, EditCategoryFormValues>({
     resolver: zodResolver(editCategorySchema),
   });
@@ -62,6 +68,14 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   const setFormError: SetCategoryError = (field, message) => setError(field, { type: 'manual', message });
   // The three-request save (update -> reorder -> image) and its partial-success accounting.
   const { save, isSubmitting } = useEditCategorySave(category, setFormError, onPartialSuccess);
+  const translationReview = useCategoryTranslationReview({
+    isOpen,
+    categoryId: category?.id,
+    expectedContentVersion: category?.translationMetadata?.expectedContentVersion,
+    control,
+    getValues,
+    setValue,
+  });
 
   useEffect(() => {
     if (category) {
@@ -79,7 +93,12 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
 
   const onSubmit = async (data: EditCategoryFormValues) => {
     setError('root', { message: '' });
-    const saved = await save(data, data.imageFile?.[0]);
+    if (!(await translationReview.review.submitDecisions())) return;
+    const saved = await save(
+      getValues() as EditCategoryFormValues,
+      data.imageFile?.[0],
+      translationReview.review.buildMetadataPatch(),
+    );
     if (!saved) return;
     onCategoryUpdated();
     onClose();
@@ -110,7 +129,12 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
             errors={errors}
             initialTranslations={category.translations ?? {}}
             initialSourceLocale={category.sourceLocale}
+            onTranslationChange={translationReview.review.clearAcceptedSuggestionIds}
           />
+          <details onToggle={translationReview.onToggle}>
+            <summary>{t('translation_review_title')}</summary>
+            <TranslationSuggestionsReview review={translationReview.review} showSourceLocaleChoices={false} />
+          </details>
           <div className={styles.formGroup}>
             <label htmlFor="imageFile">{t('category_image_edit')}</label>
             <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />

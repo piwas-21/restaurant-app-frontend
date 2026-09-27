@@ -3290,6 +3290,7 @@
   "option_set_change_remove": "Kaldır",
   "option_set_change_preserve": "Yerel değeri koru",
   "option_set_no_field_changes": "Alan değişikliği yok",
+  "option_set_setting_diff": "{{setting}} ayarı: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Korunan yerel alanlar: {{fields}}",
   "option_set_preview_action": "Seçili hedefleri önizle",
   "option_set_apply_action": "Hazır hedefleri uygula",

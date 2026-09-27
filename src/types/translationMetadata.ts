@@ -25,6 +25,10 @@ export interface LocalizedOwnerMetadataInput {
   readonly acceptedSuggestionIds: Readonly<Record<string, string>>;
 }
 
+export type TranslationOwnerMetadataWrite = LocalizedOwnerMetadataInput & {
+  readonly expectedContentVersion?: string;
+};
+
 export interface EditorTranslationMetadataPatch {
   readonly product: LocalizedOwnerMetadataInput & { readonly expectedContentVersion?: string };
   readonly variations: Readonly<Record<number, LocalizedOwnerMetadataInput>>;

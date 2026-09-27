@@ -1,4 +1,5 @@
 import type { OptionSetDetail, OptionSetEntry, OptionSetKind, OptionSetWriteRequest } from '@/types/optionSet';
+import type { TranslationOwnerMetadataWrite } from '@/types/translationMetadata';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 
 export function optionSetLocaleOrDefault(value: string): LanguageCode {
@@ -25,6 +26,21 @@ export function areOptionSetVariationsValid(
   validity: Readonly<Record<string, boolean | null>>,
 ): boolean {
   return entries.every((entry, index) => !entry.productVariationId || validity[entry.id ?? `new-${index}`] === true);
+}
+
+export function isOptionSetDraftSavable(
+  kind: OptionSetKind | '',
+  name: string,
+  entries: readonly OptionSetEntry[],
+  isReferenceAvailable: (kind: OptionSetKind, id: string, entryId?: string) => boolean,
+  variationValidity: Readonly<Record<string, boolean | null>>,
+): boolean {
+  return (
+    Boolean(kind) &&
+    isValidOptionSetDraft(kind, name, entries) &&
+    areOptionSetReferencesValid(kind, entries, isReferenceAvailable) &&
+    areOptionSetVariationsValid(entries, variationValidity)
+  );
 }
 
 export function createEmptyOptionSetEntry(displayOrder: number): OptionSetEntry {
@@ -68,6 +84,7 @@ export function buildOptionSetWriteRequest(
   detail?: OptionSetDetail | null,
   sourceLocale: LanguageCode = 'en',
   translations: Readonly<Record<string, string>> = {},
+  translationMetadata?: TranslationOwnerMetadataWrite,
 ): OptionSetWriteRequest {
   const isIngredientKind = kind === 'ingredient' || kind === 'sauce';
   return {
@@ -75,6 +92,7 @@ export function buildOptionSetWriteRequest(
     name: name.trim(),
     sourceLocale,
     translations: { ...translations, [sourceLocale]: name.trim() },
+    ...(translationMetadata ? { translationMetadata } : {}),
     ...(detail ? { status: detail.status } : {}),
     entries: entries.map((entry, displayOrder) => ({
       ...(entry.id ? { id: entry.id } : {}),

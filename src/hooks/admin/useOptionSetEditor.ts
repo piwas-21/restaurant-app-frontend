@@ -6,12 +6,11 @@ import type { LanguageCode } from '@/config/languageConfig';
 import { createOptionSet, getOptionSet, updateOptionSet } from '@/services/optionSetService';
 import { getErrorMessage } from '@/utils/apiClient';
 import type { OptionSetDetail, OptionSetEntry, OptionSetKind } from '@/types/optionSet';
+import type { TranslationOwnerMetadataWrite } from '@/types/translationMetadata';
 import {
-  areOptionSetReferencesValid,
-  areOptionSetVariationsValid,
   buildOptionSetWriteRequest,
   createEmptyOptionSetEntry,
-  isValidOptionSetDraft,
+  isOptionSetDraftSavable,
   moveOptionSetEntry,
   optionSetLocaleOrDefault,
 } from '@/utils/optionSetEditorModel';
@@ -117,51 +116,53 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   }, []);
   const referenceIsAvailable = references.isReferenceAvailable;
 
-  const referencesAreValid = areOptionSetReferencesValid(kind, entries, referenceIsAvailable);
-  const variationsAreValid = areOptionSetVariationsValid(entries, variationValidity);
+  const canSaveDraft = isOptionSetDraftSavable(kind, name, entries, referenceIsAvailable, variationValidity);
 
-  const save = useCallback(async () => {
-    if (!kind || !isValidOptionSetDraft(kind, name, entries) || !referencesAreValid || !variationsAreValid) return null;
-    setIsSaving(true);
-    setError(null);
-    setErrorMessage(null);
-    try {
-      const localized: Record<string, string> = Object.fromEntries(
-        Object.entries({ ...translations, [sourceLocale]: name.trim() }).filter(([, value]) => Boolean(value?.trim())),
-      );
-      const request = buildOptionSetWriteRequest(kind, name, entries, detail, sourceLocale, localized);
-      const updated = detail
-        ? await updateOptionSet(detail.id, detail.version, request)
-        : await createOptionSet(request);
-      resetConfirmedReferences();
-      setDetail(updated);
-      setKind(updated.kind);
-      setName(updated.name);
-      setSourceLocale(optionSetLocaleOrDefault(updated.sourceLocale ?? sourceLocale));
-      setTranslations(updated.translations ?? localized);
-      setEntries(updated.entries);
-      setVariationValidity({});
-      setSaved(true);
-      setIsDirty(false);
-      return updated;
-    } catch (saveError) {
-      setError('save');
-      setErrorMessage(getErrorMessage(saveError));
-      return null;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    detail,
-    entries,
-    kind,
-    name,
-    resetConfirmedReferences,
-    referencesAreValid,
-    sourceLocale,
-    translations,
-    variationsAreValid,
-  ]);
+  const save = useCallback(
+    async (translationMetadata?: TranslationOwnerMetadataWrite) => {
+      if (!kind || !canSaveDraft) return null;
+      setIsSaving(true);
+      setError(null);
+      setErrorMessage(null);
+      try {
+        const localized: Record<string, string> = Object.fromEntries(
+          Object.entries({ ...translations, [sourceLocale]: name.trim() }).filter(([, value]) =>
+            Boolean(value?.trim()),
+          ),
+        );
+        const request = buildOptionSetWriteRequest(
+          kind,
+          name,
+          entries,
+          detail,
+          sourceLocale,
+          localized,
+          translationMetadata,
+        );
+        const updated = detail
+          ? await updateOptionSet(detail.id, detail.version, request)
+          : await createOptionSet(request);
+        resetConfirmedReferences();
+        setDetail(updated);
+        setKind(updated.kind);
+        setName(updated.name);
+        setSourceLocale(optionSetLocaleOrDefault(updated.sourceLocale ?? sourceLocale));
+        setTranslations(updated.translations ?? localized);
+        setEntries(updated.entries);
+        setVariationValidity({});
+        setSaved(true);
+        setIsDirty(false);
+        return updated;
+      } catch (saveError) {
+        setError('save');
+        setErrorMessage(getErrorMessage(saveError));
+        return null;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [detail, entries, kind, name, canSaveDraft, resetConfirmedReferences, sourceLocale, translations],
+  );
 
   return {
     detail,
@@ -180,13 +181,7 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     saved,
     isDirty,
     isSaving,
-    canSave: Boolean(
-      kind &&
-      isValidOptionSetDraft(kind, name, entries) &&
-      referencesAreValid &&
-      variationsAreValid &&
-      !isLoadingDetail,
-    ),
+    canSave: Boolean(canSaveDraft && !isLoadingDetail),
     addEntry,
     updateEntry,
     removeEntry,

@@ -4,7 +4,8 @@ import type { TranslationProvenance } from '@/types/translationMetadata';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import { apiClient } from '@/utils/apiClient';
 
-export type TranslationEntityType = 'product' | 'productIngredient' | 'productVariation' | 'menuSection' | 'optionSet';
+export type TranslationEntityType =
+  'product' | 'productIngredient' | 'productVariation' | 'menuSection' | 'optionSet' | 'category';
 export type TranslationFieldKey = 'name' | 'description';
 export type TranslationGenerationIntent = 'saveReview' | 'explicitFill' | 'explicitAlternative';
 export type TranslationTargetStatusCode = 'missing' | 'current' | 'stale' | 'sourceCopy';

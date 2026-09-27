@@ -183,6 +183,7 @@ export interface Category {
   description?: string | null;
   translations?: CategoryTranslations;
   sourceLocale?: LanguageCode | null;
+  translationMetadata?: TranslationMetadata;
   isActive: boolean;
   /** Orderable on its own tab but left out of the guest "All" list (`CategoryDto.IsHiddenFromAllTab`). */
   isHiddenFromAllTab?: boolean;

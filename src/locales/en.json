@@ -3290,6 +3290,7 @@
   "option_set_change_remove": "Remove",
   "option_set_change_preserve": "Preserve local value",
   "option_set_no_field_changes": "No field changes",
+  "option_set_setting_diff": "{{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Preserved local fields: {{fields}}",
   "option_set_preview_action": "Preview selected targets",
   "option_set_apply_action": "Apply ready targets",

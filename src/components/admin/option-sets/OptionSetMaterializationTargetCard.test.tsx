@@ -4,7 +4,12 @@ import type { OptionSetEntry } from '@/types/optionSet';
 import type { OptionSetMaterializationTarget } from '@/utils/optionSetMaterialization';
 import OptionSetMaterializationTargetCard from './OptionSetMaterializationTargetCard';
 
-jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, values?: Record<string, unknown>) =>
+      key === 'option_set_setting_diff' ? `${values?.setting}: ${values?.current} → ${values?.proposed}` : key,
+  }),
+}));
 
 const target: OptionSetMaterializationTarget = {
   targetKey: 'ingredient:product-1:root',
@@ -91,5 +96,36 @@ describe('OptionSetMaterializationTargetCard', () => {
     fireEvent.change(screen.getByLabelText('maximum_selection'), { target: { value: '2' } });
 
     expect(onUpdate).toHaveBeenCalledWith({ settings: { maxSelection: 2 } });
+  });
+
+  it('shows attachment setting changes even when no entry rows changed', () => {
+    render(
+      <OptionSetMaterializationTargetCard
+        target={target}
+        kind="ingredient"
+        entries={entries}
+        preview={{
+          optionSetId: 'set-1',
+          setVersion: 2,
+          relatedOfferWarnings: [],
+          targets: [
+            {
+              targetKey: target.targetKey,
+              targetProductId: target.targetProductId,
+              status: 'ready',
+              conflicts: [],
+              changes: [],
+              currentSettings: { minSelection: 0, maxSelection: 1, includedFree: 0 },
+              proposedSettings: { minSelection: 1, maxSelection: 2, includedFree: 0 },
+              changedSettings: ['minSelection', 'maxSelection'],
+            },
+          ],
+        }}
+        onUpdate={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('minimum_selection: 0 → 1')).toBeInTheDocument();
+    expect(screen.getByText('maximum_selection: 1 → 2')).toBeInTheDocument();
   });
 });

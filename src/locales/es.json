@@ -3299,6 +3299,7 @@
   "option_set_change_remove": "Quitar",
   "option_set_change_preserve": "Conservar valor local",
   "option_set_no_field_changes": "Sin cambios en campos",
+  "option_set_setting_diff": "Configuración de {{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Campos locales conservados: {{fields}}",
   "option_set_preview_action": "Previsualizar destinos seleccionados",
   "option_set_apply_action": "Aplicar destinos listos",

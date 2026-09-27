@@ -1,4 +1,5 @@
 import type { LanguageCode } from '@/config/languageConfig';
+import type { TranslationMetadata, TranslationOwnerMetadataWrite } from './translationMetadata';
 
 export const OPTION_SET_KINDS = ['ingredient', 'sauce', 'bundleChoice', 'suggestedSide'] as const;
 export type OptionSetKind = (typeof OPTION_SET_KINDS)[number];
@@ -60,6 +61,7 @@ export interface OptionSetSummary {
 export interface OptionSetDetail extends OptionSetSummary {
   readonly sourceLocale?: LanguageCode;
   readonly translations?: Record<string, string>;
+  readonly translationMetadata?: TranslationMetadata;
   readonly entries: OptionSetEntry[];
   readonly attachments: OptionSetAttachment[];
 }
@@ -74,6 +76,7 @@ export interface OptionSetWriteRequest {
   readonly name: string;
   readonly sourceLocale: LanguageCode;
   readonly translations: Record<string, string>;
+  readonly translationMetadata?: TranslationOwnerMetadataWrite;
   readonly status?: OptionSetStatus;
   readonly entries: OptionSetEntry[];
 }

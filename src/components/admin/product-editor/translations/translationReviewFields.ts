@@ -23,7 +23,12 @@ type EditorSource = Pick<
 
 export interface TranslationReviewField {
   readonly input: TranslationFieldInput;
-  readonly slot: TranslationSlot;
+  /** Snapshot fields shared by product and simple-owner review flows. */
+  readonly slot: Pick<TranslationSlot, 'key' | 'fieldLabel' | 'source' | 'translations'> & {
+    readonly group?: TranslationSlot['group'];
+    readonly multiline?: boolean;
+    readonly ref?: TranslationSlot['ref'];
+  };
   readonly sourceLocaleKnown: boolean;
 }
 

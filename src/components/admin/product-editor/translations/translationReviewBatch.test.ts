@@ -96,6 +96,59 @@ describe('loadTranslationSuggestionBatch', () => {
     );
   });
 
+  it.each(['manual', 'legacyUnknown'] as const)(
+    'requests an alternative for one existing %s field and locale only',
+    async (kind) => {
+      const client = adapter([
+        {
+          ...status(field),
+          targets: [{ locale: 'fr', status: 'current', text: 'Boulettes grillées', provenance: { kind } }],
+        },
+      ]);
+
+      await loadTranslationSuggestionBatch([field], client, 'explicitAlternative', ['fr']);
+
+      expect(client.preview).toHaveBeenCalledWith({
+        generationIntent: 'explicitAlternative',
+        targetLocales: ['fr'],
+        fields: [field],
+      });
+      expect(client.suggest).toHaveBeenCalledWith({
+        generationIntent: 'explicitAlternative',
+        targetLocales: ['fr'],
+        fields: [field],
+      });
+    },
+  );
+
+  it('revisits a tracked stale translation on ordinary Save even when the source is unchanged', async () => {
+    const client = adapter([
+      {
+        ...status(field),
+        targets: [
+          {
+            locale: 'tr',
+            status: 'current',
+            text: field.sourceText,
+            provenance: { kind: 'tenantSource', sourceHash: 'source-hash' },
+          },
+          {
+            locale: 'fr',
+            status: 'stale',
+            text: 'Ancienne traduction',
+            provenance: { kind: 'ai', sourceHash: 'source-hash' },
+          },
+        ],
+      },
+    ]);
+
+    await loadTranslationSuggestionBatch([field], client, 'saveReview');
+
+    expect(client.suggest).toHaveBeenCalledWith(
+      expect.objectContaining({ generationIntent: 'saveReview', fields: [field] }),
+    );
+  });
+
   it('does not call either endpoint when there are no visible source fields', async () => {
     const client = adapter();
 

@@ -80,6 +80,43 @@
   background: var(--surface-primary);
 }
 
+.alternatives {
+  display: grid;
+  gap: 0.6rem;
+  margin-block-start: 0.75rem;
+}
+
+.alternatives h4,
+.alternatives > p,
+.alternativeLabel {
+  margin: 0;
+}
+
+.alternatives h4 {
+  font-size: 0.9375rem;
+}
+
+.alternatives > p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.alternative {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border-light);
+  border-radius: 0.625rem;
+  background: var(--surface-card);
+}
+
+.alternativeLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 .list {
   display: grid;
   gap: 0.75rem;
@@ -116,5 +153,10 @@
 
   .cardHeading {
     align-items: flex-start;
+  }
+
+  .alternative {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

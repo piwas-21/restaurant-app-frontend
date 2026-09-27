@@ -30,6 +30,7 @@ function uniqueFields(fields: readonly TranslationFieldInput[]): TranslationFiel
 
 function shouldSuggestOnSave(field: TranslationFieldInput, row: TranslationFieldStatus): boolean {
   if (field.fieldRef.clientKey) return true;
+  if (row.targets.some((target) => target.status === 'stale')) return true;
   const sourceTarget = row.targets.find((target) => target.locale === field.sourceLocale);
   if (sourceTarget?.provenance?.kind === 'template') return true;
   return Boolean(sourceTarget?.provenance?.sourceHash && sourceTarget.provenance.sourceHash !== row.sourceHash);
@@ -46,13 +47,14 @@ export async function loadTranslationSuggestionBatch(
   fields: readonly TranslationFieldInput[],
   adapter: TranslationWorkbenchAdapter,
   generationIntent: TranslationGenerationIntent = 'saveReview',
+  targetLocales: readonly (typeof LANGUAGE_CODES)[number][] = LANGUAGE_CODES,
 ): Promise<TranslationSuggestionBatch> {
   const candidates = uniqueFields(fields);
   if (candidates.length === 0) return { preview: null, suggestions: null };
 
   const request: TranslationWorkbenchRequest = {
     generationIntent,
-    targetLocales: LANGUAGE_CODES,
+    targetLocales,
     fields: candidates,
   };
   const preview = await adapter.preview(request);
@@ -65,15 +67,29 @@ export async function loadTranslationSuggestionBatch(
     ]),
   );
   const eligible =
-    generationIntent === 'explicitFill'
+    generationIntent === 'explicitAlternative'
       ? candidates.filter((field) => {
           const row = byField.get(fieldKey(field));
-          return row !== undefined && hasReviewableGap(row);
+          return (
+            row !== undefined &&
+            row.targets.some(
+              (target) =>
+                targetLocales.includes(target.locale) &&
+                target.locale !== row.sourceLocale &&
+                Boolean(target.text?.trim()) &&
+                (target.provenance?.kind === 'manual' || target.provenance?.kind === 'legacyUnknown'),
+            )
+          );
         })
-      : candidates.filter((field) => {
-          const row = byField.get(fieldKey(field));
-          return row !== undefined && hasReviewableGap(row) && shouldSuggestOnSave(field, row);
-        });
+      : generationIntent === 'explicitFill'
+        ? candidates.filter((field) => {
+            const row = byField.get(fieldKey(field));
+            return row !== undefined && hasReviewableGap(row);
+          })
+        : candidates.filter((field) => {
+            const row = byField.get(fieldKey(field));
+            return row !== undefined && hasReviewableGap(row) && shouldSuggestOnSave(field, row);
+          });
   if (eligible.length === 0) return { preview, suggestions: null };
 
   return {

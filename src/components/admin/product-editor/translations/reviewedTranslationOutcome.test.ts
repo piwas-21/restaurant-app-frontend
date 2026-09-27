@@ -75,4 +75,33 @@ describe('buildReviewedTranslationOutcome', () => {
     expect(outcome.acceptedIds).toEqual({});
     expect(outcome.staleCount).toBe(1);
   });
+
+  it('does not apply a reviewed suggestion after the translation context changes', () => {
+    const snapshotField: TranslationReviewField = {
+      ...field,
+      input: {
+        ...field.input,
+        context: { dishName: 'Izgara köfte', category: 'Main dishes', exclusions: ['sesame'] },
+      },
+    };
+    const changedField: TranslationReviewField = {
+      ...snapshotField,
+      input: {
+        ...snapshotField.input,
+        context: { dishName: 'Izgara köfte', category: 'Lunch', exclusions: ['sesame', 'nuts'] },
+      },
+    };
+    const outcome = buildReviewedTranslationOutcome({
+      decisions: [{ suggestionId: 'suggestion-1', decision: 'accept', status: 'accepted' }],
+      selected: [suggestion],
+      requestedFields: [snapshotField],
+      currentFields: [changedField],
+      previewRows: [previewRow],
+      acceptedIds: {},
+    });
+
+    expect(outcome.changes).toEqual([]);
+    expect(outcome.acceptedIds).toEqual({});
+    expect(outcome.staleCount).toBe(1);
+  });
 });

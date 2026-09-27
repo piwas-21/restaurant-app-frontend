@@ -16,6 +16,7 @@ const freezeOwner = (owner: ReturnType<typeof emptyOwner>): LocalizedOwnerMetada
 export function createTranslationMetadataPatch(
   fields: readonly TranslationReviewField[],
   acceptedIds: Readonly<Record<string, string>>,
+  expectedContentVersion?: string,
 ): EditorTranslationMetadataPatch {
   const product = emptyOwner();
   const variations: Record<number, ReturnType<typeof emptyOwner>> = {};
@@ -38,7 +39,10 @@ export function createTranslationMetadataPatch(
   }
 
   return {
-    product: freezeOwner(product),
+    product: {
+      ...freezeOwner(product),
+      ...(expectedContentVersion ? { expectedContentVersion } : {}),
+    },
     variations: Object.fromEntries(Object.entries(variations).map(([index, owner]) => [index, freezeOwner(owner)])),
     ingredients: Object.fromEntries(Object.entries(ingredients).map(([index, owner]) => [index, freezeOwner(owner)])),
     menuSections: Object.fromEntries(Object.entries(menuSections).map(([index, owner]) => [index, freezeOwner(owner)])),

@@ -29,7 +29,8 @@ const decisionTone = {
 
 export default function TranslationSuggestionsReview({ review }: TranslationSuggestionsReviewProps) {
   const { t } = useTranslation();
-  const { phase, entries, providerStatus, pendingLocales, manualReviewCount, error, staleCount } = review;
+  const { phase, entries, providerStatus, pendingLocales, manualReviewCount, alternativeTargets, error, staleCount } =
+    review;
 
   return (
     <aside className={styles.drawer} aria-label={t('translation_review_title')}>
@@ -51,6 +52,38 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
       )}
       {manualReviewCount > 0 && (
         <output className={styles.notice}>{t('translation_review_manual_review', { count: manualReviewCount })}</output>
+      )}
+      {alternativeTargets.length > 0 && (
+        <section className={styles.alternatives} aria-label={t('translation_review_alternatives_title')}>
+          <h4>{t('translation_review_alternatives_title')}</h4>
+          <p>{t('translation_review_alternative_kept')}</p>
+          {alternativeTargets.map((target) => {
+            const field = `${target.sourceText} · ${t(target.fieldLabel)}`;
+            const language = getLanguageNativeName(target.locale);
+            return (
+              <div
+                className={styles.alternative}
+                key={`${target.fieldRef.entityType}|${target.fieldRef.entityId ?? target.fieldRef.clientKey}|${target.fieldRef.fieldKey}|${target.locale}`}
+              >
+                <div>
+                  <p className={styles.alternativeLabel}>{t('translation_review_row_title', { field, language })}</p>
+                  <p className={styles.sourceText} dir="auto">
+                    {target.text}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.acceptAll}
+                  onClick={() => void review.suggestAlternative(target.fieldRef, target.locale)}
+                  disabled={phase === 'loading' || providerStatus === 'disabled'}
+                  aria-label={t('translation_review_suggest_alternative_field', { field, language })}
+                >
+                  {t('translation_review_suggest_alternative')}
+                </button>
+              </div>
+            );
+          })}
+        </section>
       )}
       {review.unknownSourceLocaleFields.length > 0 && (
         <section

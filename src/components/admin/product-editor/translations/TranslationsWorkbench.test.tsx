@@ -47,6 +47,7 @@ jest.mock('@/services/translationWorkbenchService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
+import { updateMenuBundle } from '@/services/menuBundleService';
 import { translationWorkbenchService } from '@/services/translationWorkbenchService';
 import type {
   TranslationFieldStatus,
@@ -55,6 +56,7 @@ import type {
   TranslationWorkbenchRequest,
 } from '@/services/translationWorkbenchService';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { EMPTY_MENU_DEFINITION } from '@/utils/productEditorDefaults';
 
 const margherita = {
   id: 'item-1',
@@ -84,9 +86,9 @@ const margherita = {
   translationMetadata: { sourceLocales: { name: 'en', description: 'en' } },
 } as unknown as ProductDetails;
 
-const openWorkbench = async (product: ProductDetails = margherita) => {
+const openWorkbench = async (product: ProductDetails = margherita, isBundle = false) => {
   const { container } = render(
-    <ProductEditorPage product={product} isBundle={false} mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
+    <ProductEditorPage product={product} isBundle={isBundle} mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
   );
   await act(async () => {});
 
@@ -461,6 +463,7 @@ describe('batched translation review before ordinary Save', () => {
         zh: { name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' },
       },
       translationMetadata: {
+        expectedContentVersion: 'product-content-v7',
         sourceLocales: { description: 'en' },
         provenance: { name: { tr: { kind: 'template', sourceHash: 'source-name', reviewStatus: 'source' } } },
       },
@@ -484,6 +487,7 @@ describe('batched translation review before ordinary Save', () => {
       fieldRef: { entityType: 'product', entityId: 'item-1' },
       sourceLocale: 'tr',
       sourceText: 'Margherita Pizza',
+      context: { dishName: 'Margherita Pizza', category: 'Pizzas', exclusions: [] },
       targetTexts: {
         de: 'Margherita',
         fr: 'Pizza Margherita',
@@ -526,9 +530,247 @@ describe('batched translation review before ordinary Save', () => {
     ]);
     expect((updateProduct as jest.Mock).mock.calls[0][1]).toMatchObject({
       translationMetadata: {
+        expectedContentVersion: 'product-content-v7',
         sourceLocales: { name: 'tr', description: 'en' },
         acceptedSuggestionIds: { 'name.de': 'suggestion-de', 'name.fr': 'suggestion-fr' },
       },
+    });
+  });
+});
+
+describe('admin-requested translation alternatives', () => {
+  it('keeps an existing manual translation until an alternative is reviewed and accepted', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    const product = {
+      ...margherita,
+      content: {
+        de: { name: 'Margherita', description: '' },
+        fr: { name: 'Pizza Margherita', description: '' },
+        zh: { name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' },
+      },
+      translationMetadata: {
+        expectedContentVersion: 'product-content-v9',
+        sourceLocales: { name: 'en', description: 'en' },
+      },
+    } as unknown as ProductDetails;
+    service.preview.mockImplementation(async (request) => ({
+      rows: request.fields.map((field) => ({
+        fieldRef: field.fieldRef,
+        sourceLocale: field.sourceLocale,
+        sourceText: field.sourceText,
+        sourceHash: 'product-name-source-v1',
+        targets: request.targetLocales.map((locale) => {
+          if (field.fieldRef.fieldKey === 'name' && locale === 'fr') {
+            return {
+              locale,
+              status: 'current',
+              text: 'Pizza Margherita',
+              provenance: { kind: 'manual' as const, sourceHash: 'product-name-source-v1' },
+            };
+          }
+          if (locale === field.sourceLocale) {
+            return {
+              locale,
+              status: 'current',
+              text: field.sourceText,
+              provenance: { kind: 'tenantSource' as const, sourceHash: 'product-name-source-v1' },
+            };
+          }
+          const text = field.targetTexts?.[locale] ?? '';
+          return { locale, status: text ? ('current' as const) : ('missing' as const), text };
+        }),
+      })),
+    }));
+    const suggestion: TranslationSuggestion = {
+      suggestionId: 'manual-alt-fr',
+      fieldRef: { entityType: 'product', entityId: 'item-1', fieldKey: 'name' },
+      locale: 'fr',
+      sourceHash: 'product-name-source-v1',
+      text: 'Pizza Margherita artisanale',
+      provider: 'test-provider',
+      model: 'test-model',
+      status: 'suggested',
+    };
+    service.suggest.mockImplementation(async (request) => ({
+      providerStatus: 'ready',
+      suggestions: request.generationIntent === 'explicitAlternative' ? [suggestion] : [],
+      skipped: [],
+    }));
+    service.review.mockImplementation(async (decisions) => ({
+      decisions: decisions.map((decision) => ({
+        suggestionId: decision.suggestionId,
+        decision: decision.decision,
+        status: 'accepted' as const,
+        text: suggestion.text,
+      })),
+    }));
+
+    const { container, view } = await openWorkbench(product);
+    selectLocale(view, 'Deutsch');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Deutsch', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate und Mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    const drawer = within(review).getByRole('complementary', { name: 'translation_review_title' });
+    const requestAlternative = await within(drawer).findByRole('button', {
+      name: 'translation_review_suggest_alternative_field[field=Margherita Pizza · item_name,language=Français]',
+    });
+    await waitFor(() => expect(requestAlternative).toBeEnabled());
+
+    fireEvent.click(requestAlternative);
+    await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
+    expect(service.suggest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        generationIntent: 'explicitAlternative',
+        targetLocales: ['fr'],
+        fields: [expect.objectContaining({ fieldRef: suggestion.fieldRef })],
+      }),
+    );
+    await within(drawer).findByLabelText('translation_review_suggested_text[language=Français]');
+    expect(updateProduct).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(drawer).getByRole('button', {
+        name: 'translation_review_accept_field[field=Margherita Pizza · item_name,language=Français]',
+      }),
+    );
+
+    await act(async () => {
+      fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    const payload = (updateProduct as jest.Mock).mock.calls[0][1] as {
+      content: Record<string, { name?: string; description?: string }>;
+      translationMetadata: {
+        expectedContentVersion?: string;
+        acceptedSuggestionIds?: Record<string, string>;
+      };
+    };
+    expect(payload.content.fr.name).toBe('Pizza Margherita artisanale');
+    expect(payload.content.de).toEqual({ name: 'Margherita', description: 'Tomate und Mozzarella' });
+    expect(payload.content.zh).toEqual({ name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' });
+    expect(payload.translationMetadata).toMatchObject({
+      expectedContentVersion: 'product-content-v9',
+      acceptedSuggestionIds: { 'name.fr': 'manual-alt-fr' },
+    });
+  });
+});
+
+describe('bundle translation review', () => {
+  it('accepts one locale while preserving the other bundle locales and echoes the content version', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    const bundle = {
+      ...margherita,
+      id: 'bundle-1',
+      type: 'menu',
+      content: {
+        de: { name: 'Pizza-Menü', description: 'Klassische Tomate und Mozzarella' },
+        fr: { name: 'Menu Margherita', description: 'Tomate et mozzarella' },
+        zh: { name: '玛格丽特套餐', description: '番茄和马苏里拉奶酪' },
+      },
+      translationMetadata: {
+        expectedContentVersion: 'bundle-content-v12',
+        sourceLocales: { name: 'en', description: 'en' },
+      },
+      menuDefinition: {
+        ...EMPTY_MENU_DEFINITION,
+        id: 'definition-1',
+        sections: [
+          {
+            id: 'section-1',
+            name: 'Choose a side',
+            displayOrder: 0,
+            isRequired: true,
+            minSelection: 1,
+            maxSelection: 1,
+            items: [{ id: 'option-1', productId: 'side-1', additionalPrice: 0, displayOrder: 0, isDefault: true }],
+          },
+        ],
+      },
+    } as unknown as ProductDetails;
+    const suggestion: TranslationSuggestion = {
+      suggestionId: 'bundle-suggestion-fr',
+      fieldRef: { entityType: 'product', entityId: 'bundle-1', fieldKey: 'name' },
+      locale: 'fr',
+      sourceHash: 'bundle-name-source-v1',
+      text: 'Menu Margherita maison',
+      provider: 'test-provider',
+      model: 'test-model',
+      status: 'suggested',
+    };
+    service.preview.mockImplementation(async (request) => ({
+      rows: request.fields
+        .filter((field) => field.fieldRef.entityType === 'product' && field.fieldRef.fieldKey === 'name')
+        .map((field) => ({
+          fieldRef: field.fieldRef,
+          sourceLocale: field.sourceLocale,
+          sourceText: field.sourceText,
+          sourceHash: 'bundle-name-source-v1',
+          targets: LANGUAGE_CODES.map((locale) => ({
+            locale,
+            status: locale === 'fr' ? ('stale' as const) : ('current' as const),
+            text: field.targetTexts?.[locale] ?? '',
+            ...(locale === 'de' || locale === 'zh'
+              ? { provenance: { kind: 'manual' as const, sourceHash: 'bundle-name-source-v1' } }
+              : {}),
+          })),
+        })),
+    }));
+    service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions: [suggestion], skipped: [] });
+    service.review.mockResolvedValue({
+      decisions: [
+        {
+          suggestionId: suggestion.suggestionId,
+          decision: 'accept',
+          status: 'accepted',
+          text: suggestion.text,
+        },
+      ],
+    });
+
+    const { container, view } = await openWorkbench(bundle, true);
+    selectLocale(view, 'Deutsch');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Deutsch', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate und Mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    const drawer = within(review).getByRole('complementary', { name: 'translation_review_title' });
+    await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
+    fireEvent.click(
+      within(drawer).getByRole('button', {
+        name: 'translation_review_accept_field[field=Margherita Pizza · item_name,language=Français]',
+      }),
+    );
+
+    await act(async () => {
+      fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+    expect(updateProduct).not.toHaveBeenCalled();
+    const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0] as [
+      string,
+      {
+        content: Record<string, { name?: string; description?: string }>;
+        translationMetadata: {
+          expectedContentVersion?: string;
+          acceptedSuggestionIds?: Record<string, string>;
+        };
+      },
+    ];
+    expect(payload.content).toEqual({
+      de: { name: 'Pizza-Menü', description: 'Tomate und Mozzarella' },
+      fr: { name: 'Menu Margherita maison', description: 'Tomate et mozzarella' },
+      zh: { name: '玛格丽特套餐', description: '番茄和马苏里拉奶酪' },
+    });
+    expect(payload.translationMetadata).toMatchObject({
+      expectedContentVersion: 'bundle-content-v12',
+      acceptedSuggestionIds: { 'name.fr': suggestion.suggestionId },
     });
   });
 });

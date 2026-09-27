@@ -16,6 +16,8 @@ export interface TranslationMetadata {
   readonly sourceLocales?: Readonly<Record<string, string>>;
   readonly acceptedSuggestionIds?: Readonly<Record<string, string>>;
   readonly provenance?: Readonly<Record<string, Readonly<Record<string, TranslationProvenance>>>>;
+  /** Server-issued guard for the owner's source fields and full locale content map. */
+  readonly expectedContentVersion?: string;
 }
 
 export interface LocalizedOwnerMetadataInput {
@@ -24,7 +26,7 @@ export interface LocalizedOwnerMetadataInput {
 }
 
 export interface EditorTranslationMetadataPatch {
-  readonly product: LocalizedOwnerMetadataInput;
+  readonly product: LocalizedOwnerMetadataInput & { readonly expectedContentVersion?: string };
   readonly variations: Readonly<Record<number, LocalizedOwnerMetadataInput>>;
   readonly ingredients: Readonly<Record<number, LocalizedOwnerMetadataInput>>;
   readonly menuSections: Readonly<Record<number, LocalizedOwnerMetadataInput>>;

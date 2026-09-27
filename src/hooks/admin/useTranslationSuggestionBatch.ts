@@ -7,7 +7,10 @@ import {
   fieldReferenceKey,
   type TranslationReviewField,
 } from '@/components/admin/product-editor/translations/translationReviewFields';
+import type { LanguageCode } from '@/config/languageConfig';
+import { buildTranslationAlternativeTargets } from '@/components/admin/product-editor/translations/translationAlternativeTargets';
 import type {
+  TranslationFieldRef,
   TranslationFieldStatus,
   TranslationGenerationIntent,
   TranslationSuggestion,
@@ -37,6 +40,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const requestedFields = useRef<TranslationReviewField[]>([]);
   const loadKey = useRef<string | null>(null);
+  const alternativeRequestId = useRef(0);
 
   const run = useCallback(
     async (fields: TranslationReviewField[], generationIntent: TranslationGenerationIntent, key: string) => {
@@ -105,6 +109,65 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
     void run(fields, 'explicitFill', key);
   }, [readFields, run]);
 
+  const suggestAlternative = useCallback(
+    async (fieldRef: TranslationFieldRef, locale: LanguageCode) => {
+      const requestKey = loadKey.current;
+      const field = readFields().find(
+        (candidate) =>
+          candidate.sourceLocaleKnown && fieldReferenceKey(candidate.input.fieldRef) === fieldReferenceKey(fieldRef),
+      );
+      if (!requestKey || !field) return;
+
+      const requestId = ++alternativeRequestId.current;
+      setPhase('loading');
+      setError(false);
+      try {
+        const result = await loadTranslationSuggestionBatch([field.input], adapter, 'explicitAlternative', [locale]);
+        if (loadKey.current !== requestKey || alternativeRequestId.current !== requestId || !result.preview) return;
+
+        const key = fieldReferenceKey(field.input.fieldRef);
+        const updatedRow = result.preview.rows.find((row) => fieldReferenceKey(row.fieldRef) === key);
+        if (updatedRow) {
+          setPreviewRows((current) =>
+            current.map((row) => {
+              if (fieldReferenceKey(row.fieldRef) !== key) return row;
+              const latestTargets = new Map(updatedRow.targets.map((target) => [target.locale, target]));
+              return {
+                ...row,
+                sourceHash: updatedRow.sourceHash,
+                sourceText: updatedRow.sourceText,
+                targets: row.targets.map((target) => latestTargets.get(target.locale) ?? target),
+              };
+            }),
+          );
+        }
+
+        const suggestions = result.suggestions?.suggestions ?? [];
+        setProviderStatus(result.suggestions?.providerStatus ?? null);
+        setEntries((current) => {
+          const existingIds = new Set(current.map((entry) => entry.suggestion.suggestionId));
+          const added = suggestions
+            .filter((suggestion) => !existingIds.has(suggestion.suggestionId))
+            .map((suggestion) => ({
+              suggestion,
+              sourceText: field.slot.source,
+              fieldLabel: field.slot.fieldLabel,
+              decision: 'pending' as const,
+              text: suggestion.text,
+            }));
+          return [...current, ...added];
+        });
+        setPhase('ready');
+      } catch (requestError) {
+        void requestError;
+        if (loadKey.current !== requestKey || alternativeRequestId.current !== requestId) return;
+        setError(true);
+        setPhase('error');
+      }
+    },
+    [adapter, readFields],
+  );
+
   const targets = previewRows.flatMap((row) => row.targets);
   const pendingLocales = targets.filter(
     (target) => target.status === 'missing' || target.status === 'stale' || target.status === 'sourceCopy',
@@ -112,6 +175,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
   const manualReviewCount = targets.filter(
     (target) => target.status === 'sourceCopy' || target.provenance?.kind === 'legacyUnknown',
   ).length;
+  const alternativeTargets = buildTranslationAlternativeTargets(previewRows, requestedFields.current, entries);
   return {
     phase,
     entries,
@@ -125,5 +189,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
     errorMessage,
     setError,
     suggestMissing,
+    suggestAlternative,
+    alternativeTargets,
   };
 }

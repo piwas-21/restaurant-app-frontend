@@ -25,8 +25,9 @@ interface UseEditorTranslationReviewOptions {
   readonly adapter?: TranslationWorkbenchAdapter;
 }
 
-type ReviewedDecision = Exclude<TranslationSuggestionEntry['decision'], 'pending'>;
-type ReviewedEntry = TranslationSuggestionEntry & { readonly decision: ReviewedDecision };
+type ReviewedEntry = TranslationSuggestionEntry & {
+  readonly decision: Exclude<TranslationSuggestionEntry['decision'], 'pending'>;
+};
 
 export function useEditorTranslationReview({
   editor,
@@ -130,14 +131,12 @@ export function useEditorTranslationReview({
     );
   }, [setBatchEntries]);
 
-  const buildMetadataPatch = useCallback(
-    () =>
-      createTranslationMetadataPatch(
-        readFields().filter((field) => field.sourceLocaleKnown),
-        acceptedIdsRef.current,
-      ),
-    [readFields],
-  );
+  const buildMetadataPatch = () =>
+    createTranslationMetadataPatch(
+      readFields().filter((field) => field.sourceLocaleKnown),
+      acceptedIdsRef.current,
+      product.translationMetadata?.expectedContentVersion,
+    );
 
   const unknownSourceLocaleFields = readFields().filter((field) => !field.sourceLocaleKnown);
   const submitDecisions = useCallback(async (): Promise<boolean> => {

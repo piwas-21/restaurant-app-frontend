@@ -54,8 +54,8 @@ export default function TranslationSuggestionsReview({
   showSourceLocaleChoices = true,
 }: TranslationSuggestionsReviewProps) {
   const { t } = useTranslation();
-  const { phase, entries, providerStatus, pendingLocales, manualReviewCount, alternativeTargets, error, staleCount } =
-    review;
+  const { phase, entries, providerStatus, pendingLocales, manualReviewCount, error, staleCount } = review;
+  const alternativeTargets = review.alternativeTargets ?? [];
 
   return (
     <aside className={styles.drawer} aria-label={t('translation_review_title')}>

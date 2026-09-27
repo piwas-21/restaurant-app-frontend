@@ -81,7 +81,7 @@ export function buildTranslationReviewFields(
   const values = editor.form.getValues();
   const context = {
     dishName: String(values.name ?? ''),
-    category: editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name ?? null,
+    category: editor.categories?.find((category) => category.id === editor.primaryCategoryId)?.name ?? null,
     exclusions: [],
   };
   const slots = buildTranslationSlots({

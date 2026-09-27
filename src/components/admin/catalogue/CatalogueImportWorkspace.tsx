@@ -155,9 +155,11 @@ function ImportRoute() {
       {flow.result && (
         <CatalogueRevisionChangesReview
           changes={flow.revisionChanges}
-          isWorking={flow.isWorking}
+          isWorking={flow.isWorking || flow.revisionChangesState.isLoading}
           error={flow.error}
+          revisionChangesError={flow.revisionChangesState.error}
           onApply={(item, paths) => void flow.applyRevisionFields(item, paths)}
+          onRetry={() => void flow.revisionChangesState.retry()}
         />
       )}
       <div className={styles.actions}>

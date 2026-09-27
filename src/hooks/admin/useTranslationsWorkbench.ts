@@ -11,6 +11,7 @@ import {
   isLocaleComplete,
   localeProgress,
   translationIn,
+  withVariationClientKeys,
   type LocaleProgress,
   type ProductContentRow,
   type TranslatableVariation,
@@ -26,6 +27,7 @@ import {
 export const TRANSLATION_SOURCE_BASE = '';
 
 type Editor = ReturnType<typeof useProductEditorForm>;
+const WATCHED_FIELDS = ['name', 'description', 'content', 'variations'] as const;
 
 export interface CopyResult {
   /** How many empty target fields were filled. Zero is a stateable outcome, not a no-op. */
@@ -33,6 +35,8 @@ export interface CopyResult {
   /** Bumped on every run so an unchanged count still re-announces. */
   readonly at: number;
 }
+
+type WatchedTranslationValues = [string?, string?, ProductContentRow[]?, TranslatableVariation[]?];
 
 /**
  * The Translations workbench's state and its three write paths
@@ -50,28 +54,22 @@ export interface CopyResult {
  * re-renders the panel alone.
  */
 export function useTranslationsWorkbench(editor: Editor) {
-  const { form, detailedIngredients, changeIngredients } = editor;
+  const { form, detailedIngredients, changeIngredients, variations: variationFieldArray, menuDefinition } = editor;
   const { control, getValues, setValue } = form;
 
-  const watched = useWatch({ control, name: ['name', 'description', 'content', 'variations'] }) as [
-    string | undefined,
-    string | undefined,
-    ProductContentRow[] | undefined,
-    TranslatableVariation[] | undefined,
-  ];
-  const [name, description, content, variations] = watched;
+  const watched = useWatch({ control, name: WATCHED_FIELDS }) as WatchedTranslationValues;
 
   const slots = useMemo(
     () =>
       buildTranslationSlots({
-        name,
-        description,
-        content,
-        variations,
+        name: watched[0],
+        description: watched[1],
+        content: watched[2],
+        variations: withVariationClientKeys(watched[3], variationFieldArray.fields),
         ingredients: detailedIngredients,
-        sections: editor.menuDefinition.sections,
+        sections: menuDefinition.sections,
       }),
-    [name, description, content, variations, detailedIngredients, editor.menuDefinition.sections],
+    [watched, variationFieldArray.fields, detailedIngredients, menuDefinition.sections],
   );
 
   const progress: Record<string, LocaleProgress> = useMemo(() => everyLocaleProgress(slots), [slots]);

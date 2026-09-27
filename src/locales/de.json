@@ -3321,5 +3321,6 @@
   "catalogue_revision_adopted_withdrawn": "Die übernommene Revision wurde zurückgezogen. Prüfen Sie die aktuelle Revision, bevor Sie Felder übernehmen.",
   "catalogue_revision_unavailable": "Keine aktuelle veröffentlichte Revision",
   "catalogue_preferences_invalid": "Geben Sie eine Küche mit Buchstaben oder Zahlen ein.",
-  "option_set_validation_error": "Füllen Sie vor dem Speichern die erforderlichen Gruppen- und Auswahlfelder aus."
+  "option_set_validation_error": "Füllen Sie vor dem Speichern die erforderlichen Gruppen- und Auswahlfelder aus.",
+  "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen."
 }

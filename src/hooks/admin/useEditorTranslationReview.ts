@@ -47,18 +47,32 @@ export function useEditorTranslationReview({
   }, [isOpen]);
 
   const editorForm = editor.form;
+  const editorVariationFields = editor.variations.fields;
   const editorIngredients = editor.detailedIngredients;
   const editorMenuDefinition = editor.menuDefinition;
 
   const readFields = useCallback(
     () =>
       buildTranslationReviewFields(
-        { form: editorForm, detailedIngredients: editorIngredients, menuDefinition: editorMenuDefinition },
+        {
+          form: editorForm,
+          variations: { fields: editorVariationFields },
+          detailedIngredients: editorIngredients,
+          menuDefinition: editorMenuDefinition,
+        },
         productId,
         sourceLocaleFor,
         sourceLocaleKnownFor,
       ),
-    [editorForm, editorIngredients, editorMenuDefinition, productId, sourceLocaleFor, sourceLocaleKnownFor],
+    [
+      editorForm,
+      editorVariationFields,
+      editorIngredients,
+      editorMenuDefinition,
+      productId,
+      sourceLocaleFor,
+      sourceLocaleKnownFor,
+    ],
   );
   const batch = useTranslationSuggestionBatch({ isOpen, readFields, adapter });
   const setBatchEntries = batch.setEntries;

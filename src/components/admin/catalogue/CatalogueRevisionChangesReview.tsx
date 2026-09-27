@@ -11,7 +11,9 @@ interface Props {
   readonly changes: CatalogueRevisionChanges | null;
   readonly isWorking: boolean;
   readonly error: string | null;
+  readonly revisionChangesError: string | null;
   readonly onApply: (item: CatalogueRevisionChanges['items'][number], fieldPaths: readonly string[]) => void;
+  readonly onRetry: () => void;
 }
 
 function displayValue(value: unknown, emptyLabel: string): string {
@@ -24,10 +26,18 @@ function valuesMatch(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-export default function CatalogueRevisionChangesReview({ changes, isWorking, error, onApply }: Props) {
+export default function CatalogueRevisionChangesReview({
+  changes,
+  isWorking,
+  error,
+  revisionChangesError,
+  onApply,
+  onRetry,
+}: Props) {
   const { t } = useTranslation();
   const [selectedByTemplate, setSelectedByTemplate] = useState<Record<string, string[]>>({});
-  if (!changes || changes.items.length === 0) return null;
+  const items = changes?.items ?? [];
+  if (items.length === 0 && !error && !revisionChangesError) return null;
   const emptyLabel = t('catalogue_revision_empty_value');
 
   return (
@@ -39,7 +49,15 @@ export default function CatalogueRevisionChangesReview({ changes, isWorking, err
           {t(error)}
         </p>
       )}
-      {changes.items.map((item) => {
+      {revisionChangesError && (
+        <p role="alert" className={styles.error}>
+          {t(revisionChangesError)}{' '}
+          <button type="button" disabled={isWorking} onClick={onRetry}>
+            {t('catalogue_retry')}
+          </button>
+        </p>
+      )}
+      {items.map((item) => {
         const key = `${item.templateId}@${item.adoptedRevision}`;
         const changedFields = item.fieldDiffs.filter((field) => !valuesMatch(field.baseline, field.current));
         const selected = (selectedByTemplate[key] ?? []).filter((path) =>

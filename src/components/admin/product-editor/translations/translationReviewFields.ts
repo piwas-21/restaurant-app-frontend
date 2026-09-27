@@ -2,11 +2,19 @@ import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { TranslationFieldInput, TranslationFieldRef } from '@/services/translationWorkbenchService';
 import { isPersistedMenuId } from '@/utils/menuSectionDraft';
-import { buildTranslationSlots, type ProductContentRow, type TranslationSlot } from './translationSlots';
+import {
+  buildTranslationSlots,
+  type ProductContentRow,
+  type TranslationSlot,
+  type TranslatableVariation,
+  withVariationClientKeys,
+} from './translationSlots';
 import { nextProductContent, withIngredientTranslation } from './translationWrites';
 
 type Editor = ReturnType<typeof useProductEditorForm>;
-type EditorSource = Pick<Editor, 'form' | 'detailedIngredients' | 'menuDefinition'>;
+type EditorSource = Pick<Editor, 'form' | 'detailedIngredients' | 'menuDefinition'> & {
+  readonly variations: { readonly fields: readonly { readonly id: string }[] };
+};
 
 export interface TranslationReviewField {
   readonly input: TranslationFieldInput;
@@ -29,14 +37,16 @@ function fieldIdentity(slot: TranslationSlot, editor: EditorSource, productId: s
       : { entityType: 'product' as const, clientKey: 'product:draft' }; // pragma: allowlist secret -- stable unsaved-row identity
   }
   if (ref.target === 'variation') {
-    const variations = editor.form.getValues('variations') as Array<{ id?: string }> | undefined;
-    const id = variations?.[ref.index]?.id;
+    const id = ref.variationId;
     return isPersistedMenuId(id)
       ? { entityType: 'productVariation' as const, entityId: id }
-      : { entityType: 'productVariation' as const, clientKey: `variation:${id || ref.index}` }; // pragma: allowlist secret -- local draft key
+      : {
+          entityType: 'productVariation' as const,
+          clientKey: `variation:${ref.clientKey || id || ref.index}`, // pragma: allowlist secret -- stable local row identity
+        }; // pragma: allowlist secret -- local draft key
   }
   if (ref.target === 'ingredient') {
-    const id = editor.detailedIngredients[ref.index]?.id;
+    const id = ref.ingredientId;
     return isPersistedMenuId(id)
       ? { entityType: 'productIngredient' as const, entityId: id }
       : { entityType: 'productIngredient' as const, clientKey: `ingredient:${id || ref.index}` }; // pragma: allowlist secret -- local draft key
@@ -58,14 +68,10 @@ export function buildTranslationReviewFields(
     name: String(values.name ?? ''),
     description: String(values.description ?? ''),
     content: values.content as ProductContentRow[] | undefined,
-    variations: values.variations as
-      | Array<{
-          id?: string;
-          name?: string;
-          description?: string;
-          content?: Record<string, { name?: string; description?: string }>;
-        }>
-      | undefined,
+    variations: withVariationClientKeys(
+      values.variations as TranslatableVariation[] | undefined,
+      editor.variations.fields,
+    ),
     ingredients: editor.detailedIngredients,
     sections: editor.menuDefinition.sections,
   });
@@ -111,8 +117,15 @@ function applyProductChange(editor: Editor, change: ReviewedTextChange): boolean
 
 function applyVariationChange(editor: Editor, change: ReviewedTextChange): boolean {
   const rows = editor.form.getValues('variations') as Array<{ id?: string }> | undefined;
+  const clientKey = change.fieldRef.clientKey?.replace(/^variation:/, '');
   const index =
-    rows?.findIndex((row, position) => matchesReference(row.id, position, change.fieldRef, 'variation')) ?? -1;
+    rows?.findIndex((row, position) =>
+      change.fieldRef.entityId
+        ? row.id === change.fieldRef.entityId
+        : clientKey
+          ? editor.variations.fields[position]?.id === clientKey || row.id === clientKey
+          : matchesReference(row.id, position, change.fieldRef, 'variation'),
+    ) ?? -1;
   if (index < 0) return false;
   editor.form.setValue(`variations.${index}.content.${change.locale}.${change.fieldRef.fieldKey}`, change.text, {
     shouldDirty: true,

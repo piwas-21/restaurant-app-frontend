@@ -124,7 +124,11 @@ describe('useCatalogueImportWorkspace', () => {
       status: 'Imported',
       items: [],
     });
-    (getCatalogueRevisionChanges as jest.Mock).mockResolvedValue(null);
+    (getCatalogueRevisionChanges as jest.Mock).mockResolvedValue({
+      sessionId: 'session-1',
+      sessionVersion: 1,
+      items: [],
+    });
     (applyCatalogueRevisionChanges as jest.Mock).mockResolvedValue({});
   });
 
@@ -267,5 +271,26 @@ describe('useCatalogueImportWorkspace', () => {
       fieldPaths: ['name', 'description'],
     });
     expect(getCatalogueRevisionChanges).toHaveBeenCalledTimes(2);
+  });
+
+  it('surfaces revision refresh failure and retries to a valid empty result', async () => {
+    const emptyChanges = { sessionId: 'session-1', sessionVersion: 8, items: [] };
+    (getCatalogueImportSession as jest.Mock).mockResolvedValue({ ...session, status: 'Imported' });
+    (getCatalogueRevisionChanges as jest.Mock)
+      .mockRejectedValueOnce(new Error('temporary network failure'))
+      .mockResolvedValueOnce(emptyChanges);
+    const { result } = renderHook(() => useCatalogueImportWorkspace({ ...options, sessionId: 'session-1' }));
+
+    await waitFor(() =>
+      expect(result.current.revisionChangesState.error).toBe('catalogue_revision_changes_load_error'),
+    );
+    expect(result.current.revisionChanges).toBeNull();
+    expect(result.current.revisionChangesState.status).toBe('error');
+
+    await act(async () => result.current.revisionChangesState.retry());
+
+    expect(result.current.revisionChanges).toEqual(emptyChanges);
+    expect(result.current.revisionChangesState.status).toBe('loaded');
+    expect(result.current.revisionChangesState.error).toBeNull();
   });
 });

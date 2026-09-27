@@ -44,6 +44,8 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
   const [session, setSession] = useState<CatalogueImportSession | null>(null);
   const [result, setResult] = useState<CatalogueImportResult | null>(null);
   const [revisionChanges, setRevisionChanges] = useState<CatalogueRevisionChanges | null>(null);
+  const [revisionChangesStatus, setRevisionChangesStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+  const [revisionChangesError, setRevisionChangesError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const started = useRef(false);
@@ -54,6 +56,25 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
     if (isFinished(loaded.status)) setResult(resultFromSession(loaded));
     return loaded;
   }, []);
+
+  const refreshRevisionChanges = useCallback(async (sessionId: string): Promise<boolean> => {
+    setRevisionChangesStatus('loading');
+    try {
+      setRevisionChanges(await getCatalogueRevisionChanges(sessionId));
+      setRevisionChangesStatus('loaded');
+      setRevisionChangesError(null);
+      return true;
+    } catch (loadError) {
+      setRevisionChangesStatus('error');
+      setRevisionChangesError(getErrorMessage(loadError) ?? 'catalogue_revision_changes_load_error');
+      return false;
+    }
+  }, []);
+
+  const retryRevisionChanges = useCallback(
+    () => (session ? refreshRevisionChanges(session.sessionId) : Promise.resolve(false)),
+    [refreshRevisionChanges, session],
+  );
 
   useEffect(() => {
     if (started.current) return;
@@ -95,8 +116,7 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
           }
         }
         const loaded = await refresh(sessionId);
-        if (isFinished(loaded.status))
-          setRevisionChanges(await getCatalogueRevisionChanges(sessionId).catch(() => null));
+        if (isFinished(loaded.status)) await refreshRevisionChanges(sessionId);
         if (!options.sessionId) options.onSessionCreated(sessionId);
       } catch (loadError) {
         setError(getErrorMessage(loadError) ?? 'catalogue_import_load_error');
@@ -105,7 +125,7 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
       }
     };
     void initialize();
-  }, [options, refresh]);
+  }, [options, refresh, refreshRevisionChanges]);
 
   useEffect(() => {
     if (!session || session.status !== 'Importing') return;
@@ -113,16 +133,29 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
       void refresh(session.sessionId)
         .then((loaded) => {
           if (isFinished(loaded.status)) {
-            return getCatalogueRevisionChanges(session.sessionId)
-              .then(setRevisionChanges)
-              .catch(() => undefined);
+            return refreshRevisionChanges(session.sessionId);
           }
           return undefined;
         })
         .catch(() => undefined);
     }, 2000);
     return () => window.clearTimeout(timer);
-  }, [refresh, session]);
+  }, [refresh, refreshRevisionChanges, session]);
 
-  return { session, result, revisionChanges, isLoading, error, refresh, setResult, setRevisionChanges };
+  return {
+    session,
+    result,
+    revisionChanges,
+    revisionChangesState: {
+      status: revisionChangesStatus,
+      error: revisionChangesError,
+      isLoading: revisionChangesStatus === 'loading',
+      retry: retryRevisionChanges,
+    },
+    isLoading,
+    error,
+    refresh,
+    refreshRevisionChanges,
+    setResult,
+  };
 }

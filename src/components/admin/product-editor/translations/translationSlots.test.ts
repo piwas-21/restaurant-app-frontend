@@ -37,11 +37,11 @@ describe('buildTranslationSlots — what there is to translate', () => {
     expect(slots.map((slot) => slot.key)).toEqual([
       'item-name',
       'item-description',
-      'variation-0-name',
-      'variation-1-name',
-      'variation-1-description',
-      'ingredient-0-name',
-      'ingredient-1-name',
+      'variation-index-0-name',
+      'variation-index-1-name',
+      'variation-index-1-description',
+      'ingredient-index-0-name',
+      'ingredient-index-1-name',
     ]);
     expect(slots.map((slot) => slot.group)).toEqual([
       'item',
@@ -84,6 +84,48 @@ describe('buildTranslationSlots — what there is to translate', () => {
 
     expect(translationIn(slots[0], 'fr')).toBe('Pizza Margherita');
     expect(translationIn(slots[4], 'fr')).toBe('trente-deux cm');
+  });
+
+  it('keeps variation and ingredient slot identities attached through reorder and removal', () => {
+    const original = buildTranslationSlots({
+      variations: [
+        { id: 'variation-small', name: 'Small' },
+        { clientKey: 'draft-large', name: 'Large' }, // pragma: allowlist secret -- synthetic RHF row identity
+      ],
+      ingredients: [
+        { id: 'ingredient-cheese', name: 'Cheese' },
+        { id: 'ingredient-olives', name: 'Olives' },
+      ],
+    });
+    const savedLocaleChoices = Object.fromEntries(
+      original.map((slot) => [slot.key, slot.source === 'Small' ? 'fr' : 'de']),
+    );
+
+    const reordered = buildTranslationSlots({
+      variations: [
+        { clientKey: 'draft-large', name: 'Large' }, // pragma: allowlist secret -- synthetic RHF row identity
+        { id: 'variation-small', name: 'Small' },
+      ],
+      ingredients: [
+        { id: 'ingredient-olives', name: 'Olives' },
+        { id: 'ingredient-cheese', name: 'Cheese' },
+      ],
+    });
+    const afterRemoval = buildTranslationSlots({
+      variations: [{ id: 'variation-small', name: 'Small' }],
+      ingredients: [{ id: 'ingredient-cheese', name: 'Cheese' }],
+    });
+
+    for (const source of ['Small', 'Large', 'Cheese', 'Olives']) {
+      const before = original.find((slot) => slot.source === source);
+      const afterMove = reordered.find((slot) => slot.source === source);
+      expect(afterMove?.key).toBe(before?.key);
+      expect(savedLocaleChoices[afterMove!.key]).toBe(source === 'Small' ? 'fr' : 'de');
+    }
+    expect(afterRemoval.map((slot) => slot.key)).toEqual([
+      'variation-id-variation-small-name',
+      'ingredient-ingredient-cheese-name',
+    ]);
   });
 
   it('treats a blank or whitespace-only translation as absent', () => {

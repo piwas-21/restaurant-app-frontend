@@ -3321,5 +3321,6 @@
   "catalogue_revision_adopted_withdrawn": "The adopted revision was withdrawn. Review the current revision before applying any fields.",
   "catalogue_revision_unavailable": "No current published revision",
   "catalogue_preferences_invalid": "Enter a cuisine using letters or numbers.",
-  "option_set_validation_error": "Complete the required set and choice fields before saving."
+  "option_set_validation_error": "Complete the required set and choice fields before saving.",
+  "catalogue_revision_changes_load_error": "Could not load template revision updates. Retry to check for withdrawal or update notices."
 }

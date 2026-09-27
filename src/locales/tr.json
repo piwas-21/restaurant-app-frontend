@@ -3321,5 +3321,6 @@
   "catalogue_revision_adopted_withdrawn": "Benimsenen revizyon geri çekildi. Alanları uygulamadan önce güncel revizyonu inceleyin.",
   "catalogue_revision_unavailable": "Güncel yayımlanmış revizyon yok",
   "catalogue_preferences_invalid": "Harf veya sayı kullanarak bir mutfak adı girin.",
-  "option_set_validation_error": "Kaydetmeden önce gerekli grup ve seçenek alanlarını doldurun."
+  "option_set_validation_error": "Kaydetmeden önce gerekli grup ve seçenek alanlarını doldurun.",
+  "catalogue_revision_changes_load_error": "Şablon güncellemeleri yüklenemedi. Geri çekilme veya güncelleme bildirimlerini kontrol etmek için yeniden deneyin."
 }

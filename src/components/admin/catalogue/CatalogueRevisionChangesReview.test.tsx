@@ -37,7 +37,16 @@ const changes: CatalogueRevisionChanges = {
 describe('CatalogueRevisionChangesReview', () => {
   it('shows baseline, current and local values and applies only explicitly selected untouched fields', () => {
     const onApply = jest.fn();
-    render(<CatalogueRevisionChangesReview changes={changes} isWorking={false} error={null} onApply={onApply} />);
+    render(
+      <CatalogueRevisionChangesReview
+        changes={changes}
+        isWorking={false}
+        error={null}
+        revisionChangesError={null}
+        onApply={onApply}
+        onRetry={jest.fn()}
+      />,
+    );
 
     expect(screen.getAllByText('Old name')).toHaveLength(2);
     expect(screen.getByText('New name')).toBeInTheDocument();
@@ -57,7 +66,16 @@ describe('CatalogueRevisionChangesReview', () => {
         { ...changes.items[0], withdrawn: true, status: 'withdrawn', currentRevision: null, currentContentHash: null },
       ],
     };
-    render(<CatalogueRevisionChangesReview changes={withdrawn} isWorking={false} error={null} onApply={jest.fn()} />);
+    render(
+      <CatalogueRevisionChangesReview
+        changes={withdrawn}
+        isWorking={false}
+        error={null}
+        revisionChangesError={null}
+        onApply={jest.fn()}
+        onRetry={jest.fn()}
+      />,
+    );
 
     expect(screen.getByRole('button', { name: 'catalogue_revision_apply_selected' })).toBeDisabled();
   });
@@ -68,9 +86,34 @@ describe('CatalogueRevisionChangesReview', () => {
       items: [{ ...changes.items[0], adoptedRevisionWithdrawn: true }],
     };
     render(
-      <CatalogueRevisionChangesReview changes={adoptedWithdrawn} isWorking={false} error={null} onApply={jest.fn()} />,
+      <CatalogueRevisionChangesReview
+        changes={adoptedWithdrawn}
+        isWorking={false}
+        error={null}
+        revisionChangesError={null}
+        onApply={jest.fn()}
+        onRetry={jest.fn()}
+      />,
     );
 
     expect(screen.getByText('catalogue_revision_adopted_withdrawn')).toBeInTheDocument();
+  });
+
+  it('keeps the review panel visible with an explicit retry when revision changes fail to load', () => {
+    const onRetry = jest.fn();
+    render(
+      <CatalogueRevisionChangesReview
+        changes={null}
+        isWorking={false}
+        error={null}
+        revisionChangesError="catalogue_revision_changes_load_error"
+        onApply={jest.fn()}
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('catalogue_revision_changes_load_error');
+    fireEvent.click(screen.getByRole('button', { name: 'catalogue_retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });

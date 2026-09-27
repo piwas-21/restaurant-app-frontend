@@ -3330,5 +3330,6 @@
   "catalogue_revision_adopted_withdrawn": "La révision adoptée a été retirée. Vérifiez la révision actuelle avant d’appliquer des champs.",
   "catalogue_revision_unavailable": "Aucune révision publiée actuelle",
   "catalogue_preferences_invalid": "Saisissez une cuisine avec des lettres ou des chiffres.",
-  "option_set_validation_error": "Renseignez les champs obligatoires du groupe et des choix avant l’enregistrement."
+  "option_set_validation_error": "Renseignez les champs obligatoires du groupe et des choix avant l’enregistrement.",
+  "catalogue_revision_changes_load_error": "Impossible de charger les mises à jour du modèle. Réessayez pour vérifier les avis de retrait ou de mise à jour."
 }

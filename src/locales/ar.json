@@ -3357,5 +3357,6 @@
   "catalogue_revision_adopted_withdrawn": "تم سحب الإصدار المعتمد. راجع الإصدار الحالي قبل تطبيق أي حقول.",
   "catalogue_revision_unavailable": "لا توجد مراجعة منشورة حالية",
   "catalogue_preferences_invalid": "أدخل نوع مطبخ باستخدام الحروف أو الأرقام.",
-  "option_set_validation_error": "أكمل حقول المجموعة والخيارات المطلوبة قبل الحفظ."
+  "option_set_validation_error": "أكمل حقول المجموعة والخيارات المطلوبة قبل الحفظ.",
+  "catalogue_revision_changes_load_error": "تعذّر تحميل تحديثات القالب. أعد المحاولة للتحقق من إشعارات السحب أو التحديث."
 }

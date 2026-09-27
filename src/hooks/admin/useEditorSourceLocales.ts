@@ -10,13 +10,20 @@ import { isPersistedMenuId } from '@/utils/menuSectionDraft';
 type Editor = ReturnType<typeof useProductEditorForm>;
 
 function persistedSourceLocale(product: ProductDetails, slot: TranslationSlot): string | undefined {
-  const fieldKey = slot.ref.target === 'ingredient' ? 'name' : slot.ref.field;
-  if (slot.ref.target === 'item') return product.translationMetadata?.sourceLocales?.[fieldKey];
-  if (slot.ref.target === 'variation')
-    return product.variations[slot.ref.index]?.translationMetadata?.sourceLocales?.[fieldKey];
-  if (slot.ref.target === 'ingredient')
-    return product.detailedIngredients?.[slot.ref.index]?.translationMetadata?.sourceLocales?.[fieldKey];
-  return product.menuDefinition?.sections[slot.ref.index]?.translationMetadata?.sourceLocales?.[fieldKey];
+  const ref = slot.ref;
+  const fieldKey = ref.target === 'ingredient' ? 'name' : ref.field;
+  if (ref.target === 'item') return product.translationMetadata?.sourceLocales?.[fieldKey];
+  if (ref.target === 'variation') {
+    if (!ref.variationId) return undefined;
+    return product.variations.find((variation) => variation.id === ref.variationId)?.translationMetadata
+      ?.sourceLocales?.[fieldKey];
+  }
+  if (ref.target === 'ingredient') {
+    if (!ref.ingredientId) return undefined;
+    return product.detailedIngredients?.find((ingredient) => ingredient.id === ref.ingredientId)?.translationMetadata
+      ?.sourceLocales?.[fieldKey];
+  }
+  return product.menuDefinition?.sections[ref.index]?.translationMetadata?.sourceLocales?.[fieldKey];
 }
 
 const languageCode = (value: string): LanguageCode =>
@@ -35,10 +42,6 @@ interface Options {
 export function useEditorSourceLocales({ editor, product, productId }: Options) {
   const [sourceLocales, setSourceLocales] = useState<Readonly<Record<string, LanguageCode>>>({});
   const defaultLocale = languageCode(editor.currentLanguage);
-  const editorForm = editor.form;
-  const editorIngredients = editor.detailedIngredients;
-  const editorMenuDefinition = editor.menuDefinition;
-
   const sourceLocaleFor = useCallback(
     (slotKey: string, slot?: TranslationSlot) =>
       sourceLocales[slotKey] ?? languageCode((slot && persistedSourceLocale(product, slot)) ?? defaultLocale),
@@ -49,15 +52,13 @@ export function useEditorSourceLocales({ editor, product, productId }: Options) 
       if (!slot) return false;
       if (hasLanguageCode(sourceLocales[slotKey]) || hasLanguageCode(persistedSourceLocale(product, slot))) return true;
       if (!productId) return true;
-      if (slot.ref.target === 'item') return false;
-      if (slot.ref.target === 'variation') {
-        const rows = editorForm.getValues('variations') as Array<{ id?: string }> | undefined;
-        return !isPersistedMenuId(rows?.[slot.ref.index]?.id);
-      }
-      if (slot.ref.target === 'ingredient') return !isPersistedMenuId(editorIngredients[slot.ref.index]?.id);
-      return !isPersistedMenuId(editorMenuDefinition.sections[slot.ref.index]?.id);
+      const ref = slot.ref;
+      if (ref.target === 'item') return false;
+      if (ref.target === 'variation') return !isPersistedMenuId(ref.variationId);
+      if (ref.target === 'ingredient') return !isPersistedMenuId(ref.ingredientId);
+      return !isPersistedMenuId(editor.menuDefinition.sections[ref.index]?.id);
     },
-    [editorForm, editorIngredients, editorMenuDefinition.sections, product, productId, sourceLocales],
+    [editor.menuDefinition.sections, product, productId, sourceLocales],
   );
   const setSourceLocaleFor = useCallback((slotKey: string, locale: string) => {
     setSourceLocales((current) => {

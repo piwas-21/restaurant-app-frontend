@@ -3321,5 +3321,6 @@
   "catalogue_revision_adopted_withdrawn": "De overgenomen revisie is ingetrokken. Controleer de huidige revisie voordat je velden toepast.",
   "catalogue_revision_unavailable": "Geen actuele gepubliceerde revisie",
   "catalogue_preferences_invalid": "Voer een keuken in met letters of cijfers.",
-  "option_set_validation_error": "Vul de verplichte groep- en keuzevelden in voordat je opslaat."
+  "option_set_validation_error": "Vul de verplichte groep- en keuzevelden in voordat je opslaat.",
+  "catalogue_revision_changes_load_error": "De sjabloonupdates konden niet worden geladen. Probeer opnieuw om meldingen over intrekking of updates te controleren."
 }

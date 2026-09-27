@@ -3330,5 +3330,6 @@
   "catalogue_revision_adopted_withdrawn": "Se retiró la revisión adoptada. Revisa la revisión actual antes de aplicar campos.",
   "catalogue_revision_unavailable": "No hay una revisión publicada actual",
   "catalogue_preferences_invalid": "Introduce una cocina con letras o números.",
-  "option_set_validation_error": "Completa los campos obligatorios del grupo y sus opciones antes de guardar."
+  "option_set_validation_error": "Completa los campos obligatorios del grupo y sus opciones antes de guardar.",
+  "catalogue_revision_changes_load_error": "No se pudieron cargar las actualizaciones de la plantilla. Vuelve a intentarlo para revisar los avisos de retirada o actualización."
 }

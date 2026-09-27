@@ -11,7 +11,6 @@ import {
 } from '@/services/catalogueImportService';
 import {
   applyCatalogueRevisionChanges,
-  getCatalogueRevisionChanges,
   type CatalogueRevisionChanges,
 } from '@/services/catalogueRevisionChangeService';
 import {
@@ -115,7 +114,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
           fieldPaths,
         });
         await flow.refresh(flow.session.sessionId);
-        flow.setRevisionChanges(await getCatalogueRevisionChanges(flow.session.sessionId));
+        await flow.refreshRevisionChanges(flow.session.sessionId);
       } catch (revisionError) {
         setActionError(getErrorMessage(revisionError) ?? 'catalogue_revision_apply_error');
       } finally {
@@ -167,7 +166,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
       }
       flow.setResult(await importCatalogueSession(saved.sessionId, { expectedVersion: saved.version, idempotencyKey }));
       await flow.refresh(saved.sessionId);
-      flow.setRevisionChanges(await getCatalogueRevisionChanges(saved.sessionId).catch(() => null));
+      await flow.refreshRevisionChanges(saved.sessionId);
     } catch (importError) {
       setActionError(getErrorMessage(importError) ?? 'catalogue_import_apply_error');
     } finally {
@@ -182,6 +181,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     preview,
     result: flow.result,
     revisionChanges: flow.revisionChanges,
+    revisionChangesState: flow.revisionChangesState,
     canManage: flow.session ? canManageCatalogueImportSession(flow.session) : false,
     canEditSelection: flow.session?.status === 'Draft',
     canEditDecision: (item: CatalogueImportSessionItem) =>

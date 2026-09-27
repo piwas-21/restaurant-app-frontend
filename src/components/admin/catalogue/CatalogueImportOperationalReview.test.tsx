@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import CatalogueImportOperationalReview from './CatalogueImportOperationalReview';
 
@@ -33,5 +33,63 @@ describe('CatalogueImportOperationalReview order channels', () => {
 
     expect(screen.getByRole('checkbox', { name: 'order_type_dine_in' })).toBeDisabled();
     expect(screen.getByRole('checkbox', { name: 'order_type_takeaway' })).toBeEnabled();
+  });
+
+  it('records blank item ingredient and allergen reviews as explicit empty lists', () => {
+    const onDecisionChange = jest.fn();
+    render(
+      <CatalogueImportOperationalReview
+        itemType="item"
+        decision={baseDecision}
+        disabled={false}
+        onDecisionChange={onDecisionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_ingredients' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' }));
+
+    expect(onDecisionChange).toHaveBeenNthCalledWith(1, { ingredientsReviewed: true, ingredients: [] });
+    expect(onDecisionChange).toHaveBeenNthCalledWith(2, { allergensReviewed: true, allergens: [] });
+  });
+
+  it('records a blank bundle allergen review without requiring an ingredient list', () => {
+    const onDecisionChange = jest.fn();
+    render(
+      <CatalogueImportOperationalReview
+        itemType="bundle"
+        decision={baseDecision}
+        disabled={false}
+        onDecisionChange={onDecisionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' }));
+
+    expect(onDecisionChange).toHaveBeenCalledWith({ allergensReviewed: true, allergens: [] });
+  });
+
+  it('preserves existing ingredient and allergen lists when marking them reviewed', () => {
+    const onDecisionChange = jest.fn();
+    render(
+      <CatalogueImportOperationalReview
+        itemType="item"
+        decision={{ ...baseDecision, ingredients: ['Tomato'], allergens: ['Milk'] }}
+        disabled={false}
+        onDecisionChange={onDecisionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_ingredients' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' }));
+
+    expect(onDecisionChange).toHaveBeenNthCalledWith(1, {
+      ingredientsReviewed: true,
+      ingredients: ['Tomato'],
+    });
+    expect(onDecisionChange).toHaveBeenNthCalledWith(2, {
+      allergensReviewed: true,
+      allergens: ['Milk'],
+    });
   });
 });

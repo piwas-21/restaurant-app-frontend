@@ -5,6 +5,7 @@ import {
   previewCatalogueImport,
   startCatalogueImportSession,
   updateCatalogueImportItems,
+  type CatalogueImportDecisionWire,
   type CatalogueImportPreview,
   type CatalogueImportSession,
 } from '@/services/catalogueImportService';
@@ -182,6 +183,49 @@ describe('useCatalogueImportWorkspace', () => {
     expect(calls[0][1].expectedVersion).toBe(2);
     expect(calls[0][1].idempotencyKey).toBe(calls[1][1].idempotencyKey);
     expect(result.current.result?.status).toBe('Imported');
+
+    const savedDecisions = (updateCatalogueImportItems as jest.Mock).mock.calls[0][1]
+      .decisions as CatalogueImportDecisionWire[];
+    const unreviewedOffer = savedDecisions.find((decision) => decision.templateId === 'offer');
+    expect(unreviewedOffer).toBeDefined();
+    expect(unreviewedOffer).not.toHaveProperty('ingredients');
+    expect(unreviewedOffer).not.toHaveProperty('allergens');
+  });
+
+  it('hydrates legacy reviewed empty lists and saves them explicitly before preview', async () => {
+    const legacyDraft: CatalogueImportSession = {
+      ...session,
+      items: [
+        session.items[0],
+        {
+          ...session.items[1],
+          decision: {
+            templateId: 'offer',
+            revision: 2,
+            resolution: 'Create',
+            ingredientsReviewed: true,
+            allergensReviewed: true,
+          },
+        },
+      ],
+    };
+    (getCatalogueImportSession as jest.Mock).mockResolvedValue(legacyDraft);
+    const { result } = renderHook(() => useCatalogueImportWorkspace(options));
+    await waitFor(() => expect(result.current.decisions['offer@2']?.ingredients).toEqual([]));
+    expect(result.current.decisions['offer@2']?.allergens).toEqual([]);
+
+    await act(async () => result.current.checkPreview());
+
+    const savedDecisions = (updateCatalogueImportItems as jest.Mock).mock.calls[0][1]
+      .decisions as CatalogueImportDecisionWire[];
+    expect(savedDecisions.find((decision) => decision.templateId === 'offer')).toEqual(
+      expect.objectContaining({
+        ingredientsReviewed: true,
+        ingredients: [],
+        allergensReviewed: true,
+        allergens: [],
+      }),
+    );
   });
 
   it('does not call the import endpoint for a completed session', async () => {

@@ -63,6 +63,12 @@ const renderEditor = async () => {
   return { ...view, nameInput };
 };
 
+const saveThroughReview = async () => {
+  fireEvent.click(screen.getByTestId('editor-save'));
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+};
+
 /** Empty the required name and leave the field, which is what `onTouched` reacts to. */
 const emptyTheName = async (input: HTMLInputElement) => {
   fireEvent.change(input, { target: { value: '' } });
@@ -157,14 +163,16 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     const { nameInput } = await renderEditor();
     await emptyTheName(nameInput);
 
-    expect(await screen.findByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary:1');
+    expect(await screen.findByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary_in_section:1');
   });
 
   it('marks the section that holds the error in the nav', async () => {
     const { nameInput, container } = await renderEditor();
     await emptyTheName(nameInput);
 
-    const basics = within(container.querySelector('nav') as HTMLElement).getByRole('button', {
+    const basics = within(
+      container.querySelector('[role="tablist"][aria-label="editor_sections"]') as HTMLElement,
+    ).getByRole('tab', {
       name: /editor_section_basics/,
     });
     // The glyph is aria-hidden; the accessible name is what a screen reader actually gets.
@@ -174,25 +182,47 @@ describe('editor validation — the save bar says how many and where (D13, gap G
   it('takes the caret to the first failing field when the chip is pressed', async () => {
     const { nameInput } = await renderEditor();
     await emptyTheName(nameInput);
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_section_pricing' }));
+    const basicsPanel = document.querySelector('#product-editor-form-section-panel-editor-section-basics');
+    expect(basicsPanel).toHaveAttribute('hidden');
     // Move focus away, so "the chip focused it" is distinguishable from "it never lost focus".
     (document.activeElement as HTMLElement)?.blur();
 
     fireEvent.click(await screen.findByTestId('editor-error-summary'));
 
-    expect(document.activeElement).toBe(nameInput);
+    await waitFor(() => expect(basicsPanel).not.toHaveAttribute('hidden'));
+    expect(screen.getByRole('tab', { name: /editor_section_basics/ })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(document.activeElement).toBe(nameInput));
   });
 
   // The defect that made S7 worth a slice: a refused Save with no visible cause.
   it('jumps to the first error on a refused submit, and posts nothing', async () => {
-    const { nameInput, container } = await renderEditor();
+    const { nameInput } = await renderEditor();
     await emptyTheName(nameInput);
     (document.activeElement as HTMLElement)?.blur();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await saveThroughReview();
 
     // `waitFor`, not an `act()` wrapper (Sonar S8980 — `fireEvent` already flushes): the resolver
     // is async, so the refusal and the focus move land a microtask after the submit.
     await waitFor(() => expect(document.activeElement).toBe(nameInput));
+    expect(updateProduct).not.toHaveBeenCalled();
+  });
+
+  it('opens a hidden error section and focuses its field after confirming the save review', async () => {
+    const { nameInput } = await renderEditor();
+    await emptyTheName(nameInput);
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_section_pricing' }));
+    expect(nameInput.closest('[role="tabpanel"]')).toHaveAttribute('hidden');
+
+    fireEvent.click(screen.getByTestId('editor-save'));
+    fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
+
+    const basicsPanel = document.querySelector('#product-editor-form-section-panel-editor-section-basics');
+    await waitFor(() => expect(basicsPanel).not.toHaveAttribute('hidden'));
+    expect(screen.getByRole('tab', { name: /editor_section_basics/ })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(document.activeElement).toBe(nameInput));
+    expect(nameInput).toBeVisible();
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
@@ -227,7 +257,7 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     fireEvent.click(screen.getByRole('tab', { name: 'item' }));
 
     const chip = await screen.findByTestId('editor-error-summary');
-    expect(chip).toHaveTextContent('editor_error_summary:1');
+    expect(chip).toHaveTextContent('editor_error_summary_in_section:1');
 
     fireEvent.click(chip);
 
@@ -263,8 +293,10 @@ describe('editor validation — the save bar says how many and where (D13, gap G
 
     expect(await screen.findByText('Name is required for this language')).toBeInTheDocument();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
-    await waitFor(() => expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary:1'));
+    await saveThroughReview();
+    await waitFor(() =>
+      expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary_in_section:1'),
+    );
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
@@ -273,13 +305,14 @@ describe('editor validation — the save bar says how many and where (D13, gap G
   it('surfaces a blank variation name, which had no message at all', async () => {
     const { container } = await renderEditor();
 
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_section_pricing' }));
     fireEvent.click(screen.getByRole('button', { name: 'add_variation' }));
     const variationName = container.querySelector('input[name="variations.0.name"]') as HTMLInputElement;
     fireEvent.blur(variationName);
 
     expect(await screen.findByText('Variation name is required')).toBeInTheDocument();
     await waitFor(() => expect(variationName).toHaveAttribute('aria-invalid', 'true'));
-    expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary:1');
+    expect(screen.getByTestId('editor-error-summary')).toHaveTextContent('editor_error_summary_in_section:1');
   });
 });
 
@@ -321,6 +354,7 @@ const renderApiItem = async () => {
 
 const save = async () => {
   fireEvent.click(screen.getByTestId('editor-save'));
+  fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
   await act(async () => {});
 };
 

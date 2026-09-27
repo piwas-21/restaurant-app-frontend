@@ -1,23 +1,29 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FieldValues, UseFormRegister } from 'react-hook-form';
+import { useWatch, type Control, type FieldValues, type UseFormRegister } from 'react-hook-form';
+import type { Variation } from '@/app/admin/menu-management/interfaces';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './ProductAdvancedFields.module.css';
+import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
+import ProductParentBundleReferences from './ProductParentBundleReferences';
 
-/** The `aria-describedby` target for the option-only checkbox — see the section header. */
+/** The `aria-describedby` target for the option-only checkbox. */
 const IS_COMPONENT_HELP_ID = 'product-is-component-help';
 
 interface ProductAdvancedFieldsProps {
   // readonly: S6759 — component props are never mutated.
   readonly register: UseFormRegister<FieldValues>;
+  readonly control: Control<FieldValues>;
+  readonly productId?: string;
+  readonly variations: Variation[];
+  readonly onNavigate?: (href: string) => void;
 }
 
 /**
- * Section 7 — **Advanced**, the only section that is COLLAPSED by default (plan §4, D1).
+ * Focused **Advanced** panel in the product editor.
  *
  * One control now: `isComponent`, the OPTION-ONLY flag that keeps one of a bundle's six meats off
- * the guest menu (frontend #631). It is still SENT on every save whether or not the card is open —
- * the shell hides a collapsed body with the `hidden` attribute rather than unmounting it, because a
+ * the guest menu (frontend #631). It stays mounted when another editor panel is selected, because a
  * field the form stops rendering is a field the PUT clears (plan §6).
  *
  * **Two controls left this section, and both left for the same reason: they were filed by how
@@ -26,14 +32,21 @@ interface ProductAdvancedFieldsProps {
  * - `hideBaseProduct` is now the ACTIVE switch on the variations table's own base row. It only ever
  *   meant "offer this item as itself, alongside its sizes", so it belongs in the list it edits —
  *   and it was phrased as the negative of what the admin was looking at.
- * - The product TYPE is now in Basics. It is not a once-a-lifetime setting at all: it decides
+ * - The product TYPE is in Basics. It is not a once-a-lifetime setting at all: it decides
  *   whether the item is offered as a drink or a dessert in the guest sheet's upsell steps
  *   (`groupSuggestedSideItems`) and whether it is offered a generic drinks step of its own
  *   (`offersGenericDrinks`). Collapsed under Advanced with a default of `mainItem`, a tenant's
  *   drinks stayed typed as main items and the upsell grouped them wrongly, silently.
  */
-export default function ProductAdvancedFields({ register }: ProductAdvancedFieldsProps) {
+export default function ProductAdvancedFields({
+  register,
+  control,
+  productId,
+  variations,
+  onNavigate,
+}: ProductAdvancedFieldsProps) {
   const { t } = useTranslation();
+  const isComponent = Boolean(useWatch({ control, name: 'isComponent' }));
 
   return (
     <div className={modalStyles.formColumn}>
@@ -56,7 +69,13 @@ export default function ProductAdvancedFields({ register }: ProductAdvancedField
         <p id={IS_COMPONENT_HELP_ID} className={styles.help}>
           {t('option_only_item_help')}
         </p>
+        <EditorHelpDisclosure label={t('option_only_item_help_label')}>
+          <p>{t('option_only_item_example')}</p>
+        </EditorHelpDisclosure>
       </div>
+      {isComponent && productId && (
+        <ProductParentBundleReferences productId={productId} variations={variations} onNavigate={onNavigate} />
+      )}
     </div>
   );
 }

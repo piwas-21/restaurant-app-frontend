@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
+import type { TranslationSlot } from './translations/translationSlots';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 
@@ -16,14 +17,16 @@ export interface EditorSectionsContext {
   readonly product: ProductDetails;
   readonly isCreate: boolean;
   readonly isBundle: boolean;
+  readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
+  readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
   readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
   /** Route an offer detail link through the page's dirty-navigation guard. */
   readonly onNavigate?: (href: string) => void;
 }
 
 /**
- * Section ids are DOM ids — the nav scrolls to them and the collapse preference is stored under
- * them, so renaming one silently discards a user's remembered choice for that section.
+ * Section ids link each tab to its mounted tabpanel, so keep them unique and stable.
  *
  * The order of the KEYS is the order of §4's seven sections, and `buildItemSections` renders them
  * in exactly that order: Basics · Media · Pricing & variations · Options & sides · Recipe &

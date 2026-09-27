@@ -10,7 +10,7 @@ import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import { MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 import { groupedBundlesFor } from '@/hooks/publicMenu/mappers';
 import { onePageSectionId, type UseOnePageMenuReturn } from '@/hooks/useOnePageMenu';
-import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { getLocalizedCategoryDescription, getLocalizedCategoryName } from '@/utils/categoryNameMapper';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import { surfaceOr } from '@/templates/resolve-surface';
 import MenuFilters from '@/components/menu/MenuFilters';
@@ -67,7 +67,8 @@ export default function MenuOnePage({
   offerFamilies,
   offerFamiliesState,
 }: Readonly<MenuOnePageProps>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || 'en';
   const { sections, menuBundles, bundlesState, refetchCategory, refetchBundles } = controller;
 
   const allItems = useMemo(
@@ -162,8 +163,8 @@ export default function MenuOnePage({
           >
             <MenuSectionStatus
               headingId={`category-heading-${category.id}`}
-              title={getCategoryDisplayName(category.name, t)}
-              description={category.description}
+              title={getLocalizedCategoryName(category, locale, t)}
+              description={getLocalizedCategoryDescription(category, locale) ?? undefined}
               isLoading={state.isLoading}
               errorMessage={state.error ? t('error_loading_menu_items') : null}
               isEmpty={
@@ -178,7 +179,7 @@ export default function MenuOnePage({
                 !bundlesState.isLoading
               }
               loadingMessage={t('loading_items', 'Loading items...')}
-              emptyMessage={t('no_items_in_category', { categoryName: category.name })}
+              emptyMessage={t('no_items_in_category', { categoryName: getLocalizedCategoryName(category, locale, t) })}
               emptyHeading={
                 isFiltered
                   ? t('menu_state_filtered_heading', 'Nothing matches')

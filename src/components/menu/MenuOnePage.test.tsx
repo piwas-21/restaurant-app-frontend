@@ -15,6 +15,7 @@ import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilie
  */
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
+    i18n: { language: 'en' },
     t: (key: string, arg?: unknown) =>
       typeof arg === 'object' && arg !== null && 'categoryName' in (arg as object)
         ? `${key}:${(arg as { categoryName: string }).categoryName}`
@@ -55,6 +56,7 @@ jest.mock(
     function MockSectionStatus(props: {
       headingId: string;
       title: string;
+      description?: string | null;
       isLoading: boolean;
       errorMessage: string | null;
       isEmpty: boolean;
@@ -64,6 +66,7 @@ jest.mock(
           data-testid="status"
           data-heading={props.headingId}
           data-title={props.title}
+          data-description={props.description ?? ''}
           data-loading={String(props.isLoading)}
           data-error={props.errorMessage ?? ''}
           data-empty={String(props.isEmpty)}
@@ -198,6 +201,29 @@ describe('MenuOnePage — sections', () => {
     // Section titles go through the same name mapper the tabs use; with this suite's
     // pass-through t() the mapper falls back to the API name (its documented behaviour).
     expect(screen.getAllByTestId('status')[0].getAttribute('data-title')).toBe('Starters');
+  });
+
+  it('renders tenant category names and descriptions from the active locale map', () => {
+    const translatedCategory = {
+      id: 'cat-starters',
+      name: 'Starters',
+      description: 'Small plates',
+      translations: { en: { name: 'Small Plates', description: 'A selection to begin.' } },
+    };
+    const model = controller({
+      categories: [translatedCategory, { id: 'cat-mains', name: 'Grills' }],
+      sections: [
+        {
+          category: translatedCategory,
+          state: { items: [dish('humus')], isLoading: false, error: null },
+        },
+      ],
+    });
+
+    render(<MenuOnePage {...shared} controller={model} />);
+
+    expect(screen.getAllByTestId('status')[0]).toHaveAttribute('data-title', 'Small Plates');
+    expect(screen.getAllByTestId('status')[0]).toHaveAttribute('data-description', 'A selection to begin.');
   });
 
   it('renders grouped families once per assigned category and suppresses the technical bundles section', () => {

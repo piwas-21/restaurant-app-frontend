@@ -41,6 +41,8 @@ export interface CreateProductData {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial?: boolean;
+  /** Internal option-only catalogue carrier; the backend blocks direct sale for these rows. */
+  isComponent?: boolean;
   preparationTimeMinutes?: number;
   type: string;
   allergens?: string[];
@@ -148,8 +150,12 @@ export const getProductById = async (
   productId: string,
   signal?: AbortSignal,
   requestedOrderType?: OrderType | null,
+  locale?: string,
 ) => {
-  const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
+  const queryParams = new URLSearchParams();
+  if (requestedOrderType) queryParams.set('RequestedOrderType', requestedOrderType);
+  if (locale) queryParams.set('locale', locale);
+  const query = queryParams.size > 0 ? `?${queryParams.toString()}` : '';
   return await (signal
     ? apiClient.get(`${PRODUCTS_API_URL}/${productId}${query}`, { signal })
     : apiClient.get(`${PRODUCTS_API_URL}/${productId}${query}`));

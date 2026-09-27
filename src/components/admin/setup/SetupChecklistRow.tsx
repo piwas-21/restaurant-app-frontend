@@ -73,6 +73,12 @@ export default function SetupChecklistRow({
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       )}
+      {step.key === 'menu' && !step.isDone && (
+        <Link href="/admin/menu-management/catalogue?flow=onboarding" className={styles.rowAction}>
+          {t('catalogue_build_menu_cta')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      )}
     </li>
   );
 }

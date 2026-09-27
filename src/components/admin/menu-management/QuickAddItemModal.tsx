@@ -43,7 +43,17 @@ const CURRENCY_ID = 'quick-add-price-currency';
 export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedAnother }: QuickAddItemModalProps) {
   const { t } = useTranslation();
   const quickAdd = useQuickAddItem({ onCreated, onAddedAnother });
-  const { form, errors, categories, categoriesError, selectedCategoryId, selectCategory, isSubmitting } = quickAdd;
+  const {
+    form,
+    errors,
+    categories,
+    categoriesError,
+    selectedCategoryId,
+    selectCategory,
+    isComponent,
+    setComponentRole,
+    isSubmitting,
+  } = quickAdd;
 
   // One select, two fields (see the hook). Whichever of the pair failed, the sentence belongs
   // under the control the admin can actually act on.
@@ -129,6 +139,20 @@ export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedA
               ))}
             </select>
           </FormField>
+        </div>
+
+        <div className={styles.componentRole}>
+          <FormField label={t('option_only_item')}>
+            <input
+              type="checkbox"
+              checked={isComponent}
+              aria-describedby="quick-add-component-help"
+              onChange={(event) => setComponentRole(event.target.checked)}
+            />
+          </FormField>
+          <p id="quick-add-component-help" className={styles.componentHelp}>
+            {t('option_only_item_help')}
+          </p>
         </div>
 
         {/* An empty select means one of two things — no categories yet, or a failed fetch — and

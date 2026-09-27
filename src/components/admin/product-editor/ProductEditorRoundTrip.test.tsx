@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { SIDE_ITEM_SEARCH_DEBOUNCE_MS } from '@/hooks/admin/useSideItemSearch';
@@ -154,15 +154,24 @@ const fullyPopulated: ProductDetails = {
   content: { en: { name: NAME, description: DESCRIPTION } },
 } as unknown as ProductDetails;
 
+/** Exercise the production Save → review → confirm path in payload serialization tests. */
+const submitThroughReview = async (container: HTMLElement, allowUnchanged = false) => {
+  const save = container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement;
+  // Round-trip cases intentionally verify an untouched full-replacement payload. Save is disabled
+  // for users when nothing changed; that affordance has its own test in ProductEditorPage.test.
+  if (allowUnchanged) save.disabled = false;
+  fireEvent.click(save);
+  const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+};
+
 const renderAndSaveUntouched = async (product: ProductDetails) => {
   const { container } = render(
     <ProductEditorPage product={product} isBundle={false} mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
   );
   await act(async () => {});
 
-  // `fireEvent` already wraps its dispatch in act(); the flush that matters is the async submit
-  // handler, and `waitFor` is what awaits that.
-  fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+  await submitThroughReview(container, true);
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
   return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -272,7 +281,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       fireEvent.change(container.querySelector('input[name="sauceMax"]') as HTMLInputElement, {
         target: { value: '' },
       });
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await submitThroughReview(container);
       await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
       const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -313,7 +322,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       await act(async () => {});
 
       fireEvent.click(container.querySelector('#product-is-component') as HTMLInputElement);
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await submitThroughReview(container);
       await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
       expect((updateProduct as jest.Mock).mock.calls[0][1].isComponent).toBe(true);
@@ -343,7 +352,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
       await act(async () => {});
 
       fireEvent.click(container.querySelector('#product-is-component') as HTMLInputElement);
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await submitThroughReview(container);
       await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
       expect((updateProduct as jest.Mock).mock.calls[0][1].isComponent).toBe(false);
@@ -484,13 +493,14 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     const settleSearchDebounce = () => act(() => jest.advanceTimersByTime(SIDE_ITEM_SEARCH_DEBOUNCE_MS));
 
     const openPicker = async (container: HTMLElement) => {
+      fireEvent.click(screen.getByRole('tab', { name: 'editor_section_options' }));
       const open = await screen.findByRole('button', { name: 'side_items_picker_open' });
       fireEvent.click(open);
       return container;
     };
 
     const submitAndRead = async (container: HTMLElement) => {
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await submitThroughReview(container);
       await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
       return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
     };
@@ -573,16 +583,8 @@ describe('product editor — a save that changes nothing changes nothing', () =>
   });
 
   /**
-   * S2 moved ~150 controls between sections, and two of those moves put a registered field somewhere
-   * a naive implementation would have unmounted it — inside the collapsed `Advanced` card, and in
-   * the side rail, which is a SIBLING of the form. Both still have to reach the PUT, because the
-   * command assigns every column it is given: an item whose type quietly became the default, or
-   * whose `isActive` came back `false`, is off the menu.
-   *
-   * `type` and `hideBaseProduct` have since LEFT Advanced — the type for Basics, `hideBaseProduct`
-   * for the variations table's own base row — so this no longer demonstrates the collapsed case
-   * with them. It is kept because the payload assertion is still worth having, and the collapsed
-   * premise is asserted below with the field that is actually in there.
+   * Focused section panels remain mounted while hidden. This verifies the `isComponent` field in
+   * Advanced and the form values moved to Basics/Pricing still reach the full-replacement write.
    */
   it('sends the type and hideBaseProduct, wherever their sections put them', async () => {
     const { container } = render(
@@ -596,11 +598,11 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     );
     await act(async () => {});
 
-    // The premise: this is the only collapsed section, and it IS collapsed on a first visit (D1).
-    // `isComponent` is what lives in it now, so it is what proves a collapsed body still submits.
-    expect(container.querySelector('#editor-section-advanced-body')).toHaveAttribute('hidden');
+    const advancedPanel = container.querySelector('#product-editor-form-section-panel-editor-section-advanced');
+    expect(advancedPanel).toHaveAttribute('hidden');
+    expect(advancedPanel?.querySelector('#product-is-component')).not.toBeNull();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await submitThroughReview(container, true);
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
     const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -613,8 +615,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
    * The §6 case `hideBaseProduct` moved INTO. The base row is drawn only when the item has a
    * variation; with none, `ProductVariations` renders a bare registered input instead — and a
    * registered field the form stops rendering is a value the PUT clears. The fixture above has a
-   * variation, so it proves the `Controller` path only; this proves the other one, which is the one
-   * §6 is actually about.
+   * variation, so it proves the `Controller` path only; this proves the bare registered input.
    */
   it('sends hideBaseProduct for an item with NO variations, where the base row is not drawn', async () => {
     const { container } = render(
@@ -630,7 +631,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
 
     expect(container.querySelector('#variation-base-active')).toBeNull();
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await submitThroughReview(container, true);
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
     const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -654,7 +655,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(special.checked).toBe(true);
     fireEvent.click(special);
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await submitThroughReview(container);
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
     const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -776,7 +777,12 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     isSpecial: false,
     preparationTimeMinutes: 0,
     displayOrder: 0,
-    content: { en: { name: 'Menu Kebab', description: 'combo' } },
+    content: {
+      en: { name: 'Menu Kebab', description: 'combo' },
+      fr: { name: 'Menu Kebab français', description: 'formule' },
+      de: { name: 'Kebab-Menü', description: 'Kombimenü' },
+      zh: { name: '烤肉套餐', description: '套餐' },
+    },
     allergens: ['gluten', 'sesame'],
     menuDefinition: {
       isAlwaysAvailable: true,
@@ -800,7 +806,7 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     );
     await act(async () => {});
 
-    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await submitThroughReview(container, true);
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
 
     return (updateMenuBundle as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
@@ -810,6 +816,10 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     // THE assertion. This is the link `toBundleDefaults` and the schema exist to serve, and the
     // only one that observes the whole chain rather than a stage of it.
     expect((await saveBundleUntouched(LABELLED_BUNDLE)).allergens).toEqual(['gluten', 'sesame']);
+  });
+
+  it('preserves every loaded locale on an untouched save', async () => {
+    expect((await saveBundleUntouched(LABELLED_BUNDLE)).content).toEqual(LABELLED_BUNDLE.content);
   });
 
   it('sends an empty list for an unlabelled combo, rather than dropping the key', async () => {

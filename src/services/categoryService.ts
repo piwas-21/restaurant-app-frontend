@@ -1,6 +1,8 @@
 import { apiClient } from '@/utils/apiClient';
 import { compressImageForUpload } from '@/utils/imageCompression';
 import type { Category } from '@/app/admin/menu-management/interfaces';
+import type { CategoryTranslations } from '@/types/categoryTranslations';
+import type { TranslationOwnerMetadataWrite } from '@/types/translationMetadata';
 
 const CATEGORIES_API_URL = '/api/Categories';
 
@@ -14,6 +16,9 @@ interface CategoryData {
    * could call this, and a coalesce in a caller is a rule nobody can see from the schema.
    */
   description?: string | null;
+  translations: CategoryTranslations;
+  sourceLocale: string | null;
+  translationMetadata?: TranslationOwnerMetadataWrite;
   isActive: boolean;
   /**
    * Keep the category orderable on its own tab but out of the guest "All" list (partner request
@@ -29,9 +34,13 @@ interface CategoryData {
   availableOrderTypes?: number | null;
 }
 
-// This interface is for the main update, without displayOrder
-interface UpdateCategoryData extends CategoryData {
+// Existing rows may predate category translations/sourceLocale. Omitting either preserves
+// backend state; explicit null remains meaningful for a known unknown source locale.
+interface UpdateCategoryData extends Omit<CategoryData, 'translations' | 'sourceLocale' | 'translationMetadata'> {
   id: string;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
+  translationMetadata?: TranslationOwnerMetadataWrite;
 }
 
 export const createCategory = async (categoryData: CategoryData & { displayOrder: number }) => {

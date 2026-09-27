@@ -7,8 +7,10 @@ import CategoryChips from '@/components/admin/product/fields/CategoryChips';
 import type { Category } from '@/components/admin/product/types';
 import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEditor';
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
+import ProductAllergenFields from '@/components/admin/product/fields/ProductAllergenFields';
 import { INTEGER_INPUT_PROPS, MONEY_INPUT_PROPS } from '@/components/admin/product/numberInputProps';
-import type { MenuDefinition } from '@/types/menu';
+import type { ItemAvailability, MenuDefinition } from '@/types/menu';
+import BundleGuestStepPreview from './BundleGuestStepPreview';
 import styles from './ProductEditorPage.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
@@ -23,6 +25,11 @@ interface BundlePanelProps {
   readonly selectedCategoryIds: string[];
   readonly showCategories?: boolean;
   readonly menuDefinition: MenuDefinition;
+  readonly availability?: ItemAvailability;
+  readonly productId: string;
+  readonly isDirty: boolean;
+  readonly isActive: boolean;
+  readonly isAvailable: boolean;
   readonly onChange: (menuDefinition: MenuDefinition) => void;
 }
 
@@ -37,10 +44,8 @@ interface BundlePanelProps {
  * prefills. Bundles still do not expose item-only kitchen/type/variation controls, while category
  * ids are accepted by the bundle commands and preserved through the editor.
  *
- * `allergens` is NOT in that list any more: `MenuBundleDto` carries it since backend #477. It is
- * still not edited here, for a different reason — there is no write path (backend #478), and
- * `productFormUtils` already puts `allergens: []` into every bundle PUT, so a control added before
- * the server accepts the field would silently discard what the admin typed.
+ * Bundle allergens and order-channel availability are persisted in the current bundle contract;
+ * both are exposed below and round-trip through the ordinary page Save.
  */
 export default function BundlePanel({
   register,
@@ -51,6 +56,11 @@ export default function BundlePanel({
   selectedCategoryIds,
   showCategories = false,
   menuDefinition,
+  availability,
+  productId,
+  isDirty,
+  isActive,
+  isAvailable,
   onChange,
 }: BundlePanelProps) {
   const { t } = useTranslation();
@@ -142,11 +152,20 @@ export default function BundlePanel({
           sections={menuDefinition.sections}
           onChange={(sections) => onChange({ ...menuDefinition, sections })}
         />
+        <BundleGuestStepPreview
+          menuDefinition={menuDefinition}
+          availability={availability}
+          quoteContext={{ productId, isDirty, isActive, isAvailable }}
+        />
         {errors.menuDefinition && (
           <p className={modalStyles.errorMessage} role="alert">
             {String(errors.menuDefinition.message || t('menu_definition_invalid'))}
           </p>
         )}
+      </section>
+
+      <section className={styles.panel}>
+        <ProductAllergenFields control={control} />
       </section>
     </>
   );

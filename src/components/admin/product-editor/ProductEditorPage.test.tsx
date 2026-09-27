@@ -5,7 +5,11 @@ import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { EMPTY_MENU_DEFINITION } from '@/utils/productEditorDefaults';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
+  useTranslation: () => ({
+    t: (key: string, values?: Record<string, unknown>) =>
+      key.startsWith('bundle_quote_') && values ? `${key}:${Object.values(values).join(',')}` : key,
+    i18n: { language: 'en' },
+  }),
 }));
 
 jest.mock('@/services/productService', () => ({
@@ -28,12 +32,21 @@ jest.mock('@/services/globalIngredientService', () => ({
 jest.mock('@/services/categoryService', () => ({
   getCategories: jest.fn(async () => ({ success: true, data: { items: [{ id: 'cat-a', name: 'Pizza' }] } })),
 }));
+jest.mock('@/services/productQuoteService', () => ({
+  quoteProduct: jest.fn(async (productId: string) => ({
+    productId,
+    quantity: 1,
+    unitPrice: 21,
+    totalPrice: 21,
+  })),
+}));
 
 import { getCategories } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
 import { updateProduct, deleteProductImage } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
+import { quoteProduct } from '@/services/productQuoteService';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 
 const item: ProductDetails = {
@@ -102,6 +115,13 @@ const renderEditor = async (product: ProductDetails, isBundle: boolean, mode: 'c
   const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement;
   return { onSaved, onBack, nameInput, container };
 };
+
+const saveThroughReview = async () => {
+  fireEvent.click(screen.getByTestId('editor-save'));
+  fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
+};
+
+const activateSection = (label = 'editor_section_recipe') => fireEvent.click(screen.getByRole('tab', { name: label }));
 
 // Reach the checkbox through its <label>. Since the control moved onto the design system's
 // `CheckboxField` the input is a direct CHILD of the label — no `htmlFor`, no id to resolve, which
@@ -194,7 +214,8 @@ describe('ProductEditorPage — the panels each kind can actually support', () =
     await renderEditor(bundle, true);
 
     expect(screen.getByText('menu_availability_schedule')).toBeInTheDocument();
-    expect(screen.getByText('menu_sections')).toBeInTheDocument();
+    const itemPanel = screen.getByRole('tabpanel', { name: 'item' });
+    expect(within(itemPanel).getByText('menu_sections')).toBeInTheDocument();
     expect(screen.queryByText('categories')).not.toBeInTheDocument();
     expect(screen.queryByText('product_variations')).not.toBeInTheDocument();
   });
@@ -215,10 +236,51 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(screen.getByTestId('editor-save')).toBeDisabled();
   });
 
-  // Decision D4 (MENU-ITEM-EDITOR-REDESIGN-PLAN §3). The duplicate header Save existed only
-  // because the page was too long to scroll; the sticky section nav plus the sticky bar solve that
-  // properly, so exactly ONE Save may exist in the DOM. Three commit models on one screen was the
-  // measured reason the admin could not answer "is my work saved?".
+  it('shows the guest-facing review before the shared form writes', async () => {
+    const { nameInput } = await renderEditor(item, false);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(within(review).getByText('editor_review_translation_gaps')).toBeInTheDocument();
+    expect(within(review).getByText('editor_review_allergens_unknown')).toBeInTheDocument();
+    expect(updateProduct).not.toHaveBeenCalled();
+
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+  });
+
+  it('requires the review even when a submit event has no submitter', async () => {
+    const { nameInput, container } = await renderEditor(item, false);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(updateProduct).not.toHaveBeenCalled();
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+  });
+
+  it('prompts for a manual comparison when linked through a parent variation', async () => {
+    const linkedBundle = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        parentOfferProductId: undefined,
+        parentOfferVariationId: 'variation-1',
+      },
+    } as ProductDetails;
+    const { nameInput } = await renderEditor(linkedBundle, true);
+    fireEvent.change(nameInput, { target: { value: 'Pizza Combo Revised' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(within(review).getByText('editor_review_linked_offer_review')).toBeInTheDocument();
+    expect(updateMenuBundle).not.toHaveBeenCalled();
+  });
+
+  // The focused editor has one visible Save action for the shared form.
   it('renders exactly one Save button — the header duplicate is gone', async () => {
     const { container } = await renderEditor(item, false);
 
@@ -239,7 +301,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(save.getAttribute('form')).toBe(form.id);
 
     fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
-    fireEvent.click(save);
+    await saveThroughReview();
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   });
@@ -251,6 +313,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     await renderEditor(item, false);
 
     expect(screen.getByTestId('editor-save')).toBeDisabled();
+    activateSection();
     fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
@@ -313,7 +376,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     fireEvent.click(bundleRender.container.querySelectorAll('input[type="radio"]')[1]);
     fireEvent.click(orderTypeBox(bundleRender.container, 'order_type_delivery') as HTMLInputElement);
     fireEvent.change(bundleRender.nameInput, { target: { value: 'Combo Rosso' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
     const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
@@ -332,7 +395,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(restricted, true);
 
     fireEvent.change(nameInput, { target: { value: 'Combo Verde' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
     const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
@@ -346,7 +409,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     fireEvent.click(container.querySelectorAll('input[type="radio"]')[1]);
     fireEvent.click(orderTypeBox(container, 'order_type_delivery') as HTMLInputElement);
     fireEvent.change(nameInput, { target: { value: 'Margherita Rossa' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
     const [, payload] = (updateProduct as jest.Mock).mock.calls[0];
@@ -359,7 +422,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(item, false);
 
     fireEvent.change(nameInput, { target: { value: 'Margherita Gialla' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
     const [, payload] = (updateProduct as jest.Mock).mock.calls[0];
@@ -379,6 +442,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('confirms before discarding on Back when there are unsaved changes', async () => {
     const { onBack } = await renderEditor(item, false);
 
+    activateSection();
     fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'back' }));
 
@@ -394,7 +458,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(item, false);
 
     fireEvent.change(nameInput, { target: { value: 'Margherita Bianca' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
     expect(updateMenuBundle).not.toHaveBeenCalled();
@@ -404,7 +468,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(bundle, true);
 
     fireEvent.change(nameInput, { target: { value: 'Pizza Combo XL' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
     expect(updateProduct).not.toHaveBeenCalled();
@@ -448,7 +512,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(fresh, true);
 
     fireEvent.change(nameInput, { target: { value: 'Brand New Combo' } });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
 
@@ -458,6 +522,45 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     // which MenuDefinitionDto.Id (Guid?) accepts. The point is that "temp-555" never lands.
     expect(wire.menuDefinition.id).toBeNull();
     expect(JSON.stringify(wire)).not.toContain('temp-');
+  });
+});
+
+describe('ProductEditorPage — saved menu quote preview', () => {
+  it('drops the prior saved quote as soon as an unsaved surcharge changes', async () => {
+    if (!bundle.menuDefinition) throw new Error('Expected the menu fixture to have a definition');
+    const menuDefinition = bundle.menuDefinition;
+    const savedBundle = {
+      ...bundle,
+      id: '11111111-1111-1111-1111-111111111111',
+      menuDefinition: {
+        ...menuDefinition,
+        id: '22222222-2222-2222-2222-222222222222',
+        sections: menuDefinition.sections.map((section) => ({
+          ...section,
+          id: '33333333-3333-3333-3333-333333333333',
+          items: section.items.map((option) => ({ ...option, id: '44444444-4444-4444-4444-444444444444' })),
+        })),
+      },
+    } as ProductDetails;
+    const { container } = await renderEditor(savedBundle, true);
+
+    const quoteButton = screen.getByRole('button', { name: 'bundle_quote_request' });
+    expect(quoteButton).toBeEnabled();
+    fireEvent.click(quoteButton);
+    expect(await screen.findByText('bundle_quote_total:CHF 21.00')).toBeInTheDocument();
+    expect(quoteProduct).toHaveBeenCalledTimes(1);
+
+    const expandButton = container.querySelector('button[title="expand"]');
+    if (!(expandButton instanceof HTMLButtonElement)) throw new Error('Expected the menu section expand button');
+    fireEvent.click(expandButton);
+    const surcharge = container.querySelector('table input[type="number"]');
+    if (!(surcharge instanceof HTMLInputElement)) throw new Error('Expected the menu option surcharge field');
+    fireEvent.change(surcharge, { target: { value: '2.50' } });
+
+    expect(screen.queryByText('bundle_quote_total:CHF 21.00')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'bundle_quote_request' })).toBeDisabled();
+    expect(screen.getByText('bundle_quote_save_changes_first')).toBeInTheDocument();
+    expect(quoteProduct).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -497,7 +600,7 @@ describe('ProductEditorPage — the create route drives the same page', () => {
     fireEvent.change(container.querySelector('input[name="basePrice"]') as HTMLInputElement, {
       target: { value: '20' },
     });
-    fireEvent.click(screen.getByTestId('editor-save'));
+    await saveThroughReview();
 
     await waitFor(() => expect(createMenuBundle).toHaveBeenCalledTimes(1));
     expect(createProduct).not.toHaveBeenCalled();
@@ -525,6 +628,7 @@ describe('ProductEditorPage — existing-image management', () => {
   it('gives the Media section a single heading', async () => {
     const { container } = await renderEditor(item, false);
 
+    activateSection('editor_section_media');
     const media = container.querySelector('#editor-section-media') as HTMLElement;
     expect(within(media).getAllByRole('heading')).toHaveLength(1);
     expect(within(media).getByRole('heading', { name: 'editor_section_media' })).toBeInTheDocument();
@@ -584,6 +688,7 @@ describe('ProductEditorPage — existing-image management', () => {
     } as ProductDetails;
     await renderEditor(withImage, false);
 
+    activateSection('editor_section_media');
     fireEvent.click(screen.getByRole('button', { name: 'delete' }));
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
 
@@ -657,12 +762,13 @@ describe('ProductEditorPage — a category list that did not arrive says so', ()
 });
 
 describe('ProductEditorPage — the S1 editor shell', () => {
-  // MENU-ITEM-EDITOR-REDESIGN-PLAN §4 + D2. Exactly two tabs, and the sections are a NAV, so a
-  // second tablist appearing here means someone turned the sections into tabs after all.
+  // The editor has two top-level tabs; the selected Item tab contains its own section tablist.
   it('offers Item and Translations, and no other tabs', async () => {
     const { container } = await renderEditor(item, false);
 
-    const tabs = Array.from(container.querySelectorAll('[role="tab"]'));
+    const tabs = Array.from(
+      container.querySelector('[role="tablist"][aria-label="editor_tabs"]')?.querySelectorAll('[role="tab"]') ?? [],
+    );
     expect(tabs.map((tab) => tab.textContent)).toEqual(['item', 'editor_tab_translations']);
   });
 
@@ -690,7 +796,7 @@ describe('ProductEditorPage — the S1 editor shell', () => {
   it('names every section of an item in the nav, in page order', async () => {
     const { container } = await renderEditor(item, false);
 
-    const nav = container.querySelector('nav[aria-label="editor_sections"]') as HTMLElement;
+    const nav = container.querySelector('[role="tablist"][aria-label="editor_sections"]') as HTMLElement;
     expect(Array.from(nav.querySelectorAll('button')).map((button) => button.textContent)).toEqual([
       'editor_section_basics',
       'editor_section_media',

@@ -1,0 +1,35 @@
+.priceGrid,
+.priceGridRow,
+.optionPriceRows {
+  display: grid;
+  gap: 1rem;
+}
+
+.priceGrid {
+  padding: 1rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+}
+
+.priceGrid h2,
+.priceGridRow h3 {
+  margin: 0;
+}
+
+.priceGrid > p,
+.priceGridRow > p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+.priceGridRow {
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+}
+
+.optionPriceRows {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}

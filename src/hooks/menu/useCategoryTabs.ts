@@ -7,7 +7,7 @@
 import { useTranslation } from 'react-i18next';
 import type { ApiCategory } from '@/types/menu';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
-import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { getLocalizedCategoryName } from '@/utils/categoryNameMapper';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
 import { resolveChannelNotice } from '@/utils/channelNotice';
@@ -74,7 +74,7 @@ export function useCategoryTabs(categories: ApiCategory[], allLabel: string, hid
     ...(hideBundles ? [] : [{ id: MENU_BUNDLES_KEY, label: t('menu_bundles'), notice: null }]),
     ...categories.map((cat) => ({
       id: cat.id,
-      label: getCategoryDisplayName(cat.name, t),
+      label: getLocalizedCategoryName(cat, language, t),
       notice: noticeFor(cat),
     })),
   ];

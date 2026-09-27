@@ -47,7 +47,12 @@ interface SubmitProductFormParams {
 
 interface SubmitEditProductFormParams {
   data: EditFormData;
-  product: { id: string; name?: string; description?: string };
+  product: {
+    id: string;
+    name?: string;
+    description?: string;
+    menuDefinition?: { authoringVersion?: number };
+  };
   imageFiles: File[];
   detailedIngredients?: ProductIngredient[];
   customizationGroups?: ProductCustomizationGroupDraft[];
@@ -408,6 +413,7 @@ export const submitEditProductForm = async ({
         isActive: v.isActive ?? true,
         displayOrder: Number.isInteger(v.displayOrder as any) ? (v.displayOrder as any) : 0,
         content: withoutUntouchedTranslations(v.content as Record<string, TranslationEntry>),
+        translationMetadata: (v as typeof v & { translationMetadata?: unknown }).translationMetadata,
       }));
 
     // Provenance + temp-id strip, shared with the create path above.
@@ -439,7 +445,10 @@ export const submitEditProductForm = async ({
     // carries none, so this always sent categoryIds: [] and every bundle edit failed with
     // "At least one category is required". PUT /api/Menus takes CategoryIds as optional.
     const response = (await (data.menuDefinition
-      ? updateMenuBundle(product.id, toMenuBundlePayload(productData))
+      ? updateMenuBundle(product.id, {
+          ...toMenuBundlePayload(productData),
+          expectedAuthoringVersion: product.menuDefinition?.authoringVersion,
+        })
       : updateProduct(product.id, productData))) as {
       success: boolean;
       message?: string;

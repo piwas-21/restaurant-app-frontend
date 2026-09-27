@@ -1,0 +1,28 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
+  color: var(--text-on-primary);
+  background: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  color: var(--text-primary);
+  background: var(--surface-card);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

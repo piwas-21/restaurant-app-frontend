@@ -62,6 +62,13 @@ const DYNAMIC_PREFIXES = [
   'kitchen_type_',
   'lang_',
   'language_',
+  // Option-set attachment status labels are built from typed API enums in the attachment UI:
+  // OptionSetAttachmentManager.tsx composes preview/apply/related-offer labels, and
+  // OptionSetMaterializationTargetCard.tsx composes preview/change labels.
+  'option_set_preview_',
+  'option_set_related_offer_',
+  'option_set_change_',
+  'option_set_apply_',
   // `src/app/admin/ingredient-translations/page.tsx` composes the i18next plural family
   // `ingredient_translations_receipt_products_{category}` via
   // `t('ingredient_translations_receipt_products', { count })` — the receipt sentence ("applied

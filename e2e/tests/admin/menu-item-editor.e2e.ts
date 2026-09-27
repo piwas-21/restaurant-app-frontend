@@ -159,18 +159,56 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
       { timeout: 120_000 },
     );
 
-    // All seven, and no eighth.
+    // All seven, and no eighth. The panels are focused tabs, so only one is visible at a time.
     const sections = page.locator('section[id^="editor-section-"]');
     await expect(sections, 'the item editor renders exactly §4 seven sections').toHaveCount(SECTION_IDS.length);
+    const sectionNav = page.getByTestId('editor-section-nav');
+    const sectionTabs = sectionNav.getByRole('tab');
+    await expect(sectionTabs, 'each editor section has a keyboard-accessible tab').toHaveCount(SECTION_IDS.length);
 
-    // In order, and each with a heading a human can read. `Advanced` ships collapsed by default, so
-    // the SECTION is visible while its body is hidden — assert the section, never its fields.
+    // The focused tab controls the matching panel, keeps its accessible name, and exposes its
+    // heading. Checking each associated panel protects the real browser path without asserting that
+    // all seven panels should be visible at once.
     for (const [index, id] of SECTION_IDS.entries()) {
-      const section = page.locator(`section#${id}`);
-      await expect(section, `${id} must render`).toBeVisible();
-      await expect(sections.nth(index), `${id} must be section ${index + 1} of seven`).toHaveAttribute('id', id);
+      const tab = sectionTabs.nth(index);
+      const panelId = `product-editor-form-section-panel-${id}`;
+      await expect(tab, `${id} tab needs an accessible name`).toHaveAccessibleName(/.+/);
+      await expect(tab, `${id} tab controls its own panel`).toHaveAttribute('aria-controls', panelId);
+      await tab.click();
+      await expect(tab, `${id} tab is selected`).toHaveAttribute('aria-selected', 'true');
+
+      const panel = page.locator(`#${panelId}`);
+      await expect(panel, `${id} panel must be visible when selected`).toBeVisible();
+      const section = panel.locator(`section#${id}`);
+      await expect(section, `${id} must render inside its panel`).toBeVisible();
       await expect(section.locator('h2').first(), `${id} needs a heading`).not.toBeEmpty();
     }
+
+    // The vertical section rail follows the tab keyboard pattern, and switching panels retains an
+    // unsaved form value. The component tests inventory the controls in each section; this browser
+    // round-trip proves the live form keeps its state while the real tab panels change visibility.
+    const orientation = await sectionNav.getAttribute('aria-orientation');
+    const nextKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown';
+    const previousKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp';
+    const basicsTab = sectionTabs.nth(0);
+    const mediaTab = sectionTabs.nth(1);
+    await basicsTab.click();
+    await basicsTab.focus();
+    await basicsTab.press(nextKey);
+    await expect(mediaTab).toBeFocused();
+    await expect(mediaTab).toHaveAttribute('aria-selected', 'true');
+    await mediaTab.press(previousKey);
+    await expect(basicsTab).toBeFocused();
+    await expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+
+    const draftName = `${await nameInput.inputValue()} (draft)`;
+    await nameInput.fill(draftName);
+    const pricingTab = sectionTabs.nth(2);
+    await pricingTab.click();
+    const pricingPanel = page.locator(`#product-editor-form-section-panel-${SECTION_IDS[2]}`);
+    await expect(pricingPanel.locator('input[name="basePrice"]')).toBeVisible();
+    await basicsTab.click();
+    await expect(nameInput, 'a draft field value survives leaving and returning to its panel').toHaveValue(draftName);
 
     // A raw i18n key here means a missing translation, and every section label is a t() call.
     const text = await page.locator('form').first().innerText();

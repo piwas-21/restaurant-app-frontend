@@ -208,6 +208,17 @@ const sauceGroupRules = (
   }
 };
 
+/** Zero is valid only for an option-only component; every directly sellable item needs a price. */
+const sellablePriceRules = (data: { basePrice: number; isComponent?: boolean }, ctx: z.RefinementCtx) => {
+  if (!data.isComponent && data.basePrice <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['basePrice'],
+      message: 'Base price must be greater than 0',
+    });
+  }
+};
+
 // Menu Definition Schemas
 const menuSectionItemSchema = z.object({
   id: z.string().nullish(),
@@ -278,19 +289,23 @@ export const createProductSchema = baseProductSchema.extend({
 });
 
 /**
- * What the create RESOLVER runs: the object above plus the two cross-field sauce rules.
+ * What the create RESOLVER runs: the object above plus the sauce and role-aware price rules.
  *
  * They are a separate export because `.superRefine` returns a `ZodEffects`, which has neither
  * `.shape` nor `.pick` — and `quickAddItemSchema` picks from the object while
  * `schemas.quickAdd.test.ts` reads its shape to prove the two cannot drift. The form gets the
  * rules; the subset machinery gets the columns.
  */
-export const createProductFormSchema = createProductSchema.superRefine(sauceGroupRules);
+export const createProductFormSchema = createProductSchema.superRefine((data, ctx) => {
+  sauceGroupRules(data, ctx);
+  sellablePriceRules(data, ctx);
+});
 
 /**
- * The three things the quick-add modal asks for (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
+ * The quick-add fields shown in the modal (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
  *
- * Declared as a PICK MASK rather than as a list of field names, so the modal's schema can be
+ * The internal-component role joins name, price and category so an admin can explicitly create an
+ * option-only row at zero price. Declared as a PICK MASK rather than a list of field names, so the modal's schema can be
  * derived from the create schema instead of restated beside it. `categoryIds` rides along because
  * one select drives both: the chosen category is the item's only category AND its primary one,
  * which is the same pair the full editor's chip group + primary select produce.
@@ -300,6 +315,7 @@ export const QUICK_ADD_ITEM_FIELDS = {
   basePrice: true,
   categoryIds: true,
   primaryCategoryId: true,
+  isComponent: true,
 } as const;
 
 /**
@@ -310,6 +326,7 @@ export const QUICK_ADD_ITEM_FIELDS = {
  * the identity, and `quickAddItemPayload.ts` supplies every field this mask leaves out.
  */
 export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS);
+export const quickAddItemFormSchema = quickAddItemSchema.superRefine(sellablePriceRules);
 
 // Dedicated schema for Menu Bundles (cleaner, no redundant fields).
 //
@@ -381,7 +398,10 @@ export const editProductSchema = baseProductSchema
     path: ['primaryCategoryId'],
     message: 'Primary category is required when categories are selected',
   })
-  .superRefine(sauceGroupRules);
+  .superRefine((data, ctx) => {
+    sauceGroupRules(data, ctx);
+    sellablePriceRules(data, ctx);
+  });
 
 export const editMenuBundleSchema = baseMenuBundleSchema.extend({
   id: z.string().optional(),

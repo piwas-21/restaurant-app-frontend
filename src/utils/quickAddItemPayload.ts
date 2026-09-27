@@ -1,9 +1,9 @@
-import { createProductSchema, type FormData, type QuickAddItemFormData } from '@/components/admin/product/schemas';
+import { createProductFormSchema, type FormData, type QuickAddItemFormData } from '@/components/admin/product/schemas';
 import { emptyProductDetails, toItemDefaults } from './productEditorDefaults';
 
 /**
- * The quick-add modal's three answers → the SAME create payload the full editor would have sent
- * (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
+ * The quick-add modal's entry fields and item role → the SAME create payload the full editor would
+ * have sent (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
  *
  * This is the other half of the strict-subset rule. `quickAddItemSchema` guarantees the modal
  * cannot validate a field differently from the editor; this guarantees the modal cannot OMIT one.
@@ -19,5 +19,5 @@ import { emptyProductDetails, toItemDefaults } from './productEditorDefaults';
  * carry (`displayOrder`), and REFUSES a payload the full form would have refused.
  */
 export function buildQuickAddItemPayload(values: QuickAddItemFormData): FormData {
-  return createProductSchema.parse({ ...toItemDefaults(emptyProductDetails(false)), ...values });
+  return createProductFormSchema.parse({ ...toItemDefaults(emptyProductDetails(false)), ...values });
 }

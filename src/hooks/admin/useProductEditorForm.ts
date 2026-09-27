@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useFieldArray, useForm, type FieldErrors, type FieldValues, type Resolver } from 'react-hook-form';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFieldArray, useForm, type FieldValues, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { pickEditorSchema } from '@/components/admin/product/schemas';
@@ -11,10 +11,11 @@ import type { MenuDefinition } from '@/types/menu';
 import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
 import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
-import { collectErrorFields, jumpToField } from '@/components/admin/product-editor/editorValidation';
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
 import { useCustomizationGroupsEditorState } from './useCustomizationGroupsEditorState';
+import type { EditorTranslationMetadataPatch } from '@/types/translationMetadata';
+import { applyEditorTranslationMetadata } from '@/utils/applyEditorTranslationMetadata';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -44,6 +45,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const [menuDefinition, setMenuDefinition] = useState<MenuDefinition>(() => toMenuDefinitionState(product));
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
+  const translationMetadata = useRef<EditorTranslationMetadataPatch | null>(null);
 
   const schema = pickEditorSchema(isBundle, mode);
   const form = useForm<FieldValues>({
@@ -99,14 +101,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
   const moveVariation = useVariationReorder({ getValues, setValue, variations });
 
-  // A refused submit jumps to the first failing field (D13). Without it the only signal is a Save
-  // that appears to do nothing, which on a seven-section form reads as a broken button. The save
-  // bar's chip then says how many remain; this is that same jump, fired automatically.
-  const onInvalidSubmit = (submitErrors: FieldErrors<FieldValues>) => {
-    const first = collectErrorFields(submitErrors)[0];
-    if (first) jumpToField(first.name);
-  };
-
   const onSubmit = form.handleSubmit(async (data) => {
     const payload: Record<string, unknown> = { ...(data as Record<string, unknown>) };
 
@@ -116,7 +110,12 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     // UpdateMenuBundleCommand / CreateMenuBundleCommand have no DetailedIngredients, so
     // anything sent here for a bundle is silently dropped — but the reconciliation still runs
     // and CREATES global ingredient rows as a side effect. Don't feed it.
-    const ingredientsForKind = isBundle ? [] : detailedIngredients;
+    let ingredientsForKind = isBundle ? [] : detailedIngredients;
+    if (translationMetadata.current) {
+      const translated = applyEditorTranslationMetadata(payload, ingredientsForKind, translationMetadata.current);
+      Object.assign(payload, translated.payload);
+      ingredientsForKind = translated.detailedIngredients as typeof ingredientsForKind;
+    }
 
     if (mode === 'create') {
       await submitProductForm({
@@ -163,7 +162,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       fallbackMessage: t('unexpected_error', 'An unexpected error occurred.'),
       onImageUploadFailed: (reason) => reportProductImageUploadFailure(t, 'edit', reason),
     });
-  }, onInvalidSubmit);
+  });
 
   return {
     form,
@@ -193,5 +192,8 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       customization.isDirty ||
       imageFiles.length > 0,
     onSubmit,
+    setTranslationMetadata: (metadata: EditorTranslationMetadataPatch) => {
+      translationMetadata.current = metadata;
+    },
   };
 }

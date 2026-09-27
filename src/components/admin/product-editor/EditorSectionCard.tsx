@@ -4,7 +4,7 @@ import React from 'react';
 import styles from './EditorSectionCard.module.css';
 
 export interface EditorSection {
-  /** DOM id — the nav scrolls to it, so it must be unique on the page. */
+  /** DOM id shared by the section tab and its tabpanel; it must be unique on the page. */
   readonly id: string;
   /** Nav entry text, and the section's accessible name. */
   readonly label: string;
@@ -17,14 +17,6 @@ export interface EditorSection {
   /** Render a visible `<h2>`. Omitted where the dropped-in content already brings its own. */
   readonly showHeading?: boolean;
   /**
-   * Give the section a heading BUTTON that folds its body away. `Advanced` is the only one (D1):
-   * every other section stays open, because a collapsed accordion is the exact complaint the
-   * redesign is answering. The choice is remembered per user.
-   */
-  readonly collapsible?: boolean;
-  /** Collapsed on a first visit, before any remembered choice exists. */
-  readonly defaultCollapsed?: boolean;
-  /**
    * Nav-only markers (S7 / conformance gap G3). The card itself draws nothing for them: the
    * approved screen puts the `!` in the NAV, beside the section name, and `EditorSectionNav`
    * renders what it is told. `editorValidation.ts` decides which section earns one.
@@ -35,10 +27,7 @@ export interface EditorSection {
 }
 
 interface EditorSectionCardProps {
-  // readonly: S6759 — component props are never mutated.
   readonly section: EditorSection;
-  readonly collapsed: boolean;
-  readonly onToggle: () => void;
 }
 
 /**
@@ -53,10 +42,9 @@ interface EditorSectionCardProps {
  * Split out of `EditorShell` rather than grown inside it: the shell was already at the 200-LOC CSS
  * gate, and a section's skin is not the shell's business.
  *
- * The body is HIDDEN when collapsed, never unmounted — a registered field that leaves the DOM is a
- * value the PUT can clear (plan §6). Same rule as the inactive tab panel and the rail.
+ * All controls remain mounted; the parent focused tabpanel controls visibility.
  */
-export default function EditorSectionCard({ section, collapsed, onToggle }: EditorSectionCardProps) {
+export default function EditorSectionCard({ section }: EditorSectionCardProps) {
   const bodyId = `${section.id}-body`;
   const descriptionId = `${section.id}-description`;
   const description = section.description && (
@@ -73,37 +61,13 @@ export default function EditorSectionCard({ section, collapsed, onToggle }: Edit
       aria-label={section.label}
       className={styles.card}
     >
-      {section.collapsible ? (
+      {(section.showHeading || section.description) && (
         <div className={styles.head}>
-          <h2 className={styles.heading}>
-            <button
-              type="button"
-              className={styles.collapseToggle}
-              aria-expanded={!collapsed}
-              aria-controls={bodyId}
-              // The description explains the section, so it describes the control that reveals it.
-              aria-describedby={section.description ? descriptionId : undefined}
-              onClick={onToggle}
-            >
-              {section.label}
-              <span aria-hidden="true" className={collapsed ? styles.chevron : styles.chevronOpen}>
-                ⌄
-              </span>
-            </button>
-          </h2>
+          {section.showHeading && <h2 className={styles.heading}>{section.label}</h2>}
           {description}
         </div>
-      ) : (
-        (section.showHeading || section.description) && (
-          <div className={styles.head}>
-            {section.showHeading && <h2 className={styles.heading}>{section.label}</h2>}
-            {description}
-          </div>
-        )
       )}
-      <div id={bodyId} hidden={collapsed} className={styles.body}>
-        {section.node}
-      </div>
+      <div id={bodyId}>{section.node}</div>
     </section>
   );
 }

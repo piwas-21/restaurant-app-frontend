@@ -12,10 +12,12 @@ export interface EditorFieldError {
  * Which §4 section owns which registered field (slice S7, decision D13).
  *
  * Keyed by the ROOT of a registered path, so `variations.0.name` and `variations.2.priceModifier`
- * both resolve through `variations`. It is the only mapping in the redesign that has to be kept in
- * step with `itemEditorSections.tsx` by hand — `ProductEditorSections.test.tsx` already pins which
- * control renders in which section, and `editorValidation.test.ts` pins that every field this map
- * names is a field the schema really has, so a rename cannot rot it silently in both directions.
+ * both resolve through `variations`. The item mapping is kept in step with
+ * `itemEditorSections.tsx` by hand — `ProductEditorSections.test.tsx` already pins which control
+ * renders in which section, and `editorValidation.test.ts` pins that every field this map names is
+ * a field the schema really has, so a rename cannot rot it silently in both directions.
+ * `sectionForField` applies bundle overrides because the allergen control lives in Basics for
+ * bundles rather than Recipe & dietary.
  *
  * The three status flags live in the side RAIL, not in a section, so they map to nothing: a rail
  * error would have no nav entry to mark. They are booleans with defaults and cannot fail today.
@@ -98,15 +100,18 @@ export function collectErrorFields(errors: FieldErrors<FieldValues>): EditorFiel
 }
 
 /** The section that owns a registered path, or `undefined` for one no section renders. */
-export function sectionForField(name: string): string | undefined {
-  return SECTION_FIELDS[name.split('.')[0]];
+export function sectionForField(name: string, isBundle = false): string | undefined {
+  const field = name.split('.')[0];
+  // Bundle allergens render in Basics; item allergens render in Recipe & dietary.
+  if (isBundle && field === 'allergens') return SECTION_IDS.basics;
+  return SECTION_FIELDS[field];
 }
 
 /** The distinct sections holding at least one failing field, for the nav's error marker. */
-export function sectionIdsWithErrors(fields: readonly EditorFieldError[]): string[] {
+export function sectionIdsWithErrors(fields: readonly EditorFieldError[], isBundle = false): string[] {
   const ids = new Set<string>();
   for (const field of fields) {
-    const id = sectionForField(field.name);
+    const id = sectionForField(field.name, isBundle);
     if (id) ids.add(id);
   }
   return [...ids];
@@ -132,13 +137,9 @@ export function isTranslationsField(name: string): boolean {
  * the fields that most need this — a variation's name, three levels down a field array — are
  * exactly the ones that do not have one.
  *
- * It does NOT force a hidden ancestor open, and that is deliberate: every `hidden` container in
- * this editor is React-controlled (the collapsed `Advanced` body, the inactive tab panel), so a
- * direct DOM write would be reverted on the next render and would desync the remembered collapse
- * state. The two real cases are handled where the state lives — the caller switches tab for a
- * translation error, and the one field left inside `Advanced` cannot fail today (`isComponent`, a
- * boolean with a default). The type select and `hideBaseProduct` left that section; both still have
- * defaults and still cannot fail, but neither is behind a collapse any more either.
+ * It does NOT force a hidden ancestor open: panel visibility is React-controlled, so a direct DOM
+ * write would be reverted on the next render. `useEditorErrors` switches to the owning tab and
+ * section first, then defers this focus move until React has exposed the panel.
  *
  * Returns whether anything was found, so a caller can stay silent rather than pretend it jumped.
  */
@@ -191,14 +192,14 @@ function nearestAnchor(name: string): HTMLElement | null {
  * Take the admin to a failing field, falling back to the SECTION that owns it.
  *
  * `focusField` answers "is there an input for this path"; this answers the question the save bar's
- * chip actually asks — *"show me the problem"* — which must always move the page somewhere. The
- * section card carries `tabIndex={-1}` for exactly this, and is what the sticky nav scrolls to.
+ * chip actually asks — *"show me the problem"*. The owning section card is a fallback for a field
+ * path with no input rendered.
  */
-export function jumpToField(name: string): boolean {
+export function jumpToField(name: string, isBundle = false): boolean {
   if (focusField(name)) return true;
   if (typeof document === 'undefined') return false;
 
-  const sectionId = sectionForField(name);
+  const sectionId = sectionForField(name, isBundle);
   const section = sectionId ? document.getElementById(sectionId) : null;
   if (!section) return false;
 

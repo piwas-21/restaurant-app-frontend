@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { omitNewBlankCategoryTranslations, type CategoryTranslations } from '@/types/categoryTranslations';
 import { useTranslation } from 'react-i18next';
+import type { TranslationOwnerMetadataWrite } from '@/types/translationMetadata';
 import { reorderCategory, updateCategory, uploadCategoryImage } from '@/services/categoryService';
 import {
   applyCategoryFailure,
@@ -15,15 +17,47 @@ export interface EditableCategory {
   id: string;
   displayOrder: number;
   availableOrderTypes?: number | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
+  translationMetadata?: { expectedContentVersion?: string };
 }
 
 export interface EditCategoryValues {
   name: string;
   /** `string | null` for the reason `CategoryData.description` is — the wire sends both (#642). */
   description?: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
   isActive: boolean;
   isHiddenFromAllTab: boolean;
   displayOrder: number;
+}
+
+function buildUpdateData(
+  category: EditableCategory,
+  values: EditCategoryValues,
+  translationMetadata?: TranslationOwnerMetadataWrite,
+) {
+  const translations = omitNewBlankCategoryTranslations(
+    values.translations ?? category.translations ?? {},
+    category.translations ?? {},
+  );
+  const sourceLocale = values.sourceLocale !== undefined ? values.sourceLocale : category.sourceLocale;
+  return {
+    id: category.id,
+    name: values.name,
+    description: values.description,
+    isActive: values.isActive,
+    // The PUT replaces the whole row, so echo fields owned by other controls.
+    isHiddenFromAllTab: values.isHiddenFromAllTab,
+    availableOrderTypes: category.availableOrderTypes ?? null,
+    ...(category.translations !== undefined || Object.keys(translations).length > 0 ? { translations } : {}),
+    // A blank native select is not evidence that an omitted legacy source locale was cleared.
+    ...(sourceLocale !== undefined && !(category.sourceLocale === undefined && sourceLocale === null)
+      ? { sourceLocale }
+      : {}),
+    ...(translationMetadata ? { translationMetadata } : {}),
+  };
 }
 
 /**
@@ -49,7 +83,11 @@ export function useEditCategorySave(
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   /** Resolves `true` when the category was written, i.e. when the modal should close. */
-  const save = async (values: EditCategoryValues, imageFile?: File): Promise<boolean> => {
+  const save = async (
+    values: EditCategoryValues,
+    imageFile?: File,
+    translationMetadata?: TranslationOwnerMetadataWrite,
+  ): Promise<boolean> => {
     if (!category) return false;
 
     setIsSubmitting(true);
@@ -58,20 +96,7 @@ export function useEditCategorySave(
     const partial: string[] = [];
 
     try {
-      const updateData = {
-        id: category.id,
-        name: values.name,
-        description: values.description,
-        isActive: values.isActive,
-        // Posted from the form (seeded from the row), NOT edited here — the PUT is a full
-        // replace, so an omitted flag would silently un-hide the category on every rename.
-        isHiddenFromAllTab: values.isHiddenFromAllTab,
-        // Echoed back unchanged, NOT edited here. `UpdateCategoryCommand` is a full-replace PUT
-        // that assigns AvailableOrderTypes unconditionally, so omitting it would clear the
-        // category's channel restriction on every unrelated rename (plan §9.1). The channel
-        // matrix in restaurant settings stays the only writer.
-        availableOrderTypes: category.availableOrderTypes ?? null,
-      };
+      const updateData = buildUpdateData(category, values, translationMetadata);
       const categoryResponse = (await updateCategory(category.id, updateData)) as CategoryApiResponse;
 
       if (!categoryResponse.success) {

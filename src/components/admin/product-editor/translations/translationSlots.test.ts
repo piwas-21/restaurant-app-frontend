@@ -37,11 +37,11 @@ describe('buildTranslationSlots — what there is to translate', () => {
     expect(slots.map((slot) => slot.key)).toEqual([
       'item-name',
       'item-description',
-      'variation-0-name',
-      'variation-1-name',
-      'variation-1-description',
-      'ingredient-0-name',
-      'ingredient-1-name',
+      'variation-index-0-name',
+      'variation-index-1-name',
+      'variation-index-1-description',
+      'ingredient-index-0-name',
+      'ingredient-index-1-name',
     ]);
     expect(slots.map((slot) => slot.group)).toEqual([
       'item',
@@ -86,6 +86,48 @@ describe('buildTranslationSlots — what there is to translate', () => {
     expect(translationIn(slots[4], 'fr')).toBe('trente-deux cm');
   });
 
+  it('keeps variation and ingredient slot identities attached through reorder and removal', () => {
+    const original = buildTranslationSlots({
+      variations: [
+        { id: 'variation-small', name: 'Small' },
+        { clientKey: 'draft-large', name: 'Large' }, // pragma: allowlist secret -- synthetic RHF row identity
+      ],
+      ingredients: [
+        { id: 'ingredient-cheese', name: 'Cheese' },
+        { id: 'ingredient-olives', name: 'Olives' },
+      ],
+    });
+    const savedLocaleChoices = Object.fromEntries(
+      original.map((slot) => [slot.key, slot.source === 'Small' ? 'fr' : 'de']),
+    );
+
+    const reordered = buildTranslationSlots({
+      variations: [
+        { clientKey: 'draft-large', name: 'Large' }, // pragma: allowlist secret -- synthetic RHF row identity
+        { id: 'variation-small', name: 'Small' },
+      ],
+      ingredients: [
+        { id: 'ingredient-olives', name: 'Olives' },
+        { id: 'ingredient-cheese', name: 'Cheese' },
+      ],
+    });
+    const afterRemoval = buildTranslationSlots({
+      variations: [{ id: 'variation-small', name: 'Small' }],
+      ingredients: [{ id: 'ingredient-cheese', name: 'Cheese' }],
+    });
+
+    for (const source of ['Small', 'Large', 'Cheese', 'Olives']) {
+      const before = original.find((slot) => slot.source === source);
+      const afterMove = reordered.find((slot) => slot.source === source);
+      expect(afterMove?.key).toBe(before?.key);
+      expect(savedLocaleChoices[afterMove!.key]).toBe(source === 'Small' ? 'fr' : 'de');
+    }
+    expect(afterRemoval.map((slot) => slot.key)).toEqual([
+      'variation-id-variation-small-name',
+      'ingredient-ingredient-cheese-name',
+    ]);
+  });
+
   it('treats a blank or whitespace-only translation as absent', () => {
     const slots = buildTranslationSlots({
       name: 'Water',
@@ -103,6 +145,31 @@ describe('buildTranslationSlots — what there is to translate', () => {
     const slots = buildTranslationSlots({ name: 'Water', content: [{ language: '', name: 'Eau' }] });
 
     expect(slots[0].translations).toEqual({});
+  });
+
+  it('includes bundle step names and descriptions with their existing locale text', () => {
+    const slots = buildTranslationSlots({
+      sections: [
+        {
+          id: 'section-drink',
+          name: 'Choose a drink',
+          description: 'Select one cold drink',
+          translations: {
+            fr: { name: 'Choisissez une boisson', description: 'Choisissez une boisson fraîche' },
+            ar: { name: 'اختر مشروبًا', description: null },
+          },
+        },
+      ],
+    });
+
+    expect(slots.map((slot) => slot.key)).toEqual([
+      'menu-section-section-drink-name',
+      'menu-section-section-drink-description',
+    ]);
+    expect(slots[0].ref).toEqual({ target: 'menuSection', index: 0, field: 'name' });
+    expect(translationIn(slots[0], 'fr')).toBe('Choisissez une boisson');
+    expect(translationIn(slots[1], 'fr')).toBe('Choisissez une boisson fraîche');
+    expect(translationIn(slots[1], 'ar')).toBe('');
   });
 });
 

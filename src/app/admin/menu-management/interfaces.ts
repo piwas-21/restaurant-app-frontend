@@ -1,7 +1,10 @@
 import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
-import { IngredientKind, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
+import { IngredientKind, ItemAvailability, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
+import type { TranslationMetadata } from '@/types/translationMetadata';
+import type { CategoryTranslations } from '@/types/categoryTranslations';
+import type { LanguageCode } from '@/config/languageConfig';
 
 export interface ProductImage {
   id: string;
@@ -23,6 +26,8 @@ export interface Variation {
   id?: string;
   name: string;
   description?: string;
+  content?: Record<string, { name?: string; description?: string }>;
+  translationMetadata?: TranslationMetadata;
   priceModifier: number;
   finalPrice: number;
   isActive: boolean;
@@ -56,12 +61,14 @@ export interface ProductIngredient {
       description?: string;
     };
   };
+  translationMetadata?: TranslationMetadata;
 }
 
 export interface ProductDetails {
   id: string;
   name: string;
   description: string;
+  translationMetadata?: TranslationMetadata;
   basePrice: number;
   isActive: boolean;
   isAvailable: boolean;
@@ -109,6 +116,8 @@ export interface ProductDetails {
   images: ProductImage[];
   suggestedSideItems: SideItem[];
   menuDefinition?: MenuDefinition; // For menu bundle products
+  /** Optional server verdict; older edit endpoints may omit it. */
+  availability?: ItemAvailability;
   /**
    * Mirrors backend `ProductDto.AvailableOrderTypes` — the RAW OrderChannels bitmask stored on the
    * item. `null` means "inherit from the primary category", which is NOT the same as an explicit
@@ -172,6 +181,9 @@ export interface Category {
   id: string;
   name: string;
   description?: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: LanguageCode | null;
+  translationMetadata?: TranslationMetadata;
   isActive: boolean;
   /** Orderable on its own tab but left out of the guest "All" list (`CategoryDto.IsHiddenFromAllTab`). */
   isHiddenFromAllTab?: boolean;

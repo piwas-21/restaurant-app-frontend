@@ -3,6 +3,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import EditCategoryModal from './EditCategoryModal';
 import { updateCategory, uploadCategoryImage, reorderCategory } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
+import type { LanguageCode } from '@/config/languageConfig';
+import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { translationWorkbenchService } from '@/services/translationWorkbenchService';
+import type { TranslationWorkbenchRequest } from '@/services/translationWorkbenchService';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -21,10 +25,33 @@ jest.mock('@/services/categoryService', () => ({
   uploadCategoryImage: jest.fn(async () => ({ success: true })),
   reorderCategory: jest.fn(async () => ({ success: true })),
 }));
+jest.mock('@/services/translationWorkbenchService', () => ({
+  translationWorkbenchService: { preview: jest.fn(), suggest: jest.fn(), review: jest.fn() },
+}));
 
 const mockUpdateCategory = updateCategory as jest.Mock;
 const mockUploadCategoryImage = uploadCategoryImage as jest.Mock;
 const mockReorderCategory = reorderCategory as jest.Mock;
+const workbench = translationWorkbenchService as jest.Mocked<typeof translationWorkbenchService>;
+
+function stubCategorySuggestions(request: TranslationWorkbenchRequest) {
+  return {
+    suggestions: [
+      {
+        suggestionId: 'suggestion-edit-category-de',
+        fieldRef: request.fields[0].fieldRef,
+        locale: 'de' as const,
+        sourceHash: 'category-source-hash',
+        text: 'Vorspeisen',
+        provider: 'stub',
+        model: 'stub',
+        status: 'suggested' as const,
+      },
+    ],
+    skipped: [],
+    providerStatus: 'ready' as const,
+  };
+}
 
 // 6 = takeaway|delivery, the restriction the client asked for on Dürüm.
 const category: {
@@ -34,6 +61,9 @@ const category: {
   isActive: boolean;
   displayOrder: number;
   availableOrderTypes?: number | null;
+  translations: { fr: { name: string; description?: string }; nl: { name: string } };
+  sourceLocale: LanguageCode | null;
+  translationMetadata?: { expectedContentVersion?: string };
 } = {
   id: 'c1',
   name: 'Dürüm Wraps',
@@ -41,6 +71,11 @@ const category: {
   isActive: true,
   displayOrder: 0,
   availableOrderTypes: 6,
+  translations: {
+    fr: { name: 'Galettes', description: 'Galettes farcies' },
+    nl: { name: 'Gevulde pannenkoeken' },
+  },
+  sourceLocale: null,
 };
 
 const renderModal = (overrides: Partial<typeof category> = {}, onPartialSuccess = jest.fn()) => {
@@ -62,9 +97,75 @@ beforeEach(() => {
   mockUpdateCategory.mockResolvedValue({ success: true });
   mockUploadCategoryImage.mockResolvedValue({ success: true });
   mockReorderCategory.mockResolvedValue({ success: true });
+  workbench.preview.mockImplementation(async (request) => ({
+    rows: request.fields.map((field) => ({
+      fieldRef: field.fieldRef,
+      sourceLocale: field.sourceLocale,
+      sourceHash: 'category-source-hash',
+      sourceText: field.sourceText,
+      targets: LANGUAGE_CODES.map((locale) => ({
+        locale,
+        status: locale === field.sourceLocale ? 'sourceCopy' : 'missing',
+        text: locale === field.sourceLocale ? field.sourceText : null,
+      })),
+    })),
+  }));
+  workbench.suggest.mockImplementation(async (request) => stubCategorySuggestions(request));
+  workbench.review.mockResolvedValue({
+    decisions: [
+      {
+        suggestionId: 'suggestion-edit-category-de',
+        decision: 'accept',
+        status: 'accepted',
+        text: 'Vorspeisen',
+      },
+    ],
+  });
 });
 
 describe('EditCategoryModal — order-type availability', () => {
+  it('uses a labelled BaseModal and preserves edited values across close and reopen', () => {
+    const props = {
+      onClose: jest.fn(),
+      onCategoryUpdated: jest.fn(),
+      category,
+      onPartialSuccess: jest.fn(),
+    };
+    const view = render(<EditCategoryModal isOpen {...props} />);
+
+    expect(screen.getByRole('dialog', { name: 'edit_category' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('category_name'), { target: { value: 'Edited wraps' } });
+
+    view.rerender(<EditCategoryModal isOpen={false} {...props} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    view.rerender(<EditCategoryModal isOpen {...props} />);
+    expect(screen.getByLabelText('category_name')).toHaveValue('Edited wraps');
+  });
+
+  it('moves focus to the invalid name field after a failed client-side submit', async () => {
+    renderModal({ name: '' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    expect(await screen.findByText('Category name is required')).toBeInTheDocument();
+    const nameInput = screen.getByLabelText('category_name');
+    await waitFor(() => expect(nameInput).toHaveFocus());
+    expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+    const errorId = nameInput.getAttribute('aria-describedby');
+    expect(errorId).toBeTruthy();
+    expect(document.getElementById(errorId ?? '')).toHaveTextContent('Category name is required');
+    expect(mockUpdateCategory).not.toHaveBeenCalled();
+  });
+
+  it('closes from Escape through the shared modal keyboard behavior', () => {
+    const { onClose } = renderModal();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('reports the effective order types read-only, with a link to the one surface that writes them', () => {
     renderModal();
 
@@ -105,6 +206,102 @@ describe('EditCategoryModal — order-type availability', () => {
 
     await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
     expect(mockUpdateCategory).toHaveBeenCalledWith('c1', expect.objectContaining({ availableOrderTypes: null }));
+  });
+
+  it('preserves every locale and an unknown legacy source locale on an untouched save', async () => {
+    renderModal();
+    expect(screen.getByLabelText('editor_translations_target_languages').querySelectorAll('option')).toHaveLength(
+      LANGUAGE_CODES.length,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory).toHaveBeenCalledWith(
+      'c1',
+      expect.objectContaining({
+        translations: category.translations,
+        sourceLocale: null,
+      }),
+    );
+  });
+
+  it('keeps a missing locale map/source omitted on an untouched legacy edit', async () => {
+    renderModal({ translations: undefined, sourceLocale: undefined });
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1]).not.toHaveProperty('translations');
+    expect(mockUpdateCategory.mock.calls[0][1]).not.toHaveProperty('sourceLocale');
+  });
+
+  it('keeps the source locale out of targets and edits the new target after the source changes', async () => {
+    renderModal({ sourceLocale: 'nl' });
+
+    const targetSelect = screen.getByLabelText('editor_translations_target_languages') as HTMLSelectElement;
+    expect(targetSelect).toHaveValue('fr');
+    expect(targetSelect.querySelector('option[value="nl"]')).not.toBeInTheDocument();
+    expect(targetSelect.querySelectorAll('option')).toHaveLength(LANGUAGE_CODES.length - 1);
+
+    fireEvent.change(screen.getByLabelText('catalogue_source_language'), { target: { value: 'fr' } });
+
+    expect(targetSelect).toHaveValue('en');
+    expect(targetSelect.querySelector('option[value="fr"]')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getAllByLabelText('editor_translations_target_field')[0], {
+      target: { value: 'Wraps in English' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1].translations.en.name).toBe('Wraps in English');
+  });
+
+  it('updates one selected locale while leaving the other locale entries intact', async () => {
+    renderModal();
+    const translationName = screen.getAllByLabelText('editor_translations_target_field')[0];
+    fireEvent.change(translationName, { target: { value: 'Crêpes farcies' } });
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1].translations).toEqual({
+      fr: { name: 'Crêpes farcies', description: 'Galettes farcies' },
+      nl: { name: 'Gevulde pannenkoeken' },
+    });
+  });
+
+  it('saves category workbench acceptance with the server content version', async () => {
+    renderModal({
+      sourceLocale: 'fr',
+      translationMetadata: { expectedContentVersion: 'category-content-v4' },
+    });
+    fireEvent.click(screen.getByText('translation_review_title', { selector: 'summary' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'translation_review_suggest_missing' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'translation_review_suggest_missing' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'translation_review_accept_field' })).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'translation_review_accept_field' }));
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(workbench.review).toHaveBeenCalledWith([
+      { suggestionId: 'suggestion-edit-category-de', decision: 'accept' },
+    ]);
+    expect(mockUpdateCategory.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        sourceLocale: 'fr',
+        translations: expect.objectContaining({ de: expect.objectContaining({ name: 'Vorspeisen' }) }),
+        translationMetadata: {
+          sourceLocales: { name: 'fr', description: 'fr' },
+          acceptedSuggestionIds: { 'name.de': 'suggestion-edit-category-de' },
+          expectedContentVersion: 'category-content-v4',
+        },
+      }),
+    );
   });
 });
 

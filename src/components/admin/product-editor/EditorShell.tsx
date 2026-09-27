@@ -5,8 +5,6 @@ import EditorHeader from './EditorHeader';
 import EditorSectionCard, { type EditorSection } from './EditorSectionCard';
 import EditorSectionNav from './EditorSectionNav';
 import type { EditorOverflowAction } from './EditorOverflowMenu';
-import { useEditorSectionNav } from '@/hooks/admin/useEditorSectionNav';
-import { useEditorSectionCollapse } from '@/hooks/admin/useEditorSectionCollapse';
 import styles from './EditorShell.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 
@@ -38,6 +36,8 @@ interface EditorShellProps {
   readonly onTabChange: (id: string) => void;
   readonly sections: readonly EditorSection[];
   readonly sectionsLabel: string;
+  readonly activeSectionId: string;
+  readonly onSectionChange: (id: string) => void;
   readonly formId: string;
   readonly onSubmit: React.FormEventHandler<HTMLFormElement>;
   readonly formError?: React.ReactNode;
@@ -50,18 +50,16 @@ interface EditorShellProps {
 /**
  * The redesigned admin item editor's shell (MENU-ITEM-EDITOR-REDESIGN-PLAN §4, slice S1).
  *
- * Layout only: header + `Item | Translations` tabs + sticky section nav + main column + side rail
- * + one sticky save bar, plus (since S2) the fold on the one section §4 collapses. This file must
+ * Layout only: header + `Item | Translations` tabs + section tabs + main column + side rail
+ * + one sticky save bar. This file must
  * stay a frame and know nothing about product fields — what the seven sections CONTAIN is
  * `itemEditorSections.tsx`'s business.
  *
  * Three shapes here are load-bearing and easy to "simplify" wrongly:
  *
- * 1. **Both tab panels stay mounted**, the inactive one hidden with the `hidden` attribute. D1
- *    rejected tabs for the sections precisely because a submit-time validation error behind an
- *    inactive tab is invisible; the same argument applies to the two tabs we DO ship, and this is
- *    the answer to it. The error stays in the DOM, scroll-to-first-error (S7) can reach it, and no
- *    react-hook-form field unmounts when the admin switches tab.
+ * 1. **Every tab panel stays mounted**, the inactive one hidden with the `hidden` attribute.
+ *    Submit-time validation opens the tab and section with the first error, so the error is visible
+ *    and react-hook-form retains every value while the admin moves between focused panels.
  * 2. **The save bar sits outside the `<form>`** and submits it through the `form` attribute. That
  *    is what lets the bar be a sibling of the whole grid — sticky across nav, main and rail.
  * 3. **The translations panel is outside the form element too**, because a form cannot be in two
@@ -83,6 +81,8 @@ export default function EditorShell({
   onTabChange,
   sections,
   sectionsLabel,
+  activeSectionId,
+  onSectionChange,
   formId,
   onSubmit,
   formError,
@@ -91,12 +91,8 @@ export default function EditorShell({
   saveBar,
 }: EditorShellProps) {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const sectionIds = sections.map((section) => section.id);
   const isFirstTab = activeTabId === tabs[0].id;
   const showAside = isFirstTab && sections.length > 0;
-  const { activeId, goTo } = useEditorSectionNav(sectionIds, isFirstTab);
-  const { isCollapsed, toggle } = useEditorSectionCollapse(sections);
-
   // APG tab pattern: the tablist is ONE tab stop, arrows move between tabs.
   const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
@@ -151,7 +147,13 @@ export default function EditorShell({
             would size that box to the nav's own height and leave the sticky nothing to travel over. */}
         {showAside && (
           <div className={styles.navColumn}>
-            <EditorSectionNav entries={sections} activeId={activeId} onSelect={goTo} label={sectionsLabel} />
+            <EditorSectionNav
+              entries={sections}
+              activeId={activeSectionId}
+              onSelect={onSectionChange}
+              label={sectionsLabel}
+              idPrefix={formId}
+            />
           </div>
         )}
 
@@ -183,16 +185,19 @@ export default function EditorShell({
                 buttons are typed now, so ordering the page no longer costs an exception. */}
             <form id={formId} onSubmit={onSubmit} className={adminStyles.adminContent}>
               {formError}
-              {/* Each section is the bordered CARD the approved screens draw, title + description
-                  line and all (#573). `EditorSectionCard` owns that skin; the shell owns the fold
-                  state, because it is remembered per user across sections. */}
+              {/* Each focused section remains mounted inside the shared form. */}
               {sections.map((section) => (
-                <EditorSectionCard
+                <div
                   key={section.id}
-                  section={section}
-                  collapsed={Boolean(section.collapsible) && isCollapsed(section.id)}
-                  onToggle={() => toggle(section.id)}
-                />
+                  role="tabpanel"
+                  id={`${formId}-section-panel-${section.id}`}
+                  aria-labelledby={`${formId}-section-tab-${section.id}`}
+                  hidden={section.id !== activeSectionId}
+                  tabIndex={0}
+                  className={styles.sectionPanel}
+                >
+                  <EditorSectionCard section={section} />
+                </div>
               ))}
             </form>
           </div>

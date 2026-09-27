@@ -1,56 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import React from 'react';
-import { act, render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import EditorShell, { type EditorSection } from './EditorShell';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
 }));
 
-/**
- * jsdom implements neither `IntersectionObserver` nor `scrollIntoView`, and the section nav is
- * built on both. The stub here is drivable — `fireIntersections` replays what the browser would
- * report — so "the nav marks the section you are looking at" is an assertion and not a guess.
- */
-interface IntersectionReport {
-  readonly target: Element;
-  readonly isIntersecting: boolean;
-}
-
-let observed: Element[] = [];
-let fireIntersections: (reports: IntersectionReport[]) => void = () => {};
-
-class MockIntersectionObserver {
-  readonly root = null;
-  readonly rootMargin = '';
-  readonly thresholds: readonly number[] = [];
-
-  constructor(callback: IntersectionObserverCallback) {
-    fireIntersections = (reports) =>
-      callback(reports as unknown as IntersectionObserverEntry[], this as unknown as IntersectionObserver);
-  }
-
-  observe(element: Element) {
-    observed.push(element);
-  }
-  unobserve() {}
-  disconnect() {
-    observed = [];
-  }
-  takeRecords(): IntersectionObserverEntry[] {
-    return [];
-  }
-}
-
 beforeAll(() => {
-  (globalThis as unknown as { IntersectionObserver: unknown }).IntersectionObserver = MockIntersectionObserver;
   Element.prototype.scrollIntoView = jest.fn();
-});
-
-beforeEach(() => {
-  observed = [];
-  (Element.prototype.scrollIntoView as jest.Mock).mockClear();
 });
 
 const TAB_ITEM = 'item';
@@ -63,7 +22,6 @@ const PRICING = 'Pricing';
 const ITEM_PANEL = '#editor-form-panel-item';
 const TRANSLATIONS_PANEL = '#editor-form-panel-translations';
 const BASICS_SELECTOR = '#sec-basics';
-const PRICING_SELECTOR = '#sec-pricing';
 
 const ADVANCED = 'Advanced';
 
@@ -80,8 +38,7 @@ const sections: EditorSection[] = [
   {
     id: 'sec-advanced',
     label: ADVANCED,
-    collapsible: true,
-    defaultCollapsed: true,
+    showHeading: true,
     node: <input aria-label="Display order" />,
   },
 ];
@@ -92,8 +49,9 @@ const onDelete = jest.fn();
 const onBack = jest.fn();
 const menuActions = [{ id: 'delete', label: 'Delete product', onSelect: onDelete, destructive: true }];
 
-const renderShell = (activeTabId = TAB_ITEM) => {
+const renderShell = (activeTabId = TAB_ITEM, activeSectionId = 'sec-media') => {
   const onTabChange = jest.fn();
+  const onSectionChange = jest.fn();
   const view = render(
     <EditorShell
       title="Margherita Pizza"
@@ -112,6 +70,8 @@ const renderShell = (activeTabId = TAB_ITEM) => {
       onTabChange={onTabChange}
       sections={sections}
       sectionsLabel="Sections"
+      activeSectionId={activeSectionId}
+      onSectionChange={onSectionChange}
       formId={FORM_ID}
       onSubmit={onSubmit}
       formError={<p>root error</p>}
@@ -124,7 +84,7 @@ const renderShell = (activeTabId = TAB_ITEM) => {
       }
     />,
   );
-  return { ...view, onTabChange };
+  return { ...view, onTabChange, onSectionChange };
 };
 
 beforeEach(() => {
@@ -136,7 +96,7 @@ describe('EditorShell — the two tabs (decision D2)', () => {
   it('exposes exactly two tabs and marks the active one', () => {
     renderShell();
 
-    const tabs = screen.getAllByRole('tab');
+    const tabs = within(screen.getByRole('tablist', { name: 'Item editor' })).getAllByRole('tab');
     expect(tabs.map((tab) => tab.textContent)).toEqual(['Item', 'Translations']);
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
     expect(tabs[1]).toHaveAttribute('aria-selected', 'false');
@@ -167,12 +127,7 @@ describe('EditorShell — the two tabs (decision D2)', () => {
     expect(onTabChange).toHaveBeenCalledWith(TAB_TRANSLATIONS);
   });
 
-  /**
-   * The reason D1 refused tabs for the SECTIONS is that a submit-time validation error behind an
-   * inactive tab is invisible. The two tabs we do ship answer that by never unmounting: the hidden
-   * panel keeps its inputs in the DOM, so react-hook-form loses nothing and S7's
-   * scroll-to-first-error can still reach a field the admin cannot currently see.
-   */
+  /** Inactive panels retain registered values while validation switches to the failing panel. */
   it('keeps the inactive panel mounted rather than unmounting it', () => {
     const { container } = renderShell(TAB_TRANSLATIONS);
 
@@ -186,61 +141,116 @@ describe('EditorShell — the two tabs (decision D2)', () => {
   it('drops the section nav on the translations tab, and hides the rail without unmounting it', () => {
     const { container } = renderShell(TAB_TRANSLATIONS);
 
-    expect(screen.queryByRole('navigation', { name: 'Sections' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tablist', { name: 'Sections' })).not.toBeInTheDocument();
     const rail = container.querySelector('aside') as HTMLElement;
     expect(rail).toHaveAttribute('hidden');
     expect(rail.textContent).toContain('at a glance');
   });
 });
 
-describe('EditorShell — the sticky section nav (decision D1)', () => {
-  it('lists every section as a same-page jump, not as a tab', () => {
-    renderShell();
+describe('EditorShell — focused section tabs', () => {
+  it('lists every section as a tab and exposes one selected panel', () => {
+    const { container } = renderShell();
 
-    const nav = screen.getByRole('navigation', { name: 'Sections' });
+    const nav = screen.getByRole('tablist', { name: 'Sections' });
+    expect(nav.querySelectorAll(':scope > [role="tab"]')).toHaveLength(4);
     expect(
       within(nav)
-        .getAllByRole('button')
+        .getAllByRole('tab')
         .map((button) => button.textContent),
-      // A collapsed section is still LISTED: folding it is not hiding it, and the nav is the map.
     ).toEqual([MEDIA, BASICS, PRICING, ADVANCED]);
-    // A nav of buttons, never a second tablist — every section stays rendered and scrollable.
-    expect(within(nav).queryAllByRole('tab')).toHaveLength(0);
+    const tabs = within(nav).getAllByRole('tab');
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'false');
+    expect(tabs[0]).toHaveAttribute('tabindex', '0');
+    expect(tabs[1]).toHaveAttribute('tabindex', '-1');
+    const basicsPanel = container.querySelector('#editor-form-section-panel-sec-basics') as HTMLElement;
+    expect(basicsPanel).toHaveAttribute('hidden');
+    expect(basicsPanel.getAttribute('aria-labelledby')).toBe('editor-form-section-tab-sec-basics');
   });
 
-  it('scrolls to the clicked section, marks it current, and moves focus into it', () => {
-    const { container } = renderShell();
+  it('selects the clicked section and uses orientation-aware keyboard navigation', () => {
+    const { onSectionChange } = renderShell();
 
-    fireEvent.click(screen.getByRole('button', { name: PRICING }));
+    fireEvent.click(screen.getByRole('tab', { name: PRICING }));
+    expect(onSectionChange).toHaveBeenCalledWith('sec-pricing');
 
-    const pricing = container.querySelector(PRICING_SELECTOR) as HTMLElement;
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
-    expect((Element.prototype.scrollIntoView as jest.Mock).mock.instances[0]).toBe(pricing);
-    expect(screen.getByRole('button', { name: PRICING })).toHaveAttribute('aria-current', 'true');
-    expect(screen.getByRole('button', { name: MEDIA })).not.toHaveAttribute('aria-current');
-    // tabIndex={-1} on the section is what makes this possible without adding a tab stop.
-    expect(document.activeElement).toBe(pricing);
+    fireEvent.keyDown(screen.getByRole('tab', { name: MEDIA }), { key: 'ArrowDown' });
+    expect(onSectionChange).toHaveBeenLastCalledWith('sec-basics');
+    fireEvent.keyDown(screen.getByRole('tab', { name: MEDIA }), { key: 'End' });
+    expect(onSectionChange).toHaveBeenLastCalledWith('sec-advanced');
   });
 
-  it('observes every section and follows the topmost one on screen', () => {
-    const { container } = renderShell();
+  it('keeps hidden section controls mounted and switches the visible panel', () => {
+    const { container, rerender } = renderShell(TAB_ITEM, 'sec-basics');
+    const basicsPanel = container.querySelector('#editor-form-section-panel-sec-basics') as HTMLElement;
+    const nameInput = basicsPanel.querySelector('input[aria-label="Name"]') as HTMLInputElement;
+    fireEvent.change(nameInput, { target: { value: 'Updated item' } });
+    expect(basicsPanel).not.toHaveAttribute('hidden');
 
-    expect(observed.map((node) => node.id)).toEqual(['sec-media', 'sec-basics', 'sec-pricing', 'sec-advanced']);
-
-    act(() =>
-      fireIntersections([
-        { target: container.querySelector(BASICS_SELECTOR) as Element, isIntersecting: true },
-        { target: container.querySelector(PRICING_SELECTOR) as Element, isIntersecting: true },
-      ]),
+    rerender(
+      <EditorShell
+        title="Margherita Pizza"
+        headerMenuActions={menuActions}
+        headerMenuLabel="More actions"
+        backLabel="Menu"
+        backAriaLabel="Back to the menu list"
+        onBack={onBack}
+        tabs={[
+          { id: TAB_ITEM, label: 'Item' },
+          { id: TAB_TRANSLATIONS, label: 'Translations' },
+        ]}
+        tabsLabel="Item editor"
+        activeTabId={TAB_ITEM}
+        onTabChange={jest.fn()}
+        sections={sections}
+        sectionsLabel="Sections"
+        activeSectionId="sec-pricing"
+        onSectionChange={jest.fn()}
+        formId={FORM_ID}
+        onSubmit={onSubmit}
+        translations={<input aria-label="French name" />}
+        saveBar={
+          <button type="submit" form={FORM_ID}>
+            Save
+          </button>
+        }
+      />,
     );
+    expect(basicsPanel).toHaveAttribute('hidden');
+    expect(nameInput.value).toBe('Updated item');
 
-    // Both are on screen; the nav follows section ORDER, so the first one wins.
-    expect(screen.getByRole('button', { name: BASICS })).toHaveAttribute('aria-current', 'true');
-
-    act(() =>
-      fireIntersections([{ target: container.querySelector(BASICS_SELECTOR) as Element, isIntersecting: false }]),
+    rerender(
+      <EditorShell
+        title="Margherita Pizza"
+        headerMenuActions={menuActions}
+        headerMenuLabel="More actions"
+        backLabel="Menu"
+        backAriaLabel="Back to the menu list"
+        onBack={onBack}
+        tabs={[
+          { id: TAB_ITEM, label: 'Item' },
+          { id: TAB_TRANSLATIONS, label: 'Translations' },
+        ]}
+        tabsLabel="Item editor"
+        activeTabId={TAB_ITEM}
+        onTabChange={jest.fn()}
+        sections={sections}
+        sectionsLabel="Sections"
+        activeSectionId="sec-basics"
+        onSectionChange={jest.fn()}
+        formId={FORM_ID}
+        onSubmit={onSubmit}
+        translations={<input aria-label="French name" />}
+        saveBar={
+          <button type="submit" form={FORM_ID}>
+            Save
+          </button>
+        }
+      />,
     );
-    expect(screen.getByRole('button', { name: PRICING })).toHaveAttribute('aria-current', 'true');
+    expect(basicsPanel).not.toHaveAttribute('hidden');
+    expect(nameInput.value).toBe('Updated item');
   });
 });
 
@@ -284,39 +294,23 @@ describe('EditorShell — one Save, and the form it commits (decision D4)', () =
   });
 });
 
-describe('EditorShell — the one section that folds (decision D1)', () => {
-  beforeEach(() => window.localStorage.clear());
-
-  it('gives a collapsible section a heading button wired to its own body', () => {
+describe('EditorShell — focused section panels', () => {
+  it('keeps every section body mounted while the inactive panel is hidden', () => {
     const { container } = renderShell();
 
-    // Scoped to the section: the nav lists an entry by the same name, and that is the point of the
-    // nav — the fold is a control ON the section, not a second way to navigate to it.
-    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
-    const body = container.querySelector('#sec-advanced-body') as HTMLElement;
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(toggle.getAttribute('aria-controls')).toBe(body.id);
-    expect(body).toHaveAttribute('hidden');
-    // Hidden, never unmounted: the field is still registered and still submitted (plan §6).
-    expect(body.querySelector('input[aria-label="Display order"]')).not.toBeNull();
+    const advancedPanel = container.querySelector('#editor-form-section-panel-sec-advanced') as HTMLElement;
+    const advancedBody = container.querySelector('#sec-advanced-body') as HTMLElement;
+    expect(advancedPanel).toHaveAttribute('hidden');
+    expect(advancedBody).not.toHaveAttribute('hidden');
+    expect(advancedBody.querySelector('input[aria-label="Display order"]')).not.toBeNull();
   });
 
-  it('leaves every other section open, and without a toggle', () => {
+  it('renders the section title as a heading rather than a second navigation control', () => {
     const { container } = renderShell();
+    const advanced = container.querySelector('#sec-advanced') as HTMLElement;
 
-    expect(container.querySelector('#sec-basics-body')).not.toHaveAttribute('hidden');
-    expect(container.querySelector('#sec-basics h2 button')).toBeNull();
-  });
-
-  it('folds and unfolds on click', () => {
-    const { container } = renderShell();
-    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
-
-    fireEvent.click(toggle);
-    expect(container.querySelector('#sec-advanced-body')).not.toHaveAttribute('hidden');
-
-    fireEvent.click(toggle);
-    expect(container.querySelector('#sec-advanced-body')).toHaveAttribute('hidden');
+    expect(within(advanced).getByRole('heading', { name: ADVANCED, hidden: true })).toBeInTheDocument();
+    expect(advanced.querySelector('h2 button')).toBeNull();
   });
 });
 
@@ -356,9 +350,8 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
     const rail = container.querySelector('aside') as HTMLElement;
     const main = container.querySelector('form') as HTMLElement;
     expect(rail).not.toBeNull();
-    // DOCUMENT_POSITION_FOLLOWING: `main` comes after `rail`. The regression was the reverse — the
-    // rail (which holds Active / Available today / Special of the day since S2) landed after ~150
-    // controls the moment the grid collapsed.
+    // DOCUMENT_POSITION_FOLLOWING: `main` comes after `rail`. The status summary remains first in
+    // document order on tablet reflow as well as desktop.
     expect(rail.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(main.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeFalsy();
   });
@@ -371,8 +364,8 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
   });
 
   it('leaves the section nav a vertical column at 1024px and only strips it at 820px', () => {
-    expect(ruleIn(NAV_CSS, 1024, '.list')).toBeNull();
-    expect(ruleIn(NAV_CSS, 820, '.list')).toMatch(/flex-direction:\s*row/);
+    expect(ruleIn(NAV_CSS, 1024, '.nav')).toBeNull();
+    expect(ruleIn(NAV_CSS, 820, '.nav')).toMatch(/flex-direction:\s*row/);
   });
 
   // frontend #581 item (b). `.card { flex: 1 1 16rem }` lived in EditorSideRail.module.css, but the
@@ -407,7 +400,7 @@ describe('EditorShell — sections are cards with a description line (frontend #
     const { container } = renderShell();
     const basics = container.querySelector(BASICS_SELECTOR) as HTMLElement;
 
-    const heading = within(basics).getByRole('heading', { name: BASICS });
+    const heading = within(basics).getByRole('heading', { name: BASICS, hidden: true });
     const description = within(basics).getByText('Core item identity and descriptions');
     expect(description.tagName).toBe('P');
     // Under the title, not before it, and not inside it — a description inside the heading would
@@ -426,45 +419,6 @@ describe('EditorShell — sections are cards with a description line (frontend #
     expect(media.querySelectorAll('p')).toHaveLength(1); // the body's own <p>, not a description
   });
 
-  it('describes the fold toggle with the collapsed section own description', () => {
-    const { container } = render(
-      <EditorShell
-        title="t"
-        headerBadges={null}
-        headerMenuActions={[]}
-        headerMenuLabel="More actions"
-        backLabel="Menu"
-        backAriaLabel="Back to the menu list"
-        onBack={onBack}
-        tabs={[
-          { id: TAB_ITEM, label: 'Item' },
-          { id: TAB_TRANSLATIONS, label: 'Translations' },
-        ]}
-        tabsLabel="Item editor"
-        activeTabId={TAB_ITEM}
-        onTabChange={jest.fn()}
-        sections={[
-          {
-            id: 'sec-advanced',
-            label: ADVANCED,
-            collapsible: true,
-            defaultCollapsed: true,
-            description: 'Settings you rarely need to change',
-            node: <input aria-label="Display order" />,
-          },
-        ]}
-        sectionsLabel="Sections"
-        formId={FORM_ID}
-        onSubmit={onSubmit}
-        translations={null}
-        saveBar={null}
-      />,
-    );
-
-    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
-    expect(toggle).toHaveAccessibleDescription('Settings you rarely need to change');
-  });
-
   // CSS contract, for the reason the reflow test gives: jsdom computes no layout and
   // identity-obj-proxy leaves a render nothing but class names.
   it('draws the section as a bordered card on the card surface, not as a hairline rule', () => {
@@ -473,7 +427,7 @@ describe('EditorShell — sections are cards with a description line (frontend #
     expect(CARD_CSS).toMatch(/\.card\s*\{[^}]*border-radius:/);
     // The shipped skin was a `border-top` hairline between plain blocks. It must be gone.
     expect(CARD_CSS).not.toMatch(/border-top:/);
-    expect(readFileSync(join(__dirname, 'EditorShell.module.css'), 'utf8')).not.toContain('.section');
+    expect(readFileSync(join(__dirname, 'EditorShell.module.css'), 'utf8')).not.toMatch(/\.section\s*\{/);
   });
 });
 

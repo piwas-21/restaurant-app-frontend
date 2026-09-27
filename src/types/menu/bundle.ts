@@ -7,12 +7,15 @@ import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from 
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
 import type { CustomizationGroupSelection, ProductCustomizationGroup } from './customizationGroup';
+import type { TranslationMetadata } from '../translationMetadata';
 
 /**
  * Menu bundle definition with sections and scheduling
  */
 export interface MenuDefinition {
   id: string;
+  /** Versioned section-edit watermark returned by admin detail reads. */
+  authoringVersion?: number;
   /** The commercial offer this menu upgrades; absent means an independent bundle. */
   parentOfferProductId?: string | null;
   /** Optional exact variation this menu upgrades. */
@@ -37,6 +40,8 @@ export interface MenuSection {
   id: string;
   name: string;
   description?: string;
+  translations?: Record<string, { name: string; description?: string | null }>;
+  translationMetadata?: TranslationMetadata;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;
@@ -70,11 +75,16 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   detailedIngredients?: DetailedIngredient[];
   customizationGroups?: ProductCustomizationGroup[];
   suggestedSideItems?: MenuSectionSuggestedSideItem[];
+  /** Server-resolved option orderability for the menu detail's requested order type. */
+  availability?: MenuSectionItemAvailability;
 }
 
-/**
- * Selected menu option by customer
- */
+export interface MenuSectionItemAvailability extends ItemAvailability {
+  /** Whether the option inherits its order-type mask from its category. */
+  inheritsOrderTypes: boolean;
+}
+
+/** A customer's selected menu option. */
 export interface SelectedMenuOption {
   sectionId: string;
   itemId: string;

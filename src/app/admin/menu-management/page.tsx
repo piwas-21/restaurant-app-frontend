@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
@@ -17,6 +18,7 @@ import styles from '@/app/styles/AdminPage.module.css';
 import MenuCreateFlow from '@/components/admin/menu-management/MenuCreateFlow';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
+import MenuCatalogueSuggestions from '@/components/admin/menu-management/MenuCatalogueSuggestions';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import Pagination from '@/components/common/Pagination';
@@ -113,6 +115,10 @@ const MenuManagementContent = () => {
               onChange={(event) => setSearchQuery(event.target.value)}
               className={styles.adminSelect}
             />
+            <MenuCatalogueSuggestions query={searchQuery} />
+            <Link href="/admin/option-sets" className={styles.adminButton}>
+              {t('option_sets_manage')}
+            </Link>
             {/* Create is its own component since S3: an item is a quick-add modal (D3) and a
                 bundle is still a page, and the page has no room for either flow's state. */}
             <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />
@@ -128,7 +134,6 @@ const MenuManagementContent = () => {
             onDelete={handleDeleteClick}
             typeFilter={typeFilter}
           />
-
           {/* Pagination */}
           {!isLoading && totalCount > 0 && (
             <>

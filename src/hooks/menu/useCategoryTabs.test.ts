@@ -61,6 +61,13 @@ describe('useCategoryTabs', () => {
     expect(result.current[3]).toEqual({ id: 'c2', label: 'Soups', notice: null });
   });
 
+  it('uses the active locale map for a tenant-provided category label', () => {
+    const translated = { ...cat('c3', 'Grills'), translations: { en: { name: 'Barbecue' } } } as ApiCategory;
+    const { result } = renderHook(() => useCategoryTabs([translated], 'All'));
+
+    expect(result.current[2].label).toBe('Barbecue');
+  });
+
   it('returns just the two fixed tabs when there are no categories', () => {
     const { result } = renderHook(() => useCategoryTabs([], 'All'));
     expect(result.current).toHaveLength(2);

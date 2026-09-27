@@ -1,6 +1,7 @@
 import {
   buildBundleOption,
   buildDefaultBundleSelection,
+  buildGuestDefaultBundleSelection,
   bundleOptionKey,
   countSectionSelections,
   findBundleOption,
@@ -10,6 +11,7 @@ import {
 } from './bundleSelection';
 import { bundleLineUnitPrice } from './linePrice';
 import type { DetailedIngredient, MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 const ing = (over: Partial<DetailedIngredient> & { id: string }): DetailedIngredient => ({
   name: over.id,
@@ -129,6 +131,34 @@ describe('buildDefaultBundleSelection', () => {
     ];
 
     expect(buildDefaultBundleSelection(sections).map((o) => o.itemId)).toEqual(['a', 'b']);
+  });
+
+  it('keeps blocked defaults for staff while guest validation rejects the fixed Plat', () => {
+    const fixedPlat = section({
+      id: 'plat',
+      name: 'Plat',
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      items: [
+        item({
+          productId: 'burger',
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        }),
+      ],
+    });
+
+    expect(buildDefaultBundleSelection([fixedPlat]).map((option) => option.itemId)).toEqual(['burger']);
+
+    const selected = buildGuestDefaultBundleSelection([fixedPlat]);
+
+    expect(selected).toEqual([]);
+    expect(findBundleSelectionErrors([fixedPlat], selected)).toEqual([{ sectionId: 'plat', minSelection: 1 }]);
   });
 });
 

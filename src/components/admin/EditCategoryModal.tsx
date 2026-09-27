@@ -7,6 +7,7 @@ import CategoryTranslationsFields from './CategoryTranslationsFields';
 import TranslationSuggestionsReview from './product-editor/translations/TranslationSuggestionsReview';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import BaseModal from '@/components/design-system/BaseModal';
+import FormField from '@/components/design-system/FormField';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
 import { type SetCategoryError } from '@/lib/categoryFormErrors';
@@ -111,16 +112,12 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     <BaseModal isOpen={isOpen} onClose={onClose} title={t('edit_category')} size="lg" isPending={isSubmitting}>
       <form onSubmit={handleSubmit(onSubmit)}>
         {errors.root && <p className={styles.errorMessage}>{errors.root.message}</p>}
-        <div className={styles.formGroup}>
-          <label htmlFor="name">{t('category_name')}</label>
-          <input id="name" {...register('name')} />
-          {errors.name && <p className={styles.errorMessage}>{errors.name.message}</p>}
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="description">{t('description')}</label>
-          <textarea id="description" {...register('description')} />
-          {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
-        </div>
+        <FormField label={t('category_name')} error={errors.name?.message} className={styles.formGroup}>
+          <input {...register('name')} />
+        </FormField>
+        <FormField label={t('description')} error={errors.description?.message} className={styles.formGroup}>
+          <textarea {...register('description')} />
+        </FormField>
         <CategoryTranslationsFields
           key={category?.id ?? 'new'}
           control={control}
@@ -134,23 +131,20 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
           <summary>{t('translation_review_title')}</summary>
           <TranslationSuggestionsReview review={translationReview.review} showSourceLocaleChoices={false} />
         </details>
-        <div className={styles.formGroup}>
-          <label htmlFor="imageFile">{t('category_image_edit')}</label>
-          <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />
-          {errors.imageFile && <p className={styles.errorMessage}>{errors.imageFile.message as string}</p>}
-        </div>
-        <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-          <label htmlFor="isActive">
-            <input type="checkbox" id="isActive" {...register('isActive')} />
-            {t('is_active')}
-          </label>
-        </div>
+        <FormField
+          label={t('category_image_edit')}
+          error={errors.imageFile?.message as string | undefined}
+          className={styles.formGroup}
+        >
+          <input type="file" accept="image/*" {...register('imageFile')} />
+        </FormField>
+        <FormField label={t('is_active')} className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+          <input type="checkbox" {...register('isActive')} />
+        </FormField>
         <CategoryHiddenFromAllTabField register={register} />
-        <div className={styles.formGroup}>
-          <label htmlFor="displayOrder">{t('display_order')}</label>
-          <input id="displayOrder" type="number" {...register('displayOrder')} />
-          {errors.displayOrder && <p className={styles.errorMessage}>{errors.displayOrder.message}</p>}
-        </div>
+        <FormField label={t('display_order')} error={errors.displayOrder?.message} className={styles.formGroup}>
+          <input type="number" {...register('displayOrder')} />
+        </FormField>
         <CategoryOrderTypesSummary mask={category?.availableOrderTypes} className={styles.formGroup} />
         <div className={styles.buttonGroup}>
           <button type="submit" className={styles.submitButton} disabled={isSubmitting}>

@@ -87,7 +87,12 @@ it('moves focus to the invalid name field after a failed client-side submit', as
   fireEvent.click(screen.getByRole('button', { name: 'create' }));
 
   expect(await screen.findByText('Category name is required')).toBeInTheDocument();
-  await waitFor(() => expect(screen.getByLabelText('category_name')).toHaveFocus());
+  const nameInput = screen.getByLabelText('category_name');
+  await waitFor(() => expect(nameInput).toHaveFocus());
+  expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+  const errorId = nameInput.getAttribute('aria-describedby');
+  expect(errorId).toBeTruthy();
+  expect(document.getElementById(errorId ?? '')).toHaveTextContent('Category name is required');
   expect(mockCreateCategory).not.toHaveBeenCalled();
 });
 

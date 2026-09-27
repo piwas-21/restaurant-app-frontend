@@ -148,10 +148,10 @@ export default function BundleOptionRow({
 function OptionAvailabilityReason({
   availability,
   currentLanguage,
-}: {
+}: Readonly<{
   availability: NonNullable<MenuSectionItem['availability']>;
   currentLanguage: string;
-}) {
+}>) {
   if (availability.reason !== 'WrongOrderType') return <UnavailableReason />;
   return <WrongOrderTypeReason availability={availability} currentLanguage={currentLanguage} />;
 }
@@ -164,10 +164,10 @@ function UnavailableReason() {
 function WrongOrderTypeReason({
   availability,
   currentLanguage,
-}: {
+}: Readonly<{
   availability: NonNullable<MenuSectionItem['availability']>;
   currentLanguage: string;
-}) {
+}>) {
   const { t } = useTranslation();
   const { enabled, loading } = useEnabledOrderTypes();
   const notice = resolveChannelNotice({

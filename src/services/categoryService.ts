@@ -56,8 +56,6 @@ export interface CategoryChannelEcho {
   id: string;
   name: string;
   description?: string | null;
-  translations?: CategoryTranslations;
-  sourceLocale?: string | null;
   isActive: boolean;
   isHiddenFromAllTab: boolean;
 }
@@ -80,8 +78,6 @@ export const updateCategoryOrderTypes = async (category: CategoryChannelEcho, av
     id: category.id,
     name: category.name,
     description: category.description ?? undefined,
-    ...(category.translations !== undefined ? { translations: category.translations } : {}),
-    ...(category.sourceLocale !== undefined ? { sourceLocale: category.sourceLocale } : {}),
     isActive: category.isActive,
     isHiddenFromAllTab: category.isHiddenFromAllTab,
     availableOrderTypes,

@@ -1,5 +1,5 @@
 import { ApiError, apiClient } from '@/utils/apiClient';
-import { getCategories, updateCategoryOrderTypes } from './categoryService';
+import { getCategories, updateCategory, updateCategoryOrderTypes } from './categoryService';
 
 /**
  * `getCategories` used to answer a failed fetch with `mockApiClient`'s localStorage fixture — six
@@ -60,14 +60,12 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
    * unconditionally, so an omitted field is a BLANKED field — and that is exactly how the
    * order-type mask itself got wiped by an unrelated edit the first time round.
    */
-  it('echoes the full-replacement text and source fields so a channel change cannot blank them', async () => {
+  it('echoes operational fields needed by the full-replacement endpoint without locale metadata', async () => {
     await updateCategoryOrderTypes(
       {
         id: 'c1',
         name: 'Dürüm Wraps',
         description: 'Wraps',
-        translations: { fr: { name: 'Galettes', description: 'Galettes farcies' } },
-        sourceLocale: null,
         isActive: true,
         isHiddenFromAllTab: true,
       },
@@ -78,8 +76,6 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
       id: 'c1',
       name: 'Dürüm Wraps',
       description: 'Wraps',
-      translations: { fr: { name: 'Galettes', description: 'Galettes farcies' } },
-      sourceLocale: null,
       isActive: true,
       isHiddenFromAllTab: true,
       availableOrderTypes: 6,
@@ -92,8 +88,6 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
         id: 'c1',
         name: 'Grills',
         description: null,
-        translations: {},
-        sourceLocale: null,
         isActive: false,
         isHiddenFromAllTab: false,
       },
@@ -104,25 +98,60 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
       id: 'c1',
       name: 'Grills',
       description: undefined,
-      translations: {},
-      sourceLocale: null,
       isActive: false,
       isHiddenFromAllTab: false,
       availableOrderTypes: null,
     });
   });
 
-  it('omits locale fields when a partial category object does not carry them', async () => {
-    await updateCategoryOrderTypes({ id: 'legacy', name: 'Grills', isActive: true, isHiddenFromAllTab: false }, 2);
-
-    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/legacy', {
-      id: 'legacy',
+  it('does not forward stale translations, source locale, or provenance from a channel row', async () => {
+    const staleCategoryRow = {
+      id: 'c1',
       name: 'Grills',
-      description: undefined,
+      description: 'Grilled dishes',
+      translations: { fr: { name: 'Ancienne traduction' } },
+      sourceLocale: 'en',
+      translationMetadata: {
+        sourceLocales: { name: 'en' },
+        acceptedSuggestionIds: { 'name.fr': 'old-suggestion' },
+        expectedContentVersion: 'old-version',
+      },
+      isActive: true,
+      isHiddenFromAllTab: false,
+    };
+
+    await updateCategoryOrderTypes(staleCategoryRow, 2);
+
+    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', {
+      id: 'c1',
+      name: 'Grills',
+      description: 'Grilled dishes',
       isActive: true,
       isHiddenFromAllTab: false,
       availableOrderTypes: 2,
     });
+  });
+
+  it('keeps full localization payloads on ordinary category edits', async () => {
+    const editPayload = {
+      id: 'c1',
+      name: 'Galettes',
+      description: 'Galettes farcies',
+      translations: { en: { name: 'Wraps' }, fr: { name: 'Galettes' } },
+      sourceLocale: 'fr',
+      translationMetadata: {
+        sourceLocales: { name: 'fr' },
+        acceptedSuggestionIds: { 'name.en': 'suggestion-1' },
+        expectedContentVersion: 'version-1',
+      },
+      isActive: true,
+      isHiddenFromAllTab: false,
+      availableOrderTypes: null,
+    };
+
+    await updateCategory('c1', editPayload);
+
+    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', editPayload);
   });
 
   it('never sends displayOrder — the handler never assigns it, ReorderCategories owns ordering', async () => {

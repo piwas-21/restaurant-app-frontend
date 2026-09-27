@@ -81,6 +81,7 @@ const margherita = {
   suggestedSideItems: [],
   availableOrderTypes: null,
   content: { fr: { name: 'Pizza Margherita', description: '' } },
+  translationMetadata: { sourceLocales: { name: 'en', description: 'en' } },
 } as unknown as ProductDetails;
 
 const openWorkbench = async (product: ProductDetails = margherita) => {
@@ -370,6 +371,47 @@ describe('batched translation review before ordinary Save', () => {
     expect(within(review).getByRole('button', { name: 'editor_review_save' })).toBeEnabled();
   });
 
+  it('requires an explicit locale for legacy source text but still permits a normal save', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(within(review).getByText('translation_review_source_locale_missing[count=5]')).toBeInTheDocument();
+    expect(translationWorkbenchService.preview).not.toHaveBeenCalled();
+    expect(within(review).getByRole('button', { name: 'editor_review_save' })).toBeEnabled();
+
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    expect((updateProduct as jest.Mock).mock.calls[0][1].translationMetadata).toBeUndefined();
+  });
+
+  it('previews an unannotated field only after a source language is explicitly selected', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+
+    fireEvent.change(
+      within(review).getByLabelText('translation_review_source_locale_pick[field=Margherita Pizza · item_name]'),
+      { target: { value: 'tr' } },
+    );
+    await waitFor(() => expect(translationWorkbenchService.preview).toHaveBeenCalledTimes(1));
+    const request = (translationWorkbenchService.preview as jest.Mock).mock.calls[0][0] as TranslationWorkbenchRequest;
+    expect(request.fields).toHaveLength(1);
+    expect(request.fields[0]).toMatchObject({ fieldRef: { fieldKey: 'name' }, sourceLocale: 'tr' });
+  });
+
   it('records one reviewed batch, applies accepted text to the normal payload, and preserves other locales', async () => {
     const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
     const languages = ['de', 'fr', 'ru'] as const;
@@ -419,6 +461,7 @@ describe('batched translation review before ordinary Save', () => {
         zh: { name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' },
       },
       translationMetadata: {
+        sourceLocales: { description: 'en' },
         provenance: { name: { tr: { kind: 'template', sourceHash: 'source-name', reviewStatus: 'source' } } },
       },
     } as unknown as ProductDetails;
@@ -441,6 +484,11 @@ describe('batched translation review before ordinary Save', () => {
       fieldRef: { entityType: 'product', entityId: 'item-1' },
       sourceLocale: 'tr',
       sourceText: 'Margherita Pizza',
+      targetTexts: {
+        de: 'Margherita',
+        fr: 'Pizza Margherita',
+        zh: '玛格丽特披萨',
+      },
     });
     expect(requestedFields.fields.find((field) => field.fieldRef.fieldKey === 'description')).toMatchObject({
       sourceLocale: 'en',

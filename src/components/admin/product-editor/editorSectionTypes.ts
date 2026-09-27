@@ -18,6 +18,7 @@ export interface EditorSectionsContext {
   readonly isCreate: boolean;
   readonly isBundle: boolean;
   readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
   readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
   readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
   /** Route an offer detail link through the page's dirty-navigation guard. */

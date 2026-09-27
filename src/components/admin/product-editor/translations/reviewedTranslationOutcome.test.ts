@@ -5,6 +5,7 @@ import type { TranslationSuggestionEntry } from '@/hooks/admin/useTranslationSug
 
 const ref = { entityType: 'product' as const, entityId: 'product-1', fieldKey: 'name' as const };
 const field: TranslationReviewField = {
+  sourceLocaleKnown: true,
   input: { fieldRef: ref, sourceLocale: 'tr', sourceText: 'Izgara köfte' },
   slot: {
     key: 'product:name',

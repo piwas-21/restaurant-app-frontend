@@ -19,6 +19,8 @@ export interface ProductCustomizationProductOption {
 /** Ordered, server-authored choice group. An empty group list activates the legacy flow. */
 export interface ProductCustomizationGroup {
   id: string;
+  /** Versioned write watermark returned by admin detail reads. */
+  authoringVersion?: number;
   name: string;
   description?: string;
   displayOrder: number;

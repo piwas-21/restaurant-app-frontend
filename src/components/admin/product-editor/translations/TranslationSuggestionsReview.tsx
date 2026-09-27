@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import { getLanguageNativeName } from '@/config/languageConfig';
+import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
 import { directionFor } from '@/lib/textDirection';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import styles from './TranslationSuggestionsReview.module.css';
@@ -55,6 +55,33 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
       )}
       {manualReviewCount > 0 && (
         <output className={styles.notice}>{t('translation_review_manual_review', { count: manualReviewCount })}</output>
+      )}
+      {review.unknownSourceLocaleFields.length > 0 && (
+        <section
+          className={styles.sourceLocaleChoices}
+          aria-label={t('translation_review_source_locale_missing_title')}
+        >
+          <output className={styles.warning}>
+            {t('translation_review_source_locale_missing', { count: review.unknownSourceLocaleFields.length })}
+          </output>
+          {review.unknownSourceLocaleFields.map((field) => {
+            const label = field.slot.source
+              ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
+              : t(field.slot.fieldLabel);
+            return (
+              <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
+                <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
+                  <option value="">{t('translation_review_source_locale_required')}</option>
+                  {LANGUAGE_CODES.map((locale) => (
+                    <option key={locale} value={locale}>
+                      {getLanguageNativeName(locale)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            );
+          })}
+        </section>
       )}
       {providerStatus === 'disabled' && (
         <output className={styles.notice}>{t('translation_review_provider_disabled')}</output>

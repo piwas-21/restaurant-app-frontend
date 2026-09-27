@@ -13,6 +13,7 @@ import { useOptionSetEditor } from '@/hooks/admin/useOptionSetEditor';
 import { optionSetEntryReferenceKey } from '@/utils/optionSetEditorModel';
 import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import OptionSetEntryRow from './OptionSetEntryRow';
+import OptionSetAttachmentManager from './OptionSetAttachmentManager';
 import styles from './OptionSetEditorWorkspace.module.css';
 
 export default function OptionSetEditorWorkspace({
@@ -187,6 +188,13 @@ export default function OptionSetEditorWorkspace({
           {t(editor.isSaving ? 'option_set_saving' : 'option_set_save')}
         </button>
       </form>
+      {editor.detail && (
+        <OptionSetAttachmentManager
+          detail={editor.detail}
+          isDirty={editor.isDirty}
+          onApplied={() => void editor.reload()}
+        />
+      )}
     </main>
   );
 }

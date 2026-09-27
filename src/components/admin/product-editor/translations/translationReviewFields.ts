@@ -11,6 +11,7 @@ type EditorSource = Pick<Editor, 'form' | 'detailedIngredients' | 'menuDefinitio
 export interface TranslationReviewField {
   readonly input: TranslationFieldInput;
   readonly slot: TranslationSlot;
+  readonly sourceLocaleKnown: boolean;
 }
 
 export function fieldReferenceKey(ref: TranslationFieldRef): string {
@@ -50,6 +51,7 @@ export function buildTranslationReviewFields(
   editor: EditorSource,
   productId: string,
   sourceLocaleFor: (slotKey: string, slot: TranslationSlot) => string,
+  sourceLocaleKnownFor: (slotKey: string, slot: TranslationSlot) => boolean,
 ): TranslationReviewField[] {
   const values = editor.form.getValues();
   const slots = buildTranslationSlots({
@@ -72,6 +74,7 @@ export function buildTranslationReviewFields(
     const identity = fieldIdentity(slot, editor, productId);
     return {
       slot,
+      sourceLocaleKnown: sourceLocaleKnownFor(slot.key, slot),
       input: {
         fieldRef: {
           ...identity,
@@ -79,6 +82,10 @@ export function buildTranslationReviewFields(
         },
         sourceLocale: localeValue(sourceLocaleFor(slot.key, slot)),
         sourceText: slot.source,
+        targetTexts: LANGUAGE_CODES.reduce(
+          (current, locale) => ({ ...current, [locale]: slot.translations[locale] ?? '' }),
+          {} as Record<LanguageCode, string>,
+        ),
       },
     };
   });

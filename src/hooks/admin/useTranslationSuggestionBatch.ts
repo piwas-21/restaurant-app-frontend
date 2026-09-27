@@ -87,7 +87,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
       setError(false);
       return;
     }
-    const fields = readFields();
+    const fields = readFields().filter((field) => field.sourceLocaleKnown);
     const key = JSON.stringify(fields.map((field) => field.input));
     if (loadKey.current === key) return;
     loadKey.current = key;
@@ -95,7 +95,7 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
   }, [isOpen, readFields, run]);
 
   const suggestMissing = useCallback(() => {
-    const fields = readFields();
+    const fields = readFields().filter((field) => field.sourceLocaleKnown);
     const key = `explicit:${JSON.stringify(fields.map((field) => field.input))}:${Date.now()}`;
     loadKey.current = key;
     void run(fields, 'explicitFill', key);

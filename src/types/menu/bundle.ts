@@ -14,6 +14,8 @@ import type { TranslationMetadata } from '../translationMetadata';
  */
 export interface MenuDefinition {
   id: string;
+  /** Versioned section-edit watermark returned by admin detail reads. */
+  authoringVersion?: number;
   /** The commercial offer this menu upgrades; absent means an independent bundle. */
   parentOfferProductId?: string | null;
   /** Optional exact variation this menu upgrades. */
@@ -82,9 +84,7 @@ export interface MenuSectionItemAvailability extends ItemAvailability {
   inheritsOrderTypes: boolean;
 }
 
-/**
- * Selected menu option by customer
- */
+/** A customer's selected menu option. */
 export interface SelectedMenuOption {
   sectionId: string;
   itemId: string;

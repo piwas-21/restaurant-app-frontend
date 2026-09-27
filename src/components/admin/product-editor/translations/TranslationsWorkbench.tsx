@@ -20,6 +20,7 @@ interface TranslationsWorkbenchProps {
   // readonly: S6759 — component props are never mutated.
   readonly editor: ReturnType<typeof useProductEditorForm>;
   readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
   readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
 }
 
@@ -50,6 +51,7 @@ interface FieldErrorLike {
 export default function TranslationsWorkbench({
   editor,
   sourceLocaleFor,
+  sourceLocaleKnownFor,
   onSourceLocaleChange,
 }: TranslationsWorkbenchProps) {
   const { t } = useTranslation();
@@ -223,6 +225,7 @@ export default function TranslationsWorkbench({
             targetNameFor={targetNameFor}
             onBlurSlot={onBlurSlot}
             sourceLocaleFor={sourceLocaleFor}
+            sourceLocaleKnownFor={sourceLocaleKnownFor}
             onSourceLocaleChange={onSourceLocaleChange}
           />
         )}

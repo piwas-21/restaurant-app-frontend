@@ -127,12 +127,14 @@ export function buildEditorSections(context: EditorSectionsContext): EditorSecti
 export function buildTranslationsPanel({
   editor,
   sourceLocaleFor,
+  sourceLocaleKnownFor,
   onSourceLocaleChange,
 }: EditorSectionsContext): React.ReactNode {
   return (
     <TranslationsWorkbench
       editor={editor}
       sourceLocaleFor={sourceLocaleFor}
+      sourceLocaleKnownFor={sourceLocaleKnownFor}
       onSourceLocaleChange={onSourceLocaleChange}
     />
   );

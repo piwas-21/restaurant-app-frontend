@@ -21,6 +21,8 @@ export interface TranslationFieldInput {
   readonly fieldRef: TranslationFieldRef;
   readonly sourceLocale: LanguageCode;
   readonly sourceText: string;
+  /** Current unsaved editor content protects manually entered translations from suggestions. */
+  readonly targetTexts?: Readonly<Record<LanguageCode, string>>;
 }
 
 export interface TranslationTargetStatus {

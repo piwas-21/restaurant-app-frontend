@@ -82,7 +82,6 @@ export function useMenuAuthoringSearch(forKind?: OptionSetKind) {
       setItems((current) => [...current, ...result.items]);
       setNextCursor(result.nextCursor ?? null);
     } catch (pageError) {
-      void pageError;
       if (request === requestId.current) setError(getErrorMessage(pageError) ?? 'menu_authoring_search_error');
     } finally {
       if (request === requestId.current) setIsLoadingMore(false);

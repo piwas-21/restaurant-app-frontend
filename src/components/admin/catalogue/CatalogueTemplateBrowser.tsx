@@ -7,12 +7,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/admin/PageHeader';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import { useCatalogueTemplateSearch } from '@/hooks/admin/useCatalogueTemplateSearch';
-import type { CatalogueTemplateSummary } from '@/services/catalogueTemplateService';
+import type { CatalogueTemplateRevision, CatalogueTemplateSummary } from '@/services/catalogueTemplateService';
 import CatalogueTemplateCard from './CatalogueTemplateCard';
 import CatalogueTemplateFilterBar from './CatalogueTemplateFilterBar';
 import CatalogueTemplatePreviewModal from './CatalogueTemplatePreviewModal';
 import CatalogueCuisinePreferences from './CatalogueCuisinePreferences';
-import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 import styles from './CatalogueTemplateBrowser.module.css';
 
 function resolveLocale(locale: string | undefined): LanguageCode {

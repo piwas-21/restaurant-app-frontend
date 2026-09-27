@@ -182,11 +182,7 @@ export default function OptionSetEditorWorkspace({
             {showFormError ? t('option_set_validation_error') : (editor.errorMessage ?? t('option_set_save_error'))}
           </p>
         )}
-        {editor.saved && (
-          <p role="status" className={styles.success}>
-            {t('option_set_save_success')}
-          </p>
-        )}
+        {editor.saved && <output className={styles.success}>{t('option_set_save_success')}</output>}
         <button className={styles.primaryAction} type="submit" disabled={!editor.canSave || editor.isSaving}>
           {t(editor.isSaving ? 'option_set_saving' : 'option_set_save')}
         </button>

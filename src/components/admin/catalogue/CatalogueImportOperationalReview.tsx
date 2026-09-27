@@ -48,6 +48,12 @@ function toList(value: string): string[] {
     .filter(Boolean);
 }
 
+function orderTypesSelectionValue(value: CatalogueImportDecision['availableOrderTypes']): '' | 'inherit' | 'custom' {
+  if (value === undefined) return '';
+  if (value === null) return 'inherit';
+  return 'custom';
+}
+
 export default function CatalogueImportOperationalReview({ itemType, decision, onDecisionChange, disabled }: Props) {
   const { t } = useTranslation();
   if ((itemType !== 'item' && itemType !== 'bundle') || decision.resolution === 'Reuse') return null;
@@ -123,13 +129,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
         <legend>{t('catalogue_import_order_types')}</legend>
         <FormField label={t('product_order_types')}>
           <select
-            value={
-              decision.availableOrderTypes === undefined
-                ? ''
-                : decision.availableOrderTypes === null
-                  ? 'inherit'
-                  : 'custom'
-            }
+            value={orderTypesSelectionValue(decision.availableOrderTypes)}
             disabled={disabled}
             onChange={(event) => {
               if (event.target.value === 'inherit') onDecisionChange({ availableOrderTypes: null });

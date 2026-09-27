@@ -40,7 +40,7 @@ function optionRefs(
 export function useCatalogueOptionPrices(items: readonly CatalogueImportSessionItem[], locale: LanguageCode) {
   const signature = items
     .map((item) => refKey(item.templateId, item.revision))
-    .sort()
+    .sort((left, right) => left.localeCompare(right))
     .join('|');
   const [byOwner, setByOwner] = useState<Record<string, CatalogueOptionPriceRef[]>>({});
   const [isLoading, setIsLoading] = useState(false);

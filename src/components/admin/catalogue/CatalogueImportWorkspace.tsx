@@ -13,13 +13,19 @@ import CatalogueImportSelectionReview from './CatalogueImportSelectionReview';
 import CatalogueRevisionChangesReview from './CatalogueRevisionChangesReview';
 import { useCatalogueImportWorkspace } from '@/hooks/admin/useCatalogueImportWorkspace';
 import { useCatalogueOptionPrices } from '@/hooks/admin/useCatalogueOptionPrices';
-import { importStatusLabelKey } from '@/services/catalogueImportService';
+import { importStatusLabelKey, type CatalogueImportStatus } from '@/services/catalogueImportService';
 import styles from './CatalogueImportWorkspace.module.css';
 
 function resolveLocale(locale: string | null): LanguageCode {
   const normalized = locale?.toLowerCase();
   if (normalized && LANGUAGE_CODES.includes(normalized as LanguageCode)) return normalized as LanguageCode;
   return 'en';
+}
+
+function importStatusTone(status: CatalogueImportStatus): 'success' | 'danger' | 'info' {
+  if (status === 'Imported') return 'success';
+  if (status === 'Failed') return 'danger';
+  return 'info';
 }
 
 function ImportRoute() {
@@ -99,9 +105,7 @@ function ImportRoute() {
       <PageHeader title={t('catalogue_import_workspace_title')} />
       <p className={styles.intro}>{t('catalogue_import_workspace_intro')}</p>
       <div className={styles.sessionMeta}>
-        <StatusBadge
-          tone={flow.session.status === 'Imported' ? 'success' : flow.session.status === 'Failed' ? 'danger' : 'info'}
-        >
+        <StatusBadge tone={importStatusTone(flow.session.status)}>
           {t(importStatusLabelKey(flow.session.status))}
         </StatusBadge>
         <span>{t('catalogue_import_version', { version: flow.session.version })}</span>

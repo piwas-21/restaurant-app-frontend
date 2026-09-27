@@ -1,8 +1,7 @@
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { MenuAuthoringApiResponse } from '@/types/menuAuthoringSearch';
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, getErrorMessage } from '@/utils/apiClient';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
-import { getErrorMessage } from '@/utils/apiClient';
 
 export async function getOptionSetTargetProduct(productId: string): Promise<ProductDetails> {
   const response = await apiClient.get<MenuAuthoringApiResponse<ProductDetails>>(

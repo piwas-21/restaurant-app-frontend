@@ -27,7 +27,7 @@ export function isValidOptionSetDraft(
 ): boolean {
   if (!kind || name.trim().length === 0 || name.trim().length > 200 || entries.length === 0) return false;
   const references = entries.map((entry) => optionSetEntryReferenceKey(kind, entry));
-  if (references.some((key) => key === null) || new Set(references).size !== references.length) return false;
+  if (references.includes(null) || new Set(references).size !== references.length) return false;
   return entries.every((entry) => {
     if (!entry.name.trim() || entry.name.trim().length > 200) return false;
     if ((kind === 'ingredient' || kind === 'sauce') && (entry.price < 0 || entry.maxQuantity < 1)) return false;

@@ -9,6 +9,17 @@ import OptionSetAttachmentTargetPicker from './OptionSetAttachmentTargetPicker';
 import OptionSetMaterializationTargetCard from './OptionSetMaterializationTargetCard';
 import styles from './OptionSetAttachmentManager.module.css';
 
+function featureStatusKey(isLoading: boolean, enabled: boolean): string {
+  if (isLoading) return 'loading';
+  return enabled ? 'option_set_materialization_enabled' : 'option_set_materialization_disabled_badge';
+}
+
+function materializationStatusTone(status: string): 'success' | 'danger' | 'neutral' {
+  if (status === 'applied') return 'success';
+  if (status === 'conflict') return 'danger';
+  return 'neutral';
+}
+
 interface Props {
   readonly detail: OptionSetDetail;
   readonly isDirty: boolean;
@@ -29,13 +40,7 @@ export default function OptionSetAttachmentManager({ detail, isDirty, onApplied 
           <p>{t('option_set_materialization_help')}</p>
         </div>
         <StatusBadge tone={workflow.feature.enabled ? 'success' : 'warning'}>
-          {t(
-            workflow.feature.isLoading
-              ? 'loading'
-              : workflow.feature.enabled
-                ? 'option_set_materialization_enabled'
-                : 'option_set_materialization_disabled_badge',
-          )}
+          {t(featureStatusKey(workflow.feature.isLoading, workflow.feature.enabled))}
         </StatusBadge>
       </header>
       {workflow.feature.error && (
@@ -116,14 +121,14 @@ export default function OptionSetAttachmentManager({ detail, isDirty, onApplied 
         </div>
       )}
       {workflow.result && (
-        <div className={styles.result} role="status">
-          <p>{t('option_set_apply_summary', { applied: resultApplied, total: workflow.result.targets.length })}</p>
+        <div className={styles.result} aria-live="polite">
+          <output>
+            {t('option_set_apply_summary', { applied: resultApplied, total: workflow.result.targets.length })}
+          </output>
           <ul>
             {workflow.result.targets.map((target) => (
               <li key={target.targetKey}>
-                <StatusBadge
-                  tone={target.status === 'applied' ? 'success' : target.status === 'conflict' ? 'danger' : 'neutral'}
-                >
+                <StatusBadge tone={materializationStatusTone(target.status)}>
                   {t(`option_set_apply_${target.status}`)}
                 </StatusBadge>
                 {target.conflicts.map((conflict, index) => (

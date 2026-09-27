@@ -9,7 +9,7 @@ import {
 } from '@/components/admin/product-editor/translations/translationReviewFields';
 import type { TranslationDecision, TranslationWorkbenchAdapter } from '@/services/translationWorkbenchService';
 import { translationWorkbenchService } from '@/services/translationWorkbenchService';
-import { useTranslationSuggestionBatch } from './useTranslationSuggestionBatch';
+import { useTranslationSuggestionBatch, type TranslationSuggestionEntry } from './useTranslationSuggestionBatch';
 import { createTranslationMetadataPatch } from '@/components/admin/product-editor/translations/translationReviewMetadata';
 import { buildReviewedTranslationOutcome } from '@/components/admin/product-editor/translations/reviewedTranslationOutcome';
 import { useEditorSourceLocales } from './useEditorSourceLocales';
@@ -22,6 +22,14 @@ interface UseEditorTranslationReviewOptions {
   readonly product: ProductDetails;
   readonly isOpen: boolean;
   readonly adapter?: TranslationWorkbenchAdapter;
+}
+
+type ReviewedDecision = Exclude<TranslationSuggestionEntry['decision'], 'pending'>;
+
+function translationDecisionFor(decision: ReviewedDecision): TranslationDecision['decision'] {
+  if (decision === 'accepted') return 'accept';
+  if (decision === 'edited') return 'edit';
+  return 'reject';
 }
 
 export function useEditorTranslationReview({
@@ -132,14 +140,16 @@ export function useEditorTranslationReview({
   const unknownSourceLocaleFields = readFields().filter((field) => !field.sourceLocaleKnown);
 
   const submitDecisions = useCallback(async (): Promise<boolean> => {
-    const selected = batchEntries.filter((entry) => entry.decision !== 'pending');
+    const selected = batchEntries.filter(
+      (entry): entry is TranslationSuggestionEntry & { decision: ReviewedDecision } => entry.decision !== 'pending',
+    );
     if (selected.length === 0) return true;
 
     try {
       setReviewWriteError(false);
       const decisions: TranslationDecision[] = selected.map((entry) => ({
         suggestionId: entry.suggestion.suggestionId,
-        decision: entry.decision === 'accepted' ? 'accept' : entry.decision === 'edited' ? 'edit' : 'reject',
+        decision: translationDecisionFor(entry.decision),
         ...(entry.decision === 'edited' ? { text: entry.text } : {}),
       }));
       const response = await adapter.review(decisions);
@@ -155,8 +165,8 @@ export function useEditorTranslationReview({
       acceptedIdsRef.current = outcome.acceptedIds;
       setStaleCount(outcome.staleCount);
       return true;
-    } catch (reviewError) {
-      void reviewError;
+    } catch (_reviewError) {
+      /* Intentionally expose a generic save failure; the parent editor owns server-error messaging. */
       setBatchError(true);
       setReviewWriteError(true);
       return false;

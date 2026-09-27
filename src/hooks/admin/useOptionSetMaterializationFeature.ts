@@ -13,8 +13,8 @@ export function useOptionSetMaterializationFeature() {
     setError(false);
     try {
       setEnabled(await getOptionSetMaterializationEnabled());
-    } catch (featureError) {
-      void featureError;
+    } catch (_featureError) {
+      /* Intentionally show the feature's generic failure state instead of leaking transport details here. */
       setEnabled(false);
       setError(true);
     } finally {

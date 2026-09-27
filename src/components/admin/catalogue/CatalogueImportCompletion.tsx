@@ -11,17 +11,25 @@ import {
 } from '@/services/catalogueImportService';
 import styles from './CatalogueImportWorkspace.module.css';
 
+function resultTone(status: CatalogueImportResult['status']): 'success' | 'warning' | 'danger' {
+  if (status === 'Imported') return 'success';
+  if (status === 'PartiallyImported') return 'warning';
+  return 'danger';
+}
+
+function itemTone(status: CatalogueImportResult['items'][number]['status']): 'success' | 'danger' | 'neutral' {
+  if (status === 'Imported') return 'success';
+  if (status === 'Failed') return 'danger';
+  return 'neutral';
+}
+
 export default function CatalogueImportCompletion({ result }: { readonly result: CatalogueImportResult }) {
   const { t } = useTranslation();
   return (
     <section className={styles.completion} aria-labelledby="catalogue-import-complete-heading">
       <div className={styles.previewHeader}>
         <h2 id="catalogue-import-complete-heading">{t('catalogue_import_result_title')}</h2>
-        <StatusBadge
-          tone={result.status === 'Imported' ? 'success' : result.status === 'PartiallyImported' ? 'warning' : 'danger'}
-        >
-          {t(importStatusLabelKey(result.status))}
-        </StatusBadge>
+        <StatusBadge tone={resultTone(result.status)}>{t(importStatusLabelKey(result.status))}</StatusBadge>
       </div>
       <ul className={styles.resultList}>
         {result.items.map((item) => (
@@ -29,11 +37,7 @@ export default function CatalogueImportCompletion({ result }: { readonly result:
             <span>
               {item.templateId}@{item.revision}
             </span>
-            <StatusBadge
-              tone={item.status === 'Imported' ? 'success' : item.status === 'Failed' ? 'danger' : 'neutral'}
-            >
-              {t(importItemStatusLabelKey(item.status))}
-            </StatusBadge>
+            <StatusBadge tone={itemTone(item.status)}>{t(importItemStatusLabelKey(item.status))}</StatusBadge>
             {item.failureCode && <span>{item.failureCode}</span>}
             {item.localEntityId && /product|bundle|menu/i.test(item.localEntityType ?? '') && (
               <Link href={`/admin/menu-management/${encodeURIComponent(item.localEntityId)}`}>

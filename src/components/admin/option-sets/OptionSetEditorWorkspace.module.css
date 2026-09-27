@@ -87,6 +87,7 @@
 }
 
 .success {
+  display: block;
   color: var(--feedback-success-text);
 }
 

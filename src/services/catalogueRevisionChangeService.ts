@@ -18,7 +18,7 @@ export interface CatalogueRevisionChangeItem {
   readonly withdrawn: boolean;
   readonly adoptedRevisionWithdrawn: boolean;
   readonly status: string;
-  readonly fieldDiffs: CatalogueRevisionChangeField[];
+  readonly fields: CatalogueRevisionChangeField[];
   readonly notice: string;
 }
 

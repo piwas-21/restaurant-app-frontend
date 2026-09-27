@@ -20,7 +20,7 @@ const changes: CatalogueRevisionChanges = {
       adoptedRevisionWithdrawn: false,
       status: 'current',
       notice: 'New source values are available.',
-      fieldDiffs: [
+      fields: [
         { path: 'name', baseline: 'Old name', current: 'New name', localValue: 'Old name', localChanged: false },
         {
           path: 'description',

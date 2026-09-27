@@ -1,8 +1,9 @@
 import type { OptionSetMaterializationRequest, OptionSetTargetRequest } from '@/types/optionSetMaterialization';
 import type { OptionSetMaterializationTarget } from './optionSetMaterialization';
+import { createIdempotencyKey } from './idempotencyKey';
 
 export function createOptionSetIdempotencyKey(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return createIdempotencyKey();
 }
 
 export function toOptionSetTargetRequest(
@@ -50,7 +51,7 @@ export function makeOptionSetMaterializationRequest(
   const requests = targets
     .filter((target) => target.selected)
     .map((target) => toOptionSetTargetRequest(target, entryIds));
-  if (!requests.length || requests.some((request) => request === null)) return null;
+  if (!requests.length || requests.includes(null)) return null;
   return {
     expectedSetVersion: version,
     idempotencyKey,

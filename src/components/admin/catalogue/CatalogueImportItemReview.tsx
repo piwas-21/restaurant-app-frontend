@@ -23,6 +23,12 @@ interface Props {
   readonly onDecisionChange: (patch: Partial<CatalogueImportDecision>) => void;
 }
 
+function statusTone(status: CatalogueImportSessionItem['status']): 'success' | 'danger' | 'neutral' {
+  if (status === 'Imported') return 'success';
+  if (status === 'Failed') return 'danger';
+  return 'neutral';
+}
+
 export default function CatalogueImportItemReview({
   item,
   decision,
@@ -34,7 +40,6 @@ export default function CatalogueImportItemReview({
 }: Props) {
   const { t } = useTranslation();
   const itemIsProduct = item.type === 'item' || item.type === 'bundle';
-  const statusTone = item.status === 'Imported' ? 'success' : item.status === 'Failed' ? 'danger' : 'neutral';
 
   return (
     <article className={styles.itemCard} aria-labelledby={`catalogue-item-${item.templateId}`}>
@@ -45,7 +50,7 @@ export default function CatalogueImportItemReview({
             {t('catalogue_template_revision', { revision: item.revision })} · {t(`catalogue_type_${item.type}`)}
           </p>
         </div>
-        <StatusBadge tone={statusTone}>{t(importItemStatusLabelKey(item.status))}</StatusBadge>
+        <StatusBadge tone={statusTone(item.status)}>{t(importItemStatusLabelKey(item.status))}</StatusBadge>
       </div>
       {item.isSelectable ? (
         <CheckboxField

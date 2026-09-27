@@ -23,7 +23,7 @@ describe('catalogueRevisionChangeService', () => {
           withdrawn: false,
           adoptedRevisionWithdrawn: false,
           status: 'current',
-          fieldDiffs: [{ path: 'name', baseline: 'Old', current: 'New', localValue: 'Old', localChanged: false }],
+          fields: [{ path: 'name', baseline: 'Old', current: 'New', localValue: 'Old', localChanged: false }],
           localHash: 'local-hash',
           notice: 'Update available',
         },

@@ -249,7 +249,7 @@ describe('useCatalogueImportWorkspace', () => {
           withdrawn: false,
           adoptedRevisionWithdrawn: false,
           status: 'current',
-          fieldDiffs: [],
+          fields: [],
           notice: 'Update available',
         },
       ],

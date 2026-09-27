@@ -21,11 +21,10 @@ import {
   hasEmptyCustomOrderTypesInSelection,
 } from '@/utils/catalogueImportDecision';
 import { getErrorMessage } from '@/utils/apiClient';
+import { createIdempotencyKey } from '@/utils/idempotencyKey';
 import { useCatalogueImportSession, type CatalogueImportStartOptions } from './useCatalogueImportSession';
 
 const itemKey = (templateId: string, revision: number) => `${templateId}@${revision}`;
-const randomKey = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
 export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions) {
   const flow = useCatalogueImportSession(options);
   const [selectedIds, setSelectedIds] = useState<string[]>([...options.selectedTemplateIds]);
@@ -47,7 +46,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
 
   const toggleSelection = useCallback(
     (templateId: string, selected: boolean) => {
-      if (!flow.session || flow.session.status !== 'Draft') return;
+      if (flow.session?.status !== 'Draft') return;
       setSelectedIds((current) =>
         selected ? [...new Set([...current, templateId])] : current.filter((id) => id !== templateId),
       );
@@ -152,17 +151,15 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
       let idempotencyKey: string | null = null;
       try {
         idempotencyKey = sessionStorage.getItem(keyName);
-      } catch (storageError) {
-        void storageError;
-        /* Use the in-memory key below. */
+      } catch (_storageError) {
+        /* Intentionally ignore unavailable session storage; the in-memory key supports retries. */
       }
-      idempotencyKey ??= importKeys.current[saved.sessionId] ?? randomKey();
+      idempotencyKey ??= importKeys.current[saved.sessionId] ?? createIdempotencyKey();
       importKeys.current[saved.sessionId] = idempotencyKey;
       try {
         sessionStorage.setItem(keyName, idempotencyKey);
-      } catch (storageError) {
-        void storageError;
-        /* Keep the key in memory for retries. */
+      } catch (_storageError) {
+        /* Intentionally ignore unavailable session storage; the key remains in memory for retries. */
       }
       flow.setResult(await importCatalogueSession(saved.sessionId, { expectedVersion: saved.version, idempotencyKey }));
       await flow.refresh(saved.sessionId);

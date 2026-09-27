@@ -44,8 +44,8 @@ export function useOptionSetReferences(kind: OptionSetKind | '', entries: readon
           batch.map(async (id) => {
             try {
               return [id, await isOptionSetReferenceAvailable(kind, id)] as const;
-            } catch (referenceError) {
-              void referenceError;
+            } catch (_referenceError) {
+              /* Intentionally report availability as false and expose the aggregate retry state. */
               failed = true;
               return [id, false] as const;
             }
@@ -69,12 +69,14 @@ export function useOptionSetReferences(kind: OptionSetKind | '', entries: readon
   }, [kind, referenceKey, reloadCount]);
 
   const markReferenceVerified = useCallback((referenceKind: OptionSetKind, candidate: MenuAuthoringCandidate) => {
-    const matchesKind =
-      referenceKind === 'ingredient' || referenceKind === 'sauce'
-        ? candidate.type === 'ingredient'
-        : referenceKind === 'suggestedSide'
-          ? candidate.type === 'product' && !candidate.isComponent
-          : candidate.type === 'product' || candidate.type === 'component';
+    let matchesKind: boolean;
+    if (referenceKind === 'ingredient' || referenceKind === 'sauce') {
+      matchesKind = candidate.type === 'ingredient';
+    } else if (referenceKind === 'suggestedSide') {
+      matchesKind = candidate.type === 'product' && !candidate.isComponent;
+    } else {
+      matchesKind = candidate.type === 'product' || candidate.type === 'component';
+    }
     setConfirmed((current) => ({
       ...current,
       [`${referenceKind}:${candidate.id}`]: matchesKind && candidate.isActive && candidate.isAvailable,

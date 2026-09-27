@@ -67,8 +67,8 @@ export function useTranslationSuggestionBatch({ isOpen, readFields, adapter }: U
           }),
         );
         setPhase('ready');
-      } catch (requestError) {
-        void requestError;
+      } catch (_requestError) {
+        /* Intentionally expose the review's generic error state without provider details. */
         if (loadKey.current !== key) return;
         setError(true);
         setPhase('error');

@@ -50,7 +50,6 @@ export function useOptionSetCatalog() {
       setItems((current) => [...current, ...result.items]);
       setNextCursor(result.nextCursor ?? null);
     } catch (pageError) {
-      void pageError;
       if (currentRequest === requestId.current) setError(getErrorMessage(pageError) ?? 'option_set_load_error');
     } finally {
       if (currentRequest === requestId.current) setIsLoadingMore(false);

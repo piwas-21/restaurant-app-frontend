@@ -9,6 +9,7 @@ import {
 } from '@/services/catalogueImportService';
 import { getCatalogueRevisionChanges, type CatalogueRevisionChanges } from '@/services/catalogueRevisionChangeService';
 import { getErrorMessage } from '@/utils/apiClient';
+import { createIdempotencyKey } from '@/utils/idempotencyKey';
 
 export interface CatalogueImportStartOptions {
   readonly templateId: string;
@@ -20,7 +21,6 @@ export interface CatalogueImportStartOptions {
   readonly onSessionCreated: (sessionId: string) => void;
 }
 
-const randomKey = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const isFinished = (status: CatalogueImportSession['status']) =>
   status === 'Imported' || status === 'PartiallyImported' || status === 'Failed';
 
@@ -83,20 +83,19 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
       try {
         let sessionId = options.sessionId;
         if (!sessionId) {
-          const startKeyName = `catalogue-import-start:${options.templateId}@${options.revision}:${options.locale}:${options.createNewCopy}:${[...options.selectedTemplateIds].sort().join(',')}`;
+          const selectedTemplateIds = [...options.selectedTemplateIds].sort((left, right) => left.localeCompare(right));
+          const startKeyName = `catalogue-import-start:${options.templateId}@${options.revision}:${options.locale}:${options.createNewCopy}:${selectedTemplateIds.join(',')}`;
           let idempotencyKey: string | null = null;
           try {
             idempotencyKey = sessionStorage.getItem(startKeyName);
-          } catch (storageError) {
-            void storageError;
-            /* Use an in-memory key below. */
+          } catch (_storageError) {
+            /* Intentionally ignore unavailable session storage; the in-memory idempotency key is still sent. */
           }
-          idempotencyKey ??= randomKey();
+          idempotencyKey ??= createIdempotencyKey();
           try {
             sessionStorage.setItem(startKeyName, idempotencyKey);
-          } catch (storageError) {
-            void storageError;
-            /* Idempotency remains in the request. */
+          } catch (_storageError) {
+            /* Intentionally ignore unavailable session storage; idempotency remains in the request. */
           }
           sessionId = (
             await startCatalogueImportSession({
@@ -110,9 +109,8 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
           ).sessionId;
           try {
             sessionStorage.removeItem(startKeyName);
-          } catch (storageError) {
-            void storageError;
-            /* The created session is in the URL now. */
+          } catch (_storageError) {
+            /* Intentionally ignore cleanup failure; the created session is already in the URL. */
           }
         }
         const loaded = await refresh(sessionId);
@@ -128,7 +126,7 @@ export function useCatalogueImportSession(options: CatalogueImportStartOptions) 
   }, [options, refresh, refreshRevisionChanges]);
 
   useEffect(() => {
-    if (!session || session.status !== 'Importing') return;
+    if (session?.status !== 'Importing') return;
     const timer = window.setTimeout(() => {
       void refresh(session.sessionId)
         .then((loaded) => {

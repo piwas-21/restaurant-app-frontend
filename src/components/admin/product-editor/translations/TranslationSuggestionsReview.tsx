@@ -45,11 +45,7 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
         )}
       </div>
 
-      {phase === 'loading' && (
-        <output className={styles.notice} role="status">
-          {t('translation_review_loading')}
-        </output>
-      )}
+      {phase === 'loading' && <output className={styles.notice}>{t('translation_review_loading')}</output>}
       {pendingLocales > 0 && (
         <output className={styles.notice}>{t('translation_review_gaps', { count: pendingLocales })}</output>
       )}
@@ -92,9 +88,7 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
         </p>
       )}
       {staleCount > 0 && (
-        <p className={styles.warning} role="status">
-          {t('translation_review_stale_result', { count: staleCount })}
-        </p>
+        <output className={styles.warning}>{t('translation_review_stale_result', { count: staleCount })}</output>
       )}
       {phase === 'ready' && pendingLocales === 0 && entries.length === 0 && !error && (
         <output className={styles.notice}>{t('translation_review_suggestions_none')}</output>

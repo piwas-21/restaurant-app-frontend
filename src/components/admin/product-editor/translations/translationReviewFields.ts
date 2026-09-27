@@ -42,7 +42,7 @@ function fieldIdentity(slot: TranslationSlot, editor: EditorSource, productId: s
       ? { entityType: 'productVariation' as const, entityId: id }
       : {
           entityType: 'productVariation' as const,
-          clientKey: `variation:${ref.clientKey || id || ref.index}`, // pragma: allowlist secret -- stable local row identity
+          clientKey: `variation:${ref.clientKey ?? id ?? ref.index}`, // pragma: allowlist secret -- stable local row identity
         }; // pragma: allowlist secret -- local draft key
   }
   if (ref.target === 'ingredient') {
@@ -119,13 +119,11 @@ function applyVariationChange(editor: Editor, change: ReviewedTextChange): boole
   const rows = editor.form.getValues('variations') as Array<{ id?: string }> | undefined;
   const clientKey = change.fieldRef.clientKey?.replace(/^variation:/, '');
   const index =
-    rows?.findIndex((row, position) =>
-      change.fieldRef.entityId
-        ? row.id === change.fieldRef.entityId
-        : clientKey
-          ? editor.variations.fields[position]?.id === clientKey || row.id === clientKey
-          : matchesReference(row.id, position, change.fieldRef, 'variation'),
-    ) ?? -1;
+    rows?.findIndex((row, position) => {
+      if (change.fieldRef.entityId) return row.id === change.fieldRef.entityId;
+      if (clientKey) return editor.variations.fields[position]?.id === clientKey || row.id === clientKey;
+      return matchesReference(row.id, position, change.fieldRef, 'variation');
+    }) ?? -1;
   if (index < 0) return false;
   editor.form.setValue(`variations.${index}.content.${change.locale}.${change.fieldRef.fieldKey}`, change.text, {
     shouldDirty: true,

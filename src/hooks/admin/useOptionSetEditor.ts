@@ -22,8 +22,8 @@ function localeOrDefault(value: string): LanguageCode {
 export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   const { i18n } = useTranslation();
   const [detail, setDetail] = useState<OptionSetDetail | null>(null);
-  const [kind, setKindState] = useState<OptionSetKind | ''>(initialKind ?? '');
-  const [name, setNameState] = useState('');
+  const [kind, setKind] = useState<OptionSetKind | ''>(initialKind ?? '');
+  const [name, setName] = useState('');
   const [sourceLocale, setSourceLocaleState] = useState<LanguageCode>(() =>
     localeOrDefault(i18n.resolvedLanguage ?? i18n.language),
   );
@@ -46,8 +46,8 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     try {
       const loaded = await getOptionSet(id);
       setDetail(loaded);
-      setKindState(loaded.kind);
-      setNameState(loaded.name);
+      setKind(loaded.kind);
+      setName(loaded.name);
       setSourceLocaleState(localeOrDefault(loaded.sourceLocale ?? 'en'));
       setTranslations(loaded.translations ?? {});
       setEntries(loaded.entries);
@@ -87,13 +87,13 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
     setSaved(false);
     setIsDirty(true);
   }, []);
-  const setName = useCallback((value: string) => {
-    setNameState(value);
+  const updateName = useCallback((value: string) => {
+    setName(value);
     setSaved(false);
     setIsDirty(true);
   }, []);
-  const setKind = useCallback((value: OptionSetKind | '') => {
-    setKindState(value);
+  const updateKind = useCallback((value: OptionSetKind | '') => {
+    setKind(value);
     setSaved(false);
     setIsDirty(true);
   }, []);
@@ -141,8 +141,8 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
         ? await updateOptionSet(detail.id, detail.version, request)
         : await createOptionSet(request);
       setDetail(updated);
-      setKindState(updated.kind);
-      setNameState(updated.name);
+      setKind(updated.kind);
+      setName(updated.name);
       setSourceLocaleState(localeOrDefault(updated.sourceLocale ?? sourceLocale));
       setTranslations(updated.translations ?? localized);
       setEntries(updated.entries);
@@ -162,9 +162,9 @@ export function useOptionSetEditor(id?: string, initialKind?: OptionSetKind) {
   return {
     detail,
     kind,
-    setKind,
+    setKind: updateKind,
     name,
-    setName,
+    setName: updateName,
     sourceLocale,
     setSourceLocale,
     translations,

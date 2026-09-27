@@ -184,11 +184,9 @@ export function buildTranslationSlots(item: TranslatableItem): TranslationSlot[]
   ];
 
   const variationSlots = (item.variations ?? []).flatMap((variation, index) => {
-    const rowKey = variation.id
-      ? `id-${variation.id}`
-      : variation.clientKey
-        ? `client-${variation.clientKey}`
-        : `index-${index}`;
+    let rowKey = `index-${index}`;
+    if (variation.clientKey) rowKey = `client-${variation.clientKey}`;
+    if (variation.id) rowKey = `id-${variation.id}`;
     const identity = {
       ...(variation.id ? { variationId: variation.id } : {}),
       ...(!variation.id && variation.clientKey ? { clientKey: variation.clientKey } : {}),
@@ -220,17 +218,18 @@ export function buildTranslationSlots(item: TranslatableItem): TranslationSlot[]
    * That is what the writer dispatches on, so the two must not diverge: grouping is a rendering
    * concern here and an addressing concern nowhere.
    */
-  const ingredientSlots = (item.ingredients ?? []).flatMap((ingredient, index) =>
-    slotOrNothing({
-      key: `ingredient-${ingredient.id || `index-${index}`}-name`,
+  const ingredientSlots = (item.ingredients ?? []).flatMap((ingredient, index) => {
+    const ingredientIdentity = ingredient.id ? ingredient.id : `index-${index}`;
+    return slotOrNothing({
+      key: `ingredient-${ingredientIdentity}-name`,
       group: resolveIngredientKind(ingredient) === 'sauce' ? 'sauces' : 'ingredients',
       ref: { target: 'ingredient', index, ...(ingredient.id ? { ingredientId: ingredient.id } : {}) },
       fieldLabel: 'editor_translations_field_ingredient_name',
       multiline: false,
       source: text(ingredient.name),
       translations: fromNested(ingredient.content, 'name'),
-    }),
-  );
+    });
+  });
 
   return [...itemSlots, ...variationSlots, ...ingredientSlots, ...buildMenuSectionTranslationSlots(item.sections)];
 }

@@ -39,6 +39,30 @@ function statusTone(status?: string): 'success' | 'warning' | 'danger' | 'neutra
   return 'warning';
 }
 
+function hasExpectedVersion(target: OptionSetMaterializationTarget): boolean {
+  switch (target.role) {
+    case 'bundleChoice':
+      return target.expectedMenuAuthoringVersion !== undefined;
+    case 'productChoice':
+      return target.expectedCustomizationGroupVersion !== undefined;
+    default:
+      return true;
+  }
+}
+
+function settingFieldsForRole(role: OptionSetMaterializationTarget['role']): NumericSetting[] {
+  switch (role) {
+    case 'sauce':
+      return ['minSelection', 'maxSelection', 'includedFree'];
+    case 'bundleChoice':
+      return ['minSelection', 'maxSelection', 'displayOrder'];
+    case 'productChoice':
+      return ['minSelection', 'maxSelection', 'includedFree', 'displayOrder'];
+    default:
+      return [];
+  }
+}
+
 export default function OptionSetMaterializationTargetCard({
   target,
   kind,
@@ -53,21 +77,12 @@ export default function OptionSetMaterializationTargetCard({
     preview?.relatedOfferWarnings.filter(
       (warning) => warning.targetKey === target.targetKey && warning.reasonRequired,
     ) ?? [];
-  const validVersion =
-    target.role === 'bundleChoice'
-      ? target.expectedMenuAuthoringVersion !== undefined
-      : target.role === 'productChoice'
-        ? target.expectedCustomizationGroupVersion !== undefined
-        : true;
-  const settingFields: NumericSetting[] =
-    target.role === 'sauce'
-      ? ['minSelection', 'maxSelection', 'includedFree']
-      : target.role === 'bundleChoice'
-        ? ['minSelection', 'maxSelection', 'displayOrder']
-        : target.role === 'productChoice'
-          ? ['minSelection', 'maxSelection', 'includedFree', 'displayOrder']
-          : [];
+  const validVersion = hasExpectedVersion(target);
+  const settingFields = settingFieldsForRole(target.role);
   const overrideFields = optionSetOverrideFields(kind);
+  const targetLabel = target.contextName
+    ? `${target.targetProductName} · ${target.contextName}`
+    : target.targetProductName;
 
   const updateSetting = (field: NumericSetting, value: string) => {
     const settings = { ...target.settings };
@@ -89,7 +104,7 @@ export default function OptionSetMaterializationTargetCard({
     <article className={styles.card}>
       <header className={styles.header}>
         <CheckboxField
-          label={`${target.targetProductName}${target.contextName ? ` · ${target.contextName}` : ''}`}
+          label={targetLabel}
           checked={target.selected}
           disabled={!validVersion}
           description={!validVersion ? t('option_set_target_version_missing') : undefined}

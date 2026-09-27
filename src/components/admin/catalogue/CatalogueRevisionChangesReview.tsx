@@ -26,6 +26,36 @@ function valuesMatch(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+function selectedPaths(
+  selected: readonly string[] | undefined,
+  fields: readonly CatalogueRevisionChanges['items'][number]['fields'][number][],
+): string[] {
+  return (selected ?? []).filter((path) => fields.some((field) => field.path === path && !field.localChanged));
+}
+
+function withSelectedField(
+  current: Record<string, string[]>,
+  key: string,
+  path: string,
+  selected: boolean,
+): Record<string, string[]> {
+  const paths = current[key] ?? [];
+  return {
+    ...current,
+    [key]: selected ? [...new Set([...paths, path])] : paths.filter((candidate) => candidate !== path),
+  };
+}
+
+function statusLabelFor(
+  t: (key: string, options?: { revision: number }) => string,
+  item: CatalogueRevisionChanges['items'][number],
+  unavailable: boolean,
+): string {
+  if (item.withdrawn) return t('catalogue_revision_withdrawn');
+  if (unavailable) return t('catalogue_revision_unavailable');
+  return t('catalogue_template_revision', { revision: item.currentRevision ?? item.adoptedRevision });
+}
+
 export default function CatalogueRevisionChangesReview({
   changes,
   isWorking,
@@ -59,16 +89,10 @@ export default function CatalogueRevisionChangesReview({
       )}
       {items.map((item) => {
         const key = `${item.templateId}@${item.adoptedRevision}`;
-        const changedFields = item.fieldDiffs.filter((field) => !valuesMatch(field.baseline, field.current));
-        const selected = (selectedByTemplate[key] ?? []).filter((path) =>
-          changedFields.some((field) => field.path === path && !field.localChanged),
-        );
+        const changedFields = item.fields.filter((field) => !valuesMatch(field.baseline, field.current));
+        const selected = selectedPaths(selectedByTemplate[key], changedFields);
         const unavailable = item.withdrawn || item.currentRevision == null || !item.currentContentHash;
-        const statusLabel = item.withdrawn
-          ? t('catalogue_revision_withdrawn')
-          : unavailable
-            ? t('catalogue_revision_unavailable')
-            : t('catalogue_template_revision', { revision: item.currentRevision });
+        const statusLabel = statusLabelFor(t, item, unavailable);
         const ready = !unavailable;
         return (
           <article key={key} className={styles.revisionNotice}>
@@ -95,15 +119,7 @@ export default function CatalogueRevisionChangesReview({
                         disabled={!ready || locallyChanged || isWorking}
                         description={locallyChanged ? t('catalogue_revision_local_change_preserved') : undefined}
                         onChange={(next) =>
-                          setSelectedByTemplate((current) => {
-                            const paths = current[key] ?? [];
-                            return {
-                              ...current,
-                              [key]: next
-                                ? [...new Set([...paths, field.path])]
-                                : paths.filter((path) => path !== field.path),
-                            };
-                          })
+                          setSelectedByTemplate((current) => withSelectedField(current, key, field.path, next))
                         }
                       />
                       <dl className={styles.revisionValues}>

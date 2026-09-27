@@ -7,6 +7,8 @@ import { LANGUAGE_CODES } from '@/config/languageConfig';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
+import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
+import TranslationSuggestionsReview from './translations/TranslationSuggestionsReview';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './EditorPreSaveReview.module.css';
 
@@ -17,6 +19,7 @@ interface EditorPreSaveReviewProps {
   readonly isPending: boolean;
   readonly isBundle: boolean;
   readonly editor: ReturnType<typeof useProductEditorForm>;
+  readonly translationReview: ReturnType<typeof useEditorTranslationReview>;
 }
 
 interface ReviewContentRow {
@@ -49,6 +52,7 @@ export default function EditorPreSaveReview({
   isPending,
   isBundle,
   editor,
+  translationReview,
 }: EditorPreSaveReviewProps) {
   const { t } = useTranslation();
   const name = String(editor.form.getValues('name') ?? '');
@@ -72,6 +76,14 @@ export default function EditorPreSaveReview({
   const hasLinkedStandaloneOffer = Boolean(
     menuDefinition.parentOfferProductId || menuDefinition.parentOfferVariationId,
   );
+  const confirmSave = async () => {
+    if (translationReview.reviewWriteError) {
+      onConfirm();
+      return;
+    }
+    if (!(await translationReview.submitDecisions())) return;
+    onConfirm();
+  };
 
   return (
     <BaseModal
@@ -88,11 +100,11 @@ export default function EditorPreSaveReview({
           <button
             type="button"
             className={modalStyles.submitButton}
-            onClick={onConfirm}
+            onClick={() => void confirmSave()}
             disabled={isPending}
             data-testid="editor-review-confirm-save"
           >
-            {t('editor_review_save')}
+            {t(translationReview.reviewWriteError ? 'editor_review_save_without_suggestions' : 'editor_review_save')}
           </button>
         </div>
       }
@@ -136,6 +148,7 @@ export default function EditorPreSaveReview({
         <ReviewLine>{t('editor_review_intentional_differences')}</ReviewLine>
         <ReviewLine>{t('editor_review_quote_note')}</ReviewLine>
       </ul>
+      <TranslationSuggestionsReview review={translationReview} />
     </BaseModal>
   );
 }

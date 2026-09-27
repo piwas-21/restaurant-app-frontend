@@ -7,7 +7,11 @@ import type {
   CatalogueTemplateReference,
   CatalogueTemplateRevision,
 } from '@/services/catalogueTemplateService';
-import { CATALOGUE_REVIEW_FIELD_LABEL_KEYS, resolveCatalogueTemplateText } from '@/services/catalogueTemplateService';
+import {
+  CATALOGUE_REVIEW_FIELD_LABEL_KEYS,
+  resolveCatalogueSectionName,
+  resolveCatalogueTemplateText,
+} from '@/services/catalogueTemplateService';
 import type { LanguageCode } from '@/config/languageConfig';
 import { catalogueReferenceKey } from '@/hooks/admin/useCatalogueTemplatePreview';
 import styles from './CatalogueTemplatePreview.module.css';
@@ -95,7 +99,7 @@ export default function CatalogueTemplatePayloadPreview({
               .map((section) => (
                 <li key={section.sectionKey} className={styles.step}>
                   <div className={styles.stepHeading}>
-                    <strong>{section.name}</strong>
+                    <strong>{resolveCatalogueSectionName(section, detail, locale)}</strong>
                     <span>{selectionRule(section.min, section.max, t)}</span>
                   </div>
                   <ul className={styles.referenceList}>

@@ -17,11 +17,10 @@ import { productHeaderBadges, productHeaderMenuActions } from './productEditorHe
 import { useEditorErrors } from '@/hooks/admin/useEditorErrors';
 import { useEditorSectionNav } from '@/hooks/admin/useEditorSectionNav';
 import { useEditorPreSaveReview } from '@/hooks/admin/useEditorPreSaveReview';
+import { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import { useEditorNavigationGuard } from '@/hooks/admin/useEditorNavigationGuard';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
-
-// The one Save lives in the sticky bar, which is a SIBLING of the form (it spans nav, main and
-// rail). HTML form-attribute association is what still submits the form from there.
+// The sticky Save bar sits outside the form and submits through this HTML form ID.
 const FORM_ID = 'product-editor-form';
 
 const TAB_ITEM = 'item';
@@ -64,8 +63,7 @@ export default function ProductEditorPage({
   const createLabel = isBundle ? t('create_menu_bundle') : t('create_product');
   const pageTitle = isCreate ? createTitle : product.name;
   const saveLabel = isCreate ? createLabel : t('save_changes');
-  // Create starts from an empty form (nothing "dirty" yet) but must still be submittable —
-  // the resolver blocks an incomplete one. Edit gates on isDirty so the commit is deliberate.
+  // Create may submit its empty form; edits require a deliberate change.
   const saveDisabled = editor.isSubmitting || (!isCreate && !editor.isDirty);
 
   const navigation = useEditorNavigationGuard({
@@ -76,18 +74,27 @@ export default function ProductEditorPage({
     onNavigate,
   });
 
+  const preSaveReview = useEditorPreSaveReview({ formId: FORM_ID, onSubmit: editor.onSubmit });
+  const translationReview = useEditorTranslationReview({
+    editor,
+    product,
+    productId: product.id,
+    isOpen: preSaveReview.isOpen,
+  });
   const context = {
     editor,
     t,
     product,
     isCreate,
     isBundle,
+    sourceLocaleFor: translationReview.sourceLocaleFor,
+    sourceLocaleKnownFor: translationReview.sourceLocaleKnownFor,
+    onSourceLocaleChange: translationReview.setSourceLocaleFor,
     onOfferCreateRequested: navigation.handleOfferCreate,
     onNavigate: navigation.handleOfferNavigate,
   };
   const sections = buildEditorSections(context);
   const sectionNav = useEditorSectionNav(sections.map((section) => section.id));
-  const preSaveReview = useEditorPreSaveReview({ formId: FORM_ID, onSubmit: editor.onSubmit });
   // D13's error surface: how many fields are wrong, which sections hold them, where the first is.
   const validation = useEditorErrors({
     errors,
@@ -102,10 +109,7 @@ export default function ProductEditorPage({
   });
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
 
-  // S10's meter. Only a SAVED ITEM gets one — see `EditorSideRail`'s prop for why a bundle and the
-  // create route get none. The description is WATCHED, not read off `product`, so typing one ticks
-  // the row immediately; the photo count is the same `product.images` the "At a glance" row shows,
-  // so the two can never disagree about the same item on the same screen.
+  // Only saved items get the completeness meter. Watching description keeps it current while typing.
   const isSavedItem = !isBundle && !isCreate;
   const completeness = isSavedItem
     ? getProductCompleteness({
@@ -113,8 +117,6 @@ export default function ProductEditorPage({
         description: form.watch('description'),
       })
     : undefined;
-  // `watch` so the header badge follows the rail's switch live. A bundle's flag is registered by
-  // `BundlePanel` under the same name, so one read serves both.
   const isLive = Boolean(form.watch('isActive'));
 
   return (
@@ -149,9 +151,7 @@ export default function ProductEditorPage({
         translations={buildTranslationsPanel(context)}
         rail={
           <EditorSideRail
-            // The three status flags left the old `Details` column for the rail (§4, S2). A bundle
-            // keeps its own inside `BundlePanel`: `MenuBundleDto` is a different shape and S2 does
-            // not restructure it.
+            // Bundle status stays inside BundlePanel; its DTO is separate from ProductDto.
             status={!isBundle && <ProductStatusFields register={form.register} />}
             basePrice={editor.basePrice}
             categoryName={primaryCategoryName}
@@ -186,10 +186,14 @@ export default function ProductEditorPage({
       <EditorPreSaveReview
         isOpen={preSaveReview.isOpen}
         onClose={preSaveReview.close}
-        onConfirm={preSaveReview.confirm}
+        onConfirm={() => {
+          editor.setTranslationMetadata(translationReview.buildMetadataPatch());
+          preSaveReview.confirm();
+        }}
         isPending={editor.isSubmitting}
         isBundle={isBundle}
         editor={editor}
+        translationReview={translationReview}
       />
     </>
   );

@@ -11,6 +11,7 @@ import {
   isLocaleComplete,
   localeProgress,
   translationIn,
+  withVariationClientKeys,
   type LocaleProgress,
   type ProductContentRow,
   type TranslatableVariation,
@@ -26,6 +27,7 @@ import {
 export const TRANSLATION_SOURCE_BASE = '';
 
 type Editor = ReturnType<typeof useProductEditorForm>;
+const WATCHED_FIELDS = ['name', 'description', 'content', 'variations'] as const;
 
 export interface CopyResult {
   /** How many empty target fields were filled. Zero is a stateable outcome, not a no-op. */
@@ -33,6 +35,8 @@ export interface CopyResult {
   /** Bumped on every run so an unchanged count still re-announces. */
   readonly at: number;
 }
+
+type WatchedTranslationValues = [string?, string?, ProductContentRow[]?, TranslatableVariation[]?];
 
 /**
  * The Translations workbench's state and its three write paths
@@ -50,27 +54,22 @@ export interface CopyResult {
  * re-renders the panel alone.
  */
 export function useTranslationsWorkbench(editor: Editor) {
-  const { form, detailedIngredients, changeIngredients } = editor;
+  const { form, detailedIngredients, changeIngredients, variations: variationFieldArray, menuDefinition } = editor;
   const { control, getValues, setValue } = form;
 
-  const watched = useWatch({ control, name: ['name', 'description', 'content', 'variations'] }) as [
-    string | undefined,
-    string | undefined,
-    ProductContentRow[] | undefined,
-    TranslatableVariation[] | undefined,
-  ];
-  const [name, description, content, variations] = watched;
+  const watched = useWatch({ control, name: WATCHED_FIELDS }) as WatchedTranslationValues;
 
   const slots = useMemo(
     () =>
       buildTranslationSlots({
-        name,
-        description,
-        content,
-        variations,
+        name: watched[0],
+        description: watched[1],
+        content: watched[2],
+        variations: withVariationClientKeys(watched[3], variationFieldArray.fields),
         ingredients: detailedIngredients,
+        sections: menuDefinition.sections,
       }),
-    [name, description, content, variations, detailedIngredients],
+    [watched, variationFieldArray.fields, detailedIngredients, menuDefinition.sections],
   );
 
   const progress: Record<string, LocaleProgress> = useMemo(() => everyLocaleProgress(slots), [slots]);
@@ -105,13 +104,28 @@ export function useTranslationsWorkbench(editor: Editor) {
         });
         return;
       }
+      if (ref.target === 'menuSection') {
+        const sections = editor.menuDefinition.sections.map((section, index) => {
+          if (index !== ref.index) return section;
+          const previous = section.translations?.[locale] ?? { name: '', description: '' };
+          return {
+            ...section,
+            translations: {
+              ...section.translations,
+              [locale]: { ...previous, [ref.field]: value },
+            },
+          };
+        });
+        editor.changeMenuDefinition({ ...editor.menuDefinition, sections });
+        return;
+      }
       changeIngredients(
         detailedIngredients.map((ingredient, index) =>
           index === ref.index ? withIngredientTranslation(ingredient, locale, value) : ingredient,
         ),
       );
     },
-    [changeIngredients, detailedIngredients, getValues, setValue],
+    [changeIngredients, detailedIngredients, editor, getValues, setValue],
   );
 
   /**
@@ -124,20 +138,34 @@ export function useTranslationsWorkbench(editor: Editor) {
   const copySourceToEmpty = useCallback(() => {
     let rows = (getValues('content') ?? []) as ProductContentRow[];
     let ingredients = detailedIngredients;
+    let sections = editor.menuDefinition.sections;
     let filled = 0;
 
     for (const slot of slots) {
       const source = sourceTextFor(slot);
       if (isBlank(source) || !isBlank(translationIn(slot, targetLocale))) continue;
       filled += 1;
+      const ref = slot.ref;
 
-      if (slot.ref.target === 'item') {
-        rows = nextProductContent(rows, targetLocale, slot.ref.field, source);
-      } else if (slot.ref.target === 'variation') {
-        const path = `variations.${slot.ref.index}.content.${targetLocale}.${slot.ref.field}`;
+      if (ref.target === 'item') {
+        rows = nextProductContent(rows, targetLocale, ref.field, source);
+      } else if (ref.target === 'variation') {
+        const path = `variations.${ref.index}.content.${targetLocale}.${ref.field}`;
         setValue(path as keyof FieldValues, source, { shouldDirty: true });
+      } else if (ref.target === 'menuSection') {
+        sections = sections.map((section, index) => {
+          if (index !== ref.index) return section;
+          const previous = section.translations?.[targetLocale] ?? { name: '', description: '' };
+          return {
+            ...section,
+            translations: {
+              ...section.translations,
+              [targetLocale]: { ...previous, [ref.field]: source },
+            },
+          };
+        });
       } else {
-        const at = slot.ref.index;
+        const at = ref.index;
         ingredients = ingredients.map((ingredient, index) =>
           index === at ? withIngredientTranslation(ingredient, targetLocale, source) : ingredient,
         );
@@ -147,9 +175,12 @@ export function useTranslationsWorkbench(editor: Editor) {
     if (filled > 0) {
       setValue('content', rows, { shouldDirty: true });
       if (ingredients !== detailedIngredients) changeIngredients(ingredients);
+      if (sections !== editor.menuDefinition.sections) {
+        editor.changeMenuDefinition({ ...editor.menuDefinition, sections });
+      }
     }
     setLastCopy({ filled, at: Date.now() });
-  }, [changeIngredients, detailedIngredients, getValues, setValue, slots, sourceTextFor, targetLocale]);
+  }, [changeIngredients, detailedIngredients, editor, getValues, setValue, slots, sourceTextFor, targetLocale]);
 
   return {
     slots,

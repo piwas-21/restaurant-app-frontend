@@ -71,10 +71,13 @@ const onProductUpdated = jest.fn();
 // functions, so every harness below passes it and the assertions can read what it was told.
 const onImageUploadFailed = jest.fn();
 
-const submit = async (data: Record<string, unknown>) => {
+const submit = async (
+  data: Record<string, unknown>,
+  product: { id: string; menuDefinition?: { authoringVersion?: number } } = { id: String(data.id) },
+) => {
   await submitEditProductForm({
     data: data as never,
-    product: { id: String(data.id) },
+    product,
     imageFiles: [],
     detailedIngredients: [],
     setIsSubmitting: () => {},
@@ -96,11 +99,14 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
   // one category. The bundle form has no category field, so it always sent categoryIds: [] and the
   // backend rejected every bundle edit with "At least one category is required".
   it('sends a bundle to the bundle endpoint, not the product endpoint', async () => {
-    await submit(bundleFormData());
+    await submit(bundleFormData(), { id: 'bundle-1', menuDefinition: { authoringVersion: 12 } });
 
     expect(updateMenuBundle).toHaveBeenCalledTimes(1);
     expect(updateProduct).not.toHaveBeenCalled();
-    expect(updateMenuBundle).toHaveBeenCalledWith('bundle-1', expect.objectContaining({ id: 'bundle-1' }));
+    expect(updateMenuBundle).toHaveBeenCalledWith(
+      'bundle-1',
+      expect.objectContaining({ id: 'bundle-1', expectedAuthoringVersion: 12 }),
+    );
   });
 
   it('still sends a plain item to the product endpoint', async () => {

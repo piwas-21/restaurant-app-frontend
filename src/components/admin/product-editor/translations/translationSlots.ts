@@ -1,5 +1,6 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 import { resolveIngredientKind } from '@/utils/ingredientKind';
+import { buildMenuSectionTranslationSlots } from './menuSectionTranslationSlots';
 
 /**
  * What there is to translate on a menu item, as one flat list — the model behind the Translations
@@ -20,8 +21,15 @@ import { resolveIngredientKind } from '@/utils/ingredientKind';
 /** Where a slot's text lives in the editor's state. The workbench's writer dispatches on this. */
 export type TranslationSlotRef =
   | { readonly target: 'item'; readonly field: 'name' | 'description' }
-  | { readonly target: 'variation'; readonly index: number; readonly field: 'name' | 'description' }
-  | { readonly target: 'ingredient'; readonly index: number };
+  | {
+      readonly target: 'variation';
+      readonly index: number;
+      readonly variationId?: string;
+      readonly clientKey?: string;
+      readonly field: 'name' | 'description';
+    }
+  | { readonly target: 'ingredient'; readonly index: number; readonly ingredientId?: string }
+  | { readonly target: 'menuSection'; readonly index: number; readonly field: 'name' | 'description' };
 
 /**
  * The four headings the grid groups rows under — the SAME four the Item tab names.
@@ -34,7 +42,7 @@ export type TranslationSlotRef =
  * array by index, so nothing failed to compile and nothing wrote to the wrong row. Only the LABEL
  * was wrong, which no type can catch.
  */
-export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces';
+export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces' | 'menuSections';
 
 /**
  * Which i18n key names the field, so a row can state what it is to a screen reader.
@@ -49,7 +57,9 @@ export type TranslationFieldLabel =
   | 'editor_translations_field_item_description'
   | 'variation_name'
   | 'variation_description'
-  | 'editor_translations_field_ingredient_name';
+  | 'editor_translations_field_ingredient_name'
+  | 'menu_section_name'
+  | 'editor_translations_field_menu_section_description';
 
 export interface TranslationSlot {
   /** Unique and STABLE per row — it keys the React element, so the caret survives a re-render. */
@@ -81,12 +91,31 @@ export interface ProductContentRow {
 }
 
 export interface TranslatableVariation {
+  readonly id?: string | null;
+  /** Stable react-hook-form field identity for a new, unsaved variation. */
+  readonly clientKey?: string | null;
   readonly name?: string | null;
   readonly description?: string | null;
   readonly content?: NestedContent | null;
 }
 
+/** Inject the editor-only stable keys that RHF keeps beside unsaved variation values. */
+export function withVariationClientKeys(
+  variations: readonly TranslatableVariation[] | null | undefined,
+  fields: readonly { readonly id: string }[],
+): TranslatableVariation[] | undefined {
+  return variations?.map((variation, index) => ({ ...variation, clientKey: fields[index]?.id }));
+}
+
+export interface TranslatableMenuSection {
+  readonly id?: string | null;
+  readonly name?: string | null;
+  readonly description?: string | null;
+  readonly translations?: NestedContent | null;
+}
+
 export interface TranslatableIngredient {
+  readonly id?: string | null;
   readonly name?: string | null;
   /** Absent means `'ingredient'` — `resolveIngredientKind` owns that default, not this module. */
   readonly kind?: string | null;
@@ -99,6 +128,7 @@ export interface TranslatableItem {
   readonly content?: readonly ProductContentRow[] | null;
   readonly variations?: readonly TranslatableVariation[] | null;
   readonly ingredients?: readonly TranslatableIngredient[] | null;
+  readonly sections?: readonly TranslatableMenuSection[] | null;
 }
 
 const text = (value: string | null | undefined): string => value ?? '';
@@ -153,45 +183,55 @@ export function buildTranslationSlots(item: TranslatableItem): TranslationSlot[]
     }),
   ];
 
-  const variationSlots = (item.variations ?? []).flatMap((variation, index) => [
-    ...slotOrNothing({
-      key: `variation-${index}-name`,
-      group: 'variations',
-      ref: { target: 'variation', index, field: 'name' },
-      fieldLabel: 'variation_name',
-      multiline: false,
-      source: text(variation.name),
-      translations: fromNested(variation.content, 'name'),
-    }),
-    ...slotOrNothing({
-      key: `variation-${index}-description`,
-      group: 'variations',
-      ref: { target: 'variation', index, field: 'description' },
-      fieldLabel: 'variation_description',
-      multiline: false,
-      source: text(variation.description),
-      translations: fromNested(variation.content, 'description'),
-    }),
-  ]);
+  const variationSlots = (item.variations ?? []).flatMap((variation, index) => {
+    let rowKey = `index-${index}`;
+    if (variation.clientKey) rowKey = `client-${variation.clientKey}`;
+    if (variation.id) rowKey = `id-${variation.id}`;
+    const identity = {
+      ...(variation.id ? { variationId: variation.id } : {}),
+      ...(!variation.id && variation.clientKey ? { clientKey: variation.clientKey } : {}),
+    };
+    return [
+      ...slotOrNothing({
+        key: `variation-${rowKey}-name`,
+        group: 'variations',
+        ref: { target: 'variation', index, ...identity, field: 'name' },
+        fieldLabel: 'variation_name',
+        multiline: false,
+        source: text(variation.name),
+        translations: fromNested(variation.content, 'name'),
+      }),
+      ...slotOrNothing({
+        key: `variation-${rowKey}-description`,
+        group: 'variations',
+        ref: { target: 'variation', index, ...identity, field: 'description' },
+        fieldLabel: 'variation_description',
+        multiline: false,
+        source: text(variation.description),
+        translations: fromNested(variation.content, 'description'),
+      }),
+    ];
+  });
 
   /**
    * `index` is the row's position in the WHOLE `detailedIngredients` array, never within its group.
    * That is what the writer dispatches on, so the two must not diverge: grouping is a rendering
    * concern here and an addressing concern nowhere.
    */
-  const ingredientSlots = (item.ingredients ?? []).flatMap((ingredient, index) =>
-    slotOrNothing({
-      key: `ingredient-${index}-name`,
+  const ingredientSlots = (item.ingredients ?? []).flatMap((ingredient, index) => {
+    const ingredientIdentity = ingredient.id ? ingredient.id : `index-${index}`;
+    return slotOrNothing({
+      key: `ingredient-${ingredientIdentity}-name`,
       group: resolveIngredientKind(ingredient) === 'sauce' ? 'sauces' : 'ingredients',
-      ref: { target: 'ingredient', index },
+      ref: { target: 'ingredient', index, ...(ingredient.id ? { ingredientId: ingredient.id } : {}) },
       fieldLabel: 'editor_translations_field_ingredient_name',
       multiline: false,
       source: text(ingredient.name),
       translations: fromNested(ingredient.content, 'name'),
-    }),
-  );
+    });
+  });
 
-  return [...itemSlots, ...variationSlots, ...ingredientSlots];
+  return [...itemSlots, ...variationSlots, ...ingredientSlots, ...buildMenuSectionTranslationSlots(item.sections)];
 }
 
 export const translationIn = (slot: TranslationSlot, locale: string): string => slot.translations[locale] ?? '';

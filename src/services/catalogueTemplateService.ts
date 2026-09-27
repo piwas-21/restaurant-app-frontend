@@ -1,7 +1,7 @@
 import type { LanguageCode } from '@/config/languageConfig';
 import { boundedCatalogueSearchPageSize } from '@/config/catalogue';
 import { apiClient } from '@/utils/apiClient';
-export { resolveCatalogueTemplateText } from './catalogueTemplateText';
+export { resolveCatalogueSectionName, resolveCatalogueTemplateText } from './catalogueTemplateText';
 
 export const CATALOGUE_TEMPLATE_TYPES = [
   'ingredient',
@@ -71,6 +71,7 @@ interface CatalogueBundlePayload {
   sections: Array<{
     sectionKey: string;
     name: string;
+    translations?: Record<string, { name: string }>;
     sortOrder: number;
     min: number;
     max: number;

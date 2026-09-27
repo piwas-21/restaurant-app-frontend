@@ -38,8 +38,23 @@ jest.mock('@/services/globalIngredientService', () => ({
 jest.mock('@/services/categoryService', () => ({
   getCategories: jest.fn(async () => ({ success: true, data: { items: [{ id: 'cat-pizza', name: 'Pizzas' }] } })),
 }));
+jest.mock('@/services/translationWorkbenchService', () => ({
+  translationWorkbenchService: {
+    preview: jest.fn(async () => ({ rows: [] })),
+    suggest: jest.fn(async () => ({ providerStatus: 'disabled', suggestions: [], skipped: [] })),
+    review: jest.fn(async () => ({ decisions: [] })),
+  },
+}));
 
 import { updateProduct } from '@/services/productService';
+import { translationWorkbenchService } from '@/services/translationWorkbenchService';
+import type {
+  TranslationFieldStatus,
+  TranslationSuggestion,
+  TranslationWorkbenchAdapter,
+  TranslationWorkbenchRequest,
+} from '@/services/translationWorkbenchService';
+import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 const margherita = {
   id: 'item-1',
@@ -66,6 +81,7 @@ const margherita = {
   suggestedSideItems: [],
   availableOrderTypes: null,
   content: { fr: { name: 'Pizza Margherita', description: '' } },
+  translationMetadata: { sourceLocales: { name: 'en', description: 'en' } },
 } as unknown as ProductDetails;
 
 const openWorkbench = async (product: ProductDetails = margherita) => {
@@ -95,7 +111,10 @@ const targetField = (view: ReturnType<typeof within>, field: string, language: s
 const save = async (container: HTMLElement) => {
   fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
-  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+  await act(async () => {
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await Promise.resolve();
+  });
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
 };
@@ -103,10 +122,19 @@ const save = async (container: HTMLElement) => {
 const confirmSaveReview = async (container: HTMLElement) => {
   fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
-  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+  await act(async () => {
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await Promise.resolve();
+  });
 };
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+  service.preview.mockResolvedValue({ rows: [] });
+  service.suggest.mockResolvedValue({ providerStatus: 'disabled', suggestions: [], skipped: [] });
+  service.review.mockResolvedValue({ decisions: [] });
+});
 
 describe('one surface for every translatable string (D2 / S4)', () => {
   /**
@@ -274,17 +302,16 @@ describe('the three old translation UIs are gone, not restyled', () => {
     expect(container.textContent).not.toContain('add_language_translation');
   });
 
-  /**
-   * Handed forward by S7, which measured that the row list's `content.N.language` select had NO
-   * accessible name and was invisible to axe only because the Item tab is what gets scanned. The
-   * select is retired with the list; the one control that replaced it ships with a real `<label>`.
-   */
-  it('names its language select, which the control it replaces never did', async () => {
+  it('names the copy source and each field source-locale selector', async () => {
     const { panel, view } = await openWorkbench();
 
-    const select = view.getByLabelText('editor_translations_source_language');
-    expect(select.tagName).toBe('SELECT');
-    expect(panel.querySelectorAll('select')).toHaveLength(1);
+    const copySource = view.getByLabelText('editor_translations_copy_from');
+    const fieldSource = view.getByLabelText(
+      'editor_translations_source_locale_field[field=Margherita Pizza · item_name]',
+    );
+    expect(copySource.tagName).toBe('SELECT');
+    expect(fieldSource.tagName).toBe('SELECT');
+    expect(panel.querySelectorAll('select').length).toBeGreaterThan(2);
   });
 });
 
@@ -304,12 +331,205 @@ describe('ten locales, one of which reads right to left', () => {
   it('follows the chosen source language when it is one of the ten', async () => {
     const { view } = await openWorkbench();
 
-    fireEvent.change(view.getByLabelText('editor_translations_source_language'), { target: { value: 'ar' } });
+    fireEvent.change(view.getByLabelText('editor_translations_copy_from'), { target: { value: 'ar' } });
 
     // No `<source> ·` prefix here, and that is the rule working: the item has no Arabic text, so the
     // source cell is EMPTY and there is nothing to name the row by. The label falls back to the
     // field's own name rather than inventing one.
     expect(view.getByLabelText('editor_translations_source_field[field=item_name]')).toHaveAttribute('dir', 'rtl');
+  });
+});
+
+describe('batched translation review before ordinary Save', () => {
+  it('flags source-copy text for manual review and keeps Save available without calling suggestions', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    service.preview.mockImplementation(async (request) => ({
+      rows: request.fields
+        .filter((field) => field.fieldRef.entityType === 'product' && field.fieldRef.fieldKey === 'name')
+        .map((field) => ({
+          fieldRef: field.fieldRef,
+          sourceLocale: field.sourceLocale,
+          sourceText: field.sourceText,
+          sourceHash: 'source-fr',
+          targets: [{ locale: 'fr', status: 'sourceCopy', text: 'Pizza Margherita' }],
+        })),
+    }));
+    const { container, view } = await openWorkbench();
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    const drawer = within(review).getByRole('complementary', { name: 'translation_review_title' });
+
+    expect(await within(drawer).findByText('translation_review_gaps[count=1]')).toBeInTheDocument();
+    expect(await within(drawer).findByText('translation_review_manual_review[count=1]')).toBeInTheDocument();
+    expect(service.suggest).not.toHaveBeenCalled();
+    expect(within(review).getByRole('button', { name: 'editor_review_save' })).toBeEnabled();
+  });
+
+  it('requires an explicit locale for legacy source text but still permits a normal save', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    expect(within(review).getByText('translation_review_source_locale_missing[count=5]')).toBeInTheDocument();
+    expect(translationWorkbenchService.preview).not.toHaveBeenCalled();
+    expect(within(review).getByRole('button', { name: 'editor_review_save' })).toBeEnabled();
+
+    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    expect((updateProduct as jest.Mock).mock.calls[0][1].translationMetadata).toBeUndefined();
+  });
+
+  it('previews an unannotated field only after a source language is explicitly selected', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+
+    fireEvent.change(
+      within(review).getByLabelText('translation_review_source_locale_pick[field=Margherita Pizza · item_name]'),
+      { target: { value: 'tr' } },
+    );
+    await waitFor(() => expect(translationWorkbenchService.preview).toHaveBeenCalledTimes(1));
+    const request = (translationWorkbenchService.preview as jest.Mock).mock.calls[0][0] as TranslationWorkbenchRequest;
+    expect(request.fields).toHaveLength(1);
+    expect(request.fields[0]).toMatchObject({ fieldRef: { fieldKey: 'name' }, sourceLocale: 'tr' });
+  });
+
+  it('records one reviewed batch, applies accepted text to the normal payload, and preserves other locales', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    const languages = ['de', 'fr', 'ru'] as const;
+    const targetState = (locale: string): TranslationFieldStatus['targets'][number] => ({
+      locale: locale as TranslationFieldStatus['sourceLocale'],
+      status: locale === 'ru' ? 'missing' : locale === 'de' || locale === 'fr' ? 'stale' : 'current',
+      text: locale === 'de' ? 'Margherita' : locale === 'fr' ? 'Pizza Margherita' : undefined,
+    });
+    const rowFor = (field: TranslationWorkbenchRequest['fields'][number]): TranslationFieldStatus => ({
+      fieldRef: field.fieldRef,
+      sourceLocale: field.sourceLocale,
+      sourceText: field.sourceText,
+      sourceHash: field.fieldRef.fieldKey === 'name' ? 'source-name' : 'source-description',
+      targets: LANGUAGE_CODES.map((locale) => ({
+        ...targetState(locale),
+        ...(locale === 'tr' && field.fieldRef.fieldKey === 'name'
+          ? { provenance: { kind: 'template' as const, sourceHash: 'source-name' } }
+          : {}),
+      })),
+    });
+    const suggestions: TranslationSuggestion[] = languages.map((locale) => ({
+      suggestionId: `suggestion-${locale}`,
+      fieldRef: { entityType: 'product', entityId: 'item-1', fieldKey: 'name' },
+      locale,
+      sourceHash: 'source-name',
+      text: `suggested-${locale}`,
+      provider: 'test-provider',
+      model: 'test-model',
+      status: 'suggested',
+    }));
+    service.preview.mockImplementation(async (request) => ({ rows: request.fields.map(rowFor) }));
+    service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions, skipped: [] });
+    service.review.mockImplementation(async (decisions) => ({
+      decisions: decisions.map((decision) => ({
+        suggestionId: decision.suggestionId,
+        decision: decision.decision,
+        status: decision.decision === 'accept' ? 'accepted' : decision.decision === 'edit' ? 'edited' : 'rejected',
+        ...(decision.decision === 'edit' ? { text: decision.text } : {}),
+      })),
+    }));
+
+    const product = {
+      ...margherita,
+      content: {
+        de: { name: 'Margherita', description: '' },
+        fr: { name: 'Pizza Margherita', description: '' },
+        zh: { name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' },
+      },
+      translationMetadata: {
+        sourceLocales: { description: 'en' },
+        provenance: { name: { tr: { kind: 'template', sourceHash: 'source-name', reviewStatus: 'source' } } },
+      },
+    } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(product);
+    selectLocale(view, 'Deutsch');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Deutsch', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate und Mozzarella' } },
+    );
+    fireEvent.change(
+      view.getByLabelText('editor_translations_source_locale_field[field=Margherita Pizza · item_name]'),
+      { target: { value: 'tr' } },
+    );
+
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+    await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
+    const requestedFields = service.preview.mock.calls[0][0];
+    expect(requestedFields.fields.find((field) => field.fieldRef.fieldKey === 'name')).toMatchObject({
+      fieldRef: { entityType: 'product', entityId: 'item-1' },
+      sourceLocale: 'tr',
+      sourceText: 'Margherita Pizza',
+      targetTexts: {
+        de: 'Margherita',
+        fr: 'Pizza Margherita',
+        zh: '玛格丽特披萨',
+      },
+    });
+    expect(requestedFields.fields.find((field) => field.fieldRef.fieldKey === 'description')).toMatchObject({
+      sourceLocale: 'en',
+    });
+
+    const drawer = within(review).getByRole('complementary', { name: 'translation_review_title' });
+    fireEvent.click(within(drawer).getByRole('button', { name: 'translation_review_accept_all' }));
+    fireEvent.change(within(drawer).getByLabelText('translation_review_suggested_text[language=Français]'), {
+      target: { value: 'Pizza Margherita maison' },
+    });
+    fireEvent.click(
+      within(drawer).getByRole('button', {
+        name: 'translation_review_reject_field[field=Margherita Pizza · item_name,language=Русский]',
+      }),
+    );
+    expect(updateProduct).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    const payload = (updateProduct as jest.Mock).mock.calls[0][1] as {
+      content: Record<string, { name?: string; description?: string }>;
+    };
+    expect(payload.content.de.name).toBe('suggested-de');
+    expect(payload.content.fr.name).toBe('Pizza Margherita maison');
+    expect(payload.content.ru).toBeUndefined();
+    expect(payload.content.zh).toEqual({ name: '玛格丽特披萨', description: '番茄和马苏里拉奶酪' });
+    expect(payload.content.de.description).toBe('Tomate und Mozzarella');
+    expect(service.review).toHaveBeenCalledWith([
+      { suggestionId: 'suggestion-de', decision: 'accept' },
+      { suggestionId: 'suggestion-fr', decision: 'edit', text: 'Pizza Margherita maison' },
+      { suggestionId: 'suggestion-ru', decision: 'reject' },
+    ]);
+    expect((updateProduct as jest.Mock).mock.calls[0][1]).toMatchObject({
+      translationMetadata: {
+        sourceLocales: { name: 'tr', description: 'en' },
+        acceptedSuggestionIds: { 'name.de': 'suggestion-de', 'name.fr': 'suggestion-fr' },
+      },
+    });
   });
 });
 

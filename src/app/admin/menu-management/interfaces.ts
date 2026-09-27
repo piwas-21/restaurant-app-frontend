@@ -2,6 +2,7 @@ import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
 import { IngredientKind, ItemAvailability, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
+import type { TranslationMetadata } from '@/types/translationMetadata';
 
 export interface ProductImage {
   id: string;
@@ -23,6 +24,8 @@ export interface Variation {
   id?: string;
   name: string;
   description?: string;
+  content?: Record<string, { name?: string; description?: string }>;
+  translationMetadata?: TranslationMetadata;
   priceModifier: number;
   finalPrice: number;
   isActive: boolean;
@@ -56,12 +59,14 @@ export interface ProductIngredient {
       description?: string;
     };
   };
+  translationMetadata?: TranslationMetadata;
 }
 
 export interface ProductDetails {
   id: string;
   name: string;
   description: string;
+  translationMetadata?: TranslationMetadata;
   basePrice: number;
   isActive: boolean;
   isAvailable: boolean;

@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLanguageNativeName } from '@/config/languageConfig';
+import FormField from '@/components/design-system/FormField';
+import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
 import { directionFor } from '@/lib/textDirection';
 import {
   isBlank,
@@ -38,10 +39,11 @@ const GROUP_LABELS: Record<TranslationGroupId, string> = {
   variations: 'variations',
   ingredients: 'ingredients',
   sauces: 'sauces',
+  menuSections: 'menu_sections',
 };
 
 /** The Item tab's own order, so the two tabs read as one item rather than two inventories. */
-const GROUP_ORDER: readonly TranslationGroupId[] = ['item', 'variations', 'ingredients', 'sauces'];
+const GROUP_ORDER: readonly TranslationGroupId[] = ['item', 'variations', 'ingredients', 'sauces', 'menuSections'];
 
 interface TranslationSlotRowsProps {
   // readonly: S6759 — component props are never mutated.
@@ -57,6 +59,9 @@ interface TranslationSlotRowsProps {
   readonly targetNameFor: (slot: TranslationSlot) => string | undefined;
   /** Leaving a cell validates it — these inputs are not registered, so nothing else would. */
   readonly onBlurSlot: (slot: TranslationSlot) => void;
+  readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
+  readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
 }
 
 /**
@@ -84,6 +89,9 @@ export default function TranslationSlotRows({
   errorFor,
   targetNameFor,
   onBlurSlot,
+  sourceLocaleFor,
+  sourceLocaleKnownFor,
+  onSourceLocaleChange,
 }: TranslationSlotRowsProps) {
   const { t } = useTranslation();
   const targetDirection = directionFor(targetLocale);
@@ -123,6 +131,20 @@ export default function TranslationSlotRows({
             value={source}
             rows={slot.multiline ? 3 : undefined}
           />
+          <FormField label={t('editor_translations_source_locale_field', { field: fieldName })} srOnlyLabel>
+            <select
+              className={styles.sourceSelect}
+              value={sourceLocaleKnownFor(slot.key, slot) ? sourceLocaleFor(slot.key, slot) : ''}
+              onChange={(event) => onSourceLocaleChange(slot.key, event.target.value)}
+            >
+              <option value="">{t('translation_review_source_locale_required')}</option>
+              {LANGUAGE_CODES.map((locale) => (
+                <option key={locale} value={locale}>
+                  {getLanguageNativeName(locale)}
+                </option>
+              ))}
+            </select>
+          </FormField>
         </div>
         <div className={styles.cell}>
           <label className="sr-only" htmlFor={targetId}>

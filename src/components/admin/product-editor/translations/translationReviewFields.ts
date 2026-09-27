@@ -29,6 +29,11 @@ export function fieldReferenceKey(ref: TranslationFieldRef): string {
 const localeValue = (locale: string): LanguageCode =>
   LANGUAGE_CODES.includes(locale as LanguageCode) ? (locale as LanguageCode) : 'en';
 
+function idOrPosition(id: string | undefined, position: number): string | number {
+  if (id) return id;
+  return position;
+}
+
 function fieldIdentity(slot: TranslationSlot, editor: EditorSource, productId: string) {
   const { ref } = slot;
   if (ref.target === 'item') {
@@ -49,7 +54,7 @@ function fieldIdentity(slot: TranslationSlot, editor: EditorSource, productId: s
     const id = ref.ingredientId;
     return isPersistedMenuId(id)
       ? { entityType: 'productIngredient' as const, entityId: id }
-      : { entityType: 'productIngredient' as const, clientKey: `ingredient:${id ? id : ref.index}` }; // pragma: allowlist secret -- local draft key
+      : { entityType: 'productIngredient' as const, clientKey: `ingredient:${idOrPosition(id, ref.index)}` }; // pragma: allowlist secret -- local draft key
   }
   const id = editor.menuDefinition.sections[ref.index]?.id;
   return isPersistedMenuId(id)

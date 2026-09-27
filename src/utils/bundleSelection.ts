@@ -71,7 +71,8 @@ export function buildBundleOption(sectionId: string, item: MenuSectionItem): Sel
 }
 
 /**
- * The sections' orderable `isDefault` items, capped at each section's `maxSelection`.
+ * The sections' default items, capped at each section's `maxSelection`; the guest helper omits
+ * server-blocked choices.
  *
  * A Kebab d'Ilhan fixed `Plat` is the one explicit exception: it has exactly one legal choice, so
  * the sheet selects that child even before the tenant-data write marks it default. The selected child

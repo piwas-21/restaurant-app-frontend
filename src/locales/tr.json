@@ -3137,6 +3137,7 @@
   "catalogue_import_review_channels": "Sipariş kanallarını inceledim",
   "catalogue_import_review_kitchen": "Mutfak yönlendirmesini inceledim",
   "catalogue_import_order_types": "Açık sipariş kanalları",
+  "catalogue_import_order_type_required": "Özel seçim için en az bir sipariş kanalı seçin.",
   "catalogue_import_kitchen_type": "Mutfak yönlendirme türü",
   "catalogue_import_option_prices_help": "Her seçenek için yerel fiyat girin. Boş alan sıfır kabul edilmez.",
   "catalogue_import_price_for": "{{name}} için yerel fiyat",

@@ -3146,6 +3146,7 @@
   "catalogue_import_review_channels": "He revisado los canales de pedido",
   "catalogue_import_review_kitchen": "He revisado el enrutamiento de cocina",
   "catalogue_import_order_types": "Canales de pedido disponibles",
+  "catalogue_import_order_type_required": "Elige al menos un canal de pedido para una selección personalizada.",
   "catalogue_import_kitchen_type": "Tipo de enrutamiento de cocina",
   "catalogue_import_option_prices_help": "Introduce un precio local para cada opción. Un campo vacío no equivale a cero.",
   "catalogue_import_price_for": "Precio local de {{name}}",

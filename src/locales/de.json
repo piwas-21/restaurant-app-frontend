@@ -3137,6 +3137,7 @@
   "catalogue_import_review_channels": "Bestellkanäle geprüft",
   "catalogue_import_review_kitchen": "Küchenrouting geprüft",
   "catalogue_import_order_types": "Verfügbare Bestellkanäle",
+  "catalogue_import_order_type_required": "Wählen Sie für eine benutzerdefinierte Auswahl mindestens einen Bestellkanal.",
   "catalogue_import_kitchen_type": "Küchenrouting-Typ",
   "catalogue_import_option_prices_help": "Geben Sie für jede Option einen lokalen Preis ein. Leere Felder gelten nicht als null.",
   "catalogue_import_price_for": "Lokaler Preis für {{name}}",

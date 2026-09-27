@@ -53,4 +53,43 @@ describe('OptionSetMaterializationTargetCard', () => {
     expect(onUpdate).toHaveBeenNthCalledWith(1, { overrides: { 'entry-1': { isOptional: false } } });
     expect(onUpdate).toHaveBeenNthCalledWith(2, { overrides: { 'entry-1': { price: 0 } } });
   });
+
+  it('sends explicit clearMaxSelection intent when a sauce cap is cleared', () => {
+    const onUpdate = jest.fn();
+    render(
+      <OptionSetMaterializationTargetCard
+        target={{
+          ...target,
+          targetKey: 'sauce:product-1:root',
+          role: 'sauce',
+          settings: { maxSelection: 3 },
+        }}
+        kind="sauce"
+        entries={entries}
+        preview={null}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('maximum_selection'), { target: { value: '' } });
+
+    expect(onUpdate).toHaveBeenCalledWith({ settings: { clearMaxSelection: true } });
+  });
+
+  it('removes the clear intent when a numeric sauce cap is entered', () => {
+    const onUpdate = jest.fn();
+    render(
+      <OptionSetMaterializationTargetCard
+        target={{ ...target, role: 'sauce', settings: { clearMaxSelection: true } }}
+        kind="sauce"
+        entries={entries}
+        preview={null}
+        onUpdate={onUpdate}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('maximum_selection'), { target: { value: '2' } });
+
+    expect(onUpdate).toHaveBeenCalledWith({ settings: { maxSelection: 2 } });
+  });
 });

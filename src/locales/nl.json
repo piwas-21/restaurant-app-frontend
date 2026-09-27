@@ -3137,6 +3137,7 @@
   "catalogue_import_review_channels": "Bestelkanalen gecontroleerd",
   "catalogue_import_review_kitchen": "Keukenroutering gecontroleerd",
   "catalogue_import_order_types": "Beschikbare bestelkanalen",
+  "catalogue_import_order_type_required": "Kies ten minste één bestelkanaal voor een aangepaste selectie.",
   "catalogue_import_kitchen_type": "Type keukenroutering",
   "catalogue_import_option_prices_help": "Voer voor elke keuze een lokale prijs in. Leeg betekent niet nul.",
   "catalogue_import_price_for": "Lokale prijs voor {{name}}",

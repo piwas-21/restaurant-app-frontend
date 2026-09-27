@@ -19,6 +19,7 @@ import {
   canManageCatalogueImportSession,
   catalogueImportDecisionFor,
   catalogueImportDecisionForRequest,
+  hasEmptyCustomOrderTypesInSelection,
 } from '@/utils/catalogueImportDecision';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCatalogueImportSession, type CatalogueImportStartOptions } from './useCatalogueImportSession';
@@ -73,9 +74,14 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     () => flow.session?.items.filter((item) => selectedIds.includes(item.templateId)) ?? [],
     [flow.session, selectedIds],
   );
+  const hasInvalidCustomOrderTypes = hasEmptyCustomOrderTypesInSelection(chosenItems, decisions);
 
   const persistDecisions = useCallback(async () => {
     if (!flow.session) return null;
+    if (hasInvalidCustomOrderTypes) {
+      setActionError('catalogue_import_order_type_required');
+      return null;
+    }
     if (!canManageCatalogueImportSession(flow.session)) return flow.session;
     const retrying = flow.session.status === 'PartiallyImported' || flow.session.status === 'Failed';
     await updateCatalogueImportItems(flow.session.sessionId, {
@@ -90,7 +96,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
         ),
     });
     return flow.refresh(flow.session.sessionId);
-  }, [chosenItems, decisions, flow, selectedIds]);
+  }, [chosenItems, decisions, flow, hasInvalidCustomOrderTypes, selectedIds]);
 
   const applyRevisionFields = useCallback(
     async (item: CatalogueRevisionChanges['items'][number], fieldPaths: readonly string[]) => {
@@ -181,6 +187,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     canEditDecision: (item: CatalogueImportSessionItem) =>
       flow.session ? canEditCatalogueImportDecision(flow.session, item) : false,
     chosenItems,
+    hasInvalidCustomOrderTypes,
     isLoading: flow.isLoading,
     isWorking,
     error: actionError ?? flow.error,

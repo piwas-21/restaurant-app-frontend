@@ -3137,6 +3137,7 @@
   "catalogue_import_review_channels": "I reviewed order channels",
   "catalogue_import_review_kitchen": "I reviewed kitchen routing",
   "catalogue_import_order_types": "Available order channels",
+  "catalogue_import_order_type_required": "Choose at least one order channel for a custom selection.",
   "catalogue_import_kitchen_type": "Kitchen routing type",
   "catalogue_import_option_prices_help": "Enter a local price for every option. Empty fields are not treated as zero.",
   "catalogue_import_price_for": "Local price for {{name}}",

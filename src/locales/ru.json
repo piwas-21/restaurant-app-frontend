@@ -3155,6 +3155,7 @@
   "catalogue_import_review_channels": "Каналы заказа проверены",
   "catalogue_import_review_kitchen": "Маршрутизация кухни проверена",
   "catalogue_import_order_types": "Доступные каналы заказа",
+  "catalogue_import_order_type_required": "Выберите хотя бы один канал заказа для пользовательского набора.",
   "catalogue_import_kitchen_type": "Тип маршрутизации кухни",
   "catalogue_import_option_prices_help": "Укажите локальную цену для каждого варианта. Пустое поле не считается нулём.",
   "catalogue_import_price_for": "Локальная цена для {{name}}",

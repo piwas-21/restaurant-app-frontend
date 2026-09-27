@@ -1,5 +1,6 @@
 import type { CatalogueTemplateType } from './catalogueTemplateService';
 import { apiClient } from '@/utils/apiClient';
+import type { OrderType } from '@/types/order';
 
 export type CatalogueImportStatus = 'Draft' | 'Importing' | 'Imported' | 'PartiallyImported' | 'Failed';
 export type CatalogueImportItemStatus = 'Pending' | 'Imported' | 'Failed' | 'Skipped';
@@ -59,9 +60,15 @@ export interface CatalogueImportDecision {
   readonly optionPricesReviewed?: boolean;
   readonly choiceRulesReviewed?: boolean;
   readonly rejectedCandidateIds?: readonly string[];
-  readonly availableOrderTypes?: readonly ('DineIn' | 'Takeaway' | 'Delivery')[] | null;
+  /** Editor model. The API stores this as the OrderChannels bitmask below. */
+  readonly availableOrderTypes?: readonly OrderType[] | null;
   readonly kitchenType?: 'None' | 'FrontKitchen' | 'BackKitchen';
 }
+
+/** Wire shape: OrderChannels bitmask; zero is rejected by the API. */
+export type CatalogueImportDecisionWire = Omit<CatalogueImportDecision, 'availableOrderTypes'> & {
+  readonly availableOrderTypes?: number | null;
+};
 
 export interface CatalogueImportSessionStart {
   readonly sessionId: string;
@@ -83,7 +90,7 @@ export interface CatalogueImportSessionItem {
   readonly localEntityType: string | null;
   readonly localEntityId: string | null;
   readonly failureCode: string | null;
-  readonly decision: CatalogueImportDecision | null;
+  readonly decision: CatalogueImportDecisionWire | null;
 }
 
 export interface CatalogueImportSession {
@@ -169,7 +176,7 @@ export const updateCatalogueImportItems = (
   body: {
     expectedVersion: number;
     selectedTemplateIds: readonly string[];
-    decisions: readonly CatalogueImportDecision[];
+    decisions: readonly CatalogueImportDecisionWire[];
   },
 ): Promise<void> => apiClient.put(`${sessionPath(sessionId)}/items`, body, { requireAuth: true });
 

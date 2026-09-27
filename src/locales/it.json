@@ -3146,6 +3146,7 @@
   "catalogue_import_review_channels": "Ho verificato i canali d’ordine",
   "catalogue_import_review_kitchen": "Ho verificato l’instradamento in cucina",
   "catalogue_import_order_types": "Canali d’ordine disponibili",
+  "catalogue_import_order_type_required": "Scegli almeno un canale d’ordine per una selezione personalizzata.",
   "catalogue_import_kitchen_type": "Tipo di instradamento cucina",
   "catalogue_import_option_prices_help": "Inserisci un prezzo locale per ogni opzione. Un campo vuoto non vale zero.",
   "catalogue_import_price_for": "Prezzo locale per {{name}}",

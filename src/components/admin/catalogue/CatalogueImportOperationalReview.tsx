@@ -6,6 +6,7 @@ import FormField from '@/components/design-system/FormField';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import type { CatalogueImportDecision, CatalogueLocalProductType } from '@/services/catalogueImportService';
 import type { CatalogueTemplateType } from '@/services/catalogueTemplateService';
+import { OrderType } from '@/types/order';
 import styles from './CatalogueImportWorkspace.module.css';
 
 interface Props {
@@ -15,7 +16,7 @@ interface Props {
   readonly onDecisionChange: (patch: Partial<CatalogueImportDecision>) => void;
 }
 
-const orderTypes = ['DineIn', 'Takeaway', 'Delivery'] as const;
+const orderTypes = [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery] as const;
 const localProductTypes: Array<{ value: CatalogueLocalProductType; labelKey: string }> = [
   { value: 'MainItem', labelKey: 'product_type_mainItem' },
   { value: 'Beverage', labelKey: 'product_type_beverage' },
@@ -24,9 +25,9 @@ const localProductTypes: Array<{ value: CatalogueLocalProductType; labelKey: str
   { value: 'AddOn', labelKey: 'product_type_addOn' },
 ];
 const orderTypeLabelKeys = {
-  DineIn: 'order_type_dine_in',
-  Takeaway: 'order_type_takeaway',
-  Delivery: 'order_type_delivery',
+  [OrderType.DineIn]: 'order_type_dine_in',
+  [OrderType.Takeaway]: 'order_type_takeaway',
+  [OrderType.Delivery]: 'order_type_delivery',
 } as const;
 const kitchenTypes = [
   { value: 'None', key: 'kitchen_type_none' },
@@ -141,21 +142,30 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
             <option value="custom">{t('product_order_types_custom')}</option>
           </select>
         </FormField>
-        {Array.isArray(decision.availableOrderTypes) &&
-          orderTypes.map((type) => (
-            <CheckboxField
-              key={type}
-              label={t(orderTypeLabelKeys[type])}
-              checked={decision.availableOrderTypes?.includes(type) ?? false}
-              disabled={disabled}
-              onChange={(checked) => {
-                const current = decision.availableOrderTypes ?? [];
-                onDecisionChange({
-                  availableOrderTypes: checked ? [...current, type] : current.filter((value) => value !== type),
-                });
-              }}
-            />
-          ))}
+        {Array.isArray(decision.availableOrderTypes) && (
+          <>
+            {decision.availableOrderTypes.length === 0 && (
+              <p role="alert">{t('catalogue_import_order_type_required')}</p>
+            )}
+            {orderTypes.map((type) => {
+              const current = decision.availableOrderTypes ?? [];
+              const checked = current.includes(type);
+              return (
+                <CheckboxField
+                  key={type}
+                  label={t(orderTypeLabelKeys[type])}
+                  checked={checked}
+                  disabled={disabled || (checked && current.length === 1)}
+                  onChange={(selected) => {
+                    onDecisionChange({
+                      availableOrderTypes: selected ? [...current, type] : current.filter((value) => value !== type),
+                    });
+                  }}
+                />
+              );
+            })}
+          </>
+        )}
       </fieldset>
       {itemType === 'item' && creating && (
         <>

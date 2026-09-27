@@ -89,6 +89,7 @@ function ImportRoute() {
     Boolean(flow.preview) &&
     flow.preview?.version === flow.session.version &&
     !hasBlockers &&
+    !flow.hasInvalidCustomOrderTypes &&
     flow.canManage &&
     !flow.isWorking &&
     !optionPrices.isLoading &&
@@ -162,7 +163,13 @@ function ImportRoute() {
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={!flow.canManage || flow.isWorking || optionPrices.isLoading || Boolean(optionPrices.error)}
+          disabled={
+            !flow.canManage ||
+            flow.isWorking ||
+            optionPrices.isLoading ||
+            Boolean(optionPrices.error) ||
+            flow.hasInvalidCustomOrderTypes
+          }
           onClick={() => void flow.checkPreview()}
         >
           {t(flow.isWorking ? 'catalogue_import_working' : 'catalogue_import_check_preview')}

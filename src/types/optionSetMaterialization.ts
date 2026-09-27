@@ -9,6 +9,8 @@ export interface OptionSetTargetSettings {
   readonly maxSelection?: number;
   readonly includedFree?: number;
   readonly displayOrder?: number;
+  /** Explicitly clears the stored maximum for sauce attachments. */
+  readonly clearMaxSelection?: boolean;
 }
 
 export interface OptionSetEntryOverride {

@@ -11,7 +11,9 @@ import type { OptionSetMaterializationTarget } from '@/utils/optionSetMaterializ
 import OptionSetMaterializationOverrides, { optionSetOverrideFields } from './OptionSetMaterializationOverrides';
 import styles from './OptionSetMaterializationTargetCard.module.css';
 
-const settingLabels: Record<keyof OptionSetTargetSettings, string> = {
+type NumericSetting = Exclude<keyof OptionSetTargetSettings, 'clearMaxSelection'>;
+
+const settingLabels: Record<NumericSetting, string> = {
   minSelection: 'minimum_selection',
   maxSelection: 'maximum_selection',
   includedFree: 'sauce_included_free_label',
@@ -57,7 +59,7 @@ export default function OptionSetMaterializationTargetCard({
       : target.role === 'productChoice'
         ? target.expectedCustomizationGroupVersion !== undefined
         : true;
-  const settingFields: Array<keyof OptionSetTargetSettings> =
+  const settingFields: NumericSetting[] =
     target.role === 'sauce'
       ? ['minSelection', 'maxSelection', 'includedFree']
       : target.role === 'bundleChoice'
@@ -67,10 +69,18 @@ export default function OptionSetMaterializationTargetCard({
           : [];
   const overrideFields = optionSetOverrideFields(kind);
 
-  const updateSetting = (field: keyof OptionSetTargetSettings, value: string) => {
+  const updateSetting = (field: NumericSetting, value: string) => {
     const settings = { ...target.settings };
     const parsed = numberValue(value);
-    if (parsed === undefined) delete settings[field];
+    if (field === 'maxSelection' && target.role === 'sauce') {
+      if (parsed === undefined) {
+        delete settings.maxSelection;
+        settings.clearMaxSelection = true;
+      } else {
+        settings.maxSelection = parsed;
+        delete settings.clearMaxSelection;
+      }
+    } else if (parsed === undefined) delete settings[field];
     else settings[field] = parsed;
     onUpdate({ settings });
   };

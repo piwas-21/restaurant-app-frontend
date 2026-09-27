@@ -3173,6 +3173,7 @@
   "catalogue_import_review_channels": "راجعت قنوات الطلب",
   "catalogue_import_review_kitchen": "راجعت توجيه المطبخ",
   "catalogue_import_order_types": "قنوات الطلب المتاحة",
+  "catalogue_import_order_type_required": "اختر قناة طلب واحدة على الأقل للاختيار المخصص.",
   "catalogue_import_kitchen_type": "نوع توجيه المطبخ",
   "catalogue_import_option_prices_help": "أدخل سعرًا محليًا لكل خيار. لا يُعامل الحقل الفارغ على أنه صفر.",
   "catalogue_import_price_for": "السعر المحلي لـ {{name}}",

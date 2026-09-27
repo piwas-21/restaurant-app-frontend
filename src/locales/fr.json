@@ -3146,6 +3146,7 @@
   "catalogue_import_review_channels": "J’ai vérifié les canaux de commande",
   "catalogue_import_review_kitchen": "J’ai vérifié le routage cuisine",
   "catalogue_import_order_types": "Canaux de commande disponibles",
+  "catalogue_import_order_type_required": "Sélectionnez au moins un canal de commande pour une sélection personnalisée.",
   "catalogue_import_kitchen_type": "Type de routage cuisine",
   "catalogue_import_option_prices_help": "Saisissez un prix local pour chaque choix. Un champ vide ne signifie pas zéro.",
   "catalogue_import_price_for": "Prix local pour {{name}}",

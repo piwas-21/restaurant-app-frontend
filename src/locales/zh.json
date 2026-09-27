@@ -3128,6 +3128,7 @@
   "catalogue_import_review_channels": "我已审核订餐渠道",
   "catalogue_import_review_kitchen": "我已审核厨房路由",
   "catalogue_import_order_types": "可用订餐渠道",
+  "catalogue_import_order_type_required": "自定义选择至少需要一个订餐渠道。",
   "catalogue_import_kitchen_type": "厨房路由类型",
   "catalogue_import_option_prices_help": "请为每个选项填写本地价格。空白不代表零。",
   "catalogue_import_price_for": "{{name}} 的本地价格",

@@ -92,4 +92,19 @@ describe('optionSetMaterialization', () => {
     expect(unversioned[0].selected).toBe(false);
     expect(makeOptionSetMaterializationRequest(1, 'attempt-2', unversioned, ['entry-1'])).toBeNull();
   });
+
+  it('preserves explicit sauce max-selection clearing in the request', () => {
+    const target = {
+      ...targetsForProduct(
+        { ...product, id: 'product-1', menuDefinition: undefined, customizationGroups: [] },
+        'ingredient',
+      )[0],
+      role: 'sauce' as const,
+      targetKey: 'sauce:product-1:root',
+      settings: { clearMaxSelection: true },
+    };
+    const request = makeOptionSetMaterializationRequest(2, 'attempt-clear', [target], ['entry-1']);
+
+    expect(request?.targets[0].settings).toEqual({ clearMaxSelection: true });
+  });
 });

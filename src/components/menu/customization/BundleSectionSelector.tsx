@@ -187,7 +187,16 @@ export default function BundleSectionSelector({
     const item = section.items[0];
 
     return (
-      <section className={styles.section} aria-label={section.name}>
+      <section
+        className={styles.section}
+        aria-label={section.name}
+        aria-describedby={minSelectionError !== undefined ? errorId : undefined}
+      >
+        {minSelectionError !== undefined && (
+          <p className={styles.error} id={errorId} role="alert">
+            {t('please_select_at_least_options', { count: minSelectionError })}
+          </p>
+        )}
         {renderOption(item, { hideSelectionControl: true })}
       </section>
     );

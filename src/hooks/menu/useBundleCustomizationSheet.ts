@@ -7,7 +7,7 @@ import { useBundleOptionTour } from '@/hooks/menu/useBundleOptionTour';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
-  buildDefaultBundleSelection,
+  buildGuestDefaultBundleSelection,
   findBundleSelectionErrors,
   toggleBundleOption,
   updateBundleOption,
@@ -81,7 +81,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
         return;
       }
 
-      setSelectedOptions(buildDefaultBundleSelection(next.menuDefinition.sections));
+      setSelectedOptions(buildGuestDefaultBundleSelection(next.menuDefinition.sections));
       setQuantity(1);
       setSpecialInstructions('');
       resetOptionTour();

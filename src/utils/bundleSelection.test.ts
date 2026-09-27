@@ -1,6 +1,7 @@
 import {
   buildBundleOption,
   buildDefaultBundleSelection,
+  buildGuestDefaultBundleSelection,
   bundleOptionKey,
   countSectionSelections,
   findBundleOption,
@@ -132,7 +133,7 @@ describe('buildDefaultBundleSelection', () => {
     expect(buildDefaultBundleSelection(sections).map((o) => o.itemId)).toEqual(['a', 'b']);
   });
 
-  it('omits an unavailable fixed Plat so required-section validation blocks the add', () => {
+  it('keeps blocked defaults for staff while guest validation rejects the fixed Plat', () => {
     const fixedPlat = section({
       id: 'plat',
       name: 'Plat',
@@ -152,7 +153,9 @@ describe('buildDefaultBundleSelection', () => {
       ],
     });
 
-    const selected = buildDefaultBundleSelection([fixedPlat]);
+    expect(buildDefaultBundleSelection([fixedPlat]).map((option) => option.itemId)).toEqual(['burger']);
+
+    const selected = buildGuestDefaultBundleSelection([fixedPlat]);
 
     expect(selected).toEqual([]);
     expect(findBundleSelectionErrors([fixedPlat], selected)).toEqual([{ sectionId: 'plat', minSelection: 1 }]);

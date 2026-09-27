@@ -76,18 +76,27 @@ export function buildBundleOption(sectionId: string, item: MenuSectionItem): Sel
  * A Kebab d'Ilhan fixed `Plat` is the one explicit exception: it has exactly one legal choice, so
  * the sheet selects that child even before the tenant-data write marks it default. The selected child
  * is still present in `selectedMenuOptions`; P3 removes only the redundant picker, never the payload.
- * A server-blocked default is omitted so required-section validation can prevent an invalid add.
  */
-export function buildDefaultBundleSelection(sections: readonly MenuSection[]): SelectedMenuOption[] {
+function buildDefaults(sections: readonly MenuSection[], omitUnavailable: boolean): SelectedMenuOption[] {
   return sections.flatMap((section) => {
     const items = isFixedPlatSection(section)
       ? section.items.slice(0, 1)
       : section.items.filter((item) => item.isDefault);
     return items
-      .filter((item) => item.availability?.canOrder !== false)
+      .filter((item) => !omitUnavailable || item.availability?.canOrder !== false)
       .slice(0, section.maxSelection)
       .map((item) => buildBundleOption(section.id, item));
   });
+}
+
+/** Defaults for staff and previews, which retain their existing selection behavior. */
+export function buildDefaultBundleSelection(sections: readonly MenuSection[]): SelectedMenuOption[] {
+  return buildDefaults(sections, false);
+}
+
+/** Guest defaults omit server-blocked choices so required-section validation can block an invalid add. */
+export function buildGuestDefaultBundleSelection(sections: readonly MenuSection[]): SelectedMenuOption[] {
+  return buildDefaults(sections, true);
 }
 
 export function findBundleOption(

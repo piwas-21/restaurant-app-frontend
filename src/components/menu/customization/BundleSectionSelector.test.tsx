@@ -347,6 +347,26 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByRole('checkbox', { name: /Cheese/ })).toBeChecked();
   });
 
+  it('announces required-selection errors for a fixed Plat in staff mode too', () => {
+    const fixedPlat: MenuSection = { ...section, name: 'Plat', items: [section.items[0]] };
+    const errorText = 'please_select_at_least_options(count=1)';
+
+    render(
+      <BundleSectionSelector
+        {...props({
+          section: fixedPlat,
+          selectedOptions: [],
+          minSelectionError: 1,
+          inlinePanel: { expandedOptionKey: null, onToggle: jest.fn(), onChange: jest.fn() },
+        })}
+      />,
+    );
+
+    const error = screen.getByRole('alert');
+    expect(error).toHaveTextContent(errorText);
+    expect(screen.getByRole('region', { name: 'Plat' })).toHaveAttribute('aria-describedby', error.id);
+  });
+
   it('shows an unavailable fixed Plat as disabled when it has no selection control', () => {
     const fixedPlat: MenuSection = {
       ...section,
@@ -364,12 +384,15 @@ describe('BundleSectionSelector', () => {
       ],
     };
 
-    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions: [] })} />);
+    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions: [], minSelectionError: 1 })} />);
 
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     expect(
       screen.getByText('availability_only_for(orderTypes=Takeaway)').closest('[aria-disabled="true"]'),
     ).toBeInTheDocument();
+    const error = screen.getByRole('alert');
+    expect(error).toHaveTextContent('please_select_at_least_options(count=1)');
+    expect(screen.getByRole('region', { name: 'Plat' })).toHaveAttribute('aria-describedby', error.id);
   });
 
   it('keeps a genuinely multi-choice Plat as a picker (P3 negative control)', () => {

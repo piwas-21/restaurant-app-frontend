@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
+import type { TranslationSlot } from './translations/translationSlots';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
 
@@ -16,6 +17,8 @@ export interface EditorSectionsContext {
   readonly product: ProductDetails;
   readonly isCreate: boolean;
   readonly isBundle: boolean;
+  readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
   readonly onOfferCreateRequested?: (prefill: MenuVersionPrefill) => void;
   /** Route an offer detail link through the page's dirty-navigation guard. */
   readonly onNavigate?: (href: string) => void;

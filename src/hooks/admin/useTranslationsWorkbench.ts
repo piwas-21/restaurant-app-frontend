@@ -69,8 +69,9 @@ export function useTranslationsWorkbench(editor: Editor) {
         content,
         variations,
         ingredients: detailedIngredients,
+        sections: editor.menuDefinition.sections,
       }),
-    [name, description, content, variations, detailedIngredients],
+    [name, description, content, variations, detailedIngredients, editor.menuDefinition.sections],
   );
 
   const progress: Record<string, LocaleProgress> = useMemo(() => everyLocaleProgress(slots), [slots]);
@@ -105,13 +106,28 @@ export function useTranslationsWorkbench(editor: Editor) {
         });
         return;
       }
+      if (ref.target === 'menuSection') {
+        const sections = editor.menuDefinition.sections.map((section, index) => {
+          if (index !== ref.index) return section;
+          const previous = section.translations?.[locale] ?? { name: '', description: '' };
+          return {
+            ...section,
+            translations: {
+              ...section.translations,
+              [locale]: { ...previous, [ref.field]: value },
+            },
+          };
+        });
+        editor.changeMenuDefinition({ ...editor.menuDefinition, sections });
+        return;
+      }
       changeIngredients(
         detailedIngredients.map((ingredient, index) =>
           index === ref.index ? withIngredientTranslation(ingredient, locale, value) : ingredient,
         ),
       );
     },
-    [changeIngredients, detailedIngredients, getValues, setValue],
+    [changeIngredients, detailedIngredients, editor, getValues, setValue],
   );
 
   /**
@@ -124,20 +140,34 @@ export function useTranslationsWorkbench(editor: Editor) {
   const copySourceToEmpty = useCallback(() => {
     let rows = (getValues('content') ?? []) as ProductContentRow[];
     let ingredients = detailedIngredients;
+    let sections = editor.menuDefinition.sections;
     let filled = 0;
 
     for (const slot of slots) {
       const source = sourceTextFor(slot);
       if (isBlank(source) || !isBlank(translationIn(slot, targetLocale))) continue;
       filled += 1;
+      const ref = slot.ref;
 
-      if (slot.ref.target === 'item') {
-        rows = nextProductContent(rows, targetLocale, slot.ref.field, source);
-      } else if (slot.ref.target === 'variation') {
-        const path = `variations.${slot.ref.index}.content.${targetLocale}.${slot.ref.field}`;
+      if (ref.target === 'item') {
+        rows = nextProductContent(rows, targetLocale, ref.field, source);
+      } else if (ref.target === 'variation') {
+        const path = `variations.${ref.index}.content.${targetLocale}.${ref.field}`;
         setValue(path as keyof FieldValues, source, { shouldDirty: true });
+      } else if (ref.target === 'menuSection') {
+        sections = sections.map((section, index) => {
+          if (index !== ref.index) return section;
+          const previous = section.translations?.[targetLocale] ?? { name: '', description: '' };
+          return {
+            ...section,
+            translations: {
+              ...section.translations,
+              [targetLocale]: { ...previous, [ref.field]: source },
+            },
+          };
+        });
       } else {
-        const at = slot.ref.index;
+        const at = ref.index;
         ingredients = ingredients.map((ingredient, index) =>
           index === at ? withIngredientTranslation(ingredient, targetLocale, source) : ingredient,
         );
@@ -147,9 +177,12 @@ export function useTranslationsWorkbench(editor: Editor) {
     if (filled > 0) {
       setValue('content', rows, { shouldDirty: true });
       if (ingredients !== detailedIngredients) changeIngredients(ingredients);
+      if (sections !== editor.menuDefinition.sections) {
+        editor.changeMenuDefinition({ ...editor.menuDefinition, sections });
+      }
     }
     setLastCopy({ filled, at: Date.now() });
-  }, [changeIngredients, detailedIngredients, getValues, setValue, slots, sourceTextFor, targetLocale]);
+  }, [changeIngredients, detailedIngredients, editor, getValues, setValue, slots, sourceTextFor, targetLocale]);
 
   return {
     slots,

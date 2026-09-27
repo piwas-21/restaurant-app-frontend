@@ -15,3 +15,16 @@ export function resolveCatalogueTemplateText(
       undefined,
   };
 }
+
+export function resolveCatalogueSectionName(
+  section: { readonly name: string; readonly translations?: Readonly<Record<string, { readonly name: string }>> },
+  detail: Pick<CatalogueTemplateRevision, 'sourceLocale' | 'localeFallbacks'>,
+  locale: LanguageCode,
+): string {
+  const candidates = [...new Set([locale, ...detail.localeFallbacks, detail.sourceLocale])];
+  for (const candidate of candidates) {
+    const translated = section.translations?.[candidate]?.name?.trim();
+    if (translated) return translated;
+  }
+  return section.name;
+}

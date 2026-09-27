@@ -1,0 +1,194 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.intro,
+.localDataNotice,
+.referenceText,
+.previewFootnote {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.localDataNotice,
+.activationNotice {
+  padding: 1rem;
+  border-inline-start: 3px solid var(--feedback-warning);
+  background: var(--surface-secondary);
+}
+
+.sessionMeta,
+.actions,
+.previewHeader,
+.itemHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.itemList,
+.fields,
+.priceGrid,
+.preview,
+.completion {
+  display: grid;
+  gap: 1rem;
+}
+
+.itemCard,
+.preview,
+.completion,
+.priceGrid,
+.revisionNotice {
+  padding: 1rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+}
+
+.itemHeading h2,
+.preview h2,
+.preview h3,
+.completion h2,
+.completion h3,
+.priceGrid h3 {
+  margin: 0;
+}
+
+.itemHeading p,
+.priceGrid p,
+.activationNotice p,
+.revisionNotice p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+.locked,
+.warning {
+  margin: 0;
+  color: var(--feedback-warning-text);
+}
+
+.fields {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  align-items: start;
+}
+
+.fields input:not([type='checkbox']),
+.fields textarea,
+.fields select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.65rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+}
+
+.fields textarea {
+  min-height: 5rem;
+}
+
+.fields input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--brand-primary);
+}
+
+.copyButton,
+.actions button,
+.candidates button {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.actions button:last-child {
+  color: var(--text-primary);
+  background: var(--surface-secondary);
+  border-color: var(--brand-primary);
+}
+
+.actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.orderTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+}
+
+.orderTypes legend {
+  padding: 0 0.25rem;
+  color: var(--text-secondary);
+}
+
+.previewHeader {
+  margin-bottom: 0.5rem;
+}
+
+.previewItem {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.candidates,
+.resultList {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.candidates li,
+.resultList li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blocker,
+.error {
+  margin: 0;
+  color: var(--feedback-error);
+}
+
+.activationNotice,
+.revisionNotice {
+  display: grid;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 0.75rem;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions button {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+}

@@ -124,6 +124,16 @@ export function buildEditorSections(context: EditorSectionsContext): EditorSecti
  * ingredient's strings at once, and the two per-row `<details>` grids are deleted — three UIs for
  * one concept was the mess the owner complained about, not merely three stylesheets.
  */
-export function buildTranslationsPanel({ editor }: EditorSectionsContext): React.ReactNode {
-  return <TranslationsWorkbench editor={editor} />;
+export function buildTranslationsPanel({
+  editor,
+  sourceLocaleFor,
+  onSourceLocaleChange,
+}: EditorSectionsContext): React.ReactNode {
+  return (
+    <TranslationsWorkbench
+      editor={editor}
+      sourceLocaleFor={sourceLocaleFor}
+      onSourceLocaleChange={onSourceLocaleChange}
+    />
+  );
 }

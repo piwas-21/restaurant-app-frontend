@@ -408,6 +408,7 @@ export const submitEditProductForm = async ({
         isActive: v.isActive ?? true,
         displayOrder: Number.isInteger(v.displayOrder as any) ? (v.displayOrder as any) : 0,
         content: withoutUntouchedTranslations(v.content as Record<string, TranslationEntry>),
+        translationMetadata: (v as typeof v & { translationMetadata?: unknown }).translationMetadata,
       }));
 
     // Provenance + temp-id strip, shared with the create path above.

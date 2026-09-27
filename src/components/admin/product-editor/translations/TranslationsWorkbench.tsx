@@ -19,6 +19,8 @@ const SOURCE_SELECT_ID = 'editor-translations-source-language';
 interface TranslationsWorkbenchProps {
   // readonly: S6759 — component props are never mutated.
   readonly editor: ReturnType<typeof useProductEditorForm>;
+  readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
+  readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
 }
 
 /** One react-hook-form error, read without an `any` (CLAUDE.md §5 rule 8). */
@@ -45,7 +47,11 @@ interface FieldErrorLike {
  * set is a parity failure by construction (plan §12.4). Both strings keep the NUMBER LAST for the
  * same reason — "{{count}} missing" would force gender/number agreement in fr, de, ru and it.
  */
-export default function TranslationsWorkbench({ editor }: TranslationsWorkbenchProps) {
+export default function TranslationsWorkbench({
+  editor,
+  sourceLocaleFor,
+  onSourceLocaleChange,
+}: TranslationsWorkbenchProps) {
   const { t } = useTranslation();
   const workbench = useTranslationsWorkbench(editor);
   const { slots, progress, targetLocale, sourceLocale, missing, lastCopy } = workbench;
@@ -167,7 +173,7 @@ export default function TranslationsWorkbench({ editor }: TranslationsWorkbenchP
         <div className={styles.toolbar}>
           <div className={styles.sourcePicker}>
             <label htmlFor={SOURCE_SELECT_ID} className={styles.sourceLabel}>
-              {t('editor_translations_source_language')}
+              {t('editor_translations_copy_from')}
             </label>
             <select
               id={SOURCE_SELECT_ID}
@@ -216,6 +222,8 @@ export default function TranslationsWorkbench({ editor }: TranslationsWorkbenchP
             errorFor={errorFor}
             targetNameFor={targetNameFor}
             onBlurSlot={onBlurSlot}
+            sourceLocaleFor={sourceLocaleFor}
+            onSourceLocaleChange={onSourceLocaleChange}
           />
         )}
       </div>

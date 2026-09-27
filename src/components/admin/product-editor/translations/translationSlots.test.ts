@@ -104,6 +104,31 @@ describe('buildTranslationSlots — what there is to translate', () => {
 
     expect(slots[0].translations).toEqual({});
   });
+
+  it('includes bundle step names and descriptions with their existing locale text', () => {
+    const slots = buildTranslationSlots({
+      sections: [
+        {
+          id: 'section-drink',
+          name: 'Choose a drink',
+          description: 'Select one cold drink',
+          translations: {
+            fr: { name: 'Choisissez une boisson', description: 'Choisissez une boisson fraîche' },
+            ar: { name: 'اختر مشروبًا', description: null },
+          },
+        },
+      ],
+    });
+
+    expect(slots.map((slot) => slot.key)).toEqual([
+      'menu-section-section-drink-name',
+      'menu-section-section-drink-description',
+    ]);
+    expect(slots[0].ref).toEqual({ target: 'menuSection', index: 0, field: 'name' });
+    expect(translationIn(slots[0], 'fr')).toBe('Choisissez une boisson');
+    expect(translationIn(slots[1], 'fr')).toBe('Choisissez une boisson fraîche');
+    expect(translationIn(slots[1], 'ar')).toBe('');
+  });
 });
 
 describe('completeness — the number the rail shows', () => {

@@ -1,5 +1,6 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 import { resolveIngredientKind } from '@/utils/ingredientKind';
+import { buildMenuSectionTranslationSlots } from './menuSectionTranslationSlots';
 
 /**
  * What there is to translate on a menu item, as one flat list — the model behind the Translations
@@ -21,7 +22,8 @@ import { resolveIngredientKind } from '@/utils/ingredientKind';
 export type TranslationSlotRef =
   | { readonly target: 'item'; readonly field: 'name' | 'description' }
   | { readonly target: 'variation'; readonly index: number; readonly field: 'name' | 'description' }
-  | { readonly target: 'ingredient'; readonly index: number };
+  | { readonly target: 'ingredient'; readonly index: number }
+  | { readonly target: 'menuSection'; readonly index: number; readonly field: 'name' | 'description' };
 
 /**
  * The four headings the grid groups rows under — the SAME four the Item tab names.
@@ -34,7 +36,7 @@ export type TranslationSlotRef =
  * array by index, so nothing failed to compile and nothing wrote to the wrong row. Only the LABEL
  * was wrong, which no type can catch.
  */
-export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces';
+export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces' | 'menuSections';
 
 /**
  * Which i18n key names the field, so a row can state what it is to a screen reader.
@@ -49,7 +51,9 @@ export type TranslationFieldLabel =
   | 'editor_translations_field_item_description'
   | 'variation_name'
   | 'variation_description'
-  | 'editor_translations_field_ingredient_name';
+  | 'editor_translations_field_ingredient_name'
+  | 'menu_section_name'
+  | 'editor_translations_field_menu_section_description';
 
 export interface TranslationSlot {
   /** Unique and STABLE per row — it keys the React element, so the caret survives a re-render. */
@@ -86,6 +90,13 @@ export interface TranslatableVariation {
   readonly content?: NestedContent | null;
 }
 
+export interface TranslatableMenuSection {
+  readonly id?: string | null;
+  readonly name?: string | null;
+  readonly description?: string | null;
+  readonly translations?: NestedContent | null;
+}
+
 export interface TranslatableIngredient {
   readonly name?: string | null;
   /** Absent means `'ingredient'` — `resolveIngredientKind` owns that default, not this module. */
@@ -99,6 +110,7 @@ export interface TranslatableItem {
   readonly content?: readonly ProductContentRow[] | null;
   readonly variations?: readonly TranslatableVariation[] | null;
   readonly ingredients?: readonly TranslatableIngredient[] | null;
+  readonly sections?: readonly TranslatableMenuSection[] | null;
 }
 
 const text = (value: string | null | undefined): string => value ?? '';
@@ -191,7 +203,7 @@ export function buildTranslationSlots(item: TranslatableItem): TranslationSlot[]
     }),
   );
 
-  return [...itemSlots, ...variationSlots, ...ingredientSlots];
+  return [...itemSlots, ...variationSlots, ...ingredientSlots, ...buildMenuSectionTranslationSlots(item.sections)];
 }
 
 export const translationIn = (slot: TranslationSlot, locale: string): string => slot.translations[locale] ?? '';

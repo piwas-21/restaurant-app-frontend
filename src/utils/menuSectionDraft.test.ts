@@ -43,6 +43,23 @@ describe('stripTemporaryMenuSectionIds', () => {
     expect('id' in second).toBe(false); // temp section id dropped
   });
 
+  it('preserves untouched section locale content in the ordinary bundle payload', () => {
+    const sections = [
+      section({
+        id: 'sec-real',
+        translations: {
+          fr: { name: 'Choisir une boisson', description: 'Choisissez-en une' },
+          ar: { name: 'اختر مشروبًا', description: null },
+        },
+      }),
+    ];
+
+    expect(stripTemporaryMenuSectionIds(sections)[0].translations).toEqual({
+      fr: { name: 'Choisir une boisson', description: 'Choisissez-en une' },
+      ar: { name: 'اختر مشروبًا', description: null },
+    });
+  });
+
   it('carries only the create/update fields (drops productName, detailedIngredients, etc.)', () => {
     const sections: MenuSection[] = [
       section({

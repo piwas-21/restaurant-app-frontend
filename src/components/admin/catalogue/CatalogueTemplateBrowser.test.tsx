@@ -9,6 +9,14 @@ import type {
   CatalogueTemplateSummary,
 } from '@/services/catalogueTemplateService';
 
+const mockRouterPush = jest.fn();
+const mockRouterReplace = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, values?: Record<string, unknown>) => (values ? `${key}:${Object.values(values).join(',')}` : key),
@@ -20,6 +28,12 @@ jest.mock('@/services/catalogueTemplateService', () => ({
   ...jest.requireActual('@/services/catalogueTemplateService'),
   getCatalogueTemplateRevision: jest.fn(),
   listCatalogueTemplates: jest.fn(),
+}));
+
+jest.mock('@/services/catalogueImportService', () => ({
+  ...jest.requireActual('@/services/catalogueImportService'),
+  getCataloguePreferences: jest.fn().mockResolvedValue({ cuisines: [] }),
+  putCataloguePreferences: jest.fn(),
 }));
 
 const template: CatalogueTemplateSummary = {
@@ -89,6 +103,8 @@ const soupDetail: CatalogueTemplateRevision = {
 describe('CatalogueTemplateBrowser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouterPush.mockClear();
+    mockRouterReplace.mockClear();
     (listCatalogueTemplates as jest.Mock).mockResolvedValue(listResponse);
     (getCatalogueTemplateRevision as jest.Mock).mockImplementation(async (id: string) =>
       id === template.templateId ? bundleDetail : soupDetail,
@@ -108,6 +124,15 @@ describe('CatalogueTemplateBrowser', () => {
     expect(screen.getByText('catalogue_review_field_allergens')).toBeInTheDocument();
     expect(screen.queryByText(/CHF|\$|€|price:/i)).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: 'catalogue_start_import' }));
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      '/admin/menu-management/catalogue/import?templateId=turkish-soup-bundle&revision=3&locale=fr&createNewCopy=false',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'catalogue_start_new_copy' }));
+    expect(mockRouterPush).toHaveBeenLastCalledWith(
+      '/admin/menu-management/catalogue/import?templateId=turkish-soup-bundle&revision=3&locale=fr&createNewCopy=true',
+    );
+
     fireEvent.keyDown(window, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'turkish' }));
     await waitFor(() => expect(listCatalogueTemplates).toHaveBeenCalledTimes(2));
@@ -120,6 +145,10 @@ describe('CatalogueTemplateBrowser', () => {
 
     expect(await screen.findByRole('heading', { name: 'catalogue_empty' })).toBeInTheDocument();
     expect(screen.getByText('catalogue_empty_guidance')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'catalogue_manual_creation_link' })).toHaveAttribute(
+      'href',
+      '/admin/menu-management',
+    );
     expect(screen.queryByRole('button', { name: 'import' })).not.toBeInTheDocument();
   });
 

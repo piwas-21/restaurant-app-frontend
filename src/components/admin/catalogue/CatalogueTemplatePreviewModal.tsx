@@ -9,14 +9,17 @@ import {
   CATALOGUE_TYPE_LABEL_KEYS,
   resolveCatalogueTemplateText,
   type CatalogueTemplateSummary,
+  type CatalogueTemplateRevision,
 } from '@/services/catalogueTemplateService';
 import CatalogueTemplatePayloadPreview from './CatalogueTemplatePayloadPreview';
 import styles from './CatalogueTemplatePreview.module.css';
+import importActionStyles from './CatalogueTemplateImportActions.module.css';
 
 interface CatalogueTemplatePreviewModalProps {
   readonly template: CatalogueTemplateSummary | null;
   readonly locale: LanguageCode;
   readonly onClose: () => void;
+  readonly onStartImport: (detail: CatalogueTemplateRevision, createNewCopy: boolean) => void;
 }
 
 function originLabel(origin: string, t: ReturnType<typeof useTranslation>['t']): string {
@@ -32,6 +35,7 @@ export default function CatalogueTemplatePreviewModal({
   template,
   locale,
   onClose,
+  onStartImport,
 }: CatalogueTemplatePreviewModalProps) {
   const { t } = useTranslation();
   const {
@@ -90,6 +94,24 @@ export default function CatalogueTemplatePreviewModal({
                   </dd>
                 </div>
               </dl>
+              <div className={importActionStyles.actions}>
+                <button
+                  type="button"
+                  className={importActionStyles.primaryButton}
+                  disabled={isLoading || error !== null}
+                  onClick={() => onStartImport(detail, false)}
+                >
+                  {t('catalogue_start_import')}
+                </button>
+                <button
+                  type="button"
+                  className={importActionStyles.secondaryButton}
+                  disabled={isLoading || error !== null}
+                  onClick={() => onStartImport(detail, true)}
+                >
+                  {t('catalogue_start_new_copy')}
+                </button>
+              </div>
               {template.usedSourceFallback && (
                 <p className={styles.sourceNote}>
                   {t('catalogue_source_fallback', { language: getLanguageNativeName(detail.sourceLocale) })}

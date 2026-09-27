@@ -7,6 +7,7 @@ import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from 
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
 import type { CustomizationGroupSelection, ProductCustomizationGroup } from './customizationGroup';
+import type { TranslationMetadata } from '../translationMetadata';
 
 /**
  * Menu bundle definition with sections and scheduling
@@ -37,6 +38,8 @@ export interface MenuSection {
   id: string;
   name: string;
   description?: string;
+  translations?: Record<string, { name: string; description?: string | null }>;
+  translationMetadata?: TranslationMetadata;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;

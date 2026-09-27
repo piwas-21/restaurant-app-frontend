@@ -1,4 +1,5 @@
 import type { MenuDefinition, MenuSection } from '@/types/menu';
+import type { TranslationMetadata } from '@/types/translationMetadata';
 
 /**
  * The bundle menu-section shapes carried in a create/update request — a persisted id is present
@@ -18,6 +19,8 @@ export interface CleanMenuSection {
   id?: string;
   name: string;
   description?: string;
+  translations?: MenuSection['translations'];
+  translationMetadata?: TranslationMetadata;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;
@@ -42,6 +45,8 @@ export function stripTemporaryMenuSectionIds(sections: readonly MenuSection[]): 
     const cleaned: CleanMenuSection = {
       name: section.name,
       description: section.description,
+      translations: section.translations,
+      translationMetadata: section.translationMetadata,
       displayOrder: section.displayOrder,
       isRequired: section.isRequired,
       minSelection: section.minSelection,

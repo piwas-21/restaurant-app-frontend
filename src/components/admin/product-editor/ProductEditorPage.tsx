@@ -17,9 +17,9 @@ import { productHeaderBadges, productHeaderMenuActions } from './productEditorHe
 import { useEditorErrors } from '@/hooks/admin/useEditorErrors';
 import { useEditorSectionNav } from '@/hooks/admin/useEditorSectionNav';
 import { useEditorPreSaveReview } from '@/hooks/admin/useEditorPreSaveReview';
+import { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import { useEditorNavigationGuard } from '@/hooks/admin/useEditorNavigationGuard';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
-
 // The one Save lives in the sticky bar, which is a SIBLING of the form (it spans nav, main and
 // rail). HTML form-attribute association is what still submits the form from there.
 const FORM_ID = 'product-editor-form';
@@ -76,18 +76,26 @@ export default function ProductEditorPage({
     onNavigate,
   });
 
+  const preSaveReview = useEditorPreSaveReview({ formId: FORM_ID, onSubmit: editor.onSubmit });
+  const translationReview = useEditorTranslationReview({
+    editor,
+    product,
+    productId: product.id,
+    isOpen: preSaveReview.isOpen,
+  });
   const context = {
     editor,
     t,
     product,
     isCreate,
     isBundle,
+    sourceLocaleFor: translationReview.sourceLocaleFor,
+    onSourceLocaleChange: translationReview.setSourceLocaleFor,
     onOfferCreateRequested: navigation.handleOfferCreate,
     onNavigate: navigation.handleOfferNavigate,
   };
   const sections = buildEditorSections(context);
   const sectionNav = useEditorSectionNav(sections.map((section) => section.id));
-  const preSaveReview = useEditorPreSaveReview({ formId: FORM_ID, onSubmit: editor.onSubmit });
   // D13's error surface: how many fields are wrong, which sections hold them, where the first is.
   const validation = useEditorErrors({
     errors,
@@ -186,10 +194,14 @@ export default function ProductEditorPage({
       <EditorPreSaveReview
         isOpen={preSaveReview.isOpen}
         onClose={preSaveReview.close}
-        onConfirm={preSaveReview.confirm}
+        onConfirm={() => {
+          editor.setTranslationMetadata(translationReview.buildMetadataPatch());
+          preSaveReview.confirm();
+        }}
         isPending={editor.isSubmitting}
         isBundle={isBundle}
         editor={editor}
+        translationReview={translationReview}
       />
     </>
   );

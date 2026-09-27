@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
@@ -113,6 +114,9 @@ const MenuManagementContent = () => {
               onChange={(event) => setSearchQuery(event.target.value)}
               className={styles.adminSelect}
             />
+            <Link href="/admin/option-sets" className={styles.adminButton}>
+              {t('option_sets_manage')}
+            </Link>
             {/* Create is its own component since S3: an item is a quick-add modal (D3) and a
                 bundle is still a page, and the page has no room for either flow's state. */}
             <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />

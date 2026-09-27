@@ -13,8 +13,10 @@ interface BundleOptionRowProps {
   /** `radio` for a single-choice section, `checkbox` otherwise. */
   inputType: 'radio' | 'checkbox';
   isSelected: boolean;
-  /** The section is at its `maxSelection` and this option is not one of the picks. */
+  /** This option cannot be picked because of availability or the section's `maxSelection`. */
   isDisabled: boolean;
+  /** Localized reason when the server says a guest cannot order this option on the chosen channel. */
+  disabledReason?: string;
   currentLanguage: string;
   onToggle: () => void;
   /**
@@ -48,6 +50,7 @@ export default function BundleOptionRow({
   inputType,
   isSelected,
   isDisabled,
+  disabledReason,
   currentLanguage,
   onToggle,
   onCustomize,
@@ -92,6 +95,7 @@ export default function BundleOptionRow({
         <span className={optionPriceClass}>{optionPriceText}</span>
       </div>
       {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
+      {disabledReason && <div className={styles.ingredients}>{disabledReason}</div>}
       {item.allergens && item.allergens.length > 0 && (
         <AllergenDisplay allergens={item.allergens} variant="compact" maxVisible={5} showLabel={false} />
       )}

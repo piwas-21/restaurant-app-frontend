@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import BundleSectionSelector from './BundleSectionSelector';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 // Stub react-i18next without a provider. A string second argument is i18next's defaultValue; an
 // object is interpolation, which we render as `key(a=1)` so tests can assert the values actually
@@ -126,6 +127,72 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByRole('checkbox', { name: /Fries/ })).toBeEnabled();
     expect(screen.getByRole('checkbox', { name: /Salad/ })).toBeEnabled();
     expect(screen.getByRole('checkbox', { name: /Soup/ })).toBeDisabled();
+  });
+
+  it('keeps a channel-limited option selectable while the server resolves no chosen channel', () => {
+    const browseSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: true,
+            reason: 'Available',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: browseSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeEnabled();
+    expect(screen.queryByText(/availability_only_for/)).not.toBeInTheDocument();
+  });
+
+  it('disables a globally unavailable option and gives the guest a reason', () => {
+    const unavailableSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'Unavailable',
+            allowedOrderTypes: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: unavailableSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('Unavailable')).toBeInTheDocument();
+  });
+
+  it('disables a channel-restricted option and names the channels where it can be ordered', () => {
+    const restrictedSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+
+    render(<BundleSectionSelector {...props({ section: restrictedSection })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+    expect(screen.getByText('availability_only_for(orderTypes=Takeaway)')).toBeInTheDocument();
   });
 
   it('renders the section error only when one is supplied', () => {

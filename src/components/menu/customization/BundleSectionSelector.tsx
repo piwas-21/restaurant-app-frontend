@@ -7,6 +7,7 @@ import BundleOptionInlinePanel from './BundleOptionInlinePanel';
 import { bundleOptionKey, countSectionSelections, findBundleOption } from '@/utils/bundleSelection';
 import { isFixedPlatSection } from '@/utils/fixedPlatSection';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
+import { orderTypeListLabel } from '@/utils/orderTypeLabels';
 import styles from './BundleSectionSelector.module.css';
 
 /** Inline-expansion mode: the staff modal expands a selected option's panel under its row. */
@@ -101,6 +102,15 @@ export default function BundleSectionSelector({
   /** The row, then — staff mode only — the expanded panel under it. */
   const renderOption = (item: (typeof section.items)[number], extra: { hideSelectionControl?: boolean }) => {
     const option = findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId);
+    const availability = !inlinePanel ? item.availability : undefined;
+    const disabledReason =
+      availability?.canOrder === false
+        ? availability.reason === 'WrongOrderType' && availability.allowedOrderTypes.length > 0
+          ? t('availability_only_for', {
+              orderTypes: orderTypeListLabel(availability.allowedOrderTypes, t, currentLanguage),
+            })
+          : t('unavailable', 'Unavailable')
+        : undefined;
     const panelVisible = Boolean(
       inlinePanel &&
       (extra.hideSelectionControl ||
@@ -126,7 +136,8 @@ export default function BundleSectionSelector({
           sectionId={section.id}
           inputType={isRadio ? 'radio' : 'checkbox'}
           isSelected={Boolean(option)}
-          isDisabled={!option && !isRadio && selectedCount >= section.maxSelection}
+          isDisabled={!option && (disabledReason !== undefined || (!isRadio && selectedCount >= section.maxSelection))}
+          disabledReason={disabledReason}
           currentLanguage={currentLanguage}
           onToggle={() => {
             if (item.productVariationId == null) onToggleOption(section, item.productId);

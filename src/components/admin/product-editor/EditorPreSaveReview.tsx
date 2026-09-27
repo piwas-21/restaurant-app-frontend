@@ -85,7 +85,13 @@ export default function EditorPreSaveReview({
           <button type="button" className={modalStyles.cancelButton} onClick={onClose} disabled={isPending}>
             {t('cancel')}
           </button>
-          <button type="button" className={modalStyles.submitButton} onClick={onConfirm} disabled={isPending}>
+          <button
+            type="button"
+            className={modalStyles.submitButton}
+            onClick={onConfirm}
+            disabled={isPending}
+            data-testid="editor-review-confirm-save"
+          >
             {t('editor_review_save')}
           </button>
         </div>

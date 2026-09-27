@@ -64,39 +64,36 @@ export default function EditorSectionNav({ entries, activeId, onSelect, label, i
       aria-orientation={orientation}
       data-testid="editor-section-nav"
     >
-      <ul className={styles.list}>
-        {entries.map((entry) => (
-          <li key={entry.id}>
-            <button
-              type="button"
-              role="tab"
-              id={tabId(entry.id)}
-              aria-selected={entry.id === activeId}
-              aria-controls={panelId(entry.id)}
-              aria-describedby={entry.hasError ? `${entry.id}-error` : undefined}
-              tabIndex={entry.id === activeId ? 0 : -1}
-              ref={(node) => {
-                tabRefs.current[entry.id] = node;
-              }}
-              className={`${styles.item} ${entry.id === activeId ? styles.itemActive : ''}`}
-              onClick={() => onSelect(entry.id)}
-              onKeyDown={selectByKey}
-            >
-              {entry.label}
-              {entry.hasError && (
-                <>
-                  <span aria-hidden="true" className={styles.errorMarker}>
-                    !
-                  </span>
-                  <span id={`${entry.id}-error`} className={styles.srOnly}>
-                    {entry.errorLabel}
-                  </span>
-                </>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {entries.map((entry) => (
+        <button
+          key={entry.id}
+          type="button"
+          role="tab"
+          id={tabId(entry.id)}
+          aria-selected={entry.id === activeId}
+          aria-controls={panelId(entry.id)}
+          aria-describedby={entry.hasError ? `${entry.id}-error` : undefined}
+          tabIndex={entry.id === activeId ? 0 : -1}
+          ref={(node) => {
+            tabRefs.current[entry.id] = node;
+          }}
+          className={`${styles.item} ${entry.id === activeId ? styles.itemActive : ''}`}
+          onClick={() => onSelect(entry.id)}
+          onKeyDown={selectByKey}
+        >
+          {entry.label}
+          {entry.hasError && (
+            <>
+              <span aria-hidden="true" className={styles.errorMarker}>
+                !
+              </span>
+              <span id={`${entry.id}-error`} className={styles.srOnly}>
+                {entry.errorLabel}
+              </span>
+            </>
+          )}
+        </button>
+      ))}
     </div>
   );
 }

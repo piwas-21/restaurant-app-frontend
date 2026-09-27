@@ -1,4 +1,7 @@
 .nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   position: sticky;
   /* Offset by the shared app header, which is itself `position: sticky; top: 0` and 80px tall —
      `top: 1rem` alone pinned the nav UNDER it, hiding the first entries. The nav only began to
@@ -11,15 +14,6 @@
 .nav[aria-orientation='horizontal'] {
   max-height: none;
   overflow-x: auto;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 .item {
@@ -86,9 +80,6 @@
 @media (max-width: 820px) {
   .nav {
     position: static;
-  }
-
-  .list {
     flex-direction: row;
     gap: 0.25rem;
   }

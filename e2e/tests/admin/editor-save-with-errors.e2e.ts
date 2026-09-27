@@ -160,10 +160,15 @@ test('an invalid item cannot be saved, and the editor says which field and where
     await expect(basicsTab).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('#product-editor-form-section-panel-editor-section-basics')).toBeVisible();
 
-    // 4. Save is refused. The strongest available assertion is the SERVER's: no PUT can have
+    // 4. Confirm the visible Save review. The strongest available assertion is the SERVER's: no PUT can have
     //    landed, so the stored name is untouched. A status-code check would only prove that no
     //    request the browser made failed — not that none was made.
     await page.getByTestId('editor-save').click();
+    const review = page.getByRole('dialog');
+    await expect(review).toBeVisible();
+    const confirmSave = review.getByTestId('editor-review-confirm-save');
+    await expect(confirmSave).toBeVisible();
+    await confirmSave.click();
     await expect(name, 'focus must land on the field that blocks the save').toBeFocused();
     await expect(page.locator('#product-editor-form-tab-item')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('#product-editor-form-panel-item')).toBeVisible();

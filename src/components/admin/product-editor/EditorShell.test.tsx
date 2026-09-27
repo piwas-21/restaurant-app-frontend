@@ -153,6 +153,7 @@ describe('EditorShell — focused section tabs', () => {
     const { container } = renderShell();
 
     const nav = screen.getByRole('tablist', { name: 'Sections' });
+    expect(nav.querySelectorAll(':scope > [role="tab"]').length).toBe(4);
     expect(
       within(nav)
         .getAllByRole('tab')
@@ -363,8 +364,8 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
   });
 
   it('leaves the section nav a vertical column at 1024px and only strips it at 820px', () => {
-    expect(ruleIn(NAV_CSS, 1024, '.list')).toBeNull();
-    expect(ruleIn(NAV_CSS, 820, '.list')).toMatch(/flex-direction:\s*row/);
+    expect(ruleIn(NAV_CSS, 1024, '.nav')).toBeNull();
+    expect(ruleIn(NAV_CSS, 820, '.nav')).toMatch(/flex-direction:\s*row/);
   });
 
   // frontend #581 item (b). `.card { flex: 1 1 16rem }` lived in EditorSideRail.module.css, but the

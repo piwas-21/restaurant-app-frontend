@@ -75,7 +75,7 @@ describe('translation review identities for unsaved variations', () => {
       'product-1',
       () => 'en',
       () => true,
-    ).find((candidate) => candidate.slot.ref.target === 'ingredient');
+    ).find((candidate) => candidate.slot.ref?.target === 'ingredient');
 
     expect(field?.input.fieldRef.clientKey).toBe('ingredient:0');
     expect(

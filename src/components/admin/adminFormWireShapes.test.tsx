@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { editCategorySchema } from '@/components/admin/EditCategoryModal';
 import { createCategorySchema } from '@/components/admin/CreateCategoryModal';
+import { categoryFormSchema } from '@/components/admin/categoryFormSchema';
 import { userGroupSchema } from '@/components/admin/user-groups/UserGroupModal';
 import DiscountModal, { discountSchema } from '@/components/admin/user-groups/DiscountModal';
 import { DiscountType, type GroupDiscountDto } from '@/types/userGroupTypes';
@@ -49,22 +50,25 @@ describe("#642 — Zod schemas against the API's null", () => {
     });
 
     /**
-     * The create form is seeded from no response, so the refusal cannot reach it — and it is pinned
-     * anyway, because two schemas over ONE column that disagree about null is how this class
-     * survives review.
-     *
-     * The agreement is now STRUCTURAL rather than asserted: both modals import one
-     * `categoryFormSchema`, so they are the same object and cannot drift. The identity is what this
-     * checks first; the parse is kept so the test still fails if that one object stops accepting
-     * the wire's null. A test that only compared two copies could only notice drift after it
-     * happened.
+     * The create form adds a source-locale requirement around the shared base schema. The
+     * description contract must still accept the API's explicit null, while creation must reject
+     * an unknown source locale.
      */
-    it('the create schema IS its sibling, not merely equivalent to it', () => {
+    it('wraps the shared base schema and accepts null description with a known source locale', () => {
       // `isHiddenFromAllTab` rides along: the API returns it on every row once the column exists.
-      const wire = { name: 'Pizzas', description: null, isActive: true, isHiddenFromAllTab: false, displayOrder: 0 };
+      const wire = {
+        name: 'Pizzas',
+        description: null,
+        sourceLocale: 'fr',
+        isActive: true,
+        isHiddenFromAllTab: false,
+        displayOrder: 0,
+      };
 
-      expect(createCategorySchema).toBe(editCategorySchema);
+      expect(editCategorySchema).toBe(categoryFormSchema);
+      expect(createCategorySchema._def.schema).toBe(categoryFormSchema);
       expect(createCategorySchema.safeParse(wire).success).toBe(true);
+      expect(createCategorySchema.safeParse({ ...wire, sourceLocale: null }).success).toBe(false);
     });
   });
 

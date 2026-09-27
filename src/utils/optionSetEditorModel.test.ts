@@ -3,6 +3,7 @@ import {
   areOptionSetVariationsValid,
   buildOptionSetWriteRequest,
   createEmptyOptionSetEntry,
+  isOptionSetDraftSavable,
   isValidOptionSetDraft,
   moveOptionSetEntry,
   optionSetLocaleOrDefault,
@@ -35,12 +36,46 @@ describe('optionSetEditorModel', () => {
     });
   });
 
+  it('round-trips translation metadata with option set writes', () => {
+    const translationMetadata = {
+      sourceLocales: { name: 'fr' as const },
+      acceptedSuggestionIds: { 'name.de': 'suggestion-7' },
+      expectedContentVersion: 'option-set-version-3',
+    };
+
+    const request = buildOptionSetWriteRequest(
+      'bundleChoice',
+      'Repas',
+      [{ ...createEmptyOptionSetEntry(0), productId: 'product-1', name: 'Menu' }],
+      null,
+      'fr',
+      { de: 'Menü' },
+      translationMetadata,
+    );
+
+    expect(request.translationMetadata).toEqual(translationMetadata);
+  });
+
   it('rejects duplicate canonical references and missing required values', () => {
     const first = { ...createEmptyOptionSetEntry(0), globalIngredientId: 'ingredient-1', name: 'Salt' };
     const second = { ...first, displayOrder: 1 };
     expect(isValidOptionSetDraft('ingredient', 'Seasoning', [first, second])).toBe(false);
     expect(isValidOptionSetDraft('ingredient', 'Seasoning', [{ ...first, name: ' ' }])).toBe(false);
     expect(isValidOptionSetDraft('ingredient', 'Seasoning', [first])).toBe(true);
+  });
+
+  it('requires available references and validated variations before saving', () => {
+    const entry = {
+      ...createEmptyOptionSetEntry(0),
+      productId: 'product-1',
+      productVariationId: 'variation-1',
+      name: 'Menu',
+    };
+    const available = () => true;
+
+    expect(isOptionSetDraftSavable('suggestedSide', 'Sides', [entry], available, {})).toBe(false);
+    expect(isOptionSetDraftSavable('suggestedSide', 'Sides', [entry], available, { 'new-0': true })).toBe(true);
+    expect(isOptionSetDraftSavable('suggestedSide', 'Sides', [entry], () => false, { 'new-0': true })).toBe(false);
   });
 
   it('moves choices without losing the persisted IDs or selected values', () => {

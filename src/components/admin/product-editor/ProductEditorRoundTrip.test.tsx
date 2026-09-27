@@ -777,7 +777,12 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     isSpecial: false,
     preparationTimeMinutes: 0,
     displayOrder: 0,
-    content: { en: { name: 'Menu Kebab', description: 'combo' } },
+    content: {
+      en: { name: 'Menu Kebab', description: 'combo' },
+      fr: { name: 'Menu Kebab français', description: 'formule' },
+      de: { name: 'Kebab-Menü', description: 'Kombimenü' },
+      zh: { name: '烤肉套餐', description: '套餐' },
+    },
     allergens: ['gluten', 'sesame'],
     menuDefinition: {
       isAlwaysAvailable: true,
@@ -811,6 +816,10 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     // THE assertion. This is the link `toBundleDefaults` and the schema exist to serve, and the
     // only one that observes the whole chain rather than a stage of it.
     expect((await saveBundleUntouched(LABELLED_BUNDLE)).allergens).toEqual(['gluten', 'sesame']);
+  });
+
+  it('preserves every loaded locale on an untouched save', async () => {
+    expect((await saveBundleUntouched(LABELLED_BUNDLE)).content).toEqual(LABELLED_BUNDLE.content);
   });
 
   it('sends an empty list for an unlabelled combo, rather than dropping the key', async () => {

@@ -54,6 +54,27 @@ function orderTypesSelectionValue(value: CatalogueImportDecision['availableOrder
   return 'custom';
 }
 
+function reviewedChecklistPatch(
+  field: keyof CatalogueImportDecision,
+  checked: boolean,
+  decision: CatalogueImportDecision,
+  itemType: CatalogueTemplateType,
+): Partial<CatalogueImportDecision> {
+  if (field === 'ingredientsReviewed') {
+    return {
+      ingredientsReviewed: checked,
+      ...(checked && itemType === 'item' ? { ingredients: decision.ingredients ?? [] } : {}),
+    };
+  }
+  if (field === 'allergensReviewed') {
+    return {
+      allergensReviewed: checked,
+      ...(checked && (itemType === 'item' || itemType === 'bundle') ? { allergens: decision.allergens ?? [] } : {}),
+    };
+  }
+  return { [field]: checked };
+}
+
 export default function CatalogueImportOperationalReview({ itemType, decision, onDecisionChange, disabled }: Props) {
   const { t } = useTranslation();
   if ((itemType !== 'item' && itemType !== 'bundle') || decision.resolution === 'Reuse') return null;
@@ -122,7 +143,7 @@ export default function CatalogueImportOperationalReview({ itemType, decision, o
           label={t(field.label)}
           checked={decision[field.key] === true}
           disabled={disabled}
-          onChange={(checked) => onDecisionChange({ [field.key]: checked })}
+          onChange={(checked) => onDecisionChange(reviewedChecklistPatch(field.key, checked, decision, itemType))}
         />
       ))}
       <fieldset className={styles.orderTypes}>

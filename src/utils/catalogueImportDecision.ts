@@ -6,12 +6,34 @@ import type {
 } from '@/services/catalogueImportService';
 import { exactMaskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
 
-export function catalogueImportDecisionForRequest(decision: CatalogueImportDecision): CatalogueImportDecisionWire {
-  if (decision.resolution === 'Reuse') return reuseRequest(decision);
-  const { availableOrderTypes, ...createRequest } = decision;
-  delete createRequest.localEntityId;
+function explicitReviewedLists(
+  itemType: CatalogueImportSessionItem['type'],
+  decision: CatalogueImportDecision,
+): CatalogueImportDecision {
+  if (decision.resolution !== 'Create') return decision;
   return {
-    ...createRequest,
+    ...decision,
+    ...(itemType === 'item' && decision.ingredientsReviewed === true && decision.ingredients == null
+      ? { ingredients: [] }
+      : {}),
+    ...((itemType === 'item' || itemType === 'bundle') &&
+    decision.allergensReviewed === true &&
+    decision.allergens == null
+      ? { allergens: [] }
+      : {}),
+  };
+}
+
+export function catalogueImportDecisionForRequest(
+  decision: CatalogueImportDecision,
+  itemType: CatalogueImportSessionItem['type'],
+): CatalogueImportDecisionWire {
+  if (decision.resolution === 'Reuse') return reuseRequest(decision);
+  const { availableOrderTypes, ...createRequest } = explicitReviewedLists(itemType, decision);
+  const request = { ...createRequest };
+  delete request.localEntityId;
+  return {
+    ...request,
     ...(availableOrderTypes === undefined
       ? {}
       : { availableOrderTypes: availableOrderTypes === null ? null : exactMaskFromOrderTypes(availableOrderTypes) }),
@@ -30,7 +52,8 @@ function reuseRequest(decision: CatalogueImportDecision): CatalogueImportDecisio
 
 export function catalogueImportDecisionFor(item: CatalogueImportSessionItem): CatalogueImportDecision {
   if (item.decision) {
-    const { availableOrderTypes, ...decision } = item.decision;
+    const { availableOrderTypes, ...savedDecision } = item.decision;
+    const decision = explicitReviewedLists(item.type, savedDecision);
     return {
       ...decision,
       ...(availableOrderTypes === undefined

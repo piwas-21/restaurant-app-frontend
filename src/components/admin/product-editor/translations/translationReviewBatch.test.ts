@@ -1,4 +1,4 @@
-import { loadTranslationSuggestionBatch } from './translationReviewBatch';
+import { loadTranslationSuggestionBatch, translationDecisionFor } from './translationReviewBatch';
 import type {
   TranslationFieldInput,
   TranslationFieldStatus,
@@ -39,6 +39,16 @@ function adapter(rows: TranslationFieldStatus[] = []): jest.Mocked<TranslationWo
   review.mockResolvedValue({ decisions: [] });
   return { preview, suggest, review };
 }
+
+describe('translationDecisionFor', () => {
+  it.each([
+    ['accepted', 'accept'],
+    ['edited', 'edit'],
+    ['rejected', 'reject'],
+  ] as const)('maps %s to the workbench decision %s', (reviewStatus, workbenchDecision) => {
+    expect(translationDecisionFor(reviewStatus)).toBe(workbenchDecision);
+  });
+});
 
 describe('loadTranslationSuggestionBatch', () => {
   it('does not call suggestions for an unchanged complete template', async () => {
@@ -93,6 +103,59 @@ describe('loadTranslationSuggestionBatch', () => {
         generationIntent: 'explicitFill',
         fields: [field],
       }),
+    );
+  });
+
+  it.each(['manual', 'legacyUnknown'] as const)(
+    'requests an alternative for one existing %s field and locale only',
+    async (kind) => {
+      const client = adapter([
+        {
+          ...status(field),
+          targets: [{ locale: 'fr', status: 'current', text: 'Boulettes grillées', provenance: { kind } }],
+        },
+      ]);
+
+      await loadTranslationSuggestionBatch([field], client, 'explicitAlternative', ['fr']);
+
+      expect(client.preview).toHaveBeenCalledWith({
+        generationIntent: 'explicitAlternative',
+        targetLocales: ['fr'],
+        fields: [field],
+      });
+      expect(client.suggest).toHaveBeenCalledWith({
+        generationIntent: 'explicitAlternative',
+        targetLocales: ['fr'],
+        fields: [field],
+      });
+    },
+  );
+
+  it('revisits a tracked stale translation on ordinary Save even when the source is unchanged', async () => {
+    const client = adapter([
+      {
+        ...status(field),
+        targets: [
+          {
+            locale: 'tr',
+            status: 'current',
+            text: field.sourceText,
+            provenance: { kind: 'tenantSource', sourceHash: 'source-hash' },
+          },
+          {
+            locale: 'fr',
+            status: 'stale',
+            text: 'Ancienne traduction',
+            provenance: { kind: 'ai', sourceHash: 'source-hash' },
+          },
+        ],
+      },
+    ]);
+
+    await loadTranslationSuggestionBatch([field], client, 'saveReview');
+
+    expect(client.suggest).toHaveBeenCalledWith(
+      expect.objectContaining({ generationIntent: 'saveReview', fields: [field] }),
     );
   });
 

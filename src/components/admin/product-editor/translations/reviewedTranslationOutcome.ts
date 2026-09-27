@@ -19,6 +19,22 @@ export interface ReviewedTranslationOutcome {
   readonly staleCount: number;
 }
 
+function sameContext(
+  left: TranslationReviewField['input']['context'],
+  right: TranslationReviewField['input']['context'],
+): boolean {
+  if (left === right) return true;
+  if (!left || !right) return !left && !right;
+  const leftExclusions = left.exclusions ?? [];
+  const rightExclusions = right.exclusions ?? [];
+  return (
+    left.dishName === right.dishName &&
+    left.category === right.category &&
+    leftExclusions.length === rightExclusions.length &&
+    leftExclusions.every((value, index) => value === rightExclusions[index])
+  );
+}
+
 function sourceStillCurrent(
   entry: TranslationSuggestionEntry,
   requestedFields: readonly TranslationReviewField[],
@@ -37,6 +53,9 @@ function sourceStillCurrent(
     target &&
     snapshot.input.sourceText === current.input.sourceText &&
     snapshot.input.sourceLocale === current.input.sourceLocale &&
+    sameContext(snapshot.input.context, current.input.context) &&
+    (snapshot.slot.translations[entry.suggestion.locale] ?? null) ===
+      (current.slot.translations[entry.suggestion.locale] ?? null) &&
     (snapshot.slot.translations[entry.suggestion.locale] ?? null) === (target.text ?? null) &&
     entry.suggestion.sourceHash === preview.sourceHash,
   );

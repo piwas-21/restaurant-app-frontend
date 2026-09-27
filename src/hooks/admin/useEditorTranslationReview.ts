@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { useTranslationSuggestionBatch, type TranslationSuggestionEntry } from './useTranslationSuggestionBatch';
 import { createTranslationMetadataPatch } from '@/components/admin/product-editor/translations/translationReviewMetadata';
 import { buildReviewedTranslationOutcome } from '@/components/admin/product-editor/translations/reviewedTranslationOutcome';
+import { translationDecisionFor } from '@/components/admin/product-editor/translations/translationReviewBatch';
 import { useEditorSourceLocales } from './useEditorSourceLocales';
 
 type Editor = ReturnType<typeof useProductEditorForm>;
@@ -25,13 +26,9 @@ interface UseEditorTranslationReviewOptions {
   readonly adapter?: TranslationWorkbenchAdapter;
 }
 
-type ReviewedDecision = Exclude<TranslationSuggestionEntry['decision'], 'pending'>;
-
-function translationDecisionFor(decision: ReviewedDecision): TranslationDecision['decision'] {
-  if (decision === 'accepted') return 'accept';
-  if (decision === 'edited') return 'edit';
-  return 'reject';
-}
+type ReviewedEntry = TranslationSuggestionEntry & {
+  readonly decision: Exclude<TranslationSuggestionEntry['decision'], 'pending'>;
+};
 
 export function useEditorTranslationReview({
   editor,
@@ -50,16 +47,17 @@ export function useEditorTranslationReview({
   const [reviewWriteError, setReviewWriteError] = useState(false);
   const [reviewWriteErrorMessage, setReviewWriteErrorMessage] = useState<string | null>(null);
   useEffect(() => {
-    if (!isOpen) {
-      setStaleCount(0);
-      setReviewWriteError(false);
-      setReviewWriteErrorMessage(null);
-    }
+    if (isOpen) return;
+    setStaleCount(0);
+    setReviewWriteError(false);
+    setReviewWriteErrorMessage(null);
   }, [isOpen]);
-  const editorForm = editor.form;
-  const editorVariationFields = editor.variations.fields;
-  const editorIngredients = editor.detailedIngredients;
-  const editorMenuDefinition = editor.menuDefinition;
+  const editorForm = editor.form,
+    editorVariationFields = editor.variations.fields,
+    editorIngredients = editor.detailedIngredients;
+  const editorMenuDefinition = editor.menuDefinition,
+    editorCategories = editor.categories,
+    primaryCategoryId = editor.primaryCategoryId;
 
   const readFields = useCallback(
     () =>
@@ -69,6 +67,8 @@ export function useEditorTranslationReview({
           variations: { fields: editorVariationFields },
           detailedIngredients: editorIngredients,
           menuDefinition: editorMenuDefinition,
+          categories: editorCategories,
+          primaryCategoryId,
         },
         productId,
         sourceLocaleFor,
@@ -79,17 +79,19 @@ export function useEditorTranslationReview({
       editorVariationFields,
       editorIngredients,
       editorMenuDefinition,
+      editorCategories,
+      primaryCategoryId,
       productId,
       sourceLocaleFor,
       sourceLocaleKnownFor,
     ],
   );
   const batch = useTranslationSuggestionBatch({ isOpen, readFields, adapter });
-  const setBatchEntries = batch.setEntries;
-  const setBatchError = batch.setError;
-  const batchEntries = batch.entries;
-  const requestedBatchFields = batch.requestedFields;
-  const previewRows = batch.previewRows;
+  const setBatchEntries = batch.setEntries,
+    setBatchError = batch.setError;
+  const batchEntries = batch.entries,
+    requestedBatchFields = batch.requestedFields,
+    previewRows = batch.previewRows;
 
   const decide = useCallback(
     (suggestionId: string, decision: TranslationDecision['decision']) => {
@@ -130,20 +132,16 @@ export function useEditorTranslationReview({
     );
   }, [setBatchEntries]);
 
-  const buildMetadataPatch = useCallback(
-    () =>
-      createTranslationMetadataPatch(
-        readFields().filter((field) => field.sourceLocaleKnown),
-        acceptedIdsRef.current,
-      ),
-    [readFields],
-  );
+  const buildMetadataPatch = () =>
+    createTranslationMetadataPatch(
+      readFields().filter((field) => field.sourceLocaleKnown),
+      acceptedIdsRef.current,
+      product.translationMetadata?.expectedContentVersion,
+    );
 
   const unknownSourceLocaleFields = readFields().filter((field) => !field.sourceLocaleKnown);
   const submitDecisions = useCallback(async (): Promise<boolean> => {
-    const selected = batchEntries.filter(
-      (entry): entry is TranslationSuggestionEntry & { decision: ReviewedDecision } => entry.decision !== 'pending',
-    );
+    const selected = batchEntries.filter((entry) => entry.decision !== 'pending') as ReviewedEntry[];
     if (selected.length === 0) return true;
 
     try {
@@ -195,6 +193,8 @@ export function useEditorTranslationReview({
     edit,
     acceptAll,
     suggestMissing: batch.suggestMissing,
+    suggestAlternative: batch.suggestAlternative,
+    alternativeTargets: batch.alternativeTargets,
     submitDecisions,
   };
 }

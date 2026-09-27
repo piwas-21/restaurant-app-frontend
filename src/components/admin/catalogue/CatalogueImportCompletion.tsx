@@ -10,6 +10,7 @@ import {
   type CatalogueImportResult,
 } from '@/services/catalogueImportService';
 import styles from './CatalogueImportWorkspace.module.css';
+import CatalogueImportGuestReview from './CatalogueImportGuestReview';
 
 function resultTone(status: CatalogueImportResult['status']): 'success' | 'warning' | 'danger' {
   if (status === 'Imported') return 'success';
@@ -25,6 +26,10 @@ function itemTone(status: CatalogueImportResult['items'][number]['status']): 'su
 
 export default function CatalogueImportCompletion({ result }: { readonly result: CatalogueImportResult }) {
   const { t } = useTranslation();
+  const importedProducts = result.items.filter(
+    (item) =>
+      item.status === 'Imported' && item.localEntityId && /product|bundle|menu/i.test(item.localEntityType ?? ''),
+  );
   return (
     <section className={styles.completion} aria-labelledby="catalogue-import-complete-heading">
       <div className={styles.previewHeader}>
@@ -47,7 +52,7 @@ export default function CatalogueImportCompletion({ result }: { readonly result:
           </li>
         ))}
       </ul>
-      {result.items.some((item) => item.status === 'Imported' && item.localEntityId) && (
+      {importedProducts.length > 0 && (
         <aside className={styles.activationNotice}>
           <h3>{t('catalogue_import_publish_review_title')}</h3>
           <p>{t('catalogue_import_inactive_notice')}</p>
@@ -55,6 +60,7 @@ export default function CatalogueImportCompletion({ result }: { readonly result:
           <p>{t('catalogue_import_post_activation_check')}</p>
         </aside>
       )}
+      {importedProducts.length > 0 && <CatalogueImportGuestReview items={importedProducts} />}
     </section>
   );
 }

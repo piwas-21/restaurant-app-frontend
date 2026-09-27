@@ -57,6 +57,9 @@ const preview: OptionSetMaterializationPreview = {
       targetMenuSectionId: 'section-1',
       status: 'ready',
       conflicts: [],
+      currentSettings: {},
+      proposedSettings: {},
+      changedSettings: [],
       changes: [
         { entryId: 'entry-1', rowType: 'MenuSectionItem', action: 'add', changedFields: ['name'], preservedFields: [] },
       ],

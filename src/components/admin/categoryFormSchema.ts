@@ -1,7 +1,11 @@
 import { z } from 'zod';
+import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const languageCodeSchema = z
+  .string()
+  .refine((value): value is LanguageCode => LANGUAGE_CODES.includes(value as LanguageCode));
 
 /**
  * THE category form schema — one object, used by both the create and the edit modal (#642).
@@ -27,6 +31,8 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/web
 export const categoryFormSchema = z.object({
   name: z.string().min(1, { message: 'Category name is required' }),
   description: z.string().nullish(),
+  translations: z.record(z.string(), z.object({ name: z.string(), description: z.string().nullish() })).optional(),
+  sourceLocale: languageCodeSchema.nullable().optional(),
   imageFile: z
     .any()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
@@ -43,4 +49,5 @@ export const categoryFormSchema = z.object({
   displayOrder: z.coerce.number().int().min(0, { message: 'Display order must be a non-negative integer' }),
 });
 
-export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
+export type CategoryFormInputValues = z.input<typeof categoryFormSchema>;
+export type CategoryFormValues = z.output<typeof categoryFormSchema>;

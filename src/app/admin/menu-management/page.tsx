@@ -115,6 +115,7 @@ const MenuManagementContent = () => {
               onChange={(event) => setSearchQuery(event.target.value)}
               className={styles.adminSelect}
             />
+            <MenuCatalogueSuggestions query={searchQuery} />
             <Link href="/admin/option-sets" className={styles.adminButton}>
               {t('option_sets_manage')}
             </Link>
@@ -133,8 +134,6 @@ const MenuManagementContent = () => {
             onDelete={handleDeleteClick}
             typeFilter={typeFilter}
           />
-          <MenuCatalogueSuggestions query={searchQuery} />
-
           {/* Pagination */}
           {!isLoading && totalCount > 0 && (
             <>

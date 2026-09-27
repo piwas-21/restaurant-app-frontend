@@ -1,4 +1,9 @@
-import { getSelectedViewLabel } from './categoryNameMapper';
+import {
+  getLocalizedCategoryDescription,
+  getLocalizedCategoryName,
+  getSelectedViewDescription,
+  getSelectedViewLabel,
+} from './categoryNameMapper';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 import type { ApiCategory } from '@/types/menu';
 
@@ -37,6 +42,48 @@ describe('getSelectedViewLabel', () => {
 
   it('resolves a real category to its display name', () => {
     expect(getSelectedViewLabel('cat-1', categories, t)).toBe('Grills');
+  });
+
+  it('prefers an exact or base-locale category translation before built-in and base text', () => {
+    const category: ApiCategory = {
+      id: 'cat-3',
+      name: 'Grills',
+      translations: { fr: { name: 'Grillades' } },
+    };
+
+    expect(getLocalizedCategoryName(category, 'fr-CH', t)).toBe('Grillades');
+    expect(
+      getLocalizedCategoryName({ ...category, translations: { 'fr-CH': { name: 'Grillades CH' } } }, 'fr-CH', t),
+    ).toBe('Grillades CH');
+    expect(
+      getLocalizedCategoryName(
+        { ...category, translations: { 'fr-CH': { name: '' }, fr: { name: 'Grillades' } } },
+        'fr-CH',
+        t,
+      ),
+    ).toBe('Grillades');
+  });
+
+  it('uses built-in i18next text after a missing locale translation, then the base name', () => {
+    const category: ApiCategory = { id: 'cat-3', name: 'Grills' };
+
+    expect(getLocalizedCategoryName(category, 'de', (key) => (key === 'grill' ? 'Grillgerichte' : key))).toBe(
+      'Grillgerichte',
+    );
+    expect(getLocalizedCategoryName(category, 'de', t)).toBe('Grills');
+  });
+
+  it('uses the localized description when present and otherwise preserves the base description', () => {
+    const category: ApiCategory = {
+      id: 'cat-3',
+      name: 'Grills',
+      description: 'Base description',
+      translations: { fr: { name: 'Grillades', description: 'Description française' } },
+    };
+
+    expect(getLocalizedCategoryDescription(category, 'fr-CH')).toBe('Description française');
+    expect(getLocalizedCategoryDescription(category, 'de')).toBe('Base description');
+    expect(getSelectedViewDescription('cat-3', [category], 'fr-CH')).toBe('Description française');
   });
 
   it('falls back to the id when the category is not in the list, rather than rendering nothing', () => {

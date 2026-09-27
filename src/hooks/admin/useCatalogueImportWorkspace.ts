@@ -90,6 +90,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
         .map((item) =>
           catalogueImportDecisionForRequest(
             decisions[itemKey(item.templateId, item.revision)] ?? catalogueImportDecisionFor(item),
+            item.type,
           ),
         ),
     });

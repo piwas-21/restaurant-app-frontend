@@ -16,6 +16,7 @@ const freezeOwner = (owner: ReturnType<typeof emptyOwner>): LocalizedOwnerMetada
 export function createTranslationMetadataPatch(
   fields: readonly TranslationReviewField[],
   acceptedIds: Readonly<Record<string, string>>,
+  expectedContentVersion?: string,
 ): EditorTranslationMetadataPatch {
   const product = emptyOwner();
   const variations: Record<number, ReturnType<typeof emptyOwner>> = {};
@@ -26,9 +27,9 @@ export function createTranslationMetadataPatch(
     const { input, slot } = field;
     const ref = input.fieldRef;
     let owner = product;
-    if (slot.ref.target === 'variation') owner = variations[slot.ref.index] ??= emptyOwner();
-    else if (slot.ref.target === 'ingredient') owner = ingredients[slot.ref.index] ??= emptyOwner();
-    else if (slot.ref.target === 'menuSection') owner = menuSections[slot.ref.index] ??= emptyOwner();
+    if (slot.ref?.target === 'variation') owner = variations[slot.ref.index] ??= emptyOwner();
+    else if (slot.ref?.target === 'ingredient') owner = ingredients[slot.ref.index] ??= emptyOwner();
+    else if (slot.ref?.target === 'menuSection') owner = menuSections[slot.ref.index] ??= emptyOwner();
     owner.sourceLocales[ref.fieldKey] = input.sourceLocale;
 
     for (const locale of LANGUAGE_CODES) {
@@ -38,7 +39,10 @@ export function createTranslationMetadataPatch(
   }
 
   return {
-    product: freezeOwner(product),
+    product: {
+      ...freezeOwner(product),
+      ...(expectedContentVersion ? { expectedContentVersion } : {}),
+    },
     variations: Object.fromEntries(Object.entries(variations).map(([index, owner]) => [index, freezeOwner(owner)])),
     ingredients: Object.fromEntries(Object.entries(ingredients).map(([index, owner]) => [index, freezeOwner(owner)])),
     menuSections: Object.fromEntries(Object.entries(menuSections).map(([index, owner]) => [index, freezeOwner(owner)])),

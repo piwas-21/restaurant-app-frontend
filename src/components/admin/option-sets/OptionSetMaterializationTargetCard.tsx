@@ -19,6 +19,16 @@ const settingLabels: Record<NumericSetting, string> = {
   includedFree: 'sauce_included_free_label',
   displayOrder: 'display_order',
 };
+const settingNames: Readonly<Record<string, NumericSetting>> = {
+  minSelection: 'minSelection',
+  MinSelection: 'minSelection',
+  maxSelection: 'maxSelection',
+  MaxSelection: 'maxSelection',
+  includedFree: 'includedFree',
+  IncludedFree: 'includedFree',
+  displayOrder: 'displayOrder',
+  DisplayOrder: 'displayOrder',
+};
 interface Props {
   readonly target: OptionSetMaterializationTarget;
   readonly kind: OptionSetKind;
@@ -189,6 +199,19 @@ export default function OptionSetMaterializationTargetCard({
                 </p>
               ))}
               <ul>
+                {previewTarget.changedSettings.map((changedSetting) => {
+                  const setting = settingNames[changedSetting];
+                  if (!setting) return null;
+                  return (
+                    <li key={`setting-${changedSetting}`}>
+                      {t('option_set_setting_diff', {
+                        setting: t(settingLabels[setting]),
+                        current: previewTarget.currentSettings[setting] ?? '—',
+                        proposed: previewTarget.proposedSettings[setting] ?? '—',
+                      })}
+                    </li>
+                  );
+                })}
                 {previewTarget.changes.map((change) => (
                   <li key={`${change.entryId}-${change.action}`}>
                     {t(`option_set_change_${change.action}`)} ·{' '}

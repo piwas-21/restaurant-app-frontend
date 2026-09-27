@@ -8,7 +8,7 @@ import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { UsePublicOfferFamiliesReturn } from '@/hooks/usePublicOfferFamilies';
 import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
-import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { getLocalizedCategoryDescription, getLocalizedCategoryName } from '@/utils/categoryNameMapper';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import { surfaceOr } from '@/templates/resolve-surface';
 import MenuFilters from '@/components/menu/MenuFilters';
@@ -40,7 +40,8 @@ export default function MenuOfferFamiliesOnePage({
   featuredSlot,
   featuredFilterable,
 }: Readonly<MenuOfferFamiliesOnePageProps>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || 'en';
   const displayError = state.error ? t('error_loading_menu_items') : null;
   // Category-linked families stay visible in their exact sections even when hidden from All. An
   // unlinked family has no exact placement, so its fallback "Other offers" section follows the All
@@ -129,13 +130,13 @@ export default function MenuOfferFamiliesOnePage({
           >
             <MenuSectionStatus
               headingId={`category-heading-${category.id}`}
-              title={getCategoryDisplayName(category.name, t)}
-              description={category.description}
+              title={getLocalizedCategoryName(category, locale, t)}
+              description={getLocalizedCategoryDescription(category, locale) ?? undefined}
               isLoading={state.isLoading}
               errorMessage={displayError}
               isEmpty={!state.isLoading && !displayError && visibleFamilies.length === 0}
               loadingMessage={t('loading_items')}
-              emptyMessage={t('no_items_in_category', { categoryName: category.name })}
+              emptyMessage={t('no_items_in_category', { categoryName: getLocalizedCategoryName(category, locale, t) })}
               emptyHeading={isFiltered ? t('menu_state_filtered_heading') : t('menu_state_empty_heading')}
               errorHeading={t('menu_state_error_heading')}
               retryLabel={t('retry')}

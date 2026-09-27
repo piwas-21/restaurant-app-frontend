@@ -37,6 +37,7 @@ interface Category {
   displayOrder?: number;
   imageUrl?: string;
   isActive?: boolean;
+  isHiddenFromAllTab?: boolean;
   availableOrderTypes?: number | null;
 }
 
@@ -57,6 +58,7 @@ async function putCategory(request: APIRequestContext, c: Category, overrides: P
       description: c.description ?? '',
       displayOrder: c.displayOrder ?? 0,
       isActive: c.isActive ?? true,
+      isHiddenFromAllTab: c.isHiddenFromAllTab ?? false,
       availableOrderTypes: c.availableOrderTypes ?? null,
       ...overrides,
     },

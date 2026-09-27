@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { UseFormRegister } from 'react-hook-form';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
-import type { CategoryFormValues } from './categoryFormSchema';
+import type { CategoryFormInputValues } from './categoryFormSchema';
 
 /**
  * The per-category "hide from the guest All tab" checkbox (partner feedback, 2026-09-06). Shared by
@@ -14,7 +14,7 @@ import type { CategoryFormValues } from './categoryFormSchema';
 export default function CategoryHiddenFromAllTabField({
   register,
 }: {
-  readonly register: UseFormRegister<CategoryFormValues>;
+  readonly register: UseFormRegister<CategoryFormInputValues>;
 }) {
   const { t } = useTranslation();
   return (

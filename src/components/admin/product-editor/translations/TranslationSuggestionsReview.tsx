@@ -9,8 +9,30 @@ import { directionFor } from '@/lib/textDirection';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import styles from './TranslationSuggestionsReview.module.css';
 
+type Review = ReturnType<typeof useEditorTranslationReview>;
+type ReviewPanelState = Pick<
+  Review,
+  | 'phase'
+  | 'entries'
+  | 'providerStatus'
+  | 'pendingLocales'
+  | 'manualReviewCount'
+  | 'alternativeTargets'
+  | 'error'
+  | 'staleCount'
+  | 'unknownSourceLocaleFields'
+  | 'acceptAll'
+  | 'suggestAlternative'
+  | 'setSourceLocaleFor'
+  | 'suggestMissing'
+  | 'edit'
+  | 'decide'
+> &
+  Partial<Pick<Review, 'errorMessage' | 'reviewWriteErrorMessage'>>;
+
 interface TranslationSuggestionsReviewProps {
-  readonly review: ReturnType<typeof useEditorTranslationReview>;
+  readonly review: ReviewPanelState;
+  readonly showSourceLocaleChoices?: boolean;
 }
 
 const decisionKey = {
@@ -27,9 +49,13 @@ const decisionTone = {
   rejected: 'warning',
 } as const;
 
-export default function TranslationSuggestionsReview({ review }: TranslationSuggestionsReviewProps) {
+export default function TranslationSuggestionsReview({
+  review,
+  showSourceLocaleChoices = true,
+}: TranslationSuggestionsReviewProps) {
   const { t } = useTranslation();
   const { phase, entries, providerStatus, pendingLocales, manualReviewCount, error, staleCount } = review;
+  const alternativeTargets = review.alternativeTargets ?? [];
 
   return (
     <aside className={styles.drawer} aria-label={t('translation_review_title')}>
@@ -52,6 +78,38 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
       {manualReviewCount > 0 && (
         <output className={styles.notice}>{t('translation_review_manual_review', { count: manualReviewCount })}</output>
       )}
+      {alternativeTargets.length > 0 && (
+        <section className={styles.alternatives} aria-label={t('translation_review_alternatives_title')}>
+          <h4>{t('translation_review_alternatives_title')}</h4>
+          <p>{t('translation_review_alternative_kept')}</p>
+          {alternativeTargets.map((target) => {
+            const field = `${target.sourceText} · ${t(target.fieldLabel)}`;
+            const language = getLanguageNativeName(target.locale);
+            return (
+              <div
+                className={styles.alternative}
+                key={`${target.fieldRef.entityType}|${target.fieldRef.entityId ?? target.fieldRef.clientKey}|${target.fieldRef.fieldKey}|${target.locale}`}
+              >
+                <div>
+                  <p className={styles.alternativeLabel}>{t('translation_review_row_title', { field, language })}</p>
+                  <p className={styles.sourceText} dir="auto">
+                    {target.text}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={styles.acceptAll}
+                  onClick={() => void review.suggestAlternative(target.fieldRef, target.locale)}
+                  disabled={phase === 'loading' || providerStatus === 'disabled'}
+                  aria-label={t('translation_review_suggest_alternative_field', { field, language })}
+                >
+                  {t('translation_review_suggest_alternative')}
+                </button>
+              </div>
+            );
+          })}
+        </section>
+      )}
       {review.unknownSourceLocaleFields.length > 0 && (
         <section
           className={styles.sourceLocaleChoices}
@@ -60,23 +118,24 @@ export default function TranslationSuggestionsReview({ review }: TranslationSugg
           <output className={styles.warning}>
             {t('translation_review_source_locale_missing', { count: review.unknownSourceLocaleFields.length })}
           </output>
-          {review.unknownSourceLocaleFields.map((field) => {
-            const label = field.slot.source
-              ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
-              : t(field.slot.fieldLabel);
-            return (
-              <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
-                <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
-                  <option value="">{t('translation_review_source_locale_required')}</option>
-                  {LANGUAGE_CODES.map((locale) => (
-                    <option key={locale} value={locale}>
-                      {getLanguageNativeName(locale)}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
-            );
-          })}
+          {showSourceLocaleChoices &&
+            review.unknownSourceLocaleFields.map((field) => {
+              const label = field.slot.source
+                ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
+                : t(field.slot.fieldLabel);
+              return (
+                <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
+                  <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
+                    <option value="">{t('translation_review_source_locale_required')}</option>
+                    {LANGUAGE_CODES.map((locale) => (
+                      <option key={locale} value={locale}>
+                        {getLanguageNativeName(locale)}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              );
+            })}
         </section>
       )}
       {providerStatus === 'disabled' && (

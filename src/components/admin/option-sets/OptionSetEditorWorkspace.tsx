@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,8 @@ import { optionSetEntryReferenceKey } from '@/utils/optionSetEditorModel';
 import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import OptionSetEntryRow from './OptionSetEntryRow';
 import OptionSetAttachmentManager from './OptionSetAttachmentManager';
+import TranslationSuggestionsReview from '../product-editor/translations/TranslationSuggestionsReview';
+import { useOptionSetTranslationReview } from '@/hooks/admin/useOptionSetTranslationReview';
 import styles from './OptionSetEditorWorkspace.module.css';
 
 export default function OptionSetEditorWorkspace({
@@ -28,15 +30,21 @@ export default function OptionSetEditorWorkspace({
   const router = useRouter();
   const editor = useOptionSetEditor(id, initialKind);
   const { validate: validateForm, showError: showFormError } = useOptionSetEditorFormValidation(editor);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const translationReview = useOptionSetTranslationReview(editor, reviewOpen);
   const saveOptionSet = editor.save;
   const save = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
       if (!validateForm()) return;
-      const saved = await saveOptionSet();
-      if (saved && !id) router.replace(`/admin/option-sets/${encodeURIComponent(saved.id)}`);
+      if (!(await translationReview.submitDecisions())) return;
+      const saved = await saveOptionSet(translationReview.buildMetadataPatch());
+      if (saved) {
+        translationReview.clearAcceptedSuggestionIds();
+        if (!id) router.replace(`/admin/option-sets/${encodeURIComponent(saved.id)}`);
+      }
     },
-    [saveOptionSet, id, router, validateForm],
+    [saveOptionSet, id, router, translationReview, validateForm],
   );
 
   if (editor.isLoading)
@@ -98,11 +106,18 @@ export default function OptionSetEditorWorkspace({
                 <input
                   value={editor.translations[locale] ?? ''}
                   maxLength={200}
-                  onChange={(event) => editor.setTranslation(locale, event.target.value)}
+                  onChange={(event) => {
+                    translationReview.clearAcceptedSuggestionIds();
+                    editor.setTranslation(locale, event.target.value);
+                  }}
                 />
               </FormField>
             );
           })}
+        </details>
+        <details onToggle={(event) => setReviewOpen(event.currentTarget.open)}>
+          <summary>{t('translation_review_title')}</summary>
+          <TranslationSuggestionsReview review={translationReview} showSourceLocaleChoices={false} />
         </details>
         <FormField label={t('option_set_kind')}>
           <select

@@ -4,11 +4,18 @@ import type { TranslationProvenance } from '@/types/translationMetadata';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import { apiClient } from '@/utils/apiClient';
 
-export type TranslationEntityType = 'product' | 'productIngredient' | 'productVariation' | 'menuSection' | 'optionSet';
+export type TranslationEntityType =
+  'product' | 'productIngredient' | 'productVariation' | 'menuSection' | 'optionSet' | 'category';
 export type TranslationFieldKey = 'name' | 'description';
-export type TranslationGenerationIntent = 'saveReview' | 'explicitFill';
+export type TranslationGenerationIntent = 'saveReview' | 'explicitFill' | 'explicitAlternative';
 export type TranslationTargetStatusCode = 'missing' | 'current' | 'stale' | 'sourceCopy';
 export type { TranslationSourceKind } from '@/types/translationMetadata';
+
+export interface TranslationContextInput {
+  readonly dishName?: string | null;
+  readonly category?: string | null;
+  readonly exclusions?: readonly string[] | null;
+}
 
 export interface TranslationFieldRef {
   readonly entityType: TranslationEntityType;
@@ -23,6 +30,7 @@ export interface TranslationFieldInput {
   readonly sourceText: string;
   /** Current unsaved editor content protects manually entered translations from suggestions. */
   readonly targetTexts?: Readonly<Record<LanguageCode, string>>;
+  readonly context?: TranslationContextInput | null;
 }
 
 export interface TranslationTargetStatus {

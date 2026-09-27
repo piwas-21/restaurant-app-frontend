@@ -54,6 +54,9 @@ export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces
  */
 export type TranslationFieldLabel =
   | 'item_name'
+  | 'category_name'
+  | 'option_set_name'
+  | 'description'
   | 'editor_translations_field_item_description'
   | 'variation_name'
   | 'variation_description'

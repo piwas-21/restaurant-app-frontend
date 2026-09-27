@@ -144,26 +144,45 @@ test('an invalid item cannot be saved, and the editor says which field and where
     const messageId = (describedBy ?? '').split(/\s+/).filter(Boolean)[0];
     await expect(page.locator(`[id="${messageId}"]`)).toBeVisible();
 
-    // 3. The summary counts it and the nav marks the section holding it.
+    // 3. The summary counts it and the section tab announces its error accessibly. The editor's
+    // section control is a tablist, not a navigation landmark; the error glyph is aria-hidden and
+    // the tab's description is the screen-reader label for that state.
     const summary = page.getByTestId('editor-error-summary');
     await expect(summary).toBeVisible();
-    // The section nav is NOT the only `navigation` landmark on an admin page — the header's user
-    // menu is one as well, and it comes first in the DOM, so `.first()` was asserting on the wrong
-    // button. Ask for the marker itself: the `!` is rendered only by a nav entry that owns an
-    // error, which scopes the assertion without depending on the nav's translated label.
-    const markedEntries = page.getByRole('navigation').getByRole('button').filter({ hasText: '!' });
-    await expect(markedEntries.first(), 'the nav must mark the section holding the error').toBeVisible();
+    const sectionNav = page.getByTestId('editor-section-nav');
+    const basicsTab = page.locator('#product-editor-form-section-tab-editor-section-basics');
+    await expect(sectionNav).toHaveAttribute('role', 'tablist');
+    await expect(basicsTab, 'the Basics tab identifies the failing section').toHaveAttribute(
+      'aria-describedby',
+      'editor-section-basics-error',
+    );
+    await expect(basicsTab).toHaveAccessibleDescription(/\S/);
+    await expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#product-editor-form-section-panel-editor-section-basics')).toBeVisible();
 
-    // 4. Save is refused. The strongest available assertion is the SERVER's: no PUT can have
+    // 4. Confirm the visible Save review. The strongest available assertion is the SERVER's: no PUT can have
     //    landed, so the stored name is untouched. A status-code check would only prove that no
     //    request the browser made failed — not that none was made.
     await page.getByTestId('editor-save').click();
+    const review = page.getByRole('dialog');
+    await expect(review).toBeVisible();
+    const confirmSave = review.getByTestId('editor-review-confirm-save');
+    await expect(confirmSave).toBeVisible();
+    await confirmSave.click();
     await expect(name, 'focus must land on the field that blocks the save').toBeFocused();
+    await expect(page.locator('#product-editor-form-tab-item')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#product-editor-form-panel-item')).toBeVisible();
+    await expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#product-editor-form-section-panel-editor-section-basics')).toBeVisible();
 
-    // 5. The jump works from the bar too, from wherever the admin happens to be.
-    await page.locator('input[name="preparationTimeMinutes"]').scrollIntoViewIfNeeded();
+    // 5. The jump works from the bar too, from a different focused section.
+    const serviceTab = page.locator('#product-editor-form-section-tab-editor-section-service');
+    await serviceTab.click();
+    await expect(page.locator('#product-editor-form-section-panel-editor-section-service')).toBeVisible();
     await summary.click();
     await expect(name).toBeFocused();
+    await expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#product-editor-form-section-panel-editor-section-basics')).toBeVisible();
   } finally {
     await context.close();
   }

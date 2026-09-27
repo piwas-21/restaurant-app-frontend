@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react';
+import React, { useState } from 'react';
+import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { useEditorErrors } from './useEditorErrors';
 import type { EditorSection } from '@/components/admin/product-editor/EditorShell';
 import { SECTION_IDS } from '@/components/admin/product-editor/editorSectionTypes';
@@ -15,16 +16,21 @@ const sections: EditorSection[] = [
 
 const setup = (errors: Record<string, unknown>) => {
   const setActiveTab = jest.fn();
+  const setActiveSection = jest.fn();
   const { result } = renderHook(() =>
     useEditorErrors({
       errors: errors as never,
+      submitCount: 0,
       t,
       setActiveTab,
+      setActiveSection,
+      sections,
+      isBundle: false,
       itemTabId: 'item',
       translationsTabId: 'translations',
     }),
   );
-  return { result, setActiveTab };
+  return { result, setActiveTab, setActiveSection };
 };
 
 /**
@@ -68,17 +74,21 @@ describe('useEditorErrors — count, markers, and the jump (D13)', () => {
     const { result } = setup({ name: { message: 'a' }, basePrice: { message: 'b' } });
 
     expect(result.current.count).toBe(2);
-    expect(result.current.label).toBe('editor_error_summary:2');
+    expect(result.current.label).toBe('editor_error_summary_in_section:2');
   });
 
   it('stays on the item tab for a section field, and focuses it', () => {
+    jest.useFakeTimers();
     document.body.innerHTML = '<input name="name" />';
-    const { result, setActiveTab } = setup({ name: { message: 'Name is required' } });
+    const { result, setActiveTab, setActiveSection } = setup({ name: { message: 'Name is required' } });
 
     result.current.jumpToFirst();
 
     expect(setActiveTab).toHaveBeenCalledWith('item');
+    expect(setActiveSection).toHaveBeenCalledWith(SECTION_IDS.basics);
+    jest.runAllTimers();
     expect(document.activeElement).toBe(document.querySelector('input'));
+    jest.useRealTimers();
   });
 
   // The panel is `hidden`, so the tab has to change BEFORE the focus is attempted — and the focus
@@ -95,5 +105,78 @@ describe('useEditorErrors — count, markers, and the jump (D13)', () => {
     jest.runAllTimers();
     expect(document.activeElement).toBe(document.querySelector('input'));
     jest.useRealTimers();
+  });
+});
+
+function BundleAllergenErrorHarness() {
+  const [activeTab, setActiveTab] = useState('translations');
+  const [activeSection, setActiveSection] = useState<string>(SECTION_IDS.media);
+  const [submitCount, setSubmitCount] = useState(0);
+  const bundleSections: EditorSection[] = [
+    { id: SECTION_IDS.basics, label: 'Basics', node: <input name="allergens" /> },
+    { id: SECTION_IDS.media, label: 'Media', node: <p>Photos</p> },
+  ];
+  const validation = useEditorErrors({
+    errors: { allergens: { type: 'invalid_type', message: 'Choose valid allergen labels' } } as never,
+    submitCount,
+    t,
+    setActiveTab,
+    setActiveSection,
+    sections: bundleSections,
+    isBundle: true,
+    itemTabId: 'item',
+    translationsTabId: 'translations',
+  });
+
+  return (
+    <>
+      <button type="button" onClick={() => setSubmitCount((current) => current + 1)}>
+        Submit
+      </button>
+      <div role="tablist" aria-label="Sections">
+        {validation.decorate(bundleSections).map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            role="tab"
+            aria-selected={activeSection === section.id}
+            aria-describedby={section.hasError ? `${section.id}-error` : undefined}
+          >
+            {section.label}
+            {section.hasError && <span id={`${section.id}-error`}>{section.errorLabel}</span>}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" hidden={activeTab !== 'item'}>
+        {bundleSections.map((section) => (
+          <section key={section.id} id={section.id} hidden={activeSection !== section.id} tabIndex={-1}>
+            {section.node}
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+describe('useEditorErrors — bundle allergen field focus', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('opens and marks the visible Basics panel before focusing its hidden allergen error', async () => {
+    const { container } = render(<BundleAllergenErrorHarness />);
+    const basics = container.querySelector(`#${SECTION_IDS.basics}`);
+    const allergens = container.querySelector<HTMLInputElement>('[name="allergens"]');
+    const basicsTab = screen.getByRole('tab', { name: /Basics/ });
+
+    expect(basics).toHaveAttribute('hidden');
+    expect(basicsTab).toHaveAccessibleDescription('editor_section_has_errors');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await waitFor(() => expect(basics).not.toHaveAttribute('hidden'));
+    expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(document.activeElement).toBe(allergens));
+    expect(allergens).toBeVisible();
   });
 });

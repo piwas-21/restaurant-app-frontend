@@ -104,9 +104,21 @@ describe('product editor — every visible control has an accessible name (#592,
     await act(async () => {});
 
     const controls = visibleControls(container);
-    // A guard on the guard: if a refactor stops rendering the form, an empty list would pass
-    // vacuously — which is exactly how this defect survived a green suite for so long.
-    expect(controls.length).toBeGreaterThan(8);
+    const visibleIds = controls.map((control) => control.id);
+    // Focused sections mean only Basics plus the status rail is exposed on first load. Pin those
+    // actual fields, rather than requiring fields from hidden sections to inflate a raw count.
+    expect(visibleIds).toEqual(
+      expect.arrayContaining([
+        'product-active',
+        'product-available',
+        'product-special',
+        'product-field-name',
+        'product-field-description',
+        'category-chip-cat-a',
+        'product-field-type',
+      ]),
+    );
+    expect(controls.some((control) => control.getAttribute('name') === 'primary-category-star')).toBe(true);
 
     const unnamed = controls.filter((control) => !hasAccessibleName(control));
     // The failure message has to name the offender, or a red run is a scavenger hunt.

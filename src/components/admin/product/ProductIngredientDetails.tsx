@@ -6,6 +6,7 @@ import Switch from '@/components/design-system/Switch';
 import type { ProductIngredient } from '@/types/menu';
 import { EXCLUSION_GROUP_MAX_LENGTH } from '@/utils/exclusionGroup';
 import styles from './ProductIngredientDetails.module.css';
+import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
 
 /**
  * The panel behind a row's disclosure button: the ingredient's `isActive` flag and its choice group.
@@ -67,6 +68,9 @@ export default function ProductIngredientDetails({ id, ingredient, onPatch }: Re
           <span className={styles.groupHint} id={`${id}-choice-hint`}>
             {ingredient.isOptional ? t('ingredient_choice_group_hint') : t('ingredient_choice_group_optional_required')}
           </span>
+          <EditorHelpDisclosure label={t('ingredient_choice_group_help_label')}>
+            <p>{t('ingredient_choice_group_example')}</p>
+          </EditorHelpDisclosure>
         </div>
       </td>
     </tr>

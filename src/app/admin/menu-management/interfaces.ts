@@ -1,7 +1,7 @@
 import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
-import { IngredientKind, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
+import { IngredientKind, ItemAvailability, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
 
 export interface ProductImage {
   id: string;
@@ -109,6 +109,8 @@ export interface ProductDetails {
   images: ProductImage[];
   suggestedSideItems: SideItem[];
   menuDefinition?: MenuDefinition; // For menu bundle products
+  /** Optional server verdict; older edit endpoints may omit it. */
+  availability?: ItemAvailability;
   /**
    * Mirrors backend `ProductDto.AvailableOrderTypes` — the RAW OrderChannels bitmask stored on the
    * item. `null` means "inherit from the primary category", which is NOT the same as an explicit

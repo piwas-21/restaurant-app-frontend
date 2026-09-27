@@ -41,6 +41,8 @@ export interface CreateProductData {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial?: boolean;
+  /** Internal option-only catalogue carrier; the backend blocks direct sale for these rows. */
+  isComponent?: boolean;
   preparationTimeMinutes?: number;
   type: string;
   allergens?: string[];

@@ -1,5 +1,4 @@
-/* The `Item | Translations` tabs — the ONLY tabs in the editor (D2). Sections are a nav, not tabs,
-   so nothing else in this file may grow a tablist. */
+/* The top-level `Item | Translations` tablist. Each section tab panel is nested inside `Item`. */
 .tabs {
   display: flex;
   gap: 0.25rem;
@@ -71,6 +70,10 @@
 /* `hidden` on the inactive tab panel must win: both panels stay mounted so a validation error can
    never hide behind an inactive tab, and a layout `display` would defeat the attribute. */
 .panel[hidden] {
+  display: none;
+}
+
+.sectionPanel[hidden] {
   display: none;
 }
 

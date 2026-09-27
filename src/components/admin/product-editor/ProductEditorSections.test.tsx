@@ -1,7 +1,6 @@
 import React from 'react';
 import { act, render, screen, fireEvent, within } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
-import { COLLAPSED_SECTIONS_STORAGE_KEY } from '@/hooks/admin/useEditorSectionCollapse';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
 jest.mock('react-i18next', () => ({
@@ -27,10 +26,9 @@ jest.mock('@/services/categoryService', () => ({
 /**
  * Slice S2 — the section extraction (MENU-ITEM-EDITOR-REDESIGN-PLAN §4).
  *
- * Two things are being pinned here, and they pull in opposite directions:
+ * Two things are being pinned here:
  *
- * 1. the nine flat groups of §1 are now the SEVEN named sections of §4, in that order, with
- *    `Advanced` the only one that folds (D1) and the fold remembered per user;
+ * 1. the nine flat groups of §1 are now the SEVEN named sections of §4, presented as focused tabs;
  * 2. **not one control was lost on the way.** The re-group moved ~150 controls between parents; the
  *    audit (`docs/plans/_research/menu-item-editor-audit.md`) is the list of what must still be
  *    there, and the second describe block is that list turned into assertions. A field that
@@ -80,24 +78,21 @@ const renderEditor = async (product: ProductDetails = item, mode: 'create' | 'ed
   return view;
 };
 
-/** The fold control ON the section — the nav lists an entry by the same name. */
-const advancedToggle = (container: HTMLElement) =>
-  within(container.querySelector('#editor-section-advanced') as HTMLElement).getByRole('button');
-
 const navEntries = (container: HTMLElement) =>
-  Array.from((container.querySelector('nav[aria-label="editor_sections"]') as HTMLElement).querySelectorAll('button'));
+  Array.from(
+    (container.querySelector('[role="tablist"][aria-label="editor_sections"]') as HTMLElement).querySelectorAll(
+      '[role="tab"]',
+    ),
+  );
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  window.localStorage.clear();
-});
+beforeEach(() => jest.clearAllMocks());
 
 describe('the seven sections of §4', () => {
   it('renders them in order, and names each one in the nav', async () => {
     const { container } = await renderEditor();
 
     expect(navEntries(container).map((button) => button.textContent)).toEqual(SECTION_LABELS);
-    // The nav's order is only worth anything if the DOM agrees with it — the nav scrolls to ids.
+    // The nav and the matching tabpanels share the same order and ids.
     expect(Array.from(container.querySelectorAll('section[id^="editor-section-"]')).map((node) => node.id)).toEqual([
       'editor-section-basics',
       'editor-section-media',
@@ -109,85 +104,27 @@ describe('the seven sections of §4', () => {
     ]);
   });
 
-  /**
-   * D1 in one assertion. A collapsed accordion was the cited Shopify complaint, so exactly one
-   * section may fold — the two controls a restaurant sets once and never opens again.
-   */
-  it('collapses Advanced and nothing else', async () => {
-    const { container } = await renderEditor();
-
-    const toggles = screen.getAllByRole('button', { expanded: false });
-    expect(toggles.map((button) => button.textContent?.replace('⌄', ''))).toEqual(['editor_section_advanced']);
-    expect(screen.queryAllByRole('button', { expanded: true })).toHaveLength(0);
-    expect(container.querySelector(ADVANCED_BODY)).toHaveAttribute('hidden');
-  });
-
-  /**
-   * The half a "hidden section" implementation gets wrong: `hidden`, never unmounted. `isComponent`
-   * is a registered field, and a registered field that leaves the DOM is a value the next save
-   * clears (plan §6). The round-trip suite proves the payload; this proves the mechanism.
-   *
-   * It used to name the type select and `hideBaseProduct`, which have both left this section — the
-   * type for Basics (it decides how the guest sheet groups the item, which is not a once-a-lifetime
-   * setting) and `hideBaseProduct` for the variations table's own base row. The mechanism they were
-   * standing in for is unchanged; only the field that demonstrates it has moved.
-   */
-  it('keeps a collapsed section registered, not unmounted', async () => {
+  it('keeps every section mounted while hiding inactive section panels', async () => {
     const { container } = await renderEditor();
 
     const advanced = container.querySelector(ADVANCED_BODY) as HTMLElement;
     expect(advanced.querySelector('#product-is-component')).not.toBeNull();
+    expect(advanced).not.toHaveAttribute('hidden');
+    expect(container.querySelector('#product-editor-form-section-panel-editor-section-advanced')).toHaveAttribute(
+      'hidden',
+    );
+    expect(container.querySelectorAll('section[id^="editor-section-"]')).toHaveLength(SECTION_LABELS.length);
   });
 
-  it('opens Advanced on click and remembers the choice for the next visit', async () => {
-    const { container, unmount } = await renderEditor();
-
-    fireEvent.click(advancedToggle(container));
-    expect(container.querySelector(ADVANCED_BODY)).not.toHaveAttribute('hidden');
-    expect(JSON.parse(window.localStorage.getItem(COLLAPSED_SECTIONS_STORAGE_KEY) as string)).toEqual([]);
-
-    unmount();
-    const second = await renderEditor();
-    expect(second.container.querySelector(ADVANCED_BODY)).not.toHaveAttribute('hidden');
-    expect(advancedToggle(second.container)).toHaveAttribute('aria-expanded', 'true');
-  });
-
-  it('restores a remembered fold rather than the default', async () => {
-    window.localStorage.setItem(COLLAPSED_SECTIONS_STORAGE_KEY, JSON.stringify(['editor-section-advanced']));
-
+  it('selects the section tab and reveals its matching panel', async () => {
     const { container } = await renderEditor();
 
-    expect(container.querySelector(ADVANCED_BODY)).toHaveAttribute('hidden');
-  });
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_section_recipe' }));
 
-  // A blocked or full storage (private mode, a locked-down browser) may cost the preference and
-  // nothing else — the editor still opens, and the fold still works for the session.
-  it('still renders when localStorage refuses to answer', async () => {
-    const getItem = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('denied');
-    });
-    const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('denied');
-    });
-
-    const { container } = await renderEditor();
-    fireEvent.click(advancedToggle(container));
-    expect(container.querySelector(ADVANCED_BODY)).not.toHaveAttribute('hidden');
-
-    getItem.mockRestore();
-    setItem.mockRestore();
-  });
-
-  it('still tracks the section you jump to', async () => {
-    const scrollIntoView = jest.fn();
-    Element.prototype.scrollIntoView = scrollIntoView;
-    const { container } = await renderEditor();
-
-    fireEvent.click(screen.getByRole('button', { name: 'editor_section_recipe' }));
-
-    expect(scrollIntoView).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: 'editor_section_recipe' })).toHaveAttribute('aria-current', 'true');
-    expect(document.activeElement).toBe(container.querySelector('#editor-section-recipe'));
+    expect(screen.getByRole('tab', { name: 'editor_section_recipe' })).toHaveAttribute('aria-selected', 'true');
+    expect(container.querySelector('#product-editor-form-section-panel-editor-section-recipe')).not.toHaveAttribute(
+      'hidden',
+    );
   });
 });
 
@@ -195,7 +132,13 @@ describe('the seven sections of §4', () => {
  * Every control the audit inventories, found through the SECTION that now owns it. The point is not
  * that the DOM contains an input somewhere — it is that the re-group put each one where §4 says.
  */
-const sectionOf = (container: HTMLElement, id: string) => container.querySelector(`#${id}`) as HTMLElement;
+const sectionOf = (container: HTMLElement, id: string) => {
+  const tab = container.querySelector(
+    `[role="tab"][aria-controls="product-editor-form-section-panel-${id}"]`,
+  ) as HTMLButtonElement | null;
+  if (tab && tab.getAttribute('aria-selected') !== 'true') fireEvent.click(tab);
+  return container.querySelector(`#${id}`) as HTMLElement;
+};
 
 describe('nothing was dropped on the way — the audit inventory, by section', () => {
   it('Basics keeps name, description, the category chips, the primary star and the item type', async () => {

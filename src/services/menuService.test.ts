@@ -52,6 +52,12 @@ describe('getProductById — RequestedOrderType', () => {
 
     expect(requestedUrl()).toBe('/api/Products/product-1?RequestedOrderType=Takeaway');
   });
+
+  it('requests localized detail for guest previews when a locale is supplied', async () => {
+    await getProductById('product-1', undefined, undefined, 'fr-CH');
+
+    expect(requestedUrl()).toBe('/api/Products/product-1?locale=fr-CH');
+  });
 });
 
 describe('getAllMenuBundles — relationship picker pagination', () => {

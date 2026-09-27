@@ -2994,7 +2994,6 @@
   "translation_review_suggestions_empty": "这些文本缺口没有返回建议。您仍可继续编辑翻译并照常保存。",
   "editor_error_summary_in_section": "{{section}} 中有 {{count}} 个字段需要处理 — 跳转到第一个",
   "browse_suggestions": "浏览菜单建议",
-  "browse_sofra_suggestions": "浏览 Sofra 建议",
   "catalogue_title": "Sofra 菜单目录",
   "catalogue_intro": "浏览已发布的菜单模板，查看来源、翻译和顾客可选项。浏览不会更改您的菜单。",
   "catalogue_filter_type": "模板类型",
@@ -3290,5 +3289,7 @@
   "translation_review_source_locale_missing_title": "需要选择源语言",
   "translation_review_source_locale_missing": "请求建议前，请为 {{count}} 个未标注语言的文本字段选择源语言。",
   "translation_review_source_locale_pick": "{{field}} 的源语言",
-  "translation_review_source_locale_required": "选择语言"
+  "translation_review_source_locale_required": "选择语言",
+  "catalogue_preferences_invalid": "请使用字母或数字输入菜系名称。",
+  "option_set_validation_error": "保存前请填写选项组和选项的必填字段。"
 }

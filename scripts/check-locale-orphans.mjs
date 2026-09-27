@@ -62,6 +62,11 @@ const DYNAMIC_PREFIXES = [
   'kitchen_type_',
   'lang_',
   'language_',
+  // Option-set attachment labels are composed from API statuses/settings in the option-set cards.
+  'option_set_preview_',
+  'option_set_related_offer_',
+  'option_set_change_',
+  'option_set_apply_',
   // `src/app/admin/ingredient-translations/page.tsx` composes the i18next plural family
   // `ingredient_translations_receipt_products_{category}` via
   // `t('ingredient_translations_receipt_products', { count })` — the receipt sentence ("applied

@@ -3012,7 +3012,6 @@
   "translation_review_suggestions_empty": "No se recibieron sugerencias para estos textos pendientes. Puedes seguir editando las traducciones y guardar con normalidad.",
   "editor_error_summary_in_section": "{{count}} campos necesitan atención en {{section}} — ir al primero",
   "browse_suggestions": "Explorar sugerencias de menú",
-  "browse_sofra_suggestions": "Explorar sugerencias de Sofra",
   "catalogue_title": "Catálogo de menús de Sofra",
   "catalogue_intro": "Explora plantillas publicadas y consulta su origen, traducciones y opciones para los clientes. Explorar no modifica tu menú.",
   "catalogue_filter_type": "Tipo de plantilla",
@@ -3308,5 +3307,7 @@
   "translation_review_source_locale_missing_title": "Se necesita el idioma de origen",
   "translation_review_source_locale_missing": "Elige el idioma de origen de {{count}} campos de texto sin definir antes de pedir sugerencias.",
   "translation_review_source_locale_pick": "Idioma de origen de {{field}}",
-  "translation_review_source_locale_required": "Elige un idioma"
+  "translation_review_source_locale_required": "Elige un idioma",
+  "catalogue_preferences_invalid": "Introduce una cocina con letras o números.",
+  "option_set_validation_error": "Completa los campos obligatorios del grupo y sus opciones antes de guardar."
 }

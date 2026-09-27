@@ -3003,7 +3003,6 @@
   "translation_review_suggestions_empty": "Bu metin eksikleri için öneri dönmedi. Çevirileri düzenlemeye devam edip normal şekilde kaydedebilirsiniz.",
   "editor_error_summary_in_section": "{{section}} bölümünde {{count}} alanı düzeltin — ilkine git",
   "browse_suggestions": "Menü önerilerini incele",
-  "browse_sofra_suggestions": "Sofra önerilerini incele",
   "catalogue_title": "Sofra menü kataloğu",
   "catalogue_intro": "Yayınlanmış menü şablonlarını inceleyin; kaynaklarını, çevirilerini ve misafir seçeneklerini görün. Kataloğa göz atmak menünüzü değiştirmez.",
   "catalogue_filter_type": "Şablon türü",
@@ -3299,5 +3298,7 @@
   "translation_review_source_locale_missing_title": "Kaynak dili gerekli",
   "translation_review_source_locale_missing": "Öneri istemeden önce kaynağı belirtilmemiş {{count}} metin alanı için kaynak dili seçin.",
   "translation_review_source_locale_pick": "{{field}} için kaynak dili",
-  "translation_review_source_locale_required": "Dil seçin"
+  "translation_review_source_locale_required": "Dil seçin",
+  "catalogue_preferences_invalid": "Harf veya sayı kullanarak bir mutfak adı girin.",
+  "option_set_validation_error": "Kaydetmeden önce gerekli grup ve seçenek alanlarını doldurun."
 }

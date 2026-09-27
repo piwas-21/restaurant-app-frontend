@@ -3003,7 +3003,6 @@
   "translation_review_suggestions_empty": "No suggestions were returned for these text gaps. You can keep editing translations and save normally.",
   "editor_error_summary_in_section": "{{count}} fields need attention in {{section}} — go to first",
   "browse_suggestions": "Browse menu suggestions",
-  "browse_sofra_suggestions": "Browse Sofra suggestions",
   "catalogue_title": "Sofra menu catalogue",
   "catalogue_intro": "Browse published menu templates and inspect their source, translations and guest choices. Browsing does not change your menu.",
   "catalogue_filter_type": "Template type",
@@ -3299,5 +3298,7 @@
   "translation_review_source_locale_missing_title": "Source language needed",
   "translation_review_source_locale_missing": "Choose the source language for {{count}} unannotated text fields before requesting suggestions.",
   "translation_review_source_locale_pick": "Source language for {{field}}",
-  "translation_review_source_locale_required": "Choose a language"
+  "translation_review_source_locale_required": "Choose a language",
+  "catalogue_preferences_invalid": "Enter a cuisine using letters or numbers.",
+  "option_set_validation_error": "Complete the required set and choice fields before saving."
 }

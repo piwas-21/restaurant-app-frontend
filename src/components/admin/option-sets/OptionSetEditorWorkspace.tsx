@@ -10,6 +10,7 @@ import { LANGUAGE_CODES, SUPPORTED_LANGUAGES, type LanguageCode } from '@/config
 import { OPTION_SET_KINDS } from '@/types/optionSet';
 import type { OptionSetKind } from '@/types/optionSet';
 import { useOptionSetEditor } from '@/hooks/admin/useOptionSetEditor';
+import { useOptionSetEditorFormValidation } from '@/hooks/admin/useOptionSetEditorFormValidation';
 import { optionSetEntryReferenceKey } from '@/utils/optionSetEditorModel';
 import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import OptionSetEntryRow from './OptionSetEntryRow';
@@ -26,14 +27,16 @@ export default function OptionSetEditorWorkspace({
   const { t } = useTranslation();
   const router = useRouter();
   const editor = useOptionSetEditor(id, initialKind);
+  const { validate: validateForm, showError: showFormError } = useOptionSetEditorFormValidation(editor);
   const saveOptionSet = editor.save;
   const save = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault();
+      if (!validateForm()) return;
       const saved = await saveOptionSet();
       if (saved && !id) router.replace(`/admin/option-sets/${encodeURIComponent(saved.id)}`);
     },
-    [saveOptionSet, id, router],
+    [saveOptionSet, id, router, validateForm],
   );
 
   if (editor.isLoading)
@@ -174,9 +177,9 @@ export default function OptionSetEditorWorkspace({
             </button>
           )}
         </section>
-        {editor.error === 'save' && (
+        {(editor.error === 'save' || showFormError) && (
           <p role="alert" className={styles.error}>
-            {editor.errorMessage ?? t('option_set_save_error')}
+            {showFormError ? t('option_set_validation_error') : (editor.errorMessage ?? t('option_set_save_error'))}
           </p>
         )}
         {editor.saved && (

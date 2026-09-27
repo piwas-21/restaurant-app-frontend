@@ -5,17 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { useCataloguePreferences } from '@/hooks/admin/useCataloguePreferences';
+import {
+  cuisinePreferencesSchema,
+  MAX_CUISINE_PREFERENCES,
+  normalizeCuisinePreference,
+} from './catalogueCuisinePreferenceSchema';
 import styles from './CatalogueCuisinePreferences.module.css';
-
-const MAX_PREFERENCES = 12;
-
-function cuisineSlug(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 export default function CatalogueCuisinePreferences({
   onPreferencesLoaded,
@@ -25,6 +20,7 @@ export default function CatalogueCuisinePreferences({
   const { t } = useTranslation();
   const preferences = useCataloguePreferences();
   const [draft, setDraft] = useState('');
+  const [validationError, setValidationError] = useState(false);
   const [pending, setPending] = useState<string[] | null>(null);
   const cuisines = pending ?? preferences.cuisines;
 
@@ -34,19 +30,32 @@ export default function CatalogueCuisinePreferences({
 
   const addCuisine = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const next = cuisineSlug(draft);
-    if (next && !cuisines.includes(next) && cuisines.length < MAX_PREFERENCES) {
-      setPending([...cuisines, next]);
+    const parsed = cuisinePreferencesSchema.safeParse([...cuisines, normalizeCuisinePreference(draft)]);
+    if (!parsed.success) {
+      setValidationError(true);
+    } else {
+      setPending(parsed.data);
+      setValidationError(false);
     }
     setDraft('');
   };
 
-  const removeCuisine = (removed: string) => setPending(cuisines.filter((cuisine) => cuisine !== removed));
+  const removeCuisine = (removed: string) => {
+    const parsed = cuisinePreferencesSchema.safeParse(cuisines.filter((cuisine) => cuisine !== removed));
+    if (parsed.success) setPending(parsed.data);
+    setValidationError(false);
+  };
 
   const save = async () => {
-    if (await preferences.save(cuisines)) {
+    const parsed = cuisinePreferencesSchema.safeParse(cuisines);
+    if (!parsed.success) {
+      setValidationError(true);
+      return;
+    }
+    if (await preferences.save(parsed.data)) {
       setPending(null);
-      onPreferencesLoaded(cuisines);
+      setValidationError(false);
+      onPreferencesLoaded(parsed.data);
     }
   };
 
@@ -71,14 +80,15 @@ export default function CatalogueCuisinePreferences({
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            disabled={preferences.isLoading || cuisines.length >= MAX_PREFERENCES}
+            disabled={preferences.isLoading || cuisines.length >= MAX_CUISINE_PREFERENCES}
             autoComplete="off"
           />
         </FormField>
-        <button type="submit" disabled={!draft.trim() || cuisines.length >= MAX_PREFERENCES}>
+        <button type="submit" disabled={!draft.trim() || cuisines.length >= MAX_CUISINE_PREFERENCES}>
           {t('catalogue_preferences_add')}
         </button>
       </form>
+      {validationError && <p className={styles.error}>{t('catalogue_preferences_invalid')}</p>}
       <ul className={styles.tags} aria-label={t('catalogue_preferences_selected')}>
         {cuisines.map((cuisine) => (
           <li key={cuisine}>
@@ -94,7 +104,7 @@ export default function CatalogueCuisinePreferences({
         ))}
       </ul>
       <div className={styles.footer}>
-        <span>{t('catalogue_preferences_limit', { count: cuisines.length, max: MAX_PREFERENCES })}</span>
+        <span>{t('catalogue_preferences_limit', { count: cuisines.length, max: MAX_CUISINE_PREFERENCES })}</span>
         <button type="button" onClick={() => void save()} disabled={preferences.isSaving || pending === null}>
           {t(preferences.isSaving ? 'saving' : 'catalogue_preferences_save')}
         </button>

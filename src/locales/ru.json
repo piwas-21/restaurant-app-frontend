@@ -3021,7 +3021,6 @@
   "translation_review_suggestions_empty": "Для этих пробелов в тексте предложения не получены. Вы можете продолжить редактировать переводы и сохранить изменения обычным способом.",
   "editor_error_summary_in_section": "Исправьте {{count}} полей в разделе «{{section}}» — перейти к первому",
   "browse_suggestions": "Просмотреть предложения меню",
-  "browse_sofra_suggestions": "Просмотреть предложения Sofra",
   "catalogue_title": "Каталог меню Sofra",
   "catalogue_intro": "Просматривайте опубликованные шаблоны меню, их источники, переводы и варианты для гостей. Просмотр не меняет ваше меню.",
   "catalogue_filter_type": "Тип шаблона",
@@ -3317,5 +3316,7 @@
   "translation_review_source_locale_missing_title": "Укажите исходный язык",
   "translation_review_source_locale_missing": "Перед запросом предложений выберите исходный язык для {{count}} текстовых полей без указания языка.",
   "translation_review_source_locale_pick": "Исходный язык для {{field}}",
-  "translation_review_source_locale_required": "Выберите язык"
+  "translation_review_source_locale_required": "Выберите язык",
+  "catalogue_preferences_invalid": "Введите кухню, используя буквы или цифры.",
+  "option_set_validation_error": "Заполните обязательные поля группы и вариантов перед сохранением."
 }

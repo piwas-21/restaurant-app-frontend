@@ -3003,7 +3003,6 @@
   "translation_review_suggestions_empty": "Für diese Textlücken wurden keine Vorschläge geliefert. Sie können Übersetzungen weiter bearbeiten und normal speichern.",
   "editor_error_summary_in_section": "{{count}} Felder in {{section}} benötigen Aufmerksamkeit — zum ersten springen",
   "browse_suggestions": "Menüvorschläge ansehen",
-  "browse_sofra_suggestions": "Sofra-Vorschläge ansehen",
   "catalogue_title": "Sofra-Menükatalog",
   "catalogue_intro": "Durchstöbern Sie veröffentlichte Menüvorlagen und prüfen Sie Herkunft, Übersetzungen und Gästeauswahl. Das Durchstöbern ändert Ihr Menü nicht.",
   "catalogue_filter_type": "Vorlagentyp",
@@ -3188,7 +3187,7 @@
   "option_sets_entries_count": "{{count}} Auswahloptionen",
   "option_sets_attachments_count": "{{count}} verknüpfte Ziele",
   "option_sets_empty": "Keine Optionsgruppen für diese Suche gefunden.",
-  "option_set_version": "Version {{version}}",
+  "option_set_version": "Versionsstand {{version}}",
   "option_set_load_error": "Optionsgruppen konnten nicht geladen werden.",
   "option_set_kind_Ingredient": "Zutatengruppe",
   "option_set_kind_Sauce": "Saucengruppe",
@@ -3299,5 +3298,7 @@
   "translation_review_source_locale_missing_title": "Quellsprache erforderlich",
   "translation_review_source_locale_missing": "Wähle die Quellsprache für {{count}} nicht zugeordnete Textfelder, bevor du Vorschläge anforderst.",
   "translation_review_source_locale_pick": "Quellsprache für {{field}}",
-  "translation_review_source_locale_required": "Sprache auswählen"
+  "translation_review_source_locale_required": "Sprache auswählen",
+  "catalogue_preferences_invalid": "Geben Sie eine Küche mit Buchstaben oder Zahlen ein.",
+  "option_set_validation_error": "Füllen Sie vor dem Speichern die erforderlichen Gruppen- und Auswahlfelder aus."
 }

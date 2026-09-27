@@ -3012,7 +3012,6 @@
   "translation_review_suggestions_empty": "Non sono stati restituiti suggerimenti per questi testi mancanti. Puoi continuare a modificare le traduzioni e salvare normalmente.",
   "editor_error_summary_in_section": "{{count}} campi da correggere in {{section}} — vai al primo",
   "browse_suggestions": "Sfoglia i suggerimenti per il menu",
-  "browse_sofra_suggestions": "Sfoglia i suggerimenti Sofra",
   "catalogue_title": "Catalogo menu Sofra",
   "catalogue_intro": "Sfoglia i modelli pubblicati e consulta origine, traduzioni e scelte per gli ospiti. La consultazione non modifica il menu.",
   "catalogue_filter_type": "Tipo di modello",
@@ -3291,7 +3290,7 @@
   "option_set_related_offer_warnings": "Controllo offerte collegate",
   "option_set_related_offer_warning": "L'offerta {{type}} «{{name}}» non include questa scelta obbligatoria.",
   "option_set_related_offer_standalone": "Singola",
-  "option_set_related_offer_menu": "Menu",
+  "option_set_related_offer_menu": "Menù",
   "option_set_change_add": "Aggiungi",
   "option_set_change_update": "Aggiorna",
   "option_set_change_remove": "Rimuovi",
@@ -3308,5 +3307,7 @@
   "translation_review_source_locale_missing_title": "Lingua sorgente richiesta",
   "translation_review_source_locale_missing": "Scegli la lingua sorgente per {{count}} campi di testo senza lingua definita prima di richiedere suggerimenti.",
   "translation_review_source_locale_pick": "Lingua sorgente per {{field}}",
-  "translation_review_source_locale_required": "Scegli una lingua"
+  "translation_review_source_locale_required": "Scegli una lingua",
+  "catalogue_preferences_invalid": "Inserisci una cucina usando lettere o numeri.",
+  "option_set_validation_error": "Completa i campi obbligatori del gruppo e delle opzioni prima di salvare."
 }

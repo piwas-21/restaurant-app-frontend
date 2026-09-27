@@ -3012,7 +3012,6 @@
   "translation_review_suggestions_empty": "Aucune suggestion n’a été renvoyée pour ces textes manquants. Vous pouvez continuer à modifier les traductions et enregistrer normalement.",
   "editor_error_summary_in_section": "{{count}} champ(s) à corriger dans {{section}} — accéder au premier",
   "browse_suggestions": "Parcourir les suggestions de menu",
-  "browse_sofra_suggestions": "Parcourir les suggestions Sofra",
   "catalogue_title": "Catalogue de menus Sofra",
   "catalogue_intro": "Parcourez les modèles publiés et consultez leur source, leurs traductions et les choix proposés aux clients. La consultation ne modifie pas votre menu.",
   "catalogue_filter_type": "Type de modèle",
@@ -3197,7 +3196,7 @@
   "option_sets_entries_count": "{{count}} choix",
   "option_sets_attachments_count": "{{count}} cibles liées",
   "option_sets_empty": "Aucun groupe ne correspond à cette recherche.",
-  "option_set_version": "Version {{version}}",
+  "option_set_version": "Révision {{version}}",
   "option_set_load_error": "Impossible de charger les groupes d’options.",
   "option_set_kind_Ingredient": "Groupe d’ingrédients",
   "option_set_kind_Sauce": "Groupe de sauces",
@@ -3291,7 +3290,7 @@
   "option_set_related_offer_warnings": "Vérifier les offres liées",
   "option_set_related_offer_warning": "L’offre {{type}} « {{name}} » ne contient pas ce choix obligatoire.",
   "option_set_related_offer_standalone": "À la carte",
-  "option_set_related_offer_menu": "Menu",
+  "option_set_related_offer_menu": "Offre menu",
   "option_set_change_add": "Ajouter",
   "option_set_change_update": "Mettre à jour",
   "option_set_change_remove": "Retirer",
@@ -3308,5 +3307,7 @@
   "translation_review_source_locale_missing_title": "Langue source requise",
   "translation_review_source_locale_missing": "Choisissez la langue source de {{count}} champs de texte sans langue définie avant de demander des suggestions.",
   "translation_review_source_locale_pick": "Langue source de {{field}}",
-  "translation_review_source_locale_required": "Choisir une langue"
+  "translation_review_source_locale_required": "Choisir une langue",
+  "catalogue_preferences_invalid": "Saisissez une cuisine avec des lettres ou des chiffres.",
+  "option_set_validation_error": "Renseignez les champs obligatoires du groupe et des choix avant l’enregistrement."
 }

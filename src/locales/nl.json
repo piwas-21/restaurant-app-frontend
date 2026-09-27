@@ -3003,7 +3003,6 @@
   "translation_review_suggestions_empty": "Voor deze teksthiaten zijn geen voorstellen teruggekomen. Je kunt vertalingen verder bewerken en gewoon opslaan.",
   "editor_error_summary_in_section": "{{count}} velden in {{section}} vragen aandacht — ga naar het eerste",
   "browse_suggestions": "Menusuggesties bekijken",
-  "browse_sofra_suggestions": "Sofra-suggesties bekijken",
   "catalogue_title": "Sofra-menucatalogus",
   "catalogue_intro": "Bekijk gepubliceerde menusjablonen en controleer de bron, vertalingen en keuzes voor gasten. Rondkijken verandert je menu niet.",
   "catalogue_filter_type": "Sjabloontype",
@@ -3278,11 +3277,11 @@
   "option_set_preview_summary": "{{ready}} van {{total}} doelen zijn klaar.",
   "option_set_preview_ready": "Klaar",
   "option_set_preview_unchanged": "Geen wijzigingen",
-  "option_set_preview_conflict": "Conflict",
+  "option_set_preview_conflict": "Conflicterend",
   "option_set_related_offer_warnings": "Gekoppelde aanbiedingen controleren",
   "option_set_related_offer_warning": "De {{type}}-aanbieding ‘{{name}}’ bevat deze verplichte keuze niet.",
   "option_set_related_offer_standalone": "Los product",
-  "option_set_related_offer_menu": "Menu",
+  "option_set_related_offer_menu": "Menu-aanbieding",
   "option_set_change_add": "Toevoegen",
   "option_set_change_update": "Bijwerken",
   "option_set_change_remove": "Verwijderen",
@@ -3299,5 +3298,7 @@
   "translation_review_source_locale_missing_title": "Brontaal vereist",
   "translation_review_source_locale_missing": "Kies de brontaal voor {{count}} niet-toegewezen tekstvelden voordat je suggesties aanvraagt.",
   "translation_review_source_locale_pick": "Brontaal voor {{field}}",
-  "translation_review_source_locale_required": "Kies een taal"
+  "translation_review_source_locale_required": "Kies een taal",
+  "catalogue_preferences_invalid": "Voer een keuken in met letters of cijfers.",
+  "option_set_validation_error": "Vul de verplichte groep- en keuzevelden in voordat je opslaat."
 }

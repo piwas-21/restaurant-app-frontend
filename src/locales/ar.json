@@ -3039,7 +3039,6 @@
   "translation_review_suggestions_empty": "لم تُقدّم اقتراحات لهذه النصوص الناقصة. يمكنك متابعة تعديل الترجمات والحفظ كالمعتاد.",
   "editor_error_summary_in_section": "هناك {{count}} حقول تحتاج إلى مراجعة في {{section}} — الانتقال إلى الأول",
   "browse_suggestions": "تصفّح اقتراحات القائمة",
-  "browse_sofra_suggestions": "تصفّح اقتراحات Sofra",
   "catalogue_title": "كتالوج قوائم Sofra",
   "catalogue_intro": "تصفّح قوالب القوائم المنشورة واطّلع على مصادرها وترجماتها وخيارات الضيوف. التصفّح لا يغيّر قائمتك.",
   "catalogue_filter_type": "نوع القالب",
@@ -3335,5 +3334,7 @@
   "translation_review_source_locale_missing_title": "لغة المصدر مطلوبة",
   "translation_review_source_locale_missing": "اختر لغة المصدر لـ {{count}} حقول نصية غير محددة قبل طلب الاقتراحات.",
   "translation_review_source_locale_pick": "لغة المصدر لـ {{field}}",
-  "translation_review_source_locale_required": "اختر لغة"
+  "translation_review_source_locale_required": "اختر لغة",
+  "catalogue_preferences_invalid": "أدخل نوع مطبخ باستخدام الحروف أو الأرقام.",
+  "option_set_validation_error": "أكمل حقول المجموعة والخيارات المطلوبة قبل الحفظ."
 }

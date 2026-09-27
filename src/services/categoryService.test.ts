@@ -88,7 +88,15 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
 
   it('sends an absent description as undefined rather than a null the handler would store', async () => {
     await updateCategoryOrderTypes(
-      { id: 'c1', name: 'Grills', description: null, isActive: false, isHiddenFromAllTab: false },
+      {
+        id: 'c1',
+        name: 'Grills',
+        description: null,
+        translations: {},
+        sourceLocale: null,
+        isActive: false,
+        isHiddenFromAllTab: false,
+      },
       null,
     );
 
@@ -101,6 +109,19 @@ describe('updateCategoryOrderTypes — the ONE writer for a category channel mas
       isActive: false,
       isHiddenFromAllTab: false,
       availableOrderTypes: null,
+    });
+  });
+
+  it('omits locale fields when a partial category object does not carry them', async () => {
+    await updateCategoryOrderTypes({ id: 'legacy', name: 'Grills', isActive: true, isHiddenFromAllTab: false }, 2);
+
+    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/legacy', {
+      id: 'legacy',
+      name: 'Grills',
+      description: undefined,
+      isActive: true,
+      isHiddenFromAllTab: false,
+      availableOrderTypes: 2,
     });
   });
 

@@ -20,6 +20,7 @@ describe('category form locale fields', () => {
     if (!createResult.success) {
       expect(createResult.error.issues[0].message).toBe('category_source_language_required');
     }
+    expect(createCategorySchema.safeParse({ ...legacyCategoryForm, sourceLocale: undefined }).success).toBe(false);
     expect(createCategorySchema.safeParse({ ...legacyCategoryForm, sourceLocale: 'fr' }).success).toBe(true);
   });
 

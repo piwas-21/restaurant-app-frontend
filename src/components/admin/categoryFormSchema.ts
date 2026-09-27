@@ -31,8 +31,8 @@ const languageCodeSchema = z
 export const categoryFormSchema = z.object({
   name: z.string().min(1, { message: 'Category name is required' }),
   description: z.string().nullish(),
-  translations: z.record(z.string(), z.object({ name: z.string(), description: z.string().nullish() })).default({}),
-  sourceLocale: languageCodeSchema.nullable(),
+  translations: z.record(z.string(), z.object({ name: z.string(), description: z.string().nullish() })).optional(),
+  sourceLocale: languageCodeSchema.nullable().optional(),
   imageFile: z
     .any()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)

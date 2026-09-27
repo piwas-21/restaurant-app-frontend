@@ -48,6 +48,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -67,8 +68,8 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
       reset({
         name: category.name,
         description: category.description || '',
-        translations: category.translations ?? {},
-        sourceLocale: category.sourceLocale ?? null,
+        translations: category.translations,
+        sourceLocale: category.sourceLocale,
         isActive: category.isActive,
         isHiddenFromAllTab: category.isHiddenFromAllTab ?? false,
         displayOrder: category.displayOrder,
@@ -104,6 +105,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
           </div>
           <CategoryTranslationsFields
             key={category?.id ?? 'new'}
+            control={control}
             register={register}
             errors={errors}
             initialTranslations={category.translations ?? {}}

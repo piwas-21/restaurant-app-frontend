@@ -32,9 +32,12 @@ interface CategoryData {
   availableOrderTypes?: number | null;
 }
 
-// This interface is for the main update, without displayOrder
-interface UpdateCategoryData extends CategoryData {
+// Existing rows may predate category translations/sourceLocale. Omitting either preserves
+// backend state; explicit null remains meaningful for a known unknown source locale.
+interface UpdateCategoryData extends Omit<CategoryData, 'translations' | 'sourceLocale'> {
   id: string;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
 }
 
 export const createCategory = async (categoryData: CategoryData & { displayOrder: number }) => {
@@ -74,8 +77,8 @@ export const updateCategoryOrderTypes = async (category: CategoryChannelEcho, av
     id: category.id,
     name: category.name,
     description: category.description ?? undefined,
-    translations: category.translations ?? {},
-    sourceLocale: category.sourceLocale ?? null,
+    ...(category.translations !== undefined ? { translations: category.translations } : {}),
+    ...(category.sourceLocale !== undefined ? { sourceLocale: category.sourceLocale } : {}),
     isActive: category.isActive,
     isHiddenFromAllTab: category.isHiddenFromAllTab,
     availableOrderTypes,

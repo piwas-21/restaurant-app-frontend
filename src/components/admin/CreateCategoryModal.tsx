@@ -16,10 +16,13 @@ import {
 } from '@/lib/categoryFormErrors';
 
 /** @see categoryFormSchema — one object for both modals, so they cannot drift (#642). */
-export const createCategorySchema = categoryFormSchema.refine((values) => values.sourceLocale !== null, {
-  path: ['sourceLocale'],
-  message: 'category_source_language_required',
-});
+export const createCategorySchema = categoryFormSchema.refine(
+  (values) => values.sourceLocale !== null && values.sourceLocale !== undefined,
+  {
+    path: ['sourceLocale'],
+    message: 'category_source_language_required',
+  },
+);
 
 type CreateCategoryFormValues = CategoryFormValues;
 
@@ -40,6 +43,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -72,8 +76,8 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         isActive: data.isActive,
         isHiddenFromAllTab: data.isHiddenFromAllTab,
         displayOrder: data.displayOrder,
-        translations: omitNewBlankCategoryTranslations(data.translations),
-        sourceLocale: data.sourceLocale,
+        translations: omitNewBlankCategoryTranslations(data.translations ?? {}),
+        sourceLocale: data.sourceLocale ?? null,
       })) as CategoryApiResponse;
 
       if (!categoryResponse.success) {
@@ -153,7 +157,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             <textarea id="description" {...register('description')} />
             {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
           </div>
-          <CategoryTranslationsFields register={register} errors={errors} createMode />
+          <CategoryTranslationsFields control={control} register={register} errors={errors} createMode />
           <div className={styles.formGroup}>
             <label htmlFor="imageFile">{t('category_image')}</label>
             <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />

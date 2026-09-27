@@ -24,8 +24,8 @@ export interface EditCategoryValues {
   name: string;
   /** `string | null` for the reason `CategoryData.description` is — the wire sends both (#642). */
   description?: string | null;
-  translations: CategoryTranslations;
-  sourceLocale: string | null;
+  translations?: CategoryTranslations;
+  sourceLocale?: string | null;
   isActive: boolean;
   isHiddenFromAllTab: boolean;
   displayOrder: number;
@@ -63,6 +63,11 @@ export function useEditCategorySave(
     const partial: string[] = [];
 
     try {
+      const editedTranslations = omitNewBlankCategoryTranslations(
+        values.translations ?? category.translations ?? {},
+        category.translations ?? {},
+      );
+      const sourceLocale = values.sourceLocale !== undefined ? values.sourceLocale : category.sourceLocale;
       const updateData = {
         id: category.id,
         name: values.name,
@@ -76,8 +81,14 @@ export function useEditCategorySave(
         // category's channel restriction on every unrelated rename (plan §9.1). The channel
         // matrix in restaurant settings stays the only writer.
         availableOrderTypes: category.availableOrderTypes ?? null,
-        translations: omitNewBlankCategoryTranslations(values.translations ?? {}, category.translations ?? {}),
-        sourceLocale: values.sourceLocale,
+        ...(category.translations !== undefined || Object.keys(editedTranslations).length > 0
+          ? { translations: editedTranslations }
+          : {}),
+        // A blank native select is parsed as null. If the DTO omitted this field entirely,
+        // that UI default is not evidence that the admin chose to clear it; preserve omission.
+        ...(sourceLocale !== undefined && !(category.sourceLocale === undefined && sourceLocale === null)
+          ? { sourceLocale }
+          : {}),
       };
       const categoryResponse = (await updateCategory(category.id, updateData)) as CategoryApiResponse;
 

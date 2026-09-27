@@ -134,6 +134,38 @@ describe('EditCategoryModal — order-type availability', () => {
     );
   });
 
+  it('keeps a missing locale map/source omitted on an untouched legacy edit', async () => {
+    renderModal({ translations: undefined, sourceLocale: undefined });
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1]).not.toHaveProperty('translations');
+    expect(mockUpdateCategory.mock.calls[0][1]).not.toHaveProperty('sourceLocale');
+  });
+
+  it('keeps the source locale out of targets and edits the new target after the source changes', async () => {
+    renderModal({ sourceLocale: 'nl' });
+
+    const targetSelect = screen.getByLabelText('editor_translations_target_languages') as HTMLSelectElement;
+    expect(targetSelect).toHaveValue('fr');
+    expect(targetSelect.querySelector('option[value="nl"]')).not.toBeInTheDocument();
+    expect(targetSelect.querySelectorAll('option')).toHaveLength(LANGUAGE_CODES.length - 1);
+
+    fireEvent.change(screen.getByLabelText('catalogue_source_language'), { target: { value: 'fr' } });
+
+    expect(targetSelect).toHaveValue('en');
+    expect(targetSelect.querySelector('option[value="fr"]')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getAllByLabelText('editor_translations_target_field')[0], {
+      target: { value: 'Wraps in English' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    await waitFor(() => expect(mockUpdateCategory).toHaveBeenCalledTimes(1));
+    expect(mockUpdateCategory.mock.calls[0][1].translations.en.name).toBe('Wraps in English');
+  });
+
   it('updates one selected locale while leaving the other locale entries intact', async () => {
     renderModal();
     const translationName = screen.getAllByLabelText('editor_translations_target_field')[0];

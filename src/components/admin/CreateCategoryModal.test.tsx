@@ -67,6 +67,39 @@ beforeEach(() => {
   });
 });
 
+it('uses a labelled BaseModal and preserves form values across close and reopen', () => {
+  const props = { onClose: jest.fn(), onCategoryCreated: jest.fn(), onPartialSuccess: jest.fn() };
+  const view = render(<CreateCategoryModal isOpen {...props} />);
+
+  expect(screen.getByRole('dialog', { name: 'create_category' })).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('category_name'), { target: { value: 'Starters' } });
+
+  view.rerender(<CreateCategoryModal isOpen={false} {...props} />);
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+  view.rerender(<CreateCategoryModal isOpen {...props} />);
+  expect(screen.getByLabelText('category_name')).toHaveValue('Starters');
+});
+
+it('moves focus to the invalid name field after a failed client-side submit', async () => {
+  render(<CreateCategoryModal isOpen onClose={jest.fn()} onCategoryCreated={jest.fn()} onPartialSuccess={jest.fn()} />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'create' }));
+
+  expect(await screen.findByText('Category name is required')).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByLabelText('category_name')).toHaveFocus());
+  expect(mockCreateCategory).not.toHaveBeenCalled();
+});
+
+it('does not treat clicks inside the form as backdrop dismissal', () => {
+  const onClose = jest.fn();
+  render(<CreateCategoryModal isOpen onClose={onClose} onCategoryCreated={jest.fn()} onPartialSuccess={jest.fn()} />);
+
+  fireEvent.click(screen.getByLabelText('category_name'));
+
+  expect(onClose).not.toHaveBeenCalled();
+});
+
 it('reviews and saves an accepted category suggestion with source-locale metadata', async () => {
   render(<CreateCategoryModal isOpen onClose={jest.fn()} onCategoryCreated={jest.fn()} onPartialSuccess={jest.fn()} />);
 

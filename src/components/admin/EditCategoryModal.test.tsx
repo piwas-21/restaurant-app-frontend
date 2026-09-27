@@ -124,6 +124,43 @@ beforeEach(() => {
 });
 
 describe('EditCategoryModal — order-type availability', () => {
+  it('uses a labelled BaseModal and preserves edited values across close and reopen', () => {
+    const props = {
+      onClose: jest.fn(),
+      onCategoryUpdated: jest.fn(),
+      category,
+      onPartialSuccess: jest.fn(),
+    };
+    const view = render(<EditCategoryModal isOpen {...props} />);
+
+    expect(screen.getByRole('dialog', { name: 'edit_category' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('category_name'), { target: { value: 'Edited wraps' } });
+
+    view.rerender(<EditCategoryModal isOpen={false} {...props} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    view.rerender(<EditCategoryModal isOpen {...props} />);
+    expect(screen.getByLabelText('category_name')).toHaveValue('Edited wraps');
+  });
+
+  it('moves focus to the invalid name field after a failed client-side submit', async () => {
+    renderModal({ name: '' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+
+    expect(await screen.findByText('Category name is required')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText('category_name')).toHaveFocus());
+    expect(mockUpdateCategory).not.toHaveBeenCalled();
+  });
+
+  it('closes from Escape through the shared modal keyboard behavior', () => {
+    const { onClose } = renderModal();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('reports the effective order types read-only, with a link to the one surface that writes them', () => {
     renderModal();
 

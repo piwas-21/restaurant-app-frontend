@@ -6,6 +6,7 @@ import CategoryHiddenFromAllTabField from './CategoryHiddenFromAllTabField';
 import CategoryTranslationsFields from './CategoryTranslationsFields';
 import TranslationSuggestionsReview from './product-editor/translations/TranslationSuggestionsReview';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
+import BaseModal from '@/components/design-system/BaseModal';
 import { useTranslation } from 'react-i18next';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
 import { type SetCategoryError } from '@/lib/categoryFormErrors';
@@ -104,66 +105,63 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
     onClose();
   };
 
-  if (!isOpen || !category) return null;
+  if (!category) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <h2>{t('edit_category')}</h2>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {errors.root && <p className={styles.errorMessage}>{errors.root.message}</p>}
-          <div className={styles.formGroup}>
-            <label htmlFor="name">{t('category_name')}</label>
-            <input id="name" {...register('name')} />
-            {errors.name && <p className={styles.errorMessage}>{errors.name.message}</p>}
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="description">{t('description')}</label>
-            <textarea id="description" {...register('description')} />
-            {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
-          </div>
-          <CategoryTranslationsFields
-            key={category?.id ?? 'new'}
-            control={control}
-            register={register}
-            errors={errors}
-            initialTranslations={category.translations ?? {}}
-            initialSourceLocale={category.sourceLocale}
-            onTranslationChange={translationReview.review.clearAcceptedSuggestionIds}
-          />
-          <details onToggle={translationReview.onToggle}>
-            <summary>{t('translation_review_title')}</summary>
-            <TranslationSuggestionsReview review={translationReview.review} showSourceLocaleChoices={false} />
-          </details>
-          <div className={styles.formGroup}>
-            <label htmlFor="imageFile">{t('category_image_edit')}</label>
-            <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />
-            {errors.imageFile && <p className={styles.errorMessage}>{errors.imageFile.message as string}</p>}
-          </div>
-          <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
-            <label htmlFor="isActive">
-              <input type="checkbox" id="isActive" {...register('isActive')} />
-              {t('is_active')}
-            </label>
-          </div>
-          <CategoryHiddenFromAllTabField register={register} />
-          <div className={styles.formGroup}>
-            <label htmlFor="displayOrder">{t('display_order')}</label>
-            <input id="displayOrder" type="number" {...register('displayOrder')} />
-            {errors.displayOrder && <p className={styles.errorMessage}>{errors.displayOrder.message}</p>}
-          </div>
-          <CategoryOrderTypesSummary mask={category?.availableOrderTypes} className={styles.formGroup} />
-          <div className={styles.buttonGroup}>
-            <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-              {isSubmitting ? t('saving...') : t('save_changes')}
-            </button>
-            <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
-              {t('cancel')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <BaseModal isOpen={isOpen} onClose={onClose} title={t('edit_category')} size="lg" isPending={isSubmitting}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {errors.root && <p className={styles.errorMessage}>{errors.root.message}</p>}
+        <div className={styles.formGroup}>
+          <label htmlFor="name">{t('category_name')}</label>
+          <input id="name" {...register('name')} />
+          {errors.name && <p className={styles.errorMessage}>{errors.name.message}</p>}
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="description">{t('description')}</label>
+          <textarea id="description" {...register('description')} />
+          {errors.description && <p className={styles.errorMessage}>{errors.description.message}</p>}
+        </div>
+        <CategoryTranslationsFields
+          key={category?.id ?? 'new'}
+          control={control}
+          register={register}
+          errors={errors}
+          initialTranslations={category.translations ?? {}}
+          initialSourceLocale={category.sourceLocale}
+          onTranslationChange={translationReview.review.clearAcceptedSuggestionIds}
+        />
+        <details onToggle={translationReview.onToggle}>
+          <summary>{t('translation_review_title')}</summary>
+          <TranslationSuggestionsReview review={translationReview.review} showSourceLocaleChoices={false} />
+        </details>
+        <div className={styles.formGroup}>
+          <label htmlFor="imageFile">{t('category_image_edit')}</label>
+          <input id="imageFile" type="file" accept="image/*" {...register('imageFile')} />
+          {errors.imageFile && <p className={styles.errorMessage}>{errors.imageFile.message as string}</p>}
+        </div>
+        <div className={`${styles.formGroup} ${styles.checkboxGroup}`}>
+          <label htmlFor="isActive">
+            <input type="checkbox" id="isActive" {...register('isActive')} />
+            {t('is_active')}
+          </label>
+        </div>
+        <CategoryHiddenFromAllTabField register={register} />
+        <div className={styles.formGroup}>
+          <label htmlFor="displayOrder">{t('display_order')}</label>
+          <input id="displayOrder" type="number" {...register('displayOrder')} />
+          {errors.displayOrder && <p className={styles.errorMessage}>{errors.displayOrder.message}</p>}
+        </div>
+        <CategoryOrderTypesSummary mask={category?.availableOrderTypes} className={styles.formGroup} />
+        <div className={styles.buttonGroup}>
+          <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
+            {isSubmitting ? t('saving...') : t('save_changes')}
+          </button>
+          <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
+            {t('cancel')}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   );
 };
 

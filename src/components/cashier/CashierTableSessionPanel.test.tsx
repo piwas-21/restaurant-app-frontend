@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
+import type { ComponentProps } from 'react';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -48,22 +49,30 @@ const session = {
   },
 } as TableServiceSessionDto;
 
+function renderPanel(
+  current: TableServiceSessionDto,
+  overrides: Partial<ComponentProps<typeof CashierTableSessionPanel>> = {},
+) {
+  return render(
+    <CashierTableSessionPanel
+      session={current}
+      error={null}
+      isMutating={false}
+      isStale={false}
+      pendingOperation={null}
+      onBack={jest.fn()}
+      onRefresh={jest.fn()}
+      onSubmitPayment={jest.fn()}
+      onCloseSession={jest.fn()}
+      onReconcilePendingOperation={jest.fn()}
+      {...overrides}
+    />,
+  );
+}
+
 describe('CashierTableSessionPanel', () => {
   it('pins a numbered table link to the selected open visit', () => {
-    render(
-      <CashierTableSessionPanel
-        session={{ ...session, hasUnassignedActiveOrders: false }}
-        error={null}
-        isMutating={false}
-        isStale={false}
-        pendingOperation={null}
-        onBack={jest.fn()}
-        onRefresh={jest.fn()}
-        onSubmitPayment={jest.fn()}
-        onCloseSession={jest.fn()}
-        onReconcilePendingOperation={jest.fn()}
-      />,
-    );
+    renderPanel({ ...session, hasUnassignedActiveOrders: false });
 
     expect(screen.getByRole('link', { name: 'cashier.tables.add_round' })).toHaveAttribute(
       'href',
@@ -72,26 +81,13 @@ describe('CashierTableSessionPanel', () => {
   });
 
   it('links an alphanumeric table visit to cashier New Sale using stable identities', () => {
-    render(
-      <CashierTableSessionPanel
-        session={{
-          ...session,
-          tableId: 'outdoor-11a',
-          tableNumber: null,
-          tableLabel: '11a',
-          hasUnassignedActiveOrders: false,
-        }}
-        error={null}
-        isMutating={false}
-        isStale={false}
-        pendingOperation={null}
-        onBack={jest.fn()}
-        onRefresh={jest.fn()}
-        onSubmitPayment={jest.fn()}
-        onCloseSession={jest.fn()}
-        onReconcilePendingOperation={jest.fn()}
-      />,
-    );
+    renderPanel({
+      ...session,
+      tableId: 'outdoor-11a',
+      tableNumber: null,
+      tableLabel: '11a',
+      hasUnassignedActiveOrders: false,
+    });
 
     expect(screen.getByRole('link', { name: 'cashier.tables.add_round' })).toHaveAttribute(
       'href',
@@ -101,22 +97,7 @@ describe('CashierTableSessionPanel', () => {
 
   it('resolves legacy orders through the repair action instead of opening New Sale', () => {
     const resolve = jest.fn();
-    render(
-      <CashierTableSessionPanel
-        session={session}
-        error={null}
-        isMutating={false}
-        isStale={false}
-        pendingOperation={null}
-        hasLegacyConflict
-        onBack={jest.fn()}
-        onRefresh={jest.fn()}
-        onSubmitPayment={jest.fn()}
-        onCloseSession={jest.fn()}
-        onReconcilePendingOperation={jest.fn()}
-        onResolveLegacyOrders={resolve}
-      />,
-    );
+    renderPanel(session, { hasLegacyConflict: true, onResolveLegacyOrders: resolve });
 
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.resolve_legacy_orders' }));
     expect(resolve).toHaveBeenCalledTimes(1);

@@ -89,6 +89,10 @@
   flex-wrap: wrap;
 }
 
+.visibility {
+  margin-block-start: 0.75rem;
+}
+
 .options {
   margin-block-start: 1rem;
   padding: 1rem;
@@ -111,4 +115,26 @@
 
 .productRow > span {
   flex: 1;
+}
+
+.advanced {
+  margin-block-start: 1.25rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--border-default);
+}
+
+.advanced summary {
+  width: fit-content;
+  color: var(--brand-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.advanced summary:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+.advanced[open] .grid {
+  margin-block-start: 1rem;
 }

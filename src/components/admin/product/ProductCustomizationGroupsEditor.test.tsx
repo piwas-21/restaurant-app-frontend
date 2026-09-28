@@ -115,4 +115,42 @@ describe('ProductCustomizationGroupsEditor', () => {
     fireEvent.change(screen.getByLabelText('minimum_selection'), { target: { value: '0' } });
     expect(onChange.mock.calls.at(-1)?.[0][0]).toMatchObject({ minSelection: 0, isRequired: false });
   });
+
+  it('marks inactive groups clearly and keeps their visibility and extra rules editable', () => {
+    const onChange = jest.fn();
+    render(
+      <ProductCustomizationGroupsEditor
+        groups={[
+          {
+            name: 'Sauces',
+            displayOrder: 0,
+            isRequired: false,
+            minSelection: 0,
+            maxSelection: 2,
+            includedFreeUnits: 0,
+            isActive: false,
+            content: {},
+            ingredientOptions: [],
+            productOptions: [],
+          },
+        ]}
+        ingredients={[]}
+        productId="tacos-1"
+        currentLanguage="en"
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.getByText('inactive')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'active' })).not.toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'active' }));
+    expect(onChange.mock.calls.at(-1)?.[0][0].isActive).toBe(true);
+
+    const advanced = screen.getByText('editor_section_advanced').closest('details');
+    expect(advanced).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('editor_section_advanced'));
+    expect(advanced).toHaveAttribute('open');
+    fireEvent.change(screen.getByLabelText('choice_group_included_ingredient_units'), { target: { value: '2' } });
+    expect(onChange.mock.calls.at(-1)?.[0][0].includedFreeUnits).toBe(2);
+  });
 });

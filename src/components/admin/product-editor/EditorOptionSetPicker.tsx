@@ -4,7 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
-import type { OptionSetDetail, OptionSetKind, OptionSetSummary } from '@/types/optionSet';
+import {
+  OPTION_SET_PAGE_LIMIT,
+  type OptionSetDetail,
+  type OptionSetKind,
+  type OptionSetSummary,
+} from '@/types/optionSet';
 import { getOptionSet, searchOptionSets } from '@/services/optionSetService';
 import { applyOptionSetToEditor, optionSetHasCompleteReferences } from '@/utils/applyOptionSetToEditor';
 import { getErrorMessage } from '@/utils/apiClient';
@@ -34,19 +39,23 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
     setPreview(null);
     setLoading(true);
     setError(null);
-    Promise.all(kinds.map((kind) => searchOptionSets({ kind, query: query.trim(), limit: 24 }, controller.signal)))
+    Promise.all(
+      kinds.map((kind) =>
+        searchOptionSets({ kind, query: query.trim(), limit: OPTION_SET_PAGE_LIMIT }, controller.signal),
+      ),
+    )
       .then((pages) => {
         if (!controller.signal.aborted)
           setSets(pages.flatMap((page) => page.items).filter((set) => set.status === 'active'));
       })
       .catch((requestError: unknown) => {
-        if (!controller.signal.aborted) setError(getErrorMessage(requestError));
+        if (!controller.signal.aborted) setError(getErrorMessage(requestError) ?? t('option_set_load_error'));
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [kinds, query]);
+  }, [kinds, query, t]);
 
   const openPreview = async (set: OptionSetSummary) => {
     setApplyingId(set.id);
@@ -56,7 +65,7 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
       const detail = await getOptionSet(set.id);
       setPreview(detail);
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
+      setError(getErrorMessage(requestError) ?? t('option_set_load_error'));
     } finally {
       setApplyingId(null);
     }

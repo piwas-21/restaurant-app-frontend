@@ -28,7 +28,7 @@ type ReviewPanelState = Pick<
   | 'edit'
   | 'decide'
 > &
-  Partial<Pick<Review, 'errorMessage' | 'reviewWriteErrorMessage'>>;
+  Partial<Pick<Review, 'errorMessage' | 'reviewWriteErrorMessage' | 'setSourceLocaleForMany'>>;
 
 interface TranslationSuggestionsReviewProps {
   readonly review: ReviewPanelState;
@@ -119,24 +119,56 @@ export default function TranslationSuggestionsReview({
           <output className={styles.warning}>
             {t('translation_review_source_locale_missing', { count: review.unknownSourceLocaleFields.length })}
           </output>
-          {showSourceLocaleChoices &&
-            review.unknownSourceLocaleFields.map((field) => {
-              const label = field.slot.source
-                ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
-                : t(field.slot.fieldLabel);
-              return (
-                <FormField key={field.slot.key} label={t('translation_review_source_locale_pick', { field: label })}>
-                  <select value="" onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}>
-                    <option value="">{t('translation_review_source_locale_required')}</option>
-                    {LANGUAGE_CODES.map((locale) => (
-                      <option key={locale} value={locale}>
-                        {getLanguageNativeName(locale)}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
-              );
-            })}
+          {showSourceLocaleChoices && (
+            <>
+              <FormField label={t('translation_review_source_locale_bulk')}>
+                <select
+                  value=""
+                  onChange={(event) => {
+                    const keys = review.unknownSourceLocaleFields.map((field) => field.slot.key);
+                    if (review.setSourceLocaleForMany) review.setSourceLocaleForMany(keys, event.target.value);
+                    else keys.forEach((key) => review.setSourceLocaleFor(key, event.target.value));
+                  }}
+                >
+                  <option value="">{t('translation_review_source_locale_required')}</option>
+                  {LANGUAGE_CODES.map((locale) => (
+                    <option key={locale} value={locale}>
+                      {getLanguageNativeName(locale)}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <p className={styles.sourceHint}>{t('translation_review_source_locale_bulk_help')}</p>
+              <details>
+                <summary>{t('translation_review_source_locale_individual')}</summary>
+                <div className={styles.sourceLocaleFields}>
+                  {review.unknownSourceLocaleFields.map((field) => {
+                    const label = field.slot.source
+                      ? `${field.slot.source} · ${t(field.slot.fieldLabel)}`
+                      : t(field.slot.fieldLabel);
+                    return (
+                      <FormField
+                        key={field.slot.key}
+                        label={t('translation_review_source_locale_pick', { field: label })}
+                      >
+                        <select
+                          value=""
+                          onChange={(event) => review.setSourceLocaleFor(field.slot.key, event.target.value)}
+                        >
+                          <option value="">{t('translation_review_source_locale_required')}</option>
+                          {LANGUAGE_CODES.map((locale) => (
+                            <option key={locale} value={locale}>
+                              {getLanguageNativeName(locale)}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                    );
+                  })}
+                </div>
+              </details>
+            </>
+          )}
         </section>
       )}
       {providerStatus === 'disabled' && (

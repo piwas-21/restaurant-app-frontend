@@ -37,7 +37,7 @@ export function useEditorTranslationReview({
   isOpen,
   adapter = translationWorkbenchService,
 }: UseEditorTranslationReviewOptions) {
-  const { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor } = useEditorSourceLocales({
+  const { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor, setSourceLocaleForMany } = useEditorSourceLocales({
     editor,
     product,
     productId,
@@ -172,11 +172,11 @@ export function useEditorTranslationReview({
       return false;
     }
   }, [adapter, batchEntries, editor, previewRows, readFields, requestedBatchFields, setBatchError]);
-
   return {
     sourceLocaleFor,
     sourceLocaleKnownFor,
     setSourceLocaleFor,
+    setSourceLocaleForMany,
     unknownSourceLocaleFields,
     buildMetadataPatch,
     phase: batch.phase,

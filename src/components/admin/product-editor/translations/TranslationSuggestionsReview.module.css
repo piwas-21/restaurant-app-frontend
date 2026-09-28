@@ -80,6 +80,23 @@
   background: var(--surface-primary);
 }
 
+.sourceHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.sourceLocaleChoices summary {
+  cursor: pointer;
+  color: var(--link-default);
+}
+
+.sourceLocaleFields {
+  display: grid;
+  gap: 0.65rem;
+  margin-block-start: 0.75rem;
+}
+
 .alternatives {
   display: grid;
   gap: 0.6rem;

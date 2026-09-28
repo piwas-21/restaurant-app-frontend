@@ -2620,7 +2620,7 @@
   "cashier.workspace.tables_description": "Open table visits and settle a complete bill",
   "cashier.new_sale.channel_label": "Order channel",
   "cashier.new_sale.channel_loading": "Loading channels…",
-  "cashier.new_sale.table_number": "Table",
+  "cashier.new_sale.table_number": "Table label",
   "cashier.new_sale.table_number_placeholder": "e.g. 12 or 11a",
   "cashier.new_sale.catalog_label": "Catalog",
   "cashier.new_sale.search_placeholder": "Search products",

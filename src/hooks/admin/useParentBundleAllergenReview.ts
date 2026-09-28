@@ -19,7 +19,7 @@ function normalizedLabels(value: unknown): string {
   if (!Array.isArray(value)) return '';
   return value
     .filter((label): label is string => typeof label === 'string')
-    .sort()
+    .sort((left, right) => left.localeCompare(right))
     .join('\u0000');
 }
 

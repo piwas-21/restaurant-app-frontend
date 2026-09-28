@@ -14,8 +14,8 @@ export default function ParentBundleAllergenReviewNotice({ review }: ParentBundl
   if (review.state.status === 'idle' && !review.needsReview) return null;
   if (review.state.status === 'idle' || review.state.status === 'loading') {
     return (
-      <li className={styles.note} role="status">
-        {t('editor_review_parent_bundle_checking')}
+      <li className={styles.note}>
+        <output>{t('editor_review_parent_bundle_checking')}</output>
       </li>
     );
   }

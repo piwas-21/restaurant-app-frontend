@@ -114,15 +114,16 @@ export function findBundleOption(
   );
 }
 
-/**
- * How many options a section has picked. Counts *options*, not their quantities, to match the
- * server: `BasketItemFactory.BuildMenuItemAsync` gates `MinSelection`/`MaxSelection` on
- * `sectionSelections.Count`. (Every option is quantity 1 today — nothing in the sheet sets a
- * per-option quantity — so the two only diverge if that ever changes, and then the server's rule is
- * the one that decides whether the add is a 400.)
- */
-export function countSectionSelections(selectedOptions: readonly SelectedMenuOption[], sectionId: string): number {
-  return selectedOptions.filter((option) => option.sectionId === sectionId).length;
+/** Count portions in repeatable sections, distinct choices elsewhere. */
+export function countSectionSelections(
+  selectedOptions: readonly SelectedMenuOption[],
+  sectionId: string,
+  allowRepeatedItems = false,
+): number {
+  const sectionOptions = selectedOptions.filter((option) => option.sectionId === sectionId);
+  return allowRepeatedItems
+    ? sectionOptions.reduce((total, option) => total + option.quantity, 0)
+    : sectionOptions.length;
 }
 
 /**
@@ -165,7 +166,7 @@ export function toggleBundleOption(
     );
   }
 
-  if (countSectionSelections(selectedOptions, section.id) >= section.maxSelection) {
+  if (countSectionSelections(selectedOptions, section.id, section.allowRepeatedItems) >= section.maxSelection) {
     return [...selectedOptions];
   }
 
@@ -211,7 +212,9 @@ export function findBundleSelectionErrors(
 ): BundleSelectionError[] {
   return sections
     .filter(
-      (section) => section.isRequired && countSectionSelections(selectedOptions, section.id) < section.minSelection,
+      (section) =>
+        section.isRequired &&
+        countSectionSelections(selectedOptions, section.id, section.allowRepeatedItems) < section.minSelection,
     )
     .map((section) => ({ sectionId: section.id, minSelection: section.minSelection }));
 }

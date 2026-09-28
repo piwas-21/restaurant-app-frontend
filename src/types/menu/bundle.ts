@@ -1,7 +1,4 @@
-/**
- * Menu-bundle interfaces: a menu definition with sections, scheduling, and the
- * customer's selected options. Extracted from types/menu.ts (Sprint 4/6 type-file split).
- */
+/** Menu definitions, section choices and selected bundle options. */
 
 import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
 import type { SauceGroupCarrier } from './sauce';
@@ -46,6 +43,8 @@ export interface MenuSection {
   isRequired: boolean;
   minSelection: number;
   maxSelection: number;
+  /** Count portions rather than distinct choices against this section's limits. */
+  allowRepeatedItems?: boolean;
   items: MenuSectionItem[];
 }
 

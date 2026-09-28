@@ -1334,6 +1334,7 @@
   "section_name_placeholder": "ex: Choisir une Boisson",
   "description_placeholder": "Description facultative pour cette section",
   "required_section": "Section Requise",
+  "allow_repeated_menu_items": "Autoriser plusieurs portions du même produit",
   "minimum_selection": "Sélection Minimum",
   "maximum_selection": "Sélection Maximum",
   "move_up": "Monter",

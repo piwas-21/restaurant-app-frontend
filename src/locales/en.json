@@ -1397,6 +1397,7 @@
   "section_name_placeholder": "e.g., Choose Drink",
   "description_placeholder": "Optional description for this section",
   "required_section": "Required Section",
+  "allow_repeated_menu_items": "Allow the same item more than once",
   "minimum_selection": "Minimum Selection",
   "maximum_selection": "Maximum Selection",
   "move_up": "Move up",

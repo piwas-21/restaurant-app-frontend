@@ -292,6 +292,13 @@ export function optionStepIsSkippable(
 /** The names a bundle section step reports — the options picked, in the section's own order. */
 export function bundleStepSummary(section: MenuSection, selectedOptions: readonly SelectedMenuOption[]): string[] {
   return section.items
-    .filter((item) => findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId))
-    .map((item) => [item.productName, item.productVariationName].filter(Boolean).join(' · '));
+    .map((item) => ({
+      item,
+      option: findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
+    }))
+    .filter(({ option }) => Boolean(option))
+    .map(({ item, option }) => {
+      const name = [item.productName, item.productVariationName].filter(Boolean).join(' · ');
+      return option && option.quantity > 1 ? `${option.quantity} × ${name}` : name;
+    });
 }

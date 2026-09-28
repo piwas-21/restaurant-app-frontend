@@ -95,6 +95,7 @@ describe('stripTemporaryMenuSectionIds', () => {
       isRequired: true,
       minSelection: 1,
       maxSelection: 1,
+      allowRepeatedItems: false,
       items: cleaned.items,
     });
   });

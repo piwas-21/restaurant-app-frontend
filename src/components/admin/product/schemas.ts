@@ -241,13 +241,14 @@ const menuSectionSchema = z
     isRequired: z.boolean().default(true),
     minSelection: z.coerce.number().int().min(0).default(1),
     maxSelection: z.coerce.number().int().min(1).default(1),
+    allowRepeatedItems: z.boolean().optional(),
     items: z.array(menuSectionItemSchema).min(1, 'Add at least one item to this section'),
   })
   .superRefine((section, ctx) => {
     if (section.minSelection > section.maxSelection) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['minSelection'], message: 'Minimum cannot exceed maximum' });
     }
-    if (section.maxSelection > section.items.length) {
+    if (!section.allowRepeatedItems && section.maxSelection > section.items.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['maxSelection'],

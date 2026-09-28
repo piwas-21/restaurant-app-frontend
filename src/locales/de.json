@@ -1330,6 +1330,7 @@
   "section_name_placeholder": "z.B. Getränk wählen",
   "description_placeholder": "Optionale Beschreibung für diesen Abschnitt",
   "required_section": "Erforderlicher Abschnitt",
+  "allow_repeated_menu_items": "Dasselbe Produkt mehrfach auswählen",
   "minimum_selection": "Mindestauswahl",
   "maximum_selection": "Maximale Auswahl",
   "move_up": "Nach oben verschieben",

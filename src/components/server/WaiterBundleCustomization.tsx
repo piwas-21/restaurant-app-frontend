@@ -100,6 +100,11 @@ export default function WaiterBundleCustomization({
           selectedOptions={selectedOptions}
           minSelectionError={errorsBySection.get(section.id)}
           currentLanguage={currentLanguage}
+          onOptionQuantityChange={(sectionId, itemId, nextQuantity, productVariationId) =>
+            setSelectedOptions((previous) =>
+              updateBundleOption(previous, sectionId, itemId, { quantity: nextQuantity }, productVariationId),
+            )
+          }
           onToggleOption={(nextSection, itemId, productVariationId) => {
             setSelectedOptions((previous) => toggleBundleOption(nextSection, previous, itemId, productVariationId));
             setExpandedOptionKey((previous) =>

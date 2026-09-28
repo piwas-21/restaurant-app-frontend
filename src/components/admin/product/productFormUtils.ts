@@ -147,6 +147,39 @@ async function prepareVersionedMenuDefinition(
   };
 }
 
+/** Re-sync untouched translation snapshots before serializing edited product content. */
+function prepareEditContent(data: EditFormData, product: SubmitEditProductFormParams['product']) {
+  const resyncedContent = withResyncedSnapshots(data.content as ResyncRow[] | undefined, {
+    previousName: product.name,
+    previousDescription: product.description,
+    nextName: data.name,
+    nextDescription: data.description,
+  });
+  const cleaned = resyncedContent
+    .filter((entry) => entry?.language?.trim() && entry?.name?.trim())
+    .map((entry) => ({
+      language: String(entry.language).trim(),
+      name: String(entry.name || '').trim(),
+      description: (entry.description ?? '').toString(),
+    }));
+
+  return cleaned.length > 0
+    ? cleaned.reduce<Record<string, { name: string; description: string }>>((content, entry) => {
+        content[entry.language] = { name: entry.name, description: entry.description };
+        return content;
+      }, {})
+    : undefined;
+}
+
+function prepareEditCategories(data: EditFormData) {
+  const categoryIds = Array.isArray(data.categoryIds) ? data.categoryIds.filter(Boolean) : [];
+  let primaryCategoryId = data.primaryCategoryId || '';
+  if (categoryIds.length > 0 && !categoryIds.includes(primaryCategoryId)) {
+    primaryCategoryId = categoryIds[0];
+  }
+  return { categoryIds, primaryCategoryId };
+}
+
 /**
  * Sends `{}` rather than omitting `content`, mirroring what MenuBundleDetails already sends
  * (`product.content || {}`). The form yields `undefined` once every language row is removed.
@@ -400,46 +433,10 @@ export const submitEditProductForm = async ({
       return isNaN(num) ? fallback : num;
     };
 
-    // Clean content array and format for API.
-    //
-    // The re-sync runs FIRST (#536): a translation row that is a verbatim copy of the base text
-    // being replaced is a creation-time snapshot, not a translation, and must follow the plain
-    // *Açıklama* box the admin just edited — otherwise that edit reaches no guest whose locale
-    // carries the snapshot. `product` is the item as FETCHED, and the PREVIOUS base text is the
-    // only thing that can tell a snapshot from something someone typed. Rationale, and why #536's
-    // other option (stop writing `content` from the plain box) would be a regression, live in
-    // translationResync.ts.
-    const resyncedContent = withResyncedSnapshots(data.content as ResyncRow[] | undefined, {
-      previousName: product?.name,
-      previousDescription: product?.description,
-      nextName: data.name,
-      nextDescription: data.description,
-    });
-
-    const cleanedContentArray = resyncedContent
-      .filter((e: any) => e?.language?.trim() && e?.name?.trim())
-      .map((e: any) => ({
-        language: String(e.language).trim(),
-        name: String(e.name || '').trim(),
-        description: (e.description ?? '').toString(),
-      }));
-
-    const formattedContent =
-      cleanedContentArray.length > 0
-        ? cleanedContentArray.reduce((acc: any, curr: any) => {
-            acc[curr.language] = {
-              name: curr.name,
-              description: curr.description,
-            };
-            return acc;
-          }, {})
-        : undefined;
-
-    const categoryIds = Array.isArray(data.categoryIds) ? (data.categoryIds.filter(Boolean) as string[]) : [];
-    let primaryCategoryId = (data.primaryCategoryId || '') as string;
-    if (categoryIds.length > 0 && !categoryIds.includes(primaryCategoryId)) {
-      primaryCategoryId = categoryIds[0];
-    }
+    // The re-sync precedes serialization: untouched translation snapshots follow an edited base
+    // description, while translator-authored text stays intact (see translationResync.ts).
+    const formattedContent = prepareEditContent(data, product);
+    const { categoryIds, primaryCategoryId } = prepareEditCategories(data);
 
     const cleanedVariations = (data.variations || [])
       .filter((v) => (v?.name || '').trim().length > 0)

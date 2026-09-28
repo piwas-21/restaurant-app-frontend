@@ -10,12 +10,13 @@ import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-managem
 import type { MenuDefinition } from '@/types/menu';
 import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
-import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
+import { toBundleDefaults, toItemDefaults } from '@/utils/productEditorDefaults';
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
 import { useCustomizationGroupsEditorState } from './useCustomizationGroupsEditorState';
 import type { EditorTranslationMetadataPatch } from '@/types/translationMetadata';
 import { applyEditorTranslationMetadata } from '@/utils/applyEditorTranslationMetadata';
+import { useMenuSectionAuthoringState } from './useMenuSectionAuthoringState';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -26,13 +27,7 @@ interface UseProductEditorFormOptions {
   onSaved: () => void;
 }
 
-/**
- * The unified admin editor's form (menu-bundles redesign #176, slice 7): one
- * react-hook-form + Zod instance and ONE product write path, replacing the four modals'
- * forms and the self-saving detail tables' second write path (owner call, plan §7). It
- * drives both the create (`/new`) and edit (`[productId]`) routes — the kind and the mode
- * pick the schema and the endpoint.
- */
+/** Shared create/edit form for products and menu bundles in the unified admin editor. */
 export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved }: UseProductEditorFormOptions) {
   const { t, i18n } = useTranslation();
   const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
@@ -42,7 +37,8 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const [selectedSideItemIds, setSelectedSideItemIds] = useState<string[]>([]);
   const [detailedIngredients, setDetailedIngredients] = useState<ProductIngredient[]>([]);
   const customization = useCustomizationGroupsEditorState(product, isBundle);
-  const [menuDefinition, setMenuDefinition] = useState<MenuDefinition>(() => toMenuDefinitionState(product));
+  const menuAuthoring = useMenuSectionAuthoringState(product);
+  const { menuDefinition, setMenuDefinition } = menuAuthoring;
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
   const translationMetadata = useRef<EditorTranslationMetadataPatch | null>(null);
@@ -64,15 +60,12 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     reset(isBundle ? toBundleDefaults(product) : toItemDefaults(product));
     setSelectedSideItemIds(isBundle ? [] : (product.suggestedSideItems ?? []).map((s) => s.id).filter(Boolean));
     setDetailedIngredients(isBundle ? [] : (product.detailedIngredients ?? []));
-    setMenuDefinition(toMenuDefinitionState(product));
     setImageFiles([]);
     setIsMenuDefinitionDirty(false);
     setIsIngredientsDirty(false);
   }, [product, isBundle, reset]);
 
-  // Mirror the schedule/sections state back into the form. editMenuBundleSchema REQUIRES
-  // menuDefinition, and the editors below are not registered fields — without this the
-  // resolver would validate a stale value and silently refuse to submit.
+  // The editor owns this value outside react-hook-form. Mirror it so Zod validates the current menu.
   useEffect(() => {
     if (isBundle) setValue('menuDefinition', menuDefinition);
   }, [isBundle, menuDefinition, setValue]);
@@ -81,10 +74,13 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     if (!isBundle) setValue('customizationGroups', customization.groups);
   }, [customization.groups, isBundle, setValue]);
 
-  const changeMenuDefinition = useCallback((next: MenuDefinition) => {
-    setMenuDefinition(next);
-    setIsMenuDefinitionDirty(true);
-  }, []);
+  const changeMenuDefinition = useCallback(
+    (next: MenuDefinition) => {
+      setMenuDefinition(next);
+      setIsMenuDefinitionDirty(true);
+    },
+    [setMenuDefinition],
+  );
 
   const changeSideItemIds = useCallback(
     (next: string[]) => {
@@ -145,12 +141,14 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
     await submitEditProductForm({
       data: payload as never,
-      product,
+      product: menuAuthoring.productForSave,
       imageFiles,
       detailedIngredients: ingredientsForKind,
       customizationGroups: customization.groups,
       setIsSubmitting,
       setError,
+      onMenuSectionsPatched: menuAuthoring.onMenuSectionsPatched,
+      partialMenuSaveMessage: (reason) => t('menu_sections_saved_partial', { reason }),
       onProductUpdated: () => {
         setImageFiles([]);
         setIsMenuDefinitionDirty(false);

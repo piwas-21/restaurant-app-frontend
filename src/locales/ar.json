@@ -1862,6 +1862,7 @@
   "editor_autosave_pending": "سيتم الحفظ قريبًا…",
   "editor_autosave_stalled": "لم يتم الحفظ — استخدم زر الحفظ",
   "editor_save_conflict_short": "يلزم إعادة التحميل",
+  "menu_sections_saved_partial": "تم حفظ أقسام القائمة، لكن تعذر حفظ بقية القائمة. يُرجى المحاولة مرة أخرى. {{reason}}",
   "editor_layout_save_blocked": "لم يتم حفظ المخطط، لذلك تغييرات الطاولات معلّقة. حاول مرة أخرى.",
   "editor_preview_title": "معاينة كضيف",
   "editor_canvas_aria": "لوحة محرر المخطط",

@@ -12,6 +12,7 @@ jest.mock('@/services/menuService', () => ({
 }));
 jest.mock('@/services/menuBundleService', () => ({
   createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-bundle' } })),
+  patchMenuBundleSections: jest.fn(),
   updateMenuBundle: jest.fn(async () => ({ success: true })),
 }));
 
@@ -23,7 +24,8 @@ jest.mock('@/services/globalIngredientService', () => ({
 import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
-import { updateMenuBundle, createMenuBundle } from '@/services/menuBundleService';
+import { updateMenuBundle, createMenuBundle, patchMenuBundleSections } from '@/services/menuBundleService';
+import type { MenuSection } from '@/types/menu';
 
 /** The shape EditMenuBundleModal builds — editMenuBundleSchema has no category field at all. */
 const bundleFormData = (overrides: Record<string, unknown> = {}) => ({
@@ -70,10 +72,17 @@ const onProductUpdated = jest.fn();
 // The partial-success sink: the product was written, its photos were not. Required on both
 // functions, so every harness below passes it and the assertions can read what it was told.
 const onImageUploadFailed = jest.fn();
+const sectionPatchCallbacks = {
+  onMenuSectionsPatched: jest.fn(),
+  partialMenuSaveMessage: (reason: string) => `Sections saved; retry the other changes: ${reason}`,
+};
 
 const submit = async (
   data: Record<string, unknown>,
-  product: { id: string; menuDefinition?: { authoringVersion?: number } } = { id: String(data.id) },
+  product: {
+    id: string;
+    menuDefinition?: { authoringVersion?: number; sections?: MenuSection[] };
+  } = { id: String(data.id) },
 ) => {
   await submitEditProductForm({
     data: data as never,
@@ -86,6 +95,7 @@ const submit = async (
     onClose: () => {},
     fallbackMessage: 'translated fallback',
     onImageUploadFailed,
+    ...sectionPatchCallbacks,
   });
 
   expect(setError).not.toHaveBeenCalled();
@@ -107,6 +117,231 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
       'bundle-1',
       expect.objectContaining({ id: 'bundle-1', expectedAuthoringVersion: 12 }),
     );
+  });
+
+  it('PATCHes mixed persisted and new rows, then PUTs the IDs returned by the server', async () => {
+    const existingSection: MenuSection = {
+      id: 'section-existing',
+      name: 'Choose a main',
+      description: '',
+      displayOrder: 0,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      items: [
+        {
+          id: 'item-existing',
+          productId: 'product-existing',
+          additionalPrice: 0,
+          displayOrder: 0,
+          isDefault: true,
+        },
+      ],
+    };
+    const draftSections: MenuSection[] = [
+      {
+        ...existingSection,
+        name: 'Choose a main edited',
+        items: [
+          existingSection.items[0],
+          {
+            id: 'temp-new-item',
+            productId: 'product-new',
+            additionalPrice: 1,
+            displayOrder: 1,
+            isDefault: false,
+          },
+        ],
+      },
+      {
+        id: 'temp-new-section',
+        name: 'Choose a drink',
+        description: '',
+        displayOrder: 1,
+        isRequired: false,
+        minSelection: 0,
+        maxSelection: 1,
+        items: [
+          {
+            id: 'temp-new-section-item',
+            productId: 'product-drink',
+            additionalPrice: 2,
+            displayOrder: 0,
+            isDefault: false,
+          },
+        ],
+      },
+    ];
+    const persistedSections: MenuSection[] = [
+      {
+        ...draftSections[0],
+        items: [draftSections[0].items[0], { ...draftSections[0].items[1], id: 'item-new' }],
+      },
+      {
+        ...draftSections[1],
+        id: 'section-new',
+        items: [{ ...draftSections[1].items[0], id: 'item-new-section' }],
+      },
+    ];
+    const patchResult = { authoringVersion: 13, sections: persistedSections };
+    (patchMenuBundleSections as jest.Mock).mockResolvedValueOnce(patchResult);
+
+    await submit(
+      bundleFormData({
+        menuDefinition: { id: 'definition-1', authoringVersion: 12, isAlwaysAvailable: true, sections: draftSections },
+      }),
+      { id: 'bundle-1', menuDefinition: { authoringVersion: 12, sections: [existingSection] } },
+    );
+
+    expect(patchMenuBundleSections).toHaveBeenCalledWith('bundle-1', 12, draftSections);
+    const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
+    const wire = JSON.parse(JSON.stringify(payload));
+    expect(wire.expectedAuthoringVersion).toBe(13);
+    expect(wire.menuDefinition.sections).toEqual(persistedSections);
+  });
+
+  it('surfaces the stale-version conflict and skips the metadata PUT', async () => {
+    const existingSection: MenuSection = {
+      id: 'section-existing',
+      name: 'Choose a main',
+      description: '',
+      displayOrder: 0,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      items: [
+        {
+          id: 'item-existing',
+          productId: 'product-existing',
+          additionalPrice: 0,
+          displayOrder: 0,
+          isDefault: true,
+        },
+      ],
+    };
+    const staleConflict = 'The menu changed while you were editing it; reload before saving again';
+    (patchMenuBundleSections as jest.Mock).mockRejectedValueOnce(new ApiError(409, staleConflict));
+
+    await submitEditProductForm({
+      data: bundleFormData({
+        menuDefinition: {
+          id: 'definition-1',
+          authoringVersion: 12,
+          isAlwaysAvailable: true,
+          sections: [{ ...existingSection, name: 'Choose a main edited' }],
+        },
+      }) as never,
+      product: { id: 'bundle-1', menuDefinition: { authoringVersion: 12, sections: [existingSection] } },
+      imageFiles: [],
+      detailedIngredients: [],
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+      ...sectionPatchCallbacks,
+    });
+
+    expect(patchMenuBundleSections).toHaveBeenCalledWith('bundle-1', 12, [
+      expect.objectContaining({ id: 'section-existing', name: 'Choose a main edited' }),
+    ]);
+    expect(setError.mock.calls[0][1].message).toBe(staleConflict);
+    expect(updateMenuBundle).not.toHaveBeenCalled();
+    expect(sectionPatchCallbacks.onMenuSectionsPatched).not.toHaveBeenCalled();
+    expect(onProductUpdated).not.toHaveBeenCalled();
+  });
+
+  it('retries a refused metadata PUT using the PATCHed section IDs without PATCHing twice', async () => {
+    const existingSection: MenuSection = {
+      id: 'section-existing',
+      name: 'Choose a main',
+      description: '',
+      displayOrder: 0,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      items: [
+        {
+          id: 'item-existing',
+          productId: 'product-existing',
+          additionalPrice: 0,
+          displayOrder: 0,
+          isDefault: true,
+        },
+      ],
+    };
+    const draftSections: MenuSection[] = [
+      {
+        ...existingSection,
+        name: 'Choose a main edited',
+        items: [
+          existingSection.items[0],
+          {
+            id: 'temp-new-item',
+            productId: 'product-new',
+            additionalPrice: 1,
+            displayOrder: 1,
+            isDefault: false,
+          },
+        ],
+      },
+    ];
+    const persistedSections: MenuSection[] = [
+      {
+        ...draftSections[0],
+        items: [draftSections[0].items[0], { ...draftSections[0].items[1], id: 'item-new' }],
+      },
+    ];
+    const patchResult = { authoringVersion: 13, sections: persistedSections };
+    (patchMenuBundleSections as jest.Mock).mockResolvedValueOnce(patchResult);
+    (updateMenuBundle as jest.Mock).mockResolvedValueOnce({ success: false, errors: ['Menu metadata conflict'] });
+
+    let persistedBaseline = { authoringVersion: 12, sections: [existingSection] };
+    let retrySections = draftSections;
+    const adoptPatchResult = (result: typeof patchResult, mergedDraft: MenuSection[]) => {
+      persistedBaseline = { authoringVersion: result.authoringVersion, sections: result.sections };
+      retrySections = mergedDraft;
+    };
+    const runSave = (version: number, sections: MenuSection[]) =>
+      submitEditProductForm({
+        data: bundleFormData({
+          description: 'Updated menu description',
+          menuDefinition: { id: 'definition-1', authoringVersion: version, isAlwaysAvailable: true, sections },
+        }) as never,
+        product: { id: 'bundle-1', menuDefinition: persistedBaseline },
+        imageFiles: [],
+        detailedIngredients: [],
+        setIsSubmitting: () => {},
+        setError,
+        onProductUpdated,
+        onClose: () => {},
+        fallbackMessage: 'translated fallback',
+        onImageUploadFailed,
+        onMenuSectionsPatched: adoptPatchResult,
+        partialMenuSaveMessage: sectionPatchCallbacks.partialMenuSaveMessage,
+      });
+
+    await runSave(12, draftSections);
+
+    expect(patchMenuBundleSections).toHaveBeenCalledTimes(1);
+    expect(setError.mock.calls[0][1].message).toBe('Sections saved; retry the other changes: Menu metadata conflict');
+    expect(onProductUpdated).not.toHaveBeenCalled();
+    expect(persistedBaseline).toEqual({ authoringVersion: 13, sections: persistedSections });
+    expect(retrySections[0].items[1].id).toBe('item-new');
+
+    setError.mockClear();
+    await runSave(persistedBaseline.authoringVersion, retrySections);
+
+    expect(patchMenuBundleSections).toHaveBeenCalledTimes(1);
+    expect(updateMenuBundle).toHaveBeenCalledTimes(2);
+    const [, retryPayload] = (updateMenuBundle as jest.Mock).mock.calls[1];
+    const retryWire = JSON.parse(JSON.stringify(retryPayload));
+    expect(retryWire.expectedAuthoringVersion).toBe(13);
+    expect(retryWire.menuDefinition.sections).toEqual(persistedSections);
+    expect(retryWire.description).toBe('Updated menu description');
+    expect(setError).not.toHaveBeenCalled();
+    expect(onProductUpdated).toHaveBeenCalledTimes(1);
   });
 
   it('still sends a plain item to the product endpoint', async () => {
@@ -144,6 +379,7 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
 
     expect(updateProduct).toHaveBeenCalledTimes(1);
@@ -272,6 +508,7 @@ describe('submitEditProductForm — a translation that is a copy of the base tex
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
 
     expect(setError).not.toHaveBeenCalled();
@@ -346,6 +583,7 @@ describe('the failure paths surface the server’s reason, or the caller’s tra
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
   };
 
@@ -488,6 +726,7 @@ describe('untouched translation entries are dropped; entries carrying anything a
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
     expect(setError).not.toHaveBeenCalled();
     return (updateProduct as jest.Mock).mock.calls[0][1];
@@ -617,6 +856,7 @@ describe('a product that was written but whose photos were refused', () => {
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
 
   // The exact envelope backend #398 sends when every file was rejected: 200, success:false, one
@@ -720,6 +960,7 @@ describe('a product that was written but whose photos were refused', () => {
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
 
     expect(bulk).not.toHaveBeenCalled();
@@ -757,6 +998,7 @@ describe('a picked library row survives the save', () => {
       onClose: () => {},
       fallbackMessage: 'translated fallback',
       onImageUploadFailed,
+      ...sectionPatchCallbacks,
     });
 
     expect(setError).not.toHaveBeenCalled();

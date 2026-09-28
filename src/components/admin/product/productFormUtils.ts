@@ -1,13 +1,21 @@
 import { UseFormSetError, UseFormReset } from 'react-hook-form';
 import { FormData, EditFormData } from './schemas';
 import { createProduct } from '@/services/menuService';
-import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
+import {
+  createMenuBundle,
+  patchMenuBundleSections,
+  updateMenuBundle,
+  type MenuSectionsPatchResult,
+} from '@/services/menuBundleService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIngredientReconciliation';
 import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
+import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
+import type { MenuSection } from '@/types/menu';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
+import { menuSectionsEqual, mergePatchedMenuSections } from '@/utils/menuSectionVersioning';
 
 /**
  * Told when the product itself was written but its staged photos were NOT stored. It receives the
@@ -51,7 +59,7 @@ interface SubmitEditProductFormParams {
     id: string;
     name?: string;
     description?: string;
-    menuDefinition?: { authoringVersion?: number };
+    menuDefinition?: { authoringVersion?: number; sections?: MenuSection[] };
   };
   imageFiles: File[];
   detailedIngredients?: ProductIngredient[];
@@ -64,24 +72,21 @@ interface SubmitEditProductFormParams {
   fallbackMessage: string;
   /** The product was written, its photos were not — see `uploadStagedImages`. */
   onImageUploadFailed: ImageUploadFailureReporter;
+  /** Adopt server IDs/version immediately so a retry after a later PUT refusal is safe. */
+  onMenuSectionsPatched: (result: MenuSectionsPatchResult, draftSections: MenuSection[]) => void;
+  /** Translated explanation shown when PATCH saved sections but the following bundle PUT failed. */
+  partialMenuSaveMessage: (reason: string) => string;
 }
 
 type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
 
 /**
- * The create/update wire shape for a bundle's menu definition. Extracted from the two byte-identical
- * copies that sat in `submitProductForm` and `submitEditProductForm` (menu-bundles redesign #176,
- * slice 7) — behaviour-identical to both, including the two quirks below, which are preserved rather
- * than reconciled: changing either is a behaviour change, not a move (slice-3 precedent).
+ * The create/update wire shape for a bundle's menu definition, shared by both submit paths.
  *
- * 1. It strips the SECTION id only — nested item ids pass through untouched. Nothing is broken
- *    today because both bundle modals pre-strip via `stripTemporaryMenuSectionIds`
- *    (src/utils/menuSectionDraft.ts), which handles items too. But a `temp-…` item id is NOT
- *    ignored server-side: `MenuSectionItemDto.Id` is `Guid?`, so STJ fails the conversion and the
- *    request 400s. The unified editor page (PR2d) must pre-strip the same way, or adopt that util
- *    here — this is the landmine that fires if it calls this write path directly.
- * 2. The `section.id === ''` arm is unreachable — `section.id &&` already short-circuits on ''.
- *    An empty-string id therefore survives as '' rather than becoming null.
+ * Temporary section and item IDs are omitted; persisted IDs survive. This projection also protects
+ * direct callers that bypass the editor's `toSubmittableMenuDefinition` helper.
+ *
+ * The definition's empty id becomes `null`, preserving the create payload's established behavior.
  *
  * The ':00' padding is load-bearing: `MenuDefinitionDto.StartTime/EndTime` are `TimeSpan?`, which
  * STJ will not parse from the "HH:mm" that `MenuScheduleEditor`'s `<input type="time">` emits.
@@ -97,11 +102,7 @@ const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined
   return {
     ...menuDefinition,
     id: menuDefinition.id || null,
-    sections:
-      menuDefinition.sections?.map((section) => ({
-        ...section,
-        id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
-      })) || [],
+    sections: stripTemporaryMenuSectionIds((menuDefinition.sections ?? []) as MenuSection[]),
     startTime: padTime(menuDefinition.startTime),
     endTime: padTime(menuDefinition.endTime),
   };
@@ -348,8 +349,12 @@ export const submitEditProductForm = async ({
   onClose,
   fallbackMessage,
   onImageUploadFailed,
+  onMenuSectionsPatched,
+  partialMenuSaveMessage,
 }: SubmitEditProductFormParams) => {
   setIsSubmitting(true);
+  let menuSectionsPatched = false;
+  let menuBundleUpdateSucceeded = false;
   try {
     const parseNum = (val: any, fallback: number): number => {
       const num = parseFloat(String(val || '').trim());
@@ -418,6 +423,29 @@ export const submitEditProductForm = async ({
 
     // Provenance + temp-id strip, shared with the create path above.
     const cleanedIngredients = withoutTemporaryIds(await withGlobalIngredientProvenance(detailedIngredients || []));
+    let menuDefinitionPayload = toMenuDefinitionPayload(data.menuDefinition);
+    let authoringVersion = product.menuDefinition?.authoringVersion;
+    const draftSections = (data.menuDefinition?.sections ?? []) as MenuSection[];
+
+    if (
+      data.menuDefinition &&
+      authoringVersion !== undefined &&
+      !menuSectionsEqual(product.menuDefinition?.sections ?? [], draftSections)
+    ) {
+      const patchResult = await patchMenuBundleSections(product.id, authoringVersion, draftSections);
+      menuSectionsPatched = true;
+      authoringVersion = patchResult.authoringVersion;
+      const mergedDraftSections = mergePatchedMenuSections(draftSections, patchResult.sections);
+
+      // The PUT carries the exact server snapshot so its versioned-section guard can verify that
+      // only non-section fields changed. Keep richer draft-only fields in the open editor.
+      menuDefinitionPayload = toMenuDefinitionPayload({
+        ...data.menuDefinition,
+        sections: patchResult.sections,
+      });
+      onMenuSectionsPatched(patchResult, mergedDraftSections);
+    }
+
     const productData = {
       ...data,
       id: product.id,
@@ -436,7 +464,7 @@ export const submitEditProductForm = async ({
       content: formattedContent,
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       customizationGroups,
-      menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
+      menuDefinition: menuDefinitionPayload,
     } as any;
 
     // A bundle must be updated through the bundle endpoint, mirroring the create path above.
@@ -447,7 +475,7 @@ export const submitEditProductForm = async ({
     const response = (await (data.menuDefinition
       ? updateMenuBundle(product.id, {
           ...toMenuBundlePayload(productData),
-          expectedAuthoringVersion: product.menuDefinition?.authoringVersion,
+          expectedAuthoringVersion: authoringVersion,
         })
       : updateProduct(product.id, productData))) as {
       success: boolean;
@@ -458,13 +486,17 @@ export const submitEditProductForm = async ({
       errors?: unknown;
     };
     if (response.success) {
+      if (data.menuDefinition) menuBundleUpdateSucceeded = true;
       if (imageFiles.length > 0) {
         await uploadStagedImages(product.id, imageFiles, onImageUploadFailed);
       }
       onProductUpdated();
       onClose();
     } else {
-      setError('root', { message: serverMessage(response) ?? fallbackMessage });
+      const reason = serverMessage(response) ?? fallbackMessage;
+      setError('root', {
+        message: menuSectionsPatched ? partialMenuSaveMessage(reason) : reason,
+      });
     }
   } catch (error: unknown) {
     // Was `} catch {` — the error object discarded entirely, then a hardcoded English sentence.
@@ -472,7 +504,10 @@ export const submitEditProductForm = async ({
     // lines up sets the SAME `root` error and leaving one of the pair converted is worse than
     // leaving both.
     console.error('Edit submit error:', error);
-    setError('root', { message: serverMessage(error) ?? fallbackMessage });
+    const reason = serverMessage(error) ?? fallbackMessage;
+    setError('root', {
+      message: menuSectionsPatched && !menuBundleUpdateSucceeded ? partialMenuSaveMessage(reason) : reason,
+    });
   } finally {
     setIsSubmitting(false);
   }

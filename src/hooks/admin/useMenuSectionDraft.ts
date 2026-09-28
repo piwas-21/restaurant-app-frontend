@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MenuSection, MenuSectionItem } from '@/types/menu';
+import { createTemporaryMenuId } from '@/utils/menuSectionVersioning';
 
 interface UseMenuSectionDraftOptions {
   sections: MenuSection[];
@@ -22,6 +23,7 @@ interface UseMenuSectionDraftOptions {
  */
 export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftOptions) {
   const [localSections, setLocalSections] = useState<MenuSection[]>(sections);
+  const localSectionsRef = useRef(sections);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -31,6 +33,7 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
   // the echo is an identity operation, not a clobber. See the PR #212 thread: an echo
   // guard here was measured to change nothing.
   useEffect(() => {
+    localSectionsRef.current = sections;
     setLocalSections(sections);
   }, [sections]);
 
@@ -38,6 +41,7 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
    *  the draft — there is no way to leave an edit stranded in here. */
   const applySections = useCallback(
     (next: MenuSection[]) => {
+      localSectionsRef.current = next;
       setLocalSections(next);
       onChange(next);
     },
@@ -58,7 +62,7 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
 
   const addSection = useCallback(() => {
     const newSection: MenuSection = {
-      id: `temp-${Date.now()}`,
+      id: createTemporaryMenuId(),
       name: '',
       description: '',
       displayOrder: 0, // New section goes to top
@@ -69,11 +73,11 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
     };
 
     // Update display orders for existing sections
-    const updatedSections = localSections.map((s) => ({ ...s, displayOrder: s.displayOrder + 1 }));
+    const updatedSections = localSectionsRef.current.map((s) => ({ ...s, displayOrder: s.displayOrder + 1 }));
 
     applySections([newSection, ...updatedSections]);
     setExpandedSections((current) => new Set([...current, newSection.id]));
-  }, [localSections, applySections]);
+  }, [applySections]);
 
   const updateSection = useCallback(
     (index: number, updates: Partial<MenuSection>) => {

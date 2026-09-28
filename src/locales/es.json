@@ -1856,6 +1856,7 @@
   "editor_autosave_pending": "Se guardará en breve…",
   "editor_autosave_stalled": "Sin guardar — usa Guardar",
   "editor_save_conflict_short": "Hay que recargar",
+  "menu_sections_saved_partial": "Las secciones del menú se guardaron, pero no se pudo guardar el resto del menú. Inténtalo de nuevo. {{reason}}",
   "editor_layout_save_blocked": "No se pudo guardar el plano, así que los cambios de mesas están en espera. Inténtalo de nuevo.",
   "editor_preview_title": "Vista previa como invitado",
   "editor_canvas_aria": "Lienzo del editor de plano",

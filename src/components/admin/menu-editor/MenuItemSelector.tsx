@@ -7,6 +7,7 @@ import { searchProducts } from '@/services/productService';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { formatPlainCurrency } from '@/utils/currency';
+import { createTemporaryMenuId } from '@/utils/menuSectionVersioning';
 
 interface MenuItemSelectorProps {
   items: MenuSectionItem[];
@@ -70,7 +71,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
 
   const addItem = (product: Product) => {
     const newItem: MenuSectionItem = {
-      id: `temp-${Date.now()}`,
+      id: createTemporaryMenuId(),
       productId: product.id,
       productName: product.name,
       additionalPrice: 0,

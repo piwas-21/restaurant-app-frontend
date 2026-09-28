@@ -61,4 +61,20 @@ describe('MenuItemSelector — finding an option-only item', () => {
 
     expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ productId: MEAT.id, productName: MEAT.name })]);
   });
+
+  it('mints distinct local IDs for two quick option additions', async () => {
+    const onChange = jest.fn();
+    render(<MenuItemSelector items={[]} onChange={onChange} maxSelection={2} />);
+
+    await search('kebab');
+    fireEvent.click(screen.getByText(MEAT.name));
+    await search('kebab');
+    fireEvent.click(screen.getByText(MEAT.name));
+
+    const firstId = onChange.mock.calls[0][0][0].id as string;
+    const secondId = onChange.mock.calls[1][0][0].id as string;
+    expect(firstId).toMatch(/^temp-/);
+    expect(secondId).toMatch(/^temp-/);
+    expect(secondId).not.toBe(firstId);
+  });
 });

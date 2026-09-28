@@ -171,6 +171,10 @@ export interface Product {
   images: ProductImage[];
   /** Mirrors backend `ProductSummaryDto.IsComponent`; option-only rows cannot join an offer family. */
   isComponent?: boolean;
+  /** Server-resolved effective order channels from `ProductSummaryDto.Availability`. */
+  availability?: ItemAvailability;
+  /** Active variation rows from `ProductSummaryDto.Variations`; variation-targeted bundle choices need this. */
+  variations?: Variation[];
   /** Flat summary fields returned by `ProductSummaryDto`; bundle definitions are detail-only. */
   categoryNames?: string[];
   parentOfferProductId?: string | null;

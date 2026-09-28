@@ -3382,5 +3382,12 @@
   "select_option": "اختر خيارًا",
   "catalogue_revision_adopted_withdrawn": "تم سحب الإصدار المعتمد. راجع الإصدار الحالي قبل تطبيق أي حقول.",
   "catalogue_revision_unavailable": "لا توجد مراجعة منشورة حالية",
-  "catalogue_revision_changes_load_error": "تعذّر تحميل تحديثات القالب. أعد المحاولة للتحقق من إشعارات السحب أو التحديث."
+  "catalogue_revision_changes_load_error": "تعذّر تحميل تحديثات القالب. أعد المحاولة للتحقق من إشعارات السحب أو التحديث.",
+  "bundle_preview_channel_orderable_count": "الخيارات القابلة للطلب عبر {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: يمكن طلب {{available}} خيارات مختلفة؛ تتطلب هذه الخطوة {{minimum}}.",
+  "editor_review_bundle_availability_checking": "جارٍ التحقق من توفر الخيارات الحالي حسب نوع الطلب…",
+  "editor_review_bundle_availability_checked": "تعتمد هذه الأعداد على قراءة حديثة للكتالوج في هذه المراجعة. قد يتغير التوفر قبل تقديم الطلب.",
+  "editor_review_bundle_availability_check_failed": "تعذر التحقق من التوفر الحالي لكل الخيارات المشار إليها. لم يتم تأكيد كفاية الخيارات لأي قناة.",
+  "editor_review_bundle_availability_shortage": "تتطلب خطوة “{{section}}” {{minimum}} خيارات مختلفة عبر {{channel}}؛ والمتاح للطلب حاليًا هو {{available}}.",
+  "editor_review_bundle_availability_check_retry": "إعادة التحقق من التوفر"
 }

@@ -23,6 +23,28 @@ jest.mock('@/services/productService', () => ({
 // S9: `useSideItemDetails` names each suggested id, one read per id.
 jest.mock('@/services/menuService', () => ({
   createProduct: jest.fn(),
+  getAllProducts: jest.fn(async () => [
+    {
+      id: 'p1',
+      isActive: true,
+      isAvailable: true,
+      availability: {
+        canOrder: true,
+        reason: 'Available',
+        allowedOrderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      },
+    },
+    {
+      id: 'item-1',
+      isActive: true,
+      isAvailable: true,
+      availability: {
+        canOrder: true,
+        reason: 'Available',
+        allowedOrderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      },
+    },
+  ]),
   getProductById: jest.fn(async (id: string) => ({
     success: true,
     data: { id, name: id === 'side-1' ? 'Garlic bread' : id, description: '' },
@@ -162,7 +184,9 @@ const submitThroughReview = async (container: HTMLElement, allowUnchanged = fals
   if (allowUnchanged) save.disabled = false;
   fireEvent.click(save);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
-  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+  const confirmSave = within(review).getByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(confirmSave).toBeEnabled());
+  fireEvent.click(confirmSave);
 };
 
 const renderAndSaveUntouched = async (product: ProductDetails) => {

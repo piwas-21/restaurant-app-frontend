@@ -36,7 +36,21 @@ jest.mock('@/services/productService', () => ({
   deleteProductImage: jest.fn(async () => ({ success: true })),
   searchProducts: jest.fn(async () => ({ success: true, data: { items: [] } })),
 }));
-jest.mock('@/services/menuService', () => ({ createProduct: jest.fn() }));
+jest.mock('@/services/menuService', () => ({
+  createProduct: jest.fn(),
+  getAllProducts: jest.fn(async () =>
+    ['p1', 'p2', 'p3', 'bundle-1'].map((id) => ({
+      id,
+      isActive: true,
+      isAvailable: true,
+      availability: {
+        canOrder: true,
+        reason: 'Available',
+        allowedOrderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      },
+    })),
+  ),
+}));
 jest.mock('@/services/menuBundleService', () => ({
   createMenuBundle: jest.fn(),
   updateMenuBundle: jest.fn(async () => ({ success: true, data: 'ok' })),
@@ -124,7 +138,9 @@ const renderBundleEditor = async () => {
 
 const saveThroughReview = async () => {
   fireEvent.click(screen.getByTestId('editor-save'));
-  fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
+  const save = await screen.findByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(save).toBeEnabled());
+  fireEvent.click(save);
 };
 
 const findSectionCard = (name: string) =>

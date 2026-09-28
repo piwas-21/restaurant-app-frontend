@@ -3355,5 +3355,12 @@
   "select_option": "Seleziona un'opzione",
   "catalogue_revision_adopted_withdrawn": "La revisione adottata è stata ritirata. Controlla la revisione attuale prima di applicare i campi.",
   "catalogue_revision_unavailable": "Nessuna revisione pubblicata attuale",
-  "catalogue_revision_changes_load_error": "Impossibile caricare gli aggiornamenti del modello. Riprova per controllare gli avvisi di ritiro o aggiornamento."
+  "catalogue_revision_changes_load_error": "Impossibile caricare gli aggiornamenti del modello. Riprova per controllare gli avvisi di ritiro o aggiornamento.",
+  "bundle_preview_channel_orderable_count": "Scelte ordinabili su {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: {{available}} scelte distinte sono ordinabili; questo passaggio ne richiede {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Verifica della disponibilità attuale delle scelte per tipo di ordine…",
+  "editor_review_bundle_availability_checked": "Questi conteggi si basano su una lettura aggiornata del catalogo per questa revisione. La disponibilità può cambiare prima dell’ordine.",
+  "editor_review_bundle_availability_check_failed": "Non è stato possibile verificare la disponibilità attuale di tutte le scelte referenziate. Nessun canale è indicato come sufficientemente coperto.",
+  "editor_review_bundle_availability_shortage": "Il passaggio “{{section}}” richiede {{minimum}} scelte distinte su {{channel}}; al momento il totale ordinabile è {{available}}.",
+  "editor_review_bundle_availability_check_retry": "Riprova a verificare la disponibilità"
 }

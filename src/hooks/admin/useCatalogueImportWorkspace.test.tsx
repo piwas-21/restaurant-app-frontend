@@ -162,13 +162,58 @@ describe('useCatalogueImportWorkspace', () => {
       'session-1',
       expect.objectContaining({
         expectedVersion: 1,
-        selectedTemplateIds: ['pack'],
+        selectedTemplateIds: [],
       }),
     );
 
     await act(async () => result.current.runImport());
     expect(importCatalogueSession).not.toHaveBeenCalled();
     expect(result.current.preview?.items[0].blockingIssues[0].code).toBe('TENANT_PRICE_REQUIRED');
+  });
+
+  it('sends only selected optional offers while keeping roots and required categories in decisions', async () => {
+    const requiredCategory = {
+      ...session.items[1],
+      templateId: 'category',
+      revision: 1,
+      type: 'category' as const,
+      displayName: 'Drinks',
+      contentHash: 'category-hash',
+      isSelectable: false,
+      selectionRole: 'dependency',
+    };
+    const sessionWithCategory: CatalogueImportSession = {
+      ...session,
+      items: [session.items[0], requiredCategory, session.items[1]],
+    };
+    (getCatalogueImportSession as jest.Mock).mockResolvedValue(sessionWithCategory);
+    const { result } = renderHook(() => useCatalogueImportWorkspace(options));
+    await waitFor(() => expect(result.current.session?.items).toHaveLength(3));
+
+    await act(async () => result.current.checkPreview());
+    expect(updateCatalogueImportItems).toHaveBeenNthCalledWith(
+      1,
+      'session-1',
+      expect.objectContaining({
+        selectedTemplateIds: ['offer'],
+        decisions: expect.arrayContaining([
+          expect.objectContaining({ templateId: 'pack' }),
+          expect.objectContaining({ templateId: 'category' }),
+          expect.objectContaining({ templateId: 'offer' }),
+        ]),
+      }),
+    );
+
+    act(() => result.current.toggleSelection('offer', false));
+    expect(result.current.chosenItems.map((item) => item.templateId)).toEqual(['pack', 'category']);
+    await act(async () => result.current.checkPreview());
+
+    const persisted = (updateCatalogueImportItems as jest.Mock).mock.calls.map((call) => call[1]);
+    expect(persisted.map((body) => body.selectedTemplateIds)).toEqual([['offer'], []]);
+    expect(persisted[1].decisions.map((decision: CatalogueImportDecisionWire) => decision.templateId)).toEqual([
+      'pack',
+      'category',
+    ]);
   });
 
   it('uses the saved session version and a stable idempotency key for import retries', async () => {
@@ -275,7 +320,7 @@ describe('useCatalogueImportWorkspace', () => {
     await act(async () => result.current.checkPreview());
     expect(updateCatalogueImportItems).toHaveBeenCalledWith('session-1', {
       expectedVersion: 7,
-      selectedTemplateIds: ['pack', 'offer'],
+      selectedTemplateIds: ['offer'],
       decisions: [{ templateId: 'offer', revision: 2, resolution: 'Reuse', localEntityId: 'local-offer' }],
     });
   });

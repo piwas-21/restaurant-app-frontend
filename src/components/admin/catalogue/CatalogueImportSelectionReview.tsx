@@ -37,6 +37,7 @@ export default function CatalogueImportSelectionReview(props: Props) {
 
   return (
     <>
+      <h2 className={styles.stepHeading}>{t('catalogue_import_step_offers')}</h2>
       <section className={styles.itemList} aria-label={t('catalogue_import_template_items')}>
         {props.session.items.map((item) => {
           const decision = props.decisions[keyFor(item)] ?? catalogueImportDecisionFor(item);

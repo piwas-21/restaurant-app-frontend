@@ -128,10 +128,7 @@ describe('CatalogueTemplateBrowser', () => {
     expect(mockRouterPush).toHaveBeenCalledWith(
       '/admin/menu-management/catalogue/import?templateId=turkish-soup-bundle&revision=3&locale=fr&createNewCopy=false',
     );
-    fireEvent.click(screen.getByRole('button', { name: 'catalogue_start_new_copy' }));
-    expect(mockRouterPush).toHaveBeenLastCalledWith(
-      '/admin/menu-management/catalogue/import?templateId=turkish-soup-bundle&revision=3&locale=fr&createNewCopy=true',
-    );
+    expect(screen.queryByRole('button', { name: 'catalogue_start_new_copy' })).not.toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'turkish' }));

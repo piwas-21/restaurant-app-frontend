@@ -8,14 +8,11 @@ import { useMenuManagement } from '@/hooks/useMenuManagement';
 import { useOfferFamilyRows } from '@/hooks/useOfferFamilyRows';
 import { deleteMenuBundle } from '@/services/menuBundleService';
 import { deleteProduct } from '@/services/productService';
-import {
-  MENU_TYPE_FILTERS,
-  MENU_TYPE_FILTER_LABEL_KEYS,
-  MenuTypeFilter,
-  isMenuBundle,
-} from '@/utils/productTypeFilter';
+import { MenuTypeFilter, isMenuBundle } from '@/utils/productTypeFilter';
 import styles from '@/app/styles/AdminPage.module.css';
+import pageStyles from './MenuManagementPage.module.css';
 import MenuCreateFlow from '@/components/admin/menu-management/MenuCreateFlow';
+import MenuManagementToolbar from '@/components/admin/menu-management/MenuManagementToolbar';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
 import MenuCatalogueSuggestions from '@/components/admin/menu-management/MenuCatalogueSuggestions';
@@ -80,50 +77,24 @@ const MenuManagementContent = () => {
     <>
       <div className={styles.adminContainer}>
         <PageHeader title={pageTitle}>
-          <div className={styles.pageActions}>
-            {/* fieldset+legend IS the grouping semantic — no role="group" needed (S6819).
-                The legend names what is filtered; "All Types" would name it after an option. */}
-            <fieldset className={`${styles.tabs} ${styles.chipGroup}`}>
-              <legend className="sr-only">{t('product_type')}</legend>
-              {MENU_TYPE_FILTERS.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  aria-pressed={typeFilter === filter}
-                  className={`${styles.tabButton} ${typeFilter === filter ? styles.activeTab : ''}`}
-                  onClick={() => setTypeFilter(filter)}
-                >
-                  {t(MENU_TYPE_FILTER_LABEL_KEYS[filter])}
-                </button>
-              ))}
-            </fieldset>
-
-            {/* Category filter — applies to every chip now that one endpoint serves them all */}
-            <select onChange={handleCategoryChange} value={selectedCategoryId || 'all'} className={styles.adminSelect}>
-              <option value="all">{t('all_categories_nav')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <input
-              type="search"
-              aria-label={t('search')}
-              placeholder={t('search')}
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className={styles.adminSelect}
-            />
-            <MenuCatalogueSuggestions query={searchQuery} />
-            <Link href="/admin/option-sets" className={styles.adminButton}>
-              {t('option_sets_manage')}
-            </Link>
-            {/* Create is its own component since S3: an item is a quick-add modal (D3) and a
-                bundle is still a page, and the page has no room for either flow's state. */}
-            <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />
-          </div>
+          <Link href="/admin/menu-management/catalogue" className={pageStyles.headerLink}>
+            {t('browse_suggestions')}
+          </Link>
+          <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />
         </PageHeader>
+        <MenuManagementToolbar
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+          categories={categories}
+          selectedCategoryId={selectedCategoryId}
+          onCategoryChange={handleCategoryChange}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <MenuCatalogueSuggestions query={searchQuery} />
+        <Link href="/admin/option-sets" className={pageStyles.libraryLink}>
+          {t('option_sets_manage')}
+        </Link>
         <div className={styles.adminContent}>
           <ProductsTable
             products={[]}
@@ -146,7 +117,7 @@ const MenuManagementContent = () => {
 
               {/* Pagination Info */}
               {totalCount > 0 && (
-                <p style={{ textAlign: 'center', marginTop: '1rem', color: '#666' }}>
+                <p className={pageStyles.paginationInfo}>
                   {t('showing_items', {
                     start: (currentPage - 1) * pageSize + 1,
                     end: Math.min(currentPage * pageSize, totalCount),

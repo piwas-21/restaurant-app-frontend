@@ -108,8 +108,7 @@ function ImportRoute() {
         <StatusBadge tone={importStatusTone(flow.session.status)}>
           {t(importStatusLabelKey(flow.session.status))}
         </StatusBadge>
-        <span>{t('catalogue_import_version', { version: flow.session.version })}</span>
-        <span>{t(flow.session.createNewCopy ? 'catalogue_import_copy_mode' : 'catalogue_import_reuse_mode')}</span>
+        {flow.session.createNewCopy && <span>{t('catalogue_import_copy_mode')}</span>}
       </div>
       <p className={styles.localDataNotice}>{t('catalogue_import_local_data_notice')}</p>
       {!flow.canEditSelection && (
@@ -147,6 +146,7 @@ function ImportRoute() {
         onToggleSelection={(item, selected) => flow.toggleSelection(item.templateId, selected)}
         onDecisionChange={(item, patch) => flow.updateDecision(`${item.templateId}@${item.revision}`, patch)}
       />
+      <h2 className={styles.stepHeading}>{t('catalogue_import_step_check')}</h2>
       <CatalogueImportPreviewReview
         preview={flow.preview}
         canChooseCandidate={(templateId, rev) => {

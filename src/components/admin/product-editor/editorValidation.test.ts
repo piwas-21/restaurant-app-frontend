@@ -65,6 +65,7 @@ describe('editorValidation — flattening react-hook-form errors (D13)', () => {
 
   it('routes bundle allergens to Basics while item allergens stay in Recipe', () => {
     expect(sectionForField('allergens')).toBe(SECTION_IDS.recipe);
+    expect(sectionForField('customizationGroups')).toBe(SECTION_IDS.options);
     expect(sectionForField('allergens', true)).toBe(SECTION_IDS.basics);
     expect(sectionIdsWithErrors([{ name: 'allergens', message: 'Required' }], true)).toEqual([SECTION_IDS.basics]);
   });

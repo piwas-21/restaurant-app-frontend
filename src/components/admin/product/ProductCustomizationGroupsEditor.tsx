@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import CustomizationGroupEditor from './CustomizationGroupEditor';
+import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
 import { useCustomizationProductOptions } from '@/hooks/admin/useCustomizationProductOptions';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
@@ -42,6 +43,9 @@ export default function ProductCustomizationGroupsEditor({
         <div>
           <h3>{t('customization_groups')}</h3>
           <p>{t('customization_groups_help')}</p>
+          <EditorHelpDisclosure label={t('choice_group_help_label')}>
+            <p>{t('choice_group_example')}</p>
+          </EditorHelpDisclosure>
         </div>
         <button type="button" onClick={() => onChange([...groups, emptyGroup(groups.length)])}>
           {t('add_customization_group')}

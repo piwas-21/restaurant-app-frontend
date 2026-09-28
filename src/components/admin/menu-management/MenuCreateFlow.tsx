@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { MENU_BUNDLE_TYPE } from '@/utils/productTypeFilter';
 import NewProductTypeModal from './NewProductTypeModal';
-import styles from '@/app/styles/AdminPage.module.css';
+import styles from '@/app/admin/menu-management/MenuManagementPage.module.css';
 
 /**
  * Code-split, and the bundle gate is why. The modal reaches the whole product write path —
@@ -60,11 +60,8 @@ export default function MenuCreateFlow({ autoOpenQuickAdd = false, onCreated }: 
     <>
       {/* One "New product" entry → a type choice (owner call, slice 7 PR2e). The filter is a
           VIEW, not a mode, so create is a single action regardless of the active chip. */}
-      <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={() => setStep('type')}>
+      <button type="button" className={styles.createButton} onClick={() => setStep('type')}>
         {t('create_new_product')}
-      </button>
-      <button type="button" className={styles.adminButton} onClick={() => router.push(`${LIST_ROUTE}/catalogue`)}>
-        {t('browse_suggestions')}
       </button>
 
       <NewProductTypeModal isOpen={step === 'type'} onClose={() => setStep('closed')} onSelect={handleTypeSelect} />

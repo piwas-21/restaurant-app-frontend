@@ -79,20 +79,6 @@ export default function CatalogueTemplatePreviewModal({
                   <dt>{t('catalogue_source_language')}</dt>
                   <dd>{getLanguageNativeName(detail.sourceLocale)}</dd>
                 </div>
-                <div>
-                  <dt>{t('catalogue_template_revision', { revision: detail.revision })}</dt>
-                  <dd>{t('catalogue_quality_reviewed')}</dd>
-                </div>
-                <div>
-                  <dt>{t('catalogue_translations')}</dt>
-                  <dd>
-                    {Object.keys(detail.translations).length > 0
-                      ? Object.keys(detail.translations)
-                          .map((language) => getLanguageNativeName(language as LanguageCode))
-                          .join(', ')
-                      : t('catalogue_no_translations')}
-                  </dd>
-                </div>
               </dl>
               <div className={importActionStyles.actions}>
                 <button
@@ -102,14 +88,6 @@ export default function CatalogueTemplatePreviewModal({
                   onClick={() => onStartImport(detail, false)}
                 >
                   {t('catalogue_start_import')}
-                </button>
-                <button
-                  type="button"
-                  className={importActionStyles.secondaryButton}
-                  disabled={isLoading || error !== null}
-                  onClick={() => onStartImport(detail, true)}
-                >
-                  {t('catalogue_start_new_copy')}
                 </button>
               </div>
               {template.usedSourceFallback && (
@@ -129,9 +107,19 @@ export default function CatalogueTemplatePreviewModal({
                 </output>
               )}
             </section>
-            <section className={styles.provenance}>
-              <h3>{t('catalogue_provenance')}</h3>
+            <details className={styles.provenance}>
+              <summary>{t('catalogue_provenance')}</summary>
               <dl>
+                <dt>{t('catalogue_template_revision', { revision: detail.revision })}</dt>
+                <dd>{t('catalogue_quality_reviewed')}</dd>
+                <dt>{t('catalogue_translations')}</dt>
+                <dd>
+                  {Object.keys(detail.translations).length > 0
+                    ? Object.keys(detail.translations)
+                        .map((language) => getLanguageNativeName(language as LanguageCode))
+                        .join(', ')
+                    : t('catalogue_no_translations')}
+                </dd>
                 <dt>{t('catalogue_content_origin')}</dt>
                 <dd>{originLabel(detail.provenance.contentOrigin, t)}</dd>
                 <dt>{t('catalogue_source_description')}</dt>
@@ -163,7 +151,7 @@ export default function CatalogueTemplatePreviewModal({
                   </ul>
                 </>
               )}
-            </section>
+            </details>
             <CatalogueTemplatePayloadPreview detail={detail} locale={locale} dependencyNames={dependencyDetails} />
           </>
         )}

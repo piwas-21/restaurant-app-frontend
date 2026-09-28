@@ -1,0 +1,88 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  padding: 0.25rem 0 1rem;
+  margin-block-end: 1rem;
+  border-block-end: 1px solid var(--border-default);
+}
+
+.types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  background: var(--surface-secondary);
+}
+
+.typeButton,
+.selected {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.8rem;
+  border: 0;
+  border-radius: 0.35rem;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.selected {
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  box-shadow: 0 1px 2px var(--border-default);
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.filter {
+  display: grid;
+  gap: 0.25rem;
+  min-inline-size: min(100%, 11rem);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.filter select,
+.filter input {
+  min-height: 2.75rem;
+  inline-size: 100%;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.4rem;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  font: inherit;
+}
+
+.search {
+  flex: 1;
+  max-inline-size: 22rem;
+}
+
+@media (max-width: 720px) {
+  .toolbar,
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .filters,
+  .filter,
+  .search {
+    inline-size: 100%;
+    max-inline-size: none;
+  }
+}

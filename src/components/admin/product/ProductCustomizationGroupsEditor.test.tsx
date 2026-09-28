@@ -75,4 +75,44 @@ describe('ProductCustomizationGroupsEditor', () => {
     expect(added).toMatchObject({ optionProductId: 'meat-1', additionalPrice: 0 });
     expect(added).not.toHaveProperty('id');
   });
+
+  it('shows the guest rule and keeps the required switch consistent with the minimum', () => {
+    const onChange = jest.fn();
+    render(
+      <ProductCustomizationGroupsEditor
+        groups={[
+          {
+            name: 'Meat',
+            displayOrder: 0,
+            isRequired: true,
+            minSelection: 1,
+            maxSelection: 1,
+            includedFreeUnits: 0,
+            isActive: true,
+            content: {},
+            ingredientOptions: [],
+            productOptions: [
+              {
+                optionProductId: 'meat-1',
+                optionProductName: 'Kebab',
+                additionalPrice: 0,
+                displayOrder: 0,
+                isDefault: false,
+              },
+            ],
+          },
+        ]}
+        ingredients={[]}
+        productId="tacos-1"
+        currentLanguage="en"
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.getByText('choice_group_guest_preview')).toBeInTheDocument();
+    expect(screen.getByText('catalogue_choose_exactly')).toBeInTheDocument();
+    expect(screen.getAllByText('Kebab').some((node) => node.tagName === 'P')).toBe(true);
+    fireEvent.change(screen.getByLabelText('minimum_selection'), { target: { value: '0' } });
+    expect(onChange.mock.calls.at(-1)?.[0][0]).toMatchObject({ minSelection: 0, isRequired: false });
+  });
 });

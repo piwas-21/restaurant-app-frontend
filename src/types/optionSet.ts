@@ -2,6 +2,7 @@ import type { LanguageCode } from '@/config/languageConfig';
 import type { TranslationMetadata, TranslationOwnerMetadataWrite } from './translationMetadata';
 
 export const OPTION_SET_KINDS = ['ingredient', 'sauce', 'bundleChoice', 'suggestedSide'] as const;
+export const OPTION_SET_PAGE_LIMIT = 24;
 export type OptionSetKind = (typeof OPTION_SET_KINDS)[number];
 export const OPTION_SET_ATTACHMENT_ROLES = [
   'ingredient',

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/admin/PageHeader';
 import FormField from '@/components/design-system/FormField';
-import { LANGUAGE_CODES, SUPPORTED_LANGUAGES, type LanguageCode } from '@/config/languageConfig';
 import { OPTION_SET_KINDS } from '@/types/optionSet';
 import type { OptionSetKind } from '@/types/optionSet';
 import { useOptionSetEditor } from '@/hooks/admin/useOptionSetEditor';
@@ -15,7 +14,8 @@ import { optionSetEntryReferenceKey } from '@/utils/optionSetEditorModel';
 import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import OptionSetEntryRow from './OptionSetEntryRow';
 import OptionSetAttachmentManager from './OptionSetAttachmentManager';
-import TranslationSuggestionsReview from '../product-editor/translations/TranslationSuggestionsReview';
+import OptionSetTranslationsPanel from './OptionSetTranslationsPanel';
+import OptionSetEntriesPreview from './OptionSetEntriesPreview';
 import { useOptionSetTranslationReview } from '@/hooks/admin/useOptionSetTranslationReview';
 import styles from './OptionSetEditorWorkspace.module.css';
 
@@ -73,69 +73,36 @@ export default function OptionSetEditorWorkspace({
       {editor.detail && <p className={styles.notice}>{t('option_set_version', { version: editor.detail.version })}</p>}
       <p className={styles.notice}>{t('option_sets_description')}</p>
       <form className={styles.form} onSubmit={(event) => void save(event)}>
-        <FormField label={t('option_set_name')}>
-          <input
-            value={editor.name}
-            maxLength={200}
-            onChange={(event) => editor.setName(event.target.value)}
-            required
-          />
-        </FormField>
-        <FormField label={t('option_set_source_locale')}>
-          <select
-            value={editor.sourceLocale}
-            onChange={(event) => editor.setSourceLocale(event.target.value as LanguageCode)}
-            required
-          >
-            {SUPPORTED_LANGUAGES.map((language) => (
-              <option key={language.code} value={language.code}>
-                {language.nativeName}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <details className={styles.translations}>
-          <summary>{t('option_set_translations')}</summary>
-          {LANGUAGE_CODES.filter((locale) => locale !== editor.sourceLocale).map((locale) => {
-            const language = SUPPORTED_LANGUAGES.find((row) => row.code === locale);
-            return (
-              <FormField
-                key={locale}
-                label={t('option_set_translation_locale', { language: language?.nativeName ?? locale })}
-              >
-                <input
-                  value={editor.translations[locale] ?? ''}
-                  maxLength={200}
-                  onChange={(event) => {
-                    translationReview.clearAcceptedSuggestionIds();
-                    editor.setTranslation(locale, event.target.value);
-                  }}
-                />
-              </FormField>
-            );
-          })}
-        </details>
-        <details onToggle={(event) => setReviewOpen(event.currentTarget.open)}>
-          <summary>{t('translation_review_title')}</summary>
-          <TranslationSuggestionsReview review={translationReview} showSourceLocaleChoices={false} />
-        </details>
-        <FormField label={t('option_set_kind')}>
-          <select
-            value={editor.kind}
-            disabled={Boolean(editor.detail) || editor.entries.length > 0}
-            onChange={(event) => editor.setKind(event.target.value as OptionSetKind)}
-            required
-          >
-            <option value="">{t('select_option')}</option>
-            {OPTION_SET_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {t(OPTION_SET_KIND_LABEL_KEYS[kind])}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <section aria-labelledby="option-set-entries-heading">
+        <section className={styles.formSection} aria-labelledby="option-set-identity-heading">
+          <h2 id="option-set-identity-heading">{t('option_set_identity_heading')}</h2>
+          <p className={styles.notice}>{t('option_set_identity_help')}</p>
+          <FormField label={t('option_set_name')}>
+            <input
+              value={editor.name}
+              maxLength={200}
+              onChange={(event) => editor.setName(event.target.value)}
+              required
+            />
+          </FormField>
+          <FormField label={t('option_set_kind')}>
+            <select
+              value={editor.kind}
+              disabled={Boolean(editor.detail) || editor.entries.length > 0}
+              onChange={(event) => editor.setKind(event.target.value as OptionSetKind)}
+              required
+            >
+              <option value="">{t('select_option')}</option>
+              {OPTION_SET_KINDS.map((kind) => (
+                <option key={kind} value={kind}>
+                  {t(OPTION_SET_KIND_LABEL_KEYS[kind])}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        </section>
+        <section className={styles.formSection} aria-labelledby="option-set-entries-heading">
           <h2 id="option-set-entries-heading">{t('option_set_entries')}</h2>
+          <p className={styles.notice}>{t('option_set_entries_help')}</p>
           {!editor.kind && <p className={styles.entryHelp}>{t('option_set_kind_filter')}</p>}
           {editor.kind && editor.entries.length === 0 && (
             <p className={styles.entryHelp}>
@@ -189,12 +156,14 @@ export default function OptionSetEditorWorkspace({
               );
             })}
           </ol>
+          <OptionSetEntriesPreview name={editor.name} kind={editor.kind} entries={editor.entries} />
           {editor.kind && (
             <button type="button" className={`${styles.secondaryAction} ${styles.addButton}`} onClick={editor.addEntry}>
               {t('option_set_add_entry')}
             </button>
           )}
         </section>
+        <OptionSetTranslationsPanel editor={editor} review={translationReview} onReviewToggle={setReviewOpen} />
         {(editor.error === 'save' || showFormError) && (
           <p role="alert" className={styles.error}>
             {showFormError ? t('option_set_validation_error') : (editor.errorMessage ?? t('option_set_save_error'))}

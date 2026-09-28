@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { searchOptionSets } from '@/services/optionSetService';
 import { getErrorMessage } from '@/utils/apiClient';
-import type { OptionSetKind, OptionSetSummary } from '@/types/optionSet';
+import { OPTION_SET_PAGE_LIMIT, type OptionSetKind, type OptionSetSummary } from '@/types/optionSet';
 
 export function useOptionSetCatalog() {
   const [query, setQuery] = useState('');
@@ -26,7 +26,10 @@ export function useOptionSetCatalog() {
     setIsLoadingMore(false);
     setError(null);
     try {
-      const result = await searchOptionSets({ kind: kind || undefined, query, limit: 24 }, controller.signal);
+      const result = await searchOptionSets(
+        { kind: kind || undefined, query, limit: OPTION_SET_PAGE_LIMIT },
+        controller.signal,
+      );
       if (currentRequest !== requestId.current) return;
       setItems(result.items);
       setNextCursor(result.nextCursor ?? null);
@@ -61,7 +64,7 @@ export function useOptionSetCatalog() {
     setIsLoadingMore(true);
     try {
       const result = await searchOptionSets(
-        { kind: kind || undefined, query, cursor: nextCursor, limit: 24 },
+        { kind: kind || undefined, query, cursor: nextCursor, limit: OPTION_SET_PAGE_LIMIT },
         controller.signal,
       );
       if (currentRequest !== requestId.current) return;

@@ -49,6 +49,9 @@ export interface ProductCategory {
 export interface ProductIngredient {
   id: string;
   name: string;
+  globalIngredientId?: string;
+  maxQuantity?: number;
+  isIncludedInBasePrice?: boolean;
   /** Absent === `'ingredient'` (plan D8) — resolve it with `@/utils/ingredientKind`. */
   kind?: IngredientKind;
   isOptional: boolean;

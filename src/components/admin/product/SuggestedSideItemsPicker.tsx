@@ -6,6 +6,7 @@ import { useSideItemDetails } from '@/hooks/admin/useSideItemDetails';
 import SideItemPickerModal from './SideItemPickerModal';
 import { sideItemLabel } from './sideItemPicker';
 import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
+import { formatCurrency } from '@/utils/currency';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -54,19 +55,25 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
         <p className={modalStyles.emptyState}>{t('no_side_items_selected')}</p>
       ) : (
         <div className={modalStyles.chipGroup}>
-          {selectedSideItemIds.map((id) => (
-            <div key={id} className={modalStyles.chip}>
-              <span>{sideItemLabel(id, selectedItemsDetails)}</span>
-              <button
-                type="button"
-                onClick={() => removeItem(id)}
-                className={modalStyles.chipRemove}
-                aria-label={t('remove')}
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {selectedSideItemIds.map((id) => {
+            const detail = selectedItemsDetails.get(id);
+            return (
+              <div key={id} className={modalStyles.chip}>
+                <span>
+                  {sideItemLabel(id, selectedItemsDetails)}
+                  {detail?.basePrice !== undefined ? ` — ${formatCurrency(detail.basePrice)}` : ''}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeItem(id)}
+                  className={modalStyles.chipRemove}
+                  aria-label={t('remove')}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 

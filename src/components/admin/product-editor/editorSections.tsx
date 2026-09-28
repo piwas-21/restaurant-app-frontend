@@ -10,6 +10,7 @@ import OfferVersionsSection from './OfferVersionsSection';
 import { buildItemSections } from './itemEditorSections';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
 import type { EditorSection } from './EditorShell';
+import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 
 /**
  * The editor's section list (MENU-ITEM-EDITOR-REDESIGN-PLAN slices S1 + S2).
@@ -124,18 +125,22 @@ export function buildEditorSections(context: EditorSectionsContext): EditorSecti
  * ingredient's strings at once, and the two per-row `<details>` grids are deleted — three UIs for
  * one concept was the mess the owner complained about, not merely three stylesheets.
  */
-export function buildTranslationsPanel({
-  editor,
-  sourceLocaleFor,
-  sourceLocaleKnownFor,
-  onSourceLocaleChange,
-}: EditorSectionsContext): React.ReactNode {
+export function buildTranslationsPanel(
+  { editor, sourceLocaleFor, sourceLocaleKnownFor, onSourceLocaleChange }: EditorSectionsContext,
+  reviewControls?: {
+    readonly review: ReturnType<typeof useEditorTranslationReview>;
+    readonly isOpen: boolean;
+    readonly onToggle: () => void;
+    readonly onApply: () => Promise<void>;
+  },
+): React.ReactNode {
   return (
     <TranslationsWorkbench
       editor={editor}
       sourceLocaleFor={sourceLocaleFor}
       sourceLocaleKnownFor={sourceLocaleKnownFor}
       onSourceLocaleChange={onSourceLocaleChange}
+      reviewControls={reviewControls}
     />
   );
 }

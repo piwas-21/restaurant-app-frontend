@@ -49,3 +49,9 @@
   text-align: end;
   white-space: nowrap;
 }
+
+.price {
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}

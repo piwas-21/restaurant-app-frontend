@@ -9,12 +9,13 @@ import { useStableT } from '@/hooks/useStableT';
 export interface SideItemDetails {
   name: string;
   description?: string;
+  basePrice?: number;
 }
 
 /** `GET /api/Products/{id}` — a refusal arrives as 200 + `success: false`, so `data` is optional. */
 interface ProductDetailEnvelope {
   success: boolean;
-  data?: { id: string; name: string; description?: string };
+  data?: { id: string; name: string; description?: string; basePrice?: number };
 }
 
 /**
@@ -84,7 +85,11 @@ export function useSideItemDetails(selectedSideItemIds: string[]) {
           failures.push(serverMessage(resp));
           return;
         }
-        detailsMap.set(ids[index], { name: resp.data.name, description: resp.data.description });
+        detailsMap.set(ids[index], {
+          name: resp.data.name,
+          description: resp.data.description,
+          basePrice: resp.data.basePrice,
+        });
       });
 
       setSelectedItemsDetails(detailsMap);

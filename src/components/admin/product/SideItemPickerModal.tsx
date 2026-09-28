@@ -64,12 +64,13 @@ export default function SideItemPickerModal({
     onClose();
   };
 
-  const renderRow = (id: string, name: string, description?: string) => (
+  const renderRow = (id: string, name: string, description?: string, basePrice?: number) => (
     <SideItemPickerRow
       key={id}
       id={id}
       name={name}
       description={description}
+      basePrice={basePrice}
       checked={draft.includes(id)}
       alreadyAdded={listedIds.includes(id)}
       isSelf={isSelfSuggestion(id, productId)}
@@ -114,13 +115,21 @@ export default function SideItemPickerModal({
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
+      {status === 'idle' && <p className={styles.hint}>{t('side_items_search_prompt')}</p>}
 
       <h3 className={styles.groupHeading}>{t('side_items_picker_current')}</h3>
       {listedIds.length === 0 ? (
         <p className={styles.notice}>{t('no_side_items_selected')}</p>
       ) : (
         <ul className={styles.list}>
-          {listedIds.map((id) => renderRow(id, sideItemLabel(id, selectedItemsDetails, results)))}
+          {listedIds.map((id) =>
+            renderRow(
+              id,
+              sideItemLabel(id, selectedItemsDetails, results),
+              selectedItemsDetails.get(id)?.description,
+              selectedItemsDetails.get(id)?.basePrice,
+            ),
+          )}
         </ul>
       )}
 
@@ -152,7 +161,7 @@ export default function SideItemPickerModal({
       {status === 'results' && (
         <ul className={styles.list}>
           {resultsNotAlreadyListed(results, listedIds).map((result) =>
-            renderRow(result.id, result.name, result.description),
+            renderRow(result.id, result.name, result.description, result.basePrice),
           )}
         </ul>
       )}

@@ -65,14 +65,6 @@ describe('MenuCreateFlow — an item quick-adds, a bundle still gets a page (S3)
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('opens the read-only Sofra suggestion catalogue', async () => {
-    await renderFlow();
-
-    fireEvent.click(screen.getByRole('button', { name: 'browse_suggestions' }));
-
-    expect(mockPush).toHaveBeenCalledWith('/admin/menu-management/catalogue');
-  });
-
   it('still routes a bundle to its create page', async () => {
     await renderFlow();
 

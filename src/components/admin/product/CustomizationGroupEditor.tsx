@@ -6,6 +6,7 @@ import CheckboxField from '@/components/design-system/CheckboxField';
 import FormField from '@/components/design-system/FormField';
 import type { Product, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
+import CustomizationGroupGuestPreview from './CustomizationGroupGuestPreview';
 import styles from './CustomizationGroupEditor.module.css';
 
 interface Props {
@@ -35,6 +36,11 @@ export default function CustomizationGroupEditor({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const [productId, setProductId] = useState('');
+  const optionCount = group.ingredientOptions.length + group.productOptions.length;
+  const invalidRule =
+    group.maxSelection < group.minSelection ||
+    (optionCount > 0 && group.maxSelection > optionCount) ||
+    (group.isRequired && group.minSelection === 0);
   const patch = (next: Partial<ProductCustomizationGroupDraft>) => onChange({ ...group, ...next });
   const patchText = (next: Pick<ProductCustomizationGroupDraft, 'name' | 'description'>) =>
     patch({
@@ -83,6 +89,13 @@ export default function CustomizationGroupEditor({
 
   return (
     <article className={styles.card}>
+      <CustomizationGroupGuestPreview group={group} ingredients={ingredients} />
+      {optionCount === 0 && <p className={styles.limitHelp}>{t('choice_group_add_options_prompt')}</p>}
+      {invalidRule && (
+        <p className={styles.ruleWarning} role="alert">
+          {t('choice_group_rule_invalid', { available: optionCount })}
+        </p>
+      )}
       <div className={styles.actions}>
         <button type="button" onClick={onMoveUp} disabled={!canMoveUp} aria-label={t('move_up')}>
           ↑
@@ -107,15 +120,18 @@ export default function CustomizationGroupEditor({
             onChange={(event) => patchText({ name: group.name, description: event.target.value })}
           />
         </FormField>
-        <FormField label={t('sauce_min_label')}>
+        <FormField label={t('minimum_selection')}>
           <input
             type="number"
             min={0}
             value={group.minSelection}
-            onChange={(event) => patch({ minSelection: Number(event.target.value) })}
+            onChange={(event) => {
+              const minSelection = Number(event.target.value);
+              patch({ minSelection, isRequired: minSelection > 0 });
+            }}
           />
         </FormField>
-        <FormField label={t('sauce_max_label')}>
+        <FormField label={t('maximum_selection')}>
           <input
             type="number"
             min={1}
@@ -123,7 +139,7 @@ export default function CustomizationGroupEditor({
             onChange={(event) => patch({ maxSelection: Number(event.target.value) })}
           />
         </FormField>
-        <FormField label={t('sauce_included_free_label')}>
+        <FormField label={t('choice_group_included_ingredient_units')}>
           <input
             type="number"
             min={0}
@@ -132,11 +148,15 @@ export default function CustomizationGroupEditor({
           />
         </FormField>
       </div>
+      <p className={styles.limitHelp}>{t('choice_group_limits_help')}</p>
+      <p className={styles.limitHelp}>{t('choice_group_included_help')}</p>
       <div className={styles.switches}>
         <CheckboxField
           label={t('required')}
           checked={group.isRequired}
-          onChange={(isRequired) => patch({ isRequired })}
+          onChange={(isRequired) =>
+            patch({ isRequired, minSelection: isRequired ? Math.max(1, group.minSelection) : 0 })
+          }
         />
         <CheckboxField label={t('active')} checked={group.isActive} onChange={(isActive) => patch({ isActive })} />
       </div>

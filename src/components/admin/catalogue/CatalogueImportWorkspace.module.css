@@ -14,6 +14,11 @@
   color: var(--text-secondary);
 }
 
+.stepHeading {
+  margin: 1rem 0 0;
+  color: var(--text-primary);
+  font-size: 1.15rem;
+}
 .localDataNotice,
 .activationNotice {
   padding: 1rem;

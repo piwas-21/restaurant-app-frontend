@@ -33,6 +33,7 @@ interface EditorSideRailProps {
    * component only draws what it is given.
    */
   readonly completeness?: ProductCompleteness;
+  readonly optionSets?: React.ReactNode;
 }
 
 const EMPTY = '—';
@@ -65,6 +66,7 @@ export default function EditorSideRail({
   showCategory,
   showPhotos,
   completeness,
+  optionSets,
 }: EditorSideRailProps) {
   const { t } = useTranslation();
 
@@ -81,6 +83,7 @@ export default function EditorSideRail({
   return (
     <div className={styles.stack}>
       {status}
+      {optionSets}
       <section className={styles.card} aria-labelledby="editor-rail-heading">
         <h2 id="editor-rail-heading" className={styles.heading}>
           {t('editor_at_a_glance')}

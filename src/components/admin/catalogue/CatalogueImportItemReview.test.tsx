@@ -75,6 +75,7 @@ describe('CatalogueImportItemReview', () => {
         onDecisionChange={onChange}
       />,
     );
+    fireEvent.click(screen.getByText('catalogue_import_customize_text'));
     fireEvent.click(screen.getByRole('button', { name: 'catalogue_import_use_suggested_name' }));
 
     expect(onChange).toHaveBeenCalledWith({ localName: 'Meal' });
@@ -111,7 +112,7 @@ describe('CatalogueImportItemReview', () => {
   it('disables decisions and optional selection after import begins', () => {
     render(
       <CatalogueImportItemReview
-        item={{ ...bundle, isSelectable: true }}
+        item={{ ...bundle, isSelectable: true, localEntityId: 'existing-bundle' }}
         decision={decision}
         selected
         canEditSelection={false}
@@ -124,5 +125,54 @@ describe('CatalogueImportItemReview', () => {
     expect(screen.getByRole('checkbox', { name: 'catalogue_import_include_offer' })).toBeDisabled();
     expect(screen.getByRole('combobox', { name: 'catalogue_import_resolution' })).toBeDisabled();
     expect(screen.getByRole('textbox', { name: 'catalogue_import_local_name' })).toBeDisabled();
+  });
+
+  it('starts a first adoption without asking the admin to choose between reuse and a separate copy', () => {
+    render(
+      <CatalogueImportItemReview
+        item={bundle}
+        decision={decision}
+        selected
+        canEditSelection
+        canEditDecision
+        onSelectedChange={jest.fn()}
+        onDecisionChange={jest.fn()}
+      />,
+    );
+    expect(screen.queryByRole('combobox', { name: 'catalogue_import_resolution' })).not.toBeInTheDocument();
+  });
+
+  it('keeps a preview-selected local candidate when switching between reuse and a separate copy', () => {
+    const onChange = jest.fn();
+    function Review() {
+      const [current, setCurrent] = React.useState<CatalogueImportDecision>({
+        ...decision,
+        resolution: 'Reuse',
+        localEntityId: 'selected-local-item',
+      });
+      return (
+        <CatalogueImportItemReview
+          item={bundle}
+          decision={current}
+          selected
+          canEditSelection
+          canEditDecision
+          onSelectedChange={jest.fn()}
+          onDecisionChange={(patch) => {
+            onChange(patch);
+            setCurrent((previous) => ({ ...previous, ...patch }));
+          }}
+        />
+      );
+    }
+    render(<Review />);
+    const resolution = screen.getByRole('combobox', { name: 'catalogue_import_resolution' });
+    expect(screen.queryByText('catalogue_import_using_existing')).not.toBeInTheDocument();
+    fireEvent.change(resolution, { target: { value: 'Create' } });
+    expect(screen.queryByText('catalogue_import_using_existing')).not.toBeInTheDocument();
+    fireEvent.change(resolution, { target: { value: 'Reuse' } });
+    expect(resolution).toHaveValue('Reuse');
+    expect(onChange).toHaveBeenLastCalledWith({ resolution: 'Reuse', localEntityId: 'selected-local-item' });
+    expect(screen.getByText('catalogue_import_reuse_preserves_local')).toBeInTheDocument();
   });
 });

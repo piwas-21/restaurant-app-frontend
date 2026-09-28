@@ -3,12 +3,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import CheckboxField from '@/components/design-system/CheckboxField';
+import { formatCurrency } from '@/utils/currency';
 import styles from './SideItemPickerRow.module.css';
 
 interface SideItemPickerRowProps {
   id: string;
   name: string;
   description?: string;
+  basePrice?: number;
   /** In the draft — i.e. this item WILL be suggested when the picker is applied. */
   checked: boolean;
   /** Was already on the product when the picker opened. A note, not a lock. */
@@ -38,6 +40,7 @@ export default function SideItemPickerRow({
   id,
   name,
   description,
+  basePrice,
   checked,
   alreadyAdded = false,
   isSelf = false,
@@ -70,6 +73,7 @@ export default function SideItemPickerRow({
           </p>
         )}
       </div>
+      {basePrice !== undefined && <span className={styles.price}>{formatCurrency(basePrice)}</span>}
       {note && (
         <span className={styles.note} id={noteId}>
           {note}

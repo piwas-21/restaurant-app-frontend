@@ -67,6 +67,9 @@ export function catalogueImportDecisionFor(item: CatalogueImportSessionItem): Ca
     templateId: item.templateId,
     revision: item.revision,
     resolution: item.localEntityId ? 'Reuse' : 'Create',
+    ...(!item.localEntityId && (item.type === 'item' || item.type === 'bundle')
+      ? { localName: item.displayName, localDescription: item.description ?? '' }
+      : {}),
     ...(item.localEntityId ? { localEntityId: item.localEntityId } : {}),
   };
 }

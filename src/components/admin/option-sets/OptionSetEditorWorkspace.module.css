@@ -2,6 +2,8 @@
   display: grid;
   gap: 1rem;
   padding: 1rem;
+  max-width: 72rem;
+  margin-inline: auto;
 }
 
 .headerActions {
@@ -41,7 +43,24 @@
 .form {
   display: grid;
   gap: 1rem;
-  max-width: 64rem;
+  max-width: 52rem;
+}
+
+.formSection {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: 0.6rem;
+  background: var(--surface-card);
+}
+.formSection h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+.formSection .notice {
+  margin: 0;
 }
 
 .translations {
@@ -57,6 +76,10 @@
   width: fit-content;
   color: var(--link-default);
   cursor: pointer;
+}
+
+.translations[open] {
+  display: grid;
 }
 
 .form input,
@@ -79,6 +102,34 @@
 
 .entryHelp,
 .notice {
+  color: var(--text-secondary);
+}
+
+.guestPreview {
+  padding: 1rem;
+  border-inline-start: 3px solid var(--brand-primary);
+  background: var(--surface-secondary);
+}
+.guestPreview h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+.guestPreview p {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.guestPreview ol {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.65rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+.guestPreview li {
+  padding-inline-start: 0.25rem;
+}
+.guestPreview li span + span {
+  margin-inline-start: 0.5rem;
   color: var(--text-secondary);
 }
 

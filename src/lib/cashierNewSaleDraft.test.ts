@@ -55,6 +55,16 @@ describe('cashierNewSaleDraft — persist/resume', () => {
     expect(readCashierNewSaleDraft()).toMatchObject({ tableLabel: '11a', tableId, serviceSessionId });
   });
 
+  it('retains a valid legacy table number while rejecting fractional and zero values', () => {
+    persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber: 7 }));
+    expect(readCashierNewSaleDraft()?.tableNumber).toBe(7);
+
+    for (const tableNumber of [2.5, 0]) {
+      persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber }));
+      expect(readCashierNewSaleDraft()?.tableNumber).toBeUndefined();
+    }
+  });
+
   it('reads as no draft on an empty tab', () => {
     expect(readCashierNewSaleDraft()).toBeNull();
   });

@@ -3355,5 +3355,12 @@
   "select_option": "Sélectionner une option",
   "catalogue_revision_adopted_withdrawn": "La révision adoptée a été retirée. Vérifiez la révision actuelle avant d’appliquer des champs.",
   "catalogue_revision_unavailable": "Aucune révision publiée actuelle",
-  "catalogue_revision_changes_load_error": "Impossible de charger les mises à jour du modèle. Réessayez pour vérifier les avis de retrait ou de mise à jour."
+  "catalogue_revision_changes_load_error": "Impossible de charger les mises à jour du modèle. Réessayez pour vérifier les avis de retrait ou de mise à jour.",
+  "bundle_preview_channel_orderable_count": "Choix commandables sur {{channel}} : {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}} : {{available}} choix distincts sont commandables ; cette étape en nécessite {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Vérification de la disponibilité actuelle des choix par type de commande…",
+  "editor_review_bundle_availability_checked": "Ces nombres proviennent d’une lecture récente du catalogue pour cette vérification. La disponibilité peut changer avant la commande.",
+  "editor_review_bundle_availability_check_failed": "Impossible de vérifier la disponibilité actuelle de tous les choix référencés. Aucun canal n’est indiqué comme ayant assez de choix.",
+  "editor_review_bundle_availability_shortage": "L’étape « {{section}} » nécessite {{minimum}} choix distincts sur {{channel}} ; le nombre actuellement commandable est {{available}}.",
+  "editor_review_bundle_availability_check_retry": "Réessayer la vérification de disponibilité"
 }

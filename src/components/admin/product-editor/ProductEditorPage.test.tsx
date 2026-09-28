@@ -20,6 +20,28 @@ jest.mock('@/services/productService', () => ({
 }));
 jest.mock('@/services/menuService', () => ({
   createProduct: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
+  getAllProducts: jest.fn(async () => [
+    {
+      id: 'p9',
+      isActive: true,
+      isAvailable: true,
+      availability: {
+        canOrder: true,
+        reason: 'Available',
+        allowedOrderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      },
+    },
+    {
+      id: 'bundle-1',
+      isActive: true,
+      isAvailable: true,
+      availability: {
+        canOrder: true,
+        reason: 'Available',
+        allowedOrderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      },
+    },
+  ]),
 }));
 jest.mock('@/services/menuBundleService', () => ({
   createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
@@ -118,7 +140,9 @@ const renderEditor = async (product: ProductDetails, isBundle: boolean, mode: 'c
 
 const saveThroughReview = async () => {
   fireEvent.click(screen.getByTestId('editor-save'));
-  fireEvent.click(await screen.findByRole('button', { name: 'editor_review_save' }));
+  const save = await screen.findByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(save).toBeEnabled());
+  fireEvent.click(save);
 };
 
 const activateSection = (label = 'editor_section_recipe') => fireEvent.click(screen.getByRole('tab', { name: label }));

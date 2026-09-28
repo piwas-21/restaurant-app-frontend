@@ -3364,5 +3364,12 @@
   "select_option": "Выберите вариант",
   "catalogue_revision_adopted_withdrawn": "Принятая редакция отозвана. Проверьте текущую редакцию перед применением полей.",
   "catalogue_revision_unavailable": "Нет текущей опубликованной редакции",
-  "catalogue_revision_changes_load_error": "Не удалось загрузить обновления шаблона. Повторите попытку, чтобы проверить уведомления об отзыве или обновлении."
+  "catalogue_revision_changes_load_error": "Не удалось загрузить обновления шаблона. Повторите попытку, чтобы проверить уведомления об отзыве или обновлении.",
+  "bundle_preview_channel_orderable_count": "Доступно для заказа через «{{channel}}»: {{count}} вариантов.",
+  "bundle_preview_channel_required_choices": "«{{channel}}»: доступно {{available}} различных вариантов; для этого шага требуется {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Проверяем актуальную доступность вариантов по типу заказа…",
+  "editor_review_bundle_availability_checked": "Эти количества получены из свежих данных каталога для этой проверки. Доступность может измениться до оформления заказа.",
+  "editor_review_bundle_availability_check_failed": "Не удалось проверить актуальную доступность всех указанных вариантов. Ни один канал не отмечен как имеющий достаточно вариантов.",
+  "editor_review_bundle_availability_shortage": "Для шага «{{section}}» требуется {{minimum}} различных вариантов через «{{channel}}»; сейчас доступно для заказа {{available}}.",
+  "editor_review_bundle_availability_check_retry": "Повторить проверку доступности"
 }

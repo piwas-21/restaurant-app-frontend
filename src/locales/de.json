@@ -3346,5 +3346,12 @@
   "select_option": "Option auswählen",
   "catalogue_revision_adopted_withdrawn": "Die übernommene Revision wurde zurückgezogen. Prüfen Sie die aktuelle Revision, bevor Sie Felder übernehmen.",
   "catalogue_revision_unavailable": "Keine aktuelle veröffentlichte Revision",
-  "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen."
+  "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen.",
+  "bundle_preview_channel_orderable_count": "Bestellbare Auswahlmöglichkeiten für {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: {{available}} verschiedene Auswahlmöglichkeiten sind bestellbar; dieser Schritt benötigt {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Aktuelle Verfügbarkeit der Auswahlmöglichkeiten nach Bestellart wird geprüft…",
+  "editor_review_bundle_availability_checked": "Diese Zählungen basieren auf einem aktuellen Katalogabruf für diese Prüfung. Die Verfügbarkeit kann sich vor einer Bestellung ändern.",
+  "editor_review_bundle_availability_check_failed": "Die aktuelle Verfügbarkeit konnte nicht für alle referenzierten Auswahlmöglichkeiten geprüft werden. Für keinen Bestellkanal wird eine ausreichende Auswahl bestätigt.",
+  "editor_review_bundle_availability_shortage": "Der Schritt „{{section}}“ benötigt {{minimum}} verschiedene Auswahlmöglichkeiten für {{channel}}; derzeit sind {{available}} bestellbar.",
+  "editor_review_bundle_availability_check_retry": "Verfügbarkeitsprüfung wiederholen"
 }

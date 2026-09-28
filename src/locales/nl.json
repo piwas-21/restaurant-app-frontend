@@ -3346,5 +3346,12 @@
   "select_option": "Selecteer een optie",
   "catalogue_revision_adopted_withdrawn": "De overgenomen revisie is ingetrokken. Controleer de huidige revisie voordat je velden toepast.",
   "catalogue_revision_unavailable": "Geen actuele gepubliceerde revisie",
-  "catalogue_revision_changes_load_error": "De sjabloonupdates konden niet worden geladen. Probeer opnieuw om meldingen over intrekking of updates te controleren."
+  "catalogue_revision_changes_load_error": "De sjabloonupdates konden niet worden geladen. Probeer opnieuw om meldingen over intrekking of updates te controleren.",
+  "bundle_preview_channel_orderable_count": "Bestelbare keuzes via {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: {{available}} verschillende keuzes zijn bestelbaar; deze stap vereist er {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Huidige beschikbaarheid van keuzes per besteltype controleren…",
+  "editor_review_bundle_availability_checked": "Deze aantallen zijn gebaseerd op een actuele cataloguslezing voor deze controle. De beschikbaarheid kan veranderen voordat een bestelling wordt geplaatst.",
+  "editor_review_bundle_availability_check_failed": "De huidige beschikbaarheid kon niet voor alle verwezen keuzes worden gecontroleerd. Geen enkel kanaal wordt als voldoende gemarkeerd.",
+  "editor_review_bundle_availability_shortage": "De stap “{{section}}” vereist {{minimum}} verschillende keuzes via {{channel}}; momenteel zijn er {{available}} bestelbaar.",
+  "editor_review_bundle_availability_check_retry": "Beschikbaarheid opnieuw controleren"
 }

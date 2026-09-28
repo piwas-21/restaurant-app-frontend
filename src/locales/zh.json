@@ -1330,6 +1330,7 @@
   "section_name_placeholder": "例如：选择饮品",
   "description_placeholder": "此分区的可选描述",
   "required_section": "必选分区",
+  "allow_repeated_menu_items": "允许多次选择同一商品",
   "minimum_selection": "最少选择",
   "maximum_selection": "最多选择",
   "move_up": "上移",

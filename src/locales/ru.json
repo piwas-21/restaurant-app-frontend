@@ -1266,6 +1266,7 @@
   "section_name_placeholder": "например, Выберите напиток",
   "description_placeholder": "Необязательное описание для этого раздела",
   "required_section": "Обязательный раздел",
+  "allow_repeated_menu_items": "Разрешить выбирать один товар несколько раз",
   "minimum_selection": "Минимальный выбор",
   "maximum_selection": "Максимальный выбор",
   "move_up": "Переместить вверх",

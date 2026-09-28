@@ -1333,6 +1333,7 @@
   "section_name_placeholder": "ej., Elegir Bebida",
   "description_placeholder": "Descripción opcional para esta sección",
   "required_section": "Sección Requerida",
+  "allow_repeated_menu_items": "Permitir elegir el mismo producto varias veces",
   "minimum_selection": "Selección Mínima",
   "maximum_selection": "Selección Máxima",
   "move_up": "Mover arriba",

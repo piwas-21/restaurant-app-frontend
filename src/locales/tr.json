@@ -1396,6 +1396,7 @@
   "section_name_placeholder": "örn., İçecek Seç",
   "description_placeholder": "Bu bölüm için isteğe bağlı açıklama",
   "required_section": "Gerekli Bölüm",
+  "allow_repeated_menu_items": "Aynı üründen birden fazla seçime izin ver",
   "minimum_selection": "Minimum Seçim",
   "maximum_selection": "Maksimum Seçim",
   "move_up": "Yukarı Taşı",

@@ -85,6 +85,7 @@ const makeExistingBundleSection = (): MenuSection => ({
   isRequired: true,
   minSelection: 1,
   maxSelection: 1,
+  allowRepeatedItems: false,
   items: [
     {
       id: 'item-existing',
@@ -128,6 +129,7 @@ const makeSectionPatchFixture = (options: {
       isRequired: false,
       minSelection: 0,
       maxSelection: 1,
+      allowRepeatedItems: false,
       ...(options.drinkTranslations ? { translations: options.drinkTranslations } : {}),
       ...(options.drinkTranslationMetadata ? { translationMetadata: options.drinkTranslationMetadata } : {}),
       items: [

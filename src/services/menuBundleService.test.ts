@@ -108,6 +108,7 @@ describe('patchMenuBundleSections — versioned section writes', () => {
             isRequired: true,
             minSelection: 1,
             maxSelection: 1,
+            allowRepeatedItems: false,
             items: [
               {
                 id: 'item-existing',
@@ -131,6 +132,7 @@ describe('patchMenuBundleSections — versioned section writes', () => {
             isRequired: false,
             minSelection: 0,
             maxSelection: 1,
+            allowRepeatedItems: false,
             items: [
               {
                 productId: 'product-drink',

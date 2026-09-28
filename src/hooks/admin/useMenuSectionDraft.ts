@@ -69,6 +69,7 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
       isRequired: true,
       minSelection: 1,
       maxSelection: 1,
+      allowRepeatedItems: false,
       items: [],
     };
 
@@ -95,7 +96,9 @@ export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftO
       // Removing an option can make the previous maximum exceed the remaining item count.
       // Keep the draft saveable while still letting the empty state surface the required-item
       // validation when the last option is removed.
-      const maxSelection = Math.max(1, Math.min(section.maxSelection, items.length));
+      const maxSelection = section.allowRepeatedItems
+        ? section.maxSelection
+        : Math.max(1, Math.min(section.maxSelection, items.length));
       const minSelection = Math.min(section.minSelection, maxSelection);
       updateSection(index, { items, minSelection, maxSelection });
     },

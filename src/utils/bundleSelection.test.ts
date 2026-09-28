@@ -314,10 +314,9 @@ describe('updateBundleOption / findBundleOption / countSectionSelections', () =>
     expect(clearedNote[0].ingredientQuantities).toEqual({ salsa: 0 });
   });
 
-  it('counts options, not their quantities — matching the server gate', () => {
-    // BasketItemFactory gates Min/MaxSelection on sectionSelections.Count, so 'b' at quantity 2
-    // still counts once.
+  it('counts distinct options by default and portions in a repeatable section', () => {
     expect(countSectionSelections(selected, 's1')).toBe(2);
+    expect(countSectionSelections(selected, 's1', true)).toBe(3);
     expect(countSectionSelections(selected, 'missing')).toBe(0);
   });
 
@@ -361,8 +360,6 @@ describe('findBundleSelectionErrors — required-group gating', () => {
   });
 
   it('needs minSelection distinct options — a single option at quantity 2 does not satisfy it', () => {
-    // Mirrors the server, which would reject this payload with a 400 (BasketItemFactory gates on
-    // sectionSelections.Count).
     const twoOf = [section({ id: 'required', isRequired: true, minSelection: 2, maxSelection: 2 })];
 
     expect(findBundleSelectionErrors(twoOf, [{ sectionId: 'required', itemId: 'x', quantity: 2 }])).toEqual([
@@ -374,5 +371,25 @@ describe('findBundleSelectionErrors — required-group gating', () => {
         { sectionId: 'required', itemId: 'y', quantity: 1 },
       ]),
     ).toEqual([]);
+  });
+
+  it('accepts two or three portions of one meat only when the section allows repeats', () => {
+    const meats = section({
+      id: 'meat',
+      isRequired: true,
+      minSelection: 3,
+      maxSelection: 3,
+      allowRepeatedItems: true,
+      items: [item({ productId: 'kebab' }), item({ productId: 'chicken' })],
+    });
+    const kebab = [{ sectionId: 'meat', itemId: 'kebab', quantity: 3 }];
+    expect(findBundleSelectionErrors([meats], kebab)).toEqual([]);
+    expect(findBundleSelectionErrors([meats], [{ ...kebab[0], quantity: 2 }])).toHaveLength(1);
+    expect(toggleBundleOption(meats, kebab, 'chicken')).toEqual(kebab);
+    const mixed = [
+      { ...kebab[0], quantity: 1 },
+      { sectionId: 'meat', itemId: 'chicken', quantity: 2 },
+    ];
+    expect(findBundleSelectionErrors([meats], mixed)).toEqual([]);
   });
 });

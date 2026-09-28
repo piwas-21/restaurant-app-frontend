@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { SuggestedSideItemsPickerProps } from './types';
@@ -7,18 +8,16 @@ import SideItemPickerModal from './SideItemPickerModal';
 import { sideItemLabel } from './sideItemPicker';
 import EditorHelpDisclosure from '@/components/admin/product-editor/EditorHelpDisclosure';
 import { formatCurrency } from '@/utils/currency';
-import styles from '@/app/styles/AdminPage.module.css';
+import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import styles from './SuggestedSideItemsPicker.module.css';
 
 /**
  * The `Options & sides` section: what this dish suggests, and the way in to change it (plan S9 /
  * **D12**).
  *
- * The section itself is now only a READOUT plus one button. Everything that decides which items are
- * suggested moved into `SideItemPickerModal`, because the surface this replaces split one decision
- * across two controls in two places — an inline expander that could only add, and an `×` on the
- * chip that was the only way to remove. The chips keep their `×`: it is the one-click path for the
- * common case, and it is the same write.
+ * The section is a readout plus one picker button. Each selected side also has a named remove
+ * action for the common one-item change; both paths update the same draft field.
  */
 export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> = ({
   errors,
@@ -54,30 +53,35 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
       {selectedSideItemIds.length === 0 ? (
         <p className={modalStyles.emptyState}>{t('no_side_items_selected')}</p>
       ) : (
-        <div className={modalStyles.chipGroup}>
+        <ul className={styles.sideList}>
           {selectedSideItemIds.map((id) => {
             const detail = selectedItemsDetails.get(id);
+            const name = sideItemLabel(id, selectedItemsDetails);
             return (
-              <div key={id} className={modalStyles.chip}>
-                <span>
-                  {sideItemLabel(id, selectedItemsDetails)}
-                  {detail?.basePrice !== undefined ? ` — ${formatCurrency(detail.basePrice)}` : ''}
-                </span>
+              <li key={id} className={styles.sideRow}>
+                <span className={styles.sideName}>{name}</span>
+                {detail?.basePrice !== undefined && (
+                  <span className={styles.sidePrice}>{formatCurrency(detail.basePrice)}</span>
+                )}
                 <button
                   type="button"
                   onClick={() => removeItem(id)}
-                  className={modalStyles.chipRemove}
-                  aria-label={t('remove')}
+                  className={styles.removeButton}
+                  aria-label={`${t('remove')}: ${name}`}
                 >
-                  ×
+                  <X size={16} aria-hidden="true" />
                 </button>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
 
-      <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsPickerOpen(true)}>
+      <button
+        type="button"
+        className={`${adminStyles.adminButton} ${adminStyles.add}`}
+        onClick={() => setIsPickerOpen(true)}
+      >
         {t('side_items_picker_open')}
       </button>
 

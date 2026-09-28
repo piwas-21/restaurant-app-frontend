@@ -114,12 +114,6 @@ export default function CustomizationGroupEditor({
             onChange={(event) => patchText({ name: event.target.value, description: group.description })}
           />
         </FormField>
-        <FormField label={t('description')}>
-          <input
-            value={group.description ?? ''}
-            onChange={(event) => patchText({ name: group.name, description: event.target.value })}
-          />
-        </FormField>
         <FormField label={t('minimum_selection')}>
           <input
             type="number"
@@ -139,25 +133,9 @@ export default function CustomizationGroupEditor({
             onChange={(event) => patch({ maxSelection: Number(event.target.value) })}
           />
         </FormField>
-        <FormField label={t('choice_group_included_ingredient_units')}>
-          <input
-            type="number"
-            min={0}
-            value={group.includedFreeUnits}
-            onChange={(event) => patch({ includedFreeUnits: Number(event.target.value) })}
-          />
-        </FormField>
       </div>
       <p className={styles.limitHelp}>{t('choice_group_limits_help')}</p>
-      <p className={styles.limitHelp}>{t('choice_group_included_help')}</p>
-      <div className={styles.switches}>
-        <CheckboxField
-          label={t('required')}
-          checked={group.isRequired}
-          onChange={(isRequired) =>
-            patch({ isRequired, minSelection: isRequired ? Math.max(1, group.minSelection) : 0 })
-          }
-        />
+      <div className={styles.visibility}>
         <CheckboxField label={t('active')} checked={group.isActive} onChange={(isActive) => patch({ isActive })} />
       </div>
       <fieldset className={styles.options}>
@@ -221,6 +199,36 @@ export default function CustomizationGroupEditor({
           </div>
         ))}
       </fieldset>
+      <details className={styles.advanced}>
+        <summary>{t('editor_section_advanced')}</summary>
+        <p className={styles.limitHelp}>{t('editor_section_advanced_description')}</p>
+        <div className={styles.grid}>
+          <FormField label={t('description')}>
+            <input
+              value={group.description ?? ''}
+              onChange={(event) => patchText({ name: group.name, description: event.target.value })}
+            />
+          </FormField>
+          <FormField label={t('choice_group_included_ingredient_units')}>
+            <input
+              type="number"
+              min={0}
+              value={group.includedFreeUnits}
+              onChange={(event) => patch({ includedFreeUnits: Number(event.target.value) })}
+            />
+          </FormField>
+        </div>
+        <p className={styles.limitHelp}>{t('choice_group_included_help')}</p>
+        <div className={styles.switches}>
+          <CheckboxField
+            label={t('required')}
+            checked={group.isRequired}
+            onChange={(isRequired) =>
+              patch({ isRequired, minSelection: isRequired ? Math.max(1, group.minSelection) : 0 })
+            }
+          />
+        </div>
+      </details>
     </article>
   );
 }

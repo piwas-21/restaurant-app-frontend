@@ -51,6 +51,7 @@ function normalizedSection(section: MenuSection, includeIds: boolean): unknown {
     isRequired: section.isRequired,
     minSelection: section.minSelection,
     maxSelection: section.maxSelection,
+    allowRepeatedItems: section.allowRepeatedItems ?? false,
     translations: normalizedTranslations(section),
     items: normalizedItems(section, includeIds),
   };

@@ -36,13 +36,14 @@ const menuSectionSchema = z
     isRequired: z.boolean(),
     minSelection: z.number().int().nonnegative(),
     maxSelection: z.number().int().positive(),
+    allowRepeatedItems: z.boolean().optional(),
     items: z.array(menuItemSchema).min(1),
   })
   .superRefine((section, ctx) => {
     if (section.minSelection > section.maxSelection) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['minSelection'], message: 'Minimum exceeds maximum' });
     }
-    if (section.maxSelection > section.items.length) {
+    if (!section.allowRepeatedItems && section.maxSelection > section.items.length) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['maxSelection'], message: 'Maximum exceeds item count' });
     }
     if (section.isRequired && section.minSelection < 1) {

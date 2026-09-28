@@ -109,7 +109,8 @@ export function assessBundleChoiceAvailability(
         orderType,
         orderableCount,
         minimum: section.minSelection,
-        meetsMinimum: orderableCount >= section.minSelection,
+        meetsMinimum:
+          orderableCount >= (section.allowRepeatedItems && section.minSelection > 0 ? 1 : section.minSelection),
       };
     });
 

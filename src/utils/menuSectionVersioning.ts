@@ -23,8 +23,12 @@ export function createTemporaryMenuId(): string {
 
 function normalizedTranslations(section: MenuSection): unknown {
   return Object.entries(section.translations ?? {})
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([language, translation]) => [language, translation.name, translation.description ?? null]);
+    .map(([language, translation]) => [
+      language.trim().toLowerCase(),
+      translation.name.trim(),
+      translation.description?.trim() || null,
+    ])
+    .sort(([left], [right]) => String(left).localeCompare(String(right)));
 }
 
 function normalizedItems(section: MenuSection, includeIds: boolean): unknown[] {
@@ -58,6 +62,18 @@ export function menuSectionsEqual(left: readonly MenuSection[], right: readonly 
     JSON.stringify(left.map((section) => normalizedSection(section, true))) ===
     JSON.stringify(right.map((section) => normalizedSection(section, true)))
   );
+}
+
+/** Keep the server's canonical section content while sending reviewed translation provenance. */
+export function withSectionTranslationMetadata(
+  persistedSections: readonly MenuSection[],
+  draftSections: readonly MenuSection[],
+): MenuSection[] {
+  const draftsById = new Map(draftSections.map((section) => [section.id, section]));
+  return persistedSections.map((section) => ({
+    ...section,
+    translationMetadata: draftsById.get(section.id)?.translationMetadata,
+  }));
 }
 
 function sameItemContent(left: MenuSectionItem, right: MenuSectionItem): boolean {

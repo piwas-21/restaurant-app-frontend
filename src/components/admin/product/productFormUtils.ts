@@ -15,7 +15,11 @@ import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
 import type { MenuSection } from '@/types/menu';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
-import { menuSectionsEqual, mergePatchedMenuSections } from '@/utils/menuSectionVersioning';
+import {
+  menuSectionsEqual,
+  mergePatchedMenuSections,
+  withSectionTranslationMetadata,
+} from '@/utils/menuSectionVersioning';
 
 /**
  * Told when the product itself was written but its staged photos were NOT stored. It receives the
@@ -438,12 +442,21 @@ export const submitEditProductForm = async ({
       const mergedDraftSections = mergePatchedMenuSections(draftSections, patchResult.sections);
 
       // The PUT carries the exact server snapshot so its versioned-section guard can verify that
-      // only non-section fields changed. Keep richer draft-only fields in the open editor.
+      // only non-section fields changed. Its provenance writer still needs the reviewed metadata
+      // from the draft; the section PATCH stores translations but does not record that metadata.
+      // Keep richer draft-only fields in the open editor for a safe retry if the PUT is refused.
       menuDefinitionPayload = toMenuDefinitionPayload({
         ...data.menuDefinition,
-        sections: patchResult.sections,
+        sections: withSectionTranslationMetadata(patchResult.sections, mergedDraftSections),
       });
       onMenuSectionsPatched(patchResult, mergedDraftSections);
+    } else if (data.menuDefinition && authoringVersion !== undefined) {
+      // A retry after a successful PATCH uses canonical server text, even when the open draft
+      // still contains pre-normalized translation input such as a blank description.
+      menuDefinitionPayload = toMenuDefinitionPayload({
+        ...data.menuDefinition,
+        sections: withSectionTranslationMetadata(product.menuDefinition?.sections ?? [], draftSections),
+      });
     }
 
     const productData = {

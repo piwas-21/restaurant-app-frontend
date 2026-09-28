@@ -15,12 +15,12 @@ export default function CustomizationGroupGuestPreview({
   readonly ingredients: readonly ProductIngredient[];
 }) {
   const { t } = useTranslation();
-  const rule =
-    group.minSelection === group.maxSelection
-      ? t('catalogue_choose_exactly', { count: group.minSelection })
-      : group.minSelection === 0
-        ? t('catalogue_choose_up_to', { count: group.maxSelection })
-        : t('catalogue_choose_range', { min: group.minSelection, max: group.maxSelection });
+  let rule = t('catalogue_choose_range', { min: group.minSelection, max: group.maxSelection });
+  if (group.minSelection === group.maxSelection) {
+    rule = t('catalogue_choose_exactly', { count: group.minSelection });
+  } else if (group.minSelection === 0) {
+    rule = t('catalogue_choose_up_to', { count: group.maxSelection });
+  }
   const options = [
     ...group.ingredientOptions.map((option) => {
       const ingredient = ingredients.find((row) => row.id === option.productIngredientId);

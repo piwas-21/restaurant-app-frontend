@@ -4,6 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { OptionSetEntry, OptionSetKind } from '@/types/optionSet';
 import { formatCurrency } from '@/utils/currency';
+import { optionSetEntryPrice } from '@/utils/optionSetEntryPrice';
 import styles from './OptionSetEditorWorkspace.module.css';
 
 interface Props {
@@ -22,12 +23,7 @@ export default function OptionSetEntriesPreview({ name, kind, entries }: Props) 
       <strong dir="auto">{name || t('option_set_name')}</strong>
       <ol>
         {entries.map((entry, index) => {
-          const price =
-            kind === 'bundleChoice'
-              ? entry.additionalPrice
-              : kind === 'ingredient' || kind === 'sauce'
-                ? entry.price
-                : 0;
+          const price = optionSetEntryPrice(kind, entry);
           return (
             <li key={entry.id ?? `${entry.name}-${index}`}>
               <span dir="auto">{entry.name || t('option_set_entry_name')}</span>

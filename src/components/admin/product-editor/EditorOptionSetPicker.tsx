@@ -15,6 +15,7 @@ import { applyOptionSetToEditor, optionSetHasCompleteReferences } from '@/utils/
 import { getErrorMessage } from '@/utils/apiClient';
 import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import { formatCurrency } from '@/utils/currency';
+import { optionSetEntryPrice } from '@/utils/optionSetEntryPrice';
 import styles from './EditorOptionSetPicker.module.css';
 
 interface Props {
@@ -137,12 +138,7 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
           )}
           <ul>
             {preview.entries.map((entry, index) => {
-              const price =
-                preview.kind === 'bundleChoice'
-                  ? entry.additionalPrice
-                  : preview.kind === 'ingredient' || preview.kind === 'sauce'
-                    ? entry.price
-                    : 0;
+              const price = optionSetEntryPrice(preview.kind, entry);
               return (
                 <li key={entry.id ?? `${entry.name}-${index}`}>
                   <span dir="auto">{entry.name}</span>

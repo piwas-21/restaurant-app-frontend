@@ -49,13 +49,13 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
           setSets(pages.flatMap((page) => page.items).filter((set) => set.status === 'active'));
       })
       .catch((requestError: unknown) => {
-        if (!controller.signal.aborted) setError(getErrorMessage(requestError) ?? t('option_set_load_error'));
+        if (!controller.signal.aborted) setError(getErrorMessage(requestError) ?? 'option_set_load_error');
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [kinds, query, t]);
+  }, [kinds, query]);
 
   const openPreview = async (set: OptionSetSummary) => {
     setApplyingId(set.id);
@@ -65,7 +65,7 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
       const detail = await getOptionSet(set.id);
       setPreview(detail);
     } catch (requestError) {
-      setError(getErrorMessage(requestError) ?? t('option_set_load_error'));
+      setError(getErrorMessage(requestError) ?? 'option_set_load_error');
     } finally {
       setApplyingId(null);
     }
@@ -101,7 +101,7 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
       {loading && <output>{t('loading')}</output>}
       {error && (
         <p role="alert" className={styles.error}>
-          {error}
+          {error === 'option_set_load_error' ? t(error) : error}
         </p>
       )}
       {outcome && <output className={styles.outcome}>{outcome}</output>}

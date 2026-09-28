@@ -24,7 +24,7 @@ interface CashierNewSaleChannelBarProps {
  * The sale's channel, always visible (cashier POS plan §5.3.1): the tenant's valid channels as
  * single-choice chips, starting on the tenant's default. Labels come from the shared channel
  * vocabulary so a new channel cannot appear here under a second name. Dine-in asks for its
- * table — the review resolves that number to the table's open visit before anything is quoted.
+ * table — the review resolves its label to the table's open visit before anything is quoted.
  */
 export default function CashierNewSaleChannelBar({
   enabled,
@@ -69,7 +69,7 @@ export default function CashierNewSaleChannelBar({
           <input
             id="cashier-new-sale-table"
             type="text"
-            inputMode="numeric"
+            inputMode="text"
             autoComplete="off"
             value={tableNumber}
             placeholder={t('cashier.new_sale.table_number_placeholder')}

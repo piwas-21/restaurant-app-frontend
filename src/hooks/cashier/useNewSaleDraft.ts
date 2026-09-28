@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { OrderType } from '@/types/order';
 import { addCustomizedItem } from '@/components/catalog/orderItems';
 import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
@@ -13,6 +13,7 @@ import {
 } from '@/lib/cashierNewSaleDraft';
 import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { defaultChannelFor, parseTableNumber } from './newSaleRequest';
+import { useNewSaleEntry } from './useNewSaleEntry';
 
 /**
  * The one persistent New sale draft (plan §5.3.7): its state lives in sessionStorage and
@@ -25,6 +26,8 @@ export interface NewSaleDraftState {
   lines: CashierNewSaleDraftLine[];
   notes: string;
   tableNumber: string;
+  tableId?: string;
+  serviceSessionId?: string;
   contact?: CashierNewSaleContact;
   clientOperationId?: string;
 }
@@ -35,8 +38,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
   const [state, setState] = useState<NewSaleDraftState>(EMPTY_NEW_SALE_STATE);
   const [hydrated, setHydrated] = useState(false);
   const [lastRemoved, setLastRemoved] = useState<{ line: CashierNewSaleDraftLine; index: number } | null>(null);
-  // `?channel=DineIn&table=N` (Add round on the Tables screen) is applied exactly once per mount.
-  const appliedEntryParamsRef = useRef(false);
+  const { entryConflict, clearEntryConflict } = useNewSaleEntry(enabled, channelsLoading, hydrated, state, setState);
 
   // Restore the draft after a navigation; a foreign version reads as none and starts empty.
   useEffect(() => {
@@ -46,7 +48,9 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
         channel: stored.channel,
         lines: stored.lines,
         notes: stored.notes ?? '',
-        tableNumber: stored.tableNumber ? String(stored.tableNumber) : '',
+        tableNumber: stored.tableLabel ?? (stored.tableNumber ? String(stored.tableNumber) : ''),
+        tableId: stored.tableId,
+        serviceSessionId: stored.serviceSessionId,
         contact: stored.contact,
         clientOperationId: stored.clientOperationId,
       });
@@ -65,22 +69,6 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     );
   }, [hydrated, channelsLoading, enabled]);
 
-  // Entry deep link (Add round): preselect the channel and its table ONCE after hydration and
-  // the enabled-channel list answer, so neither effect can clobber it. A channel the tenant no
-  // longer offers is ignored rather than bounced later.
-  useEffect(() => {
-    if (!hydrated || channelsLoading || appliedEntryParamsRef.current) return;
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const tableParam = params.get('table');
-    const channelParam = params.get('channel');
-    if (channelParam !== 'DineIn' || tableParam === null) return;
-    const table = parseTableNumber(tableParam);
-    if (table === null || !enabled.includes(OrderType.DineIn)) return;
-    appliedEntryParamsRef.current = true;
-    setState((current) => ({ ...current, channel: OrderType.DineIn, tableNumber: String(table) }));
-  }, [hydrated, channelsLoading, enabled]);
-
   // Persist the moving draft; an emptied ticket clears the stored one instead of leaving a ghost.
   useEffect(() => {
     if (!hydrated) return;
@@ -96,6 +84,9 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
       lines: state.lines,
       notes: state.notes,
       tableNumber: state.channel === OrderType.DineIn ? (tableNumber ?? undefined) : undefined,
+      tableLabel: state.channel === OrderType.DineIn ? state.tableNumber.trim() || undefined : undefined,
+      tableId: state.channel === OrderType.DineIn ? state.tableId : undefined,
+      serviceSessionId: state.channel === OrderType.DineIn ? state.serviceSessionId : undefined,
       contact: state.contact,
       clientOperationId: state.clientOperationId,
     });
@@ -111,8 +102,9 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
    * stored draft instead of resurrecting it on the next state write. */
   const reset = useCallback(() => {
     setLastRemoved(null);
+    clearEntryConflict();
     setState(EMPTY_NEW_SALE_STATE);
-  }, []);
+  }, [clearEntryConflict]);
 
   /** Record the create operation id this ticket is being submitted under. Not a content change:
    * it must not drop the quoted price, and a later mutation still removes it. */
@@ -120,11 +112,29 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     setState((current) => ({ ...current, clientOperationId }));
   }, []);
 
-  const setChannel = useCallback((channel: OrderType) => mutate((current) => ({ ...current, channel })), [mutate]);
+  const setChannel = useCallback(
+    (channel: OrderType) => {
+      clearEntryConflict();
+      mutate((current) => ({
+        ...current,
+        channel,
+        ...(channel === OrderType.DineIn ? {} : { tableId: undefined, serviceSessionId: undefined }),
+      }));
+    },
+    [mutate, clearEntryConflict],
+  );
   const setNotes = useCallback((notes: string) => mutate((current) => ({ ...current, notes })), [mutate]);
   const setTableNumber = useCallback(
-    (tableNumber: string) => mutate((current) => ({ ...current, tableNumber })),
-    [mutate],
+    (tableNumber: string) => {
+      clearEntryConflict();
+      mutate((current) => ({
+        ...current,
+        tableNumber,
+        tableId: undefined,
+        serviceSessionId: undefined,
+      }));
+    },
+    [mutate, clearEntryConflict],
   );
   const setContact = useCallback(
     (contact: CashierNewSaleContact | undefined) => mutate((current) => ({ ...current, contact })),
@@ -171,6 +181,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
 
   return {
     state,
+    entryConflict,
     hydrated,
     lastRemoved,
     setChannel,

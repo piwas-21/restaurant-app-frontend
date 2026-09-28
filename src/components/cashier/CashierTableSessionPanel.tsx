@@ -50,6 +50,22 @@ function pendingNoticeLabel(operation: PendingTableOperation, t: (key: string) =
   return operation.kind === 'payment' ? t('cashier.tables.payment_unknown') : t('cashier.tables.close_unknown');
 }
 
+function addRoundPath(session: TableServiceSessionDto): string | null {
+  const label = session.tableLabel || (session.tableNumber != null ? String(session.tableNumber) : null);
+  if (session.tableId && label) {
+    return `${CASHIER_NEW_SALE_PATH}?${new URLSearchParams({
+      channel: 'DineIn',
+      table: label,
+      tableId: session.tableId,
+      serviceSessionId: session.serviceSessionId,
+    })}`;
+  }
+  if (session.tableNumber != null) {
+    return `${CASHIER_NEW_SALE_PATH}?channel=DineIn&table=${encodeURIComponent(String(session.tableNumber))}`;
+  }
+  return null;
+}
+
 export default function CashierTableSessionPanel({
   session,
   timeZone,
@@ -75,6 +91,7 @@ export default function CashierTableSessionPanel({
   const closeAllowed = actions.has('close');
   const legacyConflict = hasLegacyConflict || session.hasUnassignedActiveOrders === true;
   const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict;
+  const addRoundHref = addRoundPath(session);
   const message = displayError(error, t);
   const currency = tableSessionCurrency(session);
   const opened = formatCashierDateTime(
@@ -184,14 +201,8 @@ export default function CashierTableSessionPanel({
           <Printer size={17} aria-hidden="true" />
           {t('cashier.tables.print_bill')}
         </StaffButton>
-        {addRoundAllowed ? (
-          // Add round goes to the workspace New sale composer with the table preselected
-          // (pilot feedback), not the legacy waiter page. The review resolves the open visit
-          // from the table number, so the session id does not need to travel.
-          <Link
-            className={`btn btn-secondary ${buttonStyles.touch}`}
-            href={`${CASHIER_NEW_SALE_PATH}?channel=DineIn&table=${encodeURIComponent(String(session.tableNumber ?? ''))}`}
-          >
+        {addRoundAllowed && addRoundHref ? (
+          <Link className={`btn btn-secondary ${buttonStyles.touch}`} href={addRoundHref}>
             {t('cashier.tables.add_round')}
           </Link>
         ) : (

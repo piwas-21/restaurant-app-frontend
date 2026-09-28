@@ -65,9 +65,11 @@ describe('buildCounterSaleRequest — the wire contract', () => {
       lines: [line],
       notes: '',
       tableNumber: 12,
+      tableId: 'table-12',
       serviceSessionId: 'session-1',
     });
     expect(request.tableNumber).toBeUndefined();
+    expect(request.tableId).toBeUndefined();
     expect(request.serviceSessionId).toBeUndefined();
     expect(request.paymentState).toBe('Unpaid');
     expect(request.notes).toBeUndefined();
@@ -79,9 +81,11 @@ describe('buildCounterSaleRequest — the wire contract', () => {
       lines: [line],
       notes: '',
       tableNumber: 12,
+      tableId: 'table-12',
       serviceSessionId: 'session-1',
     });
     expect(dineIn.tableNumber).toBe(12);
+    expect(dineIn.tableId).toBe('table-12');
     expect(dineIn.serviceSessionId).toBe('session-1');
 
     const delivery = buildCounterSaleRequest({
@@ -89,9 +93,11 @@ describe('buildCounterSaleRequest — the wire contract', () => {
       lines: [line],
       notes: '',
       tableNumber: 12,
+      tableId: 'table-12',
       serviceSessionId: 'session-1',
     });
     expect(delivery.tableNumber).toBeUndefined();
+    expect(delivery.tableId).toBeUndefined();
     expect(delivery.serviceSessionId).toBeUndefined();
   });
 });

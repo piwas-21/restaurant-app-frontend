@@ -267,3 +267,40 @@ it('keeps a label-only visit visible under its configured label instead of a nul
   expect(labelEntry?.session?.serviceSessionId).toBe('session-tqa');
   expect(labelEntry?.status).toBe('occupied');
 });
+
+it('joins an alphanumeric outdoor visit to its physical table by id', async () => {
+  mockedTables.mockResolvedValue([
+    {
+      id: 'outdoor-11a',
+      tableNumber: '11a',
+      maxGuests: 4,
+      isActive: true,
+      isOutdoor: true,
+      positionX: 1,
+      positionY: 2,
+      isOccupied: true,
+      activeOrderCount: 0,
+    },
+  ]);
+  mockedSessions.mockResolvedValue([
+    {
+      ...session('outdoor-visit', 11),
+      tableId: 'outdoor-11a',
+      tableNumber: null,
+      tableLabel: '11a',
+      hasUnassignedActiveOrders: false,
+    },
+  ]);
+
+  const { result } = renderHook(() => useCashierTables());
+  await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+  expect(result.current.entries).toHaveLength(1);
+  expect(result.current.entries[0]).toMatchObject({
+    table: { id: 'outdoor-11a', tableNumber: '11a', isOutdoor: true },
+    session: { serviceSessionId: 'outdoor-visit', tableId: 'outdoor-11a' },
+    status: 'occupied',
+  });
+  await expect(result.current.openSession('11a')).rejects.toThrow('cashier.tables.open_failed');
+  expect(mockedOpen).not.toHaveBeenCalled();
+});

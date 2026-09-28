@@ -49,6 +49,56 @@ const session = {
 } as TableServiceSessionDto;
 
 describe('CashierTableSessionPanel', () => {
+  it('pins a numbered table link to the selected open visit', () => {
+    render(
+      <CashierTableSessionPanel
+        session={{ ...session, hasUnassignedActiveOrders: false }}
+        error={null}
+        isMutating={false}
+        isStale={false}
+        pendingOperation={null}
+        onBack={jest.fn()}
+        onRefresh={jest.fn()}
+        onSubmitPayment={jest.fn()}
+        onCloseSession={jest.fn()}
+        onReconcilePendingOperation={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'cashier.tables.add_round' })).toHaveAttribute(
+      'href',
+      '/cashier/new?channel=DineIn&table=7&tableId=table-stable-7&serviceSessionId=session-1',
+    );
+  });
+
+  it('links an alphanumeric table visit to cashier New Sale using stable identities', () => {
+    render(
+      <CashierTableSessionPanel
+        session={{
+          ...session,
+          tableId: 'outdoor-11a',
+          tableNumber: null,
+          tableLabel: '11a',
+          hasUnassignedActiveOrders: false,
+        }}
+        error={null}
+        isMutating={false}
+        isStale={false}
+        pendingOperation={null}
+        onBack={jest.fn()}
+        onRefresh={jest.fn()}
+        onSubmitPayment={jest.fn()}
+        onCloseSession={jest.fn()}
+        onReconcilePendingOperation={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'cashier.tables.add_round' })).toHaveAttribute(
+      'href',
+      '/cashier/new?channel=DineIn&table=11a&tableId=outdoor-11a&serviceSessionId=session-1',
+    );
+  });
+
   it('resolves legacy orders through the repair action instead of opening New Sale', () => {
     const resolve = jest.fn();
     render(

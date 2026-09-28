@@ -64,6 +64,11 @@ export default function CashierNewSaleWorkspace() {
           onOpenDetails={() => setDetailsOpen(true)}
           detailsComplete={detailsComplete}
         />
+        {sale.entryConflict && (
+          <p className={styles.error} role="alert">
+            {t('cashier.new_sale.entry_draft_conflict')}
+          </p>
+        )}
         {sale.error && !sale.sheetProduct && (
           <p className={styles.error} role="alert">
             {messageFor(sale.error, t)}

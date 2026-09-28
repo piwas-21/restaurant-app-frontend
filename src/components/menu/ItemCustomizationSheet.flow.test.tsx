@@ -28,6 +28,7 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 jest.mock('@/services/menuService', () => ({ getProductById: jest.fn() }));
+jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: () => ({ state: { orderType: null } }) }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({ useItemAvailabilityNotice: jest.fn(() => null) }));
 
 const mockedNotice = jest.requireMock('@/hooks/menu/useItemAvailabilityNotice').useItemAvailabilityNotice as jest.Mock;

@@ -6,8 +6,10 @@ import { OrderType } from '@/types/order';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
 const mockEnqueueSnackbar = jest.fn();
+const mockUseOrderType = jest.fn();
 
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ addItem: mockAddItem }) }));
+jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: () => mockUseOrderType() }));
 jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mockEnqueueSnackbar }) }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_k: string, f?: string) => f || _k, i18n: { language: 'en' } }),
@@ -51,6 +53,7 @@ beforeEach(() => {
   mockAddItem.mockClear();
   mockEnqueueSnackbar.mockClear();
   mockGetProductById.mockReset();
+  mockUseOrderType.mockReturnValue({ state: { orderType: null } });
 });
 
 const noOptionsProduct = {
@@ -399,8 +402,7 @@ describe('useItemCustomizationSheet — the card verdict rides along (§9.10)', 
 
   // §9.2. The featured special is the live case: a combo CAN be the featured item, the banner
   // resolves it with the channel and hides its own Add, and then "Details" opens this sheet by id.
-  // `getProductById` sends NO channel, so the detail's own verdict is permissive by construction —
-  // handing the combo over with it would re-offer the add the banner just refused.
+  // Preserve that card verdict when routing, even though detail fetches also include the selected channel.
   it('overrides a combo detail with the caller verdict before routing it to the bundle sheet', async () => {
     const onBundleDetected = jest.fn();
     mockGetProductById.mockResolvedValue({
@@ -455,4 +457,97 @@ describe('useItemCustomizationSheet — the card verdict rides along (§9.10)', 
     await waitFor(() => expect(result.current.isOpen).toBe(true));
     expect(result.current.product?.availability).toBeUndefined();
   });
+});
+
+it('fetches product details for the selected channel and refreshes/prunes blocked choices while open', async () => {
+  const membership = {
+    id: 'menu-item-membership',
+    optionProductId: 'drink',
+    optionProductName: 'Drink',
+    optionProductIsActive: true,
+    optionProductIsAvailable: true,
+    availability: {
+      canOrder: true,
+      reason: 'Available',
+      allowedOrderTypes: [OrderType.Takeaway],
+    },
+    additionalPrice: 1,
+    displayOrder: 1,
+    isDefault: true,
+  };
+  const customizationGroup = {
+    id: 'drink-choice',
+    name: 'Drink',
+    displayOrder: 1,
+    isRequired: true,
+    minSelection: 1,
+    maxSelection: 1,
+    includedFreeUnits: 0,
+    isActive: true,
+    content: {},
+    ingredientOptions: [],
+    productOptions: [membership],
+  };
+  const takeawayDetail = { ...productWithOptions, customizationGroups: [customizationGroup] };
+  const deliveryDetail = {
+    ...takeawayDetail,
+    customizationGroups: [
+      {
+        ...customizationGroup,
+        productOptions: [
+          {
+            ...membership,
+            availability: {
+              canOrder: false,
+              reason: 'WrongOrderType',
+              allowedOrderTypes: [OrderType.Takeaway],
+            },
+          },
+        ],
+      },
+    ],
+  };
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Takeaway } });
+  mockGetProductById.mockResolvedValueOnce({ data: takeawayDetail }).mockResolvedValueOnce({ data: deliveryDetail });
+  const { result, rerender } = renderHook(() => useItemCustomizationSheet());
+
+  await act(async () => result.current.openForProduct('p1', { forceSheet: true }));
+  expect(mockGetProductById).toHaveBeenNthCalledWith(1, 'p1', undefined, OrderType.Takeaway);
+  expect(result.current.customizationSelections[0]?.options).toEqual([
+    { kind: 1, optionId: 'menu-item-membership', quantity: 1 },
+  ]);
+
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Delivery } });
+  rerender();
+
+  await waitFor(() => expect(mockGetProductById).toHaveBeenNthCalledWith(2, 'p1', undefined, OrderType.Delivery));
+  await waitFor(() =>
+    expect(result.current.product?.customizationGroups?.[0].productOptions[0].availability?.canOrder).toBe(false),
+  );
+  expect(result.current.customizationSelections[0]?.options).toEqual([]);
+});
+
+it('closes a stale sheet after refresh failure and retries detail loading when reopened', async () => {
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Takeaway } });
+  mockGetProductById
+    .mockResolvedValueOnce({ data: productWithOptions })
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValueOnce({ data: productWithOptions });
+  const { result, rerender } = renderHook(() => useItemCustomizationSheet());
+
+  await act(async () => result.current.openForProduct('p1', { forceSheet: true }));
+  expect(result.current.isOpen).toBe(true);
+
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Delivery } });
+  rerender();
+  await waitFor(() => expect(mockGetProductById).toHaveBeenNthCalledWith(2, 'p1', undefined, OrderType.Delivery));
+  await waitFor(() => expect(result.current.isOpen).toBe(false));
+
+  expect(result.current.product).toBeNull();
+  expect(mockEnqueueSnackbar).toHaveBeenCalledWith('error_loading_product', { variant: 'error' });
+  expect(mockAddItem).not.toHaveBeenCalled();
+
+  await act(async () => result.current.openForProduct('p1', { forceSheet: true }));
+  expect(mockGetProductById).toHaveBeenNthCalledWith(3, 'p1', undefined, OrderType.Delivery);
+  expect(result.current.isOpen).toBe(true);
 });

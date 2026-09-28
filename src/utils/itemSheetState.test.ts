@@ -1,6 +1,7 @@
 import { buildInitialSheetState, hasCustomizationOptions } from './itemSheetState';
 import { productLineUnitPrice } from './linePrice';
-import type { DetailedProduct } from '@/types/menu';
+import type { DetailedProduct, ProductCustomizationGroup } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 const detail = (over: Partial<DetailedProduct> = {}): DetailedProduct =>
   ({
@@ -119,5 +120,90 @@ describe('buildInitialSheetState', () => {
     );
 
     expect(seed.selectedVariationId).toBeNull();
+  });
+
+  it('skips inactive, unavailable and wrong-channel product defaults but preserves legacy and browse defaults', () => {
+    const customGroup: ProductCustomizationGroup = {
+      id: 'meal-choice',
+      name: 'Meal choice',
+      displayOrder: 1,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 5,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [
+        {
+          id: 'inactive-member',
+          optionProductId: 'inactive-product',
+          optionProductName: 'Inactive',
+          additionalPrice: 0,
+          displayOrder: 1,
+          isDefault: true,
+          optionProductIsActive: false,
+          optionProductIsAvailable: true,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.Takeaway] },
+        },
+        {
+          id: 'unavailable-member',
+          optionProductId: 'unavailable-product',
+          optionProductName: 'Unavailable',
+          additionalPrice: 0,
+          displayOrder: 2,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: false,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.Takeaway] },
+        },
+        {
+          id: 'wrong-channel-member',
+          optionProductId: 'wrong-channel-product',
+          optionProductName: 'Wrong channel',
+          additionalPrice: 0,
+          displayOrder: 3,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: true,
+          availability: {
+            canOrder: false,
+            reason: 'WrongOrderType',
+            allowedOrderTypes: [OrderType.Takeaway],
+          },
+        },
+        {
+          id: 'browse-member',
+          optionProductId: 'browse-product',
+          optionProductName: 'Browse choice',
+          additionalPrice: 0,
+          displayOrder: 4,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: true,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.Takeaway] },
+        },
+        {
+          id: 'legacy-member',
+          optionProductId: 'legacy-product',
+          optionProductName: 'Legacy choice',
+          additionalPrice: 0,
+          displayOrder: 5,
+          isDefault: true,
+        },
+      ],
+    };
+
+    const seed = buildInitialSheetState(detail({ customizationGroups: [customGroup] }));
+
+    expect(seed.customizationSelections).toEqual([
+      {
+        groupId: 'meal-choice',
+        options: [
+          { kind: 1, optionId: 'browse-member', quantity: 1 },
+          { kind: 1, optionId: 'legacy-member', quantity: 1 },
+        ],
+      },
+    ]);
   });
 });

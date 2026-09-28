@@ -5,7 +5,13 @@ import {
   offersGenericDrinks,
   stepBlocker,
 } from './customizationSteps';
-import type { DetailedProduct, MenuSection, MenuSectionItem, SauceGroupCarrier } from '@/types/menu';
+import type {
+  DetailedProduct,
+  MenuSection,
+  MenuSectionItem,
+  ProductCustomizationGroup,
+  SauceGroupCarrier,
+} from '@/types/menu';
 
 const ingredient = (id: string, overrides: Record<string, unknown> = {}) => ({
   id,
@@ -93,6 +99,45 @@ describe('buildProductSteps — the flow is DERIVED, so a simple item stays simp
         customizationSelections: [{ groupId: group.id, options: [{ kind: 0, optionId: 'beef', quantity: 1 }] }],
       }),
     ).toBeNull();
+  });
+
+  it('does not let a blocked product-option default satisfy a required group', () => {
+    const blockedGroup: ProductCustomizationGroup = {
+      id: 'meat',
+      name: 'Viande',
+      displayOrder: 1,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [
+        {
+          id: 'kebab-member',
+          optionProductId: 'kebab',
+          optionProductName: 'Kebab',
+          additionalPrice: 3,
+          displayOrder: 1,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: false,
+          availability: { canOrder: false, reason: 'Unavailable', allowedOrderTypes: [] },
+        },
+      ],
+    };
+    const step = buildProductSteps(product({ customizationGroups: [blockedGroup] }))[0];
+
+    expect(
+      stepBlocker(step, {
+        selectedVariationId: null,
+        selectedIngredients: [],
+        customizationSelections: [
+          { groupId: blockedGroup.id, options: [{ kind: 1, optionId: 'kebab-member', quantity: 1 }] },
+        ],
+      }),
+    ).toBe('group');
   });
 
   /**

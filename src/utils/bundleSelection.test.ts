@@ -10,7 +10,13 @@ import {
   updateBundleOption,
 } from './bundleSelection';
 import { bundleLineUnitPrice } from './linePrice';
-import type { DetailedIngredient, MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
+import type {
+  DetailedIngredient,
+  MenuSection,
+  MenuSectionItem,
+  ProductCustomizationGroup,
+  SelectedMenuOption,
+} from '@/types/menu';
 import { OrderType } from '@/types/order';
 
 const ing = (over: Partial<DetailedIngredient> & { id: string }): DetailedIngredient => ({
@@ -111,6 +117,51 @@ describe('buildBundleOption — base-recipe seeding', () => {
       productVariationPriceModifier: 2.5,
       quantity: 1,
     });
+  });
+
+  it('omits blocked defaults from customization groups on MenuDefinition section children', () => {
+    const childGroup: ProductCustomizationGroup = {
+      id: 'child-side',
+      name: 'Side choice',
+      displayOrder: 1,
+      isRequired: false,
+      minSelection: 0,
+      maxSelection: 2,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [
+        {
+          id: 'blocked-member',
+          optionProductId: 'unavailable-side',
+          optionProductName: 'Unavailable side',
+          additionalPrice: 0,
+          displayOrder: 1,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: true,
+          availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+        },
+        {
+          id: 'browse-member',
+          optionProductId: 'browse-side',
+          optionProductName: 'Browse side',
+          additionalPrice: 0,
+          displayOrder: 2,
+          isDefault: true,
+          optionProductIsActive: true,
+          optionProductIsAvailable: true,
+          availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.Takeaway] },
+        },
+      ],
+    };
+
+    const option = buildBundleOption('bundle-main', item({ productId: 'wrap', customizationGroups: [childGroup] }));
+
+    expect(option.customizationSelections).toEqual([
+      { groupId: 'child-side', options: [{ kind: 1, optionId: 'browse-member', quantity: 1 }] },
+    ]);
   });
 });
 

@@ -3353,5 +3353,9 @@
   "editor_review_bundle_availability_checked": "These counts use a fresh catalogue read for this review. Availability can change before an order is placed.",
   "editor_review_bundle_availability_check_failed": "Current availability could not be verified for every referenced choice. No channel is marked as having enough options.",
   "editor_review_bundle_availability_shortage": "The “{{section}}” step requires {{minimum}} distinct choices on {{channel}}; the current count is {{available}}.",
-  "editor_review_bundle_availability_check_retry": "Retry availability check"
+  "editor_review_bundle_availability_check_retry": "Retry availability check",
+  "editor_review_parent_bundle_checking": "Checking linked parent menu references…",
+  "editor_review_parent_bundle_check_failed": "Parent menu check failed. After saving, review the allergen labels on each parent bundle.",
+  "editor_review_parent_bundle_retry": "Retry parent menu check",
+  "editor_review_parent_bundle_allergens": "This item’s recipe or allergen labels changed. After saving, review each linked menu’s own allergen labels."
 }

@@ -3353,5 +3353,9 @@
   "editor_review_bundle_availability_checked": "Deze aantallen zijn gebaseerd op een actuele cataloguslezing voor deze controle. De beschikbaarheid kan veranderen voordat een bestelling wordt geplaatst.",
   "editor_review_bundle_availability_check_failed": "De huidige beschikbaarheid kon niet voor alle verwezen keuzes worden gecontroleerd. Geen enkel kanaal wordt als voldoende gemarkeerd.",
   "editor_review_bundle_availability_shortage": "De stap “{{section}}” vereist {{minimum}} verschillende keuzes via {{channel}}; momenteel zijn er {{available}} bestelbaar.",
-  "editor_review_bundle_availability_check_retry": "Beschikbaarheid opnieuw controleren"
+  "editor_review_bundle_availability_check_retry": "Beschikbaarheid opnieuw controleren",
+  "editor_review_parent_bundle_checking": "Gekoppelde bovenliggende menu’s worden gecontroleerd…",
+  "editor_review_parent_bundle_check_failed": "De controle van de bovenliggende menu’s is mislukt. Controleer na het opslaan de allergenenlabels van elk bovenliggend menu.",
+  "editor_review_parent_bundle_retry": "Controle van bovenliggende menu’s opnieuw proberen",
+  "editor_review_parent_bundle_allergens": "Het recept of de allergenenlabels van dit artikel zijn gewijzigd. Controleer na het opslaan de allergenenlabels van elk gekoppeld menu afzonderlijk."
 }

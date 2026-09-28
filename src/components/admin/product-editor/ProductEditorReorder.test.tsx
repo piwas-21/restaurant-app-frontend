@@ -14,6 +14,9 @@ jest.mock('@/services/productService', () => ({
   deleteProductImage: jest.fn(async () => ({ success: true })),
 }));
 jest.mock('@/services/menuService', () => ({ createProduct: jest.fn() }));
+jest.mock('@/services/productParentBundlesService', () => ({
+  getProductParentBundles: jest.fn(async () => ({ success: true, data: { items: [] } })),
+}));
 jest.mock('@/services/menuBundleService', () => ({ createMenuBundle: jest.fn(), updateMenuBundle: jest.fn() }));
 jest.mock('@/services/globalIngredientService', () => ({
   createGlobalIngredient: jest.fn(),
@@ -97,7 +100,9 @@ const submitThroughReview = async (container: HTMLElement) => {
   expect(save).toBeEnabled();
   fireEvent.click(save);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
-  fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+  const confirm = within(review).getByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(confirm).toBeEnabled());
+  fireEvent.click(confirm);
 };
 
 const submitAndReadPayload = async (container: HTMLElement) => {

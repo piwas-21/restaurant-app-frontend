@@ -3362,5 +3362,9 @@
   "editor_review_bundle_availability_checked": "Questi conteggi si basano su una lettura aggiornata del catalogo per questa revisione. La disponibilità può cambiare prima dell’ordine.",
   "editor_review_bundle_availability_check_failed": "Non è stato possibile verificare la disponibilità attuale di tutte le scelte referenziate. Nessun canale è indicato come sufficientemente coperto.",
   "editor_review_bundle_availability_shortage": "Il passaggio “{{section}}” richiede {{minimum}} scelte distinte su {{channel}}; al momento il totale ordinabile è {{available}}.",
-  "editor_review_bundle_availability_check_retry": "Riprova a verificare la disponibilità"
+  "editor_review_bundle_availability_check_retry": "Riprova a verificare la disponibilità",
+  "editor_review_parent_bundle_checking": "Verifica dei riferimenti ai menu collegati…",
+  "editor_review_parent_bundle_check_failed": "La verifica dei menu collegati non è riuscita. Dopo il salvataggio, controlla le etichette degli allergeni di ogni menu che include questo articolo.",
+  "editor_review_parent_bundle_retry": "Riprova a verificare i menu collegati",
+  "editor_review_parent_bundle_allergens": "La ricetta o le etichette degli allergeni di questo articolo sono cambiate. Dopo il salvataggio, controlla le etichette degli allergeni di ciascun menu collegato."
 }

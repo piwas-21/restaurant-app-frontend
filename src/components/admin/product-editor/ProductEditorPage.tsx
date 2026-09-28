@@ -192,6 +192,8 @@ export default function ProductEditorPage({
         }}
         isPending={editor.isSubmitting}
         isBundle={isBundle}
+        productId={product.id}
+        savedAllergens={product.allergens}
         editor={editor}
         translationReview={translationReview}
       />

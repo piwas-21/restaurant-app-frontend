@@ -3353,5 +3353,9 @@
   "editor_review_bundle_availability_checked": "Bu sayılar, bu inceleme sırasında katalogdan alınan güncel verilere dayanır. Sipariş verilmeden önce kullanılabilirlik değişebilir.",
   "editor_review_bundle_availability_check_failed": "Başvurulan seçeneklerin tümü için güncel kullanılabilirlik doğrulanamadı. Hiçbir kanal yeterli seçenek varmış gibi gösterilmiyor.",
   "editor_review_bundle_availability_shortage": "“{{section}}” adımı {{channel}} için {{minimum}} farklı seçenek gerektirir; şu anda {{available}} seçenek sipariş verilebilir.",
-  "editor_review_bundle_availability_check_retry": "Kullanılabilirliği yeniden kontrol et"
+  "editor_review_bundle_availability_check_retry": "Kullanılabilirliği yeniden kontrol et",
+  "editor_review_parent_bundle_checking": "Bağlı üst menüler kontrol ediliyor…",
+  "editor_review_parent_bundle_check_failed": "Üst menü kontrolü başarısız oldu. Kaydettikten sonra her üst menü grubunun alerjen etiketlerini gözden geçirin.",
+  "editor_review_parent_bundle_retry": "Üst menü kontrolünü yeniden dene",
+  "editor_review_parent_bundle_allergens": "Bu ürünün tarifi veya alerjen etiketleri değişti. Kaydettikten sonra bağlantılı her menünün kendi alerjen etiketlerini gözden geçirin."
 }

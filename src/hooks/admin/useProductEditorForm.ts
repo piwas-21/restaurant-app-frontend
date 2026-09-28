@@ -177,6 +177,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     changeSideItemIds,
     detailedIngredients,
     changeIngredients,
+    isIngredientsDirty,
     customizationGroups: customization.groups,
     changeCustomizationGroups: customization.change,
     moveVariation,

@@ -29,6 +29,9 @@ jest.mock('@/services/productService', () => ({
   deleteProductImage: jest.fn(async () => ({ success: true })),
 }));
 jest.mock('@/services/menuService', () => ({ createProduct: jest.fn() }));
+jest.mock('@/services/productParentBundlesService', () => ({
+  getProductParentBundles: jest.fn(async () => ({ success: true, data: { items: [] } })),
+}));
 jest.mock('@/services/menuBundleService', () => ({ createMenuBundle: jest.fn(), updateMenuBundle: jest.fn() }));
 jest.mock('@/services/globalIngredientService', () => ({
   createGlobalIngredient: jest.fn(async () => ({ success: true, data: { id: 'glob-new' } })),
@@ -113,8 +116,10 @@ const targetField = (view: ReturnType<typeof within>, field: string, language: s
 const save = async (container: HTMLElement) => {
   fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  const confirm = within(review).getByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(confirm).toBeEnabled());
   await act(async () => {
-    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    fireEvent.click(confirm);
     await Promise.resolve();
   });
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
@@ -124,8 +129,10 @@ const save = async (container: HTMLElement) => {
 const confirmSaveReview = async (container: HTMLElement) => {
   fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
   const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+  const confirm = within(review).getByRole('button', { name: 'editor_review_save' });
+  await waitFor(() => expect(confirm).toBeEnabled());
   await act(async () => {
-    fireEvent.click(within(review).getByRole('button', { name: 'editor_review_save' }));
+    fireEvent.click(confirm);
     await Promise.resolve();
   });
 };

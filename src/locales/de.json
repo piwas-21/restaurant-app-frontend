@@ -3353,5 +3353,9 @@
   "editor_review_bundle_availability_checked": "Diese Zählungen basieren auf einem aktuellen Katalogabruf für diese Prüfung. Die Verfügbarkeit kann sich vor einer Bestellung ändern.",
   "editor_review_bundle_availability_check_failed": "Die aktuelle Verfügbarkeit konnte nicht für alle referenzierten Auswahlmöglichkeiten geprüft werden. Für keinen Bestellkanal wird eine ausreichende Auswahl bestätigt.",
   "editor_review_bundle_availability_shortage": "Der Schritt „{{section}}“ benötigt {{minimum}} verschiedene Auswahlmöglichkeiten für {{channel}}; derzeit sind {{available}} bestellbar.",
-  "editor_review_bundle_availability_check_retry": "Verfügbarkeitsprüfung wiederholen"
+  "editor_review_bundle_availability_check_retry": "Verfügbarkeitsprüfung wiederholen",
+  "editor_review_parent_bundle_checking": "Verknüpfte übergeordnete Menüs werden geprüft…",
+  "editor_review_parent_bundle_check_failed": "Die Prüfung der übergeordneten Menüs ist fehlgeschlagen. Prüfe nach dem Speichern die Allergenkennzeichnungen jedes Menü-Bundles.",
+  "editor_review_parent_bundle_retry": "Prüfung der übergeordneten Menüs wiederholen",
+  "editor_review_parent_bundle_allergens": "Das Rezept oder die Allergenkennzeichnungen dieses Artikels wurden geändert. Prüfe nach dem Speichern die Allergenkennzeichnungen jedes verknüpften Menüs separat."
 }

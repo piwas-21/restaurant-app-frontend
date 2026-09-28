@@ -28,6 +28,20 @@
   align-items: center;
 }
 
+.settings {
+  grid-column: 1 / -1;
+}
+
+.settings summary {
+  cursor: pointer;
+  color: var(--link-default);
+  font-weight: 600;
+}
+
+.settings .fields {
+  margin-block-start: 0.75rem;
+}
+
 .remove {
   min-height: 2.5rem;
   padding: 0.5rem 0.75rem;
@@ -73,6 +87,7 @@
 
   .reference,
   .fields,
+  .settings,
   .unavailable {
     grid-column: auto;
   }

@@ -105,11 +105,7 @@ export default function OptionSetEditorWorkspace({
           <p className={styles.notice}>{t('option_set_entries_help')}</p>
           {!editor.kind && <p className={styles.entryHelp}>{t('option_set_kind_filter')}</p>}
           {editor.kind && editor.entries.length === 0 && (
-            <p className={styles.entryHelp}>
-              {editor.kind === 'ingredient' || editor.kind === 'sauce'
-                ? t('option_set_library_empty')
-                : t('option_set_products_empty')}
-            </p>
+            <p className={styles.entryHelp}>{t('option_set_add_first_choice')}</p>
           )}
           <ol className={styles.entries}>
             {editor.entries.map((entry, index) => {

@@ -131,60 +131,78 @@ export default function OptionSetEntryRow({
         !selectedVariation?.isActive &&
         !variations.isLoading && <p className={styles.unavailable}>{t('option_set_variation_unavailable')}</p>}
       <div className={styles.actions}>
-        <button type="button" onClick={() => onMove(-1)} disabled={!canMoveUp} aria-label={t('move_up')}>
-          {t('move_up')}
-        </button>
-        <button type="button" onClick={() => onMove(1)} disabled={!canMoveDown} aria-label={t('move_down')}>
-          {t('move_down')}
-        </button>
+        {canMoveUp && (
+          <button type="button" onClick={() => onMove(-1)} aria-label={t('move_up')}>
+            {t('move_up')}
+          </button>
+        )}
+        {canMoveDown && (
+          <button type="button" onClick={() => onMove(1)} aria-label={t('move_down')}>
+            {t('move_down')}
+          </button>
+        )}
         <button type="button" className={styles.remove} onClick={onRemove}>
           {t('option_set_remove_entry')}
         </button>
       </div>
-      {ingredientSet && (
-        <div className={styles.fields}>
-          <FormField label={t('option_set_entry_price')}>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={entry.price}
-              onChange={(event) => onChange({ price: Number(event.target.value) })}
-            />
-          </FormField>
-          <FormField label={t('option_set_entry_max_quantity')}>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={entry.maxQuantity}
-              onChange={(event) => onChange({ maxQuantity: Number(event.target.value) })}
-            />
-          </FormField>
-          <CheckboxField
-            label={t('option_set_entry_included')}
-            checked={entry.isIncludedInBasePrice}
-            onChange={(checked) => onChange({ isIncludedInBasePrice: checked })}
-          />
-        </div>
-      )}
-      {kind === 'bundleChoice' && (
-        <div className={styles.fields}>
-          <FormField label={t('option_set_entry_additional_price')}>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={entry.additionalPrice}
-              onChange={(event) => onChange({ additionalPrice: Number(event.target.value) })}
-            />
-          </FormField>
-          <CheckboxField
-            label={t('option_set_entry_default')}
-            checked={entry.isDefault}
-            onChange={(checked) => onChange({ isDefault: checked })}
-          />
-        </div>
+      {(ingredientSet || kind === 'bundleChoice') && (
+        <details
+          className={styles.settings}
+          open={Boolean(
+            ingredientSet
+              ? entry.price || entry.maxQuantity !== 1 || entry.isIncludedInBasePrice
+              : entry.additionalPrice || entry.isDefault,
+          )}
+        >
+          <summary>{t('option_set_entry_settings')}</summary>
+          <div className={styles.fields}>
+            {ingredientSet && (
+              <>
+                <FormField label={t('option_set_entry_price')}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={entry.price}
+                    onChange={(event) => onChange({ price: Number(event.target.value) })}
+                  />
+                </FormField>
+                <FormField label={t('option_set_entry_max_quantity')}>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={entry.maxQuantity}
+                    onChange={(event) => onChange({ maxQuantity: Number(event.target.value) })}
+                  />
+                </FormField>
+                <CheckboxField
+                  label={t('option_set_entry_included')}
+                  checked={entry.isIncludedInBasePrice}
+                  onChange={(checked) => onChange({ isIncludedInBasePrice: checked })}
+                />
+              </>
+            )}
+            {kind === 'bundleChoice' && (
+              <>
+                <FormField label={t('option_set_entry_additional_price')}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={entry.additionalPrice}
+                    onChange={(event) => onChange({ additionalPrice: Number(event.target.value) })}
+                  />
+                </FormField>
+                <CheckboxField
+                  label={t('option_set_entry_default')}
+                  checked={entry.isDefault}
+                  onChange={(checked) => onChange({ isDefault: checked })}
+                />
+              </>
+            )}
+          </div>
+        </details>
       )}
     </fieldset>
   );

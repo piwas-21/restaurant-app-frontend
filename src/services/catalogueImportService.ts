@@ -89,6 +89,7 @@ export interface CatalogueImportSessionItem {
   readonly status: CatalogueImportItemStatus;
   readonly localEntityType: string | null;
   readonly localEntityId: string | null;
+  readonly localEntityName?: string | null;
   readonly failureCode: string | null;
   readonly decision: CatalogueImportDecisionWire | null;
 }
@@ -125,6 +126,7 @@ export interface CatalogueImportPreviewItem {
   readonly isSelected: boolean;
   readonly resolution: CatalogueImportResolution;
   readonly localEntityId: string | null;
+  readonly localEntityName?: string | null;
   readonly candidates: CatalogueImportCandidate[];
   readonly warnings: CatalogueImportIssue[];
   readonly blockingIssues: CatalogueImportIssue[];

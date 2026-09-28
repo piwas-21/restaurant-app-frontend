@@ -45,12 +45,12 @@ export default function CatalogueImportItemReview({
   const [chosenLocal, setChosenLocal] = useState<MenuAuthoringCandidate | null>(null);
   const itemIsProduct = item.type === 'item' || item.type === 'bundle';
   const canSearchLocal = item.type === 'item' || item.type === 'bundle';
-  const localName =
-    chosenLocal && chosenLocal.id === decision.localEntityId
-      ? chosenLocal.name
-      : decision.localEntityId === (item.decision?.localEntityId ?? item.localEntityId)
-        ? item.localEntityName
-        : null;
+  let localName: string | null | undefined = null;
+  if (chosenLocal && chosenLocal.id === decision.localEntityId) {
+    localName = chosenLocal.name;
+  } else if (decision.localEntityId === (item.decision?.localEntityId ?? item.localEntityId)) {
+    localName = item.localEntityName;
+  }
 
   return (
     <article className={styles.itemCard} aria-labelledby={`catalogue-item-${item.templateId}`}>

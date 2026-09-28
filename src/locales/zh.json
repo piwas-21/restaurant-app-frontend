@@ -1852,6 +1852,7 @@
   "editor_autosave_pending": "即将保存…",
   "editor_autosave_stalled": "未保存 — 请点击保存",
   "editor_save_conflict_short": "需要重新加载",
+  "menu_sections_saved_partial": "菜单分区已保存，但菜单的其余内容未能保存。请重试。{{reason}}",
   "editor_layout_save_blocked": "布局未能保存，因此餐桌更改已暂停。请重试。",
   "editor_preview_title": "以顾客视角预览",
   "editor_canvas_aria": "平面图编辑器画布",

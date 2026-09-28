@@ -1854,6 +1854,7 @@
   "editor_autosave_pending": "Saving shortly…",
   "editor_autosave_stalled": "Not saved — use Save",
   "editor_save_conflict_short": "Reload needed",
+  "menu_sections_saved_partial": "Menu sections were saved, but the rest of the menu could not be saved. Try again. {{reason}}",
   "editor_layout_save_blocked": "The layout could not be saved, so table changes are on hold. Try again.",
   "editor_preview_title": "Preview as guest",
   "editor_canvas_aria": "Floor plan editor canvas",

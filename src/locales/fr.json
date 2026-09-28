@@ -1856,6 +1856,7 @@
   "editor_autosave_pending": "Enregistrement imminent…",
   "editor_autosave_stalled": "Non enregistré — utilisez Enregistrer",
   "editor_save_conflict_short": "Rechargement nécessaire",
+  "menu_sections_saved_partial": "Les sections du menu ont été enregistrées, mais le reste du menu n'a pas pu l'être. Réessayez. {{reason}}",
   "editor_layout_save_blocked": "Le plan n'a pas pu être enregistré, les modifications de tables sont donc suspendues. Réessayez.",
   "editor_preview_title": "Aperçu côté client",
   "editor_canvas_aria": "Zone d'édition du plan",

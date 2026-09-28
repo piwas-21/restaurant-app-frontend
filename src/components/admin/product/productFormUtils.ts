@@ -1,13 +1,24 @@
 import { UseFormSetError, UseFormReset } from 'react-hook-form';
 import { FormData, EditFormData } from './schemas';
 import { createProduct } from '@/services/menuService';
-import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
+import {
+  createMenuBundle,
+  patchMenuBundleSections,
+  updateMenuBundle,
+  type MenuSectionsPatchResult,
+} from '@/services/menuBundleService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIngredientReconciliation';
 import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
-import type { ProductCustomizationGroupDraft } from '@/types/menu';
+import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
+import type { ProductCustomizationGroupDraft, MenuSection } from '@/types/menu';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
+import {
+  menuSectionsEqual,
+  mergePatchedMenuSections,
+  withSectionTranslationMetadata,
+} from '@/utils/menuSectionVersioning';
 
 /**
  * Told when the product itself was written but its staged photos were NOT stored. It receives the
@@ -51,7 +62,7 @@ interface SubmitEditProductFormParams {
     id: string;
     name?: string;
     description?: string;
-    menuDefinition?: { authoringVersion?: number };
+    menuDefinition?: { authoringVersion?: number; sections?: MenuSection[] };
   };
   imageFiles: File[];
   detailedIngredients?: ProductIngredient[];
@@ -64,24 +75,21 @@ interface SubmitEditProductFormParams {
   fallbackMessage: string;
   /** The product was written, its photos were not — see `uploadStagedImages`. */
   onImageUploadFailed: ImageUploadFailureReporter;
+  /** Adopt server IDs/version immediately so a retry after a later PUT refusal is safe. */
+  onMenuSectionsPatched: (result: MenuSectionsPatchResult, draftSections: MenuSection[]) => void;
+  /** Translated explanation shown when PATCH saved sections but the following bundle PUT failed. */
+  partialMenuSaveMessage: (reason: string) => string;
 }
 
 type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
 
 /**
- * The create/update wire shape for a bundle's menu definition. Extracted from the two byte-identical
- * copies that sat in `submitProductForm` and `submitEditProductForm` (menu-bundles redesign #176,
- * slice 7) — behaviour-identical to both, including the two quirks below, which are preserved rather
- * than reconciled: changing either is a behaviour change, not a move (slice-3 precedent).
+ * The create/update wire shape for a bundle's menu definition, shared by both submit paths.
  *
- * 1. It strips the SECTION id only — nested item ids pass through untouched. Nothing is broken
- *    today because both bundle modals pre-strip via `stripTemporaryMenuSectionIds`
- *    (src/utils/menuSectionDraft.ts), which handles items too. But a `temp-…` item id is NOT
- *    ignored server-side: `MenuSectionItemDto.Id` is `Guid?`, so STJ fails the conversion and the
- *    request 400s. The unified editor page (PR2d) must pre-strip the same way, or adopt that util
- *    here — this is the landmine that fires if it calls this write path directly.
- * 2. The `section.id === ''` arm is unreachable — `section.id &&` already short-circuits on ''.
- *    An empty-string id therefore survives as '' rather than becoming null.
+ * Temporary section and item IDs are omitted; persisted IDs survive. This projection also protects
+ * direct callers that bypass the editor's `toSubmittableMenuDefinition` helper.
+ *
+ * The definition's empty id becomes `null`, preserving the create payload's established behavior.
  *
  * The ':00' padding is load-bearing: `MenuDefinitionDto.StartTime/EndTime` are `TimeSpan?`, which
  * STJ will not parse from the "HH:mm" that `MenuScheduleEditor`'s `<input type="time">` emits.
@@ -97,15 +105,80 @@ const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined
   return {
     ...menuDefinition,
     id: menuDefinition.id || null,
-    sections:
-      menuDefinition.sections?.map((section) => ({
-        ...section,
-        id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
-      })) || [],
+    sections: stripTemporaryMenuSectionIds((menuDefinition.sections ?? []) as MenuSection[]),
     startTime: padTime(menuDefinition.startTime),
     endTime: padTime(menuDefinition.endTime),
   };
 };
+
+/** Save structural edits first, then give the metadata PUT the server's canonical section snapshot. */
+async function prepareVersionedMenuDefinition(
+  menuDefinition: MenuDefinitionInput | undefined,
+  product: SubmitEditProductFormParams['product'],
+  onSectionsPatched: SubmitEditProductFormParams['onMenuSectionsPatched'],
+): Promise<{
+  payload: ReturnType<typeof toMenuDefinitionPayload>;
+  authoringVersion: number | undefined;
+}> {
+  const authoringVersion = product.menuDefinition?.authoringVersion;
+  const draftSections = (menuDefinition?.sections ?? []) as MenuSection[];
+  if (!menuDefinition || authoringVersion === undefined) {
+    return { payload: toMenuDefinitionPayload(menuDefinition), authoringVersion };
+  }
+
+  const savedSections = product.menuDefinition?.sections ?? [];
+  if (menuSectionsEqual(savedSections, draftSections)) {
+    // A retry uses server-normalized text while retaining the editor's reviewed provenance.
+    const sections = withSectionTranslationMetadata(savedSections, draftSections);
+    return {
+      payload: toMenuDefinitionPayload({ ...menuDefinition, sections }),
+      authoringVersion,
+    };
+  }
+
+  const patchResult = await patchMenuBundleSections(product.id, authoringVersion, draftSections);
+  const mergedDraftSections = mergePatchedMenuSections(draftSections, patchResult.sections);
+  // PATCH stores translations, but only the subsequent PUT records translation provenance.
+  const sections = withSectionTranslationMetadata(patchResult.sections, mergedDraftSections);
+  onSectionsPatched(patchResult, mergedDraftSections);
+  return {
+    payload: toMenuDefinitionPayload({ ...menuDefinition, sections }),
+    authoringVersion: patchResult.authoringVersion,
+  };
+}
+
+/** Re-sync untouched translation snapshots before serializing edited product content. */
+function prepareEditContent(data: EditFormData, product: SubmitEditProductFormParams['product']) {
+  const resyncedContent = withResyncedSnapshots(data.content as ResyncRow[] | undefined, {
+    previousName: product.name,
+    previousDescription: product.description,
+    nextName: data.name,
+    nextDescription: data.description,
+  });
+  const cleaned = resyncedContent
+    .filter((entry) => entry?.language?.trim() && entry?.name?.trim())
+    .map((entry) => ({
+      language: String(entry.language).trim(),
+      name: String(entry.name || '').trim(),
+      description: (entry.description ?? '').toString(),
+    }));
+
+  return cleaned.length > 0
+    ? cleaned.reduce<Record<string, { name: string; description: string }>>((content, entry) => {
+        content[entry.language] = { name: entry.name, description: entry.description };
+        return content;
+      }, {})
+    : undefined;
+}
+
+function prepareEditCategories(data: EditFormData) {
+  const categoryIds = Array.isArray(data.categoryIds) ? data.categoryIds.filter(Boolean) : [];
+  let primaryCategoryId = data.primaryCategoryId || '';
+  if (categoryIds.length > 0 && !categoryIds.includes(primaryCategoryId)) {
+    primaryCategoryId = categoryIds[0];
+  }
+  return { categoryIds, primaryCategoryId };
+}
 
 /**
  * Sends `{}` rather than omitting `content`, mirroring what MenuBundleDetails already sends
@@ -348,54 +421,22 @@ export const submitEditProductForm = async ({
   onClose,
   fallbackMessage,
   onImageUploadFailed,
+  onMenuSectionsPatched,
+  partialMenuSaveMessage,
 }: SubmitEditProductFormParams) => {
   setIsSubmitting(true);
+  let menuSectionsPatched = false;
+  let menuBundleUpdateSucceeded = false;
   try {
     const parseNum = (val: any, fallback: number): number => {
       const num = parseFloat(String(val || '').trim());
       return isNaN(num) ? fallback : num;
     };
 
-    // Clean content array and format for API.
-    //
-    // The re-sync runs FIRST (#536): a translation row that is a verbatim copy of the base text
-    // being replaced is a creation-time snapshot, not a translation, and must follow the plain
-    // *Açıklama* box the admin just edited — otherwise that edit reaches no guest whose locale
-    // carries the snapshot. `product` is the item as FETCHED, and the PREVIOUS base text is the
-    // only thing that can tell a snapshot from something someone typed. Rationale, and why #536's
-    // other option (stop writing `content` from the plain box) would be a regression, live in
-    // translationResync.ts.
-    const resyncedContent = withResyncedSnapshots(data.content as ResyncRow[] | undefined, {
-      previousName: product?.name,
-      previousDescription: product?.description,
-      nextName: data.name,
-      nextDescription: data.description,
-    });
-
-    const cleanedContentArray = resyncedContent
-      .filter((e: any) => e?.language?.trim() && e?.name?.trim())
-      .map((e: any) => ({
-        language: String(e.language).trim(),
-        name: String(e.name || '').trim(),
-        description: (e.description ?? '').toString(),
-      }));
-
-    const formattedContent =
-      cleanedContentArray.length > 0
-        ? cleanedContentArray.reduce((acc: any, curr: any) => {
-            acc[curr.language] = {
-              name: curr.name,
-              description: curr.description,
-            };
-            return acc;
-          }, {})
-        : undefined;
-
-    const categoryIds = Array.isArray(data.categoryIds) ? (data.categoryIds.filter(Boolean) as string[]) : [];
-    let primaryCategoryId = (data.primaryCategoryId || '') as string;
-    if (categoryIds.length > 0 && !categoryIds.includes(primaryCategoryId)) {
-      primaryCategoryId = categoryIds[0];
-    }
+    // The re-sync precedes serialization: untouched translation snapshots follow an edited base
+    // description, while translator-authored text stays intact (see translationResync.ts).
+    const formattedContent = prepareEditContent(data, product);
+    const { categoryIds, primaryCategoryId } = prepareEditCategories(data);
 
     const cleanedVariations = (data.variations || [])
       .filter((v) => (v?.name || '').trim().length > 0)
@@ -418,6 +459,11 @@ export const submitEditProductForm = async ({
 
     // Provenance + temp-id strip, shared with the create path above.
     const cleanedIngredients = withoutTemporaryIds(await withGlobalIngredientProvenance(detailedIngredients || []));
+    const preparedMenu = await prepareVersionedMenuDefinition(data.menuDefinition, product, (result, draft) => {
+      menuSectionsPatched = true;
+      onMenuSectionsPatched(result, draft);
+    });
+
     const productData = {
       ...data,
       id: product.id,
@@ -436,7 +482,7 @@ export const submitEditProductForm = async ({
       content: formattedContent,
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       customizationGroups,
-      menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
+      menuDefinition: preparedMenu.payload,
     } as any;
 
     // A bundle must be updated through the bundle endpoint, mirroring the create path above.
@@ -447,7 +493,7 @@ export const submitEditProductForm = async ({
     const response = (await (data.menuDefinition
       ? updateMenuBundle(product.id, {
           ...toMenuBundlePayload(productData),
-          expectedAuthoringVersion: product.menuDefinition?.authoringVersion,
+          expectedAuthoringVersion: preparedMenu.authoringVersion,
         })
       : updateProduct(product.id, productData))) as {
       success: boolean;
@@ -458,13 +504,17 @@ export const submitEditProductForm = async ({
       errors?: unknown;
     };
     if (response.success) {
+      if (data.menuDefinition) menuBundleUpdateSucceeded = true;
       if (imageFiles.length > 0) {
         await uploadStagedImages(product.id, imageFiles, onImageUploadFailed);
       }
       onProductUpdated();
       onClose();
     } else {
-      setError('root', { message: serverMessage(response) ?? fallbackMessage });
+      const reason = serverMessage(response) ?? fallbackMessage;
+      setError('root', {
+        message: menuSectionsPatched ? partialMenuSaveMessage(reason) : reason,
+      });
     }
   } catch (error: unknown) {
     // Was `} catch {` — the error object discarded entirely, then a hardcoded English sentence.
@@ -472,7 +522,10 @@ export const submitEditProductForm = async ({
     // lines up sets the SAME `root` error and leaving one of the pair converted is worse than
     // leaving both.
     console.error('Edit submit error:', error);
-    setError('root', { message: serverMessage(error) ?? fallbackMessage });
+    const reason = serverMessage(error) ?? fallbackMessage;
+    setError('root', {
+      message: menuSectionsPatched && !menuBundleUpdateSucceeded ? partialMenuSaveMessage(reason) : reason,
+    });
   } finally {
     setIsSubmitting(false);
   }

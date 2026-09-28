@@ -1854,6 +1854,7 @@
   "editor_autosave_pending": "Wordt zo opgeslagen…",
   "editor_autosave_stalled": "Niet opgeslagen — gebruik Opslaan",
   "editor_save_conflict_short": "Opnieuw laden nodig",
+  "menu_sections_saved_partial": "De menusecties zijn opgeslagen, maar de rest van het menu kon niet worden opgeslagen. Probeer het opnieuw. {{reason}}",
   "editor_layout_save_blocked": "De indeling kon niet worden opgeslagen, dus tafelwijzigingen staan stil. Probeer het opnieuw.",
   "editor_preview_title": "Bekijken als gast",
   "editor_canvas_aria": "Plattegrond-editor canvas",

@@ -1854,6 +1854,7 @@
   "editor_autosave_pending": "Birazdan kaydedilecek…",
   "editor_autosave_stalled": "Kaydedilmedi — Kaydet’i kullanın",
   "editor_save_conflict_short": "Yenilemek gerekiyor",
+  "menu_sections_saved_partial": "Menü bölümleri kaydedildi ancak menünün geri kalanı kaydedilemedi. Lütfen tekrar deneyin. {{reason}}",
   "editor_layout_save_blocked": "Düzen kaydedilemedi, bu yüzden masa değişiklikleri beklemede. Tekrar deneyin.",
   "editor_preview_title": "Misafir olarak önizle",
   "editor_canvas_aria": "Yerleşim düzenleyici tuvali",

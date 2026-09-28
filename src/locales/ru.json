@@ -1858,6 +1858,7 @@
   "editor_autosave_pending": "Скоро сохранится…",
   "editor_autosave_stalled": "Не сохранено — нажмите «Сохранить»",
   "editor_save_conflict_short": "Нужна перезагрузка",
+  "menu_sections_saved_partial": "Разделы меню сохранены, но остальную часть меню сохранить не удалось. Попробуйте ещё раз. {{reason}}",
   "editor_layout_save_blocked": "План не удалось сохранить, поэтому изменения столов приостановлены. Попробуйте снова.",
   "editor_preview_title": "Предпросмотр как гость",
   "editor_canvas_aria": "Холст редактора плана",

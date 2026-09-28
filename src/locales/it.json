@@ -1856,6 +1856,7 @@
   "editor_autosave_pending": "Salvataggio a breve…",
   "editor_autosave_stalled": "Non salvato — usa Salva",
   "editor_save_conflict_short": "Serve ricaricare",
+  "menu_sections_saved_partial": "Le sezioni del menu sono state salvate, ma non è stato possibile salvare il resto del menu. Riprova. {{reason}}",
   "editor_layout_save_blocked": "Non è stato possibile salvare la piantina, quindi le modifiche ai tavoli sono in sospeso. Riprova.",
   "editor_preview_title": "Anteprima come ospite",
   "editor_canvas_aria": "Area editor planimetria",

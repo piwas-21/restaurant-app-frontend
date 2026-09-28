@@ -58,6 +58,21 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
     expect(result.current.localSections[1].displayOrder).toBe(1);
   });
 
+  it('keeps two additions in the same tick and gives each a distinct local id', () => {
+    const { result, onChange } = setup([]);
+
+    act(() => {
+      result.current.addSection();
+      result.current.addSection();
+    });
+
+    const ids = result.current.localSections.map((menuSection) => menuSection.id);
+    expect(result.current.localSections).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every((id) => id.startsWith('temp-'))).toBe(true);
+    expect(onChange).toHaveBeenLastCalledWith(result.current.localSections);
+  });
+
   it('mints a temp- id that the submit transform later strips', () => {
     const { result } = setup([]);
 

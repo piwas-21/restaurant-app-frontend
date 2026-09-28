@@ -3371,5 +3371,9 @@
   "editor_review_bundle_availability_checked": "Эти количества получены из свежих данных каталога для этой проверки. Доступность может измениться до оформления заказа.",
   "editor_review_bundle_availability_check_failed": "Не удалось проверить актуальную доступность всех указанных вариантов. Ни один канал не отмечен как имеющий достаточно вариантов.",
   "editor_review_bundle_availability_shortage": "Для шага «{{section}}» требуется {{minimum}} различных вариантов через «{{channel}}»; сейчас доступно для заказа {{available}}.",
-  "editor_review_bundle_availability_check_retry": "Повторить проверку доступности"
+  "editor_review_bundle_availability_check_retry": "Повторить проверку доступности",
+  "editor_review_parent_bundle_checking": "Проверяем ссылки на меню, в состав которых входит этот товар…",
+  "editor_review_parent_bundle_check_failed": "Не удалось проверить связанные меню. После сохранения проверьте обозначения аллергенов в каждом меню, куда входит этот товар.",
+  "editor_review_parent_bundle_retry": "Повторить проверку связанных меню",
+  "editor_review_parent_bundle_allergens": "Рецепт или обозначения аллергенов этого товара изменились. После сохранения отдельно проверьте обозначения аллергенов в каждом связанном меню."
 }

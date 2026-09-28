@@ -132,6 +132,39 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByRole('checkbox', { name: /Soup/ })).toBeDisabled();
   });
 
+  it('shows portion controls for repeatable meat and caps the total across meats', () => {
+    const meats: MenuSection = {
+      ...multiSection,
+      id: 'meat',
+      name: 'Viandes',
+      maxSelection: 3,
+      allowRepeatedItems: true,
+      items: [
+        { ...multiSection.items[0], productId: 'kebab', productName: 'Kebab' },
+        { ...multiSection.items[1], productId: 'chicken', productName: 'Poulet' },
+      ],
+    };
+    const onOptionQuantityChange = jest.fn();
+    const selectedOptions = [{ sectionId: 'meat', itemId: 'kebab', quantity: 2 }];
+    const { rerender } = render(
+      <BundleSectionSelector {...props({ section: meats, selectedOptions, onOptionQuantityChange })} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'increase_quantity Kebab' }));
+    expect(onOptionQuantityChange).toHaveBeenCalledWith('meat', 'kebab', 3, undefined);
+    rerender(
+      <BundleSectionSelector
+        {...props({
+          section: meats,
+          selectedOptions: [{ ...selectedOptions[0], quantity: 3 }],
+          onOptionQuantityChange,
+        })}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'increase_quantity Kebab' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: /Poulet/ })).toBeDisabled();
+  });
+
   it('keeps a channel-limited option selectable while the server resolves no chosen channel', () => {
     const browseSection: MenuSection = {
       ...section,

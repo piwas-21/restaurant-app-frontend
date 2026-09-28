@@ -67,6 +67,9 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
         onChoice();
       }}
       onCustomizeOption={openOptionCustomization}
+      onOptionQuantityChange={(sectionId, itemId, quantity, productVariationId) =>
+        controller.setOptionCustomization(sectionId, itemId, { quantity }, productVariationId)
+      }
       hideLegend
     />
   );

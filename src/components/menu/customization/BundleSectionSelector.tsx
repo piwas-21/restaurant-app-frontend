@@ -28,19 +28,17 @@ interface BundleSectionSelectorProps {
   minSelectionError?: number;
   currentLanguage: string;
   onToggleOption: (section: MenuSection, itemId: string, productVariationId?: string | null) => void;
-  /**
-   * GUEST sheet: tapping Customize on a selected option opens the option's guided customization
-   * screen, which the sheet itself hosts (BundleOptionCustomizationScreen — the 2026-09 owner
-   * decision superseding #175's inline drill-in). The selector only raises the intent.
-   */
+  onOptionQuantityChange?: (
+    sectionId: string,
+    itemId: string,
+    quantity: number,
+    productVariationId?: string | null,
+  ) => void;
+  /** Guest sheet raises a navigation intent for the option's customization screen. */
   onCustomizeOption?: (sectionId: string, itemId: string, productVariationId?: string | null) => void;
   /** STAFF modal: expand the option's editing panel inline instead of navigating. */
   inlinePanel?: BundleSectionInlinePanel;
-  /**
-   * Withhold the visible `<legend>`. The guided flow's step panel already carries the section name
-   * and its required marker; a second copy inside the fieldset reads as a nested group. The
-   * fieldset keeps an `aria-label` in that case, so the grouping is still named for assistive tech.
-   */
+  /** Guided flow supplies the visible section name; fieldset keeps its accessible name. */
   hideLegend?: boolean;
 }
 
@@ -55,13 +53,14 @@ export default function BundleSectionSelector({
   minSelectionError,
   currentLanguage,
   onToggleOption,
+  onOptionQuantityChange,
   onCustomizeOption,
   inlinePanel,
   hideLegend = false,
 }: Readonly<BundleSectionSelectorProps>) {
   const { t } = useTranslation();
 
-  const selectedCount = countSectionSelections(selectedOptions, section.id);
+  const selectedCount = countSectionSelections(selectedOptions, section.id, section.allowRepeatedItems);
   const isRadio = section.maxSelection === 1;
   const fixedPlat = isFixedPlatSection(section);
   const errorId = `bundle-section-error-${section.id}`;
@@ -128,6 +127,15 @@ export default function BundleSectionSelector({
           inputType={isRadio ? 'radio' : 'checkbox'}
           isSelected={Boolean(option)}
           isDisabled={!option && (isUnavailableForGuest || (!isRadio && selectedCount >= section.maxSelection))}
+          selectedQuantity={section.allowRepeatedItems && option ? option.quantity : undefined}
+          canIncreaseQuantity={selectedCount < section.maxSelection}
+          onQuantityChange={
+            onOptionQuantityChange &&
+            ((quantity) => {
+              if (quantity === 0) onToggleOption(section, item.productId, item.productVariationId);
+              else onOptionQuantityChange(section.id, item.productId, quantity, item.productVariationId);
+            })
+          }
           showAvailabilityReason={isUnavailableForGuest}
           currentLanguage={currentLanguage}
           onToggle={() => {

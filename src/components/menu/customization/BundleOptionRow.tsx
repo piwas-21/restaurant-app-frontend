@@ -18,6 +18,9 @@ interface BundleOptionRowProps {
   isSelected: boolean;
   /** This option cannot be picked because of availability or the section's `maxSelection`. */
   isDisabled: boolean;
+  selectedQuantity?: number;
+  canIncreaseQuantity?: boolean;
+  onQuantityChange?: (quantity: number) => void;
   /** Whether guest mode should show the server's reason for an unorderable option. */
   showAvailabilityReason?: boolean;
   currentLanguage: string;
@@ -53,6 +56,9 @@ export default function BundleOptionRow({
   inputType,
   isSelected,
   isDisabled,
+  selectedQuantity,
+  canIncreaseQuantity = false,
+  onQuantityChange,
   showAvailabilityReason = false,
   currentLanguage,
   onToggle,
@@ -128,6 +134,31 @@ export default function BundleOptionRow({
           />
           {details}
         </label>
+      )}
+
+      {selectedQuantity !== undefined && onQuantityChange && (
+        <div className={styles.quantityControl} role="group" aria-label={item.productName}>
+          <button
+            type="button"
+            className={styles.quantityButton}
+            onClick={() => onQuantityChange(selectedQuantity - 1)}
+            aria-label={`${t('decrease_quantity')} ${item.productName}`}
+          >
+            −
+          </button>
+          <span className={styles.quantityValue} aria-live="polite">
+            {selectedQuantity}
+          </span>
+          <button
+            type="button"
+            className={styles.quantityButton}
+            onClick={() => onQuantityChange(selectedQuantity + 1)}
+            disabled={!canIncreaseQuantity}
+            aria-label={`${t('increase_quantity')} ${item.productName}`}
+          >
+            +
+          </button>
+        </div>
       )}
 
       {canCustomize && onCustomize && (

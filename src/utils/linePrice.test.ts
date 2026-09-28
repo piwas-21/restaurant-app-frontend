@@ -170,6 +170,16 @@ describe('bundleLineUnitPrice', () => {
     { id: 'drink', items: [{ productId: 'cola', additionalPrice: 1.99 }] },
   ];
 
+  it('charges the section surcharge once for each portion of the same option', () => {
+    expect(
+      bundleLineUnitPrice({
+        basePrice: 10,
+        sections: [{ id: 'meat', items: [{ productId: 'kebab', additionalPrice: 0.5 }] }],
+        selectedOptions: [{ sectionId: 'meat', itemId: 'kebab', quantity: 3 }],
+      }),
+    ).toBe(11.5);
+  });
+
   it('sums base + section additionals + per-option child customization, scaled by option qty', () => {
     const price = bundleLineUnitPrice({
       basePrice: 8,

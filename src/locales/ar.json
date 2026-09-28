@@ -1339,6 +1339,7 @@
   "section_name_placeholder": "مثال: اختر مشروباً",
   "description_placeholder": "وصف اختياري لهذا القسم",
   "required_section": "قسم إلزامي",
+  "allow_repeated_menu_items": "السماح باختيار نفس الصنف عدة مرات",
   "minimum_selection": "الحد الأدنى للاختيار",
   "maximum_selection": "الحد الأقصى للاختيار",
   "move_up": "تحريك للأعلى",

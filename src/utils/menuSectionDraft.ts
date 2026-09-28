@@ -19,12 +19,13 @@ export interface CleanMenuSection {
   id?: string;
   name: string;
   description?: string;
-  translations: MenuSection['translations'];
+  translations?: MenuSection['translations'];
   translationMetadata?: TranslationMetadata;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;
   maxSelection: number;
+  allowRepeatedItems: boolean;
   items: CleanMenuSectionItem[];
 }
 
@@ -45,12 +46,13 @@ export function stripTemporaryMenuSectionIds(sections: readonly MenuSection[]): 
     const cleaned: CleanMenuSection = {
       name: section.name,
       description: section.description,
-      translations: section.translations,
-      translationMetadata: section.translationMetadata,
+      ...(section.translations !== undefined ? { translations: section.translations } : {}),
+      ...(section.translationMetadata !== undefined ? { translationMetadata: section.translationMetadata } : {}),
       displayOrder: section.displayOrder,
       isRequired: section.isRequired,
       minSelection: section.minSelection,
       maxSelection: section.maxSelection,
+      allowRepeatedItems: section.allowRepeatedItems ?? false,
       items: section.items.map((item) => {
         const cleanedItem: CleanMenuSectionItem = {
           productId: item.productId,

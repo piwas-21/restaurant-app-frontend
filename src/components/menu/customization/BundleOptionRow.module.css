@@ -90,6 +90,37 @@
   color: var(--text-muted, var(--text-secondary));
 }
 
+.quantityControl {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.5rem;
+  margin: 0 0.75rem 0.75rem;
+}
+
+.quantityButton {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--border-default, var(--border-color));
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.quantityButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantityValue {
+  min-width: 1.5rem;
+  text-align: center;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* DESIGN.md §Components' secondary button: transparent, a 1px brand border, brand text — at the
    universal 10px, not a 999px pill, which is the shape the same sheet's footer CTA just left.
    The 1px border keeps plain `--brand-primary` (non-text, 3:1); the LABEL takes the elevated token

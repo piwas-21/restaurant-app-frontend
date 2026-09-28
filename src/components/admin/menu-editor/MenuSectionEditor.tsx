@@ -139,6 +139,15 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChang
                         />
                         <label htmlFor={`required-${section.id}`}>{t('required_section')}</label>
                       </div>
+                      <div className={styles.chip}>
+                        <input
+                          type="checkbox"
+                          id={`repeat-items-${section.id}`}
+                          checked={section.allowRepeatedItems ?? false}
+                          onChange={(e) => updateSection(index, { allowRepeatedItems: e.target.checked })}
+                        />
+                        <label htmlFor={`repeat-items-${section.id}`}>{t('allow_repeated_menu_items')}</label>
+                      </div>
                     </div>
                   </div>
 

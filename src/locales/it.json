@@ -1334,6 +1334,7 @@
   "section_name_placeholder": "es. Scegli Bevanda",
   "description_placeholder": "Descrizione opzionale per questa sezione",
   "required_section": "Sezione Obbligatoria",
+  "allow_repeated_menu_items": "Consenti di scegliere più volte lo stesso prodotto",
   "minimum_selection": "Selezione Minima",
   "maximum_selection": "Selezione Massima",
   "move_up": "Sposta su",

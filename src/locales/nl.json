@@ -1397,6 +1397,7 @@
   "section_name_placeholder": "bijv. Kies een drankje",
   "description_placeholder": "Optionele beschrijving voor deze sectie",
   "required_section": "Verplichte sectie",
+  "allow_repeated_menu_items": "Hetzelfde product meerdere keren kiezen",
   "minimum_selection": "Minimale selectie",
   "maximum_selection": "Maximale selectie",
   "move_up": "Omhoog",

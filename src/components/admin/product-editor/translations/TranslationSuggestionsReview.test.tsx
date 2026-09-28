@@ -43,3 +43,31 @@ describe('TranslationSuggestionsReview errors', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Review version is stale');
   });
 });
+
+describe('TranslationSuggestionsReview empty suggestions state', () => {
+  const unresolvedSourceField = {
+    slot: { key: 'product:name', fieldLabel: 'product_name', source: 'Simit', translations: {} },
+    sourceLocaleKnown: false,
+  } as unknown as Review['unknownSourceLocaleFields'][number];
+
+  it('does not claim suggestions are unnecessary while a source locale is unresolved', () => {
+    render(
+      <TranslationSuggestionsReview
+        review={review({
+          phase: 'ready',
+          error: false,
+          unknownSourceLocaleFields: [unresolvedSourceField],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('translation_review_source_locale_missing')).toBeInTheDocument();
+    expect(screen.queryByText('translation_review_suggestions_none')).not.toBeInTheDocument();
+  });
+
+  it('shows the empty state after all source locales are resolved', () => {
+    render(<TranslationSuggestionsReview review={review({ phase: 'ready', error: false })} />);
+
+    expect(screen.getByText('translation_review_suggestions_none')).toBeInTheDocument();
+  });
+});

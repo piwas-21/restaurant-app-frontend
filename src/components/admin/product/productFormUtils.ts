@@ -12,8 +12,7 @@ import { withGlobalIngredientProvenance, withoutTemporaryIds } from './globalIng
 import { withResyncedSnapshots, type ResyncRow } from './translationResync';
 import { serverMessage } from '@/utils/apiFormErrors';
 import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
-import type { ProductCustomizationGroupDraft } from '@/types/menu';
-import type { MenuSection } from '@/types/menu';
+import type { ProductCustomizationGroupDraft, MenuSection } from '@/types/menu';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import {
   menuSectionsEqual,
@@ -111,6 +110,42 @@ const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined
     endTime: padTime(menuDefinition.endTime),
   };
 };
+
+/** Save structural edits first, then give the metadata PUT the server's canonical section snapshot. */
+async function prepareVersionedMenuDefinition(
+  menuDefinition: MenuDefinitionInput | undefined,
+  product: SubmitEditProductFormParams['product'],
+  onSectionsPatched: SubmitEditProductFormParams['onMenuSectionsPatched'],
+): Promise<{
+  payload: ReturnType<typeof toMenuDefinitionPayload>;
+  authoringVersion: number | undefined;
+}> {
+  const authoringVersion = product.menuDefinition?.authoringVersion;
+  const draftSections = (menuDefinition?.sections ?? []) as MenuSection[];
+  if (!menuDefinition || authoringVersion === undefined) {
+    return { payload: toMenuDefinitionPayload(menuDefinition), authoringVersion };
+  }
+
+  const savedSections = product.menuDefinition?.sections ?? [];
+  if (menuSectionsEqual(savedSections, draftSections)) {
+    // A retry uses server-normalized text while retaining the editor's reviewed provenance.
+    const sections = withSectionTranslationMetadata(savedSections, draftSections);
+    return {
+      payload: toMenuDefinitionPayload({ ...menuDefinition, sections }),
+      authoringVersion,
+    };
+  }
+
+  const patchResult = await patchMenuBundleSections(product.id, authoringVersion, draftSections);
+  const mergedDraftSections = mergePatchedMenuSections(draftSections, patchResult.sections);
+  // PATCH stores translations, but only the subsequent PUT records translation provenance.
+  const sections = withSectionTranslationMetadata(patchResult.sections, mergedDraftSections);
+  onSectionsPatched(patchResult, mergedDraftSections);
+  return {
+    payload: toMenuDefinitionPayload({ ...menuDefinition, sections }),
+    authoringVersion: patchResult.authoringVersion,
+  };
+}
 
 /**
  * Sends `{}` rather than omitting `content`, mirroring what MenuBundleDetails already sends
@@ -427,37 +462,10 @@ export const submitEditProductForm = async ({
 
     // Provenance + temp-id strip, shared with the create path above.
     const cleanedIngredients = withoutTemporaryIds(await withGlobalIngredientProvenance(detailedIngredients || []));
-    let menuDefinitionPayload = toMenuDefinitionPayload(data.menuDefinition);
-    let authoringVersion = product.menuDefinition?.authoringVersion;
-    const draftSections = (data.menuDefinition?.sections ?? []) as MenuSection[];
-
-    if (
-      data.menuDefinition &&
-      authoringVersion !== undefined &&
-      !menuSectionsEqual(product.menuDefinition?.sections ?? [], draftSections)
-    ) {
-      const patchResult = await patchMenuBundleSections(product.id, authoringVersion, draftSections);
+    const preparedMenu = await prepareVersionedMenuDefinition(data.menuDefinition, product, (result, draft) => {
       menuSectionsPatched = true;
-      authoringVersion = patchResult.authoringVersion;
-      const mergedDraftSections = mergePatchedMenuSections(draftSections, patchResult.sections);
-
-      // The PUT carries the exact server snapshot so its versioned-section guard can verify that
-      // only non-section fields changed. Its provenance writer still needs the reviewed metadata
-      // from the draft; the section PATCH stores translations but does not record that metadata.
-      // Keep richer draft-only fields in the open editor for a safe retry if the PUT is refused.
-      menuDefinitionPayload = toMenuDefinitionPayload({
-        ...data.menuDefinition,
-        sections: withSectionTranslationMetadata(patchResult.sections, mergedDraftSections),
-      });
-      onMenuSectionsPatched(patchResult, mergedDraftSections);
-    } else if (data.menuDefinition && authoringVersion !== undefined) {
-      // A retry after a successful PATCH uses canonical server text, even when the open draft
-      // still contains pre-normalized translation input such as a blank description.
-      menuDefinitionPayload = toMenuDefinitionPayload({
-        ...data.menuDefinition,
-        sections: withSectionTranslationMetadata(product.menuDefinition?.sections ?? [], draftSections),
-      });
-    }
+      onMenuSectionsPatched(result, draft);
+    });
 
     const productData = {
       ...data,
@@ -477,7 +485,7 @@ export const submitEditProductForm = async ({
       content: formattedContent,
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       customizationGroups,
-      menuDefinition: menuDefinitionPayload,
+      menuDefinition: preparedMenu.payload,
     } as any;
 
     // A bundle must be updated through the bundle endpoint, mirroring the create path above.
@@ -488,7 +496,7 @@ export const submitEditProductForm = async ({
     const response = (await (data.menuDefinition
       ? updateMenuBundle(product.id, {
           ...toMenuBundlePayload(productData),
-          expectedAuthoringVersion: authoringVersion,
+          expectedAuthoringVersion: preparedMenu.authoringVersion,
         })
       : updateProduct(product.id, productData))) as {
       success: boolean;

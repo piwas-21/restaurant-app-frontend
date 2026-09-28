@@ -16,9 +16,9 @@ export function createTemporaryMenuId(): string {
     return `temp-${random}-${fallbackIdSequence++}`;
   }
 
-  // Browser crypto is present in supported browsers, but keep local drafts usable in older test
-  // runtimes too. The per-module sequence prevents same-tick collisions in that last-resort path.
-  return `temp-${Date.now()}-${fallbackIdSequence++}-${Math.random().toString(36).slice(2)}`;
+  // Keep local drafts usable where browser crypto is unavailable. The per-module sequence prevents
+  // same-tick collisions in this last-resort path.
+  return `temp-${Date.now()}-${fallbackIdSequence++}`;
 }
 
 function normalizedTranslations(section: MenuSection): unknown {

@@ -77,6 +77,87 @@ const sectionPatchCallbacks = {
   partialMenuSaveMessage: (reason: string) => `Sections saved; retry the other changes: ${reason}`,
 };
 
+const makeExistingBundleSection = (): MenuSection => ({
+  id: 'section-existing',
+  name: 'Choose a main',
+  description: '',
+  displayOrder: 0,
+  isRequired: true,
+  minSelection: 1,
+  maxSelection: 1,
+  items: [
+    {
+      id: 'item-existing',
+      productId: 'product-existing',
+      additionalPrice: 0,
+      displayOrder: 0,
+      isDefault: true,
+    },
+  ],
+});
+
+const makeSectionPatchFixture = (options: {
+  drinkItemId: string;
+  persistedDrinkItemId: string;
+  drinkAdditionalPrice: number;
+  drinkTranslations?: NonNullable<MenuSection['translations']>;
+  persistedDrinkTranslations?: NonNullable<MenuSection['translations']>;
+  drinkTranslationMetadata?: NonNullable<MenuSection['translationMetadata']>;
+}) => {
+  const existingSection = makeExistingBundleSection();
+  const draftSections: MenuSection[] = [
+    {
+      ...existingSection,
+      name: 'Choose a main edited',
+      items: [
+        existingSection.items[0],
+        {
+          id: 'temp-new-item',
+          productId: 'product-new',
+          additionalPrice: 1,
+          displayOrder: 1,
+          isDefault: false,
+        },
+      ],
+    },
+    {
+      id: 'temp-new-section',
+      name: 'Choose a drink',
+      description: '',
+      displayOrder: 1,
+      isRequired: false,
+      minSelection: 0,
+      maxSelection: 1,
+      ...(options.drinkTranslations ? { translations: options.drinkTranslations } : {}),
+      ...(options.drinkTranslationMetadata ? { translationMetadata: options.drinkTranslationMetadata } : {}),
+      items: [
+        {
+          id: options.drinkItemId,
+          productId: 'product-drink',
+          additionalPrice: options.drinkAdditionalPrice,
+          displayOrder: 0,
+          isDefault: false,
+        },
+      ],
+    },
+  ];
+  const persistedSections: MenuSection[] = [
+    {
+      ...draftSections[0],
+      items: [draftSections[0].items[0], { ...draftSections[0].items[1], id: 'item-new' }],
+    },
+    {
+      ...draftSections[1],
+      id: 'section-new',
+      ...(options.persistedDrinkTranslations ? { translations: options.persistedDrinkTranslations } : {}),
+      ...(options.drinkTranslationMetadata ? { translationMetadata: undefined } : {}),
+      items: [{ ...draftSections[1].items[0], id: options.persistedDrinkItemId }],
+    },
+  ];
+
+  return { existingSection, draftSections, persistedSections };
+};
+
 const submit = async (
   data: Record<string, unknown>,
   product: {
@@ -120,69 +201,11 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
   });
 
   it('PATCHes mixed persisted and new rows, then PUTs the IDs returned by the server', async () => {
-    const existingSection: MenuSection = {
-      id: 'section-existing',
-      name: 'Choose a main',
-      description: '',
-      displayOrder: 0,
-      isRequired: true,
-      minSelection: 1,
-      maxSelection: 1,
-      items: [
-        {
-          id: 'item-existing',
-          productId: 'product-existing',
-          additionalPrice: 0,
-          displayOrder: 0,
-          isDefault: true,
-        },
-      ],
-    };
-    const draftSections: MenuSection[] = [
-      {
-        ...existingSection,
-        name: 'Choose a main edited',
-        items: [
-          existingSection.items[0],
-          {
-            id: 'temp-new-item',
-            productId: 'product-new',
-            additionalPrice: 1,
-            displayOrder: 1,
-            isDefault: false,
-          },
-        ],
-      },
-      {
-        id: 'temp-new-section',
-        name: 'Choose a drink',
-        description: '',
-        displayOrder: 1,
-        isRequired: false,
-        minSelection: 0,
-        maxSelection: 1,
-        items: [
-          {
-            id: 'temp-new-section-item',
-            productId: 'product-drink',
-            additionalPrice: 2,
-            displayOrder: 0,
-            isDefault: false,
-          },
-        ],
-      },
-    ];
-    const persistedSections: MenuSection[] = [
-      {
-        ...draftSections[0],
-        items: [draftSections[0].items[0], { ...draftSections[0].items[1], id: 'item-new' }],
-      },
-      {
-        ...draftSections[1],
-        id: 'section-new',
-        items: [{ ...draftSections[1].items[0], id: 'item-new-section' }],
-      },
-    ];
+    const { existingSection, draftSections, persistedSections } = makeSectionPatchFixture({
+      drinkItemId: 'temp-new-section-item',
+      persistedDrinkItemId: 'item-new-section',
+      drinkAdditionalPrice: 2,
+    });
     const patchResult = { authoringVersion: 13, sections: persistedSections };
     (patchMenuBundleSections as jest.Mock).mockResolvedValueOnce(patchResult);
 
@@ -201,24 +224,7 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
   });
 
   it('surfaces the stale-version conflict and skips the metadata PUT', async () => {
-    const existingSection: MenuSection = {
-      id: 'section-existing',
-      name: 'Choose a main',
-      description: '',
-      displayOrder: 0,
-      isRequired: true,
-      minSelection: 1,
-      maxSelection: 1,
-      items: [
-        {
-          id: 'item-existing',
-          productId: 'product-existing',
-          additionalPrice: 0,
-          displayOrder: 0,
-          isDefault: true,
-        },
-      ],
-    };
+    const existingSection = makeExistingBundleSection();
     const staleConflict = 'The menu changed while you were editing it; reload before saving again';
     (patchMenuBundleSections as jest.Mock).mockRejectedValueOnce(new ApiError(409, staleConflict));
 
@@ -253,76 +259,17 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
   });
 
   it('retries a refused metadata PUT using the PATCHed section IDs without PATCHing twice', async () => {
-    const existingSection: MenuSection = {
-      id: 'section-existing',
-      name: 'Choose a main',
-      description: '',
-      displayOrder: 0,
-      isRequired: true,
-      minSelection: 1,
-      maxSelection: 1,
-      items: [
-        {
-          id: 'item-existing',
-          productId: 'product-existing',
-          additionalPrice: 0,
-          displayOrder: 0,
-          isDefault: true,
-        },
-      ],
-    };
-    const draftSections: MenuSection[] = [
-      {
-        ...existingSection,
-        name: 'Choose a main edited',
-        items: [
-          existingSection.items[0],
-          {
-            id: 'temp-new-item',
-            productId: 'product-new',
-            additionalPrice: 1,
-            displayOrder: 1,
-            isDefault: false,
-          },
-        ],
+    const { existingSection, draftSections, persistedSections } = makeSectionPatchFixture({
+      drinkItemId: 'temp-drink-item',
+      persistedDrinkItemId: 'item-drink-new',
+      drinkAdditionalPrice: 0,
+      drinkTranslations: { FR: { name: ' Boisson ', description: '' } },
+      persistedDrinkTranslations: { fr: { name: 'Boisson', description: null } },
+      drinkTranslationMetadata: {
+        sourceLocales: { name: 'fr' },
+        acceptedSuggestionIds: { name: 'suggestion-1' },
       },
-      {
-        id: 'temp-new-section',
-        name: 'Choose a drink',
-        description: '',
-        displayOrder: 1,
-        isRequired: false,
-        minSelection: 0,
-        maxSelection: 1,
-        translations: { FR: { name: ' Boisson ', description: '' } },
-        translationMetadata: {
-          sourceLocales: { name: 'fr' },
-          acceptedSuggestionIds: { name: 'suggestion-1' },
-        },
-        items: [
-          {
-            id: 'temp-drink-item',
-            productId: 'product-drink',
-            additionalPrice: 0,
-            displayOrder: 0,
-            isDefault: false,
-          },
-        ],
-      },
-    ];
-    const persistedSections: MenuSection[] = [
-      {
-        ...draftSections[0],
-        items: [draftSections[0].items[0], { ...draftSections[0].items[1], id: 'item-new' }],
-      },
-      {
-        ...draftSections[1],
-        id: 'section-new',
-        translations: { fr: { name: 'Boisson', description: null } },
-        translationMetadata: undefined,
-        items: [{ ...draftSections[1].items[0], id: 'item-drink-new' }],
-      },
-    ];
+    });
     const patchResult = { authoringVersion: 13, sections: persistedSections };
     (patchMenuBundleSections as jest.Mock).mockResolvedValueOnce(patchResult);
     (updateMenuBundle as jest.Mock).mockResolvedValueOnce({ success: false, errors: ['Menu metadata conflict'] });

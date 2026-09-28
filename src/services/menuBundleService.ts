@@ -41,7 +41,7 @@ export interface MenuSectionData {
    * turns "no description" into an empty string on the next save.
    */
   description?: string | null;
-  translations?: MenuSection['translations'];
+  translations?: NonNullable<MenuSection['translations']>;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;

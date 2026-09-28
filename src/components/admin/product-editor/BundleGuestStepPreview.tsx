@@ -127,14 +127,16 @@ export default function BundleGuestStepPreview({
                           freshOption.isActiveVariation &&
                           freshOption.allowedOrderTypes.length > 0,
                         );
+                        let freshReason: ItemAvailability['reason'] = 'Unavailable';
+                        if (freshCanOrder) {
+                          freshReason = 'Available';
+                        } else if (freshOption?.isActive && freshOption.isAvailable && freshOption.isActiveVariation) {
+                          freshReason = 'WrongOrderType';
+                        }
                         const itemAvailabilityState: ItemAvailability | undefined = freshOption
                           ? {
                               canOrder: freshCanOrder,
-                              reason: freshCanOrder
-                                ? 'Available'
-                                : freshOption.isActive && freshOption.isAvailable && freshOption.isActiveVariation
-                                  ? 'WrongOrderType'
-                                  : 'Unavailable',
+                              reason: freshReason,
                               allowedOrderTypes: [...freshOption.allowedOrderTypes],
                             }
                           : item.availability;

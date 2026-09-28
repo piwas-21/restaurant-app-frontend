@@ -9,9 +9,11 @@ import type { MenuDefinition } from '@/types/menu';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import { useBundleChoiceAvailabilityReview } from '@/hooks/admin/useBundleChoiceAvailabilityReview';
+import { useParentBundleAllergenReview } from '@/hooks/admin/useParentBundleAllergenReview';
 import { isStorableMask } from '@/utils/orderChannels';
 import TranslationSuggestionsReview from './translations/TranslationSuggestionsReview';
 import BundleGuestStepPreview from './BundleGuestStepPreview';
+import ParentBundleAllergenReviewNotice from './ParentBundleAllergenReviewNotice';
 import { ORDER_TYPE_KEYS } from './bundlePriceQuoteUtils';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './EditorPreSaveReview.module.css';
@@ -22,6 +24,8 @@ interface EditorPreSaveReviewProps {
   readonly onConfirm: () => void;
   readonly isPending: boolean;
   readonly isBundle: boolean;
+  readonly productId: string;
+  readonly savedAllergens: readonly string[] | null;
   readonly editor: ReturnType<typeof useProductEditorForm>;
   readonly translationReview: ReturnType<typeof useEditorTranslationReview>;
 }
@@ -67,6 +71,8 @@ export default function EditorPreSaveReview({
   onConfirm,
   isPending,
   isBundle,
+  productId,
+  savedAllergens,
   editor,
   translationReview,
 }: EditorPreSaveReviewProps) {
@@ -107,6 +113,13 @@ export default function EditorPreSaveReview({
     categories: editor.categories,
     sections: menuDefinition.sections,
   });
+  const parentBundleReview = useParentBundleAllergenReview({
+    isOpen: isOpen && !isBundle,
+    productId,
+    recipeChanged: editor.isIngredientsDirty,
+    currentAllergens: allergens,
+    savedAllergens,
+  });
   const shouldCheckChoiceAvailability =
     isBundle && isActive && menuDefinition.sections.some((section) => section.isRequired);
   const availabilityCheckPending =
@@ -142,7 +155,12 @@ export default function EditorPreSaveReview({
             type="button"
             className={modalStyles.submitButton}
             onClick={() => void confirmSave()}
-            disabled={isPending || availabilityCheckPending}
+            disabled={
+              isPending ||
+              availabilityCheckPending ||
+              (parentBundleReview.needsReview &&
+                (parentBundleReview.state.status === 'idle' || parentBundleReview.state.status === 'loading'))
+            }
             data-testid="editor-review-confirm-save"
           >
             {t(translationReview.reviewWriteError ? 'editor_review_save_without_suggestions' : 'editor_review_save')}
@@ -222,6 +240,7 @@ export default function EditorPreSaveReview({
         {(!Array.isArray(allergens) || allergens.length === 0) && (
           <ReviewLine warning>{t('editor_review_allergens_unknown')}</ReviewLine>
         )}
+        <ParentBundleAllergenReviewNotice review={parentBundleReview} />
         <ReviewLine>{t('editor_review_intentional_differences')}</ReviewLine>
         <ReviewLine>{t('editor_review_quote_note')}</ReviewLine>
       </ul>

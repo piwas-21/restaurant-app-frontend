@@ -3344,5 +3344,9 @@
   "editor_review_bundle_availability_checked": "这些数量来自本次审核时读取的最新目录数据。下单前可用性仍可能变化。",
   "editor_review_bundle_availability_check_failed": "无法验证所有引用选项的当前可用性。没有任何渠道会被标记为选项充足。",
   "editor_review_bundle_availability_shortage": "“{{section}}”步骤在 {{channel}} 需要 {{minimum}} 个不同选项；当前可订购数量为 {{available}}。",
-  "editor_review_bundle_availability_check_retry": "重新检查可用性"
+  "editor_review_bundle_availability_check_retry": "重新检查可用性",
+  "editor_review_parent_bundle_checking": "正在检查引用此商品的关联菜单…",
+  "editor_review_parent_bundle_check_failed": "无法检查关联菜单。保存后，请检查每个包含此商品的菜单中的过敏原标签。",
+  "editor_review_parent_bundle_retry": "重新检查关联菜单",
+  "editor_review_parent_bundle_allergens": "此商品的配方或过敏原标签已更改。保存后，请分别检查每个关联菜单自己的过敏原标签。"
 }

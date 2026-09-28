@@ -6,6 +6,7 @@ import type { MenuDefinition } from '@/types/menu';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
 import { getAllProducts } from '@/services/menuService';
+import { getProductParentBundles } from '@/services/productParentBundlesService';
 import EditorPreSaveReview from './EditorPreSaveReview';
 
 jest.mock('react-i18next', () => ({
@@ -15,9 +16,11 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('@/services/menuService', () => ({ getAllProducts: jest.fn() }));
+jest.mock('@/services/productParentBundlesService', () => ({ getProductParentBundles: jest.fn() }));
 jest.mock('./translations/TranslationSuggestionsReview', () => ({ __esModule: true, default: () => null }));
 
 const mockedGetAllProducts = jest.mocked(getAllProducts);
+const mockedGetProductParentBundles = jest.mocked(getProductParentBundles);
 
 const allChannels = [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery];
 const menuDefinition: MenuDefinition = {
@@ -116,6 +119,8 @@ function renderReview({
       onConfirm={jest.fn()}
       isPending={false}
       isBundle
+      productId={parentProductId}
+      savedAllergens={['milk']}
       editor={editor}
       translationReview={translationReview}
     />,
@@ -197,5 +202,101 @@ describe('EditorPreSaveReview bundle option availability', () => {
     await waitFor(() => expect(screen.getByText('editor_review_bundle_availability_checked')).toBeInTheDocument());
     expect(consoleError).toHaveBeenCalledTimes(1);
     consoleError.mockRestore();
+  });
+});
+
+function renderItemReview({
+  recipeChanged = false,
+  currentAllergens = ['milk'],
+  savedAllergens = ['milk'],
+  productId = 'choice-1',
+}: {
+  recipeChanged?: boolean;
+  currentAllergens?: string[];
+  savedAllergens?: string[];
+  productId?: string;
+} = {}) {
+  const values: Record<string, unknown> = {
+    name: 'Choice product',
+    basePrice: 9,
+    isComponent: true,
+    allergens: currentAllergens,
+    content: [{ language: 'en', name: 'Choice product' }],
+    variations: [],
+    isActive: true,
+    availableOrderTypes: null,
+  };
+  const editor = {
+    form: { getValues: (field: string) => values[field] },
+    isIngredientsDirty: recipeChanged,
+    categories: [],
+    primaryCategoryId: '',
+    detailedIngredients: [],
+    menuDefinition,
+    customizationGroups: [],
+  } as unknown as ReturnType<typeof useProductEditorForm>;
+  const translationReview = {
+    reviewWriteError: false,
+    submitDecisions: jest.fn().mockResolvedValue(true),
+  } as unknown as ReturnType<typeof useEditorTranslationReview>;
+  return render(
+    <EditorPreSaveReview
+      isOpen
+      onClose={jest.fn()}
+      onConfirm={jest.fn()}
+      isPending={false}
+      isBundle={false}
+      productId={productId}
+      savedAllergens={savedAllergens}
+      editor={editor}
+      translationReview={translationReview}
+    />,
+  );
+}
+
+describe('EditorPreSaveReview parent bundle allergen review', () => {
+  beforeEach(() => mockedGetProductParentBundles.mockReset());
+
+  it('waits for parent references and links affected bundles after a recipe change', async () => {
+    mockedGetProductParentBundles.mockResolvedValue({
+      success: true,
+      data: { items: [{ id: 'bundle-1', name: 'Lunch Combo', isActive: true, references: [] }] },
+    });
+    renderItemReview({ recipeChanged: true });
+
+    const saveButton = screen.getByTestId('editor-review-confirm-save');
+    expect(saveButton).toBeDisabled();
+    expect(await screen.findByRole('link', { name: 'Lunch Combo' })).toHaveAttribute(
+      'href',
+      '/admin/menu-management/bundle-1',
+    );
+    expect(screen.getByText('editor_review_parent_bundle_allergens')).toBeInTheDocument();
+    expect(saveButton).toBeEnabled();
+    expect(mockedGetProductParentBundles).toHaveBeenCalledWith('choice-1', expect.any(AbortSignal));
+  });
+
+  it('does not request parent references for a price-only edit', () => {
+    renderItemReview();
+    expect(mockedGetProductParentBundles).not.toHaveBeenCalled();
+    expect(screen.queryByText('editor_review_parent_bundle_allergens')).not.toBeInTheDocument();
+    expect(screen.getByTestId('editor-review-confirm-save')).toBeEnabled();
+  });
+
+  it('does not block a new item without a saved product id', () => {
+    renderItemReview({ productId: '', currentAllergens: ['milk', 'soy'] });
+    expect(mockedGetProductParentBundles).not.toHaveBeenCalled();
+    expect(screen.getByTestId('editor-review-confirm-save')).toBeEnabled();
+  });
+
+  it('warns when parent references fail after an allergen change and allows retry', async () => {
+    mockedGetProductParentBundles
+      .mockRejectedValueOnce(new Error('temporarily unavailable'))
+      .mockResolvedValueOnce({ success: true, data: { items: [] } });
+    renderItemReview({ currentAllergens: ['milk', 'soy'] });
+
+    expect(await screen.findByText('editor_review_parent_bundle_check_failed')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'editor_review_parent_bundle_retry' }));
+    await waitFor(() => expect(mockedGetProductParentBundles).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText('editor_review_parent_bundle_check_failed')).not.toBeInTheDocument());
   });
 });

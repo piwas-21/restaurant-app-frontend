@@ -3389,5 +3389,9 @@
   "editor_review_bundle_availability_checked": "تعتمد هذه الأعداد على قراءة حديثة للكتالوج في هذه المراجعة. قد يتغير التوفر قبل تقديم الطلب.",
   "editor_review_bundle_availability_check_failed": "تعذر التحقق من التوفر الحالي لكل الخيارات المشار إليها. لم يتم تأكيد كفاية الخيارات لأي قناة.",
   "editor_review_bundle_availability_shortage": "تتطلب خطوة “{{section}}” {{minimum}} خيارات مختلفة عبر {{channel}}؛ والمتاح للطلب حاليًا هو {{available}}.",
-  "editor_review_bundle_availability_check_retry": "إعادة التحقق من التوفر"
+  "editor_review_bundle_availability_check_retry": "إعادة التحقق من التوفر",
+  "editor_review_parent_bundle_checking": "جارٍ التحقق من القوائم المرتبطة التي تتضمن هذا العنصر…",
+  "editor_review_parent_bundle_check_failed": "تعذر التحقق من القوائم المرتبطة. بعد الحفظ، راجع ملصقات مسببات الحساسية في كل قائمة تتضمن هذا العنصر.",
+  "editor_review_parent_bundle_retry": "إعادة التحقق من القوائم المرتبطة",
+  "editor_review_parent_bundle_allergens": "تم تغيير وصفة هذا العنصر أو ملصقات مسببات الحساسية. بعد الحفظ، راجع ملصقات مسببات الحساسية الخاصة بكل قائمة مرتبطة على حدة."
 }

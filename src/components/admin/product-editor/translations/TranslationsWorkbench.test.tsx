@@ -146,6 +146,30 @@ beforeEach(() => {
 });
 
 describe('one surface for every translatable string (D2 / S4)', () => {
+  it('offers an explicit missing-translation request without generating on workbench open', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    service.preview.mockImplementation(async (request) => ({
+      rows: request.fields.map((field) => ({
+        fieldRef: field.fieldRef,
+        sourceLocale: field.sourceLocale,
+        sourceText: field.sourceText,
+        sourceHash: 'source-v1',
+        targets: LANGUAGE_CODES.map((locale) => ({
+          locale,
+          status: locale === 'de' ? ('missing' as const) : ('current' as const),
+        })),
+      })),
+    }));
+    service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions: [], skipped: [] });
+    const { view } = await openWorkbench();
+    expect(service.suggest).not.toHaveBeenCalled();
+    fireEvent.click(view.getByRole('button', { name: 'editor_translations_review_missing' }));
+    await waitFor(() => expect(service.preview).toHaveBeenCalled());
+    expect(service.suggest).not.toHaveBeenCalled();
+    fireEvent.click(await view.findByRole('button', { name: 'translation_review_suggest_missing' }));
+    await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
+    expect(service.suggest.mock.calls[0][0].generationIntent).toBe('explicitFill');
+  });
   /**
    * The whole point of the slice. Before it, these three strings lived in three different UIs —
    * a row list, a `<details>` on the variation and a second `<details>` on the ingredient — none

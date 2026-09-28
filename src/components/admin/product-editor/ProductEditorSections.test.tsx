@@ -184,9 +184,11 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(within(pricing).getByRole('button', { name: 'add_variation' })).toBeInTheDocument();
   });
 
-  it('Options keeps the suggested side-item picker', async () => {
+  it('Options contains guest choice groups and separately priced suggested sides', async () => {
     const { container } = await renderEditor();
-
+    expect(
+      within(sectionOf(container, 'editor-section-options')).getByRole('heading', { name: 'customization_groups' }),
+    ).toBeInTheDocument();
     expect(
       within(sectionOf(container, 'editor-section-options')).getByRole('heading', { name: /suggested_side_items/ }),
     ).toBeInTheDocument();

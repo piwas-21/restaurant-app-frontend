@@ -35,50 +35,30 @@ describe('MenuCatalogueSuggestions', () => {
     });
   });
 
-  it('loads suggestions only after the admin opens the browse panel', () => {
-    render(<MenuCatalogueSuggestions query="meal" />);
-
-    const trigger = screen.getByRole('button', { name: 'menu_catalogue_browse_suggestions' });
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  it('shows published suggestions once the name search reaches two characters', () => {
+    const { rerender } = render(<MenuCatalogueSuggestions query="m" />);
     expect(screen.queryByRole('region', { name: 'menu_catalogue_suggestions_title' })).not.toBeInTheDocument();
     expect(useMenuCatalogueSuggestions).toHaveBeenLastCalledWith('', 'en');
 
-    fireEvent.click(trigger);
-
-    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    rerender(<MenuCatalogueSuggestions query="me" />);
     expect(screen.getByRole('region', { name: 'menu_catalogue_suggestions_title' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Meal Combo' })).toBeInTheDocument();
     expect(screen.getByText('turkish')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'catalogue_preview' })).toBeInTheDocument();
-    expect(useMenuCatalogueSuggestions).toHaveBeenCalledWith('meal', 'en');
+    expect(useMenuCatalogueSuggestions).toHaveBeenLastCalledWith('me', 'en');
   });
 
-  it('offers the full catalogue for a short query without searching', () => {
-    jest.mocked(useMenuCatalogueSuggestions).mockReturnValue({
-      templates: [],
-      isLoading: false,
-      error: null,
-      retry: jest.fn(),
-      isVisible: false,
-    });
+  it('does not show a second catalogue action for a short query', () => {
     render(<MenuCatalogueSuggestions query="m" />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'menu_catalogue_browse_suggestions' }));
-
-    expect(screen.getByText('menu_catalogue_suggestions_short_query')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'menu_catalogue_browse_all' })).toBeInTheDocument();
-    expect(screen.queryByRole('list', { name: 'menu_catalogue_suggestions_title' })).not.toBeInTheDocument();
-    expect(useMenuCatalogueSuggestions).toHaveBeenLastCalledWith('m', 'en');
+    expect(screen.queryByRole('region', { name: 'menu_catalogue_suggestions_title' })).not.toBeInTheDocument();
+    expect(useMenuCatalogueSuggestions).toHaveBeenLastCalledWith('', 'en');
   });
 
-  it('closes on Escape and returns focus to the browse control', () => {
-    render(<MenuCatalogueSuggestions query="meal" />);
-    const trigger = screen.getByRole('button', { name: 'menu_catalogue_browse_suggestions' });
-    fireEvent.click(trigger);
-    fireEvent.keyDown(screen.getByRole('region', { name: 'menu_catalogue_suggestions_title' }), { key: 'Escape' });
-
-    expect(trigger).toHaveFocus();
-    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  it('can dismiss suggestions until the query changes', () => {
+    const { rerender } = render(<MenuCatalogueSuggestions query="meal" />);
+    fireEvent.click(screen.getByRole('button', { name: 'menu_catalogue_suggestions_close' }));
     expect(screen.queryByRole('region', { name: 'menu_catalogue_suggestions_title' })).not.toBeInTheDocument();
+    rerender(<MenuCatalogueSuggestions query="meals" />);
+    expect(screen.getByRole('region', { name: 'menu_catalogue_suggestions_title' })).toBeInTheDocument();
   });
 });

@@ -4,13 +4,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
-import { getProductCompleteness } from '@/lib/productCompleteness';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { MenuVersionPrefill } from '@/utils/quickMenuVersionPayload';
-import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
 import EditorSaveBar from './EditorSaveBar';
-import EditorSideRail from './EditorSideRail';
+import EditorContextRail from './EditorContextRail';
 import EditorPreSaveReview from './EditorPreSaveReview';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
 import { productHeaderBadges, productHeaderMenuActions } from './productEditorHeader';
@@ -56,6 +54,7 @@ export default function ProductEditorPage({
   const { form } = editor;
   const { errors, submitCount } = form.formState;
   const [activeTab, setActiveTab] = useState<string>(TAB_ITEM);
+  const [translationReviewOpen, setTranslationReviewOpen] = useState(false);
 
   const isCreate = mode === 'create';
   const typeLabel = isBundle ? t('product_type_menu') : t(`product_type_${product.type || 'mainItem'}`);
@@ -79,7 +78,7 @@ export default function ProductEditorPage({
     editor,
     product,
     productId: product.id,
-    isOpen: preSaveReview.isOpen,
+    isOpen: preSaveReview.isOpen || translationReviewOpen,
   });
   const context = {
     editor,
@@ -107,16 +106,6 @@ export default function ProductEditorPage({
     itemTabId: TAB_ITEM,
     translationsTabId: TAB_TRANSLATIONS,
   });
-  const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
-
-  // Only saved items get the completeness meter. Watching description keeps it current while typing.
-  const isSavedItem = !isBundle && !isCreate;
-  const completeness = isSavedItem
-    ? getProductCompleteness({
-        photoCount: product.images?.length ?? 0,
-        description: form.watch('description'),
-      })
-    : undefined;
   const isLive = Boolean(form.watch('isActive'));
 
   return (
@@ -148,18 +137,21 @@ export default function ProductEditorPage({
         formId={FORM_ID}
         onSubmit={preSaveReview.handleSubmit}
         formError={errors.root && <p className={modalStyles.errorMessage}>{errors.root.message}</p>}
-        translations={buildTranslationsPanel(context)}
+        translations={buildTranslationsPanel(context, {
+          review: translationReview,
+          isOpen: translationReviewOpen,
+          onToggle: () => setTranslationReviewOpen((open) => !open),
+          onApply: async () => {
+            if (await translationReview.submitDecisions()) setTranslationReviewOpen(false);
+          },
+        })}
         rail={
-          <EditorSideRail
-            // Bundle status stays inside BundlePanel; its DTO is separate from ProductDto.
-            status={!isBundle && <ProductStatusFields register={form.register} />}
-            basePrice={editor.basePrice}
-            categoryName={primaryCategoryName}
-            inheritsOrderTypes={(form.watch('availableOrderTypes') ?? null) === null}
-            photoCount={product.images?.length ?? 0}
-            showCategory={!isBundle}
-            showPhotos={isSavedItem}
-            completeness={completeness}
+          <EditorContextRail
+            editor={editor}
+            product={product}
+            isBundle={isBundle}
+            isCreate={isCreate}
+            activeSectionId={sectionNav.activeId}
           />
         }
         saveBar={

@@ -12,6 +12,7 @@ import {
 } from '@/services/catalogueImportService';
 import CatalogueImportOperationalReview from './CatalogueImportOperationalReview';
 import styles from './CatalogueImportWorkspace.module.css';
+import itemStyles from './CatalogueImportItemReview.module.css';
 
 interface Props {
   readonly item: CatalogueImportSessionItem;
@@ -64,10 +65,8 @@ export default function CatalogueImportItemReview({
           {t(item.isRoot ? 'catalogue_import_root_locked' : 'catalogue_import_dependency_locked')}
         </p>
       )}
-      {item.localEntityId && (
-        <p className={styles.referenceText}>
-          {t('catalogue_import_existing_mapping', { type: item.localEntityType ?? '', id: item.localEntityId })}
-        </p>
+      {item.localEntityId && decision.resolution === 'Reuse' && (
+        <p className={styles.referenceText}>{t('catalogue_import_using_existing')}</p>
       )}
       {item.description && (
         <p className={styles.referenceText}>
@@ -76,29 +75,37 @@ export default function CatalogueImportItemReview({
       )}
       {selected && (
         <div className={styles.fields}>
-          <FormField label={t('catalogue_import_resolution')}>
-            <select
-              value={decision.resolution}
-              disabled={!canEditDecision}
-              onChange={(event) => onDecisionChange({ resolution: event.target.value as 'Create' | 'Reuse' })}
-            >
-              <option value="Create">{t('catalogue_import_create_new')}</option>
-              <option value="Reuse">{t('catalogue_import_reuse')}</option>
-            </select>
-          </FormField>
-          {decision.resolution === 'Reuse' && (
-            <FormField label={t('catalogue_import_local_entity_id')}>
-              <input
-                value={decision.localEntityId ?? item.localEntityId ?? ''}
+          {(item.localEntityId || decision.localEntityId || decision.resolution === 'Reuse') && (
+            <FormField label={t('catalogue_import_resolution')}>
+              <select
+                value={decision.resolution}
                 disabled={!canEditDecision}
-                onChange={(event) => onDecisionChange({ localEntityId: event.target.value.trim() || undefined })}
-              />
+                onChange={(event) => {
+                  const create = event.target.value === 'Create';
+                  onDecisionChange(
+                    create
+                      ? {
+                          resolution: 'Create',
+                          localName: decision.localName ?? item.displayName,
+                          localDescription: decision.localDescription ?? item.description ?? '',
+                        }
+                      : {
+                          resolution: 'Reuse',
+                          localEntityId: decision.localEntityId ?? item.localEntityId ?? undefined,
+                        },
+                  );
+                }}
+              >
+                <option value="Create">{t('catalogue_import_create_new')}</option>
+                <option value="Reuse">{t('catalogue_import_reuse')}</option>
+              </select>
             </FormField>
           )}
           {decision.resolution === 'Reuse' ? (
             <p className={styles.referenceText}>{t('catalogue_import_reuse_preserves_local')}</p>
           ) : (
-            <>
+            <details className={itemStyles.optionalDetails}>
+              <summary>{t('catalogue_import_customize_text')}</summary>
               <FormField label={t('catalogue_import_local_name')}>
                 <input
                   value={decision.localName ?? ''}
@@ -134,7 +141,7 @@ export default function CatalogueImportItemReview({
                   {t('catalogue_import_use_suggested_description')}
                 </button>
               )}
-            </>
+            </details>
           )}
           {itemIsProduct && (
             <CatalogueImportOperationalReview

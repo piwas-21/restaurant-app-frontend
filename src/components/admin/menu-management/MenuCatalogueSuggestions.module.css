@@ -1,55 +1,31 @@
-.anchor {
-  position: relative;
-  z-index: 2;
-}
-
-.trigger {
-  min-height: 2.5rem;
-  padding: 0.45rem 0.75rem;
-  color: var(--text-primary);
-  background: var(--surface-card);
-  border: 1px solid var(--brand-primary);
-  border-radius: 0.375rem;
-  white-space: nowrap;
-}
-
 .panel {
-  position: absolute;
-  inset-block-start: calc(100% + 0.5rem);
-  inset-inline-end: 0;
-  z-index: 3;
-  width: min(36rem, calc(100vw - 2rem));
-  max-height: min(70vh, 36rem);
-  overflow: auto;
   display: grid;
   gap: 0.75rem;
-  margin: 0;
-  padding: 1rem;
+  margin-block-end: 1rem;
+  padding: 1rem 1.25rem;
   color: var(--text-primary);
   background: var(--surface-secondary);
   border: 1px solid var(--border-default);
   border-radius: 0.5rem;
 }
 
-.emptyState {
+.heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.emptyState p {
-  margin: 0;
-  color: var(--text-secondary);
+.heading h2 {
+  font-size: 1.1rem;
 }
 
-.emptyState button {
-  min-height: 2.5rem;
-  padding: 0.4rem 0.7rem;
-  color: var(--text-primary);
-  background: var(--surface-card);
-  border: 1px solid var(--brand-primary);
-  border-radius: 0.375rem;
+.dismiss {
+  border: 0;
+  padding: 0.25rem;
+  color: var(--link-default);
+  background: none;
+  cursor: pointer;
 }
 
 .heading h2,
@@ -100,18 +76,6 @@
   background: var(--surface-card);
   border: 1px solid var(--brand-primary);
   border-radius: 0.375rem;
-}
-
-@media (max-width: 640px) {
-  .panel {
-    inset-inline-end: auto;
-    inset-inline-start: 0;
-  }
-
-  .emptyState {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
 
 .error {

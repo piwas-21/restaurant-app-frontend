@@ -7,6 +7,9 @@
   top: calc(var(--app-header-height) + 1rem);
   max-height: calc(100vh - var(--app-header-height) - 2rem);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .card {

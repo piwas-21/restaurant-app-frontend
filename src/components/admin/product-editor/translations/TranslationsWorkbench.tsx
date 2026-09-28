@@ -8,12 +8,13 @@ import { LANGUAGE_CODES, getLanguageNativeName } from '@/config/languageConfig';
 import { directionFor } from '@/lib/textDirection';
 import { TRANSLATION_SOURCE_BASE, useTranslationsWorkbench } from '@/hooks/admin/useTranslationsWorkbench';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
+import TranslationsReviewPanel, { type TranslationsReviewControls } from './TranslationsReviewPanel';
 import TranslationLocaleRail from './TranslationLocaleRail';
 import TranslationSlotRows from './TranslationSlotRows';
 import type { ProductContentRow, TranslationSlot } from './translationSlots';
 import styles from './TranslationsWorkbench.module.css';
+import actionStyles from './TranslationActions.module.css';
 
-/** Named so the label can point at it — the control it replaces had no accessible name at all. */
 const SOURCE_SELECT_ID = 'editor-translations-source-language';
 
 interface TranslationsWorkbenchProps {
@@ -22,6 +23,7 @@ interface TranslationsWorkbenchProps {
   readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
   readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
   readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
+  readonly reviewControls?: TranslationsReviewControls;
 }
 
 /** One react-hook-form error, read without an `any` (CLAUDE.md §5 rule 8). */
@@ -53,6 +55,7 @@ export default function TranslationsWorkbench({
   sourceLocaleFor,
   sourceLocaleKnownFor,
   onSourceLocaleChange,
+  reviewControls,
 }: TranslationsWorkbenchProps) {
   const { t } = useTranslation();
   const workbench = useTranslationsWorkbench(editor);
@@ -137,6 +140,7 @@ export default function TranslationsWorkbench({
   );
 
   const complete = slots.length > 0 && missing === 0;
+  const hasMissingInAnyLocale = Object.values(progress).some((locale) => locale.done < locale.total);
 
   /**
    * What the live region says about the last copy, or nothing before the first one.
@@ -197,10 +201,20 @@ export default function TranslationsWorkbench({
             {complete ? t('editor_translations_all_translated') : t('editor_translations_missing', { count: missing })}
           </StatusBadge>
 
-          <button type="button" className={styles.copyButton} onClick={workbench.copySourceToEmpty}>
+          <button type="button" className={actionStyles.copyButton} onClick={workbench.copySourceToEmpty}>
             <Copy size={14} aria-hidden="true" />
             {t('editor_translations_copy_source')}
           </button>
+          {reviewControls && hasMissingInAnyLocale && (
+            <button
+              type="button"
+              className={actionStyles.suggestButton}
+              onClick={reviewControls.onToggle}
+              aria-expanded={reviewControls.isOpen}
+            >
+              {t('editor_translations_review_missing')}
+            </button>
+          )}
         </div>
 
         {/* Mounted at all times, empty. A live region inserted together with its text is not
@@ -230,6 +244,7 @@ export default function TranslationsWorkbench({
           />
         )}
       </div>
+      {reviewControls?.isOpen && <TranslationsReviewPanel controls={reviewControls} />}
     </div>
   );
 }

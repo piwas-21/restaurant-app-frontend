@@ -19,7 +19,7 @@ export interface CleanMenuSection {
   id?: string;
   name: string;
   description?: string;
-  translations?: MenuSection['translations'];
+  translations?: NonNullable<MenuSection['translations']>;
   translationMetadata?: TranslationMetadata;
   displayOrder: number;
   isRequired: boolean;

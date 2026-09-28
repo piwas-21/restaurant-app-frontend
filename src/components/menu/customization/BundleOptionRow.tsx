@@ -137,7 +137,7 @@ export default function BundleOptionRow({
       )}
 
       {selectedQuantity !== undefined && onQuantityChange && (
-        <div className={styles.quantityControl} role="group" aria-label={item.productName}>
+        <fieldset className={styles.quantityControl} aria-label={item.productName}>
           <button
             type="button"
             className={styles.quantityButton}
@@ -158,7 +158,7 @@ export default function BundleOptionRow({
           >
             +
           </button>
-        </div>
+        </fieldset>
       )}
 
       {canCustomize && onCustomize && (

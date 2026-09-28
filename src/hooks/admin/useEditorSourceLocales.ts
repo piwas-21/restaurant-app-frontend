@@ -69,5 +69,14 @@ export function useEditorSourceLocales({ editor, product, productId }: Options) 
     });
   }, []);
 
-  return { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor };
+  const setSourceLocaleForMany = useCallback((slotKeys: readonly string[], locale: string) => {
+    if (!locale) return;
+    setSourceLocales((current) => {
+      const next = { ...current };
+      for (const key of slotKeys) next[key] = languageCode(locale);
+      return next;
+    });
+  }, []);
+
+  return { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor, setSourceLocaleForMany };
 }

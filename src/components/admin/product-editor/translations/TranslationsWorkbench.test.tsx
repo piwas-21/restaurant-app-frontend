@@ -435,6 +435,7 @@ describe('batched translation review before ordinary Save', () => {
     fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
     const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
 
+    fireEvent.click(within(review).getByText('translation_review_source_locale_individual'));
     fireEvent.change(
       within(review).getByLabelText('translation_review_source_locale_pick[field=Margherita Pizza · item_name]'),
       { target: { value: 'tr' } },
@@ -443,6 +444,30 @@ describe('batched translation review before ordinary Save', () => {
     const request = (translationWorkbenchService.preview as jest.Mock).mock.calls[0][0] as TranslationWorkbenchRequest;
     expect(request.fields).toHaveLength(1);
     expect(request.fields[0]).toMatchObject({ fieldRef: { fieldKey: 'name' }, sourceLocale: 'tr' });
+  });
+
+  it('labels legacy source fields together before one translation preview', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+    selectLocale(view, 'Français');
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.click(container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement);
+    const review = await screen.findByRole('dialog', { name: 'editor_review_title' });
+
+    expect(within(review).getByText('translation_review_source_locale_missing[count=5]')).toBeInTheDocument();
+    expect(translationWorkbenchService.preview).not.toHaveBeenCalled();
+    fireEvent.change(within(review).getByLabelText('translation_review_source_locale_bulk'), {
+      target: { value: 'en' },
+    });
+
+    await waitFor(() => expect(translationWorkbenchService.preview).toHaveBeenCalledTimes(1));
+    const request = (translationWorkbenchService.preview as jest.Mock).mock.calls[0][0] as TranslationWorkbenchRequest;
+    expect(request.fields).toHaveLength(5);
+    expect(request.fields.every((field) => field.sourceLocale === 'en')).toBe(true);
+    expect(translationWorkbenchService.suggest).not.toHaveBeenCalled();
   });
 
   it('records one reviewed batch, applies accepted text to the normal payload, and preserves other locales', async () => {

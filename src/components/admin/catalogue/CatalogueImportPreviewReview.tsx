@@ -28,6 +28,20 @@ export default function CatalogueImportPreviewReview({ preview, canChooseCandida
       {selected.map((item) => (
         <article key={`${item.templateId}@${item.revision}`} className={styles.previewItem}>
           <h3>{item.displayName}</h3>
+          {item.resolution === 'Reuse' && item.localEntityId && (
+            <p className={styles.previewFootnote}>
+              {(item.localEntityName ??
+                item.candidates.find((candidate) => candidate.id === item.localEntityId)?.name) && (
+                <strong>
+                  {item.localEntityName ??
+                    item.candidates.find((candidate) => candidate.id === item.localEntityId)?.name}{' '}
+                  ·{' '}
+                </strong>
+              )}
+              {t('catalogue_import_reuse_identity', { type: t(`catalogue_type_${item.type}`) })}{' '}
+              <code>{item.localEntityId}</code>
+            </p>
+          )}
           {item.candidates.length > 0 && (
             <div>
               <p>{t('catalogue_import_match_candidates')}</p>

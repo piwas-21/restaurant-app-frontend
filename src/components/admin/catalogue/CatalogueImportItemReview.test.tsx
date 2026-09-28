@@ -62,6 +62,27 @@ describe('CatalogueImportItemReview', () => {
     expect(screen.getByText('catalogue_import_reuse_preserves_local')).toBeInTheDocument();
   });
 
+  it('shows the exact reused record after reopening a saved session', () => {
+    render(
+      <CatalogueImportItemReview
+        item={{
+          ...bundle,
+          localEntityName: 'Restaurant meal',
+          decision: { templateId: 'bundle', revision: 2, resolution: 'Reuse', localEntityId: 'persisted-local-id' },
+        }}
+        decision={{ ...decision, resolution: 'Reuse', localEntityId: 'persisted-local-id' }}
+        selected
+        canEditSelection
+        canEditDecision
+        onSelectedChange={jest.fn()}
+        onDecisionChange={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('persisted-local-id')).toBeInTheDocument();
+    expect(screen.getByText(/Restaurant meal/)).toBeInTheDocument();
+    expect(screen.getByText('catalogue_import_reuse_identity')).toBeInTheDocument();
+  });
+
   it('lets an admin explicitly use the reviewed template name', () => {
     const onChange = jest.fn();
     render(

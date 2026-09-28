@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import CheckboxField from '@/components/design-system/CheckboxField';
@@ -11,6 +11,8 @@ import {
   type CatalogueImportSessionItem,
 } from '@/services/catalogueImportService';
 import CatalogueImportOperationalReview from './CatalogueImportOperationalReview';
+import CatalogueImportLocalMatchSearch from './CatalogueImportLocalMatchSearch';
+import type { MenuAuthoringCandidate } from '@/types/menuAuthoringSearch';
 import styles from './CatalogueImportWorkspace.module.css';
 import itemStyles from './CatalogueImportItemReview.module.css';
 
@@ -40,7 +42,15 @@ export default function CatalogueImportItemReview({
   onDecisionChange,
 }: Props) {
   const { t } = useTranslation();
+  const [chosenLocal, setChosenLocal] = useState<MenuAuthoringCandidate | null>(null);
   const itemIsProduct = item.type === 'item' || item.type === 'bundle';
+  const canSearchLocal = item.type === 'item' || item.type === 'bundle';
+  const localName =
+    chosenLocal && chosenLocal.id === decision.localEntityId
+      ? chosenLocal.name
+      : decision.localEntityId === (item.decision?.localEntityId ?? item.localEntityId)
+        ? item.localEntityName
+        : null;
 
   return (
     <article className={styles.itemCard} aria-labelledby={`catalogue-item-${item.templateId}`}>
@@ -68,6 +78,13 @@ export default function CatalogueImportItemReview({
       {item.localEntityId && decision.resolution === 'Reuse' && (
         <p className={styles.referenceText}>{t('catalogue_import_using_existing')}</p>
       )}
+      {selected && decision.resolution === 'Reuse' && decision.localEntityId && (
+        <p className={styles.referenceText}>
+          {localName && <strong>{localName} · </strong>}
+          {t('catalogue_import_reuse_identity', { type: t(`catalogue_type_${item.type}`) })}{' '}
+          <code>{decision.localEntityId}</code>
+        </p>
+      )}
       {item.description && (
         <p className={styles.referenceText}>
           {t('catalogue_import_reference_description')}: {item.description}
@@ -75,6 +92,15 @@ export default function CatalogueImportItemReview({
       )}
       {selected && (
         <div className={styles.fields}>
+          {canEditDecision && canSearchLocal && (
+            <CatalogueImportLocalMatchSearch
+              item={item}
+              onChoose={(candidate) => {
+                setChosenLocal(candidate);
+                onDecisionChange({ resolution: 'Reuse', localEntityId: candidate.id });
+              }}
+            />
+          )}
           {(item.localEntityId || decision.localEntityId || decision.resolution === 'Reuse') && (
             <FormField label={t('catalogue_import_resolution')}>
               <select

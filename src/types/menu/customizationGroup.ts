@@ -1,4 +1,5 @@
 import type { ContentData, ProductIngredient } from './shared';
+import type { ItemAvailability } from './availability';
 
 export interface ProductCustomizationIngredientOption {
   id: string;
@@ -11,6 +12,12 @@ export interface ProductCustomizationProductOption {
   id: string;
   optionProductId: string;
   optionProductName: string;
+  /** Target product active state from detail reads; absent on older backend responses. */
+  optionProductIsActive?: boolean;
+  /** Target product availability from detail reads; absent on older backend responses. */
+  optionProductIsAvailable?: boolean;
+  /** Server-resolved orderability for the requested channel; absent on older backend responses. */
+  availability?: ItemAvailability;
   additionalPrice: number;
   displayOrder: number;
   isDefault: boolean;

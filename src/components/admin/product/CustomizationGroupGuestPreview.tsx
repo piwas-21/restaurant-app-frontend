@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { ProductCustomizationGroupDraft } from '@/types/menu';
 import { formatCurrency } from '@/utils/currency';
@@ -32,6 +33,7 @@ export default function CustomizationGroupGuestPreview({
     <div className={styles.preview}>
       <span className={styles.previewLabel}>{t('choice_group_guest_preview')}</span>
       <strong dir="auto">{group.name || t('choice_group_name_placeholder')}</strong>
+      {!group.isActive && <StatusBadge tone="neutral">{t('inactive')}</StatusBadge>}
       <span>{rule}</span>
       {options.length > 0 && (
         <p dir="auto">

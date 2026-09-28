@@ -114,7 +114,7 @@ describe('SuggestedSideItemsPicker — the way in to the picker', () => {
     render(<Harness selectedSideItemIds={['abc', 'zzz']} onChange={onChange} />);
 
     expect(await screen.findByText('Fries')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'remove: Fries' }));
 
     expect(onChange).toHaveBeenCalledWith(['zzz']);
   });

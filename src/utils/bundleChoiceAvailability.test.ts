@@ -158,28 +158,50 @@ describe('assessBundleChoiceAvailability', () => {
 });
 
 describe('resolveBundleParentOrderTypes', () => {
-  it('uses the explicit pending mask and checks every channel for a new bundle with no mask', () => {
+  it('uses the explicit pending mask before category inheritance', () => {
     expect(resolveBundleParentOrderTypes(2, 'existing', [])).toEqual({
       status: 'ready',
       orderTypes: [OrderType.Takeaway],
     });
-    expect(resolveBundleParentOrderTypes(null, '', [])).toEqual({
+  });
+
+  it('inherits a null bundle mask from the selected primary category', () => {
+    expect(
+      resolveBundleParentOrderTypes(null, 'takeaway', [
+        { id: 'takeaway', name: 'Takeaway', availableOrderTypes: 2 },
+        { id: 'delivery', name: 'Delivery', availableOrderTypes: 4 },
+      ]),
+    ).toEqual({
+      status: 'ready',
+      orderTypes: [OrderType.Takeaway],
+    });
+  });
+
+  it('treats a null primary-category mask as unrestricted', () => {
+    expect(
+      resolveBundleParentOrderTypes(null, 'unrestricted', [
+        { id: 'unrestricted', name: 'Unrestricted', availableOrderTypes: null },
+      ]),
+    ).toEqual({
       status: 'ready',
       orderTypes: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery],
     });
   });
 
-  it('inherits only the fresh parent summary channels when an existing bundle has a null mask', () => {
-    expect(
-      resolveBundleParentOrderTypes(null, 'bundle', [product('bundle', [OrderType.DineIn, OrderType.Delivery])]),
-    ).toEqual({ status: 'ready', orderTypes: [OrderType.DineIn, OrderType.Delivery] });
-  });
-
-  it('fails visibly when the inherited parent summary is missing or malformed', () => {
+  it('fails visibly when the selected primary category is missing or its mask is malformed', () => {
+    expect(resolveBundleParentOrderTypes(null, '', [])).toEqual({ status: 'incomplete' });
     expect(resolveBundleParentOrderTypes(null, 'missing', [])).toEqual({ status: 'incomplete' });
+    expect(resolveBundleParentOrderTypes(null, 'unknown-mask', [{ id: 'unknown-mask', name: 'Unknown mask' }])).toEqual(
+      { status: 'incomplete' },
+    );
     expect(
-      resolveBundleParentOrderTypes(null, 'bundle', [
-        product('bundle', [OrderType.DineIn], { availability: undefined }),
+      resolveBundleParentOrderTypes(null, 'zero-mask', [
+        { id: 'zero-mask', name: 'Zero mask', availableOrderTypes: 0 },
+      ]),
+    ).toEqual({ status: 'incomplete' });
+    expect(
+      resolveBundleParentOrderTypes(null, 'fractional-mask', [
+        { id: 'fractional-mask', name: 'Fractional mask', availableOrderTypes: 1.5 },
       ]),
     ).toEqual({ status: 'incomplete' });
     expect(resolveBundleParentOrderTypes(0, 'bundle', [])).toEqual({ status: 'incomplete' });

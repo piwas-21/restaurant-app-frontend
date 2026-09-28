@@ -89,7 +89,6 @@ export default function EditorPreSaveReview({
     (ingredient) => !ingredient.isActive,
   ).length;
   const menuDefinition = editor.menuDefinition as MenuDefinition;
-  const parentProductId = String(editor.form.getValues('id') ?? '');
   const isActive = Boolean(editor.form.getValues('isActive'));
   const channelMaskValue: unknown = editor.form.getValues('availableOrderTypes');
   const isChannelMaskValid =
@@ -104,7 +103,8 @@ export default function EditorPreSaveReview({
     isActive,
     isChannelMaskValid,
     availableOrderTypes: channelMask,
-    parentProductId,
+    primaryCategoryId: editor.primaryCategoryId,
+    categories: editor.categories,
     sections: menuDefinition.sections,
   });
   const shouldCheckChoiceAvailability =

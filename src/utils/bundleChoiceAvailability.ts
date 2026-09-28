@@ -1,4 +1,5 @@
 import type { Product } from '@/app/admin/menu-management/interfaces';
+import type { Category } from '@/components/admin/product/types';
 import type { MenuSection } from '@/types/menu';
 import { OrderType } from '@/types/order';
 import { ALL_ORDER_TYPES, isStorableMask, orderTypesFromMask } from '@/utils/orderChannels';
@@ -48,11 +49,11 @@ export type BundleChoiceAvailabilityResult =
 export type BundleParentOrderTypesResult =
   { readonly status: 'ready'; readonly orderTypes: readonly OrderType[] } | { readonly status: 'incomplete' };
 
-/** Resolve local explicit channels or inherit the freshly loaded server value for an existing bundle. */
+/** Resolve a local explicit mask or inherit the effective channels of the selected primary category. */
 export function resolveBundleParentOrderTypes(
   availableOrderTypes: number | null | undefined,
-  parentProductId: string | null | undefined,
-  products: readonly Product[],
+  primaryCategoryId: string | null | undefined,
+  categories: readonly Category[],
 ): BundleParentOrderTypesResult {
   if (typeof availableOrderTypes === 'number') {
     if (!Number.isInteger(availableOrderTypes) || !isStorableMask(availableOrderTypes)) {
@@ -61,15 +62,20 @@ export function resolveBundleParentOrderTypes(
     return { status: 'ready', orderTypes: orderTypesFromMask(availableOrderTypes) };
   }
 
-  if (parentProductId == null || parentProductId.length === 0) {
-    return { status: 'ready', orderTypes: [...ALL_ORDER_TYPES] };
-  }
-
-  const parent = products.find((product) => product.id === parentProductId);
-  if (!hasFreshAvailability(parent) || parent.availability.allowedOrderTypes.length === 0) {
+  if (primaryCategoryId == null || primaryCategoryId.length === 0) {
     return { status: 'incomplete' };
   }
-  return { status: 'ready', orderTypes: parent.availability.allowedOrderTypes };
+
+  const primaryCategory = categories.find((category) => category.id === primaryCategoryId);
+  const categoryMask = primaryCategory?.availableOrderTypes;
+  if (
+    !primaryCategory ||
+    (categoryMask !== null &&
+      (typeof categoryMask !== 'number' || !Number.isInteger(categoryMask) || !isStorableMask(categoryMask)))
+  ) {
+    return { status: 'incomplete' };
+  }
+  return { status: 'ready', orderTypes: orderTypesFromMask(categoryMask) };
 }
 
 /** Count distinct, active, available choices allowed on each enabled parent channel. */

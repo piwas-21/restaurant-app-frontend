@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MenuSection } from '@/types/menu';
+import type { Category } from '@/components/admin/product/types';
 import { getAllProducts } from '@/services/menuService';
 import { isStorableMask } from '@/utils/orderChannels';
 import {
@@ -20,7 +21,8 @@ interface UseBundleChoiceAvailabilityReviewOptions {
   readonly isActive: boolean;
   readonly isChannelMaskValid: boolean;
   readonly availableOrderTypes: number | null;
-  readonly parentProductId: string;
+  readonly primaryCategoryId: string;
+  readonly categories: readonly Category[];
   readonly sections: readonly MenuSection[];
 }
 
@@ -31,14 +33,18 @@ export function useBundleChoiceAvailabilityReview({
   isActive,
   isChannelMaskValid,
   availableOrderTypes,
-  parentProductId,
+  primaryCategoryId,
+  categories,
   sections,
 }: UseBundleChoiceAvailabilityReviewOptions) {
   const [state, setState] = useState<ReviewState>({ status: 'idle' });
   const [retryCount, setRetryCount] = useState(0);
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
+  const categoriesRef = useRef(categories);
+  categoriesRef.current = categories;
   const hasRequiredSection = sections.some((section) => section.isRequired);
+  const categoriesKey = JSON.stringify(categories.map(({ id, availableOrderTypes }) => ({ id, availableOrderTypes })));
   const sectionsKey = JSON.stringify(
     sections.map((section) => ({
       id: section.id,
@@ -72,7 +78,11 @@ export function useBundleChoiceAvailabilityReview({
       .then(() => getAllProducts(null, { includeMenus: true, includeComponents: true }, controller.signal))
       .then((products) => {
         if (controller.signal.aborted) return;
-        const parentChannels = resolveBundleParentOrderTypes(availableOrderTypes, parentProductId, products);
+        const parentChannels = resolveBundleParentOrderTypes(
+          availableOrderTypes,
+          primaryCategoryId,
+          categoriesRef.current,
+        );
         if (parentChannels.status !== 'ready') {
           setState({ status: 'failed' });
           return;
@@ -94,7 +104,8 @@ export function useBundleChoiceAvailabilityReview({
     isBundle,
     isChannelMaskValid,
     isOpen,
-    parentProductId,
+    primaryCategoryId,
+    categoriesKey,
     retryCount,
     sectionsKey,
   ]);

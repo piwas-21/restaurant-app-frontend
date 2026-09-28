@@ -73,7 +73,17 @@ function summaryProduct(id: string, allowedOrderTypes: readonly OrderType[]): Pr
   };
 }
 
-function renderReview(availableOrderTypes: number | null = null) {
+function renderReview({
+  availableOrderTypes = null,
+  parentProductId = 'bundle-1',
+  primaryCategoryId = 'unrestricted',
+  categories = [{ id: 'unrestricted', name: 'Unrestricted', availableOrderTypes: null }],
+}: {
+  availableOrderTypes?: number | null;
+  parentProductId?: string;
+  primaryCategoryId?: string;
+  categories?: { id: string; name: string; availableOrderTypes: number | null }[];
+} = {}) {
   const getValues = (field: string): unknown =>
     ({
       name: 'Bundle',
@@ -84,10 +94,12 @@ function renderReview(availableOrderTypes: number | null = null) {
       variations: [],
       isActive: true,
       availableOrderTypes,
-      id: 'bundle-1',
+      id: parentProductId,
     })[field];
   const editor = {
     form: { getValues },
+    categories,
+    primaryCategoryId,
     detailedIngredients: [],
     menuDefinition,
     customizationGroups: [],
@@ -135,6 +147,19 @@ describe('EditorPreSaveReview bundle option availability', () => {
       within(currentOption as HTMLElement).getByText('bundle_preview_available_channels:order_type_takeaway'),
     ).toBeInTheDocument();
     expect(mockedGetAllProducts).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks a new bundle only on the selected primary category channels', async () => {
+    renderReview({
+      parentProductId: '',
+      primaryCategoryId: 'takeaway',
+      categories: [{ id: 'takeaway', name: 'Takeaway', availableOrderTypes: 2 }],
+    });
+
+    expect(await screen.findByText('editor_review_bundle_availability_checked')).toBeInTheDocument();
+    expect(
+      screen.queryByText('editor_review_bundle_availability_shortage:Drinks,2,order_type_delivery,1'),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps saving blocked until the current availability check completes and exposes fetch failures', async () => {

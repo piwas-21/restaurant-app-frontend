@@ -30,7 +30,7 @@ const product: Product = {
   availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.DineIn] },
 };
 
-const newBundleId = '';
+const primaryCategory = { id: 'category', name: 'Category', availableOrderTypes: null };
 
 const mockedGetAllProducts = jest.mocked(getAllProducts);
 
@@ -48,7 +48,8 @@ describe('useBundleChoiceAvailabilityReview', () => {
         isActive: true,
         isChannelMaskValid: true,
         availableOrderTypes: null,
-        parentProductId: newBundleId,
+        primaryCategoryId: primaryCategory.id,
+        categories: [primaryCategory],
         sections: [requiredSection()],
       }),
     );
@@ -72,7 +73,8 @@ describe('useBundleChoiceAvailabilityReview', () => {
         isActive: true,
         isChannelMaskValid: true,
         availableOrderTypes: null,
-        parentProductId: newBundleId,
+        primaryCategoryId: primaryCategory.id,
+        categories: [primaryCategory],
         sections: [requiredSection()],
       }),
     );
@@ -89,7 +91,8 @@ describe('useBundleChoiceAvailabilityReview', () => {
         isActive: true,
         isChannelMaskValid: false,
         availableOrderTypes: 0,
-        parentProductId: 'bundle',
+        primaryCategoryId: primaryCategory.id,
+        categories: [primaryCategory],
         sections: [requiredSection()],
       }),
     );
@@ -98,21 +101,12 @@ describe('useBundleChoiceAvailabilityReview', () => {
     expect(mockedGetAllProducts).not.toHaveBeenCalled();
   });
 
-  it('uses the fresh inherited parent channels and warns only within those channels', async () => {
-    const inheritedParent: Product = {
-      ...product,
-      id: 'bundle',
-      availability: {
-        canOrder: true,
-        reason: 'Available',
-        allowedOrderTypes: [OrderType.Takeaway, OrderType.Delivery],
-      },
-    };
+  it('uses the selected primary category channels and warns only within those channels', async () => {
     const takeawayChild: Product = {
       ...product,
       availability: { canOrder: true, reason: 'Available', allowedOrderTypes: [OrderType.Takeaway] },
     };
-    mockedGetAllProducts.mockResolvedValue([inheritedParent, takeawayChild]);
+    mockedGetAllProducts.mockResolvedValue([takeawayChild]);
 
     const { result } = renderHook(() =>
       useBundleChoiceAvailabilityReview({
@@ -121,7 +115,8 @@ describe('useBundleChoiceAvailabilityReview', () => {
         isActive: true,
         isChannelMaskValid: true,
         availableOrderTypes: null,
-        parentProductId: 'bundle',
+        primaryCategoryId: primaryCategory.id,
+        categories: [{ ...primaryCategory, availableOrderTypes: 6 }],
         sections: [requiredSection()],
       }),
     );
@@ -137,7 +132,7 @@ describe('useBundleChoiceAvailabilityReview', () => {
     ]);
   });
 
-  it('fails visibly when an existing parent is absent from the fresh catalogue read', async () => {
+  it('fails visibly when the selected primary category is absent', async () => {
     mockedGetAllProducts.mockResolvedValue([product]);
 
     const { result } = renderHook(() =>
@@ -147,7 +142,8 @@ describe('useBundleChoiceAvailabilityReview', () => {
         isActive: true,
         isChannelMaskValid: true,
         availableOrderTypes: null,
-        parentProductId: 'missing-parent',
+        primaryCategoryId: 'missing-category',
+        categories: [],
         sections: [requiredSection()],
       }),
     );

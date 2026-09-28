@@ -197,7 +197,7 @@ function ProductOptionAvailabilityReason({
 
 function UnavailableReason() {
   const { t } = useTranslation();
-  return <span className={styles.optionReason}>{t('unavailable', 'Unavailable')}</span>;
+  return <span className={styles.optionReason}>{t('unavailable')}</span>;
 }
 
 function WrongOrderTypeReason({
@@ -218,7 +218,7 @@ function WrongOrderTypeReason({
   const orderable = loading ? [] : (notice?.orderable ?? []);
   const reason = orderable.length
     ? t('availability_only_for', { orderTypes: orderTypeListLabel(orderable, t, language) })
-    : t('unavailable', 'Unavailable');
+    : t('unavailable');
 
   return <span className={styles.optionReason}>{reason}</span>;
 }

@@ -13,6 +13,7 @@ jest.mock('react-i18next', () => ({
           .map(([name, value]) => `${name}=${value}`)
           .join(',')})`;
       }
+      if (key === 'unavailable') return 'Unavailable';
       return key;
     },
   }),

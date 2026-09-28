@@ -1,13 +1,15 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import { getProductCompleteness } from '@/lib/productCompleteness';
 import EditorSideRail from './EditorSideRail';
-import EditorOptionSetPicker from './EditorOptionSetPicker';
 import { optionSetKindsForSection } from './editorOptionSetKinds';
+
+const EditorOptionSetPicker = dynamic(() => import('./EditorOptionSetPicker'), { ssr: false });
 
 interface Props {
   readonly editor: ReturnType<typeof useProductEditorForm>;

@@ -4,7 +4,7 @@ import type { CashierNewSaleContact } from '@/lib/cashierNewSaleContact';
 import { getErrorMessage } from '@/utils/apiClient';
 import { createStaffCounterOrder, quoteStaffCounterOrder } from '@/services/staffCounterOrderService';
 import { resolveDineInSession } from './newSaleSession';
-import { buildCounterSaleRequest, parseTableNumber } from './newSaleRequest';
+import { buildCounterSaleRequest } from './newSaleRequest';
 
 /**
  * One Review & collect pass, in the order the plan mandates (§5.3.5–6): resolve the dine-in
@@ -13,7 +13,7 @@ import { buildCounterSaleRequest, parseTableNumber } from './newSaleRequest';
  * the caller owns the draft.
  *
  * Outcomes, deliberately distinct:
- *   - `blocked`  — a local rule refused before any server call (table number, open visit).
+ *   - `blocked`  — a local rule refused before any server call (table label, open visit).
  *   - `refused`  — the server or the network refused; `error` carries the server sentence or
  *                  an i18n key. A refused create may already have minted the operation id; the
  *                  caller persists it so a retry of the SAME ticket replays instead of minting.
@@ -35,21 +35,25 @@ export async function reviewCounterSale(input: {
   lines: readonly CashierNewSaleDraftLine[];
   notes: string;
   tableNumber: string;
+  tableId?: string;
+  serviceSessionId?: string;
   contact?: CashierNewSaleContact;
   storedOperationId?: string;
   loyaltyEnabled?: boolean;
 }): Promise<ReviewOutcome> {
-  const tableNumber = input.channel === OrderType.DineIn ? parseTableNumber(input.tableNumber) : null;
-  if (input.channel === OrderType.DineIn && tableNumber === null) {
+  if (input.channel === OrderType.DineIn && input.tableNumber.trim() === '') {
     return { status: 'blocked', error: 'cashier.new_sale.invalid_table' };
   }
 
-  let serviceSessionId: string | undefined;
-  if (input.channel === OrderType.DineIn && tableNumber !== null) {
+  let target: Awaited<ReturnType<typeof resolveDineInSession>> = null;
+  if (input.channel === OrderType.DineIn) {
     try {
-      const resolved = await resolveDineInSession(tableNumber);
-      if (!resolved) return { status: 'blocked', error: 'cashier.new_sale.no_open_session' };
-      serviceSessionId = resolved;
+      target = await resolveDineInSession({
+        label: input.tableNumber,
+        tableId: input.tableId,
+        serviceSessionId: input.serviceSessionId,
+      });
+      if (!target) return { status: 'blocked', error: 'cashier.new_sale.no_open_session' };
     } catch (err) {
       return { status: 'refused', error: getErrorMessage(err) ?? 'cashier.new_sale.review_failed' };
     }
@@ -59,8 +63,9 @@ export async function reviewCounterSale(input: {
     channel: input.channel,
     lines: input.lines,
     notes: input.notes,
-    tableNumber: tableNumber ?? undefined,
-    serviceSessionId,
+    tableNumber: target?.tableNumber,
+    tableId: target?.tableId,
+    serviceSessionId: target?.serviceSessionId,
     contact: input.contact,
     loyaltyEnabled: input.loyaltyEnabled,
   });

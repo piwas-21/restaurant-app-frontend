@@ -43,56 +43,31 @@ function tableStatus(
   return 'available';
 }
 
-/** Merge the physical table rows with their durable visits; label-only visits stay visible. */
+/** Match visits by stable table identity; legacy number-only visits use the compatibility key. */
 export function mergeCashierTableEntries(
   tables: readonly TableDto[],
   sessions: readonly TableServiceSessionDto[],
 ): CashierTableEntry[] {
-  // A label-only visit (nullable table number) cannot match a numbered table row; keep it separate
-  // so it never merges into a "null" key while staying visible as its own bill.
-  const byTable = new Map<string, TableServiceSessionDto>();
-  const labelOnly: TableServiceSessionDto[] = [];
+  const byId = new Map<string, TableServiceSessionDto>();
+  const byNumber = new Map<string, TableServiceSessionDto>();
   sessions.forEach((session) => {
-    if (session.tableNumber === null || session.tableNumber === undefined) {
-      labelOnly.push(session);
-      return;
-    }
-    byTable.set(tableNumberKey(session.tableNumber), session);
+    if (session.tableId) byId.set(session.tableId.toLowerCase(), session);
+    else if (session.tableNumber != null) byNumber.set(tableNumberKey(session.tableNumber), session);
   });
-  const known = new Set<string>();
+  const matched = new Set<string>();
   const entries: CashierTableEntry[] = tables.map((table) => {
-    const key = tableNumberKey(table.tableNumber);
-    known.add(key);
-    const session = byTable.get(key) ?? null;
+    const session = byId.get(table.id.toLowerCase()) ?? byNumber.get(tableNumberKey(table.tableNumber)) ?? null;
+    if (session) matched.add(session.serviceSessionId);
     return { table, session, status: tableStatus(table, session) };
   });
 
-  // A session without a table row remains visible in the list instead of becoming an invisible bill.
+  // Keep orphaned or historical sessions visible rather than hiding their bills.
   sessions.forEach((session) => {
-    if (session.tableNumber === null || session.tableNumber === undefined) return;
-    const key = tableNumberKey(session.tableNumber);
-    if (known.has(key)) return;
+    if (matched.has(session.serviceSessionId)) return;
     entries.push({
       table: {
         id: `session-${session.serviceSessionId}`,
-        tableNumber: String(session.tableNumber),
-        maxGuests: 0,
-        isActive: true,
-        isOutdoor: false,
-        positionX: 0,
-        positionY: 0,
-      },
-      session,
-      status: 'occupied',
-    });
-  });
-
-  // Label-only visits render under their configured label (or an explicit unnamed fallback).
-  labelOnly.forEach((session) => {
-    entries.push({
-      table: {
-        id: `session-${session.serviceSessionId}`,
-        tableNumber: session.tableLabel?.trim() || '',
+        tableNumber: session.tableLabel?.trim() || (session.tableNumber != null ? String(session.tableNumber) : ''),
         maxGuests: 0,
         isActive: true,
         isOutdoor: false,

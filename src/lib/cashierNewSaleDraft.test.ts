@@ -19,6 +19,8 @@ const draft = (overrides: Partial<CashierNewSaleDraft> = {}): CashierNewSaleDraf
   lines: [line()],
   ...overrides,
 });
+const tableId = '11111111-1111-1111-1111-111111111111';
+const serviceSessionId = '22222222-2222-2222-2222-222222222222';
 
 beforeEach(() => {
   window.sessionStorage.clear();
@@ -39,6 +41,28 @@ describe('cashierNewSaleDraft — persist/resume', () => {
     persistCashierNewSaleDraft(draft());
     // A new "page load" for the same tab reads the same sessionStorage.
     expect(readCashierNewSaleDraft()?.lines).toHaveLength(1);
+  });
+
+  it('restores the stable table and visit IDs for a lettered dine-in draft', () => {
+    persistCashierNewSaleDraft(
+      draft({
+        channel: OrderType.DineIn,
+        tableLabel: '11a',
+        tableId,
+        serviceSessionId,
+      }),
+    );
+    expect(readCashierNewSaleDraft()).toMatchObject({ tableLabel: '11a', tableId, serviceSessionId });
+  });
+
+  it('retains a valid legacy table number while rejecting fractional and zero values', () => {
+    persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber: 7 }));
+    expect(readCashierNewSaleDraft()?.tableNumber).toBe(7);
+
+    for (const tableNumber of [2.5, 0]) {
+      persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber }));
+      expect(readCashierNewSaleDraft()?.tableNumber).toBeUndefined();
+    }
   });
 
   it('reads as no draft on an empty tab', () => {

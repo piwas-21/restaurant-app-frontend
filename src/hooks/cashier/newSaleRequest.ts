@@ -6,7 +6,7 @@ import { buildOrderItems } from '@/components/catalog/orderItems';
 /**
  * The counter-sale wire request, assembled in exactly one place so the payload cannot drift
  * from the backend contract (backend `StaffCounterOrderRequest`): dine-in carries the table
- * number and its resolved open session, every other channel carries neither, and payment state
+ * identity and its resolved open session, every other channel carries neither, and payment state
  * is always Unpaid — collecting money is the collection route's separate idempotent action.
  */
 
@@ -17,7 +17,7 @@ export function defaultChannelFor(enabled: readonly OrderType[]): OrderType {
   return CHANNEL_PREFERENCE.find((channel) => enabled.includes(channel)) ?? OrderType.Takeaway;
 }
 
-/** The backend requires a positive integer table number for dine-in. */
+/** Numeric tables retain their legacy number in the counter-sale payload. */
 export function parseTableNumber(raw: string): number | null {
   const parsed = Number(raw.trim());
   return raw.trim() !== '' && Number.isInteger(parsed) && parsed > 0 ? parsed : null;
@@ -28,6 +28,7 @@ export interface CounterSaleInput {
   lines: readonly CashierNewSaleDraftLine[];
   notes: string;
   tableNumber?: number;
+  tableId?: string;
   serviceSessionId?: string;
   contact?: CashierNewSaleContact;
   loyaltyEnabled?: boolean;
@@ -54,6 +55,7 @@ export function buildCounterSaleRequest(input: CounterSaleInput): StaffCounterOr
       ? { deliveryAddress: input.contact.deliveryAddress }
       : {}),
     ...(dineIn && input.tableNumber !== undefined ? { tableNumber: input.tableNumber } : {}),
+    ...(dineIn && input.tableId !== undefined ? { tableId: input.tableId } : {}),
     ...(dineIn && input.serviceSessionId !== undefined ? { serviceSessionId: input.serviceSessionId } : {}),
   };
 }

@@ -121,12 +121,12 @@ describe('reviewCounterSale — quote-before-create order of operations', () => 
 });
 
 describe('reviewCounterSale — dine-in needs an open visit', () => {
-  it('refuses an invalid table number before any server call', async () => {
+  it('refuses an empty table before any server call', async () => {
     const outcome = await reviewCounterSale({
       channel: OrderType.DineIn,
       lines: [line],
       notes: '',
-      tableNumber: 'abc',
+      tableNumber: '',
     });
 
     expect(outcome.status).toBe('blocked');
@@ -147,12 +147,37 @@ describe('reviewCounterSale — dine-in needs an open visit', () => {
 
     expect(outcome.status).toBe('blocked');
     expect(outcome.error).toBe('cashier.new_sale.no_open_session');
-    expect(mockResolve).toHaveBeenCalledWith(12);
+    expect(mockResolve).toHaveBeenCalledWith({ label: '12', tableId: undefined, serviceSessionId: undefined });
     expect(mockQuote).not.toHaveBeenCalled();
   });
 
+  it('reports a failed visit lookup separately from a table with no visit', async () => {
+    mockResolve.mockRejectedValueOnce(new ApiError(503, 'Visit lookup unavailable'));
+    const outcome = await reviewCounterSale({
+      channel: OrderType.DineIn,
+      lines: [line],
+      notes: '',
+      tableNumber: '11a',
+    });
+
+    expect(outcome).toMatchObject({ status: 'refused', error: 'Visit lookup unavailable' });
+    expect(mockQuote).not.toHaveBeenCalled();
+  });
+
+  it('uses the fallback sentence when visit lookup fails without a server message', async () => {
+    mockResolve.mockRejectedValueOnce(new TypeError('Network unavailable'));
+    const outcome = await reviewCounterSale({
+      channel: OrderType.DineIn,
+      lines: [line],
+      notes: '',
+      tableNumber: '11a',
+    });
+
+    expect(outcome).toMatchObject({ status: 'refused', error: 'cashier.new_sale.review_failed' });
+  });
+
   it('carries the table number and its session id on the quoted and created payloads', async () => {
-    mockResolve.mockResolvedValueOnce('session-9');
+    mockResolve.mockResolvedValueOnce({ tableId: 'table-12', tableNumber: 12, serviceSessionId: 'session-9' });
     mockQuote.mockResolvedValueOnce({ id: 'q' });
     mockCreate.mockResolvedValueOnce({ id: 'order-2' });
 
@@ -166,7 +191,29 @@ describe('reviewCounterSale — dine-in needs an open visit', () => {
     expect(outcome.status).toBe('committed');
     expect(mockQuote.mock.calls[0][0].serviceSessionId).toBe('session-9');
     expect(mockQuote.mock.calls[0][0].tableNumber).toBe(12);
+    expect(mockQuote.mock.calls[0][0].tableId).toBe('table-12');
     expect(mockCreate.mock.calls[0][0].serviceSessionId).toBe('session-9');
+  });
+
+  it('quotes and creates a lettered table with its stable table and visit IDs', async () => {
+    mockResolve.mockResolvedValueOnce({ tableId: 'outdoor-11a', serviceSessionId: 'session-11a' });
+    mockQuote.mockResolvedValueOnce({ id: 'q' });
+    mockCreate.mockResolvedValueOnce({ id: 'order-11a' });
+
+    const outcome = await reviewCounterSale({
+      channel: OrderType.DineIn,
+      lines: [line],
+      notes: '',
+      tableNumber: '11a',
+      tableId: 'outdoor-11a',
+      serviceSessionId: 'session-11a',
+    });
+
+    expect(outcome.status).toBe('committed');
+    expect(mockResolve).toHaveBeenCalledWith({ label: '11a', tableId: 'outdoor-11a', serviceSessionId: 'session-11a' });
+    expect(mockQuote.mock.calls[0][0]).toMatchObject({ tableId: 'outdoor-11a', serviceSessionId: 'session-11a' });
+    expect(mockQuote.mock.calls[0][0]).not.toHaveProperty('tableNumber');
+    expect(mockCreate.mock.calls[0][0]).toMatchObject({ tableId: 'outdoor-11a', serviceSessionId: 'session-11a' });
   });
 });
 
@@ -216,5 +263,13 @@ describe('reviewCounterSale — server refusals', () => {
     });
 
     expect(outcome.error).toBe('cashier.new_sale.review_failed');
+  });
+
+  it('keeps a priced quote when create fails without a server message', async () => {
+    mockQuote.mockResolvedValueOnce({ id: 'q' });
+    mockCreate.mockRejectedValueOnce(new TypeError('Network unavailable'));
+
+    const outcome = await reviewCounterSale({ channel: OrderType.Takeaway, lines: [line], notes: '', tableNumber: '' });
+    expect(outcome).toMatchObject({ status: 'refused', quote: { id: 'q' }, error: 'cashier.new_sale.review_failed' });
   });
 });

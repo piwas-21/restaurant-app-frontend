@@ -80,8 +80,17 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   // notes, table — invalidates it, so the next review quotes again (plan §5.3.5: a channel
   // change reprices against server rules, never silently).
   const contentKey = useMemo(
-    () => JSON.stringify([state.channel, state.lines, state.notes, state.tableNumber, state.contact]),
-    [state.channel, state.lines, state.notes, state.tableNumber, state.contact],
+    () =>
+      JSON.stringify([
+        state.channel,
+        state.lines,
+        state.notes,
+        state.tableNumber,
+        state.tableId,
+        state.serviceSessionId,
+        state.contact,
+      ]),
+    [state.channel, state.lines, state.notes, state.tableNumber, state.tableId, state.serviceSessionId, state.contact],
   );
   const lastContentKeyRef = useRef(contentKey);
   useEffect(() => {
@@ -110,6 +119,8 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
       lines: state.lines,
       notes: state.notes,
       tableNumber: state.tableNumber,
+      tableId: state.tableId,
+      serviceSessionId: state.serviceSessionId,
       contact: state.contact,
       loyaltyEnabled,
       storedOperationId: state.clientOperationId,
@@ -153,6 +164,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     quote,
     phase,
     error,
+    entryConflict: draft.entryConflict,
     sheetProduct,
     tapPendingId,
     lastRemoved: draft.lastRemoved,

@@ -31,6 +31,20 @@ export function isCustomizationSelectionOrderable(
   return productOption ? isCustomizationProductOptionOrderable(productOption) : true;
 }
 
+/** Remove only selections explicitly blocked by refreshed product details. */
+export function retainOrderableCustomizationSelections(
+  carrier: CustomizationGroupCarrier | null | undefined,
+  selections: readonly CustomizationGroupSelection[],
+): CustomizationGroupSelection[] {
+  const groups = new Map(activeCustomizationGroups(carrier).map((group) => [group.id, group]));
+  return selections.map((selection) => {
+    const group = groups.get(selection.groupId);
+    if (!group) return selection;
+    const options = selection.options.filter((option) => isCustomizationSelectionOrderable(group, option));
+    return options.length === selection.options.length ? selection : { ...selection, options };
+  });
+}
+
 /** Defaults are expressed by membership id, preserving identity when one target appears twice. */
 export function defaultCustomizationSelections(
   carrier: CustomizationGroupCarrier | null | undefined,

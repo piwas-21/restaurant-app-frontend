@@ -21,7 +21,7 @@ export interface UpdateOrderStatusCommand {
  * Cancel order command
  */
 export interface CancelOrderCommand {
-  reason: string;
+  cancellationReason: string;
 }
 
 /**

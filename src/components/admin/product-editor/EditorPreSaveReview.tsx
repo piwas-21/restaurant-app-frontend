@@ -8,7 +8,11 @@ import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslationReview';
+import { useBundleChoiceAvailabilityReview } from '@/hooks/admin/useBundleChoiceAvailabilityReview';
+import { isStorableMask } from '@/utils/orderChannels';
 import TranslationSuggestionsReview from './translations/TranslationSuggestionsReview';
+import BundleGuestStepPreview from './BundleGuestStepPreview';
+import { ORDER_TYPE_KEYS } from './bundlePriceQuoteUtils';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './EditorPreSaveReview.module.css';
 
@@ -40,8 +44,20 @@ function missingNameLocaleCount(rows: readonly ReviewContentRow[]): number {
   return LANGUAGE_CODES.filter((locale) => !completed.has(locale)).length;
 }
 
-function ReviewLine({ children, warning = false }: { readonly children: React.ReactNode; readonly warning?: boolean }) {
-  return <li className={warning ? styles.warning : styles.note}>{children}</li>;
+function ReviewLine({
+  children,
+  warning = false,
+  role,
+}: {
+  readonly children: React.ReactNode;
+  readonly warning?: boolean;
+  readonly role?: 'alert' | 'status';
+}) {
+  return (
+    <li className={warning ? styles.warning : styles.note} role={role}>
+      {children}
+    </li>
+  );
 }
 
 /** Review current guest-facing rules and known gaps before the ordinary Save reaches the API. */
@@ -73,6 +89,31 @@ export default function EditorPreSaveReview({
     (ingredient) => !ingredient.isActive,
   ).length;
   const menuDefinition = editor.menuDefinition as MenuDefinition;
+  const isActive = Boolean(editor.form.getValues('isActive'));
+  const channelMaskValue: unknown = editor.form.getValues('availableOrderTypes');
+  const isChannelMaskValid =
+    channelMaskValue === null ||
+    channelMaskValue === undefined ||
+    (typeof channelMaskValue === 'number' && Number.isInteger(channelMaskValue) && isStorableMask(channelMaskValue));
+  const channelMask =
+    typeof channelMaskValue === 'number' && Number.isInteger(channelMaskValue) ? channelMaskValue : null;
+  const choiceAvailability = useBundleChoiceAvailabilityReview({
+    isOpen,
+    isBundle,
+    isActive,
+    isChannelMaskValid,
+    availableOrderTypes: channelMask,
+    primaryCategoryId: editor.primaryCategoryId,
+    categories: editor.categories,
+    sections: menuDefinition.sections,
+  });
+  const shouldCheckChoiceAvailability =
+    isBundle && isActive && menuDefinition.sections.some((section) => section.isRequired);
+  const availabilityCheckPending =
+    shouldCheckChoiceAvailability &&
+    (choiceAvailability.state.status === 'idle' || choiceAvailability.state.status === 'loading');
+  const availabilityAssessment =
+    choiceAvailability.state.status === 'ready' ? choiceAvailability.state.assessment : undefined;
   const hasLinkedStandaloneOffer = Boolean(
     menuDefinition.parentOfferProductId || menuDefinition.parentOfferVariationId,
   );
@@ -101,7 +142,7 @@ export default function EditorPreSaveReview({
             type="button"
             className={modalStyles.submitButton}
             onClick={() => void confirmSave()}
-            disabled={isPending}
+            disabled={isPending || availabilityCheckPending}
             data-testid="editor-review-confirm-save"
           >
             {t(translationReview.reviewWriteError ? 'editor_review_save_without_suggestions' : 'editor_review_save')}
@@ -128,7 +169,43 @@ export default function EditorPreSaveReview({
           {hasLinkedStandaloneOffer && <p>{t('editor_review_linked_offer_review')}</p>}
         </section>
       </div>
+      {isBundle && (
+        <BundleGuestStepPreview
+          menuDefinition={menuDefinition}
+          sectionAvailability={availabilityAssessment?.sections}
+          hideOptionAvailability={!availabilityAssessment}
+        />
+      )}
       <ul className={styles.checks}>
+        {isBundle && isActive && availabilityCheckPending && (
+          <ReviewLine role="status">{t('editor_review_bundle_availability_checking')}</ReviewLine>
+        )}
+        {isBundle && isActive && choiceAvailability.state.status === 'failed' && (
+          <ReviewLine warning role="alert">
+            {t('editor_review_bundle_availability_check_failed')}{' '}
+            <button
+              type="button"
+              className={modalStyles.cancelButton}
+              onClick={choiceAvailability.retry}
+              disabled={isPending}
+            >
+              {t('editor_review_bundle_availability_check_retry')}
+            </button>
+          </ReviewLine>
+        )}
+        {isBundle && isActive && availabilityAssessment && (
+          <ReviewLine>{t('editor_review_bundle_availability_checked')}</ReviewLine>
+        )}
+        {availabilityAssessment?.warnings.map((warning) => (
+          <ReviewLine warning key={`${warning.sectionId}:${warning.orderType}`}>
+            {t('editor_review_bundle_availability_shortage', {
+              section: warning.sectionName,
+              minimum: warning.minimum,
+              channel: t(ORDER_TYPE_KEYS[warning.orderType]),
+              available: warning.orderableCount,
+            })}
+          </ReviewLine>
+        ))}
         {missingLocales > 0 && (
           <ReviewLine warning>
             {t('editor_review_translation_gaps', { missing: missingLocales, total: LANGUAGE_CODES.length })}

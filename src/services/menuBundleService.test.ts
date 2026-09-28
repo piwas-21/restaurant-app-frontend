@@ -1,6 +1,6 @@
 import { apiClient } from '@/utils/apiClient';
 import { OrderType } from '@/types/order';
-import { getPublicMenuBundles } from './menuBundleService';
+import { getPublicMenuBundles, patchMenuBundleSections } from './menuBundleService';
 
 /**
  * `getPublicMenuBundles` gained the guest's order type (§9.2). As with `getProducts`, the server
@@ -9,6 +9,7 @@ import { getPublicMenuBundles } from './menuBundleService';
  * leaves the request byte-identical for every caller that has none.
  */
 const mockedGet = apiClient.get as jest.Mock;
+const mockedPatch = apiClient.patch as jest.Mock;
 
 function requestedUrl(): string {
   return mockedGet.mock.calls[0][0] as string;
@@ -36,5 +37,113 @@ describe('getPublicMenuBundles — RequestedOrderType', () => {
     await getPublicMenuBundles(2, 20);
 
     expect(requestedUrl()).toBe('/api/Menus?page=2&pageSize=20');
+  });
+});
+
+describe('patchMenuBundleSections — versioned section writes', () => {
+  it('sends the ETag and only persisted IDs for a mixed existing/new draft', async () => {
+    const sections = [
+      {
+        id: 'section-existing',
+        name: 'Choose a main',
+        description: '',
+        displayOrder: 0,
+        isRequired: true,
+        minSelection: 1,
+        maxSelection: 1,
+        items: [
+          {
+            id: 'item-existing',
+            productId: 'product-existing',
+            additionalPrice: 0,
+            displayOrder: 0,
+            isDefault: true,
+          },
+          {
+            id: 'temp-new-item',
+            productId: 'product-new',
+            additionalPrice: 1,
+            displayOrder: 1,
+            isDefault: false,
+          },
+        ],
+      },
+      {
+        id: 'temp-new-section',
+        name: 'Choose a drink',
+        description: '',
+        displayOrder: 1,
+        isRequired: false,
+        minSelection: 0,
+        maxSelection: 1,
+        items: [
+          {
+            id: 'temp-new-section-item',
+            productId: 'product-drink',
+            additionalPrice: 2,
+            displayOrder: 0,
+            isDefault: false,
+          },
+        ],
+      },
+    ];
+    const persistedSections = [
+      { ...sections[0], items: [sections[0].items[0], { ...sections[0].items[1], id: 'item-new' }] },
+      { ...sections[1], id: 'section-new', items: [{ ...sections[1].items[0], id: 'item-new-section' }] },
+    ];
+    const patchResult = { authoringVersion: 8, sections: persistedSections };
+    mockedPatch.mockResolvedValue({ success: true, data: patchResult });
+
+    await expect(patchMenuBundleSections('menu-1', 7, sections)).resolves.toEqual(patchResult);
+
+    expect(mockedPatch).toHaveBeenCalledWith(
+      '/api/Menus/menu-1/sections',
+      {
+        sections: [
+          {
+            id: 'section-existing',
+            name: 'Choose a main',
+            description: '',
+            displayOrder: 0,
+            isRequired: true,
+            minSelection: 1,
+            maxSelection: 1,
+            items: [
+              {
+                id: 'item-existing',
+                productId: 'product-existing',
+                additionalPrice: 0,
+                displayOrder: 0,
+                isDefault: true,
+              },
+              {
+                productId: 'product-new',
+                additionalPrice: 1,
+                displayOrder: 1,
+                isDefault: false,
+              },
+            ],
+          },
+          {
+            name: 'Choose a drink',
+            description: '',
+            displayOrder: 1,
+            isRequired: false,
+            minSelection: 0,
+            maxSelection: 1,
+            items: [
+              {
+                productId: 'product-drink',
+                additionalPrice: 2,
+                displayOrder: 0,
+                isDefault: false,
+              },
+            ],
+          },
+        ],
+      },
+      { requireAuth: true, headers: { 'If-Match': '"7"' } },
+    );
+    expect(JSON.stringify(mockedPatch.mock.calls[0][1])).not.toContain('temp-');
   });
 });

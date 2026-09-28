@@ -7,6 +7,7 @@
 import * as orderServiceModule from './orderService';
 import { apiClient, ApiError, getErrorMessage } from '@/utils/apiClient';
 import type {
+  CancelOrderCommand,
   CreateOrderCommand,
   CreateOrderFromBasketCommand,
   OrderDto,
@@ -270,8 +271,8 @@ describe('OrderService', () => {
   describe('cancelOrder', () => {
     it('should cancel order successfully', async () => {
       const orderId = 'order-123';
-      const command = {
-        reason: 'Customer requested cancellation',
+      const command: CancelOrderCommand = {
+        cancellationReason: 'Customer requested cancellation',
       };
 
       const mockOrder = createMockOrder({ status: 'Cancelled' });
@@ -280,7 +281,11 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.cancelOrder(orderId, command);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/cancel`, command, { requireAuth: true });
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        `/api/Orders/${orderId}/cancel`,
+        { cancellationReason: 'Customer requested cancellation' },
+        { requireAuth: true },
+      );
       expect(result.status).toBe('Cancelled');
     });
 
@@ -288,7 +293,7 @@ describe('OrderService', () => {
       const error = new Error('Order already completed');
       mockApiClient.post.mockRejectedValue(error);
 
-      await expect(orderServiceModule.cancelOrder('order-123', { reason: 'Test' })).rejects.toThrow(
+      await expect(orderServiceModule.cancelOrder('order-123', { cancellationReason: 'Test' })).rejects.toThrow(
         'Order already completed',
       );
     });

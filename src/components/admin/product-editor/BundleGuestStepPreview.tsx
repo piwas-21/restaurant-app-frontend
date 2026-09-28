@@ -9,10 +9,13 @@ import { OrderType } from '@/types/order';
 import { formatPlainCurrency } from '@/utils/currency';
 import BundlePriceQuotePreview from './BundlePriceQuotePreview';
 import styles from './BundleGuestStepPreview.module.css';
+import type { BundleSectionAvailability } from '@/utils/bundleChoiceAvailability';
 
 interface BundleGuestStepPreviewProps {
   readonly menuDefinition: MenuDefinition;
   readonly availability?: ItemAvailability;
+  readonly sectionAvailability?: readonly BundleSectionAvailability[];
+  readonly hideOptionAvailability?: boolean;
   readonly quoteContext?: {
     productId: string;
     isDirty: boolean;
@@ -55,6 +58,8 @@ function selectionRule(section: MenuSection, t: TFunction): string {
 export default function BundleGuestStepPreview({
   menuDefinition,
   availability,
+  sectionAvailability,
+  hideOptionAvailability = false,
   quoteContext,
 }: BundleGuestStepPreviewProps) {
   const { t } = useTranslation();
@@ -77,41 +82,91 @@ export default function BundleGuestStepPreview({
         <ol className={styles.steps}>
           {[...menuDefinition.sections]
             .sort((left, right) => left.displayOrder - right.displayOrder)
-            .map((section) => (
-              <li key={section.id || section.name} className={styles.step}>
-                <div className={styles.stepHeader}>
-                  <strong>{section.name || t('section')}</strong>
-                  <span>{selectionRule(section, t)}</span>
-                </div>
-                {section.description && <p className={styles.description}>{section.description}</p>}
-                <ul className={styles.options}>
-                  {[...section.items]
-                    .sort((left, right) => left.displayOrder - right.displayOrder)
-                    .map((item) => {
-                      const itemAvailability = availabilityLabel(item.availability, t);
-                      return (
-                        <li key={item.id || item.productId}>
-                          <span>{item.productName || item.productId}</span>
-                          <span className={styles.optionMeta}>
-                            {item.isDefault && <span>{t('bundle_preview_included_by_default')}</span>}
-                            {item.additionalPrice !== 0 && (
-                              <span>
-                                {item.additionalPrice > 0 ? '+' : ''}
-                                {formatPlainCurrency(item.additionalPrice)}
-                              </span>
-                            )}
-                            {itemAvailability && (
-                              <StatusBadge size="sm" tone={item.availability?.canOrder ? 'success' : 'warning'}>
-                                {itemAvailability}
-                              </StatusBadge>
-                            )}
-                          </span>
+            .map((section) => {
+              const availabilitySummary = sectionAvailability?.find((entry) => entry.sectionId === section.id);
+              return (
+                <li key={section.id || section.name} className={styles.step}>
+                  <div className={styles.stepHeader}>
+                    <strong>{section.name || t('section')}</strong>
+                    <span>{selectionRule(section, t)}</span>
+                  </div>
+                  {section.description && <p className={styles.description}>{section.description}</p>}
+                  {availabilitySummary && (
+                    <ul className={styles.channelChoices}>
+                      {availabilitySummary.channels.map((channel) => (
+                        <li
+                          key={channel.orderType}
+                          className={channel.meetsMinimum ? undefined : styles.channelWarning}
+                        >
+                          {availabilitySummary.isRequired
+                            ? t('bundle_preview_channel_required_choices', {
+                                channel: t(ORDER_TYPE_LABELS[channel.orderType]),
+                                available: channel.orderableCount,
+                                minimum: channel.minimum,
+                              })
+                            : t('bundle_preview_channel_orderable_count', {
+                                channel: t(ORDER_TYPE_LABELS[channel.orderType]),
+                                count: channel.orderableCount,
+                              })}
                         </li>
-                      );
-                    })}
-                </ul>
-              </li>
-            ))}
+                      ))}
+                    </ul>
+                  )}
+                  <ul className={styles.options}>
+                    {[...section.items]
+                      .sort((left, right) => left.displayOrder - right.displayOrder)
+                      .map((item) => {
+                        const freshOption = availabilitySummary?.options.find(
+                          (option) =>
+                            option.productId === item.productId &&
+                            option.productVariationId === (item.productVariationId ?? null),
+                        );
+                        const freshCanOrder = Boolean(
+                          freshOption?.isActive &&
+                          freshOption.isAvailable &&
+                          freshOption.isActiveVariation &&
+                          freshOption.allowedOrderTypes.length > 0,
+                        );
+                        let freshReason: ItemAvailability['reason'] = 'Unavailable';
+                        if (freshCanOrder) {
+                          freshReason = 'Available';
+                        } else if (freshOption?.isActive && freshOption.isAvailable && freshOption.isActiveVariation) {
+                          freshReason = 'WrongOrderType';
+                        }
+                        const itemAvailabilityState: ItemAvailability | undefined = freshOption
+                          ? {
+                              canOrder: freshCanOrder,
+                              reason: freshReason,
+                              allowedOrderTypes: [...freshOption.allowedOrderTypes],
+                            }
+                          : item.availability;
+                        const itemAvailability = hideOptionAvailability
+                          ? undefined
+                          : availabilityLabel(itemAvailabilityState, t);
+                        return (
+                          <li key={item.id || `${item.productId}:${item.productVariationId ?? 'base'}`}>
+                            <span>{item.productName || item.productId}</span>
+                            <span className={styles.optionMeta}>
+                              {item.isDefault && <span>{t('bundle_preview_included_by_default')}</span>}
+                              {item.additionalPrice !== 0 && (
+                                <span>
+                                  {item.additionalPrice > 0 ? '+' : ''}
+                                  {formatPlainCurrency(item.additionalPrice)}
+                                </span>
+                              )}
+                              {itemAvailability && (
+                                <StatusBadge size="sm" tone={itemAvailabilityState?.canOrder ? 'success' : 'warning'}>
+                                  {itemAvailability}
+                                </StatusBadge>
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </li>
+              );
+            })}
         </ol>
       )}
       {quoteContext ? (

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import type { MenuDefinition } from '@/types/menu';
+import type { BundleSectionAvailability } from '@/utils/bundleChoiceAvailability';
 import BundleGuestStepPreview from './BundleGuestStepPreview';
 
 jest.mock('react-i18next', () => ({
@@ -96,5 +97,41 @@ describe('BundleGuestStepPreview', () => {
     expect(optionStatus.closest('span')).toHaveClass('badge');
     expect(screen.getByText('bundle_preview_included_by_default')).toBeInTheDocument();
     expect(screen.getByText('+CHF 1.50')).toBeInTheDocument();
+  });
+
+  it('shows the same shortage and unavailable state for a variation absent from the active summary', () => {
+    const variationMenu: MenuDefinition = {
+      ...menuDefinition,
+      sections: [
+        {
+          ...menuDefinition.sections[0],
+          items: [{ ...menuDefinition.sections[0].items[0], productVariationId: 'inactive-size' }],
+        },
+      ],
+    };
+    const sectionAvailability: BundleSectionAvailability[] = [
+      {
+        sectionId: 'drinks',
+        sectionName: 'Drinks',
+        isRequired: true,
+        minimum: 1,
+        channels: [{ orderType: OrderType.DineIn, orderableCount: 0, minimum: 1, meetsMinimum: false }],
+        options: [
+          {
+            productId: 'water-id',
+            productVariationId: 'inactive-size',
+            isActive: true,
+            isAvailable: true,
+            isActiveVariation: false,
+            allowedOrderTypes: [OrderType.DineIn],
+          },
+        ],
+      },
+    ];
+
+    render(<BundleGuestStepPreview menuDefinition={variationMenu} sectionAvailability={sectionAvailability} />);
+
+    expect(screen.getByText('bundle_preview_channel_required_choices:order_type_dine_in,0,1')).toBeInTheDocument();
+    expect(screen.getByText('bundle_preview_unavailable_settings')).toBeInTheDocument();
   });
 });

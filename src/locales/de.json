@@ -1854,6 +1854,7 @@
   "editor_autosave_pending": "Wird gleich gespeichert …",
   "editor_autosave_stalled": "Nicht gespeichert – nutze Speichern",
   "editor_save_conflict_short": "Neu laden nötig",
+  "menu_sections_saved_partial": "Die Menüabschnitte wurden gespeichert, aber der Rest des Menüs konnte nicht gespeichert werden. Bitte erneut versuchen. {{reason}}",
   "editor_layout_save_blocked": "Die Anordnung konnte nicht gespeichert werden, daher sind Tischänderungen ausgesetzt. Versuche es erneut.",
   "editor_preview_title": "Als Gast ansehen",
   "editor_canvas_aria": "Grundriss-Editor-Leinwand",
@@ -3345,5 +3346,12 @@
   "select_option": "Option auswählen",
   "catalogue_revision_adopted_withdrawn": "Die übernommene Revision wurde zurückgezogen. Prüfen Sie die aktuelle Revision, bevor Sie Felder übernehmen.",
   "catalogue_revision_unavailable": "Keine aktuelle veröffentlichte Revision",
-  "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen."
+  "catalogue_revision_changes_load_error": "Die Vorlagenaktualisierungen konnten nicht geladen werden. Versuchen Sie es erneut, um Rücknahme- oder Aktualisierungshinweise zu prüfen.",
+  "bundle_preview_channel_orderable_count": "Bestellbare Auswahlmöglichkeiten für {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: {{available}} verschiedene Auswahlmöglichkeiten sind bestellbar; dieser Schritt benötigt {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Aktuelle Verfügbarkeit der Auswahlmöglichkeiten nach Bestellart wird geprüft…",
+  "editor_review_bundle_availability_checked": "Diese Zählungen basieren auf einem aktuellen Katalogabruf für diese Prüfung. Die Verfügbarkeit kann sich vor einer Bestellung ändern.",
+  "editor_review_bundle_availability_check_failed": "Die aktuelle Verfügbarkeit konnte nicht für alle referenzierten Auswahlmöglichkeiten geprüft werden. Für keinen Bestellkanal wird eine ausreichende Auswahl bestätigt.",
+  "editor_review_bundle_availability_shortage": "Der Schritt „{{section}}“ benötigt {{minimum}} verschiedene Auswahlmöglichkeiten für {{channel}}; derzeit sind {{available}} bestellbar.",
+  "editor_review_bundle_availability_check_retry": "Verfügbarkeitsprüfung wiederholen"
 }

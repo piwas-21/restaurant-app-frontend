@@ -1856,6 +1856,7 @@
   "editor_autosave_pending": "Se guardará en breve…",
   "editor_autosave_stalled": "Sin guardar — usa Guardar",
   "editor_save_conflict_short": "Hay que recargar",
+  "menu_sections_saved_partial": "Las secciones del menú se guardaron, pero no se pudo guardar el resto del menú. Inténtalo de nuevo. {{reason}}",
   "editor_layout_save_blocked": "No se pudo guardar el plano, así que los cambios de mesas están en espera. Inténtalo de nuevo.",
   "editor_preview_title": "Vista previa como invitado",
   "editor_canvas_aria": "Lienzo del editor de plano",
@@ -3354,5 +3355,12 @@
   "select_option": "Selecciona una opción",
   "catalogue_revision_adopted_withdrawn": "Se retiró la revisión adoptada. Revisa la revisión actual antes de aplicar campos.",
   "catalogue_revision_unavailable": "No hay una revisión publicada actual",
-  "catalogue_revision_changes_load_error": "No se pudieron cargar las actualizaciones de la plantilla. Vuelve a intentarlo para revisar los avisos de retirada o actualización."
+  "catalogue_revision_changes_load_error": "No se pudieron cargar las actualizaciones de la plantilla. Vuelve a intentarlo para revisar los avisos de retirada o actualización.",
+  "bundle_preview_channel_orderable_count": "Opciones disponibles para pedir en {{channel}}: {{count}}.",
+  "bundle_preview_channel_required_choices": "{{channel}}: se pueden pedir {{available}} opciones distintas; este paso requiere {{minimum}}.",
+  "editor_review_bundle_availability_checking": "Comprobando la disponibilidad actual de las opciones por tipo de pedido…",
+  "editor_review_bundle_availability_checked": "Estos recuentos usan una lectura reciente del catálogo para esta revisión. La disponibilidad puede cambiar antes de realizar un pedido.",
+  "editor_review_bundle_availability_check_failed": "No se pudo verificar la disponibilidad actual de todas las opciones referenciadas. Ningún canal se marca como si tuviera suficientes opciones.",
+  "editor_review_bundle_availability_shortage": "El paso “{{section}}” requiere {{minimum}} opciones distintas en {{channel}}; actualmente se pueden pedir {{available}}.",
+  "editor_review_bundle_availability_check_retry": "Volver a comprobar la disponibilidad"
 }

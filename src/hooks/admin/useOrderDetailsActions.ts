@@ -91,7 +91,7 @@ export function useOrderDetailsActions(
     try {
       setIsCancelling(true);
       apiError.clear();
-      const updatedOrder = await cancelOrder(order.id, { reason: cancelReason });
+      const updatedOrder = await cancelOrder(order.id, { cancellationReason: cancelReason });
       if (onOrderUpdated) {
         onOrderUpdated(updatedOrder);
       }

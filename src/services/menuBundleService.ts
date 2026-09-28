@@ -1,5 +1,8 @@
 import { apiClient } from '@/utils/apiClient';
 import type { OrderType } from '@/types/order';
+import type { MenuSection } from '@/types/menu';
+import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
 export { normalizeMenuBundleProduct } from '@/utils/normalizeMenuBundleProduct';
 
 /**
@@ -19,6 +22,7 @@ const MENUS_API_URL = '/api/Menus';
 export { MENUS_API_URL };
 
 export interface MenuSectionItemData {
+  id?: string;
   productId: string;
   productVariationId?: string | null;
   additionalPrice: number;
@@ -27,6 +31,7 @@ export interface MenuSectionItemData {
 }
 
 export interface MenuSectionData {
+  id?: string;
   name: string;
   /**
    * `string | null` because that is what `MenuSectionDto.Description` is on the wire, in BOTH
@@ -36,11 +41,25 @@ export interface MenuSectionData {
    * turns "no description" into an empty string on the next save.
    */
   description?: string | null;
+  translations?: NonNullable<MenuSection['translations']>;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;
   maxSelection: number;
   items: MenuSectionItemData[];
+}
+
+export interface MenuSectionsPatchResult {
+  authoringVersion: number;
+  sections: MenuSection[];
+}
+
+interface MenuSectionsPatchResponse {
+  success: boolean;
+  data?: MenuSectionsPatchResult;
+  message?: string;
+  errors?: unknown;
+  errorCode?: string;
 }
 
 export interface MenuDefinitionData {
@@ -75,6 +94,25 @@ export const updateMenuBundle = async (id: string, menuData: unknown) => {
     console.error('Update Menu Bundle Failed:', error);
     throw error;
   }
+};
+
+/** Save changed section rows with persisted IDs and the current menu authoring version. */
+export const patchMenuBundleSections = async (
+  id: string,
+  authoringVersion: number,
+  sections: readonly MenuSection[],
+): Promise<MenuSectionsPatchResult> => {
+  const cleanedSections = stripTemporaryMenuSectionIds(sections).map(
+    ({ translationMetadata: _metadata, ...section }) => section,
+  );
+  const response = await apiClient.patch<MenuSectionsPatchResponse>(
+    `${MENUS_API_URL}/${encodeURIComponent(id)}/sections`,
+    { sections: cleanedSections },
+    { requireAuth: true, headers: { 'If-Match': `"${authoringVersion}"` } },
+  );
+
+  if (!response.success || !response.data) throwServerRefusal(response);
+  return response.data;
 };
 
 export const getMenuBundleById = async (id: string, signal?: AbortSignal, requestedOrderType?: OrderType | null) => {

@@ -306,6 +306,7 @@ jest.mock('react-i18next', () => ({
 }));
 jest.mock('@/services/menuService', () => ({ getProductById: jest.fn() }));
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ addItem: jest.fn() }) }));
+jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: () => ({ state: { orderType: null } }) }));
 jest.mock('@/hooks/cart/useCartFeedback', () => ({
   useCartFeedback: () => ({ notifyItemAdded: jest.fn(), notifyAddFailed: jest.fn() }),
 }));

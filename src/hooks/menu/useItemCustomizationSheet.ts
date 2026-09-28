@@ -4,29 +4,19 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
+import { useOrderTypeProductRefresh } from '@/hooks/menu/useOrderTypeProductRefresh';
 import { getProductById } from '@/services/menuService';
 import { buildInitialSheetState, hasCustomizationOptions, toLinePriceInput } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
-import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
+import type { OpenSheetOptions, UseItemCustomizationSheetArgs } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
-import type { CustomizationGroupSelection, DetailedProduct, MenuBundleItem } from '@/types/menu';
+import type { CustomizationGroupSelection, DetailedProduct } from '@/types/menu';
 import type { OfferMode } from '@/types/menu/offerFamily';
+import type { OrderType } from '@/types/order';
 
-interface UseItemCustomizationSheetArgs {
-  /** Hand-off for an id that turns out to be a combo — see `toBundleItemFromDetail` for why. */
-  onBundleDetected?: (bundle: MenuBundleItem, opts?: Pick<OpenSheetOptions, 'availability' | 'offerMode'>) => void;
-  /** Fired after a successful add — the menu page uses it to animate the cart button. */
-  onAdded?: () => void;
-  /** Commits the drinks step's own basket lines, AFTER this line was accepted (§3.4). */
-  onLineAdded?: () => Promise<void>;
-}
-
-/**
- * Fetches, seeds, prices and submits the guest product-customization sheet. Products without a
- * choice use the direct-add path unless `forceSheet` asks to show their details.
- */
+/** Fetches, seeds, prices, and submits the guest product-customization sheet. */
 export function useItemCustomizationSheet({
   onBundleDetected,
   onAdded,
@@ -39,6 +29,7 @@ export function useItemCustomizationSheet({
 
   const isOpeningRef = useRef(false);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
+  const [detailOrderType, setDetailOrderType] = useState<OrderType | null | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +41,6 @@ export function useItemCustomizationSheet({
   const [selectedSideItems, setSelectedSideItems] = useState<SelectedSide[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [offerMode, setOfferMode] = useState<OfferMode | undefined>(undefined);
-  // One success path for both direct-add and the sheet button.
   const notifyAdded = useCallback(
     (added: Pick<DetailedProduct, 'content' | 'name'>) => {
       notifyItemAdded(localizedName(added, currentLanguage));
@@ -61,30 +51,40 @@ export function useItemCustomizationSheet({
   const close = useCallback(() => {
     setIsOpen(false);
     setProduct(null);
+    setDetailOrderType(undefined);
     setOfferMode(undefined);
   }, []);
+  const { currentOrderTypeRef, orderType } = useOrderTypeProductRefresh({
+    isOpen,
+    product,
+    detailOrderType,
+    setProduct,
+    setSelections: setCustomizationSelections,
+    setDetailOrderType,
+    setIsLoading,
+    closeSheet: close,
+    notifyAddFailed,
+  });
   const openForProduct = useCallback(
     async (productId: string, opts?: OpenSheetOptions) => {
       if (isOpeningRef.current) return;
       isOpeningRef.current = true;
       setIsLoading(true);
-      // Direct-add and fetch share this try, so retain which operation actually failed.
       let failedStep: 'load' | 'add' = 'load';
       try {
-        const response = (await getProductById(productId)) as { data?: DetailedProduct };
+        const requestedOrderType = currentOrderTypeRef.current;
+        const response = (await getProductById(productId, undefined, requestedOrderType)) as {
+          data?: DetailedProduct;
+        };
         const detail = response?.data;
-        if (!detail) {
-          throw new Error('Missing product detail');
-        }
+        if (!detail) throw new Error('Missing product detail');
 
-        // A combo belongs in the bundle sheet; the caller's availability verdict still wins (§9.2).
         const bundle = toBundleItemFromDetail(detail, opts?.availability);
         if (bundle && onBundleDetected) {
           onBundleDetected(bundle, { availability: opts?.availability, offerMode: opts?.offerMode });
           return;
         }
 
-        // Fast path: a plain product adds straight to the cart — unless the caller forced the sheet.
         if (!opts?.forceSheet && !hasCustomizationOptions(detail)) {
           failedStep = 'add';
           await addItem({ productId: detail.id, quantity: 1 });
@@ -101,6 +101,7 @@ export function useItemCustomizationSheet({
         setOfferMode(opts?.offerMode);
         setQuantity(1);
         setSpecialInstructions('');
+        setDetailOrderType(requestedOrderType);
         setProduct(opts?.availability ? { ...detail, availability: opts.availability } : detail);
         setIsOpen(true);
       } catch (error) {
@@ -111,10 +112,10 @@ export function useItemCustomizationSheet({
         isOpeningRef.current = false;
       }
     },
-    [addItem, notifyAdded, notifyAddFailed, onBundleDetected],
+    [addItem, currentOrderTypeRef, notifyAdded, notifyAddFailed, onBundleDetected],
   );
+
   const title = product ? localizedName(product, currentLanguage) : '';
-  // Same fallback chain as the browse card (Track F/F3).
   const description = product ? localizedDescription(product, currentLanguage) : undefined;
   const selection = {
     quantity,
@@ -127,8 +128,7 @@ export function useItemCustomizationSheet({
   const linePrice = useLinePrice(toLinePriceInput(product, selection));
 
   const addToCart = useCallback(async () => {
-    // Guard the money-path add against double submission (rapid clicks / Enter key).
-    if (!product || isSubmitting) return;
+    if (!product || isSubmitting || detailOrderType !== orderType) return;
     setIsSubmitting(true);
     try {
       await addItem({
@@ -141,7 +141,6 @@ export function useItemCustomizationSheet({
         customizationSelections,
         selectedSideItems,
       });
-      // Strictly after: a rejected line must not leave a lone drink behind in the basket.
       await onLineAdded?.();
       close();
       notifyAdded(product);
@@ -155,12 +154,14 @@ export function useItemCustomizationSheet({
     close,
     ingredientQuantities,
     customizationSelections,
+    detailOrderType,
     isSubmitting,
     notifyAdded,
     notifyAddFailed,
     onLineAdded,
     product,
     quantity,
+    orderType,
     selectedIngredients,
     selectedSideItems,
     selectedVariationId,

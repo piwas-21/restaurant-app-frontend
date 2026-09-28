@@ -1,4 +1,4 @@
-import type { ItemAvailability } from '@/types/menu';
+import type { ItemAvailability, MenuBundleItem } from '@/types/menu';
 import type { OfferMode } from '@/types/menu/offerFamily';
 
 /**
@@ -14,18 +14,8 @@ export interface OpenSheetOptions {
    */
   forceSheet?: boolean;
   /**
-   * The per-order-type verdict the LIST already resolved for this item, carried into the sheet so it
-   * can refuse an add the card just blocked (ORDER-TYPE-AVAILABILITY-PLAN §9.10 — a blocked card was
-   * two clicks from being defeated via "Details", with only the server's untranslated message left
-   * to stop it).
-   *
-   * Handed over rather than re-fetched with `?RequestedOrderType=` deliberately. Both would work —
-   * `GetProductByIdQuery` binds the channel too — but a second resolution at a second moment can
-   * disagree with the card the guest is looking at, and "the card said no, the sheet said yes" is
-   * worse than either answer. One verdict, one moment, both surfaces.
-   *
-   * The featured-special banner hands it over too (G7, closed once backend #241 put `availability`
-   * on `FeaturedSpecialDto`). It was never a re-fetch problem: there was no field to guard on.
+   * The list's per-order-type verdict remains authoritative for the parent item. Product-detail
+   * requests also send the current channel so nested customization memberships resolve correctly.
    */
   availability?: ItemAvailability;
   /** Variation selected in the offer-family step; avoids asking for the same size twice. */
@@ -34,4 +24,10 @@ export interface OpenSheetOptions {
   offerMode?: OfferMode;
   /** Active family filters, so the mode step only offers matching underlying targets. */
   offerFamilyFilterIds?: ReadonlySet<string>;
+}
+
+export interface UseItemCustomizationSheetArgs {
+  onBundleDetected?: (bundle: MenuBundleItem, opts?: Pick<OpenSheetOptions, 'availability' | 'offerMode'>) => void;
+  onAdded?: () => void;
+  onLineAdded?: () => Promise<void>;
 }

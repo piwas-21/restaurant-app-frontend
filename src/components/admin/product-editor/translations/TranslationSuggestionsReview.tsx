@@ -56,6 +56,7 @@ export default function TranslationSuggestionsReview({
   const { t } = useTranslation();
   const { phase, entries, providerStatus, pendingLocales, manualReviewCount, error, staleCount } = review;
   const alternativeTargets = review.alternativeTargets ?? [];
+  const sourceLocalesResolved = review.unknownSourceLocaleFields.length === 0;
 
   return (
     <aside className={styles.drawer} aria-label={t('translation_review_title')}>
@@ -149,7 +150,7 @@ export default function TranslationSuggestionsReview({
       {staleCount > 0 && (
         <output className={styles.warning}>{t('translation_review_stale_result', { count: staleCount })}</output>
       )}
-      {phase === 'ready' && pendingLocales === 0 && entries.length === 0 && !error && (
+      {phase === 'ready' && pendingLocales === 0 && entries.length === 0 && sourceLocalesResolved && !error && (
         <output className={styles.notice}>{t('translation_review_suggestions_none')}</output>
       )}
       {phase === 'ready' && pendingLocales > 0 && entries.length === 0 && providerStatus !== 'disabled' && !error && (

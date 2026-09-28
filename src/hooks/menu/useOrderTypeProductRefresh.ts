@@ -16,6 +16,7 @@ interface UseOrderTypeProductRefreshArgs {
   setSelections: Dispatch<SetStateAction<CustomizationGroupSelection[]>>;
   setDetailOrderType: Dispatch<SetStateAction<OrderType | null | undefined>>;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
+  closeSheet: () => void;
   notifyAddFailed: (error: unknown, fallbackKey?: string) => void;
 }
 
@@ -28,6 +29,7 @@ export function useOrderTypeProductRefresh({
   setSelections,
   setDetailOrderType,
   setIsLoading,
+  closeSheet,
   notifyAddFailed,
 }: Readonly<UseOrderTypeProductRefreshArgs>) {
   const { state: orderTypeState } = useOrderType();
@@ -65,6 +67,7 @@ export function useOrderTypeProductRefresh({
         if (!current) return;
         console.error('Error refreshing product for order type:', error);
         notifyAddFailedRef.current(error, 'error_loading_product');
+        closeSheet();
       })
       .finally(() => {
         if (current) setIsLoading(false);
@@ -76,6 +79,7 @@ export function useOrderTypeProductRefresh({
     };
   }, [
     detailOrderType,
+    closeSheet,
     isOpen,
     productId,
     orderTypeState.orderType,

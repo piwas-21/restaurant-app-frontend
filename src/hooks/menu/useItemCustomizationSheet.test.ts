@@ -526,3 +526,28 @@ it('fetches product details for the selected channel and refreshes/prunes blocke
   );
   expect(result.current.customizationSelections[0]?.options).toEqual([]);
 });
+
+it('closes a stale sheet after refresh failure and retries detail loading when reopened', async () => {
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Takeaway } });
+  mockGetProductById
+    .mockResolvedValueOnce({ data: productWithOptions })
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValueOnce({ data: productWithOptions });
+  const { result, rerender } = renderHook(() => useItemCustomizationSheet());
+
+  await act(async () => result.current.openForProduct('p1', { forceSheet: true }));
+  expect(result.current.isOpen).toBe(true);
+
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.Delivery } });
+  rerender();
+  await waitFor(() => expect(mockGetProductById).toHaveBeenNthCalledWith(2, 'p1', undefined, OrderType.Delivery));
+  await waitFor(() => expect(result.current.isOpen).toBe(false));
+
+  expect(result.current.product).toBeNull();
+  expect(mockEnqueueSnackbar).toHaveBeenCalledWith('error_loading_product', { variant: 'error' });
+  expect(mockAddItem).not.toHaveBeenCalled();
+
+  await act(async () => result.current.openForProduct('p1', { forceSheet: true }));
+  expect(mockGetProductById).toHaveBeenNthCalledWith(3, 'p1', undefined, OrderType.Delivery);
+  expect(result.current.isOpen).toBe(true);
+});

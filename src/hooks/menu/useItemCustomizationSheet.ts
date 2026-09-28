@@ -62,6 +62,7 @@ export function useItemCustomizationSheet({
     setSelections: setCustomizationSelections,
     setDetailOrderType,
     setIsLoading,
+    closeSheet: close,
     notifyAddFailed,
   });
   const openForProduct = useCallback(

@@ -84,7 +84,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
     const retrying = flow.session.status === 'PartiallyImported' || flow.session.status === 'Failed';
     await updateCatalogueImportItems(flow.session.sessionId, {
       expectedVersion: flow.session.version,
-      selectedTemplateIds: selectedIds,
+      selectedTemplateIds: chosenItems.filter((item) => item.isSelectable).map((item) => item.templateId),
       decisions: chosenItems
         .filter((item) => !retrying || item.status === 'Failed')
         .map((item) =>
@@ -95,7 +95,7 @@ export function useCatalogueImportWorkspace(options: CatalogueImportStartOptions
         ),
     });
     return flow.refresh(flow.session.sessionId);
-  }, [chosenItems, decisions, flow, hasInvalidCustomOrderTypes, selectedIds]);
+  }, [chosenItems, decisions, flow, hasInvalidCustomOrderTypes]);
 
   const applyRevisionFields = useCallback(
     async (item: CatalogueRevisionChanges['items'][number], fieldPaths: readonly string[]) => {

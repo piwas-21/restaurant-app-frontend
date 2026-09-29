@@ -46,13 +46,13 @@ name: release-tenant-images
 
 on:
   workflow_run:
-    workflows: ["build-image"]
+    workflows: ['build-image']
     types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Only report what WOULD be rebuilt and rolled (default true — a manual run is a rehearsal)"
+        description: 'Only report what WOULD be rebuilt and rolled (default true — a manual run is a rehearsal)'
         required: false
         type: boolean
         default: true
@@ -207,6 +207,10 @@ jobs:
       # the callee's validation and break the whole release chain. de-CH is also what
       # src/lib/config.ts falls back to, so an unset field and an absent one render alike.
       locale: ${{ matrix.locale || 'de-CH' }}
+      public_default_locale: ${{ matrix.public_default_locale || 'en' }}
+      public_home_locales: ${{ matrix.public_home_locales || 'en' }}
+      public_menu_locales: ${{ matrix.public_menu_locales || 'en' }}
+      public_indexing: ${{ matrix.public_indexing || 'false' }}
       pwa_theme_color: ${{ matrix.pwa_theme_color }}
       pwa_background_color: ${{ matrix.pwa_background_color }}
 

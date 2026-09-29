@@ -69,6 +69,22 @@ on:
         description: "BCP-47 locale that places/punctuates the price (registry `locale:` field, deploy repo): de-CH renders 'EUR 8.00', fr-FR renders '8,00 €'"
         required: false
         default: 'de-CH'
+      public_default_locale:
+        description: 'Stable public URL default language, independent from price formatting'
+        required: false
+        default: 'en'
+      public_home_locales:
+        description: 'Comma-separated audited home-page languages'
+        required: false
+        default: 'en'
+      public_menu_locales:
+        description: 'Comma-separated candidate menu languages; runtime coverage may narrow these'
+        required: false
+        default: 'en'
+      public_indexing:
+        description: 'true only after the tenant content audit; false for demos, staging or unreviewed sites'
+        required: false
+        default: 'false'
       pwa_theme_color:
         description: 'Web app manifest theme_color, #rrggbb (browser/OS chrome around the installed app). EMPTY DEFAULTS TO RUMI RED #c00000 — pass it for any tenant with another palette'
         required: false
@@ -130,6 +146,26 @@ on:
         description: 'BCP-47 locale for price formatting, e.g. de-CH, fr-FR'
         required: false
         default: 'de-CH'
+        type: string
+      public_default_locale:
+        description: 'Stable public URL default language, independent from price formatting'
+        required: false
+        default: 'en'
+        type: string
+      public_home_locales:
+        description: 'Comma-separated audited home-page languages'
+        required: false
+        default: 'en'
+        type: string
+      public_menu_locales:
+        description: 'Comma-separated candidate menu languages; runtime coverage may narrow these'
+        required: false
+        default: 'en'
+        type: string
+      public_indexing:
+        description: 'true only after the tenant content audit; false for demos, staging or unreviewed sites'
+        required: false
+        default: 'false'
         type: string
       pwa_theme_color:
         description: 'Manifest theme_color #rrggbb; empty defaults to RUMI red #c00000'
@@ -198,6 +234,15 @@ jobs:
             classic|craft) ;;
             *) echo "template must be 'classic' or 'craft', got: '$TEMPLATE'" >&2; exit 1 ;;
           esac
+
+      - name: Validate public discovery policy
+        env:
+          TENANT_DOMAIN: ${{ inputs.tenant_domain }}
+          PUBLIC_DEFAULT_LOCALE: ${{ inputs.public_default_locale }}
+          PUBLIC_HOME_LOCALES: ${{ inputs.public_home_locales }}
+          PUBLIC_MENU_LOCALES: ${{ inputs.public_menu_locales }}
+          PUBLIC_INDEXING: ${{ inputs.public_indexing }}
+        run: node scripts/validate-public-discovery.mjs
 
       - name: Validate currency input
         # Mirrors the src/lib/config.ts validation (3-letter uppercase ISO
@@ -384,6 +429,11 @@ jobs:
             NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
             NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}
             NEXT_PUBLIC_TENANT_LOCALE=${{ inputs.locale }}
+            NEXT_PUBLIC_TENANT_CANONICAL_ORIGIN=https://${{ inputs.tenant_domain }}
+            NEXT_PUBLIC_PUBLIC_DEFAULT_LOCALE=${{ inputs.public_default_locale }}
+            NEXT_PUBLIC_PUBLIC_HOME_LOCALES=${{ inputs.public_home_locales }}
+            NEXT_PUBLIC_PUBLIC_MENU_LOCALES=${{ inputs.public_menu_locales }}
+            NEXT_PUBLIC_PUBLIC_INDEXING_ENABLED=${{ inputs.public_indexing }}
             NEXT_PUBLIC_PWA_THEME_COLOR=${{ inputs.pwa_theme_color }}
             NEXT_PUBLIC_PWA_BACKGROUND_COLOR=${{ inputs.pwa_background_color }}
             GIT_SHA=${{ steps.buildmeta.outputs.sha }}

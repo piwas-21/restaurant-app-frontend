@@ -2223,6 +2223,7 @@
   "editor_sections": "Abschnitte",
   "editor_section_basics": "Grunddaten",
   "editor_section_basics_description": "Grundlegende Angaben und Beschreibungen",
+  "editor_bundle_basics_description": "Name, Preis, Status und Kategorien dieses Menüs",
   "editor_section_media": "Medien",
   "editor_section_media_description": "Fotos und Galerie-Dateien",
   "editor_media_autosave_notice": "Änderungen an Fotos werden sofort gespeichert.",

@@ -2231,6 +2231,7 @@
   "editor_sections": "الأقسام",
   "editor_section_basics": "الأساسيات",
   "editor_section_basics_description": "هوية الصنف الأساسية وأوصافه",
+  "editor_bundle_basics_description": "اسم هذه الوجبة وسعرها وحالتها وفئاتها",
   "editor_section_media": "الوسائط",
   "editor_section_media_description": "الصور وملفات المعرض",
   "editor_media_autosave_notice": "يتم حفظ تغييرات الصور فورًا.",

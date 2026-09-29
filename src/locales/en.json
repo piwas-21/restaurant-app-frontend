@@ -2223,6 +2223,7 @@
   "editor_sections": "Sections",
   "editor_section_basics": "Basics",
   "editor_section_basics_description": "Core item identity and descriptions",
+  "editor_bundle_basics_description": "Name, price, status and categories for this menu",
   "editor_section_media": "Media",
   "editor_section_media_description": "Photos and gallery assets",
   "editor_media_autosave_notice": "Photo changes are saved immediately.",

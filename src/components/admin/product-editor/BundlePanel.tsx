@@ -57,7 +57,7 @@ export default function BundlePanel({
     <>
       {section === 'basics' && (
         <>
-          <div className={modalStyles.formGrid}>
+          <div className={styles.bundleBasicsGrid}>
             <div className={modalStyles.formColumn}>
               <div className={modalStyles.formGroup}>
                 <label htmlFor="bundle-name">{t('menu_bundle_name')}</label>
@@ -101,7 +101,10 @@ export default function BundlePanel({
             </div>
           </div>
 
-          <fieldset className={modalStyles.formGroup} aria-describedby="bundle-primary-category-hint">
+          <fieldset
+            className={`${modalStyles.formGroup} ${styles.bundleCategories}`}
+            aria-describedby="bundle-primary-category-hint"
+          >
             <legend>{t('categories')}</legend>
             <p id="bundle-primary-category-hint">{t('bundle_primary_category_hint')}</p>
             <CategoryChips

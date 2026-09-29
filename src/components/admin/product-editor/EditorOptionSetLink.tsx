@@ -240,7 +240,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
         </p>
       )}
       <BaseModal isOpen={applying} onClose={() => {}} title={t('editor_option_set_link_title')} size="sm" isPending>
-        <p role="status">{t('option_set_materialization_working')}</p>
+        <output>{t('option_set_materialization_working')}</output>
       </BaseModal>
     </details>
   );

@@ -8,6 +8,7 @@ export type TranslationEntityType =
   'product' | 'productIngredient' | 'productVariation' | 'menuSection' | 'optionSet' | 'category';
 export type TranslationFieldKey = 'name' | 'description';
 export type TranslationGenerationIntent = 'saveReview' | 'explicitFill' | 'explicitAlternative';
+export type TranslationProviderStatus = 'disabled' | 'ready';
 export type TranslationTargetStatusCode = 'missing' | 'current' | 'stale' | 'sourceCopy';
 export type { TranslationSourceKind } from '@/types/translationMetadata';
 
@@ -78,7 +79,11 @@ export interface TranslationGap {
 export interface TranslationSuggestionsResponse {
   readonly suggestions: TranslationSuggestion[];
   readonly skipped: TranslationGap[];
-  readonly providerStatus: 'disabled' | 'ready';
+  readonly providerStatus: TranslationProviderStatus;
+}
+
+export interface TranslationAvailabilityResponse {
+  readonly providerStatus: TranslationProviderStatus;
 }
 
 export type TranslationDecision = {
@@ -99,6 +104,7 @@ export interface TranslationReviewResponse {
 }
 
 export interface TranslationWorkbenchAdapter {
+  availability?(): Promise<TranslationAvailabilityResponse>;
   preview(request: TranslationWorkbenchRequest): Promise<TranslationPreviewResponse>;
   suggest(request: TranslationWorkbenchRequest): Promise<TranslationSuggestionsResponse>;
   review(decisions: readonly TranslationDecision[]): Promise<TranslationReviewResponse>;
@@ -114,6 +120,14 @@ async function postData<T>(path: string, body: unknown): Promise<T> {
 
 /** Admin-only workbench routes; accepted copy is applied by the ordinary editor Save. */
 export const translationWorkbenchService: TranslationWorkbenchAdapter = {
+  availability: async () => {
+    const response = await apiClient.get<ApiResponse<TranslationAvailabilityResponse>>(
+      '/api/translation-workbench/availability',
+      { requireAuth: true },
+    );
+    if (response.success !== true || !response.data) throwServerRefusal(response);
+    return response.data;
+  },
   preview: (request) => postData('/api/translation-workbench/preview', request),
   suggest: (request) => postData('/api/translation-workbench/suggestions', request),
   review: (decisions) => postData('/api/translation-workbench/review', { decisions }),

@@ -26,7 +26,7 @@ jest.mock('@/services/categoryService', () => ({
   reorderCategory: jest.fn(async () => ({ success: true })),
 }));
 jest.mock('@/services/translationWorkbenchService', () => ({
-  translationWorkbenchService: { preview: jest.fn(), suggest: jest.fn(), review: jest.fn() },
+  translationWorkbenchService: { availability: jest.fn(), preview: jest.fn(), suggest: jest.fn(), review: jest.fn() },
 }));
 
 const mockUpdateCategory = updateCategory as jest.Mock;
@@ -94,6 +94,7 @@ const renderModal = (overrides: Partial<typeof category> = {}, onPartialSuccess 
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (workbench.availability as jest.Mock).mockResolvedValue({ providerStatus: 'ready' });
   mockUpdateCategory.mockResolvedValue({ success: true });
   mockUploadCategoryImage.mockResolvedValue({ success: true });
   mockReorderCategory.mockResolvedValue({ success: true });

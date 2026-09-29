@@ -5,6 +5,33 @@ import type { useProductEditorForm } from './useProductEditorForm';
 import { useEditorSourceLocales } from './useEditorSourceLocales';
 
 describe('useEditorSourceLocales row identity', () => {
+  it('marks a bulk source-language choice as unsaved without changing the item text', () => {
+    const product = {
+      id: 'product-1',
+      name: 'Pizza Margherita',
+      description: 'Tomate et mozzarella',
+      variations: [],
+      detailedIngredients: [],
+    } as unknown as ProductDetails;
+    const editor = {
+      currentLanguage: 'en',
+      menuDefinition: { sections: [] },
+    } as unknown as ReturnType<typeof useProductEditorForm>;
+    const { result } = renderHook(() => useEditorSourceLocales({ editor, product, productId: product.id }));
+    const slots = buildTranslationSlots({ name: product.name, description: product.description });
+    const keys = slots.map((slot) => slot.key);
+
+    expect(result.current.sourceLocaleDirty).toBe(false);
+    expect(slots.every((slot) => !result.current.sourceLocaleKnownFor(slot.key, slot))).toBe(true);
+    act(() => result.current.setSourceLocaleForMany(keys, 'fr'));
+
+    expect(result.current.sourceLocaleDirty).toBe(true);
+    expect(slots.every((slot) => result.current.sourceLocaleKnownFor(slot.key, slot))).toBe(true);
+    expect(slots.every((slot) => result.current.sourceLocaleFor(slot.key, slot) === 'fr')).toBe(true);
+    expect(product.name).toBe('Pizza Margherita');
+    expect(product.description).toBe('Tomate et mozzarella');
+  });
+
   it('keeps choices and persisted locale metadata with their rows after reorder and removal', () => {
     const product = {
       id: 'product-1',

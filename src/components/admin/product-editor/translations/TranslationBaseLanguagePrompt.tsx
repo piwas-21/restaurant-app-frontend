@@ -44,9 +44,7 @@ export default function TranslationBaseLanguagePrompt({ review }: { readonly rev
           </FormField>
         </>
       ) : (
-        <p className={styles.help} role="status">
-          {t('editor_translations_base_language_save')}
-        </p>
+        <output className={styles.help}>{t('editor_translations_base_language_save')}</output>
       )}
     </section>
   );

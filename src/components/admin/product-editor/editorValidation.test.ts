@@ -63,11 +63,13 @@ describe('editorValidation — flattening react-hook-form errors (D13)', () => {
     expect(isTranslationsField('name')).toBe(false);
   });
 
-  it('routes bundle allergens to Basics while item allergens stay in Recipe', () => {
+  it('routes bundle choices, allergens and price to their visible sections', () => {
     expect(sectionForField('allergens')).toBe(SECTION_IDS.recipe);
     expect(sectionForField('customizationGroups')).toBe(SECTION_IDS.options);
-    expect(sectionForField('allergens', true)).toBe(SECTION_IDS.basics);
-    expect(sectionIdsWithErrors([{ name: 'allergens', message: 'Required' }], true)).toEqual([SECTION_IDS.basics]);
+    expect(sectionForField('allergens', true)).toBe(SECTION_IDS.options);
+    expect(sectionForField('menuDefinition', true)).toBe(SECTION_IDS.options);
+    expect(sectionForField('basePrice', true)).toBe(SECTION_IDS.basics);
+    expect(sectionIdsWithErrors([{ name: 'allergens', message: 'Required' }], true)).toEqual([SECTION_IDS.options]);
   });
 });
 
@@ -89,7 +91,7 @@ describe('editorValidation — the field→section map matches the schema', () =
     // `isActive`/`isAvailable`/`isSpecial` live in the side RAIL (S2) — an error there would have
     // no nav entry to mark, and all three are booleans with defaults that cannot fail.
     // `content` is the Translations TAB (`isTranslationsField` handles it), while the active
-    // flags live in the side rail. Bundle composition is part of the Basics panel now.
+    // flags live in the side rail for items and remain simple booleans for bundles.
     const exempt = ['isActive', 'isAvailable', 'isSpecial', 'content'];
     const unmapped = schemaFields.filter((field) => !(field in SECTION_FIELDS));
 

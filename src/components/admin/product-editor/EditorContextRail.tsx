@@ -22,13 +22,14 @@ interface Props {
 
 export default function EditorContextRail({ editor, product, isBundle, isCreate, activeSectionId, onApplied }: Props) {
   const kinds = optionSetKindsForSection(isBundle, activeSectionId);
-  const savedItem = !isBundle && !isCreate;
-  const completeness = savedItem
-    ? getProductCompleteness({
-        photoCount: product.images?.length ?? 0,
-        description: editor.form.watch('description'),
-      })
-    : undefined;
+  const savedOffer = !isCreate;
+  const completeness =
+    !isBundle && savedOffer
+      ? getProductCompleteness({
+          photoCount: product.images?.length ?? 0,
+          description: editor.form.watch('description'),
+        })
+      : undefined;
   const categoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
   return (
     <EditorSideRail
@@ -49,8 +50,8 @@ export default function EditorContextRail({ editor, product, isBundle, isCreate,
       categoryName={categoryName}
       inheritsOrderTypes={(editor.form.watch('availableOrderTypes') ?? null) === null}
       photoCount={product.images?.length ?? 0}
-      showCategory={!isBundle}
-      showPhotos={savedItem}
+      showCategory
+      showPhotos={savedOffer}
       completeness={completeness}
     />
   );

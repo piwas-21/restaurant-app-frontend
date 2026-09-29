@@ -306,7 +306,7 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     await expectNoA11yViolations(page);
 
     // The seeded Menu record is a real bundle. Its status flags live in Basics, while the
-    // contextual set picker belongs in the compact disclosure at the same mobile breakpoint.
+    // contextual set picker belongs to Menu choices in the compact disclosure.
     await page.goto(`${baseURL}/admin/menu-management/${SEEDED_BUNDLE_ID}`, { waitUntil: 'domcontentloaded' });
     await expect(nameInput).toHaveValue(SEEDED_BUNDLE_NAME);
     const bundleNameBox = await nameInput.boundingBox();
@@ -314,9 +314,14 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     expect(bundleNameBox!.y).toBeGreaterThanOrEqual(0);
     expect(bundleNameBox!.y + bundleNameBox!.height).toBeLessThan(bundleSaveBox!.y);
     await expect(tools).toBeVisible();
+    // This part follows the RTL check above, so tab labels may be Arabic. Stable section IDs
+    // keep the check about the actual control instead of the current language's spelling.
+    const bundleNav = page.getByTestId('editor-section-nav');
+    await bundleNav.locator('[role="tab"][id$="-editor-section-options"]').click();
     await tools.click();
     await expect(page.getByRole('searchbox')).toBeVisible();
     await tools.click();
+    await bundleNav.locator('[role="tab"][id$="-editor-section-basics"]').click();
 
     await page.setViewportSize({ width: 820, height: 844 });
     await page.evaluate(() => window.scrollTo(0, 0));

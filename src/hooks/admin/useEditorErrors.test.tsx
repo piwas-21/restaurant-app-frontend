@@ -113,8 +113,9 @@ function BundleAllergenErrorHarness() {
   const [activeSection, setActiveSection] = useState<string>(SECTION_IDS.media);
   const [submitCount, setSubmitCount] = useState(0);
   const bundleSections: EditorSection[] = [
-    { id: SECTION_IDS.basics, label: 'Basics', node: <input name="allergens" /> },
+    { id: SECTION_IDS.basics, label: 'Basics', node: <p>Details</p> },
     { id: SECTION_IDS.media, label: 'Media', node: <p>Photos</p> },
+    { id: SECTION_IDS.options, label: 'Menu choices', node: <input name="allergens" /> },
   ];
   const validation = useEditorErrors({
     errors: { allergens: { type: 'invalid_type', message: 'Choose valid allergen labels' } } as never,
@@ -163,19 +164,19 @@ describe('useEditorErrors — bundle allergen field focus', () => {
     document.body.innerHTML = '';
   });
 
-  it('opens and marks the visible Basics panel before focusing its hidden allergen error', async () => {
+  it('opens and marks Menu choices before focusing its hidden allergen error', async () => {
     const { container } = render(<BundleAllergenErrorHarness />);
-    const basics = container.querySelector(`#${SECTION_IDS.basics}`);
+    const options = container.querySelector(`#${SECTION_IDS.options}`);
     const allergens = container.querySelector<HTMLInputElement>('[name="allergens"]');
-    const basicsTab = screen.getByRole('tab', { name: /Basics/ });
+    const optionsTab = screen.getByRole('tab', { name: /Menu choices/ });
 
-    expect(basics).toHaveAttribute('hidden');
-    expect(basicsTab).toHaveAccessibleDescription('editor_section_has_errors');
+    expect(options).toHaveAttribute('hidden');
+    expect(optionsTab).toHaveAccessibleDescription('editor_section_has_errors');
 
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
-    await waitFor(() => expect(basics).not.toHaveAttribute('hidden'));
-    expect(basicsTab).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(options).not.toHaveAttribute('hidden'));
+    expect(optionsTab).toHaveAttribute('aria-selected', 'true');
     await waitFor(() => expect(document.activeElement).toBe(allergens));
     expect(allergens).toBeVisible();
   });

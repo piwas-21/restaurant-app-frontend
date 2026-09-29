@@ -72,7 +72,9 @@ export default function EditorSideRail({
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const mobilePanelId = React.useId();
-  const mobileLabel = optionSets ? t('editor_option_sets_title') : status ? t('status') : t('editor_at_a_glance');
+  let mobileLabel = t('editor_at_a_glance');
+  if (status) mobileLabel = t('status');
+  if (optionSets) mobileLabel = t('editor_option_sets_title');
 
   // Literal `t()` calls, one per field: `check-t-keys.mjs` reads the CALLSITES statically, so a key
   // assembled as `t(`editor_completeness_${id}`)` is a key no gate can see.

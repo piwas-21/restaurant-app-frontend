@@ -3313,7 +3313,6 @@
   "option_set_change_update": "Aggiorna",
   "option_set_change_remove": "Rimuovi",
   "option_set_change_preserve": "Mantieni il valore locale",
-  "option_set_no_field_changes": "Nessun campo modificato",
   "option_set_setting_diff": "Impostazione di {{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Campi locali mantenuti: {{fields}}",
   "option_set_preview_action": "Anteprima destinazioni selezionate",

@@ -3304,7 +3304,6 @@
   "option_set_change_update": "Bijwerken",
   "option_set_change_remove": "Verwijderen",
   "option_set_change_preserve": "Lokale waarde behouden",
-  "option_set_no_field_changes": "Geen veldwijzigingen",
   "option_set_setting_diff": "Instelling voor {{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Behouden lokale velden: {{fields}}",
   "option_set_preview_action": "Geselecteerde doelen bekijken",

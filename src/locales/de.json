@@ -3304,7 +3304,6 @@
   "option_set_change_update": "Aktualisieren",
   "option_set_change_remove": "Entfernen",
   "option_set_change_preserve": "Lokalen Wert beibehalten",
-  "option_set_no_field_changes": "Keine Feldänderungen",
   "option_set_setting_diff": "Einstellung {{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Beibehaltene lokale Felder: {{fields}}",
   "option_set_preview_action": "Ausgewählte Ziele prüfen",

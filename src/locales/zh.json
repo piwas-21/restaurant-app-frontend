@@ -3295,7 +3295,6 @@
   "option_set_change_update": "更新",
   "option_set_change_remove": "移除",
   "option_set_change_preserve": "保留本地值",
-  "option_set_no_field_changes": "字段无变更",
   "option_set_setting_diff": "{{setting}}：{{current}} → {{proposed}}",
   "option_set_preserved_fields": "保留的本地字段：{{fields}}",
   "option_set_preview_action": "预览所选目标",

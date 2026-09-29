@@ -37,9 +37,6 @@
 
 .heading p {
   margin: 0;
-}
-
-.heading p {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }

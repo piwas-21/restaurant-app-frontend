@@ -89,3 +89,52 @@ it('moves through offer, item, and server check stages, then routes a blocker ba
   expect(screen.getByRole('spinbutton')).toBeInTheDocument();
   expect(screen.queryByText('Local price is required')).not.toBeInTheDocument();
 });
+
+it('runs the server preview from the check step navigation and explains inactive new offers before import', () => {
+  const checkPreview = jest.fn();
+  const flow = {
+    session,
+    selectedIds: ['item'],
+    decisions: { 'item@1': { templateId: 'item', revision: 1, resolution: 'Create' } },
+    preview: null,
+    canManage: true,
+    canEditSelection: true,
+    canEditDecision: () => true,
+    isWorking: false,
+    hasInvalidCustomOrderTypes: false,
+    toggleSelection: jest.fn(),
+    updateDecision: jest.fn(),
+    checkPreview,
+  } as unknown as ReturnType<typeof useCatalogueImportWorkspace>;
+  const optionPrices = {
+    byOwner: {},
+    detailsByKey: {},
+    isLoading: false,
+    error: null,
+  } as unknown as ReturnType<typeof useCatalogueOptionPrices>;
+
+  const { rerender } = render(<CatalogueImportGuidedReview flow={flow} optionPrices={optionPrices} locale="en" />);
+  const checkStep = screen.getByRole('button', { name: /catalogue_import_step_check/ });
+  rerender(<CatalogueImportGuidedReview flow={flow} optionPrices={{ ...optionPrices, error: 'failed' }} locale="en" />);
+  expect(checkStep).toBeDisabled();
+  expect(screen.getByRole('heading', { name: 'catalogue_import_step_offers' })).toBeInTheDocument();
+
+  rerender(<CatalogueImportGuidedReview flow={flow} optionPrices={optionPrices} locale="en" />);
+  fireEvent.click(checkStep);
+  expect(checkPreview).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('heading', { name: 'catalogue_import_step_check' })).toBeInTheDocument();
+  expect(screen.getByText('catalogue_import_inactive_notice')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'catalogue_import_check_preview' })).toBeInTheDocument();
+
+  rerender(
+    <CatalogueImportGuidedReview
+      flow={{
+        ...flow,
+        decisions: { 'item@1': { templateId: 'item', revision: 1, resolution: 'Reuse', localEntityId: 'existing' } },
+      }}
+      optionPrices={optionPrices}
+      locale="en"
+    />,
+  );
+  expect(screen.queryByText('catalogue_import_inactive_notice')).not.toBeInTheDocument();
+});

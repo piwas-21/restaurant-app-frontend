@@ -68,7 +68,7 @@ export function useCustomerFormFields(formKey: FormKey) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       const all = await loadAllRules();
       if (cancelled) return;
       const fetched = all?.[formKey];

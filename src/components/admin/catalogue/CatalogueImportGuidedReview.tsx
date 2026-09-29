@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { LanguageCode } from '@/config/languageConfig';
 import type { useCatalogueImportWorkspace } from '@/hooks/admin/useCatalogueImportWorkspace';
 import type { useCatalogueOptionPrices } from '@/hooks/admin/useCatalogueOptionPrices';
+import { catalogueImportDecisionFor } from '@/utils/catalogueImportDecision';
 import CatalogueImportPreviewReview from './CatalogueImportPreviewReview';
 import CatalogueImportSelectionReview from './CatalogueImportSelectionReview';
 import styles from './CatalogueImportWorkspace.module.css';
@@ -31,6 +32,18 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
   if (!session) return null;
 
   const selectedItems = session.items.filter((item) => flow.selectedIds.includes(item.templateId));
+  const canCheck =
+    selectedItems.length > 0 &&
+    !flow.isWorking &&
+    !optionPrices.isLoading &&
+    !optionPrices.error &&
+    !flow.hasInvalidCustomOrderTypes;
+  const createsOffer = selectedItems.some(
+    (item) =>
+      (item.type === 'item' || item.type === 'bundle') &&
+      (flow.decisions[`${item.templateId}@${item.revision}`]?.resolution ??
+        catalogueImportDecisionFor(item).resolution) !== 'Reuse',
+  );
   const blockers = flow.preview?.items.some((item) => item.isSelected && item.blockingIssues.length > 0) ?? true;
   const canImport =
     Boolean(flow.preview) &&
@@ -51,6 +64,7 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
     setStep('details');
   };
   const check = () => {
+    if (!canCheck) return;
     setStep('check');
     void flow.checkPreview();
   };
@@ -63,8 +77,8 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
             key={reviewStep}
             type="button"
             aria-current={step === reviewStep ? 'step' : undefined}
-            disabled={reviewStep !== 'selection' && selectedItems.length === 0}
-            onClick={() => setStep(reviewStep)}
+            disabled={reviewStep === 'check' ? !canCheck : reviewStep === 'details' && selectedItems.length === 0}
+            onClick={() => (reviewStep === 'check' ? check() : setStep(reviewStep))}
           >
             <span aria-hidden="true">{index + 1}</span>
             {t(stepLabelKeys[reviewStep])}
@@ -89,6 +103,7 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
       ) : (
         <>
           <h2 className={styles.stepHeading}>{t('catalogue_import_step_check')}</h2>
+          {createsOffer && <p className={styles.localDataNotice}>{t('catalogue_import_inactive_notice')}</p>}
           {!flow.preview && !flow.isWorking && (
             <p className={styles.referenceText}>{t('catalogue_import_check_preview')}</p>
           )}
@@ -121,33 +136,13 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
           </button>
         )}
         {step === 'details' && (
-          <button
-            type="button"
-            disabled={
-              !flow.canManage ||
-              flow.isWorking ||
-              optionPrices.isLoading ||
-              Boolean(optionPrices.error) ||
-              flow.hasInvalidCustomOrderTypes
-            }
-            onClick={check}
-          >
+          <button type="button" disabled={!canCheck} onClick={check}>
             {t(flow.isWorking ? 'catalogue_import_working' : 'catalogue_import_check_preview')}
           </button>
         )}
         {step === 'check' && (
           <>
-            <button
-              type="button"
-              disabled={
-                !flow.canManage ||
-                flow.isWorking ||
-                optionPrices.isLoading ||
-                Boolean(optionPrices.error) ||
-                flow.hasInvalidCustomOrderTypes
-              }
-              onClick={() => void flow.checkPreview()}
-            >
+            <button type="button" disabled={!canCheck} onClick={() => void flow.checkPreview()}>
               {t(flow.isWorking ? 'catalogue_import_working' : 'catalogue_import_check_preview')}
             </button>
             <button type="button" disabled={!canImport} onClick={() => void flow.runImport()}>

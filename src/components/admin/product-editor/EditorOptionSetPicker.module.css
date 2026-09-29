@@ -75,8 +75,8 @@
   color: var(--text-primary);
   background: var(--surface-card);
 }
-.searchLabel select,
-.searchLabel textarea {
+.linkFlow select,
+.linkFlow textarea {
   width: 100%;
   min-width: 0;
   padding: 0.45rem;

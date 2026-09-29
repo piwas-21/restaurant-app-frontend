@@ -159,6 +159,10 @@ it('requires an explanation when the server finds a related-offer difference', a
   fireEvent.click(screen.getByRole('button', { name: 'option_set_preview_title' }));
   const applyButton = await screen.findByRole('button', { name: 'editor_option_set_link_title' });
   expect(applyButton).toBeDisabled();
+  const reason = screen.getByRole('textbox', { name: 'option_set_difference_reason' });
+  expect(reason).toHaveAttribute('aria-invalid', 'true');
+  fireEvent.change(reason, { target: { value: 'x'.repeat(501) } });
+  expect(applyButton).toBeDisabled();
   fireEvent.change(screen.getByRole('textbox', { name: 'option_set_difference_reason' }), {
     target: { value: 'This item has a separate side offer.' },
   });

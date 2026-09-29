@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import BaseModal from '@/components/design-system/BaseModal';
+import FormField from '@/components/design-system/FormField';
 import { useOptionSetMaterializationFeature } from '@/hooks/admin/useOptionSetMaterializationFeature';
 import { applyOptionSetAttachments, previewOptionSetAttachments } from '@/services/optionSetService';
 import type { OptionSetDetail } from '@/types/optionSet';
@@ -18,7 +19,12 @@ import {
   makeOptionSetMaterializationRequest,
 } from '@/utils/optionSetMaterializationRequest';
 import styles from './EditorOptionSetPicker.module.css';
-import { describeOptionSetField, optionSetSettingLabel, optionSetSettingValue } from './describeOptionSetField';
+import {
+  describeOptionSetField,
+  optionSetDifferenceReasonSchema,
+  optionSetSettingLabel,
+  optionSetSettingValue,
+} from './describeOptionSetField';
 
 interface Props {
   readonly set: OptionSetDetail;
@@ -54,6 +60,8 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
   const needsReason = preview?.relatedOfferWarnings.some(
     (warning) => warning.targetKey === selectedKey && warning.reasonRequired,
   );
+  const parsedReason = optionSetDifferenceReasonSchema.safeParse(differenceReason);
+  const validReason = parsedReason.success && (!needsReason || parsedReason.data.length > 0);
   const entryIds = set.entries.flatMap((entry) => (entry.id ? [entry.id] : []));
   const canPreview = Boolean(
     feature.enabled &&
@@ -63,13 +71,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
     entryIds.length === set.entries.length &&
     entryIds.length,
   );
-  const canApply = Boolean(
-    !isDirty &&
-    feature.enabled &&
-    previewTarget?.status === 'ready' &&
-    request &&
-    (!needsReason || differenceReason.trim()),
-  );
+  const canApply = Boolean(!isDirty && feature.enabled && previewTarget?.status === 'ready' && request && validReason);
 
   if (!feature.enabled) return null;
 
@@ -97,17 +99,17 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
   };
 
   const runApply = async () => {
-    if (!canApply || !request || !target) return;
+    if (!canApply || !request || !target || !parsedReason.success) return;
     setWorking(true);
     setApplying(true);
     setError(null);
     try {
-      const withReason = differenceReason.trim()
+      const withReason = parsedReason.data
         ? {
             ...request,
             targets: request.targets.map((row) => ({
               ...row,
-              intentionalDifferenceReason: differenceReason.trim(),
+              intentionalDifferenceReason: parsedReason.data,
             })),
           }
         : request;
@@ -133,8 +135,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
       <summary>{t('editor_option_set_link_title')}</summary>
       <p>{t('editor_option_set_link_help')}</p>
       {targets.length > 1 && (
-        <label className={styles.searchLabel}>
-          {t('editor_option_set_link_target')}
+        <FormField label={t('editor_option_set_link_target')}>
           <select
             value={selectedKey}
             onChange={(event) => {
@@ -150,7 +151,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
               </option>
             ))}
           </select>
-        </label>
+        </FormField>
       )}
       {targets.length === 0 && <p>{t('editor_option_set_link_no_target')}</p>}
       {target && !target.selected && <p>{t('option_set_target_version_missing')}</p>}
@@ -216,14 +217,16 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
             ))}
           </ul>
           {needsReason && (
-            <label className={styles.searchLabel}>
-              {t('option_set_difference_reason')}
+            <FormField
+              label={t('option_set_difference_reason')}
+              error={!validReason ? t('option_set_difference_reason_required') : undefined}
+            >
               <textarea
                 value={differenceReason}
                 maxLength={500}
                 onChange={(event) => setDifferenceReason(event.target.value)}
               />
-            </label>
+            </FormField>
           )}
           <button type="button" disabled={!canApply || working} onClick={() => void runApply()}>
             {t('editor_option_set_link_title')}

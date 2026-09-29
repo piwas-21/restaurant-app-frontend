@@ -1,6 +1,9 @@
 import type { OptionSetEntry } from '@/types/optionSet';
 import type { OptionSetTargetSettings } from '@/types/optionSetMaterialization';
 import { formatCurrency } from '@/utils/currency';
+import { z } from 'zod';
+
+export const optionSetDifferenceReasonSchema = z.string().trim().max(500);
 
 const settingLabels: Readonly<Record<string, string>> = {
   minSelection: 'minimum_selection',

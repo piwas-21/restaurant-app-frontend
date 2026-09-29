@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import {
   OPTION_SET_PAGE_LIMIT,
@@ -17,15 +18,19 @@ import { OPTION_SET_KIND_LABEL_KEYS } from '@/utils/optionSetLabels';
 import { formatCurrency } from '@/utils/currency';
 import { optionSetEntryPrice } from '@/utils/optionSetEntryPrice';
 import styles from './EditorOptionSetPicker.module.css';
+import EditorOptionSetLink from './EditorOptionSetLink';
 
 interface Props {
   readonly editor: ReturnType<typeof useProductEditorForm>;
   readonly isBundle: boolean;
   readonly kinds: readonly OptionSetKind[];
+  readonly product?: ProductDetails;
+  readonly isDirty?: boolean;
+  readonly onApplied?: () => void;
 }
 
 /** Relevant reusable sets beside the active section, copied into the unsaved draft on demand. */
-export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props) {
+export default function EditorOptionSetPicker({ editor, isBundle, kinds, product, isDirty = false, onApplied }: Props) {
   const { t } = useTranslation();
   const [sets, setSets] = useState<OptionSetSummary[]>([]);
   const [query, setQuery] = useState('');
@@ -155,6 +160,15 @@ export default function EditorOptionSetPicker({ editor, isBundle, kinds }: Props
               {t('cancel')}
             </button>
           </div>
+          {product && onApplied && (
+            <EditorOptionSetLink
+              key={preview.id}
+              set={preview}
+              product={product}
+              isDirty={isDirty}
+              onApplied={onApplied}
+            />
+          )}
         </div>
       )}
       <Link href="/admin/option-sets">{t('editor_option_sets_manage')}</Link>

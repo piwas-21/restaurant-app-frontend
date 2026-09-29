@@ -17,9 +17,10 @@ interface Props {
   readonly isBundle: boolean;
   readonly isCreate: boolean;
   readonly activeSectionId: string;
+  readonly onApplied: () => void;
 }
 
-export default function EditorContextRail({ editor, product, isBundle, isCreate, activeSectionId }: Props) {
+export default function EditorContextRail({ editor, product, isBundle, isCreate, activeSectionId, onApplied }: Props) {
   const kinds = optionSetKindsForSection(isBundle, activeSectionId);
   const savedItem = !isBundle && !isCreate;
   const completeness = savedItem
@@ -31,7 +32,18 @@ export default function EditorContextRail({ editor, product, isBundle, isCreate,
   const categoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
   return (
     <EditorSideRail
-      optionSets={kinds && <EditorOptionSetPicker editor={editor} isBundle={isBundle} kinds={kinds} />}
+      optionSets={
+        kinds && (
+          <EditorOptionSetPicker
+            editor={editor}
+            isBundle={isBundle}
+            kinds={kinds}
+            product={isCreate ? undefined : product}
+            isDirty={editor.isDirty}
+            onApplied={onApplied}
+          />
+        )
+      }
       status={!isBundle && <ProductStatusFields register={editor.form.register} />}
       basePrice={editor.basePrice}
       categoryName={categoryName}

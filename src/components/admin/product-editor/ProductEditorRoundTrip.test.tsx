@@ -842,6 +842,31 @@ describe('bundle editor — an untouched save returns the allergens it loaded', 
     expect((await saveBundleUntouched(LABELLED_BUNDLE)).allergens).toEqual(['gluten', 'sesame']);
   });
 
+  it('sends a ticked and an unticked bundle allergen chip through Save', async () => {
+    const product = {
+      ...LABELLED_BUNDLE,
+      allergens: ['contains_gluten', 'halal'],
+    } as ProductDetails;
+    const { container } = render(
+      <ProductEditorPage product={product} isBundle mode="edit" onSaved={jest.fn()} onBack={jest.fn()} />,
+    );
+    await act(async () => {});
+
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_bundle_options_label' }));
+    const gluten = screen.getByRole('checkbox', { name: 'allergen_contains_gluten' });
+    const dairy = screen.getByRole('checkbox', { name: 'allergen_contains_dairy' });
+    expect(gluten).toBeChecked();
+    expect(dairy).not.toBeChecked();
+
+    fireEvent.click(gluten);
+    fireEvent.click(dairy);
+    await submitThroughReview(container);
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+
+    const payload = (updateMenuBundle as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+    expect(payload.allergens).toEqual(['halal', 'contains_dairy']);
+  });
+
   it('preserves every loaded locale on an untouched save', async () => {
     expect((await saveBundleUntouched(LABELLED_BUNDLE)).content).toEqual(LABELLED_BUNDLE.content);
   });

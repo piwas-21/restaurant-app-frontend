@@ -67,6 +67,26 @@ describe('CatalogueImportOperationalReview order channels', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' }));
 
     expect(onDecisionChange).toHaveBeenCalledWith({ allergensReviewed: true, allergens: [] });
+    expect(screen.queryByRole('textbox', { name: 'catalogue_import_local_ingredients' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'catalogue_import_kitchen_type' })).not.toBeInTheDocument();
+  });
+
+  it('asks for bundle component review without inventing bundle ingredient or kitchen fields', () => {
+    const onDecisionChange = jest.fn();
+    render(
+      <CatalogueImportOperationalReview
+        itemType="bundle"
+        decision={baseDecision}
+        disabled={false}
+        onDecisionChange={onDecisionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_bundle_ingredients' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'catalogue_import_review_bundle_kitchen' }));
+
+    expect(onDecisionChange).toHaveBeenNthCalledWith(1, { ingredientsReviewed: true });
+    expect(onDecisionChange).toHaveBeenNthCalledWith(2, { kitchenRoutingReviewed: true });
   });
 
   it('preserves existing ingredient and allergen lists when marking them reviewed', () => {

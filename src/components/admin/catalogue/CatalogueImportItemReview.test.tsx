@@ -40,7 +40,7 @@ describe('CatalogueImportItemReview', () => {
     );
 
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_ingredients' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_bundle_ingredients' })).not.toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'catalogue_import_review_allergens' })).not.toBeChecked();
     expect(screen.getByText(/Reviewed source description/)).toBeInTheDocument();
   });

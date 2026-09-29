@@ -4,6 +4,11 @@
   background: var(--surface-secondary);
 }
 
+.compact {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
 .title {
   margin: 0;
   color: var(--text-primary);
@@ -21,6 +26,28 @@
 .field {
   max-width: 20rem;
   margin-block-start: 8px;
+}
+
+.details {
+  margin-block-start: 8px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.details summary {
+  cursor: pointer;
+}
+
+.details summary:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 12px;
+  margin-block-start: 12px;
 }
 
 .select {

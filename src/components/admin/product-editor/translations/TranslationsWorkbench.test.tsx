@@ -369,10 +369,15 @@ describe('completeness reflects the strings that are really missing', () => {
 });
 
 describe('the three old translation UIs are gone, not restyled', () => {
-  it('has no per-row disclosure and no multilingual row list anywhere in the editor', async () => {
+  it('keeps one source-language disclosure above the translation grid', async () => {
     const { container, panel } = await openWorkbench();
 
-    expect(panel.querySelectorAll('details')).toHaveLength(0);
+    const disclosure = panel.querySelector('details');
+    expect(disclosure).toBeInTheDocument();
+    expect(disclosure).not.toHaveAttribute('open');
+    expect(panel.querySelectorAll('details')).toHaveLength(1);
+    const target = panel.querySelector('#translation-item-name-target');
+    expect(disclosure!.compareDocumentPosition(target!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container.textContent).not.toContain('multilingual_content');
     expect(container.textContent).not.toContain('multilingual_names');
     expect(container.textContent).not.toContain('add_language_translation');
@@ -382,6 +387,7 @@ describe('the three old translation UIs are gone, not restyled', () => {
     const { panel, view } = await openWorkbench();
 
     const copySource = view.getByLabelText('editor_translations_copy_from');
+    fireEvent.click(view.getByText('translation_review_source_locale_individual'));
     const fieldSource = view.getByLabelText(
       'editor_translations_source_locale_field[field=Margherita Pizza · item_name]',
     );
@@ -494,6 +500,22 @@ describe('batched translation review before ordinary Save', () => {
     expect(service.suggest).not.toHaveBeenCalled();
   });
 
+  it('lets an exceptional field keep a different source language after the bulk choice', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const { container, view } = await openWorkbench(legacy);
+
+    fireEvent.change(view.getByLabelText('editor_translations_base_language_label'), { target: { value: 'fr' } });
+    fireEvent.click(view.getByText('translation_review_source_locale_individual'));
+    fireEvent.change(
+      view.getByLabelText('editor_translations_source_locale_field[field=Margherita Pizza · item_name]'),
+      { target: { value: 'it' } },
+    );
+
+    const payload = await save(container);
+    expect(payload.translationMetadata).toMatchObject({ sourceLocales: { name: 'it', description: 'fr' } });
+    expect(payload.name).toBe('Margherita Pizza');
+  });
+
   it('previews an unannotated field only after a source language is explicitly selected', async () => {
     const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
     const { container, view } = await openWorkbench(legacy);
@@ -600,6 +622,7 @@ describe('batched translation review before ordinary Save', () => {
       targetField(view, 'editor_translations_field_item_description', 'Deutsch', 'Classic tomato and mozzarella'),
       { target: { value: 'Tomate und Mozzarella' } },
     );
+    fireEvent.click(view.getByText('translation_review_source_locale_individual'));
     fireEvent.change(
       view.getByLabelText('editor_translations_source_locale_field[field=Margherita Pizza · item_name]'),
       { target: { value: 'tr' } },

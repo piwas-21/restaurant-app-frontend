@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { describeOptionSetField } from '@/components/admin/product-editor/describeOptionSetField';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
@@ -12,7 +13,6 @@ import OptionSetMaterializationOverrides, { optionSetOverrideFields } from './Op
 import styles from './OptionSetMaterializationTargetCard.module.css';
 
 type NumericSetting = Exclude<keyof OptionSetTargetSettings, 'clearMaxSelection'>;
-
 const settingLabels: Record<NumericSetting, string> = {
   minSelection: 'minimum_selection',
   maxSelection: 'maximum_selection',
@@ -138,42 +138,45 @@ export default function OptionSetMaterializationTargetCard({
       </header>
       {target.selected && (
         <div className={styles.configuration}>
-          {settingFields.length > 0 && (
-            <fieldset className={styles.settings}>
-              <legend>{t('option_set_target_rules')}</legend>
-              {settingFields.map((field) => (
-                <FormField key={field} label={t(settingLabels[field])}>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={target.settings[field] ?? ''}
-                    onChange={(event) => updateSetting(field, event.target.value)}
-                  />
-                </FormField>
-              ))}
-            </fieldset>
-          )}
-          <FormField label={t('option_set_conflict_policy')}>
-            <select
-              value={target.conflictPolicy}
-              onChange={(event) =>
-                onUpdate({ conflictPolicy: event.target.value as OptionSetMaterializationTarget['conflictPolicy'] })
-              }
-            >
-              <option value="preserveLocal">{t('option_set_policy_preserve_local')}</option>
-              <option value="useSetValues">{t('option_set_policy_use_set')}</option>
-              {overrideFields.length > 0 && <option value="useOverrides">{t('option_set_policy_overrides')}</option>}
-            </select>
-          </FormField>
-          {target.conflictPolicy === 'useOverrides' && overrideFields.length > 0 && (
-            <OptionSetMaterializationOverrides
-              kind={kind}
-              entries={entries}
-              overrides={target.overrides}
-              onChange={(overrides) => onUpdate({ overrides })}
-            />
-          )}
+          <details className={styles.advanced}>
+            <summary>{t('editor_section_advanced')}</summary>
+            {settingFields.length > 0 && (
+              <fieldset className={styles.settings}>
+                <legend>{t('option_set_target_rules')}</legend>
+                {settingFields.map((field) => (
+                  <FormField key={field} label={t(settingLabels[field])}>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={target.settings[field] ?? ''}
+                      onChange={(event) => updateSetting(field, event.target.value)}
+                    />
+                  </FormField>
+                ))}
+              </fieldset>
+            )}
+            <FormField label={t('option_set_conflict_policy')}>
+              <select
+                value={target.conflictPolicy}
+                onChange={(event) =>
+                  onUpdate({ conflictPolicy: event.target.value as OptionSetMaterializationTarget['conflictPolicy'] })
+                }
+              >
+                <option value="preserveLocal">{t('option_set_policy_preserve_local')}</option>
+                <option value="useSetValues">{t('option_set_policy_use_set')}</option>
+                {overrideFields.length > 0 && <option value="useOverrides">{t('option_set_policy_overrides')}</option>}
+              </select>
+            </FormField>
+            {target.conflictPolicy === 'useOverrides' && overrideFields.length > 0 && (
+              <OptionSetMaterializationOverrides
+                kind={kind}
+                entries={entries}
+                overrides={target.overrides}
+                onChange={(overrides) => onUpdate({ overrides })}
+              />
+            )}
+          </details>
           {requiredReasons.length > 0 && (
             <div>
               <FormField label={t('option_set_difference_reason')}>
@@ -215,11 +218,22 @@ export default function OptionSetMaterializationTargetCard({
                 {previewTarget.changes.map((change) => (
                   <li key={`${change.entryId}-${change.action}`}>
                     {t(`option_set_change_${change.action}`)} ·{' '}
-                    {change.changedFields.join(', ') || t('option_set_no_field_changes')}
+                    {entries.find((entry) => entry.id === change.entryId)?.name ?? change.entryId}
+                    {change.changedFields.length > 0 && (
+                      <small>
+                        {' '}
+                        · {change.changedFields.map((field) => describeOptionSetField(field, undefined, t)).join(' · ')}
+                      </small>
+                    )}
                     {change.preservedFields.length > 0 && (
                       <small>
                         {' '}
-                        · {t('option_set_preserved_fields', { fields: change.preservedFields.join(', ') })}
+                        ·{' '}
+                        {t('option_set_preserved_fields', {
+                          fields: change.preservedFields
+                            .map((field) => describeOptionSetField(field, undefined, t))
+                            .join(' · '),
+                        })}
                       </small>
                     )}
                   </li>

@@ -22,6 +22,16 @@
   padding-inline-start: 1rem;
 }
 
+.advanced summary {
+  width: fit-content;
+  color: var(--link-default);
+  cursor: pointer;
+}
+
+.advanced[open] > :not(summary) {
+  margin-block-start: 0.75rem;
+}
+
 .settings,
 .entryOverride {
   display: grid;

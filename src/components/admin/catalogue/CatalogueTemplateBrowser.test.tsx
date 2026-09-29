@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CatalogueTemplateBrowser from './CatalogueTemplateBrowser';
 import { getCatalogueTemplateRevision, listCatalogueTemplates } from '@/services/catalogueTemplateService';
+import { getCataloguePreferences } from '@/services/catalogueImportService';
 import type {
   CatalogueTemplateDependency,
   CatalogueTemplateListResponse,
@@ -109,6 +110,31 @@ describe('CatalogueTemplateBrowser', () => {
     (getCatalogueTemplateRevision as jest.Mock).mockImplementation(async (id: string) =>
       id === template.templateId ? bundleDetail : soupDetail,
     );
+  });
+
+  it('keeps cuisine preferences compact while two-letter search remains available', async () => {
+    render(<CatalogueTemplateBrowser />);
+
+    await screen.findByText('Soup and bread menu');
+    const disclosure = screen.getByText('catalogue_preferences_title').closest('details');
+    expect(disclosure).not.toHaveAttribute('open');
+    const search = screen.getByRole('searchbox', { name: 'search' });
+    fireEvent.change(search, { target: { value: 'So' } });
+    await waitFor(() =>
+      expect(listCatalogueTemplates).toHaveBeenCalledWith(expect.objectContaining({ q: 'So' }), expect.anything()),
+    );
+
+    fireEvent.click(screen.getByText('catalogue_preferences_title'));
+    expect(disclosure).toHaveAttribute('open');
+    expect(screen.getByRole('textbox', { name: 'catalogue_preferences_add_label' })).toBeVisible();
+  });
+
+  it('shows a preferences failure even while its controls are collapsed', async () => {
+    jest.mocked(getCataloguePreferences).mockRejectedValueOnce(new Error('preferences offline'));
+    render(<CatalogueTemplateBrowser />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('catalogue_preferences_error');
+    expect(screen.getByText('catalogue_preferences_title').closest('details')).not.toHaveAttribute('open');
   });
 
   it('uses the selected admin language, opens a pinned guest-choice preview, and applies cuisine filters', async () => {

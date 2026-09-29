@@ -7,7 +7,11 @@ import OptionSetMaterializationTargetCard from './OptionSetMaterializationTarget
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, values?: Record<string, unknown>) =>
-      key === 'option_set_setting_diff' ? `${values?.setting}: ${values?.current} → ${values?.proposed}` : key,
+      key === 'option_set_setting_diff'
+        ? `${values?.setting}: ${values?.current} → ${values?.proposed}`
+        : key === 'option_set_preserved_fields'
+          ? `Preserved local fields: ${values?.fields}`
+          : key,
   }),
 }));
 
@@ -52,6 +56,7 @@ describe('OptionSetMaterializationTargetCard', () => {
       />,
     );
 
+    fireEvent.click(screen.getByText('editor_section_advanced'));
     fireEvent.change(screen.getByLabelText('ingredient_is_optional'), { target: { value: 'false' } });
     fireEvent.change(screen.getByLabelText('option_set_entry_price'), { target: { value: '0' } });
 
@@ -76,6 +81,7 @@ describe('OptionSetMaterializationTargetCard', () => {
       />,
     );
 
+    fireEvent.click(screen.getByText('editor_section_advanced'));
     fireEvent.change(screen.getByLabelText('maximum_selection'), { target: { value: '' } });
 
     expect(onUpdate).toHaveBeenCalledWith({ settings: { clearMaxSelection: true } });
@@ -93,6 +99,7 @@ describe('OptionSetMaterializationTargetCard', () => {
       />,
     );
 
+    fireEvent.click(screen.getByText('editor_section_advanced'));
     fireEvent.change(screen.getByLabelText('maximum_selection'), { target: { value: '2' } });
 
     expect(onUpdate).toHaveBeenCalledWith({ settings: { maxSelection: 2 } });
@@ -101,7 +108,7 @@ describe('OptionSetMaterializationTargetCard', () => {
   it('shows attachment setting changes even when no entry rows changed', () => {
     render(
       <OptionSetMaterializationTargetCard
-        target={target}
+        target={{ ...target, conflictPolicy: 'preserveLocal' }}
         kind="ingredient"
         entries={entries}
         preview={{
@@ -127,5 +134,57 @@ describe('OptionSetMaterializationTargetCard', () => {
 
     expect(screen.getByText('minimum_selection: 0 → 1')).toBeInTheDocument();
     expect(screen.getByText('maximum_selection: 1 → 2')).toBeInTheDocument();
+    expect(screen.getByText('editor_section_advanced').closest('details')).not.toHaveAttribute('open');
+  });
+
+  it('names affected options and translates changed and retained fields in the linked update preview', () => {
+    render(
+      <OptionSetMaterializationTargetCard
+        target={target}
+        kind="ingredient"
+        entries={[...entries, { ...entries[0], id: 'entry-2', name: 'Potato' }]}
+        preview={{
+          optionSetId: 'set-1',
+          setVersion: 2,
+          relatedOfferWarnings: [],
+          targets: [
+            {
+              targetKey: target.targetKey,
+              targetProductId: target.targetProductId,
+              status: 'ready',
+              conflicts: [],
+              changes: [
+                {
+                  entryId: 'entry-1',
+                  rowType: 'ProductIngredient',
+                  action: 'update',
+                  changedFields: ['Price', 'DisplayOrder'],
+                  preservedFields: ['MaxQuantity'],
+                },
+                {
+                  entryId: 'entry-2',
+                  rowType: 'ProductIngredient',
+                  action: 'add',
+                  changedFields: [],
+                  preservedFields: [],
+                },
+              ],
+              currentSettings: {},
+              proposedSettings: {},
+              changedSettings: [],
+            },
+          ],
+        }}
+        onUpdate={jest.fn()}
+      />,
+    );
+
+    const rows = screen.getAllByRole('listitem');
+    expect(rows[0]).toHaveTextContent('option_set_change_update · Onion');
+    expect(rows[0]).toHaveTextContent('option_set_entry_price · display_order');
+    expect(rows[0]).toHaveTextContent('Preserved local fields: option_set_entry_max_quantity');
+    expect(rows[0]).not.toHaveTextContent('DisplayOrder');
+    expect(rows[1]).toHaveTextContent('option_set_change_add · Potato');
+    expect(rows[1]).not.toHaveTextContent('option_set_no_field_changes');
   });
 });

@@ -3340,7 +3340,6 @@
   "option_set_change_update": "تحديث",
   "option_set_change_remove": "إزالة",
   "option_set_change_preserve": "الاحتفاظ بالقيمة المحلية",
-  "option_set_no_field_changes": "لا تغييرات على الحقول",
   "option_set_setting_diff": "إعداد {{setting}}: {{current}} إلى {{proposed}}",
   "option_set_preserved_fields": "الحقول المحلية المحفوظة: {{fields}}",
   "option_set_preview_action": "معاينة الأهداف المحددة",

@@ -3322,7 +3322,6 @@
   "option_set_change_update": "Обновить",
   "option_set_change_remove": "Удалить",
   "option_set_change_preserve": "Сохранить локальное значение",
-  "option_set_no_field_changes": "Поля не изменятся",
   "option_set_setting_diff": "Настройка {{setting}}: {{current}} → {{proposed}}",
   "option_set_preserved_fields": "Сохранённые локальные поля: {{fields}}",
   "option_set_preview_action": "Просмотреть выбранные цели",

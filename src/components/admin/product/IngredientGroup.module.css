@@ -2,6 +2,7 @@
 
 .group {
   padding-block: 1.25rem;
+  container-type: inline-size;
 }
 .group + .group {
   border-block-start: 1px solid var(--border-color);
@@ -27,19 +28,16 @@
   clipped by `.adminContainer`'s `overflow-x: clip`. So the last columns (INCLUDED, the delete
   button) vanished behind the rail at exactly the widths this editor is used at.
 
-  The scroller keeps every column INSIDE the card: rows scroll horizontally, visibly, and the
-  actions stay reachable at the row's end — the same containment the admin list tables already use
-  (`AdminPage.module.css` `.adminTableContainer`). At ≥769px only; the ≤768px band below reflows the
-  whole table into the labelled card list, which needs no scroller and must keep `overflow: visible`
-  so the row type-ahead's dropdown can escape the table box as before.
+  The scroller contains the wide table. When the editor group is narrower than the controls,
+  the container query below replaces it with labelled cards and lets the type-ahead escape.
 
   Known cost, accepted deliberately: a scroll container clips BOTH axes (`overflow-y` computes to
-  `auto` beside `overflow-x: auto`), so at ≥769px the type-ahead's dropdown — absolutely positioned
+  `auto` beside `overflow-x: auto`), so in wide groups the type-ahead's dropdown — absolutely positioned
   inside `.nameField`, whose containing block sits inside this box — is clipped at this box's bottom
   edge instead of overlaying following content. It stays reachable (it extends this box's scrollable
   overflow, so scrolling reveals it, the input keeps focus, and the pick still lands) but it is
   scroll-in rather than floating — worst on the last row, where a freshly added row is typed. The
-  ≤768px card list keeps today's floating behavior. Lifting the dropdown out of the scroller
+  narrow card list keeps today's floating behavior. Lifting the dropdown out of the scroller
   (portal or anchor positioning) is the follow-up; it must serve the variations name cell too.
 */
 .tableScroll {
@@ -99,8 +97,8 @@
 .addButton:hover {
   text-decoration: underline;
 }
-@media (max-width: 768px) {
-  /* A narrow editor is a labelled card list, not a desktop table behind a horizontal scrollbar.
+@container (max-width: 700px) {
+  /* A narrow editor group is a labelled card list, regardless of viewport width.
      Keep the real header in the accessibility tree while each cell repeats its translated label
      visually through data-label. This one rule serves ingredients, sauces and variations. */
   .table {

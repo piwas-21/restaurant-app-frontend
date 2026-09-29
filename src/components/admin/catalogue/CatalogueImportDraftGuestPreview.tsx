@@ -66,6 +66,14 @@ function ChoiceRows({
           const price = pricesFromItems
             ? priceDecision?.localPrice
             : priceDecision?.localOptionPrices?.[keyFor(choice)];
+          let priceDisplay: React.ReactNode = null;
+          if (priceDecision?.resolution === 'Reuse') {
+            priceDisplay = <small>{t('catalogue_import_draft_existing_price')}</small>;
+          } else if (typeof price === 'number' && Number.isFinite(price)) {
+            priceDisplay = <strong>{formatCurrency(price)}</strong>;
+          } else if (priceDecision?.resolution === 'Create') {
+            priceDisplay = <small className={styles.pending}>{t('catalogue_import_draft_price_needed')}</small>;
+          }
           return (
             <li key={keyFor(choice)}>
               <span dir="auto">
@@ -73,13 +81,7 @@ function ChoiceRows({
               </span>
               <span className={styles.choiceMeta}>
                 {choice.default && <small>{t('catalogue_default')}</small>}
-                {priceDecision?.resolution === 'Reuse' ? (
-                  <small>{t('catalogue_import_draft_existing_price')}</small>
-                ) : typeof price === 'number' && Number.isFinite(price) ? (
-                  <strong>{formatCurrency(price)}</strong>
-                ) : priceDecision?.resolution === 'Create' ? (
-                  <small className={styles.pending}>{t('catalogue_import_draft_price_needed')}</small>
-                ) : null}
+                {priceDisplay}
               </span>
             </li>
           );
@@ -110,26 +112,23 @@ export default function CatalogueImportDraftGuestPreview({
     decision?.resolution === 'Reuse'
       ? reusedNamesByKey[keyFor(detail)] || t('catalogue_import_reuse')
       : decision?.localName?.trim() || resolveCatalogueTemplateText(detail, locale).name;
+  let priceText = t('catalogue_import_draft_price_needed');
+  if (decision?.resolution === 'Reuse') priceText = t('catalogue_import_draft_existing_price');
+  else if (typeof basePrice === 'number' && Number.isFinite(basePrice)) priceText = formatCurrency(basePrice);
+  let availabilityText = t('catalogue_import_choose_availability');
+  if (decision?.resolution === 'Reuse') availabilityText = t('catalogue_import_reuse');
+  else if (decision?.intendedIsAvailable !== undefined)
+    availabilityText = t(decision.intendedIsAvailable ? 'available' : 'unavailable');
 
   return (
     <div className={styles.preview}>
       {decision?.resolution !== 'Reuse' && <p>{t('catalogue_import_draft_guest_notice')}</p>}
       <div className={styles.summary}>
         <span>
-          {t('catalogue_import_price_for', { name: offerName })}:{' '}
-          {decision?.resolution === 'Reuse'
-            ? t('catalogue_import_draft_existing_price')
-            : typeof basePrice === 'number' && Number.isFinite(basePrice)
-              ? formatCurrency(basePrice)
-              : t('catalogue_import_draft_price_needed')}
+          {t('catalogue_import_price_for', { name: offerName })}: {priceText}
         </span>
         <span>
-          {t('catalogue_import_intended_availability')}:{' '}
-          {decision?.resolution === 'Reuse'
-            ? t('catalogue_import_reuse')
-            : decision?.intendedIsAvailable === undefined
-              ? t('catalogue_import_choose_availability')
-              : t(decision.intendedIsAvailable ? 'available' : 'unavailable')}
+          {t('catalogue_import_intended_availability')}: {availabilityText}
         </span>
       </div>
       {decision?.resolution === 'Reuse' && <p>{t('catalogue_import_reuse_preserves_local')}</p>}

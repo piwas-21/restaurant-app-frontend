@@ -39,6 +39,22 @@ function revision(
   } as CatalogueTemplateRevision;
 }
 
+function bundleWithChoice(templateId: string, choiceId: string): CatalogueTemplateRevision {
+  return revision(templateId, 'bundle', {
+    sections: [
+      {
+        sectionKey: 'main',
+        name: 'Main',
+        sortOrder: 0,
+        min: 1,
+        max: 1,
+        options: [{ templateId: choiceId, revision: 1, sortOrder: 0 }],
+      },
+    ],
+    requiredLocalReviewFields: [],
+  });
+}
+
 it('shows ordered bundle choices with draft local prices and intended availability', () => {
   const bundle = revision('tacos', 'bundle', {
     sections: [
@@ -217,19 +233,7 @@ it('does not present source choice prices for a reused option set', () => {
 });
 
 it('uses the resolved tenant name for a reused bundle choice with a stale draft name', () => {
-  const bundle = revision('bundle', 'bundle', {
-    sections: [
-      {
-        sectionKey: 'main',
-        name: 'Main',
-        sortOrder: 0,
-        min: 1,
-        max: 1,
-        options: [{ templateId: 'choice', revision: 1, sortOrder: 0 }],
-      },
-    ],
-    requiredLocalReviewFields: [],
-  });
+  const bundle = bundleWithChoice('bundle', 'choice');
   render(
     <CatalogueImportDraftGuestPreview
       detail={bundle}
@@ -254,19 +258,7 @@ it('uses the resolved tenant name for a reused bundle choice with a stale draft 
 });
 
 it('uses reviewed local names for a newly created offer and choice', () => {
-  const bundle = revision('template-bundle', 'bundle', {
-    sections: [
-      {
-        sectionKey: 'main',
-        name: 'Main',
-        sortOrder: 0,
-        min: 1,
-        max: 1,
-        options: [{ templateId: 'template-choice', revision: 1, sortOrder: 0 }],
-      },
-    ],
-    requiredLocalReviewFields: [],
-  });
+  const bundle = bundleWithChoice('template-bundle', 'template-choice');
   render(
     <CatalogueImportDraftGuestPreview
       detail={bundle}

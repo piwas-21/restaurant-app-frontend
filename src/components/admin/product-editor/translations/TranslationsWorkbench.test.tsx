@@ -355,6 +355,11 @@ describe('completeness reflects the strings that are really missing', () => {
 
     expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza').value).toBe('Margherita Pizza');
     expect(view.getByText('editor_translations_copied[count=5]')).toBeInTheDocument();
+    expect(view.getAllByText('editor_translations_matches_base')).toHaveLength(5);
+    expect(view.getByRole('button', { name: /^Deutsch/ })).toHaveAccessibleName(
+      /editor_translations_review_matching\[count=5\]/,
+    );
+    expect(view.getAllByText('editor_translations_review_matching[count=5]')).toHaveLength(2);
 
     const payload = await save(container);
     expect((payload.content as Record<string, { name: string }>).de.name).toBe('Margherita Pizza');

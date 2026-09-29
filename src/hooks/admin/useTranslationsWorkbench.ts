@@ -39,21 +39,17 @@ export interface CopyResult {
 type WatchedTranslationValues = [string?, string?, ProductContentRow[]?, TranslatableVariation[]?];
 
 /**
- * The Translations workbench's state and its three write paths
- * (MENU-ITEM-EDITOR-REDESIGN-PLAN D2, slice S4).
- *
- * One locale switcher retargets product **and** variation **and** ingredient strings, and the three
- * places those live could hardly be less alike: the product keeps an ARRAY of rows inside
- * react-hook-form, a variation keeps a keyed MAP inside react-hook-form, and an ingredient is not
- * in react-hook-form at all — it is plain `useState` behind `changeIngredients`. Hiding that
- * behind one `setTranslation(ref, locale, value)` is the whole job of this hook, and the reason the
- * workbench component can stay a rendering of `TranslationSlot`s.
+ * One locale switcher writes item rows, variation maps, menu sections and ingredient state through
+ * a single setTranslation path.
  *
  * `useWatch` and not `form.watch()`: the editor is a ~150-control page and a bare `watch()` would
  * re-render every one of them on each keystroke typed here. This subscribes to four names and
  * re-renders the panel alone.
  */
-export function useTranslationsWorkbench(editor: Editor) {
+export function useTranslationsWorkbench(
+  editor: Editor,
+  knownSourceLocaleFor?: (slot: TranslationSlot) => string | undefined,
+) {
   const { form, detailedIngredients, changeIngredients, variations: variationFieldArray, menuDefinition } = editor;
   const { control, getValues, setValue } = form;
 
@@ -72,7 +68,10 @@ export function useTranslationsWorkbench(editor: Editor) {
     [watched, variationFieldArray.fields, detailedIngredients, menuDefinition.sections],
   );
 
-  const progress: Record<string, LocaleProgress> = useMemo(() => everyLocaleProgress(slots), [slots]);
+  const progress: Record<string, LocaleProgress> = useMemo(
+    () => everyLocaleProgress(slots, knownSourceLocaleFor),
+    [slots, knownSourceLocaleFor],
+  );
 
   /**
    * Open on the first locale that still needs work, so the admin lands on the job rather than on a
@@ -80,7 +79,9 @@ export function useTranslationsWorkbench(editor: Editor) {
    * from under someone the moment they finished a language.
    */
   const [targetLocale, setTargetLocale] = useState<string>(
-    () => LANGUAGE_CODES.find((locale) => !isLocaleComplete(localeProgress(slots, locale))) ?? LANGUAGE_CODES[0],
+    () =>
+      LANGUAGE_CODES.find((locale) => !isLocaleComplete(localeProgress(slots, locale, knownSourceLocaleFor))) ??
+      LANGUAGE_CODES[0],
   );
   const [sourceLocale, setSourceLocale] = useState<string>(TRANSLATION_SOURCE_BASE);
   const [lastCopy, setLastCopy] = useState<CopyResult | null>(null);

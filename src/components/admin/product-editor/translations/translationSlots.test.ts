@@ -177,9 +177,9 @@ describe('completeness — the number the rail shows', () => {
   it('counts written strings against the slot count, which is the same for every locale', () => {
     const slots = buildTranslationSlots(margherita);
 
-    expect(localeProgress(slots, 'fr')).toEqual({ done: 5, total: 7 });
-    expect(localeProgress(slots, 'de')).toEqual({ done: 1, total: 7 });
-    expect(localeProgress(slots, 'ru')).toEqual({ done: 0, total: 7 });
+    expect(localeProgress(slots, 'fr')).toMatchObject({ done: 5, total: 7 });
+    expect(localeProgress(slots, 'de')).toMatchObject({ done: 1, total: 7 });
+    expect(localeProgress(slots, 'ru')).toMatchObject({ done: 0, total: 7 });
   });
 
   /**
@@ -200,6 +200,21 @@ describe('completeness — the number the rail shows', () => {
     });
 
     expect(isLocaleComplete(localeProgress(slots, 'fr'))).toBe(true);
+  });
+
+  it('requests review of copied base text without erasing it or treating the source language as wrong', () => {
+    const slots = buildTranslationSlots({
+      name: 'Kebab',
+      content: [
+        { language: 'fr', name: 'Kebab' },
+        { language: 'tr', name: 'Kebab' },
+      ],
+    });
+    expect(localeProgress(slots, 'fr')).toEqual({ done: 1, total: 1, matchingBase: 1 });
+    expect(isLocaleComplete(localeProgress(slots, 'fr'))).toBe(false);
+    expect(localeProgress(slots, 'tr', () => 'tr')).toEqual({ done: 1, total: 1, matchingBase: 0 });
+    expect(isLocaleComplete(localeProgress(slots, 'tr', () => 'tr'))).toBe(true);
+    expect(translationIn(slots[0], 'fr')).toBe('Kebab');
   });
 
   // An item with nothing to translate is not "fully translated" — there is simply nothing to say.

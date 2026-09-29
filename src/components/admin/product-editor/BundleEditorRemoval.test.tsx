@@ -134,6 +134,7 @@ const renderBundleEditor = async () => {
     />,
   );
   await act(async () => {});
+  fireEvent.click(screen.getByRole('tab', { name: 'editor_bundle_options_label' }));
 };
 
 const saveThroughReview = async () => {
@@ -156,6 +157,7 @@ const sectionCard = (name: string): HTMLElement => {
 
 /** One dirtying change so the page's Save (gated on isDirty in edit mode) is armed. */
 const dirtyForm = () => {
+  fireEvent.click(screen.getByRole('tab', { name: 'editor_section_basics' }));
   fireEvent.change(screen.getByLabelText('menu_bundle_name'), { target: { value: 'Pizza Combo XL' } });
 };
 

@@ -54,6 +54,10 @@ jest.mock('@/services/globalIngredientService', () => ({
 jest.mock('@/services/categoryService', () => ({
   getCategories: jest.fn(async () => ({ success: true, data: { items: [{ id: 'cat-a', name: 'Pizza' }] } })),
 }));
+jest.mock('@/services/optionSetService', () => ({
+  searchOptionSets: jest.fn(async () => ({ items: [], nextCursor: null })),
+  getOptionSet: jest.fn(),
+}));
 jest.mock('@/services/productQuoteService', () => ({
   quoteProduct: jest.fn(async (productId: string) => ({
     productId,
@@ -68,6 +72,7 @@ import { ApiError } from '@/utils/apiClient';
 import { updateProduct, deleteProductImage } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
+import { searchOptionSets } from '@/services/optionSetService';
 import { quoteProduct } from '@/services/productQuoteService';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 
@@ -232,16 +237,73 @@ describe('ProductEditorPage — the live badge and the ⋯', () => {
 });
 
 describe('ProductEditorPage — the panels each kind can actually support', () => {
-  // Not cosmetic: MenuBundleDto returns no categories/variations/ingredients, so these
-  // controls would have nothing to seed from and their values would be invented.
-  it('gives a bundle the schedule and sections, and no category/variation controls', async () => {
-    await renderEditor(bundle, true);
+  it('gives a saved bundle focused Basics, Menu choices, Service and Advanced sections', async () => {
+    const { container } = await renderEditor(bundle, true);
+    const section = (id: string) => container.querySelector(`#editor-section-${id}`) as HTMLElement;
+    const nav = container.querySelector('[role="tablist"][aria-label="editor_sections"]') as HTMLElement;
 
-    expect(screen.getByText('menu_availability_schedule')).toBeInTheDocument();
-    const itemPanel = screen.getByRole('tabpanel', { name: 'item' });
-    expect(within(itemPanel).getByText('menu_sections')).toBeInTheDocument();
-    expect(screen.queryByText('categories')).not.toBeInTheDocument();
+    expect(
+      within(nav)
+        .getAllByRole('tab')
+        .map((tab) => tab.textContent),
+    ).toEqual([
+      'editor_section_basics',
+      'editor_section_media',
+      'editor_bundle_options_label',
+      'editor_section_service',
+      'editor_section_advanced',
+    ]);
+    expect(section('basics').querySelector('input[name="name"]')).not.toBeNull();
+    expect(section('basics').querySelector('input[name="basePrice"]')).not.toBeNull();
+    expect(section('basics').querySelector('#category-chip-cat-a')).not.toBeNull();
+    expect(section('basics').querySelector('input[name="preparationTimeMinutes"]')).toBeNull();
+
+    expect(within(section('options')).getByText('menu_sections')).toBeInTheDocument();
+    expect(within(section('options')).getByText('bundle_guest_preview')).toBeInTheDocument();
+    expect(section('options').querySelector('#allergen-chip-vegan')).not.toBeNull();
+    expect(section('options').querySelector('input[name="name"]')).toBeNull();
+    activateSection('editor_bundle_options_label');
+    expect(await screen.findByRole('heading', { name: 'editor_option_sets_title' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(searchOptionSets).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'bundleChoice' }),
+        expect.anything(),
+      ),
+    );
+    expect(within(section('service')).getByText('menu_availability_schedule')).toBeInTheDocument();
+    expect(section('service').querySelector('input[name="preparationTimeMinutes"]')).not.toBeNull();
+    expect(within(section('service')).getByText('product_order_types')).toBeInTheDocument();
+    expect(section('advanced')).toBeInTheDocument();
     expect(screen.queryByText('product_variations')).not.toBeInTheDocument();
+  });
+
+  it('keeps the new bundle focused and shows category choices before its first Save', async () => {
+    const { container } = await renderEditor(emptyProductDetails(true), true, 'create');
+    const nav = container.querySelector('[role="tablist"][aria-label="editor_sections"]') as HTMLElement;
+
+    expect(
+      within(nav)
+        .getAllByRole('tab')
+        .map((tab) => tab.textContent),
+    ).toEqual([
+      'editor_section_basics',
+      'editor_section_media',
+      'editor_bundle_options_label',
+      'editor_section_service',
+    ]);
+    expect(container.querySelector('#category-chip-cat-a')).not.toBeNull();
+  });
+
+  it('saves an existing bundle’s category and derived primary category', async () => {
+    const { container } = await renderEditor(bundle, true);
+    fireEvent.click(container.querySelector('#category-chip-cat-a') as HTMLInputElement);
+    await waitFor(() => expect(container.querySelector('input[name="primary-category-star"]')).toBeChecked());
+
+    await saveThroughReview();
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+    const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
+    expect(payload.categoryIds).toEqual(['cat-a']);
+    expect(payload.primaryCategoryId).toBe('cat-a');
   });
 
   it('gives an item the category controls, and no bundle schedule', async () => {
@@ -383,8 +445,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   });
 
   // Both kinds since §9.2: the bundle commands now accept and store a mask, so the control no
-  // longer promises a save that silently does nothing. For a combo it is the ONLY way to restrict —
-  // this editor has no category control, so a UI-created bundle has nothing to inherit from.
+  // longer promises a save that silently does nothing. The bundle can also inherit from its category.
   it('offers the order-type control on an item AND on a bundle', async () => {
     const { container } = await renderEditor(item, false);
     expect(orderTypeBox(container, 'order_type_dine_in')).toBeInTheDocument();
@@ -567,6 +628,7 @@ describe('ProductEditorPage — saved menu quote preview', () => {
       },
     } as ProductDetails;
     const { container } = await renderEditor(savedBundle, true);
+    activateSection('editor_bundle_options_label');
 
     const quoteButton = screen.getByRole('button', { name: 'bundle_quote_request' });
     expect(quoteButton).toBeEnabled();
@@ -844,12 +906,18 @@ describe('ProductEditorPage — the S1 editor shell', () => {
     expect(rail.textContent).toContain('Pizza');
   });
 
-  it('gives a bundle no category row in the rail, because a bundle has no categories', async () => {
-    const { container } = await renderEditor(bundle, true);
+  it('shows a saved bundle’s category and photo count in the rail', async () => {
+    const categorized = {
+      ...bundle,
+      categories: [{ categoryId: 'cat-a', categoryName: 'Pizza', isPrimary: true }],
+      primaryCategory: { id: 'cat-a', name: 'Pizza' },
+    };
+    const { container } = await renderEditor(categorized, true);
 
     const rail = container.querySelector('aside') as HTMLElement;
     expect(rail.textContent).toMatch(/CHF\s20\.00/);
-    expect(rail.textContent).not.toContain('category');
+    expect(rail.textContent).toContain('Pizza');
+    expect(rail.textContent).toContain('product_images');
   });
 });
 

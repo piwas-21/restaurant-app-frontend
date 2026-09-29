@@ -16,19 +16,19 @@ interface EditorSideRailProps {
   /** The item's status flags (S2). A bundle passes none — its own three stay in `BundlePanel`. */
   readonly status?: React.ReactNode;
   readonly basePrice: number;
-  /** The primary category's name, or empty when the item has none yet. */
+  /** The primary category's name, or empty when the offer has none yet. */
   readonly categoryName?: string;
   /** True while `availableOrderTypes` is null, i.e. the item follows its category (D6). */
   readonly inheritsOrderTypes: boolean;
   readonly photoCount: number;
-  /** A bundle has no categories and (frontend #524) no gallery — those rows are omitted for it. */
+  /** Show placement and saved gallery facts for both items and bundles. */
   readonly showCategory: boolean;
   readonly showPhotos: boolean;
   /**
    * The completeness score (S10), or omitted to draw no meter at all.
    *
-   * Omitted for a BUNDLE and on CREATE, and both are decisions rather than oversights. A bundle has
-   * no gallery to manage (§15.4), so a "needs a photo" row would name a control it does not have.
+   * Omitted for a BUNDLE and on CREATE. The meter currently scores only item descriptions and photos;
+   * bundles have their own managed gallery but no bundle-specific completeness rules yet.
    * On create nothing exists yet: every row would read empty because the admin has not typed it,
    * which scolds them for not having finished a form they just opened. The caller decides; this
    * component only draws what it is given.

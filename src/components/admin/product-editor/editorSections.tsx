@@ -18,7 +18,7 @@ import type { useEditorTranslationReview } from '@/hooks/admin/useEditorTranslat
  * S1 dropped today's nine flat groups into the new shell unchanged; **S2 re-groups them into §4's
  * seven named sections** and changes nothing else — no field is added, renamed or removed, and the
  * PUT payload is byte-identical. The item shape lives in `itemEditorSections.tsx`; this file is the
- * dispatcher, and the bundle's own two sections.
+ * dispatcher, and the bundle's focused sections.
  *
  * It stays out of `ProductEditorPage` because that page has to remain an orchestrator under the
  * 200-LOC gate, and out of `EditorShell` because the shell must never learn what a product field is.
@@ -29,8 +29,7 @@ export { SECTION_IDS } from './editorSectionTypes';
 /**
  * A bundle uses the fields its DTO supports: bundle identity, availability, allergens and menu
  * sections. It does not share item-only kitchen, variation, ingredient or customization controls.
- * Its sections remain one focused panel with a guest-step preview; media and translations have
- * their own panels.
+ * Its guest choices, schedule and local review fields use focused panels while retaining one Save.
  *
  * Media holds the same managed gallery an item gets. Since 2026-09-10 it holds the
  * SAME managed gallery an item gets: `MenuBundleDto` DOES carry `images` (they are ProductImages
@@ -42,43 +41,32 @@ export { SECTION_IDS } from './editorSectionTypes';
  * the CREATE route only, where there is no product id to upload against yet.
  */
 function bundleSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t, product, isCreate, onNavigate } = context;
+  const { editor, t, product, onNavigate } = context;
   const { form } = editor;
+  const bundleProps = {
+    register: form.register,
+    errors: form.formState.errors,
+    control: form.control,
+    setValue: form.setValue,
+    categories: editor.categories,
+    categoriesError: editor.categoriesError,
+    selectedCategoryIds: editor.selectedCategoryIds,
+    menuDefinition: editor.menuDefinition,
+    availability: product.availability,
+    productId: product.id,
+    isDirty: editor.isDirty,
+    isActive: Boolean(form.watch('isActive')),
+    isAvailable: Boolean(form.watch('isAvailable')),
+    onChange: editor.changeMenuDefinition,
+  };
 
-  return [
+  const sections: EditorSection[] = [
     {
       id: SECTION_IDS.basics,
-      // No heading and no description: `BundlePanel` brings its own `<h2>`, and a description under
-      // a title that is not there would float. The bundle's five-section nav is #580, not #573.
-      label: t('details'),
-      node: (
-        <>
-          <BundlePanel
-            register={form.register}
-            errors={form.formState.errors}
-            control={form.control}
-            setValue={form.setValue}
-            categories={editor.categories}
-            selectedCategoryIds={editor.selectedCategoryIds}
-            showCategories={isCreate}
-            menuDefinition={editor.menuDefinition}
-            availability={product.availability}
-            productId={product.id}
-            isDirty={editor.isDirty}
-            isActive={Boolean(form.watch('isActive'))}
-            isAvailable={Boolean(form.watch('isAvailable'))}
-            onChange={editor.changeMenuDefinition}
-          />
-          {product.id && (
-            <OfferVersionsSection
-              product={product}
-              onCreateRequested={context.onOfferCreateRequested}
-              onNavigate={onNavigate}
-              allowQuickCreate={false}
-            />
-          )}
-        </>
-      ),
+      label: t('editor_section_basics'),
+      showHeading: true,
+      description: t('editor_section_basics_description'),
+      node: <BundlePanel {...bundleProps} section="basics" />,
     },
     {
       id: SECTION_IDS.media,
@@ -104,13 +92,44 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       ),
     },
     {
+      id: SECTION_IDS.options,
+      label: t('editor_bundle_options_label'),
+      showHeading: true,
+      description: t('editor_bundle_options_description'),
+      node: <BundlePanel {...bundleProps} section="options" />,
+    },
+    {
       id: SECTION_IDS.service,
       label: t('editor_section_service'),
       showHeading: true,
-      description: t('editor_section_service_description'),
-      node: <EditorOrderTypesField context={context} />,
+      description: t('editor_bundle_service_description'),
+      node: (
+        <>
+          <BundlePanel {...bundleProps} section="service" />
+          <EditorOrderTypesField context={context} />
+        </>
+      ),
     },
   ];
+
+  if (product.id) {
+    sections.push({
+      id: SECTION_IDS.advanced,
+      label: t('editor_section_advanced'),
+      showHeading: true,
+      description: t('editor_bundle_advanced_description'),
+      node: (
+        <OfferVersionsSection
+          product={product}
+          onCreateRequested={context.onOfferCreateRequested}
+          onNavigate={onNavigate}
+          allowQuickCreate={false}
+        />
+      ),
+    });
+  }
+
+  return sections;
 }
 
 export function buildEditorSections(context: EditorSectionsContext): EditorSection[] {

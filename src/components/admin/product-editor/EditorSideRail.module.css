@@ -89,18 +89,20 @@
 }
 
 /*
-  TABLET — the rail is a full-width STRIP above the form (frontend #572, and `EditorShell.module.css`
-  is what puts it there). Sticky is dropped because a strip at the top of the grid has nothing to
-  travel over, and the cards lay out side by side so the strip stays one or two rows tall instead of
-  pushing the form off the screen.
+  TABLET — the rail is a full-width strip above the form (frontend #572). It must be a row flexbox:
+  the base column direction made `flex-basis: 16rem` set each card's HEIGHT on phones, leaving huge
+  blank cards inside a nested scroll region. Let cards wrap and grow to their content height.
 */
 @media (max-width: 1024px) {
   .stack {
     position: static;
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: flex-start;
+    max-height: none;
+    overflow: visible;
   }
 
   /* Every card in the strip, not just this module's own (frontend #581, item b). The Status card

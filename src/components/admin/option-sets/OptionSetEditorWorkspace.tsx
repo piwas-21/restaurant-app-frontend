@@ -100,65 +100,62 @@ export default function OptionSetEditorWorkspace({
             </select>
           </FormField>
         </section>
-        <section className={styles.formSection} aria-labelledby="option-set-entries-heading">
-          <h2 id="option-set-entries-heading">{t('option_set_entries')}</h2>
-          <p className={styles.notice}>{t('option_set_entries_help')}</p>
-          {!editor.kind && <p className={styles.entryHelp}>{t('option_set_kind_filter')}</p>}
-          {editor.kind && editor.entries.length === 0 && (
-            <p className={styles.entryHelp}>{t('option_set_add_first_choice')}</p>
-          )}
-          <ol className={styles.entries}>
-            {editor.entries.map((entry, index) => {
-              const usedReferences = editor.entries
-                .filter((_, rowIndex) => rowIndex !== index)
-                .map((row) => (editor.kind ? optionSetEntryReferenceKey(editor.kind, row) : null))
-                .filter((value): value is string => value !== null)
-                .map((value) => value.slice(value.indexOf(':') + 1));
-              const referenceId =
-                editor.kind === 'ingredient' || editor.kind === 'sauce' ? entry.globalIngredientId : entry.productId;
-              const originalEntry = editor.detail?.entries.find((candidate) => candidate.id === entry.id);
-              const isPersistedVariationUnchanged = Boolean(
-                editor.kind &&
-                editor.detail?.kind === editor.kind &&
-                entry.id &&
-                originalEntry &&
-                originalEntry.productId === entry.productId &&
-                originalEntry.productVariationId === entry.productVariationId,
-              );
-              return (
-                <li key={entry.id ?? `new-${index}`}>
-                  <OptionSetEntryRow
-                    kind={editor.kind as OptionSetKind}
-                    entry={entry}
-                    index={index}
-                    entryKey={entry.id ?? `new-${index}`}
-                    isPersistedVariationUnchanged={isPersistedVariationUnchanged}
-                    selectedReferenceAvailable={
-                      !referenceId ||
-                      Boolean(editor.kind && editor.referenceIsAvailable(editor.kind, referenceId, entry.id))
-                    }
-                    usedReferences={usedReferences}
-                    onChange={(patch) => editor.updateEntry(index, patch)}
-                    onReferenceSelected={(candidate) => {
-                      if (editor.kind) editor.markReferenceVerified(editor.kind, candidate);
-                    }}
-                    onVariationValidityChange={editor.markVariationValidity}
-                    onRemove={() => editor.removeEntry(index)}
-                    onMove={(delta) => editor.moveEntry(index, delta)}
-                    canMoveUp={index > 0}
-                    canMoveDown={index < editor.entries.length - 1}
-                  />
-                </li>
-              );
-            })}
-          </ol>
-          <OptionSetEntriesPreview name={editor.name} kind={editor.kind} entries={editor.entries} />
-          {editor.kind && (
+        {editor.kind && (
+          <section className={styles.formSection} aria-labelledby="option-set-entries-heading">
+            <h2 id="option-set-entries-heading">{t('option_set_entries')}</h2>
+            <p className={styles.notice}>{t('option_set_entries_help')}</p>
+            {editor.entries.length === 0 && <p className={styles.entryHelp}>{t('option_set_add_first_choice')}</p>}
+            <ol className={styles.entries}>
+              {editor.entries.map((entry, index) => {
+                const usedReferences = editor.entries
+                  .filter((_, rowIndex) => rowIndex !== index)
+                  .map((row) => (editor.kind ? optionSetEntryReferenceKey(editor.kind, row) : null))
+                  .filter((value): value is string => value !== null)
+                  .map((value) => value.slice(value.indexOf(':') + 1));
+                const referenceId =
+                  editor.kind === 'ingredient' || editor.kind === 'sauce' ? entry.globalIngredientId : entry.productId;
+                const originalEntry = editor.detail?.entries.find((candidate) => candidate.id === entry.id);
+                const isPersistedVariationUnchanged = Boolean(
+                  editor.kind &&
+                  editor.detail?.kind === editor.kind &&
+                  entry.id &&
+                  originalEntry &&
+                  originalEntry.productId === entry.productId &&
+                  originalEntry.productVariationId === entry.productVariationId,
+                );
+                return (
+                  <li key={entry.id ?? `new-${index}`}>
+                    <OptionSetEntryRow
+                      kind={editor.kind as OptionSetKind}
+                      entry={entry}
+                      index={index}
+                      entryKey={entry.id ?? `new-${index}`}
+                      isPersistedVariationUnchanged={isPersistedVariationUnchanged}
+                      selectedReferenceAvailable={
+                        !referenceId ||
+                        Boolean(editor.kind && editor.referenceIsAvailable(editor.kind, referenceId, entry.id))
+                      }
+                      usedReferences={usedReferences}
+                      onChange={(patch) => editor.updateEntry(index, patch)}
+                      onReferenceSelected={(candidate) => {
+                        if (editor.kind) editor.markReferenceVerified(editor.kind, candidate);
+                      }}
+                      onVariationValidityChange={editor.markVariationValidity}
+                      onRemove={() => editor.removeEntry(index)}
+                      onMove={(delta) => editor.moveEntry(index, delta)}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < editor.entries.length - 1}
+                    />
+                  </li>
+                );
+              })}
+            </ol>
+            <OptionSetEntriesPreview name={editor.name} kind={editor.kind} entries={editor.entries} />
             <button type="button" className={`${styles.secondaryAction} ${styles.addButton}`} onClick={editor.addEntry}>
               {t('option_set_add_entry')}
             </button>
-          )}
-        </section>
+          </section>
+        )}
         <OptionSetTranslationsPanel editor={editor} review={translationReview} onReviewToggle={setReviewOpen} />
         {(editor.error === 'save' || showFormError) && (
           <p role="alert" className={styles.error}>

@@ -71,8 +71,8 @@
 }
 
 /*
-  SMALL tablet only (D10: desktop-first, tablet-usable, phone not a target). The nav stops being a
-  column and becomes a scrollable strip above the form, so the main column keeps its width.
+  SMALL tablet and phone: the nav stops being a column and becomes a scrollable strip above the
+  compact tools disclosure and form, so the editing column keeps its width.
 
   820, not 1024 (frontend #572): the approved reflow screen still draws a vertical nav column at
   1024px and only turns it into a chip strip at 820px. This rule used to fire a breakpoint early.

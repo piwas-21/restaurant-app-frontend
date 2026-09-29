@@ -1,0 +1,99 @@
+.startSection {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 2fr);
+  gap: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-light);
+  border-block-start: 3px solid var(--brand-primary);
+  border-radius: 0.5rem;
+  background: var(--surface-card);
+}
+
+.startIntro h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+}
+
+.startIntro p {
+  max-width: 18rem;
+  margin: 0.65rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.kindLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kindLink {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.3rem 0.75rem;
+  padding: 0.85rem 1rem;
+  border-block-start: 1px solid var(--border-light);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.kindLink:nth-child(-n + 2) {
+  border-block-start: 0;
+}
+
+.kindLink:nth-child(even) {
+  border-inline-start: 1px solid var(--border-light);
+}
+
+.kindLink:hover {
+  background: var(--surface-secondary);
+}
+
+.kindLink:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+.kindTitle {
+  font-weight: 600;
+}
+
+.kindHelp {
+  grid-column: 1;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.kindAction {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--link-default);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .startSection {
+    grid-template-columns: 1fr;
+  }
+
+  .startIntro p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .kindLinks {
+    grid-template-columns: 1fr;
+  }
+
+  .kindLink:nth-child(even) {
+    border-inline-start: 0;
+  }
+
+  .kindLink:nth-child(2) {
+    border-block-start: 1px solid var(--border-light);
+  }
+}

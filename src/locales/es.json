@@ -3087,6 +3087,7 @@
   "catalogue_suggested_only": "Función del ingrediente sugerido:",
   "catalogue_category_template_notice": "Esta plantilla incluye una referencia de categoría.",
   "catalogue_local_review_heading": "Revisa para tu restaurante",
+  "catalogue_review_checklist": "Mostrar lista de revisión",
   "catalogue_local_review_notice": "Antes de usar una plantilla, define los precios locales y confirma ingredientes, alérgenos, canales, disponibilidad y enrutamiento a cocina.",
   "catalogue_review_field_price": "Definir precios locales",
   "catalogue_review_field_ingredients": "Confirmar ingredientes y receta",

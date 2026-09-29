@@ -92,6 +92,13 @@
   padding-inline-start: 1.25rem;
 }
 
+.reviewChecklist summary {
+  width: fit-content;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .payloadPreview {
   display: grid;
   gap: 1rem;

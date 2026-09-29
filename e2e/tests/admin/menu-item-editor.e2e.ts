@@ -313,10 +313,17 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     const bundleSaveBox = await page.getByTestId('editor-save').boundingBox();
     expect(bundleNameBox!.y).toBeGreaterThanOrEqual(0);
     expect(bundleNameBox!.y + bundleNameBox!.height).toBeLessThan(bundleSaveBox!.y);
+    expect(bundleNameBox!.width, 'the bundle name needs a usable phone-width input').toBeGreaterThan(200);
     await expect(tools).toBeVisible();
     // This part follows the RTL check above, so tab labels may be Arabic. Stable section IDs
     // keep the check about the actual control instead of the current language's spelling.
     const bundleNav = page.getByTestId('editor-section-nav');
+    expect(
+      await bundleNav.locator('[role="tab"]').evaluateAll((tabs) =>
+        tabs.every((tab) => tab.scrollWidth <= tab.clientWidth + 1),
+      ),
+      'each section label must fit its own tab while the strip scrolls',
+    ).toBe(true);
     await bundleNav.locator('[role="tab"][id$="-editor-section-options"]').click();
     await tools.click();
     await expect(page.getByRole('searchbox')).toBeVisible();

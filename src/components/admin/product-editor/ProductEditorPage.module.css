@@ -9,6 +9,30 @@
   padding-top: 0;
 }
 
+.bundleBasicsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.bundleCategories {
+  min-width: 0;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.bundleCategories legend {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.bundleCategories p {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
 /*
   The single commit point. Sticky so Save stays reachable on a long editor — the whole
   screen is one form, so the button must not be a scroll hunt.
@@ -56,5 +80,11 @@
     width: 100%;
     margin-inline-end: 0;
     margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 820px) {
+  .bundleBasicsGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -2223,6 +2223,7 @@
   "editor_sections": "Bölümler",
   "editor_section_basics": "Temel bilgiler",
   "editor_section_basics_description": "Ürünün temel bilgileri ve açıklamaları",
+  "editor_bundle_basics_description": "Bu menünün adı, fiyatı, durumu ve kategorileri",
   "editor_section_media": "Medya",
   "editor_section_media_description": "Fotoğraflar ve galeri dosyaları",
   "editor_media_autosave_notice": "Fotoğraf değişiklikleri anında kaydedilir.",

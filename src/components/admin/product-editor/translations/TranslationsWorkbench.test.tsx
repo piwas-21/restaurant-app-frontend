@@ -165,12 +165,28 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions: [], skipped: [] });
     const { view } = await openWorkbench();
     expect(service.suggest).not.toHaveBeenCalled();
-    fireEvent.click(view.getByRole('button', { name: 'editor_translations_review_missing' }));
+    const helpButton = view.getByRole('button', { name: 'editor_translations_ai_suggestions' });
+    fireEvent.click(helpButton);
     await waitFor(() => expect(service.preview).toHaveBeenCalled());
     expect(service.suggest).not.toHaveBeenCalled();
+    const reviewPanel = view.getByRole('complementary', { name: 'translation_review_title' });
+    const firstTranslation = targetField(view, 'item_name', 'English', 'Margherita Pizza');
+    expect(helpButton).toHaveAttribute('aria-controls', 'editor-translation-review-panel');
+    expect(reviewPanel.compareDocumentPosition(firstTranslation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(await view.findByRole('button', { name: 'translation_review_suggest_missing' }));
     await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
     expect(service.suggest.mock.calls[0][0].generationIntent).toBe('explicitFill');
+  });
+
+  it('explains disabled AI help beside its trigger while keeping manual translations editable', async () => {
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    (service.availability as jest.Mock).mockResolvedValue({ providerStatus: 'disabled' });
+    const { view } = await openWorkbench();
+    fireEvent.click(view.getByRole('button', { name: 'editor_translations_ai_suggestions' }));
+    expect(await view.findByText('translation_review_provider_disabled')).toBeInTheDocument();
+    expect(view.queryByRole('button', { name: 'translation_review_suggest_missing' })).not.toBeInTheDocument();
+    expect(targetField(view, 'item_name', 'English', 'Margherita Pizza')).toBeEnabled();
+    expect(service.suggest).not.toHaveBeenCalled();
   });
   /**
    * The whole point of the slice. Before it, these three strings lived in three different UIs —

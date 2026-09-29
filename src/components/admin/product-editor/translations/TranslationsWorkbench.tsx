@@ -9,6 +9,7 @@ import { directionFor } from '@/lib/textDirection';
 import { TRANSLATION_SOURCE_BASE, useTranslationsWorkbench } from '@/hooks/admin/useTranslationsWorkbench';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import TranslationsReviewPanel, { type TranslationsReviewControls } from './TranslationsReviewPanel';
+import TranslationBaseLanguagePrompt from './TranslationBaseLanguagePrompt';
 import TranslationLocaleRail from './TranslationLocaleRail';
 import TranslationSlotRows from './TranslationSlotRows';
 import { isLocaleComplete, type ProductContentRow, type TranslationSlot } from './translationSlots';
@@ -143,13 +144,7 @@ export default function TranslationsWorkbench({
     return t('editor_translations_review_matching', { count: matchingBase });
   };
 
-  /**
-   * What the live region says about the last copy, or nothing before the first one.
-   *
-   * A function rather than the ternary chain it replaces (Sonar S3358): "has a copy run at all" and
-   * "did it fill anything" are two different questions, and zero filled is a stateable outcome
-   * rather than a missing one.
-   */
+  /** Announce the last copy, including a run that found nothing to fill. */
   const copyAnnouncement = (): string => {
     if (lastCopy === null) return '';
     return lastCopy.filled > 0
@@ -176,6 +171,7 @@ export default function TranslationsWorkbench({
         onSelect={workbench.setTargetLocale}
       />
       <div className={styles.main}>
+        {reviewControls && <TranslationBaseLanguagePrompt review={reviewControls.review} />}
         <div className={styles.toolbar}>
           <div className={styles.sourcePicker}>
             <label htmlFor={SOURCE_SELECT_ID} className={styles.sourceLabel}>

@@ -78,5 +78,11 @@ export function useEditorSourceLocales({ editor, product, productId }: Options) 
     });
   }, []);
 
-  return { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor, setSourceLocaleForMany };
+  return {
+    sourceLocaleFor,
+    sourceLocaleKnownFor,
+    setSourceLocaleFor,
+    setSourceLocaleForMany,
+    sourceLocaleDirty: Object.keys(sourceLocales).length > 0,
+  };
 }

@@ -37,11 +37,12 @@ export function useEditorTranslationReview({
   isOpen,
   adapter = translationWorkbenchService,
 }: UseEditorTranslationReviewOptions) {
-  const { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor, setSourceLocaleForMany } = useEditorSourceLocales({
-    editor,
-    product,
-    productId,
-  });
+  const { sourceLocaleFor, sourceLocaleKnownFor, setSourceLocaleFor, setSourceLocaleForMany, sourceLocaleDirty } =
+    useEditorSourceLocales({
+      editor,
+      product,
+      productId,
+    });
   const acceptedIdsRef = useRef<Readonly<Record<string, string>>>({});
   const [staleCount, setStaleCount] = useState(0);
   const [reviewWriteError, setReviewWriteError] = useState(false);
@@ -92,7 +93,6 @@ export function useEditorTranslationReview({
   const batchEntries = batch.entries,
     requestedBatchFields = batch.requestedFields,
     previewRows = batch.previewRows;
-
   const decide = useCallback(
     (suggestionId: string, decision: TranslationDecision['decision']) => {
       const UI_DECISION = { accept: 'accepted', edit: 'edited', reject: 'rejected' } as const;
@@ -138,7 +138,6 @@ export function useEditorTranslationReview({
       acceptedIdsRef.current,
       product.translationMetadata?.expectedContentVersion,
     );
-
   const unknownSourceLocaleFields = readFields().filter((field) => !field.sourceLocaleKnown);
   const submitDecisions = useCallback(async (): Promise<boolean> => {
     const selected = batchEntries.filter((entry) => entry.decision !== 'pending') as ReviewedEntry[];
@@ -174,6 +173,7 @@ export function useEditorTranslationReview({
   }, [adapter, batchEntries, editor, previewRows, readFields, requestedBatchFields, setBatchError]);
   return {
     sourceLocaleFor,
+    sourceLocaleDirty,
     sourceLocaleKnownFor,
     setSourceLocaleFor,
     setSourceLocaleForMany,

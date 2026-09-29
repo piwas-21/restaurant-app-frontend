@@ -161,6 +161,12 @@
   color: var(--feedback-error-text);
 }
 
+.reviewHint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 .empty {
   padding: 32px 16px;
   border: 1px dashed var(--border-default);

@@ -11,7 +11,7 @@ import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import TranslationsReviewPanel, { type TranslationsReviewControls } from './TranslationsReviewPanel';
 import TranslationLocaleRail from './TranslationLocaleRail';
 import TranslationSlotRows from './TranslationSlotRows';
-import type { ProductContentRow, TranslationSlot } from './translationSlots';
+import { isLocaleComplete, type ProductContentRow, type TranslationSlot } from './translationSlots';
 import styles from './TranslationsWorkbench.module.css';
 import actionStyles from './TranslationActions.module.css';
 
@@ -32,18 +32,9 @@ interface FieldErrorLike {
 }
 
 /**
- * The Translations tab (MENU-ITEM-EDITOR-REDESIGN-PLAN D2, slice S4) — approved screen
- * `translations_workbench_margherita_pizza`.
- *
- * ONE locale switcher for every translatable string on the item. It replaces all three of the
- * editor's old translation UIs: the product's per-language row list, the `<details>` grid on every
- * variation, and the second `<details>` grid on every ingredient. Those three disagreed about which
- * locales exist and about what "translated" means, and none of them could answer the only question
- * an admin actually has — *which languages are still missing?*
- *
- * Two counts, and they are not the same number: the rail says how much of EACH language is written,
- * the badge says how much of the SELECTED one is not. The first is what makes the admin pick a
- * language; the second is what tells them when to stop.
+ * One locale switcher for item, variation, ingredient and menu-section text.
+ * The rail shows each language's progress; the badge names missing text or matching base text for
+ * the selected language. Matching text asks for review without clearing the saved value.
  *
  * ⚠️ Neither count may ever become an i18next plural. `check-locale-parity.mjs` requires one key set
  * across ten bundles while Russian needs three plural categories and Arabic six, so a correct plural
@@ -58,7 +49,11 @@ export default function TranslationsWorkbench({
   reviewControls,
 }: TranslationsWorkbenchProps) {
   const { t } = useTranslation();
-  const workbench = useTranslationsWorkbench(editor);
+  const knownSourceLocaleFor = useCallback(
+    (slot: TranslationSlot) => (sourceLocaleKnownFor(slot.key, slot) ? sourceLocaleFor(slot.key, slot) : undefined),
+    [sourceLocaleFor, sourceLocaleKnownFor],
+  );
+  const workbench = useTranslationsWorkbench(editor, knownSourceLocaleFor);
   const { slots, progress, targetLocale, sourceLocale, missing, lastCopy } = workbench;
   const { errors } = editor.form.formState;
 
@@ -139,8 +134,14 @@ export default function TranslationsWorkbench({
     [editor.form],
   );
 
-  const complete = slots.length > 0 && missing === 0;
-  const hasMissingInAnyLocale = Object.values(progress).some((locale) => locale.done < locale.total);
+  const matchingBase = progress[targetLocale]?.matchingBase ?? 0;
+  const complete = slots.length > 0 && missing === 0 && matchingBase === 0;
+  const hasWorkInAnyLocale = Object.values(progress).some((locale) => locale.total > 0 && !isLocaleComplete(locale));
+  const statusText = () => {
+    if (complete) return t('editor_translations_all_translated');
+    if (missing > 0) return t('editor_translations_missing', { count: missing });
+    return t('editor_translations_review_matching', { count: matchingBase });
+  };
 
   /**
    * What the live region says about the last copy, or nothing before the first one.
@@ -197,14 +198,14 @@ export default function TranslationsWorkbench({
 
           <StatusBadge tone={complete ? 'success' : 'warning'} className={styles.missingBadge}>
             {complete ? <CheckCircle2 size={14} aria-hidden="true" /> : <AlertTriangle size={14} aria-hidden="true" />}
-            {complete ? t('editor_translations_all_translated') : t('editor_translations_missing', { count: missing })}
+            {statusText()}
           </StatusBadge>
 
           <button type="button" className={actionStyles.copyButton} onClick={workbench.copySourceToEmpty}>
             <Copy size={14} aria-hidden="true" />
             {t('editor_translations_copy_source')}
           </button>
-          {reviewControls && hasMissingInAnyLocale && (
+          {reviewControls && hasWorkInAnyLocale && (
             <button
               type="button"
               className={actionStyles.suggestButton}

@@ -45,7 +45,16 @@ export default function TranslationLocaleRail({
         {locales.map((locale) => {
           const localeProgress = progress[locale] ?? { done: 0, total: 0 };
           const complete = isLocaleComplete(localeProgress);
+          const needsReview = localeProgress.done === localeProgress.total && (localeProgress.matchingBase ?? 0) > 0;
           const isActive = locale === activeLocale;
+          const progressText = () => {
+            if (complete) return t('editor_translations_all_translated');
+            if (needsReview) return t('editor_translations_review_matching', { count: localeProgress.matchingBase });
+            return t('editor_translations_progress', { done: localeProgress.done, total: localeProgress.total });
+          };
+          const shortProgress = needsReview
+            ? t('editor_translations_review_short', { count: localeProgress.matchingBase })
+            : `${localeProgress.done}/${localeProgress.total}`;
 
           return (
             <li key={locale}>
@@ -59,16 +68,12 @@ export default function TranslationLocaleRail({
                 <span className={styles.code} aria-hidden="true">
                   {locale.toUpperCase()}
                 </span>
-                <span className="sr-only">
-                  {complete
-                    ? t('editor_translations_all_translated')
-                    : t('editor_translations_progress', { done: localeProgress.done, total: localeProgress.total })}
-                </span>
+                <span className="sr-only">{progressText()}</span>
                 {complete ? (
                   <CheckCircle2 size={16} className={styles.done} aria-hidden="true" />
                 ) : (
                   <span className={styles.count} aria-hidden="true">
-                    {localeProgress.done}/{localeProgress.total}
+                    {shortProgress}
                   </span>
                 )}
               </button>

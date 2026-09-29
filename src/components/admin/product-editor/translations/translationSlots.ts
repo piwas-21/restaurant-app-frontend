@@ -242,6 +242,18 @@ export const translationIn = (slot: TranslationSlot, locale: string): string => 
 export interface LocaleProgress {
   readonly done: number;
   readonly total: number;
+  readonly matchingBase?: number;
+}
+
+/** Existing text can be a valid proper name, so a match asks for review and never clears a value. */
+export function matchesBaseTextForReview(slot: TranslationSlot, locale: string, knownSourceLocale?: string): boolean {
+  const target = translationIn(slot, locale).trim();
+  return (
+    target.length > 0 &&
+    !isBlank(slot.source) &&
+    knownSourceLocale !== locale &&
+    target.normalize('NFC') === slot.source.trim().normalize('NFC')
+  );
 }
 
 /**
@@ -249,15 +261,26 @@ export interface LocaleProgress {
  * locale and moves only when the item itself gains or loses text — which is what makes the ten
  * counters in the rail comparable at a glance.
  */
-export function localeProgress(slots: readonly TranslationSlot[], locale: string): LocaleProgress {
+export function localeProgress(
+  slots: readonly TranslationSlot[],
+  locale: string,
+  knownSourceLocaleFor?: (slot: TranslationSlot) => string | undefined,
+): LocaleProgress {
   return {
     done: slots.filter((slot) => !isBlank(translationIn(slot, locale))).length,
     total: slots.length,
+    matchingBase: slots.filter((slot) => matchesBaseTextForReview(slot, locale, knownSourceLocaleFor?.(slot))).length,
   };
 }
 
-export const isLocaleComplete = ({ done, total }: LocaleProgress): boolean => total > 0 && done === total;
+export const isLocaleComplete = ({ done, total, matchingBase }: LocaleProgress): boolean =>
+  total > 0 && done === total && !matchingBase;
 
-export function everyLocaleProgress(slots: readonly TranslationSlot[]): Record<string, LocaleProgress> {
-  return Object.fromEntries(LANGUAGE_CODES.map((locale) => [locale, localeProgress(slots, locale)]));
+export function everyLocaleProgress(
+  slots: readonly TranslationSlot[],
+  knownSourceLocaleFor?: (slot: TranslationSlot) => string | undefined,
+): Record<string, LocaleProgress> {
+  return Object.fromEntries(
+    LANGUAGE_CODES.map((locale) => [locale, localeProgress(slots, locale, knownSourceLocaleFor)]),
+  );
 }

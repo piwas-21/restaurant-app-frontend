@@ -7,6 +7,7 @@ import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
 import { directionFor } from '@/lib/textDirection';
 import {
   isBlank,
+  matchesBaseTextForReview,
   translationIn,
   type TranslationGroupId,
   type TranslationSlot,
@@ -25,9 +26,15 @@ export const UNTRANSLATED_HINT_ID = 'editor-translations-untranslated-hint';
  * alternatives of one question — the first is a refusal and the second is a state — so nesting them
  * read as if a blank cell were a kind of error.
  */
-const describedBy = (error: string | undefined, errorId: string, isEmpty: boolean): string | undefined => {
+const describedBy = (
+  error: string | undefined,
+  errorId: string,
+  isEmpty: boolean,
+  reviewId?: string,
+): string | undefined => {
   if (error) return errorId;
-  return isEmpty ? UNTRANSLATED_HINT_ID : undefined;
+  if (isEmpty) return UNTRANSLATED_HINT_ID;
+  return reviewId;
 };
 
 /**
@@ -114,6 +121,12 @@ export default function TranslationSlotRows({
     const sourceId = `translation-${slot.key}-source`;
     const targetId = `translation-${slot.key}-target`;
     const errorId = `${targetId}-error`;
+    const reviewId = `${targetId}-review`;
+    const matchesBase = matchesBaseTextForReview(
+      slot,
+      targetLocale,
+      sourceLocaleKnownFor(slot.key, slot) ? sourceLocaleFor(slot.key, slot) : undefined,
+    );
     const SourceTag = slot.multiline ? 'textarea' : 'input';
     const TargetTag = slot.multiline ? 'textarea' : 'input';
 
@@ -162,7 +175,7 @@ export default function TranslationSlotRows({
             value={value}
             rows={slot.multiline ? 3 : undefined}
             placeholder={isBlank(source) ? undefined : t('editor_translations_placeholder', { text: source })}
-            aria-describedby={describedBy(error, errorId, isBlank(value))}
+            aria-describedby={describedBy(error, errorId, isBlank(value), matchesBase ? reviewId : undefined)}
             aria-invalid={error ? true : undefined}
             onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
               onChange(slot.ref, event.target.value)
@@ -176,6 +189,11 @@ export default function TranslationSlotRows({
           {error && (
             <p id={errorId} className={styles.error} role="alert">
               {error}
+            </p>
+          )}
+          {matchesBase && (
+            <p id={reviewId} className={styles.reviewHint}>
+              {t('editor_translations_matches_base')}
             </p>
           )}
         </div>

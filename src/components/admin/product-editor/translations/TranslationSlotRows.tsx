@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import FormField from '@/components/design-system/FormField';
-import { getLanguageNativeName, LANGUAGE_CODES } from '@/config/languageConfig';
+import { getLanguageNativeName } from '@/config/languageConfig';
 import { directionFor } from '@/lib/textDirection';
 import {
   isBlank,
@@ -68,7 +67,6 @@ interface TranslationSlotRowsProps {
   readonly onBlurSlot: (slot: TranslationSlot) => void;
   readonly sourceLocaleFor: (slotKey: string, slot?: TranslationSlot) => string;
   readonly sourceLocaleKnownFor: (slotKey: string, slot?: TranslationSlot) => boolean;
-  readonly onSourceLocaleChange: (slotKey: string, locale: string) => void;
 }
 
 /**
@@ -98,7 +96,6 @@ export default function TranslationSlotRows({
   onBlurSlot,
   sourceLocaleFor,
   sourceLocaleKnownFor,
-  onSourceLocaleChange,
 }: TranslationSlotRowsProps) {
   const { t } = useTranslation();
   const targetDirection = directionFor(targetLocale);
@@ -144,20 +141,6 @@ export default function TranslationSlotRows({
             value={source}
             rows={slot.multiline ? 3 : undefined}
           />
-          <FormField label={t('editor_translations_source_locale_field', { field: fieldName })} srOnlyLabel>
-            <select
-              className={styles.sourceSelect}
-              value={sourceLocaleKnownFor(slot.key, slot) ? sourceLocaleFor(slot.key, slot) : ''}
-              onChange={(event) => onSourceLocaleChange(slot.key, event.target.value)}
-            >
-              <option value="">{t('translation_review_source_locale_required')}</option>
-              {LANGUAGE_CODES.map((locale) => (
-                <option key={locale} value={locale}>
-                  {getLanguageNativeName(locale)}
-                </option>
-              ))}
-            </select>
-          </FormField>
         </div>
         <div className={styles.cell}>
           <label className="sr-only" htmlFor={targetId}>

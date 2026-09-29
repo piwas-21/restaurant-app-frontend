@@ -152,11 +152,7 @@ export default function TranslationsWorkbench({
       : t('editor_translations_nothing_to_copy');
   };
 
-  /**
-   * The source column's heading names what is IN it. The item's own text declares no language, so
-   * on `base` it borrows the picker's own label rather than asserting one — the alternative was to
-   * leave `{{language}}` uninterpolated, which renders the braces to the admin.
-   */
+  /** An unknown base-text language must not be asserted as a specific locale. */
   const sourceName =
     sourceLocale === TRANSLATION_SOURCE_BASE
       ? t('editor_translations_source_base')
@@ -171,7 +167,15 @@ export default function TranslationsWorkbench({
         onSelect={workbench.setTargetLocale}
       />
       <div className={styles.main}>
-        {reviewControls && <TranslationBaseLanguagePrompt review={reviewControls.review} />}
+        {reviewControls && (
+          <TranslationBaseLanguagePrompt
+            review={reviewControls.review}
+            slots={slots}
+            sourceLocaleFor={sourceLocaleFor}
+            sourceLocaleKnownFor={sourceLocaleKnownFor}
+            onSourceLocaleChange={onSourceLocaleChange}
+          />
+        )}
         <div className={styles.toolbar}>
           <div className={styles.sourcePicker}>
             <label htmlFor={SOURCE_SELECT_ID} className={styles.sourceLabel}>
@@ -237,7 +241,6 @@ export default function TranslationsWorkbench({
             onBlurSlot={onBlurSlot}
             sourceLocaleFor={sourceLocaleFor}
             sourceLocaleKnownFor={sourceLocaleKnownFor}
-            onSourceLocaleChange={onSourceLocaleChange}
           />
         )}
       </div>

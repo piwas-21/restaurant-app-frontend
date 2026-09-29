@@ -39,7 +39,7 @@ export function useEnabledOrderTypes() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         setLoading(true);
         const result = await fetchEnabledOnce();

@@ -69,7 +69,7 @@ export function useSavedAddressList(enabled: boolean): SavedAddressList {
       setListError(message);
     };
 
-    (async () => {
+    void (async () => {
       let user;
       try {
         user = await getCurrentUser();

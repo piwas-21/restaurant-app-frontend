@@ -85,7 +85,7 @@ export function useTaxConfigurations() {
     try {
       await adminTaxConfigurationService.deleteTaxConfiguration(deletingTaxId);
       reportSuccess(t('tax_deleted_successfully', 'Tax configuration deleted successfully'));
-      fetchTaxConfigs();
+      await fetchTaxConfigs();
     } catch (e) {
       // The server's reason matters most here — a refused delete usually names what still
       // references the tax, which "Failed to delete tax configuration" cannot.
@@ -114,7 +114,7 @@ export function useTaxConfigurations() {
         ),
       );
       setIsFormOpen(false);
-      fetchTaxConfigs();
+      await fetchTaxConfigs();
     } catch (e) {
       reportFailure(e, t('tax_failed_to_save', 'Failed to save tax configuration'));
     }
@@ -136,7 +136,7 @@ export function useTaxConfigurations() {
           `Tax ${!config.isEnabled ? 'enabled' : 'disabled'} successfully`,
         ),
       );
-      fetchTaxConfigs();
+      await fetchTaxConfigs();
     } catch (e) {
       reportFailure(e, t('tax_failed_to_toggle', 'Failed to toggle tax configuration'));
     }

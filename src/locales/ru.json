@@ -2227,6 +2227,7 @@
   "editor_sections": "Разделы",
   "editor_section_basics": "Основное",
   "editor_section_basics_description": "Основные сведения и описания позиции",
+  "editor_bundle_basics_description": "Название, цена, статус и категории этого меню",
   "editor_section_media": "Медиа",
   "editor_section_media_description": "Фотографии и файлы галереи",
   "editor_media_autosave_notice": "Изменения фотографий сохраняются сразу.",

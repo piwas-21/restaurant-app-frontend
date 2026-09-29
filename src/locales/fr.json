@@ -2225,6 +2225,7 @@
   "editor_sections": "Rubriques",
   "editor_section_basics": "Informations de base",
   "editor_section_basics_description": "Identité et descriptions de l'article",
+  "editor_bundle_basics_description": "Nom, prix, statut et catégories de ce menu",
   "editor_section_media": "Médias",
   "editor_section_media_description": "Photos et éléments de la galerie",
   "editor_media_autosave_notice": "Les modifications des photos sont enregistrées immédiatement.",

@@ -65,7 +65,7 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       id: SECTION_IDS.basics,
       label: t('editor_section_basics'),
       showHeading: true,
-      description: t('editor_section_basics_description'),
+      description: t('editor_bundle_basics_description'),
       node: <BundlePanel {...bundleProps} section="basics" />,
     },
     {

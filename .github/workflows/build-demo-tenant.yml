@@ -48,6 +48,10 @@ jobs:
       # tenant actually serves is a PII-scrubbed clone of a French tenant's menu and
       # the reseller market it demos to is France. Owner decision, 2026-09-03.
       locale: fr-FR
+      public_default_locale: fr
+      public_home_locales: fr,en
+      public_menu_locales: fr,en
+      public_indexing: 'false'
       restaurant_name: SofraPiwas Demo
       # No branding_dir: the repo default IS the SofraPiwas set now (it used to be
       # tenant-1's, which is why the demo needed an override at all). The showcase

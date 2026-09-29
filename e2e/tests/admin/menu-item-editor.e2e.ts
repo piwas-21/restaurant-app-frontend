@@ -44,6 +44,8 @@ const SEEDED_PRODUCT_ID = '00000000-0000-0000-0000-0000000000bb';
 const SEEDED_PRODUCT_NAME = 'E2E Test Product';
 const SEEDED_BUNDLE_ID = '00000000-0000-0000-0000-0000000000f1';
 const SEEDED_BUNDLE_NAME = 'E2E Kitchen Combo';
+const MIN_PHONE_BUNDLE_NAME_WIDTH = 200;
+const TAB_LABEL_OVERFLOW_TOLERANCE = 1;
 
 /**
  * §4's seven sections, IN ORDER, as the DOM ids `EditorShell` renders.
@@ -313,15 +315,20 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     const bundleSaveBox = await page.getByTestId('editor-save').boundingBox();
     expect(bundleNameBox!.y).toBeGreaterThanOrEqual(0);
     expect(bundleNameBox!.y + bundleNameBox!.height).toBeLessThan(bundleSaveBox!.y);
-    expect(bundleNameBox!.width, 'the bundle name needs a usable phone-width input').toBeGreaterThan(200);
+    expect(bundleNameBox!.width, 'the bundle name needs a usable phone-width input').toBeGreaterThanOrEqual(
+      MIN_PHONE_BUNDLE_NAME_WIDTH,
+    );
     await expect(tools).toBeVisible();
     // This part follows the RTL check above, so tab labels may be Arabic. Stable section IDs
     // keep the check about the actual control instead of the current language's spelling.
     const bundleNav = page.getByTestId('editor-section-nav');
     expect(
-      await bundleNav.locator('[role="tab"]').evaluateAll((tabs) =>
-        tabs.every((tab) => tab.scrollWidth <= tab.clientWidth + 1),
-      ),
+      await bundleNav
+        .locator('[role="tab"]')
+        .evaluateAll(
+          (tabs, tolerance) => tabs.every((tab) => tab.scrollWidth <= tab.clientWidth + tolerance),
+          TAB_LABEL_OVERFLOW_TOLERANCE,
+        ),
       'each section label must fit its own tab while the strip scrolls',
     ).toBe(true);
     await bundleNav.locator('[role="tab"][id$="-editor-section-options"]').click();

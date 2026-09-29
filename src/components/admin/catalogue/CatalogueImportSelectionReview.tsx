@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CatalogueImportItemReview from './CatalogueImportItemReview';
 import CatalogueImportPriceGrid from './CatalogueImportPriceGrid';
 import type { CatalogueOptionPriceRef } from '@/hooks/admin/useCatalogueOptionPrices';
+import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 import type {
   CatalogueImportDecision,
   CatalogueImportSession,
@@ -18,6 +19,7 @@ interface Props {
   readonly selectedIds: readonly string[];
   readonly decisions: Readonly<Record<string, CatalogueImportDecision>>;
   readonly priceRefsByOwner: Readonly<Record<string, CatalogueOptionPriceRef[]>>;
+  readonly detailsByKey: Readonly<Record<string, CatalogueTemplateRevision>>;
   readonly canEditSelection: boolean;
   readonly canEditDecision: (item: CatalogueImportSessionItem) => boolean;
   readonly onToggleSelection: (item: CatalogueImportSessionItem, selected: boolean) => void;
@@ -46,6 +48,7 @@ export default function CatalogueImportSelectionReview(props: Props) {
               key={keyFor(item)}
               item={item}
               decision={decision}
+              detail={props.detailsByKey[keyFor(item)]}
               selected={props.selectedIds.includes(item.templateId)}
               canEditSelection={props.canEditSelection}
               canEditDecision={props.canEditDecision(item)}

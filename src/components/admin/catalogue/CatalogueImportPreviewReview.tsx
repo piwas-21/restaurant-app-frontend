@@ -3,19 +3,53 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import type { CatalogueImportPreview } from '@/services/catalogueImportService';
+import type { LanguageCode } from '@/config/languageConfig';
+import type { CatalogueImportDecision, CatalogueImportPreview } from '@/services/catalogueImportService';
+import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
+import CatalogueImportDraftGuestPreview from './CatalogueImportDraftGuestPreview';
+import draftStyles from './CatalogueImportDraftGuestPreview.module.css';
 import styles from './CatalogueImportWorkspace.module.css';
 
 interface Props {
   readonly preview: CatalogueImportPreview | null;
+  readonly locale: LanguageCode;
+  readonly detailsByKey: Readonly<Record<string, CatalogueTemplateRevision>>;
+  readonly decisions: Readonly<Record<string, CatalogueImportDecision>>;
   readonly canChooseCandidate: (templateId: string, revision: number) => boolean;
   readonly onChooseCandidate: (templateId: string, revision: number, candidate: { id: string }) => void;
 }
 
-export default function CatalogueImportPreviewReview({ preview, canChooseCandidate, onChooseCandidate }: Props) {
+export default function CatalogueImportPreviewReview({
+  preview,
+  locale,
+  detailsByKey,
+  decisions,
+  canChooseCandidate,
+  onChooseCandidate,
+}: Props) {
   const { t } = useTranslation();
   if (!preview) return null;
   const selected = preview.items.filter((item) => item.isSelected);
+  const reusedNamesByKey = Object.fromEntries(
+    preview.items.flatMap((item) =>
+      item.resolution === 'Reuse' && item.localEntityName
+        ? [[`${item.templateId}@${item.revision}`, item.localEntityName]]
+        : [],
+    ),
+  );
+  const effectiveDecisions = { ...decisions };
+  preview.items.forEach((item) => {
+    if (item.resolution !== 'Reuse') return;
+    const key = `${item.templateId}@${item.revision}`;
+    effectiveDecisions[key] = {
+      ...effectiveDecisions[key],
+      templateId: item.templateId,
+      revision: item.revision,
+      resolution: 'Reuse',
+      localEntityId: item.localEntityId ?? undefined,
+    };
+  });
+  const firstOffer = selected.find((item) => item.type === 'item' || item.type === 'bundle');
   const blockers = selected.reduce((count, item) => count + item.blockingIssues.length, 0);
   return (
     <section className={styles.preview} aria-labelledby="catalogue-preview-heading">
@@ -63,6 +97,18 @@ export default function CatalogueImportPreviewReview({ preview, canChooseCandida
                 ))}
               </ul>
             </div>
+          )}
+          {(item.type === 'item' || item.type === 'bundle') && detailsByKey[`${item.templateId}@${item.revision}`] && (
+            <details className={draftStyles.disclosure} open={item.templateId === firstOffer?.templateId}>
+              <summary>{t('catalogue_guest_preview')}</summary>
+              <CatalogueImportDraftGuestPreview
+                detail={detailsByKey[`${item.templateId}@${item.revision}`]}
+                locale={locale}
+                detailsByKey={detailsByKey}
+                decisions={effectiveDecisions}
+                reusedNamesByKey={reusedNamesByKey}
+              />
+            </details>
           )}
           {item.warnings.map((issue, index) => (
             <p key={`warning:${issue.code}:${index}`} className={styles.warning}>

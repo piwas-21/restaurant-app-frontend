@@ -3363,7 +3363,7 @@
   "choice_group_included_help": "This allowance applies to priced ingredient choices. Product-choice charges remain separate.",
   "side_items_search_prompt": "Type at least 2 letters to find a menu item to offer as a side.",
   "editor_translations_ai_suggestions": "AI translation suggestions",
-  "editor_translations_apply_reviewed": "Use reviewed translations",
+  "editor_translations_apply_review_to_draft": "Apply review to draft",
   "editor_option_sets_title": "Reusable sets",
   "editor_option_sets_help": "Add a copy to this draft, then adjust it here. Changes reach the menu only when you save.",
   "editor_option_sets_empty": "No sets for this section yet.",

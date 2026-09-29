@@ -162,7 +162,17 @@ describe('one surface for every translatable string (D2 / S4)', () => {
         })),
       })),
     }));
-    service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions: [], skipped: [] });
+    const suggestion: TranslationSuggestion = {
+      suggestionId: 'name-de',
+      fieldRef: { entityType: 'product', entityId: 'item-1', fieldKey: 'name' },
+      locale: 'de',
+      sourceHash: 'source-v1',
+      text: 'Margherita-Pizza',
+      provider: 'test-provider',
+      model: 'test-model',
+      status: 'suggested',
+    };
+    service.suggest.mockResolvedValue({ providerStatus: 'ready', suggestions: [suggestion], skipped: [] });
     const { view } = await openWorkbench();
     expect(service.suggest).not.toHaveBeenCalled();
     const helpButton = view.getByRole('button', { name: 'editor_translations_ai_suggestions' });
@@ -173,9 +183,18 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     const firstTranslation = targetField(view, 'item_name', 'English', 'Margherita Pizza');
     expect(helpButton).toHaveAttribute('aria-controls', 'editor-translation-review-panel');
     expect(reviewPanel.compareDocumentPosition(firstTranslation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(view.queryByRole('button', { name: 'editor_translations_apply_review_to_draft' })).not.toBeInTheDocument();
     fireEvent.click(await view.findByRole('button', { name: 'translation_review_suggest_missing' }));
     await waitFor(() => expect(service.suggest).toHaveBeenCalledTimes(1));
     expect(service.suggest.mock.calls[0][0].generationIntent).toBe('explicitFill');
+    await view.findByLabelText('translation_review_suggested_text[language=Deutsch]');
+    expect(view.queryByRole('button', { name: 'editor_translations_apply_review_to_draft' })).not.toBeInTheDocument();
+    fireEvent.click(
+      view.getByRole('button', {
+        name: 'translation_review_accept_field[field=Margherita Pizza · item_name,language=Deutsch]',
+      }),
+    );
+    expect(view.getByRole('button', { name: 'editor_translations_apply_review_to_draft' })).toBeEnabled();
   });
 
   it('explains disabled AI help beside its trigger while keeping manual translations editable', async () => {
@@ -185,6 +204,7 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     fireEvent.click(view.getByRole('button', { name: 'editor_translations_ai_suggestions' }));
     expect(await view.findByText('translation_review_provider_disabled')).toBeInTheDocument();
     expect(view.queryByRole('button', { name: 'translation_review_suggest_missing' })).not.toBeInTheDocument();
+    expect(view.queryByRole('button', { name: 'editor_translations_apply_review_to_draft' })).not.toBeInTheDocument();
     expect(targetField(view, 'item_name', 'English', 'Margherita Pizza')).toBeEnabled();
     expect(service.suggest).not.toHaveBeenCalled();
   });

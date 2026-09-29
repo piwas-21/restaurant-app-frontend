@@ -3381,7 +3381,7 @@
   "choice_group_included_help": "Это включённое количество относится к платным ингредиентам. Доплаты за выбор товаров учитываются отдельно.",
   "side_items_search_prompt": "Введите не менее 2 букв, чтобы найти позицию меню для предложения в качестве гарнира.",
   "editor_translations_ai_suggestions": "Предложения перевода от ИИ",
-  "editor_translations_apply_reviewed": "Применить проверенные переводы",
+  "editor_translations_apply_review_to_draft": "Применить результаты проверки к черновику",
   "editor_option_sets_title": "Многоразовые наборы",
   "editor_option_sets_help": "Добавьте копию в черновик и настройте её здесь. Меню изменится только после сохранения.",
   "editor_option_sets_empty": "Для этого раздела пока нет наборов.",

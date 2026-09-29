@@ -3399,7 +3399,7 @@
   "choice_group_included_help": "يسري العدد المشمول على المكونات المسعّرة فقط. تبقى رسوم خيارات المنتجات منفصلة.",
   "side_items_search_prompt": "اكتب حرفين على الأقل للعثور على صنف لتقديمه كطبق جانبي.",
   "editor_translations_ai_suggestions": "اقتراحات الترجمة بالذكاء الاصطناعي",
-  "editor_translations_apply_reviewed": "استخدام الترجمات التي تمت مراجعتها",
+  "editor_translations_apply_review_to_draft": "تطبيق المراجعة على المسودة",
   "editor_option_sets_title": "مجموعات قابلة لإعادة الاستخدام",
   "editor_option_sets_help": "أضف نسخة إلى هذه المسودة وعدّلها هنا. لن تتغير القائمة حتى تحفظ.",
   "editor_option_sets_empty": "لا توجد مجموعات لهذا القسم بعد.",

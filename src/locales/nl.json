@@ -3363,7 +3363,7 @@
   "choice_group_included_help": "Dit inbegrepen aantal geldt voor geprijsde ingrediënten. Toeslagen voor productkeuzes blijven apart.",
   "side_items_search_prompt": "Typ minstens 2 letters om een menu-item als bijgerecht te vinden.",
   "editor_translations_ai_suggestions": "AI-vertalingssuggesties",
-  "editor_translations_apply_reviewed": "Beoordeelde vertalingen gebruiken",
+  "editor_translations_apply_review_to_draft": "Beoordeling toepassen op concept",
   "editor_option_sets_title": "Herbruikbare sets",
   "editor_option_sets_help": "Voeg een kopie toe aan dit concept en pas die hier aan. Het menu verandert pas wanneer je opslaat.",
   "editor_option_sets_empty": "Nog geen sets voor dit onderdeel.",

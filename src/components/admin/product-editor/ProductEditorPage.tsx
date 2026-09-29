@@ -62,23 +62,21 @@ export default function ProductEditorPage({
   const createLabel = isBundle ? t('create_menu_bundle') : t('create_product');
   const pageTitle = isCreate ? createTitle : product.name;
   const saveLabel = isCreate ? createLabel : t('save_changes');
-  // Create may submit its empty form; edits require a deliberate change.
-  const saveDisabled = editor.isSubmitting || (!isCreate && !editor.isDirty);
-
-  const navigation = useEditorNavigationGuard({
-    isDirty: editor.isDirty,
-    onBack,
-    onOfferCreateRequested,
-    onDelete,
-    onNavigate,
-  });
-
   const preSaveReview = useEditorPreSaveReview({ formId: FORM_ID, onSubmit: editor.onSubmit });
   const translationReview = useEditorTranslationReview({
     editor,
     product,
     productId: product.id,
     isOpen: preSaveReview.isOpen || translationReviewOpen,
+  });
+  const hasChanges = editor.isDirty || translationReview.sourceLocaleDirty;
+  const saveDisabled = editor.isSubmitting || (!isCreate && !hasChanges);
+  const navigation = useEditorNavigationGuard({
+    isDirty: hasChanges,
+    onBack,
+    onOfferCreateRequested,
+    onDelete,
+    onNavigate,
   });
   const context = {
     editor,
@@ -158,7 +156,7 @@ export default function ProductEditorPage({
         saveBar={
           <EditorSaveBar
             formId={FORM_ID}
-            isDirty={editor.isDirty}
+            isDirty={hasChanges}
             isSubmitting={editor.isSubmitting}
             saveDisabled={saveDisabled}
             saveLabel={saveLabel}

@@ -467,6 +467,33 @@ describe('batched translation review before ordinary Save', () => {
     expect((updateProduct as jest.Mock).mock.calls[0][1].translationMetadata).toBeUndefined();
   });
 
+  it('saves one explicit base language for legacy fields without editing their text', async () => {
+    const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
+    const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+    (service.availability as jest.Mock).mockResolvedValue({ providerStatus: 'disabled' });
+    const { container, view } = await openWorkbench(legacy);
+    const saveButton = container.querySelector('[data-testid="editor-save"]') as HTMLButtonElement;
+
+    expect(view.getByText('editor_translations_base_language_help[count=5]')).toBeInTheDocument();
+    expect(saveButton).toBeDisabled();
+    fireEvent.change(view.getByLabelText('editor_translations_base_language_label'), { target: { value: 'fr' } });
+
+    expect(view.getByRole('status')).toHaveTextContent('editor_translations_base_language_save');
+    expect(saveButton).toBeEnabled();
+    const payload = await save(container);
+    expect(payload.translationMetadata).toMatchObject({ sourceLocales: { name: 'fr', description: 'fr' } });
+    expect(
+      (payload.variations as { translationMetadata: { sourceLocales: { name: string } } }[])[0].translationMetadata,
+    ).toMatchObject({ sourceLocales: { name: 'fr' } });
+    expect(
+      (payload.detailedIngredients as { translationMetadata: { sourceLocales: { name: string } } }[])[0]
+        .translationMetadata,
+    ).toMatchObject({ sourceLocales: { name: 'fr' } });
+    expect(payload.name).toBe('Margherita Pizza');
+    expect((payload.content as Record<string, { name: string }>).fr.name).toBe('Pizza Margherita');
+    expect(service.suggest).not.toHaveBeenCalled();
+  });
+
   it('previews an unannotated field only after a source language is explicitly selected', async () => {
     const legacy = { ...margherita, translationMetadata: undefined } as unknown as ProductDetails;
     const { container, view } = await openWorkbench(legacy);

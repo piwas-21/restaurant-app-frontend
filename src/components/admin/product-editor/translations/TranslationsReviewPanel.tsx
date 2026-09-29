@@ -18,7 +18,7 @@ export default function TranslationsReviewPanel({ controls }: { readonly control
   const hasDecisions = controls.review.entries.some((entry) => entry.decision !== 'pending');
   return (
     <div id="editor-translation-review-panel" className={actionStyles.reviewPanel}>
-      <TranslationSuggestionsReview review={controls.review} />
+      <TranslationSuggestionsReview review={controls.review} showSourceLocaleChoices={false} />
       <div className={actionStyles.reviewActions}>
         <button type="button" className={actionStyles.copyButton} onClick={controls.onToggle}>
           {t('close')}

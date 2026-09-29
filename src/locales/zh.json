@@ -3069,6 +3069,7 @@
   "catalogue_suggested_only": "建议食材角色：",
   "catalogue_category_template_notice": "此模板提供类别参考。",
   "catalogue_local_review_heading": "请按餐厅实际情况审核",
+  "catalogue_review_checklist": "查看检查清单",
   "catalogue_local_review_notice": "使用前请设置本地价格，并确认食材、过敏原、下单渠道、供应情况和厨房流向。",
   "catalogue_review_field_price": "设置本地价格",
   "catalogue_review_field_ingredients": "确认食材和配方",

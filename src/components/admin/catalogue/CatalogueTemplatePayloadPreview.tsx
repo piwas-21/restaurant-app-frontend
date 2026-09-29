@@ -186,11 +186,14 @@ export default function CatalogueTemplatePayloadPreview({
         <h3>{t('catalogue_local_review_heading')}</h3>
         <p>{t('catalogue_local_review_notice')}</p>
         {reviewFields.length > 0 && (
-          <ul>
-            {reviewFields.map((field) => (
-              <li key={field}>{reviewFieldLabel(field, t)}</li>
-            ))}
-          </ul>
+          <details className={styles.reviewChecklist}>
+            <summary>{t('catalogue_review_checklist')}</summary>
+            <ul>
+              {reviewFields.map((field) => (
+                <li key={field}>{reviewFieldLabel(field, t)}</li>
+              ))}
+            </ul>
+          </details>
         )}
       </section>
     </div>

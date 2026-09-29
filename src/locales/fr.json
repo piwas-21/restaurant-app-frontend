@@ -3087,6 +3087,7 @@
   "catalogue_suggested_only": "Rôle de l’ingrédient suggéré :",
   "catalogue_category_template_notice": "Ce modèle fournit une référence de catégorie.",
   "catalogue_local_review_heading": "À vérifier pour votre restaurant",
+  "catalogue_review_checklist": "Afficher la liste de vérification",
   "catalogue_local_review_notice": "Avant utilisation, définissez les prix locaux et vérifiez les ingrédients, allergènes, canaux, disponibilités et envois en cuisine.",
   "catalogue_review_field_price": "Définir les prix locaux",
   "catalogue_review_field_ingredients": "Vérifier ingrédients et recette",

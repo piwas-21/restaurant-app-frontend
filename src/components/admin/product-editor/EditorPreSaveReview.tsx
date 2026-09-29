@@ -42,7 +42,6 @@ function isContentRow(value: unknown): value is ReviewContentRow {
 function contentRows(value: unknown): ReviewContentRow[] {
   return Array.isArray(value) ? value.filter(isContentRow) : [];
 }
-
 function missingNameLocaleCount(rows: readonly ReviewContentRow[]): number {
   const completed = new Set(rows.filter((row) => Boolean(row.name?.trim())).map((row) => row.language));
   return LANGUAGE_CODES.filter((locale) => !completed.has(locale)).length;
@@ -159,6 +158,7 @@ export default function EditorPreSaveReview({
               isPending ||
               availabilityCheckPending ||
               (parentBundleReview.needsReview &&
+                !isBundle &&
                 (parentBundleReview.state.status === 'idle' || parentBundleReview.state.status === 'loading'))
             }
             data-testid="editor-review-confirm-save"
@@ -240,7 +240,7 @@ export default function EditorPreSaveReview({
         {(!Array.isArray(allergens) || allergens.length === 0) && (
           <ReviewLine warning>{t('editor_review_allergens_unknown')}</ReviewLine>
         )}
-        <ParentBundleAllergenReviewNotice review={parentBundleReview} />
+        {!isBundle && <ParentBundleAllergenReviewNotice review={parentBundleReview} />}
         <ReviewLine>{t('editor_review_intentional_differences')}</ReviewLine>
         <ReviewLine>{t('editor_review_quote_note')}</ReviewLine>
       </ul>

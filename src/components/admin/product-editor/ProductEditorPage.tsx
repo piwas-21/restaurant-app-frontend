@@ -152,6 +152,7 @@ export default function ProductEditorPage({
             isBundle={isBundle}
             isCreate={isCreate}
             activeSectionId={sectionNav.activeId}
+            onApplied={onSaved}
           />
         }
         saveBar={

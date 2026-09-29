@@ -3354,7 +3354,7 @@
   "choice_group_included_help": "包含份数仅适用于收费配料。商品选项的附加费用单独计算。",
   "side_items_search_prompt": "输入至少 2 个字以查找可作为配菜推荐的菜单项。",
   "editor_translations_ai_suggestions": "AI 翻译建议",
-  "editor_translations_apply_reviewed": "使用已审核的翻译",
+  "editor_translations_apply_review_to_draft": "将审核结果应用到草稿",
   "editor_option_sets_title": "可重复使用的选项组",
   "editor_option_sets_help": "将副本添加到草稿并在此调整。只有保存后菜单才会改变。",
   "editor_option_sets_empty": "此部分暂无选项组。",

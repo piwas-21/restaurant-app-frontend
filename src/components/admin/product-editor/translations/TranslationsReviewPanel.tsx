@@ -15,6 +15,7 @@ export interface TranslationsReviewControls {
 
 export default function TranslationsReviewPanel({ controls }: { readonly controls: TranslationsReviewControls }) {
   const { t } = useTranslation();
+  const hasDecisions = controls.review.entries.some((entry) => entry.decision !== 'pending');
   return (
     <div id="editor-translation-review-panel" className={actionStyles.reviewPanel}>
       <TranslationSuggestionsReview review={controls.review} />
@@ -22,14 +23,16 @@ export default function TranslationsReviewPanel({ controls }: { readonly control
         <button type="button" className={actionStyles.copyButton} onClick={controls.onToggle}>
           {t('close')}
         </button>
-        <button
-          type="button"
-          className={actionStyles.suggestButton}
-          onClick={() => void controls.onApply()}
-          disabled={controls.review.phase === 'loading'}
-        >
-          {t('editor_translations_apply_reviewed')}
-        </button>
+        {hasDecisions && (
+          <button
+            type="button"
+            className={actionStyles.suggestButton}
+            onClick={() => void controls.onApply()}
+            disabled={controls.review.phase === 'loading'}
+          >
+            {t('editor_translations_apply_review_to_draft')}
+          </button>
+        )}
       </div>
     </div>
   );

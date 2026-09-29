@@ -3363,7 +3363,7 @@
   "choice_group_included_help": "Bu dahil adet fiyatlı malzemeler için geçerlidir. Ürün seçimi ek ücretleri ayrı kalır.",
   "side_items_search_prompt": "Yan ürün olarak sunulacak bir menü öğesi bulmak için en az 2 harf yazın.",
   "editor_translations_ai_suggestions": "Yapay zekâ çeviri önerileri",
-  "editor_translations_apply_reviewed": "İncelenen çevirileri uygula",
+  "editor_translations_apply_review_to_draft": "İncelemeyi taslağa uygula",
   "editor_option_sets_title": "Yeniden kullanılabilir setler",
   "editor_option_sets_help": "Bu taslağa bir kopya ekleyip burada düzenleyin. Menü yalnızca kaydettiğinizde değişir.",
   "editor_option_sets_empty": "Bu bölüm için henüz set yok.",

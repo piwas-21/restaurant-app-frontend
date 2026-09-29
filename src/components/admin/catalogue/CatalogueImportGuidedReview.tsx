@@ -17,6 +17,11 @@ interface Props {
 }
 
 type ReviewStep = 'selection' | 'details' | 'check';
+const stepLabelKeys: Record<ReviewStep, string> = {
+  selection: 'catalogue_import_step_offers',
+  details: 'catalogue_import_step_details',
+  check: 'catalogue_import_step_check',
+};
 
 export default function CatalogueImportGuidedReview({ flow, optionPrices, locale }: Props) {
   const { t } = useTranslation();
@@ -62,13 +67,7 @@ export default function CatalogueImportGuidedReview({ flow, optionPrices, locale
             onClick={() => setStep(reviewStep)}
           >
             <span aria-hidden="true">{index + 1}</span>
-            {t(
-              reviewStep === 'selection'
-                ? 'catalogue_import_step_offers'
-                : reviewStep === 'details'
-                  ? 'catalogue_import_step_details'
-                  : 'catalogue_import_step_check',
-            )}
+            {t(stepLabelKeys[reviewStep])}
           </button>
         ))}
       </nav>

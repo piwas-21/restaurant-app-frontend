@@ -45,12 +45,8 @@ export default function CatalogueImportSelectionReview(props: Props) {
     reviewItems.find((item) => keyFor(item) === props.activeItemKey) ??
     reviewItems.find((item) => item.type === 'item' || item.type === 'bundle') ??
     reviewItems[0];
-  const visibleItems =
-    props.mode === 'details'
-      ? activeItem
-        ? [activeItem]
-        : []
-      : props.session.items.filter((item) => item.isRoot || item.isSelectable);
+  let visibleItems = props.session.items.filter((item) => item.isRoot || item.isSelectable);
+  if (props.mode === 'details') visibleItems = activeItem ? [activeItem] : [];
   const dependencies = props.session.items.filter((item) => !item.isRoot && !item.isSelectable);
   const priceRows = (activeItem ? [activeItem] : []).map((item) => ({
     item,

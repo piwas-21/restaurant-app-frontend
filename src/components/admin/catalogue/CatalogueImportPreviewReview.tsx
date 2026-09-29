@@ -9,6 +9,7 @@ import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateServ
 import CatalogueImportDraftGuestPreview from './CatalogueImportDraftGuestPreview';
 import draftStyles from './CatalogueImportDraftGuestPreview.module.css';
 import styles from './CatalogueImportWorkspace.module.css';
+import reviewStyles from './CatalogueImportGuidedReview.module.css';
 
 interface Props {
   readonly preview: CatalogueImportPreview | null;
@@ -17,6 +18,7 @@ interface Props {
   readonly decisions: Readonly<Record<string, CatalogueImportDecision>>;
   readonly canChooseCandidate: (templateId: string, revision: number) => boolean;
   readonly onChooseCandidate: (templateId: string, revision: number, candidate: { id: string }) => void;
+  readonly onEditItem?: (templateId: string, revision: number) => void;
 }
 
 export default function CatalogueImportPreviewReview({
@@ -26,6 +28,7 @@ export default function CatalogueImportPreviewReview({
   decisions,
   canChooseCandidate,
   onChooseCandidate,
+  onEditItem,
 }: Props) {
   const { t } = useTranslation();
   if (!preview) return null;
@@ -116,9 +119,14 @@ export default function CatalogueImportPreviewReview({
             </p>
           ))}
           {item.blockingIssues.map((issue, index) => (
-            <p key={`blocker:${issue.code}:${index}`} className={styles.blocker} role="alert">
-              {issue.message}
-            </p>
+            <div key={`blocker:${issue.code}:${index}`} className={reviewStyles.blocker} role="alert">
+              <p>{issue.message}</p>
+              {onEditItem && (
+                <button type="button" onClick={() => onEditItem(item.templateId, item.revision)}>
+                  {t('catalogue_import_edit_item', { name: item.displayName })}
+                </button>
+              )}
+            </div>
           ))}
         </article>
       ))}

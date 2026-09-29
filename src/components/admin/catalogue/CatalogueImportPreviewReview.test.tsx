@@ -1,9 +1,43 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 import CatalogueImportPreviewReview from './CatalogueImportPreviewReview';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+
+it('returns a blocker to the affected item review', () => {
+  const onEditItem = jest.fn();
+  render(
+    <CatalogueImportPreviewReview
+      preview={{
+        sessionId: 'session',
+        version: 1,
+        items: [
+          {
+            templateId: 'item',
+            revision: 2,
+            type: 'item',
+            displayName: 'Ayran',
+            isSelected: true,
+            resolution: 'Create',
+            localEntityId: null,
+            candidates: [],
+            warnings: [],
+            blockingIssues: [{ code: 'price', message: 'Local price is required' }],
+          },
+        ],
+      }}
+      locale="en"
+      detailsByKey={{}}
+      decisions={{}}
+      canChooseCandidate={() => false}
+      onChooseCandidate={jest.fn()}
+      onEditItem={onEditItem}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'catalogue_import_edit_item' }));
+  expect(onEditItem).toHaveBeenCalledWith('item', 2);
+});
 
 it('identifies the exact local record selected for reuse before import', () => {
   render(

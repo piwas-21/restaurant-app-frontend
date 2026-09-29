@@ -16,7 +16,7 @@ export interface TranslationsReviewControls {
 export default function TranslationsReviewPanel({ controls }: { readonly controls: TranslationsReviewControls }) {
   const { t } = useTranslation();
   return (
-    <div className={actionStyles.reviewPanel}>
+    <div id="editor-translation-review-panel" className={actionStyles.reviewPanel}>
       <TranslationSuggestionsReview review={controls.review} />
       <div className={actionStyles.reviewActions}>
         <button type="button" className={actionStyles.copyButton} onClick={controls.onToggle}>

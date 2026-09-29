@@ -344,14 +344,14 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
     return rule ? rule[1] : null;
   };
 
-  it('renders the rail BEFORE the main column, so no breakpoint can bury the status flags', () => {
+  it('keeps section navigation, tools and form in keyboard order', () => {
     const { container } = renderShell();
 
+    const nav = container.querySelector('[data-testid="editor-section-nav"]') as HTMLElement;
     const rail = container.querySelector('aside') as HTMLElement;
     const main = container.querySelector('form') as HTMLElement;
     expect(rail).not.toBeNull();
-    // DOCUMENT_POSITION_FOLLOWING: `main` comes after `rail`. The status summary remains first in
-    // document order on tablet reflow as well as desktop.
+    expect(nav.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(rail.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(main.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeFalsy();
   });
@@ -382,9 +382,10 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
     expect(ruleIn(railCss, 1024, '.card')).toBeNull();
   });
 
-  it('collapses to one column only at 820px, still with the rail first', () => {
+  it('places section chips, compact tools, then the form at 820px', () => {
     expect(ruleIn(SHELL_CSS, 820, '.layout')).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
-    expect(ruleIn(SHELL_CSS, 820, '.rail')).toMatch(/grid-row:\s*1/);
+    expect(ruleIn(SHELL_CSS, 820, '.navColumn')).toMatch(/grid-row:\s*1/);
+    expect(ruleIn(SHELL_CSS, 820, '.rail')).toMatch(/grid-row:\s*2/);
     expect(ruleIn(SHELL_CSS, 820, '.main')).toMatch(/grid-row:\s*3/);
   });
 });

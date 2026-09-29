@@ -157,14 +157,10 @@ export default function EditorShell({
           </div>
         )}
 
-        {/* BEFORE the main column in the DOM since #572, and that order is the fix, not a detail.
-            At ≤1024px the approved reflow draws the rail as a STRIP above the form (a header
-            strip for the three status flags), and CSS `grid-row` alone would have moved it there
-            visually while leaving it ~150 controls away in the reading and tab order — the exact
-            "is this item live?" regression S2 introduced, merely made invisible to a sighted mouse
-            user. Placing it first in the DOM makes every breakpoint agree with the reflow screen;
-            the price is a short backwards jump on the desktop three-column layout, where the rail
-            is a 4-row summary plus 3 toggles rather than a form. */}
+        {/* Before the main column in the DOM so status and set controls precede the form in
+            keyboard order. On small screens, the section nav comes first, then the compact rail
+            disclosure, then the form — the visual and reading orders agree. At 821–1024px the
+            rail remains a full-width strip above the nav and form. */}
         {rail && (
           <aside className={styles.rail} hidden={!showAside}>
             {rail}

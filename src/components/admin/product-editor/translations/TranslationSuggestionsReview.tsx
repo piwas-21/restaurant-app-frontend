@@ -114,7 +114,7 @@ export default function TranslationSuggestionsReview({
           })}
         </section>
       )}
-      {review.unknownSourceLocaleFields.length > 0 && (
+      {providerStatus === 'ready' && review.unknownSourceLocaleFields.length > 0 && (
         <section
           className={styles.sourceLocaleChoices}
           aria-label={t('translation_review_source_locale_missing_title')}

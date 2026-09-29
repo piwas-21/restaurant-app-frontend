@@ -70,4 +70,15 @@ describe('TranslationSuggestionsReview empty suggestions state', () => {
 
     expect(screen.getByText('translation_review_suggestions_none')).toBeInTheDocument();
   });
+
+  it('shows unavailable assistance without a suggestion action', () => {
+    render(
+      <TranslationSuggestionsReview
+        review={review({ phase: 'ready', error: false, providerStatus: 'disabled', pendingLocales: 2 })}
+      />,
+    );
+
+    expect(screen.getByText('translation_review_provider_disabled')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'translation_review_suggest_missing' })).not.toBeInTheDocument();
+  });
 });

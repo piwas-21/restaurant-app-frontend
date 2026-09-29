@@ -79,7 +79,10 @@ export default function TranslationSuggestionsReview({
       {manualReviewCount > 0 && (
         <output className={styles.notice}>{t('translation_review_manual_review', { count: manualReviewCount })}</output>
       )}
-      {alternativeTargets.length > 0 && (
+      {providerStatus === 'disabled' && (
+        <output className={styles.notice}>{t('translation_review_provider_disabled')}</output>
+      )}
+      {providerStatus === 'ready' && alternativeTargets.length > 0 && (
         <section className={styles.alternatives} aria-label={t('translation_review_alternatives_title')}>
           <h4>{t('translation_review_alternatives_title')}</h4>
           <p>{t('translation_review_alternative_kept')}</p>
@@ -101,7 +104,7 @@ export default function TranslationSuggestionsReview({
                   type="button"
                   className={styles.acceptAll}
                   onClick={() => void review.suggestAlternative(target.fieldRef, target.locale)}
-                  disabled={phase === 'loading' || providerStatus === 'disabled'}
+                  disabled={phase === 'loading'}
                   aria-label={t('translation_review_suggest_alternative_field', { field, language })}
                 >
                   {t('translation_review_suggest_alternative')}
@@ -171,9 +174,6 @@ export default function TranslationSuggestionsReview({
           )}
         </section>
       )}
-      {providerStatus === 'disabled' && (
-        <output className={styles.notice}>{t('translation_review_provider_disabled')}</output>
-      )}
       {error && (
         <p className={styles.error} role="alert">
           {review.errorMessage ?? review.reviewWriteErrorMessage ?? t('translation_review_unavailable')}
@@ -185,7 +185,7 @@ export default function TranslationSuggestionsReview({
       {phase === 'ready' && pendingLocales === 0 && entries.length === 0 && sourceLocalesResolved && !error && (
         <output className={styles.notice}>{t('translation_review_suggestions_none')}</output>
       )}
-      {phase === 'ready' && pendingLocales > 0 && entries.length === 0 && providerStatus !== 'disabled' && !error && (
+      {phase === 'ready' && pendingLocales > 0 && entries.length === 0 && providerStatus === 'ready' && !error && (
         <button type="button" className={styles.acceptAll} onClick={review.suggestMissing}>
           {t('translation_review_suggest_missing')}
         </button>

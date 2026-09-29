@@ -1,0 +1,87 @@
+.reviewFlow {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.reviewSteps,
+.reviewItemNav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reviewSteps {
+  flex-wrap: wrap;
+}
+
+.reviewItemNav {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.reviewSteps button,
+.reviewItemNav button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.reviewItemNav button {
+  flex: 0 0 auto;
+}
+
+.reviewSteps button[aria-current='step'],
+.reviewItemNav button[aria-current='step'] {
+  border-color: var(--brand-primary);
+  background: var(--surface-secondary);
+  font-weight: 700;
+}
+
+.reviewSteps button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reviewSteps button span {
+  margin-inline-end: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.dependencyDetails {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+  background: var(--surface-card);
+}
+
+.dependencyDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.dependencyDetails ul {
+  margin-bottom: 0;
+}
+
+.blocker {
+  color: var(--feedback-error);
+}
+
+.blocker p {
+  margin: 0;
+}
+
+.blocker button {
+  margin-block-start: 0.35rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.7rem;
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--feedback-error);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}

@@ -7,9 +7,8 @@ import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import PageHeader from '@/components/admin/PageHeader';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import CatalogueImportPreviewReview from './CatalogueImportPreviewReview';
 import CatalogueImportCompletion from './CatalogueImportCompletion';
-import CatalogueImportSelectionReview from './CatalogueImportSelectionReview';
+import CatalogueImportGuidedReview from './CatalogueImportGuidedReview';
 import CatalogueRevisionChangesReview from './CatalogueRevisionChangesReview';
 import { useCatalogueImportWorkspace } from '@/hooks/admin/useCatalogueImportWorkspace';
 import { useCatalogueOptionPrices } from '@/hooks/admin/useCatalogueOptionPrices';
@@ -56,20 +55,11 @@ function ImportRoute() {
     sessionId,
     onSessionCreated,
   });
-  const updateDecision = flow.updateDecision;
   const selectedItems = useMemo(
     () => flow.session?.items.filter((item) => flow.selectedIds.includes(item.templateId)) ?? [],
     [flow.selectedIds, flow.session],
   );
   const optionPrices = useCatalogueOptionPrices(selectedItems, locale);
-  const hasBlockers = flow.preview?.items.some((item) => item.isSelected && item.blockingIssues.length > 0) ?? true;
-
-  const chooseCandidate = useCallback(
-    (id: string, rev: number, candidate: { id: string }) => {
-      updateDecision(`${id}@${rev}`, { resolution: 'Reuse', localEntityId: candidate.id });
-    },
-    [updateDecision],
-  );
 
   if (!validRoute)
     return (
@@ -90,16 +80,6 @@ function ImportRoute() {
       </main>
     );
 
-  const session = flow.session;
-  const canImport =
-    Boolean(flow.preview) &&
-    flow.preview?.version === flow.session.version &&
-    !hasBlockers &&
-    !flow.hasInvalidCustomOrderTypes &&
-    flow.canManage &&
-    !flow.isWorking &&
-    !optionPrices.isLoading &&
-    !optionPrices.error;
   return (
     <main className={styles.page}>
       <PageHeader title={t('catalogue_import_workspace_title')} />
@@ -136,29 +116,7 @@ function ImportRoute() {
         </p>
       )}
       {optionPrices.isLoading && <output>{t('catalogue_import_price_details_loading')}</output>}
-      <CatalogueImportSelectionReview
-        session={session}
-        selectedIds={flow.selectedIds}
-        decisions={flow.decisions}
-        priceRefsByOwner={optionPrices.byOwner}
-        detailsByKey={optionPrices.detailsByKey}
-        canEditSelection={flow.canEditSelection}
-        canEditDecision={flow.canEditDecision}
-        onToggleSelection={(item, selected) => flow.toggleSelection(item.templateId, selected)}
-        onDecisionChange={(item, patch) => flow.updateDecision(`${item.templateId}@${item.revision}`, patch)}
-      />
-      <h2 className={styles.stepHeading}>{t('catalogue_import_step_check')}</h2>
-      <CatalogueImportPreviewReview
-        preview={flow.preview}
-        locale={locale}
-        detailsByKey={optionPrices.detailsByKey}
-        decisions={flow.decisions}
-        canChooseCandidate={(templateId, rev) => {
-          const item = session.items.find((entry) => entry.templateId === templateId && entry.revision === rev);
-          return item ? flow.canEditDecision(item) : false;
-        }}
-        onChooseCandidate={chooseCandidate}
-      />
+      <CatalogueImportGuidedReview flow={flow} optionPrices={optionPrices} locale={locale} />
       {flow.result && <CatalogueImportCompletion result={flow.result} />}
       {flow.result && (
         <CatalogueRevisionChangesReview
@@ -170,24 +128,6 @@ function ImportRoute() {
           onRetry={() => void flow.revisionChangesState.retry()}
         />
       )}
-      <div className={styles.actions}>
-        <button
-          type="button"
-          disabled={
-            !flow.canManage ||
-            flow.isWorking ||
-            optionPrices.isLoading ||
-            Boolean(optionPrices.error) ||
-            flow.hasInvalidCustomOrderTypes
-          }
-          onClick={() => void flow.checkPreview()}
-        >
-          {t(flow.isWorking ? 'catalogue_import_working' : 'catalogue_import_check_preview')}
-        </button>
-        <button type="button" disabled={!canImport} onClick={() => void flow.runImport()}>
-          {t('catalogue_import_apply')}
-        </button>
-      </div>
     </main>
   );
 }

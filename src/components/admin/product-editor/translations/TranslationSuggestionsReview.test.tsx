@@ -56,6 +56,7 @@ describe('TranslationSuggestionsReview empty suggestions state', () => {
         review={review({
           phase: 'ready',
           error: false,
+          providerStatus: 'ready',
           unknownSourceLocaleFields: [unresolvedSourceField],
         })}
       />,
@@ -74,11 +75,18 @@ describe('TranslationSuggestionsReview empty suggestions state', () => {
   it('shows unavailable assistance without a suggestion action', () => {
     render(
       <TranslationSuggestionsReview
-        review={review({ phase: 'ready', error: false, providerStatus: 'disabled', pendingLocales: 2 })}
+        review={review({
+          phase: 'ready',
+          error: false,
+          providerStatus: 'disabled',
+          pendingLocales: 2,
+          unknownSourceLocaleFields: [unresolvedSourceField],
+        })}
       />,
     );
 
     expect(screen.getByText('translation_review_provider_disabled')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'translation_review_suggest_missing' })).not.toBeInTheDocument();
+    expect(screen.queryByText('translation_review_source_locale_missing')).not.toBeInTheDocument();
   });
 });

@@ -57,7 +57,7 @@ export function useCategoryChannelsAdmin() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const response = await getCategories(1, CATEGORY_PAGE_SIZE);
         if (cancelled) return;

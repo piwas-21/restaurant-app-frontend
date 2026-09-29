@@ -65,7 +65,7 @@ export function useCustomerFormsAdmin() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const data = await formFieldConfigService.getAll();
         if (cancelled) return;

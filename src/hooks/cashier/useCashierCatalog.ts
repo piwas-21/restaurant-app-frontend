@@ -33,7 +33,7 @@ export function useCashierCatalog() {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    void (async () => {
       try {
         const response = await getCategories(1, 100);
         if (!active) return;
@@ -55,7 +55,7 @@ export function useCashierCatalog() {
     let active = true;
     setIsLoading(true);
     setError(null);
-    (async () => {
+    void (async () => {
       try {
         const response = await getProducts(1, PAGE_SIZE, selectedCategoryId);
         if (!active) return;

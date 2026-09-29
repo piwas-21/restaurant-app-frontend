@@ -11,6 +11,7 @@ import { buildTranslationAlternativeTargets } from '@/components/admin/product-e
 import type {
   TranslationFieldStatus,
   TranslationGenerationIntent,
+  TranslationProviderStatus,
   TranslationSuggestion,
   TranslationWorkbenchAdapter,
 } from '@/services/translationWorkbenchService';
@@ -39,13 +40,29 @@ export function useTranslationSuggestionBatch({
 }: UseTranslationSuggestionBatchOptions) {
   const [phase, setPhase] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [entries, setEntries] = useState<TranslationSuggestionEntry[]>([]);
-  const [providerStatus, setProviderStatus] = useState<'disabled' | 'ready' | null>(null);
+  const [providerStatus, setProviderStatus] = useState<TranslationProviderStatus | null>(null);
   const [previewRows, setPreviewRows] = useState<TranslationFieldStatus[]>([]);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const requestedFields = useRef<TranslationReviewField[]>([]);
   const loadKey = useRef<string | null>(null);
   const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen || !adapter.availability) return;
+    let active = true;
+    void adapter
+      .availability()
+      .then((result) => {
+        if (active) setProviderStatus(result.providerStatus);
+      })
+      .catch(() => {
+        if (active) setProviderStatus('disabled');
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, adapter]);
 
   const run = useCallback(
     async (fields: TranslationReviewField[], generationIntent: TranslationGenerationIntent, key: string) => {
@@ -63,7 +80,7 @@ export function useTranslationSuggestionBatch({
         );
         if (loadKey.current !== key || !result.preview) return;
         setPreviewRows(result.preview.rows);
-        setProviderStatus(result.suggestions?.providerStatus ?? null);
+        if (result.suggestions) setProviderStatus(result.suggestions.providerStatus);
         setEntries(
           (result.suggestions?.suggestions ?? []).map((suggestion) => {
             const field = fields.find(

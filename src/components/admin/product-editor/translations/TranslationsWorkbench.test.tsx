@@ -43,6 +43,7 @@ jest.mock('@/services/categoryService', () => ({
 }));
 jest.mock('@/services/translationWorkbenchService', () => ({
   translationWorkbenchService: {
+    availability: jest.fn(async () => ({ providerStatus: 'ready' })),
     preview: jest.fn(async () => ({ rows: [] })),
     suggest: jest.fn(async () => ({ providerStatus: 'disabled', suggestions: [], skipped: [] })),
     review: jest.fn(async () => ({ decisions: [] })),
@@ -140,6 +141,7 @@ const confirmSaveReview = async (container: HTMLElement) => {
 beforeEach(() => {
   jest.clearAllMocks();
   const service = translationWorkbenchService as jest.Mocked<TranslationWorkbenchAdapter>;
+  (service.availability as jest.Mock).mockResolvedValue({ providerStatus: 'ready' });
   service.preview.mockResolvedValue({ rows: [] });
   service.suggest.mockResolvedValue({ providerStatus: 'disabled', suggestions: [], skipped: [] });
   service.review.mockResolvedValue({ decisions: [] });

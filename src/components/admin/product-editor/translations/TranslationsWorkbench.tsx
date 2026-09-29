@@ -174,7 +174,6 @@ export default function TranslationsWorkbench({
         activeLocale={targetLocale}
         onSelect={workbench.setTargetLocale}
       />
-
       <div className={styles.main}>
         <div className={styles.toolbar}>
           <div className={styles.sourcePicker}>
@@ -211,12 +210,13 @@ export default function TranslationsWorkbench({
               className={actionStyles.suggestButton}
               onClick={reviewControls.onToggle}
               aria-expanded={reviewControls.isOpen}
+              aria-controls="editor-translation-review-panel"
             >
-              {t('editor_translations_review_missing')}
+              {t('editor_translations_ai_suggestions')}
             </button>
           )}
         </div>
-
+        {reviewControls?.isOpen && <TranslationsReviewPanel controls={reviewControls} />}
         {/* Mounted at all times, empty. A live region inserted together with its text is not
             reliably announced — the same rule the editor's error summary follows. */}
         <p className="sr-only" aria-live="polite">
@@ -244,7 +244,6 @@ export default function TranslationsWorkbench({
           />
         )}
       </div>
-      {reviewControls?.isOpen && <TranslationsReviewPanel controls={reviewControls} />}
     </div>
   );
 }

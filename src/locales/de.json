@@ -3363,7 +3363,7 @@
   "choice_group_included_help": "Diese Freimenge gilt für kostenpflichtige Zutaten. Aufpreise für Produktoptionen bleiben getrennt.",
   "side_items_search_prompt": "Geben Sie mindestens 2 Buchstaben ein, um einen Artikel als Beilage anzubieten.",
   "editor_translations_ai_suggestions": "KI-Übersetzungsvorschläge",
-  "editor_translations_apply_reviewed": "Geprüfte Übersetzungen übernehmen",
+  "editor_translations_apply_review_to_draft": "Überprüfung auf Entwurf anwenden",
   "editor_option_sets_title": "Wiederverwendbare Sets",
   "editor_option_sets_help": "Fügen Sie eine Kopie zum Entwurf hinzu und passen Sie sie hier an. Das Menü ändert sich erst beim Speichern.",
   "editor_option_sets_empty": "Noch keine Sets für diesen Abschnitt.",

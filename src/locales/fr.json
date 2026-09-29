@@ -3372,7 +3372,7 @@
   "choice_group_included_help": "Cette inclusion concerne les ingrédients payants. Les frais des produits choisis restent séparés.",
   "side_items_search_prompt": "Saisissez au moins 2 lettres pour trouver un article à proposer en accompagnement.",
   "editor_translations_ai_suggestions": "Suggestions de traduction par IA",
-  "editor_translations_apply_reviewed": "Utiliser les traductions vérifiées",
+  "editor_translations_apply_review_to_draft": "Appliquer la révision au brouillon",
   "editor_option_sets_title": "Ensembles réutilisables",
   "editor_option_sets_help": "Ajoutez une copie au brouillon, puis adaptez-la ici. Le menu ne change que lorsque vous enregistrez.",
   "editor_option_sets_empty": "Aucun ensemble pour cette section.",

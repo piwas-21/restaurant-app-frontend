@@ -3372,7 +3372,7 @@
   "choice_group_included_help": "Esta inclusión se aplica a ingredientes con precio. Los cargos por productos elegidos son aparte.",
   "side_items_search_prompt": "Escribe al menos 2 letras para encontrar un artículo que ofrecer como acompañamiento.",
   "editor_translations_ai_suggestions": "Sugerencias de traducción con IA",
-  "editor_translations_apply_reviewed": "Usar las traducciones revisadas",
+  "editor_translations_apply_review_to_draft": "Aplicar revisión al borrador",
   "editor_option_sets_title": "Conjuntos reutilizables",
   "editor_option_sets_help": "Añade una copia a este borrador y ajústala aquí. El menú solo cambia al guardar.",
   "editor_option_sets_empty": "Todavía no hay conjuntos para esta sección.",

@@ -3372,7 +3372,7 @@
   "choice_group_included_help": "Questa quota si applica agli ingredienti a pagamento. I costi delle scelte di prodotti restano separati.",
   "side_items_search_prompt": "Digita almeno 2 lettere per trovare un articolo da offrire come contorno.",
   "editor_translations_ai_suggestions": "Suggerimenti di traduzione con IA",
-  "editor_translations_apply_reviewed": "Usa le traduzioni approvate",
+  "editor_translations_apply_review_to_draft": "Applica la revisione alla bozza",
   "editor_option_sets_title": "Set riutilizzabili",
   "editor_option_sets_help": "Aggiungi una copia alla bozza e modificala qui. Il menu cambia solo quando salvi.",
   "editor_option_sets_empty": "Nessun set per questa sezione.",

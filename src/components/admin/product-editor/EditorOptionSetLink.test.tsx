@@ -101,6 +101,14 @@ it('requires saving editor changes before a linked preview', () => {
   expect(preview).not.toHaveBeenCalled();
 });
 
+it('announces that the server preview is still loading', () => {
+  preview.mockReturnValueOnce(new Promise(() => {}));
+  render(<EditorOptionSetLink set={set} product={product} isDirty={false} onApplied={jest.fn()} />);
+  fireEvent.click(screen.getByText('editor_option_set_link_title'));
+  fireEvent.click(screen.getByRole('button', { name: 'option_set_preview_title' }));
+  expect(screen.getByRole('button', { name: 'option_set_materialization_working' })).toBeDisabled();
+});
+
 it('previews the saved row diff before applying and reloading the editor', async () => {
   const onApplied = jest.fn();
   render(<EditorOptionSetLink set={set} product={product} isDirty={false} onApplied={onApplied} />);

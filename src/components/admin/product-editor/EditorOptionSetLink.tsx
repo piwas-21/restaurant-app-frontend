@@ -160,7 +160,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
         <p>{t('editor_option_set_link_version', { version: target.attachment.appliedSetVersion })}</p>
       )}
       <button type="button" disabled={!canPreview || working} onClick={() => void runPreview()}>
-        {t('option_set_preview_title')}
+        {t(working ? 'option_set_materialization_working' : 'option_set_preview_title')}
       </button>
       {previewTarget && (
         <div aria-live="polite">

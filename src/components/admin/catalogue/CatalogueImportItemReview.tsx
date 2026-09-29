@@ -26,6 +26,7 @@ interface Props {
   readonly canEditDecision: boolean;
   readonly onSelectedChange: (selected: boolean) => void;
   readonly onDecisionChange: (patch: Partial<CatalogueImportDecision>) => void;
+  readonly selectionOnly?: boolean;
 }
 
 function statusTone(status: CatalogueImportSessionItem['status']): 'success' | 'danger' | 'neutral' {
@@ -43,6 +44,7 @@ export default function CatalogueImportItemReview({
   canEditDecision,
   onSelectedChange,
   onDecisionChange,
+  selectionOnly = false,
 }: Props) {
   const { t } = useTranslation();
   const [chosenLocal, setChosenLocal] = useState<MenuAuthoringCandidate | null>(null);
@@ -88,12 +90,12 @@ export default function CatalogueImportItemReview({
           <code>{decision.localEntityId}</code>
         </p>
       )}
-      {item.description && (
+      {!selectionOnly && item.description && (
         <p className={styles.referenceText}>
           {t('catalogue_import_reference_description')}: {item.description}
         </p>
       )}
-      {selected && (
+      {!selectionOnly && selected && (
         <div className={styles.fields}>
           {canEditDecision && canSearchLocal && (
             <CatalogueImportLocalMatchSearch

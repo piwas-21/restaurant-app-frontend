@@ -16,8 +16,7 @@ export interface EditorFieldError {
  * `itemEditorSections.tsx` by hand — `ProductEditorSections.test.tsx` already pins which control
  * renders in which section, and `editorValidation.test.ts` pins that every field this map names is
  * a field the schema really has, so a rename cannot rot it silently in both directions.
- * `sectionForField` applies bundle overrides because the allergen control lives in Basics for
- * bundles rather than Recipe & dietary.
+ * `sectionForField` applies bundle overrides where its field ownership differs from an item.
  *
  * The three status flags live in the side RAIL, not in a section, so they map to nothing: a rail
  * error would have no nav entry to mark. They are booleans with defaults and cannot fail today.
@@ -50,7 +49,7 @@ export const SECTION_FIELDS: Readonly<Record<string, string>> = {
   type: SECTION_IDS.basics,
   hideBaseProduct: SECTION_IDS.pricing,
   isComponent: SECTION_IDS.advanced,
-  menuDefinition: SECTION_IDS.basics,
+  menuDefinition: SECTION_IDS.options,
 };
 
 /** `root` is react-hook-form's FORM-level error. It has no input, so nothing can jump to it. */
@@ -102,8 +101,8 @@ export function collectErrorFields(errors: FieldErrors<FieldValues>): EditorFiel
 /** The section that owns a registered path, or `undefined` for one no section renders. */
 export function sectionForField(name: string, isBundle = false): string | undefined {
   const field = name.split('.')[0];
-  // Bundle allergens render in Basics; item allergens render in Recipe & dietary.
-  if (isBundle && field === 'allergens') return SECTION_IDS.basics;
+  if (isBundle && field === 'allergens') return SECTION_IDS.options;
+  if (isBundle && field === 'basePrice') return SECTION_IDS.basics;
   return SECTION_FIELDS[field];
 }
 

@@ -15,11 +15,7 @@ interface ProductOrderTypesProps {
   readonly categories: Category[];
   /** The form's current `primaryCategoryId` — what "Inherit" resolves against. */
   readonly primaryCategoryId: string;
-  /**
-   * Changes only the no-primary-category notice. A bundle has no category control in this editor,
-   * so telling its admin to "set a primary category" points at something that does not exist —
-   * The override switch is the only way to restrict a combo.
-   */
+  /** Changes the no-primary-category notice to point at the bundle's Basics section. */
   readonly isBundle?: boolean;
   readonly error?: string;
 }
@@ -32,9 +28,7 @@ interface ProductOrderTypesProps {
  * per-channel "inherit" toggle — that would need a second field to express and a rule for
  * resolving the two, which is exactly the "two independent flag sets" model §2 rejected.
  *
- * Bundles render it too since §9.2 — both bundle commands now store a mask. For a combo it is the
- * only way to restrict at all: this editor has no category control, so a UI-created bundle has no
- * primary category to inherit from.
+ * Bundles render it too since §9.2 — both bundle commands store a mask and category assignment.
  */
 export default function ProductOrderTypes({
   value,
@@ -107,15 +101,11 @@ export default function ProductOrderTypes({
           : t('product_order_types_inherit', 'Inherit from category')}
       </p>
 
-      {/* A bundle shows its notice UNCONDITIONALLY. `categoriesLoaded` exists to suppress a false
-          warning during the category fetch — but `useEditorCategories` deliberately never fetches
-          categories for a bundle, so for a combo that guard is not "wait and see", it is "never",
-          and the one notice written to explain the empty Inherit option would never appear. */}
-      {isBundle && (
+      {isBundle && !primaryCategoryId && (
         <p className={styles.warning}>
           {t(
             'product_order_types_no_primary_warning_bundle',
-            'This editor cannot give a combo a category, so there is nothing to inherit — it stays available on every order type until you turn on the override.',
+            'Choose a primary category in Basics to inherit its order channels, or turn on the override here.',
           )}
         </p>
       )}

@@ -12,12 +12,10 @@ interface EditorOrderTypesFieldProps {
 
 /**
  * The `availableOrderTypes` mask, shared by both kinds since §9.2 — bundle commands accept and
- * store it, so the control no longer promises a save that silently does nothing. A bundle inherits
- * nothing in practice (this editor has no category control), which makes the field the ONLY way to
- * restrict a combo.
+ * store it. A bundle may inherit its primary category's channels or override them.
  *
  * Its own component since S2, because it is now one control INSIDE `Service & availability` for an
- * item and the whole of that section for a bundle. The inherited-value shape with an Override
+ * item and shares that section with scheduling for a bundle. The inherited-value shape with an Override
  * switch that the approved screen draws is D6, i.e. slice S5.
  */
 export default function EditorOrderTypesField({ context }: EditorOrderTypesFieldProps) {

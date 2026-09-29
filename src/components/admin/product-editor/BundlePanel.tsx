@@ -16,14 +16,14 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 interface BundlePanelProps {
-  // readonly: S6759 — component props are never mutated.
+  readonly section: 'basics' | 'options' | 'service';
   readonly register: UseFormRegister<FieldValues>;
   readonly errors: FieldErrors<FieldValues>;
   readonly control: Control<FieldValues>;
   readonly setValue: UseFormSetValue<FieldValues>;
   readonly categories: Category[];
+  readonly categoriesError?: string | null;
   readonly selectedCategoryIds: string[];
-  readonly showCategories?: boolean;
   readonly menuDefinition: MenuDefinition;
   readonly availability?: ItemAvailability;
   readonly productId: string;
@@ -33,28 +33,16 @@ interface BundlePanelProps {
   readonly onChange: (menuDefinition: MenuDefinition) => void;
 }
 
-/**
- * Everything a bundle edits: its own core fields, when it is served, and what it contains.
- *
- * The staged photo input is NOT here any more: it moved to the editor's Media section
- * (`BundleMediaPanel`), the one surface named after what it does. This panel edits identity,
- * price and flags; its section heading says Details, not Media.
- *
- * The fields are ported from `EditMenuBundleModal`, with category chips added for full-editor
- * prefills. Bundles still do not expose item-only kitchen/type/variation controls, while category
- * ids are accepted by the bundle commands and preserved through the editor.
- *
- * Bundle allergens and order-channel availability are persisted in the current bundle contract;
- * both are exposed below and round-trip through the ordinary page Save.
- */
+/** Bundle fields stay mounted in focused sections and submit through the page's single Save. */
 export default function BundlePanel({
+  section,
   register,
   errors,
   control,
   setValue,
   categories,
+  categoriesError,
   selectedCategoryIds,
-  showCategories = false,
   menuDefinition,
   availability,
   productId,
@@ -67,106 +55,116 @@ export default function BundlePanel({
 
   return (
     <>
-      <div className={modalStyles.formGrid}>
-        <div className={modalStyles.formColumn}>
-          <div className={modalStyles.formGroup}>
-            <label htmlFor="bundle-name">{t('menu_bundle_name')}</label>
-            <input id="bundle-name" {...register('name')} placeholder={t('enter_menu_bundle_name')} />
-            {errors.name && <p className={modalStyles.errorMessage}>{String(errors.name.message)}</p>}
-          </div>
+      {section === 'basics' && (
+        <>
+          <div className={modalStyles.formGrid}>
+            <div className={modalStyles.formColumn}>
+              <div className={modalStyles.formGroup}>
+                <label htmlFor="bundle-name">{t('menu_bundle_name')}</label>
+                <input id="bundle-name" {...register('name')} placeholder={t('enter_menu_bundle_name')} />
+                {errors.name && <p className={modalStyles.errorMessage}>{String(errors.name.message)}</p>}
+              </div>
 
-          <div className={modalStyles.formGroup}>
-            <label htmlFor="bundle-description">{t('description')}</label>
-            <textarea id="bundle-description" {...register('description')} rows={4} />
-            {errors.description && <p className={modalStyles.errorMessage}>{String(errors.description.message)}</p>}
-          </div>
-        </div>
+              <div className={modalStyles.formGroup}>
+                <label htmlFor="bundle-description">{t('description')}</label>
+                <textarea id="bundle-description" {...register('description')} rows={4} />
+                {errors.description && <p className={modalStyles.errorMessage}>{String(errors.description.message)}</p>}
+              </div>
+            </div>
 
-        <div className={modalStyles.formColumn}>
-          <div className={adminStyles.grid}>
-            <div className={modalStyles.formGroup}>
-              <label htmlFor="bundle-base-price">{t('base_price')}</label>
-              {/* The same two constants the item panel uses (S8). A bundle's price is a price and
+            <div className={modalStyles.formColumn}>
+              <div className={adminStyles.grid}>
+                <div className={modalStyles.formGroup}>
+                  <label htmlFor="bundle-base-price">{t('base_price')}</label>
+                  {/* The same two constants the item panel uses (S8). A bundle's price is a price and
                   its prep time is a count; two panels of one editor spelling that differently is
                   exactly the drift `numberInputProps.ts` exists to end. */}
-              <input id="bundle-base-price" {...register('basePrice')} {...MONEY_INPUT_PROPS} />
-              {errors.basePrice && <p className={modalStyles.errorMessage}>{String(errors.basePrice.message)}</p>}
-            </div>
+                  <input id="bundle-base-price" {...register('basePrice')} {...MONEY_INPUT_PROPS} />
+                  {errors.basePrice && <p className={modalStyles.errorMessage}>{String(errors.basePrice.message)}</p>}
+                </div>
 
-            <div className={modalStyles.formGroup}>
-              <label htmlFor="bundle-prep-time">{t('preparation_time_minutes')}</label>
-              <input
-                id="bundle-prep-time"
-                {...register('preparationTimeMinutes')}
-                {...INTEGER_INPUT_PROPS}
-                placeholder="0"
-              />
-            </div>
-
-            <div className={modalStyles.chipGroup}>
-              <div className={modalStyles.chip}>
-                <input type="checkbox" id="bundle-active" {...register('isActive')} />
-                <label htmlFor="bundle-active">{t('active')}</label>
-              </div>
-              <div className={modalStyles.chip}>
-                <input type="checkbox" id="bundle-available" {...register('isAvailable')} />
-                <label htmlFor="bundle-available">{t('available')}</label>
-              </div>
-              <div className={modalStyles.chip}>
-                <input type="checkbox" id="bundle-special" {...register('isSpecial')} />
-                <label htmlFor="bundle-special">{t('special_of_the_day_title')}</label>
+                <div className={modalStyles.chipGroup}>
+                  <div className={modalStyles.chip}>
+                    <input type="checkbox" id="bundle-active" {...register('isActive')} />
+                    <label htmlFor="bundle-active">{t('active')}</label>
+                  </div>
+                  <div className={modalStyles.chip}>
+                    <input type="checkbox" id="bundle-available" {...register('isAvailable')} />
+                    <label htmlFor="bundle-available">{t('available')}</label>
+                  </div>
+                  <div className={modalStyles.chip}>
+                    <input type="checkbox" id="bundle-special" {...register('isSpecial')} />
+                    <label htmlFor="bundle-special">{t('special_of_the_day_title')}</label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {(showCategories || selectedCategoryIds.length > 0) && (
-        <fieldset className={modalStyles.formGroup}>
-          <legend>{t('categories')}</legend>
-          <CategoryChips
-            control={control}
-            setValue={setValue}
-            categories={categories}
-            selectedCategoryIds={selectedCategoryIds}
-          />
-          {errors.categoryIds && <p className={modalStyles.errorMessage}>{String(errors.categoryIds.message)}</p>}
-        </fieldset>
+          <fieldset className={modalStyles.formGroup} aria-describedby="bundle-primary-category-hint">
+            <legend>{t('categories')}</legend>
+            <p id="bundle-primary-category-hint">{t('bundle_primary_category_hint')}</p>
+            <CategoryChips
+              control={control}
+              setValue={setValue}
+              categories={categories}
+              selectedCategoryIds={selectedCategoryIds}
+            />
+            {categoriesError && (
+              <p className={modalStyles.errorMessage} role="alert">
+                {categoriesError}
+              </p>
+            )}
+            {errors.categoryIds && <p className={modalStyles.errorMessage}>{String(errors.categoryIds.message)}</p>}
+          </fieldset>
+        </>
       )}
 
-      {/*
-        No wrapper headings: both editors render their own <h3>. The modals wrapped them
-        anyway, which printed "Menu Sections" twice and stacked "Menu Availability" above
-        "Menu Availability Schedule".
-      */}
-      <section className={styles.panel}>
-        <MenuScheduleEditor menuDefinition={menuDefinition} onChange={onChange} />
-      </section>
+      {section === 'service' && (
+        <>
+          <div className={modalStyles.formGroup}>
+            <label htmlFor="bundle-prep-time">{t('preparation_time_minutes')}</label>
+            <input
+              id="bundle-prep-time"
+              {...register('preparationTimeMinutes')}
+              {...INTEGER_INPUT_PROPS}
+              placeholder="0"
+            />
+          </div>
+          <section className={styles.panel}>
+            <MenuScheduleEditor menuDefinition={menuDefinition} onChange={onChange} />
+          </section>
+        </>
+      )}
 
-      <section className={styles.panel}>
-        {/*
+      {section === 'options' && (
+        <>
+          <section className={styles.panel}>
+            {/*
           The section editor propagates every mutation to the page (owner call, slice 7):
           the page owns the single Save, so there is no nested commit point competing with it.
         */}
-        <MenuSectionEditor
-          sections={menuDefinition.sections}
-          onChange={(sections) => onChange({ ...menuDefinition, sections })}
-        />
-        <BundleGuestStepPreview
-          menuDefinition={menuDefinition}
-          availability={availability}
-          quoteContext={{ productId, isDirty, isActive, isAvailable }}
-        />
-        {errors.menuDefinition && (
-          <p className={modalStyles.errorMessage} role="alert">
-            {String(errors.menuDefinition.message || t('menu_definition_invalid'))}
-          </p>
-        )}
-      </section>
+            <MenuSectionEditor
+              sections={menuDefinition.sections}
+              onChange={(sections) => onChange({ ...menuDefinition, sections })}
+            />
+            <BundleGuestStepPreview
+              menuDefinition={menuDefinition}
+              availability={availability}
+              quoteContext={{ productId, isDirty, isActive, isAvailable }}
+            />
+            {errors.menuDefinition && (
+              <p className={modalStyles.errorMessage} role="alert">
+                {String(errors.menuDefinition.message || t('menu_definition_invalid'))}
+              </p>
+            )}
+          </section>
 
-      <section className={styles.panel}>
-        <ProductAllergenFields control={control} />
-      </section>
+          <section className={styles.panel}>
+            <ProductAllergenFields control={control} />
+          </section>
+        </>
+      )}
     </>
   );
 }

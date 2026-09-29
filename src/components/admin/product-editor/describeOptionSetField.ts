@@ -3,7 +3,8 @@ import type { OptionSetTargetSettings } from '@/types/optionSetMaterialization';
 import { formatCurrency } from '@/utils/currency';
 import { z } from 'zod';
 
-export const optionSetDifferenceReasonSchema = z.string().trim().max(500);
+export const OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH = 500;
+export const optionSetDifferenceReasonSchema = z.string().trim().max(OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH);
 
 const settingLabels: Readonly<Record<string, string>> = {
   minSelection: 'minimum_selection',

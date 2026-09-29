@@ -21,6 +21,7 @@ import {
 import styles from './EditorOptionSetPicker.module.css';
 import {
   describeOptionSetField,
+  OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH,
   optionSetDifferenceReasonSchema,
   optionSetSettingLabel,
   optionSetSettingValue,
@@ -223,7 +224,7 @@ export default function EditorOptionSetLink({ set, product, isDirty, onApplied }
             >
               <textarea
                 value={differenceReason}
-                maxLength={500}
+                maxLength={OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH}
                 onChange={(event) => setDifferenceReason(event.target.value)}
               />
             </FormField>

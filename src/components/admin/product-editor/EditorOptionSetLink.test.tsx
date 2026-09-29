@@ -4,6 +4,7 @@ import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { useOptionSetMaterializationFeature } from '@/hooks/admin/useOptionSetMaterializationFeature';
 import { applyOptionSetAttachments, previewOptionSetAttachments } from '@/services/optionSetService';
 import type { OptionSetDetail } from '@/types/optionSet';
+import { OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH } from './describeOptionSetField';
 import EditorOptionSetLink from './EditorOptionSetLink';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
@@ -169,7 +170,7 @@ it('requires an explanation when the server finds a related-offer difference', a
   expect(applyButton).toBeDisabled();
   const reason = screen.getByRole('textbox', { name: 'option_set_difference_reason' });
   expect(reason).toHaveAttribute('aria-invalid', 'true');
-  fireEvent.change(reason, { target: { value: 'x'.repeat(501) } });
+  fireEvent.change(reason, { target: { value: 'x'.repeat(OPTION_SET_DIFFERENCE_REASON_MAX_LENGTH + 1) } });
   expect(applyButton).toBeDisabled();
   fireEvent.change(screen.getByRole('textbox', { name: 'option_set_difference_reason' }), {
     target: { value: 'This item has a separate side offer.' },

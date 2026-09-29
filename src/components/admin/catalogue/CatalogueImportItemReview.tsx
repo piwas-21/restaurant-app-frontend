@@ -11,13 +11,15 @@ import {
   type CatalogueImportSessionItem,
 } from '@/services/catalogueImportService';
 import CatalogueImportOperationalReview from './CatalogueImportOperationalReview';
-import CatalogueImportLocalMatchSearch from './CatalogueImportLocalMatchSearch';
+import CatalogueImportLocalMatchSearch, { compatibleKind } from './CatalogueImportLocalMatchSearch';
 import type { MenuAuthoringCandidate } from '@/types/menuAuthoringSearch';
+import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 import styles from './CatalogueImportWorkspace.module.css';
 import itemStyles from './CatalogueImportItemReview.module.css';
 
 interface Props {
   readonly item: CatalogueImportSessionItem;
+  readonly detail?: CatalogueTemplateRevision;
   readonly decision: CatalogueImportDecision;
   readonly selected: boolean;
   readonly canEditSelection: boolean;
@@ -34,6 +36,7 @@ function statusTone(status: CatalogueImportSessionItem['status']): 'success' | '
 
 export default function CatalogueImportItemReview({
   item,
+  detail,
   decision,
   selected,
   canEditSelection,
@@ -44,7 +47,7 @@ export default function CatalogueImportItemReview({
   const { t } = useTranslation();
   const [chosenLocal, setChosenLocal] = useState<MenuAuthoringCandidate | null>(null);
   const itemIsProduct = item.type === 'item' || item.type === 'bundle';
-  const canSearchLocal = item.type === 'item' || item.type === 'bundle';
+  const canSearchLocal = itemIsProduct || (detail?.type === item.type && Boolean(compatibleKind(detail)));
   let localName: string | null | undefined = null;
   if (chosenLocal && chosenLocal.id === decision.localEntityId) {
     localName = chosenLocal.name;
@@ -95,6 +98,7 @@ export default function CatalogueImportItemReview({
           {canEditDecision && canSearchLocal && (
             <CatalogueImportLocalMatchSearch
               item={item}
+              detail={detail}
               onChoose={(candidate) => {
                 setChosenLocal(candidate);
                 onDecisionChange({ resolution: 'Reuse', localEntityId: candidate.id });

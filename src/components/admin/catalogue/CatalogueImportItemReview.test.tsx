@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import CatalogueImportItemReview from './CatalogueImportItemReview';
 import type { CatalogueImportDecision, CatalogueImportSessionItem } from '@/services/catalogueImportService';
+import type { CatalogueTemplateRevision } from '@/services/catalogueTemplateService';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
@@ -60,6 +61,25 @@ describe('CatalogueImportItemReview', () => {
 
     expect(screen.queryByRole('spinbutton', { name: 'catalogue_import_price_for' })).not.toBeInTheDocument();
     expect(screen.getByText('catalogue_import_reuse_preserves_local')).toBeInTheDocument();
+  });
+
+  it('offers local reuse for a pinned option-set dependency when its kind is known', () => {
+    const optionSet: CatalogueImportSessionItem = { ...bundle, templateId: 'set', type: 'option-set', isRoot: false };
+    const detail = { type: 'option-set', payload: { kind: 'sauce' } } as CatalogueTemplateRevision;
+    render(
+      <CatalogueImportItemReview
+        item={optionSet}
+        detail={detail}
+        decision={{ ...decision, templateId: 'set' }}
+        selected
+        canEditSelection
+        canEditDecision
+        onSelectedChange={jest.fn()}
+        onDecisionChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'catalogue_import_find_local' })).toBeInTheDocument();
   });
 
   it('shows the exact reused record after reopening a saved session', () => {

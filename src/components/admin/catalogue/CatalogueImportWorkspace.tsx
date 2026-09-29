@@ -141,6 +141,7 @@ function ImportRoute() {
         selectedIds={flow.selectedIds}
         decisions={flow.decisions}
         priceRefsByOwner={optionPrices.byOwner}
+        detailsByKey={optionPrices.detailsByKey}
         canEditSelection={flow.canEditSelection}
         canEditDecision={flow.canEditDecision}
         onToggleSelection={(item, selected) => flow.toggleSelection(item.templateId, selected)}
@@ -149,6 +150,9 @@ function ImportRoute() {
       <h2 className={styles.stepHeading}>{t('catalogue_import_step_check')}</h2>
       <CatalogueImportPreviewReview
         preview={flow.preview}
+        locale={locale}
+        detailsByKey={optionPrices.detailsByKey}
+        decisions={flow.decisions}
         canChooseCandidate={(templateId, rev) => {
           const item = session.items.find((entry) => entry.templateId === templateId && entry.revision === rev);
           return item ? flow.canEditDecision(item) : false;

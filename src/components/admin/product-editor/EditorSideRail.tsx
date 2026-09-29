@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/utils/currency';
 import {
@@ -69,6 +70,9 @@ export default function EditorSideRail({
   optionSets,
 }: EditorSideRailProps) {
   const { t } = useTranslation();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const mobilePanelId = React.useId();
+  const mobileLabel = optionSets ? t('editor_option_sets_title') : status ? t('status') : t('editor_at_a_glance');
 
   // Literal `t()` calls, one per field: `check-t-keys.mjs` reads the CALLSITES statically, so a key
   // assembled as `t(`editor_completeness_${id}`)` is a key no gate can see.
@@ -81,67 +85,79 @@ export default function EditorSideRail({
   };
 
   return (
-    <div className={styles.stack}>
-      {status}
-      {optionSets}
-      <section className={styles.card} aria-labelledby="editor-rail-heading">
-        <h2 id="editor-rail-heading" className={styles.heading}>
-          {t('editor_at_a_glance')}
-        </h2>
-        <dl className={styles.list}>
-          <div className={styles.row}>
-            <dt className={styles.term}>{t('price')}</dt>
-            <dd className={styles.value}>{formatCurrency(basePrice)}</dd>
-          </div>
-          {showCategory && (
-            <div className={styles.row}>
-              <dt className={styles.term}>{t('category')}</dt>
-              <dd className={styles.value}>{categoryName || EMPTY}</dd>
-            </div>
-          )}
-          <div className={styles.row}>
-            <dt className={styles.term}>{t('order_types')}</dt>
-            <dd className={styles.value}>
-              {inheritsOrderTypes ? t('product_order_types_inherit') : t('product_order_types_custom')}
-            </dd>
-          </div>
-          {showPhotos && (
-            <div className={styles.row}>
-              <dt className={styles.term}>{t('product_images')}</dt>
-              <dd className={styles.value}>{photoCount}</dd>
-            </div>
-          )}
-        </dl>
-      </section>
-      {completeness && (
-        <section className={styles.card} aria-labelledby="editor-completeness-heading">
-          <h2 id="editor-completeness-heading" className={styles.heading}>
-            {t('editor_completeness')}
+    <>
+      <button
+        type="button"
+        data-testid="editor-mobile-tools"
+        className={styles.mobileToggle}
+        aria-expanded={mobileOpen}
+        aria-controls={mobilePanelId}
+        onClick={() => setMobileOpen((open) => !open)}
+      >
+        {mobileLabel}
+        <ChevronDown className={mobileOpen ? styles.mobileChevronOpen : ''} size={18} aria-hidden="true" />
+      </button>
+      <div id={mobilePanelId} className={`${styles.stack} ${mobileOpen ? styles.stackOpen : ''}`}>
+        {status}
+        {optionSets}
+        <section className={styles.card} aria-labelledby="editor-rail-heading">
+          <h2 id="editor-rail-heading" className={styles.heading}>
+            {t('editor_at_a_glance')}
           </h2>
-          <p className={styles.progress}>
-            {t('editor_completeness_progress', { done: completeness.done, total: completeness.total })}
-          </p>
           <dl className={styles.list}>
-            {SCORED_COMPLETENESS_FIELDS.map((id) => {
-              const isMissing = completeness.missing.includes(id);
-              return (
-                <div key={id} className={styles.row}>
-                  <dt className={styles.term}>
-                    {/* Decoration only: the state is spelled out in the value beside it, so a
-                        screen reader never has to interpret a tick. */}
-                    <span aria-hidden="true" className={styles.glyph}>
-                      {isMissing ? '○' : '✓'}
-                    </span>
-                    <span>{fieldLabels[id]}</span>
-                  </dt>
-                  <dd className={`${styles.value} ${isMissing ? styles.missing : ''}`}>
-                    {isMissing ? t('editor_completeness_field_missing') : t('editor_completeness_field_done')}
-                  </dd>
-                </div>
-              );
-            })}
+            <div className={styles.row}>
+              <dt className={styles.term}>{t('price')}</dt>
+              <dd className={styles.value}>{formatCurrency(basePrice)}</dd>
+            </div>
+            {showCategory && (
+              <div className={styles.row}>
+                <dt className={styles.term}>{t('category')}</dt>
+                <dd className={styles.value}>{categoryName || EMPTY}</dd>
+              </div>
+            )}
+            <div className={styles.row}>
+              <dt className={styles.term}>{t('order_types')}</dt>
+              <dd className={styles.value}>
+                {inheritsOrderTypes ? t('product_order_types_inherit') : t('product_order_types_custom')}
+              </dd>
+            </div>
+            {showPhotos && (
+              <div className={styles.row}>
+                <dt className={styles.term}>{t('product_images')}</dt>
+                <dd className={styles.value}>{photoCount}</dd>
+              </div>
+            )}
           </dl>
-          {/*
+        </section>
+        {completeness && (
+          <section className={styles.card} aria-labelledby="editor-completeness-heading">
+            <h2 id="editor-completeness-heading" className={styles.heading}>
+              {t('editor_completeness')}
+            </h2>
+            <p className={styles.progress}>
+              {t('editor_completeness_progress', { done: completeness.done, total: completeness.total })}
+            </p>
+            <dl className={styles.list}>
+              {SCORED_COMPLETENESS_FIELDS.map((id) => {
+                const isMissing = completeness.missing.includes(id);
+                return (
+                  <div key={id} className={styles.row}>
+                    <dt className={styles.term}>
+                      {/* Decoration only: the state is spelled out in the value beside it, so a
+                        screen reader never has to interpret a tick. */}
+                      <span aria-hidden="true" className={styles.glyph}>
+                        {isMissing ? '○' : '✓'}
+                      </span>
+                      <span>{fieldLabels[id]}</span>
+                    </dt>
+                    <dd className={`${styles.value} ${isMissing ? styles.missing : ''}`}>
+                      {isMissing ? t('editor_completeness_field_missing') : t('editor_completeness_field_done')}
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+            {/*
             Allergens are NOT scored, and this line is the whole reason the meter can be trusted
             (plan §14, option 3). Saying nothing would read as "allergens are fine"; scoring an empty
             list as done would return a green tick at the exact moment nobody has looked, which is a
@@ -149,9 +165,10 @@ export default function EditorSideRail({
             gone wrong and the text never changes, so a live region would announce nothing while
             telling every future reader that it does (§15.2).
           */}
-          <p className={styles.note}>{t('editor_completeness_allergens_note')}</p>
-        </section>
-      )}
-    </div>
+            <p className={styles.note}>{t('editor_completeness_allergens_note')}</p>
+          </section>
+        )}
+      </div>
+    </>
   );
 }

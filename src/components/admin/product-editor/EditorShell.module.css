@@ -116,7 +116,8 @@
   }
 }
 
-/* SMALL TABLET — 820px: one column, and only now is the nav a chip strip. No phone target (D10). */
+/* SMALL TABLET — the section chips lead, followed by a compact rail disclosure and the form.
+   This matches the DOM and keyboard order while keeping the first edit field in view on phones. */
 @media (max-width: 820px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
@@ -124,12 +125,12 @@
 
   .rail {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 2;
   }
 
   .navColumn {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 1;
   }
 
   .main {

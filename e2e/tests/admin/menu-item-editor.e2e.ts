@@ -42,6 +42,8 @@ test.describe.configure({ mode: 'serial' });
  *  builds the ITEM sections, not a bundle's two. */
 const SEEDED_PRODUCT_ID = '00000000-0000-0000-0000-0000000000bb';
 const SEEDED_PRODUCT_NAME = 'E2E Test Product';
+const SEEDED_BUNDLE_ID = '00000000-0000-0000-0000-0000000000f1';
+const SEEDED_BUNDLE_NAME = 'E2E Kitchen Combo';
 
 /**
  * §4's seven sections, IN ORDER, as the DOM ids `EditorShell` renders.
@@ -227,6 +229,113 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
      * scan could not have reported — and so is any control inside a collapsed section.
      */
     await expectNoA11yViolations(page);
+  } finally {
+    await context.close();
+  }
+});
+
+/** A real viewport check for #904: the first field must be usable before a phone-sized tenant
+ * scrolls past summary cards. The rail control still exposes status and sets for the active section. */
+test('phone editor starts with an editable field and keeps contextual tools reachable', async ({
+  browser,
+  request,
+  baseURL,
+}) => {
+  test.skip(!storageStatePath, skipReason);
+  test.setTimeout(180_000);
+
+  const { path } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor-phone');
+  expect(path, 'the phone check needs its own unspent admin session').not.toBe('');
+  const context = await browser.newContext({ storageState: path, viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    const nameInput = page.locator('input[name="name"]');
+    await expect(nameInput).toHaveValue(SEEDED_PRODUCT_NAME, { timeout: 120_000 });
+
+    const nameBox = await nameInput.boundingBox();
+    const saveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(nameBox, 'the first edit field must have a box').not.toBeNull();
+    expect(saveBox, 'the sticky save bar must have a box').not.toBeNull();
+    expect(nameBox!.y, 'the first field must start inside the phone viewport').toBeGreaterThanOrEqual(0);
+    expect(nameBox!.y + nameBox!.height, 'the first field must clear the sticky save bar').toBeLessThan(saveBox!.y);
+
+    const tools = page.getByTestId('editor-mobile-tools');
+    const activeSwitch = page.locator('#product-active');
+    await expect(tools).toHaveAccessibleName(/status/i);
+    await expect(tools).toHaveAttribute('aria-expanded', 'false');
+    await expect(activeSwitch).toHaveCount(1);
+    await expect(activeSwitch).toBeHidden();
+    await tools.click();
+    await expect(activeSwitch).toBeVisible();
+    await tools.click();
+    await expect(activeSwitch).toBeHidden();
+    await expect(activeSwitch).toHaveCount(1);
+
+    await page.getByRole('tab', { name: 'Recipe & dietary' }).click();
+    await expect(tools).toHaveAccessibleName(/reusable sets/i);
+    await tools.click();
+    await expect(page.getByRole('searchbox', { name: /search option sets/i })).toBeVisible();
+
+    await tools.click();
+    await page.getByRole('tab', { name: 'Basics' }).click();
+    await page.setViewportSize({ width: 820, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const tabletNameBox = await nameInput.boundingBox();
+    const tabletSaveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(tabletNameBox!.y).toBeGreaterThanOrEqual(0);
+    expect(tabletNameBox!.y + tabletNameBox!.height).toBeLessThan(tabletSaveBox!.y);
+
+    // The ephemeral browser context can switch language/theme without touching a real tenant's
+    // saved preferences. This checks the same first-field layout under RTL and dark tokens.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'ar');
+      localStorage.setItem('rumiTheme', 'dark');
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(nameInput).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const rtlNameBox = await nameInput.boundingBox();
+    const rtlSaveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(rtlNameBox!.y).toBeGreaterThanOrEqual(0);
+    expect(rtlNameBox!.y + rtlNameBox!.height).toBeLessThan(rtlSaveBox!.y);
+    await expect(tools).toBeVisible();
+    await expectNoA11yViolations(page);
+
+    // The seeded Menu record is a real bundle. Its status flags live in Basics, while the
+    // contextual set picker belongs in the compact disclosure at the same mobile breakpoint.
+    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_BUNDLE_ID}`, { waitUntil: 'domcontentloaded' });
+    await expect(nameInput).toHaveValue(SEEDED_BUNDLE_NAME);
+    const bundleNameBox = await nameInput.boundingBox();
+    const bundleSaveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(bundleNameBox!.y).toBeGreaterThanOrEqual(0);
+    expect(bundleNameBox!.y + bundleNameBox!.height).toBeLessThan(bundleSaveBox!.y);
+    await expect(tools).toBeVisible();
+    await tools.click();
+    await expect(page.getByRole('searchbox')).toBeVisible();
+    await tools.click();
+
+    await page.setViewportSize({ width: 820, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const tabletBundleNameBox = await nameInput.boundingBox();
+    const tabletBundleSaveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(tabletBundleNameBox!.y).toBeGreaterThanOrEqual(0);
+    expect(tabletBundleNameBox!.y + tabletBundleNameBox!.height).toBeLessThan(tabletBundleSaveBox!.y);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => {
+      localStorage.setItem('i18nextLng', 'en');
+      localStorage.setItem('rumiTheme', 'light');
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(nameInput).toHaveValue(SEEDED_BUNDLE_NAME);
+    const lightBundleNameBox = await nameInput.boundingBox();
+    const lightBundleSaveBox = await page.getByTestId('editor-save').boundingBox();
+    expect(lightBundleNameBox!.y).toBeGreaterThanOrEqual(0);
+    expect(lightBundleNameBox!.y + lightBundleNameBox!.height).toBeLessThan(lightBundleSaveBox!.y);
   } finally {
     await context.close();
   }

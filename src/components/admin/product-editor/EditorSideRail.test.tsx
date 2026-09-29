@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import EditorSideRail from './EditorSideRail';
 import { getProductCompleteness } from '@/lib/productCompleteness';
 
@@ -32,6 +32,38 @@ const baseProps = {
 };
 
 const meter = () => screen.getByRole('heading', { name: 'editor_completeness' }).closest('section') as HTMLElement;
+
+describe('EditorSideRail — compact editor tools', () => {
+  it('keeps the same status input mounted while its disclosure opens and closes', () => {
+    render(
+      <EditorSideRail
+        {...baseProps}
+        status={<input type="checkbox" aria-label="Active" defaultChecked />}
+        optionSets={<button type="button">Copy sauce set</button>}
+      />,
+    );
+    const toggle = screen.getByRole('button', { name: 'editor_option_sets_title' });
+    const status = screen.getByRole('checkbox', { name: 'Active' });
+    const panel = document.getElementById(toggle.getAttribute('aria-controls') ?? '');
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(panel).toContainElement(status);
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'Copy sauce set' })).toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('checkbox', { name: 'Active' })).toBe(status);
+    expect(status).toBeChecked();
+  });
+
+  it('names the compact access point for the controls it contains', () => {
+    const { rerender } = render(<EditorSideRail {...baseProps} status={<input aria-label="Active" />} />);
+    expect(screen.getByRole('button', { name: 'status' })).toBeInTheDocument();
+    rerender(<EditorSideRail {...baseProps} />);
+    expect(screen.getByRole('button', { name: 'editor_at_a_glance' })).toBeInTheDocument();
+  });
+});
 
 /**
  * The side rail's completeness meter (MENU-ITEM-EDITOR-REDESIGN-PLAN, S10).
@@ -76,10 +108,8 @@ describe('EditorSideRail — the completeness meter', () => {
   });
 
   it('hides the tick and the ring from the accessibility tree', () => {
-    const { container } = render(
-      <EditorSideRail {...baseProps} completeness={getProductCompleteness({ photoCount: 0, description: '' })} />,
-    );
-    const glyphs = container.querySelectorAll('[aria-hidden="true"]');
+    render(<EditorSideRail {...baseProps} completeness={getProductCompleteness({ photoCount: 0, description: '' })} />);
+    const glyphs = meter().querySelectorAll('[aria-hidden="true"]');
     expect(glyphs).toHaveLength(2);
     expect(Array.from(glyphs).map((g) => g.textContent)).toEqual(['○', '○']);
   });

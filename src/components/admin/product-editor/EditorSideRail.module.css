@@ -12,6 +12,10 @@
   gap: 1rem;
 }
 
+.mobileToggle {
+  display: none;
+}
+
 .card {
   padding: 1rem;
   border: 1px solid var(--border-light);
@@ -122,5 +126,43 @@
 
   .row {
     gap: 0.5rem;
+  }
+}
+
+@media (max-width: 820px) {
+  .mobileToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--surface-card);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .mobileToggle:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+  }
+
+  .mobileChevronOpen {
+    transform: rotate(180deg);
+  }
+
+  .stack {
+    display: none;
+  }
+
+  .stack.stackOpen {
+    display: flex;
+    margin-block-start: 0.75rem;
   }
 }

@@ -147,6 +147,11 @@ describe('CatalogueTemplateBrowser', () => {
     expect(await screen.findByRole('dialog', { name: 'Menu soupe et pain' })).toBeInTheDocument();
     expect(await screen.findByText('Lentil soup')).toBeInTheDocument();
     expect(screen.getByText('catalogue_choose_exactly:1')).toBeInTheDocument();
+    expect(screen.getByText('catalogue_local_review_notice')).toBeVisible();
+    const checklist = screen.getByText('catalogue_review_checklist').closest('details');
+    expect(checklist).not.toHaveAttribute('open');
+    fireEvent.click(screen.getByText('catalogue_review_checklist'));
+    expect(checklist).toHaveAttribute('open');
     expect(screen.getByText('catalogue_review_field_allergens')).toBeInTheDocument();
     expect(screen.queryByText(/CHF|\$|€|price:/i)).not.toBeInTheDocument();
 

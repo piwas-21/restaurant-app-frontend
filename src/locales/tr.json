@@ -3078,6 +3078,7 @@
   "catalogue_suggested_only": "Önerilen malzeme rolü:",
   "catalogue_category_template_notice": "Bu şablon bir kategori referansı içerir.",
   "catalogue_local_review_heading": "Restoranınız için inceleyin",
+  "catalogue_review_checklist": "Kontrol listesini göster",
   "catalogue_local_review_notice": "Kullanmadan önce yerel fiyatları belirleyin; malzemeleri, alerjenleri, sipariş kanallarını, uygunluğu ve mutfak yönlendirmesini doğrulayın.",
   "catalogue_review_field_price": "Yerel fiyatları belirleyin",
   "catalogue_review_field_ingredients": "Malzemeleri ve tarifi doğrulayın",

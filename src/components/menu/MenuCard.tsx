@@ -30,6 +30,7 @@ import adminPriceStyles from './AdminPriceEditorHost.module.css';
 // Still the HOST's stylesheet — `MenuCardAvailability` is the shared shell and takes whichever
 // module its host hands it; craft passes its own. The shell reads only `availability*` classes.
 import availabilityStyles from './MenuItemAvailability.module.css';
+import { resolveTenantPublicLocalizedText } from '@/utils/publicLocalizedText';
 
 export interface MenuCardProps {
   item: CatalogItem;
@@ -92,18 +93,17 @@ export default function MenuCard({
   // leaving it to one 200px row. Always false for a guest — the editor owns the condition.
   const [priceEditing, setPriceEditing] = useState(false);
 
-  const currentLanguage = (i18n.language || 'en').split('-')[0];
-  const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
-  const description = item.content?.[currentLanguage]?.description || item.content?.en?.description || item.description;
+  const { name: itemName, description } = resolveTenantPublicLocalizedText(
+    item,
+    i18n.resolvedLanguage || i18n.language,
+  );
 
-  // A combo's default picks ("Pizza + Cola") — the one thing the retired MenuBundleCard rendered
-  // that MenuItemDetails still does not.
+  // Default picks ("Pizza + Cola") shown on combo cards; details still omits them.
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
   // "from CHF 6.00" when the card price is a starting price (a hidden base row — F2).
   const priceText = cardPriceText(price, item.priceIsFrom, t);
 
-  // Add to Order: a simple product adds straight to the cart. Details/title: always open the sheet
-  // to view the item (never silently add it).
+  // Simple-product actions add to cart; titles and details open the sheet without adding.
   const open = () => onOpen(item);
   const openDetails = () => onOpen(item, { forceSheet: true });
 

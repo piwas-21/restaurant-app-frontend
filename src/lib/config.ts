@@ -102,6 +102,13 @@ export const TENANT_COPY_PACK: string = (process.env.NEXT_PUBLIC_TENANT_COPY_PAC
 export const PWA_THEME_COLOR = (process.env.NEXT_PUBLIC_PWA_THEME_COLOR ?? '').trim() || '#c00000';
 export const PWA_BACKGROUND_COLOR = (process.env.NEXT_PUBLIC_PWA_BACKGROUND_COLOR ?? '').trim() || '#ffffff';
 
+/** Public discovery settings are read literally so Next.js bakes each value into client code. */
+export const TENANT_PUBLIC_CANONICAL_ORIGIN = process.env.NEXT_PUBLIC_TENANT_CANONICAL_ORIGIN;
+export const TENANT_PUBLIC_DEFAULT_LOCALE = process.env.NEXT_PUBLIC_PUBLIC_DEFAULT_LOCALE;
+export const TENANT_PUBLIC_HOME_LOCALES = process.env.NEXT_PUBLIC_PUBLIC_HOME_LOCALES;
+export const TENANT_PUBLIC_MENU_LOCALES = process.env.NEXT_PUBLIC_PUBLIC_MENU_LOCALES;
+export const TENANT_PUBLIC_INDEXING_ENABLED = process.env.NEXT_PUBLIC_PUBLIC_INDEXING_ENABLED;
+
 /**
  * How long an open cashier page may retain the tenant day before asking the server again. The
  * venue clock, not the counter device, owns a business-day boundary. This is build configuration

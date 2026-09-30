@@ -1,4 +1,6 @@
 import type { ApiCategory } from '@/types/menu';
+import { localizedEntry } from './publicLocalizedText';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 // A pure constants module (two string literals, no React), so reaching into `hooks/` from here
 // costs nothing at runtime and keeps the two sentinels spelled in exactly one place.
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
@@ -51,6 +53,10 @@ export function getLocalizedCategoryName(
   const explicit = explicitCategoryText(category, locale, 'name');
   if (explicit) return explicit;
 
+  const sourceLocale = category.sourceLocale?.trim() || TENANT_PUBLIC_CONFIG.defaultLocale;
+  if (baseLanguage(sourceLocale) === baseLanguage(locale)) return category.name;
+  if (category.sourceLocale && baseLanguage(category.sourceLocale) !== baseLanguage(locale)) return category.name;
+
   return getCategoryDisplayName(category.name, translationFunction);
 }
 
@@ -74,16 +80,12 @@ function explicitCategoryText(
   locale: string,
   field: 'name' | 'description',
 ): string | undefined {
-  const locales = [...new Set([locale, baseLocale(locale)])];
-  for (const candidate of locales) {
-    const text = category.translations?.[candidate]?.[field];
-    if (text?.trim()) return text;
-  }
-  return undefined;
+  const text = localizedEntry(category.translations, locale)?.[field];
+  return text?.trim() ? text : undefined;
 }
 
-function baseLocale(locale: string): string {
-  return locale.toLowerCase().split(/[-_]/, 1)[0];
+function baseLanguage(locale: string): string {
+  return locale.trim().toLowerCase().split(/[-_]/, 1)[0];
 }
 
 /**

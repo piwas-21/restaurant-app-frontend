@@ -14,6 +14,7 @@ import type { CategoryNavProps } from '@/components/menu/CategoryNav';
 import type { MenuSectionStatusProps } from '@/components/menu/MenuSectionStatus';
 import type { OrderFlowSidebarProps } from '@/components/order/OrderFlowSidebar';
 import type { CartContentsProps } from '@/components/order/CartContents';
+import type { PublicHomePageProps } from '@/types/publicDiscovery';
 
 /**
  * A loaded `next/font` instance. Structural subset of next/font's return type. Any
@@ -82,7 +83,7 @@ export interface TemplateDefinition {
    */
   Shell: React.ComponentType<ShellProps>;
   /** The landing-page composition. */
-  HomePage: React.ComponentType;
+  HomePage: React.ComponentType<PublicHomePageProps>;
   /** The login-page composition (consumed via the `@active-template/LoginPage`
    *  re-export in src/app/auth/login/page.tsx). */
   LoginPage: React.ComponentType;

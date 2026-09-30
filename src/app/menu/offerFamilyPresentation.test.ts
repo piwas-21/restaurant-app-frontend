@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const MENU_PAGE = readFileSync(join(__dirname, './page.tsx'), 'utf8');
+const MENU_PAGE = readFileSync(join(__dirname, './MenuClientPage.tsx'), 'utf8');
 const RESET_HOOK = readFileSync(join(__dirname, '../../hooks/menu/useOfferFamilyPresentationReset.ts'), 'utf8');
 
 describe('category-offers menu wiring', () => {
@@ -9,8 +9,10 @@ describe('category-offers menu wiring', () => {
     expect(MENU_PAGE).toContain('categories: publicCategories');
     expect(MENU_PAGE).toContain('const categoriesForNav = isOnePage ? onePage.categories : publicCategories;');
     expect(MENU_PAGE).toContain('const isCategoryOffers = displaySettings.bundlePresentationMode ===');
-    expect(MENU_PAGE).toContain('usePublicMenu(!isOnePage && !isCategoryOffers)');
-    expect(MENU_PAGE).toContain('usePublicOfferFamilies(isCategoryOffers, offerFamilyCategoryId)');
+    expect(MENU_PAGE).toContain(
+      'usePublicMenu(!isOnePage && !isCategoryOffers, initialSnapshot, initialView, isCategoryOffers)',
+    );
+    expect(MENU_PAGE).toContain('usePublicOfferFamilies(isCategoryOffers, offerFamilyCategoryId, initialSnapshot)');
     expect(MENU_PAGE).toContain('selectedView,');
   });
 

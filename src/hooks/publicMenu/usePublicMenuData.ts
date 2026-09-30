@@ -5,30 +5,19 @@ import { getProducts } from '@/services/menuService';
 import { getPublicMenuBundles } from '@/services/menuBundleService';
 import type { MenuBundleItem, MenuItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
+import type { PublicMenuClientData } from '@/types/publicDiscovery';
 import { ALL_ITEMS_KEY } from './constants';
-import { IDLE, errorMessage, type FetcherState } from './pipeline';
+import { IDLE, errorMessage, isFailureEnvelope, type FetcherState } from './pipeline';
 import { isVisible, mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
-import type { MenuBundleListResponse, ProductListResponse } from './types';
+import type { MenuBundleDto, ProductDto } from './types';
+import { loadVisiblePages, type PublicPagedItems } from './loadVisiblePages';
 
 /**
- * One page holds a whole category, so the client-side filters (`useMenuFilters`) filter the whole
- * category rather than page 1 of N. It was 10, which is what made a "Gluten-free" chip a lie: it
- * would hide matching dishes on pages 2–7 with nothing on screen to say so.
- *
- * 200 rather than "all": it is comfortably above any single category a restaurant menu has (RUMI's
- * whole catalogue is 71 across 9 categories) while still bounding what one request can pull. A
- * tenant who exceeds it keeps pagination and the filter row keeps printing its match count against
- * what it actually loaded, so the number on screen stays true either way.
+ * Each API request is bounded to 200 rows, then loadVisiblePages walks and validates the complete
+ * collection before applying client-side filters. This keeps filter counts honest without
+ * truncating a category or the catalogue when a tenant grows past one page.
  */
 export const PAGE_SIZE = 200;
-
-/**
- * The two fetchers are INDEPENDENT PIPELINES with disjoint state (a FetcherState each): they run
- * CONCURRENTLY since bundles load on every view (they are grouped into the category tabs), so a
- * shared slot would let one pipeline clobber the other — a slow bundles response re-writing the
- * count line, or a bundles failure blanking the products grid. `usePublicMenu` composes the
- * active view's halves for the page.
- */
 
 export interface UsePublicMenuDataReturn {
   items: MenuItem[];
@@ -64,11 +53,27 @@ export interface UsePublicMenuDataReturn {
  * Mapping is delegated to `./mappers` so this file stays focused on
  * loading orchestration (state + error handling + pagination metadata).
  */
-export function usePublicMenuData(): UsePublicMenuDataReturn {
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>([]);
-  const [products, setProducts] = useState<FetcherState>(IDLE);
-  const [bundles, setBundles] = useState<FetcherState>(IDLE);
+export function usePublicMenuData(initialSnapshot?: PublicMenuClientData): UsePublicMenuDataReturn {
+  const [items, setItems] = useState<MenuItem[]>(() =>
+    (initialSnapshot?.products.items ?? []).map((product) => mapProductDtoToMenuItem(product)).filter(isVisible),
+  );
+  const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>(() =>
+    (initialSnapshot?.bundles.items ?? []).map(mapBundleDtoToMenuBundleItem).filter(isVisible),
+  );
+  const [products, setProducts] = useState<FetcherState>(() => ({
+    ...IDLE,
+    currentPage: initialSnapshot?.products.currentPage ?? 1,
+    totalPages: initialSnapshot?.products.totalPages ?? 1,
+    totalCount: initialSnapshot?.products.totalCount ?? 0,
+  }));
+  const [bundles, setBundles] = useState<FetcherState>(() => ({
+    ...IDLE,
+    currentPage: initialSnapshot?.bundles.currentPage ?? 1,
+    totalPages: initialSnapshot?.bundles.totalPages ?? 1,
+    totalCount: initialSnapshot?.bundles.totalCount ?? 0,
+  }));
+  const preserveSeedProducts = useRef(initialSnapshot !== undefined);
+  const preserveSeedBundles = useRef(initialSnapshot !== undefined);
 
   // Request-id guard per pipeline: rapid switching can race two in-flight fetches of the SAME
   // pipeline. Bump the counter on every start, capture the local id, and only commit state if it
@@ -83,7 +88,8 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
     async (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => {
       const localId = ++productsRequestIdRef.current;
       setProducts((state) => ({ ...state, isLoading: true, error: null }));
-      setItems([]);
+      if (!preserveSeedProducts.current) setItems([]);
+      preserveSeedProducts.current = false;
       // Every failure exit runs through here, so the loading flag clears where it was raised.
       const reportError = (msg: string) => {
         setProducts((state) => ({ ...state, error: msg, isLoading: false }));
@@ -94,30 +100,33 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
         // The GUEST-SURFACE opt-in (menuService): /menu must render the guest's All list even when
         // the browser carries a staff token, or the owner cannot preview the hide-from-All flag
         // they just saved. The flag widens ONLY the hidden-category exclusion server-side.
-        const response = (await getProducts(
+        const loaded = await loadVisiblePages(
+          async (requestedPage) => {
+            const response = await getProducts(
+              requestedPage,
+              PAGE_SIZE,
+              catId || undefined,
+              undefined,
+              requestedOrderType,
+              true,
+            );
+            if (requestedPage === 1 && !response.success) {
+              throw new Error(errorMessage(response, 'Failed to fetch products'));
+            }
+            return response as unknown as PublicPagedItems<ProductDto>;
+          },
           page,
           PAGE_SIZE,
-          catId || undefined,
-          undefined,
-          requestedOrderType,
-          true,
-        )) as ProductListResponse;
+        );
         if (localId !== productsRequestIdRef.current) return; // stale — newer fetch in flight
-        if (!response.success) {
-          // Through the same helper as the thrown path: both feed one `setError`, so "blank is
-          // absence" has to hold on both or the invariant is only half true. `||` alone let a
-          // whitespace-only `message` through.
-          reportError(errorMessage(response, 'Failed to fetch products'));
-          return;
-        }
         setProducts((state) => ({
           ...state,
           isLoading: false,
-          totalPages: response.data?.totalPages || 1,
-          totalCount: response.data?.totalCount || 0,
-          currentPage: page,
+          totalPages: loaded.totalPages,
+          totalCount: loaded.totalCount,
+          currentPage: loaded.currentPage,
         }));
-        const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
+        const mapped = loaded.items.map((p) => mapProductDtoToMenuItem(p, catId || undefined));
         setItems(mapped.filter(isVisible));
       } catch (e: unknown) {
         if (localId !== productsRequestIdRef.current) return;
@@ -134,27 +143,34 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
   const fetchMenuBundles = useCallback(async (page: number, requestedOrderType?: OrderType | null) => {
     const localId = ++bundlesRequestIdRef.current;
     setBundles((state) => ({ ...state, isLoading: true, error: null }));
-    setMenuBundles([]);
+    if (!preserveSeedBundles.current) setMenuBundles([]);
+    preserveSeedBundles.current = false;
     // Every failure exit runs through here, so the loading flag clears where it was raised.
     const reportError = (msg: string) => {
       setBundles((state) => ({ ...state, error: msg, isLoading: false }));
       setMenuBundles([]);
     };
     try {
-      const response = (await getPublicMenuBundles(page, PAGE_SIZE, requestedOrderType)) as MenuBundleListResponse;
+      const loaded = await loadVisiblePages(
+        async (requestedPage) => {
+          const response = await getPublicMenuBundles(requestedPage, PAGE_SIZE, requestedOrderType);
+          if (requestedPage === 1 && isFailureEnvelope(response)) {
+            throw new Error(errorMessage(response, 'Failed to fetch menu bundles'));
+          }
+          return response as unknown as PublicPagedItems<MenuBundleDto>;
+        },
+        page,
+        PAGE_SIZE,
+      );
       if (localId !== bundlesRequestIdRef.current) return;
-      if (!response.success) {
-        reportError(errorMessage(response, 'Failed to fetch menu bundles'));
-        return;
-      }
       setBundles((state) => ({
         ...state,
         isLoading: false,
-        totalPages: response.data?.totalPages || 1,
-        totalCount: response.data?.totalCount || 0,
-        currentPage: page,
+        totalPages: loaded.totalPages,
+        totalCount: loaded.totalCount,
+        currentPage: loaded.currentPage,
       }));
-      const mapped = (response.data?.items || []).map(mapBundleDtoToMenuBundleItem);
+      const mapped = loaded.items.map(mapBundleDtoToMenuBundleItem);
       setMenuBundles(mapped.filter(isVisible));
     } catch (e: unknown) {
       if (localId !== bundlesRequestIdRef.current) return;

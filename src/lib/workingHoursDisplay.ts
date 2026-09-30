@@ -44,6 +44,10 @@ export const shiftsOf = (workingHours: WorkingHoursDto): WorkingHoursShiftDto[] 
   return [{ openTime: workingHours.openTime, closeTime: workingHours.closeTime }];
 };
 
+/** The public API includes disabled day rows; neither the guest page nor its schema should show them. */
+export const activeWorkingHours = (hours: readonly WorkingHoursDto[]): WorkingHoursDto[] =>
+  hours.filter((workingHours) => workingHours.isActive);
+
 /**
  * The one line a guest reads for a day: `"11:00 AM - 3:00 PM, 6:00 PM - 11:00 PM"`, or the closed
  * label. Both home pages group CONSECUTIVE DAYS THAT SHARE THIS STRING, so a split shift groups

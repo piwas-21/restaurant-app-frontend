@@ -13,10 +13,11 @@ import CookieSettingsModal from '@/components/CookieSettingsModal';
 import CraftHeader from './CraftHeader';
 import CraftFooter from './CraftFooter';
 import styles from './chrome.module.css';
+import { isHomeRoutePathname } from '@/lib/publicRouteQuery';
 
 export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-  const isHomePage = pathname === '/';
+  const isHomePage = isHomeRoutePathname(pathname);
 
   return (
     <div className={styles.shell}>

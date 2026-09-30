@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR, RESTAURANT_NAME } from '@/lib/config';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 
 /** Characters a phone launcher shows before it truncates. */
 const SHORT_NAME_MAX = 12;
@@ -31,7 +32,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: RESTAURANT_NAME,
     short_name: shortName,
     description: `${RESTAURANT_NAME} - Experience authentic flavors.`,
-    start_url: '/',
+    start_url: `/${TENANT_PUBLIC_CONFIG.defaultLocale}`,
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',

@@ -22,21 +22,22 @@
 
 ## §2 — Critical files to read
 
-| When                                                                                                    | Read                                                                                                                                             |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Any task                                                                                                | This file                                                                                                                                        |
-| Design / component patterns                                                                             | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)                                                                                                   |
-| Tenant UI template work (`src/templates/`, `@active-template`)                                          | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md)                                                      |
-| Adding or changing home-page / SEO copy, or any string a tenant might want to differ on                 | [docs/TENANT-COPY.md](docs/TENANT-COPY.md) — the platform bundle is tenant-NEUTRAL; a tenant's own words are a copy pack                         |
-| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) |
-| Coding conventions                                                                                      | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md)                                                                                 |
-| Test work                                                                                               | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) §Testing + [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md)                        |
-| Adding/changing a Playwright E2E                                                                        | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules                                    |
-| Quality / security gate work                                                                            | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2                    |
-| Security review / threat model                                                                          | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)                                                                                                 |
-| Architectural decisions                                                                                 | [docs/adr/README.md](docs/adr/README.md) — index of ADRs                                                                                         |
+| When                                                                                                    | Read                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Any task                                                                                                | This file                                                                                                                                                                                                                                                                                                                                                                                          |
+| Design / component patterns                                                                             | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)                                                                                                                                                                                                                                                                                                                                                     |
+| Tenant UI template work (`src/templates/`, `@active-template`)                                          | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md)                                                                                                                                                                                                                                                                                                        |
+| Adding or changing home-page / SEO copy, or any string a tenant might want to differ on                 | [docs/TENANT-COPY.md](docs/TENANT-COPY.md) — the platform bundle is tenant-NEUTRAL; a tenant's own words are a copy pack                                                                                                                                                                                                                                                                           |
+| Changing public locale URLs, canonical hosts, crawler policy or server-rendered menus                   | [docs/PUBLIC-DISCOVERY.md](docs/PUBLIC-DISCOVERY.md) — audited page coverage, routing and release contracts                                                                                                                                                                                                                                                                                        |
+| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md)                                                                                                                                                                                                                                                                                                                                                           |
+| Coding conventions                                                                                      | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md)                                                                                                                                                                                                                                                                                                                                   |
+| Test work                                                                                               | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) §Testing + [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md)                                                                                                                                                                                                                                                                           |
+| Adding/changing a Playwright E2E                                                                        | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules                                                                                                                                                                                                                                                                                      |
+| Quality / security gate work                                                                            | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2                                                                                                                                                                                                                                                                      |
+| Security review / threat model                                                                          | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)                                                                                                                                                                                                                                                                                                                                                   |
+| Architectural decisions                                                                                 | [docs/adr/README.md](docs/adr/README.md) — index of ADRs                                                                                                                                                                                                                                                                                                                                           |
 | Bug or UX item                                                                                          | **this repo's GitHub issues.** The workspace bugs/improvements plan (tracks A–F) was retired by deletion 2026-08-23 — every track verified against this code first, residuals filed as issues. Order types: workspace [ORDER-TYPE-AVAILABILITY-PLAN](../docs/plans/ORDER-TYPE-AVAILABILITY-PLAN.md); `/menu` layout: [MENU-DESIGN-CONFORMANCE-PLAN](../docs/plans/MENU-DESIGN-CONFORMANCE-PLAN.md) |
-| Starting a session                                                                                      | Run `npm run lint && npm run build` to establish baseline                                                                                        |
+| Starting a session                                                                                      | Run `npm run lint && npm run build` to establish baseline                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -102,12 +103,12 @@ screen is English. Four `cashier.*` statuses sat `null` in `tr.json` on prod whi
 
 **A key nothing reads is deleted, not kept** (#439). `scripts/check-locale-orphans.mjs` fails on a key in
 `en.json` with no reference in `src/`, `e2e/` or `scripts/`. If a key is composed at runtime
-(`` t(`allergen_${a}`) ``), add its PREFIX to `DYNAMIC_PREFIXES` **with the callsite in the commit message** —
+(``t(`allergen_${a}`)``), add its PREFIX to `DYNAMIC_PREFIXES` **with the callsite in the commit message** —
 do not widen the match. Two things that are NOT references, both measured: a derived
 `scripts/*-baseline.json` (it is generated from `en.json`), and the gate's own allowlist.
 
 **A string only counts as translated if it goes through `t()`.** A unit written inline in JSX
-(`{points} pts`) and a `toLocaleTimeString()` with no locale argument are both invisible to *both* i18n gates
+(`{points} pts`) and a `toLocaleTimeString()` with no locale argument are both invisible to _both_ i18n gates
 — `check-t-keys.mjs` reads callsites, `check-locale-parity.mjs` reads bundles, and neither can see a literal.
 Date/time formatting takes `i18n.language || 'en'`; `[]` is the BROWSER's locale, not "no preference".
 
@@ -209,7 +210,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 ## §7 — Quality gates (all blocking; source of truth `.github/workflows/ci.yml` + `.pre-commit-config.yaml`)
 
 - **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`).
-- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy **filesystem** scan (misconfig + secrets, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); **provider-hostname URLs** (`provider_host_urls` job: `scripts/check-provider-host-urls.mjs`, hard zero — no file in the tree may offer an `https://` URL on a Netcup box's reverse-DNS name, whose zone we do not control, so it can never serve TLS; #559); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
+- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy **filesystem** scan (misconfig + secrets, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's deduplicated page-plus-inherited-layout gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); **provider-hostname URLs** (`provider_host_urls` job: `scripts/check-provider-host-urls.mjs`, hard zero — no file in the tree may offer an `https://` URL on a Netcup box's reverse-DNS name, whose zone we do not control, so it can never serve TLS; #559); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
 - **Weekly** `security-audit.yml` (cron): deep full-tree scans (npm audit + OSV `-r`, retire.js pinned DB, Trivy fs, license drift) — reporting, not a merge blocker; suppress via `.retireignore.json` with justification.
 - **New-dev setup**: `bash scripts/setup_hooks.sh` · `bash scripts/dev-secrets.sh` · `bash scripts/dev-up.sh`.
 
@@ -276,7 +277,8 @@ Every PR uses [.github/pull_request_template.md](.github/pull_request_template.m
 
 These are properties of the working copy, not of the code. All four are **silent**: the failing command exits `0`, or the tree looks right and only the history is wrong.
 
-- **`detect-secrets` never converges by re-committing.** pre-commit hands the hook its files in **batches**, and each invocation rewrites the whole `.secrets.baseline` from its own partial view, clobbering the last batch's line numbers. A commit touching many files therefore fails with *"files were modified by this hook"*, you stage the baseline, and it fails again on a **different** slice — each round paying for a full `tsc` + `eslint` + `jest-affected` run. Do **not** loop. Run the hook's own binary once over the whole repo, confirm it is idempotent, then stage and commit:
+- **`detect-secrets` never converges by re-committing.** pre-commit hands the hook its files in **batches**, and each invocation rewrites the whole `.secrets.baseline` from its own partial view, clobbering the last batch's line numbers. A commit touching many files therefore fails with _"files were modified by this hook"_, you stage the baseline, and it fails again on a **different** slice — each round paying for a full `tsc` + `eslint` + `jest-affected` run. Do **not** loop. Run the hook's own binary once over the whole repo, confirm it is idempotent, then stage and commit:
+
   ```bash
   DS=$(ls ~/.cache/pre-commit/*/py_env-*/bin/detect-secrets | head -1)   # there is no project-level detect-secrets
   "$DS" scan --baseline .secrets.baseline
@@ -285,22 +287,24 @@ These are properties of the working copy, not of the code. All four are **silent
   git add .secrets.baseline
   ```
 
-- **Sparse-checkout is PER-WORKTREE here and can eat your inputs.** `extensions.worktreeConfig=true` is set, so `core.sparseCheckout` lives in `.git/worktrees/<name>/config.worktree` and is **invisible from the shared clone's config**. When it is on with a stray pattern, two things happen and neither reports an error: `git add -A` stages **nothing** while exiting `0` (tell: `git status` still shows ` M`), and whole directories are **absent from disk** — a sibling found `Persistence/Migrations/` missing in a backend worktree, so any `dotnet ef` command there would have run against an invisible folder. That second mode is the dangerous one, because it silently changes what you *conclude*: a review against a partial file set, or a "this file does not exist" finding that is merely hidden. Check both, and check the second whenever your work **read files** rather than only running git:
+- **Sparse-checkout is PER-WORKTREE here and can eat your inputs.** `extensions.worktreeConfig=true` is set, so `core.sparseCheckout` lives in `.git/worktrees/<name>/config.worktree` and is **invisible from the shared clone's config**. When it is on with a stray pattern, two things happen and neither reports an error: `git add -A` stages **nothing** while exiting `0` (tell: `git status` still shows ` M`), and whole directories are **absent from disk** — a sibling found `Persistence/Migrations/` missing in a backend worktree, so any `dotnet ef` command there would have run against an invisible folder. That second mode is the dangerous one, because it silently changes what you _conclude_: a review against a partial file set, or a "this file does not exist" finding that is merely hidden. Check both, and check the second whenever your work **read files** rather than only running git:
+
   ```bash
   git config core.sparseCheckout && git sparse-checkout list        # want: false / "not sparse"
   comm -23 <(git ls-files | sort) <(find . -type f | sed 's|^\./||' | sort)   # want: empty
   ```
+
   Fix in **your** worktree (not the shared clone): `git sparse-checkout disable`. Declare it if you run it.
 
   **Three further modes, measured 2026-08-29 (backend#447 / frontend#630 / frontend#631).** (a) **A `git rebase` RE-APPLIES the
   pattern and deletes the excluded tree from disk** — `src/` vanished mid-PR — and the commits are untouched, so
   `git status` is clean and `git log` is right. What follows is the worst failure mode on this list: **every gate
-  then passes VACUOUSLY.** `jest` reported *"13 files checked … 0 matches"* and exited `1`; `tsc`, `eslint`,
+  then passes VACUOUSLY.** `jest` reported _"13 files checked … 0 matches"_ and exited `1`; `tsc`, `eslint`,
   `prettier --check` and the locale gate all exited `0` because there was nothing left to check. A green that means
   "I found nothing" is indistinguishable from a green that means "I found it and it is fine" — so after ANY rebase
   in a worktree, read the test COUNT, not the exit code (`Tests: 4403 passed` vs `13 files checked`), and re-run the
   gates once the tree is restored. (b) For a file that is **already tracked**, `git add` does not silently stage
-  nothing — it **refuses out loud** (*"paths … outside of your sparse-checkout definition"*) and points at
+  nothing — it **refuses out loud** (_"paths … outside of your sparse-checkout definition"_) and points at
   `--sparse`. `git add --sparse <path>` is the one-file workaround; the silent-`git add -A` mode above is the
   UNTRACKED case. Both come from the same setting, and the loud one is the lucky one. (c) **It can be turned back
   ON mid-session by ANOTHER agent, so disabling it once at session start is NOT sufficient** — the setting lives on
@@ -309,7 +313,7 @@ These are properties of the working copy, not of the code. All four are **silent
   `git checkout` then stripped `src/` and `scripts/`). Same family as the shared-index trap in the workspace
   CLAUDE.md §2b-i, and it hides the same way: **`git status` is EMPTY and the tree reads CLEAN**, because sparse
   paths are skip-worktree, not deleted. It surfaces as **a lie from an UNRELATED tool** — `node scripts/x.mjs` →
-  *"Cannot find module …"*, `next build` → *"ENOENT: scandir 'src/templates'"* — and **nothing anywhere prints the
+  _"Cannot find module …"_, `next build` → _"ENOENT: scandir 'src/templates'"_ — and **nothing anywhere prints the
   word `sparse`**. The tell is that **`ls src` fails while `git log` and `git show --stat HEAD` are intact**. So the
   assertion belongs beside every gate, not at the top of the session: **assert the tree before trusting ANY green** —
   `test -d src/templates` here, `test -d RestaurantSystem.Api` in the backend — because a gate that passes because
@@ -319,12 +323,12 @@ These are properties of the working copy, not of the code. All four are **silent
 
 - **`core.fsmonitor=false` is deliberate — leave it off.** It is set on the shared clone to stop watchman cookie races from failing `git add`. Turning it on to speed up `git status` reintroduces intermittent, unreproducible staging failures.
 
-- **Never `git commit --amend` during a CONFLICTED rebase.** While a rebase is stopped on a conflict, `HEAD` is the **new base** — your commit does not exist yet — so the amend rewrites the **upstream tip**, replacing an already-merged PR's commit with your tree and message. `git rebase --continue` then prints *"Successfully rebased"* and exits `0`. The resulting tree is correct and `git log` looks plausible; only the history is wrong. Verify after **every** conflicted rebase, and fix without losing work:
+- **Never `git commit --amend` during a CONFLICTED rebase.** While a rebase is stopped on a conflict, `HEAD` is the **new base** — your commit does not exist yet — so the amend rewrites the **upstream tip**, replacing an already-merged PR's commit with your tree and message. `git rebase --continue` then prints _"Successfully rebased"_ and exits `0`. The resulting tree is correct and `git log` looks plausible; only the history is wrong. Verify after **every** conflicted rebase, and fix without losing work:
   ```bash
   git merge-base --is-ancestor origin/develop HEAD && echo OK || echo CLOBBERED
   git reset --soft <upstream-sha> && git commit -F <msg>   # the index already holds the right tree
   ```
-  When you check *which* commit is yours, discriminate by **commit message and file list — never by author**. The whole fleet commits under one identity (`mahmutkaya <mahmutkaya.nl@gmail.com>`), so `git log --author` returns every agent's work; a sibling nearly claimed another agent's commit by trusting it.
+  When you check _which_ commit is yours, discriminate by **commit message and file list — never by author**. The whole fleet commits under one identity (`mahmutkaya <mahmutkaya.nl@gmail.com>`), so `git log --author` returns every agent's work; a sibling nearly claimed another agent's commit by trusting it.
 
 ---
 

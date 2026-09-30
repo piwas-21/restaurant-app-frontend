@@ -3,17 +3,20 @@
 import { useEffect, useState } from 'react';
 import { getCategories } from '@/services/categoryService';
 import type { ApiCategory } from '@/types/menu';
-import type { CategoryListResponse } from './types';
+import { loadVisiblePages, type PublicPagedItems } from './loadVisiblePages';
 
 /**
- * Loads the full category list once (page 1, size 100) for menu navigation.
- * Failures are swallowed to an empty list — the menu is still browsable via
- * the "all items" view, which doesn't require categories.
+ * Reuses a complete server snapshot on public routes; client-only callers walk the bounded pages.
+ * Failures leave the menu browsable through its "all items" view.
  */
-export function usePublicMenuCategories(): ApiCategory[] {
-  const [categories, setCategories] = useState<ApiCategory[]>([]);
+export function usePublicMenuCategories(
+  initialCategories?: ApiCategory[],
+  initialCategoriesComplete = false,
+): ApiCategory[] {
+  const [categories, setCategories] = useState<ApiCategory[]>(initialCategories ?? []);
 
   useEffect(() => {
+    if (initialCategoriesComplete) return;
     // StrictMode double-invokes effects in dev; the `active` flag captured in
     // this effect's closure prevents the unmounted/superseded run from
     // committing state. Cleanup sets it false; the async block re-checks it
@@ -21,13 +24,13 @@ export function usePublicMenuCategories(): ApiCategory[] {
     let active = true;
     const init = async () => {
       try {
-        const response = (await getCategories(1, 100)) as CategoryListResponse;
+        const loaded = await loadVisiblePages(
+          (page) => getCategories(page, 100) as unknown as Promise<PublicPagedItems<ApiCategory>>,
+          1,
+          100,
+        );
         if (!active) return;
-        if (response.success && Array.isArray(response.data?.items)) {
-          setCategories(response.data.items);
-        } else {
-          setCategories([]);
-        }
+        setCategories(loaded.allItems);
       } catch (e) {
         if (!active) return;
         console.error('Failed to load categories', e);
@@ -40,7 +43,7 @@ export function usePublicMenuCategories(): ApiCategory[] {
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialCategoriesComplete]);
 
   return categories;
 }

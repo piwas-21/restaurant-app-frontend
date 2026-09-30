@@ -10,6 +10,7 @@ import {
 import { ALL_ITEMS_KEY } from '@/hooks/publicMenu/constants';
 import type { ApiCategory } from '@/types/menu';
 import type { FetcherState } from '@/hooks/publicMenu/pipeline';
+import type { PublicMenuClientData } from '@/types/publicDiscovery';
 
 /** DOM id of a section's scroll anchor. One spelling, shared by renderer and scroller. */
 export function onePageSectionId(view: string): string {
@@ -48,11 +49,12 @@ export interface UseOnePageMenuReturn {
  * the measured header + banner + nav offsets the page root publishes, so the
  * element lands just below the bar without the scroller doing offset arithmetic.
  */
-export function useOnePageMenu(enabled: boolean): UseOnePageMenuReturn {
-  const categories = usePublicMenuCategories();
+export function useOnePageMenu(enabled: boolean, initialSnapshot?: PublicMenuClientData): UseOnePageMenuReturn {
+  const categories = usePublicMenuCategories(initialSnapshot?.categories, initialSnapshot?.categoriesComplete);
   const { byCategory, menuBundles, bundlesState, refetchCategory, refetchBundles } = useOnePageMenuData(
     categories,
     enabled,
+    initialSnapshot,
   );
 
   const [activeSectionId, setActiveSectionId] = useState<string>(ALL_ITEMS_KEY);

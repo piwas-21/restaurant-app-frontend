@@ -3,9 +3,12 @@ import DocumentLanguage from './DocumentLanguage';
 
 // `mock`-prefixed so jest's out-of-scope guard allows the factory to close over it.
 let mockLanguage = 'en';
+let mockPathname: string | null = null;
+const mockChangeLanguage = jest.fn();
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     i18n: {
+      changeLanguage: mockChangeLanguage,
       get language() {
         return mockLanguage;
       },
@@ -13,15 +16,17 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }));
+
 /**
- * `app/layout.tsx` is a SERVER component and the locale is chosen in the BROWSER, so the rendered
- * `<html lang>` can only ever be a default. Before this component there was no correction and no
- * `dir` attribute at all: picking Arabic translated every string, left the document reading
- * left-to-right, and told a screen reader the page was English.
+ * Public locale routes set the document language in SSR; this observer keeps it synchronized when
+ * a persistent App Router layout moves between URLs or browser history entries.
  */
 describe('DocumentLanguage', () => {
   beforeEach(() => {
     mockLanguage = 'en';
+    mockPathname = null;
+    mockChangeLanguage.mockClear();
     document.documentElement.setAttribute('lang', 'en');
     document.documentElement.setAttribute('dir', 'ltr');
   });
@@ -57,5 +62,32 @@ describe('DocumentLanguage', () => {
   it('renders nothing into the tree', () => {
     const { container } = render(<DocumentLanguage />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('follows locale-prefixed navigation and back/forward even while the root layout persists', () => {
+    mockLanguage = 'en';
+    mockPathname = '/fr';
+    const { rerender } = render(<DocumentLanguage />);
+    expect(document.documentElement.lang).toBe('fr');
+    expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+
+    mockPathname = '/en/menu';
+    rerender(<DocumentLanguage />);
+    expect(document.documentElement.lang).toBe('en');
+    expect(document.documentElement.dir).toBe('ltr');
+
+    mockPathname = '/fr';
+    rerender(<DocumentLanguage />);
+    expect(document.documentElement.lang).toBe('fr');
+    expect(mockChangeLanguage).toHaveBeenLastCalledWith('fr');
+  });
+
+  it('uses the Arabic route locale over a conflicting saved language on first response', () => {
+    mockLanguage = 'en';
+    mockPathname = '/ar/menu';
+    render(<DocumentLanguage />);
+    expect(document.documentElement).toHaveAttribute('lang', 'ar');
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl');
+    expect(mockChangeLanguage).toHaveBeenCalledWith('ar');
   });
 });

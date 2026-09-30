@@ -106,6 +106,7 @@ export interface MenuBundleItem {
   id: string;
   name: string;
   description?: string;
+  sourceLocale?: string | null;
   basePrice: number;
   content?: Record<string, { name: string; description: string }>;
   menuDefinition: MenuDefinition;

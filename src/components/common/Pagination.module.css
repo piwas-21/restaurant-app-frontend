@@ -29,15 +29,21 @@
   font-size: 0.9375rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.pageButton:hover:not(:disabled) {
+.pageButton:hover:not(:disabled):not([aria-disabled='true']) {
   background-color: var(--secondary-color-light);
   border-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
 .pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageButton[aria-disabled='true'] {
   opacity: 0.4;
   cursor: not-allowed;
 }

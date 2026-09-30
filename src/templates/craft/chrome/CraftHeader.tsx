@@ -13,7 +13,7 @@
 // button would be a redundant third copy (craft-stitch-prompts.md Prompt 3).
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Menu, X } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -28,13 +28,17 @@ import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import styles from './CraftHeader.module.css';
 import brand from './CraftBrand.module.css';
+import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
+import { publicHomeHref } from '@/lib/publicRouteQuery';
 
 export default function CraftHeader() {
   const [isClient, setIsClient] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
-  const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const { t, i18n } = useTranslation();
+  const copy: CopyFn = isClient ? (key, vars) => t(key, vars) : firstPaintCopy(i18n, i18n.language);
   const { info: restaurantInfo } = useRestaurantInfo();
   const { theme } = useTheme();
 
@@ -44,14 +48,13 @@ export default function CraftHeader() {
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
-  // Pre-hydration fallback mirrors classic: a static label until t() is safe.
-  const menuToggleTranslated = mobileMenuOpen ? t('close_menu') : t('open_menu');
-  const menuToggleLabel = isClient ? menuToggleTranslated : 'Open menu';
+  const homeHref = publicHomeHref(pathname, searchParams);
+  const menuToggleLabel = copy(mobileMenuOpen ? 'close_menu' : 'open_menu');
 
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={brand.wordmarkLink} onClick={closeMobileMenu}>
+        <Link href={homeHref} className={brand.wordmarkLink} onClick={closeMobileMenu}>
           <TenantLogo
             info={restaurantInfo}
             fallbackName={RESTAURANT_NAME}
@@ -81,25 +84,23 @@ export default function CraftHeader() {
         <nav className={`${styles.nav} ${mobileMenuOpen ? styles.navOpen : ''}`}>
           <RoleNavLinks onNavigate={closeMobileMenu} />
           <InstallAppMenuEntry onActivate={closeMobileMenu} />
-          {isClient && !isLoading && (
-            <>
-              {user ? (
-                <UserMenu onMobileMenuClose={closeMobileMenu} />
-              ) : (
-                <Link
-                  href="/auth/login"
-                  className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
-                  onClick={closeMobileMenu}
-                >
-                  {t('nav_login', 'Login')}
-                </Link>
-              )}
-              <div className={styles.switchers}>
-                <LanguageSwitcher />
-                <ThemeSwitcher />
-              </div>
-            </>
-          )}
+          {isClient &&
+            !isLoading &&
+            (user ? (
+              <UserMenu onMobileMenuClose={closeMobileMenu} />
+            ) : (
+              <Link
+                href="/auth/login"
+                className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
+                {copy('nav_login')}
+              </Link>
+            ))}
+          <div className={styles.switchers}>
+            <LanguageSwitcher />
+            {isClient && <ThemeSwitcher />}
+          </div>
         </nav>
       </div>
     </header>

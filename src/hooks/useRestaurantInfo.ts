@@ -70,9 +70,9 @@ export interface UseRestaurantInfoReturn {
   refetch: () => Promise<void>;
 }
 
-export function useRestaurantInfo(): UseRestaurantInfoReturn {
-  const [info, setInfo] = useState<RestaurantInfoDto | null>(cache.data);
-  const [isLoading, setIsLoading] = useState<boolean>(!isFresh());
+export function useRestaurantInfo(initialInfo?: RestaurantInfoDto | null): UseRestaurantInfoReturn {
+  const [info, setInfo] = useState<RestaurantInfoDto | null>(initialInfo ?? cache.data);
+  const [isLoading, setIsLoading] = useState<boolean>(initialInfo == null && !isFresh());
   const [error, setError] = useState<Error | null>(null);
 
   const fetchIfStale = useCallback(async () => {

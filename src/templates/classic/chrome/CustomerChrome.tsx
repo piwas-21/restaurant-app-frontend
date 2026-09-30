@@ -16,7 +16,7 @@ import { useEffect, useState, CSSProperties } from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/ThemeContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import InstallAppMenuEntry from '@/components/pwa/InstallAppMenuEntry';
 import navStyles from '@/app/styles/Header.module.css';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
@@ -30,17 +30,22 @@ import { Menu, X } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import TenantLogo from '@/components/branding/TenantLogo';
+import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
+import { isHomeRoutePathname, publicHomeHref } from '@/lib/publicRouteQuery';
 
 export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isClient, setIsClient] = useState(false);
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
-  const isHomePage = pathname === '/';
-  const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const isHomePage = isHomeRoutePathname(pathname);
+  const { t, i18n } = useTranslation();
+  const copy: CopyFn = isClient ? (key, vars) => t(key, vars) : firstPaintCopy(i18n, i18n.language);
   const { info: restaurantInfo } = useRestaurantInfo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerHeight = '80px';
+  const homeHref = publicHomeHref(pathname, searchParams);
 
   useEffect(() => {
     setIsClient(true);
@@ -98,7 +103,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
               }}
             >
               <Link
-                href="/"
+                href={homeHref}
                 style={{ textDecoration: 'none', color: 'var(--primary-color)', display: 'flex', alignItems: 'center' }}
                 onClick={closeMobileMenu}
               >
@@ -122,7 +127,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
               <button
                 className={navStyles.hamburgerMenu}
                 onClick={toggleMobileMenu}
-                aria-label={isClient ? (mobileMenuOpen ? t('close_menu') : t('open_menu')) : 'Open menu'}
+                aria-label={copy(mobileMenuOpen ? 'close_menu' : 'open_menu')}
                 aria-expanded={mobileMenuOpen}
               >
                 {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -136,25 +141,23 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
               <nav className={`${navStyles.navLinksContainer} ${mobileMenuOpen ? navStyles.mobileMenuOpen : ''}`}>
                 <RoleNavLinks onNavigate={closeMobileMenu} />
                 <InstallAppMenuEntry onActivate={closeMobileMenu} />
-                {isClient && !isLoading && (
-                  <>
-                    {user ? (
-                      <UserMenu onMobileMenuClose={closeMobileMenu} />
-                    ) : (
-                      <Link
-                        href="/auth/login"
-                        className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
-                        onClick={closeMobileMenu}
-                      >
-                        {t('nav_login', 'Login')}
-                      </Link>
-                    )}
-                    <div className={navStyles.switcherGroup}>
-                      <LanguageSwitcher />
-                      <ThemeSwitcher />
-                    </div>
-                  </>
-                )}
+                {isClient &&
+                  !isLoading &&
+                  (user ? (
+                    <UserMenu onMobileMenuClose={closeMobileMenu} />
+                  ) : (
+                    <Link
+                      href="/auth/login"
+                      className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
+                      onClick={closeMobileMenu}
+                    >
+                      {copy('nav_login')}
+                    </Link>
+                  ))}
+                <div className={navStyles.switcherGroup}>
+                  <LanguageSwitcher />
+                  {isClient && <ThemeSwitcher />}
+                </div>
               </nav>
             </div>
           </header>
@@ -165,12 +168,10 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
             <p>
               {/* Name from the RestaurantInfo API (issue #125); baked build-time
                   name while it loads / if it's unreachable. */}
-              {isClient
-                ? t('home_footer_copyright', {
-                    year: new Date().getFullYear(),
-                    name: restaurantInfo?.name ?? RESTAURANT_NAME,
-                  })
-                : `© ${new Date().getFullYear()} ${RESTAURANT_NAME}. All rights reserved.`}
+              {copy('home_footer_copyright', {
+                year: new Date().getFullYear(),
+                name: restaurantInfo?.name ?? RESTAURANT_NAME,
+              })}
             </p>
             {restaurantInfo && (
               <p>
@@ -183,13 +184,13 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                 href="/privacy-policy"
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
-                {isClient ? t('footer_privacy_policy', 'Privacy Policy') : 'Privacy Policy'}
+                {copy('footer_privacy_policy')}
               </Link>
               <Link
                 href="/terms-of-usage"
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
-                {isClient ? t('footer_terms_of_usage', 'Terms of Usage') : 'Terms of Usage'}
+                {copy('footer_terms_of_usage')}
               </Link>
             </div>
             <FooterCookieLink />

@@ -10,10 +10,46 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import LanguageSwitcher from './LanguageSwitcher';
 
-const mockChangeLanguage = jest.fn();
+let mockBaseLanguage = 'en';
+let mockPublicLanguage = 'fr';
+let mockUsePublicInstance = false;
+const mockBaseChangeLanguage = jest.fn((language: string) => {
+  mockBaseLanguage = language;
+});
+const mockPublicChangeLanguage = jest.fn((language: string) => {
+  mockPublicLanguage = language;
+});
+const mockBaseI18n = {
+  changeLanguage: mockBaseChangeLanguage,
+  get resolvedLanguage() {
+    return mockBaseLanguage;
+  },
+};
+const mockPublicI18n = {
+  changeLanguage: mockPublicChangeLanguage,
+  get resolvedLanguage() {
+    return mockPublicLanguage;
+  },
+};
+let mockPathname: string | null = null;
+let mockSearch = '';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ i18n: { changeLanguage: mockChangeLanguage, resolvedLanguage: 'en' } }),
+  useTranslation: () => ({
+    i18n: mockUsePublicInstance ? mockPublicI18n : mockBaseI18n,
+    t: (_key: string, fallback: string) => fallback,
+  }),
+}));
+
+jest.mock('../i18n', () => {
+  const mockedModule = { __esModule: true };
+  Object.defineProperty(mockedModule, 'default', { get: () => mockBaseI18n });
+  return mockedModule;
+});
+
+jest.mock('next/navigation', () => ({
+  usePathname: () => mockPathname,
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }));
 
 jest.mock('next/image', () => ({
@@ -44,6 +80,11 @@ beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
   mockUser = null;
+  mockBaseLanguage = 'en';
+  mockPublicLanguage = 'fr';
+  mockUsePublicInstance = false;
+  mockPathname = null;
+  mockSearch = '';
 });
 
 it('a signed-in user has the choice recorded on their account', async () => {
@@ -51,7 +92,7 @@ it('a signed-in user has the choice recorded on their account', async () => {
 
   pickFrench();
 
-  expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+  expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
   expect(localStorage.getItem('i18nextLng')).toBe('fr');
   await waitFor(() => expect(saveLanguagePreference).toHaveBeenCalledWith('fr'));
 });
@@ -59,7 +100,7 @@ it('a signed-in user has the choice recorded on their account', async () => {
 it('a guest writes nothing to any account', async () => {
   pickFrench();
 
-  expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+  expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
   expect(localStorage.getItem('i18nextLng')).toBe('fr');
   expect(saveLanguagePreference).not.toHaveBeenCalled();
 });
@@ -79,6 +120,38 @@ it('a failed write changes nothing the user can see', async () => {
   pickFrench();
 
   await waitFor(() => expect(saveLanguagePreference).toHaveBeenCalled());
-  expect(mockChangeLanguage).toHaveBeenCalledWith('fr');
+  expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
   expect(localStorage.getItem('i18nextLng')).toBe('fr');
+});
+
+it('keeps an explicit public locale choice when client navigation enters a private route', () => {
+  mockPathname = '/fr/menu';
+  mockUsePublicInstance = true;
+  mockPublicLanguage = 'fr';
+  mockBaseLanguage = 'de';
+  const { rerender } = render(<LanguageSwitcher />);
+
+  fireEvent.click(screen.getByLabelText('Toggle language menu'));
+  fireEvent.click(screen.getByText('English'));
+
+  expect(mockPublicChangeLanguage).toHaveBeenCalledWith('en');
+  expect(mockBaseChangeLanguage).toHaveBeenCalledWith('en');
+
+  // ClientProviders uses the shared instance again on an unprefixed route. Switching the
+  // simulated route and provider proves that the user's explicit choice survives that transition.
+  mockPathname = '/cart';
+  mockUsePublicInstance = false;
+  rerender(<LanguageSwitcher />);
+  expect(screen.getByText('EN')).toBeInTheDocument();
+});
+
+it('keeps every interface language as an initial public URL link and preserves safe QR context', () => {
+  mockPathname = '/fr/menu';
+  mockSearch = 'qr=table-token&tableId=table-7&page=2&unknown=secret';
+  const { container } = render(<LanguageSwitcher />);
+  const links = [...container.querySelectorAll<HTMLAnchorElement>('a[href]')];
+
+  expect(links).toHaveLength(10);
+  expect(links.find((link) => link.href.endsWith('/en/menu?qr=table-token&tableId=table-7&page=2'))).toBeDefined();
+  expect(links.some((link) => link.href.includes('unknown='))).toBe(false);
 });

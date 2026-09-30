@@ -14,6 +14,9 @@ import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
 import { getTenantPaletteCss } from '@/services/tenantThemeService';
 import { getTenantModules } from '@/services/tenantModulesService';
 import ModuleRouteGuard from '@/components/ModuleRouteGuard';
+import { headers } from 'next/headers';
+import { directionFor } from '@/lib/textDirection';
+import { isSupportedPublicLocale } from '@/lib/publicDiscoveryConfig';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
@@ -22,6 +25,7 @@ import ModuleRouteGuard from '@/components/ModuleRouteGuard';
 export const metadata: Metadata = {
   title: RESTAURANT_NAME,
   description: `${RESTAURANT_NAME} - Experience authentic flavors.`,
+  robots: { index: false, follow: false },
   icons: {
     icon: BRANDING_ICON,
   },
@@ -60,20 +64,21 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // rather than in the browser: a client fetch would let a gated route paint before the
   // answer arrived. Fails OPEN to the full set — see tenantModulesService.
   const [paletteCss, modules] = await Promise.all([getTenantPaletteCss(), getTenantModules()]);
+  const requestHeaders = await headers();
+  const requestedLocale = requestHeaders.get('x-tenant-public-locale');
+  const publicLocale = requestedLocale && isSupportedPublicLocale(requestedLocale) ? requestedLocale : undefined;
+  const documentLocale = publicLocale ?? 'en';
   return (
-    // `lang`/`dir` are the SSR DEFAULT, not the answer. The locale is chosen in the browser
-    // (`i18n.ts` detects it from localStorage → navigator), so the server cannot know it here;
-    // `DocumentLanguage` corrects both attributes on mount and on every switch. Stating `dir`
-    // explicitly rather than omitting it means the document always declares a direction, and the
-    // client only ever changes a value instead of adding an attribute.
-    <html lang="en" dir="ltr" suppressHydrationWarning={true}>
+    // Middleware overwrites this internal header from a supported public path segment. A caller
+    // cannot choose the server-rendered document language by supplying their own header.
+    <html lang={documentLocale} dir={directionFor(documentLocale)} suppressHydrationWarning={true}>
       <body className={bodyClassName}>
         {paletteCss ? (
           <style href="tenant-palette" precedence="high">
             {paletteCss}
           </style>
         ) : null}
-        <ClientProviders modules={modules}>
+        <ClientProviders modules={modules} publicLocale={publicLocale}>
           <Shell>
             <ModuleRouteGuard>{children}</ModuleRouteGuard>
           </Shell>

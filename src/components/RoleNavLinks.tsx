@@ -16,13 +16,14 @@
 // offering Cashier / Server / Reservations links into blocked pages. It now
 // renders this component, so there is exactly one source of truth again.
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Home, UtensilsCrossed, CalendarCheck, ShoppingCart, LayoutDashboard, Receipt } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import navStyles from '@/app/styles/Header.module.css';
+import { publicLocaleHref, publicRouteLocation } from '@/lib/publicRouteQuery';
 
 interface RoleNavLinksProps {
   /** Called on every link click (the chromes close their mobile menu). */
@@ -33,7 +34,13 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   const { user, isLoading } = useAuth();
   const { state: cartState } = useCart();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
+  const publicRoute = publicRouteLocation(pathname);
+  const homeHref = publicRoute ? publicLocaleHref(publicRoute.locale, 'home', searchParams) : '/';
+  const menuHref = publicRoute ? publicLocaleHref(publicRoute.locale, 'menu', searchParams) : '/menu';
+  const isHomeActive = pathname === '/' || publicRoute?.surface === 'home';
+  const isMenuActive = pathname === '/menu' || publicRoute?.surface === 'menu';
   // Stop offering a link whose page the module guard would block and whose API would 404
   // (sofra ADR-010 / S11). Reservations is the only module-owned CUSTOMER link; the
   // cashier/server links below are role-scoped staff entry points and are gated too.
@@ -79,11 +86,11 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   if (role === 'admin') {
     return (
       <>
-        <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={onNavigate}>
+        <Link href={homeHref} className={`nav-link ${isHomeActive ? 'active' : ''}`} onClick={onNavigate}>
           <Home size={18} />
           <span>{t('nav_home', 'Home')}</span>
         </Link>
-        <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={onNavigate}>
+        <Link href={menuHref} className={`nav-link ${isMenuActive ? 'active' : ''}`} onClick={onNavigate}>
           <UtensilsCrossed size={18} />
           <span>{t('nav_menu', 'Menu')}</span>
         </Link>
@@ -117,11 +124,11 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   // Regular users: Show customer navigation
   return (
     <>
-      <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={onNavigate}>
+      <Link href={homeHref} className={`nav-link ${isHomeActive ? 'active' : ''}`} onClick={onNavigate}>
         <Home size={18} />
         <span>{t('nav_home', 'Home')}</span>
       </Link>
-      <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={onNavigate}>
+      <Link href={menuHref} className={`nav-link ${isMenuActive ? 'active' : ''}`} onClick={onNavigate}>
         <UtensilsCrossed size={18} />
         <span>{t('nav_menu', 'Menu')}</span>
       </Link>

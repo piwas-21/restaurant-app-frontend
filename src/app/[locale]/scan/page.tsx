@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useTableContext } from '@/contexts/TableContext';
 import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
+import styles from './ScanPage.module.css';
 
 interface TableValidation {
   isValid: boolean;
@@ -126,21 +127,7 @@ function ScanPageContent() {
         </div>
         <h2 style={{ color: 'var(--color-error)', marginBottom: '0.5rem' }}>{t('qr_code_error')}</h2>
         <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>{error}</p>
-        <button
-          onClick={pushMenu}
-          style={{
-            padding: '0.75rem 2rem',
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-        >
+        <button type="button" onClick={pushMenu} className={`btn btn-primary ${styles.fallbackButton}`}>
           {t('go_to_menu')}
         </button>
       </div>

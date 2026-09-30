@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { ArrowLeft, Printer, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';

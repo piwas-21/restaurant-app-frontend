@@ -1,5 +1,5 @@
 import React from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { orderTypesFromMask } from '@/utils/orderChannels';
 import { orderTypeLabel } from '@/utils/orderTypeLabels';

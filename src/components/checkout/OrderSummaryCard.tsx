@@ -6,9 +6,9 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import { ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 import defaultStyles from './OrderSummaryCard.module.css';
 
 interface Basket {
@@ -54,7 +54,7 @@ export default function OrderSummaryCard({
   styles = defaultStyles,
 }: OrderSummaryCardProps) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { pushMenu } = useTenantPublicNavigation();
 
   return (
     <div className={styles.summaryCard}>
@@ -137,7 +137,7 @@ export default function OrderSummaryCard({
         )}
       </button>
 
-      <button onClick={() => router.push('/menu')} disabled={isSubmitting} className={styles.backButton}>
+      <button onClick={pushMenu} disabled={isSubmitting} className={styles.backButton}>
         {t('back', 'Back')}
       </button>
     </div>

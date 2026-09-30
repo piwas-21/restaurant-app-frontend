@@ -8,6 +8,8 @@
 
 import { refreshToken } from '@/services/authService';
 import { parseProblemFieldErrors, problemFieldMessages, type ProblemFieldErrors } from '@/utils/problemDetails';
+import { localizedPathname, tenantLocaleFromPathname } from '@/lib/tenantLocaleRouting';
+import { readTenantLocalePreference } from '@/lib/tenantLocalePreferences';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5221';
 
@@ -96,26 +98,21 @@ function readStoredValue(key: string): string | null {
  * it (EMAIL-LOCALISATION-PLAN §1 rank 3). A checkout that sends no header produces a row carrying
  * the tenant's language instead of the diner's, and the receipt arrives in the wrong one.
  *
- * Read from `i18nextLng` in storage rather than from the i18next singleton, and that is a size
- * decision, not a taste one: `import i18n from 'i18next'` here pulls the i18next runtime into every
- * route that touches this module — measured at +13 kB first-load on `/dev-portal`, which is over
- * its budget in `scripts/check-bundle-size.mjs`. The key holds the same value: `src/i18n.ts` sets
- * `detection.caches: ['localStorage']`, so the detector writes it on first visit, and
- * `LanguageSwitcher` writes it on every explicit choice. When storage is unreadable or nothing has
- * been detected yet there is no header, which resolves to the tenant's language rather than a guess.
+ * The explicit route locale wins before the versioned preference cookie. The old i18next detector
+ * cache is intentionally ignored: it could contain a tenant default that looked like a saved choice.
+ * Read the path without importing the i18next runtime. When the URL and explicit cookie are absent,
+ * there is no header, which lets the backend apply its tenant language rather than a stale guess.
  *
- * SSR sends nothing at all (the guard is inside `readStoredValue`) — there is no user there, and a
- * server-rendered call must not put the container's locale on the wire.
- *
- * The value may be a REGION tag (`fr-CH`): i18next stores what it detected, and the backend reduces
- * a tag to its primary subtag itself (`LanguageCode.Normalize`). Do not "fix" it into a split here —
- * a header is a weighted list to the server, and the one thing that must not happen is this sending
- * something that is not a well-formed tag.
+ * SSR sends nothing at all: without `window`, this returns before reading a route or browser
+ * preference, so server-rendered calls never put the container's locale on the wire.
  *
  * `Accept-Language` is a CORS-safelisted request header, so this adds no preflight.
  */
 export function getRequestLanguage(): string | null {
-  return readStoredValue('i18nextLng');
+  if (typeof window === 'undefined') return null;
+  const routeLocale = tenantLocaleFromPathname(window.location.pathname);
+  if (routeLocale) return routeLocale;
+  return readTenantLocalePreference();
 }
 
 function getAuthToken(): string | null {
@@ -127,8 +124,9 @@ function getSessionId(): string | null {
 }
 
 /**
- * Clear auth state and bounce to the HOME route (`/`, not `/auth/login`). Called only for a
- * definitive session end — never for a transient refresh failure (see refreshToken's `transient`
+ * Clear auth state and bounce to the active locale's HOME route (bare `/` when no locale is known,
+ * not `/auth/login`). Called only for a definitive session end — never for a transient refresh
+ * failure (see refreshToken's `transient`
  * flag), which would otherwise log users out on a rate-limit or network blip.
  *
  * The removals are wrapped for the same reason the reads above are: on a browser that blocks site
@@ -145,7 +143,8 @@ function clearAuthAndRedirect(): void {
   } catch (e) {
     console.warn('Could not clear auth state from localStorage', e);
   }
-  window.location.href = '/';
+  const routeLocale = tenantLocaleFromPathname(window.location.pathname);
+  window.location.href = routeLocale ? localizedPathname(routeLocale, '/') : '/';
 }
 
 /**

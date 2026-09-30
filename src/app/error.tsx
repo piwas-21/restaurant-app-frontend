@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import styles from './styles/ErrorSurface.module.css';

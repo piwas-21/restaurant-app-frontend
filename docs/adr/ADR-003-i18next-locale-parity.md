@@ -26,9 +26,11 @@ RUMI Restaurant serves a multilingual customer base in Geneva and via a multilin
 ### Setup
 
 - Locale files live in `src/locales/<locale>.json` — flat or nested JSON, namespaced by feature.
-- Default locale: `en`. Fallback: `en`.
-- Public locale: explicit `/{locale}` home/menu paths are authoritative for SSR and client navigation.
-- Unlocalized UI preference: localStorage, navigator and htmlTag; English is the fallback.
+- i18next missing-key fallback: `en`. Tenant entry fallback is independently configured per image.
+- Every tenant UI route has a physical `/{locale}/...` route. An explicit supported URL locale is authoritative for SSR, API request language and client navigation.
+- Bare known UI routes negotiate the versioned `tenant_locale_v1` preference cookie, then weighted browser `Accept-Language`, then the tenant fallback. The old detector-managed `i18nextLng` value is not a saved choice; it may reflect a previously forced tenant default.
+- A manual language choice writes the versioned locale cookie and i18next state. Middleware does not set cookies on locale-prefixed requests, so link prefetch cannot change the preference. Storage refusal does not prevent locale-prefixed navigation.
+- APIs, assets and external payment destinations remain unprefixed. Locale-prefixed checkout return URLs retain their query and fragment state.
 - New localizable UI copy, including accessible names, must use translation keys via `useTranslation()`; public first-paint copy uses the same resources. Legacy literal labels remain to be corrected when their components are touched.
 
 ### Locale-parity rule
@@ -60,8 +62,7 @@ Any MR that adds, removes, or modifies a key in any locale file must touch all 1
 - **10 files to touch on every string change.** Friction is real. Mitigated by the parity check (the friction surfaces immediately, not in production).
 - **Translation quality risk** — agents and devs add translations for languages they don't read (especially `ar`, `ru`, `zh`). Risk of awkward / wrong translations. Mitigated by the AI guardrail in `CLAUDE.md` §9: never _rephrase_ existing translations in non-readable locales without explicit user instruction; _adding_ new keys with placeholder translations marked for later review is OK.
 - **Bundle weight** — all 10 locales ship with the app today; future optimisation: dynamic-import per-locale on user selection.
-- **Public locale routing is limited to home/menu.** Operational routes retain their existing URLs.
-  [PUBLIC-DISCOVERY.md](../PUBLIC-DISCOVERY.md) specifies canonical/indexable coverage and SSR behavior.
+- **The indexable locale cluster is limited to home/menu.** Other UI routes are locale-prefixed to preserve the active language, but remain noindex and outside the sitemap. [PUBLIC-DISCOVERY.md](../PUBLIC-DISCOVERY.md) specifies route negotiation, canonical/indexable coverage and SSR behavior.
 
 ### Mitigation for the negatives
 

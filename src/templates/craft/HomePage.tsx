@@ -11,7 +11,7 @@
 // (./craft.module.css). Reuses every existing i18n key; no
 // `template.craft.*` keys were needed.
 import React from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import FooterCookieLink from '@/components/FooterCookieLink';
 import PartnerCredit from '@/components/PartnerCredit';
@@ -22,8 +22,10 @@ import { useCraftHomeData } from './useCraftHomeData';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import type { PublicHomePageProps } from '@/types/publicDiscovery';
 import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 export default function HomePage({ initialData }: Readonly<PublicHomePageProps> = {}) {
+  const { hrefFor } = useTenantPublicNavigation();
   const locale = initialData?.locale ?? TENANT_PUBLIC_CONFIG.defaultLocale;
   // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
   const reservationsEnabled = useModuleEnabled('reservations');
@@ -59,12 +61,12 @@ export default function HomePage({ initialData }: Readonly<PublicHomePageProps> 
           </h1>
           <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaRow}>
-            <Link href={`/${locale}/menu`} className={styles.ctaPrimary} role="button">
+            <Link href={hrefFor(`/${locale}/menu`)} className={styles.ctaPrimary} role="button">
               <UtensilsCrossed size={20} strokeWidth={2.5} />
               <span>{copy('home_menu_cta')}</span>
             </Link>
             {reservationsEnabled && (
-              <Link href="/reservations" className={styles.ctaSecondary} role="button">
+              <Link href={hrefFor(`/${locale}/reservations`)} className={styles.ctaSecondary} role="button">
                 <CalendarCheck size={20} strokeWidth={2.5} />
                 <span>{copy('home_reservations_cta')}</span>
               </Link>
@@ -149,10 +151,10 @@ export default function HomePage({ initialData }: Readonly<PublicHomePageProps> 
             </p>
           )}
           <div className={styles.footerLinks}>
-            <Link href="/privacy-policy" className={styles.footerLink}>
+            <Link href={`/${locale}/privacy-policy`} className={styles.footerLink}>
               {copy('footer_privacy_policy')}
             </Link>
-            <Link href="/terms-of-usage" className={styles.footerLink}>
+            <Link href={`/${locale}/terms-of-usage`} className={styles.footerLink}>
               {copy('footer_terms_of_usage')}
             </Link>
           </div>

@@ -26,17 +26,17 @@ import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
  */
 export default function ClientProviders({
   modules,
-  publicLocale,
+  routeLocale,
   children,
-}: Readonly<{ modules: ModuleId[]; publicLocale?: string; children: React.ReactNode }>) {
-  const publicI18n = useMemo(() => (publicLocale ? i18n.cloneInstance({ lng: publicLocale }) : i18n), [publicLocale]);
+}: Readonly<{ modules: ModuleId[]; routeLocale?: string; children: React.ReactNode }>) {
+  const routeI18n = useMemo(() => (routeLocale ? i18n.cloneInstance({ lng: routeLocale }) : i18n), [routeLocale]);
   return (
     <ModulesProvider modules={modules}>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
         <AuthProvider>
           <SessionProvider>
             <ThemeProvider>
-              <I18nextProvider i18n={publicI18n}>
+              <I18nextProvider i18n={routeI18n}>
                 {/* Inside the i18n provider (it reads the active language) and outside everything
                     else (it renders nothing and must run whatever the rest of the tree does). */}
                 <DocumentLanguage />

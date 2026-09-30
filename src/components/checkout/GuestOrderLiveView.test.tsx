@@ -1,7 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import GuestOrderLiveView from './GuestOrderLiveView';
 
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn() }),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,

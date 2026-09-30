@@ -4,7 +4,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
 import { Category } from '@/app/admin/menu-management/interfaces';
-import { useRouter } from 'next/navigation';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 
 interface MenuManagementHeaderProps {
   pageTitle: string;

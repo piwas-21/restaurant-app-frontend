@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { refreshToken } from '@/services/authService';
 import { clearServerTakeawayDraft } from '@/lib/serverTakeawayDraft';
 import { clearServerTableRoundDraft } from '@/lib/serverTableRoundDraft';
@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
 
   useEffect(() => {
     const validateSession = async () => {
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('rumi_checkout_state');
     clearStaffDrafts();
     setUser(null);
-    router.push('/');
+    push('/');
   };
 
   return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>;

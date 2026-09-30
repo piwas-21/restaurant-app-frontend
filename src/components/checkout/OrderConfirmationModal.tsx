@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Home, Loader2, ShoppingBag } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
@@ -10,6 +9,7 @@ import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
 import BaseModal from '@/components/design-system/BaseModal';
 import OrderReviewStatus from './OrderReviewStatus';
 import styles from './OrderConfirmationModal.module.css';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
@@ -47,12 +47,12 @@ export default function OrderConfirmationModal({
   onClose,
   onTrackOrder,
 }: OrderConfirmationModalProps) {
-  const router = useRouter();
+  const { pushMenu } = useTenantPublicNavigation();
   const { t } = useTranslation();
   const guestWatch = useGuestOrderWatch(orderId, guestStatusToken ?? null);
 
   const handleBackToMenu = () => {
-    router.push('/menu');
+    pushMenu();
   };
 
   let statusContent: ReactNode;

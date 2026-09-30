@@ -1,11 +1,13 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { PackageX } from 'lucide-react';
 import { moduleForPath } from '@/lib/modules';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { appPathname } from '@/lib/tenantLocaleRouting';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 import styles from './ModuleRouteGuard.module.css';
 
 /**
@@ -28,7 +30,8 @@ import styles from './ModuleRouteGuard.module.css';
 export default function ModuleRouteGuard({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const enabled = useModuleEnabled(moduleForPath(pathname ?? ''));
+  const unprefixedPath = appPathname(pathname);
+  const enabled = useModuleEnabled(moduleForPath(unprefixedPath));
 
   if (enabled) return <>{children}</>;
 
@@ -42,7 +45,7 @@ export default function ModuleRouteGuard({ children }: Readonly<{ children: Reac
       <p className={styles.message}>
         {t('module_unavailable_message', 'This restaurant does not offer this feature.')}
       </p>
-      <Link href="/" className={styles.action}>
+      <Link href={tenantLocaleHref(pathname, '/')} className={styles.action}>
         {t('module_unavailable_action', 'Back to home')}
       </Link>
     </section>

@@ -18,7 +18,11 @@ jest.mock('react-i18next', () => ({
 }));
 
 const push = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush() }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush() }),
+}));
 function mockPush() {
   return push;
 }

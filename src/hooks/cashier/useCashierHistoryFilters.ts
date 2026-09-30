@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { getCashierTenantContext } from '@/services/cashierService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { CASHIER_TENANT_DAY_REFRESH_MS } from '@/lib/config';
@@ -9,6 +10,7 @@ import { historyDateWindow, readDay, readPage, readRange } from './cashierHistor
 import { CASHIER_ORDERS_PAGE_SIZE, CASHIER_SEARCH_DEBOUNCE_MS } from './useCashierFilters';
 import type { CashierHistoryFilters, CashierHistoryQuery, CashierHistoryRange } from './cashierHistoryTypes';
 export type { CashierHistoryFilters, CashierHistoryQuery, CashierHistoryRange };
+const pageQueryValue = (value: number) => (value > 1 ? String(value) : null);
 export function useCashierHistoryFilters(): CashierHistoryFilters {
   const pathname = usePathname();
   const router = useRouter();
@@ -149,10 +151,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
     (value: string) => replaceParams({ orderType: value === 'all' ? null : value, page: null }),
     [replaceParams],
   );
-  const setPage = useCallback(
-    (value: number) => replaceParams({ page: value > 1 ? String(value) : null }),
-    [replaceParams],
-  );
+  const setPage = useCallback((value: number) => replaceParams({ page: pageQueryValue(value) }), [replaceParams]);
   const rangeReady =
     range === 'custom'
       ? isCalendarDay(fromDay) && isCalendarDay(toDay) && daysBetween(fromDay, toDay) >= 0

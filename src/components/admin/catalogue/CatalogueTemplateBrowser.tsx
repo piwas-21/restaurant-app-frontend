@@ -2,8 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from '@/components/TenantLink';
+import { useSearchParams } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import PageHeader from '@/components/admin/PageHeader';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import { useCatalogueTemplateSearch } from '@/hooks/admin/useCatalogueTemplateSearch';

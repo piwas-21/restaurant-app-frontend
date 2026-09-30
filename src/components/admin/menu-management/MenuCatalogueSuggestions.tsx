@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import { useMenuCatalogueSuggestions } from '@/hooks/admin/useMenuCatalogueSuggestions';

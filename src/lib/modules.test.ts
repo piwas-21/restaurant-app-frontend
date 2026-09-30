@@ -41,6 +41,9 @@ describe('moduleForPath', () => {
     ['/admin/fidelity-analytics', 'loyalty'],
     ['/admin/user-groups', 'loyalty'],
     ['/admin/user-groups/42', 'loyalty'],
+    ['/fr/reservations', 'reservations'],
+    ['/ar/admin/point-rules', 'loyalty'],
+    ['/de/cashier/orders', 'cashier'],
   ])('maps %s to %s', (path, moduleId) => {
     expect(moduleForPath(path)).toBe(moduleId);
   });

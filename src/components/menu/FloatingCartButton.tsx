@@ -15,9 +15,9 @@
 
 import { formatCurrency } from '@/utils/currency';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import styles from './FloatingCartButton.module.css';
 
 interface FloatingCartButtonProps {
@@ -38,7 +38,7 @@ export default function FloatingCartButton({
   onAnimate = false,
   onClick,
 }: FloatingCartButtonProps) {
-  const router = useRouter();
+  const router = useTenantLocaleRouter();
   const { t } = useTranslation();
   const [isAnimating, setIsAnimating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);

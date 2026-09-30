@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './HomePage.module.css';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
 import PartnerCredit from '@/components/PartnerCredit';
@@ -20,9 +20,11 @@ import { landingBackgroundUrl, landingOverridesFor } from '@/lib/landingBackgrou
 import { useLandingPage } from '@/hooks/useLandingPage';
 import type { PublicHomePageProps } from '@/types/publicDiscovery';
 import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 export default function HomePage({ initialData }: Readonly<PublicHomePageProps> = {}) {
   const locale = initialData?.locale ?? TENANT_PUBLIC_CONFIG.defaultLocale;
+  const { hrefFor } = useTenantPublicNavigation();
   // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
   const reservationsEnabled = useModuleEnabled('reservations');
   const { t, i18n } = useTranslation();
@@ -198,12 +200,12 @@ export default function HomePage({ initialData }: Readonly<PublicHomePageProps> 
           </h1>
           <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaButtons}>
-            <Link href={`/${locale}/menu`} className={styles.ctaButtonPrimary} role="button">
+            <Link href={hrefFor(`/${locale}/menu`)} className={styles.ctaButtonPrimary} role="button">
               <UtensilsCrossed size={24} strokeWidth={2.5} />
               <span className={styles.ctaButtonText}>{copy('home_menu_cta')}</span>
             </Link>
             {reservationsEnabled && (
-              <Link href="/reservations" className={styles.ctaButtonSecondary} role="button">
+              <Link href={hrefFor(`/${locale}/reservations`)} className={styles.ctaButtonSecondary} role="button">
                 <CalendarCheck size={24} strokeWidth={2.5} />
                 <span className={styles.ctaButtonText}>{copy('home_reservations_cta')}</span>
               </Link>
@@ -281,10 +283,16 @@ export default function HomePage({ initialData }: Readonly<PublicHomePageProps> 
           <div
             style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}
           >
-            <Link href="/privacy-policy" style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}>
+            <Link
+              href={`/${locale}/privacy-policy`}
+              style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
+            >
               {copy('footer_privacy_policy')}
             </Link>
-            <Link href="/terms-of-usage" style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}>
+            <Link
+              href={`/${locale}/terms-of-usage`}
+              style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
+            >
               {copy('footer_terms_of_usage')}
             </Link>
           </div>

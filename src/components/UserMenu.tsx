@@ -6,8 +6,10 @@ import { useRoleHelpers } from '@/hooks/useRoleHelpers';
 import { UserCircle } from 'lucide-react';
 import styles from '../app/styles/UserMenu.module.css';
 import { useAuth } from './AuthContext';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { usePathname } from 'next/navigation';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface UserMenuProps {
   onMobileMenuClose?: () => void;
@@ -19,6 +21,8 @@ export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
   const { t } = useTranslation();
   const { getRoleLabel } = useRoleHelpers();
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +74,7 @@ export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
           {user.role.toLowerCase() === 'customer' && (
             <>
               <Link
-                href="/account"
+                href={localizedHref('/account')}
                 className={styles.dropdownLink}
                 onClick={() => {
                   setDropdownOpen(false);
@@ -80,7 +84,7 @@ export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
                 {t('user_menu.my_account', 'My Account')}
               </Link>
               <Link
-                href="/orders"
+                href={localizedHref('/orders')}
                 className={styles.dropdownLink}
                 onClick={() => {
                   setDropdownOpen(false);
@@ -91,7 +95,7 @@ export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
               </Link>
               {reservationsEnabled && (
                 <Link
-                  href="/my-reservations"
+                  href={localizedHref('/my-reservations')}
                   className={styles.dropdownLink}
                   onClick={() => {
                     setDropdownOpen(false);

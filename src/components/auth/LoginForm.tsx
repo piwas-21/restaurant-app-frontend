@@ -1,7 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
+import { usePathname } from 'next/navigation';
 import type { useLoginForm } from '@/hooks/auth/useLoginForm';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 import AuthField from './AuthField';
 import SocialLoginButtons from './SocialLoginButtons';
 import VerificationResendNotice from './VerificationResendNotice';
@@ -22,6 +24,7 @@ interface LoginFormProps {
  */
 export default function LoginForm({ styles, socialStyles, form }: Readonly<LoginFormProps>) {
   const { t } = form;
+  const pathname = usePathname();
   return (
     <>
       <form onSubmit={form.handleSubmit} noValidate aria-labelledby="login-heading">
@@ -72,11 +75,13 @@ export default function LoginForm({ styles, socialStyles, form }: Readonly<Login
           reachable only by typing the URL — and the page it leads to did not exist at all,
           which is why the backend's reset email had always landed on a 404. */}
       <p className={styles.switchFormText}>
-        <Link href="/forgot-password">{t('forgot_password_link', 'Forgot your password?')}</Link>
+        <Link href={tenantLocaleHref(pathname, '/forgot-password')}>
+          {t('forgot_password_link', 'Forgot your password?')}
+        </Link>
       </p>
       <p className={styles.switchFormText}>
         {t('dont_have_account_auth', "Don't have an account?")}{' '}
-        <Link href="/auth/register">{t('register_here', 'Register here')}</Link>
+        <Link href={tenantLocaleHref(pathname, '/auth/register')}>{t('register_here', 'Register here')}</Link>
       </p>
       <SocialLoginButtons styles={socialStyles} />
     </>

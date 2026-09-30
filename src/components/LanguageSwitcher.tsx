@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { usePathname, useSearchParams } from 'next/navigation';
 import styles from '../app/styles/LanguageSwitcher.module.css';
 import { SUPPORTED_LANGUAGES, LanguageCode } from '@/config/languageConfig';
@@ -12,6 +12,9 @@ import { useAuth } from '@/components/AuthContext';
 import { saveLanguagePreference } from '@/services/userService';
 import baseI18n from '../i18n';
 import { publicLocaleHref, publicRouteLocation } from '@/lib/publicRouteQuery';
+import { tenantLocaleFromPathname } from '@/lib/tenantLocaleRouting';
+import { localizedTenantHref } from '@/lib/tenantLocaleNavigation';
+import { persistTenantLocalePreference } from '@/lib/tenantLocalePreferences';
 
 const languages = SUPPORTED_LANGUAGES;
 
@@ -23,6 +26,7 @@ export default function LanguageSwitcher() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [locationHash, setLocationHash] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const changeLanguage = (lng: LanguageCode) => {
@@ -33,7 +37,7 @@ export default function LanguageSwitcher() {
     if (i18n !== baseI18n) baseI18n.changeLanguage(lng);
     // Language preference is essential functionality, always save it
     // This is typically not considered a tracking/preference cookie
-    localStorage.setItem('i18nextLng', lng);
+    persistTenantLocalePreference(lng);
     setDropdownOpen(false);
 
     // And, for someone signed in, on the ACCOUNT — which is what makes their mail follow the
@@ -49,10 +53,15 @@ export default function LanguageSwitcher() {
   };
 
   const publicRoute = publicRouteLocation(pathname);
+  const routeLocale = tenantLocaleFromPathname(pathname);
+  const privateRoute = pathname
+    ? `${pathname}${searchParams.size ? `?${searchParams.toString()}` : ''}${locationHash}`
+    : '';
 
-  const publicHref = (lng: LanguageCode): string | null => {
-    if (!publicRoute) return null;
-    return publicLocaleHref(lng, publicRoute.surface, searchParams);
+  const hrefForLocale = (lng: LanguageCode): string | null => {
+    if (publicRoute) return publicLocaleHref(lng, publicRoute.surface, searchParams);
+    if (routeLocale) return localizedTenantHref(lng, privateRoute);
+    return null;
   };
 
   const toggleDropdown = () => {
@@ -70,6 +79,10 @@ export default function LanguageSwitcher() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
+
+  useEffect(() => {
+    setLocationHash(window.location.hash);
+  }, [pathname, searchParams]);
 
   // Fallback to English if current language details are not found (should not happen with proper setup)
   const currentLanguageDetails =
@@ -96,7 +109,7 @@ export default function LanguageSwitcher() {
   };
 
   const languageItems = languages.map((language) => {
-    const href = publicHref(language.code);
+    const href = hrefForLocale(language.code);
     const contents = (
       <>
         <Image src={language.flag} alt={language.name} width={20} height={15} />
@@ -136,7 +149,7 @@ export default function LanguageSwitcher() {
         onClick={toggleDropdown}
         className={styles.dropdownToggle}
         aria-expanded={dropdownOpen}
-        aria-label="Toggle language menu"
+        aria-label={t('language', 'Language')}
       >
         <Image src={currentLanguageDetails.flag} alt={currentLanguageDetails.name} width={24} height={18} />
         <span className={styles.languageName}>{currentLanguageDetails.code.toUpperCase()}</span>

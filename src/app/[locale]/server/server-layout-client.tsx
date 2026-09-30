@@ -1,0 +1,51 @@
+'use client';
+
+import { useEffect, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
+import { useTranslation } from 'react-i18next';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/components/AuthContext';
+import { TenantFeaturesProvider, type TenantFeaturesState } from '@/contexts/TenantFeaturesContext';
+import { ServerTaskSummaryProvider } from '@/contexts/ServerTaskContext';
+import styles from './layout.module.css';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
+
+export default function ServerLayoutClient({
+  children,
+  features,
+}: Readonly<{ children: ReactNode; features: TenantFeaturesState }>) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { t } = useTranslation();
+  const { user, isLoading } = useAuth();
+  const role = user?.role?.toLowerCase();
+  const authorized = role === 'server' || role === 'admin';
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user) router.push(tenantLocaleHref(pathname, '/auth/login'));
+    else if (!authorized) router.push(tenantLocaleHref(pathname, '/'));
+  }, [authorized, isLoading, pathname, router, user]);
+
+  let content: ReactNode;
+  if (isLoading) {
+    content = (
+      <output className={styles.centerScreen} aria-label={t('loading')}>
+        <Loader2 className={styles.spinner} aria-hidden="true" size={48} />
+      </output>
+    );
+  } else if (!user) {
+    content = null;
+  } else if (!authorized) {
+    content = (
+      <div className={styles.centerScreen} role="alert">
+        <p>{t('server.takeaway.not_authorized')}</p>
+      </div>
+    );
+  } else {
+    content = features.serverWorkspaceV2 ? <ServerTaskSummaryProvider>{children}</ServerTaskSummaryProvider> : children;
+  }
+
+  return <TenantFeaturesProvider features={features}>{content}</TenantFeaturesProvider>;
+}

@@ -14,6 +14,7 @@ const mockRouterPush = jest.fn();
 const mockRouterReplace = jest.fn();
 
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
   useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
   useSearchParams: () => new URLSearchParams(),
 }));

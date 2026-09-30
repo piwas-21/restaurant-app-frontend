@@ -8,6 +8,8 @@ jest.mock('react-i18next', () => ({
 // `mock`-prefixed so the factory may close over it (jest's out-of-scope-variable rule).
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: mockPush }),
 }));
 

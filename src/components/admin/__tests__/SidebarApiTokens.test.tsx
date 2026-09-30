@@ -11,7 +11,11 @@ import Sidebar from '../Sidebar';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
-jest.mock('next/navigation', () => ({ usePathname: () => '/admin/dashboard' }));
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => '/admin/dashboard',
+}));
 jest.mock('@/contexts/ModulesContext', () => ({ useModules: () => new Set(['core']) }));
 
 const mockUser = { role: 'Admin' };

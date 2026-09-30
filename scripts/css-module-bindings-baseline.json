@@ -1,10 +1,10 @@
 {
   "dangling": [
-    "src/app/account/page.tsx :: styles.strengthMedium",
-    "src/app/account/page.tsx :: styles.strengthStrong",
-    "src/app/account/page.tsx :: styles.strengthWeak",
-    "src/app/admin/member-management/page.tsx :: styles.error",
-    "src/app/admin/menu-management/[productId]/page.tsx :: styles.error",
+    "src/app/[locale]/account/page.tsx :: styles.strengthMedium",
+    "src/app/[locale]/account/page.tsx :: styles.strengthStrong",
+    "src/app/[locale]/account/page.tsx :: styles.strengthWeak",
+    "src/app/[locale]/admin/member-management/page.tsx :: styles.error",
+    "src/app/[locale]/admin/menu-management/[productId]/page.tsx :: styles.error",
     "src/components/account/FidelityPointsSection.tsx :: styles.fidelityMessage",
     "src/components/admin/category-management/CategoriesTable.tsx :: styles.error",
     "src/components/admin/menu-management/ProductsTable.tsx :: styles.error",

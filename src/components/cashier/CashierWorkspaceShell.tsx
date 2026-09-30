@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { CircleAlert, CircleCheck, CircleDot, LoaderCircle } from 'lucide-react';
@@ -22,6 +22,8 @@ import type { CashierQueueState } from '@/types/cashier';
 import CashierMoreMenu from './CashierMoreMenu';
 import styles from './CashierWorkspaceShell.module.css';
 import healthStyles from './CashierWorkspaceHealth.module.css';
+import { appPathname } from '@/lib/tenantLocaleRouting';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface CashierWorkspaceShellProps {
   readonly activeDestination: CashierWorkspaceDestination;
@@ -74,6 +76,7 @@ export default function CashierWorkspaceShell({
 }: CashierWorkspaceShellProps) {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const routePath = appPathname(pathname);
   const { theme } = useTheme();
   const { info } = useRestaurantInfo();
   const operationalCount = useCashierOperationalCount();
@@ -93,7 +96,11 @@ export default function CashierWorkspaceShell({
           }
         }}
       >
-        <Link href={CASHIER_ORDERS_PATH} className={styles.brand} aria-label={RESTAURANT_NAME}>
+        <Link
+          href={tenantLocaleHref(pathname, CASHIER_ORDERS_PATH)}
+          className={styles.brand}
+          aria-label={RESTAURANT_NAME}
+        >
           <TenantLogo
             info={info}
             fallbackName={RESTAURANT_NAME}
@@ -108,11 +115,11 @@ export default function CashierWorkspaceShell({
         </Link>
         <nav className={styles.navigation} aria-label={t('cashier.workspace.navigation')}>
           {CASHIER_WORKSPACE_ROUTES.map((route) => {
-            const active = activeDestination === route.destination || pathname === route.href;
+            const active = activeDestination === route.destination || routePath === route.href;
             return (
               <Link
                 key={route.destination}
-                href={route.href}
+                href={tenantLocaleHref(pathname, route.href)}
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ''}`}
                 aria-current={active ? 'page' : undefined}
                 aria-disabled={navigationDisabled ? 'true' : undefined}

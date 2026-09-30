@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import ProductCustomization from '@/components/catalog/ProductCustomization';
 import DraftRecoveryBanner from '@/components/design-system/DraftRecoveryBanner';

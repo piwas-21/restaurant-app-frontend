@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/components/AuthContext';
 import BaseModal from '@/components/design-system/BaseModal';

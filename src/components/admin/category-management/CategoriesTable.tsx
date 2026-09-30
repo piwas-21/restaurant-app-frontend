@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
 import { Category } from '@/app/admin/menu-management/interfaces';

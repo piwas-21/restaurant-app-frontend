@@ -1,8 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
+import { usePathname } from 'next/navigation';
 import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
 import type { useRegisterForm } from '@/hooks/auth/useRegisterForm';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface RegisterSuccessCardProps {
   /** The template's register-success CSS module. */
@@ -17,6 +19,7 @@ interface RegisterSuccessCardProps {
  */
 export default function RegisterSuccessCard({ styles, form }: Readonly<RegisterSuccessCardProps>) {
   const { t, formData, resendLoading, resendMessage, handleResendEmail } = form;
+  const pathname = usePathname();
   return (
     <div className={styles.successContainer}>
       <div className={styles.successCard}>
@@ -60,7 +63,7 @@ export default function RegisterSuccessCard({ styles, form }: Readonly<RegisterS
           )}
 
           <div className={styles.buttonGroup}>
-            <Link href="/auth/login" className={styles.loginButton}>
+            <Link href={tenantLocaleHref(pathname, '/auth/login')} className={styles.loginButton}>
               {t('go_to_login', 'Go to Login')}
               <ArrowRight size={18} />
             </Link>

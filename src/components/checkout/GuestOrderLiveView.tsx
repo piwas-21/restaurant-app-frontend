@@ -4,9 +4,9 @@
 // auth-gated order read succeeds; when it does not, this focused view still proves the order was
 // received and follows it through review without exposing customer/order-detail fields.
 import { AlertCircle, Home } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import type { GuestOrderStatusDto } from '@/types/order';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 import OrderReviewStatus from './OrderReviewStatus';
 import styles from '@/app/styles/ConfirmationPage.module.css';
 
@@ -18,7 +18,7 @@ interface GuestOrderLiveViewProps {
 
 export default function GuestOrderLiveView({ orderNumber, status, unavailable }: GuestOrderLiveViewProps) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { pushMenu } = useTenantPublicNavigation();
 
   if (unavailable || !status) {
     return (
@@ -27,7 +27,7 @@ export default function GuestOrderLiveView({ orderNumber, status, unavailable }:
           <AlertCircle size={64} className={styles.errorIcon} />
           <h1>{t('error', 'Error')}</h1>
           <p>{t('order_not_found', 'Order not found')}</p>
-          <button type="button" onClick={() => router.push('/menu')} className={styles.menuButton}>
+          <button type="button" onClick={pushMenu} className={styles.menuButton}>
             {t('back_to_menu', 'Back to Menu')}
           </button>
         </div>
@@ -46,7 +46,7 @@ export default function GuestOrderLiveView({ orderNumber, status, unavailable }:
           reviewWindowMinutes={status.reviewWindowMinutes}
           reviewDeadlineUtc={status.reviewDeadlineUtc}
         />
-        <button type="button" onClick={() => router.push('/menu')} className={styles.menuButton}>
+        <button type="button" onClick={pushMenu} className={styles.menuButton}>
           <Home size={20} />
           {t('back_to_menu', 'Back to Menu')}
         </button>

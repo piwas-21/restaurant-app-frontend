@@ -65,9 +65,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // answer arrived. Fails OPEN to the full set — see tenantModulesService.
   const [paletteCss, modules] = await Promise.all([getTenantPaletteCss(), getTenantModules()]);
   const requestHeaders = await headers();
-  const requestedLocale = requestHeaders.get('x-tenant-public-locale');
-  const publicLocale = requestedLocale && isSupportedPublicLocale(requestedLocale) ? requestedLocale : undefined;
-  const documentLocale = publicLocale ?? 'en';
+  const requestedLocale = requestHeaders.get('x-tenant-route-locale');
+  const routeLocale = requestedLocale && isSupportedPublicLocale(requestedLocale) ? requestedLocale : undefined;
+  const documentLocale = routeLocale ?? 'en';
   return (
     // Middleware overwrites this internal header from a supported public path segment. A caller
     // cannot choose the server-rendered document language by supplying their own header.
@@ -78,7 +78,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             {paletteCss}
           </style>
         ) : null}
-        <ClientProviders modules={modules} publicLocale={publicLocale}>
+        <ClientProviders modules={modules} routeLocale={routeLocale}>
           <Shell>
             <ModuleRouteGuard>{children}</ModuleRouteGuard>
           </Shell>

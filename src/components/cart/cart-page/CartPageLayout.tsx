@@ -1,12 +1,13 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useCartPage } from '@/hooks/cart/useCartPage';
 import CartItemCard from './CartItemCard';
 import CartSummary from './CartSummary';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 // The modal cluster is only reachable from a blocked checkout, and statically
 // importing it put ~35 kB (+25%) of First Load JS on /cart for every visitor.
@@ -37,6 +38,7 @@ interface CartPageLayoutProps {
  */
 export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>) {
   const { t } = useTranslation();
+  const { menuHref } = useTenantPublicNavigation();
   const {
     state,
     getTotal,
@@ -69,7 +71,7 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
         <div className={styles.page.emptyCartContainer}>
           <ShoppingCart className={styles.page.emptyCartIcon} size={64} />
           <p className={styles.page.emptyCartMessage}>{t('cart_empty_message', 'Your cart is empty')}</p>
-          <Link href="/menu" className={styles.page.emptyCartLink}>
+          <Link href={menuHref} className={styles.page.emptyCartLink}>
             {t('cart_browse_menu_button', 'Browse Menu')}
           </Link>
         </div>

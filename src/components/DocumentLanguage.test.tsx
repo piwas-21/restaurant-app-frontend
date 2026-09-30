@@ -16,7 +16,21 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('next/navigation', () => ({ usePathname: () => mockPathname }));
+jest.mock('../i18n', () => ({
+  __esModule: true,
+  default: {
+    changeLanguage: (...args: unknown[]) => mockChangeLanguage(...args),
+    get language() {
+      return mockLanguage;
+    },
+  },
+}));
+
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => mockPathname,
+}));
 
 /**
  * Public locale routes set the document language in SSR; this observer keeps it synchronized when
@@ -27,6 +41,8 @@ describe('DocumentLanguage', () => {
     mockLanguage = 'en';
     mockPathname = null;
     mockChangeLanguage.mockClear();
+    localStorage.removeItem('i18nextLng');
+    document.cookie = 'tenant_locale_v1=; Path=/; Max-Age=0';
     document.documentElement.setAttribute('lang', 'en');
     document.documentElement.setAttribute('dir', 'ltr');
   });
@@ -89,5 +105,12 @@ describe('DocumentLanguage', () => {
     expect(document.documentElement).toHaveAttribute('lang', 'ar');
     expect(document.documentElement).toHaveAttribute('dir', 'rtl');
     expect(mockChangeLanguage).toHaveBeenCalledWith('ar');
+  });
+
+  it('does not recreate the legacy detector cache when a locale route settles', () => {
+    mockPathname = '/fr/menu';
+    render(<DocumentLanguage />);
+    expect(localStorage.getItem('i18nextLng')).toBeNull();
+    expect(document.cookie).toContain('tenant_locale_v1=fr');
   });
 });

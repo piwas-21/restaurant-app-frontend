@@ -29,7 +29,7 @@ describe('setupStepHref', () => {
     // this map exists to avoid. So resolve each route to its App Router file.
     const missing = SETUP_STEP_KEYS.map((key) => ({ key, path: setupStepPathname(key) }))
       .filter(({ path }) => path !== null)
-      .filter(({ path }) => !existsSync(join(process.cwd(), 'src/app', path!, 'page.tsx')))
+      .filter(({ path }) => !existsSync(join(process.cwd(), 'src/app/[locale]', path!, 'page.tsx')))
       .map(({ key }) => key);
     expect(missing).toEqual([]);
   });

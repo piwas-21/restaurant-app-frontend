@@ -1,7 +1,8 @@
 'use client';
 
 import React, { Suspense, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGE_CODES, type LanguageCode } from '@/config/languageConfig';
 import PageHeader from '@/components/admin/PageHeader';

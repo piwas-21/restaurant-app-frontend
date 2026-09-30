@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { isSupportedPublicLocale } from '@/lib/publicDiscoveryConfig';
 
 export default async function MyOrdersPage({ params }: Readonly<{ params: Promise<{ locale: string }> }>) {

@@ -68,7 +68,7 @@ export const KNOWN_TENANT_UI_PATHS = [
 ] as const;
 
 export function tenantLocaleFromPathname(pathname: string | null | undefined): LanguageCode | null {
-  const firstSegment = pathname?.split('/').filter(Boolean)[0];
+  const firstSegment = pathname?.split('/').find((segment) => segment.length > 0);
   return firstSegment && SUPPORTED_LOCALES.has(firstSegment) ? (firstSegment as LanguageCode) : null;
 }
 

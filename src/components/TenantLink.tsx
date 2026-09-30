@@ -16,6 +16,7 @@ export default function TenantLink({ href, ...props }: TenantLinkProps) {
 }
 
 function localizeObjectHref(pathname: string | null, href: TenantLinkProps['href']): TenantLinkProps['href'] {
+  const objectPath = typeof href === 'string' ? undefined : href.pathname;
   if (
     typeof href === 'string' ||
     href.protocol ||
@@ -24,13 +25,12 @@ function localizeObjectHref(pathname: string | null, href: TenantLinkProps['href
     href.host ||
     href.hostname ||
     href.port ||
-    !href.pathname ||
-    !href.pathname.startsWith('/') ||
-    href.pathname.startsWith('//')
+    !objectPath?.startsWith('/') ||
+    objectPath.startsWith('//')
   ) {
     return href;
   }
-  const localized = tenantLocaleHref(pathname, href.pathname);
+  const localized = tenantLocaleHref(pathname, objectPath);
   const parsed = new URL(localized, 'https://tenant.invalid');
   return { ...href, pathname: parsed.pathname };
 }

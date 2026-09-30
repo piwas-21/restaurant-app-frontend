@@ -54,9 +54,8 @@ export default function LanguageSwitcher() {
 
   const publicRoute = publicRouteLocation(pathname);
   const routeLocale = tenantLocaleFromPathname(pathname);
-  const privateRoute = pathname
-    ? `${pathname}${searchParams.size ? `?${searchParams.toString()}` : ''}${locationHash}`
-    : '';
+  const privateSearch = searchParams.size > 0 ? `?${searchParams.toString()}` : '';
+  const privateRoute = pathname ? `${pathname}${privateSearch}${locationHash}` : '';
 
   const hrefForLocale = (lng: LanguageCode): string | null => {
     if (publicRoute) return publicLocaleHref(lng, publicRoute.surface, searchParams);

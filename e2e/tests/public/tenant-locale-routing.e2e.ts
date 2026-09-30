@@ -70,6 +70,7 @@ test('manual choice persists through cookies, reload, browser history, and legac
     await page.getByText('French', { exact: true }).click();
     await page.waitForURL((url) => url.pathname === '/fr/cart');
     await expectDocumentLocale(page, 'fr');
+    await expect(page).toHaveTitle(/\S+/);
     await expectNoA11yViolations(page);
     expect((await context.cookies(origin)).find((cookie) => cookie.name === localeCookie)?.value).toBe('fr');
 
@@ -225,14 +226,24 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
     if (await consentButton.count()) await consentButton.click();
     await clearCookieState();
 
-    const followLink = async (from: string, destination: string, accessibleName: string) => {
+    const followLink = async (
+      from: string,
+      destination: string,
+      accessibleName: string,
+      location: 'navigation' | 'footer' = 'navigation',
+    ) => {
       await page.goto(appUrl(baseURL, from));
       await expectDocumentLocale(page, 'ar');
       await clearCookieState();
-      const navigationToggle = page.getByRole('button', { name: 'افتح القائمة', exact: true });
-      await expect(navigationToggle).toBeVisible();
-      await navigationToggle.click();
-      const link = page.getByRole('link', { name: accessibleName, exact: true });
+      if (location === 'navigation') {
+        const navigationToggle = page.getByRole('button', { name: 'افتح القائمة', exact: true });
+        await expect(navigationToggle).toBeVisible();
+        await navigationToggle.click();
+      }
+      const link =
+        location === 'footer'
+          ? page.locator('footer').getByRole('link', { name: accessibleName, exact: true })
+          : page.getByRole('link', { name: accessibleName, exact: true });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute('href', destination);
       await link.click();
@@ -265,8 +276,8 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
     }
     await clearCookieState();
 
-    await followLink('/ar', '/ar/privacy-policy', 'footer a[href="/ar/privacy-policy"]');
-    await followLink('/ar', '/ar/terms-of-usage', 'footer a[href="/ar/terms-of-usage"]');
+    await followLink('/ar/menu', '/ar/privacy-policy', 'سياسة الخصوصية', 'footer');
+    await followLink('/ar/menu', '/ar/terms-of-usage', 'شروط الاستخدام', 'footer');
 
     await page.goto(appUrl(baseURL, '/ar/account'));
     await expect(page).toHaveURL((url) => url.pathname === '/ar/auth/login');

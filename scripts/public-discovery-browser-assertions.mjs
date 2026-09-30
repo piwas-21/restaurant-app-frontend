@@ -122,9 +122,7 @@ export async function edgeBrowserContract(origin, scenario, api) {
         (url) => url.searchParams.get('categoryId') === CATEGORY_ID && url.searchParams.get('page') === '3',
       );
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
-      // The tail dish also exists in the previous All page; wait for the filtered response.
-      await page.waitForLoadState('networkidle');
-      assert.doesNotMatch(await page.locator('body').innerText(), /Hors catégorie/);
+      await assertFilteredOffers(page, api, firstCall);
       await page.reload({ waitUntil: 'networkidle' });
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
       assert.equal(
@@ -171,4 +169,25 @@ async function delayFilteredCatalog(page, apiOrigin) {
   return {
     assertExercised: () => assert.ok(delayedResponses > 0, 'Slow filtered catalogue response actually exercised'),
   };
+}
+
+async function assertFilteredOffers(page, api, firstCall) {
+  const { expect } = await import('@playwright/test');
+  // The old All page can remain during a React transition; observe the actual filter and card state.
+  const category = page.getByRole('button', { name: 'Plats de la maison', exact: true });
+  try {
+    await page.waitForLoadState('networkidle');
+    await expect(category).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('Hors catégorie', { exact: true })).toHaveCount(0);
+    assert.doesNotMatch(await page.locator('body').innerText(), /Hors catégorie/);
+  } catch (error) {
+    const evidence = {
+      url: page.url(),
+      selectedCategory: await category
+        .evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-pressed')))
+        .catch(() => ['unavailable']),
+      catalogRequests: api.calls.slice(firstCall).filter((call) => call.path === '/api/Catalog'),
+    };
+    throw new Error(`Filtered offer state did not settle: ${JSON.stringify(evidence)}`, { cause: error });
+  }
 }

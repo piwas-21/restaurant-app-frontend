@@ -20,11 +20,21 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     });
     await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+    assert.ok(await page.locator('header').count(), 'The customer header remains visible after hydration');
+    assert.equal(await page.locator('header[class*="CraftHeader_header"]').count(), template === 'craft' ? 1 : 0);
+    assert.equal(
+      await page.locator('header button[class*="Header_hamburgerMenu"]').count(),
+      template === 'classic' ? 1 : 0,
+    );
     await page.locator('a[href="/fr/menu"]').first().click();
     await page.waitForURL('**/fr/menu');
     await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
+    assert.match(
+      await page.getByTestId('menu-card').first().getAttribute('class'),
+      template === 'craft' ? /CraftMenuCard_card/ : /MenuItem_menuItem/,
+    );
     assert.match(await page.locator('body').innerText(), /Plat français 1/);
     const secondPage = page.locator('a[href="/fr/menu?page=2"]').first();
     await secondPage.click();
@@ -41,6 +51,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.waitForFunction(() => document.documentElement.lang === 'ar');
     await page.goto(`${origin}/scan?qr=fixture-qr`);
     await page.waitForURL('**/fr/menu', { timeout: 20_000 });
+    await page.getByText('Plat français 1', { exact: true }).first().waitFor();
+    await page.waitForLoadState('networkidle');
     assert.equal(
       await page.evaluate(() => JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId),
       CATEGORY_ID,

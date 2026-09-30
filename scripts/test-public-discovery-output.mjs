@@ -2,7 +2,7 @@
 // Builds the actual production app, then checks HTTP output against independent API fixtures.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { cp, readdir } from 'node:fs/promises';
+import { cp, readdir, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,10 +39,10 @@ async function unusedPort() {
   await new Promise((resolve) => socket.close(resolve));
   return port;
 }
-async function build() {
+async function build(buildTemplate = template) {
   const child = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'build'], {
     cwd: root,
-    env: environment,
+    env: { ...environment, NEXT_PUBLIC_TEMPLATE: buildTemplate },
     stdio: 'inherit',
   });
   const code = await new Promise((resolve) => child.once('exit', resolve));
@@ -103,32 +103,50 @@ async function serve(serverFile, scenario) {
   }
 }
 
-try {
-  await build();
+async function prepareStandalone() {
   const serverFile = await standalone(path.join(root, '.next', 'standalone'));
   assert.ok(serverFile, 'Next standalone server exists');
   await cp(path.join(root, 'public'), path.join(path.dirname(serverFile), 'public'), { recursive: true });
   await cp(path.join(root, '.next', 'static'), path.join(path.dirname(serverFile), '.next', 'static'), {
     recursive: true,
   });
-  const scenarios = indexing
-    ? [
-        'complete',
-        'missing',
-        'repeated',
-        'unknown',
-        'override',
-        'onepage',
-        'bundles',
-        'offers',
-        'offers-onepage',
-        'categories-fail',
-      ]
-    : ['complete'];
+  return serverFile;
+}
+
+try {
+  if (template === 'craft') {
+    // Reproduce the actual alias-cache defect: prove classic, then rebuild craft with warm packs.
+    await rm(path.join(root, '.next', 'cache', 'webpack'), { recursive: true, force: true });
+    await build('classic');
+    const warmup = await serve(await prepareStandalone(), 'complete');
+    try {
+      await assertScenario(warmup.origin, 'complete', indexing, 'classic');
+      console.log('PASS classic warm-up template boundary before craft');
+    } finally {
+      await warmup.close();
+    }
+  }
+  await build();
+  const serverFile = await prepareStandalone();
+  const scenarios =
+    indexing && !process.argv.includes('--complete-only')
+      ? [
+          'complete',
+          'missing',
+          'repeated',
+          'unknown',
+          'override',
+          'onepage',
+          'bundles',
+          'offers',
+          'offers-onepage',
+          'categories-fail',
+        ]
+      : ['complete'];
   for (const scenario of scenarios) {
     const server = await serve(serverFile, scenario);
     try {
-      await assertScenario(server.origin, scenario, indexing);
+      await assertScenario(server.origin, scenario, indexing, template);
       await assertSitemap(server.origin, scenario, indexing);
       const browserChecked =
         !process.argv.includes('--http-only') &&

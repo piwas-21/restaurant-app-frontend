@@ -58,12 +58,32 @@ function cluster(html, path, locales) {
   assert.deepEqual(alternates(html), expected, `${path}: complete audited alternate cluster`);
 }
 
-export async function assertScenario(origin, scenario, indexing) {
+export async function assertScenario(origin, scenario, indexing, template) {
   const eligible = indexing && !['repeated', 'unknown', 'categories-fail'].includes(scenario);
   const locales = eligible ? (scenario === 'missing' ? ['fr'] : ['fr', 'en']) : [];
   const first = await htmlAt(origin, '/fr/menu');
   pageContract(first, '/fr/menu', 'fr', eligible);
+  const emittedHeaders = tags(first, 'header');
+  assert.ok(emittedHeaders.length > 0, 'A customer header is server-rendered');
+  assert.equal(
+    emittedHeaders.some((tag) => (attribute(tag, 'class') ?? '').includes('CraftHeader_header')),
+    template === 'craft',
+    'The emitted customer header belongs to the selected build-time template',
+  );
+  const classicHeader = elements(first, 'header').some(({ body }) =>
+    tags(body, 'button').some((tag) => (attribute(tag, 'class') ?? '').includes('Header_hamburgerMenu')),
+  );
+  assert.equal(classicHeader, template === 'classic', 'The customer header has the selected template controls');
   cluster(first, '/fr/menu', locales);
+  const cards = tags(first, 'li').filter((tag) => attribute(tag, 'data-testid') === 'menu-card');
+  if (scenario !== 'categories-fail') {
+    assert.ok(cards.length > 0, 'Server-rendered cards prove the selected menu surface');
+    const marker = template === 'craft' ? 'CraftMenuCard_card' : 'MenuItem_menuItem';
+    assert.ok(
+      cards.every((tag) => (attribute(tag, 'class') ?? '').includes(marker)),
+      'Every emitted card uses the selected template',
+    );
+  }
   if (scenario === 'categories-fail') assert.doesNotMatch(bodyText(first), /Plat français 1/);
   else assert.match(bodyText(first), /Plat français 1/);
   assert.doesNotMatch(bodyText(first), /Plat français 206/);

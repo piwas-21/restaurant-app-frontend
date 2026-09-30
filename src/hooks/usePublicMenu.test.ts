@@ -5,6 +5,7 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { getProducts } from '@/services/menuService';
 import { getPublicMenuBundles } from '@/services/menuBundleService';
 import type { ApiCategory } from '@/types/menu';
+import type { PublicMenuClientData } from '@/types/publicDiscovery';
 
 /**
  * The seam the whole S4 slice rests on: the guest's channel actually reaching `GET /api/Products`.
@@ -38,6 +39,20 @@ function setOrderTypeContext(orderType: OrderType | null, hydrated: boolean) {
   mockOrderType.mockReturnValue({ state: { orderType }, hydrated });
 }
 
+function menuSnapshot(categories: ApiCategory[], categoriesComplete: boolean): PublicMenuClientData {
+  return {
+    locale: 'fr',
+    categories,
+    categoriesComplete,
+    products: { currentPage: 3, totalPages: 3, totalCount: 205, pageSize: 200, items: [] },
+    bundles: { currentPage: 1, totalPages: 1, totalCount: 0, pageSize: 200, items: [] },
+    productsByCategory: {},
+    offerFamilies: [],
+    offerPage: { currentPage: 3, totalPages: 3, totalCount: 205, pageSize: 100 },
+    restaurantInfo: null,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockCategories = [];
@@ -46,6 +61,85 @@ beforeEach(() => {
 });
 
 describe('usePublicMenu — disabled item pipelines retain catalogue navigation', () => {
+  it('reconciles stale server view props from the filtered URL on mount without resetting its page', () => {
+    setOrderTypeContext(null, false);
+    window.history.replaceState({}, '', '/fr/menu?page=3&categoryId=cat-tacos');
+    const historyLength = window.history.length;
+    const snapshot = menuSnapshot([{ id: 'cat-tacos', name: 'Tacos' }], true);
+
+    const { result, unmount } = renderHook(() => usePublicMenu(false, snapshot, 'all', true));
+    try {
+      expect(result.current.selectedView).toBe('cat-tacos');
+      expect(window.location.pathname).toBe('/fr/menu');
+      expect(new URLSearchParams(window.location.search).toString()).toBe('page=3&categoryId=cat-tacos');
+      expect(window.history.length).toBe(historyLength);
+    } finally {
+      unmount();
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
+  it('accepts a valid URL category while the server category snapshot is incomplete', () => {
+    setOrderTypeContext(null, false);
+    window.history.replaceState({}, '', '/fr/menu?page=3&categoryId=cat-pending');
+
+    const { result, unmount } = renderHook(() => usePublicMenu(false, menuSnapshot([], false), 'all', true));
+    try {
+      expect(result.current.selectedView).toBe('cat-pending');
+    } finally {
+      unmount();
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
+  it.each([
+    ['/fr/menu?page=3&categoryId=cat%2Ftacos', [{ id: 'cat-tacos', name: 'Tacos' }], true],
+    ['/fr/menu?page=3&categoryId=cat-unknown', [{ id: 'cat-tacos', name: 'Tacos' }], true],
+    ['/fr/menu?view=bundles&categoryId=cat-tacos', [{ id: 'cat-tacos', name: 'Tacos' }], true],
+  ])('normalizes unsupported route selection %s to All', (url, categories, categoriesComplete) => {
+    setOrderTypeContext(null, false);
+    window.history.replaceState({}, '', url);
+
+    const { result, unmount } = renderHook(() =>
+      usePublicMenu(false, menuSnapshot(categories, categoriesComplete), 'cat-tacos', true),
+    );
+    try {
+      expect(result.current.selectedView).toBe('all');
+    } finally {
+      unmount();
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
+  it('lets an explicit All URL override stale category props, preserving its page', () => {
+    setOrderTypeContext(null, false);
+    window.history.replaceState({}, '', '/fr/menu?page=2');
+    const historyLength = window.history.length;
+
+    const { result, unmount } = renderHook(() => usePublicMenu(false, undefined, 'cat-tacos', true));
+    try {
+      expect(result.current.selectedView).toBe('all');
+      expect(new URLSearchParams(window.location.search).toString()).toBe('page=2');
+      expect(window.history.length).toBe(historyLength);
+    } finally {
+      unmount();
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
+  it('leaves legacy separate-menu selection driven by server props', () => {
+    setOrderTypeContext(null, false);
+    window.history.replaceState({}, '', '/fr/menu?categoryId=cat-tacos');
+
+    const { result, unmount } = renderHook(() => usePublicMenu(false, undefined, 'cat-main', false));
+    try {
+      expect(result.current.selectedView).toBe('cat-main');
+    } finally {
+      unmount();
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
   it('still returns categories and the All selection for category-offers tabs', () => {
     mockCategories = [{ id: 'cat-tacos', name: 'Tacos' }];
     setOrderTypeContext(null, false);

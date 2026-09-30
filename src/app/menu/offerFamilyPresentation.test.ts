@@ -10,7 +10,7 @@ describe('category-offers menu wiring', () => {
     expect(MENU_PAGE).toContain('const categoriesForNav = isOnePage ? onePage.categories : publicCategories;');
     expect(MENU_PAGE).toContain('const isCategoryOffers = displaySettings.bundlePresentationMode ===');
     expect(MENU_PAGE).toContain(
-      'usePublicMenu(!isOnePage && !isCategoryOffers, initialSnapshot, initialView, isCategoryOffers)',
+      'usePublicMenu(\n    !isOnePage && !isCategoryOffers,\n    initialSnapshot,\n    initialView,\n    supportsPublicCategoryFilter(isCategoryOffers, isOnePage),\n  )',
     );
     expect(MENU_PAGE).toContain('usePublicOfferFamilies(isCategoryOffers, offerFamilyCategoryId, initialSnapshot)');
     expect(MENU_PAGE).toContain('selectedView,');

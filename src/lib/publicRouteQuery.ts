@@ -12,6 +12,16 @@ const CATEGORY_ID_PATTERN = /^[\w-]{1,100}$/;
 
 export type PublicMenuView = 'products' | 'bundles';
 
+export function isValidPublicCategoryId(value: string | null): value is string {
+  return value !== null && CATEGORY_ID_PATTERN.test(value);
+}
+
+/** Mirrors the route parser's first-value policy; publicMenuQuery removes duplicate values. */
+export function publicCategoryIdFromQuery(query: URLSearchParams): string | null {
+  const candidate = query.getAll('categoryId')[0] ?? null;
+  return isValidPublicCategoryId(candidate) ? candidate : null;
+}
+
 export function searchParamsToURLSearchParams(values: Record<string, string | string[] | undefined>): URLSearchParams {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(values)) {
@@ -74,13 +84,13 @@ export function publicMenuQuery(
 ): URLSearchParams {
   const source = new URLSearchParams(current.toString());
   const query = publicContextQuery(source);
-  const selectedCategoryId = categoryId === undefined ? source.get('categoryId') : categoryId;
+  const selectedCategoryId = categoryId === undefined ? publicCategoryIdFromQuery(source) : categoryId;
   if (view === 'bundles') {
     query.set('view', 'bundles');
     if (page > 1) query.set('bundlesPage', String(page));
   } else {
     if (page > 1) query.set('page', String(page));
-    if (selectedCategoryId && CATEGORY_ID_PATTERN.test(selectedCategoryId)) query.set('categoryId', selectedCategoryId);
+    if (isValidPublicCategoryId(selectedCategoryId)) query.set('categoryId', selectedCategoryId);
   }
   return query;
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOrderType } from '@/contexts/OrderTypeContext';
-import { publicMenuQuery } from '@/lib/publicRouteQuery';
+import { publicCategoryIdFromQuery, publicMenuQuery, publicRouteLocation } from '@/lib/publicRouteQuery';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY, type PublicMenuView } from './publicMenu/constants';
 import { usePublicMenuCategories } from './publicMenu/usePublicMenuCategories';
 import { usePublicMenuData } from './publicMenu/usePublicMenuData';
@@ -10,6 +10,27 @@ import type { PublicMenuClientData } from '@/types/publicDiscovery';
 
 export { ALL_ITEMS_KEY, MENU_BUNDLES_KEY };
 export type { PublicMenuView };
+
+function initialMenuView(
+  initialView: string,
+  trackCategoryInUrl: boolean,
+  initialSnapshot?: PublicMenuClientData,
+): PublicMenuView {
+  if (
+    !trackCategoryInUrl ||
+    typeof window === 'undefined' ||
+    publicRouteLocation(window.location.pathname)?.surface !== 'menu'
+  ) {
+    return initialView;
+  }
+  const query = new URLSearchParams(window.location.search);
+  if (query.get('view') === 'bundles' || query.has('bundlesPage')) return ALL_ITEMS_KEY;
+  const categoryId = publicCategoryIdFromQuery(query);
+  if (!categoryId) return ALL_ITEMS_KEY;
+  const categoryKnown = initialSnapshot?.categories.some((category) => category.id === categoryId) ?? false;
+  if (initialSnapshot?.categoriesComplete && !categoryKnown) return ALL_ITEMS_KEY;
+  return categoryId;
+}
 
 export function usePublicMenu(
   enabled = true,
@@ -35,7 +56,9 @@ export function usePublicMenu(
     fetchProducts,
     fetchMenuBundles,
   } = usePublicMenuData(initialSnapshot);
-  const [currentSelectedView, setCurrentSelectedView] = useState<PublicMenuView>(initialView);
+  const [currentSelectedView, setCurrentSelectedView] = useState<PublicMenuView>(() =>
+    initialMenuView(initialView, trackCategoryInUrl, initialSnapshot),
+  );
   const firstProductRequest = useRef(true);
   const firstBundleRequest = useRef(true);
   const requestedProductPage = useRef(initialSnapshot?.products.currentPage ?? 1);

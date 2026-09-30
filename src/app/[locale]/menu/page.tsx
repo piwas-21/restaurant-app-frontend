@@ -4,7 +4,12 @@ import type { LanguageCode } from '@/config/languageConfig';
 import { isSupportedPublicLocale } from '@/lib/publicDiscoveryConfig';
 import { getPublicMenuDiscovery } from '@/services/publicDiscoveryService';
 import { menuMetadata } from '@/lib/publicRouteMetadata';
-import { publicMenuQuery, searchParamsToURLSearchParams, type PublicMenuView } from '@/lib/publicRouteQuery';
+import {
+  publicCategoryIdFromQuery,
+  publicMenuQuery,
+  searchParamsToURLSearchParams,
+  type PublicMenuView,
+} from '@/lib/publicRouteQuery';
 import MenuClientPage from '@/app/menu/MenuClientPage';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 
@@ -28,8 +33,7 @@ async function menuData(params: RouteParams, searchParams: SearchParams): Promis
   const requestedPage = positivePage(query.get('page')) ?? 1;
   const requestedBundlePage = positivePage(query.get('bundlesPage')) ?? 1;
   const requestedView = query.get('view') === 'bundles' || query.has('bundlesPage') ? 'bundles' : 'products';
-  const rawCategoryId = query.get('categoryId');
-  const requestedCategoryId = requestedView === 'products' && validCategoryId(rawCategoryId) ? rawCategoryId : null;
+  const requestedCategoryId = requestedView === 'products' ? publicCategoryIdFromQuery(query) : null;
   const discovery = await getPublicMenuDiscovery(locale, requestedPage, requestedBundlePage, requestedCategoryId);
   const categoryKnown =
     requestedCategoryId !== null &&
@@ -104,10 +108,6 @@ function positivePage(value: string | null): number | null {
   if (!value || !/^\d+$/.test(value)) return null;
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-function validCategoryId(value: string | null): value is string {
-  return value !== null && /^[\w-]{1,100}$/.test(value);
 }
 
 function hasDifferentRouteQuery(source: URLSearchParams, normalized: URLSearchParams): boolean {

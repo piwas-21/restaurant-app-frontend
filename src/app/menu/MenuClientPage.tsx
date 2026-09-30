@@ -40,6 +40,10 @@ interface MenuClientPageProps {
 // `OrderFlowSidebar` is no longer among them: /menu has no rail, and /cart resolves its own.
 const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
 
+function supportsPublicCategoryFilter(isCategoryOffers: boolean, isOnePage: boolean): boolean {
+  return isCategoryOffers && !isOnePage;
+}
+
 export default function MenuPage({ initialSnapshot, initialView }: Readonly<MenuClientPageProps>) {
   const { t, i18n } = useTranslation();
   const pathname = usePathname();
@@ -64,7 +68,12 @@ export default function MenuPage({ initialSnapshot, initialView }: Readonly<Menu
     pageSize,
     onPageChange,
     refetch,
-  } = usePublicMenu(!isOnePage && !isCategoryOffers, initialSnapshot, initialView, isCategoryOffers);
+  } = usePublicMenu(
+    !isOnePage && !isCategoryOffers,
+    initialSnapshot,
+    initialView,
+    supportsPublicCategoryFilter(isCategoryOffers, isOnePage),
+  );
   const onePage = useOnePageMenu(isOnePage && !isCategoryOffers, initialSnapshot);
   const offerFamilyCategoryId =
     !isOnePage && selectedView !== ALL_ITEMS_KEY && selectedView !== MENU_BUNDLES_KEY ? selectedView : null;

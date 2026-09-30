@@ -45,6 +45,11 @@ describe('publicLocaleHref', () => {
     expect(publicMenuQuery(current, 'products', 1, null).toString()).toBe('qr=table-token');
   });
 
+  it('keeps the route parser first-value policy and canonicalizes repeated category IDs', () => {
+    const duplicate = new URLSearchParams('categoryId=cat-tacos&categoryId=cat-drinks&page=3');
+    expect(publicMenuQuery(duplicate, 'products', 3).toString()).toBe('page=3&categoryId=cat-tacos');
+  });
+
   it('drops malformed page values and unknown parameters', () => {
     expect(publicLocaleHref('ar', 'menu', new URLSearchParams('page=0&token=private'))).toBe('/ar/menu');
   });

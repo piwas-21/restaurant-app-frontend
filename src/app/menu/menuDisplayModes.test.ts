@@ -53,7 +53,7 @@ describe('the menu-display layout branch', () => {
 
   it('stands legacy item pipelines down while the selected aggregate path owns the page', () => {
     expect(PAGE_SRC).toContain(
-      'usePublicMenu(!isOnePage && !isCategoryOffers, initialSnapshot, initialView, isCategoryOffers)',
+      'usePublicMenu(\n    !isOnePage && !isCategoryOffers,\n    initialSnapshot,\n    initialView,\n    supportsPublicCategoryFilter(isCategoryOffers, isOnePage),\n  )',
     );
     expect(PAGE_SRC).toContain('useOnePageMenu(isOnePage && !isCategoryOffers, initialSnapshot)');
   });

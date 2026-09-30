@@ -7,6 +7,7 @@ import { homeMetadata, restaurantJsonLd } from '@/lib/publicRouteMetadata';
 import type { LanguageCode } from '@/config/languageConfig';
 
 type RouteParams = Promise<{ locale: string }>;
+type LocalizedHomeProps = Readonly<{ params: RouteParams }>;
 
 async function routeData(params: RouteParams) {
   const { locale } = await params;
@@ -14,11 +15,11 @@ async function routeData(params: RouteParams) {
   return getPublicHomeData(locale);
 }
 
-export async function generateMetadata({ params }: { params: RouteParams }): Promise<Metadata> {
+export async function generateMetadata({ params }: LocalizedHomeProps): Promise<Metadata> {
   return homeMetadata(await routeData(params));
 }
 
-export default async function LocalizedHome({ params }: { params: RouteParams }) {
+export default async function LocalizedHome({ params }: LocalizedHomeProps) {
   const data = await routeData(params);
   const jsonLd = restaurantJsonLd(data.restaurantInfo, data.workingHours, data.locale as LanguageCode);
   const HomePage = template.HomePage;

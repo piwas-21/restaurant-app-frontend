@@ -85,11 +85,89 @@ function collection(rows, url, pageKey, sizeKey, scenario) {
   return { items, page, pageSize, totalCount: rows.length, totalPages: Math.ceil(rows.length / pageSize) };
 }
 
+function restaurantInfo(scenario, state) {
+  let menuLayout = 'tabs';
+  if (['onepage', 'categories-fail', 'offers-onepage'].includes(scenario)) menuLayout = 'onepage';
+  else if (scenario === 'complete') menuLayout = state.completeLayout;
+  let bundlePresentationMode = 'legacySeparate';
+  if (['offers', 'offers-onepage'].includes(scenario)) bundlePresentationMode = 'categoryOffers';
+  else if (scenario === 'complete') bundlePresentationMode = state.completePresentation;
+  return { ...info, menuLayout, bundlePresentationMode };
+}
+const fixtureError = (status, message) => ({ fixtureError: true, status, message });
+function landing(scenario, state) {
+  if (scenario === 'complete' && state.landingFailure) return fixtureError(503, 'Temporary landing outage');
+  const authored = {
+    en: {
+      heroEyebrow: null,
+      welcomeTitle: 'Authored English welcome',
+      welcomeBody: null,
+      storyTitle: null,
+      storyBody: null,
+    },
+  };
+  return { backgroundMode: 'default', backgroundImageUrl: null, content: scenario === 'override' ? authored : {} };
+}
+function productRows(scenario) {
+  if (scenario !== 'missing') return products;
+  return products.map((row, index) => (index === 204 ? { ...row, content: { fr: row.content.fr } } : row));
+}
+function catalog(url) {
+  const rows = [
+    ...products.slice(0, 205),
+    {
+      ...products[0],
+      id: '10000000-0000-4000-8000-000000000207',
+      name: 'Hors catégorie',
+      content: translated('Hors catégorie', 'Uncategorized offer'),
+    },
+  ].map((row, index) => ({
+    id: row.id,
+    anchor: { ...row, productId: row.id, kind: 'product', price: row.basePrice },
+    categoryIds: index < 205 ? [CATEGORY_ID] : [],
+    menuOffers: [],
+    startingPrice: row.basePrice,
+    visibleInAll: true,
+    anchorScheduleAvailable: true,
+  }));
+  const categoryId = url.searchParams.get('categoryId');
+  const selected = categoryId ? rows.filter((row) => row.categoryIds.includes(categoryId)) : rows;
+  return collection(selected, url, 'page', 'pageSize', 'complete');
+}
+const endpoints = {
+  '/api/restaurant-info': ({ scenario, state }) => restaurantInfo(scenario, state),
+  '/api/restaurant-info/landing': ({ scenario, state }) => landing(scenario, state),
+  '/api/WorkingHours': () => [
+    {
+      id: CATEGORY_ID,
+      dayOfWeek: 'Monday',
+      openTime: '23:47:00',
+      closeTime: '23:59:00',
+      isActive: false,
+      isClosed: false,
+    },
+  ],
+  '/api/tenant/modules': () => ({ modules: [], enforced: false }),
+  '/api/Categories': ({ scenario, url }) =>
+    scenario === 'categories-fail'
+      ? fixtureError(503, 'Temporary category outage')
+      : collection(categories, url, 'PageNumber', 'PageSize', 'complete'),
+  '/api/Products': ({ scenario, url }) => collection(productRows(scenario), url, 'Page', 'PageSize', scenario),
+  '/api/Menus': ({ scenario, url }) =>
+    collection(['bundles', 'onepage'].includes(scenario) ? bundles : [], url, 'page', 'pageSize', 'complete'),
+  '/api/Catalog': ({ url }) => catalog(url),
+};
+function fixtureData(path, context) {
+  const endpoint = endpoints[path];
+  if (endpoint) return endpoint(context);
+  if (path.startsWith('/api/Tables/validate-qr/'))
+    return { isValid: true, tableId: CATEGORY_ID, tableNumber: '7', maxGuests: 4, isOutdoor: false };
+  return fixtureError(404, 'Fixture endpoint absent');
+}
+
 export async function startFixtureApi() {
   const calls = [];
-  let completeLayout = 'tabs';
-  let completePresentation = 'legacySeparate';
-  let landingFailure = false;
+  const state = { completeLayout: 'tabs', completePresentation: 'legacySeparate', landingFailure: false };
   const server = createServer((request, response) => {
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader(
@@ -104,117 +182,24 @@ export async function startFixtureApi() {
     const [scenario, ...segments] = url.pathname.slice(1).split('/');
     const path = `/${segments.join('/')}`;
     calls.push({ scenario, path, query: url.search });
-    let data;
-    if (path === '/api/restaurant-info')
-      data = {
-        ...info,
-        menuLayout: ['onepage', 'categories-fail', 'offers-onepage'].includes(scenario)
-          ? 'onepage'
-          : scenario === 'complete'
-            ? completeLayout
-            : 'tabs',
-        bundlePresentationMode: ['offers', 'offers-onepage'].includes(scenario)
-          ? 'categoryOffers'
-          : scenario === 'complete'
-            ? completePresentation
-            : 'legacySeparate',
-      };
-    else if (path === '/api/restaurant-info/landing' && scenario === 'complete' && landingFailure) {
-      response
-        .writeHead(503, { 'Content-Type': 'application/json' })
-        .end(JSON.stringify({ success: false, message: 'Temporary landing outage' }));
-      return;
-    } else if (path === '/api/restaurant-info/landing')
-      data = {
-        backgroundMode: 'default',
-        backgroundImageUrl: null,
-        content:
-          scenario === 'override'
-            ? {
-                en: {
-                  heroEyebrow: null,
-                  welcomeTitle: 'Authored English welcome',
-                  welcomeBody: null,
-                  storyTitle: null,
-                  storyBody: null,
-                },
-              }
-            : {},
-      };
-    else if (path === '/api/WorkingHours')
-      data = [
-        {
-          id: CATEGORY_ID,
-          dayOfWeek: 'Monday',
-          openTime: '23:47:00',
-          closeTime: '23:59:00',
-          isActive: false,
-          isClosed: false,
-        },
-      ];
-    else if (path === '/api/tenant/modules') data = { modules: [], enforced: false };
-    else if (path === '/api/Categories' && scenario === 'categories-fail') {
-      response
-        .writeHead(503, { 'Content-Type': 'application/json' })
-        .end(JSON.stringify({ success: false, message: 'Temporary category outage' }));
-      return;
-    } else if (path === '/api/Categories') data = collection(categories, url, 'PageNumber', 'PageSize', 'complete');
-    else if (path === '/api/Products') {
-      const rows =
-        scenario === 'missing'
-          ? products.map((row, index) => (index === 204 ? { ...row, content: { fr: row.content.fr } } : row))
-          : products;
-      data = collection(rows, url, 'Page', 'PageSize', scenario);
-    } else if (path === '/api/Menus')
-      data = collection(['bundles', 'onepage'].includes(scenario) ? bundles : [], url, 'page', 'pageSize', 'complete');
-    else if (path === '/api/Catalog') {
-      const rows = [
-        ...products.slice(0, 205),
-        {
-          ...products[0],
-          id: '10000000-0000-4000-8000-000000000207',
-          name: 'Hors catégorie',
-          content: translated('Hors catégorie', 'Uncategorized offer'),
-        },
-      ].map((row, index) => ({
-        id: row.id,
-        anchor: { ...row, productId: row.id, kind: 'product', price: row.basePrice },
-        categoryIds: index < 205 ? [CATEGORY_ID] : [],
-        menuOffers: [],
-        startingPrice: row.basePrice,
-        visibleInAll: true,
-        anchorScheduleAvailable: true,
-      }));
-      const categoryId = url.searchParams.get('categoryId');
-      data = collection(
-        categoryId ? rows.filter((row) => row.categoryIds.includes(categoryId)) : rows,
-        url,
-        'page',
-        'pageSize',
-        'complete',
-      );
-    } else if (path.startsWith('/api/Tables/validate-qr/'))
-      data = { isValid: true, tableId: CATEGORY_ID, tableNumber: '7', maxGuests: 4, isOutdoor: false };
-    else {
-      response
-        .writeHead(404, { 'Content-Type': 'application/json' })
-        .end(JSON.stringify({ success: false, message: 'Fixture endpoint absent' }));
-      return;
-    }
-    response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ success: true, data }));
+    const data = fixtureData(path, { scenario, url, state });
+    const body = data.fixtureError ? { success: false, message: data.message } : { success: true, data };
+    response
+      .writeHead(data.fixtureError ? data.status : 200, { 'Content-Type': 'application/json' })
+      .end(JSON.stringify(body));
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   return {
     origin: `http://127.0.0.1:${server.address().port}`,
     calls,
     setLandingFailure: (failed) => {
-      landingFailure = failed;
+      state.landingFailure = failed;
     },
     setCompletePresentation: (presentation) => {
-      completePresentation = presentation;
+      state.completePresentation = presentation;
     },
     setCompleteLayout: (layout) => {
-      completeLayout = layout;
+      state.completeLayout = layout;
     },
     close: () => new Promise((resolve) => server.close(resolve)),
   };

@@ -211,6 +211,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
  */
 test('clicking a menu item image opens the enlarged-image lightbox', async ({ page }) => {
   await page.goto('/menu');
+  await expect(page.locator('main[data-menu-hydrated="true"]')).toBeVisible({ timeout: 15_000 });
 
   const thumbnail = grid(page).getByTestId('menu-item-image').first();
   await expect(thumbnail).toBeVisible({ timeout: 15_000 });

@@ -3,6 +3,7 @@ import type { LanguageCode } from '@/config/languageConfig';
 import type { PublicHomeData } from '@/types/publicDiscovery';
 import type { RestaurantInfoDto } from '@/types/restaurantInfo';
 import type { WorkingHoursDto } from '@/types/workingHours';
+import type { CopyVars } from './firstPaintCopy';
 import { RESTAURANT_NAME } from './config';
 import { TENANT_PUBLIC_CONFIG } from './publicDiscoveryConfig';
 import { auditedHomeLocales } from './publicHomeCoverage';
@@ -131,7 +132,7 @@ export function restaurantJsonLd(
   };
   const openingHours = openingHoursForSchema(hours);
   if (openingHours.length) schema.openingHoursSpecification = openingHours;
-  return JSON.stringify(schema).replace(/</g, '\\u003c');
+  return JSON.stringify(schema).replace(/</g, String.raw`\u003c`);
 }
 
 function activePhone(info: RestaurantInfoDto): string | undefined {
@@ -181,9 +182,11 @@ function canonicalFor(
   }
   if (surface === 'menu' && menuView === 'products' && categoryId) query.set('categoryId', categoryId);
   const search = query.toString();
-  return `${origin}/${locale}${surface === 'menu' ? '/menu' : ''}${search ? `?${search}` : ''}`;
+  const path = surface === 'menu' ? `/${locale}/menu` : `/${locale}`;
+  const querySuffix = search ? `?${search}` : '';
+  return `${origin}${path}${querySuffix}`;
 }
 
-function asStrings(values: Record<string, unknown>): Record<string, string> {
-  return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, String(value ?? '')]));
+function asStrings(values: CopyVars): Record<string, string> {
+  return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, String(value)]));
 }

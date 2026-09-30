@@ -104,11 +104,7 @@ export default function LanguageSwitcher() {
       </>
     );
     return (
-      <li
-        key={language.code}
-        role={publicRoute ? undefined : 'option'}
-        aria-selected={publicRoute ? undefined : language.code === i18n.resolvedLanguage}
-      >
+      <li key={language.code}>
         {href ? (
           <Link
             href={href}
@@ -139,7 +135,6 @@ export default function LanguageSwitcher() {
       <button
         onClick={toggleDropdown}
         className={styles.dropdownToggle}
-        aria-haspopup="listbox"
         aria-expanded={dropdownOpen}
         aria-label="Toggle language menu"
       >
@@ -158,7 +153,7 @@ export default function LanguageSwitcher() {
             </ul>
           </nav>
         ) : (
-          <ul className={styles.dropdownMenu} role="listbox" ref={listRef} onScroll={handleScroll}>
+          <ul className={styles.dropdownMenu} ref={listRef} onScroll={handleScroll}>
             {languageItems}
           </ul>
         )}

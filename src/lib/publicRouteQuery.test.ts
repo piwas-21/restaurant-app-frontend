@@ -5,7 +5,16 @@ import {
   publicMenuPageHref,
   publicMenuQuery,
   publicRouteLocation,
+  searchParamsToURLSearchParams,
 } from './publicRouteQuery';
+
+describe('searchParamsToURLSearchParams', () => {
+  it('preserves repeated values and omits undefined entries', () => {
+    expect(searchParamsToURLSearchParams({ tag: ['first', 'second'], page: '2', omitted: undefined }).toString()).toBe(
+      'tag=first&tag=second&page=2',
+    );
+  });
+});
 
 describe('publicLocaleHref', () => {
   it('preserves QR/table/PWA context and valid product pagination on menu links', () => {

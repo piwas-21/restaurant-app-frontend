@@ -5,11 +5,22 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Pagination.module.css';
 
 interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  isLoading?: boolean;
-  hrefForPage?: (page: number) => string;
+  readonly currentPage: number;
+  readonly totalPages: number;
+  readonly onPageChange: (page: number) => void;
+  readonly isLoading?: boolean;
+  readonly hrefForPage?: (page: number) => string;
+}
+
+interface PageControlOptions {
+  page: number | null;
+  hrefForPage: PaginationProps['hrefForPage'];
+  navigationClass: string;
+  pageClass: string;
+  isLoading: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
 }
 
 export default function Pagination({
@@ -18,7 +29,7 @@ export default function Pagination({
   onPageChange,
   isLoading = false,
   hrefForPage,
-}: PaginationProps) {
+}: Readonly<PaginationProps>) {
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
@@ -77,16 +88,16 @@ export default function Pagination({
 
   return (
     <nav className={styles.pagination} aria-label="Pagination Navigation">
-      {pageControl(
-        currentPage > 1 ? currentPage - 1 : null,
+      {pageControl({
+        page: currentPage > 1 ? currentPage - 1 : null,
         hrefForPage,
-        styles.navButton,
-        styles.pageButton,
+        navigationClass: styles.navButton,
+        pageClass: styles.pageButton,
         isLoading,
-        handlePrevious,
-        <ChevronLeft size={20} />,
-        'Previous page',
-      )}
+        onClick: handlePrevious,
+        icon: <ChevronLeft size={20} />,
+        label: 'Previous page',
+      })}
 
       <div className={styles.pageNumbers}>
         {getPageNumbers().map((page, index) => {
@@ -131,30 +142,30 @@ export default function Pagination({
         })}
       </div>
 
-      {pageControl(
-        currentPage < totalPages ? currentPage + 1 : null,
+      {pageControl({
+        page: currentPage < totalPages ? currentPage + 1 : null,
         hrefForPage,
-        styles.navButton,
-        styles.pageButton,
+        navigationClass: styles.navButton,
+        pageClass: styles.pageButton,
         isLoading,
-        handleNext,
-        <ChevronRight size={20} />,
-        'Next page',
-      )}
+        onClick: handleNext,
+        icon: <ChevronRight size={20} />,
+        label: 'Next page',
+      })}
     </nav>
   );
 }
 
-function pageControl(
-  page: number | null,
-  hrefForPage: PaginationProps['hrefForPage'],
-  navigationClass: string,
-  pageClass: string,
-  isLoading: boolean,
-  onClick: () => void,
-  icon: React.ReactNode,
-  label: string,
-) {
+function pageControl({
+  page,
+  hrefForPage,
+  navigationClass,
+  pageClass,
+  isLoading,
+  onClick,
+  icon,
+  label,
+}: PageControlOptions) {
   const className = `${pageClass} ${navigationClass}`;
   if (hrefForPage && page !== null) {
     return (

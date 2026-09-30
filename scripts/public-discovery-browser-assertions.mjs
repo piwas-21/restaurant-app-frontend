@@ -81,6 +81,7 @@ export async function edgeBrowserContract(origin, scenario, api) {
   try {
     const page = await browser.newPage({ locale: 'en-US' });
     await isolateExternal(page.context(), origin, api.origin);
+    const catalogDelay = scenario === 'offers' ? await delayFilteredCatalog(page, api.origin) : undefined;
     await page.goto(`${origin}/${scenario === 'override' ? 'en' : 'fr/menu'}`, { waitUntil: 'networkidle' });
     if (scenario === 'override') {
       assert.match(await page.locator('body').innerText(), /Authored English welcome/);
@@ -106,6 +107,11 @@ export async function edgeBrowserContract(origin, scenario, api) {
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
       await page.reload({ waitUntil: 'networkidle' });
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
+      assert.match(
+        await page.locator('body').innerText(),
+        /Hors catégorie/,
+        'Unfiltered tail includes the known uncategorized offer',
+      );
       await page.goBack();
       await page.waitForURL('**/fr/menu');
       await page.getByText('Plat français 1', { exact: true }).first().waitFor();
@@ -116,6 +122,8 @@ export async function edgeBrowserContract(origin, scenario, api) {
         (url) => url.searchParams.get('categoryId') === CATEGORY_ID && url.searchParams.get('page') === '3',
       );
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
+      // The tail dish also exists in the previous All page; wait for the filtered response.
+      await page.waitForLoadState('networkidle');
       assert.doesNotMatch(await page.locator('body').innerText(), /Hors catégorie/);
       await page.reload({ waitUntil: 'networkidle' });
       await page.getByText('Plat français 205', { exact: true }).first().waitFor();
@@ -129,6 +137,7 @@ export async function edgeBrowserContract(origin, scenario, api) {
       );
       await page.getByText('Plat français 1', { exact: true }).first().waitFor();
     }
+    catalogDelay?.assertExercised();
   } finally {
     api.setCompleteLayout('tabs');
     api.setCompletePresentation('legacySeparate');
@@ -146,4 +155,20 @@ async function isolateExternal(context, origin, apiOrigin) {
       ? route.continue()
       : route.abort();
   });
+}
+
+// Exercise a slow category response so a stale All-page tail cannot satisfy the navigation wait.
+async function delayFilteredCatalog(page, apiOrigin) {
+  let delayedResponses = 0;
+  await page.route('**/api/Catalog?**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin === apiOrigin && url.searchParams.get('page') === '3' && url.searchParams.has('categoryId')) {
+      delayedResponses++;
+      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    }
+    if (!page.isClosed()) await route.fallback();
+  });
+  return {
+    assertExercised: () => assert.ok(delayedResponses > 0, 'Slow filtered catalogue response actually exercised'),
+  };
 }

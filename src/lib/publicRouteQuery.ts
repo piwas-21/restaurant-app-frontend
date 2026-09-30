@@ -12,6 +12,18 @@ const CATEGORY_ID_PATTERN = /^[\w-]{1,100}$/;
 
 export type PublicMenuView = 'products' | 'bundles';
 
+export function searchParamsToURLSearchParams(values: Record<string, string | string[] | undefined>): URLSearchParams {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) {
+    if (Array.isArray(value)) {
+      for (const entry of value) query.append(key, entry);
+    } else if (typeof value === 'string') {
+      query.append(key, value);
+    }
+  }
+  return query;
+}
+
 /** Recognize only the locale-prefixed home and menu surfaces that are public discovery routes. */
 export function publicRouteLocation(pathname: string | null): PublicRouteLocation | null {
   const segments = pathname?.split('/').filter(Boolean) ?? [];

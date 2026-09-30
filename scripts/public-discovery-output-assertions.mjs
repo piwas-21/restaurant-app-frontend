@@ -58,11 +58,7 @@ function cluster(html, path, locales) {
   assert.deepEqual(alternates(html), expected, `${path}: complete audited alternate cluster`);
 }
 
-export async function assertScenario(origin, scenario, indexing, template) {
-  const eligible = indexing && !['repeated', 'unknown', 'categories-fail'].includes(scenario);
-  const locales = eligible ? (scenario === 'missing' ? ['fr'] : ['fr', 'en']) : [];
-  const first = await htmlAt(origin, '/fr/menu');
-  pageContract(first, '/fr/menu', 'fr', eligible);
+function assertTemplate(first, scenario, template) {
   const emittedHeaders = tags(first, 'header');
   assert.ok(emittedHeaders.length > 0, 'A customer header is server-rendered');
   assert.equal(
@@ -74,7 +70,6 @@ export async function assertScenario(origin, scenario, indexing, template) {
     tags(body, 'button').some((tag) => (attribute(tag, 'class') ?? '').includes('Header_hamburgerMenu')),
   );
   assert.equal(classicHeader, template === 'classic', 'The customer header has the selected template controls');
-  cluster(first, '/fr/menu', locales);
   const cards = tags(first, 'li').filter((tag) => attribute(tag, 'data-testid') === 'menu-card');
   if (scenario !== 'categories-fail') {
     assert.ok(cards.length > 0, 'Server-rendered cards prove the selected menu surface');
@@ -84,71 +79,68 @@ export async function assertScenario(origin, scenario, indexing, template) {
       'Every emitted card uses the selected template',
     );
   }
-  if (scenario === 'categories-fail') assert.doesNotMatch(bodyText(first), /Plat français 1/);
-  else assert.match(bodyText(first), /Plat français 1/);
-  assert.doesNotMatch(bodyText(first), /Plat français 206/);
-  for (const locale of ['unknown', 'onepage', 'categories-fail'].includes(scenario) ? [] : ['fr', 'en']) {
-    const html = await htmlAt(origin, `/${locale}/menu?page=2`);
-    pageContract(html, `/${locale}/menu?page=2`, locale, locales.includes(locale));
-    cluster(html, `/${locale}/menu?page=2`, locales.includes(locale) ? locales : []);
-    if (!['repeated', 'unknown', 'offers', 'offers-onepage', 'onepage'].includes(scenario)) {
-      assert.match(bodyText(html), locale === 'fr' ? /Plat français 205/ : /English dish 201/);
-      assert.doesNotMatch(bodyText(html), locale === 'fr' ? /Plat français 1\b/ : /English dish 1\b/);
-    }
-  }
-  const arabic = await htmlAt(origin, '/ar/menu');
-  pageContract(arabic, '/ar/menu', 'ar', false);
-  cluster(arabic, '/ar/menu', []);
-  // All ten display-language anchors remain actual server-emitted links, even for unaudited content.
-  for (const locale of ['en', 'de', 'tr', 'it', 'ar', 'fr', 'nl', 'es', 'ru', 'zh']) {
-    assert.ok(
-      tags(first, 'a').some((tag) => attribute(tag, 'href') === `/${locale}/menu`),
-      `${locale}: SSR language link`,
-    );
-  }
-  if (scenario === 'onepage') {
-    assert.match(bodyText(first), /Plat français 205/);
-    assert.match(bodyText(first), /Formule française 205/);
-  }
-  if (scenario === 'bundles') {
-    const last = await htmlAt(origin, '/fr/menu?view=bundles&bundlesPage=2');
-    pageContract(last, '/fr/menu?view=bundles&bundlesPage=2', 'fr', indexing);
-    assert.match(bodyText(last), /Formule française 205/);
-    cluster(last, '/fr/menu?view=bundles&bundlesPage=2', indexing ? ['fr', 'en'] : []);
-  }
-  if (scenario === 'offers-onepage') {
-    const bare = await fetch(`${origin}/fr/menu?categoryId=${CATEGORY_ID}`, { headers, redirect: 'manual' });
-    assert.equal(bare.status, 307);
-    const bareDestination = new URL(bare.headers.get('location'), origin);
-    assert.equal(bareDestination.pathname + bareDestination.search, '/fr/menu');
-    const response = await fetch(`${origin}/fr/menu?page=3&categoryId=${CATEGORY_ID}`, { headers, redirect: 'manual' });
-    assert.equal(response.status, 307);
-    const destination = new URL(response.headers.get('location'), origin);
-    assert.equal(destination.pathname + destination.search, '/fr/menu?page=3');
-    const combined = await htmlAt(origin, '/fr/menu?page=3');
-    pageContract(combined, '/fr/menu?page=3', 'fr', indexing);
-    cluster(combined, '/fr/menu?page=3', indexing ? ['fr', 'en'] : []);
-    assert.match(bodyText(combined), /Plat français 205/);
-  }
-  if (scenario === 'offers') {
-    assert.match(bodyText(await htmlAt(origin, '/fr/menu?page=3')), /Plat français 205/);
-    const path = `/fr/menu?page=3&categoryId=${CATEGORY_ID}`;
-    const filtered = await htmlAt(origin, path);
-    pageContract(filtered, path, 'fr', false);
-    cluster(filtered, path, []);
-    assert.match(bodyText(filtered), /Plat français 205/);
-    assert.doesNotMatch(bodyText(filtered), /Hors catégorie/);
-  }
-  if (scenario === 'override') {
-    const home = await htmlAt(origin, '/fr');
-    pageContract(home, '/fr', 'fr', false);
-    cluster(home, '/fr', []);
-    const english = await htmlAt(origin, '/en');
-    pageContract(english, '/en', 'en', indexing);
-    cluster(english, '/en', indexing ? ['en'] : []);
-    assert.match(bodyText(english), /Authored English welcome/);
-  } else if (scenario === 'complete') {
-    for (const locale of ['fr', 'en', 'tr', 'ar']) {
+}
+
+async function assertSecondPages(origin, scenario, locales) {
+  const displayLocales = ['unknown', 'onepage', 'categories-fail'].includes(scenario) ? [] : ['fr', 'en'];
+  await Promise.all(
+    displayLocales.map(async (locale) => {
+      const html = await htmlAt(origin, `/${locale}/menu?page=2`);
+      pageContract(html, `/${locale}/menu?page=2`, locale, locales.includes(locale));
+      cluster(html, `/${locale}/menu?page=2`, locales.includes(locale) ? locales : []);
+      if (!['repeated', 'unknown', 'offers', 'offers-onepage', 'onepage'].includes(scenario)) {
+        assert.match(bodyText(html), locale === 'fr' ? /Plat français 205/ : /English dish 201/);
+        assert.doesNotMatch(bodyText(html), locale === 'fr' ? /Plat français 1\b/ : /English dish 1\b/);
+      }
+    }),
+  );
+}
+
+async function assertOnepage({ first }) {
+  assert.match(bodyText(first), /Plat français 205/);
+  assert.match(bodyText(first), /Formule française 205/);
+}
+async function assertBundles({ origin, indexing }) {
+  const last = await htmlAt(origin, '/fr/menu?view=bundles&bundlesPage=2');
+  pageContract(last, '/fr/menu?view=bundles&bundlesPage=2', 'fr', indexing);
+  assert.match(bodyText(last), /Formule française 205/);
+  cluster(last, '/fr/menu?view=bundles&bundlesPage=2', indexing ? ['fr', 'en'] : []);
+}
+async function assertOffersOnepage({ origin, indexing }) {
+  const bare = await fetch(`${origin}/fr/menu?categoryId=${CATEGORY_ID}`, { headers, redirect: 'manual' });
+  assert.equal(bare.status, 307);
+  const bareDestination = new URL(bare.headers.get('location'), origin);
+  assert.equal(bareDestination.pathname + bareDestination.search, '/fr/menu');
+  const response = await fetch(`${origin}/fr/menu?page=3&categoryId=${CATEGORY_ID}`, { headers, redirect: 'manual' });
+  assert.equal(response.status, 307);
+  const destination = new URL(response.headers.get('location'), origin);
+  assert.equal(destination.pathname + destination.search, '/fr/menu?page=3');
+  const combined = await htmlAt(origin, '/fr/menu?page=3');
+  pageContract(combined, '/fr/menu?page=3', 'fr', indexing);
+  cluster(combined, '/fr/menu?page=3', indexing ? ['fr', 'en'] : []);
+  assert.match(bodyText(combined), /Plat français 205/);
+}
+async function assertOffers({ origin }) {
+  assert.match(bodyText(await htmlAt(origin, '/fr/menu?page=3')), /Plat français 205/);
+  const path = `/fr/menu?page=3&categoryId=${CATEGORY_ID}`;
+  const filtered = await htmlAt(origin, path);
+  pageContract(filtered, path, 'fr', false);
+  cluster(filtered, path, []);
+  assert.match(bodyText(filtered), /Plat français 205/);
+  assert.doesNotMatch(bodyText(filtered), /Hors catégorie/);
+}
+async function assertOverride({ origin, indexing }) {
+  const home = await htmlAt(origin, '/fr');
+  pageContract(home, '/fr', 'fr', false);
+  cluster(home, '/fr', []);
+  const english = await htmlAt(origin, '/en');
+  pageContract(english, '/en', 'en', indexing);
+  cluster(english, '/en', indexing ? ['en'] : []);
+  assert.match(bodyText(english), /Authored English welcome/);
+}
+async function assertComplete({ origin, indexing }) {
+  await Promise.all(
+    ['fr', 'en', 'tr', 'ar'].map(async (locale) => {
       const home = await htmlAt(origin, `/${locale}`);
       pageContract(home, `/${locale}`, locale, indexing);
       assert.doesNotMatch(bodyText(home), /23:47|11:47 PM/, 'Disabled hours are not advertised as open');
@@ -166,8 +158,32 @@ export async function assertScenario(origin, scenario, indexing, template) {
       assert.equal(restaurant.telephone, undefined);
       assert.equal(restaurant.openingHoursSpecification, undefined);
       assert.deepEqual(restaurant.geo, { '@type': 'GeoCoordinates', latitude: 46.2, longitude: 6.1 });
-    }
-  }
+    }),
+  );
+}
+
+const scenarioContracts = {
+  onepage: assertOnepage,
+  bundles: assertBundles,
+  'offers-onepage': assertOffersOnepage,
+  offers: assertOffers,
+  override: assertOverride,
+  complete: assertComplete,
+};
+
+function menuLocalesFor(scenario) {
+  if (['repeated', 'unknown', 'categories-fail'].includes(scenario)) return [];
+  return scenario === 'missing' ? ['fr'] : ['fr', 'en'];
+}
+function pageCountFor(scenario) {
+  if (['offers', 'offers-onepage'].includes(scenario)) return 3;
+  return scenario === 'onepage' ? 1 : 2;
+}
+function normalizedPageFor(scenario) {
+  if (['unknown', 'onepage', 'categories-fail'].includes(scenario)) return null;
+  return String(pageCountFor(scenario));
+}
+async function assertCompatibility(origin, scenario, indexing) {
   const alias = await fetch(`${origin}/menu?qr=fixture-qr&tableId=7&junk=discard`, { redirect: 'manual', headers });
   assert.equal(alias.status, 307);
   const location = new URL(alias.headers.get('location'), origin);
@@ -180,11 +196,7 @@ export async function assertScenario(origin, scenario, indexing, template) {
   assert.equal(normalized.status, 307);
   assert.equal(
     new URL(normalized.headers.get('location'), origin).searchParams.get('page'),
-    ['offers', 'offers-onepage'].includes(scenario)
-      ? '3'
-      : ['unknown', 'onepage', 'categories-fail'].includes(scenario)
-        ? null
-        : '2',
+    normalizedPageFor(scenario),
   );
   const privateHtml = await htmlAt(origin, '/cart');
   assert.match(robots(privateHtml), /noindex/);
@@ -199,53 +211,80 @@ export async function assertScenario(origin, scenario, indexing, template) {
   if (indexing) assert.match(policy, /Sitemap: https:\/\/discovery\.fixture\.test\/sitemap\.xml/);
 }
 
+export async function assertScenario(origin, scenario, indexing, template) {
+  const eligible = indexing && !['repeated', 'unknown', 'categories-fail'].includes(scenario);
+  const locales = eligible ? menuLocalesFor(scenario) : [];
+  const first = await htmlAt(origin, '/fr/menu');
+  pageContract(first, '/fr/menu', 'fr', eligible);
+  assertTemplate(first, scenario, template);
+  cluster(first, '/fr/menu', locales);
+  if (scenario === 'categories-fail') assert.doesNotMatch(bodyText(first), /Plat français 1/);
+  else assert.match(bodyText(first), /Plat français 1/);
+  assert.doesNotMatch(bodyText(first), /Plat français 206/);
+  await assertSecondPages(origin, scenario, locales);
+  const arabic = await htmlAt(origin, '/ar/menu');
+  pageContract(arabic, '/ar/menu', 'ar', false);
+  cluster(arabic, '/ar/menu', []);
+  // All ten display-language anchors remain actual server-emitted links, even for unaudited content.
+  for (const locale of ['en', 'de', 'tr', 'it', 'ar', 'fr', 'nl', 'es', 'ru', 'zh']) {
+    assert.ok(
+      tags(first, 'a').some((tag) => attribute(tag, 'href') === `/${locale}/menu`),
+      `${locale}: SSR language link`,
+    );
+  }
+  await scenarioContracts[scenario]?.({ origin, indexing, first });
+  await assertCompatibility(origin, scenario, indexing);
+}
+
+function expectedSitemap(scenario, indexing, homeLocales, menuLocales) {
+  if (!indexing) return [];
+  const expected = homeLocales.map((locale) => `${CANONICAL_ORIGIN}/${locale}`);
+  for (const locale of menuLocales) {
+    for (let page = 1; page <= pageCountFor(scenario); page++) {
+      const suffix = page > 1 ? `?page=${page}` : '';
+      expected.push(`${CANONICAL_ORIGIN}/${locale}/menu${suffix}`);
+    }
+    if (scenario === 'bundles')
+      expected.push(
+        `${CANONICAL_ORIGIN}/${locale}/menu?view=bundles`,
+        `${CANONICAL_ORIGIN}/${locale}/menu?view=bundles&bundlesPage=2`,
+      );
+  }
+  return expected;
+}
+function assertSitemapEntries(xml, homeLocales, menuLocales) {
+  assert.equal(elements(xml, 'lastmod').length, 0, 'No invented freshness');
+  for (const { body } of elements(xml, 'url')) {
+    const url = new URL(elements(body, 'loc')[0].body.replaceAll('&amp;', '&'));
+    const locales = url.pathname.endsWith('/menu') ? menuLocales : homeLocales;
+    const tail = url.pathname.replace(/^\/[a-z]+/, '') + url.search;
+    const wanted = Object.fromEntries(locales.map((locale) => [locale, `${CANONICAL_ORIGIN}/${locale}${tail}`]));
+    if (locales.includes('fr')) wanted['x-default'] = `${CANONICAL_ORIGIN}/fr${tail}`;
+    const links = tags(body, 'xhtml:link');
+    const emitted = Object.fromEntries(links.map((tag) => [attribute(tag, 'hreflang'), attribute(tag, 'href')]));
+    assert.equal(links.length, Object.keys(wanted).length, 'No duplicate sitemap alternatives');
+    assert.deepEqual(emitted, wanted, `${url}: sitemap reciprocal cluster`);
+  }
+}
+const alphabetical = (values) => values.toSorted((left, right) => left.localeCompare(right));
+async function waitForSitemap(origin, expected, deadline, scenario) {
+  const response = await fetch(`${origin}/sitemap.xml`, { headers });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') ?? '', /(?:application|text)\/xml/i);
+  const xml = await response.text();
+  const actual = elements(xml, 'loc').map(({ body }) => body.replaceAll('&amp;', '&'));
+  if (JSON.stringify(alphabetical(actual)) === JSON.stringify(alphabetical(expected))) return xml;
+  if (Date.now() >= deadline) {
+    assert.deepEqual(alphabetical(actual), alphabetical(expected), `${scenario}: truthful sitemap after ISR`);
+  }
+  await new Promise((resolve) => setTimeout(resolve, 1_000));
+  return waitForSitemap(origin, expected, deadline, scenario);
+}
 export async function assertSitemap(origin, scenario, indexing) {
   const homeLocales = scenario === 'override' ? ['en'] : ['fr', 'en', 'tr', 'ar'];
-  const menuLocales = ['repeated', 'unknown', 'categories-fail'].includes(scenario)
-    ? []
-    : scenario === 'missing'
-      ? ['fr']
-      : ['fr', 'en'];
-  const expected = indexing ? homeLocales.map((locale) => `${CANONICAL_ORIGIN}/${locale}`) : [];
-  if (indexing)
-    for (const locale of menuLocales) {
-      for (
-        let page = 1;
-        page <= (['offers', 'offers-onepage'].includes(scenario) ? 3 : scenario === 'onepage' ? 1 : 2);
-        page++
-      )
-        expected.push(`${CANONICAL_ORIGIN}/${locale}/menu${page > 1 ? `?page=${page}` : ''}`);
-      if (scenario === 'bundles')
-        expected.push(
-          `${CANONICAL_ORIGIN}/${locale}/menu?view=bundles`,
-          `${CANONICAL_ORIGIN}/${locale}/menu?view=bundles&bundlesPage=2`,
-        );
-    }
-  // sitemap ISR can start with the build's complete fixture: wait for its documented 30s refresh.
-  const deadline = Date.now() + 45_000;
-  let actual;
-  do {
-    const response = await fetch(`${origin}/sitemap.xml`, { headers });
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get('content-type') ?? '', /(?:application|text)\/xml/i);
-    const xml = await response.text();
-    actual = elements(xml, 'loc').map(({ body }) => body.replaceAll('&amp;', '&'));
-    if (JSON.stringify(actual.toSorted()) === JSON.stringify(expected.toSorted())) {
-      assert.equal(elements(xml, 'lastmod').length, 0, 'No invented freshness');
-      for (const { body } of elements(xml, 'url')) {
-        const url = new URL(elements(body, 'loc')[0].body.replaceAll('&amp;', '&'));
-        const locales = url.pathname.endsWith('/menu') ? menuLocales : homeLocales;
-        const tail = url.pathname.replace(/^\/[a-z]+/, '') + url.search;
-        const wanted = Object.fromEntries(locales.map((locale) => [locale, `${CANONICAL_ORIGIN}/${locale}${tail}`]));
-        if (locales.includes('fr')) wanted['x-default'] = `${CANONICAL_ORIGIN}/fr${tail}`;
-        const links = tags(body, 'xhtml:link');
-        const emitted = Object.fromEntries(links.map((tag) => [attribute(tag, 'hreflang'), attribute(tag, 'href')]));
-        assert.equal(links.length, Object.keys(wanted).length, 'No duplicate sitemap alternatives');
-        assert.deepEqual(emitted, wanted, `${url}: sitemap reciprocal cluster`);
-      }
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1_000));
-  } while (Date.now() < deadline);
-  assert.deepEqual(actual.toSorted(), expected.toSorted(), `${scenario}: truthful sitemap after ISR`);
+  const menuLocales = menuLocalesFor(scenario);
+  const expected = expectedSitemap(scenario, indexing, homeLocales, menuLocales);
+  // ISR can start with the build's complete fixture; allow its documented 30s refresh.
+  const xml = await waitForSitemap(origin, expected, Date.now() + 45_000, scenario);
+  assertSitemapEntries(xml, homeLocales, menuLocales);
 }

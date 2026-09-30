@@ -51,15 +51,27 @@ async function build(buildTemplate = template) {
 async function standalone(directory, depth = 0) {
   const entries = await readdir(directory, { withFileTypes: true });
   if (entries.some((entry) => entry.name === 'server.js' && entry.isFile())) return path.join(directory, 'server.js');
-  if (depth < 5)
-    for (const entry of entries) {
-      if (entry.isDirectory() && entry.name !== 'node_modules') {
-        const found = await standalone(path.join(directory, entry.name), depth + 1);
-        if (found) return found;
-      }
-    }
-  return null;
+  if (depth >= 5) return null;
+  const directories = entries.filter((entry) => entry.isDirectory() && entry.name !== 'node_modules');
+  const candidates = await Promise.all(
+    directories.map((entry) => standalone(path.join(directory, entry.name), depth + 1)),
+  );
+  return candidates.find(Boolean) ?? null;
 }
+async function waitForServer(child, origin, deadline, diagnostics) {
+  if (child.exitCode !== null) throw new Error(`Fixture server exited: ${diagnostics()}`);
+  let ready = false;
+  try {
+    ready = (await fetch(`${origin}/robots.txt`)).ok;
+  } catch {
+    /* A refused connection is expected before the server starts listening. */
+  }
+  if (ready) return;
+  if (Date.now() > deadline) throw new Error(`Fixture server timed out: ${diagnostics()}`);
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  await waitForServer(child, origin, deadline, diagnostics);
+}
+
 async function serve(serverFile, scenario) {
   const port = await unusedPort();
   const child = spawn(process.execPath, [serverFile], {
@@ -75,17 +87,7 @@ async function serve(serverFile, scenario) {
   // Next normalizes loopback redirects to localhost; keep navigation/storage on that origin.
   const origin = `http://localhost:${port}`;
   try {
-    const deadline = Date.now() + 30_000;
-    while (true) {
-      if (child.exitCode !== null) throw new Error(`Fixture server exited: ${diagnostics}`);
-      try {
-        if ((await fetch(`${origin}/robots.txt`)).ok) break;
-      } catch {
-        /* readiness only */
-      }
-      if (Date.now() > deadline) throw new Error(`Fixture server timed out: ${diagnostics}`);
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    }
+    await waitForServer(child, origin, Date.now() + 30_000, () => diagnostics);
     return {
       origin,
       diagnostics: () => diagnostics,
@@ -111,6 +113,28 @@ async function prepareStandalone() {
     recursive: true,
   });
   return serverFile;
+}
+
+async function runScenario(serverFile, scenario) {
+  const server = await serve(serverFile, scenario);
+  try {
+    await assertScenario(server.origin, scenario, indexing, template);
+    await assertSitemap(server.origin, scenario, indexing);
+    const browserChecked =
+      !process.argv.includes('--http-only') &&
+      ['complete', 'offers', 'offers-onepage', 'categories-fail', 'override'].includes(scenario);
+    if (browserChecked && scenario === 'complete')
+      await browserContract(server.origin, { root, template, indexing, apiOrigin: api.origin });
+    else if (browserChecked) await edgeBrowserContract(server.origin, scenario, api);
+    console.log(
+      `PASS ${template} ${scenario} (${indexing ? 'indexing' : 'noindex'}) raw HTML/XML${browserChecked ? ' and browser contract' : ''}`,
+    );
+  } catch (error) {
+    console.error(server.diagnostics());
+    throw error;
+  } finally {
+    await server.close();
+  }
 }
 
 try {
@@ -143,27 +167,10 @@ try {
           'categories-fail',
         ]
       : ['complete'];
-  for (const scenario of scenarios) {
-    const server = await serve(serverFile, scenario);
-    try {
-      await assertScenario(server.origin, scenario, indexing, template);
-      await assertSitemap(server.origin, scenario, indexing);
-      const browserChecked =
-        !process.argv.includes('--http-only') &&
-        ['complete', 'offers', 'offers-onepage', 'categories-fail', 'override'].includes(scenario);
-      if (browserChecked && scenario === 'complete')
-        await browserContract(server.origin, { root, template, indexing, apiOrigin: api.origin });
-      else if (browserChecked) await edgeBrowserContract(server.origin, scenario, api);
-      console.log(
-        `PASS ${template} ${scenario} (${indexing ? 'indexing' : 'noindex'}) raw HTML/XML${browserChecked ? ' and browser contract' : ''}`,
-      );
-    } catch (error) {
-      console.error(server.diagnostics());
-      throw error;
-    } finally {
-      await server.close();
-    }
-  }
+  await scenarios.reduce(
+    (previous, scenario) => previous.then(() => runScenario(serverFile, scenario)),
+    Promise.resolve(),
+  );
   assert.ok(
     api.calls.some((call) => call.path === '/api/Products' && call.query.includes('CategoryId=')),
     'Real category-filtered contract exercised',

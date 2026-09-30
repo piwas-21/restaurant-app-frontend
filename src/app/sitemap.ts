@@ -27,16 +27,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const locale of menu.indexableLocales) {
     for (let page = 1; page <= menu.productPageCount; page += 1) {
-      const path = `/menu${page > 1 ? `?page=${page}` : ''}`;
+      const path = localizedMenuPath('products', page);
       entries.push({
-        url: `${origin}/${locale}${path}`,
+        url: localizedUrl(origin, locale, path),
         alternates: { languages: localizedAlternates(origin, menu.indexableLocales, 'products', page) },
       });
     }
     for (let page = 1; page <= menu.bundlePageCount; page += 1) {
-      const path = `/menu?view=bundles${page > 1 ? `&bundlesPage=${page}` : ''}`;
+      const path = localizedMenuPath('bundles', page);
       entries.push({
-        url: `${origin}/${locale}${path}`,
+        url: localizedUrl(origin, locale, path),
         alternates: { languages: localizedAlternates(origin, menu.indexableLocales, 'bundles', page) },
       });
     }
@@ -57,19 +57,25 @@ function localizedAlternates(
   view: 'products' | 'bundles',
   page: number,
 ): Record<string, string> {
-  const result = Object.fromEntries(
-    locales.map((locale) => [
-      locale,
-      `${origin}/${locale}/menu${
-        view === 'products'
-          ? page > 1
-            ? `?page=${page}`
-            : ''
-          : `?view=bundles${page > 1 ? `&bundlesPage=${page}` : ''}`
-      }`,
-    ]),
-  );
+  const path = localizedMenuPath(view, page);
+  const result = Object.fromEntries(locales.map((locale) => [locale, localizedUrl(origin, locale, path)]));
   const fallback = result[TENANT_PUBLIC_CONFIG.defaultLocale];
   if (fallback) result['x-default'] = fallback;
   return result;
+}
+
+function localizedMenuPath(view: 'products' | 'bundles', page: number): string {
+  const query = new URLSearchParams();
+  if (view === 'bundles') {
+    query.set('view', 'bundles');
+    if (page > 1) query.set('bundlesPage', String(page));
+  } else if (page > 1) {
+    query.set('page', String(page));
+  }
+  const search = query.toString();
+  return search ? `/menu?${search}` : '/menu';
+}
+
+function localizedUrl(origin: string, locale: LanguageCode, path: string): string {
+  return `${origin}/${locale}${path}`;
 }

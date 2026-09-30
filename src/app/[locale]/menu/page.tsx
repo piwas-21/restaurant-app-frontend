@@ -4,7 +4,7 @@ import type { LanguageCode } from '@/config/languageConfig';
 import { isSupportedPublicLocale } from '@/lib/publicDiscoveryConfig';
 import { getPublicMenuDiscovery } from '@/services/publicDiscoveryService';
 import { menuMetadata } from '@/lib/publicRouteMetadata';
-import { publicMenuQuery, type PublicMenuView } from '@/lib/publicRouteQuery';
+import { publicMenuQuery, searchParamsToURLSearchParams, type PublicMenuView } from '@/lib/publicRouteQuery';
 import MenuClientPage from '@/app/menu/MenuClientPage';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 
@@ -24,7 +24,7 @@ interface MenuRouteData {
 async function menuData(params: RouteParams, searchParams: SearchParams): Promise<MenuRouteData> {
   const [{ locale }, queryRecord] = await Promise.all([params, searchParams]);
   if (!isSupportedPublicLocale(locale)) notFound();
-  const query = toSearchParams(queryRecord);
+  const query = searchParamsToURLSearchParams(queryRecord);
   const requestedPage = positivePage(query.get('page')) ?? 1;
   const requestedBundlePage = positivePage(query.get('bundlesPage')) ?? 1;
   const requestedView = query.get('view') === 'bundles' || query.has('bundlesPage') ? 'bundles' : 'products';
@@ -48,13 +48,12 @@ async function menuData(params: RouteParams, searchParams: SearchParams): Promis
   return { locale, view, discovery, requestedPage, requestedBundlePage, selectedCategoryId, query };
 }
 
-export async function generateMetadata({
-  params,
-  searchParams,
-}: {
+type LocalizedMenuProps = Readonly<{
   params: RouteParams;
   searchParams: SearchParams;
-}): Promise<Metadata> {
+}>;
+
+export async function generateMetadata({ params, searchParams }: LocalizedMenuProps): Promise<Metadata> {
   const { locale, view, discovery, selectedCategoryId } = await menuData(params, searchParams);
   const page = discovery.categoryOffers
     ? discovery.clientData.offerPage.currentPage
@@ -71,29 +70,19 @@ export async function generateMetadata({
   );
 }
 
-export default async function LocalizedMenu({
-  params,
-  searchParams,
-}: {
-  params: RouteParams;
-  searchParams: SearchParams;
-}) {
+export default async function LocalizedMenu({ params, searchParams }: LocalizedMenuProps) {
   const { locale, view, discovery, requestedPage, requestedBundlePage, selectedCategoryId, query } = await menuData(
     params,
     searchParams,
   );
-  const page =
-    view === 'bundles'
-      ? discovery.clientData.bundles.currentPage
-      : discovery.categoryOffers
-        ? discovery.clientData.offerPage.currentPage
-        : discovery.clientData.products.currentPage;
+  const page = pageForView(view, discovery);
   const snapshotPage = view === 'bundles' ? discovery.clientData.bundles.currentPage : page;
   const requested = view === 'bundles' ? requestedBundlePage : requestedPage;
   const normalized = publicMenuQuery(query, view, page, selectedCategoryId);
   if (requested !== page || hasDifferentRouteQuery(query, normalized)) {
     const search = normalized.toString();
-    redirect(`/${locale}/menu${search ? `?${search}` : ''}`);
+    const querySuffix = search ? `?${search}` : '';
+    redirect(`/${locale}/menu${querySuffix}`);
   }
 
   return (
@@ -105,12 +94,10 @@ export default async function LocalizedMenu({
   );
 }
 
-function toSearchParams(query: Record<string, string | string[] | undefined>): URLSearchParams {
-  const result = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    for (const entry of Array.isArray(value) ? value : value === undefined ? [] : [value]) result.append(key, entry);
-  }
-  return result;
+function pageForView(view: PublicMenuView, discovery: Awaited<ReturnType<typeof getPublicMenuDiscovery>>): number {
+  if (view === 'bundles') return discovery.clientData.bundles.currentPage;
+  if (discovery.categoryOffers) return discovery.clientData.offerPage.currentPage;
+  return discovery.clientData.products.currentPage;
 }
 
 function positivePage(value: string | null): number | null {
@@ -124,12 +111,12 @@ function validCategoryId(value: string | null): value is string {
 }
 
 function hasDifferentRouteQuery(source: URLSearchParams, normalized: URLSearchParams): boolean {
-  const routeKeys = ['page', 'view', 'bundlesPage', 'categoryId'];
+  const routeKeys = new Set(['page', 'view', 'bundlesPage', 'categoryId']);
   const sourceEntries = [...source.entries()]
-    .filter(([key]) => routeKeys.includes(key))
+    .filter(([key]) => routeKeys.has(key))
     .sort(([a, av], [b, bv]) => a.localeCompare(b) || av.localeCompare(bv));
   const normalizedEntries = [...normalized.entries()]
-    .filter(([key]) => routeKeys.includes(key))
+    .filter(([key]) => routeKeys.has(key))
     .sort(([a, av], [b, bv]) => a.localeCompare(b) || av.localeCompare(bv));
   return JSON.stringify(sourceEntries) !== JSON.stringify(normalizedEntries);
 }

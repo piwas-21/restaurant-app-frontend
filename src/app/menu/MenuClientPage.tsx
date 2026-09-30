@@ -121,7 +121,7 @@ export default function MenuPage({ initialSnapshot, initialView }: Readonly<Menu
     />
   ) : undefined;
 
-  const locale = pathname?.split('/').filter(Boolean)[0] || initialSnapshot.locale || i18n.language || 'en';
+  const locale = pathname?.split('/').find(Boolean) || initialSnapshot.locale || i18n.language || 'en';
   const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t, locale);
   const categoryDescription = getSelectedViewDescription(selectedView, categoriesForNav, locale);
   const featuredFilterable = featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined;
@@ -164,7 +164,12 @@ export default function MenuPage({ initialSnapshot, initialView }: Readonly<Menu
   return (
     // `style` carries the sticky-nav offset the category bar reads — a computed value, which is
     // what §5.6 keeps inline styles for. See useStickyNavOffset for why it is not a constant.
-    <main className={styles.menuContainer} aria-labelledby="menu-page-heading" style={stickyNavOffset}>
+    <main
+      className={styles.menuContainer}
+      aria-labelledby="menu-page-heading"
+      data-menu-hydrated={isMounted ? 'true' : undefined}
+      style={stickyNavOffset}
+    >
       <MenuPageHeader />
 
       <TableBanner position="top" />

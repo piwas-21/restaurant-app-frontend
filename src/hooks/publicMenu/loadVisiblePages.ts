@@ -73,7 +73,7 @@ function expectedCountMatches<T>(
   pageSize: number,
   itemCount: number,
 ): boolean {
-  const lastLength = pages[pages.length - 1]?.items?.length ?? pageSize;
+  const lastLength = pages.at(-1)?.items?.length ?? pageSize;
   const evidenceKnown = totalCount !== undefined || pages[0]?.totalPages !== undefined || lastLength < pageSize;
   return evidenceKnown && (totalCount === undefined || itemCount === totalCount);
 }

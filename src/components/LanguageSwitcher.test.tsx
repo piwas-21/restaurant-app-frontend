@@ -152,6 +152,7 @@ it('keeps every interface language as an initial public URL link and preserves s
   const links = [...container.querySelectorAll<HTMLAnchorElement>('a[href]')];
 
   expect(links).toHaveLength(10);
+  expect(container.querySelector('[role="listbox"]')).toBeNull();
   expect(links.find((link) => link.href.endsWith('/en/menu?qr=table-token&tableId=table-7&page=2'))).toBeDefined();
   expect(links.some((link) => link.href.includes('unknown='))).toBe(false);
 });

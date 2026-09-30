@@ -35,19 +35,19 @@ export function usePublicMenu(
     fetchProducts,
     fetchMenuBundles,
   } = usePublicMenuData(initialSnapshot);
-  const [selectedView, setSelectedViewState] = useState<PublicMenuView>(initialView);
+  const [currentSelectedView, setCurrentSelectedView] = useState<PublicMenuView>(initialView);
   const firstProductRequest = useRef(true);
   const firstBundleRequest = useRef(true);
   const requestedProductPage = useRef(initialSnapshot?.products.currentPage ?? 1);
   const requestedBundlePage = useRef(initialSnapshot?.bundles.currentPage ?? 1);
-  const selectedViewRef = useRef(selectedView);
+  const selectedViewRef = useRef(currentSelectedView);
   const { state: orderTypeState, hydrated: orderTypeHydrated } = useOrderType();
   const orderType = orderTypeState.orderType;
   const orderTypeRef = useRef(orderType);
 
   useEffect(() => {
-    selectedViewRef.current = selectedView;
-  }, [selectedView]);
+    selectedViewRef.current = currentSelectedView;
+  }, [currentSelectedView]);
 
   useEffect(() => {
     orderTypeRef.current = orderType;
@@ -65,7 +65,8 @@ export function usePublicMenu(
         categoryId,
       );
       const search = query.toString();
-      window.history.pushState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`);
+      const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+      window.history.pushState(null, '', nextUrl);
     },
     [trackCategoryInUrl],
   );
@@ -75,7 +76,7 @@ export function usePublicMenu(
       requestedProductPage.current = 1;
       requestedBundlePage.current = 1;
       selectedViewRef.current = view;
-      setSelectedViewState(view);
+      setCurrentSelectedView(view);
       updateUrl(view, 1);
     },
     [updateUrl],
@@ -89,18 +90,18 @@ export function usePublicMenu(
   }, [enabled, orderType, orderTypeHydrated, fetchMenuBundles, initialSnapshot]);
 
   useEffect(() => {
-    if (!enabled || selectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
+    if (!enabled || currentSelectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
     void fetchMenuBundles(requestedBundlePage.current, orderTypeRef.current);
-  }, [enabled, selectedView, orderTypeHydrated, fetchMenuBundles]);
+  }, [enabled, currentSelectedView, orderTypeHydrated, fetchMenuBundles]);
 
   useEffect(() => {
-    if (!enabled || !selectedView || selectedView === MENU_BUNDLES_KEY || !orderTypeHydrated) return;
+    if (!enabled || !currentSelectedView || currentSelectedView === MENU_BUNDLES_KEY || !orderTypeHydrated) return;
     const page = firstProductRequest.current
       ? (initialSnapshot?.products.currentPage ?? 1)
       : requestedProductPage.current;
     firstProductRequest.current = false;
-    void fetchProducts(page, selectedView, orderType);
-  }, [enabled, selectedView, orderType, orderTypeHydrated, fetchProducts, initialSnapshot]);
+    void fetchProducts(page, currentSelectedView, orderType);
+  }, [enabled, currentSelectedView, orderType, orderTypeHydrated, fetchProducts, initialSnapshot]);
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -128,7 +129,7 @@ export function usePublicMenu(
       else requestedProductPage.current = page;
       const changedView = selectedViewRef.current !== nextView;
       selectedViewRef.current = nextView;
-      if (changedView) setSelectedViewState(nextView);
+      if (changedView) setCurrentSelectedView(nextView);
       else if (!enabled) return;
       else if (isBundles) void fetchMenuBundles(page, orderTypeRef.current);
       else void fetchProducts(page, nextView, orderTypeRef.current);
@@ -144,10 +145,10 @@ export function usePublicMenu(
     return fetchProducts(currentPage, selectedViewRef.current, orderTypeRef.current);
   }, [bundlesCurrentPage, currentPage, fetchMenuBundles, fetchProducts]);
 
-  const isBundlesView = selectedView === MENU_BUNDLES_KEY;
+  const isBundlesView = currentSelectedView === MENU_BUNDLES_KEY;
   return {
     categories,
-    selectedView,
+    selectedView: currentSelectedView,
     setSelectedView,
     items,
     menuBundles,

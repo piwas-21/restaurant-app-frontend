@@ -35,9 +35,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: node --test scripts/public-discovery-output-parser.test.mjs
-      - run: npx playwright install --with-deps chromium
+      - run: node node_modules/playwright/cli.js install --with-deps chromium
       - name: Verify real production output
         env:
           DISCOVERY_POLICY: ${{ matrix.policy }}

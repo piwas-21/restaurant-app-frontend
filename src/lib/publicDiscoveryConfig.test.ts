@@ -2,7 +2,7 @@ import { parseTenantPublicConfig } from './publicDiscoveryConfig';
 
 describe('parseTenantPublicConfig', () => {
   it('fails closed on malformed canonical origins without echoing configured values', () => {
-    const configuredOrigin = 'https://tenant-origin.invalid host';
+    const configuredOrigin = 'private sentinel';
     let message = '';
     try {
       parseTenantPublicConfig({ NEXT_PUBLIC_TENANT_CANONICAL_ORIGIN: configuredOrigin });

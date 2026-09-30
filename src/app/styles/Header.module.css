@@ -75,7 +75,7 @@
   opacity: 1;
 }
 
-/* Mobile and Tablet specific styles */
+/* Mobile navigation belongs to the shared chrome below the public tablet breakpoint. */
 @media (max-width: 768px) {
   /* Adjust cart badge position for mobile menu */
   .cartBadge {
@@ -187,7 +187,9 @@
   .hamburgerMenu {
     display: block;
   }
+}
 
+@media (max-width: 768px) {
   .adminMainContent {
     margin-inline-start: 0;
   }
@@ -289,7 +291,7 @@
   opacity: 1;
 }
 
-/* Desktop specific styles */
+/* Desktop shared chrome styles. Public customer chrome applies its own scoped tablet override. */
 @media (min-width: 1025px) {
   .navLinksContainer {
     display: flex !important;
@@ -312,7 +314,10 @@
     align-items: center;
     gap: 0.5rem;
   }
+}
 
+/* Desktop admin shell behavior is independent of the customer header breakpoint. */
+@media (min-width: 1025px) {
   .adminSidebarToggleFloating {
     display: none !important;
   }

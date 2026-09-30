@@ -10,10 +10,12 @@
 // the chrome makes that drift impossible rather than merely unlikely.
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import styles from '@/app/(auth)/PasswordReset.module.css';
+import styles from '@/app/[locale]/(auth)/PasswordReset.module.css';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 /** Centred card. Used by both forms and by every terminal state. */
 export function AuthCard({ children }: Readonly<{ children: ReactNode }>) {
@@ -37,9 +39,10 @@ export function AuthSubmit({ pending, label }: Readonly<{ pending: boolean; labe
 /** The way back for someone who landed here by accident, or who remembered after all. */
 export function BackToLoginFooter() {
   const { t } = useTranslation();
+  const pathname = usePathname();
   return (
     <div className={styles.footer}>
-      <Link href="/auth/login" className={styles.link}>
+      <Link href={tenantLocaleHref(pathname, '/auth/login')} className={styles.link}>
         <ArrowLeft size={16} aria-hidden="true" />
         {t('back_to_login')}
       </Link>

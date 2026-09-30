@@ -158,7 +158,7 @@ export async function gotoStable(page: Page, path: string, theme: Theme): Promis
 }
 
 /**
- * Drive the guest smart-skip flow to a populated /checkout/review — the
+ * Drive the guest smart-skip flow to a populated /en/checkout/review — the
  * checkout entry surface. /checkout/order-type is a legacy redirect and
  * /checkout/review redirects away unless cart + orderType + customerInfo
  * exist, so the state is built through the UI exactly like
@@ -168,14 +168,14 @@ export async function gotoStable(page: Page, path: string, theme: Theme): Promis
  * Driven at desktop size because that is the width the baselines are cut at for the desktop
  * project; the caller restores the project viewport before capturing.
  *
- * The basket is a SLIDE-OVER now, not a permanently-pinned `<aside>` rail — /menu dropped the rail
+ * The basket is a SLIDE-OVER now, not a permanently-pinned `<aside>` rail — /en/menu dropped the rail
  * so the card grid could have the design's three columns back. So this opens it from the basket
  * button in the sticky category bar and drives the same `CartContents` inside it: the order-type
  * toggle and Proceed to Checkout are the very same controls, one click further in.
  */
 export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   // Scoped to a CARD, not to the grid: the hero is a cell OF the grid now, so `menu-grid` contains
   // both. The seeded product is also the featured special, and the hero's add control carries the
@@ -221,5 +221,5 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   await expect(modal).toBeHidden({ timeout: 5_000 });
 
   await basket.getByRole('button', { name: /proceed to checkout/i }).click();
-  await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+  await expect(page).toHaveURL(/\/en\/checkout\/review$/, { timeout: 10_000 });
 }

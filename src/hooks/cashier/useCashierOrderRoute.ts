@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { CASHIER_COLLECTION_PATH, CASHIER_ORDERS_PATH } from '@/lib/cashierWorkspace';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 /** URL-owned selection for a cashier destination. Selection is pushed so browser Back closes it. */
 export function useCashierOrderRoute() {
@@ -28,16 +30,21 @@ export function useCashierOrderRoute() {
   }, [pathname, router, searchParams]);
 
   const navigateToCollection = useCallback(
-    (orderId: string) => router.push(`${CASHIER_COLLECTION_PATH}?order=${encodeURIComponent(orderId)}`),
-    [router],
+    (orderId: string) =>
+      router.push(tenantLocaleHref(pathname, `${CASHIER_COLLECTION_PATH}?order=${encodeURIComponent(orderId)}`)),
+    [pathname, router],
   );
 
   const navigateToOrder = useCallback(
-    (orderId: string) => router.push(`${CASHIER_ORDERS_PATH}?order=${encodeURIComponent(orderId)}`),
-    [router],
+    (orderId: string) =>
+      router.push(tenantLocaleHref(pathname, `${CASHIER_ORDERS_PATH}?order=${encodeURIComponent(orderId)}`)),
+    [pathname, router],
   );
 
-  const navigateToOrders = useCallback(() => router.push(CASHIER_ORDERS_PATH), [router]);
+  const navigateToOrders = useCallback(
+    () => router.push(tenantLocaleHref(pathname, CASHIER_ORDERS_PATH)),
+    [pathname, router],
+  );
 
   return {
     selectedOrderId,

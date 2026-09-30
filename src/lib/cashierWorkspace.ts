@@ -1,3 +1,5 @@
+import { appPathname } from '@/lib/tenantLocaleRouting';
+
 /** Route metadata for the route-backed cashier workspace destinations. */
 export type CashierWorkspaceDestination = 'orders' | 'new' | 'history' | 'tables';
 
@@ -43,11 +45,12 @@ export const CASHIER_WORKSPACE_ROUTES: readonly CashierWorkspaceRoute[] = [
 ];
 
 export function isCashierWorkspacePath(pathname: string): boolean {
+  const routePath = appPathname(pathname);
   return (
-    CASHIER_WORKSPACE_ROUTES.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`)) ||
-    pathname === CASHIER_COLLECTION_PATH ||
-    pathname.startsWith(`${CASHIER_COLLECTION_PATH}/`) ||
-    pathname === CASHIER_TABLES_PATH ||
-    pathname.startsWith(`${CASHIER_TABLES_PATH}/`)
+    CASHIER_WORKSPACE_ROUTES.some(({ href }) => routePath === href || routePath.startsWith(`${href}/`)) ||
+    routePath === CASHIER_COLLECTION_PATH ||
+    routePath.startsWith(`${CASHIER_COLLECTION_PATH}/`) ||
+    routePath === CASHIER_TABLES_PATH ||
+    routePath.startsWith(`${CASHIER_TABLES_PATH}/`)
   );
 }

@@ -8,12 +8,37 @@ import {
   assertPublicPageFitsViewport,
 } from './public-discovery-menu-layout-assertions.mjs';
 
-async function openPublicNavigation(page) {
-  const menuLink = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
+const isApiRequestPath = (pathname) => /(?:^|\/)api\//.test(pathname);
+const LANGUAGE_NAMES = { fr: 'Langue', ar: 'اللغة' };
+const CUSTOMER_MENU_TOGGLE_NAMES = {
+  en: { open: 'Open menu', close: 'Close menu' },
+  tr: { open: 'Menüyü aç', close: 'Menüyü kapat' },
+  fr: { open: 'Ouvrir le menu', close: 'Fermer le menu' },
+  ar: { open: 'افتح القائمة', close: 'أغلق القائمة' },
+};
+
+async function openCustomerNavigation(page, locale) {
+  const names = CUSTOMER_MENU_TOGGLE_NAMES[locale];
+  assert.ok(names, `Customer navigation labels exist for ${locale}`);
+  const openToggle = page.getByRole('button', { name: names.open, exact: true });
+  if (await openToggle.isVisible()) {
+    await openToggle.click();
+    await page.getByRole('button', { name: names.close, exact: true }).waitFor({ state: 'visible' });
+  }
+}
+
+function assertApiRequestPathControls() {
+  assert.equal(isApiRequestPath('/complete/api/Basket'), true, 'Fixture API prefix still matches API requests');
+  assert.equal(isApiRequestPath('/apiary/Basket'), false, 'An apiary path is not an API request');
+  assert.equal(isApiRequestPath('/_next/static/chunks/app.js'), false, 'Static assets are not API requests');
+  const queryOnlyPath = new URL('https://fixture.test/complete/Basket?next=/api/Example').pathname;
+  assert.equal(isApiRequestPath(queryOnlyPath), false, 'A query-only API marker is not an API request path');
+}
+
+async function openPublicNavigation(page, locale) {
+  const menuLink = page.locator('header nav a[href="/fr/menu"]').first();
   if (!(await menuLink.isVisible())) {
-    const hamburger = page.locator('header button[class*="hamburger"]');
-    assert.equal(await hamburger.count(), 1, 'Responsive customer header exposes its navigation toggle');
-    await hamburger.click();
+    await openCustomerNavigation(page, locale);
     await menuLink.waitFor({ state: 'visible' });
   }
 }
@@ -28,11 +53,14 @@ async function assertPublicMenuAtViewport(page, origin, locale, width) {
   await assertMenuFitsViewport(page, locale, width);
 }
 
-async function placeLanguageSwitcherAtShellEdge(page) {
-  const placed = await page.evaluate(() => {
+async function placeLanguageSwitcherAtShellEdge(page, locale) {
+  const placed = await page.evaluate((languageName) => {
     const header = document.querySelector('header');
     const shell = header?.firstElementChild;
-    const switcher = header?.querySelector('[class*="languageSwitcher"]');
+    const toggle = Array.from(header?.querySelectorAll('button[aria-label]') ?? []).find(
+      (button) => button.getAttribute('aria-label') === languageName,
+    );
+    const switcher = toggle?.parentElement;
     if (!(shell instanceof HTMLElement) || !(switcher instanceof HTMLElement)) return false;
 
     // The API fixture header is shorter than RUMI's live header. Move the same measured-width
@@ -44,7 +72,7 @@ async function placeLanguageSwitcherAtShellEdge(page) {
     switcher.style.insetInlineEnd = '0';
     switcher.style.width = `${width}px`;
     return true;
-  });
+  }, LANGUAGE_NAMES[locale]);
 
   assert.equal(placed, true, 'The header exposes its public language switcher');
 }
@@ -53,18 +81,26 @@ async function assertPublicLanguageDropdownAt1281(page, origin, locale) {
   const viewportWidth = 1281;
   await page.setViewportSize({ width: viewportWidth, height: 900 });
   await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
-  const toggle = page.locator('header button[aria-label="Toggle language menu"]');
+  const languageName = LANGUAGE_NAMES[locale];
+  const toggle = page
+    .getByRole('button', { name: languageName, exact: true })
+    .and(page.locator('button[aria-expanded]'));
   await toggle.waitFor({ state: 'visible' });
-  const panel = page.locator('header [class*="dropdownContainer"]').first();
-  await placeLanguageSwitcherAtShellEdge(page);
+  const panel = page.getByRole('navigation', { name: languageName, exact: true, includeHidden: true });
+  await placeLanguageSwitcherAtShellEdge(page, locale);
 
   async function assertPanelBounds(opened) {
-    const layout = await page.evaluate(() => {
-      const element = document.querySelector('header [class*="dropdownContainer"]');
-      const toggleElement = document.querySelector('header button[aria-label="Toggle language menu"]');
-      if (!element || !toggleElement) return null;
-      const rect = element.getBoundingClientRect();
-      const style = getComputedStyle(element);
+    const layout = await page.evaluate((label) => {
+      const element = Array.from(document.querySelectorAll('header nav[aria-label]')).find(
+        (candidate) => candidate.getAttribute('aria-label') === label,
+      );
+      const toggleElement = Array.from(document.querySelectorAll('header button[aria-label]')).find(
+        (candidate) => candidate.getAttribute('aria-label') === label && candidate.hasAttribute('aria-expanded'),
+      );
+      const panelElement = element?.parentElement;
+      if (!panelElement || !toggleElement) return null;
+      const rect = panelElement.getBoundingClientRect();
+      const style = getComputedStyle(panelElement);
       return {
         clientWidth: document.documentElement.clientWidth,
         documentWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
@@ -72,10 +108,10 @@ async function assertPublicLanguageDropdownAt1281(page, origin, locale) {
         right: rect.right,
         visibility: style.visibility,
         expanded: toggleElement.getAttribute('aria-expanded'),
-        hidden: element.getAttribute('aria-hidden'),
-        links: element.querySelectorAll('a[href]').length,
+        hidden: panelElement.getAttribute('aria-hidden'),
+        links: panelElement.querySelectorAll('a[href]').length,
       };
-    });
+    }, languageName);
 
     assert.ok(layout, 'The public language panel is present in the initial HTML');
     assert.equal(layout.expanded, String(opened));
@@ -92,18 +128,21 @@ async function assertPublicLanguageDropdownAt1281(page, origin, locale) {
   await assertPanelBounds(false);
   await assertPublicPageFitsViewport(page, locale, viewportWidth);
   await toggle.click();
-  await page.waitForFunction(
-    () =>
-      document.querySelector('header button[aria-label="Toggle language menu"]')?.getAttribute('aria-expanded') ===
-      'true',
-  );
+  await toggle.waitFor({ state: 'visible' });
+  await page.waitForFunction((label) => {
+    const button = Array.from(document.querySelectorAll('header button[aria-label]')).find(
+      (candidate) => candidate.getAttribute('aria-label') === label && candidate.hasAttribute('aria-expanded'),
+    );
+    return button?.getAttribute('aria-expanded') === 'true';
+  }, languageName);
   await assertPanelBounds(true);
   await toggle.click();
-  await page.waitForFunction(
-    () =>
-      document.querySelector('header button[aria-label="Toggle language menu"]')?.getAttribute('aria-expanded') ===
-      'false',
-  );
+  await page.waitForFunction((label) => {
+    const button = Array.from(document.querySelectorAll('header button[aria-label]')).find(
+      (candidate) => candidate.getAttribute('aria-label') === label && candidate.hasAttribute('aria-expanded'),
+    );
+    return button?.getAttribute('aria-expanded') === 'false';
+  }, languageName);
   await panel.waitFor({ state: 'attached' });
   await assertPanelBounds(false);
 }
@@ -118,26 +157,18 @@ async function assertAdminNavigationAtWidth(page, menuLink, width) {
 }
 
 async function openLocaleMenuLink(page, locale) {
-  const menuLink = page.locator(`header nav a[href="/${locale}/menu"], header nav a[href="/menu"]`).first();
+  const menuLink = page.locator(`header nav a[href="/${locale}/menu"]`).first();
   if (!(await menuLink.isVisible())) {
-    const toggle = page.locator('header button[class*="hamburger"]');
-    await toggle.click();
-    await page.waitForFunction(
-      () => document.querySelector('header button[class*="hamburger"]')?.getAttribute('aria-expanded') === 'true',
-    );
+    await openCustomerNavigation(page, locale);
     await menuLink.waitFor({ state: 'visible' });
   }
   return menuLink;
 }
 
 async function openLocaleHomeLink(page, locale) {
-  const homeLink = page.locator(`header nav a[href="/${locale}"], header nav a[href="/"]`).first();
+  const homeLink = page.locator(`header nav a[href="/${locale}"]`).first();
   if (!(await homeLink.isVisible())) {
-    const toggle = page.locator('header button[class*="hamburger"]');
-    await toggle.click();
-    await page.waitForFunction(
-      () => document.querySelector('header button[class*="hamburger"]')?.getAttribute('aria-expanded') === 'true',
-    );
+    await openCustomerNavigation(page, locale);
     await homeLink.waitFor({ state: 'visible' });
   }
   return homeLink;
@@ -154,7 +185,7 @@ async function assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, locale
     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
 
     await (await openLocaleMenuLink(page, locale)).click();
-    await page.waitForURL((url) => url.pathname.endsWith('/menu'));
+    await page.waitForURL((url) => url.pathname === `/${locale}/menu`);
     assert.equal(new URL(page.url()).pathname, `/${locale}/menu`, `${locale} menu navigation retains the URL locale`);
     assert.equal(await page.locator('html').getAttribute('lang'), locale);
     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
@@ -162,10 +193,216 @@ async function assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, locale
     assert.match(await page.locator('body').innerText(), /Plat français 1/);
 
     await (await openLocaleHomeLink(page, locale)).click();
-    await page.waitForURL((url) => url.pathname === '/' || /^\/[a-z]{2}$/.test(url.pathname));
+    await page.waitForURL((url) => url.pathname === `/${locale}`);
     assert.equal(new URL(page.url()).pathname, `/${locale}`, `${locale} home navigation retains the URL locale`);
     assert.equal(await page.locator('html').getAttribute('lang'), locale);
     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+  } finally {
+    await context.close();
+  }
+}
+
+async function waitForDocumentLocale(page, locale) {
+  await page.waitForFunction(
+    ({ language, direction }) =>
+      document.documentElement.lang === language && document.documentElement.dir === direction,
+    { language: locale, direction: locale === 'ar' ? 'rtl' : 'ltr' },
+  );
+}
+
+async function assertLocaleRoutingFlows(browser, origin, apiOrigin) {
+  assertApiRequestPathControls();
+  // Browser negotiation must happen at the server boundary. A stale detector-owned i18next cache
+  // is deliberately present so it cannot masquerade as an explicit user preference.
+  const detected = await browser.newContext({
+    locale: 'tr-TR',
+    viewport: { width: 1024, height: 768 },
+  });
+  try {
+    await isolateExternal(detected, origin, apiOrigin);
+    await detected.addInitScript(() => localStorage.setItem('i18nextLng', 'fr'));
+    const page = await detected.newPage();
+    await page.goto(`${origin}/cart?resume=checkout&session_id=cs_fixture#payment-return`, {
+      waitUntil: 'networkidle',
+    });
+    assert.equal(new URL(page.url()).pathname, '/tr/cart', 'Accept-Language prefixes a legacy private route');
+    assert.equal(new URL(page.url()).searchParams.get('resume'), 'checkout');
+    assert.equal(new URL(page.url()).searchParams.get('session_id'), 'cs_fixture');
+    assert.equal(new URL(page.url()).hash, '#payment-return', 'The browser retains the payment return fragment');
+    await waitForDocumentLocale(page, 'tr');
+    assert.equal(
+      (await detected.cookies(origin)).some((cookie) => cookie.name === 'tenant_locale_v1' && cookie.value === 'tr'),
+      true,
+      'The resolved route preference is persisted separately from the old i18next detector key',
+    );
+    await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/tr', 'The PWA/root entry negotiates its supported locale');
+    await waitForDocumentLocale(page, 'tr');
+  } finally {
+    await detected.close();
+  }
+
+  // Manual choice persists across a conflicting browser header, reload, and unprefixed legacy entry.
+  const manual = await browser.newContext({
+    locale: 'en-US',
+    extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' },
+    viewport: { width: 1024, height: 768 },
+  });
+  try {
+    await isolateExternal(manual, origin, apiOrigin);
+    const page = await manual.newPage();
+    await page.goto(`${origin}/en/cart`, { waitUntil: 'networkidle' });
+    await waitForDocumentLocale(page, 'en');
+    await openCustomerNavigation(page, 'en');
+    const languageToggle = page.getByRole('button', { name: 'Language', exact: true });
+    await languageToggle.waitFor({ state: 'visible' });
+    await languageToggle.click();
+    await page.getByText('French', { exact: true }).click();
+    await page.waitForURL((url) => url.pathname === '/fr/cart');
+    await waitForDocumentLocale(page, 'fr');
+    assert.equal(
+      (await manual.cookies(origin)).find((cookie) => cookie.name === 'tenant_locale_v1')?.value,
+      'fr',
+      'Choosing French stores the explicit locale preference',
+    );
+
+    await page.reload({ waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/fr/cart', 'Reload retains the manually selected locale');
+    await page.goto(`${origin}/cart?resume=history`, { waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/fr/cart', 'The legacy route honors the manual preference');
+    assert.equal(new URL(page.url()).searchParams.get('resume'), 'history');
+    await page.goto(`${origin}/fr/auth/login`, { waitUntil: 'networkidle' });
+    await waitForDocumentLocale(page, 'fr');
+    assert.equal(new URL(page.url()).pathname, '/fr/auth/login', 'Authentication entry retains the URL locale');
+    await page.goBack({ waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/fr/cart', 'Browser history returns to the localized private page');
+    await waitForDocumentLocale(page, 'fr');
+  } finally {
+    await manual.close();
+  }
+
+  // Explicit route locale beats both stored preference and browser negotiation, including RTL state.
+  const explicit = await browser.newContext({
+    locale: 'en-US',
+    viewport: { width: 1024, height: 768 },
+  });
+  try {
+    await isolateExternal(explicit, origin, apiOrigin);
+    await explicit.addCookies([{ name: 'tenant_locale_v1', value: 'fr', url: origin, sameSite: 'Lax' }]);
+    const page = await explicit.newPage();
+    const apiRequests = [];
+    page.on('request', (request) => {
+      const url = new URL(request.url());
+      if (url.origin === apiOrigin && isApiRequestPath(url.pathname)) {
+        apiRequests.push({ path: url.pathname, language: request.headers()['accept-language'] ?? '' });
+      }
+    });
+    await page.goto(`${origin}/ar/cart`, { waitUntil: 'networkidle' });
+    assert.equal(new URL(page.url()).pathname, '/ar/cart');
+    await waitForDocumentLocale(page, 'ar');
+    assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
+    assert.ok(apiRequests.length > 0, 'The cart emitted at least one request to the fixture API');
+    assert.ok(
+      apiRequests.every(({ language }) => /^ar(?:[-,;]|$)/i.test(language.trim())),
+      `Every observed API request follows the active Arabic route, not the French cookie: ${JSON.stringify(apiRequests)}`,
+    );
+
+    // A Stripe return is a known private path: its order/session/cancel parameters survive the
+    // compatibility redirect before the localized confirmation page takes over.
+    const response = await explicit.request.get(
+      `${origin}/checkout/confirmation?orderId=fixture-order&sessionId=cs_fixture`,
+      { maxRedirects: 0 },
+    );
+    assert.equal(response.status(), 307);
+    const paymentReturn = new URL(response.headers().location, origin);
+    assert.equal(paymentReturn.pathname, '/ar/checkout/confirmation');
+    assert.equal(paymentReturn.searchParams.get('orderId'), 'fixture-order');
+    assert.equal(paymentReturn.searchParams.get('sessionId'), 'cs_fixture');
+  } finally {
+    await explicit.close();
+  }
+
+  await assertCookieIndependentLocaleLinks(browser, origin, apiOrigin);
+}
+
+async function assertCookieIndependentLocaleLinks(browser, origin, apiOrigin) {
+  const context = await browser.newContext({
+    locale: 'en-US',
+    extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' },
+    viewport: { width: 1281, height: 900 },
+  });
+  await context.addInitScript(() => {
+    Object.defineProperty(document, 'cookie', {
+      configurable: true,
+      get: () => '',
+      set: () => {},
+    });
+  });
+  await isolateExternal(context, origin, apiOrigin);
+  try {
+    assert.deepEqual(await context.cookies(origin), [], 'The cookie-independent context begins with no cookies');
+    const page = await context.newPage();
+    const clearCookieState = async () => {
+      await context.clearCookies();
+      assert.deepEqual(await context.cookies(origin), [], 'No cookie remains before the next navigation');
+      assert.equal(await page.evaluate(() => document.cookie), '', 'The document cannot read cookies');
+      assert.equal(
+        await page.evaluate(() => {
+          document.cookie = 'tenant_locale_v1=en; path=/';
+          return document.cookie;
+        }),
+        '',
+        'The document cannot write cookies',
+      );
+      assert.deepEqual(await context.cookies(origin), [], 'A blocked write does not create a browser cookie');
+    };
+
+    await page.goto(`${origin}/ar`, { waitUntil: 'networkidle' });
+    await waitForDocumentLocale(page, 'ar');
+    const consentButton = page.getByRole('button', { name: 'قبول', exact: true });
+    if (await consentButton.count()) await consentButton.click();
+    await clearCookieState();
+
+    const followLink = async (from, destination, selector) => {
+      await page.goto(`${origin}${from}`, { waitUntil: 'networkidle' });
+      assert.equal(new URL(page.url()).pathname, from);
+      await waitForDocumentLocale(page, 'ar');
+      await clearCookieState();
+      const link = page.locator(selector).first();
+      assert.equal(await link.isVisible(), true, `${from} exposes ${destination}`);
+      assert.equal(await link.getAttribute('href'), destination, `${destination} is explicitly locale-qualified`);
+      await link.click();
+      await page.waitForURL((url) => url.pathname === destination);
+      await waitForDocumentLocale(page, 'ar');
+      await clearCookieState();
+    };
+
+    await followLink('/ar', '/ar/menu', 'header nav a[href="/ar/menu"]');
+    await followLink('/ar/menu', '/ar/cart', 'header nav a[href="/ar/cart"]');
+
+    await page.goto(`${origin}/ar`, { waitUntil: 'networkidle' });
+    await waitForDocumentLocale(page, 'ar');
+    await clearCookieState();
+    const reservations = page.locator('a[href="/ar/reservations"]').first();
+    if (await reservations.count()) {
+      await reservations.click();
+      await page.waitForURL((url) => url.pathname === '/ar/reservations');
+      await waitForDocumentLocale(page, 'ar');
+    } else {
+      // This API fixture disables the optional reservations module, so verify its localized route
+      // guard remains in Arabic without pretending the disabled navigation link is present.
+      await page.goto(`${origin}/ar/reservations`, { waitUntil: 'networkidle' });
+      assert.ok(['/ar', '/ar/reservations'].includes(new URL(page.url()).pathname));
+      await waitForDocumentLocale(page, 'ar');
+    }
+    await clearCookieState();
+
+    await followLink('/ar', '/ar/privacy-policy', 'footer a[href="/ar/privacy-policy"]');
+    await followLink('/ar', '/ar/terms-of-usage', 'footer a[href="/ar/terms-of-usage"]');
+
+    await page.goto(`${origin}/ar/account`, { waitUntil: 'networkidle' });
+    await page.waitForURL((url) => url.pathname === '/ar/auth/login');
+    await waitForDocumentLocale(page, 'ar');
   } finally {
     await context.close();
   }
@@ -175,6 +412,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
   const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch({ headless: true });
   try {
+    await assertLocaleRoutingFlows(browser, origin, apiOrigin);
     await assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, 'fr');
     await assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, 'ar');
     const context = await browser.newContext({ locale: 'en-US', viewport: { width: 1024, height: 768 } });
@@ -195,21 +433,15 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
     assert.ok(await page.locator('header').count(), 'The customer header remains visible after hydration');
-    assert.equal(await page.locator('header[class*="CraftHeader_header"]').count(), template === 'craft' ? 1 : 0);
-    assert.equal(
-      await page.locator('header button[class*="Header_hamburgerMenu"]').count(),
-      template === 'classic' ? 1 : 0,
-    );
-    await openPublicNavigation(page);
-    await page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first().click();
+    const translatedMenuToggle = page.getByRole('button', { name: 'Ouvrir le menu', exact: true });
+    assert.equal(await translatedMenuToggle.isVisible(), true, 'Both customer templates expose a named menu toggle');
+    await openPublicNavigation(page, 'fr');
+    await page.locator('header nav a[href="/fr/menu"]').first().click();
     await page.waitForURL('**/fr/menu');
     await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
-    assert.match(
-      await page.getByTestId('menu-card').first().getAttribute('class'),
-      template === 'craft' ? /CraftMenuCard_card/ : /MenuItem_menuItem/,
-    );
+    await page.getByTestId('menu-card').first().waitFor({ state: 'visible' });
     assert.match(await page.locator('body').innerText(), /Plat français 1/);
     const secondPage = page.locator('a[href="/fr/menu?page=2"]').first();
     await secondPage.click();
@@ -225,8 +457,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
     await assertPublicPageFitsViewport(page, 'fr', 1280);
-    const exactBreakpointMenu = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
-    const exactBreakpointToggle = page.locator('header button[class*="hamburger"]');
+    const exactBreakpointMenu = page.locator('header nav a[href="/fr/menu"]').first();
+    const exactBreakpointToggle = page.getByRole('button', { name: 'Ouvrir le menu', exact: true });
     assert.equal(await exactBreakpointMenu.isVisible(), false, 'At 1280px public navigation starts collapsed');
     assert.equal(await exactBreakpointToggle.isVisible(), true, 'At 1280px the public drawer toggle is visible');
     await page.addStyleTag({ path: path.join(root, 'e2e/screenshots/screenshot.css') });
@@ -245,11 +477,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
     await assertMenuFitsViewport(page, 'fr', 1281);
     assert.equal(await page.locator('header nav a[href="/fr/menu"]').first().isVisible(), true);
-    assert.equal(
-      await page.locator('header button[class*="hamburger"]').evaluate((button) => getComputedStyle(button).display),
-      'none',
-      'Desktop navigation remains visible just above the tablet collapse breakpoint',
-    );
+    assert.equal(await exactBreakpointToggle.isVisible(), false);
     await assertPublicLanguageDropdownAt1281(page, origin, 'fr');
     await assertPublicLanguageDropdownAt1281(page, origin, 'ar');
     await page.setViewportSize({ width: 820, height: 1180 });
@@ -263,9 +491,11 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar');
     await page.goto(`${origin}/cart`, { waitUntil: 'networkidle' });
-    await page.waitForFunction(() => document.documentElement.lang === 'ar');
+    assert.equal(new URL(page.url()).pathname, '/ar/cart', 'Legacy cart navigation retains the active locale');
+    await waitForDocumentLocale(page, 'ar');
     await page.goto(`${origin}/scan?qr=fixture-qr`);
-    await page.waitForURL('**/fr/menu', { timeout: 20_000 });
+    await page.waitForURL((url) => url.pathname === '/ar/menu', { timeout: 20_000 });
+    assert.equal(new URL(page.url()).pathname, '/ar/menu', 'QR handoff stays in its locale');
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
     await page.waitForFunction((tableId) => {
       try {
@@ -274,7 +504,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
         return false;
       }
     }, CATEGORY_ID);
-    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.getByRole('status').first().waitFor({ state: 'visible' });
     await page.waitForTimeout(1_250);
     assert.equal(
       qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr')).length,
@@ -286,8 +516,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       CATEGORY_ID,
     );
     await page.goto(`${origin}/scan?qr=fixture-qr-next`);
-    await page.waitForURL('**/fr/menu', { timeout: 20_000 });
-    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.waitForURL((url) => url.pathname === '/ar/menu', { timeout: 20_000 });
+    await page.getByRole('status').first().waitFor({ state: 'visible' });
     await page.waitForTimeout(1_250);
     assert.equal(
       qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr-next')).length,
@@ -325,10 +555,13 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     });
     const adminPage = await adminContext.newPage();
     await adminPage.route('**/api/Auth/refresh-token', (route) => route.fulfill({ status: 503, body: '' }));
-    await adminPage.goto(`${origin}/admin/dashboard`, { waitUntil: 'networkidle' });
-    const adminMenuLink = adminPage.locator('header nav a[href="/menu"]');
+    await adminPage.goto(`${origin}/fr/admin/dashboard`, { waitUntil: 'networkidle' });
+    const adminMenuLink = adminPage.locator('header nav a[href="/fr/menu"]');
     await adminMenuLink.waitFor({ state: 'visible' });
-    assert.equal(await adminPage.locator('header button[class*="hamburger"]').count(), 0);
+    assert.equal(
+      await adminPage.locator('header').getByRole('button', { name: 'Ouvrir le menu', exact: true }).count(),
+      0,
+    );
     await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1024);
     await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1280);
     await adminContext.close();

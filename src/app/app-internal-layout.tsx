@@ -3,10 +3,10 @@
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useEffect, useState, CSSProperties } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTheme } from '@/components/ThemeContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import navStyles from './styles/Header.module.css';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import CookieSettingsModal from '@/components/CookieSettingsModal';
@@ -21,6 +21,9 @@ import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { isCashierWorkspacePath } from '@/lib/cashierWorkspace';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { appPathname } from '@/lib/tenantLocaleRouting';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
+import { publicHomeHref } from '@/lib/publicRouteQuery';
 
 // Fonts moved behind the template definition (ADR-006): the root layout
 // applies the active template's next/font classNames to <body>. The unused
@@ -43,13 +46,16 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const routePath = appPathname(pathname);
   const cashierModuleEnabled = useModuleEnabled('cashier');
   const isCashierWorkspace = cashierModuleEnabled && isCashierWorkspacePath(pathname ?? '');
-  const isServerWorkspace = pathname === '/server' || pathname.startsWith('/server/');
+  const isServerWorkspace = routePath === '/server' || routePath.startsWith('/server/');
   const isStaffWorkspace = isCashierWorkspace || isServerWorkspace;
-  const _router = useRouter();
-  const isHomePage = pathname === '/';
-  const isAdminPage = pathname.startsWith('/admin');
+  const isHomePage = routePath === '/';
+  const isAdminPage = routePath.startsWith('/admin');
+  const homeHref = publicHomeHref(pathname, searchParams);
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
   const { t } = useTranslation();
   const { info: restaurantInfo } = useRestaurantInfo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -149,7 +155,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
               }}
             >
               <Link
-                href="/"
+                href={homeHref}
                 style={{ textDecoration: 'none', color: 'var(--primary-color)', display: 'flex', alignItems: 'center' }}
                 onClick={closeMobileMenu}
               >
@@ -194,8 +200,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                       <UserMenu onMobileMenuClose={closeMobileMenu} />
                     ) : (
                       <Link
-                        href="/auth/login"
-                        className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
+                        href={localizedHref('/auth/login')}
+                        className={`nav-link ${routePath === '/auth/login' ? 'active' : ''}`}
                         onClick={closeMobileMenu}
                       >
                         {t('nav_login', 'Login')}
@@ -232,13 +238,13 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
             )}
             <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <Link
-                href="/privacy-policy"
+                href={localizedHref('/privacy-policy')}
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
                 {isClient ? t('footer_privacy_policy', 'Privacy Policy') : 'Privacy Policy'}
               </Link>
               <Link
-                href="/terms-of-usage"
+                href={localizedHref('/terms-of-usage')}
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
                 {isClient ? t('footer_terms_of_usage', 'Terms of Usage') : 'Terms of Usage'}

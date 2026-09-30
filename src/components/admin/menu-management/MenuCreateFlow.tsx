@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import { MENU_BUNDLE_TYPE } from '@/utils/productTypeFilter';
 import NewProductTypeModal from './NewProductTypeModal';

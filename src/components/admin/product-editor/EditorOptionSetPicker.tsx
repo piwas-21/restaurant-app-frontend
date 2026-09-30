@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';

@@ -5,7 +5,11 @@ import { ModulesProvider } from '@/contexts/ModulesContext';
 import { MODULE_IDS, type ModuleId } from '@/lib/modules';
 
 const mockPathname = jest.fn<string, []>();
-jest.mock('next/navigation', () => ({ usePathname: () => mockPathname() }));
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => mockPathname(),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),
 }));

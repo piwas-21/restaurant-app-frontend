@@ -407,8 +407,8 @@ module.exports = {
       functions: 41,
       lines: 76,
     },
-    './src/app/(auth)/delete-account/page.tsx': { statements: 81, branches: 85, functions: 56, lines: 83 },
-    './src/app/admin/point-rules/page.tsx': { statements: 67, branches: 67, functions: 49, lines: 69 },
+    './src/app/[locale]/(auth)/delete-account/page.tsx': { statements: 81, branches: 85, functions: 56, lines: 83 },
+    './src/app/[locale]/admin/point-rules/page.tsx': { statements: 67, branches: 67, functions: 49, lines: 69 },
     './src/hooks/admin/useProductEditorFetch.ts': { statements: 91, branches: 71, functions: 99, lines: 95 },
     // ───────────────────────────────────────────────────────────────────────────────────────────
     // Password reset (SOFRA-ONBOARDING-PLAN O3). Pinned because these are the only way a
@@ -432,13 +432,13 @@ module.exports = {
     // gains a compliant entry or a class requirement is dropped. The test asserts why they
     // cannot fire rather than faking passwords that cannot exist, so these numbers are the
     // honest ceiling — do not "fix" them by deleting the guards.
-    './src/app/(auth)/forgot-password/page.tsx': {
+    './src/app/[locale]/(auth)/forgot-password/page.tsx': {
       statements: 100,
       branches: 100,
       functions: 100,
       lines: 100,
     },
-    './src/app/(auth)/reset-password/page.tsx': {
+    './src/app/[locale]/(auth)/reset-password/page.tsx': {
       statements: 100,
       branches: 100,
       functions: 100,
@@ -1581,7 +1581,7 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    './src/app/admin/customer-forms/page.tsx': {
+    './src/app/[locale]/admin/customer-forms/page.tsx': {
       statements: 99,
       branches: 99,
       functions: 99,
@@ -1720,7 +1720,7 @@ module.exports = {
     './src/lib/imageBackfillProgress.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/hooks/admin/useImageBackfill.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/services/imageMaintenanceService.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
-    './src/app/admin/image-backfill/page.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/app/[locale]/admin/image-backfill/page.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/components/admin/image-backfill/BackfillSummary.tsx': {
       statements: 99,
       branches: 99,

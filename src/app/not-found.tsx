@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { Compass } from 'lucide-react';
 import styles from './styles/ErrorSurface.module.css';

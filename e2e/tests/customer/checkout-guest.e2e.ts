@@ -69,7 +69,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // deleteUserByEmail is idempotent and returns 0.
     createdEmail = guestEmail;
 
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     // Landing-view a11y scan — catches missing labels, contrast issues,
     // heading order. Per E2E-STRATEGY §Accessibility, scope is the whole
@@ -142,7 +142,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
       .click();
     const editModal = page.getByRole('dialog');
     await expect(editModal).toBeVisible({ timeout: 5_000 });
-    await expect(page).toHaveURL(/\/checkout\/review$/); // stayed on review — no redirect
+    await expect(page).toHaveURL(/\/en\/checkout\/review$/); // stayed on review — no redirect
     await page.keyboard.press('Escape'); // close without changing anything
     await expect(editModal).toBeHidden({ timeout: 5_000 });
 
@@ -173,7 +173,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // fails to close fails as "modal still open" instead of a bare URL poll that spent its whole
     // timeout blaming the redirect.
     const confirmationNavigation = page.waitForURL(
-      (url) => url.pathname === '/checkout/confirmation' && /^#t=.+/.test(url.hash),
+      (url) => url.pathname === '/en/checkout/confirmation' && /^#t=.+/.test(url.hash),
       { timeout: 15_000 },
     );
     await page.keyboard.press('Escape'); // BaseModal owns ESC-to-close.
@@ -181,7 +181,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
     await confirmationNavigation;
     await expect(page.getByText(/failed to load order/i)).toHaveCount(0);
 
-    const menuNavigation = page.waitForURL(/\/menu$/, { timeout: 15_000 });
+    const menuNavigation = page.waitForURL(/\/en\/menu$/, { timeout: 15_000 });
     await page.getByRole('button', { name: /back to menu/i }).click();
     await menuNavigation;
 

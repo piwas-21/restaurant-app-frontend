@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/admin/PageHeader';
 import FormField from '@/components/design-system/FormField';

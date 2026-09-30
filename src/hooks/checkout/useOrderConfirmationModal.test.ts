@@ -4,6 +4,8 @@ import { useOrderConfirmationModal } from './useOrderConfirmationModal';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: mockPush }),
 }));
 

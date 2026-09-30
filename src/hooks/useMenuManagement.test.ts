@@ -17,6 +17,7 @@ const mockStableT = (key: string, fallback?: string) => fallback ?? key;
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: mockStableT }) }));
 
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
   useRouter: () => ({ push: jest.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));

@@ -31,7 +31,7 @@ test('mobile FAB opens cart bottom-sheet with the same controls as the desktop s
     );
   });
 
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   // The FAB only renders when the cart has items — add one first.
   const basketWritePromise = page.waitForResponse(

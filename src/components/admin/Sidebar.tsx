@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,6 +29,8 @@ import styles from '@/app/styles/AdminPage.module.css';
 import { moduleForPath } from '@/lib/modules';
 import { useModules } from '@/contexts/ModulesContext';
 import { useAuth } from '@/components/AuthContext';
+import { appPathname } from '@/lib/tenantLocaleRouting';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface NavItem {
   href: string;
@@ -47,6 +49,7 @@ interface SidebarProps {
 const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const routePath = appPathname(pathname);
   const modules = useModules();
   const { user } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -213,8 +216,8 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
               return (
                 <li key={item.href}>
                   <Link
-                    href={item.href}
-                    className={pathname.startsWith(item.href) ? styles.activeLink : ''}
+                    href={tenantLocaleHref(pathname, item.href)}
+                    className={routePath.startsWith(item.href) ? styles.activeLink : ''}
                     onClick={onClose}
                   >
                     <Icon size={20} strokeWidth={2} />

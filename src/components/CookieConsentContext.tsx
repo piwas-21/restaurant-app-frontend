@@ -1,8 +1,34 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { reportBrowserStorageFailure } from '@/lib/browserStorageDiagnostics';
 
 const COOKIE_CONSENT_KEY = 'rumi_cookie_consent';
+
+function readConsentPreference(): string | null {
+  try {
+    return localStorage.getItem(COOKIE_CONSENT_KEY);
+  } catch (storageError) {
+    reportBrowserStorageFailure('read consent preference', storageError);
+    return null;
+  }
+}
+
+function writeConsentPreference(value: string): void {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, value);
+  } catch (storageError) {
+    reportBrowserStorageFailure('write consent preference', storageError);
+  }
+}
+
+function clearLegacyLocalePreference(): void {
+  try {
+    localStorage.removeItem('i18nextLng');
+  } catch (storageError) {
+    reportBrowserStorageFailure('clear legacy locale cache', storageError);
+  }
+}
 
 interface ConsentState {
   preferences: boolean | null; // null = not set, true = accepted, false = declined
@@ -28,14 +54,18 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   useEffect(() => {
-    const storedConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
+    const storedConsent = readConsentPreference();
     if (storedConsent) {
       try {
         const parsedConsent = JSON.parse(storedConsent) as ConsentState;
         setConsent(parsedConsent);
       } catch (error) {
         console.error('Error parsing stored cookie consent:', error);
-        localStorage.removeItem(COOKIE_CONSENT_KEY);
+        try {
+          localStorage.removeItem(COOKIE_CONSENT_KEY);
+        } catch (storageError) {
+          reportBrowserStorageFailure('remove consent preference', storageError);
+        }
       }
     }
     setIsConsentPending(false);
@@ -44,11 +74,11 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   const updateConsentStateAndStorage = (newConsentSettings: Partial<ConsentState>) => {
     setConsent((prevConsent) => {
       const updatedConsent = { ...prevConsent, ...newConsentSettings };
-      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(updatedConsent));
-      // If preferences are declined, ensure i18nextLng is removed.
-      // If accepted, it will be set by LanguageSwitcher upon language change.
+      writeConsentPreference(JSON.stringify(updatedConsent));
+      // Remove detector-cache values left by older releases. The versioned locale cookie is an
+      // essential routing choice and is independent of optional preferences.
       if (updatedConsent.preferences === false) {
-        localStorage.removeItem('i18nextLng');
+        clearLegacyLocalePreference();
       }
       return updatedConsent;
     });

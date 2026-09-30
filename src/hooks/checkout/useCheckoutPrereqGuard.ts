@@ -3,9 +3,10 @@
 // The /checkout/review "can this page exist?" guard, split out of
 // useCheckoutReview (§4 LOC limit) because it grew a hydration gate.
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/components/cart/CartContext';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 export interface CheckoutPrereqGuard {
   /**
@@ -35,7 +36,8 @@ export interface CheckoutPrereqGuard {
  * (placing the order clears both the cart and the checkout state).
  */
 export function useCheckoutPrereqGuard(skip: boolean): CheckoutPrereqGuard {
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
+  const { pushMenu } = useTenantPublicNavigation();
   const { state: checkoutState, isHydrated } = useCheckout();
   const { state: cartState } = useCart();
 
@@ -46,11 +48,11 @@ export function useCheckoutPrereqGuard(skip: boolean): CheckoutPrereqGuard {
   useEffect(() => {
     if (skip || !storesReady) return;
     if (!hasItems) {
-      router.push('/cart');
+      push('/cart');
     } else if (!hasCheckoutData) {
-      router.push('/menu');
+      pushMenu();
     }
-  }, [skip, storesReady, hasItems, hasCheckoutData, router]);
+  }, [skip, storesReady, hasItems, hasCheckoutData, push, pushMenu]);
 
   return {
     storesReady,

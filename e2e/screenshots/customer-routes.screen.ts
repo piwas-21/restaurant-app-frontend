@@ -22,10 +22,10 @@ const STATIC_ROUTES: ReadonlyArray<{
   /** Route-specific readiness proof that the seeded backend data actually rendered. */
   assertReady?: (page: import('@playwright/test').Page) => Promise<void>;
 }> = [
-  { name: 'home', path: '/' },
+  { name: 'home', path: '/en' },
   {
     name: 'menu',
-    path: '/menu',
+    path: '/en/menu',
     // An unreachable backend (e.g. a CSP/CORS misconfig) now renders the
     // menu's error state rather than data — assert the SEEDED product is on
     // screen so that page can never become a committed baseline.
@@ -39,19 +39,20 @@ const STATIC_ROUTES: ReadonlyArray<{
       ).toBeVisible({ timeout: 15_000 });
     },
   },
-  { name: 'cart-empty', path: '/cart' },
+  { name: 'cart-empty', path: '/en/cart' },
   {
     name: 'reservations',
-    path: '/reservations',
+    path: '/en/reservations',
     // The date strip renders nothing until the day the RESTAURANT is on has been established
     // (#517), so an unstubbed or failing `/api/tenant/today` would commit a baseline with no dates
     // in it — the same argument as `menu` above. 14 days, the fortnight the form offers.
     assertReady: async (page) => {
-      await expect(page.locator('[class*="dateButton"]')).toHaveCount(14, { timeout: 15_000 });
+      const dateChoices = page.getByRole('button').filter({ hasText: /^\d{1,2}\s*(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/ });
+      await expect(dateChoices).toHaveCount(14, { timeout: 15_000 });
     },
   },
-  { name: 'login', path: '/auth/login' },
-  { name: 'register', path: '/auth/register' },
+  { name: 'login', path: '/en/auth/login' },
+  { name: 'register', path: '/en/auth/register' },
 ];
 
 for (const theme of THEMES) {

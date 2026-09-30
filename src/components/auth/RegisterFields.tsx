@@ -1,7 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
+import { usePathname } from 'next/navigation';
 import type { useRegisterForm } from '@/hooks/auth/useRegisterForm';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 import AuthField from './AuthField';
 import SocialLoginButtons from './SocialLoginButtons';
 
@@ -21,6 +23,7 @@ interface RegisterFieldsProps {
  */
 export default function RegisterFields({ styles, socialStyles, form }: Readonly<RegisterFieldsProps>) {
   const { t, formData, errors, handleChange } = form;
+  const pathname = usePathname();
   return (
     <>
       {form.generalError && <p className={styles.errorMessage}>{form.generalError}</p>}
@@ -80,7 +83,7 @@ export default function RegisterFields({ styles, socialStyles, form }: Readonly<
       </button>
       <p className={styles.switchFormText}>
         {t('already_have_account', 'Already have an account?')}{' '}
-        <Link href="/auth/login">{t('login_button', 'Login')}</Link>
+        <Link href={tenantLocaleHref(pathname, '/auth/login')}>{t('login_button', 'Login')}</Link>
       </p>
       <SocialLoginButtons styles={socialStyles} />
     </>

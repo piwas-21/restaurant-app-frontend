@@ -70,4 +70,10 @@ describe('publicRouteLocation', () => {
     expect(isHomeRoutePathname('/fr')).toBe(true);
     expect(isHomeRoutePathname('/fr/menu')).toBe(false);
   });
+
+  it('preserves the active locale and safe QR/table context from private routes', () => {
+    expect(publicHomeHref('/ar/cart', new URLSearchParams('qr=printed&tableId=7&orderId=secret'))).toBe(
+      '/ar?qr=printed&tableId=7',
+    );
+  });
 });

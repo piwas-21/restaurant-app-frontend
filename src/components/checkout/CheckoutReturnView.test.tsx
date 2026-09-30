@@ -18,6 +18,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, fallback: string) => fallback }),
 }));
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
   useRouter: () => ({ push: jest.fn() }),
   useSearchParams: () => new URLSearchParams('orderId=order-7&sessionId=cs_1'),
 }));

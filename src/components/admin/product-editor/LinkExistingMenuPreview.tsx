@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import type { Product } from '@/app/admin/menu-management/interfaces';
 import { formatPlainCurrency } from '@/utils/currency';

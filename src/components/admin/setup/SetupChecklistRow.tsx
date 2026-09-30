@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 import { setupStepHref } from '@/lib/setupSteps';

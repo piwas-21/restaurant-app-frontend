@@ -10,7 +10,11 @@ const mockLoginUser = jest.fn();
 const mockSendEmailVerification = jest.fn();
 const mockTrackEvent = jest.fn();
 
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush }),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, def?: string) => def ?? _key }),
 }));
@@ -40,7 +44,7 @@ describe('useLoginForm', () => {
   it.each([
     ['Admin', '/admin/dashboard'],
     ['Customer', '/account'],
-    ['Cashier', '/cashier'],
+    ['Cashier', '/cashier/orders'],
     ['KitchenStaff', '/kitchen-staff'],
     ['Server', '/server'],
     ['wizard', '/'], // unknown role → home
@@ -87,7 +91,7 @@ describe('useLoginForm', () => {
       result.current.setPassword('secret1');
     });
     await act(async () => result.current.handleSubmit(submit));
-    expect(mockPush).toHaveBeenCalledWith('/cashier');
+    expect(mockPush).toHaveBeenCalledWith('/cashier/orders');
   });
 
   it('falls back to home (no crash) when the success envelope has no role', async () => {

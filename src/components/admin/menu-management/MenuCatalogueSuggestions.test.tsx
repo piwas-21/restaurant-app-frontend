@@ -6,7 +6,11 @@ import { useMenuCatalogueSuggestions } from '@/hooks/admin/useMenuCatalogueSugge
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { resolvedLanguage: 'en' } }),
 }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn() }),
+}));
 jest.mock('@/hooks/admin/useMenuCatalogueSuggestions', () => ({ useMenuCatalogueSuggestions: jest.fn() }));
 
 const template = {

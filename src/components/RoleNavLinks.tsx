@@ -15,7 +15,7 @@
 // rather than a style one: gating one copy left the staff chrome still
 // offering Cashier / Server / Reservations links into blocked pages. It now
 // renders this component, so there is exactly one source of truth again.
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Home, UtensilsCrossed, CalendarCheck, ShoppingCart, LayoutDashboard, Receipt } from 'lucide-react';
@@ -24,6 +24,8 @@ import { useCart } from '@/components/cart/CartContext';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import navStyles from '@/app/styles/Header.module.css';
 import { publicLocaleHref, publicRouteLocation } from '@/lib/publicRouteQuery';
+import { appPathname, tenantLocaleFromPathname } from '@/lib/tenantLocaleRouting';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface RoleNavLinksProps {
   /** Called on every link click (the chromes close their mobile menu). */
@@ -37,10 +39,13 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const publicRoute = publicRouteLocation(pathname);
-  const homeHref = publicRoute ? publicLocaleHref(publicRoute.locale, 'home', searchParams) : '/';
-  const menuHref = publicRoute ? publicLocaleHref(publicRoute.locale, 'menu', searchParams) : '/menu';
-  const isHomeActive = pathname === '/' || publicRoute?.surface === 'home';
-  const isMenuActive = pathname === '/menu' || publicRoute?.surface === 'menu';
+  const routeLocale = tenantLocaleFromPathname(pathname);
+  const routePath = appPathname(pathname);
+  const homeHref = routeLocale ? publicLocaleHref(routeLocale, 'home', searchParams) : '/';
+  const menuHref = routeLocale ? publicLocaleHref(routeLocale, 'menu', searchParams) : '/menu';
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href, searchParams);
+  const isHomeActive = routePath === '/' || publicRoute?.surface === 'home';
+  const isMenuActive = routePath === '/menu' || publicRoute?.surface === 'menu';
   // Stop offering a link whose page the module guard would block and whose API would 404
   // (sofra ADR-010 / S11). Reservations is the only module-owned CUSTOMER link; the
   // cashier/server links below are role-scoped staff entry points and are gated too.
@@ -58,10 +63,10 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   // available for existing bookmarks while the redesign rolls out.
   if (role === 'cashier') {
     if (!cashierEnabled) return null;
-    const cashierWorkspaceActive = pathname === '/cashier' || pathname.startsWith('/cashier/');
+    const cashierWorkspaceActive = routePath === '/cashier' || routePath.startsWith('/cashier/');
     return (
       <Link
-        href="/cashier/orders"
+        href={localizedHref('/cashier/orders')}
         className={`nav-link ${cashierWorkspaceActive ? 'active' : ''}`}
         onClick={onNavigate}
       >
@@ -75,7 +80,11 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
   if (role === 'server') {
     if (!serverEnabled) return null;
     return (
-      <Link href="/server" className={`nav-link ${pathname === '/server' ? 'active' : ''}`} onClick={onNavigate}>
+      <Link
+        href={localizedHref('/server')}
+        className={`nav-link ${routePath === '/server' ? 'active' : ''}`}
+        onClick={onNavigate}
+      >
         <UtensilsCrossed size={18} />
         <span>{t('nav_server', 'Server')}</span>
       </Link>
@@ -96,22 +105,26 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
         </Link>
         {reservationsEnabled && (
           <Link
-            href="/reservations"
-            className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}
+            href={localizedHref('/reservations')}
+            className={`nav-link ${routePath === '/reservations' ? 'active' : ''}`}
             onClick={onNavigate}
           >
             <CalendarCheck size={18} />
             <span>{t('nav_reservations', 'Reservations')}</span>
           </Link>
         )}
-        <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={onNavigate}>
+        <Link
+          href={localizedHref('/cart')}
+          className={`nav-link ${routePath === '/cart' ? 'active' : ''}`}
+          onClick={onNavigate}
+        >
           <ShoppingCart size={18} />
           <span>{t('nav_cart', 'Cart')}</span>
           {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}
         </Link>
         <Link
-          href="/admin/dashboard"
-          className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`}
+          href={localizedHref('/admin/dashboard')}
+          className={`nav-link ${routePath.startsWith('/admin') ? 'active' : ''}`}
           onClick={onNavigate}
         >
           <LayoutDashboard size={18} />
@@ -134,15 +147,19 @@ export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>
       </Link>
       {reservationsEnabled && (
         <Link
-          href="/reservations"
-          className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}
+          href={localizedHref('/reservations')}
+          className={`nav-link ${routePath === '/reservations' ? 'active' : ''}`}
           onClick={onNavigate}
         >
           <CalendarCheck size={18} />
           <span>{t('nav_reservations', 'Reservations')}</span>
         </Link>
       )}
-      <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={onNavigate}>
+      <Link
+        href={localizedHref('/cart')}
+        className={`nav-link ${routePath === '/cart' ? 'active' : ''}`}
+        onClick={onNavigate}
+      >
         <ShoppingCart size={18} />
         <span>{t('nav_cart', 'Cart')}</span>
         {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}

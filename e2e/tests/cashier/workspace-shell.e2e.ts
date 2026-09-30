@@ -6,10 +6,10 @@ import { test, expect } from '../../fixtures/cashierUser';
  * What is E2E and not unit: the shell is composed across app-router layout, the internal app
  * layout (header/footer suppression) and the workspace queue — three layers whose interaction
  * is the feature. The unit suite mocks the route; only a real render proves the cashier lands
- * on a working workspace at `/cashier/orders`.
+ * on a working workspace at `/en/cashier/orders`.
  *
  * Asserts:
- *   1. `/cashier/orders` renders the Orders destination (h1) — the nav link's landing target.
+ *   1. `/en/cashier/orders` renders the Orders destination (h1) — the nav link's landing target.
  *   2. The public footer is NOT rendered on workspace routes (plan §5.2: no public chrome in POS).
  *   3. The seeded operational order is listed and selecting it opens its ticket (selection survives).
  *   4. The workspace nav offers the shipped destinations only (Orders, History, Tables — no
@@ -26,8 +26,8 @@ test('the cashier lands on a working Orders workspace', async ({ cashierUser, br
   const page = await context.newPage();
 
   try {
-    await page.goto('/cashier/orders');
-    await expect(page).toHaveURL(/\/cashier\/orders/, { timeout: 15_000 });
+    await page.goto('/en/cashier/orders');
+    await expect(page).toHaveURL(/\/en\/cashier\/orders/, { timeout: 15_000 });
 
     // The destination heading proves the workspace shell rendered, not the legacy page.
     await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeVisible({ timeout: 15_000 });

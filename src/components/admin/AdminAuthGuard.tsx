@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useAuth } from '@/components/AuthContext';
 
 interface AdminAuthGuardProps {
@@ -15,23 +15,23 @@ interface AdminAuthGuardProps {
  */
 export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, requiredRoles = ['Admin', 'Staff'] }) => {
   const { user, isLoading } = useAuth();
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
     // Redirect if not authenticated
     if (!user) {
-      router.push('/');
+      push('/');
       return;
     }
 
     // Redirect if user doesn't have required role
     if (!requiredRoles.includes(user.role)) {
-      router.push('/');
+      push('/');
       return;
     }
-  }, [user, isLoading, router, requiredRoles]);
+  }, [user, isLoading, push, requiredRoles]);
 
   // Show loading state while checking authentication
   if (isLoading) {

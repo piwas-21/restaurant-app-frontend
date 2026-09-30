@@ -33,7 +33,7 @@ function card(page: Page, productName: string) {
 }
 
 async function gotoMenu(page: Page) {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
   // The grid is what every assertion reads; waiting on it avoids racing the products fetch.
   await expect(page.getByRole('list').first()).toBeVisible({ timeout: 30_000 });
 }

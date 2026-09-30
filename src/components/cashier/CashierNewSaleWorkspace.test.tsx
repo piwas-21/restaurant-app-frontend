@@ -15,7 +15,11 @@ jest.mock('@/hooks/cashier/useCashierOrderRoute', () => ({
   useCashierOrderRoute: () => ({ navigateToCollection: jest.fn() }),
 }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
-jest.mock('next/navigation', () => ({ usePathname: () => '/cashier/new' }));
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => '/cashier/new',
+}));
 jest.mock('@/components/ThemeContext', () => ({ useTheme: () => ({ theme: 'light' }) }));
 jest.mock('@/components/LanguageSwitcher', () => ({
   __esModule: true,

@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, Clock, Home, Loader2, Receipt } from 'lucide-react';
 import ConfirmationSuccessHeader from '@/app/checkout/confirmation/ConfirmationSuccessHeader';
 import type { CheckoutReturn } from '@/hooks/checkout/useCheckoutReturn';
 import styles from '@/app/styles/ConfirmationPage.module.css';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
+import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
 /**
  * What the diner sees on the way back from Stripe (SOFRA-PAYMENTS-PLAN §5 S9).
@@ -26,10 +27,11 @@ export default function CheckoutReturnPanel({
   orderId,
 }: Readonly<CheckoutReturn & { orderId: string | null }>) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
+  const { pushMenu } = useTenantPublicNavigation();
 
   const backToMenu = (
-    <button type="button" onClick={() => router.push('/menu')} className={styles.menuButton}>
+    <button type="button" onClick={pushMenu} className={styles.menuButton}>
       <Home size={20} />
       {t('back_to_menu', 'Back to Menu')}
     </button>
@@ -58,7 +60,7 @@ export default function CheckoutReturnPanel({
             <button
               type="button"
               onClick={() =>
-                router.push(
+                push(
                   `/checkout/confirmation?orderId=${encodeURIComponent(orderId ?? '')}&orderNumber=${encodeURIComponent(settlement.orderNumber)}`,
                 )
               }

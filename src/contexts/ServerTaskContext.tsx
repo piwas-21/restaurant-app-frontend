@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { useServerTaskCount, type ServerTaskCountState } from '@/hooks/serverWorkspace/useServerTasks';
+import { appPathname } from '@/lib/tenantLocaleRouting';
 
 const DEFAULT_SUMMARY: ServerTaskCountState = {
   count: 0,
@@ -15,7 +16,7 @@ const ServerTaskContext = createContext<ServerTaskCountState>(DEFAULT_SUMMARY);
 
 export function ServerTaskSummaryProvider({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
-  const summary = useServerTaskCount(pathname !== '/server/tasks');
+  const summary = useServerTaskCount(appPathname(pathname) !== '/server/tasks');
   return <ServerTaskContext.Provider value={summary}>{children}</ServerTaskContext.Provider>;
 }
 

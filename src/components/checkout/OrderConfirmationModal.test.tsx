@@ -10,6 +10,8 @@ jest.mock('@/hooks/checkout/useGuestOrderWatch', () => ({
 }));
 
 jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: jest.fn() }),
 }));
 

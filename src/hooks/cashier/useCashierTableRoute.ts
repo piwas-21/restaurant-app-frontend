@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { CASHIER_TABLES_PATH } from '@/lib/cashierWorkspace';
 
 /** URL-owned table selection; browser Back returns to the map/list without losing its place. */

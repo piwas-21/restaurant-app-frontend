@@ -1,0 +1,9 @@
+.fallbackButton.fallbackButton {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.fallbackButton.fallbackButton:hover:not(:disabled) {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}

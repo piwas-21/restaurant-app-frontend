@@ -1,4 +1,5 @@
 import { isSupportedPublicLocale } from './publicDiscoveryConfig';
+import { tenantLocaleFromPathname } from './tenantLocaleRouting';
 
 export type PublicRouteSurface = 'home' | 'menu';
 
@@ -45,8 +46,8 @@ export function publicRouteLocation(pathname: string | null): PublicRouteLocatio
 
 /** Keep tenant public navigation inside the active locale and preserve safe QR/table context. */
 export function publicHomeHref(pathname: string | null, current: URLSearchParams | { toString(): string }): string {
-  const route = publicRouteLocation(pathname);
-  return route ? publicLocaleHref(route.locale, 'home', current) : '/';
+  const locale = tenantLocaleFromPathname(pathname);
+  return locale ? publicLocaleHref(locale, 'home', current) : '/';
 }
 
 export function isHomeRoutePathname(pathname: string | null): boolean {

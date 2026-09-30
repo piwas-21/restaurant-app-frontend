@@ -3,9 +3,9 @@
 import React from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import { useTheme } from '@/components/ThemeContext';
 import { useAuth } from '@/components/AuthContext';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { googleLogin } from '@/services/authService';
 import toast from 'react-hot-toast';
 import defaultStyles from './SocialLoginButtons.module.css';
@@ -19,7 +19,7 @@ interface SocialLoginButtonsProps {
 
 export default function SocialLoginButtons({ styles = defaultStyles }: Readonly<SocialLoginButtonsProps>) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
   const { login } = useAuth();
   const { theme } = useTheme();
 
@@ -34,22 +34,22 @@ export default function SocialLoginButtons({ styles = defaultStyles }: Readonly<
           const userRole = response.data.role.toLowerCase();
           switch (userRole) {
             case 'admin':
-              router.push('/admin/dashboard');
+              push('/admin/dashboard');
               break;
             case 'customer':
-              router.push('/account');
+              push('/account');
               break;
             case 'cashier':
-              router.push('/cashier/orders');
+              push('/cashier/orders');
               break;
             case 'kitchen-staff':
-              router.push('/kitchen-staff');
+              push('/kitchen-staff');
               break;
             case 'server':
-              router.push('/server');
+              push('/server');
               break;
             default:
-              router.push('/');
+              push('/');
               break;
           }
         } else {

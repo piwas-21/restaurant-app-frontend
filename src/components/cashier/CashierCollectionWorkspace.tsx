@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
 import CashierWorkspaceShell from './CashierWorkspaceShell';

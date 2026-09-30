@@ -7,23 +7,34 @@ that a restaurant has translated its catalogue into ten languages.
 
 ## Route and indexability matrix
 
-| Surface                                                           | Behavior                                                                                      | Discovery policy                                  |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `/`, `/menu`                                                      | Redirect to the configured public default, preserving safe context and supported menu queries | No independent sitemap entry                      |
-| `/{locale}`                                                       | Server-rendered home, profile, landing overrides and hours; classic/craft preserved           | Index only audited home equivalents               |
-| `/{locale}/menu`                                                  | Server menu snapshot followed by existing guest ordering controls                             | Index only complete audited catalogue equivalents |
-| Menu pagination                                                   | Bounded product/offer and bundle pages with crawlable links                                   | Canonical page queries and reciprocal equivalents |
-| `/scan` and printed QR links                                      | Existing table/session flow; configured default-locale menu handoff                           | Outside the indexable cluster                     |
-| Reservations, legal and other unprefixed guest pages              | Existing routes and preference behavior                                                       | Outside the home/menu cluster; default noindex    |
-| Cart, checkout, account, auth callbacks, orders, staff/admin, API | Existing operational routes                                                                   | Absent from sitemap; default noindex              |
-| Demo/staging/unconfigured images                                  | Public routes remain usable                                                                   | Noindex, empty sitemap, robots disallow all       |
+| Surface                                                                 | Behavior                                                                                             | Discovery policy                                  |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `/` and other known bare UI routes                                      | Redirect to the saved locale, negotiated browser locale or configured fallback; preserve route state | Bare redirect only; no independent sitemap entry  |
+| `/{locale}`                                                             | Server-rendered home, profile, landing overrides and hours; classic/craft preserved                  | Index only audited home equivalents               |
+| `/{locale}/menu`                                                        | Server menu snapshot followed by existing guest ordering controls                                    | Index only complete audited catalogue equivalents |
+| `/{locale}/...` private UI routes                                       | Localized auth, cart, reservation, checkout, account and staff/admin screens                         | Noindex; excluded from sitemap and robots crawl   |
+| Menu pagination                                                         | Bounded product/offer and bundle pages with crawlable links                                          | Canonical page queries and reciprocal equivalents |
+| `/scan` and printed QR links                                            | Legacy paths redirect to the selected locale and retain QR/table/session context                     | Outside the indexable cluster                     |
+| Reservations, legal, cart, checkout, account, auth, orders, staff/admin | Locale-prefixed UI paths preserve the active language through navigation and return flows            | Absent from sitemap; noindex                      |
+| API, callbacks, assets                                                  | Existing non-UI paths remain unprefixed                                                              | Outside locale routing                            |
+| Demo/staging/unconfigured images                                        | Public routes remain usable                                                                          | Noindex, empty sitemap, robots disallow all       |
 
 Tabbed category-filtered offer-family routes preserve `categoryId` and `page` through reload and browser history. They have a canonical for that filtered view and `noindex,follow`; they add no alternate or sitemap entry. Selecting the aggregate view clears the category filter.
 
-The root layout owns the only `<html>` element. Middleware overwrites its internal locale header
-from a supported public path, so request headers cannot spoof it. Arabic has `dir="rtl"` in the
-initial response. Explicit public paths override account preferences, localStorage and browser
-language. `DocumentLanguage` observes client navigation and back/forward changes as well.
+The root layout owns the only `<html>` element and the only provider tree, so locale navigation
+does not remount cart, checkout, session or authentication state. All tenant UI pages use a
+physical `/{locale}/...` route. Middleware overwrites its internal locale header from a supported
+path, so request headers cannot spoof it. Arabic has `dir="rtl"` in the initial response.
+
+Locale priority is explicit URL, the versioned essential preference cookie `tenant_locale_v1`,
+weighted `Accept-Language`, then the tenant public default. The detector-managed legacy
+`i18nextLng` value is not treated as a manual choice because an earlier tenant default may have
+populated it. Only bare known UI paths negotiate and redirect; those responses are private,
+uncached and vary on `Accept-Language` and `Cookie`. A URL-prefixed route is deterministic and
+does not vary on request headers. User selection and the settled route keep the preference cookie
+and i18next state aligned; storage refusal leaves URL routing functional. `DocumentLanguage`
+observes client navigation and back/forward changes too. API requests use the active URL locale,
+then the versioned preference cookie; server-rendered API requests do not guess a visitor locale.
 
 ## Build policy and canonical hosts
 
@@ -100,8 +111,9 @@ must reconcile the new snapshot without replacing those shared providers.
 
 `Restaurant` JSON-LD uses the public restaurant record: name, address, active phone, coordinates
 when supplied, canonical/menu URLs and valid active opening windows. It invents no ratings, cuisine,
-reviews or offers. Missing data stays absent. The manifest starts at the public default and retains
-root scope; the existing service worker is network-only and provides no offline menu cache.
+reviews or offers. Missing data stays absent. The manifest starts at `/`, allowing its launch to use
+the same locale negotiation as a bare UI visit, and retains root scope; the existing service worker
+is network-only and provides no offline menu cache.
 
 ## Release verification
 

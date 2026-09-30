@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { ShoppingBag, Edit } from 'lucide-react';
 import Image from 'next/image';
 import { CartItem } from '@/components/cart/cartTypes';
@@ -26,7 +26,7 @@ interface OrderItemsListProps {
 export default function OrderItemsList({ items, formatPrice, styles = defaultStyles }: Readonly<OrderItemsListProps>) {
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
-  const router = useRouter();
+  const router = useTenantLocaleRouter();
 
   return (
     <section className={styles.section}>

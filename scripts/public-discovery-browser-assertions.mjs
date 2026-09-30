@@ -65,6 +65,25 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
       await assertPublicPageFitsViewport(page, locale, 820);
     }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
+    await assertPublicPageFitsViewport(page, 'fr', 1280);
+    const exactBreakpointMenu = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
+    const exactBreakpointToggle = page.locator('header button[class*="hamburger"]');
+    assert.equal(await exactBreakpointMenu.isVisible(), false, 'At 1280px public navigation starts collapsed');
+    assert.equal(await exactBreakpointToggle.isVisible(), true, 'At 1280px the public drawer toggle is visible');
+    await page.addStyleTag({ path: path.join(root, 'e2e/screenshots/screenshot.css') });
+    const fullPageHome = await page.screenshot({ fullPage: true });
+    assert.equal(
+      fullPageHome.readUInt32BE(16),
+      1280,
+      'The exact-breakpoint home full-page capture stays at the viewport width',
+    );
+    await exactBreakpointToggle.click();
+    assert.equal(await exactBreakpointMenu.isVisible(), true, 'The exact-breakpoint drawer exposes public links');
+    await exactBreakpointMenu.click();
+    await page.waitForURL('**/fr/menu');
+    await assertMenuFitsViewport(page, 'fr', 1280);
     await page.setViewportSize({ width: 1281, height: 900 });
     await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
     await assertMenuFitsViewport(page, 'fr', 1281);

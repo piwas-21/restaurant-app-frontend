@@ -291,8 +291,9 @@
   opacity: 1;
 }
 
-/* Desktop specific styles */
-@media (min-width: 1025px) {
+/* Desktop customer navigation. Keep this separate from the admin shell's 1025px breakpoint:
+   tablet-width customers use the public drawer through 1280px. */
+@media (min-width: 1281px) {
   .navLinksContainer {
     display: flex !important;
     flex-direction: row !important;
@@ -314,7 +315,10 @@
     align-items: center;
     gap: 0.5rem;
   }
+}
 
+/* Desktop admin shell behavior is independent of the customer header breakpoint. */
+@media (min-width: 1025px) {
   .adminSidebarToggleFloating {
     display: none !important;
   }

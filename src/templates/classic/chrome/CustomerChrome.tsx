@@ -59,6 +59,11 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
   const preferDarkLogo = theme === 'dark' || useDarkLogoOnHome;
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  const navigationClassName = [
+    navStyles.navLinksContainer,
+    publicHeaderStyles.navLinksContainer,
+    ...(mobileMenuOpen ? [navStyles.mobileMenuOpen, publicHeaderStyles.navLinksOpen] : []),
+  ].join(' ');
 
   const headerStyles: CSSProperties = {
     padding: '0 1rem',
@@ -140,9 +145,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                 onClick={closeMobileMenu}
                 aria-hidden="true"
               />
-              <nav
-                className={`${navStyles.navLinksContainer} ${publicHeaderStyles.navLinksContainer} ${mobileMenuOpen ? `${navStyles.mobileMenuOpen} ${publicHeaderStyles.navLinksOpen}` : ''}`}
-              >
+              <nav className={navigationClassName}>
                 <RoleNavLinks onNavigate={closeMobileMenu} />
                 <InstallAppMenuEntry onActivate={closeMobileMenu} />
                 {isClient &&

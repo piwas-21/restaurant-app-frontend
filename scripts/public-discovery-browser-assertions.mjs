@@ -10,13 +10,31 @@ import {
 
 async function openPublicNavigation(page) {
   const menuLink = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
-  if (await menuLink.isVisible()) return menuLink;
+  if (!(await menuLink.isVisible())) {
+    const hamburger = page.locator('header button[class*="hamburger"]');
+    assert.equal(await hamburger.count(), 1, 'Responsive customer header exposes its navigation toggle');
+    await hamburger.click();
+    await menuLink.waitFor({ state: 'visible' });
+  }
+}
 
-  const hamburger = page.locator('header button[class*="hamburger"]');
-  assert.equal(await hamburger.count(), 1, 'Responsive customer header exposes its navigation toggle');
-  await hamburger.click();
-  await menuLink.waitFor({ state: 'visible' });
-  return menuLink;
+async function assertPublicHomeAtViewport(page, origin, locale, width) {
+  await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
+  await assertPublicPageFitsViewport(page, locale, width);
+}
+
+async function assertPublicMenuAtViewport(page, origin, locale, width) {
+  await page.goto(`${origin}/${locale}/menu`, { waitUntil: 'networkidle' });
+  await assertMenuFitsViewport(page, locale, width);
+}
+
+async function assertAdminNavigationAtWidth(page, menuLink, width) {
+  await page.setViewportSize({ width, height: 768 });
+  assert.equal(
+    await menuLink.isVisible(),
+    true,
+    `Admin desktop navigation remains visible at ${width}px without a drawer toggle`,
+  );
 }
 
 export async function browserContract(origin, { root, template, indexing, apiOrigin }) {
@@ -46,7 +64,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       await page.locator('header button[class*="Header_hamburgerMenu"]').count(),
       template === 'classic' ? 1 : 0,
     );
-    await (await openPublicNavigation(page)).click();
+    await openPublicNavigation(page);
+    await page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first().click();
     await page.waitForURL('**/fr/menu');
     await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
@@ -65,10 +84,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
     assert.doesNotMatch(await page.locator('body').innerText(), /Plat français 205/);
     await page.setViewportSize({ width: 820, height: 1180 });
-    for (const locale of ['fr', 'ar']) {
-      await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
-      await assertPublicPageFitsViewport(page, locale, 820);
-    }
+    await assertPublicHomeAtViewport(page, origin, 'fr', 820);
+    await assertPublicHomeAtViewport(page, origin, 'ar', 820);
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
     await assertPublicPageFitsViewport(page, 'fr', 1280);
@@ -98,10 +115,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       'Desktop navigation remains visible just above the tablet collapse breakpoint',
     );
     await page.setViewportSize({ width: 820, height: 1180 });
-    for (const locale of ['fr', 'ar']) {
-      await page.goto(`${origin}/${locale}/menu`, { waitUntil: 'networkidle' });
-      await assertMenuFitsViewport(page, locale, 820);
-    }
+    await assertPublicMenuAtViewport(page, origin, 'fr', 820);
+    await assertPublicMenuAtViewport(page, origin, 'ar', 820);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${origin}/ar/menu`, { waitUntil: 'networkidle' });
     await assertCategoryRailCanScroll(page);
@@ -176,14 +191,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     const adminMenuLink = adminPage.locator('header nav a[href="/menu"]');
     await adminMenuLink.waitFor({ state: 'visible' });
     assert.equal(await adminPage.locator('header button[class*="hamburger"]').count(), 0);
-    for (const width of [1024, 1280]) {
-      await adminPage.setViewportSize({ width, height: 768 });
-      assert.equal(
-        await adminMenuLink.isVisible(),
-        true,
-        `Admin desktop navigation remains visible at ${width}px without a drawer toggle`,
-      );
-    }
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1024);
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1280);
     await adminContext.close();
   } finally {
     await browser.close();

@@ -2,6 +2,40 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { CATEGORY_ID } from './public-discovery-fixture.mjs';
+import {
+  assertCategoryRailCanScroll,
+  assertMenuFitsViewport,
+  assertPublicPageFitsViewport,
+} from './public-discovery-menu-layout-assertions.mjs';
+
+async function openPublicNavigation(page) {
+  const menuLink = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
+  if (!(await menuLink.isVisible())) {
+    const hamburger = page.locator('header button[class*="hamburger"]');
+    assert.equal(await hamburger.count(), 1, 'Responsive customer header exposes its navigation toggle');
+    await hamburger.click();
+    await menuLink.waitFor({ state: 'visible' });
+  }
+}
+
+async function assertPublicHomeAtViewport(page, origin, locale, width) {
+  await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
+  await assertPublicPageFitsViewport(page, locale, width);
+}
+
+async function assertPublicMenuAtViewport(page, origin, locale, width) {
+  await page.goto(`${origin}/${locale}/menu`, { waitUntil: 'networkidle' });
+  await assertMenuFitsViewport(page, locale, width);
+}
+
+async function assertAdminNavigationAtWidth(page, menuLink, width) {
+  await page.setViewportSize({ width, height: 768 });
+  assert.equal(
+    await menuLink.isVisible(),
+    true,
+    `Admin desktop navigation remains visible at ${width}px without a drawer toggle`,
+  );
+}
 
 export async function browserContract(origin, { root, template, indexing, apiOrigin }) {
   const { chromium } = await import('@playwright/test');
@@ -13,6 +47,10 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       if (!localStorage.getItem('i18nextLng')) localStorage.setItem('i18nextLng', 'en');
     });
     const page = await context.newPage();
+    const qrValidations = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/api/Tables/validate-qr/')) qrValidations.push(request.url());
+    });
     const hydrationErrors = [];
     page.on('console', (message) => {
       if (/hydration|Minified React error #418|Text content does not match/i.test(message.text()))
@@ -26,7 +64,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       await page.locator('header button[class*="Header_hamburgerMenu"]').count(),
       template === 'classic' ? 1 : 0,
     );
-    await page.locator('a[href="/fr/menu"]').first().click();
+    await openPublicNavigation(page);
+    await page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first().click();
     await page.waitForURL('**/fr/menu');
     await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
@@ -44,6 +83,44 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.waitForURL('**/fr/menu');
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
     assert.doesNotMatch(await page.locator('body').innerText(), /Plat français 205/);
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await assertPublicHomeAtViewport(page, origin, 'fr', 820);
+    await assertPublicHomeAtViewport(page, origin, 'ar', 820);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(`${origin}/fr`, { waitUntil: 'networkidle' });
+    await assertPublicPageFitsViewport(page, 'fr', 1280);
+    const exactBreakpointMenu = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
+    const exactBreakpointToggle = page.locator('header button[class*="hamburger"]');
+    assert.equal(await exactBreakpointMenu.isVisible(), false, 'At 1280px public navigation starts collapsed');
+    assert.equal(await exactBreakpointToggle.isVisible(), true, 'At 1280px the public drawer toggle is visible');
+    await page.addStyleTag({ path: path.join(root, 'e2e/screenshots/screenshot.css') });
+    const fullPageHome = await page.screenshot({ fullPage: true });
+    assert.equal(
+      fullPageHome.readUInt32BE(16),
+      1280,
+      'The exact-breakpoint home full-page capture stays at the viewport width',
+    );
+    await exactBreakpointToggle.click();
+    assert.equal(await exactBreakpointMenu.isVisible(), true, 'The exact-breakpoint drawer exposes public links');
+    await exactBreakpointMenu.click();
+    await page.waitForURL('**/fr/menu');
+    await assertMenuFitsViewport(page, 'fr', 1280);
+    await page.setViewportSize({ width: 1281, height: 900 });
+    await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
+    await assertMenuFitsViewport(page, 'fr', 1281);
+    assert.equal(await page.locator('header nav a[href="/menu"]').first().isVisible(), true);
+    assert.equal(
+      await page.locator('header button[class*="hamburger"]').evaluate((button) => getComputedStyle(button).display),
+      'none',
+      'Desktop navigation remains visible just above the tablet collapse breakpoint',
+    );
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await assertPublicMenuAtViewport(page, origin, 'fr', 820);
+    await assertPublicMenuAtViewport(page, origin, 'ar', 820);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${origin}/ar/menu`, { waitUntil: 'networkidle' });
+    await assertCategoryRailCanScroll(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto(`${origin}/ar/menu`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar');
@@ -52,7 +129,33 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.goto(`${origin}/scan?qr=fixture-qr`);
     await page.waitForURL('**/fr/menu', { timeout: 20_000 });
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
-    await page.waitForLoadState('networkidle');
+    await page.waitForFunction((tableId) => {
+      try {
+        return JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId === tableId;
+      } catch {
+        return false;
+      }
+    }, CATEGORY_ID);
+    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.waitForTimeout(1_250);
+    assert.equal(
+      qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr')).length,
+      1,
+      'One QR scan validates once even as its table context updates',
+    );
+    assert.equal(
+      await page.evaluate(() => JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId),
+      CATEGORY_ID,
+    );
+    await page.goto(`${origin}/scan?qr=fixture-qr-next`);
+    await page.waitForURL('**/fr/menu', { timeout: 20_000 });
+    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.waitForTimeout(1_250);
+    assert.equal(
+      qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr-next')).length,
+      1,
+      'A changed QR token still validates on a later scan',
+    );
     assert.equal(
       await page.evaluate(() => JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId),
       CATEGORY_ID,
@@ -65,6 +168,32 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     });
     assert.deepEqual(hydrationErrors, [], 'Public first paint hydrates without language/text mismatches');
     await context.close();
+
+    const adminContext = await browser.newContext({ locale: 'en-US', viewport: { width: 1024, height: 768 } });
+    await isolateExternal(adminContext, origin, apiOrigin);
+    await adminContext.addInitScript(() => {
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          firstName: 'Fixture',
+          lastName: 'Admin',
+          email: 'admin@example.invalid',
+          role: 'Admin',
+          accessToken: 'fixture-token',
+        }),
+      );
+      localStorage.setItem('auth_token', 'fixture-token');
+      localStorage.setItem('refresh_token', 'fixture-refresh-token');
+    });
+    const adminPage = await adminContext.newPage();
+    await adminPage.route('**/api/Auth/refresh-token', (route) => route.fulfill({ status: 503, body: '' }));
+    await adminPage.goto(`${origin}/admin/dashboard`, { waitUntil: 'networkidle' });
+    const adminMenuLink = adminPage.locator('header nav a[href="/menu"]');
+    await adminMenuLink.waitFor({ state: 'visible' });
+    assert.equal(await adminPage.locator('header button[class*="hamburger"]').count(), 0);
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1024);
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1280);
+    await adminContext.close();
   } finally {
     await browser.close();
   }

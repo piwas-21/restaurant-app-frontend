@@ -37,6 +37,25 @@ const categories = [
     },
     isActive: true,
   },
+  ...Array.from({ length: 12 }, (_, index) => {
+    const suffix = String(index + 1).padStart(2, '0');
+    const name = `Spécialités régionales de la maison et grillades artisanales ${suffix}`;
+    const description = `Cuisine de saison et produits locaux ${suffix}`;
+    return {
+      id: `00000000-0000-4000-8000-${String(index + 2).padStart(12, '0')}`,
+      name,
+      description,
+      sourceLocale: 'fr',
+      translations: {
+        fr: { name, description },
+        en: {
+          name: `Regional house specialties and artisan grills ${suffix}`,
+          description: `Seasonal dishes and local produce ${suffix}`,
+        },
+      },
+      isActive: true,
+    };
+  }),
 ];
 const bundles = Array.from({ length: 205 }, (_, index) => ({
   id: `20000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,

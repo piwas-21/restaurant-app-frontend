@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { useRef } from 'react';
 import { TableContextProvider, useTableContext } from './TableContext';
 
 const STORAGE_KEY = 'rumi_table_context';
@@ -12,6 +13,21 @@ function Probe() {
       <span data-testid="qrScanned">{String(tableContext.qrScanned)}</span>
       <span data-testid="isOutdoor">{String(tableContext.isOutdoor)}</span>
       <span data-testid="has">{String(hasTableContext)}</span>
+    </div>
+  );
+}
+
+function StableCallbackProbe() {
+  const { tableContext, setTableContext } = useTableContext();
+  const previousSetter = useRef(setTableContext);
+  const isStable = previousSetter.current === setTableContext;
+  previousSetter.current = setTableContext;
+
+  return (
+    <div>
+      <span data-testid="callback-stable">{String(isStable)}</span>
+      <span data-testid="tableId">{String(tableContext.tableId)}</span>
+      <button onClick={() => setTableContext({ tableId: 't2', tableNumber: '2', qrScanned: true })}>scan</button>
     </div>
   );
 }
@@ -77,5 +93,19 @@ describe('TableContext — what survives a bad stored value', () => {
     expect(screen.getByTestId('qrScanned')).toHaveTextContent('true');
     expect(screen.getByTestId('isOutdoor')).toHaveTextContent('true');
     expect(screen.getByTestId('has')).toHaveTextContent('true');
+  });
+
+  it('keeps the scan setter stable as it writes table state', () => {
+    sessionStorage.clear();
+    render(
+      <TableContextProvider>
+        <StableCallbackProbe />
+      </TableContextProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'scan' }));
+
+    expect(screen.getByTestId('tableId')).toHaveTextContent('t2');
+    expect(screen.getByTestId('callback-stable')).toHaveTextContent('true');
   });
 });

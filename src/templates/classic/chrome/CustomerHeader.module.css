@@ -1,0 +1,97 @@
+/* Tablet drawer behavior belongs only to the public customer header. The shared Header.module.css
+   is also used by admin chrome, whose desktop navigation remains visible above 768px. */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .publicHeader .navLinksContainer {
+    display: none !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    top: var(--app-header-height);
+    inset-inline-end: 0;
+    width: 280px;
+    max-width: 80vw;
+    height: calc(100vh - var(--app-header-height));
+    background-color: var(--background-color) !important;
+    border: none !important;
+    border-inline-start: 1px solid var(--border-color) !important;
+    padding: 1rem 0 !important;
+    z-index: 1100;
+    box-shadow: calc(var(--dir) * -4px) 0 12px rgba(0, 0, 0, 0.15) !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+    overflow-y: auto;
+    transform: translateX(calc(var(--dir) * 100%));
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .publicHeader .navLinksOpen {
+    display: flex !important;
+    transform: translateX(0);
+  }
+
+  .publicHeader .navLinksOpen > *,
+  .publicHeader .navLinksOpen :global(.nav-link) {
+    padding: 0.75rem 1.5rem;
+    width: 100%;
+    text-align: start;
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+  }
+
+  .publicHeader .navLinksOpen > *:last-child,
+  .publicHeader .navLinksOpen :global(.nav-link:last-of-type) {
+    border-bottom: none;
+  }
+
+  .publicHeader .navLinksOpen .switcherGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    width: 100%;
+    border-bottom: none;
+  }
+
+  .publicHeader .navLinksOpen .switcherGroup > * {
+    width: 100%;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .publicHeader .navLinksOpen .switcherGroup button {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .publicHeader .navLinksOpen .switcherGroup > *:last-child,
+  .publicHeader .navLinksOpen .switcherGroup:last-child {
+    border-bottom: none;
+  }
+
+  .publicHeader .navLinksOpen :global([class*='cartBadge']) {
+    position: relative;
+    top: 0;
+    inset-inline-end: 0;
+    margin-inline-start: 0.5rem;
+    transform: none;
+  }
+
+  .publicHeader .hamburgerMenu {
+    display: block !important;
+  }
+
+  .publicHeader .switcherGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  [data-theme='dark'] .publicHeader .navLinksOpen {
+    background-color: var(--secondary-color) !important;
+    border-top-color: var(--border-color);
+  }
+
+  [data-theme='dark'] .publicHeader .navLinksOpen > *,
+  [data-theme='dark'] .publicHeader .navLinksOpen :global(.nav-link),
+  [data-theme='dark'] .publicHeader .navLinksOpen .switcherGroup {
+    border-bottom-color: var(--border-color);
+  }
+}

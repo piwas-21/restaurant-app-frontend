@@ -48,6 +48,7 @@ const pageTwo: CatalogOfferFamilyResponse = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  window.history.replaceState({}, '', '/');
   mockOrderType.mockReturnValue({ state: { orderType: null }, hydrated: true });
   mockGetCatalogOfferFamilies.mockResolvedValue(pageOne);
 });
@@ -92,6 +93,26 @@ describe('usePublicOfferFamilies — bounded guest pagination', () => {
     });
   });
 
+  it('keeps category-offer pagination in the URL and restores it on browser history navigation', async () => {
+    window.history.replaceState({}, '', '/fr/menu?qr=table-token');
+    mockGetCatalogOfferFamilies
+      .mockResolvedValueOnce(pageOne)
+      .mockResolvedValueOnce(pageTwo)
+      .mockResolvedValueOnce(pageOne);
+    const { result } = renderHook(() => usePublicOfferFamilies(true));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-one'));
+
+    await act(async () => result.current.onPageChange(2));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-two'));
+    expect(window.location.pathname + window.location.search).toBe('/fr/menu?qr=table-token&page=2');
+
+    // A browser back event restores the prior address before listeners fetch that page again.
+    window.history.replaceState({}, '', '/fr/menu?qr=table-token');
+    await act(async () => window.dispatchEvent(new PopStateEvent('popstate')));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-one'));
+    expect(result.current.currentPage).toBe(1);
+  });
+
   it('ignores page requests outside the server-reported range', async () => {
     const { result } = renderHook(() => usePublicOfferFamilies(true));
     await waitFor(() => expect(result.current.families).toHaveLength(1));
@@ -116,5 +137,26 @@ describe('usePublicOfferFamilies — bounded guest pagination', () => {
       requestedOrderType: null,
       signal: expect.any(AbortSignal),
     });
+  });
+
+  it('preserves a selected category through offer pagination and browser history', async () => {
+    window.history.replaceState({}, '', '/fr/menu?qr=table-token&categoryId=cat-main');
+    mockGetCatalogOfferFamilies
+      .mockResolvedValueOnce(pageOne)
+      .mockResolvedValueOnce(pageTwo)
+      .mockResolvedValueOnce(pageOne);
+    const { result } = renderHook(() => usePublicOfferFamilies(true, 'cat-main'));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-one'));
+
+    await act(async () => result.current.onPageChange(2));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-two'));
+    expect(window.location.pathname + window.location.search).toBe(
+      '/fr/menu?qr=table-token&page=2&categoryId=cat-main',
+    );
+
+    window.history.replaceState({}, '', '/fr/menu?qr=table-token&categoryId=cat-main');
+    await act(async () => window.dispatchEvent(new PopStateEvent('popstate')));
+    await waitFor(() => expect(result.current.families[0]?.id).toBe('family-one'));
+    expect(result.current.currentPage).toBe(1);
   });
 });

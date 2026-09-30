@@ -6,9 +6,10 @@
 // the build output, needs no running server and no backend, adds no deps.
 //
 // Metric: for each route, sum the gzipped bytes of every JS chunk the App
-// Router loads for its first paint (from .next/app-build-manifest.json).
-// This reproduces Next's printed "First Load JS" within ~2% and is stable
-// across machines because SWC minification + zlib are both deterministic.
+// Router loads for its first paint: the page and every inherited layout,
+// deduplicated across .next/app-build-manifest.json entries. Page entries
+// alone can omit shared layout chunks or gain them after chunk relocation.
+// SWC minification + zlib make this stable across machines.
 //
 // The baseline is STICKY: a passing PR does not move it, so N small PRs each
 // +9% still trip the gate on the second one (cumulative drift is measured
@@ -30,6 +31,7 @@
 // Requires a prior `npm run build` (reads .next/). Exit 0 = within budget.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
+import { firstLoadJavaScript } from './bundle-size-metric.mjs';
 
 const NEXT_DIR = new URL('../.next/', import.meta.url);
 const MANIFEST = new URL('app-build-manifest.json', NEXT_DIR).pathname;
@@ -62,9 +64,9 @@ if (!existsSync(MANIFEST)) {
 
 const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'));
 const current = {};
-for (const [key, files] of Object.entries(manifest.pages)) {
+for (const key of Object.keys(manifest.pages)) {
   const route = toRoute(key);
-  if (route) current[route] = firstLoadJsKb(files);
+  if (route) current[route] = firstLoadJsKb(firstLoadJavaScript(manifest.pages, key));
 }
 
 const update = process.argv.includes('--update');

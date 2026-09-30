@@ -21,7 +21,7 @@ import { join } from 'node:path';
  * ⚠️ Known limit: this is text, not layout. It cannot catch someone reintroducing a misalignment a
  * different way. It catches the regressions that actually happened.
  */
-const SOURCE = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
+const SOURCE = readFileSync(join(__dirname, 'MenuClientPage.tsx'), 'utf8');
 const LAYOUT = readFileSync(join(__dirname, '../../components/menu/MenuCatalogLayout.tsx'), 'utf8');
 // The overlays (customization sheets + basket slide-over + follow-up modals) moved out of the
 // page when it grew the one-page layout branch — they are shared by both layouts verbatim.

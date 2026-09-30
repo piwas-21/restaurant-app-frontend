@@ -90,7 +90,7 @@ export default function MenuItemImage({
           onError={onError}
         />
         {badge}
-        {imageCount && imageCount > 1 && (
+        {(imageCount ?? 0) > 1 && (
           <span className={styles.imageCount}>
             {imageCount} {countLabel}
           </span>

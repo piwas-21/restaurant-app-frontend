@@ -17,6 +17,8 @@ import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 import styles from './CraftMenuCard.module.css';
 // The notice's own look, shared with `CraftFeaturedSpecial` — see that module's header.
 import availabilityStyles from './CraftItemAvailability.module.css';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
+import { resolvePublicLocalizedText } from '@/utils/publicLocalizedText';
 
 /**
  * Craft's browse-grid card (S15 T4 surface slot). A hand-lettered menu-board entry — a letterpress
@@ -60,9 +62,11 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
   const [price, setPrice] = useState(item.price);
   useEffect(() => setPrice(item.price), [item.price]);
 
-  const lang = (i18n.language || 'en').split('-')[0];
-  const itemName = item.content?.[lang]?.name || item.content?.en?.name || item.name;
-  const description = item.content?.[lang]?.description || item.content?.en?.description || item.description;
+  const { name: itemName, description } = resolvePublicLocalizedText(
+    item,
+    i18n.resolvedLanguage || i18n.language || TENANT_PUBLIC_CONFIG.defaultLocale,
+    TENANT_PUBLIC_CONFIG.defaultLocale,
+  );
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
   // Add to Order adds a simple item straight to the cart; title/Details always open the sheet to
   // view the item (parity with the classic card).

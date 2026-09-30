@@ -7,6 +7,8 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { matchesFilters } from '@/hooks/menu/useMenuFilters';
 import type { CatalogOfferFamily, CatalogOfferTarget } from '@/types/menu/offerFamily';
 import { anchorTargetForFamily } from '@/utils/offerFamily';
+import { resolvePublicLocalizedText } from '@/utils/publicLocalizedText';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 import styles from './OfferFamilyChoiceModal.module.css';
 
 const EMPTY_VARIATIONS: NonNullable<CatalogOfferFamily['variationOptions']> = [];
@@ -41,9 +43,13 @@ export default function OfferFamilyChoiceModal({
   const { t, i18n } = useTranslation();
   const [variationId, setVariationId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState('');
-  const language = (i18n.language || 'en').split('-')[0];
-  const familyTitle =
-    family?.anchor.content?.[language]?.name || family?.anchor.content?.en?.name || family?.anchor.name || '';
+  const familyTitle = family
+    ? resolvePublicLocalizedText(
+        family.anchor,
+        i18n.resolvedLanguage || i18n.language || TENANT_PUBLIC_CONFIG.defaultLocale,
+        TENANT_PUBLIC_CONFIG.defaultLocale,
+      ).name
+    : '';
 
   const anchorTarget = useMemo<CatalogOfferTarget | null>(
     () => (family ? anchorTargetForFamily(family) : null),

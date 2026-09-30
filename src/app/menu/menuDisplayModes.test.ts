@@ -24,7 +24,7 @@ function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 }
 
-const SOURCE = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
+const SOURCE = readFileSync(join(__dirname, 'MenuClientPage.tsx'), 'utf8');
 const PAGE_SRC = withoutComments(SOURCE);
 const LAYOUT_SRC = withoutComments(
   readFileSync(join(__dirname, '../../components/menu/MenuCatalogLayout.tsx'), 'utf8'),
@@ -34,7 +34,7 @@ const SETTINGS_HOOK = withoutComments(readFileSync(join(__dirname, '../../hooks/
 
 describe('the menu-display layout branch', () => {
   it('reads the tenant settings and gates the one-page body on the onepage value only', () => {
-    expect(SOURCE).toContain('useMenuDisplaySettings()');
+    expect(SOURCE).toContain('useMenuDisplaySettings(initialSnapshot.restaurantInfo ?? undefined)');
     expect(SOURCE).toContain("displaySettings.menuLayout === 'onepage'");
     // Anything else — absent field, `tabs`, a read still in flight — is tabs.
     expect(SETTINGS_HOOK).toContain("? 'onepage' : 'tabs'");
@@ -52,8 +52,10 @@ describe('the menu-display layout branch', () => {
   });
 
   it('stands legacy item pipelines down while the selected aggregate path owns the page', () => {
-    expect(PAGE_SRC).toContain('usePublicMenu(!isOnePage && !isCategoryOffers)');
-    expect(PAGE_SRC).toContain('useOnePageMenu(isOnePage && !isCategoryOffers)');
+    expect(PAGE_SRC).toContain(
+      'usePublicMenu(\n    !isOnePage && !isCategoryOffers,\n    initialSnapshot,\n    initialView,\n    supportsPublicCategoryFilter(isCategoryOffers, isOnePage),\n  )',
+    );
+    expect(PAGE_SRC).toContain('useOnePageMenu(isOnePage && !isCategoryOffers, initialSnapshot)');
   });
 
   it("keeps the layout controller's shared wiring behind the page's other gates", () => {

@@ -7,6 +7,16 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('MenuCardImage', () => {
+  it('hides a zero-image counter while keeping a real gallery count visible', () => {
+    const props = { imageUrl: 'hero.jpg', alt: 'Adana Kebab', enlargeLabel: 'Enlarge Adana Kebab image' };
+    const { rerender } = render(<MenuCardImage {...props} imageCount={0} countLabel="images" />);
+
+    expect(screen.queryByText('0', { exact: true })).not.toBeInTheDocument();
+
+    rerender(<MenuCardImage {...props} imageCount={2} countLabel="images" />);
+    expect(screen.getByText('2 images')).toBeInTheDocument();
+  });
+
   it('renders the thumbnail closed, then opens the gallery on image click', () => {
     render(
       <MenuCardImage

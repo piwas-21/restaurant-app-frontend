@@ -20,7 +20,7 @@ export interface ProductImageDto {
 
 export interface ProductContentEntryDto {
   name?: string;
-  description?: string;
+  description?: string | null;
   ingredient?: string;
 }
 
@@ -43,7 +43,7 @@ export interface ItemAvailabilityDto {
 export interface ProductDto {
   id: string;
   name?: string;
-  description?: string;
+  description?: string | null;
   imageUrl?: string;
   images?: ProductImageDto[];
   ingredients?: string[];
@@ -55,6 +55,13 @@ export interface ProductDto {
    */
   allergens?: string[] | null;
   content?: ProductContentDto;
+  /** Explicit when supplied by newer tenant catalogues; otherwise the configured public default is the audited source. */
+  sourceLocale?: string | null;
+  /** Additive public read field. The guest Products query excludes these rows by default. */
+  isComponent?: boolean;
+  /** Paged guest summaries expose names, while category IDs require a category-filtered query. */
+  categoryNames?: string[];
+  primaryCategoryName?: string | null;
   basePrice?: number | string;
   preparationTimeMinutes?: number;
   variations?: ProductVariationDto[];
@@ -70,9 +77,11 @@ export interface ProductDto {
 export interface MenuBundleDto {
   id: string;
   name?: string;
-  description?: string;
+  description?: string | null;
   basePrice?: number | string;
   content?: Record<string, { name: string; description: string }>;
+  /** Reserved for a future explicit source-language field; absent records use audited default policy. */
+  sourceLocale?: string | null;
   menuDefinition?: MenuDefinition;
   images?: ProductImageDto[];
   isActive?: boolean;
@@ -105,6 +114,8 @@ export interface PaginatedResponse<T> {
     items?: T[];
     totalPages?: number;
     totalCount?: number;
+    page?: number;
+    pageSize?: number;
   };
 }
 

@@ -34,6 +34,7 @@ export interface CatalogItem {
   /** Base name/description (fallbacks); the card resolves the localized value from `content`. */
   name: string;
   description?: string;
+  sourceLocale?: string | null;
   content?: Partial<Record<string, { name: string; description?: string }>>;
   imageUrl?: string;
   /** How many images the item has — the card badges the count. */

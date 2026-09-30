@@ -6,7 +6,7 @@ import i18n from '../i18n';
 import { CookieConsentProvider } from '@/components/CookieConsentContext';
 import { CartProvider } from '@/components/cart/CartContext';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AuthProvider } from '@/components/AuthContext';
 import { SessionProvider } from '@/contexts/SessionContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
@@ -26,15 +26,17 @@ import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
  */
 export default function ClientProviders({
   modules,
+  publicLocale,
   children,
-}: Readonly<{ modules: ModuleId[]; children: React.ReactNode }>) {
+}: Readonly<{ modules: ModuleId[]; publicLocale?: string; children: React.ReactNode }>) {
+  const publicI18n = useMemo(() => (publicLocale ? i18n.cloneInstance({ lng: publicLocale }) : i18n), [publicLocale]);
   return (
     <ModulesProvider modules={modules}>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
         <AuthProvider>
           <SessionProvider>
             <ThemeProvider>
-              <I18nextProvider i18n={i18n}>
+              <I18nextProvider i18n={publicI18n}>
                 {/* Inside the i18n provider (it reads the active language) and outside everything
                     else (it renders nothing and must run whatever the rest of the tree does). */}
                 <DocumentLanguage />

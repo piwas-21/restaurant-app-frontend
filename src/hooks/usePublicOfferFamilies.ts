@@ -6,6 +6,8 @@ import { getCatalogOfferFamilies } from '@/services/catalogService';
 import type { CatalogOfferFamily, CatalogOfferFamilyDto } from '@/types/menu/offerFamily';
 import { mapCatalogOfferFamilyDto } from '@/utils/offerFamily';
 import { errorMessage } from '@/hooks/publicMenu/pipeline';
+import type { PublicMenuClientData } from '@/types/publicDiscovery';
+import { currentPublicOfferPage, updatePublicOfferPageUrl } from './publicMenu/publicOfferFamilyUrl';
 
 // The current Catalog endpoint caps PageSize at 100. The guest path renders one server page at a
 // time so a growing tenant catalogue cannot be materialized into one browser request.
@@ -41,15 +43,16 @@ function readPage(response: Awaited<ReturnType<typeof getCatalogOfferFamilies>>)
 export function usePublicOfferFamilies(
   enabled: boolean,
   categoryId: string | null = null,
+  initialSnapshot?: PublicMenuClientData,
 ): UsePublicOfferFamiliesReturn {
   const { state: orderTypeState, hydrated: orderTypeHydrated } = useOrderType();
   const orderType = orderTypeState.orderType;
-  const [families, setFamilies] = useState<CatalogOfferFamily[]>([]);
+  const [families, setFamilies] = useState<CatalogOfferFamily[]>(initialSnapshot?.offerFamilies ?? []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(initialSnapshot?.offerPage.currentPage ?? 1);
+  const [totalPages, setTotalPages] = useState(initialSnapshot?.offerPage.totalPages ?? 1);
+  const [totalCount, setTotalCount] = useState(initialSnapshot?.offerPage.totalCount ?? 0);
   const requestId = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const currentPageRef = useRef(1);
@@ -91,6 +94,7 @@ export function usePublicOfferFamilies(
         );
         const resolvedPage = Math.min(Math.max(1, page.page ?? pageNumber), totalPageCount);
         const mappedFamilies = (page.items ?? []).map(mapCatalogOfferFamilyDto).filter(isFamily);
+        if (resolvedPage !== pageNumber) updatePublicOfferPageUrl(resolvedPage, false);
         currentPageRef.current = resolvedPage;
         totalPagesRef.current = totalPageCount;
         setFamilies(mappedFamilies);
@@ -116,15 +120,17 @@ export function usePublicOfferFamilies(
       setIsLoading(false);
       return;
     }
-    currentPageRef.current = 1;
-    totalPagesRef.current = 1;
-    void fetchFamilies(1, orderType);
+    const routePage = currentPublicOfferPage(categoryId);
+    const page = routePage ?? (currentPageRef.current === 1 ? (initialSnapshot?.offerPage.currentPage ?? 1) : 1);
+    currentPageRef.current = page;
+    totalPagesRef.current = initialSnapshot?.offerPage.totalPages ?? 1;
+    void fetchFamilies(page, orderType);
     return () => {
       requestId.current += 1;
       abortRef.current?.abort();
       abortRef.current = null;
     };
-  }, [enabled, orderType, orderTypeHydrated, fetchFamilies]);
+  }, [enabled, orderType, orderTypeHydrated, fetchFamilies, initialSnapshot, categoryId]);
 
   const onPageChange = useCallback(
     (requestedPage: number) => {
@@ -137,6 +143,7 @@ export function usePublicOfferFamilies(
       ) {
         return;
       }
+      updatePublicOfferPageUrl(requestedPage, true);
       void fetchFamilies(requestedPage, orderTypeRef.current);
     },
     [enabled, fetchFamilies],
@@ -145,6 +152,19 @@ export function usePublicOfferFamilies(
   const refetch = useCallback(async () => {
     await fetchFamilies(currentPageRef.current, orderTypeRef.current);
   }, [fetchFamilies]);
+
+  useEffect(() => {
+    const restorePageFromHistory = () => {
+      if (!enabled) return;
+      const requestedPage = currentPublicOfferPage(categoryId);
+      if (requestedPage === null) return;
+      const page = Math.min(requestedPage, totalPagesRef.current);
+      if (page !== requestedPage) updatePublicOfferPageUrl(page, false);
+      void fetchFamilies(page, orderTypeRef.current);
+    };
+    window.addEventListener('popstate', restorePageFromHistory);
+    return () => window.removeEventListener('popstate', restorePageFromHistory);
+  }, [enabled, fetchFamilies, categoryId]);
 
   return {
     families,

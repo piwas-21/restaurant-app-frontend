@@ -185,6 +185,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      - run: node --test scripts/bundle-size-metric.test.mjs
       - run: node scripts/check-bundle-size.mjs
 
   npm_audit:

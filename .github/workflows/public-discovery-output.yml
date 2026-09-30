@@ -1,0 +1,56 @@
+name: public discovery emitted output
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: public-discovery-output-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  emitted_output:
+    name: discovery ${{ matrix.template }} ${{ matrix.policy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - template: classic
+            policy: indexed
+          - template: craft
+            policy: indexed
+          - template: classic
+            policy: noindex
+    env:
+      NEXT_PUBLIC_TEMPLATE: ${{ matrix.template }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/public-discovery-output-parser.test.mjs
+      - run: node node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify real production output
+        env:
+          DISCOVERY_POLICY: ${{ matrix.policy }}
+        run: |
+          if [ "$DISCOVERY_POLICY" = noindex ]; then
+            node scripts/test-public-discovery-output.mjs --noindex
+          else
+            node scripts/test-public-discovery-output.mjs
+          fi
+      - name: Keep browser proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: public-discovery-${{ matrix.template }}-${{ matrix.policy }}
+          path: test-results/public-discovery
+          if-no-files-found: ignore

@@ -52,8 +52,7 @@ its own, not the platform's.
 
 O6 made runtime data the right home for a tenant's **logo**, and the same instinct says a tagline
 belongs on `RestaurantInfo` — admin-editable, no rebuild. It is the wrong tool for **this** job for
-one reason: **a single free-text field cannot be translated.** RUMI serves its positioning in ten
-languages today; one admin string would render "Authentic Turkish Cuisine" to a German visitor who
+one reason: **a single free-text field cannot be translated.** RUMI provides ten UI/copy-pack locales (its current audited discovery candidates are `fr/en/tr`; catalogue coverage is separate); one admin string would render "Authentic Turkish Cuisine" to a German visitor who
 currently reads "Authentische türkische Küche". The hard constraint on the neutralising change was
 that RUMI prod reads exactly as it does today, and only a per-locale overlay can promise that.
 
@@ -63,30 +62,28 @@ copy as the fallback when it is empty. It is additive to this design (a pack wou
 the two would occupy different keys), it needs a backend field + migration + admin UI, and it is
 **not** a substitute for taking tenant 1's words out of the shared bundle. Track it separately.
 
-## First paint: `copy()` and `staticText()`
+## First paint: `firstPaintCopy()` and `copy()`
 
-The locale is chosen in the **browser** (`src/i18n.ts` detects it from `localStorage` → `navigator`),
-so the server cannot know it. The home templates therefore render twice: an English first pass on the
-server and in the browser's first render, then the visitor's own language after hydration.
+Public home and menu routes use an explicit `/{locale}` URL. Middleware supplies that locale to
+root layout and the request-local i18next provider, so the initial HTML and first browser render
+use the same language, tenant copy pack and `lang`/`dir`. Stored preferences apply to unlocalized
+operational pages; they do not override an explicit public path.
 
-That first pass used to be a **string literal typed into the component**
-(`isClient ? t('home_hero_title') : 'Discover Authentic Turkish Flavors'`). Two defects:
-
-1. it was the leaked copy, and it is what a crawler and the first paint actually see;
-2. where it was not tenant-1's identity it had simply **drifted** — the server rendered "View Menu"
-   and "Visit Us" while the hydrated page said "Explore Our Menu" and "Find Us".
-
-Use `makeCopy(t, isClient)` from `src/lib/staticCopy.ts` and write the key **once**:
+Use `firstPaintCopy(i18n, locale)` from `src/lib/firstPaintCopy.ts` before hydration, then `t` from
+that provider. Write each key once:
 
 ```tsx
-const copy = makeCopy(t, isClient);
-...
+const copy = isClient ? t : firstPaintCopy(i18n, locale);
 <h1>{copy('home_hero_title')}</h1>
 <p>{copy('home_story_content', { name, city })}</p>
 ```
 
-`scripts/check-t-keys.mjs` scans `copy(` and `staticText(` alongside `t(`, so a key that resolves
-nowhere still fails the gate.
+The helper reads the existing i18next instance rather than importing a duplicate translation
+bundle. English remains its fallback for callers without an explicit locale. `check-t-keys.mjs`
+scans `copy(` alongside `t(`, so these keys remain checked.
+
+Home/indexability coverage also reads authored landing overrides. Display language options and
+confirmed equivalent pages are separate; see [PUBLIC-DISCOVERY.md](PUBLIC-DISCOVERY.md).
 
 ## Adding a home-page or SEO string
 

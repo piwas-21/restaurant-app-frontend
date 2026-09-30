@@ -7,15 +7,15 @@ import { getPublicMenuBundles } from '@/services/menuBundleService';
 import { isVisible, mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
 import { IDLE, errorMessage, type FetcherState } from './pipeline';
 import { PAGE_SIZE } from './usePublicMenuData';
-import type { MenuBundleListResponse, ProductListResponse } from './types';
+import type { MenuBundleDto, ProductDto } from './types';
 import type { ApiCategory, MenuItem, MenuBundleItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
+import type { PublicMenuClientData } from '@/types/publicDiscovery';
+import { loadVisiblePages, type PublicPagedItems } from './loadVisiblePages';
 
 /**
- * One category-section's slice of the one-page layout: that category's products
- * (page 1 — a section holds a whole category under the same 200-item bound the
- * tabs view's filter honesty relies on), with its own loading/error slot so one
- * failed category neither blanks nor waits on the others.
+ * One category-section's slice of the one-page layout: all verified pages for that category,
+ * with an independent loading/error slot so one failed category does not blank or stall others.
  */
 export interface OnePageCategoryState {
   items: MenuItem[];
@@ -46,10 +46,34 @@ export interface UseOnePageMenuDataReturn {
  * ones mid-page. `enabled = false` stands the pipeline down (the tabs layout owns
  * the page).
  */
-export function useOnePageMenuData(categories: ApiCategory[], enabled: boolean): UseOnePageMenuDataReturn {
-  const [byCategory, setByCategory] = useState<Record<string, OnePageCategoryState>>({});
-  const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>([]);
-  const [bundlesState, setBundlesState] = useState<FetcherState>(IDLE);
+export function useOnePageMenuData(
+  categories: ApiCategory[],
+  enabled: boolean,
+  initialSnapshot?: PublicMenuClientData,
+): UseOnePageMenuDataReturn {
+  const [byCategory, setByCategory] = useState<Record<string, OnePageCategoryState>>(() =>
+    Object.fromEntries(
+      Object.entries(initialSnapshot?.productsByCategory ?? {}).map(([categoryId, products]) => [
+        categoryId,
+        {
+          items: products.map((product) => mapProductDtoToMenuItem(product, categoryId)).filter(isVisible),
+          isLoading: false,
+          error: null,
+        },
+      ]),
+    ),
+  );
+  const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>(() =>
+    (initialSnapshot?.bundles.items ?? []).map(mapBundleDtoToMenuBundleItem).filter(isVisible),
+  );
+  const [bundlesState, setBundlesState] = useState<FetcherState>(() => ({
+    ...IDLE,
+    currentPage: initialSnapshot?.bundles.currentPage ?? 1,
+    totalPages: initialSnapshot?.bundles.totalPages ?? 1,
+    totalCount: initialSnapshot?.bundles.totalCount ?? 0,
+  }));
+  const seededCategoryIds = useRef(new Set(Object.keys(initialSnapshot?.productsByCategory ?? {})));
+  const preserveSeedBundles = useRef(initialSnapshot !== undefined);
 
   const { state: orderTypeState, hydrated: orderTypeHydrated } = useOrderType();
   const orderType = orderTypeState.orderType;
@@ -69,27 +93,27 @@ export function useOnePageMenuData(categories: ApiCategory[], enabled: boolean):
   const fetchCategoryProducts = useCallback(async (categoryId: string, requestedOrderType?: OrderType | null) => {
     const localId = (categoryRequestIds.current[categoryId] ?? 0) + 1;
     categoryRequestIds.current[categoryId] = localId;
-    setByCategory((state) => ({ ...state, [categoryId]: { items: [], isLoading: true, error: null } }));
+    const preserveSeed = seededCategoryIds.current.delete(categoryId);
+    setByCategory((state) => ({
+      ...state,
+      [categoryId]: { items: preserveSeed ? (state[categoryId]?.items ?? []) : [], isLoading: true, error: null },
+    }));
     const reportError = (msg: string) =>
       setByCategory((state) => ({ ...state, [categoryId]: { items: [], isLoading: false, error: msg } }));
     try {
       // The same guest-surface opt-in as the tabs pipeline (`usePublicMenuData`): the guest's
       // menu must render even under a staff token, so the owner can preview hidden-from-All
       // categories exactly as a guest would see them.
-      const response = (await getProducts(
+      const loaded = await loadVisiblePages(
+        (page) =>
+          getProducts(page, PAGE_SIZE, categoryId, undefined, requestedOrderType, true) as Promise<
+            PublicPagedItems<ProductDto>
+          >,
         1,
         PAGE_SIZE,
-        categoryId,
-        undefined,
-        requestedOrderType,
-        true,
-      )) as ProductListResponse;
+      );
       if (localId !== categoryRequestIds.current[categoryId]) return;
-      if (!response.success) {
-        reportError(errorMessage(response, 'Failed to fetch products'));
-        return;
-      }
-      const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, categoryId));
+      const mapped = loaded.allItems.map((p) => mapProductDtoToMenuItem(p, categoryId));
       setByCategory((state) => ({
         ...state,
         [categoryId]: { items: mapped.filter(isVisible), isLoading: false, error: null },
@@ -104,20 +128,28 @@ export function useOnePageMenuData(categories: ApiCategory[], enabled: boolean):
   const fetchBundles = useCallback(async (requestedOrderType?: OrderType | null) => {
     const localId = ++bundlesRequestId.current;
     setBundlesState((state) => ({ ...state, isLoading: true, error: null }));
-    setMenuBundles([]);
+    if (!preserveSeedBundles.current) setMenuBundles([]);
+    preserveSeedBundles.current = false;
     const reportError = (msg: string) => {
       setBundlesState((state) => ({ ...state, isLoading: false, error: msg }));
       setMenuBundles([]);
     };
     try {
-      const response = (await getPublicMenuBundles(1, PAGE_SIZE, requestedOrderType)) as MenuBundleListResponse;
+      const loaded = await loadVisiblePages(
+        (page) => getPublicMenuBundles(page, PAGE_SIZE, requestedOrderType) as Promise<PublicPagedItems<MenuBundleDto>>,
+        1,
+        PAGE_SIZE,
+      );
       if (localId !== bundlesRequestId.current) return;
-      if (!response.success) {
-        reportError(errorMessage(response, 'Failed to fetch menu bundles'));
-        return;
-      }
-      setBundlesState((state) => ({ ...state, isLoading: false, error: null }));
-      const mapped = (response.data?.items || []).map(mapBundleDtoToMenuBundleItem);
+      setBundlesState((state) => ({
+        ...state,
+        isLoading: false,
+        error: null,
+        currentPage: 1,
+        totalPages: loaded.totalPages,
+        totalCount: loaded.totalCount,
+      }));
+      const mapped = loaded.allItems.map(mapBundleDtoToMenuBundleItem);
       setMenuBundles(mapped.filter(isVisible));
     } catch (e: unknown) {
       if (localId !== bundlesRequestId.current) return;

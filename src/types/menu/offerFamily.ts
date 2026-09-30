@@ -15,6 +15,7 @@ export interface CatalogOfferTarget {
   variationName?: string | null;
   name: string;
   description?: string | null;
+  sourceLocale?: string | null;
   content?: Partial<Record<string, { name: string; description?: string }>>;
   price: number;
   imageUrl?: string | null;
@@ -74,6 +75,7 @@ export interface CatalogOfferSummaryDto {
   type?: string;
   name?: string;
   description?: string | null;
+  sourceLocale?: string | null;
   content?: Record<string, { name?: string; description?: string }>;
   imageUrl?: string | null;
   images?: Array<{

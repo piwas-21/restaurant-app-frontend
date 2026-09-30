@@ -1,6 +1,7 @@
 import { firstPaintCopy, FIRST_PAINT_LOCALE, type CopyFn } from '@/lib/firstPaintCopy';
 import i18n from '../i18n';
 import enBundle from '@/locales/en.json';
+import frBundle from '@/locales/fr.json';
 
 /**
  * The pre-hydration half of the two-pass home render.
@@ -10,6 +11,7 @@ import enBundle from '@/locales/en.json';
  * structurally in tenantCopy.test.ts.
  */
 const platform: Record<string, unknown> = enBundle;
+const platformFr: Record<string, unknown> = frBundle;
 
 describe('firstPaintCopy', () => {
   const translate = jest.fn((key: string) => `translated:${key}`) as unknown as CopyFn;
@@ -29,6 +31,10 @@ describe('firstPaintCopy', () => {
   it('uses the English bundle before hydration', () => {
     expect(firstPaintCopy(i18n)('home_story_title')).toBe(platform.home_story_title);
     expect(translate).not.toHaveBeenCalled();
+  });
+
+  it('pins a locale-prefixed public page to its route locale before hydration', () => {
+    expect(firstPaintCopy(i18n, 'fr')('home_story_title')).toBe(platformFr.home_story_title);
   });
 
   it('interpolates before hydration', () => {

@@ -5,13 +5,31 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './Pagination.module.css';
 
 interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  isLoading?: boolean;
+  readonly currentPage: number;
+  readonly totalPages: number;
+  readonly onPageChange: (page: number) => void;
+  readonly isLoading?: boolean;
+  readonly hrefForPage?: (page: number) => string;
 }
 
-export default function Pagination({ currentPage, totalPages, onPageChange, isLoading = false }: PaginationProps) {
+interface PageControlOptions {
+  page: number | null;
+  hrefForPage: PaginationProps['hrefForPage'];
+  navigationClass: string;
+  pageClass: string;
+  isLoading: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}
+
+export default function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading = false,
+  hrefForPage,
+}: Readonly<PaginationProps>) {
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
@@ -70,15 +88,16 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isLo
 
   return (
     <nav className={styles.pagination} aria-label="Pagination Navigation">
-      <button
-        className={`${styles.pageButton} ${styles.navButton}`}
-        onClick={handlePrevious}
-        disabled={currentPage === 1 || isLoading}
-        aria-label="Previous page"
-        type="button"
-      >
-        <ChevronLeft size={20} />
-      </button>
+      {pageControl({
+        page: currentPage > 1 ? currentPage - 1 : null,
+        hrefForPage,
+        navigationClass: styles.navButton,
+        pageClass: styles.pageButton,
+        isLoading,
+        onClick: handlePrevious,
+        icon: <ChevronLeft size={20} />,
+        label: 'Previous page',
+      })}
 
       <div className={styles.pageNumbers}>
         {getPageNumbers().map((page, index) => {
@@ -90,31 +109,89 @@ export default function Pagination({ currentPage, totalPages, onPageChange, isLo
             );
           }
 
-          return (
+          const target = page as number;
+          const className = `${styles.pageButton} ${target === currentPage ? styles.active : ''}`;
+          return hrefForPage ? (
+            <a
+              key={target}
+              href={hrefForPage(target)}
+              className={className}
+              onClick={(event) => {
+                event.preventDefault();
+                handlePageClick(target);
+              }}
+              aria-label={`Page ${target}`}
+              aria-current={target === currentPage ? 'page' : undefined}
+              aria-disabled={isLoading || undefined}
+            >
+              {target}
+            </a>
+          ) : (
             <button
-              key={page}
-              className={`${styles.pageButton} ${page === currentPage ? styles.active : ''}`}
-              onClick={() => handlePageClick(page)}
+              key={target}
+              className={className}
+              onClick={() => handlePageClick(target)}
               disabled={isLoading}
-              aria-label={`Page ${page}`}
-              aria-current={page === currentPage ? 'page' : undefined}
+              aria-label={`Page ${target}`}
+              aria-current={target === currentPage ? 'page' : undefined}
               type="button"
             >
-              {page}
+              {target}
             </button>
           );
         })}
       </div>
 
-      <button
-        className={`${styles.pageButton} ${styles.navButton}`}
-        onClick={handleNext}
-        disabled={currentPage === totalPages || isLoading}
-        aria-label="Next page"
-        type="button"
-      >
-        <ChevronRight size={20} />
-      </button>
+      {pageControl({
+        page: currentPage < totalPages ? currentPage + 1 : null,
+        hrefForPage,
+        navigationClass: styles.navButton,
+        pageClass: styles.pageButton,
+        isLoading,
+        onClick: handleNext,
+        icon: <ChevronRight size={20} />,
+        label: 'Next page',
+      })}
     </nav>
+  );
+}
+
+function pageControl({
+  page,
+  hrefForPage,
+  navigationClass,
+  pageClass,
+  isLoading,
+  onClick,
+  icon,
+  label,
+}: PageControlOptions) {
+  const className = `${pageClass} ${navigationClass}`;
+  if (hrefForPage && page !== null) {
+    return (
+      <a
+        href={hrefForPage(page)}
+        className={className}
+        onClick={(event) => {
+          event.preventDefault();
+          onClick();
+        }}
+        aria-label={label}
+        aria-disabled={isLoading || undefined}
+      >
+        {icon}
+      </a>
+    );
+  }
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={page === null || isLoading}
+      aria-label={label}
+      type="button"
+    >
+      {icon}
+    </button>
   );
 }

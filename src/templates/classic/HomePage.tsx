@@ -9,7 +9,7 @@ import PartnerCredit from '@/components/PartnerCredit';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
-import { formatDayHours } from '@/lib/workingHoursDisplay';
+import { activeWorkingHours, formatDayHours } from '@/lib/workingHoursDisplay';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import ContactIcons from '@/components/home/ContactIcons';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
@@ -18,18 +18,23 @@ import { homePageTitle } from '@/utils/homePageTitle';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import { landingBackgroundUrl, landingOverridesFor } from '@/lib/landingBackground';
 import { useLandingPage } from '@/hooks/useLandingPage';
+import type { PublicHomePageProps } from '@/types/publicDiscovery';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 
-export default function HomePage() {
+export default function HomePage({ initialData }: Readonly<PublicHomePageProps> = {}) {
+  const locale = initialData?.locale ?? TENANT_PUBLIC_CONFIG.defaultLocale;
   // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
   const reservationsEnabled = useModuleEnabled('reservations');
   const { t, i18n } = useTranslation();
-  const { info } = useRestaurantInfo();
+  const { info } = useRestaurantInfo(initialData?.restaurantInfo);
   const [isClient, setIsClient] = useState(false);
-  const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>([]);
-  const [isLoadingHours, setIsLoadingHours] = useState(true);
-  // Before hydration this resolves against en.json + this image's tenant copy pack; after it,
-  // against the visitor's own language. One callsite per string either way — see lib/firstPaintCopy.ts.
-  const copy = isClient ? t : firstPaintCopy(i18n);
+  const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>(
+    activeWorkingHours(initialData?.workingHours ?? []),
+  );
+  const [isLoadingHours, setIsLoadingHours] = useState(initialData === undefined);
+  // The locale-prefixed route is authoritative in SSR and on the first client pass; the English
+  // fallback is only for unlocalized/private callers. See lib/firstPaintCopy.ts.
+  const copy = isClient ? t : firstPaintCopy(i18n, locale);
 
   useEffect(() => {
     setIsClient(true);
@@ -45,7 +50,7 @@ export default function HomePage() {
       try {
         const hours = await workingHoursService.getAll();
         // Sort by day of week (Sunday=0, Monday=1, etc.)
-        const sorted = hours.sort((a, b) => {
+        const sorted = activeWorkingHours(hours).sort((a, b) => {
           const dayA = typeof a.dayOfWeek === 'number' ? a.dayOfWeek : getDayNumber(a.dayOfWeek);
           const dayB = typeof b.dayOfWeek === 'number' ? b.dayOfWeek : getDayNumber(b.dayOfWeek);
           return dayA - dayB;
@@ -53,7 +58,7 @@ export default function HomePage() {
         setWorkingHours(sorted);
       } catch (error) {
         console.error('Failed to fetch working hours:', error);
-        // Keep empty array, will fall back to hardcoded values
+        // Preserve the SSR snapshot, or omit hours when no snapshot was available.
       } finally {
         setIsLoadingHours(false);
       }
@@ -84,8 +89,8 @@ export default function HomePage() {
     : null;
   // The admin-configured landing (background mode + per-language copy). Null while it loads or
   // when the tenant never configured anything — every fallback below is the pre-config state.
-  const { landing } = useLandingPage();
-  const overrides = landingOverridesFor(landing, i18n.language);
+  const { landing } = useLandingPage(initialData?.landingPage);
+  const overrides = landingOverridesFor(landing, locale);
   const backgroundImageUrl = landingBackgroundUrl(landing, BRANDING_HERO);
 
   // Helper functions for working hours
@@ -193,7 +198,7 @@ export default function HomePage() {
           </h1>
           <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaButtons}>
-            <Link href="/menu" className={styles.ctaButtonPrimary} role="button">
+            <Link href={`/${locale}/menu`} className={styles.ctaButtonPrimary} role="button">
               <UtensilsCrossed size={24} strokeWidth={2.5} />
               <span className={styles.ctaButtonText}>{copy('home_menu_cta')}</span>
             </Link>
@@ -215,26 +220,22 @@ export default function HomePage() {
 
         {info && info.phoneNumbers.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
 
-        <section className={styles.openingHoursSection} aria-labelledby="hours-heading">
-          <h2 id="hours-heading">{copy('home_opening_hours_title')}</h2>
-          {isLoadingHours ? (
-            <p>{t('loading', 'Loading...')}</p>
-          ) : workingHours.length > 0 ? (
-            <div>
-              {groupWorkingHours().map((group, index) => (
-                <p key={index}>
-                  {group.days}: {group.hours}
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p>
-              {copy('home_opening_hours_days_1')}: {copy('home_opening_hours_time_1')}
-              <br />
-              {copy('home_opening_hours_days_2')}: {copy('home_opening_hours_time_2')}
-            </p>
-          )}
-        </section>
+        {(isLoadingHours || workingHours.length > 0) && (
+          <section className={styles.openingHoursSection} aria-labelledby="hours-heading">
+            <h2 id="hours-heading">{copy('home_opening_hours_title')}</h2>
+            {isLoadingHours ? (
+              <p>{t('loading', 'Loading...')}</p>
+            ) : (
+              <div>
+                {groupWorkingHours().map((group, index) => (
+                  <p key={index}>
+                    {group.days}: {group.hours}
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         <section className={styles.locationSection} aria-labelledby="location-heading">
           <h2 id="location-heading">{copy('home_location_title')}</h2>

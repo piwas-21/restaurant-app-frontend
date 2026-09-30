@@ -88,6 +88,16 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       '@active-template': activeTemplateDir,
     };
+    // The alias target is selected from the environment, which Next does not include in its
+    // filesystem-cache version. Isolate warm builds so a previous tenant template cannot survive.
+    if (
+      config.cache &&
+      typeof config.cache === 'object' &&
+      config.cache.type === 'filesystem' &&
+      typeof config.cache.name === 'string'
+    ) {
+      config.cache.name = `${config.cache.name}-${ACTIVE_TEMPLATE}`;
+    }
     return config;
   },
   turbopack: {

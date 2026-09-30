@@ -22,8 +22,8 @@ export interface MenuDisplaySettings {
   isLoading: boolean;
 }
 
-export function useMenuDisplaySettings(): MenuDisplaySettings {
-  const { info, isLoading } = useRestaurantInfo();
+export function useMenuDisplaySettings(initialInfo?: Parameters<typeof useRestaurantInfo>[0]): MenuDisplaySettings {
+  const { info, isLoading } = useRestaurantInfo(initialInfo);
 
   return {
     menuLayout: info?.menuLayout === 'onepage' ? 'onepage' : 'tabs',

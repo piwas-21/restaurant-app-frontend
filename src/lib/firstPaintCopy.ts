@@ -2,19 +2,18 @@
  * First-paint copy: the text the SERVER renders, and the text the browser renders on its very
  * first pass before hydration.
  *
- * WHY A TWO-PASS RENDER AT ALL. The locale is chosen in the BROWSER (i18n.ts detects it from
- * localStorage → navigator), so the server cannot know it and renders `fallbackLng: 'en'`. If the
- * browser's first render used the detected language it would disagree with the server's HTML —
- * a React hydration mismatch. Both home templates therefore render `isClient ? … : …`, where the
- * first branch is the visitor's language and the second must be English.
+ * WHY A TWO-PASS RENDER AT ALL. Public locale-prefixed routes know their locale on the server, so
+ * their first-paint copy is pinned to that URL. Unlocalized/private callers retain the English
+ * fallback while browser language detection waits for hydration. Pinning both branches to the
+ * same locale prevents a React hydration mismatch.
  *
- * WHAT THIS REPLACES. That English branch used to be a string LITERAL typed into the component,
+ * WHAT THIS REPLACES. The English fallback used to be a string LITERAL typed into the component,
  * which had two defects. It said "Discover Authentic Turkish Flavors" on every tenant's home page —
  * tenant 1's identity, and precisely what a crawler and the first paint see. And where it was not
  * that, it had simply DRIFTED from the bundle: the server rendered "View Menu" and "Visit Us"
  * while the hydrated page said "Explore Our Menu" and "Find Us".
  *
- * HOW IT AVOIDS PAYING FOR THAT IN BYTES. It asks i18next for the same key pinned to English via
+ * HOW IT AVOIDS PAYING FOR THAT IN BYTES. It asks i18next for the key pinned to the route locale via
  * `getFixedT`, and it takes the instance from `useTranslation()` — which every caller already
  * holds — rather than importing one. That is load-bearing and was measured: importing `en.json`
  * here put a second copy of it in the home route's own chunk (`/`: 128.7 kB → 168.8 kB, +31%), and
@@ -37,11 +36,11 @@ export interface FixedLanguageSource {
   getFixedT(lng: string): CopyFn;
 }
 
-/** English, because `fallbackLng: 'en'` is what i18next resolves to on the server. */
+/** English fallback for unlocalized/private callers. Public URLs pass their explicit route locale. */
 export const FIRST_PAINT_LOCALE = 'en';
 
 /**
- * The copy function for the FIRST PAINT only: the bundle's English (plus this image's tenant copy
+ * The copy function for the FIRST PAINT only: the selected bundle (plus this image's tenant copy
  * pack), pinned so it matches what the server rendered. After hydration the caller uses its own
  * `t` — which is why this takes no `isClient` flag and no `t`.
  *
@@ -53,6 +52,6 @@ export const FIRST_PAINT_LOCALE = 'en';
  * same reason. scripts/check-t-keys.mjs scans `copy(` alongside `t(`, so a key routed through here
  * still cannot go missing from the bundles unnoticed.
  */
-export function firstPaintCopy(i18n: FixedLanguageSource): CopyFn {
-  return i18n.getFixedT(FIRST_PAINT_LOCALE);
+export function firstPaintCopy(i18n: FixedLanguageSource, locale: string = FIRST_PAINT_LOCALE): CopyFn {
+  return i18n.getFixedT(locale);
 }

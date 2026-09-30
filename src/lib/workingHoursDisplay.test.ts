@@ -1,5 +1,5 @@
 import type { WorkingHoursDto } from '@/types/workingHours';
-import { formatDayHours, formatTime, shiftsOf } from './workingHoursDisplay';
+import { activeWorkingHours, formatDayHours, formatTime, shiftsOf } from './workingHoursDisplay';
 
 const day = (over: Partial<WorkingHoursDto> = {}): WorkingHoursDto => ({
   id: 'day-1',
@@ -28,6 +28,14 @@ describe('formatTime', () => {
     expect(formatTime('')).toBe('');
     expect(formatTime('not-a-time')).toBe('not-a-time');
     expect(formatTime('ab:cd')).toBe('ab:cd');
+  });
+});
+
+describe('activeWorkingHours', () => {
+  it('excludes inactive backend rows from guest-visible hours', () => {
+    const active = day({ id: 'active-day' });
+    const inactive = day({ id: 'inactive-day', isActive: false, openTime: '23:47:00', closeTime: '23:59:00' });
+    expect(activeWorkingHours([active, inactive])).toEqual([active]);
   });
 });
 

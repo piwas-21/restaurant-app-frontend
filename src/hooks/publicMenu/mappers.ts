@@ -71,22 +71,19 @@ function mapImages(images: ProductImageDto[] | undefined, fallbackAlt: string): 
     .map((img) => ({ url: img.url, cardUrl: img.cardUrl ?? undefined, alt: img.altText || fallbackAlt }));
 }
 
-/** Normalise the per-locale content map; falls back to an `en` entry if absent. */
-function mapContent(
-  content: ProductContentDto | undefined,
-  fallbackName: string,
-  fallbackDescription: string,
-): MenuItem['content'] {
+/** Keep only authored locale entries; the renderer resolves requested and source text explicitly. */
+function mapContent(content: ProductContentDto | undefined): MenuItem['content'] {
   // `typeof [] === 'object'` is true, so guard arrays explicitly: a wire
   // payload that mis-sends `content: []` should fall through to the default.
   if (!content || typeof content !== 'object' || Array.isArray(content)) {
-    return { en: { name: fallbackName, description: fallbackDescription, ingredient: '' } };
+    return {};
   }
   const out: Partial<Record<string, MenuItemContent>> = {};
   for (const lang of Object.keys(content)) {
     const v: ProductContentEntryDto = content[lang] ?? {};
+    if (typeof v.name !== 'string' || !v.name.trim()) continue;
     out[lang] = {
-      name: v.name || fallbackName,
+      name: v.name,
       description: v.description || '',
       ingredient: v.ingredient || '',
     };
@@ -111,9 +108,10 @@ export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): Me
     id: p.id,
     name: fallbackName,
     description: p.description || '',
+    sourceLocale: p.sourceLocale,
     ingredients: Array.isArray(p.ingredients) ? p.ingredients : [],
     detailedIngredients: Array.isArray(p.detailedIngredients) ? p.detailedIngredients : [],
-    content: mapContent(p.content, fallbackName, p.description || ''),
+    content: mapContent(p.content),
     price: parseBasePrice(p.basePrice),
     image: primaryImage,
     dietaryTags: [],
@@ -139,6 +137,7 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
     id: bundle.id,
     name: fallbackName,
     description: bundle.description || '',
+    sourceLocale: bundle.sourceLocale,
     basePrice: parseBasePrice(bundle.basePrice),
     content: bundle.content || {},
     // Wire-defensive default: backend should always send a full MenuDefinition,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getLandingPage } from '@/services/restaurantInfoService';
 import type { LandingPageDto } from '@/types/landingPage';
 
@@ -46,8 +46,13 @@ export function invalidateLandingPageCache() {
   cache.fetchedAt = 0;
 }
 
-export function useLandingPage() {
-  const [landing, setLanding] = useState<LandingPageDto | null>(cache.data);
+export function useLandingPage(initialLanding?: LandingPageDto | null) {
+  const [landing, setLanding] = useState<LandingPageDto | null>(initialLanding ?? cache.data);
+  const initialLandingRef = useRef(initialLanding);
+
+  const applyFreshData = useCallback((data: LandingPageDto | null) => {
+    setLanding((current) => data ?? (initialLandingRef.current ? current : null));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,12 +60,12 @@ export function useLandingPage() {
     const fresh = () => Date.now() - cache.fetchedAt < CACHE_TTL_MS;
     const read = () => {
       if (fresh()) {
-        setLanding(cache.data);
+        applyFreshData(cache.data);
         return;
       }
       cache.inflight ??= fetchLandingPage();
       void cache.inflight.then((data) => {
-        if (!cancelled) setLanding(data);
+        if (!cancelled) applyFreshData(data);
       });
     };
 
@@ -68,7 +73,7 @@ export function useLandingPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [applyFreshData]);
 
   return { landing };
 }

@@ -12,11 +12,12 @@ import FooterCookieLink from '@/components/FooterCookieLink';
 import PartnerCredit from '@/components/PartnerCredit';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import styles from './CraftFooter.module.css';
 
 export default function CraftFooter() {
   const [isClient, setIsClient] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { info: restaurantInfo } = useRestaurantInfo();
 
   useEffect(() => {
@@ -24,15 +25,14 @@ export default function CraftFooter() {
   }, []);
 
   const restaurantName = restaurantInfo?.name ?? RESTAURANT_NAME;
+  const copy: CopyFn = isClient ? (key, vars) => t(key, vars) : firstPaintCopy(i18n, i18n.language);
 
   return (
     <footer className={styles.footer}>
       <div className={styles.footerInner}>
         <p className={styles.footerWordmark}>{restaurantName}</p>
         <p className={styles.footerText}>
-          {isClient
-            ? t('home_footer_copyright', { year: new Date().getFullYear(), name: restaurantName })
-            : `© ${new Date().getFullYear()} ${RESTAURANT_NAME}. All rights reserved.`}
+          {copy('home_footer_copyright', { year: new Date().getFullYear(), name: restaurantName })}
         </p>
         {restaurantInfo && (
           <p className={styles.footerAddress}>
@@ -41,10 +41,10 @@ export default function CraftFooter() {
         )}
         <div className={styles.footerLinks}>
           <Link href="/privacy-policy" className={styles.footerLink}>
-            {isClient ? t('footer_privacy_policy', 'Privacy Policy') : 'Privacy Policy'}
+            {copy('footer_privacy_policy')}
           </Link>
           <Link href="/terms-of-usage" className={styles.footerLink}>
-            {isClient ? t('footer_terms_of_usage', 'Terms of Usage') : 'Terms of Usage'}
+            {copy('footer_terms_of_usage')}
           </Link>
         </div>
         <FooterCookieLink />

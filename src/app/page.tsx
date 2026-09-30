@@ -1,5 +1,10 @@
-// The home page belongs to the active tenant template (ADR-006, S15 T2):
-// this route is a thin re-export so the template selected at build time
-// (NEXT_PUBLIC_TEMPLATE → @active-template alias in next.config.ts) owns
-// the whole landing composition + its CSS module.
-export { default } from '@active-template/HomePage';
+import { redirect } from 'next/navigation';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
+import { publicLocaleHref, searchParamsToURLSearchParams } from '@/lib/publicRouteQuery';
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function PublicDefaultRoute({ searchParams }: Readonly<{ searchParams: SearchParams }>) {
+  const query = searchParamsToURLSearchParams(await searchParams);
+  redirect(publicLocaleHref(TENANT_PUBLIC_CONFIG.defaultLocale, 'home', query));
+}

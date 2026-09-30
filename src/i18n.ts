@@ -15,6 +15,7 @@ import translationES from './locales/es.json';
 import translationRU from './locales/ru.json';
 import translationZH from './locales/zh.json';
 import { applyTenantCopy, tenantCopyOverrides } from './lib/tenantCopy';
+import { isSupportedPublicLocale } from './lib/publicDiscoveryConfig';
 
 // The PLATFORM bundles: cuisine-neutral copy every tenant image inherits.
 const baseBundles: Record<string, Record<string, unknown>> = {
@@ -42,6 +43,10 @@ const resources = Object.fromEntries(
 
 // Check if we're in the browser
 const isBrowser = typeof window !== 'undefined';
+const publicPath = isBrowser ? window.location.pathname.split('/').filter(Boolean) : [];
+const pathLocale = publicPath[0];
+const isPublicPath = publicPath.length === 1 || (publicPath.length === 2 && publicPath[1] === 'menu');
+const routeLocale = isPublicPath && pathLocale && isSupportedPublicLocale(pathLocale) ? pathLocale : undefined;
 
 i18n
   .use(LanguageDetector) // Detect user language
@@ -49,7 +54,8 @@ i18n
   .init({
     resources,
     fallbackLng: 'en', // Use English if detected language is not available
-    lng: isBrowser ? localStorage.getItem('i18nextLng') || undefined : undefined, // Explicitly read from localStorage
+    // A locale-prefixed public URL is authoritative over saved/browser preferences.
+    lng: routeLocale ?? (isBrowser ? localStorage.getItem('i18nextLng') || undefined : undefined),
     debug: process.env.NODE_ENV === 'development', // Enable debug mode in development
     interpolation: {
       escapeValue: false, // React already safes from xss

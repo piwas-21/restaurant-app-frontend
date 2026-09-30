@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import manifest, { toShortName } from './manifest';
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR, RESTAURANT_NAME } from '@/lib/config';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 
 /**
  * The manifest is what makes the app installable, so the two things that can silently break it are
@@ -13,7 +14,7 @@ describe('web app manifest', () => {
   it('is a standalone, root-scoped app named after the tenant', () => {
     expect(result.name).toBe(RESTAURANT_NAME);
     expect(result.display).toBe('standalone');
-    expect(result.start_url).toBe('/');
+    expect(result.start_url).toBe(`/${TENANT_PUBLIC_CONFIG.defaultLocale}`);
     expect(result.scope).toBe('/');
     expect(result.theme_color).toBe(PWA_THEME_COLOR);
     expect(result.background_color).toBe(PWA_BACKGROUND_COLOR);

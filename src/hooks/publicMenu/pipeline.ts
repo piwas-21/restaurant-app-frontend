@@ -34,3 +34,8 @@ export function errorMessage(e: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+/** Identifies the endpoint's failure envelope without assuming its success payload shape. */
+export function isFailureEnvelope(value: unknown): value is { success: false; message?: string } {
+  return typeof value === 'object' && value !== null && 'success' in value && value.success === false;
+}

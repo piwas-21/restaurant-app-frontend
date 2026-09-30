@@ -4,23 +4,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import styles from '../app/styles/LanguageSwitcher.module.css';
 import { SUPPORTED_LANGUAGES, LanguageCode } from '@/config/languageConfig';
 import { useAuth } from '@/components/AuthContext';
 import { saveLanguagePreference } from '@/services/userService';
+import baseI18n from '../i18n';
+import { publicLocaleHref, publicRouteLocation } from '@/lib/publicRouteQuery';
 
 const languages = SUPPORTED_LANGUAGES;
 
 export type { LanguageCode };
 
 export default function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { user } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const changeLanguage = (lng: LanguageCode) => {
     i18n.changeLanguage(lng);
+    // Public routes use an isolated i18next clone so a URL locale cannot mutate the private app's
+    // shared instance. An explicit choice is different: carry it to that shared instance too, so
+    // navigating from a locale-prefixed page into an unprefixed account/cart route keeps the choice.
+    if (i18n !== baseI18n) baseI18n.changeLanguage(lng);
     // Language preference is essential functionality, always save it
     // This is typically not considered a tracking/preference cookie
     localStorage.setItem('i18nextLng', lng);
@@ -36,6 +46,13 @@ export default function LanguageSwitcher() {
     if (user) {
       void saveLanguagePreference(lng);
     }
+  };
+
+  const publicRoute = publicRouteLocation(pathname);
+
+  const publicHref = (lng: LanguageCode): string | null => {
+    if (!publicRoute) return null;
+    return publicLocaleHref(lng, publicRoute.surface, searchParams);
   };
 
   const toggleDropdown = () => {
@@ -78,6 +95,34 @@ export default function LanguageSwitcher() {
     }
   };
 
+  const languageItems = languages.map((language) => {
+    const href = publicHref(language.code);
+    const contents = (
+      <>
+        <Image src={language.flag} alt={language.name} width={20} height={15} />
+        <span>{language.name}</span>
+      </>
+    );
+    return (
+      <li key={language.code}>
+        {href ? (
+          <Link
+            href={href}
+            onClick={() => changeLanguage(language.code)}
+            className={styles.dropdownItem}
+            hrefLang={language.code}
+          >
+            {contents}
+          </Link>
+        ) : (
+          <button onClick={() => changeLanguage(language.code)} className={styles.dropdownItem}>
+            {contents}
+          </button>
+        )}
+      </li>
+    );
+  });
+
   const scrollDown = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent dropdown from closing
     if (listRef.current) {
@@ -90,7 +135,6 @@ export default function LanguageSwitcher() {
       <button
         onClick={toggleDropdown}
         className={styles.dropdownToggle}
-        aria-haspopup="listbox"
         aria-expanded={dropdownOpen}
         aria-label="Toggle language menu"
       >
@@ -98,25 +142,27 @@ export default function LanguageSwitcher() {
         <span className={styles.languageName}>{currentLanguageDetails.code.toUpperCase()}</span>
         <span className={styles.arrow}>{dropdownOpen ? '▲' : '▼'}</span>
       </button>
-      {dropdownOpen && (
-        <div className={styles.dropdownContainer}>
-          <ul className={styles.dropdownMenu} role="listbox" ref={listRef} onScroll={handleScroll}>
-            {languages.map((language) => (
-              <li key={language.code} role="option" aria-selected={language.code === i18n.resolvedLanguage}>
-                <button onClick={() => changeLanguage(language.code)} className={styles.dropdownItem}>
-                  <Image src={language.flag} alt={language.name} width={20} height={15} />
-                  <span>{language.name}</span>
-                </button>
-              </li>
-            ))}
+      <div
+        className={`${styles.dropdownContainer} ${dropdownOpen ? '' : styles.dropdownContainerHidden}`}
+        aria-hidden={!dropdownOpen}
+      >
+        {publicRoute ? (
+          <nav aria-label={t('language', 'Language')}>
+            <ul className={styles.dropdownMenu} ref={listRef} onScroll={handleScroll}>
+              {languageItems}
+            </ul>
+          </nav>
+        ) : (
+          <ul className={styles.dropdownMenu} ref={listRef} onScroll={handleScroll}>
+            {languageItems}
           </ul>
-          {showScrollIndicator && (
-            <div className={styles.scrollIndicator} onClick={scrollDown} role="button" aria-label="Scroll down">
-              ▼
-            </div>
-          )}
-        </div>
-      )}
+        )}
+        {showScrollIndicator && (
+          <div className={styles.scrollIndicator} onClick={scrollDown} role="button" aria-label="Scroll down">
+            ▼
+          </div>
+        )}
+      </div>
     </div>
   );
 }

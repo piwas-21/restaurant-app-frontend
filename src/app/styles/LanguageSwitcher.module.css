@@ -73,6 +73,12 @@
   overflow: hidden; /* Clips content to border radius */
 }
 
+.dropdownContainerHidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 html[data-theme='dark'] .dropdownContainer {
   background-color: var(--background-color);
   border-color: var(--border-color);

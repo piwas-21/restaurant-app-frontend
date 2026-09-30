@@ -20,8 +20,11 @@ import styles from './HomePage.module.css';
 import craft from './craft.module.css';
 import { useCraftHomeData } from './useCraftHomeData';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import type { PublicHomePageProps } from '@/types/publicDiscovery';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 
-export default function HomePage() {
+export default function HomePage({ initialData }: Readonly<PublicHomePageProps> = {}) {
+  const locale = initialData?.locale ?? TENANT_PUBLIC_CONFIG.defaultLocale;
   // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
   const reservationsEnabled = useModuleEnabled('reservations');
   const {
@@ -39,7 +42,7 @@ export default function HomePage() {
     addressCityCountry,
     phoneDisplay,
     phoneTel,
-  } = useCraftHomeData();
+  } = useCraftHomeData(initialData);
 
   return (
     <div className={styles.homeContainer}>
@@ -56,7 +59,7 @@ export default function HomePage() {
           </h1>
           <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaRow}>
-            <Link href="/menu" className={styles.ctaPrimary} role="button">
+            <Link href={`/${locale}/menu`} className={styles.ctaPrimary} role="button">
               <UtensilsCrossed size={20} strokeWidth={2.5} />
               <span>{copy('home_menu_cta')}</span>
             </Link>
@@ -84,34 +87,25 @@ export default function HomePage() {
 
         {info && info.phoneNumbers?.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
 
-        <section aria-labelledby="hours-heading">
-          <h2 id="hours-heading" className={craft.tapeLabel}>
-            {copy('home_opening_hours_title')}
-          </h2>
-          <div className={styles.menuBoard}>
-            {isLoadingHours ? (
-              <p>{t('loading', 'Loading...')}</p>
-            ) : groupedHours.length > 0 ? (
-              groupedHours.map((group, index) => (
-                <p key={index} className={craft.menuLeader}>
-                  <span>{group.days}</span>
-                  <span>{group.hours}</span>
-                </p>
-              ))
-            ) : (
-              <>
-                <p className={craft.menuLeader}>
-                  <span>{copy('home_opening_hours_days_1')}</span>
-                  <span>{copy('home_opening_hours_time_1')}</span>
-                </p>
-                <p className={craft.menuLeader}>
-                  <span>{copy('home_opening_hours_days_2')}</span>
-                  <span>{copy('home_opening_hours_time_2')}</span>
-                </p>
-              </>
-            )}
-          </div>
-        </section>
+        {(isLoadingHours || groupedHours.length > 0) && (
+          <section aria-labelledby="hours-heading">
+            <h2 id="hours-heading" className={craft.tapeLabel}>
+              {copy('home_opening_hours_title')}
+            </h2>
+            <div className={styles.menuBoard}>
+              {isLoadingHours ? (
+                <p>{t('loading', 'Loading...')}</p>
+              ) : (
+                groupedHours.map((group, index) => (
+                  <p key={index} className={craft.menuLeader}>
+                    <span>{group.days}</span>
+                    <span>{group.hours}</span>
+                  </p>
+                ))
+              )}
+            </div>
+          </section>
+        )}
 
         <section aria-labelledby="location-heading">
           <div className={styles.locationCard}>

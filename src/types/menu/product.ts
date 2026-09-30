@@ -51,6 +51,7 @@ export interface DetailedProduct extends SauceGroupCarrier, CustomizationGroupCa
   id: string;
   name: string;
   description?: string;
+  sourceLocale?: string | null;
   basePrice: number;
   imageUrl?: string;
   isActive: boolean;
@@ -93,9 +94,7 @@ export interface DetailedProduct extends SauceGroupCarrier, CustomizationGroupCa
   kitchenType?: KitchenType;
   menuDefinition?: MenuDefinition; // For menu bundle products
   /**
-   * Per-order-type verdict, carried in from the browse card via `OpenSheetOptions.availability`
-   * rather than fetched — see that field for why one verdict beats two. Absent on the by-id entry
-   * points (featured special), which stay unguarded (G7).
+   * Per-order-type verdict from `OpenSheetOptions.availability`, absent on by-id featured-special reads (G7).
    */
   availability?: ItemAvailability;
 }

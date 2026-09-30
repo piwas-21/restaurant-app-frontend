@@ -42,14 +42,14 @@ function priceEditabilityFor(summary: CatalogOfferSummaryDto, isBundle: boolean)
   return 'editable';
 }
 
-function mapContent(content: CatalogOfferSummaryDto['content'], fallbackName: string) {
+function mapContent(content: CatalogOfferSummaryDto['content']) {
   if (!content || typeof content !== 'object' || Array.isArray(content)) return undefined;
-  return Object.fromEntries(
-    Object.entries(content).map(([locale, value]) => [
-      locale,
-      { name: value?.name || fallbackName, description: value?.description || '' },
-    ]),
-  );
+  const entries = Object.entries(content).flatMap(([locale, value]) => {
+    const name = value?.name?.trim();
+    if (!name) return [];
+    return [[locale, { name, ...(value.description?.trim() ? { description: value.description } : {}) }]];
+  });
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 function isBundleSummary(summary: CatalogOfferSummaryDto): boolean {
@@ -88,7 +88,8 @@ function toCardSummary(summary: CatalogOfferSummaryDto, id: string): CatalogItem
     id,
     name,
     description: summary.description ?? undefined,
-    content: mapContent(summary.content, name),
+    content: mapContent(summary.content),
+    sourceLocale: summary.sourceLocale,
     imageUrl: summary.imageUrl || images?.[0]?.cardUrl || primaryImage(images) || FALLBACK_IMAGE,
     imageCount: images?.length,
     images,
@@ -116,7 +117,8 @@ function toTarget(dto: CatalogOfferTargetDto): CatalogOfferTarget | null {
     variationName: dto.variationName,
     name,
     description: dto.description,
-    content: mapContent(dto.content, name),
+    content: mapContent(dto.content),
+    sourceLocale: dto.sourceLocale,
     price: parsePrice(dto.price ?? dto.basePrice),
     imageUrl: dto.imageUrl ?? undefined,
     isActive: dto.isActive,

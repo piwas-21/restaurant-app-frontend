@@ -53,6 +53,8 @@ export interface MenuContentProps {
   totalCount: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  /** Crawlable equivalents for public All/bundle views; other pagers keep button navigation. */
+  hrefForPage?: (page: number) => string;
   /** Opens the shared customization sheet, which the page owns. `opts.forceSheet` = view-only. */
   onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   /** Card "Switch to X" — the page's `useOrderTypeFollowUp().pickType`, so the follow-up modal opens. */
@@ -104,6 +106,7 @@ function LegacyMenuContent({
   totalCount,
   pageSize,
   onPageChange,
+  hrefForPage,
   onOpenItem,
   onSwitchOrderType,
   onRetry,
@@ -116,23 +119,19 @@ function LegacyMenuContent({
 
   const isMenuBundlesView = selectedView === MENU_BUNDLES_KEY;
   const isAllView = selectedView === ALL_ITEMS_KEY;
-  // Which bundles join this view's grid (see groupedBundlesFor below).
   const showAllViewBundles = isAllView && showBundlesOnAllView;
   const groupedBundles = groupedBundlesFor(selectedView, isAllView, isMenuBundlesView, showAllViewBundles, menuBundles);
-  // One widened element type, so a single filter instance serves every view: an allergen chip has
-  // to count the tab's bundles too, or "No gluten 3" hides a matching combo from its own tally.
+  // Count bundle rows in the allergen filter so its tally and results stay aligned.
   const sourceItems: (MenuItem | MenuBundleItem | CatalogItem)[] = isMenuBundlesView
     ? menuBundles
     : [...currentMenuItems, ...groupedBundles];
   const filters = useMenuFilters(sourceItems);
   const displayItems = filters.filtered;
   const isFiltered = filters.activeIds.size > 0;
-  // The grid takes one merged list; the list needs the two card shapes back apart. A bundle is the
-  // only member carrying a menu definition.
+  // Restore product vs bundle shapes after filtering; bundles carry menuDefinition.
   const displayProducts = displayItems.filter((item): item is MenuItem => !('menuDefinition' in item));
   const displayBundles = displayItems.filter((item): item is MenuBundleItem => 'menuDefinition' in item);
-  // Bundles the main grid receives: on the All tab the headed group below (page 1) carries them,
-  // so the grid gets none; the Bundles view's grid shows the filtered list itself.
+  // The All heading owns page-one bundles; the Bundles view shows its filtered list in the grid.
   const bundlesOnAllView = showAllViewBundles ? [] : displayBundles;
   const listBundles = isMenuBundlesView ? (displayItems as MenuBundleItem[]) : bundlesOnAllView;
   const displayError = errorLoadingItems
@@ -230,6 +229,7 @@ function LegacyMenuContent({
               totalPages={totalPages}
               onPageChange={onPageChange}
               isLoading={isLoadingItems}
+              hrefForPage={hrefForPage}
             />
           )}
 

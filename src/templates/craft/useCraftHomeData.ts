@@ -9,13 +9,15 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { workingHoursService } from '@/services/workingHoursService';
 import { dayNameToNumber, type WorkingHoursDto } from '@/types/workingHours';
-import { formatDayHours } from '@/lib/workingHoursDisplay';
+import { activeWorkingHours, formatDayHours } from '@/lib/workingHoursDisplay';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 import { firstPaintCopy } from '@/lib/firstPaintCopy';
 import { homePageTitle } from '@/utils/homePageTitle';
 import { landingBackgroundUrl, landingOverridesFor } from '@/lib/landingBackground';
 import { useLandingPage } from '@/hooks/useLandingPage';
+import type { PublicHomeData } from '@/types/publicDiscovery';
+import { TENANT_PUBLIC_CONFIG } from '@/lib/publicDiscoveryConfig';
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
@@ -24,19 +26,22 @@ export interface WorkingHoursGroup {
   hours: string;
 }
 
-export function useCraftHomeData() {
+export function useCraftHomeData(initialData?: PublicHomeData) {
+  const locale = initialData?.locale ?? TENANT_PUBLIC_CONFIG.defaultLocale;
   const { t, i18n } = useTranslation();
-  const { info } = useRestaurantInfo();
-  const { landing } = useLandingPage();
+  const { info } = useRestaurantInfo(initialData?.restaurantInfo);
+  const { landing } = useLandingPage(initialData?.landingPage);
   // The admin-configured landing copy for the visitor's language; null members (and the null
   // whole) fall back to the bundled i18n strings below.
-  const overrides = landingOverridesFor(landing, i18n.language);
+  const overrides = landingOverridesFor(landing, locale);
   const [isClient, setIsClient] = useState(false);
   // Before hydration this resolves against en.json + this image's tenant copy pack; after it,
   // against the visitor's own language. One callsite per string either way — see lib/firstPaintCopy.ts.
-  const copy = isClient ? t : firstPaintCopy(i18n);
-  const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>([]);
-  const [isLoadingHours, setIsLoadingHours] = useState(true);
+  const copy = isClient ? t : firstPaintCopy(i18n, locale);
+  const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>(
+    activeWorkingHours(initialData?.workingHours ?? []),
+  );
+  const [isLoadingHours, setIsLoadingHours] = useState(initialData === undefined);
 
   useEffect(() => {
     setIsClient(true);
@@ -51,11 +56,13 @@ export function useCraftHomeData() {
     const fetchWorkingHours = async () => {
       try {
         const hours = await workingHoursService.getAll();
-        const sorted = [...hours].sort((a, b) => dayNameToNumber(a.dayOfWeek) - dayNameToNumber(b.dayOfWeek));
+        const sorted = activeWorkingHours(hours).sort(
+          (a, b) => dayNameToNumber(a.dayOfWeek) - dayNameToNumber(b.dayOfWeek),
+        );
         setWorkingHours(sorted);
       } catch (error) {
         console.error('Failed to fetch working hours:', error);
-        // Keep empty array, caller falls back to hardcoded display values.
+        // Preserve the SSR snapshot, or omit hours when no snapshot was available.
       } finally {
         setIsLoadingHours(false);
       }

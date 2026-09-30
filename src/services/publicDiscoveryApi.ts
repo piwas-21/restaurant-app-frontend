@@ -11,7 +11,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export async function fetchPublicApiData(path: string): Promise<unknown | null> {
+export async function fetchPublicApiData(path: string): Promise<unknown> {
   const apiBase = (process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, '');
   if (!apiBase) return null;
   try {
@@ -74,12 +74,12 @@ function resolvePlan<T>(
   pageLimit: number,
 ): CollectionPlan | null {
   const pageSize = first.pageSize ?? requestedPageSize;
-  const inferredPages =
-    first.totalCount === undefined
-      ? first.items.length < pageSize
-        ? 1
-        : 0
-      : Math.max(1, Math.ceil(first.totalCount / pageSize));
+  let inferredPages: number;
+  if (first.totalCount === undefined) {
+    inferredPages = first.items.length < pageSize ? 1 : 0;
+  } else {
+    inferredPages = Math.max(1, Math.ceil(first.totalCount / pageSize));
+  }
   const totalPages = first.totalPages ?? inferredPages;
   const totalCount = first.totalCount ?? (totalPages === 1 ? first.items.length : 0);
   if (!validPlan(first, pageSize, totalPages, pageLimit)) return null;
@@ -142,13 +142,14 @@ export async function readPublicCollection<T>(
     Array.from({ length: plan.totalPages - 1 }, (_, index) => fetchPublicApiData(pathForPage(index + 2))),
   );
   const parsedRemaining = remaining.map((page) => pageParts<T>(page));
-  if (parsedRemaining.some((page) => page === null)) {
+  if (parsedRemaining.includes(null)) {
     return { complete: false, items: first.items, totalPages: plan.totalPages, totalCount: plan.totalCount };
   }
   const pages = [first, ...parsedRemaining.filter((page): page is NonNullable<typeof page> => page !== null)];
   const pageMetadataMatches = pagesMatchPlan(pages, plan.pageSize, plan.totalPages, first.totalCount);
   const items = pages.flatMap((page) => page.items);
-  const finalPageHasRemainderEvidence = pages[pages.length - 1].items.length < plan.pageSize;
+  const finalPage = pages.at(-1);
+  const finalPageHasRemainderEvidence = finalPage !== undefined && finalPage.items.length < plan.pageSize;
   const expectedCountKnown =
     first.totalCount !== undefined || first.totalPages !== undefined || finalPageHasRemainderEvidence;
   const expectedCount = first.totalCount ?? items.length;

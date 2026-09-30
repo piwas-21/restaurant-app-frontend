@@ -135,11 +135,12 @@ function createClientSnapshot(
     ? source.mappedFamilies.filter((family) => family.categoryIds.includes(categoryFilter))
     : source.mappedFamilies;
   const offerPageCount = Math.max(1, Math.ceil(visibleOfferFamilies.length / OFFER_PAGE_SIZE));
-  const currentPage = fullOnePage
-    ? 1
-    : source.categoryOffers
-      ? normalizedPage(requestedPage, offerPageCount)
-      : normalizedPage(requestedPage, productPageCount);
+  let currentPage = normalizedPage(requestedPage, productPageCount);
+  if (fullOnePage) {
+    currentPage = 1;
+  } else if (source.categoryOffers) {
+    currentPage = normalizedPage(requestedPage, offerPageCount);
+  }
   return {
     locale,
     categories: source.categories.items,

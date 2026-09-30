@@ -93,7 +93,8 @@ export function publicMenuPageHref(
 ): string {
   const query = publicMenuQuery(current, view, page);
   const search = query.toString();
-  return `/${locale}/menu${search ? `?${search}` : ''}`;
+  const suffix = search ? `?${search}` : '';
+  return `/${locale}/menu${suffix}`;
 }
 
 function copyMenuLocation(source: URLSearchParams, query: URLSearchParams): void {

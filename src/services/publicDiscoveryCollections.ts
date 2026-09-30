@@ -63,25 +63,26 @@ export async function getProductsByCategory(categories: readonly ApiCategory[]):
   const union = new Map<string, ProductDto>();
   let nextIndex = 0;
   let complete = true;
-  const workers = Array.from({ length: Math.min(CATEGORY_PRODUCT_CONCURRENCY, categories.length) }, async () => {
-    while (true) {
-      const category = categories[nextIndex++];
-      if (!category) return;
-      const collection = await readPublicCollection<ProductDto>(
-        (page) =>
-          `/api/Products?Page=${page}&PageSize=${PRODUCT_PAGE_SIZE}&CategoryId=${encodeURIComponent(category.id)}&GuestAllView=true`,
-        PRODUCT_PAGE_SIZE,
-        MAX_MENU_PAGES,
-      );
+  const loadNextCategory = (): Promise<void> => {
+    const category = categories[nextIndex++];
+    if (!category) return Promise.resolve();
+    return readPublicCollection<ProductDto>(
+      (page) =>
+        `/api/Products?Page=${page}&PageSize=${PRODUCT_PAGE_SIZE}&CategoryId=${encodeURIComponent(category.id)}&GuestAllView=true`,
+      PRODUCT_PAGE_SIZE,
+      MAX_MENU_PAGES,
+    ).then((collection) => {
       if (!collection.complete) {
         complete = false;
-        continue;
+      } else {
+        const visible = visibleProducts(collection);
+        byCategory[category.id] = visible;
+        for (const product of visible) union.set(product.id, product);
       }
-      const visible = visibleProducts(collection);
-      byCategory[category.id] = visible;
-      for (const product of visible) union.set(product.id, product);
-    }
-  });
+      return loadNextCategory();
+    });
+  };
+  const workers = Array.from({ length: Math.min(CATEGORY_PRODUCT_CONCURRENCY, categories.length) }, loadNextCategory);
   await Promise.all(workers);
   return { complete, byCategory, union: [...union.values()] };
 }

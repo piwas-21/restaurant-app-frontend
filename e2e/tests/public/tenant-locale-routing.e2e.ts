@@ -247,7 +247,10 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
     await page.goto(appUrl(baseURL, '/ar'));
     await expectDocumentLocale(page, 'ar');
     await clearCookieState();
-    const reservationLink = page.locator('a[href="/ar/reservations"]').first();
+    const navigationToggle = page.getByRole('button', { name: 'افتح القائمة', exact: true });
+    await expect(navigationToggle).toBeVisible();
+    await navigationToggle.click();
+    const reservationLink = page.getByRole('link', { name: 'الحجوزات', exact: true });
     if (await reservationLink.count()) {
       await expect(reservationLink).toBeVisible();
       await reservationLink.click();

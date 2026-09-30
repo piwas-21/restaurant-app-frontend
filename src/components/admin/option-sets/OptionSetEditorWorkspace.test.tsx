@@ -8,7 +8,11 @@ import { useOptionSetEditor } from '@/hooks/admin/useOptionSetEditor';
 import OptionSetEditorWorkspace from './OptionSetEditorWorkspace';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ replace: jest.fn() }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ replace: jest.fn() }),
+}));
 jest.mock('@/hooks/admin/useOptionSetEditor', () => ({ useOptionSetEditor: () => mockEditorState }));
 jest.mock('./OptionSetEntryRow', () => () => null);
 jest.mock('@/services/translationWorkbenchService', () => ({

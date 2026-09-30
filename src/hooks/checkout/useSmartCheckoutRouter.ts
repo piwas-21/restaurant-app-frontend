@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useCheckout, type CustomerInfo, type DeliveryAddress } from '@/contexts/CheckoutContext';
 import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
@@ -78,7 +78,7 @@ function checkoutContextSatisfies(
 }
 
 export function useSmartCheckoutRouter(): SmartCheckoutRouter {
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
   const { state: checkoutState, setCustomerInfo, setDeliveryAddress } = useCheckout();
   const [isResolving, setIsResolving] = useState(false);
 
@@ -99,7 +99,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
           source,
           loggedIn: isLoggedInForAnalytics(),
         });
-        router.push('/checkout/review');
+        push('/checkout/review');
         return null;
       }
 
@@ -145,7 +145,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
           source,
           loggedIn: true,
         });
-        router.push('/checkout/review');
+        push('/checkout/review');
         return null;
       } catch (error) {
         console.warn('Smart-skip checkout could not resolve profile, falling back:', error);
@@ -154,7 +154,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         setIsResolving(false);
       }
     },
-    [router, checkoutState.customerInfo, checkoutState.deliveryAddress, setCustomerInfo, setDeliveryAddress],
+    [push, checkoutState.customerInfo, checkoutState.deliveryAddress, setCustomerInfo, setDeliveryAddress],
   );
 
   return { proceedToCheckout, isResolving };

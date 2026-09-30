@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 
 test('legacy /checkout/order-type redirects to /menu when no order type is set', async ({ page }) => {
   await page.goto('/checkout/order-type');
-  await expect(page).toHaveURL(/\/menu$/);
+  await expect(page).toHaveURL(/\/en\/menu$/);
 });
 
 test('legacy /checkout/order-type redirects to /menu when an order type is chosen', async ({ page }) => {
@@ -23,7 +23,7 @@ test('legacy /checkout/order-type redirects to /menu when an order type is chose
     );
   });
   await page.goto('/checkout/order-type');
-  await expect(page).toHaveURL(/\/menu$/);
+  await expect(page).toHaveURL(/\/en\/menu$/);
 });
 
 test('legacy /checkout/customer-info redirects to /menu when cart is empty', async ({ page }) => {
@@ -34,5 +34,5 @@ test('legacy /checkout/customer-info redirects to /menu when cart is empty', asy
   // covered indirectly by the smart-skip suite, which exercises the same
   // smart-skip routing rules from the /menu sidebar's Proceed-to-Checkout.
   await page.goto('/checkout/customer-info');
-  await expect(page).toHaveURL(/\/menu$/);
+  await expect(page).toHaveURL(/\/en\/menu$/);
 });

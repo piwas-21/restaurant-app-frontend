@@ -48,6 +48,7 @@ jest.mock('../i18n', () => {
 });
 
 jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   usePathname: () => mockPathname,
   useSearchParams: () => new URLSearchParams(mockSearch),
 }));
@@ -72,13 +73,21 @@ const { saveLanguagePreference } = jest.requireMock('@/services/userService') as
 
 function pickFrench() {
   render(<LanguageSwitcher />);
-  fireEvent.click(screen.getByLabelText('Toggle language menu'));
+  fireEvent.click(screen.getByRole('button', { name: 'Language' }));
   fireEvent.click(screen.getByText('French'));
+}
+
+function savedLocaleCookie(): string | undefined {
+  return document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('tenant_locale_v1='));
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
+  document.cookie = 'tenant_locale_v1=; Path=/; Max-Age=0';
   mockUser = null;
   mockBaseLanguage = 'en';
   mockPublicLanguage = 'fr';
@@ -93,7 +102,8 @@ it('a signed-in user has the choice recorded on their account', async () => {
   pickFrench();
 
   expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
-  expect(localStorage.getItem('i18nextLng')).toBe('fr');
+  expect(savedLocaleCookie()).toBe('tenant_locale_v1=fr');
+  expect(localStorage.getItem('i18nextLng')).toBeNull();
   await waitFor(() => expect(saveLanguagePreference).toHaveBeenCalledWith('fr'));
 });
 
@@ -101,7 +111,8 @@ it('a guest writes nothing to any account', async () => {
   pickFrench();
 
   expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
-  expect(localStorage.getItem('i18nextLng')).toBe('fr');
+  expect(savedLocaleCookie()).toBe('tenant_locale_v1=fr');
+  expect(localStorage.getItem('i18nextLng')).toBeNull();
   expect(saveLanguagePreference).not.toHaveBeenCalled();
 });
 
@@ -121,7 +132,8 @@ it('a failed write changes nothing the user can see', async () => {
 
   await waitFor(() => expect(saveLanguagePreference).toHaveBeenCalled());
   expect(mockBaseChangeLanguage).toHaveBeenCalledWith('fr');
-  expect(localStorage.getItem('i18nextLng')).toBe('fr');
+  expect(savedLocaleCookie()).toBe('tenant_locale_v1=fr');
+  expect(localStorage.getItem('i18nextLng')).toBeNull();
 });
 
 it('keeps an explicit public locale choice when client navigation enters a private route', () => {
@@ -131,7 +143,7 @@ it('keeps an explicit public locale choice when client navigation enters a priva
   mockBaseLanguage = 'de';
   const { rerender } = render(<LanguageSwitcher />);
 
-  fireEvent.click(screen.getByLabelText('Toggle language menu'));
+  fireEvent.click(screen.getByRole('button', { name: 'Language' }));
   fireEvent.click(screen.getByText('English'));
 
   expect(mockPublicChangeLanguage).toHaveBeenCalledWith('en');

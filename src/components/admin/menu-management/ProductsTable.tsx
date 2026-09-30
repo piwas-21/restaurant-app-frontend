@@ -2,7 +2,7 @@
 
 import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
 import { Product } from '@/app/admin/menu-management/interfaces';

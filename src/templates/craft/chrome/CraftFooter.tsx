@@ -6,7 +6,8 @@
 // cookie-preferences trigger); the home page composes its own footer and
 // the chrome hides this one there (mirrors classic).
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
+import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
 import PartnerCredit from '@/components/PartnerCredit';
@@ -14,10 +15,13 @@ import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import styles from './CraftFooter.module.css';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 export default function CraftFooter() {
   const [isClient, setIsClient] = useState(false);
   const { t, i18n } = useTranslation();
+  const pathname = usePathname();
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
   const { info: restaurantInfo } = useRestaurantInfo();
 
   useEffect(() => {
@@ -40,10 +44,10 @@ export default function CraftFooter() {
           </p>
         )}
         <div className={styles.footerLinks}>
-          <Link href="/privacy-policy" className={styles.footerLink}>
+          <Link href={localizedHref('/privacy-policy')} className={styles.footerLink}>
             {copy('footer_privacy_policy')}
           </Link>
-          <Link href="/terms-of-usage" className={styles.footerLink}>
+          <Link href={localizedHref('/terms-of-usage')} className={styles.footerLink}>
             {copy('footer_terms_of_usage')}
           </Link>
         </div>

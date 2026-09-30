@@ -9,7 +9,11 @@ const mockPush = jest.fn();
 
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ addItem: mockAddItem }) }));
 jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mockEnqueueSnackbar }) }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush }),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string, values?: Record<string, unknown>) => {

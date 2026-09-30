@@ -9,18 +9,18 @@
 # Inspect for ratchet opportunities:
 #   bash scripts/check-file-length.sh --all
 src/types/basket.ts
-src/app/kitchen-staff/page.tsx
-src/app/admin/customer-discounts/customer-discounts.module.css
-src/app/admin/customer-discounts/page.tsx
-src/app/admin/user-groups/[id]/page.tsx
-src/app/admin/point-rules/point-rules.module.css
-src/app/admin/point-rules/page.tsx
-src/app/admin/orders-management/page.tsx
-src/app/admin/member-management/page.tsx
+src/app/[locale]/kitchen-staff/page.tsx
+src/app/[locale]/admin/customer-discounts/customer-discounts.module.css
+src/app/[locale]/admin/customer-discounts/page.tsx
+src/app/[locale]/admin/user-groups/[id]/page.tsx
+src/app/[locale]/admin/point-rules/point-rules.module.css
+src/app/[locale]/admin/point-rules/page.tsx
+src/app/[locale]/admin/orders-management/page.tsx
+src/app/[locale]/admin/member-management/page.tsx
 src/app/admin/table-statistics/styles.module.css
 src/app/app-internal-layout.tsx
-src/app/scan/page.tsx
-src/app/checkout/confirmation/page.tsx
+src/app/[locale]/scan/page.tsx
+src/app/[locale]/checkout/confirmation/page.tsx
 src/app/styles/RegisterStaffModal.module.css
 src/app/styles/ServerPage.module.css
 src/app/styles/KitchenStaffPage.module.css
@@ -33,8 +33,8 @@ src/app/styles/AdminOrdersPage.module.css
 src/app/styles/DetailsPage.module.css
 src/app/styles/OrderTypePage.module.css
 src/app/styles/AdminPage.module.css
-src/app/(auth)/delete-account/DeleteAccount.module.css
-src/app/(auth)/verify-email/VerifyEmail.module.css
+src/app/[locale]/(auth)/delete-account/DeleteAccount.module.css
+src/app/[locale]/(auth)/verify-email/VerifyEmail.module.css
 src/styles/orderStatus.module.css
 src/components/cashier/AutoPrintSettingsModal.module.css
 src/components/cashier/QuickConfirmModal.module.css

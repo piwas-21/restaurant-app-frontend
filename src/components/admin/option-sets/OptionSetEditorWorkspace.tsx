@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useCallback, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from '@/components/TenantLink';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/admin/PageHeader';
 import FormField from '@/components/design-system/FormField';

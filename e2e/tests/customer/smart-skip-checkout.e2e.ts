@@ -45,7 +45,7 @@ authedTest('logged-in user with phone skips customer-info on Takeaway', async ({
   const context = await browser.newContext({ storageState: customerUser.storageStatePath });
   const page = await context.newPage();
   try {
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.
@@ -93,7 +93,7 @@ authedTest(
     const context = await browser.newContext({ storageState: customerUser.storageStatePath });
     const page = await context.newPage();
     try {
-      await page.goto('/menu');
+      await page.goto('/en/menu');
 
       // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
       // needs it and leaves the grid behind it clickable in between.
@@ -149,7 +149,7 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.
@@ -209,7 +209,7 @@ publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)',
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.

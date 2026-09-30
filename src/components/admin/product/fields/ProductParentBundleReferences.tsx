@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { Variation } from '@/app/admin/menu-management/interfaces';

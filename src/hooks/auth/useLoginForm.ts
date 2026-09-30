@@ -8,8 +8,8 @@
 // verbatim lift (role-based routing, resend-verification flow, error/verify
 // states); the classic DOM is unchanged.
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { login as loginUser, sendEmailVerification } from '@/services/authService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage, throwServerRefusal } from '@/utils/apiFormErrors';
@@ -21,7 +21,7 @@ import { useModules } from '@/contexts/ModulesContext';
 const ROLE_ROUTES: Record<string, string> = {
   admin: '/admin/dashboard',
   customer: '/account',
-  cashier: '/cashier',
+  cashier: '/cashier/orders',
   kitchenstaff: '/kitchen-staff',
   server: '/server',
 };
@@ -37,7 +37,7 @@ export function useLoginForm() {
   const [resendSucceeded, setResendSucceeded] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const resendTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const router = useRouter();
+  const { push } = useTenantLocaleRouter();
   const { login } = useAuth();
   const modules = useModules();
 
@@ -100,7 +100,7 @@ export function useLoginForm() {
         // genuinely bare screen.
         const target = ROLE_ROUTES[userRole] ?? '/';
         const targetModule = moduleForPath(target);
-        router.push(targetModule === null || modules.has(targetModule) ? target : '/');
+        push(targetModule === null || modules.has(targetModule) ? target : '/');
       } else {
         // `AuthController.Login` returns `Ok(result)` and the handler answers
         // `ApiResponse.Failure(reason, summary)` — so a refused login is a **200** carrying

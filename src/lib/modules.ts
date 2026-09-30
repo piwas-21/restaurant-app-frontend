@@ -11,6 +11,8 @@
  * agree or a tenant's registry entry stops meaning what it says.
  */
 
+import { appPathname } from '@/lib/tenantLocaleRouting';
+
 export const MODULE_IDS = [
   'core',
   'kitchen-board',
@@ -70,6 +72,7 @@ const ROUTE_MODULES = [...ROUTE_MODULE_ENTRIES].sort((a, b) => b[0].length - a[0
  * table's sort order.
  */
 export function moduleForPath(pathname: string): ModuleId | null {
-  const match = ROUTE_MODULES.find(([prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const routePath = appPathname(pathname);
+  const match = ROUTE_MODULES.find(([prefix]) => routePath === prefix || routePath.startsWith(`${prefix}/`));
   return match ? match[1] : null;
 }

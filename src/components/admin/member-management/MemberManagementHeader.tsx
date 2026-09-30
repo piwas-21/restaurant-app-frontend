@@ -3,7 +3,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
-import { useRouter } from 'next/navigation';
+
+import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 
 interface MemberManagementHeaderProps {
   onRegisterStaff: () => void;

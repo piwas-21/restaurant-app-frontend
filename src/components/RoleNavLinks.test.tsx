@@ -8,6 +8,7 @@ const mockUser = jest.fn<{ role: string } | null, []>();
 const mockPathname = jest.fn(() => '/');
 const mockSearchParams = jest.fn(() => new URLSearchParams());
 jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   usePathname: () => mockPathname(),
   useSearchParams: () => mockSearchParams(),
 }));
@@ -41,7 +42,11 @@ describe('RoleNavLinks module gating', () => {
     renderNav(null, ['core'], `/${locale}`, 'qr=printed-table');
 
     expect(hrefs()).toEqual(
-      expect.arrayContaining([`/${locale}?qr=printed-table`, `/${locale}/menu?qr=printed-table`, '/cart']),
+      expect.arrayContaining([
+        `/${locale}?qr=printed-table`,
+        `/${locale}/menu?qr=printed-table`,
+        `/${locale}/cart?qr=printed-table`,
+      ]),
     );
   });
 

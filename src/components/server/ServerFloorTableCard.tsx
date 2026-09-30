@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import TableServiceStrip from '@/components/design-system/TableServiceStrip';

@@ -1,3 +1,5 @@
+import { appPathname } from '@/lib/tenantLocaleRouting';
+
 // Staff/admin chrome routing (ADR-006, S15 T3 slice 2).
 //
 // Staff/admin surfaces are deliberately NOT templated in v1 (see the
@@ -11,5 +13,6 @@
 const SHARED_CHROME_PREFIXES = ['/admin', '/cashier', '/server', '/kitchen-staff'];
 
 export function isSharedChromeRoute(pathname: string): boolean {
-  return SHARED_CHROME_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const routePath = appPathname(pathname);
+  return SHARED_CHROME_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`));
 }

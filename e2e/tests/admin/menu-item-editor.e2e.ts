@@ -150,7 +150,7 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
   try {
     // `domcontentloaded` rather than `networkidle`: the web-first waits below give the same
     // guarantee, and networkidle can outlive the test budget on a page with a live connection.
-    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
 
     // The FIRST assertion is the loaded product, not the shell. `AdminAuthGuard` renders the
     // anonymous redirect a beat after first paint, and the editor renders its own frame while the
@@ -251,7 +251,7 @@ test('phone editor starts with an editable field and keeps contextual tools reac
   const context = await browser.newContext({ storageState: path, viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   try {
-    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
     const nameInput = page.locator('input[name="name"]');
     await expect(nameInput).toHaveValue(SEEDED_PRODUCT_NAME, { timeout: 120_000 });
 
@@ -288,14 +288,16 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     expect(tabletNameBox!.y).toBeGreaterThanOrEqual(0);
     expect(tabletNameBox!.y + tabletNameBox!.height).toBeLessThan(tabletSaveBox!.y);
 
-    // The ephemeral browser context can switch language/theme without touching a real tenant's
-    // saved preferences. This checks the same first-field layout under RTL and dark tokens.
+    // The explicit Arabic route must win over a stale detector value without touching a real
+    // tenant's saved preferences. This checks the first-field layout under RTL and dark tokens.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => {
-      localStorage.setItem('i18nextLng', 'ar');
+      localStorage.setItem('i18nextLng', 'en');
       localStorage.setItem('rumiTheme', 'dark');
     });
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/ar/admin/menu-management/${SEEDED_PRODUCT_ID}`, {
+      waitUntil: 'domcontentloaded',
+    });
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(nameInput).toBeVisible();
@@ -309,7 +311,7 @@ test('phone editor starts with an editable field and keeps contextual tools reac
 
     // The seeded Menu record is a real bundle. Its status flags live in Basics, while the
     // contextual set picker belongs to Menu choices in the compact disclosure.
-    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_BUNDLE_ID}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/menu-management/${SEEDED_BUNDLE_ID}`, { waitUntil: 'domcontentloaded' });
     await expect(nameInput).toHaveValue(SEEDED_BUNDLE_NAME);
     const bundleNameBox = await nameInput.boundingBox();
     const bundleSaveBox = await page.getByTestId('editor-save').boundingBox();
@@ -392,7 +394,7 @@ test('the section nav and the admin sidebar stay pinned while the editor scrolls
   const context = await browser.newContext({ storageState: stickyStatePath, viewport: { width: 1440, height: 800 } });
   const page = await context.newPage();
   try {
-    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('input[name="name"]'), 'the editor must load the seeded product').toHaveValue(
       SEEDED_PRODUCT_NAME,
       { timeout: 120_000 },
@@ -403,7 +405,8 @@ test('the section nav and the admin sidebar stay pinned while the editor scrolls
     // rail), so filtering on `aria-current` alone is a strict-mode violation, and matching the
     // accessible name would tie the test to the English bundle.
     const sectionNav = page.getByTestId('editor-section-nav');
-    const sidebarLink = page.locator('aside a[href="/admin/dashboard"]');
+    const routeLocale = new URL(page.url()).pathname.split('/')[1];
+    const sidebarLink = page.locator(`aside a[href="/${routeLocale}/admin/dashboard"]`);
     await expect(sectionNav).toBeVisible();
     await expect(sidebarLink).toBeVisible();
 

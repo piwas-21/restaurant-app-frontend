@@ -6,7 +6,7 @@
 >
 > Authoritative for **browser E2E** (Playwright) in `frontend/`. The backend
 > has its own integration-test layer (`backend/RestaurantSystem.IntegrationTests`)
-> against a real Postgres via Testcontainers — that is the boundary *below*
+> against a real Postgres via Testcontainers — that is the boundary _below_
 > the browser tests described here.
 
 ## Scope: what E2E is for (and isn't)
@@ -70,7 +70,7 @@ Criteria: revenue-critical, security-critical, or a past production incident.
 - **Admin products**: create product → upload image → toggle availability → appears on public menu
 - **Admin orders**: filter by status → open details → cancel/refund (boundary-mocked)
 - **Reservations**: customer creates reservation → admin approves/rejects → status reflects on customer side
-- **Booking through the floor plan**: `/reservations` renders the plan → pick a table *from the map* → the booking docket agrees; the **List** view is a complete alternative sharing one selection; the map is operable from the keyboard alone (FLOOR-PLAN-REVAMP §4.2 — the revamp exists so a guest can choose by looking at the room, and the List is the mobile and screen-reader path)
+- **Booking through the floor plan**: `/reservations` renders the plan → pick a table _from the map_ → the booking docket agrees; the **List** view is a complete alternative sharing one selection; the map is operable from the keyboard alone (FLOOR-PLAN-REVAMP §4.2 — the revamp exists so a guest can choose by looking at the room, and the List is the mobile and screen-reader path)
 - **Locale + RTL**: switch to `ar` on a key page, confirm direction flips and primary CTA is reachable
 - **Auth-guard**: unauthenticated user hitting `/admin` is redirected to login
 
@@ -149,10 +149,13 @@ or deep descendant selectors — they break on harmless style refactors.
 
 ### i18n note on selectors
 
-Accessible names come from translated copy (`t('save')`). Tests must run in
-a deterministic locale. Default the test run to `en` via the same mechanism
-the app uses (`i18nextLng` localStorage / cookie). Tests that exercise
-locale switching must `await` the change before asserting.
+Accessible names come from translated copy (`t('save')`). Tests that need a
+deterministic locale should enter through an explicit route such as
+`/en/...`; that URL is authoritative for SSR and client navigation. Use the
+versioned `tenant_locale_v1` cookie only when testing bare-entry negotiation.
+Do not seed the legacy detector-managed `i18nextLng` value as a preference.
+Tests that exercise locale switching must await the route transition and
+assert the resulting URL plus document `lang`/`dir`.
 
 ## Data isolation
 

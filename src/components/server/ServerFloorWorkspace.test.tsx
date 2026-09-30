@@ -15,7 +15,11 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 const mockPush = jest.fn();
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush }),
+}));
 jest.mock('@/hooks/serverWorkspace/useServerFloorSnapshot');
 jest.mock('@/components/floor-plan/FloorPlanScene', () => ({
   __esModule: true,

@@ -21,9 +21,12 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 const SRC = path.resolve(__dirname, '..');
 const APP = __dirname;
+const LOCALE_APP = path.join(APP, '[locale]');
+const SUPPORTED_LOCALES = new Set<string>(LANGUAGE_CODES);
 
 /** Every `.ts`/`.tsx` file under `src`, excluding this test's own fixtures. */
 function sourceFiles(dir: string, acc: string[] = []): string[] {
@@ -46,28 +49,30 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
  * `app/(auth)/forgot-password`) would read as missing and this test would fail on correct
  * code, which is the failure mode that gets a check deleted.
  */
+function hasPage(dir: string): boolean {
+  return fs.existsSync(path.join(dir, 'page.tsx')) || fs.existsSync(path.join(dir, 'page.ts'));
+}
+
+function matchesSegment(routeSegment: string, targetSegment: string): boolean {
+  if (targetSegment.includes('${')) return routeSegment.startsWith('[');
+  return routeSegment === targetSegment || (routeSegment === '[locale]' && SUPPORTED_LOCALES.has(targetSegment));
+}
+
+function resolveChild(dir: string, child: fs.Dirent, head: string, rest: string[], segments: string[]): boolean {
+  if (!child.isDirectory()) return false;
+  const childPath = path.join(dir, child.name);
+  if (child.name.startsWith('(') && child.name.endsWith(')')) return resolves(childPath, segments);
+  return matchesSegment(child.name, head) && resolves(childPath, rest);
+}
+
 function resolves(dir: string, segments: string[]): boolean {
   if (!fs.existsSync(dir)) return false;
 
-  if (segments.length === 0) {
-    return fs.existsSync(path.join(dir, 'page.tsx')) || fs.existsSync(path.join(dir, 'page.ts'));
-  }
+  if (segments.length === 0) return hasPage(dir);
 
   const [head, ...rest] = segments;
   const children = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory());
-  const isDynamicSegment = head.includes('${');
-
-  for (const child of children) {
-    const isGroup = child.name.startsWith('(') && child.name.endsWith(')');
-    const isParam = child.name.startsWith('[');
-    if (isGroup) {
-      // Group directories do not consume a segment.
-      if (resolves(path.join(dir, child.name), segments)) return true;
-    } else if (isDynamicSegment ? isParam : child.name === head || isParam) {
-      if (resolves(path.join(dir, child.name), rest)) return true;
-    }
-  }
-  return false;
+  return children.some((child) => resolveChild(dir, child, head, rest, segments));
 }
 
 interface Target {
@@ -98,6 +103,12 @@ describe('navigation targets', () => {
     expect(targets.map((t) => t.route)).toContain('/auth/login');
   });
 
+  it('does not resolve an unregistered path in either route tree', () => {
+    const missingSegments = ['__route_that_does_not_exist__'];
+    expect(resolves(APP, missingSegments)).toBe(false);
+    expect(resolves(LOCALE_APP, missingSegments)).toBe(false);
+  });
+
   it.each([...new Set(targets.map((t) => t.route))])('%s resolves to a route', (route) => {
     const pathname = route.split(/[?#]/)[0];
     const segments = pathname.split('/').filter(Boolean);
@@ -107,6 +118,8 @@ describe('navigation targets', () => {
       .join(', ');
     // The message carries the call sites: a bare "expected false to be true" on a route
     // string leaves you grepping for who pushes it.
-    expect(resolves(APP, segments) || `${route} has no page (pushed from ${where})`).toBe(true);
+    expect(
+      resolves(APP, segments) || resolves(LOCALE_APP, segments) || `${route} has no page (pushed from ${where})`,
+    ).toBe(true);
   });
 });

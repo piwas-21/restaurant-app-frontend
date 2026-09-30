@@ -20,9 +20,9 @@ jest.mock('@/services/authService', () => ({
 
 const { refreshToken } = jest.requireMock('@/services/authService') as { refreshToken: jest.Mock };
 
-/** What i18next caches under `detection.caches: ['localStorage']`, and what the switcher writes. */
+/** The explicit locale preference is independent of i18next's detector cache. */
 function readingIn(language: string) {
-  localStorage.setItem('i18nextLng', language);
+  document.cookie = `tenant_locale_v1=${language}; Path=/`;
 }
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -50,8 +50,11 @@ function respondWith(...responses: Response[]) {
 
 beforeEach(() => {
   localStorage.clear();
+  document.cookie = 'tenant_locale_v1=; Path=/; Max-Age=0';
+  window.history.pushState({}, '', '/');
   sentHeaders.length = 0;
   jest.resetAllMocks();
+  localStorage.setItem('i18nextLng', 'fr');
   readingIn('fr');
 });
 
@@ -89,22 +92,53 @@ describe('every verb carries the language the user is reading in', () => {
     expect(sentHeaders[0]['Accept-Language']).toBe('ar');
   });
 
-  /**
-   * A region tag is passed through on purpose: the server reduces it to its primary subtag itself,
-   * and half-parsing a language tag in the client is how a header stops being a valid one.
-   */
-  it('passes a region tag through unchanged', async () => {
+  /** A legacy region-tag cache is not a manual locale preference. */
+  it('ignores a legacy region-tag detector cache without a saved locale cookie', async () => {
     respondWith(jsonResponse(200, {}));
-    readingIn('fr-CH');
+    localStorage.setItem('i18nextLng', 'fr-CH');
+    document.cookie = 'tenant_locale_v1=; Path=/; Max-Age=0';
 
     await apiClient.get('/api/Menu');
 
-    expect(sentHeaders[0]['Accept-Language']).toBe('fr-CH');
+    expect(sentHeaders[0]['Accept-Language']).toBeUndefined();
+  });
+
+  it('uses the versioned preference instead of stale legacy detector cache', async () => {
+    respondWith(jsonResponse(200, {}));
+    localStorage.setItem('i18nextLng', 'fr');
+    document.cookie = 'tenant_locale_v1=en; Path=/';
+
+    await apiClient.get('/api/Menu');
+
+    expect(sentHeaders[0]['Accept-Language']).toBe('en');
+  });
+
+  it('uses the explicit route locale over old storage and the preference cookie', async () => {
+    respondWith(jsonResponse(200, {}));
+    localStorage.setItem('i18nextLng', 'fr');
+    document.cookie = 'tenant_locale_v1=en; Path=/';
+    window.history.pushState({}, '', '/ar/cart');
+
+    await apiClient.get('/api/Menu');
+
+    expect(sentHeaders[0]['Accept-Language']).toBe('ar');
+  });
+
+  it('uses the saved locale cookie when a legacy unprefixed route calls the API', async () => {
+    respondWith(jsonResponse(200, {}));
+    localStorage.removeItem('i18nextLng');
+    document.cookie = 'tenant_locale_v1=de; Path=/';
+    window.history.pushState({}, '', '/cart');
+
+    await apiClient.get('/api/Menu');
+
+    expect(sentHeaders[0]['Accept-Language']).toBe('de');
   });
 
   it('sends none before anything has been detected, rather than guessing', async () => {
     respondWith(jsonResponse(200, {}));
     localStorage.removeItem('i18nextLng');
+    document.cookie = 'tenant_locale_v1=; Path=/; Max-Age=0';
 
     await apiClient.get('/api/Menu');
 

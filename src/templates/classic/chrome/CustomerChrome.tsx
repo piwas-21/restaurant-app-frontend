@@ -13,7 +13,7 @@
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useEffect, useState, CSSProperties } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { useTheme } from '@/components/ThemeContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -32,6 +32,8 @@ import { RESTAURANT_NAME } from '@/lib/config';
 import TenantLogo from '@/components/branding/TenantLogo';
 import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import { isHomeRoutePathname, publicHomeHref } from '@/lib/publicRouteQuery';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
+import { appPathname } from '@/lib/tenantLocaleRouting';
 import layoutStyles from './CustomerChrome.module.css';
 import publicHeaderStyles from './CustomerHeader.module.css';
 
@@ -48,6 +50,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerHeight = '80px';
   const homeHref = publicHomeHref(pathname, searchParams);
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
 
   useEffect(() => {
     setIsClient(true);
@@ -154,8 +157,8 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                     <UserMenu onMobileMenuClose={closeMobileMenu} />
                   ) : (
                     <Link
-                      href="/auth/login"
-                      className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
+                      href={localizedHref('/auth/login')}
+                      className={`nav-link ${appPathname(pathname) === '/auth/login' ? 'active' : ''}`}
                       onClick={closeMobileMenu}
                     >
                       {copy('nav_login')}
@@ -190,13 +193,13 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
             )}
             <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <Link
-                href="/privacy-policy"
+                href={localizedHref('/privacy-policy')}
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
                 {copy('footer_privacy_policy')}
               </Link>
               <Link
-                href="/terms-of-usage"
+                href={localizedHref('/terms-of-usage')}
                 style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}
               >
                 {copy('footer_terms_of_usage')}

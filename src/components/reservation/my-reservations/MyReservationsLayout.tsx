@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import MyReservationCard from './MyReservationCard';
 import CancelReservationModal from '@/components/reservation/CancelReservationModal';
 import CancelSuccessModal from '@/components/reservation/CancelSuccessModal';

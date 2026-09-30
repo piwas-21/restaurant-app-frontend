@@ -8,15 +8,15 @@ Index of ADRs for the RUMI Frontend. New ADRs are numbered sequentially with no 
 
 ## Index
 
-| # | Title | Status | Date | Tags |
-|---|---|---|---|---|
-| [001](ADR-001-app-router-context-api.md) | App Router + Context API for state | Accepted | 2026-04-27 | architecture, state |
-| [002](ADR-002-css-modules-and-tokens.md) | CSS Modules + design tokens (vs Tailwind) | Accepted | 2026-04-27 | styling, design-system |
-| [003](ADR-003-i18next-locale-parity.md) | i18next + 9 locales with parity rule | Accepted | 2026-04-27 | i18n |
-| [004](ADR-004-zod-form-validation.md) | Zod as form-validation source of truth | Accepted | 2026-04-27 | forms, validation |
-| [005](ADR-005-design-system-primitives.md) | BaseModal, FormField, StatusBadge as mandatory wrappers | Accepted | 2026-04-27 | design-system |
-| [006](ADR-006-tenant-ui-templates.md) | Tenant UI templates: build-time template selection (`classic`/`craft`) | Accepted | 2026-07-07 | design-system, multi-tenant, styling |
-| [007](ADR-007-runtime-palette-theming.md) | Runtime colour-palette theming: owner-selectable palettes without a rebuild | Accepted | 2026-07-18 | design-system, multi-tenant, styling, a11y |
+| #                                          | Title                                                                       | Status   | Date       | Tags                                       |
+| ------------------------------------------ | --------------------------------------------------------------------------- | -------- | ---------- | ------------------------------------------ |
+| [001](ADR-001-app-router-context-api.md)   | App Router + Context API for state                                          | Accepted | 2026-04-27 | architecture, state                        |
+| [002](ADR-002-css-modules-and-tokens.md)   | CSS Modules + design tokens (vs Tailwind)                                   | Accepted | 2026-04-27 | styling, design-system                     |
+| [003](ADR-003-i18next-locale-parity.md)    | i18next + 10 locales with parity rule                                       | Accepted | 2026-04-27 | i18n                                       |
+| [004](ADR-004-zod-form-validation.md)      | Zod as form-validation source of truth                                      | Accepted | 2026-04-27 | forms, validation                          |
+| [005](ADR-005-design-system-primitives.md) | BaseModal, FormField, StatusBadge as mandatory wrappers                     | Accepted | 2026-04-27 | design-system                              |
+| [006](ADR-006-tenant-ui-templates.md)      | Tenant UI templates: build-time template selection (`classic`/`craft`)      | Accepted | 2026-07-07 | design-system, multi-tenant, styling       |
+| [007](ADR-007-runtime-palette-theming.md)  | Runtime colour-palette theming: owner-selectable palettes without a rebuild | Accepted | 2026-07-18 | design-system, multi-tenant, styling, a11y |
 
 ## Conventions
 

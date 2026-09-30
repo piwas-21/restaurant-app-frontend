@@ -143,7 +143,7 @@ export async function dismissToastsOverCartButton(page: Page): Promise<void> {
 export async function proceedViaSidebarExpectingNavigation(
   page: Page,
   sidebar: Locator,
-  targetUrl: RegExp = /\/checkout\/review$/,
+  targetUrl: RegExp = /\/en\/checkout\/review$/,
 ): Promise<void> {
   await dismissToastsOverCartButton(page);
   const navigation = page.waitForURL(targetUrl, { timeout: 10_000 });

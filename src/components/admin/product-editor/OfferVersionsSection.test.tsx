@@ -8,7 +8,11 @@ import type { ProductDetails, Product } from '@/app/admin/menu-management/interf
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/services/menuService', () => ({ getAllMenuBundles: jest.fn(), getAllProducts: jest.fn() }));
 jest.mock('@/services/menuOfferFamilyService', () => ({ linkMenuOffer: jest.fn(), unlinkMenuOffer: jest.fn() }));
-jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+jest.mock('next/navigation', () => ({
+  usePathname: () => null,
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn() }),
+}));
 
 const parent: ProductDetails = {
   id: 'product-1',

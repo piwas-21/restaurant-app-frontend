@@ -8,7 +8,11 @@ jest.mock('react-i18next', () => ({
       options?.count === undefined ? key : `${options.count} open orders`,
   }),
 }));
-jest.mock('next/navigation', () => ({ usePathname: () => '/cashier/orders' }));
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  usePathname: () => '/cashier/orders',
+}));
 jest.mock('@/components/ThemeContext', () => ({ useTheme: () => ({ theme: 'light' }) }));
 jest.mock('@/components/LanguageSwitcher', () => ({
   __esModule: true,

@@ -8,9 +8,9 @@
 // basket or the money. It owns one fact (an order was just confirmed on this page) and the two
 // pieces of UI that fact drives.
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import type { PaymentMethod } from '@/types/order';
 import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 
 export interface ConfirmedOrder {
   id: string;
@@ -27,7 +27,7 @@ export interface ConfirmedOrder {
 }
 
 export function useOrderConfirmationModal() {
-  const router = useRouter();
+  const router = useTenantLocaleRouter();
   const [confirmedOrder, setConfirmedOrder] = useState<ConfirmedOrder | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);

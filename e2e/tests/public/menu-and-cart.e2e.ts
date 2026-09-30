@@ -41,7 +41,7 @@ const grid = (page: Page) => page.getByTestId('menu-grid');
  * cross-test cart pollution isn't possible.
  */
 test('customer can browse the menu, add an item, and update its quantity in the cart', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   // a11y baseline: scan after the menu has rendered (helper waits for it).
   // The first add-to-order button being visible is the load-completed signal.
@@ -75,7 +75,7 @@ test('customer can browse the menu, add an item, and update its quantity in the 
   await basketWritePromise;
 
   // Verify the cart UI reflects the addition.
-  await page.goto('/cart');
+  await page.goto('/en/cart');
   await expect(page.getByRole('heading', { name: /your cart/i })).toBeVisible();
 
   // At least one cart line item should be present. Cart items render an
@@ -113,7 +113,7 @@ test('customer can browse the menu, add an item, and update its quantity in the 
  * viewport is fine. Skip if a smaller viewport is ever set as default.
  */
 test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   const sidebar = await openMenuBasket(page);
 
@@ -158,7 +158,7 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
   const proceed = sidebar.getByRole('button', { name: /proceed to checkout/i });
   await expect(proceed).toBeEnabled();
   await proceed.click();
-  await expect(page).toHaveURL(/\/menu$/);
+  await expect(page).toHaveURL(/\/en\/menu$/);
 });
 
 /**
@@ -172,7 +172,7 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
  * This test would have failed before the fix (no dialog + a basket write).
  */
 test('clicking Details opens the item modal and does NOT add it to the cart', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   // `view details for <dish>`, not an anchored `details`: the control's accessible name now carries
   // the DISH. Every card offers one, so a screen-reader user listing the page's buttons used to get
@@ -210,7 +210,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
  * image and carries no "Add to Order" button.
  */
 test('clicking a menu item image opens the enlarged-image lightbox', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
   await expect(page.locator('main[data-menu-hydrated="true"]')).toBeVisible({ timeout: 15_000 });
 
   const thumbnail = grid(page).getByTestId('menu-item-image').first();

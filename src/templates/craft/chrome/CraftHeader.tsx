@@ -12,7 +12,7 @@
 // nav link and the home hero owns the "Book a Table" CTA, so a header
 // button would be a redundant third copy (craft-stitch-prompts.md Prompt 3).
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/TenantLink';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Menu, X } from 'lucide-react';
@@ -30,6 +30,8 @@ import styles from './CraftHeader.module.css';
 import brand from './CraftBrand.module.css';
 import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import { publicHomeHref } from '@/lib/publicRouteQuery';
+import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
+import { appPathname } from '@/lib/tenantLocaleRouting';
 
 export default function CraftHeader() {
   const [isClient, setIsClient] = useState(false);
@@ -49,6 +51,7 @@ export default function CraftHeader() {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const homeHref = publicHomeHref(pathname, searchParams);
+  const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
   const menuToggleLabel = copy(mobileMenuOpen ? 'close_menu' : 'open_menu');
 
   return (
@@ -90,8 +93,8 @@ export default function CraftHeader() {
               <UserMenu onMobileMenuClose={closeMobileMenu} />
             ) : (
               <Link
-                href="/auth/login"
-                className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}
+                href={localizedHref('/auth/login')}
+                className={`nav-link ${appPathname(pathname) === '/auth/login' ? 'active' : ''}`}
                 onClick={closeMobileMenu}
               >
                 {copy('nav_login')}

@@ -15,7 +15,8 @@ import translationES from './locales/es.json';
 import translationRU from './locales/ru.json';
 import translationZH from './locales/zh.json';
 import { applyTenantCopy, tenantCopyOverrides } from './lib/tenantCopy';
-import { isSupportedPublicLocale } from './lib/publicDiscoveryConfig';
+import { tenantLocaleFromPathname } from './lib/tenantLocaleRouting';
+import { readTenantLocalePreference } from './lib/tenantLocalePreferences';
 
 // The PLATFORM bundles: cuisine-neutral copy every tenant image inherits.
 const baseBundles: Record<string, Record<string, unknown>> = {
@@ -43,10 +44,8 @@ const resources = Object.fromEntries(
 
 // Check if we're in the browser
 const isBrowser = typeof window !== 'undefined';
-const publicPath = isBrowser ? window.location.pathname.split('/').filter(Boolean) : [];
-const pathLocale = publicPath[0];
-const isPublicPath = publicPath.length === 1 || (publicPath.length === 2 && publicPath[1] === 'menu');
-const routeLocale = isPublicPath && pathLocale && isSupportedPublicLocale(pathLocale) ? pathLocale : undefined;
+const routeLocale = isBrowser ? tenantLocaleFromPathname(window.location.pathname) : undefined;
+const savedLocale = isBrowser ? readTenantLocalePreference() : null;
 
 i18n
   .use(LanguageDetector) // Detect user language
@@ -54,15 +53,17 @@ i18n
   .init({
     resources,
     fallbackLng: 'en', // Use English if detected language is not available
-    // A locale-prefixed public URL is authoritative over saved/browser preferences.
-    lng: routeLocale ?? (isBrowser ? localStorage.getItem('i18nextLng') || undefined : undefined),
+    // Any supported locale URL is authoritative; otherwise only the versioned preference cookie
+    // outranks browser detection. The old detector cache could contain a locale forced by a
+    // previous default route, so it is deliberately no longer read as a user choice.
+    lng: routeLocale ?? savedLocale ?? undefined,
     debug: process.env.NODE_ENV === 'development', // Enable debug mode in development
     interpolation: {
       escapeValue: false, // React already safes from xss
     },
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
+      order: ['navigator', 'htmlTag'],
+      caches: [],
     },
     react: {
       useSuspense: false, // Disable Suspense for older versions of React or if not using Suspense

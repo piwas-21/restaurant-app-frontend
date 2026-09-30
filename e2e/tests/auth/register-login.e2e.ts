@@ -47,7 +47,7 @@ test.describe('auth: register → verify → login → logout', () => {
     createdEmail = email;
 
     // 1. Register
-    await page.goto('/auth/register');
+    await page.goto('/en/auth/register');
     await expectNoA11yViolations(page);
 
     await page.getByLabel(/first name/i).fill('E2E');
@@ -66,13 +66,13 @@ test.describe('auth: register → verify → login → logout', () => {
 
     // 3. Login — auto-redirect from verify lands at /auth/login?verified=true
     //    after a 3s timer; navigate explicitly to avoid the race.
-    await page.goto('/auth/login');
+    await page.goto('/en/auth/login');
 
     await page.getByLabel(/^email$/i).fill(email);
     await page.getByLabel(/^password$/i).fill(PASSWORD);
     await page.getByRole('button', { name: /^login$/i }).click();
 
-    await expect(page).toHaveURL(/\/account$/);
+    await expect(page).toHaveURL(/\/en\/account$/);
 
     // 4. Logout via the user-menu dropdown
     const publicNavToggle = page.locator('header button[class*="hamburgerMenu"]');
@@ -84,7 +84,7 @@ test.describe('auth: register → verify → login → logout', () => {
     // disappears and the route changes off /account. Token cleared in
     // localStorage is the secondary corroboration.
     await expect(page.getByRole('button', { name: /user menu/i })).toHaveCount(0);
-    await expect(page).not.toHaveURL(/\/account$/);
+    await expect(page).not.toHaveURL(/\/en\/account$/);
     const tokenAfterLogout = await page.evaluate(() => window.localStorage.getItem('auth_token'));
     expect(tokenAfterLogout).toBeNull();
   });
@@ -108,7 +108,7 @@ test.describe('auth: register → verify → login → logout', () => {
     await page.goto(verifyUrl);
     await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();
 
-    await page.goto('/auth/login');
+    await page.goto('/en/auth/login');
     await page.getByLabel(/^email$/i).fill(email);
     await page.getByLabel(/^password$/i).fill('Wrong-Pass-9999!');
     await page.getByRole('button', { name: /^login$/i }).click();
@@ -123,7 +123,7 @@ test.describe('auth: register → verify → login → logout', () => {
     await expect(alert).toContainText(/Invalid credentials|An unknown error occurred/);
 
     // Still on /auth/login — no redirect happened.
-    await expect(page).toHaveURL(/\/auth\/login$/);
+    await expect(page).toHaveURL(/\/en\/auth\/login$/);
     const tokenAfterFailedLogin = await page.evaluate(() => window.localStorage.getItem('auth_token'));
     expect(tokenAfterFailedLogin).toBeNull();
   });

@@ -121,7 +121,7 @@ test('an invalid item cannot be saved, and the editor says which field and where
   try {
     // `domcontentloaded`, not `networkidle`: a deployed host keeps long-lived connections open, so
     // networkidle may never settle and would eat the whole budget before an assertion ran.
-    await page.goto(`${baseURL}/admin/menu-management/${productId}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/menu-management/${productId}`, { waitUntil: 'domcontentloaded' });
 
     const name = page.locator('input[name="name"]');
     await expect(name, 'the editor should render the item it was asked for').toBeVisible({

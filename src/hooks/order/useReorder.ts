@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useCart } from '@/components/cart/CartContext';
@@ -24,7 +24,7 @@ const ANCHOR = { vertical: 'bottom', horizontal: 'right' } as const;
  */
 export function useReorder(setReorderingOrderId: (id: string | null) => void) {
   const { t } = useTranslation();
-  const router = useRouter();
+  const router = useTenantLocaleRouter();
   const { addItem } = useCart();
   const { enqueueSnackbar } = useSnackbar();
 

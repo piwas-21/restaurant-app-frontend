@@ -32,6 +32,7 @@ import { RESTAURANT_NAME } from '@/lib/config';
 import TenantLogo from '@/components/branding/TenantLogo';
 import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import { isHomeRoutePathname, publicHomeHref } from '@/lib/publicRouteQuery';
+import layoutStyles from './CustomerChrome.module.css';
 
 export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isClient, setIsClient] = useState(false);
@@ -74,7 +75,6 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
 
   const mainStyles: CSSProperties = {
     padding: isHomePage ? '0' : '1rem',
-    flexGrow: 1,
   };
 
   const footerStyles: CSSProperties = {
@@ -87,9 +87,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* className: the original computed `isAdminPage ? … : ''` — the fold
-          keeps the empty string so the rendered class attribute is identical. */}
-      <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }} className={''}>
+      <div className={layoutStyles.shellColumn}>
         {
           <header style={headerStyles} className={isHomePage && theme !== 'dark' ? 'home-overlay-header' : undefined}>
             <div
@@ -162,7 +160,9 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
             </div>
           </header>
         }
-        <main style={mainStyles}>{children}</main>
+        <main className={layoutStyles.contentMain} style={mainStyles}>
+          {children}
+        </main>
         {!isHomePage && (
           <footer style={footerStyles}>
             <p>

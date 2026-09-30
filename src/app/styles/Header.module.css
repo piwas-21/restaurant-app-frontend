@@ -75,8 +75,8 @@
   opacity: 1;
 }
 
-/* Mobile and Tablet specific styles */
-@media (max-width: 768px) {
+/* Collapse before the logo and full navigation row exceed the available header track. */
+@media (max-width: 1280px) {
   /* Adjust cart badge position for mobile menu */
   .cartBadge {
     position: relative;
@@ -187,7 +187,9 @@
   .hamburgerMenu {
     display: block;
   }
+}
 
+@media (max-width: 768px) {
   .adminMainContent {
     margin-inline-start: 0;
   }

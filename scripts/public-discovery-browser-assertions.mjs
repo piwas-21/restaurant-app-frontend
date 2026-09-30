@@ -2,6 +2,22 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { CATEGORY_ID } from './public-discovery-fixture.mjs';
+import {
+  assertCategoryRailCanScroll,
+  assertMenuFitsViewport,
+  assertPublicPageFitsViewport,
+} from './public-discovery-menu-layout-assertions.mjs';
+
+async function openPublicNavigation(page) {
+  const menuLink = page.locator('header nav a[href="/menu"], header nav a[href="/fr/menu"]').first();
+  if (await menuLink.isVisible()) return menuLink;
+
+  const hamburger = page.locator('header button[class*="hamburger"]');
+  assert.equal(await hamburger.count(), 1, 'Responsive customer header exposes its navigation toggle');
+  await hamburger.click();
+  await menuLink.waitFor({ state: 'visible' });
+  return menuLink;
+}
 
 export async function browserContract(origin, { root, template, indexing, apiOrigin }) {
   const { chromium } = await import('@playwright/test');
@@ -26,7 +42,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       await page.locator('header button[class*="Header_hamburgerMenu"]').count(),
       template === 'classic' ? 1 : 0,
     );
-    await page.locator('a[href="/fr/menu"]').first().click();
+    await (await openPublicNavigation(page)).click();
     await page.waitForURL('**/fr/menu');
     await page.waitForLoadState('networkidle');
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
@@ -44,6 +60,29 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.waitForURL('**/fr/menu');
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
     assert.doesNotMatch(await page.locator('body').innerText(), /Plat français 205/);
+    await page.setViewportSize({ width: 820, height: 1180 });
+    for (const locale of ['fr', 'ar']) {
+      await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
+      await assertPublicPageFitsViewport(page, locale, 820);
+    }
+    await page.setViewportSize({ width: 1281, height: 900 });
+    await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
+    await assertMenuFitsViewport(page, 'fr', 1281);
+    assert.equal(await page.locator('header nav a[href="/menu"]').first().isVisible(), true);
+    assert.equal(
+      await page.locator('header button[class*="hamburger"]').evaluate((button) => getComputedStyle(button).display),
+      'none',
+      'Desktop navigation remains visible just above the tablet collapse breakpoint',
+    );
+    await page.setViewportSize({ width: 820, height: 1180 });
+    for (const locale of ['fr', 'ar']) {
+      await page.goto(`${origin}/${locale}/menu`, { waitUntil: 'networkidle' });
+      await assertMenuFitsViewport(page, locale, 820);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${origin}/ar/menu`, { waitUntil: 'networkidle' });
+    await assertCategoryRailCanScroll(page);
+    await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto(`${origin}/ar/menu`, { waitUntil: 'networkidle' });
     assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar');

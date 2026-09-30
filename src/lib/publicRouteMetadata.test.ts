@@ -1,4 +1,8 @@
+/** @jest-environment node */
+
 import type { RestaurantInfoDto } from '@/types/restaurantInfo';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { restaurantJsonLd } from './publicRouteMetadata';
 
 const restaurant: RestaurantInfoDto = {
@@ -28,5 +32,10 @@ describe('restaurantJsonLd', () => {
     expect(jsonLd).not.toBeNull();
     expect(jsonLd).toContain(String.raw`\u003c`);
     expect(JSON.parse(jsonLd ?? '{}').name).toBe(restaurant.name);
+
+    const markup = renderToStaticMarkup(createElement('script', { type: 'application/ld+json' }, jsonLd));
+    const scriptText = markup.match(/^<script type="application\/ld\+json">([\s\S]*)<\/script>$/)?.[1];
+    expect(scriptText).toBe(jsonLd);
+    expect(JSON.parse(scriptText ?? '{}').name).toBe(restaurant.name);
   });
 });

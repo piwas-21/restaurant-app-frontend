@@ -25,7 +25,7 @@ export default async function LocalizedHome({ params }: LocalizedHomeProps) {
   const HomePage = template.HomePage;
   return (
     <>
-      {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} /> : null}
+      {jsonLd ? <script type="application/ld+json">{jsonLd}</script> : null}
       <HomePage initialData={data} />
     </>
   );

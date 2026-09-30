@@ -73,7 +73,7 @@ for (const { name, viewport } of VIEWPORTS) {
       contexts.push(server.context);
       const cashier = await openServerContext(browser, cashierUser.storageStatePath, viewport);
       contexts.push(cashier.context);
-      await server.page.goto('/server/floor');
+      await server.page.goto('/en/server/floor');
       await server.page.getByTestId('server-floor-workspace').waitFor();
       await expect(server.page.locator('footer')).toHaveCount(0);
       const floorViewport = await server.page.evaluate(() => ({
@@ -107,19 +107,19 @@ for (const { name, viewport } of VIEWPORTS) {
       await expectNoA11yViolations(server.page);
 
       await makeServerRoundDeliverable(created.id);
-      await server.page.goto('/server/tasks');
+      await server.page.goto('/en/server/tasks');
       const task = server.page.getByTestId(`server-task-${created.id}`);
       await task.waitFor({ timeout: 20_000 });
       await expectNoA11yViolations(server.page);
       await task.getByRole('button', { name: `Deliver ${created.orderNumber}` }).click();
       await server.page.getByText('Task updated.').waitFor();
 
-      await server.page.goto(`/server/tables/${table.tableId}`);
+      await server.page.goto(`/en/server/tables/${table.tableId}`);
       await server.page.getByRole('button', { name: 'Send to Cashier' }).click();
       await server.page.getByText(/Cashier collection requested/).waitFor();
       await expectNoA11yViolations(server.page);
 
-      await cashier.page.goto('/cashier/tables');
+      await cashier.page.goto('/en/cashier/tables');
       await cashier.page.getByRole('button', { name: 'List' }).click();
       await cashier.page
         .getByRole('button', { name: new RegExp(`Open table .*${table.tableNumber}.*Payment requested`) })

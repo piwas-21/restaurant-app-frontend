@@ -39,7 +39,7 @@ async function openMap(page: Page) {
     (r) => r.url().includes('/api/floorplan') && r.request().method() === 'GET',
     { timeout: 20_000 },
   );
-  await page.goto('/reservations');
+  await page.goto('/en/reservations');
   await planResponse;
   const map = page.getByRole('group', { name: /floor plan/i });
   await expect(map).toBeVisible({ timeout: 20_000 });

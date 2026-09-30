@@ -184,7 +184,7 @@ function fixtureData(path, context) {
   return fixtureError(404, 'Fixture endpoint absent');
 }
 
-export async function startFixtureApi() {
+export async function startFixtureApi({ port = 0 } = {}) {
   const calls = [];
   const state = { completeLayout: 'tabs', completePresentation: 'legacySeparate', landingFailure: false };
   const server = createServer((request, response) => {
@@ -207,7 +207,7 @@ export async function startFixtureApi() {
       .writeHead(data.fixtureError ? data.status : 200, { 'Content-Type': 'application/json' })
       .end(JSON.stringify(body));
   });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await new Promise((resolve) => server.listen(port, '127.0.0.1', resolve));
   return {
     origin: `http://127.0.0.1:${server.address().port}`,
     calls,

@@ -6,7 +6,7 @@ import { test, expect } from '../../fixtures/cashierUser';
  *
  * Why E2E: the slice's promise is the ORDER of operations across three server conversations —
  * resolve channel (tenant-enabled), QUOTE so the server price is the authority, CREATE exactly
- * once under a client operation id — plus the handoff to `/cashier/collection?order=`. Unit
+ * once under a client operation id — plus the handoff to `/en/cashier/collection?order=`. Unit
  * suites pin each piece with mocked services; only a real backend response chain proves the
  * payload shape the staff-order validator accepts and that the created order is actually
  * collectible.
@@ -23,7 +23,7 @@ test('a walk-up counter sale creates one collectible order', async ({ cashierUse
   const page = await context.newPage();
 
   try {
-    await page.goto('/cashier/new');
+    await page.goto('/en/cashier/new');
     await expect(page.getByRole('heading', { level: 1, name: 'New sale' })).toBeVisible({ timeout: 15_000 });
 
     // The channel bar is a single-choice group with exactly one default selected (tenant default).
@@ -45,11 +45,11 @@ test('a walk-up counter sale creates one collectible order', async ({ cashierUse
 
     // Review & collect: quote -> create-once -> collection route for the created order.
     await page.getByRole('button', { name: 'Review & collect' }).click();
-    await expect(page).toHaveURL(/\/cashier\/collection\?order=/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/en\/cashier\/collection\?order=/, { timeout: 20_000 });
     await expect(page.getByText(/15[.,]00/).first()).toBeVisible({ timeout: 15_000 });
 
     // The draft was consumed by the commit: a fresh New sale starts empty.
-    await page.goto('/cashier/new');
+    await page.goto('/en/cashier/new');
     await expect(page.getByText('The ticket is empty. Tap a product to add it.')).toBeVisible({
       timeout: 10_000,
     });

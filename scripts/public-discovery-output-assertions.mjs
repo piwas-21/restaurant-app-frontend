@@ -7,21 +7,28 @@ const headers = {
   'Accept-Language': 'en-US,en;q=0.9',
   'x-tenant-public-locale': 'en',
 };
+const TENANT_LOCALES = ['en', 'tr', 'es', 'ar', 'de', 'fr', 'nl', 'it', 'ru', 'zh'];
 export const alternates = (html) =>
   Object.fromEntries(
-    tags(html, 'link')
+    tags(headHtml(html), 'link')
       .filter((tag) => attribute(tag, 'rel') === 'alternate')
       .map((tag) => [attribute(tag, 'hreflang'), attribute(tag, 'href')]),
   );
 const canonical = (html) =>
-  tags(html, 'link')
+  tags(headHtml(html), 'link')
     .filter((tag) => attribute(tag, 'rel') === 'canonical')
     .map((tag) => attribute(tag, 'href'));
 const robots = (html) =>
-  tags(html, 'meta')
+  tags(headHtml(html), 'meta')
     .filter((tag) => attribute(tag, 'name') === 'robots')
     .map((tag) => attribute(tag, 'content'))
     .join(' ');
+
+function headHtml(html) {
+  const match = html.match(/<head(?:\s[^>]*)?>([\s\S]*?)<\/head>/i);
+  assert.ok(match, 'The emitted document has a head section');
+  return match[1];
+}
 
 export async function htmlAt(origin, path) {
   const response = await fetch(origin + path, { headers, redirect: 'manual' });
@@ -188,7 +195,7 @@ async function assertCompatibility(origin, scenario, indexing) {
   assert.equal(alias.status, 307);
   const location = new URL(alias.headers.get('location'), origin);
   assert.equal(location.origin, origin, 'Compatibility redirect keeps the current host');
-  assert.equal(location.pathname, '/fr/menu');
+  assert.equal(location.pathname, '/en/menu', 'Browser language negotiation prefixes the public compatibility route');
   assert.equal(location.searchParams.get('qr'), 'fixture-qr');
   assert.equal(location.searchParams.get('tableId'), '7');
   assert.equal(location.searchParams.has('junk'), false);
@@ -198,17 +205,69 @@ async function assertCompatibility(origin, scenario, indexing) {
     new URL(normalized.headers.get('location'), origin).searchParams.get('page'),
     normalizedPageFor(scenario),
   );
-  const privateHtml = await htmlAt(origin, '/cart');
+  const privateHtml = await htmlAt(origin, '/fr/cart');
   assert.match(robots(privateHtml), /noindex/);
   const manifestResponse = await fetch(`${origin}/manifest.webmanifest`, { headers });
   assert.equal(manifestResponse.status, 200);
   const manifest = await manifestResponse.json();
-  assert.equal(manifest.start_url, '/fr');
+  assert.equal(manifest.start_url, '/', 'Installed app launch negotiates the visitor locale');
   assert.equal(manifest.scope, '/');
   assert.equal((await fetch(`${origin}/sw.js`, { headers })).status, 200);
   const policy = await (await fetch(`${origin}/robots.txt`, { headers })).text();
-  assert.match(policy, indexing ? /Disallow: \/checkout\// : /Disallow: \/\s/);
-  if (indexing) assert.match(policy, /Sitemap: https:\/\/discovery\.fixture\.test\/sitemap\.xml/);
+  assert.match(policy, indexing ? /Disallow: \/fr\/checkout\// : /Disallow: \/\s/);
+  if (indexing) {
+    assert.match(policy, /Sitemap: https:\/\/discovery\.fixture\.test\/sitemap\.xml/);
+    for (const locale of TENANT_LOCALES) {
+      for (const privatePath of [
+        `/${locale}/cart$`,
+        `/${locale}/cart/`,
+        `/${locale}/checkout$`,
+        `/${locale}/checkout/`,
+      ]) {
+        assert.ok(policy.split(/\r?\n/).includes(`Disallow: ${privatePath}`), `${privatePath}: robots disallow`);
+      }
+    }
+    assert.ok(policy.split(/\r?\n/).includes('Allow: /'), 'The crawler policy keeps a public allow control');
+    const publicMenu = '/fr/menu';
+    const blocksPublicMenu = policy.split(/\r?\n/).some((line) => {
+      const rule = line.match(/^Disallow:\s*(\S+)/)?.[1];
+      return rule && publicMenu.startsWith(rule);
+    });
+    assert.equal(blocksPublicMenu, false, 'No more-specific robots rule blocks the public menu');
+  }
+}
+
+async function assertLocalizedPrivateSeo(origin) {
+  const privatePaths = [
+    '/cart',
+    '/reservations',
+    '/checkout/review',
+    '/checkout/confirmation?orderId=fixture-order&sessionId=fixture-session',
+    '/auth/login',
+    '/privacy-policy',
+    '/terms-of-usage',
+    '/admin/dashboard',
+  ];
+  for (const locale of TENANT_LOCALES) {
+    const path = `/${locale}/cart`;
+    const html = await htmlAt(origin, path);
+    const document = tags(html, 'html')[0];
+    assert.equal(attribute(document, 'lang'), locale, `${path}: server-emitted language`);
+    assert.equal(attribute(document, 'dir'), locale === 'ar' ? 'rtl' : 'ltr', `${path}: server-emitted direction`);
+    assert.match(robots(html), /noindex/, `${path}: private page remains noindex in the head`);
+  }
+  for (const locale of ['fr', 'ar']) {
+    for (const suffix of privatePaths.filter((path) => path !== '/cart')) {
+      const path = `/${locale}${suffix}`;
+      const html = await htmlAt(origin, path);
+      const document = tags(html, 'html')[0];
+      assert.equal(attribute(document, 'lang'), locale, `${path}: server-emitted language`);
+      assert.equal(attribute(document, 'dir'), locale === 'ar' ? 'rtl' : 'ltr', `${path}: server-emitted direction`);
+      assert.match(robots(html), /noindex/, `${path}: private page remains noindex in the head`);
+    }
+  }
+  const unsupported = await fetch(`${origin}/zz/cart`, { headers, redirect: 'manual' });
+  assert.equal(unsupported.status, 404, 'Unknown locale prefixes are rejected instead of served as a locale');
 }
 
 export async function assertScenario(origin, scenario, indexing, template) {
@@ -234,6 +293,7 @@ export async function assertScenario(origin, scenario, indexing, template) {
   }
   await scenarioContracts[scenario]?.({ origin, indexing, first });
   await assertCompatibility(origin, scenario, indexing);
+  if (scenario === 'complete') await assertLocalizedPrivateSeo(origin);
 }
 
 function expectedSitemap(scenario, indexing, homeLocales, menuLocales) {

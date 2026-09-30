@@ -16,7 +16,7 @@ import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/
  */
 
 test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   // No welcome modal; the sidebar's order-type toggle is the entry point.
   await expect(page.getByRole('dialog')).toBeHidden();
@@ -35,7 +35,7 @@ test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async
 });
 
 test('delivery: sidebar toggle → Delivery → address modal opens', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   const aside = await openMenuBasket(page);
 
@@ -49,7 +49,7 @@ test('delivery: sidebar toggle → Delivery → address modal opens', async ({ p
 });
 
 test('takeaway: sidebar toggle → Takeaway → guest info modal opens', async ({ page }) => {
-  await page.goto('/menu');
+  await page.goto('/en/menu');
 
   const aside = await openMenuBasket(page);
 

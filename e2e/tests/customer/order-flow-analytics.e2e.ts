@@ -47,7 +47,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Attach the analytics listener BEFORE navigating so the helper's
     // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     const sidebar = await openMenuBasket(page);
 
@@ -111,7 +111,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
 
     // ── Step 3: Proceed to checkout. Fires checkout_opened.
     await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
-    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+    await expect(page).toHaveURL(/\/en\/checkout\/review$/, { timeout: 10_000 });
 
     const afterProceed = await analytics.snapshot();
     const openedEvents = afterProceed.filter((e) => e.event === 'checkout_opened');
@@ -168,7 +168,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Attach the analytics listener BEFORE navigating so the helper's
     // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     const sidebar = await openMenuBasket(page);
 
@@ -199,7 +199,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Attach the analytics listener BEFORE navigating so the helper's
     // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     const sidebar = await openMenuBasket(page);
 
@@ -233,7 +233,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Attach the analytics listener BEFORE navigating so the helper's
     // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
-    await page.goto('/menu');
+    await page.goto('/en/menu');
 
     const sidebar = await openMenuBasket(page);
     const toggle = sidebar.getByRole('group', { name: /order type/i });

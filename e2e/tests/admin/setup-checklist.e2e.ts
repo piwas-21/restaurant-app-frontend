@@ -254,7 +254,7 @@ test('the admin dashboard renders exactly the steps the API offers', async ({ br
     // connections, so networkidle may never settle — and with no `navigationTimeout` configured it
     // would eat the whole test budget before a single assertion ran. The web-first waits below
     // give the same guarantee without the hazard.
-    await page.goto(`${baseURL}/admin/dashboard`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/en/admin/dashboard`, { waitUntil: 'domcontentloaded' });
 
     const panel = page.locator('section[aria-labelledby="setup-checklist-heading"]');
     await expect(panel, 'the checklist panel should render for a signed-in admin').toBeVisible({

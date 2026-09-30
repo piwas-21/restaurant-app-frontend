@@ -4,7 +4,9 @@ type StorageOperation =
   | 'remove consent preference'
   | 'clear legacy locale cache'
   | 'read locale preference'
-  | 'persist locale preference';
+  | 'persist locale preference'
+  | 'read theme preference'
+  | 'persist theme preference';
 
 /** Report blocked browser persistence without logging stored values or the exception message. */
 export function reportBrowserStorageFailure(operation: StorageOperation, error: unknown): void {

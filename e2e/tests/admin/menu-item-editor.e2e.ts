@@ -288,14 +288,16 @@ test('phone editor starts with an editable field and keeps contextual tools reac
     expect(tabletNameBox!.y).toBeGreaterThanOrEqual(0);
     expect(tabletNameBox!.y + tabletNameBox!.height).toBeLessThan(tabletSaveBox!.y);
 
-    // The ephemeral browser context can switch language/theme without touching a real tenant's
-    // saved preferences. This checks the same first-field layout under RTL and dark tokens.
+    // The explicit Arabic route must win over a stale detector value without touching a real
+    // tenant's saved preferences. This checks the first-field layout under RTL and dark tokens.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => {
-      localStorage.setItem('i18nextLng', 'ar');
+      localStorage.setItem('i18nextLng', 'en');
       localStorage.setItem('rumiTheme', 'dark');
     });
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.goto(`${baseURL}/ar/admin/menu-management/${SEEDED_PRODUCT_ID}`, {
+      waitUntil: 'domcontentloaded',
+    });
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(nameInput).toBeVisible();

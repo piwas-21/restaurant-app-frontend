@@ -162,7 +162,8 @@ test('unknown locale segments return 404 and blocked browser storage does not br
       Object.defineProperty(document, 'cookie', {
         configurable: true,
         get: () => '',
-        set: () => undefined,
+        // Block persistence while keeping reads empty for the explicit-route check.
+        set: () => {},
       });
     });
     const page = await storageBlocked.newPage();
@@ -195,7 +196,8 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
     Object.defineProperty(document, 'cookie', {
       configurable: true,
       get: () => '',
-      set: () => undefined,
+      // Block persistence while keeping reads empty for the explicit-route check.
+      set: () => {},
     });
   });
 
@@ -223,11 +225,14 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
     if (await consentButton.count()) await consentButton.click();
     await clearCookieState();
 
-    const followLink = async (from: string, destination: string, selector: string) => {
+    const followLink = async (from: string, destination: string, accessibleName: string) => {
       await page.goto(appUrl(baseURL, from));
       await expectDocumentLocale(page, 'ar');
       await clearCookieState();
-      const link = page.locator(selector).first();
+      const navigationToggle = page.getByRole('button', { name: 'افتح القائمة', exact: true });
+      await expect(navigationToggle).toBeVisible();
+      await navigationToggle.click();
+      const link = page.getByRole('link', { name: accessibleName, exact: true });
       await expect(link).toBeVisible();
       await expect(link).toHaveAttribute('href', destination);
       await link.click();
@@ -236,8 +241,8 @@ test('explicit Arabic customer links keep their locale when cookie storage is un
       await clearCookieState();
     };
 
-    await followLink('/ar', '/ar/menu', 'header nav a[href="/ar/menu"]');
-    await followLink('/ar/menu', '/ar/cart', 'header nav a[href="/ar/cart"]');
+    await followLink('/ar', '/ar/menu', 'القائمة');
+    await followLink('/ar/menu', '/ar/cart', 'العربة');
 
     await page.goto(appUrl(baseURL, '/ar'));
     await expectDocumentLocale(page, 'ar');

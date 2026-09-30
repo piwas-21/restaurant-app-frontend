@@ -335,7 +335,7 @@ async function assertCookieIndependentLocaleLinks(browser, origin, apiOrigin) {
     Object.defineProperty(document, 'cookie', {
       configurable: true,
       get: () => '',
-      set: () => undefined,
+      set: () => {},
     });
   });
   await isolateExternal(context, origin, apiOrigin);

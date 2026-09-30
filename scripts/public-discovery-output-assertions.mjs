@@ -230,7 +230,7 @@ async function assertCompatibility(origin, scenario, indexing) {
     assert.ok(policy.split(/\r?\n/).includes('Allow: /'), 'The crawler policy keeps a public allow control');
     const publicMenu = '/fr/menu';
     const blocksPublicMenu = policy.split(/\r?\n/).some((line) => {
-      const rule = line.match(/^Disallow:\s*(\S+)/)?.[1];
+      const rule = /^Disallow:\s*(\S+)/.exec(line)?.[1];
       return rule && publicMenu.startsWith(rule);
     });
     assert.equal(blocksPublicMenu, false, 'No more-specific robots rule blocks the public menu');
@@ -248,24 +248,22 @@ async function assertLocalizedPrivateSeo(origin) {
     '/terms-of-usage',
     '/admin/dashboard',
   ];
-  for (const locale of TENANT_LOCALES) {
-    const path = `/${locale}/cart`;
-    const html = await htmlAt(origin, path);
-    const document = tags(html, 'html')[0];
-    assert.equal(attribute(document, 'lang'), locale, `${path}: server-emitted language`);
-    assert.equal(attribute(document, 'dir'), locale === 'ar' ? 'rtl' : 'ltr', `${path}: server-emitted direction`);
-    assert.match(robots(html), /noindex/, `${path}: private page remains noindex in the head`);
-  }
-  for (const locale of ['fr', 'ar']) {
-    for (const suffix of privatePaths.filter((path) => path !== '/cart')) {
-      const path = `/${locale}${suffix}`;
+  const localizedPrivatePaths = [
+    ...TENANT_LOCALES.map((locale) => `/${locale}/cart`),
+    ...['fr', 'ar'].flatMap((locale) =>
+      privatePaths.filter((path) => path !== '/cart').map((path) => `/${locale}${path}`),
+    ),
+  ];
+  await Promise.all(
+    localizedPrivatePaths.map(async (path) => {
+      const locale = path.split('/')[1];
       const html = await htmlAt(origin, path);
       const document = tags(html, 'html')[0];
       assert.equal(attribute(document, 'lang'), locale, `${path}: server-emitted language`);
       assert.equal(attribute(document, 'dir'), locale === 'ar' ? 'rtl' : 'ltr', `${path}: server-emitted direction`);
       assert.match(robots(html), /noindex/, `${path}: private page remains noindex in the head`);
-    }
-  }
+    }),
+  );
   const unsupported = await fetch(`${origin}/zz/cart`, { headers, redirect: 'manual' });
   assert.equal(unsupported.status, 404, 'Unknown locale prefixes are rejected instead of served as a locale');
 }

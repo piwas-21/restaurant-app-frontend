@@ -33,6 +33,7 @@ import TenantLogo from '@/components/branding/TenantLogo';
 import { firstPaintCopy, type CopyFn } from '@/lib/firstPaintCopy';
 import { isHomeRoutePathname, publicHomeHref } from '@/lib/publicRouteQuery';
 import layoutStyles from './CustomerChrome.module.css';
+import publicHeaderStyles from './CustomerHeader.module.css';
 
 export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isClient, setIsClient] = useState(false);
@@ -89,7 +90,10 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <div className={layoutStyles.shellColumn}>
         {
-          <header style={headerStyles} className={isHomePage && theme !== 'dark' ? 'home-overlay-header' : undefined}>
+          <header
+            style={headerStyles}
+            className={`${publicHeaderStyles.publicHeader} ${isHomePage && theme !== 'dark' ? 'home-overlay-header' : ''}`}
+          >
             <div
               style={{
                 maxWidth: '1200px',
@@ -123,7 +127,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                 />
               </Link>
               <button
-                className={navStyles.hamburgerMenu}
+                className={`${navStyles.hamburgerMenu} ${publicHeaderStyles.hamburgerMenu}`}
                 onClick={toggleMobileMenu}
                 aria-label={copy(mobileMenuOpen ? 'close_menu' : 'open_menu')}
                 aria-expanded={mobileMenuOpen}
@@ -136,7 +140,9 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                 onClick={closeMobileMenu}
                 aria-hidden="true"
               />
-              <nav className={`${navStyles.navLinksContainer} ${mobileMenuOpen ? navStyles.mobileMenuOpen : ''}`}>
+              <nav
+                className={`${navStyles.navLinksContainer} ${publicHeaderStyles.navLinksContainer} ${mobileMenuOpen ? `${navStyles.mobileMenuOpen} ${publicHeaderStyles.navLinksOpen}` : ''}`}
+              >
                 <RoleNavLinks onNavigate={closeMobileMenu} />
                 <InstallAppMenuEntry onActivate={closeMobileMenu} />
                 {isClient &&
@@ -152,7 +158,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                       {copy('nav_login')}
                     </Link>
                   ))}
-                <div className={navStyles.switcherGroup}>
+                <div className={`${navStyles.switcherGroup} ${publicHeaderStyles.switcherGroup}`}>
                   <LanguageSwitcher />
                   {isClient && <ThemeSwitcher />}
                 </div>

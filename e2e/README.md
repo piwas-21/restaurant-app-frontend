@@ -207,7 +207,8 @@ the _tests themselves_ only — comparisons against committed baselines will
 fail on macOS; never `--update-snapshots` from a mac.
 
 **CI**: [.github/workflows/screenshots.yml](../.github/workflows/screenshots.yml)
-— separate, non-required workflow (non-blocking while it beds in) on PRs +
-`workflow_dispatch`. Failures upload `*-actual`/`*-diff` PNGs as artifacts.
-Dispatch with `update_snapshots=true` to regenerate baselines in CI and
-download them as an artifact (commit them on a branch afterwards).
+— a required PR check for `main` and `develop`. Its aggregate status passes only
+when both the Classic and Craft template comparisons pass. Failures upload
+`*-actual`/`*-diff` PNGs as artifacts. Dispatch with `update_snapshots=true` to
+regenerate baselines in CI; inspect and commit the uploaded template baseline
+artifact on a branch afterwards.

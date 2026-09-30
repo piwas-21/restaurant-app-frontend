@@ -123,6 +123,38 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     });
     assert.deepEqual(hydrationErrors, [], 'Public first paint hydrates without language/text mismatches');
     await context.close();
+
+    const adminContext = await browser.newContext({ locale: 'en-US', viewport: { width: 1024, height: 768 } });
+    await isolateExternal(adminContext, origin, apiOrigin);
+    await adminContext.addInitScript(() => {
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          firstName: 'Fixture',
+          lastName: 'Admin',
+          email: 'admin@example.invalid',
+          role: 'Admin',
+          accessToken: 'fixture-token',
+        }),
+      );
+      localStorage.setItem('auth_token', 'fixture-token');
+      localStorage.setItem('refresh_token', 'fixture-refresh-token');
+    });
+    const adminPage = await adminContext.newPage();
+    await adminPage.route('**/api/Auth/refresh-token', (route) => route.fulfill({ status: 503, body: '' }));
+    await adminPage.goto(`${origin}/admin/dashboard`, { waitUntil: 'networkidle' });
+    const adminMenuLink = adminPage.locator('header nav a[href="/menu"]');
+    await adminMenuLink.waitFor({ state: 'visible' });
+    assert.equal(await adminPage.locator('header button[class*="hamburger"]').count(), 0);
+    for (const width of [1024, 1280]) {
+      await adminPage.setViewportSize({ width, height: 768 });
+      assert.equal(
+        await adminMenuLink.isVisible(),
+        true,
+        `Admin desktop navigation remains visible at ${width}px without a drawer toggle`,
+      );
+    }
+    await adminContext.close();
   } finally {
     await browser.close();
   }

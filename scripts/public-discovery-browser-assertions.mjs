@@ -117,10 +117,66 @@ async function assertAdminNavigationAtWidth(page, menuLink, width) {
   );
 }
 
+async function openLocaleMenuLink(page, locale) {
+  const menuLink = page.locator(`header nav a[href="/${locale}/menu"], header nav a[href="/menu"]`).first();
+  if (!(await menuLink.isVisible())) {
+    const toggle = page.locator('header button[class*="hamburger"]');
+    await toggle.click();
+    await page.waitForFunction(
+      () => document.querySelector('header button[class*="hamburger"]')?.getAttribute('aria-expanded') === 'true',
+    );
+    await menuLink.waitFor({ state: 'visible' });
+  }
+  return menuLink;
+}
+
+async function openLocaleHomeLink(page, locale) {
+  const homeLink = page.locator(`header nav a[href="/${locale}"], header nav a[href="/"]`).first();
+  if (!(await homeLink.isVisible())) {
+    const toggle = page.locator('header button[class*="hamburger"]');
+    await toggle.click();
+    await page.waitForFunction(
+      () => document.querySelector('header button[class*="hamburger"]')?.getAttribute('aria-expanded') === 'true',
+    );
+    await homeLink.waitFor({ state: 'visible' });
+  }
+  return homeLink;
+}
+
+async function assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, locale) {
+  const context = await browser.newContext({ locale: 'en-US', viewport: { width: 820, height: 900 } });
+  try {
+    await isolateExternal(context, origin, apiOrigin);
+    await context.addInitScript(() => localStorage.setItem('i18nextLng', 'en'));
+    const page = await context.newPage();
+    await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('html').getAttribute('lang'), locale);
+    assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+
+    await (await openLocaleMenuLink(page, locale)).click();
+    await page.waitForURL((url) => url.pathname.endsWith('/menu'));
+    assert.equal(new URL(page.url()).pathname, `/${locale}/menu`, `${locale} menu navigation retains the URL locale`);
+    assert.equal(await page.locator('html').getAttribute('lang'), locale);
+    assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+    await page.getByTestId('menu-card').first().waitFor({ state: 'visible' });
+    assert.match(await page.locator('body').innerText(), /Plat français 1/);
+
+    await (await openLocaleHomeLink(page, locale)).click();
+    await page.waitForURL((url) => url.pathname === '/' || /^\/[a-z]{2}$/.test(url.pathname));
+    assert.equal(new URL(page.url()).pathname, `/${locale}`, `${locale} home navigation retains the URL locale`);
+    assert.equal(await page.locator('html').getAttribute('lang'), locale);
+    assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+  } finally {
+    await context.close();
+  }
+}
+
 export async function browserContract(origin, { root, template, indexing, apiOrigin }) {
   const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch({ headless: true });
   try {
+    await assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, 'fr');
+    await assertLocaleHomeMenuNavigation(browser, origin, apiOrigin, 'ar');
     const context = await browser.newContext({ locale: 'en-US', viewport: { width: 1024, height: 768 } });
     await isolateExternal(context, origin, apiOrigin);
     await context.addInitScript(() => {
@@ -188,7 +244,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.setViewportSize({ width: 1281, height: 900 });
     await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
     await assertMenuFitsViewport(page, 'fr', 1281);
-    assert.equal(await page.locator('header nav a[href="/menu"]').first().isVisible(), true);
+    assert.equal(await page.locator('header nav a[href="/fr/menu"]').first().isVisible(), true);
     assert.equal(
       await page.locator('header button[class*="hamburger"]').evaluate((button) => getComputedStyle(button).display),
       'none',

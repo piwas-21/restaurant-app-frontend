@@ -5,15 +5,22 @@ import { ModulesProvider } from '@/contexts/ModulesContext';
 import { MODULE_IDS, type ModuleId } from '@/lib/modules';
 
 const mockUser = jest.fn<{ role: string } | null, []>();
-jest.mock('next/navigation', () => ({ usePathname: () => '/' }));
+const mockPathname = jest.fn(() => '/');
+const mockSearchParams = jest.fn(() => new URLSearchParams());
+jest.mock('next/navigation', () => ({
+  usePathname: () => mockPathname(),
+  useSearchParams: () => mockSearchParams(),
+}));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
 jest.mock('@/components/AuthContext', () => ({ useAuth: () => ({ user: mockUser(), isLoading: false }) }));
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ state: { items: [] } }) }));
 
-function renderNav(role: string | null, modules: ModuleId[]) {
+function renderNav(role: string | null, modules: ModuleId[], pathname = '/', query = '') {
   mockUser.mockReturnValue(role ? { role } : null);
+  mockPathname.mockReturnValue(pathname);
+  mockSearchParams.mockReturnValue(new URLSearchParams(query));
   return render(
     <ModulesProvider modules={modules}>
       <RoleNavLinks onNavigate={jest.fn()} />
@@ -30,6 +37,25 @@ const hrefs = () => [...document.querySelectorAll('a')].map((a) => a.getAttribut
  * cover every header in the app.
  */
 describe('RoleNavLinks module gating', () => {
+  it.each(['fr', 'ar'])('keeps public home navigation in the %s locale', (locale) => {
+    renderNav(null, ['core'], `/${locale}`, 'qr=printed-table');
+
+    expect(hrefs()).toEqual(
+      expect.arrayContaining([`/${locale}?qr=printed-table`, `/${locale}/menu?qr=printed-table`, '/cart']),
+    );
+  });
+
+  it.each(['fr', 'ar'])('keeps public menu navigation in the %s locale and retains menu context', (locale) => {
+    renderNav(null, ['core'], `/${locale}/menu`, 'qr=printed-table&page=2&categoryId=category-1');
+
+    expect(hrefs()).toEqual(
+      expect.arrayContaining([
+        `/${locale}?qr=printed-table`,
+        `/${locale}/menu?qr=printed-table&page=2&categoryId=category-1`,
+      ]),
+    );
+  });
+
   it('hides Reservations from a customer when the tenant has no reservations module', () => {
     renderNav(null, ['core']);
 

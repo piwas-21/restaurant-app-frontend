@@ -72,7 +72,7 @@ describe('usePublicMenu — disabled item pipelines retain catalogue navigation'
       expect(result.current.selectedView).toBe('cat-tacos');
       expect(window.location.pathname).toBe('/fr/menu');
       expect(new URLSearchParams(window.location.search).toString()).toBe('page=3&categoryId=cat-tacos');
-      expect(window.history.length).toBe(historyLength);
+      expect(window.history).toHaveLength(historyLength);
     } finally {
       unmount();
       window.history.replaceState({}, '', '/');
@@ -120,7 +120,7 @@ describe('usePublicMenu — disabled item pipelines retain catalogue navigation'
     try {
       expect(result.current.selectedView).toBe('all');
       expect(new URLSearchParams(window.location.search).toString()).toBe('page=2');
-      expect(window.history.length).toBe(historyLength);
+      expect(window.history).toHaveLength(historyLength);
     } finally {
       unmount();
       window.history.replaceState({}, '', '/');

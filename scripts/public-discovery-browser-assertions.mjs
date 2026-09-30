@@ -244,7 +244,7 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.setViewportSize({ width: 1281, height: 900 });
     await page.goto(`${origin}/fr/menu`, { waitUntil: 'networkidle' });
     await assertMenuFitsViewport(page, 'fr', 1281);
-    assert.equal(await page.locator('header nav a[href="/menu"]').first().isVisible(), true);
+    assert.equal(await page.locator('header nav a[href="/fr/menu"]').first().isVisible(), true);
     assert.equal(
       await page.locator('header button[class*="hamburger"]').evaluate((button) => getComputedStyle(button).display),
       'none',

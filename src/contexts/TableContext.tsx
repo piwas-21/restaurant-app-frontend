@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface TableContextData {
   tableId: string | null;
@@ -84,14 +84,14 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
     }
   }, [tableState]);
 
-  const setTableContext = (data: Partial<TableContextData>) => {
+  const setTableContext = useCallback((data: Partial<TableContextData>) => {
     setTableState((prev) => ({
       ...prev,
       ...data,
     }));
-  };
+  }, []);
 
-  const clearTableContext = () => {
+  const clearTableContext = useCallback(() => {
     setTableState({
       tableId: null,
       tableNumber: null,
@@ -100,7 +100,7 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
       dineInPinned: false,
     });
     sessionStorage.removeItem(STORAGE_KEY);
-  };
+  }, []);
 
   const hasTableContext = Boolean(tableState.tableId);
 

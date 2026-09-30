@@ -29,6 +29,10 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       if (!localStorage.getItem('i18nextLng')) localStorage.setItem('i18nextLng', 'en');
     });
     const page = await context.newPage();
+    const qrValidations = [];
+    page.on('request', (request) => {
+      if (request.url().includes('/api/Tables/validate-qr/')) qrValidations.push(request.url());
+    });
     const hydrationErrors = [];
     page.on('console', (message) => {
       if (/hydration|Minified React error #418|Text content does not match/i.test(message.text()))
@@ -110,7 +114,33 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await page.goto(`${origin}/scan?qr=fixture-qr`);
     await page.waitForURL('**/fr/menu', { timeout: 20_000 });
     await page.getByText('Plat français 1', { exact: true }).first().waitFor();
-    await page.waitForLoadState('networkidle');
+    await page.waitForFunction((tableId) => {
+      try {
+        return JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId === tableId;
+      } catch {
+        return false;
+      }
+    }, CATEGORY_ID);
+    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.waitForTimeout(1_250);
+    assert.equal(
+      qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr')).length,
+      1,
+      'One QR scan validates once even as its table context updates',
+    );
+    assert.equal(
+      await page.evaluate(() => JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId),
+      CATEGORY_ID,
+    );
+    await page.goto(`${origin}/scan?qr=fixture-qr-next`);
+    await page.waitForURL('**/fr/menu', { timeout: 20_000 });
+    await page.locator('[role="status"][class*="TableBanner_banner"]').waitFor({ state: 'visible' });
+    await page.waitForTimeout(1_250);
+    assert.equal(
+      qrValidations.filter((url) => url.endsWith('/api/Tables/validate-qr/fixture-qr-next')).length,
+      1,
+      'A changed QR token still validates on a later scan',
+    );
     assert.equal(
       await page.evaluate(() => JSON.parse(sessionStorage.getItem('rumi_table_context') || '{}').tableId),
       CATEGORY_ID,

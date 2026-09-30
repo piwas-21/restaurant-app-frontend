@@ -75,6 +75,8 @@ test.describe('auth: register → verify → login → logout', () => {
     await expect(page).toHaveURL(/\/account$/);
 
     // 4. Logout via the user-menu dropdown
+    const publicNavToggle = page.locator('header button[class*="hamburgerMenu"]');
+    if (await publicNavToggle.isVisible()) await publicNavToggle.click();
     await page.getByRole('button', { name: /user menu/i }).click();
     await page.getByRole('button', { name: /^logout$/i }).click();
 

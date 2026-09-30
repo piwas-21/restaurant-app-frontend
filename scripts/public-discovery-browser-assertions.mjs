@@ -28,6 +28,86 @@ async function assertPublicMenuAtViewport(page, origin, locale, width) {
   await assertMenuFitsViewport(page, locale, width);
 }
 
+async function placeLanguageSwitcherAtShellEdge(page) {
+  const placed = await page.evaluate(() => {
+    const header = document.querySelector('header');
+    const shell = header?.firstElementChild;
+    const switcher = header?.querySelector('[class*="languageSwitcher"]');
+    if (!(shell instanceof HTMLElement) || !(switcher instanceof HTMLElement)) return false;
+
+    // The API fixture header is shorter than RUMI's live header. Move the same measured-width
+    // switcher to the 1200px shell edge to exercise the production overflow geometry.
+    const width = switcher.getBoundingClientRect().width;
+    shell.style.position = 'relative';
+    switcher.style.position = 'absolute';
+    switcher.style.top = '0';
+    switcher.style.insetInlineEnd = '0';
+    switcher.style.width = `${width}px`;
+    return true;
+  });
+
+  assert.equal(placed, true, 'The header exposes its public language switcher');
+}
+
+async function assertPublicLanguageDropdownAt1281(page, origin, locale) {
+  const viewportWidth = 1281;
+  await page.setViewportSize({ width: viewportWidth, height: 900 });
+  await page.goto(`${origin}/${locale}`, { waitUntil: 'networkidle' });
+  const toggle = page.locator('header button[aria-label="Toggle language menu"]');
+  await toggle.waitFor({ state: 'visible' });
+  const panel = page.locator('header [class*="dropdownContainer"]').first();
+  await placeLanguageSwitcherAtShellEdge(page);
+
+  async function assertPanelBounds(opened) {
+    const layout = await page.evaluate(() => {
+      const element = document.querySelector('header [class*="dropdownContainer"]');
+      const toggleElement = document.querySelector('header button[aria-label="Toggle language menu"]');
+      if (!element || !toggleElement) return null;
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return {
+        clientWidth: document.documentElement.clientWidth,
+        documentWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+        left: rect.left,
+        right: rect.right,
+        visibility: style.visibility,
+        expanded: toggleElement.getAttribute('aria-expanded'),
+        hidden: element.getAttribute('aria-hidden'),
+        links: element.querySelectorAll('a[href]').length,
+      };
+    });
+
+    assert.ok(layout, 'The public language panel is present in the initial HTML');
+    assert.equal(layout.expanded, String(opened));
+    assert.equal(layout.hidden, String(!opened));
+    assert.equal(layout.links, 10, 'The language panel retains all ten public language links');
+    assert.equal(layout.documentWidth, viewportWidth, `${locale} dropdown does not widen the page`);
+    assert.ok(
+      layout.left >= 0 && layout.right <= layout.clientWidth,
+      `${locale} ${opened ? 'open' : 'closed'} dropdown stays inside the viewport: ${JSON.stringify(layout)}`,
+    );
+    assert.equal(layout.visibility, opened ? 'visible' : 'hidden');
+  }
+
+  await assertPanelBounds(false);
+  await assertPublicPageFitsViewport(page, locale, viewportWidth);
+  await toggle.click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('header button[aria-label="Toggle language menu"]')?.getAttribute('aria-expanded') ===
+      'true',
+  );
+  await assertPanelBounds(true);
+  await toggle.click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('header button[aria-label="Toggle language menu"]')?.getAttribute('aria-expanded') ===
+      'false',
+  );
+  await panel.waitFor({ state: 'attached' });
+  await assertPanelBounds(false);
+}
+
 async function assertAdminNavigationAtWidth(page, menuLink, width) {
   await page.setViewportSize({ width, height: 768 });
   assert.equal(
@@ -114,6 +194,8 @@ export async function browserContract(origin, { root, template, indexing, apiOri
       'none',
       'Desktop navigation remains visible just above the tablet collapse breakpoint',
     );
+    await assertPublicLanguageDropdownAt1281(page, origin, 'fr');
+    await assertPublicLanguageDropdownAt1281(page, origin, 'ar');
     await page.setViewportSize({ width: 820, height: 1180 });
     await assertPublicMenuAtViewport(page, origin, 'fr', 820);
     await assertPublicMenuAtViewport(page, origin, 'ar', 820);

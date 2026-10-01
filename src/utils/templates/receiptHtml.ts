@@ -81,10 +81,13 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
 
   children.forEach((child) => {
     // `> 0`, not just `showPrices` — see ChildItemsOptions. Same rule as OrderLineSummary.tsx.
-    const childPrice =
-      options.showPrices && child.itemTotal > 0
-        ? ` (${options.currencySource ? formatOrderCurrency(child.itemTotal, options.currencySource) : formatCurrency(child.itemTotal)})`
-        : '';
+    let childPrice = '';
+    if (options.showPrices && child.itemTotal > 0) {
+      const money = options.currencySource
+        ? formatOrderCurrency(child.itemTotal, options.currencySource)
+        : formatCurrency(child.itemTotal);
+      childPrice = ` (${money})`;
+    }
     const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
     html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
     if (options.withIngredients) {

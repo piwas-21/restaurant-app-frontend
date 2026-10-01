@@ -11,9 +11,13 @@ export function marketplaceReceiptHtml(order: OrderDto, t: ChannelTranslate, sho
     '{{provider}}',
     provider,
   );
+  const testMarker = source.isSandbox
+    ? `<strong>${escapeHtml(t('delivery_channels.test_order', 'Test order'))}</strong>`
+    : '';
+  const paymentLine = showPayment ? `<div>${escapeHtml(payment)}</div>` : '';
   return `<div dir="auto"><strong>${escapeHtml(provider)}</strong> ${escapeHtml(source.externalDisplayId)}
-    ${source.isSandbox ? `<strong>${escapeHtml(t('delivery_channels.test_order', 'Test order'))}</strong>` : ''}
-    ${showPayment ? `<div>${escapeHtml(payment)}</div>` : ''}</div>`;
+    ${testMarker}
+    ${paymentLine}</div>`;
 }
 
 export function receiptTaxHtml(order: OrderDto, t: ChannelTranslate): string {

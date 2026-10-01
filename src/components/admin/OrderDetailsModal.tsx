@@ -1,5 +1,7 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+import { useChannelOrderSnapshot } from '@/hooks/useChannelOrderSnapshot';
 import { useTranslation } from 'react-i18next';
 import { Ban, Clock, Loader2, DollarSign } from 'lucide-react';
 import { OrderDto } from '@/types/order';
@@ -10,6 +12,8 @@ import OrderDetailsSummary from './order-details/OrderDetailsSummary';
 import OrderConfirmDialogs from './order-details/OrderConfirmDialogs';
 import OrderRefundResultDialogs from './order-details/OrderRefundResultDialogs';
 import styles from './OrderDetailsModal.module.css';
+
+const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
 
 interface OrderDetailsModalProps {
   order: OrderDto;
@@ -24,8 +28,9 @@ interface OrderDetailsModalProps {
  * decomposition). The outer overlay keeps its `id="order-details-print"` structure, which
  * the print stylesheet targets.
  */
-export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ order: originalOrder, onClose, onOrderUpdated }: OrderDetailsModalProps) {
   const { t } = useTranslation();
+  const { order, refreshOrder } = useChannelOrderSnapshot(originalOrder);
   const actions = useOrderDetailsActions(order, onClose, onOrderUpdated);
 
   return (
@@ -45,6 +50,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
         <div className={styles.content}>
           <OrderDetailsInfo order={order} />
           <OrderDetailsSummary order={order} />
+          <ChannelOrderDecision order={order} onOrderChanged={refreshOrder} />
         </div>
 
         {/* Footer */}
@@ -82,7 +88,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 {t('cancel_order', 'Cancel Order')}
               </button>
             )}
-            {order.payments && order.payments.length > 0 && order.isFullyPaid && (
+            {!order.externalOrder && order.payments && order.payments.length > 0 && order.isFullyPaid && (
               <button onClick={() => actions.setShowRefundModal(true)} className={styles.refundButton}>
                 <DollarSign size={18} />
                 {t('refund_payment', 'Refund Payment')}

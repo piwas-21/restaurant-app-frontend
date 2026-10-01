@@ -1,0 +1,60 @@
+.panel {
+  margin-block: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.panel h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.panel p {
+  margin-block: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+.panel input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+}
+.status {
+  margin-block: 0.5rem;
+}
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 0.65rem;
+}
+.buttons button {
+  min-height: 2.75rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.buttons button:hover {
+  background: var(--surface-secondary);
+}
+.buttons button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.buttons button:focus-visible,
+.panel input:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}

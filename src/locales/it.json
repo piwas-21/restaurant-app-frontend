@@ -3438,5 +3438,12 @@
   "catalogue_import_find_local_help": "Cerca tra le voci del ristorante e riutilizzane una solo se rappresenta lo stesso elemento.",
   "catalogue_import_use_local": "Usa questa voce",
   "option_set_entry_settings": "Prezzo e impostazioni della scelta",
-  "catalogue_import_reuse_identity": "Riutilizzo della voce {{type}} · ID"
+  "catalogue_import_reuse_identity": "Riutilizzo della voce {{type}} · ID",
+  "delivery_channels": {
+    "source": "Origine dell’ordine",
+    "uber_eats": "Uber Eats",
+    "test_order": "Ordine di prova",
+    "payment_handled_by": "Pagamento gestito da {{provider}}",
+    "tax_not_reported": "Non comunicata dal fornitore"
+  }
 }

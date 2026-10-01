@@ -3438,5 +3438,12 @@
   "catalogue_import_find_local_help": "Busca en los registros de este restaurante y reutiliza uno solo si representa el mismo elemento.",
   "catalogue_import_use_local": "Usar este registro",
   "option_set_entry_settings": "Precio y configuración de la opción",
-  "catalogue_import_reuse_identity": "Se reutilizará el registro {{type}} · ID"
+  "catalogue_import_reuse_identity": "Se reutilizará el registro {{type}} · ID",
+  "delivery_channels": {
+    "source": "Origen del pedido",
+    "uber_eats": "Uber Eats",
+    "test_order": "Pedido de prueba",
+    "payment_handled_by": "Pago gestionado por {{provider}}",
+    "tax_not_reported": "No informado por el proveedor"
+  }
 }

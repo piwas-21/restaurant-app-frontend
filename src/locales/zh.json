@@ -3420,5 +3420,12 @@
   "catalogue_import_find_local_help": "搜索本餐厅的记录，仅在确实代表同一项目时重复使用。",
   "catalogue_import_use_local": "使用此记录",
   "option_set_entry_settings": "价格和选项设置",
-  "catalogue_import_reuse_identity": "重复使用 {{type}} 记录 · ID"
+  "catalogue_import_reuse_identity": "重复使用 {{type}} 记录 · ID",
+  "delivery_channels": {
+    "source": "订单来源",
+    "uber_eats": "Uber Eats",
+    "test_order": "测试订单",
+    "payment_handled_by": "付款由 {{provider}} 处理",
+    "tax_not_reported": "供应商未提供"
+  }
 }

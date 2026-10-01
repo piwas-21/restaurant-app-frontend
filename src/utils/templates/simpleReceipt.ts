@@ -4,7 +4,8 @@
  */
 import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
-import { formatCurrency } from '../currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
@@ -28,10 +29,10 @@ const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): s
 };
 
 // Build item HTML - simple format (name, qty, total only - no unit price breakdown)
-const buildItemHtml = (item: OrderItemDto): string => {
+const buildItemHtml = (item: OrderItemDto, order: OrderDto): string => {
   const itemName = item.productName || item.menuName || 'Item';
   const variation = item.variationName ? ` (${item.variationName})` : '';
-  const totalPrice = formatCurrency(item.itemTotal);
+  const totalPrice = formatOrderCurrency(item.itemTotal, order);
   // What is inside a combo, itemised under the line the guest is being charged for. Prices are off:
   // the parent line carries the whole amount, so each component would otherwise print a bare 0.00.
   const childItemsHtml = buildChildItemsHtml(item.sideItems ?? [], { showPrices: false });
@@ -43,6 +44,7 @@ const buildItemHtml = (item: OrderItemDto): string => {
         <span><strong>${totalPrice}</strong></span>
       </div>
       ${childItemsHtml}
+      ${item.specialInstructions ? `<div dir="auto">${escapeHtml(item.specialInstructions)}</div>` : ''}
     </div>`;
 };
 
@@ -53,7 +55,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
   const translate = t || ((key: string, fallback: string) => fallback);
 
   // Build items HTML
-  const itemsHtml = order.items.map(buildItemHtml).join('');
+  const itemsHtml = order.items.map((item) => buildItemHtml(item, order)).join('');
 
   // Format date
   const orderDate = new Date(order.orderDate);
@@ -82,7 +84,10 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       <div style="margin-top: 8px;">
         <strong>${translate('payment', 'PAYMENT')}:</strong>
         ${order.payments
-          .map((p) => `<div>${getPaymentMethodLabel(p.paymentMethod, translate)}: ${formatCurrency(p.amount)}</div>`)
+          .map(
+            (p) =>
+              `<div>${getPaymentMethodLabel(p.paymentMethod, translate)}: ${formatOrderCurrency(p.amount, order)}</div>`,
+          )
           .join('')}
       </div>
     `
@@ -123,6 +128,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
             : ''
         }
 
+        ${marketplaceReceiptHtml(order, translate, true)}
         ${deliveryAddress}
 
         <div class="separator"></div>
@@ -136,24 +142,15 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
         <div style="margin: 8px 0;">
           <div class="flex-row">
             <span>${translate('subtotal', 'Subtotal')}:</span>
-            <span>${formatCurrency(order.subTotal)}</span>
+            <span>${formatOrderCurrency(order.subTotal, order)}</span>
           </div>
-          ${
-            order.tax > 0
-              ? `
-            <div class="flex-row">
-              <span>${translate('tax', 'Tax')}:</span>
-              <span>${formatCurrency(order.tax)}</span>
-            </div>
-          `
-              : ''
-          }
+          ${receiptTaxHtml(order, translate)}
           ${
             order.deliveryFee && order.deliveryFee > 0
               ? `
             <div class="flex-row">
               <span>${translate('delivery_fee', 'Delivery')}:</span>
-              <span>${formatCurrency(order.deliveryFee)}</span>
+              <span>${formatOrderCurrency(order.deliveryFee, order)}</span>
             </div>
           `
               : ''
@@ -163,7 +160,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
               ? `
             <div class="flex-row">
               <span>${translate('discount', 'Discount')}:</span>
-              <span>-${formatCurrency(order.discount)}</span>
+              <span>-${formatOrderCurrency(order.discount, order)}</span>
             </div>
           `
               : ''
@@ -173,7 +170,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
               ? `
             <div class="flex-row">
               <span>${translate('tip', 'Tip')}:</span>
-              <span>${formatCurrency(order.tip)}</span>
+              <span>${formatOrderCurrency(order.tip, order)}</span>
             </div>
           `
               : ''
@@ -184,7 +181,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
 
         <div class="total-line flex-row" style="margin: 8px 0;">
           <span>${translate('total', 'TOTAL')}:</span>
-          <span>${formatCurrency(order.total)}</span>
+          <span>${formatOrderCurrency(order.total, order)}</span>
         </div>
 
         ${paymentsHtml}

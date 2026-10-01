@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CreditCard, FileText, MapPin, ShoppingBag, User } from 'lucide-react';
-import { formatOrderCurrency } from '@/lib/cashierMoney';
+import MarketplaceOrderSource from '@/components/order/MarketplaceOrderSource';
+import { orderCurrency, formatOrderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderDto } from '@/types/order';
@@ -118,6 +119,7 @@ export default function CashierReadOnlyTicket({
         <CashierStatusBadges order={order} />
       </header>
 
+      <MarketplaceOrderSource source={order.externalOrder} />
       <dl className={styles.ticketMeta}>
         <div>
           <dt>
@@ -152,7 +154,7 @@ export default function CashierReadOnlyTicket({
           <ShoppingBag size={18} aria-hidden="true" />
           {t('cashier.workspace.items')}
         </h3>
-        <TicketItems items={order.items ?? []} currency={order.currency} t={t} />
+        <TicketItems items={order.items ?? []} currency={orderCurrency(order)} t={t} />
       </section>
 
       {order.notes && (
@@ -187,7 +189,7 @@ export default function CashierReadOnlyTicket({
             <strong>{formatOrderCurrency(Math.abs(due), order)}</strong>
           </div>
         </div>
-        <PaymentRows payments={order.payments ?? []} currency={order.currency} t={t} />
+        <PaymentRows payments={order.payments ?? []} currency={orderCurrency(order)} t={t} />
         {onCollect && canCollectPayment(order) && (
           <button type="button" className={styles.collectButton} onClick={() => onCollect(order.id)}>
             <CreditCard size={18} aria-hidden="true" />

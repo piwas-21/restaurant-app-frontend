@@ -5,6 +5,7 @@
  * HTML templates are in ./templates/ directory.
  */
 import { formatPlainCurrency } from '@/utils/currency';
+import { permitsChannelLocalAction } from '@/lib/externalOrder';
 import { OrderDto } from '@/types/order';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { orderStatusLabel } from '@/lib/orderStatus';
@@ -76,6 +77,7 @@ export const printHtmlContent = (htmlContent: string): void => {
  * This is the preferred format for thermal printers
  */
 export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void => {
+  if (!permitsChannelLocalAction(order, 'PrintReceipt')) return;
   const html = generateSimpleReceiptHtml(order, t);
   printHtmlContent(html);
 };
@@ -84,6 +86,7 @@ export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void
  * Alias for exportOrderToPDF - explicit thermal receipt export
  */
 export const exportSimpleReceiptToPDF = (order: OrderDto, t?: TranslationFunction): void => {
+  if (!permitsChannelLocalAction(order, 'PrintReceipt')) return;
   const html = generateSimpleReceiptHtml(order, t);
   printHtmlContent(html);
 };
@@ -97,6 +100,13 @@ export const exportKitchenItemsToPDF = (
   kitchenType: KitchenReceiptType,
   t?: TranslationFunction,
 ): void => {
+  if (
+    order.externalOrder &&
+    (kitchenType === 'All'
+      ? !permitsChannelLocalAction(order, 'PrintReceipt')
+      : order.isKitchenReleased !== true || !permitsChannelLocalAction(order, 'PrintKitchen'))
+  )
+    return;
   const translate = t || ((key: string, fallback: string) => fallback);
   const html = generateKitchenReceiptHtml(order, kitchenType, t);
 

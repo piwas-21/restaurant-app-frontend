@@ -3429,5 +3429,12 @@
   "catalogue_import_find_local_help": "Search this restaurant's records and reuse one only when it represents the same item.",
   "catalogue_import_use_local": "Use this record",
   "option_set_entry_settings": "Price & choice settings",
-  "catalogue_import_reuse_identity": "Reusing {{type}} record · ID"
+  "catalogue_import_reuse_identity": "Reusing {{type}} record · ID",
+  "delivery_channels": {
+    "source": "Order source",
+    "uber_eats": "Uber Eats",
+    "test_order": "Test order",
+    "payment_handled_by": "Payment handled by {{provider}}",
+    "tax_not_reported": "Not reported by provider"
+  }
 }

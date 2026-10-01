@@ -3447,5 +3447,12 @@
   "catalogue_import_find_local_help": "Найдите запись этого ресторана и используйте её повторно только если она обозначает тот же элемент.",
   "catalogue_import_use_local": "Использовать эту запись",
   "option_set_entry_settings": "Цена и настройки варианта",
-  "catalogue_import_reuse_identity": "Повторно используется запись {{type}} · ID"
+  "catalogue_import_reuse_identity": "Повторно используется запись {{type}} · ID",
+  "delivery_channels": {
+    "source": "Источник заказа",
+    "uber_eats": "Uber Eats",
+    "test_order": "Тестовый заказ",
+    "payment_handled_by": "Оплата через {{provider}}",
+    "tax_not_reported": "Не указано поставщиком"
+  }
 }

@@ -3429,5 +3429,12 @@
   "catalogue_import_find_local_help": "Durchsuchen Sie die Einträge dieses Restaurants und verwenden Sie einen nur dann wieder, wenn er dasselbe bezeichnet.",
   "catalogue_import_use_local": "Diesen Eintrag verwenden",
   "option_set_entry_settings": "Preis und Auswahleinstellungen",
-  "catalogue_import_reuse_identity": "Vorhandener {{type}}-Eintrag · ID"
+  "catalogue_import_reuse_identity": "Vorhandener {{type}}-Eintrag · ID",
+  "delivery_channels": {
+    "source": "Bestellquelle",
+    "uber_eats": "Uber Eats",
+    "test_order": "Testbestellung",
+    "payment_handled_by": "Zahlung über {{provider}}",
+    "tax_not_reported": "Vom Anbieter nicht gemeldet"
+  }
 }

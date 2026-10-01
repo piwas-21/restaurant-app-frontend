@@ -6,7 +6,8 @@
  */
 import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
-import { formatCurrency } from '../currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { selectItemsForKitchen } from '../orderItemTree';
 import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
@@ -44,21 +45,26 @@ const getKitchenLabel = (kitchenType: KitchenReceiptType, translate: Translation
 };
 
 // Build kitchen item HTML - with optional pricing
-const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction, showPrices: boolean): string => {
+const buildKitchenItemHtml = (
+  item: OrderItemDto,
+  translate: TranslationFunction,
+  showPrices: boolean,
+  order: OrderDto,
+): string => {
   const itemName = item.productName || item.menuName || translate('item', 'Item');
 
   let html = `
     <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
       <div style="display: flex; justify-content: space-between; font-size: 13pt; font-weight: bold;">
         <span>${item.quantity}x ${escapeHtml(itemName)}</span>
-        ${showPrices ? `<span>${formatCurrency(item.itemTotal)}</span>` : ''}
+        ${showPrices ? `<span>${formatOrderCurrency(item.itemTotal, order)}</span>` : ''}
       </div>`;
 
   // Show unit price breakdown if prices enabled. General/Front/Back tickets do not even format
   // money, keeping the kitchen-purpose branches incapable of leaking a price into their HTML.
   if (showPrices && item.quantity > 0) {
     const unitPriceValue = item.unitPrice || item.itemTotal / item.quantity;
-    html += `<div style="font-size: 10pt; color: #555;">${item.quantity} @ ${formatCurrency(unitPriceValue)}</div>`;
+    html += `<div style="font-size: 10pt; color: #555;">${item.quantity} @ ${formatOrderCurrency(unitPriceValue, order)}</div>`;
   }
 
   // Variation
@@ -77,7 +83,12 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
   // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen.
   // withIngredients: a customization made INSIDE a combo must reach paper too — the ticket used
   // to print the component's name and silently drop its ingredient rows.
-  html += buildChildItemsHtml(item.sideItems ?? [], { showPrices, heading: 'Additionals:', withIngredients: true });
+  html += buildChildItemsHtml(item.sideItems ?? [], {
+    showPrices,
+    currencySource: order,
+    heading: 'Additionals:',
+    withIngredients: true,
+  });
 
   // Special instructions - prominent styling
   if (item.specialInstructions) {
@@ -122,7 +133,7 @@ export const generateKitchenReceiptHtml = (
   const tableLabel = getOrderTableLabel(order);
 
   // Build items with or without prices
-  const itemsHtml = filteredItems.map((item) => buildKitchenItemHtml(item, translate, showPrices)).join('');
+  const itemsHtml = filteredItems.map((item) => buildKitchenItemHtml(item, translate, showPrices, order)).join('');
   const includeCustomerDetails = kitchenType !== 'GeneralKitchen';
 
   // Totals section only for customer-facing 'All' type
@@ -132,24 +143,15 @@ export const generateKitchenReceiptHtml = (
     <div style="margin: 8px 0;">
       <div style="display: flex; justify-content: space-between; margin: 4px 0;">
         <span>Subtotal:</span>
-        <span>${formatCurrency(order.subTotal)}</span>
+        <span>${formatOrderCurrency(order.subTotal, order)}</span>
       </div>
-      ${
-        order.tax > 0
-          ? `
-        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
-          <span>Tax:</span>
-          <span>${formatCurrency(order.tax)}</span>
-        </div>
-      `
-          : ''
-      }
+      ${receiptTaxHtml(order, translate)}
       ${
         order.deliveryFee && order.deliveryFee > 0
           ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
           <span>Delivery:</span>
-          <span>${formatCurrency(order.deliveryFee)}</span>
+          <span>${formatOrderCurrency(order.deliveryFee, order)}</span>
         </div>
       `
           : ''
@@ -159,7 +161,7 @@ export const generateKitchenReceiptHtml = (
           ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
           <span>Discount:</span>
-          <span>-${formatCurrency(order.discount)}</span>
+          <span>-${formatOrderCurrency(order.discount, order)}</span>
         </div>
       `
           : ''
@@ -168,14 +170,14 @@ export const generateKitchenReceiptHtml = (
     <div class="separator"></div>
     <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 14pt; font-weight: bold;">
       <span>TOTAL:</span>
-      <span>${formatCurrency(order.total)}</span>
+      <span>${formatOrderCurrency(order.total, order)}</span>
     </div>
     ${
       order.payments && order.payments.length > 0
         ? `
       <div style="margin-top: 8px;">
         <strong>Payment:</strong>
-        ${order.payments.map((p) => `<div>${p.paymentMethod}: ${formatCurrency(p.amount)}</div>`).join('')}
+        ${order.payments.map((p) => `<div>${p.paymentMethod}: ${formatOrderCurrency(p.amount, order)}</div>`).join('')}
       </div>
     `
         : ''
@@ -223,6 +225,8 @@ export const generateKitchenReceiptHtml = (
           ${itemsHtml}
         </div>
 
+        ${marketplaceReceiptHtml(order, translate, showPrices)}
+        ${order.notes ? `<div dir="auto"><strong>${escapeHtml(translate('notes', 'Notes'))}:</strong> ${escapeHtml(order.notes)}</div>` : ''}
         ${totalsHtml}
 
         <div class="separator"></div>

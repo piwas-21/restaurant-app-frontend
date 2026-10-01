@@ -8,6 +8,7 @@
  */
 import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import { formatCurrency } from '../currency';
+import { formatOrderCurrency, type CashierCurrencySource } from '@/lib/cashierMoney';
 
 /**
  * The ingredient rows a KITCHEN must act on, and their ticket lines. A row qualifies when it is a
@@ -56,6 +57,7 @@ export interface ChildItemsOptions {
    * that disagreed.
    */
   showPrices: boolean;
+  currencySource?: CashierCurrencySource;
   /** Heading printed above the children, e.g. the kitchen ticket's "Additionals:". Omitted ⇒ none. */
   heading?: string;
   /**
@@ -79,7 +81,10 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
 
   children.forEach((child) => {
     // `> 0`, not just `showPrices` — see ChildItemsOptions. Same rule as OrderLineSummary.tsx.
-    const childPrice = options.showPrices && child.itemTotal > 0 ? ` (${formatCurrency(child.itemTotal)})` : '';
+    const childPrice =
+      options.showPrices && child.itemTotal > 0
+        ? ` (${options.currencySource ? formatOrderCurrency(child.itemTotal, options.currencySource) : formatCurrency(child.itemTotal)})`
+        : '';
     const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
     html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
     if (options.withIngredients) {

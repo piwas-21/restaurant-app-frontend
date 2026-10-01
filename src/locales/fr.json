@@ -3438,5 +3438,12 @@
   "catalogue_import_find_local_help": "Recherchez dans les fiches du restaurant et réutilisez-en une uniquement si elle désigne le même élément.",
   "catalogue_import_use_local": "Utiliser cette fiche",
   "option_set_entry_settings": "Prix et réglages du choix",
-  "catalogue_import_reuse_identity": "Réutilisation de la fiche {{type}} · ID"
+  "catalogue_import_reuse_identity": "Réutilisation de la fiche {{type}} · ID",
+  "delivery_channels": {
+    "source": "Origine de la commande",
+    "uber_eats": "Uber Eats",
+    "test_order": "Commande de test",
+    "payment_handled_by": "Paiement géré par {{provider}}",
+    "tax_not_reported": "Non communiqué par le prestataire"
+  }
 }

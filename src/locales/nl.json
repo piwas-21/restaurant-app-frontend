@@ -3429,5 +3429,12 @@
   "catalogue_import_find_local_help": "Zoek in de items van dit restaurant en hergebruik er alleen een als het om hetzelfde item gaat.",
   "catalogue_import_use_local": "Dit item gebruiken",
   "option_set_entry_settings": "Prijs en keuze-instellingen",
-  "catalogue_import_reuse_identity": "Bestaand {{type}}-item hergebruiken · ID"
+  "catalogue_import_reuse_identity": "Bestaand {{type}}-item hergebruiken · ID",
+  "delivery_channels": {
+    "source": "Bestelbron",
+    "uber_eats": "Uber Eats",
+    "test_order": "Testbestelling",
+    "payment_handled_by": "Betaling verwerkt door {{provider}}",
+    "tax_not_reported": "Niet gemeld door de aanbieder"
+  }
 }

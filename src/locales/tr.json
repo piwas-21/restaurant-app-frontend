@@ -3429,5 +3429,12 @@
   "catalogue_import_find_local_help": "Bu restoranın kayıtlarında arayın ve yalnızca aynı ürünü temsil eden bir kaydı yeniden kullanın.",
   "catalogue_import_use_local": "Bu kaydı kullan",
   "option_set_entry_settings": "Fiyat ve seçenek ayarları",
-  "catalogue_import_reuse_identity": "{{type}} kaydı yeniden kullanılıyor · Kimlik"
+  "catalogue_import_reuse_identity": "{{type}} kaydı yeniden kullanılıyor · Kimlik",
+  "delivery_channels": {
+    "source": "Sipariş kaynağı",
+    "uber_eats": "Uber Eats",
+    "test_order": "Test siparişi",
+    "payment_handled_by": "Ödeme {{provider}} tarafından yönetilir",
+    "tax_not_reported": "Sağlayıcı bildirmedi"
+  }
 }

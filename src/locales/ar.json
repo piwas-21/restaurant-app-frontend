@@ -3465,5 +3465,12 @@
   "catalogue_import_find_local_help": "ابحث في سجلات هذا المطعم وأعد استخدام السجل فقط إذا كان يمثل العنصر نفسه.",
   "catalogue_import_use_local": "استخدام هذا السجل",
   "option_set_entry_settings": "السعر وإعدادات الخيار",
-  "catalogue_import_reuse_identity": "إعادة استخدام سجل {{type}} · المعرّف"
+  "catalogue_import_reuse_identity": "إعادة استخدام سجل {{type}} · المعرّف",
+  "delivery_channels": {
+    "source": "مصدر الطلب",
+    "uber_eats": "Uber Eats",
+    "test_order": "طلب تجريبي",
+    "payment_handled_by": "تتم إدارة الدفع بواسطة {{provider}}",
+    "tax_not_reported": "لم يبلّغ عنه مزود الخدمة"
+  }
 }

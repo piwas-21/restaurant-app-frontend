@@ -1,5 +1,6 @@
 'use client';
 
+import { permitsChannelLocalAction } from '@/lib/externalOrder';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
@@ -62,6 +63,7 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
   // print/notes. Dine-in auto-confirms at creation and never reaches this branch.
   const confirmationFlow = flowForOrder(order.type)?.flow ?? 'direct';
   const isPendingHandoff =
+    !order.externalOrder &&
     (order.status === 'Pending' || (order.status === 'PendingApproval' && confirmationFlow === 'acknowledge')) &&
     (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
 
@@ -78,11 +80,21 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
             {t(confirmationFlow === 'acknowledge' ? 'cashier.approve_order_action' : 'cashier.confirm_order_action')}
           </button>
         )}
-        <button type="button" className={styles.actionButton} onClick={printKitchen}>
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={printKitchen}
+          disabled={!permitsChannelLocalAction(order, 'PrintKitchen')}
+        >
           <ChefHat size={17} aria-hidden="true" />
           {t('cashier.workspace.print_kitchen')}
         </button>
-        <button type="button" className={styles.actionButton} onClick={printBill}>
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={printBill}
+          disabled={!permitsChannelLocalAction(order, 'PrintReceipt')}
+        >
           <Printer size={17} aria-hidden="true" />
           {t('cashier.workspace.print_bill')}
         </button>

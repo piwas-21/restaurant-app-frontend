@@ -2,10 +2,13 @@
 
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Clock, FileText } from 'lucide-react';
+import MarketplaceOrderSource from '@/components/order/MarketplaceOrderSource';
+import { reportedOrderTax } from '@/lib/externalOrder';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { OrderDto } from '@/types/order';
 import { getPaymentBadgeClasses } from '@/utils/orderStatusStyles';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
-import { formatOrderPrice, formatOrderDate } from '@/utils/orderDetailsFormatters';
+import { formatOrderDate } from '@/utils/orderDetailsFormatters';
 import styles from '../OrderDetailsModal.module.css';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 
@@ -19,6 +22,8 @@ interface OrderDetailsSummaryProps {
  */
 export default function OrderDetailsSummary({ order }: OrderDetailsSummaryProps) {
   const { t } = useTranslation();
+  const tax = reportedOrderTax(order);
+  const formatOrderPrice = (amount: number) => formatOrderCurrency(amount, order);
 
   const translateTimelineNotes = (notes?: string) => {
     if (!notes) return null;
@@ -52,6 +57,7 @@ export default function OrderDetailsSummary({ order }: OrderDetailsSummaryProps)
 
   return (
     <>
+      <MarketplaceOrderSource source={order.externalOrder} />
       {/* Order Summary Section */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>
@@ -87,7 +93,7 @@ export default function OrderDetailsSummary({ order }: OrderDetailsSummaryProps)
 
           <div className={styles.summaryRow}>
             <span>{t('tax', 'Tax')}</span>
-            <span>{formatOrderPrice(order.tax)}</span>
+            <span>{tax === null ? t('delivery_channels.tax_not_reported') : formatOrderPrice(tax)}</span>
           </div>
 
           <div className={`${styles.summaryRow} ${styles.total}`}>

@@ -3458,6 +3458,7 @@
     "decision_uncertain": "Die Antwort ist ungewiss. Ergebnis prüfen oder dieselbe Entscheidung erneut senden.",
     "decision_retry": "Dieselbe Entscheidung erneut senden",
     "decision_refresh": "Ergebnis aktualisieren",
-    "decision_detail_refresh_error": "Die Bestelldetails konnten nicht aktualisiert werden. Prüfen Sie das Ergebnis erneut, bevor Sie fortfahren."
+    "decision_detail_refresh_error": "Die Bestelldetails konnten nicht aktualisiert werden. Prüfen Sie das Ergebnis erneut, bevor Sie fortfahren.",
+    "preparation_error": "Die Zubereitung konnte nicht aktualisiert werden. Aktualisieren Sie die Bestellung und versuchen Sie es erneut."
   }
 }

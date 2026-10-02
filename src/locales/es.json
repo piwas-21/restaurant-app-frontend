@@ -3467,6 +3467,7 @@
     "decision_uncertain": "La respuesta es incierta. Comprueba el resultado o reintenta la misma decisión.",
     "decision_retry": "Reintentar la misma decisión",
     "decision_refresh": "Actualizar resultado",
-    "decision_detail_refresh_error": "No se pudieron actualizar los detalles del pedido. Comprueba el resultado de nuevo antes de continuar."
+    "decision_detail_refresh_error": "No se pudieron actualizar los detalles del pedido. Comprueba el resultado de nuevo antes de continuar.",
+    "preparation_error": "No se pudo actualizar la preparación. Actualiza el pedido e inténtalo de nuevo."
   }
 }

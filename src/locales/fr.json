@@ -3467,6 +3467,7 @@
     "decision_uncertain": "La réponse est incertaine. Vérifiez le résultat ou renvoyez la même décision.",
     "decision_retry": "Renvoyer la même décision",
     "decision_refresh": "Actualiser le résultat",
-    "decision_detail_refresh_error": "Les détails de la commande n’ont pas pu être actualisés. Vérifiez à nouveau le résultat avant de continuer."
+    "decision_detail_refresh_error": "Les détails de la commande n’ont pas pu être actualisés. Vérifiez à nouveau le résultat avant de continuer.",
+    "preparation_error": "Impossible de mettre à jour la préparation. Actualisez la commande et réessayez."
   }
 }

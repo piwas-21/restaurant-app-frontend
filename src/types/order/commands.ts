@@ -12,6 +12,8 @@ export type OrderListScope = 'All' | 'Operational';
  * Update order status command
  */
 export interface UpdateOrderStatusCommand {
+  /** Required for channel preparation; optional for existing local callers. */
+  expectedVersion?: number;
   newStatus: OrderStatus;
   notes?: string;
   estimatedPreparationMinutes?: number;

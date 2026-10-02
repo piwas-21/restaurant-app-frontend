@@ -3,7 +3,7 @@
  * Extracted from orderService (Sprint 4/6 service split); behaviour unchanged.
  */
 
-import { apiClient } from '@/utils/apiClient';
+import { ApiError, apiClient } from '@/utils/apiClient';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import {
   CreateOrderCommand,
@@ -72,9 +72,8 @@ export async function updateOrderStatus(orderId: string, command: UpdateOrderSta
     const response = await apiClient.put<OrderDtoApiResponse>(`/api/Orders/${orderId}/status`, command, {
       requireAuth: true,
     });
-    if (!response.data) {
-      throw new Error('Failed to update order status');
-    }
+    if (response.success === false) throwServerRefusal(response);
+    if (!response.data) throw new ApiError(502, '');
     return response.data;
   } catch (error) {
     console.error('Error updating order status:', error);

@@ -37,7 +37,7 @@ export default function CashierLayoutClient({ children, features }: CashierLayou
   if (isLoading) {
     return (
       <div className={styles.centerScreen}>
-        <Loader2 size={48} style={{ animation: 'spin 1s linear infinite' }} />
+        <Loader2 size={48} className={styles.spinner} />
       </div>
     );
   }

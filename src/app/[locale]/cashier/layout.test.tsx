@@ -65,4 +65,17 @@ describe('CashierLayout authorization', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('true');
   });
+
+  it('uses the scoped stylesheet for the loading spinner animation', () => {
+    mockAuth.mockReturnValue({ user: null, isLoading: true });
+    const { container } = render(
+      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: false }}>
+        <p>private queue</p>
+      </CashierLayoutClient>,
+    );
+
+    const spinner = container.querySelector('svg');
+    expect(spinner).toHaveClass('spinner');
+    expect(spinner).not.toHaveAttribute('style');
+  });
 });

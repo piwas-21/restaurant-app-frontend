@@ -3500,8 +3500,13 @@
     "cancel": "Abbrechen",
     "priceUnavailable": "Preis nicht verfügbar",
     "moduleDisabled": {
-      "title": "Lieferkanäle sind nicht aktiviert",
-      "body": "Diese Funktion ist für dieses Restaurant nicht verfügbar. Wenden Sie sich an Ihren Sofra-Administrator, um Informationen zum Zugriff zu erhalten."
+      "setupTitle": "Der Zugang für dieses Restaurant ist noch nicht aktiv",
+      "setupBody": "Dieser Bereich unterstützt derzeit die freigegebene Sandbox. Sofra muss das Restaurant und seinen Uber-Shop in der richtigen Umgebung registrieren, bevor ein Admin die Verbindung herstellen kann.",
+      "setupStepOne": "Sofra registriert dieses Restaurant und seinen Uber-Shop in der richtigen Umgebung.",
+      "setupStepTwo": "Sobald der Zugang bereit ist, verbindet ein Admin Uber und autorisiert dieses Restaurant.",
+      "setupStepThree": "Wählen und prüfen Sie die unterstützte Speisekarte, veröffentlichen Sie sie und warten Sie auf Ubers Bestätigung.",
+      "setupStepFour": "Nach der Menübestätigung autorisieren Sie Sofra separat für den Empfang eingehender Bestellungen.",
+      "productionNote": "Vor der Verbindung eines echten Restaurants sind Ubers Produktionsfreigabe und Integrationsprüfung erforderlich."
     },
     "unavailable": {
       "title": "Das Uber Eats-Management konnte nicht geladen werden",
@@ -3556,12 +3561,6 @@
       "unconfirmed": "Uber Eats hat den erwarteten Laden noch nicht bestätigt. Es kann keine Menüänderung veröffentlicht werden.",
       "sandbox": "Sandbox-Shop"
     },
-    "steps": {
-      "navigation": "Schritte zur Einrichtung von Uber Eats",
-      "connect": "Verbinden",
-      "menu": "Rezensionsmenü",
-      "publish": "Veröffentlichen"
-    },
     "menu": {
       "title": "Überprüfen Sie die Menüzuordnung",
       "description": "Wählen Sie aus, welche unterstützten Sofra-Produkte zu jedem Uber Eats-Artikel passen. Sofra bleibt die Quelle für Namen, Verfügbarkeit und Preise.",
@@ -3582,7 +3581,8 @@
       "mapping": {
         "mapped": "Kartiert",
         "unmapped": "Nicht kartiert",
-        "blocked": "Blockiert"
+        "blocked": "Blockiert",
+        "all": "Alle Status"
       },
       "providerPrice": "Uber Eats-Preis",
       "tenantPrice": "Sofra-Preis",
@@ -3603,7 +3603,16 @@
       "outgoingHoursNote": "Genehmigte Vorlagenwerte, die bei der nächsten Menüveröffentlichung gesendet werden. Dies ist kein Live-Readback von Uber Eats.",
       "currentHoursNote": "Von Uber Eats für dieses Geschäft zurückgegebene Stunden. Ein zuletzt bestätigtes Ergebnis ist möglicherweise veraltet.",
       "outgoingHoursUnavailable": "Die genehmigte Service-Stunden-Vorlage konnte nicht geladen werden.",
-      "currentHoursUnavailable": "Die aktuellen Uber Eats-Servicezeiten sind nicht verfügbar."
+      "currentHoursUnavailable": "Die aktuellen Uber Eats-Servicezeiten sind nicht verfügbar.",
+      "mappingSearchLabel": "Uber-Menüartikel filtern",
+      "mappingFilterLabel": "Zuordnungsstatus",
+      "mappingRange": "{{start}}–{{end}} von {{total}} Artikeln",
+      "mappingPreviousPage": "Zurück",
+      "mappingNextPage": "Weiter",
+      "mappingNoResults": "Keine Artikel entsprechen diesen Filtern.",
+      "mappingPaginationLabel": "Zuordnungsseiten",
+      "approvedScope": "Dieser Pilot verwendet eine feste, freigegebene Uber-Speisekarte. Ordnen Sie jeden aufgeführten Artikel einem unterstützten Sofra-Artikel zu. Ganze Kategorien können noch nicht veröffentlicht werden.",
+      "selectionUnknown": "Ausgewählter Artikel muss geprüft werden"
     },
     "publication": {
       "title": "Überprüfen und veröffentlichen",
@@ -3630,7 +3639,6 @@
       "noPreview": "Speichern Sie die Menüzuordnung und bereiten Sie dann eine neue Publikationsrezension vor.",
       "preflightReady": "Bereit zur Veröffentlichung",
       "preflightBlocked": "Beheben Sie diese Blocker vor der Veröffentlichung",
-      "revisionBound": "Diese Überprüfung gilt nur für die Revision {{revision}}.",
       "blockers": "Blocker",
       "warnings": "Warnungen",
       "diffCaption": "Vollständige Menüänderungen für Uber Eats vorbereitet",
@@ -3641,10 +3649,16 @@
       "publishFullMenu": "Vollständigen Menüersatz veröffentlichen",
       "confirmTitle": "Bestätigen Sie den vollständigen Menüaustausch",
       "confirmPublish": "Bestätigen und veröffentlichen",
-      "confirmTarget": "Zielspeicher: {{store}}",
       "fullReplacement": "Dies ersetzt das vollständig unterstützte Menü bei Uber Eats unter Verwendung der aktuellen Restaurantquelle und -zuordnung.",
       "noBlindRetry": "Bei unsicherem Ergebnis wird der Vorgang nicht automatisch erneut gesendet.",
-      "confirmFullReplacement": "Ich habe diesen vollständigen Ersatz überprüft und bestätigt, dass er an Uber Eats gesendet werden sollte."
+      "confirmFullReplacement": "Ich habe diesen vollständigen Ersatz überprüft und bestätigt, dass er an Uber Eats gesendet werden sollte.",
+      "technicalDetails": "Technische Details",
+      "reviewFreshness": "Diese Prüfung verwendet die zuletzt gespeicherte Auswahl und Speisekarte. Bei Änderungen müssen Sie vor der Veröffentlichung erneut prüfen.",
+      "confirmSummary_one": "Dies ersetzt die gesamte Uber-Eats-Speisekarte bei {{store}} durch {{count}} geprüften Artikel.",
+      "confirmSummary_other": "Dies ersetzt die gesamte Uber-Eats-Speisekarte bei {{store}} durch {{count}} geprüfte Artikel.",
+      "publicationRevision": "Veröffentlichungsrevision",
+      "operationId": "ID des Veröffentlichungsvorgangs",
+      "providerItemId": "Uber-Artikel-ID"
     },
     "availability": {
       "title": "Verfügbarkeit im Geschäft",
@@ -3820,6 +3834,31 @@
       "uncertain": "Das Ergebnis ist ungewiss. Überprüfen Sie den Status, bevor Sie es erneut versuchen.",
       "rejected": "Der Antrag wurde abgelehnt. Überprüfen Sie den aktuellen Zustand.",
       "generic": "Etwas ist schief gelaufen. Überprüfen Sie den Status, bevor Sie es erneut versuchen."
+    },
+    "workspace": {
+      "navigation": "Bereiche der Uber-Eats-Verwaltung",
+      "overview": "Übersicht",
+      "connection": "Verbindung",
+      "menu": "Speisekarte",
+      "publish": "Veröffentlichen",
+      "availability": "Verfügbarkeit",
+      "exceptions": "Probleme",
+      "overviewTitle": "Kanalstatus",
+      "overviewBody": "Prüfen Sie die Verbindung und offene Aufgaben, bevor Sie diesen Kanal ändern.",
+      "connectFirstTitle": "Verbinden Sie zuerst dieses Restaurant",
+      "connectFirstBody": "Speisekarte und Verfügbarkeit können verwaltet werden, sobald Uber das verbundene Restaurant bestätigt.",
+      "connectFirstAction": "Verbindung prüfen",
+      "reviewFirstTitle": "Speisekarte vor der Veröffentlichung prüfen",
+      "reviewFirstBody": "Speichern Sie die Zuordnung und erstellen Sie eine neue Prüfung, bevor Sie die Speisekarte aktualisieren.",
+      "reviewFirstAction": "Speisekarte prüfen",
+      "overviewHealth": "Verbindungszustand",
+      "attentionTitle": "Einige Vorgänge benötigen Aufmerksamkeit",
+      "attentionBody": "Prüfen Sie fehlgeschlagene oder unklare Vorgänge im Problemprotokoll, bevor Sie es erneut versuchen.",
+      "openExceptions": "Problemprotokoll öffnen",
+      "reviewConnection": "Verbindung prüfen",
+      "viewHealth": "Verbindungszustand prüfen",
+      "viewPublication": "Veröffentlichung prüfen",
+      "manageAvailability": "Verfügbarkeit verwalten"
     }
   },
   "cashier.tables.account": "Tischkonto",
@@ -3843,5 +3882,12 @@
   "cashier.new_sale.visit_unavailable": "Dieser Besuch wurde beendet oder geändert. Aktualisieren Sie „Tische“ und wählen Sie den aktuellen offenen Besuch, bevor Sie Artikel hinzufügen.",
   "cashier.tables.add_round_identity_unavailable": "Für diesen Besuch fehlt eine stabile Besuchs-ID. Aktualisieren oder reparieren Sie ihn, bevor Sie eine weitere Runde hinzufügen.",
   "cashier.tables.account_activity_has_more": "Die neuesten Kontobewegungen werden angezeigt. Ältere Ereignisse sind hier nicht sichtbar.",
-  "server.floor.start_visit": "Besuch starten"
+  "server.floor.start_visit": "Besuch starten",
+  "adminNavigation": {
+    "label": "Verwaltung",
+    "menu": "Speisekarte & Verkauf",
+    "operations": "Bestellungen & Service",
+    "customers": "Kunden",
+    "settings": "Einstellungen"
+  }
 }

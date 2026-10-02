@@ -26,9 +26,7 @@ export default function DeliveryChannelAvailabilityItems({ items, locale, stale 
         return (
           <li key={`${item.providerItemId}:${item.productId}:${item.variationId ?? ''}`}>
             <div>
-              <strong>
-                <code dir="ltr">{item.providerItemId}</code>
-              </strong>
+              <strong>{t('deliveryChannels.publication.item')}</strong>
               <span>
                 {t(`deliveryChannels.availability.item.${state}`, {
                   defaultValue: t('deliveryChannels.availability.item.unknown'),
@@ -42,6 +40,11 @@ export default function DeliveryChannelAvailabilityItems({ items, locale, stale 
                 {t(`deliveryChannels.codes.${item.reasonCode}`, { defaultValue: t('deliveryChannels.codes.generic') })}
               </p>
             )}
+            <details className={styles.itemDetails}>
+              <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
+              <span>{t('deliveryChannels.publication.providerItemId')}</span>
+              <code dir="ltr">{item.providerItemId}</code>
+            </details>
             <small>
               {t('deliveryChannels.availability.itemChecked', {
                 time: formatDeliveryChannelDate(item.verifiedAt, locale, t('deliveryChannels.timeUnavailable')),

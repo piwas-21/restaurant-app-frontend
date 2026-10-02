@@ -4,12 +4,17 @@ import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { candidateIdentity } from '@/hooks/admin/useDeliveryChannelCatalogue';
-import type { DeliveryChannelCatalogue, DeliveryChannelCatalogueCandidate } from '@/types/deliveryChannelCatalogue';
+import type {
+  DeliveryChannelCatalogue,
+  DeliveryChannelCatalogueCandidate,
+  DeliveryChannelMappingRow,
+} from '@/types/deliveryChannelCatalogue';
 import { formatDeliveryChannelPrice } from '@/lib/deliveryChannelFormat';
 import styles from './DeliveryChannelCataloguePanel.module.css';
 
 interface Props {
   readonly catalogue: DeliveryChannelCatalogue;
+  readonly rows: readonly DeliveryChannelMappingRow[];
   readonly candidates: readonly DeliveryChannelCatalogueCandidate[];
   readonly selected: Readonly<Record<string, string>>;
   readonly busy: string | null;
@@ -19,15 +24,16 @@ interface Props {
   readonly onChoose: (providerItemId: string, value: string) => void;
 }
 
-function currentItemName(catalogue: DeliveryChannelCatalogue, identity: string): string {
+function currentItemName(catalogue: DeliveryChannelCatalogue, identity: string, fallback: string): string {
   const item = catalogue.items.find(
     (row) => row.productId && candidateIdentity(row.productId, row.variationId) === identity,
   );
-  return item ? [item.productName, item.variationName].filter(Boolean).join(' · ') : identity;
+  return (item && [item.productName, item.variationName].filter(Boolean).join(' · ')) || fallback;
 }
 
 export default function DeliveryChannelMappingList({
   catalogue,
+  rows,
   candidates,
   selected,
   busy,
@@ -39,7 +45,7 @@ export default function DeliveryChannelMappingList({
   const { t } = useTranslation();
   const used = new Set(Object.values(selected).filter(Boolean));
   const options = candidates.filter((candidate) => candidate.available && candidate.supported);
-  const mappingTone = (status: DeliveryChannelCatalogue['items'][number]['mappingStatus']) => {
+  const mappingTone = (status: DeliveryChannelMappingRow['mappingStatus']) => {
     if (status === 'mapped') return 'success';
     if (status === 'blocked') return 'danger';
     return 'warning';
@@ -47,7 +53,7 @@ export default function DeliveryChannelMappingList({
 
   return (
     <ul className={styles.mappingList}>
-      {catalogue.items.map((row) => {
+      {rows.map((row) => {
         const current = selected[row.providerItemId] ?? '';
         const blockKey = row.blockReason
           ? `deliveryChannels.codes.${row.blockReason}`
@@ -58,7 +64,10 @@ export default function DeliveryChannelMappingList({
             <div className={styles.providerItem}>
               <div>
                 <strong>{row.providerItemName}</strong>
-                <code dir="ltr">{row.providerItemId}</code>
+                <details className={styles.technicalDetails}>
+                  <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
+                  <code dir="ltr">{row.providerItemId}</code>
+                </details>
               </div>
               <StatusBadge tone={mappingTone(row.mappingStatus)}>
                 {t(`deliveryChannels.menu.mapping.${row.mappingStatus}`, {
@@ -81,7 +90,11 @@ export default function DeliveryChannelMappingList({
                 {current &&
                   !options.some(
                     (candidate) => candidateIdentity(candidate.productId, candidate.variationId) === current,
-                  ) && <option value={current}>{currentItemName(catalogue, current)}</option>}
+                  ) && (
+                    <option value={current}>
+                      {currentItemName(catalogue, current, t('deliveryChannels.menu.selectionUnknown'))}
+                    </option>
+                  )}
                 {options.map((candidate) => {
                   const value = candidateIdentity(candidate.productId, candidate.variationId);
                   const alreadyUsed = used.has(value) && current !== value;

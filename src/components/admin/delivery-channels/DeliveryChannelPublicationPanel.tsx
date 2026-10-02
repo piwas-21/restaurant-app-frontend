@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import BaseModal from '@/components/design-system/BaseModal';
-import CheckboxField from '@/components/design-system/CheckboxField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { DeliveryChannelPreview, DeliveryChannelPublication } from '@/types/deliveryChannelCatalogue';
 import { formatDeliveryChannelDate } from '@/lib/deliveryChannelFormat';
 import DeliveryChannelPreflightReview from './DeliveryChannelPreflightReview';
+import DeliveryChannelPublishConfirmationModal from './DeliveryChannelPublishConfirmationModal';
+import detailsStyles from './DeliveryChannelTechnicalDetails.module.css';
 import workspaceStyles from './DeliveryChannelWorkspace.module.css';
 import styles from './DeliveryChannelPublicationPanel.module.css';
 
@@ -53,18 +53,11 @@ export default function DeliveryChannelPublicationPanel({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [replaceConfirmed, setReplaceConfirmed] = useState(false);
   const isVerified = publication?.state === 'verified' && publication.providerReadbackVerified;
+  const displayStoreName = storeName?.trim() || t('deliveryChannels.store.nameUnavailable');
   const statusKey = publication
     ? `deliveryChannels.publication.status.${publication.state}`
     : 'deliveryChannels.publication.notPublished';
-
-  const confirmPublish = async () => {
-    if (!replaceConfirmed) return;
-    await onPublish();
-    setConfirmOpen(false);
-    setReplaceConfirmed(false);
-  };
 
   return (
     <section className={workspaceStyles.panel} aria-labelledby="delivery-channel-publication-title">
@@ -128,20 +121,35 @@ export default function DeliveryChannelPublicationPanel({
               })}
             </p>
           )}
-          <dl className={styles.revisions}>
-            <div>
-              <dt>{t('deliveryChannels.publication.mappingRevision')}</dt>
-              <dd>
-                <code dir="ltr">{publication.mappingRevision}</code>
-              </dd>
-            </div>
-            <div>
-              <dt>{t('deliveryChannels.publication.sourceRevision')}</dt>
-              <dd>
-                <code dir="ltr">{publication.sourceRevision}</code>
-              </dd>
-            </div>
-          </dl>
+          <details className={detailsStyles.details}>
+            <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
+            <dl>
+              <div>
+                <dt>{t('deliveryChannels.publication.mappingRevision')}</dt>
+                <dd>
+                  <code>{publication.mappingRevision}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('deliveryChannels.publication.sourceRevision')}</dt>
+                <dd>
+                  <code>{publication.sourceRevision}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('deliveryChannels.publication.publicationRevision')}</dt>
+                <dd>
+                  <code>{publication.publicationRevision}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('deliveryChannels.publication.operationId')}</dt>
+                <dd>
+                  <code>{publication.id}</code>
+                </dd>
+              </div>
+            </dl>
+          </details>
         </div>
       )}
       {isVerified && !incomingOrdersEnabled && (
@@ -165,60 +173,16 @@ export default function DeliveryChannelPublicationPanel({
         </>
       )}
 
-      <BaseModal
+      <DeliveryChannelPublishConfirmationModal
         isOpen={confirmOpen}
-        onClose={() => {
-          setConfirmOpen(false);
-          setReplaceConfirmed(false);
-        }}
-        title={t('deliveryChannels.publication.confirmTitle')}
-        size="lg"
-        presentation="responsive-sheet"
-        isPending={busy === 'publish'}
-        footer={
-          <div className={styles.modalActions}>
-            <button
-              className={workspaceStyles.secondaryAction}
-              type="button"
-              onClick={() => {
-                setConfirmOpen(false);
-                setReplaceConfirmed(false);
-              }}
-              disabled={busy === 'publish'}
-            >
-              {t('deliveryChannels.cancel')}
-            </button>
-            <button
-              className={workspaceStyles.action}
-              type="button"
-              onClick={() => void confirmPublish()}
-              disabled={!canPublish || !replaceConfirmed || busy === 'publish'}
-            >
-              {busy === 'publish' ? t('deliveryChannels.loading') : t('deliveryChannels.publication.confirmPublish')}
-            </button>
-          </div>
-        }
-      >
-        <div className={styles.modalBody}>
-          <p>{t('deliveryChannels.publication.confirmTarget', { store: storeName || storeId })}</p>
-          <p>
-            {t('deliveryChannels.store.idLabel')}: <code dir="ltr">{storeId}</code>
-          </p>
-          <p>{t('deliveryChannels.publication.fullReplacement')}</p>
-          <p>{t('deliveryChannels.publication.noBlindRetry')}</p>
-          <p>
-            <strong>
-              {t('deliveryChannels.publication.revisionBound', { revision: preview?.publicationRevision ?? '' })}
-            </strong>
-          </p>
-          <CheckboxField
-            label={t('deliveryChannels.publication.confirmFullReplacement')}
-            checked={replaceConfirmed}
-            onChange={setReplaceConfirmed}
-            disabled={busy === 'publish'}
-          />
-        </div>
-      </BaseModal>
+        canPublish={canPublish}
+        busy={busy}
+        preview={preview}
+        storeName={displayStoreName}
+        storeId={storeId}
+        onClose={() => setConfirmOpen(false)}
+        onPublish={onPublish}
+      />
     </section>
   );
 }

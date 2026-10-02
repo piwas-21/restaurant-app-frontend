@@ -3500,8 +3500,13 @@
     "cancel": "Annuleer",
     "priceUnavailable": "Prijs niet beschikbaar",
     "moduleDisabled": {
-      "title": "Leveringskanalen zijn niet ingeschakeld",
-      "body": "Deze functie is niet beschikbaar voor dit restaurant. Neem contact op met uw Sofra-beheerder om te vragen naar de toegang."
+      "setupTitle": "Toegang is nog niet actief voor dit restaurant",
+      "setupBody": "Deze werkruimte ondersteunt momenteel de goedgekeurde testomgeving. Sofra moet het restaurant en de Uber-vestiging in de juiste omgeving registreren voordat een beheerder ze kan verbinden.",
+      "setupStepOne": "Sofra registreert dit restaurant en de Uber-vestiging in de juiste omgeving.",
+      "setupStepTwo": "Zodra toegang gereed is, verbindt een beheerder Uber en autoriseert dit restaurant.",
+      "setupStepThree": "Selecteer en controleer het ondersteunde menu, publiceer het en wacht op bevestiging van Uber.",
+      "setupStepFour": "Autoriseer Sofra na de menucontrole afzonderlijk om bestellingen te ontvangen.",
+      "productionNote": "Goedkeuring voor productie en integratieverificatie door Uber zijn vereist voordat een echt restaurant wordt verbonden."
     },
     "unavailable": {
       "title": "Kan Uber Eats-beheer niet laden",
@@ -3556,12 +3561,6 @@
       "unconfirmed": "Uber Eats heeft de verwachte winkel nog niet bevestigd. Er kan geen menuwijziging worden gepubliceerd.",
       "sandbox": "Sandbox-winkel"
     },
-    "steps": {
-      "navigation": "Installatiestappen voor Uber Eats",
-      "connect": "Verbinden",
-      "menu": "Beoordelingsmenu",
-      "publish": "Publiceren"
-    },
     "menu": {
       "title": "Bekijk de menutoewijzing",
       "description": "Kies welke ondersteunde Sofra-producten bij elk Uber Eats-artikel passen. Sofra blijft de bron voor namen, beschikbaarheid en prijzen.",
@@ -3582,7 +3581,8 @@
       "mapping": {
         "mapped": "In kaart gebracht",
         "unmapped": "Niet in kaart gebracht",
-        "blocked": "Geblokkeerd"
+        "blocked": "Geblokkeerd",
+        "all": "Alle statussen"
       },
       "providerPrice": "Uber Eats-prijs",
       "tenantPrice": "Sofra-prijs",
@@ -3603,7 +3603,16 @@
       "outgoingHoursNote": "Goedgekeurde sjabloonwaarden die bij de volgende menupublicatie worden verzonden. Dit is geen live teruglezing van Uber Eats.",
       "currentHoursNote": "Uren geretourneerd door Uber Eats voor deze winkel. Een laatst bevestigd resultaat kan verouderd zijn.",
       "outgoingHoursUnavailable": "Het goedgekeurde service-urensjabloon kan niet worden geladen.",
-      "currentHoursUnavailable": "De huidige Uber Eats-servicetijden zijn niet beschikbaar."
+      "currentHoursUnavailable": "De huidige Uber Eats-servicetijden zijn niet beschikbaar.",
+      "mappingSearchLabel": "Uber-menuartikelen filteren",
+      "mappingFilterLabel": "Koppelingsstatus",
+      "mappingRange": "{{start}}–{{end}} van {{total}} artikelen",
+      "mappingPreviousPage": "Vorige",
+      "mappingNextPage": "Volgende",
+      "mappingNoResults": "Geen artikelen komen overeen met deze filters.",
+      "mappingPaginationLabel": "Koppelingspagina’s",
+      "approvedScope": "Deze pilot gebruikt een vast, goedgekeurd Uber-menu. Koppel elk vermeld artikel aan een ondersteund Sofra-artikel. Hele categorieën publiceren is nog niet beschikbaar.",
+      "selectionUnknown": "Geselecteerd artikel moet worden gecontroleerd"
     },
     "publication": {
       "title": "Beoordelen en publiceren",
@@ -3630,7 +3639,6 @@
       "noPreview": "Sla de menutoewijzing op en bereid vervolgens een nieuwe publicatiebeoordeling voor.",
       "preflightReady": "Klaar om te publiceren",
       "preflightBlocked": "Los deze blokkers op voordat u ze publiceert",
-      "revisionBound": "Deze beoordeling is alleen van toepassing op revisie {{revision}}.",
       "blockers": "Blokkers",
       "warnings": "Waarschuwingen",
       "diffCaption": "Volledige menuwijzigingen voorbereid voor Uber Eats",
@@ -3641,10 +3649,16 @@
       "publishFullMenu": "Publiceer volledige menuvervanging",
       "confirmTitle": "Bevestig volledige menuvervanging",
       "confirmPublish": "Bevestig en publiceer",
-      "confirmTarget": "Doelwinkel: {{store}}",
       "fullReplacement": "Dit vervangt het volledig ondersteunde menu bij Uber Eats met behulp van de huidige restaurantbron en mapping.",
       "noBlindRetry": "Als het resultaat onzeker is, wordt de bewerking niet automatisch opnieuw verzonden.",
-      "confirmFullReplacement": "Ik heb deze volledige vervanging beoordeeld en bevestig dat deze naar Uber Eats moet worden verzonden."
+      "confirmFullReplacement": "Ik heb deze volledige vervanging beoordeeld en bevestig dat deze naar Uber Eats moet worden verzonden.",
+      "technicalDetails": "Technische details",
+      "reviewFreshness": "Deze controle gebruikt de laatst opgeslagen selectie en menugegevens. Controleer opnieuw vóór publicatie als er iets verandert.",
+      "confirmSummary_one": "Dit vervangt het volledige Uber Eats-menu van {{store}} door {{count}} gecontroleerd artikel.",
+      "confirmSummary_other": "Dit vervangt het volledige Uber Eats-menu van {{store}} door {{count}} gecontroleerde artikelen.",
+      "publicationRevision": "Publicatierevisie",
+      "operationId": "ID van publicatiebewerking",
+      "providerItemId": "Uber-artikel-ID"
     },
     "availability": {
       "title": "Beschikbaarheid van winkels",
@@ -3820,6 +3834,31 @@
       "uncertain": "Het resultaat is onzeker. Controleer de status voordat u het opnieuw probeert.",
       "rejected": "Het verzoek werd afgewezen. Bekijk de huidige status.",
       "generic": "Er is iets misgegaan. Controleer de status voordat u het opnieuw probeert."
+    },
+    "workspace": {
+      "navigation": "Onderdelen van Uber Eats-beheer",
+      "overview": "Overzicht",
+      "connection": "Verbinding",
+      "menu": "Menukaart",
+      "publish": "Publiceren",
+      "availability": "Beschikbaarheid",
+      "exceptions": "Problemen",
+      "overviewTitle": "Kanaalstatus",
+      "overviewBody": "Controleer de verbinding en openstaande acties voordat u dit kanaal wijzigt.",
+      "connectFirstTitle": "Verbind eerst dit restaurant",
+      "connectFirstBody": "Menu- en beschikbaarheidsinstellingen verschijnen zodra Uber het verbonden restaurant bevestigt.",
+      "connectFirstAction": "Verbinding controleren",
+      "reviewFirstTitle": "Controleer het menu vóór publicatie",
+      "reviewFirstBody": "Sla de koppelingen op en maak een nieuwe controle voordat u een menu-update verstuurt.",
+      "reviewFirstAction": "Menu controleren",
+      "overviewHealth": "Verbindingsstatus",
+      "attentionTitle": "Sommige acties vragen aandacht",
+      "attentionBody": "Bekijk mislukte of onzekere acties in het problemenoverzicht voordat u opnieuw probeert.",
+      "openExceptions": "Problemenoverzicht openen",
+      "reviewConnection": "Verbinding controleren",
+      "viewHealth": "Verbindingsstatus controleren",
+      "viewPublication": "Publicatie controleren",
+      "manageAvailability": "Beschikbaarheid beheren"
     }
   },
   "cashier.tables.account": "Tafelrekening",
@@ -3843,5 +3882,12 @@
   "cashier.new_sale.visit_unavailable": "Dit bezoek is beëindigd of gewijzigd. Vernieuw Tafels en kies het huidige open bezoek voordat je items toevoegt.",
   "cashier.tables.add_round_identity_unavailable": "Dit bezoek heeft geen stabiele bezoek-ID. Vernieuw of herstel het voordat je een nieuwe ronde toevoegt.",
   "cashier.tables.account_activity_has_more": "De meest recente accountactiviteit wordt getoond. Eerdere gebeurtenissen zijn hier niet zichtbaar.",
-  "server.floor.start_visit": "Tafelbezoek starten"
+  "server.floor.start_visit": "Tafelbezoek starten",
+  "adminNavigation": {
+    "label": "Beheer",
+    "menu": "Menu & verkoop",
+    "operations": "Bestellingen & bediening",
+    "customers": "Klanten",
+    "settings": "Instellingen"
+  }
 }

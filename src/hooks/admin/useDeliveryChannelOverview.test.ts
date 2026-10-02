@@ -54,7 +54,6 @@ afterEach(() => jest.restoreAllMocks());
 
 it('forces a fresh post-write read and only clears the uncertain lock from the latest read', async () => {
   const oldSummary = deferred<DeliveryChannelManagementSummary>();
-  const oldAvailability = deferred<DeliveryChannelAvailability>();
   const confirmationSummary = deferred<DeliveryChannelManagementSummary>();
   const confirmationAvailability = deferred<DeliveryChannelAvailability>();
   const postPause = summary(true, '2026-10-02T10:01:00Z');
@@ -71,8 +70,7 @@ it('forces a fresh post-write read and only clears the uncertain lock from the l
   });
   jest.spyOn(deliveryChannelManagementService, 'getAvailability').mockImplementation(() => {
     availabilityCall += 1;
-    if (availabilityCall === 1) return oldAvailability.promise;
-    if (availabilityCall === 2) return Promise.resolve(postPauseAvailability);
+    if (availabilityCall === 1) return Promise.resolve(postPauseAvailability);
     return confirmationAvailability.promise;
   });
   jest.spyOn(deliveryChannelManagementService, 'getExceptions').mockResolvedValue({
@@ -110,7 +108,6 @@ it('forces a fresh post-write read and only clears the uncertain lock from the l
 
   await act(async () => {
     oldSummary.resolve(summary(false, '2026-10-02T09:59:00Z'));
-    oldAvailability.resolve(availability(false, '2026-10-02T09:59:00Z'));
     await Promise.resolve();
   });
   expect(result.current.overview.summary).toEqual(postPause);
@@ -207,4 +204,20 @@ it.each(['pause', 'resume'] as const)('clears stale %s feedback only after a fre
   await act(async () => expect(await result.current.operations.readStatus()).toBe(true));
   expect(result.current.operations.feedback).toBeNull();
   expect(result.current.operations.statusCheckRequired).toBe(false);
+});
+
+it('does not request availability or exceptions when management is not provisioned', async () => {
+  const disabledSummary = { ...summary(false, '2026-10-02T10:00:00Z'), enabled: false };
+  jest.spyOn(deliveryChannelManagementService, 'getSummary').mockResolvedValue(disabledSummary);
+  const getAvailability = jest.spyOn(deliveryChannelManagementService, 'getAvailability');
+  const getExceptions = jest.spyOn(deliveryChannelManagementService, 'getExceptions');
+
+  const { result } = renderHook(() => useDeliveryChannelOverview());
+  await waitFor(() => expect(result.current.summary).toEqual(disabledSummary));
+
+  expect(result.current.availability).toBeNull();
+  expect(result.current.exceptions).toEqual([]);
+  expect(result.current.isStale).toBe(false);
+  expect(getAvailability).not.toHaveBeenCalled();
+  expect(getExceptions).not.toHaveBeenCalled();
 });

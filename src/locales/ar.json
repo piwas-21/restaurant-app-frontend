@@ -3536,8 +3536,13 @@
     "cancel": "إلغاء",
     "priceUnavailable": "السعر غير متوفر",
     "moduleDisabled": {
-      "title": "قنوات التسليم غير مفعلة",
-      "body": "هذه الميزة غير متوفرة لهذا المطعم. اتصل بمسؤول سفرا الخاص بك للاستفسار عن إمكانية الوصول."
+      "setupTitle": "الوصول غير مفعّل لهذا المطعم بعد",
+      "setupBody": "تدعم هذه المساحة حالياً بيئة الاختبار المعتمدة. يجب أن تسجل Sofra المطعم ومتجر Uber الخاص به في البيئة الصحيحة قبل أن يتمكن المسؤول من ربطه.",
+      "setupStepOne": "تسجل Sofra هذا المطعم ومتجر Uber الخاص به في البيئة الصحيحة.",
+      "setupStepTwo": "عندما يصبح الوصول جاهزاً، يربط المسؤول Uber ويمنح الإذن لهذا المطعم.",
+      "setupStepThree": "حدد القائمة المدعومة وراجعها ثم انشرها وانتظر تأكيد Uber.",
+      "setupStepFour": "بعد التحقق من القائمة، امنح Sofra إذناً منفصلاً لاستقبال الطلبات.",
+      "productionNote": "يلزم اعتماد Uber لبيئة الإنتاج والتحقق من التكامل قبل ربط مطعم فعلي."
     },
     "unavailable": {
       "title": "تعذر تحميل إدارة Uber Eats",
@@ -3592,12 +3597,6 @@
       "unconfirmed": "لم تؤكد Uber Eats بعد المتجر المتوقع. لا يمكن نشر أي تغيير في القائمة.",
       "sandbox": "متجر رمل"
     },
-    "steps": {
-      "navigation": "خطوات إعداد أوبر إيتس",
-      "connect": "الاتصال",
-      "menu": "مراجعة القائمة",
-      "publish": "نشر"
-    },
     "menu": {
       "title": "مراجعة تعيين القائمة",
       "description": "اختر منتجات سفرة المدعومة التي تتوافق مع كل منتج من منتجات أوبر إيتس. تظل سفرة هي المصدر للأسماء والتوافر والأسعار.",
@@ -3618,7 +3617,8 @@
       "mapping": {
         "mapped": "تم تعيينه",
         "unmapped": "لم يتم تعيينها",
-        "blocked": "محظور"
+        "blocked": "محظور",
+        "all": "كل الحالات"
       },
       "providerPrice": "سعر اوبر ايتس",
       "tenantPrice": "سعر سفرة",
@@ -3639,7 +3639,16 @@
       "outgoingHoursNote": "قيم القالب المعتمدة التي سيرسلها منشور القائمة التالي. هذه ليست قراءة مباشرة لـ Uber Eats.",
       "currentHoursNote": "الساعات التي يتم إرجاعها بواسطة Uber Eats لهذا المتجر. قد تكون النتيجة المؤكدة الأخيرة قديمة.",
       "outgoingHoursUnavailable": "تعذر تحميل قالب ساعات الخدمة المعتمدة.",
-      "currentHoursUnavailable": "ساعات خدمة أوبر إيتس الحالية غير متاحة."
+      "currentHoursUnavailable": "ساعات خدمة أوبر إيتس الحالية غير متاحة.",
+      "mappingSearchLabel": "تصفية أصناف قائمة Uber",
+      "mappingFilterLabel": "حالة المطابقة",
+      "mappingRange": "الأصناف {{start}}–{{end}} من {{total}}",
+      "mappingPreviousPage": "السابق",
+      "mappingNextPage": "التالي",
+      "mappingNoResults": "لا توجد أصناف تطابق هذه المرشحات.",
+      "mappingPaginationLabel": "صفحات المطابقة",
+      "approvedScope": "يستخدم هذا الاختبار قائمة Uber ثابتة ومعتمدة. طابق كل صنف مدرج مع صنف تدعمه Sofra. نشر الفئات الكاملة غير متاح بعد.",
+      "selectionUnknown": "الصنف المحدد يحتاج إلى مراجعة"
     },
     "publication": {
       "title": "مراجعة ونشر",
@@ -3666,7 +3675,6 @@
       "noPreview": "احفظ تعيين القائمة، ثم قم بإعداد مراجعة جديدة للنشر.",
       "preflightReady": "جاهز للنشر",
       "preflightBlocked": "قم بحل هذه الحواجز قبل النشر",
-      "revisionBound": "تنطبق هذه المراجعة فقط على مراجعة {{revision}}.",
       "blockers": "حاصرات",
       "warnings": "تحذيرات",
       "diffCaption": "تم إعداد تغييرات القائمة الكاملة لـ Uber Eats",
@@ -3677,10 +3685,20 @@
       "publishFullMenu": "نشر استبدال القائمة الكاملة",
       "confirmTitle": "تأكيد استبدال القائمة الكاملة",
       "confirmPublish": "تأكيد ونشر",
-      "confirmTarget": "المتجر المستهدف: {{store}}",
       "fullReplacement": "يؤدي هذا إلى استبدال القائمة المدعومة بالكامل في Uber Eats باستخدام مصدر المطعم الحالي وخرائطه.",
       "noBlindRetry": "إذا كانت النتيجة غير مؤكدة، فلن يتم إرسال العملية مرة أخرى تلقائيًا.",
-      "confirmFullReplacement": "لقد قمت بمراجعة هذا الاستبدال الكامل وأؤكد أنه يجب إرساله إلى Uber Eats."
+      "confirmFullReplacement": "لقد قمت بمراجعة هذا الاستبدال الكامل وأؤكد أنه يجب إرساله إلى Uber Eats.",
+      "technicalDetails": "تفاصيل تقنية",
+      "reviewFreshness": "تستخدم هذه المراجعة آخر اختيار محفوظ وبيانات القائمة. إذا تغير أي شيء، راجع مجدداً قبل النشر.",
+      "confirmSummary_zero": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "confirmSummary_one": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "confirmSummary_two": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "confirmSummary_few": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "confirmSummary_many": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "confirmSummary_other": "يستبدل هذا الإجراء قائمة Uber Eats الكاملة في {{store}} بقائمة تمت مراجعتها وتضم {{count}} من الأصناف.",
+      "publicationRevision": "مراجعة النشر",
+      "operationId": "معرّف عملية النشر",
+      "providerItemId": "معرّف صنف Uber"
     },
     "availability": {
       "title": "توفر المتجر",
@@ -3856,6 +3874,31 @@
       "uncertain": "النتيجة غير مؤكدة. تحقق من الحالة قبل المحاولة مرة أخرى.",
       "rejected": "تم رفض الطلب. مراجعة الوضع الحالي.",
       "generic": "حدث خطأ ما. تحقق من الحالة قبل إعادة المحاولة."
+    },
+    "workspace": {
+      "navigation": "أقسام إدارة Uber Eats",
+      "overview": "نظرة عامة",
+      "connection": "الاتصال",
+      "menu": "القائمة",
+      "publish": "النشر",
+      "availability": "التوفر",
+      "exceptions": "المشكلات",
+      "overviewTitle": "حالة القناة",
+      "overviewBody": "تحقق من الاتصال والإجراءات المعلقة قبل تغيير هذه القناة.",
+      "connectFirstTitle": "اربط هذا المطعم أولاً",
+      "connectFirstBody": "تظهر إعدادات القائمة والتوفر بعد تأكيد Uber للمطعم المرتبط.",
+      "connectFirstAction": "مراجعة الاتصال",
+      "reviewFirstTitle": "راجع القائمة قبل النشر",
+      "reviewFirstBody": "احفظ المطابقات وأنشئ مراجعة جديدة قبل إرسال تحديث للقائمة.",
+      "reviewFirstAction": "مراجعة القائمة",
+      "overviewHealth": "حالة الاتصال",
+      "attentionTitle": "بعض العمليات تحتاج إلى مراجعة",
+      "attentionBody": "راجع العمليات الفاشلة أو غير المؤكدة في صندوق المشكلات قبل المحاولة مجددًا.",
+      "openExceptions": "فتح صندوق المشكلات",
+      "reviewConnection": "مراجعة الاتصال",
+      "viewHealth": "التحقق من حالة الاتصال",
+      "viewPublication": "مراجعة النشر",
+      "manageAvailability": "إدارة التوفر"
     }
   },
   "cashier.tables.account": "حساب الطاولة",
@@ -3879,5 +3922,12 @@
   "cashier.new_sale.visit_unavailable": "انتهت هذه الزيارة أو تغيرت. حدّث شاشة الطاولات واختر الزيارة المفتوحة الحالية قبل إضافة الأصناف.",
   "cashier.tables.add_round_identity_unavailable": "لا يوجد معرّف ثابت لهذه الزيارة. حدّثها أو أصلحها قبل إضافة جولة أخرى.",
   "cashier.tables.account_activity_has_more": "يتم عرض أحدث أنشطة الحساب. لا تظهر الأحداث الأقدم هنا.",
-  "server.floor.start_visit": "بدء الزيارة"
+  "server.floor.start_visit": "بدء الزيارة",
+  "adminNavigation": {
+    "label": "الإدارة",
+    "menu": "القائمة والمبيعات",
+    "operations": "الطلبات والخدمة",
+    "customers": "العملاء",
+    "settings": "الإعدادات"
+  }
 }

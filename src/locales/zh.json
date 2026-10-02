@@ -3491,8 +3491,13 @@
     "cancel": "取消",
     "priceUnavailable": "价格不详",
     "moduleDisabled": {
-      "title": "未启用交付渠道",
-      "body": "该餐厅不提供此功能。请联系您的 Sofra 管理员询问访问权限。"
+      "setupTitle": "此餐厅尚未开通访问权限",
+      "setupBody": "此工作区目前支持已批准的测试环境。管理员连接前，Sofra 必须在正确的环境中注册此餐厅及其 Uber 门店。",
+      "setupStepOne": "Sofra 在正确的环境中注册此餐厅及其 Uber 门店。",
+      "setupStepTwo": "开通访问权限后，管理员连接 Uber 并授权此餐厅。",
+      "setupStepThree": "选择并检查受支持的菜单，发布后等待 Uber 确认。",
+      "setupStepFour": "菜单验证后，另行授权 Sofra 接收新订单。",
+      "productionNote": "连接实际营业的餐厅前，需要 Uber 的生产环境批准和集成验证。"
     },
     "unavailable": {
       "title": "无法加载 Uber Eats 优食管理",
@@ -3547,12 +3552,6 @@
       "unconfirmed": "Uber Eats 优食尚未确认预期的门店。不能发布菜单更改。",
       "sandbox": "沙盒商店"
     },
-    "steps": {
-      "navigation": "Uber Eats 优食设置步骤",
-      "connect": "连接",
-      "menu": "回顾菜单",
-      "publish": "发布"
-    },
     "menu": {
       "title": "查看菜单映射",
       "description": "选择与每个 Uber Eats 优食商品相匹配的受支持 Sofra 产品。 Sofra 仍然是名称、可用性和价格的来源。",
@@ -3573,7 +3572,8 @@
       "mapping": {
         "mapped": "映射",
         "unmapped": "未映射",
-        "blocked": "被阻止"
+        "blocked": "被阻止",
+        "all": "所有状态"
       },
       "providerPrice": "Uber Eats 优食价格",
       "tenantPrice": "沙发价格",
@@ -3594,7 +3594,16 @@
       "outgoingHoursNote": "下一个菜单发布将发送的批准模板值。这些不是 Uber Eats 优食的实时回读。",
       "currentHoursNote": "Uber Eats 优食返回该商店的营业时间。最后确认的结果可能已经过时。",
       "outgoingHoursUnavailable": "无法加载已批准的服务时间模板。",
-      "currentHoursUnavailable": "目前 Uber Eats 优食服务时间不可用。"
+      "currentHoursUnavailable": "目前 Uber Eats 优食服务时间不可用。",
+      "mappingSearchLabel": "筛选 Uber 菜单商品",
+      "mappingFilterLabel": "对应状态",
+      "mappingRange": "第 {{start}}–{{end}} 项，共 {{total}} 项",
+      "mappingPreviousPage": "上一页",
+      "mappingNextPage": "下一页",
+      "mappingNoResults": "没有符合这些筛选条件的商品。",
+      "mappingPaginationLabel": "对应关系分页",
+      "approvedScope": "此试点使用固定且已批准的 Uber 菜单。请将列出的每个商品与受支持的 Sofra 商品对应。目前尚不支持发布整个分类。",
+      "selectionUnknown": "所选商品需要检查"
     },
     "publication": {
       "title": "审核并发布",
@@ -3621,7 +3630,6 @@
       "noPreview": "保存菜单映射，然后准备新的出版物评论。",
       "preflightReady": "准备发布",
       "preflightBlocked": "在发布之前解决这些障碍",
-      "revisionBound": "此审查仅适用于修订版 {{revision}}。",
       "blockers": "阻碍者",
       "warnings": "警告",
       "diffCaption": "为 Uber Eats 优食准备的全面菜单变更",
@@ -3632,10 +3640,15 @@
       "publishFullMenu": "发布完整菜单替换",
       "confirmTitle": "确认完整菜单更换",
       "confirmPublish": "确认并发布",
-      "confirmTarget": "目标商店：{{store}}",
       "fullReplacement": "这将使用当前的餐厅来源和映射取代 Uber Eats 的完整支持菜单。",
       "noBlindRetry": "如果结果不确定，则不会自动再次发送该操作。",
-      "confirmFullReplacement": "我查看了完整的替换品，并确认应将其发送至 Uber Eats 优食。"
+      "confirmFullReplacement": "我查看了完整的替换品，并确认应将其发送至 Uber Eats 优食。",
+      "technicalDetails": "技术详情",
+      "reviewFreshness": "此检查使用最近保存的选择和菜单信息。如有更改，请在发布前重新检查。",
+      "confirmSummary_other": "此操作将用 {{count}} 个已检查商品替换 {{store}} 的整个 Uber Eats 菜单。",
+      "publicationRevision": "发布版本",
+      "operationId": "发布操作标识",
+      "providerItemId": "Uber 菜品编号"
     },
     "availability": {
       "title": "商店供应情况",
@@ -3811,6 +3824,31 @@
       "uncertain": "结果是不确定的。重试之前请检查状态。",
       "rejected": "请求被拒绝。查看当前状态。",
       "generic": "出了点问题。重试之前检查状态。"
+    },
+    "workspace": {
+      "navigation": "Uber Eats 管理分区",
+      "overview": "概览",
+      "connection": "连接",
+      "menu": "菜单",
+      "publish": "发布",
+      "availability": "供应状态",
+      "exceptions": "问题",
+      "overviewTitle": "渠道状态",
+      "overviewBody": "更改此渠道前，请检查连接状态和待处理操作。",
+      "connectFirstTitle": "请先连接此餐厅",
+      "connectFirstBody": "Uber 确认已连接的餐厅后，才会显示菜单和供应状态控件。",
+      "connectFirstAction": "检查连接",
+      "reviewFirstTitle": "发布前请检查菜单",
+      "reviewFirstBody": "发送菜单更新前，请保存商品对应关系并重新检查。",
+      "reviewFirstAction": "检查菜单",
+      "overviewHealth": "连接状态",
+      "attentionTitle": "部分操作需要处理",
+      "attentionBody": "再次尝试前，请在异常列表中检查失败或结果不确定的操作。",
+      "openExceptions": "打开异常列表",
+      "reviewConnection": "检查连接",
+      "viewHealth": "查看连接状态",
+      "viewPublication": "检查发布结果",
+      "manageAvailability": "管理可用状态"
     }
   },
   "cashier.tables.account": "桌台账单",
@@ -3834,5 +3872,12 @@
   "cashier.new_sale.visit_unavailable": "此桌次已结束或发生变化。请先刷新“餐桌”页面并选择当前进行中的桌次，再添加商品。",
   "cashier.tables.add_round_identity_unavailable": "此桌次没有稳定的桌次 ID。请先刷新或修复，再添加新一轮订单。",
   "cashier.tables.account_activity_has_more": "当前显示最新的账户活动。更早的事件不会显示在此处。",
-  "server.floor.start_visit": "开始用餐"
+  "server.floor.start_visit": "开始用餐",
+  "adminNavigation": {
+    "label": "管理",
+    "menu": "菜单与销售",
+    "operations": "订单与服务",
+    "customers": "顾客",
+    "settings": "设置"
+  }
 }

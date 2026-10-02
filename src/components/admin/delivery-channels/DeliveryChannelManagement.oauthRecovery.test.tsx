@@ -78,6 +78,7 @@ it('keeps a lost OAuth start locked until the latest post-start status read comp
     .spyOn(deliveryChannelManagementService, 'startOAuth')
     .mockRejectedValue(new Error('Lost response'));
   render(<DeliveryChannelManagement />);
+  fireEvent.click(await screen.findByRole('tab', { name: 'deliveryChannels.workspace.connection' }));
   const startButton = await screen.findByRole('button', { name: 'deliveryChannels.connection.start' });
 
   fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.refresh' }));

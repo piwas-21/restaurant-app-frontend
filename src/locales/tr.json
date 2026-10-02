@@ -3459,6 +3459,7 @@
     "decision_retry": "Aynı kararı yeniden dene",
     "decision_refresh": "Sonucu yenile",
     "decision_detail_refresh_error": "Sipariş ayrıntıları yenilenemedi. Devam etmeden önce sonucu tekrar kontrol edin.",
+    "phone_access_code": "Telefon erişim kodu",
     "preparation_error": "Hazırlık durumu güncellenemedi. Siparişi yenileyip tekrar deneyin."
   }
 }

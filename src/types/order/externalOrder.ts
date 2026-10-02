@@ -9,4 +9,5 @@ export interface ExternalOrderDto {
   reportedTax: number | null;
   fulfillmentType: string;
   isSandbox: boolean;
+  customerPhoneAccessCode?: string | null;
 }

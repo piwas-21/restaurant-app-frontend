@@ -3450,6 +3450,7 @@
     "decision_retry": "重试同一决定",
     "decision_refresh": "刷新结果",
     "decision_detail_refresh_error": "无法刷新订单详情。请再次检查结果后再继续。",
+    "phone_access_code": "电话接入代码",
     "preparation_error": "无法更新备餐状态。请刷新订单后重试。"
   }
 }

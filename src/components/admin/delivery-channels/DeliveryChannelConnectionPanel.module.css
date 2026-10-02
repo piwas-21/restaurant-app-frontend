@@ -89,8 +89,9 @@
 }
 
 .warning {
-  border-color: var(--feedback-warning);
-  background: var(--feedback-warning-xlight);
+  border-color: var(--feedback-warning-text);
+  background: var(--surface-primary);
+  color: var(--text-primary);
 }
 
 .connectArea,

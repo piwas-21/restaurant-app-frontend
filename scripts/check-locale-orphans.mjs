@@ -79,7 +79,7 @@ const DYNAMIC_PREFIXES = [
   'checkout.review_received_body_',
   // Uber tenant management maps typed backend enums/codes into localized labels at runtime:
   // DeliveryChannelConnectionPanel.tsx (connection/health), DeliveryChannelOAuthConnect.tsx
-  // (connection errors), DeliveryChannelStepNavigation.tsx (step id), DeliveryChannelMappingList.tsx
+  // (connection errors), DeliveryChannelMappingList.tsx
   // and DeliveryChannelPreflightReview.tsx (mapping, provenance, and fixed block/result codes),
   // DeliveryChannelServiceHoursReview.tsx (hours provenance), DeliveryChannelAvailabilityItems.tsx
   // (provider item state/reason), DeliveryChannelExceptionInbox.tsx (kind/status/recovery/reconcile
@@ -87,12 +87,13 @@ const DYNAMIC_PREFIXES = [
   // DeliveryChannelAvailabilityPanel.tsx / DeliveryChannelDisconnectAction.tsx (operation outcome).
   'deliveryChannels.connection.',
   'deliveryChannels.health.',
-  'deliveryChannels.steps.',
   'deliveryChannels.menu.mapping.',
   'deliveryChannels.menu.provenance.',
   'deliveryChannels.weekdays.',
   'deliveryChannels.codes.',
   'deliveryChannels.publication.status.',
+  // DeliveryChannelPublishConfirmationModal.tsx calls confirmSummary with count; i18next adds CLDR suffixes.
+  'deliveryChannels.publication.confirmSummary_',
   'deliveryChannels.availability.item.',
   'deliveryChannels.operations.',
   'deliveryChannels.exceptions.kind.',

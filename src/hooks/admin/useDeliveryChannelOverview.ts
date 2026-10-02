@@ -78,29 +78,52 @@ export function useDeliveryChannelOverview() {
     const isCurrent = () => generation === requestSequence.current;
     setRefreshing(true);
     const request = (async () => {
-      const [summaryResult, availabilityResult, exceptionResult] = await Promise.allSettled([
-        deliveryChannelManagementService.getSummary(),
-        deliveryChannelManagementService.getAvailability(),
-        deliveryChannelManagementService.getExceptions(null),
-      ]);
+      const [summaryResult] = await Promise.allSettled([deliveryChannelManagementService.getSummary()]);
+      if (!isCurrent()) {
+        return { summary: summaryResult.status === 'fulfilled', availability: false, fresh: false };
+      }
+      let availabilityResult: PromiseSettledResult<DeliveryChannelAvailability> | null = null;
+      let exceptionResult: PromiseSettledResult<
+        Awaited<ReturnType<typeof deliveryChannelManagementService.getExceptions>>
+      > | null = null;
+
+      if (summaryResult.status === 'fulfilled' && summaryResult.value.enabled) {
+        [availabilityResult, exceptionResult] = await Promise.allSettled([
+          deliveryChannelManagementService.getAvailability(),
+          deliveryChannelManagementService.getExceptions(null),
+        ]);
+      }
 
       if (isCurrent()) {
         updateSummary(summaryResult, setSummary, setSummaryStale, setFailure);
-        updateAvailability(availabilityResult, setAvailability, setAvailabilityStale);
-        updateExceptions(
-          exceptionResult,
-          setExceptions,
-          setExceptionCursor,
-          setExceptionsCheckedAt,
-          setExceptionsStale,
-        );
-        if (exceptionResult.status === 'fulfilled') setExceptionErrorMessage(null);
+        if (availabilityResult && exceptionResult) {
+          updateAvailability(availabilityResult, setAvailability, setAvailabilityStale);
+          updateExceptions(
+            exceptionResult,
+            setExceptions,
+            setExceptionCursor,
+            setExceptionsCheckedAt,
+            setExceptionsStale,
+          );
+          if (exceptionResult.status === 'fulfilled') setExceptionErrorMessage(null);
+        } else if (summaryResult.status === 'fulfilled' && !summaryResult.value.enabled) {
+          setAvailability(null);
+          setAvailabilityStale(false);
+          setExceptions([]);
+          setExceptionCursor(null);
+          setExceptionsCheckedAt(null);
+          setExceptionsStale(false);
+          setExceptionErrorMessage(null);
+        } else {
+          setAvailabilityStale(true);
+          setExceptionsStale(true);
+        }
         setLoading(false);
         setRefreshing(false);
       }
       return {
         summary: summaryResult.status === 'fulfilled',
-        availability: availabilityResult.status === 'fulfilled',
+        availability: availabilityResult?.status === 'fulfilled',
         fresh: isCurrent(),
       };
     })();

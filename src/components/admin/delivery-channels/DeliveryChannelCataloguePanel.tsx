@@ -1,18 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { DeliveryChannelCatalogue, DeliveryChannelCatalogueCandidate } from '@/types/deliveryChannelCatalogue';
+import {
+  deliveryChannelMappingView,
+  type DeliveryChannelMappingStatusFilter,
+} from '@/utils/deliveryChannelMappingView';
 import DeliveryChannelServiceHoursReview from './DeliveryChannelServiceHoursReview';
 import DeliveryChannelMappingList from './DeliveryChannelMappingList';
+import DeliveryChannelMappingPager from './DeliveryChannelMappingPager';
+import { deliveryChannelDraftRows } from '@/utils/deliveryChannelDraftRows';
 import workspaceStyles from './DeliveryChannelWorkspace.module.css';
 import styles from './DeliveryChannelCataloguePanel.module.css';
 
 interface Props {
   readonly catalogue: DeliveryChannelCatalogue;
   readonly candidates: readonly DeliveryChannelCatalogueCandidate[];
+  readonly knownCandidates?: readonly DeliveryChannelCatalogueCandidate[];
   readonly selected: Readonly<Record<string, string>>;
   readonly candidateCursor: string | null;
   readonly busy: string | null;
@@ -32,6 +39,7 @@ interface Props {
 export default function DeliveryChannelCataloguePanel({
   catalogue,
   candidates,
+  knownCandidates = candidates,
   selected,
   candidateCursor,
   busy,
@@ -49,8 +57,29 @@ export default function DeliveryChannelCataloguePanel({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
+  const [mappingSearch, setMappingSearch] = useState('');
+  const [mappingStatus, setMappingStatus] = useState<DeliveryChannelMappingStatusFilter>('all');
+  const [mappingPage, setMappingPage] = useState(0);
+  const draftRows = useMemo(
+    () => deliveryChannelDraftRows(catalogue.items, selected, knownCandidates),
+    [catalogue.items, selected, knownCandidates],
+  );
+  const mappingView = useMemo(
+    () =>
+      deliveryChannelMappingView(draftRows, {
+        status: mappingStatus,
+        search: mappingSearch,
+        page: mappingPage,
+      }),
+    [draftRows, mappingPage, mappingSearch, mappingStatus],
+  );
   const saveDisabled = !dirty || duplicateSelection || stale || writeUncertain || busy !== null;
   const previewDisabled = dirty || stale || writeUncertain || busy !== null;
+  const search = () => {
+    setAppliedQuery(query);
+    void onSearch(query, null);
+  };
 
   return (
     <section className={workspaceStyles.panel} aria-labelledby="delivery-channel-menu-title">
@@ -67,7 +96,8 @@ export default function DeliveryChannelCataloguePanel({
       </div>
 
       <div className={styles.capabilityNote}>
-        <strong>{t('deliveryChannels.menu.supportedScope')}</strong>
+        <strong>{t('deliveryChannels.menu.approvedScope')}</strong>
+        <p>{t('deliveryChannels.menu.supportedScope')}</p>
         <p>{t('deliveryChannels.menu.unsupportedScope')}</p>
       </div>
       <DeliveryChannelServiceHoursReview
@@ -90,17 +120,12 @@ export default function DeliveryChannelCataloguePanel({
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault();
-                void onSearch(query, null);
+                search();
               }
             }}
           />
         </FormField>
-        <button
-          className={workspaceStyles.secondaryAction}
-          type="button"
-          onClick={() => void onSearch(query, null)}
-          disabled={busy !== null}
-        >
+        <button className={workspaceStyles.secondaryAction} type="button" onClick={search} disabled={busy !== null}>
           {busy === 'search' ? t('deliveryChannels.loading') : t('deliveryChannels.menu.search')}
         </button>
       </div>
@@ -127,8 +152,38 @@ export default function DeliveryChannelCataloguePanel({
         </p>
       )}
 
+      <div className={styles.mappingFilters}>
+        <FormField label={t('deliveryChannels.menu.mappingSearchLabel')}>
+          <input
+            type="search"
+            value={mappingSearch}
+            onChange={(event) => {
+              setMappingSearch(event.target.value);
+              setMappingPage(0);
+            }}
+          />
+        </FormField>
+        <FormField label={t('deliveryChannels.menu.mappingFilterLabel')}>
+          <select
+            value={mappingStatus}
+            onChange={(event) => {
+              const status = event.target.value;
+              if (status === 'all' || status === 'mapped' || status === 'unmapped' || status === 'blocked') {
+                setMappingStatus(status);
+              }
+              setMappingPage(0);
+            }}
+          >
+            <option value="all">{t('deliveryChannels.menu.mapping.all')}</option>
+            <option value="mapped">{t('deliveryChannels.menu.mapping.mapped')}</option>
+            <option value="unmapped">{t('deliveryChannels.menu.mapping.unmapped')}</option>
+            <option value="blocked">{t('deliveryChannels.menu.mapping.blocked')}</option>
+          </select>
+        </FormField>
+      </div>
       <DeliveryChannelMappingList
-        catalogue={catalogue}
+        catalogue={{ ...catalogue, items: draftRows }}
+        rows={mappingView.rows}
         candidates={candidates}
         selected={selected}
         busy={busy}
@@ -137,21 +192,29 @@ export default function DeliveryChannelCataloguePanel({
         locale={locale}
         onChoose={onChoose}
       />
+      {mappingView.total === 0 ? (
+        <output className={styles.emptyMapping}>{t('deliveryChannels.menu.mappingNoResults')}</output>
+      ) : (
+        <DeliveryChannelMappingPager view={mappingView} onChange={setMappingPage} />
+      )}
       {candidateCursor && (
         <button
           className={workspaceStyles.textAction}
           type="button"
           onClick={() => void onSearch(query, candidateCursor)}
-          disabled={busy !== null}
+          disabled={busy !== null || query !== appliedQuery}
         >
           {t('deliveryChannels.menu.loadMoreCandidates')}
         </button>
       )}
-      <p className={styles.sourceNote}>
-        {t('deliveryChannels.menu.sourceNote', {
-          revision: catalogue.sourceRevision ?? t('deliveryChannels.menu.notRead'),
-        })}
-      </p>
+      <details className={styles.technicalDetails}>
+        <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
+        <p className={styles.sourceNote}>
+          {t('deliveryChannels.menu.sourceNote', {
+            revision: catalogue.sourceRevision ?? t('deliveryChannels.menu.notRead'),
+          })}
+        </p>
+      </details>
       <div className={workspaceStyles.actions}>
         <button
           className={workspaceStyles.secondaryAction}

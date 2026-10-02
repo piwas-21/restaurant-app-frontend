@@ -1,15 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import BaseModal from '@/components/design-system/BaseModal';
-import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { DeliveryChannelAvailability, DeliveryChannelManagementSummary } from '@/types/deliveryChannelManagement';
 import type { DeliveryChannelOperationFeedback } from '@/hooks/admin/useDeliveryChannelOperations';
-import { formatDeliveryChannelDate } from '@/lib/deliveryChannelFormat';
-import DeliveryChannelAvailabilityItems from './DeliveryChannelAvailabilityItems';
+import DeliveryChannelAvailabilityControls from './DeliveryChannelAvailabilityControls';
 import styles from './DeliveryChannelAvailabilityPanel.module.css';
 
 interface Props {
@@ -17,6 +12,7 @@ interface Props {
   readonly availability: DeliveryChannelAvailability | null;
   readonly stale: boolean;
   readonly locale: string;
+  readonly connected: boolean;
   readonly busy: string | null;
   readonly canWrite: boolean;
   readonly statusCheckRequired: boolean;
@@ -24,12 +20,17 @@ interface Props {
   readonly onPause: (duration: 15 | 30 | 60 | 240 | null) => Promise<void>;
   readonly onResume: () => Promise<void>;
   readonly onReadStatus: () => Promise<boolean>;
+  readonly onConnect: () => void;
 }
 
-function durationLabel(value: '15' | '30' | '60' | '240' | 'indefinite', t: TFunction): string {
-  if (value === 'indefinite') return t('deliveryChannels.availability.indefinite');
-  if (value === '240') return t('deliveryChannels.availability.hours', { count: 4 });
-  return t('deliveryChannels.availability.minutes', { count: Number(value) });
+function statusKey(connected: boolean, paused: boolean): string {
+  if (!connected) return 'deliveryChannels.connection.notConnected';
+  return `deliveryChannels.availability.${paused ? 'paused' : 'live'}`;
+}
+
+function statusTone(connected: boolean, paused: boolean): 'success' | 'warning' | 'neutral' {
+  if (!connected) return 'neutral';
+  return paused ? 'warning' : 'success';
 }
 
 export default function DeliveryChannelAvailabilityPanel({
@@ -37,6 +38,7 @@ export default function DeliveryChannelAvailabilityPanel({
   availability,
   stale,
   locale,
+  connected,
   busy,
   canWrite,
   statusCheckRequired,
@@ -44,29 +46,10 @@ export default function DeliveryChannelAvailabilityPanel({
   onPause,
   onResume,
   onReadStatus,
+  onConnect,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const [duration, setDuration] = useState<'15' | '30' | '60' | '240' | 'indefinite'>('30');
-  const [confirmAction, setConfirmAction] = useState<'pause' | 'resume' | null>(null);
-  const [checking, setChecking] = useState(false);
-  const supported = summary.capabilities.supportsItemAvailability;
   const paused = availability?.paused ?? summary.paused;
-  let confirmButtonLabel = t('deliveryChannels.availability.resume');
-  if (busy === 'availability') confirmButtonLabel = t('deliveryChannels.loading');
-  else if (confirmAction === 'pause') confirmButtonLabel = t('deliveryChannels.availability.pause');
-
-  const confirm = async () => {
-    if (confirmAction === 'pause')
-      await onPause(duration === 'indefinite' ? null : (Number(duration) as 15 | 30 | 60 | 240));
-    if (confirmAction === 'resume') await onResume();
-    setConfirmAction(null);
-  };
-
-  const readStatus = async () => {
-    setChecking(true);
-    await onReadStatus();
-    setChecking(false);
-  };
 
   return (
     <section className={styles.panel} aria-labelledby="delivery-channel-availability-title">
@@ -77,128 +60,24 @@ export default function DeliveryChannelAvailabilityPanel({
           </h2>
           <p className={styles.description}>{t('deliveryChannels.availability.description')}</p>
         </div>
-        <StatusBadge tone={paused ? 'warning' : 'success'}>
-          {t(paused ? 'deliveryChannels.availability.paused' : 'deliveryChannels.availability.live')}
-        </StatusBadge>
+        <StatusBadge tone={statusTone(connected, paused)}>{t(statusKey(connected, paused))}</StatusBadge>
       </div>
-
-      {!supported ? (
-        <p className={styles.notice}>{t('deliveryChannels.availability.unsupported')}</p>
-      ) : (
-        <>
-          <div className={styles.controls}>
-            {!paused ? (
-              <>
-                <FormField label={t('deliveryChannels.availability.pauseDuration')}>
-                  <select
-                    value={duration}
-                    onChange={(event) => setDuration(event.target.value as typeof duration)}
-                    disabled={!canWrite || stale}
-                  >
-                    <option value="15">{t('deliveryChannels.availability.minutes', { count: 15 })}</option>
-                    <option value="30">{t('deliveryChannels.availability.minutes', { count: 30 })}</option>
-                    <option value="60">{t('deliveryChannels.availability.minutes', { count: 60 })}</option>
-                    <option value="240">{t('deliveryChannels.availability.hours', { count: 4 })}</option>
-                    <option value="indefinite">{t('deliveryChannels.availability.indefinite')}</option>
-                  </select>
-                </FormField>
-                <button
-                  className={styles.pauseButton}
-                  type="button"
-                  onClick={() => setConfirmAction('pause')}
-                  disabled={!canWrite || stale || busy !== null}
-                >
-                  {t('deliveryChannels.availability.pause')}
-                </button>
-              </>
-            ) : (
-              <button
-                className={styles.action}
-                type="button"
-                onClick={() => setConfirmAction('resume')}
-                disabled={!canWrite || stale || busy !== null}
-              >
-                {t('deliveryChannels.availability.resume')}
-              </button>
-            )}
-          </div>
-          <p className={styles.checkedAt}>
-            {t('deliveryChannels.lastChecked', {
-              time: formatDeliveryChannelDate(
-                availability?.checkedAt ?? null,
-                locale,
-                t('deliveryChannels.timeUnavailable'),
-              ),
-            })}
-            {availability?.pausedUntil &&
-              ` · ${t('deliveryChannels.availability.pauseEnds', { time: formatDeliveryChannelDate(availability.pausedUntil, locale, t('deliveryChannels.timeUnavailable')) })}`}
-          </p>
-          {stale && (
-            <p className={styles.notice}>
-              <output>{t('deliveryChannels.stale')}</output>
-            </p>
-          )}
-          {statusCheckRequired && (
-            <div className={styles.notice} role="alert">
-              <p>{t('deliveryChannels.operations.statusCheckRequired')}</p>
-              <button
-                className={styles.textAction}
-                type="button"
-                onClick={() => void readStatus()}
-                disabled={checking || busy !== null}
-              >
-                {checking ? t('deliveryChannels.loading') : t('deliveryChannels.refreshStatus')}
-              </button>
-            </div>
-          )}
-          {feedback?.kind === 'availability' && (
-            <p className={feedback.outcome === 'confirmed' ? styles.success : styles.warning}>
-              <output>{t(`deliveryChannels.operations.${feedback.outcome}`)}</output>
-            </p>
-          )}
-          <DeliveryChannelAvailabilityItems items={availability?.items ?? []} locale={locale} stale={stale} />
-        </>
-      )}
-
-      <BaseModal
-        isOpen={confirmAction !== null}
-        onClose={() => setConfirmAction(null)}
-        title={t(
-          confirmAction === 'pause'
-            ? 'deliveryChannels.availability.pauseConfirmTitle'
-            : 'deliveryChannels.availability.resumeConfirmTitle',
-        )}
-        presentation="responsive-sheet"
-        isPending={busy === 'availability'}
-        footer={
-          <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.secondaryAction}
-              onClick={() => setConfirmAction(null)}
-              disabled={busy === 'availability'}
-            >
-              {t('deliveryChannels.cancel')}
-            </button>
-            <button
-              type="button"
-              className={styles.action}
-              onClick={() => void confirm()}
-              disabled={!canWrite || busy === 'availability'}
-            >
-              {confirmButtonLabel}
-            </button>
-          </div>
-        }
-      >
-        <div className={styles.modalBody}>
-          <p>{t('deliveryChannels.availability.pauseImpact')}</p>
-          <p>{t('deliveryChannels.availability.existingOrdersContinue')}</p>
-          {confirmAction === 'pause' && (
-            <p>{t('deliveryChannels.availability.selectedDuration', { duration: durationLabel(duration, t) })}</p>
-          )}
-        </div>
-      </BaseModal>
+      <DeliveryChannelAvailabilityControls
+        connected={connected}
+        supported={summary.capabilities.supportsItemAvailability}
+        paused={paused}
+        availability={availability}
+        stale={stale}
+        locale={locale}
+        busy={busy}
+        canWrite={canWrite}
+        statusCheckRequired={statusCheckRequired}
+        feedback={feedback}
+        onPause={onPause}
+        onResume={onResume}
+        onReadStatus={onReadStatus}
+        onConnect={onConnect}
+      />
     </section>
   );
 }

@@ -3500,8 +3500,13 @@
     "cancel": "Cancel",
     "priceUnavailable": "Price unavailable",
     "moduleDisabled": {
-      "title": "Delivery channels are not enabled",
-      "body": "This feature is not available for this restaurant. Contact your Sofra administrator to ask about access."
+      "setupTitle": "Access is not active for this restaurant yet",
+      "setupBody": "This workspace currently supports the approved sandbox. Sofra must register this restaurant and its Uber store in the correct environment before an admin can connect it.",
+      "setupStepOne": "Sofra registers this restaurant and its Uber store in the correct environment.",
+      "setupStepTwo": "When access is ready, an admin connects Uber and authorizes this restaurant.",
+      "setupStepThree": "Select and review the supported menu, publish it, and wait for Uber to confirm it.",
+      "setupStepFour": "After the menu is verified, separately authorize Sofra to receive incoming orders.",
+      "productionNote": "Uber production approval and integration verification are required before connecting a live restaurant."
     },
     "unavailable": {
       "title": "Could not load Uber Eats management",
@@ -3556,12 +3561,6 @@
       "unconfirmed": "Uber Eats has not yet confirmed the expected store. No menu change can be published.",
       "sandbox": "Sandbox store"
     },
-    "steps": {
-      "navigation": "Uber Eats setup steps",
-      "connect": "Connect",
-      "menu": "Review menu",
-      "publish": "Publish"
-    },
     "menu": {
       "title": "Review menu mapping",
       "description": "Choose which supported Sofra products match each Uber Eats item. Sofra remains the source for names, availability and prices.",
@@ -3582,7 +3581,8 @@
       "mapping": {
         "mapped": "Mapped",
         "unmapped": "Not mapped",
-        "blocked": "Blocked"
+        "blocked": "Blocked",
+        "all": "All statuses"
       },
       "providerPrice": "Uber Eats price",
       "tenantPrice": "Sofra price",
@@ -3603,7 +3603,16 @@
       "outgoingHoursNote": "Approved template values that the next menu publication will send. These are not a live Uber Eats readback.",
       "currentHoursNote": "Hours returned by Uber Eats for this store. A last-confirmed result may be out of date.",
       "outgoingHoursUnavailable": "The approved service-hours template could not be loaded.",
-      "currentHoursUnavailable": "Current Uber Eats service hours are unavailable."
+      "currentHoursUnavailable": "Current Uber Eats service hours are unavailable.",
+      "mappingSearchLabel": "Filter Uber menu items",
+      "mappingFilterLabel": "Mapping status",
+      "mappingRange": "{{start}}–{{end}} of {{total}} items",
+      "mappingPreviousPage": "Previous",
+      "mappingNextPage": "Next",
+      "mappingNoResults": "No items match these filters.",
+      "mappingPaginationLabel": "Mapping pages",
+      "approvedScope": "This pilot uses a fixed, approved Uber menu. Map every listed item to a supported Sofra item. Publishing whole categories is not available yet.",
+      "selectionUnknown": "Selected item needs review"
     },
     "publication": {
       "title": "Review and publish",
@@ -3630,7 +3639,6 @@
       "noPreview": "Save the menu mapping, then prepare a fresh publication review.",
       "preflightReady": "Ready to publish",
       "preflightBlocked": "Resolve these blockers before publishing",
-      "revisionBound": "This review applies only to revision {{revision}}.",
       "blockers": "Blockers",
       "warnings": "Warnings",
       "diffCaption": "Full menu changes prepared for Uber Eats",
@@ -3641,10 +3649,16 @@
       "publishFullMenu": "Publish full menu replacement",
       "confirmTitle": "Confirm full menu replacement",
       "confirmPublish": "Confirm and publish",
-      "confirmTarget": "Target store: {{store}}",
       "fullReplacement": "This replaces the full supported menu at Uber Eats using the current restaurant source and mapping.",
       "noBlindRetry": "If the result is uncertain, the operation will not be sent again automatically.",
-      "confirmFullReplacement": "I reviewed this full replacement and confirm it should be sent to Uber Eats."
+      "confirmFullReplacement": "I reviewed this full replacement and confirm it should be sent to Uber Eats.",
+      "technicalDetails": "Technical details",
+      "reviewFreshness": "This review uses the latest saved selection and menu information. If anything changes, review again before publishing.",
+      "confirmSummary_one": "This replaces the entire Uber Eats menu at {{store}} with {{count}} reviewed item.",
+      "confirmSummary_other": "This replaces the entire Uber Eats menu at {{store}} with {{count}} reviewed items.",
+      "publicationRevision": "Publication revision",
+      "operationId": "Publication operation ID",
+      "providerItemId": "Uber item ID"
     },
     "availability": {
       "title": "Store availability",
@@ -3820,6 +3834,31 @@
       "uncertain": "The result is uncertain. Check status before trying again.",
       "rejected": "The request was rejected. Review the current state.",
       "generic": "Something went wrong. Check status before retrying."
+    },
+    "workspace": {
+      "navigation": "Uber Eats management sections",
+      "overview": "Overview",
+      "connection": "Connection",
+      "menu": "Menu",
+      "publish": "Publish",
+      "availability": "Availability",
+      "exceptions": "Exceptions",
+      "overviewTitle": "Channel status",
+      "overviewBody": "Check connection health and pending actions before changing this channel.",
+      "connectFirstTitle": "Connect this restaurant first",
+      "connectFirstBody": "Menu and availability controls appear after Uber confirms the connected restaurant.",
+      "connectFirstAction": "Review connection",
+      "reviewFirstTitle": "Review the menu before publishing",
+      "reviewFirstBody": "Save the current mapping and create a fresh review before sending a menu update.",
+      "reviewFirstAction": "Review menu",
+      "overviewHealth": "Connection health",
+      "attentionTitle": "Some operations need attention",
+      "attentionBody": "Review the exception inbox for failed or uncertain operations before trying again.",
+      "openExceptions": "Open exception inbox",
+      "reviewConnection": "Review connection",
+      "viewHealth": "Check connection health",
+      "viewPublication": "Review publication",
+      "manageAvailability": "Manage availability"
     }
   },
   "cashier.tables.account": "Table account",
@@ -3843,5 +3882,12 @@
   "cashier.new_sale.visit_unavailable": "This visit has ended or changed. Refresh Tables and choose the current open visit before adding items.",
   "cashier.tables.add_round_identity_unavailable": "This visit has no stable visit ID. Refresh or repair it before adding a round.",
   "cashier.tables.account_activity_has_more": "Showing the latest account activity. Earlier events are not shown here.",
-  "server.floor.start_visit": "Start visit"
+  "server.floor.start_visit": "Start visit",
+  "adminNavigation": {
+    "label": "Administration",
+    "menu": "Menu & sales",
+    "operations": "Orders & service",
+    "customers": "Customers",
+    "settings": "Settings"
+  }
 }

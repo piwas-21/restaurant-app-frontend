@@ -1,0 +1,62 @@
+.workspaceLayout {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.navigationColumn,
+.workspaceContent {
+  min-width: 0;
+}
+
+.workspaceContent {
+  min-height: 24rem;
+}
+
+.statusRecovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--feedback-warning-text);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.statusRecovery p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.statusRecovery button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  background: var(--surface-primary);
+  color: var(--link-default);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.statusRecovery button:focus-visible {
+  outline: 3px solid var(--brand-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .workspaceLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .statusRecovery {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

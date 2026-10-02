@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { routeApiError } from '@/utils/apiFormErrors';
 import {
@@ -13,28 +13,23 @@ import type {
   DeliveryChannelCatalogueCandidate,
   DeliveryChannelCatalogueDraft,
 } from '@/types/deliveryChannelCatalogue';
+import { mergeDeliveryChannelCandidateCache } from '@/utils/deliveryChannelCandidateCache';
+import {
+  deliveryChannelDraftStatus,
+  deliveryChannelMappingSelections,
+  parseDeliveryChannelCandidateIdentity,
+} from '@/utils/deliveryChannelDraftMappingState';
 
-export const candidateIdentity = (productId: string, variationId: string | null) =>
-  `${productId}::${variationId ?? ''}`;
-
-function mappingSelections(catalogue: DeliveryChannelCatalogue): Record<string, string> {
-  return Object.fromEntries(
-    catalogue.items.map((item) => [
-      item.providerItemId,
-      item.productId ? candidateIdentity(item.productId, item.variationId) : '',
-    ]),
-  );
-}
-
-function parseIdentity(value: string): { productId: string; variationId: string | null } | null {
-  const split = value.lastIndexOf('::');
-  return split < 1 ? null : { productId: value.slice(0, split), variationId: value.slice(split + 2) || null };
-}
-
-export function useDeliveryChannelCatalogue() {
+export { candidateIdentity } from '@/utils/deliveryChannelCandidateIdentity';
+export function useDeliveryChannelCatalogue(enabled = true) {
   const { t } = useTranslation();
+  const translate = useRef(t);
+  useEffect(() => {
+    translate.current = t;
+  }, [t]);
   const [catalogue, setCatalogue] = useState<DeliveryChannelCatalogue | null>(null);
   const [candidates, setCandidates] = useState<readonly DeliveryChannelCatalogueCandidate[]>([]);
+  const [knownCandidates, setKnownCandidates] = useState<readonly DeliveryChannelCatalogueCandidate[]>([]);
   const [candidateCursor, setCandidateCursor] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [selectionVersion, setSelectionVersion] = useState(0);
@@ -46,8 +41,10 @@ export function useDeliveryChannelCatalogue() {
   const [writeUncertain, setWriteUncertain] = useState(false);
   const candidateRequest = useRef(0);
   const catalogueRequest = useRef(0);
+  const initialReadState = useRef<'idle' | 'loading' | 'loaded'>('idle');
 
   const refresh = useCallback(async () => {
+    if (!enabled) return false;
     const requestId = ++catalogueRequest.current;
     setError(null);
     setErrorMessage(null);
@@ -55,27 +52,31 @@ export function useDeliveryChannelCatalogue() {
       const result = await deliveryChannelManagementService.getCatalogue();
       if (requestId !== catalogueRequest.current) return false;
       setCatalogue(result);
-      setSelected(mappingSelections(result));
+      initialReadState.current = 'loaded';
+      setSelected(deliveryChannelMappingSelections(result));
       setSelectionVersion((current) => current + 1);
       setStale(false);
-      setErrorMessage(null);
       setWriteUncertain(false);
       return true;
     } catch (cause) {
       if (requestId === catalogueRequest.current) {
         setStale(true);
         setError('load');
-        setErrorMessage(routeApiError(cause).rootMessage ?? t('deliveryChannels.errors.load'));
+        setErrorMessage(routeApiError(cause).rootMessage ?? translate.current('deliveryChannels.errors.load'));
       }
       return false;
     } finally {
       if (requestId === catalogueRequest.current) setLoading(false);
     }
-  }, [t]);
-
+  }, [enabled]);
   const searchCandidates = useCallback(
     async (search: string, cursor: string | null = null) => {
+      if (!enabled) return null;
       const requestId = ++candidateRequest.current;
+      if (!cursor) {
+        setCandidates([]);
+        setCandidateCursor(null);
+      }
       setBusy('search');
       setError(null);
       setErrorMessage(null);
@@ -83,45 +84,53 @@ export function useDeliveryChannelCatalogue() {
         const result = await deliveryChannelManagementService.getCandidates(search, cursor);
         if (requestId !== candidateRequest.current) return null;
         setCandidates((current) => (cursor ? [...current, ...result.items] : result.items));
+        setKnownCandidates((current) => mergeDeliveryChannelCandidateCache(current, result.items));
         setCandidateCursor(result.nextCursor);
-        setError(null);
-        setErrorMessage(null);
         return result;
       } catch (cause) {
         if (requestId === candidateRequest.current) {
           setError('load');
-          setErrorMessage(routeApiError(cause).rootMessage ?? t('deliveryChannels.errors.load'));
+          setErrorMessage(routeApiError(cause).rootMessage ?? translate.current('deliveryChannels.errors.load'));
         }
         return null;
       } finally {
         if (requestId === candidateRequest.current) setBusy((current) => (current === 'search' ? null : current));
       }
     },
-    [t],
+    [enabled],
   );
-
   useEffect(() => {
-    void Promise.all([refresh(), searchCandidates('', null)]);
-  }, [refresh, searchCandidates]);
+    if (!enabled) {
+      catalogueRequest.current += 1;
+      candidateRequest.current += 1;
+      setLoading(false);
+      setBusy(null);
+      if (initialReadState.current === 'loaded') setStale(true);
+      else initialReadState.current = 'idle';
+      return;
+    }
+    if (initialReadState.current !== 'loaded') {
+      if (initialReadState.current === 'loading') return;
+      initialReadState.current = 'loading';
+      setLoading(true);
+      void Promise.all([refresh(), searchCandidates('', null)]);
+      return;
+    }
+    setStale(true);
+    void searchCandidates('', null);
+  }, [enabled, refresh, searchCandidates]);
 
-  const choose = useCallback((providerItemId: string, value: string) => {
+  const choose = (providerItemId: string, value: string) => {
+    if (!enabled) return;
     setSelected((current) => ({ ...current, [providerItemId]: value }));
     setSelectionVersion((current) => current + 1);
-  }, []);
-
-  const duplicateSelection = useMemo(() => {
-    const identities = Object.values(selected).filter(Boolean);
-    return new Set(identities).size !== identities.length;
-  }, [selected]);
-  const dirty = Boolean(
-    catalogue &&
-    (!catalogue.draftRevision || JSON.stringify(selected) !== JSON.stringify(mappingSelections(catalogue))),
-  );
+  };
+  const { duplicateSelection, dirty } = deliveryChannelDraftStatus(catalogue, selected);
 
   const saveDraft = useCallback(async () => {
-    if (!catalogue || !dirty || duplicateSelection || writeUncertain || stale) return false;
+    if (!enabled || !catalogue || !dirty || duplicateSelection || writeUncertain || stale) return false;
     const items = Object.entries(selected).flatMap(([providerItemId, value]) => {
-      const identity = parseIdentity(value);
+      const identity = parseDeliveryChannelCandidateIdentity(value);
       return identity ? [{ providerItemId, ...identity }] : [];
     });
     setBusy('save');
@@ -142,10 +151,9 @@ export function useDeliveryChannelCatalogue() {
             }
           : current,
       );
-      setSelected(mappingSelections({ ...catalogue, items: result.items }));
+      setSelected(deliveryChannelMappingSelections({ ...catalogue, items: result.items }));
       setSelectionVersion((current) => current + 1);
       setWriteUncertain(false);
-      setErrorMessage(null);
       return true;
     } catch (cause) {
       const classified = classifyDeliveryChannelMutationFailure(cause);
@@ -165,11 +173,12 @@ export function useDeliveryChannelCatalogue() {
     } finally {
       setBusy(null);
     }
-  }, [catalogue, dirty, duplicateSelection, refresh, selected, stale, writeUncertain]);
+  }, [catalogue, dirty, duplicateSelection, enabled, refresh, selected, stale, writeUncertain]);
 
   return {
     catalogue,
     candidates,
+    knownCandidates,
     candidateCursor,
     selected,
     selectionVersion,
@@ -181,7 +190,6 @@ export function useDeliveryChannelCatalogue() {
     dirty,
     duplicateSelection,
     writeUncertain,
-    canReview: Boolean(catalogue),
     refresh,
     searchCandidates,
     choose,

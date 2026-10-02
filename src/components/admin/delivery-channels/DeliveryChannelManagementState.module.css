@@ -1,0 +1,40 @@
+.blocked,
+.staleNotice {
+  display: block;
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--feedback-warning-text);
+  border-radius: var(--modal-body-option-radius, 10px);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.blocked h2,
+.blocked p,
+.staleNotice p {
+  margin: 0;
+}
+
+.blocked p,
+.staleNotice p {
+  margin-top: 0.5rem;
+  line-height: 1.55;
+}
+
+.staleNotice {
+  line-height: 1.55;
+}
+
+.blocked ol {
+  display: grid;
+  gap: 0.6rem;
+  margin-block: 1rem;
+  padding-inline-start: 1.5rem;
+  line-height: 1.55;
+}
+
+.productionNote {
+  padding-inline-start: 0.75rem;
+  border-inline-start: 3px solid var(--brand-primary);
+  color: var(--text-secondary);
+}

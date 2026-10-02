@@ -1,24 +1,20 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import DeliveryChannelAvailabilityPanel from './DeliveryChannelAvailabilityPanel';
-import DeliveryChannelCataloguePanel from './DeliveryChannelCataloguePanel';
-import DeliveryChannelConnectionPanel from './DeliveryChannelConnectionPanel';
-import DeliveryChannelExceptionInbox from './DeliveryChannelExceptionInbox';
-import DeliveryChannelPublicationPanel from './DeliveryChannelPublicationPanel';
-import DeliveryChannelStepNavigation from './DeliveryChannelStepNavigation';
+import DeliveryChannelManagementWorkspace from './DeliveryChannelManagementWorkspace';
 import { useDeliveryChannelCatalogue } from '@/hooks/admin/useDeliveryChannelCatalogue';
 import { useDeliveryChannelOperations } from '@/hooks/admin/useDeliveryChannelOperations';
 import { useDeliveryChannelOverview } from '@/hooks/admin/useDeliveryChannelOverview';
 import { useDeliveryChannelPublication } from '@/hooks/admin/useDeliveryChannelPublication';
-import { useDeliveryChannelStep } from '@/hooks/admin/useDeliveryChannelStep';
+import { useDeliveryChannelWorkspaceSection } from '@/hooks/admin/useDeliveryChannelWorkspaceSection';
 import styles from './DeliveryChannelManagement.module.css';
+import stateStyles from './DeliveryChannelManagementState.module.css';
 
 export default function DeliveryChannelManagement() {
   const { t, i18n } = useTranslation();
   const locale = i18n.resolvedLanguage || i18n.language || 'en';
   const overview = useDeliveryChannelOverview();
-  const catalogue = useDeliveryChannelCatalogue();
+  const catalogue = useDeliveryChannelCatalogue(Boolean(overview.summary?.enabled));
   const publication = useDeliveryChannelPublication({
     catalogue: catalogue.catalogue,
     selectionVersion: catalogue.selectionVersion,
@@ -30,14 +26,7 @@ export default function DeliveryChannelManagement() {
   const operations = useDeliveryChannelOperations(overview.refresh);
   const summary = overview.summary;
   const connected = Boolean(summary?.enabled && summary.connectionStatus === 'connected' && summary.storeConfirmed);
-  const { activeStep, setActiveStep } = useDeliveryChannelStep(connected);
-  const catalogueFallback = catalogue.error ? (
-    <p role="alert">{catalogue.errorMessage ?? t('deliveryChannels.errors.load')}</p>
-  ) : (
-    <p>
-      <output>{t('deliveryChannels.loading')}</output>
-    </p>
-  );
+  const { activeSection, setActiveSection } = useDeliveryChannelWorkspaceSection();
 
   const refreshConnection = async () => {
     const result = await overview.refresh(true);
@@ -55,7 +44,7 @@ export default function DeliveryChannelManagement() {
 
   const preparePreview = async () => {
     const preview = await publication.createPreview();
-    if (preview) setActiveStep('publish');
+    if (preview) setActiveSection('publish');
     return Boolean(preview);
   };
 
@@ -69,7 +58,7 @@ export default function DeliveryChannelManagement() {
     );
   }
 
-  if (overview.failure === 'moduleDisabled') {
+  if (overview.failure === 'moduleDisabled' || summary?.enabled === false) {
     return (
       <div className={styles.page}>
         <header className={styles.header}>
@@ -78,11 +67,24 @@ export default function DeliveryChannelManagement() {
             <p className={styles.subtitle}>{t('deliveryChannels.subtitle')}</p>
           </div>
         </header>
-        <section className={styles.blocked}>
-          <h2>{t('deliveryChannels.moduleDisabled.title')}</h2>
-          <p>
-            <output>{t('deliveryChannels.moduleDisabled.body')}</output>
-          </p>
+        <section className={stateStyles.blocked}>
+          <h2>{t('deliveryChannels.moduleDisabled.setupTitle')}</h2>
+          <p>{t('deliveryChannels.moduleDisabled.setupBody')}</p>
+          <ol>
+            <li>{t('deliveryChannels.moduleDisabled.setupStepOne')}</li>
+            <li>{t('deliveryChannels.moduleDisabled.setupStepTwo')}</li>
+            <li>{t('deliveryChannels.moduleDisabled.setupStepThree')}</li>
+            <li>{t('deliveryChannels.moduleDisabled.setupStepFour')}</li>
+          </ol>
+          <p className={stateStyles.productionNote}>{t('deliveryChannels.moduleDisabled.productionNote')}</p>
+          <button
+            className={styles.refreshButton}
+            type="button"
+            onClick={() => void overview.refresh(true)}
+            disabled={overview.refreshing}
+          >
+            {overview.refreshing ? t('deliveryChannels.loading') : t('deliveryChannels.refresh')}
+          </button>
         </section>
       </div>
     );
@@ -97,7 +99,7 @@ export default function DeliveryChannelManagement() {
             <p className={styles.subtitle}>{t('deliveryChannels.subtitle')}</p>
           </div>
         </header>
-        <section className={styles.blocked} role="alert">
+        <section className={stateStyles.blocked} role="alert">
           <h2>{t('deliveryChannels.unavailable.title')}</h2>
           <p>{t('deliveryChannels.unavailable.body')}</p>
           <button
@@ -113,133 +115,20 @@ export default function DeliveryChannelManagement() {
     );
   }
 
-  const canReviewMenu = connected;
-
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>{t('deliveryChannels.eyebrow')}</p>
-          <h1 className={styles.title}>{t('deliveryChannels.title')}</h1>
-          <p className={styles.subtitle}>{t('deliveryChannels.subtitle')}</p>
-        </div>
-        <button
-          className={styles.refreshButton}
-          type="button"
-          onClick={() => void refreshAll()}
-          disabled={overview.refreshing || catalogue.busy !== null}
-        >
-          {overview.refreshing ? t('deliveryChannels.loading') : t('deliveryChannels.refresh')}
-        </button>
-      </header>
-
-      {overview.isStale && (
-        <div className={styles.staleNotice}>
-          <p>
-            <output>{t('deliveryChannels.stale')}</output>
-          </p>
-        </div>
-      )}
-      {overview.failure === 'unavailable' && summary && (
-        <p className={styles.staleNotice} role="alert">
-          {t('deliveryChannels.unavailable.staleData')}
-        </p>
-      )}
-
-      {summary.enabled && (
-        <DeliveryChannelExceptionInbox
-          items={overview.exceptions}
-          checkedAt={overview.exceptionsCheckedAt}
-          stale={overview.exceptionsStale}
-          errorMessage={overview.exceptionErrorMessage}
-          hasMore={overview.hasMoreExceptions}
-          loadingMore={overview.loadingMoreExceptions}
-          busy={operations.busy}
-          feedback={operations.feedback}
-          locale={locale}
-          onReconcile={operations.reconcile}
-          onLoadMore={overview.loadMoreExceptions}
-        />
-      )}
-
-      <DeliveryChannelConnectionPanel
-        summary={summary}
-        locale={locale}
-        busy={operations.busy}
-        canWrite={operations.canWrite}
-        menuProviderVerified={publication.verified}
-        feedback={operations.feedback}
-        onDisconnect={operations.disconnect}
-        onRefresh={refreshConnection}
-      />
-
-      {canReviewMenu && (
-        <>
-          <DeliveryChannelStepNavigation
-            activeStep={activeStep}
-            canReviewMenu
-            canPublish={Boolean(publication.preview)}
-            onChange={setActiveStep}
-          />
-          {activeStep === 'menu' &&
-            (catalogue.catalogue ? (
-              <DeliveryChannelCataloguePanel
-                catalogue={catalogue.catalogue}
-                candidates={catalogue.candidates}
-                selected={catalogue.selected}
-                candidateCursor={catalogue.candidateCursor}
-                busy={catalogue.busy}
-                error={catalogue.error}
-                errorMessage={catalogue.errorMessage}
-                stale={catalogue.stale}
-                dirty={catalogue.dirty}
-                duplicateSelection={catalogue.duplicateSelection}
-                writeUncertain={catalogue.writeUncertain}
-                locale={locale}
-                onChoose={catalogue.choose}
-                onSearch={catalogue.searchCandidates}
-                onSave={catalogue.saveDraft}
-                onPreview={preparePreview}
-              />
-            ) : (
-              catalogueFallback
-            ))}
-          {activeStep === 'publish' && catalogue.catalogue && (
-            <DeliveryChannelPublicationPanel
-              preview={publication.preview}
-              publication={publication.publication}
-              busy={publication.busy}
-              error={publication.error}
-              requestError={publication.requestError}
-              canPublish={publication.canPublish}
-              unresolvedPublication={publication.unresolvedPublication}
-              writeUncertain={publication.writeUncertain}
-              storeName={summary.storeDisplayName}
-              storeId={summary.storeId}
-              incomingOrdersEnabled={summary.isOrderManager && !summary.requireManualAcceptance}
-              locale={locale}
-              onPublish={publication.publish}
-              onCheckPublication={publication.refreshPublication}
-            />
-          )}
-        </>
-      )}
-
-      {connected && overview.availability && (
-        <DeliveryChannelAvailabilityPanel
-          summary={summary}
-          availability={overview.availability}
-          stale={overview.availabilityStale}
-          locale={locale}
-          busy={operations.busy}
-          canWrite={operations.canWrite}
-          statusCheckRequired={operations.statusCheckRequired}
-          feedback={operations.feedback}
-          onPause={operations.pause}
-          onResume={operations.resume}
-          onReadStatus={operations.readStatus}
-        />
-      )}
-    </div>
+    <DeliveryChannelManagementWorkspace
+      summary={summary}
+      locale={locale}
+      connected={connected}
+      overview={overview}
+      catalogue={catalogue}
+      publication={publication}
+      operations={operations}
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      onRefreshAll={refreshAll}
+      onConnectionRefresh={refreshConnection}
+      onPreview={preparePreview}
+    />
   );
 }

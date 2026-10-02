@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { DeliveryChannelPreview } from '@/types/deliveryChannelCatalogue';
 import { formatDeliveryChannelPrice } from '@/lib/deliveryChannelFormat';
 import DeliveryChannelServiceHoursReview from './DeliveryChannelServiceHoursReview';
+import detailsStyles from './DeliveryChannelTechnicalDetails.module.css';
 import styles from './DeliveryChannelPublicationPanel.module.css';
 
 interface Props {
@@ -24,7 +25,7 @@ export default function DeliveryChannelPreflightReview({ preview, locale }: Read
               : 'deliveryChannels.publication.preflightBlocked',
           )}
         </strong>
-        <p>{t('deliveryChannels.publication.revisionBound', { revision: preview.publicationRevision })}</p>
+        <p>{t('deliveryChannels.publication.reviewFreshness')}</p>
       </div>
       {preview.blockingCodes.length > 0 && (
         <div className={styles.blockerList}>
@@ -66,7 +67,6 @@ export default function DeliveryChannelPreflightReview({ preview, locale }: Read
               <tr key={item.providerItemId}>
                 <th scope="row">
                   <strong>{item.providerItemName}</strong>
-                  <code dir="ltr">{item.providerItemId}</code>
                   <span>
                     {[item.productName, item.variationName].filter(Boolean).join(' · ') ||
                       t('deliveryChannels.menu.unmapped')}
@@ -112,6 +112,39 @@ export default function DeliveryChannelPreflightReview({ preview, locale }: Read
         days={preview.currentServiceAvailability}
         status={preview.currentServiceHoursStatus}
       />
+      <details className={detailsStyles.details}>
+        <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
+        <dl>
+          <div>
+            <dt>{t('deliveryChannels.publication.mappingRevision')}</dt>
+            <dd>
+              <code>{preview.mappingRevision}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>{t('deliveryChannels.publication.sourceRevision')}</dt>
+            <dd>
+              <code>{preview.sourceRevision}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>{t('deliveryChannels.publication.publicationRevision')}</dt>
+            <dd>
+              <code>{preview.publicationRevision}</code>
+            </dd>
+          </div>
+        </dl>
+        <ul className={detailsStyles.items}>
+          {preview.items.map((item) => (
+            <li key={item.providerItemId}>
+              <span>
+                {item.providerItemName} · {t('deliveryChannels.publication.providerItemId')}:{' '}
+              </span>
+              <code>{item.providerItemId}</code>
+            </li>
+          ))}
+        </ul>
+      </details>
     </>
   );
 }

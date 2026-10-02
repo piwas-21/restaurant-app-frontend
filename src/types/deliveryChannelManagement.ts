@@ -1,6 +1,4 @@
-/** Step shown in the tenant's Uber Eats management workflow. */
-export type DeliveryChannelStepId = 'connect' | 'menu' | 'publish';
-
+/** Provider connection lifecycle projected by the tenant management summary. */
 export type DeliveryChannelConnectionStatus = 'notConnected' | 'authorizing' | 'connected' | 'needsAttention';
 export type DeliveryChannelHealthStatus = 'unknown' | 'healthy' | 'degraded' | 'unavailable';
 export type DeliveryChannelPublicationState =

@@ -3500,8 +3500,13 @@
     "cancel": "İptal",
     "priceUnavailable": "Fiyat mevcut değil",
     "moduleDisabled": {
-      "title": "Teslimat kanalları etkin değil",
-      "body": "Bu özellik bu restoranda mevcut değil. Erişim hakkında bilgi almak için Sofra yöneticinizle iletişime geçin."
+      "setupTitle": "Bu restoran için erişim henüz etkin değil",
+      "setupBody": "Bu çalışma alanı şu anda onaylı test ortamını destekliyor. Bir yönetici bağlantı kurmadan önce Sofra, restoranı ve Uber mağazasını doğru ortamda kaydetmelidir.",
+      "setupStepOne": "Sofra bu restoranı ve Uber mağazasını doğru ortamda kaydeder.",
+      "setupStepTwo": "Erişim hazır olduğunda bir yönetici Uber bağlantısını kurar ve bu restoranı yetkilendirir.",
+      "setupStepThree": "Desteklenen menüyü seçip inceleyin, yayımlayın ve Uber’in doğrulamasını bekleyin.",
+      "setupStepFour": "Menü doğrulandıktan sonra gelen siparişleri almak için Sofra’yı ayrıca yetkilendirin.",
+      "productionNote": "Gerçek bir restoran bağlanmadan önce Uber’in canlı ortam onayı ve entegrasyon doğrulaması gerekir."
     },
     "unavailable": {
       "title": "Uber Eats yönetimi yüklenemedi",
@@ -3556,12 +3561,6 @@
       "unconfirmed": "Uber Eats beklenen mağazayı henüz onaylamadı. Hiçbir menü değişikliği yayınlanamaz.",
       "sandbox": "Korumalı alan mağazası"
     },
-    "steps": {
-      "navigation": "Uber Eats kurulum adımları",
-      "connect": "Bağlan",
-      "menu": "İnceleme menüsü",
-      "publish": "Yayınla"
-    },
     "menu": {
       "title": "Menü eşlemesini inceleyin",
       "description": "Her bir Uber Eats ürünüyle eşleşen desteklenen Sofra ürünlerini seçin. Sofra isimler, stok durumu ve fiyatlar konusunda kaynak olmaya devam ediyor.",
@@ -3582,7 +3581,8 @@
       "mapping": {
         "mapped": "Haritalandı",
         "unmapped": "Haritalanmadı",
-        "blocked": "Engellendi"
+        "blocked": "Engellendi",
+        "all": "Tüm durumlar"
       },
       "providerPrice": "Uber Eats fiyatı",
       "tenantPrice": "Kanepe fiyatı",
@@ -3603,7 +3603,16 @@
       "outgoingHoursNote": "Bir sonraki menü yayınının göndereceği onaylanmış şablon değerleri. Bunlar canlı bir Uber Eats tekrarı değil.",
       "currentHoursNote": "Bu mağaza için Uber Eats tarafından iade edilen saatler. En son onaylanan sonuç güncelliğini kaybetmiş olabilir.",
       "outgoingHoursUnavailable": "Onaylanan hizmet saatleri şablonu yüklenemedi.",
-      "currentHoursUnavailable": "Güncel Uber Eats hizmet saatleri mevcut değil."
+      "currentHoursUnavailable": "Güncel Uber Eats hizmet saatleri mevcut değil.",
+      "mappingSearchLabel": "Uber menü öğelerini filtrele",
+      "mappingFilterLabel": "Eşleştirme durumu",
+      "mappingRange": "{{total}} öğeden {{start}}–{{end}}",
+      "mappingPreviousPage": "Önceki",
+      "mappingNextPage": "Sonraki",
+      "mappingNoResults": "Bu filtrelere uyan öğe yok.",
+      "mappingPaginationLabel": "Eşleştirme sayfaları",
+      "approvedScope": "Bu pilot sabit, onaylı bir Uber menüsü kullanır. Listelenen her öğeyi desteklenen bir Sofra öğesiyle eşleştirin. Kategorileri topluca yayımlama henüz kullanılamıyor.",
+      "selectionUnknown": "Seçilen öğe incelenmeli"
     },
     "publication": {
       "title": "İnceleyin ve yayınlayın",
@@ -3630,7 +3639,6 @@
       "noPreview": "Menü eşlemesini kaydedin ve ardından yeni bir yayın incelemesi hazırlayın.",
       "preflightReady": "Yayınlanmaya hazır",
       "preflightBlocked": "Yayınlamadan önce bu engelleyicileri çözün",
-      "revisionBound": "Bu inceleme yalnızca {{revision}} revizyonu için geçerlidir.",
       "blockers": "Engelleyiciler",
       "warnings": "Uyarılar",
       "diffCaption": "Uber Eats için hazırlanan tam menü değişiklikleri",
@@ -3641,10 +3649,16 @@
       "publishFullMenu": "Tam menü değişimini yayınla",
       "confirmTitle": "Tam menü değişimini onaylayın",
       "confirmPublish": "Onaylayın ve yayınlayın",
-      "confirmTarget": "Hedef mağaza: {{store}}",
       "fullReplacement": "Bu, mevcut restoran kaynağını ve haritalamayı kullanan Uber Eats'te tam olarak desteklenen menünün yerini alır.",
       "noBlindRetry": "Sonuç belirsiz ise işlem otomatik olarak tekrar gönderilmeyecektir.",
-      "confirmFullReplacement": "Bu değişimin tamamını inceledim ve Uber Eats'e gönderilmesi gerektiğini onayladım."
+      "confirmFullReplacement": "Bu değişimin tamamını inceledim ve Uber Eats'e gönderilmesi gerektiğini onayladım.",
+      "technicalDetails": "Teknik ayrıntılar",
+      "reviewFreshness": "Bu inceleme son kaydedilen seçimi ve menü bilgilerini kullanır. Bir şey değişirse yayımlamadan önce yeniden inceleyin.",
+      "confirmSummary_one": "Bu işlem {{store}} restoranının tüm Uber Eats menüsünü incelenen {{count}} öğeyle değiştirir.",
+      "confirmSummary_other": "Bu işlem {{store}} restoranının tüm Uber Eats menüsünü incelenen {{count}} öğeyle değiştirir.",
+      "publicationRevision": "Yayım sürümü",
+      "operationId": "Yayım işlem kimliği",
+      "providerItemId": "Uber ürün kimliği"
     },
     "availability": {
       "title": "Mağaza kullanılabilirliği",
@@ -3820,6 +3834,31 @@
       "uncertain": "Sonuç belirsizdir. Tekrar denemeden önce durumu kontrol edin.",
       "rejected": "Talep reddedildi. Mevcut durumu inceleyin.",
       "generic": "Bir şeyler ters gitti. Yeniden denemeden önce durumu kontrol edin."
+    },
+    "workspace": {
+      "navigation": "Uber Eats yönetim bölümleri",
+      "overview": "Genel bakış",
+      "connection": "Bağlantı",
+      "menu": "Menü",
+      "publish": "Yayımla",
+      "availability": "Kullanılabilirlik",
+      "exceptions": "Sorunlar",
+      "overviewTitle": "Kanal durumu",
+      "overviewBody": "Bu kanalı değiştirmeden önce bağlantıyı ve bekleyen işlemleri kontrol edin.",
+      "connectFirstTitle": "Önce bu restoranı bağlayın",
+      "connectFirstBody": "Uber bağlı restoranı doğruladıktan sonra menü ve kullanılabilirlik kontrolleri görünür.",
+      "connectFirstAction": "Bağlantıyı incele",
+      "reviewFirstTitle": "Yayımlamadan önce menüyü inceleyin",
+      "reviewFirstBody": "Menü güncellemesi göndermeden önce eşleştirmeleri kaydedin ve yeni bir inceleme hazırlayın.",
+      "reviewFirstAction": "Menüyü incele",
+      "overviewHealth": "Bağlantı durumu",
+      "attentionTitle": "Bazı işlemler ilgi gerektiriyor",
+      "attentionBody": "Yeniden denemeden önce sorun kutusunda başarısız veya sonucu belirsiz işlemleri inceleyin.",
+      "openExceptions": "Sorun kutusunu aç",
+      "reviewConnection": "Bağlantıyı incele",
+      "viewHealth": "Bağlantı durumunu kontrol et",
+      "viewPublication": "Yayını incele",
+      "manageAvailability": "Müsaitliği yönet"
     }
   },
   "cashier.tables.account": "Masa hesabı",
@@ -3843,5 +3882,12 @@
   "cashier.new_sale.visit_unavailable": "Bu ziyaret sona ermiş veya değişmiş. Ürün eklemeden önce Masalar ekranını yenileyip açık olan ziyareti seçin.",
   "cashier.tables.add_round_identity_unavailable": "Bu ziyaretin sabit bir kimliği yok. Yeni tur eklemeden önce yenileyin veya düzeltin.",
   "cashier.tables.account_activity_has_more": "Hesap hareketlerinin en yenileri gösteriliyor. Daha eski olaylar burada gösterilmiyor.",
-  "server.floor.start_visit": "Oturumu başlat"
+  "server.floor.start_visit": "Oturumu başlat",
+  "adminNavigation": {
+    "label": "Yönetim",
+    "menu": "Menü ve satış",
+    "operations": "Siparişler ve servis",
+    "customers": "Müşteriler",
+    "settings": "Ayarlar"
+  }
 }

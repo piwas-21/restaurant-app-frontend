@@ -55,6 +55,15 @@ const table = (overrides: Partial<ServerFloorTable> = {}): ServerFloorTable => (
 });
 
 describe('ServerFloorTableCard actions', () => {
+  it('distinguishes starting a visit from opening table details', () => {
+    render(
+      <ServerFloorTableCard table={table({ state: 'Available', session: null, permittedActions: ['StartTable'] })} />,
+    );
+
+    expect(screen.getByRole('link', { name: /Open table/i })).toHaveAttribute('href', '/server/tables/table%2F11a');
+    expect(screen.getByRole('link', { name: 'Start visit' })).toHaveAttribute('href', '/server/tables/table%2F11a');
+  });
+
   it('routes advertised actions to existing guarded table, bill, and task pages', () => {
     render(
       <ServerFloorTableCard

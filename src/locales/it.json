@@ -3851,5 +3851,6 @@
   "cashier.tables.account_refunded_amount": "Rimborsato: {{amount}}",
   "cashier.new_sale.visit_unavailable": "Questa visita è terminata o è cambiata. Aggiorna Tavoli e scegli la visita aperta attuale prima di aggiungere articoli.",
   "cashier.tables.add_round_identity_unavailable": "Questa visita non ha un ID stabile. Aggiornala o riparala prima di aggiungere un altro turno.",
-  "cashier.tables.account_activity_has_more": "Sono mostrate le attività più recenti del conto. Gli eventi precedenti non sono visibili qui."
+  "cashier.tables.account_activity_has_more": "Sono mostrate le attività più recenti del conto. Gli eventi precedenti non sono visibili qui.",
+  "server.floor.start_visit": "Avvia visita"
 }

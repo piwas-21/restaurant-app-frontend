@@ -3842,5 +3842,6 @@
   "cashier.tables.account_refunded_amount": "Terugbetaald: {{amount}}",
   "cashier.new_sale.visit_unavailable": "Dit bezoek is beëindigd of gewijzigd. Vernieuw Tafels en kies het huidige open bezoek voordat je items toevoegt.",
   "cashier.tables.add_round_identity_unavailable": "Dit bezoek heeft geen stabiele bezoek-ID. Vernieuw of herstel het voordat je een nieuwe ronde toevoegt.",
-  "cashier.tables.account_activity_has_more": "De meest recente accountactiviteit wordt getoond. Eerdere gebeurtenissen zijn hier niet zichtbaar."
+  "cashier.tables.account_activity_has_more": "De meest recente accountactiviteit wordt getoond. Eerdere gebeurtenissen zijn hier niet zichtbaar.",
+  "server.floor.start_visit": "Tafelbezoek starten"
 }

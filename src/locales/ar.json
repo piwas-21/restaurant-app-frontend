@@ -3878,5 +3878,6 @@
   "cashier.tables.account_refunded_amount": "المبلغ المسترد {{amount}}",
   "cashier.new_sale.visit_unavailable": "انتهت هذه الزيارة أو تغيرت. حدّث شاشة الطاولات واختر الزيارة المفتوحة الحالية قبل إضافة الأصناف.",
   "cashier.tables.add_round_identity_unavailable": "لا يوجد معرّف ثابت لهذه الزيارة. حدّثها أو أصلحها قبل إضافة جولة أخرى.",
-  "cashier.tables.account_activity_has_more": "يتم عرض أحدث أنشطة الحساب. لا تظهر الأحداث الأقدم هنا."
+  "cashier.tables.account_activity_has_more": "يتم عرض أحدث أنشطة الحساب. لا تظهر الأحداث الأقدم هنا.",
+  "server.floor.start_visit": "بدء الزيارة"
 }

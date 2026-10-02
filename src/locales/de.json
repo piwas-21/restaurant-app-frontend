@@ -3842,5 +3842,6 @@
   "cashier.tables.account_refunded_amount": "Erstattet: {{amount}}",
   "cashier.new_sale.visit_unavailable": "Dieser Besuch wurde beendet oder geändert. Aktualisieren Sie „Tische“ und wählen Sie den aktuellen offenen Besuch, bevor Sie Artikel hinzufügen.",
   "cashier.tables.add_round_identity_unavailable": "Für diesen Besuch fehlt eine stabile Besuchs-ID. Aktualisieren oder reparieren Sie ihn, bevor Sie eine weitere Runde hinzufügen.",
-  "cashier.tables.account_activity_has_more": "Die neuesten Kontobewegungen werden angezeigt. Ältere Ereignisse sind hier nicht sichtbar."
+  "cashier.tables.account_activity_has_more": "Die neuesten Kontobewegungen werden angezeigt. Ältere Ereignisse sind hier nicht sichtbar.",
+  "server.floor.start_visit": "Besuch starten"
 }

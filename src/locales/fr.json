@@ -3851,5 +3851,6 @@
   "cashier.tables.account_refunded_amount": "Remboursé : {{amount}}",
   "cashier.new_sale.visit_unavailable": "Cette visite est terminée ou a changé. Actualisez Tables et choisissez la visite ouverte actuelle avant d’ajouter des articles.",
   "cashier.tables.add_round_identity_unavailable": "Cette visite n’a pas d’identifiant stable. Actualisez-la ou réparez-la avant d’ajouter un nouveau tour.",
-  "cashier.tables.account_activity_has_more": "Les activités les plus récentes du compte sont affichées. Les événements antérieurs ne sont pas visibles ici."
+  "cashier.tables.account_activity_has_more": "Les activités les plus récentes du compte sont affichées. Les événements antérieurs ne sont pas visibles ici.",
+  "server.floor.start_visit": "Commencer la visite"
 }

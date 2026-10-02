@@ -3842,5 +3842,6 @@
   "cashier.tables.account_refunded_amount": "Refunded {{amount}}",
   "cashier.new_sale.visit_unavailable": "This visit has ended or changed. Refresh Tables and choose the current open visit before adding items.",
   "cashier.tables.add_round_identity_unavailable": "This visit has no stable visit ID. Refresh or repair it before adding a round.",
-  "cashier.tables.account_activity_has_more": "Showing the latest account activity. Earlier events are not shown here."
+  "cashier.tables.account_activity_has_more": "Showing the latest account activity. Earlier events are not shown here.",
+  "server.floor.start_visit": "Start visit"
 }

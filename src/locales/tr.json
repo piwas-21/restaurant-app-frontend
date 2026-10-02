@@ -3842,5 +3842,6 @@
   "cashier.tables.account_refunded_amount": "İade edilen: {{amount}}",
   "cashier.new_sale.visit_unavailable": "Bu ziyaret sona ermiş veya değişmiş. Ürün eklemeden önce Masalar ekranını yenileyip açık olan ziyareti seçin.",
   "cashier.tables.add_round_identity_unavailable": "Bu ziyaretin sabit bir kimliği yok. Yeni tur eklemeden önce yenileyin veya düzeltin.",
-  "cashier.tables.account_activity_has_more": "Hesap hareketlerinin en yenileri gösteriliyor. Daha eski olaylar burada gösterilmiyor."
+  "cashier.tables.account_activity_has_more": "Hesap hareketlerinin en yenileri gösteriliyor. Daha eski olaylar burada gösterilmiyor.",
+  "server.floor.start_visit": "Oturumu başlat"
 }

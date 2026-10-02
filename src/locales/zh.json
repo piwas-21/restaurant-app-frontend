@@ -3833,5 +3833,6 @@
   "cashier.tables.account_refunded_amount": "退款金额：{{amount}}",
   "cashier.new_sale.visit_unavailable": "此桌次已结束或发生变化。请先刷新“餐桌”页面并选择当前进行中的桌次，再添加商品。",
   "cashier.tables.add_round_identity_unavailable": "此桌次没有稳定的桌次 ID。请先刷新或修复，再添加新一轮订单。",
-  "cashier.tables.account_activity_has_more": "当前显示最新的账户活动。更早的事件不会显示在此处。"
+  "cashier.tables.account_activity_has_more": "当前显示最新的账户活动。更早的事件不会显示在此处。",
+  "server.floor.start_visit": "开始用餐"
 }

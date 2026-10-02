@@ -42,7 +42,7 @@ interface ActionLink {
 }
 
 const ACTION_COPY: Readonly<Record<string, ActionCopy>> = {
-  StartTable: { key: 'server.open_table', fallback: 'Open table', destination: 'table' },
+  StartTable: { key: 'server.floor.start_visit', fallback: 'Start visit', destination: 'table' },
   AddRound: { key: 'cashier.tables.add_round', fallback: 'Add round', destination: 'table' },
   ViewBill: { key: 'server.floor.view_bill', fallback: 'View account', destination: 'bill' },
   OpenTasks: { key: 'server.tasks.title', fallback: 'Service tasks', destination: 'tasks' },

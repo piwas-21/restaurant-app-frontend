@@ -3860,5 +3860,6 @@
   "cashier.tables.account_refunded_amount": "Возвращено: {{amount}}",
   "cashier.new_sale.visit_unavailable": "Этот визит завершён или изменён. Обновите экран «Столы» и выберите текущий открытый визит, прежде чем добавлять блюда.",
   "cashier.tables.add_round_identity_unavailable": "У визита нет постоянного идентификатора. Обновите или восстановите его перед добавлением нового заказа.",
-  "cashier.tables.account_activity_has_more": "Показаны последние события счёта. Более ранние события здесь не отображаются."
+  "cashier.tables.account_activity_has_more": "Показаны последние события счёта. Более ранние события здесь не отображаются.",
+  "server.floor.start_visit": "Начать обслуживание"
 }

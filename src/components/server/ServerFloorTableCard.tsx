@@ -2,7 +2,6 @@
 
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import TableServiceStrip from '@/components/design-system/TableServiceStrip';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import type { TableServiceState } from '@/lib/operationalStatus';
@@ -17,6 +16,7 @@ import styles from './ServerFloorTableCard.module.css';
 interface ServerFloorTableCardProps {
   table: ServerFloorTable;
   selected?: boolean;
+  isStale?: boolean;
   onSelect?: (tableId: string) => void;
 }
 
@@ -26,15 +26,63 @@ interface StatusCopy {
   tone: StatusBadgeTone;
 }
 
-const ACTION_COPY: Readonly<Record<string, [string, string]>> = {
-  StartTable: ['server.open_table', 'Open table'],
-  AddRound: ['server.add_to_order', 'Add round'],
-  ViewBill: ['cashier.tables.total', 'View bill'],
-  OpenTasks: ['server.active_orders', 'Open tasks'],
-  CollectPayment: ['cashier.add_payment', 'Collect payment'],
-  CloseVisit: ['close', 'Close visit'],
-  ReviewLegacy: ['cashier.tables.status_legacy', 'Review legacy orders'],
+type ActionDestination = 'table' | 'bill' | 'tasks';
+
+interface ActionCopy {
+  key: string;
+  fallback: string;
+  destination: ActionDestination;
+}
+
+interface ActionLink {
+  action: string;
+  key: string;
+  fallback: string;
+  href: string;
+}
+
+const ACTION_COPY: Readonly<Record<string, ActionCopy>> = {
+  StartTable: { key: 'server.open_table', fallback: 'Open table', destination: 'table' },
+  AddRound: { key: 'cashier.tables.add_round', fallback: 'Add round', destination: 'table' },
+  ViewBill: { key: 'server.floor.view_bill', fallback: 'View account', destination: 'bill' },
+  OpenTasks: { key: 'server.tasks.title', fallback: 'Service tasks', destination: 'tasks' },
+  CollectPayment: { key: 'server.floor.review_payment', fallback: 'Review payment', destination: 'bill' },
+  RequestPaymentHandoff: {
+    key: 'server.floor.review_handoff',
+    fallback: 'Review cashier handoff',
+    destination: 'bill',
+  },
+  CloseVisit: { key: 'server.floor.review_close', fallback: 'Review visit closure', destination: 'bill' },
+  ReviewLegacy: {
+    key: 'cashier.tables.resolve_legacy_orders',
+    fallback: 'Review legacy orders',
+    destination: 'table',
+  },
 };
+
+function actionLinks(actions: readonly string[], tableId: string): { links: ActionLink[]; unsupportedCount: number } {
+  const tableRoute = `/server/tables/${encodeURIComponent(tableId)}`;
+  const links: ActionLink[] = [];
+  let unsupportedCount = 0;
+
+  for (const action of actions) {
+    const copy = ACTION_COPY[action];
+    if (!copy) {
+      unsupportedCount += 1;
+      continue;
+    }
+
+    const href =
+      copy.destination === 'tasks'
+        ? '/server/tasks'
+        : copy.destination === 'bill'
+          ? `${tableRoute}#server-table-bill-actions`
+          : tableRoute;
+    links.push({ action, key: copy.key, fallback: copy.fallback, href });
+  }
+
+  return { links, unsupportedCount };
+}
 
 function statusCopy(state: string): StatusCopy {
   switch (state) {
@@ -70,14 +118,10 @@ function serviceState(state: KnownServerFloorTableState): TableServiceState | nu
   }
 }
 
-function actionLabel(action: string, t: TFunction): string {
-  const copy = ACTION_COPY[action];
-  return copy ? t(copy[0], copy[1]) : action;
-}
-
 export default function ServerFloorTableCard({
   table,
   selected = false,
+  isStale = false,
   onSelect,
 }: Readonly<ServerFloorTableCardProps>) {
   const { t } = useTranslation();
@@ -87,6 +131,7 @@ export default function ServerFloorTableCard({
   const session = table.session;
   const balance = session?.remaining ?? table.legacy?.outstanding;
   const route = `/server/tables/${encodeURIComponent(table.tableId)}`;
+  const actions = knownTableState ? actionLinks(table.permittedActions, table.tableId) : null;
 
   return (
     <article className={styles.tableCard} data-selected={selected} data-state={table.state}>
@@ -154,15 +199,39 @@ export default function ServerFloorTableCard({
         </p>
       )}
 
-      {table.permittedActions.length > 0 && (
+      {knownTableState && table.permittedActions.length > 0 && (
         <div className={styles.capabilitySummary}>
-          <strong>{t('server.capabilities', 'Available capabilities')}</strong>
-          <span>{t('server.capabilities_not_wired', 'Informational only; controls are not wired yet.')}</span>
-          <ul className={styles.actionList} aria-label={t('server.capabilities', 'Available capabilities')}>
-            {table.permittedActions.map((action) => (
-              <li key={action}>{actionLabel(action, t)}</li>
-            ))}
-          </ul>
+          <strong>{t('server.capabilities', 'Table actions')}</strong>
+          {isStale ? (
+            <p className={styles.actionNotice} role="status">
+              {t(
+                'server.floor.actions_stale',
+                'Table actions may be out of date. Open table details to check current options.',
+              )}
+            </p>
+          ) : (
+            <>
+              {actions && actions.links.length > 0 && (
+                <ul className={styles.actionList} aria-label={t('server.capabilities', 'Table actions')}>
+                  {actions.links.map((action) => (
+                    <li key={action.action}>
+                      <Link className={styles.actionLink} href={action.href}>
+                        {t(action.key, action.fallback)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {actions && actions.unsupportedCount > 0 && (
+                <p className={styles.actionNotice} role="status">
+                  {t(
+                    'server.floor.action_unsupported',
+                    'This action has no supported link from the floor in this version. Open table details to check current options.',
+                  )}
+                </p>
+              )}
+            </>
+          )}
         </div>
       )}
     </article>

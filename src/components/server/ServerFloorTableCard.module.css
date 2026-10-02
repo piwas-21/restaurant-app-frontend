@@ -86,7 +86,7 @@
 
 .capabilitySummary {
   display: grid;
-  gap: var(--space-1, 0.25rem);
+  gap: var(--space-2, 0.5rem);
   color: var(--text-secondary);
   font-size: 0.8125rem;
 }
@@ -106,12 +106,35 @@
 }
 
 .actionList li {
-  min-block-size: 2rem;
+  display: flex;
+}
+
+.actionLink {
+  min-block-size: 3rem;
   display: inline-flex;
   align-items: center;
-  padding-inline: var(--space-2, 0.5rem);
+  padding-inline: var(--space-3, 0.75rem);
   border: 1px solid var(--border-default);
-  border-radius: var(--chip-radius, 999px);
-  color: var(--text-secondary);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-card);
+  color: var(--link-default);
+  font-weight: 600;
   font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.actionLink:hover {
+  border-color: var(--brand-primary);
+  background: var(--surface-secondary);
+}
+
+.actionLink:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.actionNotice {
+  max-inline-size: 34rem;
+  margin: 0;
+  color: var(--text-secondary);
 }

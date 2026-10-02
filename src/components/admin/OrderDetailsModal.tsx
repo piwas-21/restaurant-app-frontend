@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { getErrorMessage } from '@/utils/apiClient';
 import { useChannelOrderSnapshot } from '@/hooks/useChannelOrderSnapshot';
 import { useTranslation } from 'react-i18next';
 import { Ban, Clock, Loader2, DollarSign } from 'lucide-react';
@@ -30,7 +31,7 @@ interface OrderDetailsModalProps {
  */
 export default function OrderDetailsModal({ order: originalOrder, onClose, onOrderUpdated }: OrderDetailsModalProps) {
   const { t } = useTranslation();
-  const { order, refreshOrder } = useChannelOrderSnapshot(originalOrder);
+  const { order, refreshOrder, refreshError } = useChannelOrderSnapshot(originalOrder);
   const actions = useOrderDetailsActions(order, onClose, onOrderUpdated);
 
   return (
@@ -51,6 +52,9 @@ export default function OrderDetailsModal({ order: originalOrder, onClose, onOrd
           <OrderDetailsInfo order={order} />
           <OrderDetailsSummary order={order} />
           <ChannelOrderDecision order={order} onOrderChanged={refreshOrder} />
+          {Boolean(refreshError) && (
+            <p role="alert">{getErrorMessage(refreshError) ?? t('delivery_channels.decision_detail_refresh_error')}</p>
+          )}
         </div>
 
         {/* Footer */}

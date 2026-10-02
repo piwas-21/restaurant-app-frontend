@@ -3457,6 +3457,7 @@
     "decision_back": "Terug",
     "decision_uncertain": "Het antwoord is onzeker. Controleer het resultaat of probeer dezelfde beslissing opnieuw.",
     "decision_retry": "Dezelfde beslissing opnieuw proberen",
-    "decision_refresh": "Resultaat vernieuwen"
+    "decision_refresh": "Resultaat vernieuwen",
+    "decision_detail_refresh_error": "De bestelgegevens konden niet worden vernieuwd. Controleer het resultaat opnieuw voordat u verdergaat."
   }
 }

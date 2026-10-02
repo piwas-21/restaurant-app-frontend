@@ -3466,6 +3466,7 @@
     "decision_back": "Indietro",
     "decision_uncertain": "La risposta è incerta. Controlla il risultato o riprova la stessa decisione.",
     "decision_retry": "Riprova la stessa decisione",
-    "decision_refresh": "Aggiorna risultato"
+    "decision_refresh": "Aggiorna risultato",
+    "decision_detail_refresh_error": "Impossibile aggiornare i dettagli dell’ordine. Controlla di nuovo il risultato prima di continuare."
   }
 }

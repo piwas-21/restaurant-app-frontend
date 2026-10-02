@@ -68,3 +68,15 @@ it('does not update after unmount', async () => {
   await act(async () => read.resolve(order('first', 99)));
   expect(result.current.order.version).toBe(1);
 });
+
+it('exposes a failed read and clears it when a fresh retry succeeds', async () => {
+  const refusal = new Error('temporarily unavailable');
+  jest.mocked(getOrderById).mockRejectedValueOnce(refusal).mockResolvedValueOnce(order('first', 2));
+  const { result } = renderHook(() => useChannelOrderSnapshot(order()));
+  await act(async () => result.current.refreshOrder());
+  expect(result.current.refreshError).toBe(refusal);
+  expect(result.current.order.version).toBe(1);
+  await act(async () => result.current.refreshOrder());
+  expect(result.current.refreshError).toBeNull();
+  expect(result.current.order.version).toBe(2);
+});

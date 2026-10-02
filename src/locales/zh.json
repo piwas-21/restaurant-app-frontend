@@ -3448,6 +3448,7 @@
     "decision_back": "返回",
     "decision_uncertain": "响应结果不明。请检查结果或重试同一决定。",
     "decision_retry": "重试同一决定",
-    "decision_refresh": "刷新结果"
+    "decision_refresh": "刷新结果",
+    "decision_detail_refresh_error": "无法刷新订单详情。请再次检查结果后再继续。"
   }
 }

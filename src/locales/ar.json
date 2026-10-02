@@ -3493,6 +3493,7 @@
     "decision_back": "رجوع",
     "decision_uncertain": "الرد غير محسوم. تحقق من النتيجة أو أعد إرسال القرار نفسه.",
     "decision_retry": "إعادة إرسال القرار نفسه",
-    "decision_refresh": "تحديث النتيجة"
+    "decision_refresh": "تحديث النتيجة",
+    "decision_detail_refresh_error": "تعذر تحديث تفاصيل الطلب. تحقق من النتيجة مرة أخرى قبل المتابعة."
   }
 }

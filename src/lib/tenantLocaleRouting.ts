@@ -62,6 +62,7 @@ export const KNOWN_TENANT_UI_PATHS = [
   '/scan',
   '/server',
   '/server/floor',
+  '/server/marketplace',
   '/server/tables/:tableId',
   '/server/tables/:tableId/order',
   '/server/takeaway',

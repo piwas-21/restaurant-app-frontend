@@ -10,6 +10,12 @@ import { useChannelDecision } from '@/hooks/useChannelDecision';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './ChannelOrderDecision.module.css';
+import {
+  decisionStateLabels,
+  decisionActionLabels,
+  decisionConfirmationLabels,
+  decisionStateTones,
+} from './channelDecisionLabels';
 
 const reasonSchema = z
   .string()
@@ -51,7 +57,6 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
     void decision.submit({ action: currentDraft.action, reason: reason.data, expectedVersion: order.version });
   };
   const state = decision.decision?.state;
-  const confirmed = state === 'Succeeded';
 
   return (
     <section className={styles.panel} aria-label={t('delivery_channels.decision_title')}>
@@ -59,12 +64,8 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
       <p>{t('delivery_channels.decision_help')}</p>
       <div aria-live="polite" className={styles.status}>
         {decision.loading && <StatusBadge>{t('delivery_channels.decision_loading')}</StatusBadge>}
-        {state && (
-          <StatusBadge tone={confirmed ? 'success' : state === 'Failed' ? 'danger' : 'warning'}>
-            {t(`delivery_channels.decision_${state.toLowerCase()}`)}
-          </StatusBadge>
-        )}
-        {decision.decision && <p>{t(`delivery_channels.decision_action_${decision.decision.action}`)}</p>}
+        {state && <StatusBadge tone={decisionStateTones[state]}>{t(decisionStateLabels[state])}</StatusBadge>}
+        {decision.decision && <p>{t(decisionActionLabels[decision.decision.action])}</p>}
       </div>
       {(Boolean(decision.error) || decision.rejectedVersion === order.version) && (
         <p role="alert">{getErrorMessage(decision.error) ?? t('delivery_channels.decision_error')}</p>
@@ -82,7 +83,7 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
             </div>
           ) : (
             <>
-              <p>{t(`delivery_channels.decision_confirm_${currentDraft.action}`)}</p>
+              <p>{t(decisionConfirmationLabels[currentDraft.action])}</p>
               <FormField
                 label={t('delivery_channels.decision_reason')}
                 error={invalid ? t('delivery_channels.decision_reason_invalid') : undefined}

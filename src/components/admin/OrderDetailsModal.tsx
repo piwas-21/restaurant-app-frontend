@@ -16,9 +16,9 @@ import styles from './OrderDetailsModal.module.css';
 const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
 
 interface OrderDetailsModalProps {
-  order: OrderDto;
-  onClose: () => void;
-  onOrderUpdated?: (updatedOrder: OrderDto) => void;
+  readonly order: OrderDto;
+  readonly onClose: () => void;
+  readonly onOrderUpdated?: (updatedOrder: OrderDto) => void;
 }
 
 /**

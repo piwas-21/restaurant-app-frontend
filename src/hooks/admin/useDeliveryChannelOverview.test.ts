@@ -123,4 +123,88 @@ it('forces a fresh post-write read and only clears the uncertain lock from the l
   });
   expect(result.current.overview.summary).toEqual(confirmed);
   expect(result.current.operations.statusCheckRequired).toBe(false);
+  expect(result.current.operations.feedback).toBeNull();
+});
+
+it('retains the partial availability message and write lock when the status read fails', async () => {
+  jest.spyOn(deliveryChannelManagementService, 'getSummary').mockResolvedValue(summary(true, 'checked'));
+  const getAvailability = jest
+    .spyOn(deliveryChannelManagementService, 'getAvailability')
+    .mockResolvedValueOnce(availability(true, 'initial'))
+    .mockResolvedValueOnce(availability(true, 'after-write'))
+    .mockRejectedValueOnce(new Error('status unavailable'));
+  jest.spyOn(deliveryChannelManagementService, 'getExceptions').mockResolvedValue({
+    items: [],
+    nextCursor: null,
+    checkedAt: '2026-10-02T10:00:00Z',
+  });
+  jest.spyOn(deliveryChannelManagementService, 'pauseAvailability').mockResolvedValue({
+    state: 'pending',
+    effectiveUntil: null,
+    providerConfirmed: false,
+    resultCode: 'AvailabilityConfirmationPending',
+  });
+
+  const { result } = renderHook(() => {
+    const overview = useDeliveryChannelOverview();
+    const operations = useDeliveryChannelOperations(overview.refresh);
+    return { overview, operations };
+  });
+  await waitFor(() => expect(result.current.overview.availability).toEqual(availability(true, 'initial')));
+
+  await act(async () => result.current.operations.pause(30));
+  expect(result.current.operations.feedback?.outcome).toBe('partial');
+  expect(result.current.operations.statusCheckRequired).toBe(true);
+
+  let read!: Promise<boolean>;
+  act(() => {
+    read = result.current.operations.readStatus();
+  });
+  await act(async () => expect(await read).toBe(false));
+
+  expect(getAvailability).toHaveBeenCalledTimes(3);
+  expect(result.current.operations.feedback?.outcome).toBe('partial');
+  expect(result.current.operations.statusCheckRequired).toBe(true);
+});
+
+it.each(['pause', 'resume'] as const)('clears stale %s feedback only after a fresh status read', async (action) => {
+  jest.spyOn(deliveryChannelManagementService, 'getSummary').mockResolvedValue(summary(action === 'pause', 'checked'));
+  jest
+    .spyOn(deliveryChannelManagementService, 'getAvailability')
+    .mockResolvedValue(availability(action === 'pause', 'checked'));
+  jest.spyOn(deliveryChannelManagementService, 'getExceptions').mockResolvedValue({
+    items: [],
+    nextCursor: null,
+    checkedAt: '2026-10-02T10:00:00Z',
+  });
+  jest.spyOn(deliveryChannelManagementService, 'pauseAvailability').mockResolvedValue({
+    state: 'pending',
+    effectiveUntil: null,
+    providerConfirmed: false,
+    resultCode: 'AvailabilityConfirmationPending',
+  });
+  jest.spyOn(deliveryChannelManagementService, 'resumeAvailability').mockResolvedValue({
+    state: 'pending',
+    effectiveUntil: null,
+    providerConfirmed: false,
+    resultCode: 'AvailabilityConfirmationPending',
+  });
+
+  const { result } = renderHook(() => {
+    const overview = useDeliveryChannelOverview();
+    const operations = useDeliveryChannelOperations(overview.refresh);
+    return { overview, operations };
+  });
+  await waitFor(() => expect(result.current.overview.summary).toEqual(summary(action === 'pause', 'checked')));
+
+  await act(async () => {
+    if (action === 'pause') await result.current.operations.pause(30);
+    else await result.current.operations.resume();
+  });
+  expect(result.current.operations.feedback?.outcome).toBe('partial');
+  expect(result.current.operations.statusCheckRequired).toBe(true);
+
+  await act(async () => expect(await result.current.operations.readStatus()).toBe(true));
+  expect(result.current.operations.feedback).toBeNull();
+  expect(result.current.operations.statusCheckRequired).toBe(false);
 });

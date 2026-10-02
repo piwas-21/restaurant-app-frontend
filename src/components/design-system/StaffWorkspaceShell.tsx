@@ -29,6 +29,7 @@ export interface StaffWorkspaceShellProps {
   onNavigate?: (href: string) => void;
   headerActions?: ReactNode;
   className?: string;
+  contentElement?: 'main' | 'div';
 }
 
 function displayName(userName: string | undefined, userRole: string | undefined): string {
@@ -58,10 +59,12 @@ export default function StaffWorkspaceShell({
   onNavigate,
   headerActions,
   className,
+  contentElement = 'main',
 }: Readonly<StaffWorkspaceShellProps>) {
   const { t } = useTranslation();
   const hasIdentity = Boolean(tenantName || locationName || userName || userRole);
   const identityHeadingId = useId();
+  const ContentElement = contentElement;
 
   return (
     <div className={[styles.shell, className].filter(Boolean).join(' ')}>
@@ -138,7 +141,7 @@ export default function StaffWorkspaceShell({
           )}
         </div>
       </header>
-      <main>{children}</main>
+      <ContentElement className={styles.workspaceContent}>{children}</ContentElement>
     </div>
   );
 }

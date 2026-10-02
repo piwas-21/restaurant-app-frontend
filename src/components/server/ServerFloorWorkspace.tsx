@@ -128,6 +128,7 @@ export default function ServerFloorWorkspace() {
     { href: '/server/floor', label: t('server.table', 'Floor'), active: true },
     { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
     { href: '/server/takeaway', label: t('server.takeaway.link') },
+    { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
   ];
 
   return (

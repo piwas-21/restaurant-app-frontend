@@ -43,10 +43,12 @@ export default function ServerTakeawayWorkspace() {
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
         { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
+        { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ]
     : [
         { href: '/server', label: t('server.takeaway.server_tasks') },
         { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
+        { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ];
 
   return (

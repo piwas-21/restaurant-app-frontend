@@ -43,16 +43,19 @@ export default function DeliveryChannelWorkspaceNavigation({ activeSection, onCh
   }, []);
 
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const forwardKey =
-      orientation === 'vertical' ? 'ArrowDown' : document.documentElement.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
-    const backwardKey =
-      orientation === 'vertical' ? 'ArrowUp' : document.documentElement.dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft';
-    const step = event.key === forwardKey ? 1 : event.key === backwardKey ? -1 : undefined;
+    let forwardKey = 'ArrowDown';
+    let backwardKey = 'ArrowUp';
+    if (orientation === 'horizontal') {
+      const isRtl = document.documentElement.dir === 'rtl';
+      forwardKey = isRtl ? 'ArrowLeft' : 'ArrowRight';
+      backwardKey = isRtl ? 'ArrowRight' : 'ArrowLeft';
+    }
     const current = SECTIONS.indexOf(activeSection);
-    let next = current;
+    let next: number;
     if (event.key === 'Home') next = 0;
     else if (event.key === 'End') next = SECTIONS.length - 1;
-    else if (step !== undefined) next = (current + step + SECTIONS.length) % SECTIONS.length;
+    else if (event.key === forwardKey) next = (current + 1) % SECTIONS.length;
+    else if (event.key === backwardKey) next = (current - 1 + SECTIONS.length) % SECTIONS.length;
     else return;
 
     event.preventDefault();

@@ -26,9 +26,8 @@ export default function DeliveryChannelAvailabilityConfirmationModal({
   const { t } = useTranslation();
   const isPausing = action === 'pause';
   const isBusy = busy === 'availability';
-  const confirmButtonLabel = isBusy
-    ? t('deliveryChannels.loading')
-    : t(isPausing ? 'deliveryChannels.availability.pause' : 'deliveryChannels.availability.resume');
+  const actionLabel = t(isPausing ? 'deliveryChannels.availability.pause' : 'deliveryChannels.availability.resume');
+  const confirmButtonLabel = isBusy ? t('deliveryChannels.loading') : actionLabel;
 
   return (
     <BaseModal

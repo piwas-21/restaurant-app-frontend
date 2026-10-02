@@ -16,6 +16,8 @@ export const KNOWN_TENANT_UI_PATHS = [
   '/admin/customer-discounts',
   '/admin/customer-forms',
   '/admin/dashboard',
+  '/admin/delivery-channels',
+  '/admin/delivery-channels/callback',
   '/admin/fidelity-analytics',
   '/admin/image-backfill',
   '/admin/ingredient-translations',

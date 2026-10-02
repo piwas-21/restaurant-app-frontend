@@ -16,6 +16,8 @@ interface OrdersFiltersProps {
   onPaymentStatusChange: (value: OrderPaymentStatusFilter) => void;
   selectedOrderType: string;
   onOrderTypeChange: (value: string) => void;
+  selectedMarketplaceOnly: boolean;
+  onMarketplaceOnlyChange: (value: boolean) => void;
   showFocusOnly: boolean;
   onShowFocusOnlyChange: (value: boolean) => void;
   totalOrders: number;
@@ -32,6 +34,8 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
   onPaymentStatusChange,
   selectedOrderType,
   onOrderTypeChange,
+  selectedMarketplaceOnly,
+  onMarketplaceOnlyChange,
   showFocusOnly,
   onShowFocusOnlyChange,
   totalOrders,
@@ -92,6 +96,18 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
                 {paymentStatusLabel(status, t)}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className={styles.filterGroup}>
+          <select
+            aria-label={t('marketplaceStaff.source_filter')}
+            value={selectedMarketplaceOnly ? 'marketplace' : 'all'}
+            onChange={(e) => onMarketplaceOnlyChange(e.target.value === 'marketplace')}
+            className={styles.filterSelect}
+          >
+            <option value="all">{t('marketplaceStaff.all_sources')}</option>
+            <option value="marketplace">{t('marketplaceStaff.marketplace_source')}</option>
           </select>
         </div>
 

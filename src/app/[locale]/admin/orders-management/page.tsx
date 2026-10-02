@@ -21,6 +21,7 @@ import { useAdminOrdersBulkSelection } from '@/hooks/admin/useAdminOrdersBulkSel
 import { useAdminOrdersKeyboardShortcuts } from '@/hooks/admin/useAdminOrdersKeyboardShortcuts';
 import { ClipboardList, RefreshCw, Loader2, AlertCircle, RotateCcw, Keyboard } from 'lucide-react';
 import styles from '@/app/styles/AdminOrdersPage.module.css';
+import MarketplacePendingInbox from '@/components/order/MarketplacePendingInbox';
 
 const SNACKBAR_BOTTOM_RIGHT = { vertical: 'bottom', horizontal: 'right' } as const;
 
@@ -37,6 +38,20 @@ export default function AdminOrdersPage() {
     selectedOrders: bulk.selectedOrders,
     clearSelection: bulk.clearSelection,
   });
+  const selectMarketplaceInbox = () => {
+    data.setSearchQuery('');
+    data.setSelectedStatus('PendingApproval');
+    data.setSelectedPaymentStatus('All');
+    data.setSelectedOrderType('All');
+    data.setShowFocusOnly(false);
+    data.setSelectedMarketplaceOnly(true);
+    data.handleDateRangeChange(null, null);
+    data.setCurrentPage(1);
+  };
+  const clearMarketplaceInbox = () => {
+    data.setSelectedMarketplaceOnly(false);
+    data.setSelectedStatus('All');
+  };
 
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -114,6 +129,12 @@ export default function AdminOrdersPage() {
           </div>
         </div>
 
+        <MarketplacePendingInbox
+          active={data.filters.selectedMarketplaceOnly && data.filters.selectedStatus === 'PendingApproval'}
+          onSelect={selectMarketplaceInbox}
+          onClear={clearMarketplaceInbox}
+        />
+
         <OrdersFilters
           searchQuery={data.filters.searchQuery}
           onSearchChange={data.setSearchQuery}
@@ -123,9 +144,11 @@ export default function AdminOrdersPage() {
           onPaymentStatusChange={data.setSelectedPaymentStatus}
           selectedOrderType={data.filters.selectedOrderType}
           onOrderTypeChange={data.setSelectedOrderType}
+          selectedMarketplaceOnly={data.filters.selectedMarketplaceOnly}
+          onMarketplaceOnlyChange={data.setSelectedMarketplaceOnly}
           showFocusOnly={data.filters.showFocusOnly}
           onShowFocusOnlyChange={data.setShowFocusOnly}
-          totalOrders={data.orders.length}
+          totalOrders={data.totalCount}
           displayedOrders={data.paginatedOrders.length}
           searchInputRef={searchInputRef}
         />
@@ -178,7 +201,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {data.orders.length === 0 ? (
+        {data.totalCount === 0 || data.orders.length === 0 ? (
           <div className={styles.emptyState}>
             <ClipboardList size={64} className={styles.emptyIcon} />
             <h2>{t('no_orders_found', 'No Orders Found')}</h2>

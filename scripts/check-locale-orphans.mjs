@@ -43,9 +43,9 @@ const CODE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json']
 /**
  * Prefixes the codebase composes a key from at RUNTIME, so no literal exists to find.
  *
- * Derived by reading all 137 non-literal `t()` callsites, not guessed. Verified as a set: every one
- * of the 138 runtime-composed keys in en.json starts with one of these, and the fixture suite pins
- * that a key OUTSIDE them is still reported.
+ * Legacy prefixes were derived from the measured non-literal `t()` callsites. New enum-backed
+ * prefixes below include their exact consumers. The fixture suite pins that a key OUTSIDE these
+ * branches is still reported.
  */
 const DYNAMIC_PREFIXES = [
   'allergen_',
@@ -77,6 +77,35 @@ const DYNAMIC_PREFIXES = [
   // Order review promise uses t('checkout.review_received_body', { count }); i18next appends
   // the locale's CLDR plural category at runtime.
   'checkout.review_received_body_',
+  // Uber tenant management maps typed backend enums/codes into localized labels at runtime:
+  // DeliveryChannelConnectionPanel.tsx (connection/health), DeliveryChannelOAuthConnect.tsx
+  // (connection errors), DeliveryChannelStepNavigation.tsx (step id), DeliveryChannelMappingList.tsx
+  // and DeliveryChannelPreflightReview.tsx (mapping, provenance, and fixed block/result codes),
+  // DeliveryChannelServiceHoursReview.tsx (hours provenance), DeliveryChannelAvailabilityItems.tsx
+  // (provider item state/reason), DeliveryChannelExceptionInbox.tsx (kind/status/recovery/reconcile
+  // outcome), DeliveryChannelOAuthCallback.tsx (flow state/message/error code), and
+  // DeliveryChannelAvailabilityPanel.tsx / DeliveryChannelDisconnectAction.tsx (operation outcome).
+  'deliveryChannels.connection.',
+  'deliveryChannels.health.',
+  'deliveryChannels.steps.',
+  'deliveryChannels.menu.mapping.',
+  'deliveryChannels.menu.provenance.',
+  'deliveryChannels.weekdays.',
+  'deliveryChannels.codes.',
+  'deliveryChannels.publication.status.',
+  'deliveryChannels.availability.item.',
+  'deliveryChannels.operations.',
+  'deliveryChannels.exceptions.kind.',
+  'deliveryChannels.exceptions.status.',
+  'deliveryChannels.exceptions.reconcile.',
+  'deliveryChannels.exceptions.recovery.',
+  'deliveryChannels.callback.state.',
+  'deliveryChannels.callback.message.',
+  'deliveryChannels.errors.',
+  // Marketplace kitchen filters render a typed order status enum:
+  // src/components/kitchenStaff/MarketplaceKitchenBoard.tsx composes
+  // `marketplaceStaff.status.${status}`.
+  'marketplaceStaff.status.',
   // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
   // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the

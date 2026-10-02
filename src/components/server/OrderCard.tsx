@@ -11,10 +11,12 @@ import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from './OrderCard.module.css';
+import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
 
 interface OrderCardProps {
   order: OrderDto;
   onStatusChange: (orderId: string, status: string) => void;
+  onOrderChanged?: () => void;
   isLoading?: boolean;
 }
 
@@ -44,7 +46,7 @@ const NEXT_ACTION: Partial<Record<OrderStatus, { key: string; fallback: string }
   Completed: { key: 'server.complete_order', fallback: 'Complete Order' },
 };
 
-export default function OrderCard({ order, onStatusChange, isLoading }: OrderCardProps) {
+export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoading }: OrderCardProps) {
   const { t, i18n } = useTranslation();
 
   const formatTime = (dateString: string) => {
@@ -114,6 +116,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
           </button>
         )}
       </div>
+      {order.externalOrder && <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />}
     </div>
   );
 }

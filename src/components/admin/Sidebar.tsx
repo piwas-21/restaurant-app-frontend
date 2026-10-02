@@ -23,6 +23,7 @@ import {
   ImageDown,
   KeyRound,
   Languages,
+  Store,
   type LucideIcon,
 } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
@@ -177,6 +178,13 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       key: 'admin_api_tokens_title',
       fallback: 'API Tokens',
       icon: KeyRound,
+      adminOnly: true,
+    },
+    {
+      href: '/admin/delivery-channels',
+      key: 'deliveryChannels.navLabel',
+      fallback: 'Delivery channels',
+      icon: Store,
       adminOnly: true,
     },
   ];

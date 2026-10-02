@@ -10,6 +10,8 @@ import CashierReadOnlyQueuePanel from './CashierReadOnlyQueuePanel';
 import CashierReadOnlyTicket from './CashierReadOnlyTicket';
 import styles from './CashierWorkspaceView.module.css';
 
+const ignoreMarketplaceFilterChange = () => undefined;
+
 interface Pagination {
   readonly totalCount: number;
   readonly page: number;
@@ -35,6 +37,7 @@ interface CashierReadOnlyDestinationProps {
   readonly statusFilter: string;
   readonly paymentStatusFilter: string;
   readonly orderTypeFilter: string;
+  readonly marketplaceOnlyFilter?: boolean;
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
   readonly onCollect?: (orderId: string) => void;
@@ -45,6 +48,7 @@ interface CashierReadOnlyDestinationProps {
   readonly onStatusFilterChange: (value: string) => void;
   readonly onPaymentStatusFilterChange: (value: string) => void;
   readonly onOrderTypeFilterChange: (value: string) => void;
+  readonly onMarketplaceOnlyFilterChange?: (value: boolean) => void;
   readonly onPageChange: (page: number) => void;
   readonly onRetry?: () => void;
 }
@@ -67,6 +71,7 @@ export default function CashierReadOnlyDestination({
   statusFilter,
   paymentStatusFilter,
   orderTypeFilter,
+  marketplaceOnlyFilter = false,
   additionalFilters,
   onSelectOrder,
   onCollect,
@@ -77,6 +82,7 @@ export default function CashierReadOnlyDestination({
   onStatusFilterChange,
   onPaymentStatusFilterChange,
   onOrderTypeFilterChange,
+  onMarketplaceOnlyFilterChange = ignoreMarketplaceFilterChange,
   onPageChange,
   onRetry,
 }: CashierReadOnlyDestinationProps) {
@@ -165,6 +171,7 @@ export default function CashierReadOnlyDestination({
             statusFilter={statusFilter}
             paymentStatusFilter={paymentStatusFilter}
             orderTypeFilter={orderTypeFilter}
+            marketplaceOnlyFilter={marketplaceOnlyFilter}
             timeZone={timeZone}
             additionalFilters={additionalFilters}
             onSelectOrder={onSelectOrder}
@@ -174,6 +181,7 @@ export default function CashierReadOnlyDestination({
             onStatusFilterChange={onStatusFilterChange}
             onPaymentStatusFilterChange={onPaymentStatusFilterChange}
             onOrderTypeFilterChange={onOrderTypeFilterChange}
+            onMarketplaceOnlyFilterChange={onMarketplaceOnlyFilterChange}
             onPageChange={onPageChange}
             onRetry={onRetry}
           />

@@ -88,6 +88,7 @@ function appendCashierOrderFilters(
     status: filters.status,
     paymentStatus: filters.paymentStatus,
     orderType: filters.orderType,
+    marketplaceOnly: filters.marketplaceOnly ? 'true' : undefined,
     search: filters.search,
     tableNumber: filters.tableNumber,
     page: filters.page,

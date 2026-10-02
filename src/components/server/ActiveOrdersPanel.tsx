@@ -10,6 +10,7 @@ interface ActiveOrdersPanelProps {
   selectedTableNumber: string | null;
   selectedTableId?: string | null;
   onStatusChange: (orderId: string, status: string) => void;
+  onOrderChanged?: () => void;
   statusFilter?: string;
   isLoading?: boolean;
   error?: string | null;
@@ -20,6 +21,7 @@ export default function ActiveOrdersPanel({
   selectedTableNumber,
   selectedTableId,
   onStatusChange,
+  onOrderChanged,
   statusFilter = 'active',
   isLoading,
   error,
@@ -67,7 +69,13 @@ export default function ActiveOrdersPanel({
     }
 
     return sortedOrders.map((order) => (
-      <OrderCard key={order.id} order={order} onStatusChange={onStatusChange} isLoading={isLoading} />
+      <OrderCard
+        key={order.id}
+        order={order}
+        onStatusChange={onStatusChange}
+        onOrderChanged={onOrderChanged}
+        isLoading={isLoading}
+      />
     ));
   };
 

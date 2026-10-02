@@ -16,13 +16,14 @@ import { approveOrder, rejectOrder } from '@/services/cashierService';
 import type { OrderDto } from '@/types/order';
 import { shouldQueuePendingReview } from './cashierOrderReviewQueue';
 import CashierReadOnlyDestination from './CashierReadOnlyDestination';
+import MarketplacePendingInbox from '@/components/order/MarketplacePendingInbox';
 
 const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr: false });
 
 export default function CashierOrdersWorkspace() {
   const { t } = useTranslation();
   const filters = useCashierFilters();
-  const queue = useCashierOrders(filters.query);
+  const queue = useCashierOrders(filters.query, filters.setPage);
   const { notifyNewOrder } = useNotification();
   const { enqueueSnackbar } = useSnackbar();
   const { isLoading: flowsLoading, flowByType } = useConfirmationFlowConfig();
@@ -89,6 +90,18 @@ export default function CashierOrdersWorkspace() {
   const route = useCashierOrderRoute();
   const selection = useCashierOrderSelection(queue.orders, route.selectedOrderId);
   const timeZone = useCashierTenantTimeZone();
+  const showMarketplaceInbox = useCallback(() => {
+    filters.setSearchQuery('');
+    filters.submitSearch();
+    filters.setOrderTypeFilter('all');
+    filters.setPaymentStatusFilter('all');
+    filters.setMarketplaceOnlyFilter(true);
+    filters.setStatusFilter('PendingApproval');
+  }, [filters]);
+  const clearMarketplaceInbox = useCallback(() => {
+    filters.setMarketplaceOnlyFilter(false);
+    filters.setStatusFilter('all');
+  }, [filters]);
 
   return (
     <>
@@ -111,6 +124,14 @@ export default function CashierOrdersWorkspace() {
         statusFilter={filters.statusFilter}
         paymentStatusFilter={filters.paymentStatusFilter}
         orderTypeFilter={filters.orderTypeFilter}
+        marketplaceOnlyFilter={filters.marketplaceOnlyFilter}
+        additionalFilters={
+          <MarketplacePendingInbox
+            active={filters.marketplaceOnlyFilter && filters.statusFilter === 'PendingApproval'}
+            onSelect={showMarketplaceInbox}
+            onClear={clearMarketplaceInbox}
+          />
+        }
         onSelectOrder={route.navigateWithOrder}
         onCollect={route.navigateToCollection}
         onBack={route.clearOrder}
@@ -119,6 +140,7 @@ export default function CashierOrdersWorkspace() {
         onStatusFilterChange={filters.setStatusFilter}
         onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
         onOrderTypeFilterChange={filters.setOrderTypeFilter}
+        onMarketplaceOnlyFilterChange={filters.setMarketplaceOnlyFilter}
         onPageChange={filters.setPage}
         onRetry={() => void queue.refreshOrders()}
       />

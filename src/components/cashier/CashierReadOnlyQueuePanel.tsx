@@ -31,6 +31,7 @@ interface CashierReadOnlyQueuePanelProps {
   readonly statusFilter: string;
   readonly paymentStatusFilter: string;
   readonly orderTypeFilter: string;
+  readonly marketplaceOnlyFilter?: boolean;
   readonly timeZone?: string;
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
@@ -40,6 +41,7 @@ interface CashierReadOnlyQueuePanelProps {
   readonly onStatusFilterChange: (value: string) => void;
   readonly onPaymentStatusFilterChange: (value: string) => void;
   readonly onOrderTypeFilterChange: (value: string) => void;
+  readonly onMarketplaceOnlyFilterChange?: (value: boolean) => void;
   readonly onPageChange: (page: number) => void;
   readonly onRetry?: () => void;
 }
@@ -56,6 +58,7 @@ export default function CashierReadOnlyQueuePanel({
   statusFilter,
   paymentStatusFilter,
   orderTypeFilter,
+  marketplaceOnlyFilter,
   timeZone,
   additionalFilters,
   onSelectOrder,
@@ -65,11 +68,13 @@ export default function CashierReadOnlyQueuePanel({
   onStatusFilterChange,
   onPaymentStatusFilterChange,
   onOrderTypeFilterChange,
+  onMarketplaceOnlyFilterChange,
   onPageChange,
   onRetry,
 }: CashierReadOnlyQueuePanelProps) {
   const { t } = useTranslation();
   const isHistory = destination === 'history';
+  const marketplaceOnly = marketplaceOnlyFilter ?? false;
   const start = pagination.totalCount === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
   const end = Math.min(pagination.page * pagination.pageSize, pagination.totalCount);
 
@@ -125,6 +130,19 @@ export default function CashierReadOnlyQueuePanel({
               ))}
             </select>
           </label>
+          {!isHistory && (
+            <label className={styles.filterField}>
+              <span>{t('marketplaceStaff.source_filter')}</span>
+              <select
+                className={styles.filterSelect}
+                value={marketplaceOnly ? 'marketplace' : 'all'}
+                onChange={(event) => onMarketplaceOnlyFilterChange?.(event.target.value === 'marketplace')}
+              >
+                <option value="all">{t('marketplaceStaff.all_sources')}</option>
+                <option value="marketplace">{t('marketplaceStaff.marketplace_source')}</option>
+              </select>
+            </label>
+          )}
           <label className={styles.filterField}>
             <span>{t('cashier.workspace.payment_filter')}</span>
             <select

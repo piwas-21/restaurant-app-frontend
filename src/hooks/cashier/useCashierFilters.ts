@@ -22,6 +22,7 @@ export interface CashierOrdersQuery {
   status?: string;
   paymentStatus?: string;
   orderType?: string;
+  marketplaceOnly?: boolean;
   tableNumber?: number;
   /** Kept for the API contract; operational reads do not use date bounds. */
   tenantDay?: string;
@@ -35,6 +36,7 @@ export interface UseCashierFiltersReturn {
   statusFilter: string;
   paymentStatusFilter: string;
   orderTypeFilter: string;
+  marketplaceOnlyFilter: boolean;
   tableNumberFilter: string;
   query: CashierOrdersQuery;
   setSearchQuery: (query: string) => void;
@@ -43,6 +45,7 @@ export interface UseCashierFiltersReturn {
   setStatusFilter: (status: string) => void;
   setPaymentStatusFilter: (status: string) => void;
   setOrderTypeFilter: (type: string) => void;
+  setMarketplaceOnlyFilter: (enabled: boolean) => void;
   setTableNumberFilter: (tableNumber: string) => void;
   setPage: (page: number) => void;
 }
@@ -67,6 +70,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
   const [statusFilterValue, setStatusFilterValue] = useState('all');
   const [paymentStatusFilterValue, setPaymentStatusFilterValue] = useState('all');
   const [orderTypeFilterValue, setOrderTypeFilterValue] = useState('all');
+  const [marketplaceOnlyFilterValue, setMarketplaceOnlyFilterValue] = useState(false);
   const [tableNumberFilterValue, setTableNumberFilterValue] = useState('');
   const [page, setPage] = useState(1);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,6 +118,10 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     setOrderTypeFilterValue(type);
     setPage(1);
   }, []);
+  const setMarketplaceOnlyFilter = useCallback((enabled: boolean) => {
+    setMarketplaceOnlyFilterValue(enabled);
+    setPage(1);
+  }, []);
   const setTableNumberFilter = useCallback((tableNumber: string) => {
     setTableNumberFilterValue(tableNumber);
     setPage(1);
@@ -129,10 +137,12 @@ export function useCashierFilters(): UseCashierFiltersReturn {
       ...(statusFilterValue !== 'all' ? { status: statusFilterValue } : {}),
       ...(paymentStatusFilterValue !== 'all' ? { paymentStatus: paymentStatusFilterValue } : {}),
       ...(orderTypeFilterValue !== 'all' ? { orderType: orderTypeFilterValue } : {}),
+      ...(marketplaceOnlyFilterValue ? { marketplaceOnly: true } : {}),
       ...(tableNumber !== undefined ? { tableNumber } : {}),
     };
   }, [
     orderTypeFilterValue,
+    marketplaceOnlyFilterValue,
     page,
     paymentStatusFilterValue,
     statusFilterValue,
@@ -145,6 +155,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     statusFilter: statusFilterValue,
     paymentStatusFilter: paymentStatusFilterValue,
     orderTypeFilter: orderTypeFilterValue,
+    marketplaceOnlyFilter: marketplaceOnlyFilterValue,
     tableNumberFilter: tableNumberFilterValue,
     query,
     setSearchQuery,
@@ -152,6 +163,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     setStatusFilter,
     setPaymentStatusFilter,
     setOrderTypeFilter,
+    setMarketplaceOnlyFilter,
     setTableNumberFilter,
     setPage,
   };

@@ -7,6 +7,7 @@ import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
+import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
 import styles from './CashierWorkspaceList.module.css';
 
 interface CashierReadOnlyOrderListProps {
@@ -87,6 +88,7 @@ export default function CashierReadOnlyOrderList({
                 </span>
                 <OrderStatusBadge status={order.status} />
               </span>
+              {order.externalOrder && <MarketplaceOrderQueueSource order={order} />}
               <span className={styles.orderRowMeta}>
                 <span>{orderTypeLabel(order.type, t)}</span>
                 {order.tableNumber !== undefined && (

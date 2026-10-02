@@ -135,4 +135,18 @@ describe('provider-managed orders', () => {
       expect(onStatusChange).not.toHaveBeenCalled();
     },
   );
+
+  it('shows the source-aware preparation action only after acceptance and kitchen release', () => {
+    const order = marketplaceOrder();
+    order.status = 'Confirmed';
+    order.isKitchenReleased = true;
+    order.externalOrder!.externalState = 'ACCEPTED';
+    order.permittedActions = [{ action: 'StartPreparing', allowed: true, requiresReason: false }];
+
+    render(<OrderCard order={order} onStatusChange={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'mark_as_preparing_button' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm Order' })).not.toBeInTheDocument();
+    expect(screen.getByText('9116D')).toHaveAttribute('dir', 'auto');
+  });
 });

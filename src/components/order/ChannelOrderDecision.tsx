@@ -8,6 +8,7 @@ import type { OrderDto } from '@/types/order';
 import type { ChannelDecisionAction } from '@/types/order/channelDecision';
 import { useChannelDecision } from '@/hooks/useChannelDecision';
 import FormField from '@/components/design-system/FormField';
+import CheckboxField from '@/components/design-system/CheckboxField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './ChannelOrderDecision.module.css';
 import {
@@ -31,7 +32,12 @@ interface Props {
 export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
   const { t } = useTranslation();
   const decision = useChannelDecision(order.id, Boolean(order.externalOrder), onOrderChanged);
-  const [draft, setDraft] = useState<{ orderId: string; action: ChannelDecisionAction; reason: string } | null>(null);
+  const [draft, setDraft] = useState<{
+    orderId: string;
+    action: ChannelDecisionAction;
+    reason: string;
+    reviewed: boolean;
+  } | null>(null);
   const [invalid, setInvalid] = useState(false);
   if (!order.externalOrder) return null;
 
@@ -44,10 +50,10 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
     decision.rejectedVersion !== order.version;
   const choose = (action: ChannelDecisionAction) => {
     setInvalid(false);
-    setDraft({ orderId: order.id, action, reason: '' });
+    setDraft({ orderId: order.id, action, reason: '', reviewed: false });
   };
   const confirm = () => {
-    if (!currentDraft) return;
+    if (!currentDraft?.reviewed) return;
     const reason = reasonSchema.safeParse(currentDraft.reason);
     if (!reason.success) {
       setInvalid(true);
@@ -96,8 +102,14 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
                   onChange={(event) => setDraft({ ...currentDraft, reason: event.target.value })}
                 />
               </FormField>
+              <CheckboxField
+                label={t('marketplaceStaff.review_confirmation')}
+                description={t('marketplaceStaff.review_description')}
+                checked={currentDraft.reviewed}
+                onChange={(reviewed) => setDraft({ ...currentDraft, reviewed })}
+              />
               <div className={styles.buttons}>
-                <button type="button" onClick={confirm}>
+                <button type="button" onClick={confirm} disabled={!currentDraft.reviewed}>
                   {t('delivery_channels.decision_submit')}
                 </button>
                 <button type="button" onClick={() => setDraft(null)}>

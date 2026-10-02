@@ -75,6 +75,8 @@ export interface OrderQueryFilters {
   orderType?: OrderType;
   /** Exact table number filter; search also matches table number server-side. */
   tableNumber?: number;
+  /** Restrict the queue to provider-managed marketplace orders. */
+  marketplaceOnly?: boolean;
   startDate?: string;
   endDate?: string;
   userId?: string;

@@ -148,6 +148,7 @@ function ServerWorkspaceV1() {
             selectedTableNumber={selectedTableNumber}
             selectedTableId={selectedTableId}
             onStatusChange={handleStatusChange}
+            onOrderChanged={() => void refreshOrders()}
             statusFilter={statusFilter}
             isLoading={isLoading}
             error={error}

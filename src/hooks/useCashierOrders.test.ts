@@ -72,6 +72,48 @@ describe('useCashierOrders — server-paged queue', () => {
     await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['o11']));
     expect(result.current.pagination.totalCount).toBe(1);
   });
+
+  it('asks the controlled marketplace queue to leave an emptied last page after a row is removed', async () => {
+    const rows = Array.from({ length: 21 }, (_, index) => ({
+      id: `market-${index + 1}`,
+      orderNumber: `${index + 1}`,
+      status: 'PendingApproval',
+    }));
+    const onPageChange = jest.fn();
+    const pageTwoQuery: CashierOrdersQuery = {
+      page: 2,
+      pageSize: 20,
+      marketplaceOnly: true,
+      status: 'PendingApproval',
+    };
+    mockGetCashierOrders
+      .mockResolvedValueOnce({
+        items: rows.slice(20),
+        totalCount: 21,
+        page: 2,
+        pageSize: 20,
+        totalPages: 2,
+      })
+      .mockResolvedValueOnce({ items: [], totalCount: 20, page: 2, pageSize: 20, totalPages: 1 })
+      .mockResolvedValueOnce({ items: rows.slice(0, 20), totalCount: 20, page: 1, pageSize: 20, totalPages: 1 });
+
+    const { result, rerender } = renderHook(({ query }) => useCashierOrders(query, onPageChange), {
+      initialProps: { query: pageTwoQuery },
+    });
+    await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['market-21']));
+
+    await act(async () => {
+      expect(await result.current.refreshOrders()).toBe(false);
+    });
+    expect(onPageChange).toHaveBeenCalledWith(1);
+    rerender({ query: { ...pageTwoQuery, page: 1 } });
+
+    await waitFor(() => {
+      expect(result.current.orders).toHaveLength(20);
+      expect(result.current.pagination.totalCount).toBe(20);
+      expect(result.current.pagination.totalPages).toBe(1);
+    });
+  });
 });
 
 describe('useCashierOrders — refreshOrders reports its outcome', () => {

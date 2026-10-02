@@ -1,0 +1,30 @@
+.identity {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.provider {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+
+.displayId {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.decision {
+  border: 1px solid var(--feedback-warning-border, var(--border-default));
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: var(--feedback-warning-text, var(--text-primary));
+  background: var(--feedback-warning-surface, var(--surface-secondary));
+  font-weight: 650;
+}

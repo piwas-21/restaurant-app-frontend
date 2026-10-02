@@ -30,14 +30,15 @@ it('requires an explicit confirmation and nonempty reason after review', async (
   await screen.findByRole('button', { name: 'delivery_channels.decision_accept' });
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_accept' }));
   expect(queueChannelDecision).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
-  expect(screen.getByLabelText('delivery_channels.decision_reason')).toHaveAccessibleDescription(
-    'delivery_channels.decision_reason_invalid',
-  );
+  const submit = screen.getByRole('button', { name: 'delivery_channels.decision_submit' });
+  expect(submit).toBeDisabled();
   expect(queueChannelDecision).not.toHaveBeenCalled();
   fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), {
     target: { value: 'Items and allergy instructions checked' },
   });
+  expect(submit).toBeDisabled();
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+  expect(submit).toBeEnabled();
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
   await screen.findByText('delivery_channels.decision_pending');
   expect(queueChannelDecision).toHaveBeenCalledWith(id, {
@@ -58,6 +59,7 @@ it('retries only the frozen decision after an uncertain response', async () => {
   await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
   fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Test rejection' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
   await screen.findByText('delivery_channels.decision_uncertain');
   expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
@@ -101,6 +103,7 @@ it('requires a refreshed order version after a definitive conflict', async () =>
   await screen.findByRole('button', { name: 'delivery_channels.decision_accept' });
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_accept' }));
   fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Checked' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
   fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
   await screen.findByRole('alert');
   expect(changed).toHaveBeenCalledTimes(1);

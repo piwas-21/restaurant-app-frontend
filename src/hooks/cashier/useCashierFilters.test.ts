@@ -52,4 +52,19 @@ describe('useCashierFilters — operational queue', () => {
     act(() => result.current.setTableNumberFilter('999999999999999999999'));
     expect(result.current.query.tableNumber).toBeUndefined();
   });
+
+  it('adds the server-owned marketplace filter without changing the default queue', () => {
+    const { result } = renderHook(() => useCashierFilters());
+
+    expect(result.current.query.marketplaceOnly).toBeUndefined();
+    act(() => result.current.setMarketplaceOnlyFilter(true));
+    expect(result.current.query).toEqual({
+      scope: 'Operational',
+      page: 1,
+      pageSize: 50,
+      marketplaceOnly: true,
+    });
+    act(() => result.current.setMarketplaceOnlyFilter(false));
+    expect(result.current.query.marketplaceOnly).toBeUndefined();
+  });
 });

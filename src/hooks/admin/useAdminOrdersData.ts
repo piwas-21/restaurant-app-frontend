@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
-import { getOrders } from '@/services/orderService';
-import { OrderDto, OrderStatus } from '@/types/order';
+import { OrderStatus } from '@/types/order';
 import { useOrderFilterPreferences } from '@/hooks/useOrderFilterPreferences';
-import { buildServerFilters, applyClientFilterAndSort } from './adminOrdersFilters';
 import type { OrderPaymentStatusFilter } from '@/hooks/useOrderFilterPreferences';
+import type { ClientFilterInputs, ServerFilterInputs } from './adminOrdersFilters';
+import { useAdminOrdersQuery } from './useAdminOrdersQuery';
 
 const SNACKBAR_BOTTOM_RIGHT = { vertical: 'bottom', horizontal: 'right' } as const;
 const DEFAULT_PAGE_SIZE = 20;
@@ -20,6 +20,7 @@ export interface AdminOrdersFilters {
    *  order. `string` is what let `'Paid'` through. */
   selectedPaymentStatus: OrderPaymentStatusFilter;
   selectedOrderType: string;
+  selectedMarketplaceOnly: boolean;
   showFocusOnly: boolean;
   dateRangeStart: string | null;
   dateRangeEnd: string | null;
@@ -32,20 +33,11 @@ export interface UseAdminOrdersDataOptions {
   isReady: boolean;
 }
 
-/**
- * Owns the orders list, filter/sort state (with localStorage persistence
- * via `useOrderFilterPreferences`), pagination math, and the fetch loop.
- * Snackbar feedback for fetch errors lives here too so the parent page
- * stays a thin orchestrator.
- */
+/** Orders view filters, preferences and pagination. */
 export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const { preferences, isLoaded, savePreferences, clearPreferences } = useOrderFilterPreferences();
-
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All'>(preferences.selectedStatus);
@@ -53,6 +45,7 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
     preferences.selectedPaymentStatus,
   );
   const [selectedOrderType, setSelectedOrderType] = useState<string>(preferences.selectedOrderType);
+  const [selectedMarketplaceOnly, setSelectedMarketplaceOnly] = useState(false);
   const [showFocusOnly, setShowFocusOnly] = useState(preferences.showFocusOnly);
   const [dateRangeStart, setDateRangeStart] = useState<string | null>(null);
   const [dateRangeEnd, setDateRangeEnd] = useState<string | null>(null);
@@ -60,45 +53,6 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(preferences.sortOrder);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = DEFAULT_PAGE_SIZE;
-
-  const fetchOrders = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-      const result = await getOrders(
-        buildServerFilters({
-          selectedStatus,
-          selectedPaymentStatus,
-          selectedOrderType,
-          dateRangeStart,
-          dateRangeEnd,
-        }),
-      );
-      setOrders(applyClientFilterAndSort(result.items, { searchQuery, showFocusOnly, sortBy, sortOrder }));
-    } catch (err) {
-      console.error('Error fetching orders:', err);
-      setError(t('failed_to_load_orders', 'Failed to load orders'));
-      enqueueSnackbar(t('failed_to_load_orders', 'Failed to load orders'), {
-        variant: 'error',
-        anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    selectedStatus,
-    selectedPaymentStatus,
-    selectedOrderType,
-    showFocusOnly,
-    dateRangeStart,
-    dateRangeEnd,
-    searchQuery,
-    sortBy,
-    sortOrder,
-    t,
-    enqueueSnackbar,
-  ]);
 
   // Hydrate filters from saved prefs once the prefs hook reports ready.
   useEffect(() => {
@@ -109,12 +63,11 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
     setShowFocusOnly(preferences.showFocusOnly);
     setSortBy(preferences.sortBy);
     setSortOrder(preferences.sortOrder);
-    // Snapshot of preferences at hydrate-time only — listening on `preferences` would
-    // re-overwrite local edits the user makes via the setters below.
+    // Hydrate once so preference updates cannot overwrite the user's edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  // Persist preferences whenever the persisted-relevant filters change.
+  // Persist the filter subset shared across admin order views.
   useEffect(() => {
     if (!isLoaded) return;
     savePreferences({
@@ -128,26 +81,31 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStatus, selectedPaymentStatus, selectedOrderType, showFocusOnly, sortBy, sortOrder]);
 
-  // Re-fetch when filters change (auth-gated by `isReady`).
-  useEffect(() => {
-    if (!isReady) return;
-    void fetchOrders();
-    // The body filters that don't trigger a server fetch (search, sort) are
-    // applied client-side inside fetchOrders; we still re-fetch only on the
-    // filters that change the server query, matching pre-extraction behaviour.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, selectedStatus, selectedPaymentStatus, selectedOrderType, showFocusOnly, dateRangeStart, dateRangeEnd]);
-
-  const totalPages = Math.ceil(orders.length / pageSize);
-  const paginatedOrders = useMemo(
-    () => orders.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [orders, currentPage, pageSize],
-  );
+  const serverFilters: ServerFilterInputs & ClientFilterInputs = {
+    selectedStatus,
+    selectedPaymentStatus,
+    selectedOrderType,
+    selectedMarketplaceOnly,
+    showFocusOnly,
+    dateRangeStart,
+    dateRangeEnd,
+    searchQuery,
+    sortBy,
+    sortOrder,
+  };
+  const query = useAdminOrdersQuery({
+    isReady,
+    page: currentPage,
+    pageSize: DEFAULT_PAGE_SIZE,
+    filters: serverFilters,
+    setPage: setCurrentPage,
+  });
 
   const hasActiveFilters = Boolean(
     selectedStatus !== 'All' ||
     selectedPaymentStatus !== 'All' ||
     selectedOrderType !== 'All' ||
+    selectedMarketplaceOnly ||
     showFocusOnly ||
     searchQuery.trim() ||
     dateRangeStart ||
@@ -163,6 +121,7 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
 
   const handleClearFilters = () => {
     setSearchQuery('');
+    setSelectedMarketplaceOnly(false);
     setDateRangeStart(null);
     setDateRangeEnd(null);
     setCurrentPage(1);
@@ -174,20 +133,47 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
   };
 
   const handleSortChange = (newSortBy: 'date' | 'amount', newSortOrder: 'asc' | 'desc') => {
+    setCurrentPage(1);
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
   };
 
+  const updateSearchQuery = (value: string) => {
+    setCurrentPage(1);
+    setSearchQuery(value);
+  };
+  const updateSelectedStatus = (value: OrderStatus | 'All') => {
+    setCurrentPage(1);
+    setSelectedStatus(value);
+  };
+  const updateSelectedPaymentStatus = (value: OrderPaymentStatusFilter) => {
+    setCurrentPage(1);
+    setSelectedPaymentStatus(value);
+  };
+  const updateSelectedOrderType = (value: string) => {
+    setCurrentPage(1);
+    setSelectedOrderType(value);
+  };
+  const updateSelectedMarketplaceOnly = (value: boolean) => {
+    setCurrentPage(1);
+    setSelectedMarketplaceOnly(value);
+  };
+  const updateShowFocusOnly = (value: boolean) => {
+    setCurrentPage(1);
+    setShowFocusOnly(value);
+  };
+
   return {
-    orders,
-    paginatedOrders,
-    isLoading,
-    error,
-    setOrders,
-    fetchOrders,
+    orders: query.orders,
+    totalCount: query.totalCount,
+    paginatedOrders: query.orders,
+    isLoading: query.isLoading,
+    error: query.error,
+    setOrders: query.setOrders,
+    fetchOrders: query.fetchOrders,
     currentPage,
     setCurrentPage,
-    totalPages,
+    totalPages: query.totalPages,
     hasActiveFilters,
     handleDateRangeChange,
     handleClearFilters,
@@ -197,16 +183,18 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
       selectedStatus,
       selectedPaymentStatus,
       selectedOrderType,
+      selectedMarketplaceOnly,
       showFocusOnly,
       dateRangeStart,
       dateRangeEnd,
       sortBy,
       sortOrder,
     },
-    setSearchQuery,
-    setSelectedStatus,
-    setSelectedPaymentStatus,
-    setSelectedOrderType,
-    setShowFocusOnly,
+    setSearchQuery: updateSearchQuery,
+    setSelectedStatus: updateSelectedStatus,
+    setSelectedPaymentStatus: updateSelectedPaymentStatus,
+    setSelectedOrderType: updateSelectedOrderType,
+    setSelectedMarketplaceOnly: updateSelectedMarketplaceOnly,
+    setShowFocusOnly: updateShowFocusOnly,
   };
 }

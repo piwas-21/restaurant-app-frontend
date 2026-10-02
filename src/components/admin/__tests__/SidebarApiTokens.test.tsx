@@ -2,11 +2,10 @@ import { render, screen } from '@testing-library/react';
 import Sidebar from '../Sidebar';
 
 /**
- * The nav entry for `/admin/api-tokens` is the only Admin-ONLY item in the sidebar.
+ * The platform credential and delivery integration nav entries are Admin-only.
  *
- * It matters because every OTHER entry is reachable by Staff: the three `/api/ApiTokens`
- * endpoints refuse a Staff JWT (API-TOKENS-PLAN §8), so a visible link would lead a Staff
- * member to a page that can only answer 403.
+ * The APIs behind both surfaces refuse a Staff JWT, so a visible link would lead a Staff
+ * member to pages that can only answer 403.
  */
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
@@ -22,21 +21,23 @@ const mockUser = { role: 'Admin' };
 jest.mock('@/components/AuthContext', () => ({ useAuth: () => ({ user: mockUser }) }));
 jest.mock('@/lib/modules', () => ({ moduleForPath: () => null }));
 
-describe('Sidebar — API tokens entry', () => {
-  it('shows the entry to an Admin', () => {
+describe('Sidebar — admin-only management entries', () => {
+  it('shows the entries to an Admin', () => {
     mockUser.role = 'Admin';
 
     render(<Sidebar />);
 
     expect(screen.getByRole('link', { name: /API Tokens/ })).toHaveAttribute('href', '/admin/api-tokens');
+    expect(screen.getByRole('link', { name: /Delivery channels/ })).toHaveAttribute('href', '/admin/delivery-channels');
   });
 
-  it('hides it from Staff, whose session is refused by every endpoint behind it', () => {
+  it('hides both entries from Staff, whose session is refused by those endpoints', () => {
     mockUser.role = 'Staff';
 
     render(<Sidebar />);
 
     expect(screen.queryByRole('link', { name: /API Tokens/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Delivery channels/ })).not.toBeInTheDocument();
     // Staff keeps the rest of the nav — this gate is one entry, not a role split.
     expect(screen.getByRole('link', { name: /Orders Management/ })).toBeInTheDocument();
   });

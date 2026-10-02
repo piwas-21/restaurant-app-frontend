@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DeliveryChannelOAuthConnect from './DeliveryChannelOAuthConnect';
 import {
+  classifyDeliveryChannelMutationFailure,
   deliveryChannelManagementService,
   isSafeUberAuthorizationUrl,
 } from '@/services/deliveryChannelManagementService';
@@ -15,8 +16,12 @@ jest.mock('@/services/deliveryChannelManagementService', () => ({
 
 const startOAuth = jest.mocked(deliveryChannelManagementService.startOAuth);
 const safeAuthorizationUrl = jest.mocked(isSafeUberAuthorizationUrl);
+const classifyFailure = jest.mocked(classifyDeliveryChannelMutationFailure);
 
-function summary(connectionStatus: 'notConnected' | 'connected'): DeliveryChannelManagementSummary {
+function summary(
+  connectionStatus: 'notConnected' | 'connected',
+  overrides: Partial<DeliveryChannelManagementSummary> = {},
+): DeliveryChannelManagementSummary {
   return {
     provider: 'uber',
     enabled: true,
@@ -44,12 +49,14 @@ function summary(connectionStatus: 'notConnected' | 'connected'): DeliveryChanne
       supportsAutomaticAcceptance: true,
     },
     latestPublication: null,
+    ...overrides,
   };
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
   safeAuthorizationUrl.mockReturnValue(true);
+  classifyFailure.mockReturnValue('rejected');
   startOAuth.mockResolvedValue({
     flowId: 'flow-id',
     authorizationUrl: 'https://auth.uber.com/oauth/authorize',
@@ -92,5 +99,69 @@ describe('DeliveryChannelOAuthConnect', () => {
       'target',
       '_blank',
     );
+  });
+
+  it('clears a known initial authorization link after the store is canonically confirmed', async () => {
+    const props = {
+      locale: 'en',
+      canWrite: true,
+      menuProviderVerified: true,
+      onRefresh: jest.fn().mockResolvedValue(false),
+    };
+    const { rerender } = render(<DeliveryChannelOAuthConnect {...props} summary={summary('notConnected')} />);
+    fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.connection.start' }));
+    await screen.findByRole('link', { name: 'deliveryChannels.connection.openProvider' });
+
+    rerender(<DeliveryChannelOAuthConnect {...props} summary={summary('connected')} />);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('link', { name: 'deliveryChannels.connection.openProvider' })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: 'deliveryChannels.connection.enableOrders' })).toBeEnabled();
+  });
+
+  it('keeps an enable-orders link until provider-confirmed handoff appears in summary', async () => {
+    const props = {
+      locale: 'en',
+      canWrite: true,
+      menuProviderVerified: true,
+      onRefresh: jest.fn().mockResolvedValue(false),
+    };
+    const waiting = summary('connected');
+    const { rerender } = render(<DeliveryChannelOAuthConnect {...props} summary={waiting} />);
+    fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.connection.enableOrders' }));
+    await screen.findByRole('link', { name: 'deliveryChannels.connection.openProvider' });
+
+    rerender(<DeliveryChannelOAuthConnect {...props} summary={waiting} />);
+    expect(screen.getByRole('link', { name: 'deliveryChannels.connection.openProvider' })).toBeInTheDocument();
+
+    const enabled = summary('connected', { isOrderManager: true, requireManualAcceptance: false });
+    rerender(<DeliveryChannelOAuthConnect {...props} summary={enabled} />);
+    await waitFor(() =>
+      expect(screen.queryByRole('link', { name: 'deliveryChannels.connection.openProvider' })).not.toBeInTheDocument(),
+    );
+
+    rerender(<DeliveryChannelOAuthConnect {...props} summary={waiting} />);
+    expect(screen.getByRole('button', { name: 'deliveryChannels.connection.enableOrders' })).toBeEnabled();
+  });
+
+  it('does not clear the lost-response gate just because the summary rerenders', async () => {
+    const props = {
+      summary: summary('connected'),
+      locale: 'en',
+      canWrite: true,
+      menuProviderVerified: true,
+      onRefresh: jest.fn().mockResolvedValue(false),
+    };
+    classifyFailure.mockReturnValue('uncertain');
+    startOAuth.mockRejectedValue(new Error('request timeout'));
+    const { rerender } = render(<DeliveryChannelOAuthConnect {...props} />);
+    fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.connection.enableOrders' }));
+    await screen.findByText('deliveryChannels.connection.errors.uncertain');
+
+    rerender(<DeliveryChannelOAuthConnect {...props} summary={summary('connected')} />);
+
+    expect(screen.getByRole('button', { name: 'deliveryChannels.connection.enableOrders' })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: 'deliveryChannels.connection.openProvider' })).not.toBeInTheDocument();
   });
 });

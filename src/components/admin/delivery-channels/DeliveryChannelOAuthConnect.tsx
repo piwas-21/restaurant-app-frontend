@@ -45,10 +45,24 @@ export default function DeliveryChannelOAuthConnect({
 
   useEffect(() => {
     if (!authorization) return;
+    const connectionConfirmed = summary.connectionStatus === 'connected' && summary.storeConfirmed;
+    const expectedStateConfirmed = authorization.enablesOrders
+      ? connectionConfirmed && summary.isOrderManager && !summary.requireManualAcceptance
+      : connectionConfirmed;
+    if (expectedStateConfirmed) {
+      setAuthorization(null);
+      return;
+    }
     const delay = Math.max(0, new Date(authorization.expiresAt).getTime() - Date.now());
     const timer = window.setTimeout(() => setAuthorization(null), delay);
     return () => window.clearTimeout(timer);
-  }, [authorization]);
+  }, [
+    authorization,
+    summary.connectionStatus,
+    summary.isOrderManager,
+    summary.requireManualAcceptance,
+    summary.storeConfirmed,
+  ]);
 
   const start = async (enableOrderAcceptance: boolean) => {
     if (starting || !canWrite || startUncertain || authorization) return;

@@ -5,7 +5,7 @@ import ServerLayoutClient from './server-layout-client';
 /**
  * Reads the tenant-wide server rollout only for the server route subtree. Keeping this fetch
  * out of the root layout prevents the emergency no-store switch from making every app route
- * dynamic, while the nested client provider covers both /server and /server/takeaway.
+ * dynamic, while the nested client provider covers the full /server route subtree.
  */
 export default async function ServerLayout({ children }: Readonly<{ children: ReactNode }>) {
   const features = await getTenantFeatures();

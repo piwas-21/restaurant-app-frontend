@@ -8,7 +8,7 @@
   color: var(--text-primary);
 }
 
-.shell > main {
+.workspaceContent {
   min-block-size: 0;
   overflow: hidden;
 }

@@ -8,6 +8,12 @@
   background: var(--surface-primary);
 }
 
+.workspace {
+  block-size: 100%;
+  min-block-size: 0;
+  overflow: auto;
+}
+
 .header {
   display: flex;
   align-items: flex-start;

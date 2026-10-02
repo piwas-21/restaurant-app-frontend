@@ -12,25 +12,27 @@ import { useMarketplaceKitchenOrders } from '@/hooks/useMarketplaceKitchenOrders
 import styles from './MarketplaceKitchenBoard.module.css';
 
 type KitchenStatusFilter = 'all' | 'Confirmed' | 'Preparing' | 'Ready';
+type MarketplaceAudience = 'kitchen' | 'server';
 const STATUS_FILTERS: readonly KitchenStatusFilter[] = ['all', 'Confirmed', 'Preparing', 'Ready'];
 
 const noLocalStatusChange = (_orderId: string, _status: string) => undefined;
 
-function isKitchenStaffRole(orderRole: string | undefined): boolean {
+function isMarketplaceStaffRole(orderRole: string | undefined, audience: MarketplaceAudience): boolean {
   const role = orderRole?.toLowerCase();
-  return role === 'kitchenstaff' || role === 'admin';
+  return role === 'admin' || (audience === 'kitchen' ? role === 'kitchenstaff' : role === 'server');
 }
 
-export default function MarketplaceKitchenBoard() {
+export default function MarketplaceKitchenBoard({
+  audience = 'kitchen',
+  workspace = false,
+}: Readonly<{ audience?: MarketplaceAudience; workspace?: boolean }>) {
   const { t } = useTranslation();
   const router = useTenantLocaleRouter();
   const pathname = usePathname();
   const { user, isLoading: authLoading } = useAuth();
-  const { orders, isLoading, error, isStale, refresh } = useMarketplaceKitchenOrders(
-    !authLoading && isKitchenStaffRole(user?.role),
-  );
+  const authorized = isMarketplaceStaffRole(user?.role, audience);
+  const { orders, isLoading, error, isStale, refresh } = useMarketplaceKitchenOrders(!authLoading && authorized);
   const [filter, setFilter] = useState<KitchenStatusFilter>('all');
-  const authorized = isKitchenStaffRole(user?.role);
 
   useEffect(() => {
     if (authLoading) return;
@@ -55,7 +57,10 @@ export default function MarketplaceKitchenBoard() {
   if (!user) return null;
 
   return (
-    <section className={styles.board} aria-labelledby="marketplace-kitchen-title">
+    <section
+      className={workspace ? `${styles.board} ${styles.workspace}` : styles.board}
+      aria-labelledby="marketplace-kitchen-title"
+    >
       <header className={styles.header}>
         <div>
           <h1 id="marketplace-kitchen-title" className={styles.title}>

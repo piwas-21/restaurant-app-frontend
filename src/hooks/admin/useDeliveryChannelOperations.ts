@@ -34,7 +34,10 @@ export function useDeliveryChannelOperations(refreshStatus: (forceFresh?: boolea
     try {
       const result = await refreshStatus(true);
       const confirmed = result.summary && result.availability && result.fresh;
-      if (confirmed) setStatusCheckRequired(false);
+      if (confirmed) {
+        setStatusCheckRequired(false);
+        setFeedback((current) => (current?.kind === 'availability' ? null : current));
+      }
       return confirmed;
     } finally {
       setBusy(null);

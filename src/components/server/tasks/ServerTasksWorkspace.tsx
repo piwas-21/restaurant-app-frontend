@@ -164,6 +164,7 @@ export default function ServerTasksWorkspace() {
           ),
         },
         { href: '/server/takeaway', label: t('server.takeaway.link') },
+        { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ]}
       connectionState={connectionState(states)}
       lastConfirmed={latestServerTime(states)}

@@ -9,7 +9,7 @@ import type {
 import { deliveryChannelMappingView } from '@/utils/deliveryChannelMappingView';
 import { candidateIdentity, useDeliveryChannelCatalogue } from './useDeliveryChannelCatalogue';
 
-const mockTranslate = (key: string) => key;
+let mockTranslate = (key: string) => key;
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: mockTranslate }) }));
 
 const item = {
@@ -79,9 +79,46 @@ function draftFor(productId: string, revision: string): DeliveryChannelCatalogue
   };
 }
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(() => {
+  jest.restoreAllMocks();
+  mockTranslate = (key: string) => key;
+});
 
 describe('useDeliveryChannelCatalogue', () => {
+  it('preserves a usable dirty draft when the translator changes identity', async () => {
+    const getCatalogue = jest
+      .spyOn(deliveryChannelManagementService, 'getCatalogue')
+      .mockResolvedValue(mappedCatalogue('product-1', 'draft-0'));
+    const getCandidates = jest
+      .spyOn(deliveryChannelManagementService, 'getCandidates')
+      .mockResolvedValue({ currency: 'EUR', language: 'en', items: [], nextCursor: null });
+    const save = jest
+      .spyOn(deliveryChannelManagementService, 'saveDraft')
+      .mockResolvedValue(draftFor('product-2', 'draft-1'));
+    const { result, rerender } = renderHook(() => useDeliveryChannelCatalogue());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.choose('uber-item-1', candidateIdentity('product-2', null)));
+    mockTranslate = (key: string) => `translated:${key}`;
+    rerender();
+    expect(getCatalogue).toHaveBeenCalledTimes(1);
+    expect(getCandidates).toHaveBeenCalledTimes(1);
+    expect(result.current.selected['uber-item-1']).toBe('product-2::');
+    expect(result.current.dirty).toBe(true);
+    expect(result.current.stale).toBe(false);
+    await act(async () => {
+      expect(await result.current.saveDraft()).toBe(true);
+    });
+    expect(save).toHaveBeenCalledWith({
+      expectedDraftRevision: 'draft-0',
+      items: [{ providerItemId: 'uber-item-1', productId: 'product-2', variationId: null }],
+    });
+    getCandidates.mockRejectedValueOnce(new Error('Unavailable'));
+    await act(async () => {
+      await result.current.searchCandidates('Missing');
+    });
+    expect(result.current.errorMessage).toBe('translated:deliveryChannels.errors.load');
+  });
+
   it('clears visible results for a failed new query but preserves cached draft names and load-more results', async () => {
     const soup = {
       productId: 'soup',

@@ -57,6 +57,7 @@ export default function DeliveryChannelCataloguePanel({
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [mappingSearch, setMappingSearch] = useState('');
   const [mappingStatus, setMappingStatus] = useState<DeliveryChannelMappingStatusFilter>('all');
   const [mappingPage, setMappingPage] = useState(0);
@@ -75,6 +76,10 @@ export default function DeliveryChannelCataloguePanel({
   );
   const saveDisabled = !dirty || duplicateSelection || stale || writeUncertain || busy !== null;
   const previewDisabled = dirty || stale || writeUncertain || busy !== null;
+  const search = () => {
+    setAppliedQuery(query);
+    void onSearch(query, null);
+  };
 
   return (
     <section className={workspaceStyles.panel} aria-labelledby="delivery-channel-menu-title">
@@ -115,17 +120,12 @@ export default function DeliveryChannelCataloguePanel({
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault();
-                void onSearch(query, null);
+                search();
               }
             }}
           />
         </FormField>
-        <button
-          className={workspaceStyles.secondaryAction}
-          type="button"
-          onClick={() => void onSearch(query, null)}
-          disabled={busy !== null}
-        >
+        <button className={workspaceStyles.secondaryAction} type="button" onClick={search} disabled={busy !== null}>
           {busy === 'search' ? t('deliveryChannels.loading') : t('deliveryChannels.menu.search')}
         </button>
       </div>
@@ -202,7 +202,7 @@ export default function DeliveryChannelCataloguePanel({
           className={workspaceStyles.textAction}
           type="button"
           onClick={() => void onSearch(query, candidateCursor)}
-          disabled={busy !== null}
+          disabled={busy !== null || query !== appliedQuery}
         >
           {t('deliveryChannels.menu.loadMoreCandidates')}
         </button>

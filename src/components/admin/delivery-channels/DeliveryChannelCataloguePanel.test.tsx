@@ -41,6 +41,37 @@ const catalogue: DeliveryChannelCatalogue = {
 };
 
 describe('DeliveryChannelCataloguePanel mapping browser', () => {
+  it('does not submit the previous cursor for an edited candidate query', () => {
+    const onSearch = jest.fn().mockResolvedValue(null);
+    render(
+      <DeliveryChannelCataloguePanel
+        catalogue={catalogue}
+        candidates={[]}
+        selected={{}}
+        candidateCursor="old-query-page-2"
+        busy={null}
+        error={null}
+        stale={false}
+        dirty={false}
+        duplicateSelection={false}
+        writeUncertain={false}
+        locale="en"
+        onChoose={jest.fn()}
+        onSearch={onSearch}
+        onSave={jest.fn()}
+        onPreview={jest.fn()}
+      />,
+    );
+    const more = screen.getByRole('button', { name: 'deliveryChannels.menu.loadMoreCandidates' });
+    expect(more).toBeEnabled();
+    fireEvent.change(screen.getByLabelText('deliveryChannels.menu.searchTenantMenu'), { target: { value: 'Falafel' } });
+    expect(more).toBeDisabled();
+    fireEvent.click(more);
+    expect(onSearch).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.menu.search' }));
+    expect(onSearch).toHaveBeenCalledWith('Falafel', null);
+  });
+
   it('paginates provider rows and resets the page when status filtering changes', () => {
     const onSearch = jest.fn().mockResolvedValue(null);
     render(

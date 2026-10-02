@@ -21,9 +21,12 @@ import {
 } from '@/utils/deliveryChannelDraftMappingState';
 
 export { candidateIdentity } from '@/utils/deliveryChannelCandidateIdentity';
-
 export function useDeliveryChannelCatalogue(enabled = true) {
   const { t } = useTranslation();
+  const translate = useRef(t);
+  useEffect(() => {
+    translate.current = t;
+  }, [t]);
   const [catalogue, setCatalogue] = useState<DeliveryChannelCatalogue | null>(null);
   const [candidates, setCandidates] = useState<readonly DeliveryChannelCatalogueCandidate[]>([]);
   const [knownCandidates, setKnownCandidates] = useState<readonly DeliveryChannelCatalogueCandidate[]>([]);
@@ -59,14 +62,13 @@ export function useDeliveryChannelCatalogue(enabled = true) {
       if (requestId === catalogueRequest.current) {
         setStale(true);
         setError('load');
-        setErrorMessage(routeApiError(cause).rootMessage ?? t('deliveryChannels.errors.load'));
+        setErrorMessage(routeApiError(cause).rootMessage ?? translate.current('deliveryChannels.errors.load'));
       }
       return false;
     } finally {
       if (requestId === catalogueRequest.current) setLoading(false);
     }
-  }, [enabled, t]);
-
+  }, [enabled]);
   const searchCandidates = useCallback(
     async (search: string, cursor: string | null = null) => {
       if (!enabled) return null;
@@ -88,16 +90,15 @@ export function useDeliveryChannelCatalogue(enabled = true) {
       } catch (cause) {
         if (requestId === candidateRequest.current) {
           setError('load');
-          setErrorMessage(routeApiError(cause).rootMessage ?? t('deliveryChannels.errors.load'));
+          setErrorMessage(routeApiError(cause).rootMessage ?? translate.current('deliveryChannels.errors.load'));
         }
         return null;
       } finally {
         if (requestId === candidateRequest.current) setBusy((current) => (current === 'search' ? null : current));
       }
     },
-    [enabled, t],
+    [enabled],
   );
-
   useEffect(() => {
     if (!enabled) {
       catalogueRequest.current += 1;
@@ -124,7 +125,6 @@ export function useDeliveryChannelCatalogue(enabled = true) {
     setSelected((current) => ({ ...current, [providerItemId]: value }));
     setSelectionVersion((current) => current + 1);
   };
-
   const { duplicateSelection, dirty } = deliveryChannelDraftStatus(catalogue, selected);
 
   const saveDraft = useCallback(async () => {

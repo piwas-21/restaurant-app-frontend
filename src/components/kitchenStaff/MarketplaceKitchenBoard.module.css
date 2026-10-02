@@ -50,8 +50,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0.75rem;
+  border: 0;
   border-bottom: 1px solid var(--border-default);
-  padding-block-end: 0.75rem;
 }
 
 .filter {

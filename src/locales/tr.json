@@ -3806,7 +3806,8 @@
       "ContractRejected": "Uber Eats sipariş ayrıntılarını reddetti. Siparişi ve desteklenmeyen öğeleri manuel olarak inceleyin.",
       "DeliveryUncertain": "Siparişin teslimatı veya kabulü belirsizdir. Uber Eats tabletini ve mevcut Sofra siparişini kontrol edin; kabul etmeyin veya kopya oluşturmayın.",
       "PayloadExpired": "Sipariş bildiriminin süresi doldu. Mevcut Sofra siparişini ve Uber Eats durumunu kontrol edin; Otomatik olarak bir yedek oluşturmayın.",
-      "ConnectionOperationBusy": "Başka bir Uber Eats bağlantısı tamamlanıyor. Bu yetkilendirme artık kullanılamaz. Yönetim sayfasına dönün ve mevcut kontrol tamamlandıktan sonra yeni bir yetkilendirme başlatın."
+      "ConnectionOperationBusy": "Başka bir Uber Eats bağlantısı tamamlanıyor. Bu yetkilendirme artık kullanılamaz. Yönetim sayfasına dönün ve mevcut kontrol tamamlandıktan sonra yeni bir yetkilendirme başlatın.",
+      "AuthorizationSuperseded": "Bu bağlantının yerini daha yeni bir yetkilendirme bağlantısı aldı. Uber Eats yönetimine dönüp en son bağlantıyı kontrol edin."
     },
     "errors": {
       "load": "En son bilgiler yüklenemedi.",

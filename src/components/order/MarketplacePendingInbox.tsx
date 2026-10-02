@@ -49,14 +49,11 @@ export default function MarketplacePendingInbox({ active, onSelect, onClear }: P
 
   if (!loading && count === 0 && !failed) return null;
 
-  const label =
-    loading && count === null
-      ? t('marketplaceStaff.pending_loading')
-      : count === null
-        ? t('marketplaceStaff.pending_unavailable')
-        : active
-          ? t('marketplaceStaff.pending_active', { count })
-          : t('marketplaceStaff.pending_count', { count });
+  let label: string;
+  if (loading && count === null) label = t('marketplaceStaff.pending_loading');
+  else if (count === null) label = t('marketplaceStaff.pending_unavailable');
+  else if (active) label = t('marketplaceStaff.pending_active', { count });
+  else label = t('marketplaceStaff.pending_count', { count });
 
   return (
     <div className={styles.wrap}>
@@ -70,11 +67,7 @@ export default function MarketplacePendingInbox({ active, onSelect, onClear }: P
         <span className={styles.label}>{label}</span>
         {count !== null && <span className={styles.count}>{count}</span>}
       </button>
-      {failed && (
-        <span className={styles.stale} role="status">
-          {errorMessage ?? t('marketplaceStaff.pending_stale')}
-        </span>
-      )}
+      {failed && <output className={styles.stale}>{errorMessage ?? t('marketplaceStaff.pending_stale')}</output>}
     </div>
   );
 }

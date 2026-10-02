@@ -47,8 +47,8 @@ export default function DeliveryChannelDisconnectAction({
         {t('deliveryChannels.connection.disconnect')}
       </button>
       {feedback?.kind === 'disconnect' && (
-        <p className={feedback.outcome === 'confirmed' ? styles.success : styles.error} role="status">
-          {t(`deliveryChannels.operations.${feedback.outcome}`)}
+        <p className={feedback.outcome === 'confirmed' ? styles.success : styles.error}>
+          <output>{t(`deliveryChannels.operations.${feedback.outcome}`)}</output>
         </p>
       )}
       <BaseModal

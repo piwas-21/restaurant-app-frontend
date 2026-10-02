@@ -12,7 +12,7 @@ it('shows the provider display ID and flags a pending human decision', () => {
   expect(screen.getByText('9116D')).toHaveAttribute('dir', 'ltr');
   expect(screen.getByText('delivery_channels.uber_eats')).toBeInTheDocument();
   expect(screen.getByText('marketplaceStaff.decision_needed')).toBeInTheDocument();
-  expect(screen.getByRole('group', { name: 'marketplaceStaff.order_source' })).toBeInTheDocument();
+  expect(screen.getByText('marketplaceStaff.order_source')).toHaveClass('sr-only');
 });
 
 it('does not show a decision warning after the provider accepts', () => {

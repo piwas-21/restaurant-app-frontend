@@ -13,12 +13,12 @@ import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from './OrderCard.module.css';
 import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
 
-interface OrderCardProps {
-  order: OrderDto;
-  onStatusChange: (orderId: string, status: string) => void;
-  onOrderChanged?: () => void;
-  isLoading?: boolean;
-}
+type OrderCardProps = {
+  readonly order: OrderDto;
+  readonly onStatusChange: (orderId: string, status: string) => void;
+  readonly onOrderChanged?: () => void;
+  readonly isLoading?: boolean;
+};
 
 // The primary next action, derived from the SHARED transition table (#547) instead of the local
 // case ladder this card used to own. The table allows `Ready → OutForDelivery`, which the ladder

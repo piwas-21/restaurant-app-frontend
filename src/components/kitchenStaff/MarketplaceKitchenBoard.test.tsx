@@ -39,6 +39,7 @@ it('renders the real accepted marketplace feed and filters by preparation status
   render(<MarketplaceKitchenBoard />);
 
   expect(screen.getByRole('heading', { name: 'marketplaceStaff.kitchen_title' })).toBeInTheDocument();
+  expect(screen.getByRole('group', { name: 'marketplaceStaff.kitchen_filter' })).toBeInTheDocument();
   expect(screen.getByText('9116D')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /marketplaceStaff.status.Preparing/ }));
   expect(screen.queryByText('9116D')).not.toBeInTheDocument();

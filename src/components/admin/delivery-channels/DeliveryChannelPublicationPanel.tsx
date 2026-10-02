@@ -90,8 +90,10 @@ export default function DeliveryChannelPublicationPanel({
         </p>
       )}
       {unresolvedPublication && (
-        <div className={styles.notice} role="status">
-          <p>{t('deliveryChannels.publication.unresolved')}</p>
+        <div className={styles.notice}>
+          <p>
+            <output>{t('deliveryChannels.publication.unresolved')}</output>
+          </p>
           <button
             className={workspaceStyles.textAction}
             type="button"
@@ -143,8 +145,8 @@ export default function DeliveryChannelPublicationPanel({
         </div>
       )}
       {isVerified && !incomingOrdersEnabled && (
-        <p className={styles.notice} role="status">
-          {t('deliveryChannels.publication.orderAcceptanceNextStep')}
+        <p className={styles.notice}>
+          <output>{t('deliveryChannels.publication.orderAcceptanceNextStep')}</output>
         </p>
       )}
       {!preview ? (

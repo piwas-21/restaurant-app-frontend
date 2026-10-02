@@ -36,12 +36,14 @@ export interface DeliveryChannelMappingRow {
   readonly variationName: string | null;
   readonly tenantPriceMinor: number | null;
   readonly providerPriceMinor: number | null;
-  readonly providerPriceStatus: 'currentReadback' | 'lastConfirmed' | 'unknown';
+  readonly providerPriceStatus: ProviderPriceStatus;
   readonly currency: string;
   readonly available: boolean;
   readonly mappingStatus: 'mapped' | 'unmapped' | 'blocked';
   readonly blockReason: string | null;
 }
+
+export type ProviderPriceStatus = 'currentReadback' | 'lastConfirmed' | 'unknown';
 
 /** Frontend mirror of the management catalogue and draft DTOs. */
 export interface DeliveryChannelCatalogue {

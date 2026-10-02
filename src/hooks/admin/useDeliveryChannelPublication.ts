@@ -52,7 +52,7 @@ export function useDeliveryChannelPublication({
     if (writeUncertain) return true;
     const latest = catalogue?.latestPublication;
     if (!latest) return publication?.state === 'pending' || publication?.state === 'uncertain';
-    if (!publication || publication.id !== latest.id) return true;
+    if (publication?.id !== latest.id) return true;
     return (
       publication.state === 'pending' ||
       publication.state === 'uncertain' ||
@@ -106,7 +106,7 @@ export function useDeliveryChannelPublication({
         for (let attempt = 0; attempt < 8; attempt += 1) {
           await new Promise((resolve) => window.setTimeout(resolve, 2_000));
           const current = await refreshPublication();
-          if (!current || current.state !== 'pending') return current;
+          if (current?.state !== 'pending') return current;
         }
       }
       return result;

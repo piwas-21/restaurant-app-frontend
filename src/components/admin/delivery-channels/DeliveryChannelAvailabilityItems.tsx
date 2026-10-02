@@ -19,12 +19,9 @@ export default function DeliveryChannelAvailabilityItems({ items, locale, stale 
   return (
     <ul className={styles.items}>
       {items.map((item) => {
-        const state =
-          item.confirmedAvailable === true
-            ? 'available'
-            : item.confirmedAvailable === false
-              ? 'unavailable'
-              : 'unknown';
+        let state: 'available' | 'unavailable' | 'unknown' = 'unknown';
+        if (item.confirmedAvailable === true) state = 'available';
+        if (item.confirmedAvailable === false) state = 'unavailable';
         const drift = item.confirmedAvailable !== null && item.confirmedAvailable !== item.desiredAvailable;
         return (
           <li key={`${item.providerItemId}:${item.productId}:${item.variationId ?? ''}`}>

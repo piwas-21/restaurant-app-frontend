@@ -122,8 +122,8 @@ export default function DeliveryChannelCataloguePanel({
         </p>
       )}
       {stale && (
-        <p className={styles.warning} role="status">
-          {t('deliveryChannels.menu.refreshBeforeEditing')}
+        <p className={styles.warning}>
+          <output>{t('deliveryChannels.menu.refreshBeforeEditing')}</output>
         </p>
       )}
 

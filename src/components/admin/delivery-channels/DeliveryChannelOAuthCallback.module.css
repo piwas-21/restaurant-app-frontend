@@ -78,6 +78,7 @@
 }
 
 .loading {
+  display: block;
   padding: 1.25rem;
   text-align: center;
 }

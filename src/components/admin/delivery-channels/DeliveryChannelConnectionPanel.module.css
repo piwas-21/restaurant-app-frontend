@@ -68,6 +68,7 @@
 
 .notice,
 .authorization {
+  display: block;
   margin-top: 1rem;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border-default);
@@ -78,6 +79,12 @@
 .notice p,
 .authorization p {
   margin: 0;
+  line-height: 1.5;
+}
+
+.notice > strong,
+.notice > span {
+  display: block;
   line-height: 1.5;
 }
 
@@ -94,6 +101,9 @@
 }
 
 .dangerAction {
+  border: 1px solid var(--feedback-danger);
+  background: var(--feedback-danger);
+  color: var(--text-on-primary);
   min-height: 2.75rem;
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
@@ -101,12 +111,6 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-}
-
-.dangerAction {
-  border: 1px solid var(--feedback-danger);
-  background: var(--feedback-danger);
-  color: var(--text-on-primary);
 }
 
 .dangerAction:disabled {

@@ -3806,7 +3806,8 @@
       "ContractRejected": "Uber Eats rejected the order details. Review the order and unsupported items manually.",
       "DeliveryUncertain": "Order delivery or acceptance is uncertain. Check the Uber Eats tablet and existing Sofra order; do not accept or create a duplicate.",
       "PayloadExpired": "The order notification expired. Check the existing Sofra order and Uber Eats state; do not create a replacement automatically.",
-      "ConnectionOperationBusy": "Another Uber Eats connection is being completed. This authorization could not be used. Return to management and start a fresh authorization after the current check finishes."
+      "ConnectionOperationBusy": "Another Uber Eats connection is being completed. This authorization could not be used. Return to management and start a fresh authorization after the current check finishes.",
+      "AuthorizationSuperseded": "A newer authorization link replaced this one. Return to Uber Eats management and check the latest connection."
     },
     "errors": {
       "load": "Could not load the latest information.",

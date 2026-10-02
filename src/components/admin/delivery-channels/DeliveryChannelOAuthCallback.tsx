@@ -16,13 +16,10 @@ function CallbackStatus() {
   const { flow, state, errorMessage, retry } = useDeliveryChannelOAuthCallback(flowId);
   const { t, i18n } = useTranslation();
   const successful = state === 'connected';
-  const tone = successful
-    ? 'success'
-    : state === 'pending' || state === 'checking'
-      ? 'info'
-      : state === 'failed' || state === 'expired' || state === 'error' || state === 'invalid' || state === 'unconfirmed'
-        ? 'warning'
-        : 'neutral';
+  let tone: 'success' | 'info' | 'warning' | 'neutral' = 'neutral';
+  if (successful) tone = 'success';
+  else if (state === 'pending' || state === 'checking') tone = 'info';
+  else if (['failed', 'expired', 'error', 'invalid', 'unconfirmed'].includes(state)) tone = 'warning';
 
   return (
     <main className={styles.page}>
@@ -67,11 +64,7 @@ function CallbackStatus() {
 
 function CallbackLoading() {
   const { t } = useTranslation();
-  return (
-    <div className={styles.loading} role="status">
-      {t('deliveryChannels.loading')}
-    </div>
-  );
+  return <output className={styles.loading}>{t('deliveryChannels.loading')}</output>;
 }
 
 export default function DeliveryChannelOAuthCallback() {

@@ -69,10 +69,10 @@ export default function DeliveryChannelConnectionPanel({
       </div>
 
       {!summary.enabled ? (
-        <div className={styles.notice} role="status">
+        <output className={styles.notice}>
           <strong>{t('deliveryChannels.connection.notEnabledTitle')}</strong>
-          <p>{t('deliveryChannels.connection.notEnabledBody')}</p>
-        </div>
+          <span>{t('deliveryChannels.connection.notEnabledBody')}</span>
+        </output>
       ) : (
         <>
           {storeConfirmed && (
@@ -94,8 +94,10 @@ export default function DeliveryChannelConnectionPanel({
             </dl>
           )}
           {summary.connectionStatus === 'connected' && !storeConfirmed && (
-            <div className={`${styles.notice} ${styles.warning}`} role="status">
-              <p>{t('deliveryChannels.store.unconfirmed')}</p>
+            <div className={`${styles.notice} ${styles.warning}`}>
+              <p>
+                <output>{t('deliveryChannels.store.unconfirmed')}</output>
+              </p>
             </div>
           )}
           {summary.degradedReason && (

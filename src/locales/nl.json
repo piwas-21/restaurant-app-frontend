@@ -3806,7 +3806,8 @@
       "ContractRejected": "Uber Eats heeft de bestelgegevens afgewezen. Controleer de bestelling en niet-ondersteunde artikelen handmatig.",
       "DeliveryUncertain": "Levering of aanvaarding van de bestelling is onzeker. Controleer de Uber Eats-tablet en bestaande Sofra-bestelling; accepteer of maak geen duplicaat.",
       "PayloadExpired": "De bestelmelding is verlopen. Controleer de bestaande Sofra-bestelling en Uber Eats-status; maak niet automatisch een vervanging aan.",
-      "ConnectionOperationBusy": "Een andere Uber Eats-verbinding wordt afgerond. Deze autorisatie kan niet meer worden gebruikt. Ga terug naar het beheer en start een nieuwe autorisatie zodra de huidige controle klaar is."
+      "ConnectionOperationBusy": "Een andere Uber Eats-verbinding wordt afgerond. Deze autorisatie kan niet meer worden gebruikt. Ga terug naar het beheer en start een nieuwe autorisatie zodra de huidige controle klaar is.",
+      "AuthorizationSuperseded": "Een nieuwere autorisatielink heeft deze vervangen. Ga terug naar het Uber Eats-beheer en controleer de nieuwste verbinding."
     },
     "errors": {
       "load": "Kan de laatste informatie niet laden.",

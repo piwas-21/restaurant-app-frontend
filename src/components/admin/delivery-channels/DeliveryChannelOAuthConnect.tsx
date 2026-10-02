@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import {
   deliveryChannelManagementService,
   isSafeUberAuthorizationUrl,
+  classifyDeliveryChannelMutationFailure,
 } from '@/services/deliveryChannelManagementService';
-import { classifyDeliveryChannelMutationFailure } from '@/services/deliveryChannelManagementService';
 import type { DeliveryChannelManagementSummary } from '@/types/deliveryChannelManagement';
 import { formatDeliveryChannelDate } from '@/lib/deliveryChannelFormat';
 import workspaceStyles from './DeliveryChannelWorkspace.module.css';
@@ -84,8 +84,10 @@ export default function DeliveryChannelOAuthConnect({
   if (!visible && summary.connectionStatus !== 'authorizing') return null;
   if (!visible) {
     return (
-      <div className={styles.notice} role="status">
-        <p>{t('deliveryChannels.connection.authorizationPending')}</p>
+      <div className={styles.notice}>
+        <p>
+          <output>{t('deliveryChannels.connection.authorizationPending')}</output>
+        </p>
       </div>
     );
   }
@@ -133,21 +135,25 @@ export default function DeliveryChannelOAuthConnect({
         </p>
       )}
       {authorization && (
-        <div className={styles.authorization} role="status">
+        <div className={styles.authorization}>
           <p>
-            {t(
-              authorization.enablesOrders
-                ? 'deliveryChannels.connection.providerStepEnableOrders'
-                : 'deliveryChannels.connection.providerStep',
-            )}
+            <output>
+              {t(
+                authorization.enablesOrders
+                  ? 'deliveryChannels.connection.providerStepEnableOrders'
+                  : 'deliveryChannels.connection.providerStep',
+              )}
+            </output>
           </p>
           <a href={authorization.url} target="_blank" rel="noreferrer noopener">
             {t('deliveryChannels.connection.openProvider')}
           </a>
           <p className={styles.checkedAt}>
-            {t('deliveryChannels.connection.linkExpires', {
-              time: formatDeliveryChannelDate(authorization.expiresAt, locale, t('deliveryChannels.timeUnavailable')),
-            })}
+            <output>
+              {t('deliveryChannels.connection.linkExpires', {
+                time: formatDeliveryChannelDate(authorization.expiresAt, locale, t('deliveryChannels.timeUnavailable')),
+              })}
+            </output>
           </p>
         </div>
       )}

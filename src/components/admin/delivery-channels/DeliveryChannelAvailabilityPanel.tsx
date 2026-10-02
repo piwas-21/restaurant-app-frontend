@@ -51,6 +51,9 @@ export default function DeliveryChannelAvailabilityPanel({
   const [checking, setChecking] = useState(false);
   const supported = summary.capabilities.supportsItemAvailability;
   const paused = availability?.paused ?? summary.paused;
+  let confirmButtonLabel = t('deliveryChannels.availability.resume');
+  if (busy === 'availability') confirmButtonLabel = t('deliveryChannels.loading');
+  else if (confirmAction === 'pause') confirmButtonLabel = t('deliveryChannels.availability.pause');
 
   const confirm = async () => {
     if (confirmAction === 'pause')
@@ -131,8 +134,8 @@ export default function DeliveryChannelAvailabilityPanel({
               ` · ${t('deliveryChannels.availability.pauseEnds', { time: formatDeliveryChannelDate(availability.pausedUntil, locale, t('deliveryChannels.timeUnavailable')) })}`}
           </p>
           {stale && (
-            <p className={styles.notice} role="status">
-              {t('deliveryChannels.stale')}
+            <p className={styles.notice}>
+              <output>{t('deliveryChannels.stale')}</output>
             </p>
           )}
           {statusCheckRequired && (
@@ -149,8 +152,8 @@ export default function DeliveryChannelAvailabilityPanel({
             </div>
           )}
           {feedback?.kind === 'availability' && (
-            <p className={feedback.outcome === 'confirmed' ? styles.success : styles.warning} role="status">
-              {t(`deliveryChannels.operations.${feedback.outcome}`)}
+            <p className={feedback.outcome === 'confirmed' ? styles.success : styles.warning}>
+              <output>{t(`deliveryChannels.operations.${feedback.outcome}`)}</output>
             </p>
           )}
           <DeliveryChannelAvailabilityItems items={availability?.items ?? []} locale={locale} stale={stale} />
@@ -183,13 +186,7 @@ export default function DeliveryChannelAvailabilityPanel({
               onClick={() => void confirm()}
               disabled={!canWrite || busy === 'availability'}
             >
-              {busy === 'availability'
-                ? t('deliveryChannels.loading')
-                : t(
-                    confirmAction === 'pause'
-                      ? 'deliveryChannels.availability.pause'
-                      : 'deliveryChannels.availability.resume',
-                  )}
+              {confirmButtonLabel}
             </button>
           </div>
         }

@@ -42,17 +42,13 @@ export default function DeliveryChannelExceptionInbox({
   onLoadMore,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const ordered = [...items].sort((a, b) => {
-    const priority = (item: DeliveryChannelException) =>
-      item.status === 'open' && item.severity === 'critical'
-        ? 0
-        : item.status === 'open'
-          ? 1
-          : item.status === 'reconciling'
-            ? 2
-            : 3;
-    return priority(a) - priority(b);
-  });
+  const priority = (item: DeliveryChannelException) => {
+    if (item.status === 'open' && item.severity === 'critical') return 0;
+    if (item.status === 'open') return 1;
+    if (item.status === 'reconciling') return 2;
+    return 3;
+  };
+  const ordered = [...items].sort((a, b) => priority(a) - priority(b));
 
   return (
     <section className={styles.inbox} aria-labelledby="delivery-channel-exceptions-title">
@@ -71,13 +67,13 @@ export default function DeliveryChannelExceptionInbox({
       </div>
 
       {stale && (
-        <p className={styles.warning} role="status">
-          {errorMessage ?? t('deliveryChannels.exceptions.stale')}
+        <p className={styles.warning}>
+          <output>{errorMessage ?? t('deliveryChannels.exceptions.stale')}</output>
         </p>
       )}
       {feedback?.kind === 'reconcile' && (
-        <p className={feedback.outcome === 'confirmed' ? styles.success : styles.warning} role="status">
-          {t(`deliveryChannels.exceptions.reconcile.${feedback.outcome}`)}
+        <p className={feedback.outcome === 'confirmed' ? styles.success : styles.warning}>
+          <output>{t(`deliveryChannels.exceptions.reconcile.${feedback.outcome}`)}</output>
         </p>
       )}
       {items.length === 0 ? (

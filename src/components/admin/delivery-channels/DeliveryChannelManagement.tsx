@@ -31,6 +31,13 @@ export default function DeliveryChannelManagement() {
   const summary = overview.summary;
   const connected = Boolean(summary?.enabled && summary.connectionStatus === 'connected' && summary.storeConfirmed);
   const { activeStep, setActiveStep } = useDeliveryChannelStep(connected);
+  const catalogueFallback = catalogue.error ? (
+    <p role="alert">{catalogue.errorMessage ?? t('deliveryChannels.errors.load')}</p>
+  ) : (
+    <p>
+      <output>{t('deliveryChannels.loading')}</output>
+    </p>
+  );
 
   const refreshConnection = async () => {
     const result = await overview.refresh(true);
@@ -55,7 +62,9 @@ export default function DeliveryChannelManagement() {
   if (overview.loading && !summary) {
     return (
       <main className={styles.page} aria-busy="true">
-        <p role="status">{t('deliveryChannels.loading')}</p>
+        <p>
+          <output>{t('deliveryChannels.loading')}</output>
+        </p>
       </main>
     );
   }
@@ -69,9 +78,11 @@ export default function DeliveryChannelManagement() {
             <p className={styles.subtitle}>{t('deliveryChannels.subtitle')}</p>
           </div>
         </header>
-        <section className={styles.blocked} role="status">
+        <section className={styles.blocked}>
           <h2>{t('deliveryChannels.moduleDisabled.title')}</h2>
-          <p>{t('deliveryChannels.moduleDisabled.body')}</p>
+          <p>
+            <output>{t('deliveryChannels.moduleDisabled.body')}</output>
+          </p>
         </section>
       </main>
     );
@@ -123,8 +134,10 @@ export default function DeliveryChannelManagement() {
       </header>
 
       {overview.isStale && (
-        <div className={styles.staleNotice} role="status">
-          <p>{t('deliveryChannels.stale')}</p>
+        <div className={styles.staleNotice}>
+          <p>
+            <output>{t('deliveryChannels.stale')}</output>
+          </p>
         </div>
       )}
       {overview.failure === 'unavailable' && summary && (
@@ -189,10 +202,7 @@ export default function DeliveryChannelManagement() {
                 onPreview={preparePreview}
               />
             ) : (
-              <p role={catalogue.error ? 'alert' : 'status'}>
-                {catalogue.errorMessage ??
-                  t(catalogue.error ? 'deliveryChannels.errors.load' : 'deliveryChannels.loading')}
-              </p>
+              catalogueFallback
             ))}
           {activeStep === 'publish' && catalogue.catalogue && (
             <DeliveryChannelPublicationPanel

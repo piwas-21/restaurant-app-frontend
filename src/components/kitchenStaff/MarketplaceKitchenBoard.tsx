@@ -48,7 +48,7 @@ export default function MarketplaceKitchenBoard() {
   if (authLoading || (user && !authorized)) {
     return (
       <section className={styles.board} aria-busy="true">
-        <p className={styles.state}>{t('marketplaceStaff.loading')}</p>
+        <p className={styles.state}>{t('loading')}</p>
       </section>
     );
   }
@@ -68,7 +68,8 @@ export default function MarketplaceKitchenBoard() {
         </button>
       </header>
 
-      <div className={styles.filters} role="group" aria-label={t('marketplaceStaff.kitchen_filter')}>
+      <fieldset className={styles.filters}>
+        <legend className="sr-only">{t('marketplaceStaff.kitchen_filter')}</legend>
         {STATUS_FILTERS.map((status) => (
           <button
             key={status}
@@ -81,7 +82,7 @@ export default function MarketplaceKitchenBoard() {
             <span className={styles.count}>{countFor(status)}</span>
           </button>
         ))}
-      </div>
+      </fieldset>
 
       {isStale && (
         <div className={styles.state} role="alert">
@@ -91,7 +92,7 @@ export default function MarketplaceKitchenBoard() {
           </button>
         </div>
       )}
-      {isLoading && orders.length === 0 && <p className={styles.state}>{t('marketplaceStaff.loading')}</p>}
+      {isLoading && orders.length === 0 && <p className={styles.state}>{t('loading')}</p>}
       {!isLoading && !error && visibleOrders.length === 0 && (
         <p className={styles.state}>
           {t(filter === 'all' ? 'marketplaceStaff.kitchen_empty' : 'marketplaceStaff.kitchen_filter_empty')}

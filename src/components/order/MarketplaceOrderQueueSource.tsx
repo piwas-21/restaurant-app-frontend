@@ -14,8 +14,11 @@ export default function MarketplaceOrderQueueSource({ order }: { readonly order:
   const decisionNeeded = source.externalState === 'CREATED' && order.status === 'PendingApproval';
 
   return (
-    <span className={styles.identity} role="group" aria-label={t('marketplaceStaff.order_source', { provider })}>
-      <span className={styles.provider}>{provider}</span>
+    <span className={styles.identity}>
+      <span className="sr-only">{t('marketplaceStaff.order_source', { provider })}</span>
+      <span className={styles.provider} aria-hidden="true">
+        {provider}
+      </span>
       <span className={styles.displayId} dir="ltr">
         {source.externalDisplayId}
       </span>

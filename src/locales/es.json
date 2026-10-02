@@ -3815,7 +3815,8 @@
       "ContractRejected": "Uber Eats rechazó los detalles del pedido. Revise el pedido y los artículos no admitidos manualmente.",
       "DeliveryUncertain": "La entrega o aceptación del pedido es incierta. Consultar la tableta Uber Eats y el pedido existente de Sofra; no acepte ni cree un duplicado.",
       "PayloadExpired": "La notificación del pedido expiró. Verifique el pedido existente de Sofra y el estado de Uber Eats; no cree un reemplazo automáticamente.",
-      "ConnectionOperationBusy": "Se está completando otra conexión de Uber Eats. Esta autorización ya no se puede usar. Vuelva a la gestión e inicie una autorización nueva cuando termine la comprobación actual."
+      "ConnectionOperationBusy": "Se está completando otra conexión de Uber Eats. Esta autorización ya no se puede usar. Vuelva a la gestión e inicie una autorización nueva cuando termine la comprobación actual.",
+      "AuthorizationSuperseded": "Un enlace de autorización más reciente ha sustituido a este. Vuelve a la gestión de Uber Eats y comprueba la conexión más reciente."
     },
     "errors": {
       "load": "No se pudo cargar la información más reciente.",

@@ -17,12 +17,9 @@ interface Props {
 export default function DeliveryChannelServiceHoursReview({ kind, days, status, editable = false }: Readonly<Props>) {
   const { t } = useTranslation();
   const planned = kind === 'planned';
-  const statusTone =
-    status === 'reviewedTemplate' || status === 'currentReadback'
-      ? 'success'
-      : status === 'lastConfirmed'
-        ? 'warning'
-        : 'neutral';
+  let statusTone: 'success' | 'warning' | 'neutral' = 'neutral';
+  if (status === 'reviewedTemplate' || status === 'currentReadback') statusTone = 'success';
+  else if (status === 'lastConfirmed') statusTone = 'warning';
 
   return (
     <section
@@ -42,12 +39,14 @@ export default function DeliveryChannelServiceHoursReview({ kind, days, status, 
         </p>
       )}
       {days.length === 0 ? (
-        <p role="status">
-          {t(
-            planned
-              ? 'deliveryChannels.menu.outgoingHoursUnavailable'
-              : 'deliveryChannels.menu.currentHoursUnavailable',
-          )}
+        <p>
+          <output>
+            {t(
+              planned
+                ? 'deliveryChannels.menu.outgoingHoursUnavailable'
+                : 'deliveryChannels.menu.currentHoursUnavailable',
+            )}
+          </output>
         </p>
       ) : (
         <ul className={styles.hoursGrid}>

@@ -3797,7 +3797,8 @@
       "ContractRejected": "Uber Eats 优食拒绝了订单详细信息。手动查看订单和不受支持的项目。",
       "DeliveryUncertain": "订单交付或接受是不确定的。检查 Uber Eats 优食平板电脑和现有的 Sofra 订单；请勿接受或创建副本。",
       "PayloadExpired": "订单通知已过期。检查现有的 Sofra 订单和 Uber Eats 优食状态；不要自动创建替换。",
-      "ConnectionOperationBusy": "另一个 Uber Eats 连接正在完成。此授权已无法使用。请返回管理页面，待当前检查完成后重新开始授权。"
+      "ConnectionOperationBusy": "另一个 Uber Eats 连接正在完成。此授权已无法使用。请返回管理页面，待当前检查完成后重新开始授权。",
+      "AuthorizationSuperseded": "此授权链接已被更新的链接替代。请返回 Uber Eats 管理页面检查最新连接状态。"
     },
     "errors": {
       "load": "无法加载最新信息。",

@@ -39,6 +39,11 @@ export default function DeliveryChannelMappingList({
   const { t } = useTranslation();
   const used = new Set(Object.values(selected).filter(Boolean));
   const options = candidates.filter((candidate) => candidate.available && candidate.supported);
+  const mappingTone = (status: DeliveryChannelCatalogue['items'][number]['mappingStatus']) => {
+    if (status === 'mapped') return 'success';
+    if (status === 'blocked') return 'danger';
+    return 'warning';
+  };
 
   return (
     <ul className={styles.mappingList}>
@@ -55,11 +60,7 @@ export default function DeliveryChannelMappingList({
                 <strong>{row.providerItemName}</strong>
                 <code dir="ltr">{row.providerItemId}</code>
               </div>
-              <StatusBadge
-                tone={
-                  row.mappingStatus === 'mapped' ? 'success' : row.mappingStatus === 'blocked' ? 'danger' : 'warning'
-                }
-              >
+              <StatusBadge tone={mappingTone(row.mappingStatus)}>
                 {t(`deliveryChannels.menu.mapping.${row.mappingStatus}`, {
                   defaultValue: t('deliveryChannels.menu.mapping.unmapped'),
                 })}

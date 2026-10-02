@@ -3821,5 +3821,26 @@
       "rejected": "Der Antrag wurde abgelehnt. Überprüfen Sie den aktuellen Zustand.",
       "generic": "Etwas ist schief gelaufen. Überprüfen Sie den Status, bevor Sie es erneut versuchen."
     }
-  }
+  },
+  "cashier.tables.account": "Tischkonto",
+  "cashier.tables.account_items": "Artikel",
+  "cashier.tables.account_payments": "Zahlungen",
+  "cashier.tables.account_activity": "Aktivität",
+  "cashier.tables.account_balance": "Kontostand",
+  "cashier.tables.account_order": "Bestellung {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Zahlungen werden pro Bestellung angezeigt; eine Zuordnung zu einzelnen Artikeln ist nicht verfügbar.",
+  "cashier.tables.account_items_unavailable": "Kontodetails sind nicht verfügbar. Aktualisieren Sie den Besuch, um sie erneut zu prüfen.",
+  "cashier.tables.account_no_activity": "Es sind keine Besuchs- oder Bestellaktivitäten erfasst.",
+  "cashier.tables.account_visit_opened": "Besuch eröffnet",
+  "cashier.tables.account_visit_closed": "Besuch geschlossen",
+  "cashier.tables.account_order_recorded": "Bestellung erfasst",
+  "cashier.tables.account_order_status": "Bestellstatus aktualisiert",
+  "cashier.tables.account_item_snapshot_note": "Artikelbeträge sind gespeicherte Bestellpositionswerte vor bestellweiten Anpassungen. Rabatte und Erstattungen bleiben auf Bestell- oder Zahlungsebene.",
+  "cashier.tables.account_bill_totals": "Rechnungssummen",
+  "cashier.tables.account_order_refunded": "Bestellung erstattet",
+  "cashier.tables.account_order_partially_refunded": "Bestellung teilweise erstattet",
+  "cashier.tables.account_refunded_amount": "Erstattet: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Dieser Besuch wurde beendet oder geändert. Aktualisieren Sie „Tische“ und wählen Sie den aktuellen offenen Besuch, bevor Sie Artikel hinzufügen.",
+  "cashier.tables.add_round_identity_unavailable": "Für diesen Besuch fehlt eine stabile Besuchs-ID. Aktualisieren oder reparieren Sie ihn, bevor Sie eine weitere Runde hinzufügen.",
+  "cashier.tables.account_activity_has_more": "Die neuesten Kontobewegungen werden angezeigt. Ältere Ereignisse sind hier nicht sichtbar."
 }

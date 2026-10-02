@@ -1,0 +1,196 @@
+.account {
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow: clip;
+}
+
+.title {
+  font-size: 1.05rem;
+  margin: 0;
+  padding: 0.8rem 0.9rem 0;
+}
+
+.balance {
+  align-items: flex-end;
+  background: var(--surface-primary);
+  border-block: 1px solid var(--border-default);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+}
+
+.balance > div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.balance dt {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.balance dd {
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.balancePrimary dd {
+  font-size: 1.3rem;
+  font-weight: 750;
+}
+
+.tabs {
+  border-block-end: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.25rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-inline: 0.5rem;
+}
+
+.tab {
+  background: transparent;
+  border: 0;
+  border-block-end: 3px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 3rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.tab[aria-selected='true'] {
+  border-block-end-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+.tab:focus-visible,
+.panel:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.panel {
+  min-height: 9rem;
+  outline-offset: -3px;
+  padding: 0 0.9rem 0.9rem;
+}
+
+.items,
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  align-items: flex-start;
+  border-block-end: 1px solid var(--border-default);
+  display: flex;
+  gap: 0.65rem;
+  padding-block: 0.7rem;
+}
+
+.item:last-child {
+  border-block-end: 0;
+}
+
+.quantity {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 2rem;
+}
+
+.itemDetails,
+.eventContent {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-inline-size: 0;
+}
+
+.orderRef,
+.empty,
+.note,
+.eventContent time {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  padding-block: 0.75rem;
+}
+
+.note {
+  margin: 0 0 0.6rem;
+}
+
+.paymentHistory {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.paymentOrder {
+  border-block-start: 1px solid var(--border-default);
+  padding-block-start: 0.55rem;
+}
+
+.paymentOrder h4 {
+  margin: 0 0 0.4rem;
+}
+
+.activity {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.event {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.eventMarker {
+  background: var(--status-info);
+  border-radius: 50%;
+  flex: 0 0 0.55rem;
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  margin-block-start: 0.35rem;
+}
+
+@media (max-width: 420px) {
+  .balance {
+    gap: 0.45rem 0.75rem;
+  }
+
+  .balance > div {
+    flex: 1 1 40%;
+  }
+
+  .item {
+    gap: 0.45rem;
+  }
+
+  .amount {
+    font-size: 0.9rem;
+  }
+}

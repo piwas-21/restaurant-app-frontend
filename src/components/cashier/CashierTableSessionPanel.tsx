@@ -15,11 +15,12 @@ import {
   tableSessionActions,
   tableSessionCurrency,
   tableSessionEligibleOutstanding,
+  tableSessionAddRoundPath,
 } from '@/lib/cashierTableSession';
-import { CASHIER_NEW_SALE_PATH } from '@/lib/cashierWorkspace';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
+import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
 
@@ -50,22 +51,6 @@ function pendingNoticeLabel(operation: PendingTableOperation, t: (key: string) =
   return operation.kind === 'payment' ? t('cashier.tables.payment_unknown') : t('cashier.tables.close_unknown');
 }
 
-function addRoundPath(session: TableServiceSessionDto): string | null {
-  const label = session.tableLabel || (session.tableNumber != null ? String(session.tableNumber) : null);
-  if (session.tableId && label) {
-    return `${CASHIER_NEW_SALE_PATH}?${new URLSearchParams({
-      channel: 'DineIn',
-      table: label,
-      tableId: session.tableId,
-      serviceSessionId: session.serviceSessionId,
-    })}`;
-  }
-  if (session.tableNumber != null) {
-    return `${CASHIER_NEW_SALE_PATH}?channel=DineIn&table=${encodeURIComponent(String(session.tableNumber))}`;
-  }
-  return null;
-}
-
 export default function CashierTableSessionPanel({
   session,
   timeZone,
@@ -90,8 +75,9 @@ export default function CashierTableSessionPanel({
   const writesLocked = operationLocked || isStale;
   const closeAllowed = actions.has('close');
   const legacyConflict = hasLegacyConflict || session.hasUnassignedActiveOrders === true;
-  const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict;
-  const addRoundHref = addRoundPath(session);
+  const addRoundHref = tableSessionAddRoundPath(session);
+  const addRoundIdentityUnavailable = session.status === 'Open' && !addRoundHref;
+  const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict && Boolean(addRoundHref);
   const message = displayError(error, t);
   const currency = tableSessionCurrency(session);
   const opened = formatCashierDateTime(
@@ -215,8 +201,17 @@ export default function CashierTableSessionPanel({
         )}
       </div>
       {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}
+      {addRoundIdentityUnavailable && (
+        <p className={styles.muted} role="status">
+          {t('cashier.tables.add_round_identity_unavailable')}
+        </p>
+      )}
 
-      <CashierTableSessionBill session={session} timeZone={timeZone} />
+      <TableAccountPresentation
+        session={session}
+        timeZone={timeZone}
+        fallback={<CashierTableSessionBill session={session} timeZone={timeZone} />}
+      />
       {actions.has('collect') && (
         <CashierTablePaymentForm session={session} disabled={writesLocked} onSubmit={onSubmitPayment} />
       )}

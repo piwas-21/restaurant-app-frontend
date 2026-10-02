@@ -14,7 +14,7 @@ import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 export default function ServerLayoutClient({
   children,
   features,
-}: Readonly<{ children: ReactNode; features: TenantFeaturesState }>) {
+}: Readonly<{ children: ReactNode; features: Partial<TenantFeaturesState> }>) {
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useTranslation();

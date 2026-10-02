@@ -3812,5 +3812,26 @@
       "rejected": "请求被拒绝。查看当前状态。",
       "generic": "出了点问题。重试之前检查状态。"
     }
-  }
+  },
+  "cashier.tables.account": "桌台账单",
+  "cashier.tables.account_items": "菜品",
+  "cashier.tables.account_payments": "付款",
+  "cashier.tables.account_activity": "活动记录",
+  "cashier.tables.account_balance": "账单余额",
+  "cashier.tables.account_order": "订单 {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "付款按订单显示；暂不提供按菜品分摊的信息。",
+  "cashier.tables.account_items_unavailable": "账单明细暂不可用。请刷新本次用餐记录后再查看。",
+  "cashier.tables.account_no_activity": "没有记录的桌台或订单活动。",
+  "cashier.tables.account_visit_opened": "用餐开始",
+  "cashier.tables.account_visit_closed": "用餐结束",
+  "cashier.tables.account_order_recorded": "订单已记录",
+  "cashier.tables.account_order_status": "订单状态已更新",
+  "cashier.tables.account_item_snapshot_note": "商品金额是订单级调整前已记录的订单行快照。折扣和退款仍按订单或付款记录显示。",
+  "cashier.tables.account_bill_totals": "账单总额",
+  "cashier.tables.account_order_refunded": "订单已退款",
+  "cashier.tables.account_order_partially_refunded": "订单已部分退款",
+  "cashier.tables.account_refunded_amount": "退款金额：{{amount}}",
+  "cashier.new_sale.visit_unavailable": "此桌次已结束或发生变化。请先刷新“餐桌”页面并选择当前进行中的桌次，再添加商品。",
+  "cashier.tables.add_round_identity_unavailable": "此桌次没有稳定的桌次 ID。请先刷新或修复，再添加新一轮订单。",
+  "cashier.tables.account_activity_has_more": "当前显示最新的账户活动。更早的事件不会显示在此处。"
 }

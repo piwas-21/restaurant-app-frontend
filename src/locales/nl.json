@@ -3821,5 +3821,26 @@
       "rejected": "Het verzoek werd afgewezen. Bekijk de huidige status.",
       "generic": "Er is iets misgegaan. Controleer de status voordat u het opnieuw probeert."
     }
-  }
+  },
+  "cashier.tables.account": "Tafelrekening",
+  "cashier.tables.account_items": "Producten",
+  "cashier.tables.account_payments": "Betalingen",
+  "cashier.tables.account_activity": "Activiteit",
+  "cashier.tables.account_balance": "Rekeningsaldo",
+  "cashier.tables.account_order": "Bestelling {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Betalingen worden per bestelling getoond; verdeling per product is niet beschikbaar.",
+  "cashier.tables.account_items_unavailable": "Rekeningregels zijn niet beschikbaar. Vernieuw het bezoek om ze te bekijken.",
+  "cashier.tables.account_no_activity": "Er is geen bezoek- of bestelactiviteit vastgelegd.",
+  "cashier.tables.account_visit_opened": "Bezoek geopend",
+  "cashier.tables.account_visit_closed": "Bezoek gesloten",
+  "cashier.tables.account_order_recorded": "Bestelling vastgelegd",
+  "cashier.tables.account_order_status": "Bestelstatus bijgewerkt",
+  "cashier.tables.account_item_snapshot_note": "Bedragen zijn opgeslagen orderregelwaarden vóór aanpassingen op orderniveau. Kortingen en terugbetalingen blijven op order- of betalingsniveau.",
+  "cashier.tables.account_bill_totals": "Rekeningtotalen",
+  "cashier.tables.account_order_refunded": "Bestelling terugbetaald",
+  "cashier.tables.account_order_partially_refunded": "Bestelling gedeeltelijk terugbetaald",
+  "cashier.tables.account_refunded_amount": "Terugbetaald: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Dit bezoek is beëindigd of gewijzigd. Vernieuw Tafels en kies het huidige open bezoek voordat je items toevoegt.",
+  "cashier.tables.add_round_identity_unavailable": "Dit bezoek heeft geen stabiele bezoek-ID. Vernieuw of herstel het voordat je een nieuwe ronde toevoegt.",
+  "cashier.tables.account_activity_has_more": "De meest recente accountactiviteit wordt getoond. Eerdere gebeurtenissen zijn hier niet zichtbaar."
 }

@@ -3857,5 +3857,26 @@
       "rejected": "تم رفض الطلب. مراجعة الوضع الحالي.",
       "generic": "حدث خطأ ما. تحقق من الحالة قبل إعادة المحاولة."
     }
-  }
+  },
+  "cashier.tables.account": "حساب الطاولة",
+  "cashier.tables.account_items": "العناصر",
+  "cashier.tables.account_payments": "المدفوعات",
+  "cashier.tables.account_activity": "النشاط",
+  "cashier.tables.account_balance": "رصيد الحساب",
+  "cashier.tables.account_order": "الطلب {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "تُعرض المدفوعات حسب الطلب؛ ولا يتوفر توزيعها على مستوى العناصر.",
+  "cashier.tables.account_items_unavailable": "تفاصيل عناصر الحساب غير متاحة. حدّث الزيارة لمراجعتها.",
+  "cashier.tables.account_no_activity": "لا توجد أنشطة مسجلة للزيارة أو الطلبات.",
+  "cashier.tables.account_visit_opened": "بدأت الزيارة",
+  "cashier.tables.account_visit_closed": "انتهت الزيارة",
+  "cashier.tables.account_order_recorded": "سُجّل الطلب",
+  "cashier.tables.account_order_status": "تم تحديث حالة الطلب",
+  "cashier.tables.account_item_snapshot_note": "مبالغ الأصناف هي لقطات مسجلة من بنود الطلب قبل تعديلات مستوى الطلب. تبقى الخصومات والمبالغ المستردة على مستوى الطلب أو الدفع.",
+  "cashier.tables.account_bill_totals": "إجمالي الفاتورة",
+  "cashier.tables.account_order_refunded": "تم استرداد الطلب",
+  "cashier.tables.account_order_partially_refunded": "تم استرداد جزء من الطلب",
+  "cashier.tables.account_refunded_amount": "المبلغ المسترد {{amount}}",
+  "cashier.new_sale.visit_unavailable": "انتهت هذه الزيارة أو تغيرت. حدّث شاشة الطاولات واختر الزيارة المفتوحة الحالية قبل إضافة الأصناف.",
+  "cashier.tables.add_round_identity_unavailable": "لا يوجد معرّف ثابت لهذه الزيارة. حدّثها أو أصلحها قبل إضافة جولة أخرى.",
+  "cashier.tables.account_activity_has_more": "يتم عرض أحدث أنشطة الحساب. لا تظهر الأحداث الأقدم هنا."
 }

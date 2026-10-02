@@ -3839,5 +3839,26 @@
       "rejected": "Запрос был отклонен. Просмотрите текущее состояние.",
       "generic": "Что-то пошло не так. Проверьте статус перед повторной попыткой."
     }
-  }
+  },
+  "cashier.tables.account": "Счёт стола",
+  "cashier.tables.account_items": "Блюда",
+  "cashier.tables.account_payments": "Платежи",
+  "cashier.tables.account_activity": "История",
+  "cashier.tables.account_balance": "Баланс счёта",
+  "cashier.tables.account_order": "Заказ {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Платежи показаны по заказам; распределение по блюдам недоступно.",
+  "cashier.tables.account_items_unavailable": "Сведения о строках счёта недоступны. Обновите визит, чтобы проверить их.",
+  "cashier.tables.account_no_activity": "Нет записей о визите или заказах.",
+  "cashier.tables.account_visit_opened": "Визит открыт",
+  "cashier.tables.account_visit_closed": "Визит закрыт",
+  "cashier.tables.account_order_recorded": "Заказ записан",
+  "cashier.tables.account_order_status": "Статус заказа обновлён",
+  "cashier.tables.account_item_snapshot_note": "Суммы — это сохранённые значения строк заказа до корректировок на уровне заказа. Скидки и возвраты учитываются на уровне заказа или платежа.",
+  "cashier.tables.account_bill_totals": "Итоги счёта",
+  "cashier.tables.account_order_refunded": "Заказ возвращён",
+  "cashier.tables.account_order_partially_refunded": "Частичный возврат по заказу",
+  "cashier.tables.account_refunded_amount": "Возвращено: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Этот визит завершён или изменён. Обновите экран «Столы» и выберите текущий открытый визит, прежде чем добавлять блюда.",
+  "cashier.tables.add_round_identity_unavailable": "У визита нет постоянного идентификатора. Обновите или восстановите его перед добавлением нового заказа.",
+  "cashier.tables.account_activity_has_more": "Показаны последние события счёта. Более ранние события здесь не отображаются."
 }

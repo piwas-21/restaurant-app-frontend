@@ -1,65 +1,8 @@
-'use client';
+import type { ReactNode } from 'react';
+import { getTenantFeatures } from '@/services/tenantFeaturesService';
+import CashierLayoutClient from './cashier-layout-client';
 
-import React from 'react';
-import { usePathname } from 'next/navigation';
-import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/components/AuthContext';
-import { Loader2 } from 'lucide-react';
-import styles from './layout.module.css';
-import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
-
-interface CashierLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function CashierLayout({ children }: CashierLayoutProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const { t } = useTranslation();
-  const { user, isLoading } = useAuth();
-
-  React.useEffect(() => {
-    // Wait for auth to load
-    if (isLoading) return;
-
-    // Redirect to login if not authenticated. `/auth/login` — there is no `/login` route,
-    // and pushing to one sent an unauthenticated cashier to a 404 instead of a sign-in form.
-    if (!user) {
-      router.push(tenantLocaleHref(pathname, '/auth/login'));
-      return;
-    }
-
-    // Redirect to home if not a cashier/admin
-    const userRole = user.role?.toLowerCase();
-    if (userRole !== 'cashier' && userRole !== 'admin') {
-      router.push(tenantLocaleHref(pathname, '/'));
-      return;
-    }
-  }, [isLoading, pathname, user, router]);
-
-  if (isLoading) {
-    return (
-      <div className={styles.centerScreen}>
-        <Loader2 size={48} style={{ animation: 'spin 1s linear infinite' }} />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const userRole = user.role?.toLowerCase();
-  if (userRole !== 'cashier' && userRole !== 'admin') {
-    // Signed in without the cashier role: say so instead of a blank page while the
-    // redirect home runs (somebody logged in on the counter tablet sees this panel).
-    return (
-      <div className={styles.centerScreen} role="alert">
-        <p>{t('cashier.workspace.not_authorized')}</p>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+export default async function CashierLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const features = await getTenantFeatures();
+  return <CashierLayoutClient features={features}>{children}</CashierLayoutClient>;
 }

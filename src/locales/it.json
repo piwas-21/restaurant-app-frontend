@@ -3830,5 +3830,26 @@
       "rejected": "La richiesta è stata respinta. Esamina lo stato attuale.",
       "generic": "Qualcosa è andato storto. Controlla lo stato prima di riprovare."
     }
-  }
+  },
+  "cashier.tables.account": "Conto del tavolo",
+  "cashier.tables.account_items": "Articoli",
+  "cashier.tables.account_payments": "Pagamenti",
+  "cashier.tables.account_activity": "Attività",
+  "cashier.tables.account_balance": "Saldo del conto",
+  "cashier.tables.account_order": "Ordine {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "I pagamenti sono mostrati per ordine; la ripartizione per articolo non è disponibile.",
+  "cashier.tables.account_items_unavailable": "I dettagli delle righe del conto non sono disponibili. Aggiorna la visita per consultarli.",
+  "cashier.tables.account_no_activity": "Non è registrata alcuna attività della visita o degli ordini.",
+  "cashier.tables.account_visit_opened": "Visita aperta",
+  "cashier.tables.account_visit_closed": "Visita chiusa",
+  "cashier.tables.account_order_recorded": "Ordine registrato",
+  "cashier.tables.account_order_status": "Stato dell’ordine aggiornato",
+  "cashier.tables.account_item_snapshot_note": "Gli importi sono valori registrati delle righe prima degli adeguamenti dell’ordine. Sconti e rimborsi restano a livello di ordine o pagamento.",
+  "cashier.tables.account_bill_totals": "Totali del conto",
+  "cashier.tables.account_order_refunded": "Ordine rimborsato",
+  "cashier.tables.account_order_partially_refunded": "Ordine rimborsato parzialmente",
+  "cashier.tables.account_refunded_amount": "Rimborsato: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Questa visita è terminata o è cambiata. Aggiorna Tavoli e scegli la visita aperta attuale prima di aggiungere articoli.",
+  "cashier.tables.add_round_identity_unavailable": "Questa visita non ha un ID stabile. Aggiornala o riparala prima di aggiungere un altro turno.",
+  "cashier.tables.account_activity_has_more": "Sono mostrate le attività più recenti del conto. Gli eventi precedenti non sono visibili qui."
 }

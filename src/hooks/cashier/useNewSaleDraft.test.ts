@@ -69,6 +69,18 @@ describe('useNewSaleDraft — the Add-round entry deep link', () => {
     expect(result.current.state.serviceSessionId).toBeUndefined();
   });
 
+  it('retains an exact legacy visit ID from Add Round when the link has no table ID', async () => {
+    atUrl(`/cashier/new?channel=DineIn&table=7&serviceSessionId=${serviceSessionId}`);
+    const { result } = await renderDraft();
+
+    expect(result.current.state).toMatchObject({
+      channel: OrderType.DineIn,
+      tableNumber: '7',
+      serviceSessionId,
+    });
+    expect(result.current.state.tableId).toBeUndefined();
+  });
+
   it('keeps an unfinished sale for another visit instead of silently moving its lines', async () => {
     persistCashierNewSaleDraft({
       channel: OrderType.DineIn,

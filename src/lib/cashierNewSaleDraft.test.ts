@@ -55,6 +55,13 @@ describe('cashierNewSaleDraft — persist/resume', () => {
     expect(readCashierNewSaleDraft()).toMatchObject({ tableLabel: '11a', tableId, serviceSessionId });
   });
 
+  it('preserves a pinned legacy visit ID when the draft has no stable table ID', () => {
+    persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber: 7, serviceSessionId }));
+
+    expect(readCashierNewSaleDraft()).toMatchObject({ tableNumber: 7, serviceSessionId });
+    expect(readCashierNewSaleDraft()?.tableId).toBeUndefined();
+  });
+
   it('retains a valid legacy table number while rejecting fractional and zero values', () => {
     persistCashierNewSaleDraft(draft({ channel: OrderType.DineIn, tableNumber: 7 }));
     expect(readCashierNewSaleDraft()?.tableNumber).toBe(7);

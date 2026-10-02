@@ -3830,5 +3830,26 @@
       "rejected": "La solicitud fue rechazada. Revisar el estado actual.",
       "generic": "Algo salió mal. Verifique el estado antes de volver a intentarlo."
     }
-  }
+  },
+  "cashier.tables.account": "Cuenta de mesa",
+  "cashier.tables.account_items": "Artículos",
+  "cashier.tables.account_payments": "Pagos",
+  "cashier.tables.account_activity": "Actividad",
+  "cashier.tables.account_balance": "Saldo de la cuenta",
+  "cashier.tables.account_order": "Pedido {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Los pagos se muestran por pedido; no está disponible el reparto por artículo.",
+  "cashier.tables.account_items_unavailable": "Los detalles de las líneas de la cuenta no están disponibles. Actualiza la visita para revisarlos.",
+  "cashier.tables.account_no_activity": "No hay actividad registrada de la visita ni de los pedidos.",
+  "cashier.tables.account_visit_opened": "Visita abierta",
+  "cashier.tables.account_visit_closed": "Visita cerrada",
+  "cashier.tables.account_order_recorded": "Pedido registrado",
+  "cashier.tables.account_order_status": "Estado del pedido actualizado",
+  "cashier.tables.account_item_snapshot_note": "Los importes son valores registrados de las líneas antes de los ajustes del pedido. Los descuentos y reembolsos se mantienen a nivel de pedido o pago.",
+  "cashier.tables.account_bill_totals": "Totales de la cuenta",
+  "cashier.tables.account_order_refunded": "Pedido reembolsado",
+  "cashier.tables.account_order_partially_refunded": "Pedido reembolsado parcialmente",
+  "cashier.tables.account_refunded_amount": "Reembolsado: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Esta visita ha terminado o ha cambiado. Actualiza Mesas y elige la visita abierta actual antes de añadir artículos.",
+  "cashier.tables.add_round_identity_unavailable": "Esta visita no tiene un ID estable. Actualízala o repárala antes de añadir otra ronda.",
+  "cashier.tables.account_activity_has_more": "Se muestra la actividad más reciente de la cuenta. Los eventos anteriores no aparecen aquí."
 }

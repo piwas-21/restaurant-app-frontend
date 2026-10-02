@@ -3830,5 +3830,26 @@
       "rejected": "La demande a été rejetée. Passez en revue l’état actuel.",
       "generic": "Quelque chose s'est mal passé. Vérifiez l'état avant de réessayer."
     }
-  }
+  },
+  "cashier.tables.account": "Compte de table",
+  "cashier.tables.account_items": "Articles",
+  "cashier.tables.account_payments": "Paiements",
+  "cashier.tables.account_activity": "Activité",
+  "cashier.tables.account_balance": "Solde du compte",
+  "cashier.tables.account_order": "Commande {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Les paiements sont affichés par commande ; leur répartition par article est indisponible.",
+  "cashier.tables.account_items_unavailable": "Les détails des lignes du compte sont indisponibles. Actualisez la visite pour les consulter.",
+  "cashier.tables.account_no_activity": "Aucune activité de visite ou de commande n’est enregistrée.",
+  "cashier.tables.account_visit_opened": "Visite ouverte",
+  "cashier.tables.account_visit_closed": "Visite clôturée",
+  "cashier.tables.account_order_recorded": "Commande enregistrée",
+  "cashier.tables.account_order_status": "Statut de la commande mis à jour",
+  "cashier.tables.account_item_snapshot_note": "Les montants reprennent les valeurs enregistrées des lignes avant les ajustements de commande. Les remises et remboursements restent au niveau de la commande ou du paiement.",
+  "cashier.tables.account_bill_totals": "Totaux de la note",
+  "cashier.tables.account_order_refunded": "Commande remboursée",
+  "cashier.tables.account_order_partially_refunded": "Commande partiellement remboursée",
+  "cashier.tables.account_refunded_amount": "Remboursé : {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Cette visite est terminée ou a changé. Actualisez Tables et choisissez la visite ouverte actuelle avant d’ajouter des articles.",
+  "cashier.tables.add_round_identity_unavailable": "Cette visite n’a pas d’identifiant stable. Actualisez-la ou réparez-la avant d’ajouter un nouveau tour.",
+  "cashier.tables.account_activity_has_more": "Les activités les plus récentes du compte sont affichées. Les événements antérieurs ne sont pas visibles ici."
 }

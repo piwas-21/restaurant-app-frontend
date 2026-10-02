@@ -3821,5 +3821,26 @@
       "rejected": "The request was rejected. Review the current state.",
       "generic": "Something went wrong. Check status before retrying."
     }
-  }
+  },
+  "cashier.tables.account": "Table account",
+  "cashier.tables.account_items": "Items",
+  "cashier.tables.account_payments": "Payments",
+  "cashier.tables.account_activity": "Activity",
+  "cashier.tables.account_balance": "Account balance",
+  "cashier.tables.account_order": "Order {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Payments are shown by order; item-level allocation is not available.",
+  "cashier.tables.account_items_unavailable": "Account line details are unavailable. Refresh the visit to review them.",
+  "cashier.tables.account_no_activity": "No visit or order activity is recorded.",
+  "cashier.tables.account_visit_opened": "Visit opened",
+  "cashier.tables.account_visit_closed": "Visit closed",
+  "cashier.tables.account_order_recorded": "Order recorded",
+  "cashier.tables.account_order_status": "Order status updated",
+  "cashier.tables.account_item_snapshot_note": "Item amounts are recorded order-line snapshots before order-level adjustments. Discounts and refunds remain at the order or payment level.",
+  "cashier.tables.account_bill_totals": "Bill totals",
+  "cashier.tables.account_order_refunded": "Order refunded",
+  "cashier.tables.account_order_partially_refunded": "Order partially refunded",
+  "cashier.tables.account_refunded_amount": "Refunded {{amount}}",
+  "cashier.new_sale.visit_unavailable": "This visit has ended or changed. Refresh Tables and choose the current open visit before adding items.",
+  "cashier.tables.add_round_identity_unavailable": "This visit has no stable visit ID. Refresh or repair it before adding a round.",
+  "cashier.tables.account_activity_has_more": "Showing the latest account activity. Earlier events are not shown here."
 }

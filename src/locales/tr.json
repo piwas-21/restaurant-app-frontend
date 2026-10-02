@@ -3821,5 +3821,26 @@
       "rejected": "Talep reddedildi. Mevcut durumu inceleyin.",
       "generic": "Bir şeyler ters gitti. Yeniden denemeden önce durumu kontrol edin."
     }
-  }
+  },
+  "cashier.tables.account": "Masa hesabı",
+  "cashier.tables.account_items": "Ürünler",
+  "cashier.tables.account_payments": "Ödemeler",
+  "cashier.tables.account_activity": "Hareketler",
+  "cashier.tables.account_balance": "Hesap bakiyesi",
+  "cashier.tables.account_order": "Sipariş {{order}}",
+  "cashier.tables.account_payment_allocation_unavailable": "Ödemeler siparişe göre gösterilir; ürün bazında ödeme dağılımı mevcut değildir.",
+  "cashier.tables.account_items_unavailable": "Hesap satırları kullanılamıyor. Yeniden incelemek için ziyareti yenileyin.",
+  "cashier.tables.account_no_activity": "Kaydedilmiş ziyaret veya sipariş hareketi yok.",
+  "cashier.tables.account_visit_opened": "Ziyaret açıldı",
+  "cashier.tables.account_visit_closed": "Ziyaret kapatıldı",
+  "cashier.tables.account_order_recorded": "Sipariş kaydedildi",
+  "cashier.tables.account_order_status": "Sipariş durumu güncellendi",
+  "cashier.tables.account_item_snapshot_note": "Ürün tutarları sipariş düzeyi düzeltmeler öncesindeki kayıtlı sipariş kalemi görüntüleridir. İndirimler ve iadeler sipariş veya ödeme düzeyinde gösterilir.",
+  "cashier.tables.account_bill_totals": "Hesap toplamları",
+  "cashier.tables.account_order_refunded": "Sipariş iade edildi",
+  "cashier.tables.account_order_partially_refunded": "Sipariş kısmen iade edildi",
+  "cashier.tables.account_refunded_amount": "İade edilen: {{amount}}",
+  "cashier.new_sale.visit_unavailable": "Bu ziyaret sona ermiş veya değişmiş. Ürün eklemeden önce Masalar ekranını yenileyip açık olan ziyareti seçin.",
+  "cashier.tables.add_round_identity_unavailable": "Bu ziyaretin sabit bir kimliği yok. Yeni tur eklemeden önce yenileyin veya düzeltin.",
+  "cashier.tables.account_activity_has_more": "Hesap hareketlerinin en yenileri gösteriliyor. Daha eski olaylar burada gösterilmiyor."
 }

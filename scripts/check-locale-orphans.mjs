@@ -107,6 +107,11 @@ const DYNAMIC_PREFIXES = [
   // src/components/kitchenStaff/MarketplaceKitchenBoard.tsx composes
   // `marketplaceStaff.status.${status}`.
   'marketplaceStaff.status.',
+  // Amendment review labels map typed API enums to localized labels at runtime:
+  // OrderAmendmentReviewStage.tsx composes `orderAmendments.kind_${kind}` and
+  // `orderAmendments.state_${state}` from the quote's finite server enum values.
+  'orderAmendments.kind_',
+  'orderAmendments.state_',
   // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
   // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the

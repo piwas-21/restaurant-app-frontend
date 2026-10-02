@@ -18,6 +18,7 @@ import ServerTakeawayCatalog from './ServerTakeawayCatalog';
 import ServerTakeawayTicket from './ServerTakeawayTicket';
 import styles from './ServerTakeawayWorkspace.module.css';
 import ServerTasksBadge from '@/components/server/tasks/ServerTasksBadge';
+import { serverOrderNavItem } from '@/components/server/serverWorkspaceOrderNav';
 
 function messageFor(error: string | null, translate: (key: string) => string): string | null {
   if (!error) return null;
@@ -27,7 +28,7 @@ function messageFor(error: string | null, translate: (key: string) => string): s
 export default function ServerTakeawayWorkspace() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { serverWorkspaceV2 } = useTenantFeatures();
+  const { serverWorkspaceV2, orderAmendmentsV1 } = useTenantFeatures();
   const taskSummary = useServerTaskSummary();
   const takeaway = useServerTakeaway();
   const [detailOpen, setDetailOpen] = useState(false);
@@ -42,11 +43,13 @@ export default function ServerTakeawayWorkspace() {
     ? [
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
+        ...serverOrderNavItem(orderAmendmentsV1, t),
         { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
         { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ]
     : [
         { href: '/server', label: t('server.takeaway.server_tasks') },
+        ...serverOrderNavItem(orderAmendmentsV1, t),
         { href: '/server/takeaway', label: t('server.takeaway.title'), active: true },
         { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ];

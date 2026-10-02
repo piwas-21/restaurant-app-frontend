@@ -22,7 +22,7 @@ function CallbackStatus() {
   else if (['failed', 'expired', 'error', 'invalid', 'unconfirmed'].includes(state)) tone = 'warning';
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <section className={styles.panel} aria-live="polite">
         <p className={styles.eyebrow}>{t('deliveryChannels.callback.eyebrow')}</p>
         <h1>{t('deliveryChannels.callback.title')}</h1>
@@ -58,7 +58,7 @@ function CallbackStatus() {
           {t('deliveryChannels.callback.backToManagement')}
         </Link>
       </section>
-    </main>
+    </div>
   );
 }
 

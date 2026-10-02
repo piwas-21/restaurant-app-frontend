@@ -32,7 +32,10 @@ export default function DeliveryChannelManagement() {
   const connected = Boolean(summary?.enabled && summary.connectionStatus === 'connected' && summary.storeConfirmed);
   const { activeStep, setActiveStep } = useDeliveryChannelStep(connected);
 
-  const refreshConnection = async () => (await overview.refresh()).summary;
+  const refreshConnection = async () => {
+    const result = await overview.refresh(true);
+    return result.summary && result.fresh;
+  };
 
   const refreshAll = async () => {
     if (operations.statusCheckRequired) {

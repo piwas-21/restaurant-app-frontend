@@ -1,15 +1,30 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getOrderById } from '@/services/cashierService';
 import type { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
+import { channelOrderReviewFingerprint } from '@/utils/channelOrderReviewFingerprint';
 
 export interface CashierOrderSelection {
   readonly order: OrderDto | null;
   readonly isLoading: boolean;
+  readonly isRefreshing: boolean;
   readonly error: string | null;
+  readonly isSnapshotFresh: boolean;
+  readonly refresh: () => void;
 }
+
+interface LoadedSelection {
+  readonly id: string;
+  readonly fingerprint: string;
+  readonly refreshGeneration: number;
+  readonly order: OrderDto;
+}
+
+type RequestState =
+  | { readonly key: string; readonly state: 'loading' | 'loaded' }
+  | { readonly key: string; readonly state: 'failed'; readonly error: string };
 
 type OrderWithVersion = OrderDto & { readonly version?: unknown };
 
@@ -34,6 +49,7 @@ function queueFingerprint(order: OrderDto | null): string {
     // would keep showing the pre-toggle state after a ticket action (see CashierTicketActions).
     order.isFocusOrder === true,
     payments,
+    channelOrderReviewFingerprint(order),
   ].join('|');
 }
 
@@ -42,47 +58,69 @@ export function useCashierOrderSelection(
   orders: readonly OrderDto[],
   selectedOrderId: string | null,
 ): CashierOrderSelection {
-  const [fetchedOrder, setFetchedOrder] = useState<OrderDto | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<LoadedSelection | null>(null);
+  const [requestState, setRequestState] = useState<RequestState | null>(null);
+  const [refreshGeneration, setRefreshGeneration] = useState(0);
   const requestRef = useRef(0);
+  const selectedId = selectedOrderId?.toLowerCase() ?? '';
   const queueOrder = selectedOrderId
     ? (orders.find((candidate) => candidate.id.toLowerCase() === selectedOrderId.toLowerCase()) ?? null)
     : null;
   const fingerprint = queueFingerprint(queueOrder);
+  const requestKey = selectedId ? `${selectedId}|${fingerprint}|${refreshGeneration}` : '';
+  const currentRequest = requestState?.key === requestKey ? requestState : null;
+  const hasLoadedSelection = loaded?.id === selectedId;
+  const order = hasLoadedSelection ? latestAvailableOrder(loaded.order, queueOrder) : queueOrder;
+  const error = currentRequest?.state === 'failed' ? currentRequest.error : null;
+  const isLoading = Boolean(selectedId) && !hasLoadedSelection && currentRequest?.state !== 'failed';
+  const isRefreshing = Boolean(hasLoadedSelection) && (currentRequest?.state ?? 'loading') === 'loading';
+  const isSnapshotFresh = Boolean(hasLoadedSelection) && currentRequest?.state === 'loaded';
+  const refresh = useCallback(() => setRefreshGeneration((generation) => generation + 1), []);
 
   useEffect(() => {
     let alive = true;
     const requestId = ++requestRef.current;
     if (!selectedOrderId) {
-      setFetchedOrder(null);
-      setError(null);
-      setIsLoading(false);
+      setLoaded(null);
+      setRequestState(null);
       return () => {
         alive = false;
       };
     }
 
-    setFetchedOrder(null);
-    setIsLoading(true);
-    setError(null);
+    const normalizedId = selectedOrderId.toLowerCase();
+    setRequestState({ key: requestKey, state: 'loading' });
     void getOrderById(selectedOrderId)
       .then((result) => {
-        if (alive && requestId === requestRef.current) setFetchedOrder(result);
+        if (!alive || requestId !== requestRef.current) return;
+        setLoaded({ id: normalizedId, fingerprint, refreshGeneration, order: result });
+        setRequestState({ key: requestKey, state: 'loaded' });
       })
       .catch((reason: unknown) => {
         if (!alive || requestId !== requestRef.current) return;
-        setFetchedOrder(null);
-        setError(getErrorMessage(reason) ?? 'cashier.workspace.order_unavailable');
-      })
-      .finally(() => {
-        if (alive && requestId === requestRef.current) setIsLoading(false);
+        setRequestState({
+          key: requestKey,
+          state: 'failed',
+          error: getErrorMessage(reason) ?? 'cashier.workspace.order_unavailable',
+        });
       });
 
     return () => {
       alive = false;
     };
-  }, [fingerprint, selectedOrderId]);
+  }, [fingerprint, refreshGeneration, requestKey, selectedOrderId]);
 
-  return { order: fetchedOrder ?? queueOrder, isLoading, error };
+  return {
+    order: error && !hasLoadedSelection ? null : order,
+    isLoading,
+    isRefreshing,
+    error,
+    isSnapshotFresh,
+    refresh,
+  };
+}
+
+function latestAvailableOrder(loadedOrder: OrderDto, queueOrder: OrderDto | null): OrderDto {
+  if (queueOrder && queueOrder.version > loadedOrder.version) return queueOrder;
+  return loadedOrder;
 }

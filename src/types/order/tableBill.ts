@@ -1,6 +1,28 @@
 import { ApiResponse } from './common';
 import { OrderDto } from './orderDto';
+import type { OrderItemDto } from './dtos';
 import type { TableBillRoundDto } from './tableBillRound';
+
+/** Root charge line snapshot; nested children remain explanatory and are not separate charges. */
+export interface TableBillAccountItemDto {
+  orderId: string;
+  orderNumber: string;
+  orderItemId: string;
+  itemSnapshot: OrderItemDto;
+  /** Number of stable unit identities represented by this line; ordinals are derived as 1..unitCount. */
+  unitCount: number;
+}
+
+/** Bounded staff account history, independent of which orders remain in the financial bill. */
+export interface TableAccountActivityDto {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  /** Backend currently emits OrderPlaced or StatusChanged. */
+  kind: string;
+  status: string;
+  occurredAt: string;
+}
 
 /**
  * ONE bill for a dine-in table (waiter/POS): the union of the table's still-open
@@ -9,6 +31,14 @@ import type { TableBillRoundDto } from './tableBillRound';
  * neither Completed nor Cancelled.
  */
 export interface TableBillDto {
+  /** Additive account content version for an explicit visit; null for legacy bills. */
+  accountRevision?: number | null;
+  /** Root order line snapshots with stable unit identities; absent on older backends. */
+  accountItems?: TableBillAccountItemDto[];
+  /** Bounded account history, including events for cancelled session members. */
+  accountActivity?: TableAccountActivityDto[];
+  /** True when older account activity exists beyond this response's bounded page. */
+  hasMoreAccountActivity?: boolean;
   /** Stable configured table identity, when the bill belongs to a physical table. */
   tableId?: string | null;
   /** Null for label-only visits; the session's tableLabel carries the display name then. */

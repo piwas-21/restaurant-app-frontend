@@ -119,6 +119,9 @@ function ServerWorkspaceV1() {
       />
 
       <div className={styles.pageActions}>
+        <Link className={styles.takeawayLink} href="/server/marketplace">
+          {t('marketplaceStaff.kitchen_title')}
+        </Link>
         <Link className={styles.takeawayLink} href="/server/takeaway">
           {t('server.takeaway.link')}
         </Link>
@@ -148,6 +151,7 @@ function ServerWorkspaceV1() {
             selectedTableNumber={selectedTableNumber}
             selectedTableId={selectedTableId}
             onStatusChange={handleStatusChange}
+            onOrderChanged={() => void refreshOrders()}
             statusFilter={statusFilter}
             isLoading={isLoading}
             error={error}

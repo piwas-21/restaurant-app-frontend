@@ -80,6 +80,7 @@ describe('getCashierOrders — operational scope contract', () => {
 
     await getCashierOrders({
       orderType: 'DineIn',
+      marketplaceOnly: true,
       search: '12',
       tableNumber: 12,
       page: 2,
@@ -92,7 +93,7 @@ describe('getCashierOrders — operational scope contract', () => {
 
     const [endpoint] = mockGet.mock.calls.at(-1) as [string];
     expect(endpoint).toBe(
-      '/api/orders?scope=Operational&orderType=DineIn&search=12&tableNumber=12&page=2&pageSize=20&modifiedSince=2026-03-08T10%3A00%3A00.000Z',
+      '/api/orders?scope=Operational&orderType=DineIn&marketplaceOnly=true&search=12&tableNumber=12&page=2&pageSize=20&modifiedSince=2026-03-08T10%3A00%3A00.000Z',
     );
     expect(endpoint).not.toContain('tenantDay');
     expect(endpoint).not.toContain('startDate');

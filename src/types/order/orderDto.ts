@@ -3,6 +3,7 @@
  * Extracted from types/order.ts (Sprint 4/6 type-file split by domain).
  */
 
+import type { ExternalOrderDto } from './externalOrder';
 import { OrderType } from './enums';
 import { ApiResponse, PagedResult } from './common';
 import {
@@ -93,6 +94,7 @@ export interface OrderDto {
   discount: number;
   discountPercentage: number;
   customerDiscountAmount: number;
+  fidelityPointsDiscount?: number;
   tip: number;
   total: number;
   totalPaid: number;
@@ -126,6 +128,7 @@ export interface OrderDto {
   hasUserLimitDiscount: boolean;
   userLimitAmount: number;
   currency?: string | null;
+  externalOrder?: ExternalOrderDto | null;
   items: OrderItemDto[];
   payments: OrderPaymentDto[];
   statusHistory: OrderStatusHistoryDto[];

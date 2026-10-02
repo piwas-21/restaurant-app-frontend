@@ -39,6 +39,8 @@ export interface TableServiceSessionDto {
   /** Server lifecycle value; known values are documented by TableServiceSessionStatus. */
   status: string;
   version: number;
+  /** Additive visit-content revision, independent of the existing session mutation version. */
+  accountRevision?: number;
   openedAt: string;
   closedAt?: string | null;
   roundCount: number;

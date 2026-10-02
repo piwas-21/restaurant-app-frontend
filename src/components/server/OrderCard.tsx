@@ -1,4 +1,5 @@
-import { formatPlainCurrency } from '@/utils/currency';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import MarketplaceOrderSource from '@/components/order/MarketplaceOrderSource';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 // One source for the status modifier class. The ladder this replaces handled six of the ten
@@ -10,12 +11,14 @@ import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from './OrderCard.module.css';
+import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
 
-interface OrderCardProps {
-  order: OrderDto;
-  onStatusChange: (orderId: string, status: string) => void;
-  isLoading?: boolean;
-}
+type OrderCardProps = {
+  readonly order: OrderDto;
+  readonly onStatusChange: (orderId: string, status: string) => void;
+  readonly onOrderChanged?: () => void;
+  readonly isLoading?: boolean;
+};
 
 // The primary next action, derived from the SHARED transition table (#547) instead of the local
 // case ladder this card used to own. The table allows `Ready → OutForDelivery`, which the ladder
@@ -43,7 +46,7 @@ const NEXT_ACTION: Partial<Record<OrderStatus, { key: string; fallback: string }
   Completed: { key: 'server.complete_order', fallback: 'Complete Order' },
 };
 
-export default function OrderCard({ order, onStatusChange, isLoading }: OrderCardProps) {
+export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoading }: OrderCardProps) {
   const { t, i18n } = useTranslation();
 
   const formatTime = (dateString: string) => {
@@ -53,7 +56,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
     return date.toLocaleTimeString(i18n.language || 'en', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const nextStatus = primaryNextStatus(order);
+  const nextStatus = order.externalOrder ? null : primaryNextStatus(order);
   const nextAction = nextStatus ? NEXT_ACTION[nextStatus] : undefined;
   const tableLabel = getOrderTableLabel(order);
 
@@ -71,6 +74,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
         <div className={styles.statusBadge}>{orderStatusLabel(order.status, t)}</div>
       </div>
 
+      <MarketplaceOrderSource source={order.externalOrder} />
       <div className={styles.meta}>
         <span className={styles.time}>🕐 {formatTime(order.orderDate)}</span>
         {order.customerName && <span className={styles.customer}>👤 {order.customerName}</span>}
@@ -99,7 +103,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
       <div className={styles.footer}>
         <div className={styles.total}>
           <span className={styles.totalLabel}>{t('server.total', 'Total')}</span>
-          <span className={styles.totalAmount}>{formatPlainCurrency(order.total)}</span>
+          <span className={styles.totalAmount}>{formatOrderCurrency(order.total, order)}</span>
         </div>
 
         {nextStatus && nextAction && (
@@ -112,6 +116,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
           </button>
         )}
       </div>
+      {order.externalOrder && <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />}
     </div>
   );
 }

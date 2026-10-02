@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTableBillActions';
 import ServerTableBillWorkspace from './ServerTableBillWorkspace';
+import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 
 jest.mock('@/hooks/serverWorkspace/useServerTableBillActions');
 jest.mock('react-i18next', () => ({
@@ -144,5 +145,17 @@ describe('ServerTableBillWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'refresh' }));
 
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the account tabs only when the tenant presentation flag is enabled', () => {
+    render(
+      <TenantFeaturesProvider features={{ serverWorkspaceV2: true, tableAccountV1: true }}>
+        <ServerTableBillWorkspace session={session} actionsBlocked={false} refreshWorkspace={jest.fn()} />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.getByRole('heading', { name: 'cashier.tables.account' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'cashier.tables.account_items' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'cashier.tables.bill' })).not.toBeInTheDocument();
   });
 });

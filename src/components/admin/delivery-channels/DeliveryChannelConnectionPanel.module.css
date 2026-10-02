@@ -1,0 +1,197 @@
+.panel {
+  padding: 1.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 10px);
+  background: var(--surface-card);
+}
+
+.headingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.description,
+.connectArea > p,
+.disconnectArea > p {
+  max-width: 52rem;
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.storeIdentity {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  gap: 1rem;
+  margin: 1rem 0 0;
+  padding: 1rem;
+  border-inline-start: 4px solid var(--brand-primary);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  background: var(--surface-primary);
+}
+
+.storeIdentity dt {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.storeIdentity dd {
+  margin: 0.25rem 0 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.storeIdentity code {
+  font-size: 0.875rem;
+}
+
+.checkedAt {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.notice,
+.authorization {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  background: var(--surface-primary);
+}
+
+.notice p,
+.authorization p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.notice > strong,
+.notice > span {
+  display: block;
+  line-height: 1.5;
+}
+
+.warning {
+  border-color: var(--feedback-warning-text);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.connectArea,
+.disconnectArea {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.dangerAction {
+  border: 1px solid var(--feedback-danger);
+  background: var(--feedback-danger);
+  color: var(--text-on-primary);
+  min-height: 2.75rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dangerAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.inlineAction {
+  margin-inline-start: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--link-default);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.authorization a {
+  display: inline-block;
+  margin-block: 0.5rem;
+  color: var(--link-default);
+  font-weight: 700;
+  text-underline-offset: 0.15em;
+}
+
+.error {
+  color: var(--feedback-error-text);
+  font-weight: 600;
+}
+
+.success {
+  color: var(--feedback-success-text);
+  font-weight: 600;
+}
+
+.modalBody {
+  line-height: 1.55;
+}
+
+.modalBody ul {
+  padding-inline-start: 1.4rem;
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modalActions > button {
+  margin-top: 0;
+}
+
+.dangerAction:focus-visible,
+.inlineAction:focus-visible,
+.authorization a:focus-visible {
+  outline: 3px solid var(--brand-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .headingRow {
+    display: block;
+  }
+
+  .badges {
+    justify-content: flex-start;
+    margin-top: 0.75rem;
+  }
+
+  .storeIdentity {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions > button {
+    flex: 1 1 auto;
+  }
+}

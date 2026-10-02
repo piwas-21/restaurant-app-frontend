@@ -5,6 +5,7 @@ import { Eye, RefreshCw, Star, Trash2 } from 'lucide-react';
 import { useOrderHelpers } from '@/hooks/useOrderHelpers';
 import { getStatusBadgeClasses, getPaymentBadgeClasses } from '@/utils/orderStatusStyles';
 import styles from './OrdersTable.module.css';
+import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
 
 interface OrdersTableProps {
   orders: OrderDto[];
@@ -44,6 +45,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
             <th>{t('order_number', 'Order #')}</th>
             <th>{t('customer', 'Customer')}</th>
             <th>{t('type', 'Type')}</th>
+            <th>{t('marketplaceStaff.source_column')}</th>
             <th>{t('status', 'Status')}</th>
             <th>{t('payment', 'Payment')}</th>
             <th>{t('total', 'Total')}</th>
@@ -81,6 +83,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <span>{getOrderTypeLabel(order.type)}</span>
                 </div>
               </td>
+              <td>{order.externalOrder && <MarketplaceOrderQueueSource order={order} />}</td>
               <td>
                 <span className={getStatusBadgeClasses(order.status)}>{getStatusLabel(order.status)}</span>
               </td>

@@ -1,6 +1,8 @@
 import { apiClient } from '@/utils/apiClient';
 import type { OrderDto } from '@/types/order';
 import { ACTIVE_ORDER_STATUS_FILTER, getDineInOrders } from './orders';
+import { getMarketplaceOperationalOrders } from './marketplaceOrders';
+import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 
 jest.mock('@/utils/apiClient', () => ({ apiClient: { get: jest.fn() } }));
 
@@ -93,5 +95,42 @@ describe('getDineInOrders', () => {
 
     await expect(getDineInOrders({ status: ACTIVE_ORDER_STATUS_FILTER })).rejects.toThrow('too large to load safely');
     expect(mockGet).toHaveBeenCalledTimes(1000);
+  });
+});
+
+describe('getMarketplaceOperationalOrders', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('uses the server marketplace queue and keeps only accepted, kitchen-released work across pages', async () => {
+    const accepted = {
+      ...marketplaceOrder(),
+      id: 'accepted',
+      status: 'Confirmed',
+      isKitchenReleased: true,
+      externalOrder: { ...marketplaceOrder().externalOrder!, externalState: 'ACCEPTED' },
+    };
+    const pending = marketplaceOrder();
+    pending.id = 'pending';
+    const makePage = (items: OrderDto[], pageNumber: number, totalPages: number) => ({
+      success: true,
+      data: {
+        items,
+        totalCount: 2,
+        page: pageNumber,
+        pageSize: 50,
+        totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPreviousPage: pageNumber > 1,
+      },
+    });
+    mockGet.mockResolvedValueOnce(makePage([pending], 1, 2)).mockResolvedValueOnce(makePage([accepted], 2, 2));
+
+    await expect(getMarketplaceOperationalOrders()).resolves.toEqual([accepted]);
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    const params = new URLSearchParams(mockGet.mock.calls[0][0].split('?')[1]);
+    expect(params.get('scope')).toBe('Operational');
+    expect(params.get('marketplaceOnly')).toBe('true');
+    expect(params.get('orderType')).toBe('Delivery');
+    expect(new URLSearchParams(mockGet.mock.calls[1][0].split('?')[1]).get('page')).toBe('2');
   });
 });

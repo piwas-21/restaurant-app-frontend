@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import ServerLayout from './server-layout-client';
 
 const mockPush = jest.fn();
@@ -12,6 +13,11 @@ jest.mock('next/navigation', () => ({
 }));
 jest.mock('@/components/AuthContext', () => ({ useAuth: () => mockAuth() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+
+function FeatureProbe() {
+  const { tableAccountV1 } = useTenantFeatures();
+  return <output>{String(tableAccountV1)}</output>;
+}
 
 describe('ServerLayout authorization', () => {
   const features = { serverWorkspaceV2: false };
@@ -42,5 +48,15 @@ describe('ServerLayout authorization', () => {
       </ServerLayout>,
     );
     expect(screen.getByText('private server workspace')).toBeInTheDocument();
+  });
+
+  it('provides the tenant table-account flag to authorized server routes', () => {
+    render(
+      <ServerLayout features={{ serverWorkspaceV2: true, tableAccountV1: true }}>
+        <FeatureProbe />
+      </ServerLayout>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('true');
   });
 });

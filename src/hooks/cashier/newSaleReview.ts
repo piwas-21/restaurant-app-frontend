@@ -41,8 +41,13 @@ export async function reviewCounterSale(input: {
   storedOperationId?: string;
   loyaltyEnabled?: boolean;
 }): Promise<ReviewOutcome> {
-  if (input.channel === OrderType.DineIn && input.tableNumber.trim() === '') {
+  const hasPinnedVisit = Boolean(input.serviceSessionId?.trim());
+  const hasIncompleteVisitIdentity = Boolean(input.tableId?.trim()) && !hasPinnedVisit;
+  if (input.channel === OrderType.DineIn && input.tableNumber.trim() === '' && !hasPinnedVisit) {
     return { status: 'blocked', error: 'cashier.new_sale.invalid_table' };
+  }
+  if (input.channel === OrderType.DineIn && hasIncompleteVisitIdentity) {
+    return { status: 'blocked', error: 'cashier.new_sale.visit_unavailable' };
   }
 
   let target: Awaited<ReturnType<typeof resolveDineInSession>> = null;
@@ -53,7 +58,12 @@ export async function reviewCounterSale(input: {
         tableId: input.tableId,
         serviceSessionId: input.serviceSessionId,
       });
-      if (!target) return { status: 'blocked', error: 'cashier.new_sale.no_open_session' };
+      if (!target) {
+        return {
+          status: 'blocked',
+          error: hasPinnedVisit ? 'cashier.new_sale.visit_unavailable' : 'cashier.new_sale.no_open_session',
+        };
+      }
     } catch (err) {
       return { status: 'refused', error: getErrorMessage(err) ?? 'cashier.new_sale.review_failed' };
     }

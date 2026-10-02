@@ -18,7 +18,8 @@ import {
 import { OrderDto } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
-import { formatOrderPrice, formatOrderDate } from '@/utils/orderDetailsFormatters';
+import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { formatOrderDate } from '@/utils/orderDetailsFormatters';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import styles from '../OrderDetailsModal.module.css';
 
@@ -184,13 +185,13 @@ export default function OrderDetailsInfo({ order }: OrderDetailsInfoProps) {
                   </p>
                 )}
                 <div className={styles.itemQuantity}>
-                  {t('qty', 'Qty')}: {item.quantity} × {formatOrderPrice(item.unitPrice)}
+                  {t('qty', 'Qty')}: {item.quantity} × {formatOrderCurrency(item.unitPrice, order)}
                 </div>
                 {/* `order.items` is root-only since backend #237 — without this the components of a
                     combo are invisible here. Instructions are hidden: rendered above already. */}
                 <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
               </div>
-              <div className={styles.itemTotal}>{formatOrderPrice(item.itemTotal)}</div>
+              <div className={styles.itemTotal}>{formatOrderCurrency(item.itemTotal, order)}</div>
             </div>
           ))}
         </div>

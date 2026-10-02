@@ -51,7 +51,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const cashierModuleEnabled = useModuleEnabled('cashier');
   const isCashierWorkspace = cashierModuleEnabled && isCashierWorkspacePath(pathname ?? '');
   const isServerWorkspace = routePath === '/server' || routePath.startsWith('/server/');
-  const isStaffWorkspace = isCashierWorkspace || isServerWorkspace;
+  const isKitchenWorkspace = routePath === '/kitchen-staff' || routePath.startsWith('/kitchen-staff/');
+  const isStaffWorkspace = isCashierWorkspace || isServerWorkspace || isKitchenWorkspace;
   const isHomePage = routePath === '/';
   const isAdminPage = routePath.startsWith('/admin');
   const homeHref = publicHomeHref(pathname, searchParams);
@@ -104,6 +105,9 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   }
   if (isCashierWorkspace) {
     mainStyles = { padding: '0', height: '100dvh', minHeight: 0, overflow: 'hidden', flexGrow: 1 };
+  }
+  if (isKitchenWorkspace) {
+    mainStyles = { padding: '0', height: '100dvh', minHeight: 0, overflow: 'auto', flexGrow: 1 };
   }
 
   const footerStyles: CSSProperties = {

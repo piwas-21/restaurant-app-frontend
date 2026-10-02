@@ -40,6 +40,17 @@ describe('tenant locale middleware', () => {
     );
   });
 
+  it('localizes the unprefixed delivery-channel callback and preserves its opaque flow id', () => {
+    const response = middleware(
+      request('/admin/delivery-channels/callback?flowId=flow-opaque-42', { 'accept-language': 'fr-CH, en;q=0.8' }),
+    );
+
+    expect(response.headers.get('location')).toBe(
+      'https://tenant.test/fr/admin/delivery-channels/callback?flowId=flow-opaque-42',
+    );
+    expect(response.headers.get('cache-control')).toContain('no-store');
+  });
+
   it('keeps explicit route locale deterministic and replaces spoofed internal locale headers', () => {
     const response = middleware(
       request('/ar/cart', {

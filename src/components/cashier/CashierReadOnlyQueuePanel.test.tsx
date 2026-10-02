@@ -43,12 +43,14 @@ const props = (overrides: Partial<ComponentProps<typeof CashierReadOnlyQueuePane
   statusFilter: 'all',
   paymentStatusFilter: 'all',
   orderTypeFilter: 'all',
+  marketplaceOnlyFilter: false,
   onSelectOrder: jest.fn(),
   onSearchChange: jest.fn(),
   onSearchSubmit: jest.fn(),
   onStatusFilterChange: jest.fn(),
   onPaymentStatusFilterChange: jest.fn(),
   onOrderTypeFilterChange: jest.fn(),
+  onMarketplaceOnlyFilterChange: jest.fn(),
   onPageChange: jest.fn(),
   onRetry: jest.fn(),
   ...overrides,
@@ -59,15 +61,22 @@ describe('CashierReadOnlyQueuePanel', () => {
     const onSelectOrder = jest.fn();
     const onSearchSubmit = jest.fn();
     const onStatusFilterChange = jest.fn();
-    render(<CashierReadOnlyQueuePanel {...props({ onSelectOrder, onSearchSubmit, onStatusFilterChange })} />);
+    const onMarketplaceOnlyFilterChange = jest.fn();
+    render(
+      <CashierReadOnlyQueuePanel
+        {...props({ onSelectOrder, onSearchSubmit, onStatusFilterChange, onMarketplaceOnlyFilterChange })}
+      />,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /1042/ }));
     fireEvent.submit(screen.getByRole('search'));
     fireEvent.change(screen.getByLabelText('cashier.workspace.status_filter'), { target: { value: 'Ready' } });
+    fireEvent.change(screen.getByLabelText('marketplaceStaff.source_filter'), { target: { value: 'marketplace' } });
 
     expect(onSelectOrder).toHaveBeenCalledWith('one');
     expect(onSearchSubmit).toHaveBeenCalledTimes(1);
     expect(onStatusFilterChange).toHaveBeenCalledWith('Ready');
+    expect(onMarketplaceOnlyFilterChange).toHaveBeenCalledWith(true);
   });
 
   it('names the visible queue context and offers every canonical status', () => {

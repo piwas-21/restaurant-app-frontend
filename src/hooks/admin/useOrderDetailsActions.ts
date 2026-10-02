@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { permitsChannelLocalAction } from '@/lib/externalOrder';
 import { OrderDto } from '@/types/order';
 import { cancelOrder, refundPayment, updateOrderStatus } from '@/services/orderService';
 import { useApiError } from '@/hooks/useApiError';
@@ -39,11 +40,16 @@ export function useOrderDetailsActions(
   const [showCancelSuccessModal, setShowCancelSuccessModal] = useState(false);
 
   const canCancelOrder = () => {
-    return order.status !== 'Completed' && order.status !== 'Delivered' && order.status !== 'Cancelled';
+    return (
+      permitsChannelLocalAction(order, 'CancelOrder') &&
+      order.status !== 'Completed' &&
+      order.status !== 'Delivered' &&
+      order.status !== 'Cancelled'
+    );
   };
 
   const canConfirmOrder = () => {
-    return order.status === 'Pending';
+    return !order.externalOrder && order.status === 'Pending';
   };
 
   const handleConfirmOrder = async (withDelay: boolean = false) => {

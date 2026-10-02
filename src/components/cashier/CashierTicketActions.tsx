@@ -1,5 +1,6 @@
 'use client';
 
+import { permitsChannelLocalAction } from '@/lib/externalOrder';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
@@ -14,12 +15,17 @@ import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import styles from './CashierTicketActions.module.css';
 
+const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
+
+const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
+
 // Approval/rejection is opened on demand. Its Zod schemas and modal UI do not belong in the
 // cashier route's initial bundle while the operator is only reading the queue.
 const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr: false });
 
 interface CashierTicketActionsProps {
   readonly order: OrderDto;
+  readonly isOrderSnapshotFresh?: boolean;
   /** Notifies the host that the order changed (focus flip), so it can refresh its data. */
   readonly onOrderChanged?: () => void;
 }
@@ -29,7 +35,11 @@ interface CashierTicketActionsProps {
  * note, mark urgent (focus). Pilot feedback: the workspace destinations shipped without any
  * of them. Print opens the browser dialog and says so honestly — it cannot prove paper.
  */
-export default function CashierTicketActions({ order, onOrderChanged }: CashierTicketActionsProps) {
+export default function CashierTicketActions({
+  order,
+  isOrderSnapshotFresh = true,
+  onOrderChanged,
+}: CashierTicketActionsProps) {
   const { t } = useTranslation();
   const { flowByType } = useConfirmationFlowConfig();
   const flowForOrder = flowLookup(flowByType);
@@ -62,11 +72,14 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
   // print/notes. Dine-in auto-confirms at creation and never reaches this branch.
   const confirmationFlow = flowForOrder(order.type)?.flow ?? 'direct';
   const isPendingHandoff =
+    !order.externalOrder &&
     (order.status === 'Pending' || (order.status === 'PendingApproval' && confirmationFlow === 'acknowledge')) &&
     (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
 
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>
+      <ChannelOrderDecision order={order} isSnapshotFresh={isOrderSnapshotFresh} onOrderChanged={onOrderChanged} />
+      <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
         {isPendingHandoff && (
           <button
@@ -78,11 +91,21 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
             {t(confirmationFlow === 'acknowledge' ? 'cashier.approve_order_action' : 'cashier.confirm_order_action')}
           </button>
         )}
-        <button type="button" className={styles.actionButton} onClick={printKitchen}>
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={printKitchen}
+          disabled={!permitsChannelLocalAction(order, 'PrintKitchen')}
+        >
           <ChefHat size={17} aria-hidden="true" />
           {t('cashier.workspace.print_kitchen')}
         </button>
-        <button type="button" className={styles.actionButton} onClick={printBill}>
+        <button
+          type="button"
+          className={styles.actionButton}
+          onClick={printBill}
+          disabled={!permitsChannelLocalAction(order, 'PrintReceipt')}
+        >
           <Printer size={17} aria-hidden="true" />
           {t('cashier.workspace.print_bill')}
         </button>

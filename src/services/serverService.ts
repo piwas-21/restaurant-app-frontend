@@ -13,6 +13,7 @@
  */
 
 export type { ServerTableDto } from './server/tables';
+export { getMarketplaceOperationalOrders } from './server/marketplaceOrders';
 export type { Product, ProductCategoryLink, ProductVariation, Category } from './server/menu';
 export type { UserDto, FidelityPointBalanceDto, CustomerDiscountRuleDto } from './server/customers';
 
@@ -48,6 +49,7 @@ import {
   getOrderById,
   createServerOrder,
 } from './server/orders';
+import { getMarketplaceOperationalOrders } from './server/marketplaceOrders';
 import {
   getTables,
   getTablesWithStatus,
@@ -67,6 +69,7 @@ import {
 
 export const serverService = {
   getDineInOrders,
+  getMarketplaceOperationalOrders,
   getTables,
   getTablesWithStatus,
   getUpcomingReservations,

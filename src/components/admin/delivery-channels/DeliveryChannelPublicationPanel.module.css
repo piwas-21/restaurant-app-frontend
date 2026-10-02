@@ -1,0 +1,151 @@
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.description,
+.empty {
+  max-width: 55rem;
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.notice,
+.confirmed,
+.blocked,
+.result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.notice,
+.blocked {
+  border-color: var(--feedback-warning-text);
+}
+
+.blocked {
+  border-color: var(--feedback-error-text);
+}
+
+.confirmed {
+  border-color: var(--feedback-success-text);
+}
+
+.notice p,
+.confirmed p,
+.blocked p,
+.result p {
+  margin: 0.25rem 0 0;
+}
+
+.warning {
+  color: var(--feedback-warning-text);
+  line-height: 1.5;
+}
+
+.successText {
+  color: var(--feedback-success-text);
+}
+
+.errorText {
+  color: var(--feedback-error-text);
+}
+
+.blockerList,
+.warningList {
+  margin-top: 1rem;
+}
+
+.blockerList h3,
+.warningList h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.blockerList ul,
+.warningList ul {
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.35rem;
+}
+
+.blockerList li {
+  color: var(--feedback-error-text);
+}
+
+.warningList li {
+  color: var(--feedback-warning-text);
+}
+
+.tableWrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.375rem);
+}
+
+.tableWrap table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+}
+
+.tableWrap caption {
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-align: start;
+}
+
+.tableWrap th,
+.tableWrap td {
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-default);
+  text-align: start;
+  vertical-align: top;
+}
+
+.tableWrap thead th {
+  background: var(--surface-primary);
+}
+
+.tableWrap tbody th strong,
+.tableWrap tbody th code,
+.tableWrap tbody th span {
+  display: block;
+}
+
+.tableWrap td small {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+}
+
+.tableWrap tbody th code {
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.tableWrap tbody th span {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+@media (max-width: 700px) {
+  .heading {
+    display: block;
+  }
+}

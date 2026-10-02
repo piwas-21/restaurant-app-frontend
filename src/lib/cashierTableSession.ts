@@ -1,5 +1,6 @@
 import type { OrderDto, TableServiceSessionDto } from '@/types/order';
 import { formatCurrency, TENANT_LOCALE } from '@/utils/currency';
+import { CASHIER_NEW_SALE_PATH } from '@/lib/cashierWorkspace';
 
 const ISO_CURRENCY_CODE = /^[A-Z]{3}$/;
 const PAYMENT_TOLERANCE = 0.01;
@@ -11,6 +12,17 @@ export type TableOrderSettlementState = 'eligible' | 'settled' | 'credit' | 'ref
 export function tableNumberKey(value: string | number): string {
   const text = String(value).trim();
   return /^\d+$/.test(text) ? text.replace(/^0+(?=\d)/, '') : text;
+}
+
+/** Build a new-round link from the selected visit identity; never infer a visit from the table alone. */
+export function tableSessionAddRoundPath(session: TableServiceSessionDto): string | null {
+  const label = session.tableLabel || (session.tableNumber != null ? String(session.tableNumber) : null);
+  const serviceSessionId = session.serviceSessionId?.trim();
+  if (!serviceSessionId || !label) return null;
+  const params = new URLSearchParams({ channel: 'DineIn', table: label });
+  if (session.tableId) params.set('tableId', session.tableId);
+  params.set('serviceSessionId', serviceSessionId);
+  return `${CASHIER_NEW_SALE_PATH}?${params}`;
 }
 
 /**

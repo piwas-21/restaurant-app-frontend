@@ -73,6 +73,16 @@ describe('orphan gate — the baseline behaviours', () => {
     expect(output).not.toContain('orphan: save_now');
   });
 
+  it('still reports a dead delivery channel key outside the documented dynamic enum branches', () => {
+    const { status, output } = runGate(
+      { deliveryChannels: { unusedControl: 'Never used' } },
+      { 'src/components/DeliveryChannels.tsx': "t('deliveryChannels.title');\n" },
+    );
+
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: deliveryChannels.unusedControl');
+  });
+
   it('reaches a NESTED key by its dotted path', () => {
     const { status, output } = runGate(
       { cashier: { zreport: { total_tips: 'Tips', dead_one: 'Gone' } } },

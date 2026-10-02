@@ -258,6 +258,17 @@ describe('OrderService', () => {
       expect(result.status).toBe('Confirmed');
     });
 
+    it('preserves HTTP-200 status refusals and does not return an order as successful', async () => {
+      mockApiClient.put.mockResolvedValue({
+        success: false,
+        message: 'The order changed.',
+        errorCode: 'OrderVersionConflict',
+      });
+      await expect(
+        orderServiceModule.updateOrderStatus('order-123', { newStatus: 'Preparing', expectedVersion: 7 }),
+      ).rejects.toMatchObject({ status: 200, message: 'The order changed.', errorCode: 'OrderVersionConflict' });
+    });
+
     it('should handle invalid status transition', async () => {
       const error = new Error('Invalid status transition');
       mockApiClient.put.mockRejectedValue(error);

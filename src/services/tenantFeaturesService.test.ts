@@ -27,7 +27,7 @@ describe('getTenantFeatures', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: { serverWorkspaceV2: true } }) }),
     );
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: true });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: true, tableAccountV1: false });
     expect(global.fetch).toHaveBeenCalledWith('http://backend.test/api/tenant/features', {
       cache: 'no-store',
       signal: expect.any(AbortSignal),
@@ -39,7 +39,18 @@ describe('getTenantFeatures', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: { serverWorkspaceV2: false } }) }),
     );
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
+  });
+
+  it('reads the additive table account presentation flag', async () => {
+    mockFetch(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true, data: { serverWorkspaceV2: true, tableAccountV1: true } }),
+      }),
+    );
+
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: true, tableAccountV1: true });
   });
 
   it.each([
@@ -49,7 +60,7 @@ describe('getTenantFeatures', () => {
   ])('fails closed on %s', async (_label, body) => {
     mockFetch(() => Promise.resolve({ ok: true, json: () => Promise.resolve(body) }));
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
   });
 
   it('fails closed when success is false even if the data says enabled', async () => {
@@ -57,19 +68,19 @@ describe('getTenantFeatures', () => {
       Promise.resolve({ ok: true, json: () => Promise.resolve({ success: false, data: { serverWorkspaceV2: true } }) }),
     );
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
   });
 
   it('fails closed when an older backend returns 404', async () => {
     mockFetch(() => Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) }));
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
   });
 
   it('fails closed when the backend is unreachable', async () => {
     mockFetch(() => Promise.reject(new Error('ECONNREFUSED')));
 
-    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(getTenantFeatures()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
   });
 
   it('fails closed when no API base is configured', async () => {
@@ -79,7 +90,7 @@ describe('getTenantFeatures', () => {
     const { getTenantFeatures: fresh } = await import('./tenantFeaturesService');
     mockFetch(() => Promise.reject(new Error('should not be called')));
 
-    await expect(fresh()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(fresh()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
@@ -89,7 +100,7 @@ describe('getTenantFeatures', () => {
     const { getTenantFeatures: fresh } = await import('./tenantFeaturesService');
     mockFetch(() => Promise.reject(new Error('should not be called')));
 
-    await expect(fresh()).resolves.toEqual({ serverWorkspaceV2: false });
+    await expect(fresh()).resolves.toEqual({ serverWorkspaceV2: false, tableAccountV1: false });
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });

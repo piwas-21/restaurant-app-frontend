@@ -38,6 +38,10 @@ describe('/server takeaway entry', () => {
 
     expect(screen.getByTestId('table-grid')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'server.takeaway.link' })).toHaveAttribute('href', '/server/takeaway');
+    expect(screen.getByRole('link', { name: 'marketplaceStaff.kitchen_title' })).toHaveAttribute(
+      'href',
+      '/server/marketplace',
+    );
     expect(screen.getByRole('main')).toHaveAttribute('data-workspace-variant', 'v1');
   });
 

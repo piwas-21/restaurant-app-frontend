@@ -8,6 +8,7 @@ import OperationResultNotice from '@/components/design-system/OperationResultNot
 import StaffButton from '@/components/design-system/StaffButton';
 import CashierTablePaymentForm from '@/components/cashier/CashierTablePaymentForm';
 import TableServiceSessionBill from '@/components/table-service/TableServiceSessionBill';
+import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTableBillActions';
 import type { TableServiceSessionDto } from '@/types/order';
@@ -140,7 +141,7 @@ export default function ServerTableBillWorkspace({
         />
       )}
 
-      <TableServiceSessionBill session={session} />
+      <TableAccountPresentation session={session} fallback={<TableServiceSessionBill session={session} />} />
 
       <BaseModal
         isOpen={showClose}

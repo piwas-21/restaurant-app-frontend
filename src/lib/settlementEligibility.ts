@@ -10,6 +10,7 @@ const PAYMENT_TOLERANCE = 0.01;
  * authoritative; this only decides which control is offered.
  */
 export function canCollectPayment(order: OrderDto): boolean {
+  if (order.externalOrder) return false;
   if (order.status === 'Cancelled' || order.status === 'Refunded') return false;
   if (order.paymentStatus === 'Refunded') return false;
   if (

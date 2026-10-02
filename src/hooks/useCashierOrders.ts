@@ -10,36 +10,22 @@ import {
   cancelOrder,
   toggleFocusOrder,
   getPaymentOperation,
-  AddPaymentRequest,
 } from '@/services/cashierService';
-import { OrderDto, PaymentOperationLookupDto } from '@/types/order';
+import type { OrderDto } from '@/types/order';
 import type { CashierQueueState } from '@/types/cashier';
 import { getErrorMessage } from '@/utils/apiClient';
-import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
+import { useCashierOrdersStream } from './cashier/useCashierOrdersStream';
 import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
 import { CashierOrdersQuery, DEFAULT_QUEUE_QUERY } from './cashier/useCashierFilters';
+import { resolveCashierQueuePage } from './cashier/cashierQueuePage';
+import type { UseCashierOrdersReturn } from './cashier/useCashierOrdersTypes';
 
 const POLLING_INTERVAL_MS = 5000;
 
-interface UseCashierOrdersReturn {
-  orders: OrderDto[];
-  pagination: { totalCount: number; page: number; pageSize: number; totalPages: number };
-  isConnected: boolean;
-  isLoading: boolean;
-  error: string | null;
-  queueState: CashierQueueState;
-  lastEventTime: Date | null;
-  connectionState: ConnectionState;
-  refreshOrders: () => Promise<boolean>;
-  updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
-  addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
-  reconcilePayment: (orderId: string, operationId: string) => Promise<PaymentOperationLookupDto>;
-  refundPayment: (orderId: string, paymentId: string, amount: number, reason: string) => Promise<OrderDto>;
-  cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
-  toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
-}
-
-export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY): UseCashierOrdersReturn {
+export function useCashierOrders(
+  query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
+  onPageChange?: (page: number) => void,
+): UseCashierOrdersReturn {
   const queryRef = useRef<CashierOrdersQuery>(query);
   queryRef.current = query;
 
@@ -83,14 +69,16 @@ export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY
         return false;
       }
 
-      const items = Array.isArray(result.items) ? result.items : [];
-      const pageSize = result.pageSize > 0 ? result.pageSize : queryRef.current.pageSize;
-      const totalCount = Number.isFinite(result.totalCount) ? result.totalCount : items.length;
-      const page = result.page > 0 ? result.page : queryRef.current.page;
-      const totalPages = result.totalPages > 0 ? result.totalPages : Math.ceil(totalCount / pageSize);
+      const pageResult = resolveCashierQueuePage(result, queryRef.current.page, queryRef.current.pageSize);
+      setPagination(pageResult.pagination);
+      if (pageResult.requestedPageWasOutOfRange) {
+        updateOrders([]);
+        onPageChange?.(pageResult.pagination.page);
+        setIsLoading(true);
+        return false;
+      }
 
-      updateOrders(items);
-      setPagination({ totalCount, page, pageSize, totalPages });
+      updateOrders(pageResult.items);
       hasSnapshotRef.current = true;
       setQueueState('ready');
       setIsLoading(false);
@@ -104,7 +92,7 @@ export function useCashierOrders(query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY
       console.error('Error fetching orders:', error_);
       return false;
     }
-  }, [updateOrders]);
+  }, [onPageChange, updateOrders]);
   const stream = useCashierOrdersStream({
     onOrderUpdate: () => void refreshOrders(),
     onReconnectRequested: () => void refreshOrders(),

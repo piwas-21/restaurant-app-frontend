@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ACTIVE_ORDER_STATUS_FILTER,
   getDineInOrders,
+  getMarketplaceOperationalOrders,
   getTablesWithStatus,
   ServerTableDto,
 } from '@/services/serverService';
@@ -14,14 +15,16 @@ const POLLING_INTERVAL_MS = 5000;
 const POLLING_START_DELAY_MS = 100;
 
 async function getInitialOrders(): Promise<OrderDto[]> {
-  const [recentOrders, activeOrders] = await Promise.all([
+  const [recentOrders, activeOrders, marketplaceOrders] = await Promise.all([
     getDineInOrders(),
     getDineInOrders({ status: ACTIVE_ORDER_STATUS_FILTER }),
+    getMarketplaceOperationalOrders(),
   ]);
 
   const ordersById = new Map<string, OrderDto>();
   for (const order of recentOrders.items || []) ordersById.set(order.id, order);
   for (const order of activeOrders.items || []) ordersById.set(order.id, order);
+  for (const order of marketplaceOrders) ordersById.set(order.id, order);
   return [...ordersById.values()];
 }
 
@@ -58,19 +61,31 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
   const isMountedRef = useRef(true);
   const lastPolledAtRef = useRef<Date | null>(null);
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const ordersRequestGeneration = useRef(0);
 
   const fetchOrders = useCallback(async (modifiedSince?: Date) => {
     if (!isMountedRef.current) return;
+    const generation = ++ordersRequestGeneration.current;
     try {
-      const resultItems = modifiedSince
-        ? (await getDineInOrders({ modifiedSince })).items || []
-        : await getInitialOrders();
-      if (!isMountedRef.current) return;
+      let resultItems: OrderDto[];
+      if (modifiedSince) {
+        const [dineIn, marketplace] = await Promise.all([
+          getDineInOrders({ modifiedSince }),
+          getMarketplaceOperationalOrders(),
+        ]);
+        resultItems = [...(dineIn.items || []), ...marketplace];
+      } else {
+        resultItems = await getInitialOrders();
+      }
+      if (!isMountedRef.current || generation !== ordersRequestGeneration.current) return;
 
-      if (modifiedSince && resultItems.length > 0) {
+      if (modifiedSince) {
         // Incremental update: merge new/updated orders.
         setOrders((prev) => {
-          const newOrders = [...prev];
+          const currentMarketplaceIds = new Set(
+            resultItems.filter((order) => order.externalOrder).map((order) => order.id),
+          );
+          const newOrders = prev.filter((order) => !order.externalOrder || currentMarketplaceIds.has(order.id));
           for (const order of resultItems) {
             const existingIndex = newOrders.findIndex((o) => o.id === order.id);
             if (existingIndex >= 0) {
@@ -89,7 +104,7 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
       setMutationError(null);
       setIsLoading(false);
     } catch (err) {
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current || generation !== ordersRequestGeneration.current) return;
       const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
       setOrdersError(errorMessage);
       setIsLoading(false);

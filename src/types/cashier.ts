@@ -6,6 +6,7 @@ export interface CashierOrdersFilters {
   status?: string;
   paymentStatus?: string;
   orderType?: string;
+  marketplaceOnly?: boolean;
   search?: string;
   tableNumber?: number;
   page?: number;

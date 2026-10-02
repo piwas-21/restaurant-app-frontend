@@ -105,10 +105,12 @@ export function PaymentRows({
   payments,
   t,
   currency,
+  showRefundedAmounts = false,
 }: {
   readonly payments: readonly OrderPaymentDto[];
   readonly t: TFunction;
   readonly currency?: string | null;
+  readonly showRefundedAmounts?: boolean;
 }) {
   if (payments.length === 0) return <p className={styles.emptyMessage}>{t('cashier.workspace.no_payments')}</p>;
   return (
@@ -118,6 +120,13 @@ export function PaymentRows({
           <span>
             <strong>{methodLabel(String(payment.paymentMethod), t)}</strong>
             <StatusBadge tone={paymentRecordTone(payment)}>{paymentRecordStatus(payment, t)}</StatusBadge>
+            {showRefundedAmounts && (payment.refundedAmount ?? 0) > 0 && (
+              <small className={styles.itemSecondary}>
+                {t('cashier.tables.account_refunded_amount', {
+                  amount: formatOrderCurrency(payment.refundedAmount, { currency }),
+                })}
+              </small>
+            )}
           </span>
           <span>{formatOrderCurrency(payment.amount, { currency })}</span>
         </li>

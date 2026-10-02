@@ -128,6 +128,7 @@ export default function ServerFloorWorkspace() {
     { href: '/server/floor', label: t('server.table', 'Floor'), active: true },
     { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
     { href: '/server/takeaway', label: t('server.takeaway.link') },
+    { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
   ];
 
   return (
@@ -194,6 +195,7 @@ export default function ServerFloorWorkspace() {
             documents={mapDocuments}
             states={states}
             selectedTable={selectedTableForView}
+            isStale={floor.isStale}
             formatTableLabel={formatTableLabel}
             onSelectTable={selectTable}
           />
@@ -214,6 +216,7 @@ export default function ServerFloorWorkspace() {
                     key={table.tableId}
                     table={table}
                     selected={table.tableId === selectedTableId}
+                    isStale={floor.isStale}
                     onSelect={selectTable}
                   />
                 ))

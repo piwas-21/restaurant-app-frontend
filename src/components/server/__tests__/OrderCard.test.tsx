@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import OrderCard from '../OrderCard';
+import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 import { OrderType } from '@/types/order';
 import type { OrderDto } from '@/types/order';
 
@@ -18,7 +19,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     // Distinct fallbacks per key, exactly like the component's callsites: an assertion on the
     // button's text is an assertion on the KEY that produced it.
-    t: (key: string, fallback?: string) => fallback ?? key,
+    t: (key: string, fallback?: string | { provider: string }) => (typeof fallback === 'string' ? fallback : key),
     i18n: { language: 'en' },
   }),
 }));
@@ -119,5 +120,33 @@ describe('the card wears the shared status colour hook', () => {
   ])('a %s card carries the %s modifier', (status, modifier) => {
     const { container } = render(<OrderCard order={buildOrder({ status })} onStatusChange={jest.fn()} />);
     expect(container.firstChild).toHaveClass('card', modifier);
+  });
+});
+
+describe('provider-managed orders', () => {
+  it.each(['PendingApproval', 'Confirmed', 'Preparing', 'Ready'])(
+    'does not offer ordinary local status changes for %s',
+    (status) => {
+      const onStatusChange = jest.fn();
+      render(<OrderCard order={{ ...marketplaceOrder(), status }} onStatusChange={onStatusChange} />);
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.getByText('9116D')).toBeInTheDocument();
+      expect(screen.getByText(/5.00/).textContent).not.toContain('CHF');
+      expect(onStatusChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it('shows the source-aware preparation action only after acceptance and kitchen release', () => {
+    const order = marketplaceOrder();
+    order.status = 'Confirmed';
+    order.isKitchenReleased = true;
+    order.externalOrder!.externalState = 'ACCEPTED';
+    order.permittedActions = [{ action: 'StartPreparing', allowed: true, requiresReason: false }];
+
+    render(<OrderCard order={order} onStatusChange={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'mark_as_preparing_button' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm Order' })).not.toBeInTheDocument();
+    expect(screen.getByText('9116D')).toHaveAttribute('dir', 'auto');
   });
 });

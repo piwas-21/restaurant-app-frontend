@@ -12,6 +12,8 @@ export type OrderListScope = 'All' | 'Operational';
  * Update order status command
  */
 export interface UpdateOrderStatusCommand {
+  /** Required for channel preparation; optional for existing local callers. */
+  expectedVersion?: number;
   newStatus: OrderStatus;
   notes?: string;
   estimatedPreparationMinutes?: number;
@@ -73,6 +75,8 @@ export interface OrderQueryFilters {
   orderType?: OrderType;
   /** Exact table number filter; search also matches table number server-side. */
   tableNumber?: number;
+  /** Restrict the queue to provider-managed marketplace orders. */
+  marketplaceOnly?: boolean;
   startDate?: string;
   endDate?: string;
   userId?: string;

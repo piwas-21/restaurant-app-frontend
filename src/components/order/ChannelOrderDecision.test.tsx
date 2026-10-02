@@ -1,0 +1,214 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import ChannelOrderDecision from './ChannelOrderDecision';
+import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
+import { getChannelDecision, queueChannelDecision } from '@/services/channelDecisionService';
+import type { ChannelDecisionDto } from '@/types/order/channelDecision';
+
+jest.mock('@/services/channelDecisionService');
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+const id = '11111111-1111-4111-8111-111111111111';
+const operationId = '22222222-2222-4222-8222-222222222222';
+const pending: ChannelDecisionDto = {
+  operationId,
+  orderId: id,
+  action: 'accept',
+  state: 'Pending',
+  createdAt: '2026-10-01T20:00:00Z',
+  lastObservedAt: null,
+};
+const order = () => ({ ...marketplaceOrder(), id, version: 7 });
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.mocked(getChannelDecision).mockResolvedValue(null);
+  jest.mocked(queueChannelDecision).mockResolvedValue(pending);
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue(operationId);
+});
+afterEach(() => jest.restoreAllMocks());
+
+it('requires an explicit confirmation and nonempty reason after review', async () => {
+  render(<ChannelOrderDecision order={order()} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_accept' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_accept' }));
+  expect(queueChannelDecision).not.toHaveBeenCalled();
+  const submit = screen.getByRole('button', { name: 'delivery_channels.decision_submit' });
+  expect(submit).toBeDisabled();
+  expect(queueChannelDecision).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), {
+    target: { value: 'Items and allergy instructions checked' },
+  });
+  expect(submit).toBeDisabled();
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+  expect(submit).toBeEnabled();
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
+  await screen.findByText('delivery_channels.decision_pending');
+  expect(queueChannelDecision).toHaveBeenCalledWith(id, {
+    operationId,
+    action: 'accept',
+    reason: 'Items and allergy instructions checked',
+    expectedVersion: 7,
+  });
+  expect(screen.queryByText('delivery_channels.decision_succeeded')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+});
+
+it('preserves reviewed work across a routine version refresh and submits the refreshed version', async () => {
+  const changed = jest.fn();
+  const first = order();
+  const { rerender } = render(<ChannelOrderDecision order={first} onOrderChanged={changed} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), {
+    target: { value: 'Allergy and item details checked' },
+  });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+
+  const refreshed = {
+    ...first,
+    version: 8,
+    updatedAt: '2026-10-02T17:01:00Z',
+    externalOrder: { ...first.externalOrder!, lastEventAt: '2026-10-02T17:01:00Z' },
+  };
+  rerender(<ChannelOrderDecision order={refreshed} isSnapshotFresh={false} onOrderChanged={changed} />);
+  expect(screen.getByLabelText('delivery_channels.decision_reason')).toHaveValue('Allergy and item details checked');
+  expect(screen.getByLabelText('marketplaceStaff.review_confirmation')).toBeChecked();
+  expect(screen.getByRole('button', { name: 'delivery_channels.decision_submit' })).toBeDisabled();
+  expect(queueChannelDecision).not.toHaveBeenCalled();
+
+  rerender(<ChannelOrderDecision order={refreshed} isSnapshotFresh onOrderChanged={changed} />);
+  const submit = screen.getByRole('button', { name: 'delivery_channels.decision_submit' });
+  expect(submit).toBeEnabled();
+  fireEvent.click(submit);
+  await screen.findByText('delivery_channels.decision_pending');
+  expect(queueChannelDecision).toHaveBeenCalledWith(id, {
+    operationId,
+    action: 'deny',
+    reason: 'Allergy and item details checked',
+    expectedVersion: 8,
+  });
+});
+
+it.each([
+  ['customer instructions', { notes: 'Updated allergy instruction' }],
+  [
+    'permission snapshot',
+    {
+      permittedActions: [
+        { action: 'DecideMarketplaceOrder', allowed: false, reasonCode: 'Forbidden', requiresReason: true },
+      ],
+    },
+  ],
+])('requires a new review when the %s changes', async (_change, patch) => {
+  const first = order();
+  const { rerender } = render(<ChannelOrderDecision order={first} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Reviewed' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+
+  rerender(<ChannelOrderDecision order={{ ...first, ...patch, version: 8 }} />);
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_submit' })).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('delivery_channels.decision_reason')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'delivery_channels.decision_deny' })).toBeEnabled();
+});
+
+it('removes the reviewed draft when the canonical order becomes terminal', async () => {
+  const first = order();
+  const { rerender } = render(<ChannelOrderDecision order={first} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Reviewed' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+
+  const terminal = { ...first, version: 8, externalOrder: { ...first.externalOrder!, externalState: 'ACCEPTED' } };
+  rerender(<ChannelOrderDecision order={terminal} />);
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_submit' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_deny' })).not.toBeInTheDocument();
+  expect(queueChannelDecision).not.toHaveBeenCalled();
+});
+
+it('does not carry a reviewed draft to a different order identity', async () => {
+  const first = order();
+  const { rerender } = render(<ChannelOrderDecision order={first} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Reviewed' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+
+  rerender(<ChannelOrderDecision order={{ ...first, id: '33333333-3333-4333-8333-333333333333' }} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_submit' })).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('delivery_channels.decision_reason')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'delivery_channels.decision_deny' })).toBeEnabled();
+});
+it('retries only the frozen decision after an uncertain response', async () => {
+  jest
+    .mocked(queueChannelDecision)
+    .mockRejectedValueOnce(new TypeError('lost response'))
+    .mockResolvedValueOnce({ ...pending, action: 'deny' });
+  render(<ChannelOrderDecision order={order()} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_deny' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_deny' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Test rejection' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
+  await screen.findByText('delivery_channels.decision_uncertain');
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_retry' }));
+  await screen.findByText('delivery_channels.decision_pending');
+  expect(jest.mocked(queueChannelDecision).mock.calls[1]).toEqual(jest.mocked(queueChannelDecision).mock.calls[0]);
+});
+it('shows a terminal result without offering a competing decision', async () => {
+  jest.mocked(getChannelDecision).mockResolvedValue({ ...pending, state: 'Succeeded' });
+  const changed = jest.fn();
+  render(<ChannelOrderDecision order={order()} onOrderChanged={changed} />);
+  await screen.findByText('delivery_channels.decision_succeeded');
+  expect(changed).toHaveBeenCalledTimes(1);
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+});
+it('holds decisions when the status lookup fails', async () => {
+  jest.mocked(getChannelDecision).mockRejectedValue(new Error('offline'));
+  render(<ChannelOrderDecision order={order()} />);
+  await screen.findByRole('alert');
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'delivery_channels.decision_refresh' })).toBeEnabled();
+});
+it.each(['ACCEPTED', 'DENIED', 'CANCELED', 'FINISHED'])('never starts a decision for canonical %s', async (state) => {
+  const value = order();
+  value.externalOrder!.externalState = state;
+  render(<ChannelOrderDecision order={value} />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'delivery_channels.decision_refresh' })).toBeEnabled());
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+});
+it('renders nothing and makes no API request for ordinary orders', () => {
+  const { container } = render(<ChannelOrderDecision order={{ ...order(), externalOrder: null }} />);
+  expect(container).toBeEmptyDOMElement();
+  expect(getChannelDecision).not.toHaveBeenCalled();
+});
+
+it('requires a refreshed order version after a definitive conflict', async () => {
+  const { ApiError } = await import('@/utils/apiClient');
+  jest.mocked(queueChannelDecision).mockRejectedValueOnce(new ApiError(409, ''));
+  const changed = jest.fn();
+  const { rerender } = render(<ChannelOrderDecision order={order()} onOrderChanged={changed} />);
+  await screen.findByRole('button', { name: 'delivery_channels.decision_accept' });
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_accept' }));
+  fireEvent.change(screen.getByLabelText('delivery_channels.decision_reason'), { target: { value: 'Checked' } });
+  fireEvent.click(screen.getByLabelText('marketplaceStaff.review_confirmation'));
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_submit' }));
+  await screen.findByRole('alert');
+  expect(changed).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: 'delivery_channels.decision_refresh' }));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'delivery_channels.decision_refresh' })).toBeEnabled());
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_submit' })).not.toBeInTheDocument();
+  expect(changed).toHaveBeenCalledTimes(2);
+  rerender(<ChannelOrderDecision order={{ ...order(), version: 8 }} onOrderChanged={changed} />);
+  expect(screen.getByRole('button', { name: 'delivery_channels.decision_submit' })).toBeEnabled();
+});
+
+it('surfaces the server explanation while withholding another decision', async () => {
+  const { ApiError } = await import('@/utils/apiClient');
+  jest.mocked(getChannelDecision).mockRejectedValue(new ApiError(403, 'Only a cashier or admin may decide.'));
+  render(<ChannelOrderDecision order={order()} />);
+  await screen.findByText('Only a cashier or admin may decide.');
+  expect(screen.queryByRole('button', { name: 'delivery_channels.decision_accept' })).not.toBeInTheDocument();
+});

@@ -72,12 +72,9 @@ function actionLinks(actions: readonly string[], tableId: string): { links: Acti
       continue;
     }
 
-    const href =
-      copy.destination === 'tasks'
-        ? '/server/tasks'
-        : copy.destination === 'bill'
-          ? `${tableRoute}#server-table-bill-actions`
-          : tableRoute;
+    let href = tableRoute;
+    if (copy.destination === 'tasks') href = '/server/tasks';
+    if (copy.destination === 'bill') href = `${tableRoute}#server-table-bill-actions`;
     links.push({ action, key: copy.key, fallback: copy.fallback, href });
   }
 
@@ -203,12 +200,12 @@ export default function ServerFloorTableCard({
         <div className={styles.capabilitySummary}>
           <strong>{t('server.capabilities', 'Table actions')}</strong>
           {isStale ? (
-            <p className={styles.actionNotice} role="status">
+            <output className={styles.actionNotice} aria-live="polite">
               {t(
                 'server.floor.actions_stale',
                 'Table actions may be out of date. Open table details to check current options.',
               )}
-            </p>
+            </output>
           ) : (
             <>
               {actions && actions.links.length > 0 && (
@@ -223,12 +220,12 @@ export default function ServerFloorTableCard({
                 </ul>
               )}
               {actions && actions.unsupportedCount > 0 && (
-                <p className={styles.actionNotice} role="status">
+                <output className={styles.actionNotice} aria-live="polite">
                   {t(
                     'server.floor.action_unsupported',
                     'This action has no supported link from the floor in this version. Open table details to check current options.',
                   )}
-                </p>
+                </output>
               )}
             </>
           )}

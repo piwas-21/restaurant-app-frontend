@@ -11,8 +11,8 @@ import styles from './layout.module.css';
 import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
 
 interface CashierLayoutClientProps {
-  children: React.ReactNode;
-  features: TenantFeaturesState;
+  readonly children: React.ReactNode;
+  readonly features: TenantFeaturesState;
 }
 
 export default function CashierLayoutClient({ children, features }: CashierLayoutClientProps) {

@@ -123,7 +123,8 @@ describe('CashierTableSessionPanel', () => {
 
     expect(screen.queryByRole('link', { name: 'cashier.tables.add_round' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'cashier.tables.add_round' })).toBeDisabled();
-    expect(screen.getByText('cashier.tables.add_round_identity_unavailable')).toHaveAttribute('role', 'status');
+    const identityNotice = screen.getByText('cashier.tables.add_round_identity_unavailable').closest('output');
+    expect(identityNotice).toHaveAttribute('aria-live', 'polite');
   });
 
   it('keeps Add Round disabled when the selected detail belongs to a closed prior visit', () => {

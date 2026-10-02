@@ -202,9 +202,9 @@ export default function CashierTableSessionPanel({
       </div>
       {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}
       {addRoundIdentityUnavailable && (
-        <p className={styles.muted} role="status">
+        <output className={styles.statusOutput} aria-live="polite">
           {t('cashier.tables.add_round_identity_unavailable')}
-        </p>
+        </output>
       )}
 
       <TableAccountPresentation

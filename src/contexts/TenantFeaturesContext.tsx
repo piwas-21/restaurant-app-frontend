@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 export interface TenantFeaturesState {
   serverWorkspaceV2: boolean;
@@ -14,11 +14,9 @@ export function TenantFeaturesProvider({
   features,
   children,
 }: Readonly<{ features: Partial<TenantFeaturesState>; children: ReactNode }>) {
-  return (
-    <TenantFeaturesContext.Provider value={{ ...DEFAULT_FEATURES, ...features }}>
-      {children}
-    </TenantFeaturesContext.Provider>
-  );
+  const value = useMemo(() => ({ ...DEFAULT_FEATURES, ...features }), [features]);
+
+  return <TenantFeaturesContext.Provider value={value}>{children}</TenantFeaturesContext.Provider>;
 }
 
 export function useTenantFeatures(): TenantFeaturesState {

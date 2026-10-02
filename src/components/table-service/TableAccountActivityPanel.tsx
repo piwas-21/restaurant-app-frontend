@@ -104,14 +104,21 @@ export default function TableAccountActivityPanel({
       )}
       <ol className={styles.activity}>
         {events.map((event) => {
-          const title =
-            event.kind === 'opened'
-              ? t('cashier.tables.account_visit_opened')
-              : event.kind === 'closed'
-                ? t('cashier.tables.account_visit_closed')
-                : event.kind === 'order'
-                  ? t('cashier.tables.account_order_recorded')
-                  : t('cashier.tables.account_order_status');
+          let title: string;
+          switch (event.kind) {
+            case 'opened':
+              title = t('cashier.tables.account_visit_opened');
+              break;
+            case 'closed':
+              title = t('cashier.tables.account_visit_closed');
+              break;
+            case 'order':
+              title = t('cashier.tables.account_order_recorded');
+              break;
+            case 'status':
+              title = t('cashier.tables.account_order_status');
+              break;
+          }
           return (
             <li key={event.id} className={styles.event}>
               <span className={styles.eventMarker} aria-hidden="true" />

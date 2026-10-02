@@ -128,11 +128,10 @@ describe('ServerFloorTableCard actions', () => {
       'href',
       '/server/tables/table%2F11a',
     );
-    expect(
-      within(screen.getByRole('article')).getByText(
-        'Table actions may be out of date. Open table details to check current options.',
-      ),
-    ).toBeInTheDocument();
+    const staleNotice = within(screen.getByRole('article')).getByText(
+      'Table actions may be out of date. Open table details to check current options.',
+    );
+    expect(staleNotice.closest('output')).toHaveAttribute('aria-live', 'polite');
     expect(screen.queryByRole('list', { name: 'Table actions' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
@@ -141,11 +140,10 @@ describe('ServerFloorTableCard actions', () => {
   it('explains unsupported capability routes without rendering their backend token', () => {
     render(<ServerFloorTableCard table={table({ permittedActions: ['FutureAction'] })} />);
 
-    expect(
-      within(screen.getByRole('article')).getByText(
-        /This action has no supported link from the floor in this version\./,
-      ),
-    ).toBeInTheDocument();
+    const unsupportedNotice = within(screen.getByRole('article')).getByText(
+      /This action has no supported link from the floor in this version\./,
+    );
+    expect(unsupportedNotice.closest('output')).toHaveAttribute('aria-live', 'polite');
     expect(screen.queryByText('FutureAction')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'FutureAction' })).not.toBeInTheDocument();
   });

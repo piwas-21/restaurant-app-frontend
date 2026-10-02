@@ -31,13 +31,14 @@ export default function TableAccountWorkspace({ session, timeZone }: TableAccoun
   const nextTabForKey = (current: AccountTab, key: string): AccountTab | null => {
     const index = TABS.indexOf(current);
     const rtl = i18n.dir?.() === 'rtl';
-    let nextIndex = index;
-    if (key === 'Home') nextIndex = 0;
-    else if (key === 'End') nextIndex = TABS.length - 1;
-    else if (key === 'ArrowRight') nextIndex = (index + (rtl ? TABS.length - 1 : 1)) % TABS.length;
-    else if (key === 'ArrowLeft') nextIndex = (index + (rtl ? 1 : TABS.length - 1)) % TABS.length;
-    else return null;
-    return TABS[nextIndex];
+    if (key === 'Home') return TABS[0];
+    if (key === 'End') return TABS[TABS.length - 1];
+    if (key !== 'ArrowRight' && key !== 'ArrowLeft') return null;
+
+    let direction: number;
+    if (key === 'ArrowRight') direction = rtl ? -1 : 1;
+    else direction = rtl ? 1 : -1;
+    return TABS[(index + direction + TABS.length) % TABS.length];
   };
 
   return (

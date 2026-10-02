@@ -51,6 +51,10 @@ function orderRefundLabel(order: OrderDto | undefined, settlementState?: string)
 export default function TableAccountItemsPanel({ session }: Readonly<{ session: TableServiceSessionDto }>) {
   const { t } = useTranslation();
   const accountItems = session.bill.accountItems;
+  const hasAccountItems = Array.isArray(accountItems);
+  const emptyItemsMessage = hasAccountItems
+    ? t('cashier.tables.no_rounds')
+    : t('cashier.tables.account_items_unavailable');
   const ordersById = new Map(session.bill.orders.map((order) => [order.id, order]));
   const roundStatesByOrderId = new Map(
     (session.bill.rounds ?? []).map((round) => [round.order.id, round.settlementState]),
@@ -59,10 +63,8 @@ export default function TableAccountItemsPanel({ session }: Readonly<{ session: 
   return (
     <div className={panelStyles.panel}>
       <p className={styles.note}>{t('cashier.tables.account_item_snapshot_note')}</p>
-      {!Array.isArray(accountItems) ? (
-        <p className={styles.empty}>{t('cashier.tables.account_items_unavailable')}</p>
-      ) : accountItems.length === 0 ? (
-        <p className={styles.empty}>{t('cashier.tables.no_rounds')}</p>
+      {!hasAccountItems || accountItems.length === 0 ? (
+        <p className={styles.empty}>{emptyItemsMessage}</p>
       ) : (
         <ul className={styles.items}>
           {accountItems.map((entry) => {

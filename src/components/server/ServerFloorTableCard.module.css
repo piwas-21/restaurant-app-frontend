@@ -134,6 +134,7 @@
 }
 
 .actionNotice {
+  display: block;
   max-inline-size: 34rem;
   margin: 0;
   color: var(--text-secondary);

@@ -26,3 +26,18 @@ it('renders nothing for ordinary orders and no test marker for live source recor
   rerender(<MarketplaceOrderSource source={{ ...marketplaceOrder().externalOrder!, isSandbox: false }} />);
   expect(screen.queryByText('Test order')).not.toBeInTheDocument();
 });
+
+it('labels the provider phone access code separately and escapes its text', () => {
+  const { container, rerender } = render(
+    <MarketplaceOrderSource source={{ ...marketplaceOrder().externalOrder!, customerPhoneAccessCode: '555 55 555' }} />,
+  );
+  expect(screen.getByText('555 55 555')).toHaveAttribute('dir', 'ltr');
+  expect(screen.getByText(/Phone access code/)).toBeInTheDocument();
+  rerender(
+    <MarketplaceOrderSource
+      source={{ ...marketplaceOrder().externalOrder!, customerPhoneAccessCode: '<script>bad</script>' }}
+    />,
+  );
+  expect(container.querySelector('script')).toBeNull();
+  expect(screen.getByText('<script>bad</script>')).toBeInTheDocument();
+});

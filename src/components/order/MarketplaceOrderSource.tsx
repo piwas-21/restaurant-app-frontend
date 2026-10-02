@@ -22,6 +22,11 @@ export default function MarketplaceOrderSource({ source }: { readonly source?: E
         )}
       </div>
       <p>{t('delivery_channels.payment_handled_by', { provider })}</p>
+      {source.customerPhoneAccessCode && (
+        <p>
+          {t('delivery_channels.phone_access_code')}: <span dir="ltr">{source.customerPhoneAccessCode}</span>
+        </p>
+      )}
     </section>
   );
 }

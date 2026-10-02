@@ -3468,6 +3468,7 @@
     "decision_retry": "Renvoyer la même décision",
     "decision_refresh": "Actualiser le résultat",
     "decision_detail_refresh_error": "Les détails de la commande n’ont pas pu être actualisés. Vérifiez à nouveau le résultat avant de continuer.",
+    "phone_access_code": "Code d’accès téléphonique",
     "preparation_error": "Impossible de mettre à jour la préparation. Actualisez la commande et réessayez."
   }
 }

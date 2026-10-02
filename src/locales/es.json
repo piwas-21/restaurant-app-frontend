@@ -3468,6 +3468,7 @@
     "decision_retry": "Reintentar la misma decisión",
     "decision_refresh": "Actualizar resultado",
     "decision_detail_refresh_error": "No se pudieron actualizar los detalles del pedido. Comprueba el resultado de nuevo antes de continuar.",
+    "phone_access_code": "Código de acceso telefónico",
     "preparation_error": "No se pudo actualizar la preparación. Actualiza el pedido e inténtalo de nuevo."
   }
 }

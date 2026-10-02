@@ -3459,6 +3459,7 @@
     "decision_retry": "Dezelfde beslissing opnieuw proberen",
     "decision_refresh": "Resultaat vernieuwen",
     "decision_detail_refresh_error": "De bestelgegevens konden niet worden vernieuwd. Controleer het resultaat opnieuw voordat u verdergaat.",
+    "phone_access_code": "Toegangscode voor telefoon",
     "preparation_error": "De bereiding kon niet worden bijgewerkt. Vernieuw de bestelling en probeer opnieuw."
   }
 }

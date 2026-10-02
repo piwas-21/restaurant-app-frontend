@@ -3459,6 +3459,7 @@
     "decision_retry": "Retry same decision",
     "decision_refresh": "Refresh result",
     "decision_detail_refresh_error": "The order details could not be refreshed. Check the result again before continuing.",
+    "phone_access_code": "Phone access code",
     "preparation_error": "Could not update preparation. Refresh the order and try again."
   }
 }

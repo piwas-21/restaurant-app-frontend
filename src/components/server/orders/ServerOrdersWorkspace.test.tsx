@@ -60,7 +60,7 @@ describe('ServerOrdersWorkspace', () => {
     mockGetOrders.mockResolvedValue(paged());
   });
 
-  it('fails closed when amendments are disabled for the tenant', () => {
+  it('keeps the authenticated order list available as read-only when amendments are disabled', async () => {
     render(
       <TenantFeaturesProvider features={{ orderAmendmentsV1: false }}>
         <ServerOrdersWorkspace />
@@ -68,7 +68,9 @@ describe('ServerOrdersWorkspace', () => {
     );
 
     expect(screen.getByText('Order amendments are not enabled for this restaurant.')).toBeInTheDocument();
-    expect(mockGetOrders).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockGetOrders).toHaveBeenCalledWith('All', 1, 50, ''));
+    expect(await screen.findByText('A-001')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Review order' })[0]).toHaveAttribute('href', '/server/orders/order-1');
   });
 
   it('lists every native order type for fresh detail review', async () => {

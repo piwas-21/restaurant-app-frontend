@@ -91,4 +91,19 @@ describe('ServerOrderDetailWorkspace', () => {
     expect(await screen.findByRole('heading', { name: 'A-002' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Amend order-2' })).toBeInTheDocument();
   });
+
+  it('keeps the existing authenticated detail read available for flag-off recovery', async () => {
+    mockGetOrder.mockResolvedValueOnce(order('order-3', 'A-003'));
+
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: false }}>
+        <ServerOrderDetailWorkspace orderId="order-3" />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.getByText('Order amendments are not enabled for this restaurant.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'A-003' })).toBeInTheDocument();
+    await waitFor(() => expect(mockGetOrder).toHaveBeenCalledWith('order-3'));
+    expect(mockGetHistory).not.toHaveBeenCalled();
+  });
 });

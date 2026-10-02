@@ -28,6 +28,7 @@ interface OrderAmendmentModalProps {
   readonly operatorRole: 'Server' | 'Cashier' | 'Admin';
   readonly onClose: () => void;
   readonly onCommitted?: () => void;
+  readonly recoveryOnly?: boolean;
 }
 
 function translatedError(error: string | null, t: (key: string) => string): string | null {
@@ -40,6 +41,7 @@ export default function OrderAmendmentModal({
   operatorRole,
   onClose,
   onCommitted,
+  recoveryOnly = false,
 }: Readonly<OrderAmendmentModalProps>) {
   const { t, i18n } = useTranslation();
   const [draft, setDraft] = useState<OrderAmendmentDraft>(EMPTY_DRAFT);
@@ -53,22 +55,27 @@ export default function OrderAmendmentModal({
     draft.additions.length > 0 &&
     (!draft.localProviderSupplementConsent || !draft.providerConsentNote.trim());
   const canQuote =
+    !recoveryOnly &&
     amendment.recoveryReady &&
     hasWork &&
     !hasIncompleteReplacement &&
     !requiresReason &&
     !missingProviderConsent &&
     (!requiresPreparingOverride || draft.preparingOverrideAcknowledged);
-  const isPending = ['quoting', 'committing', 'uncertain'].includes(amendment.phase);
-  const quoteExpired = Boolean(amendment.quote && amendmentExpiryPassed(amendment.quote.expiresAt));
-  const canRequote = amendment.phase === 'uncertain' && amendment.canRequote;
+  const isPending = !recoveryOnly && ['quoting', 'committing', 'uncertain'].includes(amendment.phase);
+  const quoteExpired = !recoveryOnly && Boolean(amendment.quote && amendmentExpiryPassed(amendment.quote.expiresAt));
+  const canRequote = !recoveryOnly && amendment.phase === 'uncertain' && amendment.canRequote;
   const error = translatedError(amendment.error, (key) => t(key));
 
   return (
     <BaseModal
       isOpen
       onClose={onClose}
-      title={t('orderAmendments.title', 'Amend order {{order}}', { order: order.orderNumber })}
+      title={
+        recoveryOnly
+          ? t('orderAmendments.check_operation', 'Check the original operation')
+          : t('orderAmendments.title', 'Amend order {{order}}', { order: order.orderNumber })
+      }
       size="lg"
       presentation="responsive-sheet"
       className={styles.modal}
@@ -82,6 +89,7 @@ export default function OrderAmendmentModal({
           canQuote={canQuote}
           quoteExpired={quoteExpired}
           canRequote={canRequote}
+          readOnlyRecovery={recoveryOnly}
           onClose={onClose}
         />
       }
@@ -92,7 +100,7 @@ export default function OrderAmendmentModal({
             {error}
           </p>
         )}
-        {amendment.phase === 'editing' && (
+        {!recoveryOnly && amendment.phase === 'editing' && (
           <p className={styles.stageNotice}>
             {t(
               'orderAmendments.draft_notice',
@@ -100,10 +108,12 @@ export default function OrderAmendmentModal({
             )}
           </p>
         )}
-        <div hidden={amendment.phase !== 'editing' && amendment.phase !== 'quoting'}>
-          <OrderAmendmentEditStage order={order} draft={draft} onDraftChange={setDraft} operatorRole={operatorRole} />
-        </div>
-        {amendment.quote && amendment.phase !== 'editing' && amendment.phase !== 'quoting' && (
+        {!recoveryOnly && (
+          <div hidden={amendment.phase !== 'editing' && amendment.phase !== 'quoting'}>
+            <OrderAmendmentEditStage order={order} draft={draft} onDraftChange={setDraft} operatorRole={operatorRole} />
+          </div>
+        )}
+        {!recoveryOnly && amendment.quote && amendment.phase !== 'editing' && amendment.phase !== 'quoting' && (
           <OrderAmendmentReviewStage
             quote={amendment.quote}
             language={i18n.language || 'en'}
@@ -119,14 +129,15 @@ export default function OrderAmendmentModal({
               }))}
           />
         )}
-        {quoteExpired && amendment.phase === 'review' && (
+        {!recoveryOnly && quoteExpired && amendment.phase === 'review' && (
           <p className={styles.error} role="alert">
             {t('orderAmendments.quote_expired', 'This quote expired. Review a fresh quote before committing.')}
           </p>
         )}
         {amendment.phase === 'uncertain' && (
           <p className={styles.stageNotice} role="status">
-            {amendment.operationLookup?.status === 'Unknown' || amendment.operationLookup?.status === 0
+            {!recoveryOnly &&
+            (amendment.operationLookup?.status === 'Unknown' || amendment.operationLookup?.status === 0)
               ? t(
                   'orderAmendments.operation_unknown',
                   'The original operation is not confirmed. Check it again or retry only with the same operation ID.',

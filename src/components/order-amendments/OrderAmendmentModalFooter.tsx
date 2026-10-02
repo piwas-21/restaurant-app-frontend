@@ -11,6 +11,7 @@ interface OrderAmendmentModalFooterProps {
   readonly canQuote: boolean;
   readonly quoteExpired: boolean;
   readonly canRequote: boolean;
+  readonly readOnlyRecovery?: boolean;
   readonly onClose: () => void;
 }
 
@@ -20,9 +21,25 @@ export default function OrderAmendmentModalFooter({
   canQuote,
   quoteExpired,
   canRequote,
+  readOnlyRecovery = false,
   onClose,
 }: Readonly<OrderAmendmentModalFooterProps>) {
   const { t } = useTranslation();
+
+  if (readOnlyRecovery) {
+    return (
+      <div className={styles.footer}>
+        {amendment.phase === 'uncertain' && (
+          <button type="button" onClick={() => void amendment.checkOperation()}>
+            {t('orderAmendments.check_operation', 'Check the original operation')}
+          </button>
+        )}
+        <button type="button" className={styles.primary} onClick={onClose}>
+          {t('orderAmendments.close', 'Close')}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.footer}>

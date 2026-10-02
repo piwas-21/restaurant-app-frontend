@@ -47,7 +47,6 @@ export default function ServerOrdersWorkspace() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!orderAmendmentsV1) return;
     let active = true;
     setIsLoading(true);
     setError(null);
@@ -72,20 +71,14 @@ export default function ServerOrdersWorkspace() {
     setSearch(searchInput.trim());
   };
 
-  if (!orderAmendmentsV1) {
-    return (
-      <p className={styles.unavailable} role="note">
-        {t('orderAmendments.feature_disabled', 'Order amendments are not enabled for this restaurant.')}
-      </p>
-    );
-  }
-
   return (
     <StaffWorkspaceShell
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks') },
-        { href: '/server/orders', label: t('serverOrders.title', 'Orders'), active: true },
+        ...(orderAmendmentsV1
+          ? [{ href: '/server/orders', label: t('serverOrders.title', 'Orders'), active: true }]
+          : []),
         { href: '/server/takeaway', label: t('server.takeaway.link') },
       ]}
       className={styles.shell}
@@ -94,14 +87,21 @@ export default function ServerOrdersWorkspace() {
         <header className={styles.header}>
           <div>
             <h1>{t('serverOrders.title', 'Orders')}</h1>
-            <p>
-              {t(
-                'serverOrders.description',
-                'Find a Dine In, Takeaway, or Delivery order and review its current details before making a change.',
-              )}
-            </p>
+            {orderAmendmentsV1 && (
+              <p>
+                {t(
+                  'serverOrders.description',
+                  'Find a Dine In, Takeaway, or Delivery order and review its current details before making a change.',
+                )}
+              </p>
+            )}
           </div>
         </header>
+        {!orderAmendmentsV1 && (
+          <p className={styles.state} role="note">
+            {t('orderAmendments.feature_disabled', 'Order amendments are not enabled for this restaurant.')}
+          </p>
+        )}
         <form className={styles.searchForm} onSubmit={submitSearch}>
           <FormField label={t('serverOrders.search_label', 'Search order or customer')}>
             <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} autoComplete="off" />

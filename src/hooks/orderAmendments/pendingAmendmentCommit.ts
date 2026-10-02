@@ -81,7 +81,7 @@ export function readPendingAmendmentCommit(actorId: string, sourceOrderId: strin
 
   try {
     const raw = window.sessionStorage.getItem(storageKey(actorId, sourceOrderId));
-    if (!raw) return { status: 'none' };
+    if (raw === null) return { status: 'none' };
     const pending = toPending(JSON.parse(raw) as unknown, actorId, sourceOrderId);
     return pending ? { status: 'pending', value: pending } : { status: 'unavailable' };
   } catch (_storageError) {
@@ -114,6 +114,23 @@ export function persistPendingAmendmentCommit(value: PendingAmendmentCommit): bo
     return false;
   }
 
+  const saved = readPendingAmendmentCommit(value.actorId, value.sourceOrderId);
+  if (saved.status === 'unavailable') return false;
+  if (
+    saved.status === 'pending' &&
+    ((
+      [
+        'amendmentId',
+        'clientOperationId',
+        'expectedOrderVersion',
+        'expectedAccountRevision',
+        'reviewAcknowledged',
+      ] as const
+    ).some((field) => saved.value.request[field] !== value.request[field]) ||
+      saved.value.expiresAt !== value.expiresAt)
+  )
+    return false;
+
   try {
     window.sessionStorage.setItem(
       storageKey(value.actorId, value.sourceOrderId),
@@ -141,7 +158,7 @@ export function clearPendingAmendmentCommit(actorId: string, sourceOrderId: stri
   try {
     const key = storageKey(actorId, sourceOrderId);
     const raw = window.sessionStorage.getItem(key);
-    if (!raw) return true;
+    if (raw === null) return true;
     const pending = toPending(JSON.parse(raw) as unknown, actorId, sourceOrderId);
     if (!pending || pending.request.clientOperationId !== operationId) return false;
     window.sessionStorage.removeItem(key);

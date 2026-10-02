@@ -43,7 +43,6 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
   const refreshOrder = useCallback(() => setReloadKey((current) => current + 1), []);
 
   useEffect(() => {
-    if (!orderAmendmentsV1) return;
     let active = true;
     setOrder(null);
     setLoadedOrderId(null);
@@ -67,14 +66,6 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
     };
   }, [orderAmendmentsV1, orderId, reloadKey]);
 
-  if (!orderAmendmentsV1) {
-    return (
-      <p className={styles.state} role="note">
-        {t('orderAmendments.feature_disabled', 'Order amendments are not enabled for this restaurant.')}
-      </p>
-    );
-  }
-
   const visibleOrder = loadedOrderId === orderId.toLowerCase() ? order : null;
   const link = visibleOrder ? serverOrderVisitHref(visibleOrder) : null;
   return (
@@ -82,12 +73,19 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks') },
-        { href: '/server/orders', label: t('serverOrders.title', 'Orders'), active: true },
+        ...(orderAmendmentsV1
+          ? [{ href: '/server/orders', label: t('serverOrders.title', 'Orders'), active: true }]
+          : []),
         { href: '/server/takeaway', label: t('server.takeaway.link') },
       ]}
       className={styles.shell}
     >
       <div className={styles.workspace}>
+        {!orderAmendmentsV1 && (
+          <p className={styles.state} role="note">
+            {t('orderAmendments.feature_disabled', 'Order amendments are not enabled for this restaurant.')}
+          </p>
+        )}
         <header className={styles.header}>
           <div>
             <p>
@@ -171,7 +169,12 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
             </section>
             <OrderAmendmentHistorySection orderId={visibleOrder.id} refreshKey={reloadKey} />
             <section className={styles.action} aria-label={t('orderAmendments.actions', 'Order actions')}>
-              <OrderAmendmentEntryButton order={visibleOrder} operatorRole="Server" onCommitted={refreshOrder} />
+              <OrderAmendmentEntryButton
+                order={visibleOrder}
+                operatorRole="Server"
+                showFeatureDisabledNotice={false}
+                onCommitted={refreshOrder}
+              />
             </section>
           </>
         )}

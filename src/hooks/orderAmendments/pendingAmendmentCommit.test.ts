@@ -44,6 +44,9 @@ describe('pending amendment commit recovery storage', () => {
   });
 
   it('fails closed for corrupt or identity-mismatched records', () => {
+    window.sessionStorage.setItem('rumi.pending-order-amendment.v1:actor-1:order-1', '');
+    expect(readPendingAmendmentCommit(actorId, sourceOrderId)).toEqual({ status: 'unavailable' });
+    expect(clearPendingAmendmentCommit(actorId, sourceOrderId, operationId)).toBe(false);
     window.sessionStorage.setItem('rumi.pending-order-amendment.v1:actor-1:order-1', '{bad');
     expect(readPendingAmendmentCommit(actorId, sourceOrderId)).toEqual({ status: 'unavailable' });
 
@@ -54,8 +57,25 @@ describe('pending amendment commit recovery storage', () => {
         request,
         expiresAt: '2099-01-01T00:00:00.000Z',
       }),
+    ).toBe(false);
+    window.sessionStorage.removeItem('rumi.pending-order-amendment.v1:actor-1:order-1');
+    expect(
+      persistPendingAmendmentCommit({ actorId, sourceOrderId, request, expiresAt: '2099-01-01T00:00:00.000Z' }),
     ).toBe(true);
     expect(readPendingAmendmentCommit('actor-2', sourceOrderId)).toEqual({ status: 'none' });
+  });
+
+  it('refuses replacing an escaped operation or changing its reviewed versions', () => {
+    const value = { actorId, sourceOrderId, request, expiresAt: '2099-01-01T00:00:00.000Z' };
+    expect(persistPendingAmendmentCommit(value)).toBe(true);
+    expect(
+      persistPendingAmendmentCommit({
+        ...value,
+        request: { ...request, clientOperationId: '4a3ce94e-7a31-4c5e-a129-0fbe033c38e3' },
+      }),
+    ).toBe(false);
+    expect(persistPendingAmendmentCommit({ ...value, request: { ...request, expectedOrderVersion: 9 } })).toBe(false);
+    expect(readPendingAmendmentCommit(actorId, sourceOrderId)).toEqual({ status: 'pending', value });
   });
 
   it('clears only the matching operation key', () => {

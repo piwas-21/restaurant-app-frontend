@@ -126,4 +126,61 @@ describe('OrderAmendmentModal', () => {
     rerender(<OrderAmendmentModal order={order} operatorRole="Cashier" onClose={jest.fn()} />);
     expect(screen.queryByRole('button', { name: 'Return to edits and request a new quote' })).not.toBeInTheDocument();
   });
+
+  it('keeps flag-off recovery read-only while allowing lookup and close', () => {
+    const onClose = jest.fn();
+    const checkOperation = jest.fn();
+    const prepareQuote = jest.fn();
+    const commit = jest.fn();
+    const retrySameCommit = jest.fn();
+    const reset = jest.fn();
+    mockUseAmendment.mockReturnValue(
+      hookState({
+        phase: 'uncertain',
+        operationLookup: { operationId: 'operation-1', status: 'Unknown' },
+        canRetrySameCommit: true,
+        canRequote: true,
+        checkOperation,
+        prepareQuote,
+        commit,
+        retrySameCommit,
+        reset,
+      }),
+    );
+
+    render(<OrderAmendmentModal order={order} operatorRole="Server" recoveryOnly onClose={onClose} />);
+
+    expect(screen.getByRole('button', { name: 'Check the original operation' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Get a quote' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm amendment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Retry with the same operation ID' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Return to edits and request a new quote' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Check the original operation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(checkOperation).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(prepareQuote).not.toHaveBeenCalled();
+    expect(commit).not.toHaveBeenCalled();
+    expect(retrySameCommit).not.toHaveBeenCalled();
+    expect(reset).not.toHaveBeenCalled();
+  });
+
+  it('shows a confirmed recovery result and allows the modal to close', () => {
+    const onClose = jest.fn();
+    mockUseAmendment.mockReturnValue(
+      hookState({
+        phase: 'committed',
+        result: { clientOperationId: 'operation-2' },
+      }),
+    );
+
+    render(<OrderAmendmentModal order={order} operatorRole="Cashier" recoveryOnly onClose={onClose} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Amendment committed');
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

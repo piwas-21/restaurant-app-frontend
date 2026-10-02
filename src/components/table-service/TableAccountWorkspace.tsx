@@ -32,7 +32,7 @@ export default function TableAccountWorkspace({ session, timeZone }: TableAccoun
     const index = TABS.indexOf(current);
     const rtl = i18n.dir?.() === 'rtl';
     if (key === 'Home') return TABS[0];
-    if (key === 'End') return TABS[TABS.length - 1];
+    if (key === 'End') return TABS.at(-1) ?? 'activity';
     if (key !== 'ArrowRight' && key !== 'ArrowLeft') return null;
 
     let direction: number;

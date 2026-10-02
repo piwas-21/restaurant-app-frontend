@@ -254,6 +254,22 @@ describe('TableAccountWorkspace', () => {
     expect(paymentsTab).toHaveFocus();
   });
 
+  it('moves focus to the final tab with End and back to the first with Home', () => {
+    render(<TableAccountWorkspace session={session} />);
+    const itemsTab = screen.getByRole('tab', { name: 'cashier.tables.account_items' });
+
+    fireEvent.keyDown(itemsTab, { key: 'End' });
+
+    const activityTab = screen.getByRole('tab', { name: 'cashier.tables.account_activity' });
+    expect(activityTab).toHaveAttribute('aria-selected', 'true');
+    expect(activityTab).toHaveFocus();
+
+    fireEvent.keyDown(activityTab, { key: 'Home' });
+
+    expect(itemsTab).toHaveAttribute('aria-selected', 'true');
+    expect(itemsTab).toHaveFocus();
+  });
+
   it('builds activity from visit and order timestamps plus persisted status history', () => {
     render(<TableAccountWorkspace session={session} timeZone="Europe/Amsterdam" />);
 

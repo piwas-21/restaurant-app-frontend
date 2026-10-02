@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { getErrorMessage } from '@/utils/apiClient';
+import { channelOrderReviewFingerprint } from '@/utils/channelOrderReviewFingerprint';
 import type { OrderDto } from '@/types/order';
 import type { ChannelDecisionAction } from '@/types/order/channelDecision';
 import { useChannelDecision } from '@/hooks/useChannelDecision';
@@ -26,34 +27,45 @@ const reasonSchema = z
   .regex(/^[^\u0000-\u001f\u007f-\u009f]+$/);
 interface Props {
   readonly order: OrderDto;
+  readonly isSnapshotFresh?: boolean;
   readonly onOrderChanged?: () => void;
 }
 
-export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
+export default function ChannelOrderDecision({ order, isSnapshotFresh = true, onOrderChanged }: Props) {
   const { t } = useTranslation();
   const decision = useChannelDecision(order.id, Boolean(order.externalOrder), onOrderChanged);
+  const reviewFingerprint = channelOrderReviewFingerprint(order);
   const [draft, setDraft] = useState<{
     orderId: string;
+    reviewFingerprint: string;
     action: ChannelDecisionAction;
     reason: string;
     reviewed: boolean;
   } | null>(null);
   const [invalid, setInvalid] = useState(false);
+  useEffect(() => {
+    setDraft((current) =>
+      current?.orderId === order.id && current.reviewFingerprint === reviewFingerprint ? current : null,
+    );
+    setInvalid(false);
+  }, [order.id, reviewFingerprint]);
+
   if (!order.externalOrder) return null;
 
-  const currentDraft = draft?.orderId === order.id ? draft : null;
-  const canDecide =
+  const currentDraft = draft?.orderId === order.id && draft.reviewFingerprint === reviewFingerprint ? draft : null;
+  const orderAllowsDecision =
     order.externalOrder.externalState === 'CREATED' &&
     order.status === 'PendingApproval' &&
     !order.isKitchenReleased &&
     !decision.decision &&
     decision.rejectedVersion !== order.version;
+  const canOfferDecision = orderAllowsDecision && !decision.loading && !decision.uncertain && !decision.error;
   const choose = (action: ChannelDecisionAction) => {
     setInvalid(false);
-    setDraft({ orderId: order.id, action, reason: '', reviewed: false });
+    setDraft({ orderId: order.id, reviewFingerprint, action, reason: '', reviewed: false });
   };
   const confirm = () => {
-    if (!currentDraft?.reviewed) return;
+    if (!isSnapshotFresh || !currentDraft?.reviewed) return;
     const reason = reasonSchema.safeParse(currentDraft.reason);
     if (!reason.success) {
       setInvalid(true);
@@ -76,14 +88,14 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
       {(Boolean(decision.error) || decision.rejectedVersion === order.version) && (
         <p role="alert">{getErrorMessage(decision.error) ?? t('delivery_channels.decision_error')}</p>
       )}
-      {canDecide && !decision.loading && !decision.uncertain && !decision.error && (
+      {canOfferDecision && (
         <>
           {!currentDraft ? (
             <div className={styles.buttons}>
-              <button type="button" onClick={() => choose('accept')}>
+              <button type="button" onClick={() => choose('accept')} disabled={!isSnapshotFresh}>
                 {t('delivery_channels.decision_accept')}
               </button>
-              <button type="button" onClick={() => choose('deny')}>
+              <button type="button" onClick={() => choose('deny')} disabled={!isSnapshotFresh}>
                 {t('delivery_channels.decision_deny')}
               </button>
             </div>
@@ -98,6 +110,7 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
                   type="text"
                   maxLength={250}
                   value={currentDraft.reason}
+                  disabled={!isSnapshotFresh}
                   dir="auto"
                   onChange={(event) => setDraft({ ...currentDraft, reason: event.target.value })}
                 />
@@ -106,10 +119,11 @@ export default function ChannelOrderDecision({ order, onOrderChanged }: Props) {
                 label={t('marketplaceStaff.review_confirmation')}
                 description={t('marketplaceStaff.review_description')}
                 checked={currentDraft.reviewed}
+                disabled={!isSnapshotFresh}
                 onChange={(reviewed) => setDraft({ ...currentDraft, reviewed })}
               />
               <div className={styles.buttons}>
-                <button type="button" onClick={confirm} disabled={!currentDraft.reviewed}>
+                <button type="button" onClick={confirm} disabled={!isSnapshotFresh || !currentDraft.reviewed}>
                   {t('delivery_channels.decision_submit')}
                 </button>
                 <button type="button" onClick={() => setDraft(null)}>

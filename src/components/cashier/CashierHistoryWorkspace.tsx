@@ -58,7 +58,9 @@ export default function CashierHistoryWorkspace() {
       selectedOrderId={route.selectedOrderId}
       selectedOrder={selection.order}
       selectedOrderLoading={selection.isLoading}
+      selectedOrderRefreshing={selection.isRefreshing}
       selectedOrderError={selection.error}
+      onRefreshSelectedOrder={selection.refresh}
       searchQuery={filters.searchQuery}
       statusFilter={filters.statusFilter}
       paymentStatusFilter={filters.paymentStatusFilter}

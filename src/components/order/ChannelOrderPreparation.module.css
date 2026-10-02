@@ -1,0 +1,29 @@
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+  align-items: center;
+}
+.action {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.action:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.action:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.error {
+  color: var(--feedback-danger-dark);
+  margin: 0;
+}

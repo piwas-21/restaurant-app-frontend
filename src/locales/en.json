@@ -3458,6 +3458,7 @@
     "decision_uncertain": "The response is uncertain. Check the result or retry the same decision.",
     "decision_retry": "Retry same decision",
     "decision_refresh": "Refresh result",
-    "decision_detail_refresh_error": "The order details could not be refreshed. Check the result again before continuing."
+    "decision_detail_refresh_error": "The order details could not be refreshed. Check the result again before continuing.",
+    "preparation_error": "Could not update preparation. Refresh the order and try again."
   }
 }

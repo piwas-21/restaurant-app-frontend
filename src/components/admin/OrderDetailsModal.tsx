@@ -14,6 +14,8 @@ import OrderConfirmDialogs from './order-details/OrderConfirmDialogs';
 import OrderRefundResultDialogs from './order-details/OrderRefundResultDialogs';
 import styles from './OrderDetailsModal.module.css';
 
+const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
+
 const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
 
 interface OrderDetailsModalProps {
@@ -52,6 +54,7 @@ export default function OrderDetailsModal({ order: originalOrder, onClose, onOrd
           <OrderDetailsInfo order={order} />
           <OrderDetailsSummary order={order} />
           <ChannelOrderDecision order={order} onOrderChanged={refreshOrder} />
+          <ChannelOrderPreparation order={order} onOrderChanged={refreshOrder} />
           {Boolean(refreshError) && (
             <p role="alert">{getErrorMessage(refreshError) ?? t('delivery_channels.decision_detail_refresh_error')}</p>
           )}

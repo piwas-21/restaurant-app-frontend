@@ -3458,6 +3458,7 @@
     "decision_uncertain": "Yanıt belirsiz. Sonucu kontrol edin veya aynı kararı yeniden deneyin.",
     "decision_retry": "Aynı kararı yeniden dene",
     "decision_refresh": "Sonucu yenile",
-    "decision_detail_refresh_error": "Sipariş ayrıntıları yenilenemedi. Devam etmeden önce sonucu tekrar kontrol edin."
+    "decision_detail_refresh_error": "Sipariş ayrıntıları yenilenemedi. Devam etmeden önce sonucu tekrar kontrol edin.",
+    "preparation_error": "Hazırlık durumu güncellenemedi. Siparişi yenileyip tekrar deneyin."
   }
 }

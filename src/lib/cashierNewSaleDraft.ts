@@ -88,7 +88,8 @@ export function readCashierNewSaleDraft(): CashierNewSaleDraft | null {
     if (typeof stored.channel !== 'string' || !VALID_CHANNELS.has(stored.channel)) return null;
     if (!Array.isArray(stored.lines)) return null;
     const lines = stored.lines.map(toLine).filter((line): line is CashierNewSaleDraftLine => line !== null);
-    const linkedTable = stored.channel === 'DineIn' && isUuid(stored.tableId) && isUuid(stored.serviceSessionId);
+    const dineIn = stored.channel === 'DineIn';
+    const linkedTable = dineIn && isUuid(stored.tableId) && isUuid(stored.serviceSessionId);
     return {
       channel: stored.channel as CashierNewSaleDraft['channel'],
       lines,
@@ -98,8 +99,11 @@ export function readCashierNewSaleDraft(): CashierNewSaleDraft | null {
           ? stored.tableNumber
           : undefined,
       tableLabel: asOptionalString(stored.tableLabel),
+      // Keep an exact visit ID even when an older payload has no stable table ID. Review will
+      // read that visit by ID and refuse a closed/stale visit; dropping the ID would make the
+      // same draft resolve by table label and attach to the next party.
       tableId: linkedTable ? (stored.tableId as string) : undefined,
-      serviceSessionId: linkedTable ? (stored.serviceSessionId as string) : undefined,
+      serviceSessionId: dineIn ? asOptionalString(stored.serviceSessionId) : undefined,
       contact: readStoredContact(stored.contact),
       clientOperationId: asOptionalString(stored.clientOperationId),
     };

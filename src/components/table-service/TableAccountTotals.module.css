@@ -1,0 +1,60 @@
+.accountTotals {
+  border-block-start: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.55rem;
+  padding-block-start: 0.65rem;
+}
+
+.accountTotals h4 {
+  margin: 0;
+}
+
+.accountTotalsGrid {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.accountTotalRow {
+  align-items: baseline;
+  display: flex;
+  font-size: 0.9rem;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.accountTotalRow dd {
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.accountTotalsGrid > .accountTotalRow:last-child {
+  border-block-start: 1px solid var(--border-default);
+  font-weight: 700;
+  padding-block-start: 0.35rem;
+}
+
+.accountOrderTotals {
+  border-block-start: 1px solid var(--border-default);
+  padding-block-start: 0.35rem;
+}
+
+.accountOrderTotals summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  min-height: 3rem;
+}
+
+.accountOrderTotals summary:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.accountOrderTotals summary strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

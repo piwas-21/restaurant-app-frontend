@@ -306,6 +306,28 @@ describe('ServerFloorWorkspace', () => {
     expect(screen.getByText('Review legacy orders')).toBeInTheDocument();
   });
 
+  it('keeps stale floor capabilities from becoming action links', () => {
+    mockUseFloor.mockReturnValue({
+      snapshot: {
+        ...snapshot,
+        tables: [{ ...snapshot.tables[0], permittedActions: ['CollectPayment', 'CloseVisit'] }],
+      },
+      isLoading: false,
+      isStale: true,
+      error: 'floor_plan_load_error',
+      connectionState: 'stale',
+      refresh: jest.fn(async () => undefined),
+    });
+
+    render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
+
+    expect(screen.getByText(/Table actions may be out of date/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open table details' })).toHaveAttribute('href', '/server/tables/table-1');
+    expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
+  });
+
   it('announces an empty spatial zone instead of rendering a blank canvas', () => {
     mockUseFloor.mockReturnValue({
       snapshot: { ...snapshot, tables: [snapshot.tables[1]] },

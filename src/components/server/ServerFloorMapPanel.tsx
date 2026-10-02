@@ -15,6 +15,7 @@ interface ServerFloorMapPanelProps {
   documents: readonly FloorPlanDocument[];
   states: Record<string, TableRenderState>;
   selectedTable: ServerFloorTable | null;
+  isStale: boolean;
   formatTableLabel: (table: FloorPlanTableGeometry) => string;
   onSelectTable: (tableId: string) => void;
 }
@@ -85,6 +86,7 @@ export default function ServerFloorMapPanel({
   documents,
   states,
   selectedTable,
+  isStale,
   formatTableLabel,
   onSelectTable,
 }: Readonly<ServerFloorMapPanelProps>) {
@@ -107,7 +109,7 @@ export default function ServerFloorMapPanel({
       </section>
       <aside className={styles.detailPanel} aria-label={t('server.table_info', 'Table Information')}>
         {selectedTable ? (
-          <ServerFloorTableCard table={selectedTable} selected onSelect={onSelectTable} />
+          <ServerFloorTableCard table={selectedTable} selected isStale={isStale} onSelect={onSelectTable} />
         ) : (
           <p className={workspaceStyles.empty}>{t('select', 'Select')}</p>
         )}

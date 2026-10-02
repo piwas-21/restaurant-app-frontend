@@ -23,16 +23,20 @@ export function useNewSaleEntry(
     const tableParam = params.get('table');
     const tableId = params.get('tableId');
     const serviceSessionId = params.get('serviceSessionId');
-    if (params.get('channel') !== 'DineIn' || tableParam === null) return;
-    const linked = isUuid(tableId) && isUuid(serviceSessionId) && tableParam.trim().length > 0;
-    if ((!linked && parseTableNumber(tableParam) === null) || !enabled.includes(OrderType.DineIn)) return;
+    const hasPinnedVisit = Boolean(serviceSessionId?.trim());
+    const label = tableParam?.trim() ?? '';
+    if (params.get('channel') !== 'DineIn' || (!hasPinnedVisit && tableParam === null)) return;
+    const stableTableId = isUuid(tableId) ? tableId : undefined;
+    if ((!hasPinnedVisit && parseTableNumber(label) === null) || !enabled.includes(OrderType.DineIn)) return;
     appliedEntryParamsRef.current = true;
 
+    const sameVisitIdentity = hasPinnedVisit
+      ? state.serviceSessionId === serviceSessionId && (!stableTableId || state.tableId === stableTableId)
+      : state.serviceSessionId === undefined && state.tableId === undefined;
     const sameVisit =
       state.channel === OrderType.DineIn &&
-      state.tableNumber.trim().toLocaleLowerCase() === tableParam.trim().toLocaleLowerCase() &&
-      state.tableId === (linked ? tableId : undefined) &&
-      state.serviceSessionId === (linked ? serviceSessionId : undefined);
+      state.tableNumber.trim().toLocaleLowerCase() === label.toLocaleLowerCase() &&
+      sameVisitIdentity;
     const hasUnsentContent = state.lines.length > 0 || state.notes.trim() !== '' || state.contact !== undefined;
     if (hasUnsentContent && !sameVisit) {
       setEntryConflict(true);
@@ -41,9 +45,9 @@ export function useNewSaleEntry(
     setState((current) => ({
       ...current,
       channel: OrderType.DineIn,
-      tableNumber: tableParam.trim(),
-      tableId: linked ? tableId : undefined,
-      serviceSessionId: linked ? serviceSessionId : undefined,
+      tableNumber: label,
+      tableId: stableTableId ?? (sameVisit ? current.tableId : undefined),
+      serviceSessionId: hasPinnedVisit ? serviceSessionId?.trim() : undefined,
       clientOperationId: sameVisit ? current.clientOperationId : undefined,
     }));
   }, [hydrated, channelsLoading, enabled, state, setState]);

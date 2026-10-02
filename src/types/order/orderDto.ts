@@ -94,6 +94,7 @@ export interface OrderDto {
   discount: number;
   discountPercentage: number;
   customerDiscountAmount: number;
+  fidelityPointsDiscount?: number;
   tip: number;
   total: number;
   totalPaid: number;

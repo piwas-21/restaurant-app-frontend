@@ -1,11 +1,13 @@
 import { resolveDineInSession } from './newSaleSession';
-import { getActiveTableServiceSessions } from '@/services/tableServiceSessionService';
+import { getActiveTableServiceSessions, getTableServiceSession } from '@/services/tableServiceSessionService';
 
 jest.mock('@/services/tableServiceSessionService', () => ({
   getActiveTableServiceSessions: jest.fn(),
+  getTableServiceSession: jest.fn(),
 }));
 
 const mockSessions = getActiveTableServiceSessions as jest.Mock;
+const mockGetSession = getTableServiceSession as jest.Mock;
 
 const session = (overrides: Record<string, unknown> = {}) => ({
   serviceSessionId: 'session-1',
@@ -83,27 +85,32 @@ it('answers null when the matching visit carries no session id', async () => {
 });
 
 it('resolves a lettered outdoor visit by its configured label and stable identity', async () => {
-  mockSessions.mockResolvedValueOnce([session({ tableId: 'outdoor-11a', tableNumber: null, tableLabel: '11a' })]);
+  mockGetSession.mockResolvedValueOnce(session({ tableId: 'outdoor-11a', tableNumber: null, tableLabel: '11a' }));
 
   await expect(
     resolveDineInSession({ label: '11A', tableId: 'outdoor-11a', serviceSessionId: 'session-1' }),
   ).resolves.toEqual({ tableId: 'outdoor-11a', serviceSessionId: 'session-1' });
+  expect(mockGetSession).toHaveBeenCalledWith('session-1');
+  expect(mockSessions).not.toHaveBeenCalled();
 });
 
 it('resolves a pinned numbered visit even when its display label is empty', async () => {
-  mockSessions.mockResolvedValueOnce([session({ tableId: 'table-7', tableNumber: 7, tableLabel: '' })]);
+  mockGetSession.mockResolvedValueOnce(session({ tableId: 'table-7', tableNumber: 7, tableLabel: '' }));
 
   await expect(
     resolveDineInSession({ label: '7', tableId: 'table-7', serviceSessionId: 'session-1' }),
   ).resolves.toEqual({ tableId: 'table-7', tableNumber: 7, serviceSessionId: 'session-1' });
 });
 
-it('does not use a missing display label to accept a pinned label-only visit', async () => {
-  mockSessions.mockResolvedValueOnce([session({ tableId: 'outdoor-11a', tableNumber: null, tableLabel: '' })]);
+it('supports an exact legacy visit identity without a stable table ID', async () => {
+  mockGetSession.mockResolvedValueOnce(
+    session({ tableId: null, tableNumber: 7, tableLabel: '7', serviceSessionId: 'legacy-visit' }),
+  );
 
-  await expect(
-    resolveDineInSession({ label: '11a', tableId: 'outdoor-11a', serviceSessionId: 'session-1' }),
-  ).resolves.toBeNull();
+  await expect(resolveDineInSession({ label: '7', serviceSessionId: 'legacy-visit' })).resolves.toEqual({
+    tableNumber: 7,
+    serviceSessionId: 'legacy-visit',
+  });
 });
 
 it('resolves a manually typed lettered label without a link', async () => {
@@ -134,6 +141,15 @@ it('keeps number-only legacy visits compatible without inventing a table ID', as
 });
 
 it('refuses a deep link when its visit identity is stale', async () => {
+  mockGetSession.mockResolvedValueOnce(
+    session({
+      tableId: 'outdoor-11a',
+      tableNumber: null,
+      tableLabel: '11a',
+      serviceSessionId: 'old-session',
+      status: 'Closed',
+    }),
+  );
   mockSessions.mockResolvedValueOnce([
     session({ tableId: 'outdoor-11a', tableNumber: null, tableLabel: '11a', serviceSessionId: 'new-session' }),
   ]);
@@ -141,4 +157,14 @@ it('refuses a deep link when its visit identity is stale', async () => {
   await expect(
     resolveDineInSession({ label: '11a', tableId: 'outdoor-11a', serviceSessionId: 'old-session' }),
   ).resolves.toBeNull();
+  expect(mockSessions).not.toHaveBeenCalled();
+});
+
+it('refuses a pinned visit when the supplied stable table ID no longer matches', async () => {
+  mockGetSession.mockResolvedValueOnce(session({ tableId: 'table-renamed', serviceSessionId: 'session-1' }));
+
+  await expect(
+    resolveDineInSession({ label: '12', tableId: 'table-old', serviceSessionId: 'session-1' }),
+  ).resolves.toBeNull();
+  expect(mockSessions).not.toHaveBeenCalled();
 });

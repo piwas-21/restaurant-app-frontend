@@ -1,4 +1,4 @@
-import { getActiveTableServiceSessions } from '@/services/tableServiceSessionService';
+import { getActiveTableServiceSessions, getTableServiceSession } from '@/services/tableServiceSessionService';
 import type { TableServiceSessionDto } from '@/types/order';
 import { parseTableNumber } from './newSaleRequest';
 
@@ -17,20 +17,28 @@ interface TableSelection {
 /** Recheck the selected visit before quoting, including identities carried by an Add round link. */
 export async function resolveDineInSession(selection: TableSelection): Promise<DineInTarget | null> {
   const label = selection.label.trim();
-  if (!label) return null;
+  const pinnedSessionId = selection.serviceSessionId?.trim();
+  if (pinnedSessionId) {
+    const session = await getTableServiceSession(pinnedSessionId);
+    if (
+      session.serviceSessionId !== pinnedSessionId ||
+      session.status !== 'Open' ||
+      (selection.tableId !== undefined && session.tableId !== selection.tableId)
+    ) {
+      return null;
+    }
+    return {
+      ...(session.tableId ? { tableId: session.tableId } : {}),
+      ...(session.tableNumber != null ? { tableNumber: session.tableNumber } : {}),
+      serviceSessionId: session.serviceSessionId,
+    };
+  }
+  // A table identity without the visit identity is not enough to safely append a round.
+  if (selection.tableId || !label) return null;
   const number = parseTableNumber(label);
   const sessions = await getActiveTableServiceSessions();
   const matches = sessions.filter((session) => {
     if (session.status !== 'Open' || !session.serviceSessionId) return false;
-    if (selection.tableId || selection.serviceSessionId) {
-      const sessionLabel =
-        session.tableLabel?.trim() || (session.tableNumber != null ? String(session.tableNumber) : '');
-      return (
-        session.tableId === selection.tableId &&
-        session.serviceSessionId === selection.serviceSessionId &&
-        sessionLabel.toLocaleLowerCase() === label.toLocaleLowerCase()
-      );
-    }
     return number !== null
       ? session.tableNumber === number
       : session.tableLabel?.toLocaleLowerCase() === label.toLocaleLowerCase();

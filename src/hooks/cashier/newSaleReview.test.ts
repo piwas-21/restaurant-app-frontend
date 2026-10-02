@@ -1,6 +1,7 @@
 import { OrderType } from '@/types/order';
 import { ApiError } from '@/utils/apiClient';
 import { quoteStaffCounterOrder, createStaffCounterOrder } from '@/services/staffCounterOrderService';
+import { getActiveTableServiceSessions, getTableServiceSession } from '@/services/tableServiceSessionService';
 import { resolveDineInSession } from './newSaleSession';
 import { reviewCounterSale } from './newSaleReview';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
@@ -10,10 +11,16 @@ jest.mock('@/services/staffCounterOrderService', () => ({
   createStaffCounterOrder: jest.fn(),
 }));
 jest.mock('./newSaleSession', () => ({ resolveDineInSession: jest.fn() }));
+jest.mock('@/services/tableServiceSessionService', () => ({
+  getActiveTableServiceSessions: jest.fn(),
+  getTableServiceSession: jest.fn(),
+}));
 
 const mockQuote = quoteStaffCounterOrder as jest.Mock;
 const mockCreate = createStaffCounterOrder as jest.Mock;
 const mockResolve = resolveDineInSession as jest.Mock;
+const mockGetActiveSessions = getActiveTableServiceSessions as jest.Mock;
+const mockGetSession = getTableServiceSession as jest.Mock;
 
 const line: CashierNewSaleDraftLine = {
   product: { id: 'product-1', name: 'Espresso' },
@@ -149,6 +156,43 @@ describe('reviewCounterSale — dine-in needs an open visit', () => {
     expect(outcome.error).toBe('cashier.new_sale.no_open_session');
     expect(mockResolve).toHaveBeenCalledWith({ label: '12', tableId: undefined, serviceSessionId: undefined });
     expect(mockQuote).not.toHaveBeenCalled();
+  });
+
+  it('does not attach an old Add Round draft to a reopened visit with the same table label', async () => {
+    const actualResolver =
+      jest.requireActual<typeof import('./newSaleSession')>('./newSaleSession').resolveDineInSession;
+    mockResolve.mockImplementation(actualResolver);
+    mockGetSession.mockResolvedValueOnce({
+      serviceSessionId: 'old-visit',
+      tableId: 'table-12',
+      tableNumber: 12,
+      tableLabel: '12',
+      status: 'Closed',
+    });
+    mockGetActiveSessions.mockResolvedValueOnce([
+      {
+        serviceSessionId: 'new-visit',
+        tableId: 'table-12',
+        tableNumber: 12,
+        tableLabel: '12',
+        status: 'Open',
+      },
+    ]);
+
+    const outcome = await reviewCounterSale({
+      channel: OrderType.DineIn,
+      lines: [line],
+      notes: '',
+      tableNumber: '12',
+      tableId: 'table-12',
+      serviceSessionId: 'old-visit',
+    });
+
+    expect(outcome).toEqual({ status: 'blocked', error: 'cashier.new_sale.visit_unavailable' });
+    expect(mockGetSession).toHaveBeenCalledWith('old-visit');
+    expect(mockGetActiveSessions).not.toHaveBeenCalled();
+    expect(mockQuote).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it('reports a failed visit lookup separately from a table with no visit', async () => {

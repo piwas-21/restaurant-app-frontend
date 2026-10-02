@@ -195,6 +195,7 @@ export default function ServerFloorWorkspace() {
             documents={mapDocuments}
             states={states}
             selectedTable={selectedTableForView}
+            isStale={floor.isStale}
             formatTableLabel={formatTableLabel}
             onSelectTable={selectTable}
           />
@@ -215,6 +216,7 @@ export default function ServerFloorWorkspace() {
                     key={table.tableId}
                     table={table}
                     selected={table.tableId === selectedTableId}
+                    isStale={floor.isStale}
                     onSelect={selectTable}
                   />
                 ))

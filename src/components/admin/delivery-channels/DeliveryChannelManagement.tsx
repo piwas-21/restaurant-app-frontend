@@ -61,17 +61,17 @@ export default function DeliveryChannelManagement() {
 
   if (overview.loading && !summary) {
     return (
-      <main className={styles.page} aria-busy="true">
+      <div className={styles.page} aria-busy="true">
         <p>
           <output>{t('deliveryChannels.loading')}</output>
         </p>
-      </main>
+      </div>
     );
   }
 
   if (overview.failure === 'moduleDisabled') {
     return (
-      <main className={styles.page}>
+      <div className={styles.page}>
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>{t('deliveryChannels.title')}</h1>
@@ -84,13 +84,13 @@ export default function DeliveryChannelManagement() {
             <output>{t('deliveryChannels.moduleDisabled.body')}</output>
           </p>
         </section>
-      </main>
+      </div>
     );
   }
 
   if (!summary) {
     return (
-      <main className={styles.page}>
+      <div className={styles.page}>
         <header className={styles.header}>
           <div>
             <h1 className={styles.title}>{t('deliveryChannels.title')}</h1>
@@ -109,14 +109,14 @@ export default function DeliveryChannelManagement() {
             {t('deliveryChannels.refresh')}
           </button>
         </section>
-      </main>
+      </div>
     );
   }
 
   const canReviewMenu = connected;
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>{t('deliveryChannels.eyebrow')}</p>
@@ -240,6 +240,6 @@ export default function DeliveryChannelManagement() {
           onReadStatus={operations.readStatus}
         />
       )}
-    </main>
+    </div>
   );
 }

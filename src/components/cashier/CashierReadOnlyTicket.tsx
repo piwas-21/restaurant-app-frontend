@@ -83,6 +83,17 @@ export default function CashierReadOnlyTicket({
       {t('cashier.workspace.back_to_list')}
     </button>
   ) : null;
+  const errorContent = error ? (
+    <>
+      <p>{error === 'cashier.workspace.order_unavailable' ? t(error) : error}</p>
+      {onRefresh && (
+        <button type="button" className={styles.collectButton} onClick={onRefresh}>
+          <RefreshCw size={17} aria-hidden="true" />
+          {t('cashier.workspace.retry')}
+        </button>
+      )}
+    </>
+  ) : null;
 
   if (isLoading) {
     return (
@@ -96,13 +107,7 @@ export default function CashierReadOnlyTicket({
     return (
       <div ref={stateRef} className={`${styles.ticketState} ${styles.ticketError}`} role="alert" tabIndex={-1}>
         {backButton}
-        <p>{error === 'cashier.workspace.order_unavailable' ? t(error) : error}</p>
-        {onRefresh && (
-          <button type="button" className={styles.collectButton} onClick={onRefresh}>
-            <RefreshCw size={17} aria-hidden="true" />
-            {t('cashier.workspace.retry')}
-          </button>
-        )}
+        {errorContent}
       </div>
     );
   }
@@ -119,16 +124,10 @@ export default function CashierReadOnlyTicket({
   return (
     <article className={styles.ticket} aria-labelledby="cashier-ticket-title">
       {backButton}
-      {isRefreshing && <p role="status">{t('cashier.workspace.order_loading')}</p>}
+      {isRefreshing && <output>{t('cashier.workspace.order_loading')}</output>}
       {error && (
         <div className={styles.ticketError} role="alert">
-          <p>{error === 'cashier.workspace.order_unavailable' ? t(error) : error}</p>
-          {onRefresh && (
-            <button type="button" className={styles.collectButton} onClick={onRefresh}>
-              <RefreshCw size={17} aria-hidden="true" />
-              {t('cashier.workspace.retry')}
-            </button>
-          )}
+          {errorContent}
         </div>
       )}
       <header className={styles.ticketHeader}>

@@ -15,6 +15,8 @@ import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import styles from './CashierTicketActions.module.css';
 
+const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
+
 // Approval/rejection is opened on demand. Its Zod schemas and modal UI do not belong in the
 // cashier route's initial bundle while the operator is only reading the queue.
 const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr: false });
@@ -69,6 +71,7 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
 
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>
+      <ChannelOrderDecision order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
         {isPendingHandoff && (
           <button

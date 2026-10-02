@@ -118,7 +118,9 @@ export default function CashierOrdersWorkspace() {
         selectedOrderId={route.selectedOrderId}
         selectedOrder={selection.order}
         selectedOrderLoading={selection.isLoading}
+        selectedOrderRefreshing={selection.isRefreshing}
         selectedOrderError={selection.error}
+        onRefreshSelectedOrder={selection.refresh}
         onOrderChanged={() => void queue.refreshOrders()}
         searchQuery={filters.searchQuery}
         statusFilter={filters.statusFilter}

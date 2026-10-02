@@ -25,6 +25,7 @@ const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr
 
 interface CashierTicketActionsProps {
   readonly order: OrderDto;
+  readonly isOrderSnapshotFresh?: boolean;
   /** Notifies the host that the order changed (focus flip), so it can refresh its data. */
   readonly onOrderChanged?: () => void;
 }
@@ -34,7 +35,11 @@ interface CashierTicketActionsProps {
  * note, mark urgent (focus). Pilot feedback: the workspace destinations shipped without any
  * of them. Print opens the browser dialog and says so honestly — it cannot prove paper.
  */
-export default function CashierTicketActions({ order, onOrderChanged }: CashierTicketActionsProps) {
+export default function CashierTicketActions({
+  order,
+  isOrderSnapshotFresh = true,
+  onOrderChanged,
+}: CashierTicketActionsProps) {
   const { t } = useTranslation();
   const { flowByType } = useConfirmationFlowConfig();
   const flowForOrder = flowLookup(flowByType);
@@ -73,7 +78,7 @@ export default function CashierTicketActions({ order, onOrderChanged }: CashierT
 
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>
-      <ChannelOrderDecision order={order} onOrderChanged={onOrderChanged} />
+      <ChannelOrderDecision order={order} isSnapshotFresh={isOrderSnapshotFresh} onOrderChanged={onOrderChanged} />
       <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
         {isPendingHandoff && (

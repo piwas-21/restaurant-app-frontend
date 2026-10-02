@@ -32,7 +32,9 @@ interface CashierReadOnlyDestinationProps {
   readonly selectedOrderId: string | null;
   readonly selectedOrder: OrderDto | null;
   readonly selectedOrderLoading: boolean;
+  readonly selectedOrderRefreshing?: boolean;
   readonly selectedOrderError: string | null;
+  readonly onRefreshSelectedOrder?: () => void;
   readonly searchQuery: string;
   readonly statusFilter: string;
   readonly paymentStatusFilter: string;
@@ -66,7 +68,9 @@ export default function CashierReadOnlyDestination({
   selectedOrderId,
   selectedOrder,
   selectedOrderLoading,
+  selectedOrderRefreshing = false,
   selectedOrderError,
+  onRefreshSelectedOrder,
   searchQuery,
   statusFilter,
   paymentStatusFilter,
@@ -189,7 +193,9 @@ export default function CashierReadOnlyDestination({
             <CashierReadOnlyTicket
               order={selectedOrder}
               isLoading={selectedOrderLoading}
+              isRefreshing={selectedOrderRefreshing}
               error={selectedOrderError}
+              onRefresh={onRefreshSelectedOrder}
               timeZone={timeZone}
               onBack={hasSelection ? onBack : undefined}
               onCollect={onCollect}

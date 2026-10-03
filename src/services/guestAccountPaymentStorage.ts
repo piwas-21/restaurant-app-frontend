@@ -11,16 +11,6 @@ import {
   pruneExpiredPaymentReceipts,
   type StoredPaymentAttemptList,
 } from './guestAccountPaymentStorageRecords';
-import {
-  createGuestAccountPaymentDescriptor,
-  withCheckoutAttempt,
-  withQuotedOperation,
-  withReceiptCredential,
-  withReceiptExpiry,
-  withReservation,
-  withStartRequested,
-} from './guestAccountPaymentDescriptor';
-
 export {
   createGuestAccountPaymentDescriptor,
   withCheckoutAttempt,
@@ -29,7 +19,7 @@ export {
   withReceiptExpiry,
   withReservation,
   withStartRequested,
-};
+} from './guestAccountPaymentDescriptor';
 
 const STORAGE_KEY = 'rumi_table_guest_payment_attempts_v1';
 
@@ -42,9 +32,11 @@ export function createReceiptCredential(): string | null {
   if (typeof crypto === 'undefined' || typeof crypto.getRandomValues !== 'function') return null;
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  const binary = Array.from(bytes, (value) => String.fromCharCode(value)).join('');
-  const token = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  return RECEIPT_CREDENTIAL_PATTERN.test(token) ? token : null;
+  const binary = Array.from(bytes, (value) => String.fromCodePoint(value)).join('');
+  const encoded = btoa(binary);
+  if (encoded.length !== 44 || !encoded.endsWith('=')) return null;
+  const token = encoded.slice(0, -1).replaceAll('+', '-').replaceAll('/', '_');
+  return token.length === 43 && RECEIPT_CREDENTIAL_PATTERN.test(token) ? token : null;
 }
 
 export function readGuestAccountPaymentAttempts(): GuestAccountPaymentStoreRead {

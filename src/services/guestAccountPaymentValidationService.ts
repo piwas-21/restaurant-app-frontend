@@ -30,10 +30,10 @@ const ALL_OPERATION_STATES: readonly AccountPaymentState[] = [
   'ReconciliationRequired',
 ];
 
-export async function readAccountResponse(
+export function readAccountResponse(
   response: ApiResponse<unknown>,
   identity: TableGuestVisitIdentity,
-): Promise<GuestAccountPaymentAccount> {
+): GuestAccountPaymentAccount {
   return validateAccountResponse(readData(response), identity.serviceSessionId);
 }
 

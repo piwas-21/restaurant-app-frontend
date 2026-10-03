@@ -110,7 +110,7 @@ export function useGuestPaymentPlanRecovery(options: PlanRecoveryOptions) {
         intentRef.current = found.intent;
         setPendingIntent(found.intent);
         setStorageUnavailable(false);
-        if (!activeIdentity || activeIdentity.serviceSessionId !== found.intent.serviceSessionId) {
+        if (activeIdentity?.serviceSessionId !== found.intent.serviceSessionId) {
           setIsLoading(false);
           return;
         }

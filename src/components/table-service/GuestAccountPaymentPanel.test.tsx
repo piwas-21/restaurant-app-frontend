@@ -87,7 +87,9 @@ describe('GuestAccountPaymentPanel', () => {
 
     renderPanel(false);
 
-    expect(screen.getByText('table_guest_payment_return_missing')).toHaveAttribute('role', 'status');
+    const status = screen.getByText('table_guest_payment_return_missing');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status).toHaveTextContent('table_guest_payment_return_missing');
   });
 
   it('offers retry and explicit discard only for a marker-free unfinished quote', () => {

@@ -158,11 +158,16 @@
 
 .notice,
 .error {
+  display: block;
   margin: 0;
   padding: 0.8rem 0.9rem;
   border-radius: var(--radius-md, 0.65rem);
   background: var(--surface-secondary);
   line-height: 1.5;
+}
+
+.notice output {
+  display: block;
 }
 
 .error {

@@ -32,7 +32,7 @@ interface QuoteRecoveryActionOptions {
 }
 
 export function useGuestPaymentQuoteRecoveryAction(options: QuoteRecoveryActionOptions) {
-  const retryUnfinishedQuote = useCallback(async () => {
+  const retryUnfinishedQuote = useCallback(() => {
     const initial = options.descriptorRef.current;
     if (
       !isUnfinishedGuestPaymentQuote(initial) ||
@@ -75,7 +75,7 @@ export function useGuestPaymentQuoteRecoveryAction(options: QuoteRecoveryActionO
     }, false);
   }, [options]);
 
-  const discardUnfinishedQuote = useCallback(async () => {
+  const discardUnfinishedQuote = useCallback(() => {
     const initial = options.descriptorRef.current;
     if (!isUnfinishedGuestPaymentQuote(initial) || options.isRecoveryLoading) return false;
     return options.runExclusive(async () => {

@@ -172,16 +172,16 @@ export function PaymentHoldNotice({
   const { t } = useTranslation();
   if (reconciliationRequired || state === 'ReconciliationRequired') {
     return (
-      <p className={styles.notice} role="status">
+      <output className={styles.notice} aria-live="polite">
         {t('table_guest_payment_reconciliation')}
-      </p>
+      </output>
     );
   }
   if (state === 'Captured' || state === 'Released' || state === 'Failed') return null;
   return (
-    <p className={styles.notice} role="status">
+    <output className={styles.notice} aria-live="polite">
       {t('table_guest_payment_pending')}
-    </p>
+    </output>
   );
 }
 

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { PaymentReceipt, PaymentStatus } from './GuestAccountPaymentDetails';
+import { PaymentHoldNotice, PaymentReceipt, PaymentStatus } from './GuestAccountPaymentDetails';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
@@ -48,5 +48,13 @@ describe('guest account payment status', () => {
 
     expect(screen.getByText('table_guest_payment_ReconciliationRequired')).toBeInTheDocument();
     expect(screen.queryByText('table_guest_payment_Captured')).not.toBeInTheDocument();
+  });
+
+  it('announces held payment status through a native output element', () => {
+    render(<PaymentHoldNotice state="Processing" reconciliationRequired={false} />);
+
+    const status = screen.getByRole('status');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status).toHaveTextContent('table_guest_payment_pending');
   });
 });

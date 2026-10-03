@@ -85,8 +85,7 @@ function isAttempt(value: unknown): value is GuestAccountPaymentAttemptDescripto
     isContribution(attempt.contribution) &&
     (attempt.quotedVersion === null || positiveInteger(attempt.quotedVersion)) &&
     (attempt.reservedExpectedVersion === null || positiveInteger(attempt.reservedExpectedVersion)) &&
-    (attempt.receiptCredential === null ||
-      (typeof attempt.receiptCredential === 'string' && RECEIPT_CREDENTIAL_PATTERN.test(attempt.receiptCredential))) &&
+    (attempt.receiptCredential === null || isReceiptCredential(attempt.receiptCredential)) &&
     (attempt.startRequestedAt === null ||
       (typeof attempt.startRequestedAt === 'number' &&
         Number.isFinite(attempt.startRequestedAt) &&
@@ -159,6 +158,10 @@ function isUnitList(value: unknown): value is readonly AccountPaymentUnitSelecti
 
 function isPaymentMode(value: unknown): value is AccountPaymentMode {
   return value === 'Items' || value === 'Amount' || value === 'Equal';
+}
+
+function isReceiptCredential(value: unknown): value is string {
+  return typeof value === 'string' && value.length === 43 && RECEIPT_CREDENTIAL_PATTERN.test(value);
 }
 
 function isPaymentState(value: unknown): value is AccountPaymentState {

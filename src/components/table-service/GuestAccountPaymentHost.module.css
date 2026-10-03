@@ -1,5 +1,6 @@
 .notice,
 .loading {
+  display: block;
   margin-block: 1rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--border-default);

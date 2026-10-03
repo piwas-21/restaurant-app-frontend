@@ -143,7 +143,7 @@ export function useGuestPaymentRecovery({
     publishDescriptor(selected);
     if (!returnAttemptId || (selected === receiptDescriptor && activeIdentity !== null))
       setReturnReceiptUnavailable(false);
-    if (!activeIdentity || selected.serviceSessionId !== activeIdentity.serviceSessionId) {
+    if (selected.serviceSessionId !== activeIdentity?.serviceSessionId) {
       await recoverReceiptOnly(selected, selectedReturnAttemptId, fetchReceipt, setReturnReceiptUnavailable);
       if (isCurrent()) setIsLoading(false);
       return;

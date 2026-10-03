@@ -27,7 +27,8 @@ export function stripGuestPaymentReturnFromUrl(): GuestPaymentReturnHint {
   url.searchParams.delete('paymentAttempt');
   url.searchParams.delete('canceled');
   const query = url.searchParams.toString();
-  const nextUrl = `${url.pathname}${query ? `?${query}` : ''}${url.hash}`;
+  const querySuffix = query ? `?${query}` : '';
+  const nextUrl = `${url.pathname}${querySuffix}${url.hash}`;
   window.history.replaceState(window.history.state, '', nextUrl);
   return hint;
 }

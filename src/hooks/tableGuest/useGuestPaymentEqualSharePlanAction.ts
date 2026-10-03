@@ -3,11 +3,11 @@
 import { useCallback } from 'react';
 import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import type {
+  GuestAccountPaymentAttemptDescriptor,
   GuestAccountPaymentAccount,
   GuestEqualSharePlan,
   GuestPaymentEqualShareSummary,
 } from '@/types/guestAccountPayments';
-import type { GuestAccountPaymentAttemptDescriptor } from '@/types/guestAccountPayments';
 import type { GuestEqualSharePlanIntent } from '@/types/guestEqualSharePlan';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';

@@ -56,8 +56,7 @@ function equalShareAllocations(
   const plan = account.activeEqualSharePlan;
   if (
     !plan ||
-    !planId ||
-    plan.planId.toLowerCase() !== planId.toLowerCase() ||
+    plan.planId.toLowerCase() !== planId?.toLowerCase() ||
     plan.accountRevision !== account.accountRevision ||
     !Number.isSafeInteger(ordinal) ||
     ordinal === undefined ||

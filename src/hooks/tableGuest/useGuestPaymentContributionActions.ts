@@ -136,7 +136,7 @@ function isEligibleQuote(
   account: GuestAccountPaymentAccount,
 ): boolean {
   const limits = account.limits.online;
-  if (!limits || limits.currency.toUpperCase() !== account.currency.toUpperCase()) return false;
+  if (limits?.currency.toUpperCase() !== account.currency.toUpperCase()) return false;
   const scope = expectedGuestPaymentAllocations(account, {
     ...quote,
     expectedAccountRevision: account.accountRevision,

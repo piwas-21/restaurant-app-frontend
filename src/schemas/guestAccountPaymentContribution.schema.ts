@@ -58,10 +58,8 @@ export function createGuestAccountPaymentContributionSchema(
     .transform((input) => toQuote(input, account, activePlan));
 }
 
-type ContributionInput = GuestAccountPaymentContributionFormValues;
-
 function toQuote(
-  input: ContributionInput,
+  input: GuestAccountPaymentContributionFormValues,
   account: GuestAccountPaymentAccount,
   activePlan: GuestPaymentEqualShareSummary | null,
 ): GuestAccountPaymentContributionQuote {

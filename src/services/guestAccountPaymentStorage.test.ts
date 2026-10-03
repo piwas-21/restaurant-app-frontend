@@ -64,7 +64,17 @@ describe('guest account payment attempt storage', () => {
     });
     expect(raw).not.toContain('participantToken');
     expect(raw).not.toContain('guest name');
-    expect(localStorage.length).toBe(0);
+    expect(localStorage).toHaveLength(0);
+  });
+
+  it('rejects an oversized stored receipt credential before testing its fixed-shape pattern', () => {
+    const malformed = {
+      ...attempt(3),
+      receiptCredential: 'A'.repeat(100_000),
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, attempts: [malformed] }));
+
+    expect(readGuestAccountPaymentAttempts()).toEqual({ kind: 'unavailable' });
   });
 
   it('stores a one-way participant fingerprint without retaining the participant credential', async () => {

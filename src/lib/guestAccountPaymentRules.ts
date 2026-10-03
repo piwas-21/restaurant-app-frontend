@@ -26,8 +26,7 @@ export function isUnfinishedGuestPaymentQuote(
   descriptor: GuestAccountPaymentAttemptDescriptor | null | undefined,
 ): descriptor is GuestAccountPaymentAttemptDescriptor {
   return Boolean(
-    descriptor &&
-    descriptor.contribution === null &&
+    descriptor?.contribution === null &&
     descriptor.quotedVersion === null &&
     descriptor.reservedExpectedVersion === null &&
     descriptor.receiptCredential === null &&

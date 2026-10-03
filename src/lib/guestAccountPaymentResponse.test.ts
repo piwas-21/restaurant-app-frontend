@@ -118,6 +118,49 @@ describe('guest account payment response validation', () => {
     await expect(validatePaymentOperation(malformed, descriptor)).rejects.toThrow();
   });
 
+  it('matches selected units and fingerprints allocations in deterministic ordinal order', async () => {
+    const secondItem = '00000000-0000-4000-8000-000000000041';
+    const firstItemAllocation = { ...allocation, orderItemId: ITEM, minorPerUnit: 500, amountMinor: 500 };
+    const secondItemAllocation = {
+      ...allocation,
+      orderId: OTHER_ORDER,
+      orderItemId: secondItem,
+      minorPerUnit: 700,
+      amountMinor: 700,
+    };
+    const ordered = operation({
+      mode: 'Items',
+      amountMinor: 1200,
+      allocations: [firstItemAllocation, secondItemAllocation],
+    });
+    const descriptor = createGuestAccountPaymentDescriptor(
+      SESSION,
+      OPERATION,
+      {
+        expectedAccountRevision: 3,
+        mode: 'Items',
+        paymentMethod: 'OnlinePayment',
+        selectedUnits: [
+          { orderId: ORDER.toUpperCase(), orderItemId: ITEM.toUpperCase(), ordinal: 1 },
+          { orderId: OTHER_ORDER.toUpperCase(), orderItemId: secondItem.toUpperCase(), ordinal: 1 },
+        ],
+      },
+      'a'.repeat(64),
+    );
+    const reversed = { ...ordered, allocations: [...ordered.allocations].reverse() };
+    const expectedContribution = await createGuestPaymentContribution(ordered);
+    const quoted = withQuotedOperation(descriptor, 1, expectedContribution);
+    const collationSpy = jest.spyOn(String.prototype, 'localeCompare').mockReturnValue(0);
+
+    try {
+      await expect(validatePaymentOperation(reversed, quoted)).resolves.toEqual(reversed);
+      await expect(createGuestPaymentContribution(reversed)).resolves.toEqual(expectedContribution);
+      expect(collationSpy).toHaveBeenCalled();
+    } finally {
+      collationSpy.mockRestore();
+    }
+  });
+
   it('checks a first quote against the exact reviewed account allocation', async () => {
     const descriptor = createGuestAccountPaymentDescriptor(
       SESSION,

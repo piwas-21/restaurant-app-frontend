@@ -121,10 +121,10 @@ async function reserveQuotedOperation(
   });
 }
 
-async function persistReceiptCapability(
+function persistReceiptCapability(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   context: GuestPaymentStartOptions,
-): Promise<GuestAccountPaymentAttemptDescriptor> {
+): GuestAccountPaymentAttemptDescriptor {
   if (descriptor.receiptCredential) return descriptor;
   const receiptCredential = createReceiptCredential();
   if (!receiptCredential) throw new Error('secure-storage');
@@ -137,11 +137,11 @@ async function persistReceiptCapability(
   return marked;
 }
 
-async function persistReservedVersion(
+function persistReservedVersion(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   operation: GuestAccountPaymentOperation,
   context: GuestPaymentStartOptions,
-): Promise<GuestAccountPaymentAttemptDescriptor> {
+): GuestAccountPaymentAttemptDescriptor {
   if (descriptor.reservedExpectedVersion !== null) return descriptor;
   const receiptCredential = descriptor.receiptCredential;
   if (!receiptCredential) throw new Error('recovery');

@@ -55,9 +55,9 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
         <p className={styles.muted}>{t('table_guest_payment_description')}</p>
       </header>
       {props.returnHintPresent && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('table_guest_payment_return_check')}
-        </p>
+        </output>
       )}
       {flow.storageUnavailable && (
         <p className={styles.error} role="alert">
@@ -70,13 +70,13 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
         </p>
       )}
       {!props.newPaymentsEnabled && (flow.attempt || flow.pendingPlanIntent) && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('table_guest_payment_new_disabled')}
-        </p>
+        </output>
       )}
       {flow.pendingPlanIntent && (
-        <div className={styles.notice} role="status">
-          <p>{t('table_guest_payment_plan_pending')}</p>
+        <div className={styles.notice}>
+          <output aria-live="polite">{t('table_guest_payment_plan_pending')}</output>
           {props.activeIdentity && (
             <button
               type="button"
@@ -89,20 +89,20 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           )}
         </div>
       )}
-      {account && account.limits.online === null && props.canCreatePayment && (
-        <p className={styles.notice} role="status">
+      {account?.limits.online === null && props.canCreatePayment && (
+        <output className={styles.notice} aria-live="polite">
           {t('table_guest_payment_online_unavailable')}
-        </p>
+        </output>
       )}
       {!props.canCreatePayment && props.activeIdentity && props.returnHintPresent && props.newPaymentsEnabled && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('table_guest_payment_pending_round')}
-        </p>
+        </output>
       )}
       {flow.isLoading && flow.attempt && (
-        <p className={styles.muted} role="status">
+        <output className={styles.muted} aria-live="polite">
           {t('loading')}
-        </p>
+        </output>
       )}
 
       {preStart && operation && (
@@ -199,9 +199,9 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
       )}
       {receipt && <PaymentReceipt receipt={receipt} locale={i18n.language} />}
       {flow.returnReceiptUnavailable && (
-        <p className={styles.notice} role="status">
+        <output className={styles.notice} aria-live="polite">
           {t('table_guest_payment_return_missing')}
-        </p>
+        </output>
       )}
       {canShowForm && account && account.availableMinor > 0 && !flow.isLoading && (
         <GuestAccountPaymentContributionForm
@@ -213,7 +213,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           onCreatePlan={flow.createEqualSharePlan}
         />
       )}
-      {account && account.availableMinor === 0 && props.canCreatePayment && (
+      {account?.availableMinor === 0 && props.canCreatePayment && (
         <p className={styles.muted}>{t('table_guest_payment_items_empty')}</p>
       )}
       {flow.attempt && !flow.canReplaceAttempt && (

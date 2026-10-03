@@ -7,8 +7,7 @@ import { useTableGuestVisit } from '@/contexts/TableGuestVisitContext';
 import { hasGuestAccountPaymentRecovery } from '@/services/guestAccountPaymentStorage';
 import { readStoredTableGuestState } from '@/services/tableGuestVisitStorage';
 import { GUEST_PAYMENT_RECOVERY_CHANGED } from '@/lib/guestPaymentRecoverySignal';
-import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
-import type { TableGuestAccountDto } from '@/types/tableGuestVisit';
+import type { TableGuestAccountDto, TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import { stripGuestPaymentReturnFromUrl, type GuestPaymentReturnHint } from '@/lib/guestPaymentReturn';
 import styles from './GuestAccountPaymentHost.module.css';
 
@@ -109,9 +108,9 @@ export default function GuestAccountPaymentHost({ tableAccount, onAccountUpdated
   }
   if (bundleStatus !== 'ready' || !panel) {
     return (
-      <p className={styles.loading} role="status">
+      <output className={styles.loading} aria-live="polite">
         {t('loading')}
-      </p>
+      </output>
     );
   }
 

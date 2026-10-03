@@ -8,6 +8,7 @@ import type {
 import { guestPaymentSnapshotFingerprint } from './guestAccountPaymentFingerprint';
 import { sameGuestPaymentAllocations } from './guestAccountPaymentAllocationMath';
 import { expectedGuestPaymentAllocations } from './guestAccountPaymentScope';
+import { compareOrdinalStrings } from './compareOrdinalStrings';
 import {
   isGuestPaymentCurrency,
   isGuestPaymentDate,
@@ -126,8 +127,8 @@ function sameNullableId(value: unknown, expected: string | null): boolean {
 
 function sameStrings(first: readonly string[], second: readonly string[]): boolean {
   if (first.length !== second.length) return false;
-  const expected = [...first].sort();
-  const actual = [...second].sort();
+  const expected = [...first].sort(compareOrdinalStrings);
+  const actual = [...second].sort(compareOrdinalStrings);
   return expected.every((value, index) => value === actual[index]);
 }
 

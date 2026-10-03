@@ -113,13 +113,13 @@ function OwnedAction({
       {action.stage === 'unavailable' && <p role="alert">{t('accountPayments.readiness.storage_unavailable')}</p>}
       {action.stage === 'settled' && (
         <>
-          <p role="status">
+          <output aria-live="polite">
             {t(
               action.result?.kind === 'succeeded'
                 ? 'accountPayments.readiness.succeeded'
                 : 'accountPayments.readiness.refused',
             )}
-          </p>
+          </output>
           <StaffButton onClick={() => void refresh().catch(() => undefined)}>{t('cashier.tables.retry')}</StaffButton>
         </>
       )}

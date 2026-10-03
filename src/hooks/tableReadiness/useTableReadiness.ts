@@ -68,6 +68,7 @@ export function useTableReadiness({
         setState({ stage: 'pending', result });
       }
     } catch (_error: unknown) {
+      // A lost response cannot settle the operation; retain its original journal for recovery.
       if (mounted.current && generation.current === requestGeneration) setState({ stage: 'pending' });
     } finally {
       if (generation.current === requestGeneration) inFlight.current = false;
@@ -125,6 +126,7 @@ export function useTableReadiness({
       pending.current = operation;
       await run(operation, true);
     } catch (_error: unknown) {
+      // Crypto or storage failure prevents a safe request, so leave readiness unavailable.
       setState({ stage: 'unavailable' });
     }
   }, [actorId, actorRole, canStart, readinessVersion, run, state.stage, tableId]);

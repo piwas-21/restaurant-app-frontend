@@ -44,6 +44,7 @@ export function readPendingTableReadiness(
     }
     return { status: 'pending', value: parsed.data };
   } catch (_error: unknown) {
+    // Unreadable storage cannot establish whether an unresolved request already exists.
     return { status: 'unavailable' };
   }
 }
@@ -59,6 +60,7 @@ export function persistPendingTableReadiness(value: PendingTableReadiness): bool
     window.sessionStorage.setItem(key(value.actorId, value.actorRole, value.tableId), JSON.stringify(parsed.data));
     return true;
   } catch (_error: unknown) {
+    // A request may be sent only after its original descriptor is durably stored.
     return false;
   }
 }
@@ -71,6 +73,7 @@ export function clearPendingTableReadiness(value: PendingTableReadiness): boolea
     window.sessionStorage.removeItem(key(value.actorId, value.actorRole, value.tableId));
     return true;
   } catch (_error: unknown) {
+    // Keep recovery blocked when removal cannot be confirmed; never assume the journal cleared.
     return false;
   }
 }

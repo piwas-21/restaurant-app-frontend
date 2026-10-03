@@ -11,6 +11,12 @@ import type {
   DeliveryChannelPreview,
   DeliveryChannelPublication,
 } from '@/types/deliveryChannelCatalogue';
+import {
+  pollPendingPublication,
+  publicationHasCurrentTaxProfile,
+  publicationRequiresTaxProfile,
+  publishIsBlocked,
+} from '@/utils/deliveryChannelPublicationFlow';
 import { useDeliveryChannelPublicationStatus } from './useDeliveryChannelPublicationStatus';
 
 interface Props {
@@ -78,68 +84,82 @@ export function useDeliveryChannelPublication({
     }
   }, [catalogue, dirty, draftWriteUncertain, refreshCatalogue, stale, writeUncertain]);
 
-  const publish = useCallback(async () => {
-    if (
-      !catalogue ||
-      !preview?.canPublish ||
-      dirty ||
-      stale ||
-      unresolvedPublication ||
-      draftWriteUncertain ||
-      writeUncertain
-    )
-      return null;
-    setBusy('publish');
-    setError(null);
-    try {
-      const result = await deliveryChannelManagementService.publish({
-        draftRevision: preview.draftRevision,
-        publicationRevision: preview.publicationRevision,
-      });
-      rememberPublishedId(result.id);
-      setPublication(result);
-      if (result.state === 'verified' && result.providerReadbackVerified) {
-        setWriteUncertain(false);
-        await refreshCatalogue();
-      }
-      if (result.state === 'pending') {
-        for (let attempt = 0; attempt < 8; attempt += 1) {
-          await new Promise((resolve) => window.setTimeout(resolve, 2_000));
-          const current = await refreshPublication();
-          if (current?.state !== 'pending') return current;
+  const publish = useCallback(
+    async (confirmedTaxProfile = false) => {
+      if (
+        !catalogue ||
+        !preview ||
+        publishIsBlocked({
+          catalogue,
+          preview,
+          confirmedTaxProfile,
+          dirty,
+          stale,
+          unresolvedPublication,
+          draftWriteUncertain,
+          writeUncertain,
+        })
+      )
+        return null;
+      const requiresTaxProfile = publicationRequiresTaxProfile(preview);
+      const taxProfileRevision = preview.taxProfileRevision;
+      setBusy('publish');
+      setError(null);
+      try {
+        const result = await deliveryChannelManagementService.publish({
+          draftRevision: preview.draftRevision,
+          publicationRevision: preview.publicationRevision,
+          ...(requiresTaxProfile && taxProfileRevision ? { confirmedTaxProfile: true, taxProfileRevision } : {}),
+        });
+        rememberPublishedId(result.id);
+        setPublication(result);
+        if (result.state === 'verified' && result.providerReadbackVerified) {
+          setWriteUncertain(false);
+          await refreshCatalogue();
         }
+        if (result.state === 'pending') {
+          const polled = await pollPendingPublication(refreshPublication);
+          if (polled.finished) return polled.publication;
+        }
+        return result;
+      } catch (cause) {
+        const classified = classifyDeliveryChannelMutationFailure(cause);
+        setError(classified);
+        if (classified === 'uncertain') {
+          setWriteUncertain(true);
+          await refreshCatalogue();
+          setError('uncertain');
+        } else if (classified === 'stale') {
+          await refreshCatalogue();
+          setError('stale');
+        }
+        return null;
+      } finally {
+        setBusy(null);
       }
-      return result;
-    } catch (cause) {
-      const classified = classifyDeliveryChannelMutationFailure(cause);
-      setError(classified);
-      if (classified === 'uncertain') {
-        setWriteUncertain(true);
-        await refreshCatalogue();
-        setError('uncertain');
-      } else if (classified === 'stale') {
-        await refreshCatalogue();
-        setError('stale');
-      }
-      return null;
-    } finally {
-      setBusy(null);
-    }
-  }, [
-    catalogue,
-    dirty,
-    draftWriteUncertain,
-    preview,
-    refreshCatalogue,
-    stale,
-    refreshPublication,
-    rememberPublishedId,
-    unresolvedPublication,
-    writeUncertain,
-  ]);
+    },
+    [
+      catalogue,
+      dirty,
+      draftWriteUncertain,
+      preview,
+      refreshCatalogue,
+      stale,
+      refreshPublication,
+      rememberPublishedId,
+      unresolvedPublication,
+      writeUncertain,
+    ],
+  );
 
   const canPublish = Boolean(
-    preview?.canPublish && !dirty && !stale && !unresolvedPublication && !draftWriteUncertain && !writeUncertain,
+    preview?.canPublish &&
+    (!publicationRequiresTaxProfile(preview) || publicationHasCurrentTaxProfile(preview)) &&
+    !dirty &&
+    !stale &&
+    !unresolvedPublication &&
+    !draftWriteUncertain &&
+    !writeUncertain,
   );
   const verified = publication?.state === 'verified' && publication.providerReadbackVerified;
 

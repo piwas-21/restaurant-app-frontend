@@ -36,9 +36,10 @@ function runGate(englishKeys: Record<string, unknown>, files: Record<string, str
   const root = mkdtempSync(join(tmpdir(), 'orphan-gate-'));
   workdirs.push(root);
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  mkdirSync(join(root, 'src/locales'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/order-workspace'), { recursive: true });
   copyFileSync(SCRIPT, join(root, 'scripts/check-locale-orphans.mjs'));
   writeFileSync(join(root, 'src/locales/en.json'), `${JSON.stringify(englishKeys, null, 2)}\n`);
+  writeFileSync(join(root, 'src/locales/order-workspace/en.json'), '{}\n');
   for (const [rel, contents] of Object.entries(files)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true });
     writeFileSync(join(root, rel), contents);
@@ -92,6 +93,32 @@ describe('orphan gate — the baseline behaviours', () => {
     expect(status).toBe(1);
     expect(output).toContain('orphan: cashier.zreport.dead_one');
     expect(output).not.toContain('orphan: cashier.zreport.total_tips');
+  });
+
+  it('allows the menu selection count families but rejects adjacent unused copy', () => {
+    const { status, output } = runGate(
+      {
+        deliveryChannels: {
+          menuSelection: {
+            selectedCount_one: 'One selected',
+            selectedCount_other: 'Several selected',
+            unsupportedCount_one: 'One unsupported',
+            unsupportedCount_other: 'Several unsupported',
+            unusedCount_one: 'Never used',
+          },
+        },
+      },
+      {
+        'src/components/Selection.tsx':
+          "t('deliveryChannels.menuSelection.selectedCount', { count });\n" +
+          "t('deliveryChannels.menuSelection.unsupportedCount', { count });\n",
+      },
+    );
+
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: deliveryChannels.menuSelection.unusedCount_one');
+    expect(output).not.toContain('orphan: deliveryChannels.menuSelection.selectedCount_');
+    expect(output).not.toContain('orphan: deliveryChannels.menuSelection.unsupportedCount_');
   });
 });
 

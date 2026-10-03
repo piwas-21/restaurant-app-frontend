@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { DeliveryChannelWorkspaceSectionId } from '@/hooks/admin/useDeliveryChannelWorkspaceSection';
 import type { DeliveryChannelManagementSummary } from '@/types/deliveryChannelManagement';
 import type { useDeliveryChannelCatalogue } from '@/hooks/admin/useDeliveryChannelCatalogue';
+import type { useDeliveryChannelCategorySelection } from '@/hooks/admin/useDeliveryChannelCategorySelection';
 import type { useDeliveryChannelOperations } from '@/hooks/admin/useDeliveryChannelOperations';
 import type { useDeliveryChannelOverview } from '@/hooks/admin/useDeliveryChannelOverview';
 import type { useDeliveryChannelPublication } from '@/hooks/admin/useDeliveryChannelPublication';
@@ -19,6 +20,7 @@ interface Props {
   readonly connected: boolean;
   readonly overview: ReturnType<typeof useDeliveryChannelOverview>;
   readonly catalogue: ReturnType<typeof useDeliveryChannelCatalogue>;
+  readonly categorySelection: ReturnType<typeof useDeliveryChannelCategorySelection>;
   readonly publication: ReturnType<typeof useDeliveryChannelPublication>;
   readonly operations: ReturnType<typeof useDeliveryChannelOperations>;
   readonly activeSection: DeliveryChannelWorkspaceSectionId;
@@ -34,6 +36,7 @@ export default function DeliveryChannelManagementWorkspace({
   connected,
   overview,
   catalogue,
+  categorySelection,
   publication,
   operations,
   activeSection,
@@ -89,6 +92,7 @@ export default function DeliveryChannelManagementWorkspace({
             connected={connected}
             overview={overview}
             catalogue={catalogue}
+            categorySelection={categorySelection}
             publication={publication}
             operations={operations}
             onSectionChange={onSectionChange}

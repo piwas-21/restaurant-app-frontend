@@ -13,6 +13,8 @@ import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtil
 import { getErrorMessage } from '@/utils/apiClient';
 import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
+import OrderAmendmentEntryButton from '@/components/order-amendments/OrderAmendmentEntryButton';
+import OrderAmendmentHistorySection from '@/components/order-amendments/OrderAmendmentHistorySection';
 import styles from './CashierTicketActions.module.css';
 
 const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
@@ -47,7 +49,13 @@ export default function CashierTicketActions({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusBusy, setFocusBusy] = useState(false);
+  const [historyRefresh, setHistoryRefresh] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const notifyOrderChanged = () => {
+    setHistoryRefresh((current) => current + 1);
+    onOrderChanged?.();
+  };
 
   const printBill = () => exportOrderToPDF(order, (key, fallback) => t(key, { defaultValue: fallback }));
   const printKitchen = () =>
@@ -59,7 +67,7 @@ export default function CashierTicketActions({
     try {
       await toggleFocusOrder(order.id, isFocus, priority, reason);
       setFocusOpen(false);
-      onOrderChanged?.();
+      notifyOrderChanged();
     } catch (error) {
       setActionError(getErrorMessage(error) ?? t('cashier.workspace.focus_failed'));
     } finally {
@@ -81,6 +89,7 @@ export default function CashierTicketActions({
       <ChannelOrderDecision order={order} isSnapshotFresh={isOrderSnapshotFresh} onOrderChanged={onOrderChanged} />
       <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
+        <OrderAmendmentEntryButton order={order} operatorRole="Cashier" onCommitted={notifyOrderChanged} />
         {isPendingHandoff && (
           <button
             type="button"
@@ -142,11 +151,11 @@ export default function CashierTicketActions({
           onClose={() => setConfirmOpen(false)}
           onConfirm={async (orderId, preparationMinutes) => {
             await approveOrder(orderId, preparationMinutes);
-            onOrderChanged?.();
+            notifyOrderChanged();
           }}
           onReject={async (orderId, reason) => {
             await rejectOrder(orderId, reason);
-            onOrderChanged?.();
+            notifyOrderChanged();
           }}
           confirmationFlow={confirmationFlow}
         />
@@ -158,6 +167,7 @@ export default function CashierTicketActions({
         onConfirm={confirmFocus}
         isLoading={focusBusy}
       />
+      <OrderAmendmentHistorySection orderId={order.id} refreshKey={`${order.version}:${historyRefresh}`} />
     </section>
   );
 }

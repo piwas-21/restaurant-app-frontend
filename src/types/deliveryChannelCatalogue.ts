@@ -1,3 +1,5 @@
+import type { DeliveryChannelCategoryDraft, DeliveryChannelCategoryItem } from './deliveryChannelMenuSelection';
+
 /** Frontend mirror of the backend candidate DTOs used to guard menu selection. */
 export interface DeliveryChannelCatalogueCandidate {
   readonly productId: string;
@@ -47,6 +49,13 @@ export type ProviderPriceStatus = 'currentReadback' | 'lastConfirmed' | 'unknown
 
 /** Frontend mirror of the management catalogue and draft DTOs. */
 export interface DeliveryChannelCatalogue {
+  readonly selectionMode?: 'fixedItemsV1' | 'categoryItemsV1';
+  readonly sourceChanged?: boolean;
+  readonly draftSourceRevision?: string | null;
+  readonly draft?: DeliveryChannelCategoryDraft | null;
+  readonly selectedItems?: readonly DeliveryChannelCategoryItem[];
+  readonly taxProfile?: DeliveryChannelReviewedTaxProfile | null;
+  readonly taxProfileRevision?: string | null;
   readonly storeId: string;
   readonly currency: string;
   readonly mappingRevision: string;
@@ -87,6 +96,8 @@ export interface DeliveryChannelPreviewRequest {
 }
 
 export interface DeliveryChannelPreview {
+  readonly selectionMode?: 'fixedItemsV1' | 'categoryItemsV1';
+  readonly taxProfileRevision?: string | null;
   readonly draftRevision: string;
   readonly mappingRevision: string;
   readonly sourceRevision: string;
@@ -94,6 +105,8 @@ export interface DeliveryChannelPreview {
   readonly currency: string;
   readonly canPublish: boolean;
   readonly items: readonly DeliveryChannelMappingRow[];
+  readonly selectedItems?: readonly DeliveryChannelCategoryItem[];
+  readonly taxProfile?: DeliveryChannelReviewedTaxProfile | null;
   readonly serviceAvailability: readonly DeliveryChannelServiceHoursDay[];
   readonly serviceHoursEditable: boolean;
   readonly serviceHoursStatus: 'reviewedTemplate';
@@ -103,9 +116,18 @@ export interface DeliveryChannelPreview {
   readonly warningCodes: readonly string[];
 }
 
+export interface DeliveryChannelReviewedTaxProfile {
+  readonly source: 'reviewedSandboxTemplate';
+  readonly profileRevision: string;
+  readonly vatRatePercentage: number;
+  readonly merchantVerificationRequired: boolean;
+}
+
 export interface DeliveryChannelPublishRequest {
   readonly draftRevision: string;
   readonly publicationRevision: string;
+  readonly confirmedTaxProfile?: boolean;
+  readonly taxProfileRevision?: string;
 }
 export interface DeliveryChannelPublication {
   readonly id: string;

@@ -3,44 +3,15 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import translation files
+// Keep the default-language fallback available synchronously for unlocalized routes and SSR.
 import translationEN from './locales/en.json';
-import translationDE from './locales/de.json';
-import translationTR from './locales/tr.json';
-import translationIT from './locales/it.json';
-import translationAR from './locales/ar.json';
-import translationFR from './locales/fr.json';
-import translationNL from './locales/nl.json';
-import translationES from './locales/es.json';
-import translationRU from './locales/ru.json';
-import translationZH from './locales/zh.json';
 import { applyTenantCopy, tenantCopyOverrides } from './lib/tenantCopy';
+import { loadLocaleMessages, normalizeBundleLocale } from './lib/localeResourceLoader';
+import { createLocaleBackend } from './lib/localeBackend';
 import { tenantLocaleFromPathname } from './lib/tenantLocaleRouting';
 import { readTenantLocalePreference } from './lib/tenantLocalePreferences';
 
-// The PLATFORM bundles: cuisine-neutral copy every tenant image inherits.
-const baseBundles: Record<string, Record<string, unknown>> = {
-  en: translationEN,
-  de: translationDE,
-  tr: translationTR,
-  it: translationIT,
-  ar: translationAR,
-  fr: translationFR,
-  nl: translationNL,
-  es: translationES,
-  ru: translationRU,
-  zh: translationZH,
-};
-
-// A tenant with copy of its own (NEXT_PUBLIC_TENANT_COPY_PACK) lays its ten locale files over the
-// platform ones here, so `t()` needs no knowledge of packs and no callsite changes. Empty for every
-// tenant without one — see src/lib/tenantCopy.ts.
-const resources = Object.fromEntries(
-  Object.entries(baseBundles).map(([locale, bundle]) => [
-    locale,
-    { translation: applyTenantCopy(bundle, tenantCopyOverrides(locale)) },
-  ]),
-);
+const localeBackend = createLocaleBackend((language) => loadLocaleMessages(normalizeBundleLocale(language)));
 
 // Check if we're in the browser
 const isBrowser = typeof window !== 'undefined';
@@ -48,10 +19,14 @@ const routeLocale = isBrowser ? tenantLocaleFromPathname(window.location.pathnam
 const savedLocale = isBrowser ? readTenantLocalePreference() : null;
 
 i18n
+  .use(localeBackend)
   .use(LanguageDetector) // Detect user language
   .use(initReactI18next) // Passes i18n down to react-i18next
   .init({
-    resources,
+    resources: { en: { translation: applyTenantCopy(translationEN, tenantCopyOverrides('en')) } },
+    partialBundledLanguages: true,
+    ns: ['translation'],
+    defaultNS: 'translation',
     fallbackLng: 'en', // Use English if detected language is not available
     // Any supported locale URL is authoritative; otherwise only the versioned preference cookie
     // outranks browser detection. The old detector cache could contain a locale forced by a
@@ -71,3 +46,11 @@ i18n
   });
 
 export default i18n;
+
+/** Prime the server-rendered route locale before the provider clones it for hydration. */
+export function primeLocaleMessages(locale: string, messages: Record<string, unknown>): void {
+  const resolvedLocale = normalizeBundleLocale(locale);
+  if (!i18n.hasResourceBundle(resolvedLocale, 'translation')) {
+    i18n.addResourceBundle(resolvedLocale, 'translation', messages, true, true);
+  }
+}

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -35,6 +35,9 @@ function runGate(bundles: Record<string, Bundle>, untranslatedBaseline: Record<s
   mkdirSync(join(root, 'scripts'), { recursive: true });
   mkdirSync(join(root, 'src/locales'), { recursive: true });
   copyFileSync(SCRIPT, join(root, 'scripts/check-locale-parity.mjs'));
+  cpSync(join(REPO_ROOT, 'src/locales/order-workspace'), join(root, 'src/locales/order-workspace'), {
+    recursive: true,
+  });
   writeFileSync(join(root, 'scripts/locale-placeholder-baseline.json'), '[]\n');
   writeFileSync(join(root, 'scripts/locale-untranslated-baseline.json'), `${JSON.stringify(untranslatedBaseline)}\n`);
   for (const [name, bundle] of Object.entries(bundles)) {

@@ -7,14 +7,19 @@ const FEATURE_REQUEST_TIMEOUT_MS = Number(process.env.TENANT_FEATURES_REQUEST_TI
 export interface TenantFeatures {
   serverWorkspaceV2: boolean;
   tableAccountV1: boolean;
+  orderAmendmentsV1: boolean;
 }
 
 interface TenantFeaturesResponse {
   success?: unknown;
-  data?: { serverWorkspaceV2?: unknown; tableAccountV1?: unknown };
+  data?: { serverWorkspaceV2?: unknown; tableAccountV1?: unknown; orderAmendmentsV1?: unknown };
 }
 
-const DEFAULT_FEATURES: TenantFeatures = { serverWorkspaceV2: false, tableAccountV1: false };
+const DEFAULT_FEATURES: TenantFeatures = {
+  serverWorkspaceV2: false,
+  tableAccountV1: false,
+  orderAmendmentsV1: false,
+};
 
 /**
  * Reads the backend's additive tenant rollout contract.
@@ -43,6 +48,10 @@ export async function getTenantFeatures(): Promise<TenantFeatures> {
           : DEFAULT_FEATURES.serverWorkspaceV2,
       tableAccountV1:
         typeof body.data?.tableAccountV1 === 'boolean' ? body.data.tableAccountV1 : DEFAULT_FEATURES.tableAccountV1,
+      orderAmendmentsV1:
+        typeof body.data?.orderAmendmentsV1 === 'boolean'
+          ? body.data.orderAmendmentsV1
+          : DEFAULT_FEATURES.orderAmendmentsV1,
     };
   } catch (error) {
     console.warn('Could not read tenant rollout features; retaining Server Workspace V1', error);

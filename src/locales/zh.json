@@ -3476,7 +3476,9 @@
       "Confirmed": "已确认",
       "Preparing": "制作中",
       "Ready": "已就绪"
-    }
+    },
+    "collection_settlement_title": "平台支付",
+    "collection_settlement_body": "此订单的付款由 {{provider}} 处理。请勿在此收款。请查看平台的结算记录以了解款项到账状态。"
   },
   "deliveryChannels": {
     "title": "Uber Eats 优食管理",
@@ -3648,7 +3650,12 @@
       "confirmSummary_other": "此操作将用 {{count}} 个已检查商品替换 {{store}} 的整个 Uber Eats 菜单。",
       "publicationRevision": "发布版本",
       "operationId": "发布操作标识",
-      "providerItemId": "Uber 菜品编号"
+      "providerItemId": "Uber 菜品编号",
+      "reviewedTaxTitle": "已审核的税率",
+      "reviewedTaxRate": "增值税：{{rate}}%",
+      "reviewedTaxBody": "此税率适用于所有所选商品。请在发布前确认税率正确。",
+      "confirmTaxProfile": "我已审核所有所选商品的税率。",
+      "merchantTaxVerificationNote": "启用前请核实每家实际餐厅的税务配置。"
     },
     "availability": {
       "title": "商店供应情况",
@@ -3816,7 +3823,10 @@
       "DeliveryUncertain": "订单交付或接受是不确定的。检查 Uber Eats 优食平板电脑和现有的 Sofra 订单；请勿接受或创建副本。",
       "PayloadExpired": "订单通知已过期。检查现有的 Sofra 订单和 Uber Eats 优食状态；不要自动创建替换。",
       "ConnectionOperationBusy": "另一个 Uber Eats 连接正在完成。此授权已无法使用。请返回管理页面，待当前检查完成后重新开始授权。",
-      "AuthorizationSuperseded": "此授权链接已被更新的链接替代。请返回 Uber Eats 管理页面检查最新连接状态。"
+      "AuthorizationSuperseded": "此授权链接已被更新的链接替代。请返回 Uber Eats 管理页面检查最新连接状态。",
+      "MissingCategory": "发布此商品前，请设置其主要菜单分类。",
+      "UnavailableCategory": "此菜单分类未启用。请启用该分类或从所选内容中移除这些商品。",
+      "ReviewedTaxProfileUnavailable": "已审核的税务设置缺失或不一致。发布此菜单前，请让 Sofra 核实这些设置。"
     },
     "errors": {
       "load": "无法加载最新信息。",
@@ -3849,6 +3859,35 @@
       "viewHealth": "查看连接状态",
       "viewPublication": "检查发布结果",
       "manageAvailability": "管理可用状态"
+    },
+    "menuSelection": {
+      "title": "选择在 Uber Eats 上提供的商品",
+      "description": "选择整个分类或逐个调整商品。保存后会固定此菜单以供审核。",
+      "searchLabel": "搜索菜单商品",
+      "categoryFilterLabel": "按分类筛选",
+      "allCategories": "所有分类",
+      "category": "分类",
+      "item": "商品",
+      "categorySelection": {
+        "all": "已选择所有商品",
+        "partial": "已选择部分商品",
+        "empty": "未选择任何商品"
+      },
+      "noCategories": "未找到菜单分类",
+      "noItems": "没有符合搜索条件的商品",
+      "loadMore": "加载更多商品",
+      "save": "保存菜单选择",
+      "refresh": "刷新菜单",
+      "sourceChanged": "保存此选择后，餐厅菜单已发生变化。请在保存或审核前刷新菜单。",
+      "selectionLimit": "此选择包含 {{selected}} 件商品；当前上限为 {{maximum}} 件。请移除商品或减少所选分类。",
+      "hoursDetails": "菜单供应情况和营业时间",
+      "selectedCount_other": "已选择 {{count}} 件商品",
+      "unsupportedCount_other": "{{count}} 件所选商品需要检查",
+      "removedSelections": "部分已保存的分类或商品选择已与餐厅当前菜单不符，已从此草稿中清除。保存前，请检查更新后的选择。",
+      "categoryBasisNotice": "每个商品显示在其主要菜单分类下。你也可以单独选择任意商品。",
+      "categoryLimit": "此选择最多可包含 {{maximum}} 个菜单分类。添加其他分类前，请先移除一个分类。",
+      "overrideLimit": "单个商品的例外设置过多。请调整所选分类，或移除部分商品例外设置。",
+      "needsSaveNotice": "您的菜单选择有尚未保存的更改。请先保存，再检查即将发布的菜单。"
     }
   },
   "cashier.tables.account": "桌台账单",
@@ -3879,5 +3918,9 @@
     "operations": "订单与服务",
     "customers": "顾客",
     "settings": "设置"
-  }
+  },
+  "serverOrders": {
+    "title": "订单"
+  },
+  "languageLoadFailed": "无法加载该语言。已保留您当前的语言，请重试。"
 }

@@ -1,5 +1,5 @@
 import { firstPaintCopy, FIRST_PAINT_LOCALE, type CopyFn } from '@/lib/firstPaintCopy';
-import i18n from '../i18n';
+import i18n, { primeLocaleMessages } from '../i18n';
 import enBundle from '@/locales/en.json';
 import frBundle from '@/locales/fr.json';
 
@@ -33,7 +33,10 @@ describe('firstPaintCopy', () => {
     expect(translate).not.toHaveBeenCalled();
   });
 
-  it('pins a locale-prefixed public page to its route locale before hydration', () => {
+  it('pins a locale-prefixed public page to its server-primed route locale before hydration', () => {
+    // RootLayout loads the route bundle on the server and ClientProviders primes it before this
+    // first-paint helper runs. Simulate that handoff without making the bundle eager again.
+    primeLocaleMessages('fr', platformFr);
     expect(firstPaintCopy(i18n, 'fr')('home_story_title')).toBe(platformFr.home_story_title);
   });
 

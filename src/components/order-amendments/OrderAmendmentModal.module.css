@@ -1,0 +1,200 @@
+.modal {
+  max-width: 70rem;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4, 1rem);
+}
+
+.stageNotice,
+.error,
+.providerNotice,
+.moneyNotice,
+.successNotice {
+  display: block;
+  margin: 0;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.error {
+  border-color: var(--feedback-danger);
+  background: var(--feedback-danger-xlight);
+}
+
+.providerNotice,
+.moneyNotice {
+  border-color: var(--feedback-warning);
+  background: var(--feedback-warning-xlight);
+}
+
+.successNotice {
+  border-color: var(--feedback-success);
+  background: var(--feedback-success-xlight);
+}
+
+.reviewStage {
+  display: grid;
+  gap: var(--space-4, 1rem);
+}
+
+.reviewSection,
+.moneySection {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+  min-inline-size: 0;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  background: var(--surface-primary);
+}
+
+.sectionHeader,
+.footer,
+.footerGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.sectionHeader {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.sectionHeader span,
+.inlineHint,
+.sourceTotal,
+.expiry {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.orderState {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.changeList,
+.supplementItems {
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.changeList li,
+.supplementItems li {
+  color: var(--text-primary);
+}
+
+.footer button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.currentSnapshot {
+  margin-block-start: var(--space-2, 0.5rem);
+  padding-inline-start: var(--space-3, 0.75rem);
+  border-inline-start: 2px solid var(--brand-primary);
+}
+
+.moneyGrid,
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3, 0.75rem);
+  margin: 0;
+}
+
+.moneyGrid > div,
+.statusGrid > div {
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+}
+
+.moneyGrid dt,
+.moneyGrid dd,
+.statusGrid dt,
+.statusGrid dd {
+  margin: 0;
+}
+
+.moneyGrid dt,
+.statusGrid dt {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.moneyGrid dd,
+.statusGrid dd {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.footerGroup {
+  margin-inline-start: auto;
+}
+
+.footer button {
+  min-block-size: 3rem;
+  padding-inline: var(--space-4, 1rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.footer .primary {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 38rem) {
+  .footer,
+  .footerGroup {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footerGroup,
+  .footer button {
+    inline-size: 100%;
+  }
+
+  .moneyGrid,
+  .statusGrid {
+    grid-template-columns: 1fr;
+  }
+}

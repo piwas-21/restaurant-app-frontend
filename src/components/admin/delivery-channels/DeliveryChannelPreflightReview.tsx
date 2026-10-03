@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { DeliveryChannelPreview } from '@/types/deliveryChannelCatalogue';
 import { formatDeliveryChannelPrice } from '@/lib/deliveryChannelFormat';
 import DeliveryChannelServiceHoursReview from './DeliveryChannelServiceHoursReview';
+import DeliveryChannelCategoryPreflightReview from './DeliveryChannelCategoryPreflightReview';
 import detailsStyles from './DeliveryChannelTechnicalDetails.module.css';
 import styles from './DeliveryChannelPublicationPanel.module.css';
 
@@ -14,6 +15,10 @@ interface Props {
 
 export default function DeliveryChannelPreflightReview({ preview, locale }: Readonly<Props>) {
   const { t } = useTranslation();
+
+  if (preview.selectionMode === 'categoryItemsV1') {
+    return <DeliveryChannelCategoryPreflightReview preview={preview} locale={locale} />;
+  }
 
   return (
     <>

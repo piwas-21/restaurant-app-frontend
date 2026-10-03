@@ -1,31 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { I18nContext, useTranslation } from 'react-i18next';
+import { useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import baseI18n from '../i18n';
-import { baseLanguage, directionFor } from '@/lib/textDirection';
 import { tenantLocaleFromPathname } from '@/lib/tenantLocaleRouting';
-import { persistTenantLocalePreference } from '@/lib/tenantLocalePreferences';
+import { useDocumentLanguageSync } from '@/hooks/useDocumentLanguageSync';
 
 /** Keeps the document and both i18next instances aligned with the explicit route locale. */
 export default function DocumentLanguage() {
-  const { i18n } = useTranslation();
+  const { i18n: reactiveI18n } = useTranslation();
+  // useTranslation returns a language-keyed wrapper; route synchronization needs the stable provider instance.
+  const i18n = useContext(I18nContext)?.i18n ?? reactiveI18n;
   const pathname = usePathname();
   const routeLocale = tenantLocaleFromPathname(pathname);
-  const activeLanguage = routeLocale ?? i18n.language;
-
-  useEffect(() => {
-    if (routeLocale) {
-      if (baseLanguage(i18n.language) !== routeLocale) void i18n.changeLanguage(routeLocale);
-      if (baseLanguage(baseI18n.language) !== routeLocale) void baseI18n.changeLanguage(routeLocale);
-      persistTenantLocalePreference(routeLocale);
-    }
-
-    const root = document.documentElement;
-    root.setAttribute('lang', baseLanguage(activeLanguage));
-    root.setAttribute('dir', directionFor(activeLanguage));
-  }, [activeLanguage, i18n, routeLocale]);
+  useDocumentLanguageSync(i18n, baseI18n, routeLocale);
 
   return null;
 }

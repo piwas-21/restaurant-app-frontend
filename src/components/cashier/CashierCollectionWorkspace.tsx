@@ -11,6 +11,7 @@ import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { CASHIER_ORDERS_PATH } from '@/lib/cashierWorkspace';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { channelProviderName } from '@/lib/externalOrder';
 import styles from './CashierCollection.module.css';
 import CashierStatusBadges from './CashierStatusBadges';
 
@@ -67,7 +68,10 @@ export default function CashierCollectionWorkspace() {
     collection.order && collection.outcomeOrderId?.toLowerCase() === collection.order.id.toLowerCase(),
   );
   const canShowCollection = Boolean(
-    collection.order && !collection.isLoading && (canCollectPayment(collection.order) || hasOutcome),
+    collection.order &&
+    !collection.isLoading &&
+    !collection.order.externalOrder &&
+    (canCollectPayment(collection.order) || hasOutcome),
   );
 
   return (
@@ -84,27 +88,45 @@ export default function CashierCollectionWorkspace() {
           </Link>
         </section>
       )}
-      {!collection.isLoading && collection.order && !canCollectPayment(collection.order) && !hasOutcome && (
-        <section className={styles.collection} aria-labelledby="cashier-collection-title">
-          <header className={styles.collectionHeader}>
-            <button type="button" className={styles.backButton} onClick={returnToOrder}>
-              {t('cashier.collection.return_order')}
-            </button>
-            <div className={styles.orderIdentity}>
-              <p className={styles.eyebrow}>{t('cashier.collection.order')}</p>
-              <h1 id="cashier-collection-title" dir="auto">
-                {collection.order.orderNumber}
-              </h1>
-            </div>
-            <CashierStatusBadges order={collection.order} />
-          </header>
-          <output className={styles.balanceCard}>
-            <span>{t('cashier.workspace.amount_due')}</span>
-            <strong>{formatOrderCurrency(collection.order.remainingAmount, collection.order)}</strong>
-          </output>
-          <p>{t('cashier.collection.no_due')}</p>
-        </section>
-      )}
+      {!collection.isLoading &&
+        collection.order &&
+        !canCollectPayment(collection.order) &&
+        (!hasOutcome || Boolean(collection.order.externalOrder)) && (
+          <section className={styles.collection} aria-labelledby="cashier-collection-title">
+            <header className={styles.collectionHeader}>
+              <button type="button" className={styles.backButton} onClick={returnToOrder}>
+                {t('cashier.collection.return_order')}
+              </button>
+              <div className={styles.orderIdentity}>
+                <p className={styles.eyebrow}>{t('cashier.collection.order')}</p>
+                <h1 id="cashier-collection-title" dir="auto">
+                  {collection.order.orderNumber}
+                </h1>
+              </div>
+              <CashierStatusBadges order={collection.order} />
+            </header>
+            {collection.order.externalOrder ? (
+              <section aria-labelledby="cashier-marketplace-settlement-title">
+                <h2 id="cashier-marketplace-settlement-title">{t('marketplaceStaff.collection_settlement_title')}</h2>
+                <p>
+                  {t('marketplaceStaff.collection_settlement_body', {
+                    provider: channelProviderName(collection.order.externalOrder, (key, fallback) =>
+                      t(key, { defaultValue: fallback }),
+                    ),
+                  })}
+                </p>
+              </section>
+            ) : (
+              <>
+                <output className={styles.balanceCard}>
+                  <span>{t('cashier.workspace.amount_due')}</span>
+                  <strong>{formatOrderCurrency(collection.order.remainingAmount, collection.order)}</strong>
+                </output>
+                <p>{t('cashier.collection.no_due')}</p>
+              </>
+            )}
+          </section>
+        )}
       {canShowCollection && collection.order && (
         <CashierCollectionPanel
           order={collection.order}

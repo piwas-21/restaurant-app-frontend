@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import Link from '@/components/TenantLink';
+import ServerLegacyWorkspaceActions from '@/components/server/ServerLegacyWorkspaceActions';
 import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
@@ -118,14 +118,7 @@ function ServerWorkspaceV1() {
         onStatusFilterChange={setStatusFilter}
       />
 
-      <div className={styles.pageActions}>
-        <Link className={styles.takeawayLink} href="/server/marketplace">
-          {t('marketplaceStaff.kitchen_title')}
-        </Link>
-        <Link className={styles.takeawayLink} href="/server/takeaway">
-          {t('server.takeaway.link')}
-        </Link>
-      </div>
+      <ServerLegacyWorkspaceActions />
 
       <div className={styles.mainContent}>
         {/* Left Panel - Table Grid */}

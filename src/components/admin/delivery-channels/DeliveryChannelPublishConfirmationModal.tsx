@@ -17,7 +17,7 @@ interface Props {
   readonly storeName: string;
   readonly storeId: string;
   readonly onClose: () => void;
-  readonly onPublish: () => Promise<DeliveryChannelPublication | null>;
+  readonly onPublish: (confirmedTaxProfile: boolean) => Promise<DeliveryChannelPublication | null>;
 }
 
 export default function DeliveryChannelPublishConfirmationModal({
@@ -30,11 +30,25 @@ export default function DeliveryChannelPublishConfirmationModal({
   onClose,
   onPublish,
 }: Readonly<Props>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [replaceConfirmed, setReplaceConfirmed] = useState(false);
+  const [taxProfileConfirmed, setTaxProfileConfirmed] = useState(false);
   const isPublishing = busy === 'publish';
+  const requiresTaxProfile = preview?.selectionMode === 'categoryItemsV1';
+  const taxProfileRevision = preview?.taxProfileRevision;
+  const canConfirmTaxProfile = Boolean(
+    taxProfileRevision && preview?.taxProfile?.profileRevision === taxProfileRevision,
+  );
+  const taxRate = preview?.taxProfile
+    ? new Intl.NumberFormat(i18n.resolvedLanguage || i18n.language, { maximumFractionDigits: 2 }).format(
+        preview.taxProfile.vatRatePercentage,
+      )
+    : null;
 
-  useEffect(() => setReplaceConfirmed(false), [isOpen, preview?.publicationRevision]);
+  useEffect(() => {
+    setReplaceConfirmed(false);
+    setTaxProfileConfirmed(false);
+  }, [isOpen, preview?.publicationRevision, preview?.taxProfileRevision, storeId]);
 
   const close = () => {
     setReplaceConfirmed(false);
@@ -42,8 +56,15 @@ export default function DeliveryChannelPublishConfirmationModal({
   };
 
   const confirmPublish = async () => {
-    if (!replaceConfirmed || !canPublish || !preview || isPublishing) return;
-    await onPublish();
+    if (
+      !replaceConfirmed ||
+      (requiresTaxProfile && (!taxProfileConfirmed || !canConfirmTaxProfile)) ||
+      !canPublish ||
+      !preview ||
+      isPublishing
+    )
+      return;
+    await onPublish(requiresTaxProfile && taxProfileConfirmed);
     close();
   };
 
@@ -64,7 +85,13 @@ export default function DeliveryChannelPublishConfirmationModal({
             className={workspaceStyles.action}
             type="button"
             onClick={() => void confirmPublish()}
-            disabled={!canPublish || !preview || !replaceConfirmed || isPublishing}
+            disabled={
+              !canPublish ||
+              !preview ||
+              !replaceConfirmed ||
+              (requiresTaxProfile && (!taxProfileConfirmed || !canConfirmTaxProfile)) ||
+              isPublishing
+            }
           >
             {isPublishing ? t('deliveryChannels.loading') : t('deliveryChannels.publication.confirmPublish')}
           </button>
@@ -75,11 +102,28 @@ export default function DeliveryChannelPublishConfirmationModal({
         <p>
           {t('deliveryChannels.publication.confirmSummary', {
             store: storeName,
-            count: preview?.items.length ?? 0,
+            count: preview?.selectedItems?.length ?? preview?.items.length ?? 0,
           })}
         </p>
         <p>{t('deliveryChannels.publication.fullReplacement')}</p>
         <p>{t('deliveryChannels.publication.noBlindRetry')}</p>
+        {requiresTaxProfile && preview?.taxProfile && taxRate && (
+          <section className={styles.taxProfile} aria-labelledby="delivery-channel-confirm-tax-title">
+            <h3 id="delivery-channel-confirm-tax-title">{t('deliveryChannels.publication.reviewedTaxTitle')}</h3>
+            <p>{t('deliveryChannels.publication.reviewedTaxRate', { rate: taxRate })}</p>
+            <p>{t('deliveryChannels.publication.reviewedTaxBody')}</p>
+            {preview.taxProfile.merchantVerificationRequired && (
+              <p>{t('deliveryChannels.publication.merchantTaxVerificationNote')}</p>
+            )}
+            <CheckboxField
+              label={t('deliveryChannels.publication.confirmTaxProfile')}
+              checked={taxProfileConfirmed}
+              onChange={setTaxProfileConfirmed}
+              disabled={isPublishing || !canConfirmTaxProfile}
+              data-testid="delivery-channel-confirm-tax-profile"
+            />
+          </section>
+        )}
         <details className={detailsStyles.details}>
           <summary>{t('deliveryChannels.publication.technicalDetails')}</summary>
           <dl>
@@ -101,6 +145,14 @@ export default function DeliveryChannelPublishConfirmationModal({
                 <code>{preview?.publicationRevision ?? ''}</code>
               </dd>
             </div>
+            {preview?.taxProfile && (
+              <div>
+                <dt>{t('deliveryChannels.publication.reviewedTaxTitle')}</dt>
+                <dd>
+                  <code>{preview.taxProfileRevision ?? ''}</code>
+                </dd>
+              </div>
+            )}
             <div>
               <dt>{t('deliveryChannels.store.idLabel')}</dt>
               <dd>

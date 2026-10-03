@@ -6,6 +6,7 @@ import Link from '@/components/TenantLink';
 import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import type { TableRenderState } from '@/components/floor-plan/sceneTypes';
 import { useServerFloorSnapshot } from '@/hooks/serverWorkspace/useServerFloorSnapshot';
 import { useServerFloorListScroll } from '@/hooks/serverWorkspace/useServerFloorListScroll';
@@ -19,6 +20,7 @@ import ServerFloorMapPanel from './ServerFloorMapPanel';
 import { geometryFor, renderState, tableLabel } from './serverFloorPresentation';
 import ServerFloorWorkspaceToolbar from './ServerFloorWorkspaceToolbar';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
+import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 import styles from './ServerFloorWorkspace.module.css';
 
 const EMPTY_TABLES: ServerFloorTable[] = [];
@@ -26,6 +28,7 @@ const EMPTY_ZONES: FloorPlanDocument[] = [];
 
 export default function ServerFloorWorkspace() {
   const { t } = useTranslation();
+  const { orderAmendmentsV1 } = useTenantFeatures();
   const router = useRouter();
   const floor = useServerFloorSnapshot();
   const viewState = useServerFloorViewState();
@@ -127,6 +130,7 @@ export default function ServerFloorWorkspace() {
   const navItems = [
     { href: '/server/floor', label: t('server.table', 'Floor'), active: true },
     { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
+    ...serverOrderNavItem(orderAmendmentsV1, t),
     { href: '/server/takeaway', label: t('server.takeaway.link') },
     { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
   ];

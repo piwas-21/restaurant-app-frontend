@@ -2,11 +2,10 @@
 
 import { ThemeProvider } from '@/components/ThemeContext';
 import { I18nextProvider } from 'react-i18next';
-import i18n from '../i18n';
 import { CookieConsentProvider } from '@/components/CookieConsentContext';
 import { CartProvider } from '@/components/cart/CartContext';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { AuthProvider } from '@/components/AuthContext';
 import { SessionProvider } from '@/contexts/SessionContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
@@ -18,6 +17,7 @@ import { ModulesProvider } from '@/contexts/ModulesContext';
 import type { ModuleId } from '@/lib/modules';
 import DocumentLanguage from '@/components/DocumentLanguage';
 import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
+import { useRouteI18n } from '@/hooks/useRouteI18n';
 
 /**
  * @param modules Product modules this tenant runs, read server-side in the root layout
@@ -27,9 +27,15 @@ import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
 export default function ClientProviders({
   modules,
   routeLocale,
+  initialLocaleMessages,
   children,
-}: Readonly<{ modules: ModuleId[]; routeLocale?: string; children: React.ReactNode }>) {
-  const routeI18n = useMemo(() => (routeLocale ? i18n.cloneInstance({ lng: routeLocale }) : i18n), [routeLocale]);
+}: Readonly<{
+  modules: ModuleId[];
+  routeLocale?: string;
+  initialLocaleMessages?: Record<string, unknown>;
+  children: React.ReactNode;
+}>) {
+  const routeI18n = useRouteI18n(routeLocale, initialLocaleMessages);
   return (
     <ModulesProvider modules={modules}>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>

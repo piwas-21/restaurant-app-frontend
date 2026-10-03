@@ -1,7 +1,7 @@
 // src/components/LanguageSwitcher.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from '@/components/TenantLink';
@@ -9,12 +9,10 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import styles from '../app/styles/LanguageSwitcher.module.css';
 import { SUPPORTED_LANGUAGES, LanguageCode } from '@/config/languageConfig';
 import { useAuth } from '@/components/AuthContext';
-import { saveLanguagePreference } from '@/services/userService';
-import baseI18n from '../i18n';
 import { publicLocaleHref, publicRouteLocation } from '@/lib/publicRouteQuery';
 import { tenantLocaleFromPathname } from '@/lib/tenantLocaleRouting';
 import { localizedTenantHref } from '@/lib/tenantLocaleNavigation';
-import { persistTenantLocalePreference } from '@/lib/tenantLocalePreferences';
+import { useLocaleSwitcher } from '@/hooks/useLocaleSwitcher';
 
 const languages = SUPPORTED_LANGUAGES;
 
@@ -28,29 +26,12 @@ export default function LanguageSwitcher() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [locationHash, setLocationHash] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const changeLanguage = (lng: LanguageCode) => {
-    i18n.changeLanguage(lng);
-    // Public routes use an isolated i18next clone so a URL locale cannot mutate the private app's
-    // shared instance. An explicit choice is different: carry it to that shared instance too, so
-    // navigating from a locale-prefixed page into an unprefixed account/cart route keeps the choice.
-    if (i18n !== baseI18n) baseI18n.changeLanguage(lng);
-    // Language preference is essential functionality, always save it
-    // This is typically not considered a tracking/preference cookie
-    persistTenantLocalePreference(lng);
-    setDropdownOpen(false);
-
-    // And, for someone signed in, on the ACCOUNT — which is what makes their mail follow the
-    // choice (GAP-2 §1 rank 2). Deliberately fire-and-forget: the UI has already switched, and
-    // awaiting it would make a menu click wait on the network. Safe to `void` because
-    // `saveLanguagePreference` never rejects — it reports failure by resolving `false` — and never
-    // signs anyone out, which a background write triggering apiClient's session-end would. A guest
-    // needs nothing here: the `Accept-Language` header apiClient now sends carries their choice
-    // onto the row they create.
-    if (user) {
-      void saveLanguagePreference(lng);
-    }
-  };
+  const closeAfterLocaleChange = useCallback(() => setDropdownOpen(false), []);
+  const { changeLanguage, handleLocaleLinkClick, localeLoadFailed } = useLocaleSwitcher(
+    i18n,
+    Boolean(user),
+    closeAfterLocaleChange,
+  );
 
   const publicRoute = publicRouteLocation(pathname);
   const routeLocale = tenantLocaleFromPathname(pathname);
@@ -120,14 +101,14 @@ export default function LanguageSwitcher() {
         {href ? (
           <Link
             href={href}
-            onClick={() => changeLanguage(language.code)}
+            onClick={(event) => handleLocaleLinkClick(event, language.code, href)}
             className={styles.dropdownItem}
             hrefLang={language.code}
           >
             {contents}
           </Link>
         ) : (
-          <button onClick={() => changeLanguage(language.code)} className={styles.dropdownItem}>
+          <button onClick={() => void changeLanguage(language.code)} className={styles.dropdownItem}>
             {contents}
           </button>
         )}
@@ -175,6 +156,11 @@ export default function LanguageSwitcher() {
           </div>
         )}
       </div>
+      {localeLoadFailed && (
+        <p className={styles.loadFailure} role="alert">
+          {t('languageLoadFailed')}
+        </p>
+      )}
     </div>
   );
 }

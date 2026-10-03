@@ -12,6 +12,8 @@ function clearStaffDrafts(): void {
 }
 
 interface User {
+  /** Stable backend actor identity used to isolate same-tab pending mutation recovery. */
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;

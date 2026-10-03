@@ -24,7 +24,7 @@ interface Props {
   readonly storeId: string;
   readonly incomingOrdersEnabled: boolean;
   readonly locale: string;
-  readonly onPublish: () => Promise<DeliveryChannelPublication | null>;
+  readonly onPublish: (confirmedTaxProfile: boolean) => Promise<DeliveryChannelPublication | null>;
   readonly onCheckPublication: () => Promise<DeliveryChannelPublication | null>;
 }
 

@@ -9,9 +9,11 @@ import OperationResultNotice, {
 } from '@/components/design-system/OperationResultNotice';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { ApiError } from '@/utils/apiClient';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useServerTasks, type ServerTasksState } from '@/hooks/serverWorkspace/useServerTasks';
 import type { ServerTaskBucket } from '@/types/serverTasks';
 import ServerTaskCard from './ServerTaskCard';
+import { serverOrderNavItem } from '../serverWorkspaceOrderNav';
 import styles from './ServerTasksWorkspace.module.css';
 
 const BUCKETS: readonly ServerTaskBucket[] = ['ready', 'overdue', 'exception'];
@@ -121,6 +123,7 @@ function BucketPanel({ bucket, state, busyOrderId, onDeliver }: BucketPanelProps
 
 export default function ServerTasksWorkspace() {
   const { t } = useTranslation();
+  const { orderAmendmentsV1 } = useTenantFeatures();
   const ready = useServerTasks('ready');
   const overdue = useServerTasks('overdue');
   const exception = useServerTasks('exception');
@@ -163,6 +166,7 @@ export default function ServerTasksWorkspace() {
             </StatusBadge>
           ),
         },
+        ...serverOrderNavItem(orderAmendmentsV1, t),
         { href: '/server/takeaway', label: t('server.takeaway.link') },
         { href: '/server/marketplace', label: t('marketplaceStaff.kitchen_title') },
       ]}

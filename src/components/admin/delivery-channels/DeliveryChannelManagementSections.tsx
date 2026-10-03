@@ -1,15 +1,18 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DeliveryChannelWorkspaceSectionId } from '@/hooks/admin/useDeliveryChannelWorkspaceSection';
 import type { DeliveryChannelManagementSummary } from '@/types/deliveryChannelManagement';
+import type { useDeliveryChannelCategorySelection } from '@/hooks/admin/useDeliveryChannelCategorySelection';
+import type { useDeliveryChannelCatalogue } from '@/hooks/admin/useDeliveryChannelCatalogue';
+import { deliveryChannelAvailabilityLabels } from '@/utils/deliveryChannelAvailabilityLabels';
 import DeliveryChannelAvailabilityPanel from './DeliveryChannelAvailabilityPanel';
-import DeliveryChannelCataloguePanel from './DeliveryChannelCataloguePanel';
 import DeliveryChannelConnectionPanel from './DeliveryChannelConnectionPanel';
 import DeliveryChannelExceptionInbox from './DeliveryChannelExceptionInbox';
+import DeliveryChannelMenuSectionPanel from './DeliveryChannelMenuSectionPanel';
 import DeliveryChannelOverviewPanel from './DeliveryChannelOverviewPanel';
 import DeliveryChannelPublicationPanel from './DeliveryChannelPublicationPanel';
-import type { useDeliveryChannelCatalogue } from '@/hooks/admin/useDeliveryChannelCatalogue';
 import type { useDeliveryChannelOperations } from '@/hooks/admin/useDeliveryChannelOperations';
 import type { useDeliveryChannelOverview } from '@/hooks/admin/useDeliveryChannelOverview';
 import type { useDeliveryChannelPublication } from '@/hooks/admin/useDeliveryChannelPublication';
@@ -22,6 +25,7 @@ interface Props {
   readonly connected: boolean;
   readonly overview: ReturnType<typeof useDeliveryChannelOverview>;
   readonly catalogue: ReturnType<typeof useDeliveryChannelCatalogue>;
+  readonly categorySelection: ReturnType<typeof useDeliveryChannelCategorySelection>;
   readonly publication: ReturnType<typeof useDeliveryChannelPublication>;
   readonly operations: ReturnType<typeof useDeliveryChannelOperations>;
   readonly onSectionChange: (section: DeliveryChannelWorkspaceSectionId) => void;
@@ -61,6 +65,7 @@ export default function DeliveryChannelManagementSections({
   connected,
   overview,
   catalogue,
+  categorySelection,
   publication,
   operations,
   onSectionChange,
@@ -68,14 +73,15 @@ export default function DeliveryChannelManagementSections({
   onPreview,
 }: Readonly<Props>) {
   const { t } = useTranslation();
-  const catalogueFallback = catalogue.error ? (
-    <p role="alert">{catalogue.errorMessage ?? t('deliveryChannels.errors.load')}</p>
-  ) : (
-    <p>
-      <output>{t('deliveryChannels.loading')}</output>
-    </p>
+  const availabilityLabels = useMemo(
+    () =>
+      deliveryChannelAvailabilityLabels(
+        catalogue.catalogue?.items ?? [],
+        categorySelection.inventory?.draft?.items ?? [],
+        [...categorySelection.knownItems.values()],
+      ),
+    [catalogue.catalogue?.items, categorySelection.inventory?.draft?.items, categorySelection.knownItems],
   );
-
   return (
     <div className={styles.panels}>
       <SectionPanel section="overview" activeSection={activeSection}>
@@ -103,41 +109,14 @@ export default function DeliveryChannelManagementSections({
       </SectionPanel>
 
       <SectionPanel section="menu" activeSection={activeSection}>
-        {!connected && (
-          <div className={styles.prerequisite}>
-            <h2>{t('deliveryChannels.workspace.connectFirstTitle')}</h2>
-            <p>{t('deliveryChannels.workspace.connectFirstBody')}</p>
-            <button type="button" onClick={() => onSectionChange('connection')}>
-              {t('deliveryChannels.workspace.connectFirstAction')}
-            </button>
-          </div>
-        )}
-        <fieldset disabled={!connected} className={styles.catalogueFieldset}>
-          <legend className={styles.srOnly}>{t('deliveryChannels.workspace.menu')}</legend>
-          {catalogue.catalogue ? (
-            <DeliveryChannelCataloguePanel
-              catalogue={catalogue.catalogue}
-              candidates={catalogue.candidates}
-              knownCandidates={catalogue.knownCandidates}
-              selected={catalogue.selected}
-              candidateCursor={catalogue.candidateCursor}
-              busy={catalogue.busy}
-              error={catalogue.error}
-              errorMessage={catalogue.errorMessage}
-              stale={catalogue.stale}
-              dirty={catalogue.dirty}
-              duplicateSelection={catalogue.duplicateSelection}
-              writeUncertain={catalogue.writeUncertain}
-              locale={locale}
-              onChoose={catalogue.choose}
-              onSearch={catalogue.searchCandidates}
-              onSave={catalogue.saveDraft}
-              onPreview={onPreview}
-            />
-          ) : (
-            catalogueFallback
-          )}
-        </fieldset>
+        <DeliveryChannelMenuSectionPanel
+          connected={connected}
+          catalogue={catalogue}
+          categorySelection={categorySelection}
+          onSectionChange={onSectionChange}
+          onPreview={onPreview}
+          locale={locale}
+        />
       </SectionPanel>
 
       <SectionPanel section="publish" activeSection={activeSection}>
@@ -192,6 +171,7 @@ export default function DeliveryChannelManagementSections({
           onResume={operations.resume}
           onReadStatus={operations.readStatus}
           onConnect={() => onSectionChange('connection')}
+          itemLabels={availabilityLabels}
         />
       </SectionPanel>
 

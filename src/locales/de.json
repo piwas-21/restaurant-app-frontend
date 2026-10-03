@@ -3485,7 +3485,9 @@
       "Confirmed": "Bestätigt",
       "Preparing": "In Zubereitung",
       "Ready": "Bereit"
-    }
+    },
+    "collection_settlement_title": "Zahlung über den Lieferdienst",
+    "collection_settlement_body": "Die Zahlung für diese Bestellung wird über {{provider}} abgewickelt. Ziehen Sie hier keine Zahlung ein. Prüfen Sie die Abrechnungen des Anbieters, um den Auszahlungsstatus zu sehen."
   },
   "deliveryChannels": {
     "title": "Uber Eats-Management",
@@ -3658,7 +3660,12 @@
       "confirmSummary_other": "Dies ersetzt die gesamte Uber-Eats-Speisekarte bei {{store}} durch {{count}} geprüfte Artikel.",
       "publicationRevision": "Veröffentlichungsrevision",
       "operationId": "ID des Veröffentlichungsvorgangs",
-      "providerItemId": "Uber-Artikel-ID"
+      "providerItemId": "Uber-Artikel-ID",
+      "reviewedTaxTitle": "Geprüfter Steuersatz",
+      "reviewedTaxRate": "MwSt.: {{rate}} %",
+      "reviewedTaxBody": "Dieser Satz gilt für alle ausgewählten Artikel. Prüfen Sie ihn vor der Veröffentlichung.",
+      "confirmTaxProfile": "Ich habe den Steuersatz für alle ausgewählten Artikel geprüft.",
+      "merchantTaxVerificationNote": "Prüfen Sie vor der Aktivierung die Steuerkonfiguration jedes realen Restaurants."
     },
     "availability": {
       "title": "Verfügbarkeit im Geschäft",
@@ -3826,7 +3833,10 @@
       "DeliveryUncertain": "Die Lieferung oder Annahme der Bestellung ist ungewiss. Überprüfen Sie das Uber Eats-Tablet und die bestehende Sofra-Bestellung. Akzeptieren oder erstellen Sie kein Duplikat.",
       "PayloadExpired": "Die Bestellbenachrichtigung ist abgelaufen. Überprüfen Sie die bestehende Sofra-Bestellung und den Uber Eats-Status. Erstellen Sie nicht automatisch einen Ersatz.",
       "ConnectionOperationBusy": "Eine andere Uber-Eats-Verbindung wird gerade abgeschlossen. Diese Autorisierung ist nicht mehr gültig. Kehren Sie zur Verwaltung zurück und starten Sie nach der aktuellen Prüfung eine neue Autorisierung.",
-      "AuthorizationSuperseded": "Ein neuerer Autorisierungslink hat diesen ersetzt. Kehren Sie zur Uber-Eats-Verwaltung zurück und prüfen Sie die neueste Verbindung."
+      "AuthorizationSuperseded": "Ein neuerer Autorisierungslink hat diesen ersetzt. Kehren Sie zur Uber-Eats-Verwaltung zurück und prüfen Sie die neueste Verbindung.",
+      "MissingCategory": "Legen Sie vor der Veröffentlichung eine Hauptkategorie für diesen Artikel fest.",
+      "UnavailableCategory": "Diese Menükategorie ist inaktiv. Aktivieren Sie sie oder entfernen Sie diese Artikel aus der Auswahl.",
+      "ReviewedTaxProfileUnavailable": "Die geprüfte Steuerkonfiguration fehlt oder ist widersprüchlich. Bitten Sie Sofra, sie vor der Veröffentlichung dieses Menüs zu prüfen."
     },
     "errors": {
       "load": "Die neuesten Informationen konnten nicht geladen werden.",
@@ -3859,6 +3869,37 @@
       "viewHealth": "Verbindungszustand prüfen",
       "viewPublication": "Veröffentlichung prüfen",
       "manageAvailability": "Verfügbarkeit verwalten"
+    },
+    "menuSelection": {
+      "title": "Wählen Sie das Angebot auf Uber Eats",
+      "description": "Wählen Sie ganze Kategorien oder passen Sie einzelne Artikel an. Beim Speichern wird dieses Menü für die Prüfung festgehalten.",
+      "searchLabel": "Menüartikel suchen",
+      "categoryFilterLabel": "Nach Kategorie filtern",
+      "allCategories": "Alle Kategorien",
+      "category": "Kategorie",
+      "item": "Artikel",
+      "categorySelection": {
+        "all": "Alle Artikel ausgewählt",
+        "partial": "Einige Artikel ausgewählt",
+        "empty": "Keine Artikel ausgewählt"
+      },
+      "noCategories": "Keine Menükategorien gefunden",
+      "noItems": "Keine Artikel entsprechen dieser Suche",
+      "loadMore": "Weitere Artikel laden",
+      "save": "Menüauswahl speichern",
+      "refresh": "Menü aktualisieren",
+      "sourceChanged": "Das Restaurantmenü wurde seit dem Speichern dieser Auswahl geändert. Aktualisieren Sie es vor dem Speichern oder Prüfen.",
+      "selectionLimit": "Diese Auswahl enthält {{selected}} Artikel; die aktuelle Grenze beträgt {{maximum}}. Entfernen Sie Artikel oder wählen Sie weniger Kategorien.",
+      "hoursDetails": "Menüverfügbarkeit und Öffnungszeiten",
+      "selectedCount_one": "{{count}} Artikel ausgewählt",
+      "selectedCount_other": "{{count}} Artikel ausgewählt",
+      "unsupportedCount_one": "{{count}} ausgewählter Artikel muss geprüft werden",
+      "unsupportedCount_other": "{{count}} ausgewählte Artikel müssen geprüft werden",
+      "removedSelections": "Einige gespeicherte Kategorie- oder Artikelauswahlen passen nicht mehr zum aktuellen Restaurantmenü und wurden aus diesem Entwurf entfernt. Prüfen Sie die aktualisierte Auswahl vor dem Speichern.",
+      "categoryBasisNotice": "Jeder Artikel erscheint in seiner Hauptkategorie. Sie können jeden Artikel auch einzeln auswählen.",
+      "categoryLimit": "Sie können höchstens {{maximum}} Menükategorien auswählen. Entfernen Sie eine Kategorie, bevor Sie eine weitere hinzufügen.",
+      "overrideLimit": "Es gibt zu viele Ausnahmen für einzelne Artikel. Ändern Sie die Kategorieauswahl oder entfernen Sie einige Artikelausnahmen.",
+      "needsSaveNotice": "Deine Menüauswahl enthält ungespeicherte Änderungen. Speichere sie, um die Speisekarte vor der Veröffentlichung zu prüfen."
     }
   },
   "cashier.tables.account": "Tischkonto",
@@ -3889,5 +3930,9 @@
     "operations": "Bestellungen & Service",
     "customers": "Kunden",
     "settings": "Einstellungen"
-  }
+  },
+  "serverOrders": {
+    "title": "Bestellungen"
+  },
+  "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Ihre aktuelle Sprache wurde beibehalten. Bitte versuchen Sie es erneut."
 }

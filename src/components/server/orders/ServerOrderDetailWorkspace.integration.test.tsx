@@ -1,0 +1,109 @@
+import type { AnchorHTMLAttributes, ReactNode } from 'react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
+import { getServerOrderById } from '@/services/server/orders';
+import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
+import type { OrderDto } from '@/types/order';
+import ServerOrderDetailWorkspace from './ServerOrderDetailWorkspace';
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),
+}));
+jest.mock('@/components/design-system/StaffWorkspaceShell', () => ({
+  __esModule: true,
+  default: ({ children }: { children: ReactNode }) => <main>{children}</main>,
+}));
+jest.mock('@/components/design-system/OrderStatusBadge', () => ({
+  __esModule: true,
+  default: ({ status }: { status: string }) => <span>{status}</span>,
+}));
+jest.mock('@/components/TenantLink', () => ({
+  __esModule: true,
+  default: ({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+jest.mock('@/components/order/MarketplaceOrderSource', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/components/order/OrderLineSummary', () => ({ __esModule: true, default: () => null }));
+jest.mock('@/components/order-amendments/OrderAmendmentEntryButton', () => ({
+  __esModule: true,
+  default: ({ order }: { order: OrderDto }) => <button type="button">Amend {order.id}</button>,
+}));
+jest.mock('@/services/server/orders', () => ({ getServerOrderById: jest.fn() }));
+jest.mock('@/services/orderAmendmentsService', () => ({ getOrderAmendmentHistory: jest.fn() }));
+
+const mockGetOrder = getServerOrderById as jest.Mock;
+const mockGetHistory = getOrderAmendmentHistory as jest.Mock;
+const order = (id: string, orderNumber: string): OrderDto =>
+  ({
+    id,
+    orderNumber,
+    type: 'DineIn',
+    tableId: 'table-1',
+    tableLabel: 'T1',
+    serviceSessionId: `visit-${id}`,
+    currency: 'CHF',
+    total: 18,
+    version: 3,
+    status: 'Preparing',
+    paymentStatus: 'Pending',
+    customerName: 'Guest',
+    items: [],
+  }) as unknown as OrderDto;
+
+describe('ServerOrderDetailWorkspace', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetHistory.mockResolvedValue([]);
+  });
+
+  it('does not expose the previous order while the next exact order ID is loading', async () => {
+    mockGetOrder.mockResolvedValueOnce(order('order-1', 'A-001'));
+    const view = render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrderDetailWorkspace orderId="order-1" />
+      </TenantFeaturesProvider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'A-001' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Amend order-1' })).toBeInTheDocument();
+    await waitFor(() => expect(mockGetHistory).toHaveBeenCalledWith('order-1'));
+
+    let resolveNext!: (value: OrderDto) => void;
+    mockGetOrder.mockImplementationOnce(
+      () =>
+        new Promise<OrderDto>((resolve) => {
+          resolveNext = resolve;
+        }),
+    );
+    view.rerender(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrderDetailWorkspace orderId="order-2" />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.queryByRole('heading', { name: 'A-001' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Amend order-1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Loading orders…');
+
+    await act(async () => resolveNext(order('order-2', 'A-002')));
+    expect(await screen.findByRole('heading', { name: 'A-002' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Amend order-2' })).toBeInTheDocument();
+  });
+
+  it('keeps the existing authenticated detail read available for flag-off recovery', async () => {
+    mockGetOrder.mockResolvedValueOnce(order('order-3', 'A-003'));
+
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: false }}>
+        <ServerOrderDetailWorkspace orderId="order-3" />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.getByText('Order amendments are not enabled for this restaurant.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'A-003' })).toBeInTheDocument();
+    await waitFor(() => expect(mockGetOrder).toHaveBeenCalledWith('order-3'));
+    expect(mockGetHistory).not.toHaveBeenCalled();
+  });
+});

@@ -3922,5 +3922,7 @@
   "serverOrders": {
     "title": "订单"
   },
-  "languageLoadFailed": "无法加载该语言。已保留您当前的语言，请重试。"
+  "languageLoadFailed": "无法加载该语言。已保留您当前的语言，请重试。",
+  "server.floor.needs_reset": "需要重新准备",
+  "server.floor.ready_action": "已为下一批客人准备好"
 }

@@ -42,6 +42,7 @@ interface ActionLink {
 }
 
 const ACTION_COPY: Readonly<Record<string, ActionCopy>> = {
+  MarkTableReady: { key: 'server.floor.ready_action', fallback: 'Ready for next guests', destination: 'table' },
   StartTable: { key: 'server.floor.start_visit', fallback: 'Start visit', destination: 'table' },
   AddRound: { key: 'cashier.tables.add_round', fallback: 'Add round', destination: 'table' },
   ViewBill: { key: 'server.floor.view_bill', fallback: 'View account', destination: 'bill' },
@@ -83,6 +84,8 @@ function actionLinks(actions: readonly string[], tableId: string): { links: Acti
 
 function statusCopy(state: string): StatusCopy {
   switch (state) {
+    case 'NeedsReset':
+      return { key: 'server.floor.needs_reset', fallback: 'Needs reset', tone: 'warning' };
     case 'Open':
       return { key: 'server.status_occupied', fallback: 'Open', tone: 'info' };
     case 'Ready':

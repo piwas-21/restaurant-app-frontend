@@ -3934,5 +3934,7 @@
   "serverOrders": {
     "title": "Siparişler"
   },
-  "languageLoadFailed": "Bu dil yüklenemedi. Mevcut diliniz korundu. Lütfen tekrar deneyin."
+  "languageLoadFailed": "Bu dil yüklenemedi. Mevcut diliniz korundu. Lütfen tekrar deneyin.",
+  "server.floor.needs_reset": "Yeniden hazırlanmalı",
+  "server.floor.ready_action": "Sonraki misafirler için hazır"
 }

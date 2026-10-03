@@ -3946,5 +3946,7 @@
   "serverOrders": {
     "title": "Pedidos"
   },
-  "languageLoadFailed": "No se pudo cargar ese idioma. Se ha mantenido tu idioma actual. Inténtalo de nuevo."
+  "languageLoadFailed": "No se pudo cargar ese idioma. Se ha mantenido tu idioma actual. Inténtalo de nuevo.",
+  "server.floor.needs_reset": "Necesita preparación",
+  "server.floor.ready_action": "Lista para los próximos clientes"
 }

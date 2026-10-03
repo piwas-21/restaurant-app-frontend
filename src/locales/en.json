@@ -3934,5 +3934,7 @@
   "serverOrders": {
     "title": "Orders"
   },
-  "languageLoadFailed": "That language could not be loaded. Your current language was kept. Please try again."
+  "languageLoadFailed": "That language could not be loaded. Your current language was kept. Please try again.",
+  "server.floor.needs_reset": "Needs reset",
+  "server.floor.ready_action": "Ready for next guests"
 }

@@ -3946,5 +3946,7 @@
   "serverOrders": {
     "title": "Commandes"
   },
-  "languageLoadFailed": "Cette langue n’a pas pu être chargée. Votre langue actuelle a été conservée. Veuillez réessayer."
+  "languageLoadFailed": "Cette langue n’a pas pu être chargée. Votre langue actuelle a été conservée. Veuillez réessayer.",
+  "server.floor.needs_reset": "Remise en état nécessaire",
+  "server.floor.ready_action": "Prête pour les prochains clients"
 }

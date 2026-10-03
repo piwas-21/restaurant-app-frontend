@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierTableMap from './CashierTableMap';
 import CashierTableList from './CashierTableList';
+import TableReadinessAction from '@/components/table-service/TableReadinessAction';
 import CashierTableEmptyState from './CashierTableEmptyState';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
@@ -163,6 +164,16 @@ export default function CashierTablesWorkspace() {
             </section>
             {hasSelection && (
               <section className={styles.detailPane} aria-label={t('cashier.tables.session_details')}>
+                {selectedEntry && (
+                  <TableReadinessAction
+                    tableId={selectedEntry.table.id}
+                    snapshot={selectedEntry.table}
+                    readinessVersion={selectedEntry.table.readinessVersion}
+                    canMarkReady={selectedEntry.status === 'needs-reset' && !selectedEntry.session}
+                    isStale={tables.queueState !== 'ready' || tables.isLoading || navigationDisabled}
+                    refresh={tables.refresh}
+                  />
+                )}
                 {sessionId && session.isLoading && (
                   <output className={styles.state}>{t('cashier.tables.session_loading')}</output>
                 )}

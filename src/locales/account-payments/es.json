@@ -60,6 +60,18 @@
     "other_cashier": "Iniciado por otro cajero",
     "method_cash": "Efectivo",
     "method_card": "Terminal de tarjeta",
-    "method_guest_online": "Pago en línea del cliente"
+    "method_guest_online": "Pago en línea del cliente",
+    "readiness": {
+      "title": "Preparar la mesa",
+      "confirm_reset": "Confirme que la mesa se ha recogido y preparado para los próximos clientes.",
+      "checking": "Comprobando la solicitud original…",
+      "unknown": "El resultado no está confirmado. Compruébelo antes de otra solicitud.",
+      "disabled_recovery": "Las nuevas solicitudes están desactivadas. Puede comprobar o repetir la original.",
+      "check": "Comprobar resultado",
+      "retry": "Repetir solicitud original",
+      "storage_unavailable": "No se puede leer o guardar la recuperación aquí. Pida al personal autorizado que revise la mesa.",
+      "succeeded": "La solicitud original se completó. Actualice la mesa; este resultado no abre una visita.",
+      "refused": "La solicitud original fue rechazada. Actualice antes de otra solicitud."
+    }
   }
 }

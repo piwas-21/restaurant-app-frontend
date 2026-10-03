@@ -60,6 +60,18 @@
     "other_cashier": "Avviato da un altro cassiere",
     "method_cash": "Contanti",
     "method_card": "Terminale per carte",
-    "method_guest_online": "Pagamento online dell’ospite"
+    "method_guest_online": "Pagamento online dell’ospite",
+    "readiness": {
+      "title": "Preparare il tavolo",
+      "confirm_reset": "Conferma che il tavolo è stato sparecchiato e preparato per i prossimi ospiti.",
+      "checking": "Verifica della richiesta originale…",
+      "unknown": "Il risultato non è confermato. Verificalo prima di un’altra richiesta.",
+      "disabled_recovery": "Le nuove richieste sono disabilitate. Puoi verificare o ripetere quella originale.",
+      "check": "Verifica risultato",
+      "retry": "Ripeti richiesta originale",
+      "storage_unavailable": "Impossibile leggere o salvare il recupero qui. Chiedi al personale autorizzato di controllare il tavolo.",
+      "succeeded": "La richiesta originale è riuscita. Aggiorna il tavolo; questo risultato non apre una visita.",
+      "refused": "La richiesta originale è stata rifiutata. Aggiorna prima di una nuova richiesta."
+    }
   }
 }

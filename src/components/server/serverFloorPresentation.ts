@@ -7,6 +7,7 @@ import { isKnownServerFloorTableState, toFloorPlanShape } from '@/types/serverWo
 export function renderState(table: ServerFloorTable, selected: boolean): TableRenderState {
   if (!isKnownServerFloorTableState(table.state)) return 'unavailable';
   if (selected) return 'selected';
+  if (table.state === 'NeedsReset') return 'dim';
   if (table.state === 'Reserved') return 'booked';
   if (table.state === 'Ready') return 'ready';
   if (table.state === 'Open' || table.state === 'Ambiguous') return 'occupied';
@@ -32,6 +33,8 @@ export function geometryFor(table: ServerFloorTable): FloorPlanTableGeometry {
 
 function statusLabelKey(state: string): string {
   switch (state) {
+    case 'NeedsReset':
+      return 'server.floor.needs_reset';
     case 'Ready':
       return 'server.status_ready';
     case 'Reserved':

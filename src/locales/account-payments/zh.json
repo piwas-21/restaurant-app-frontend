@@ -60,6 +60,18 @@
     "other_cashier": "由另一位收银员发起",
     "method_cash": "现金",
     "method_card": "银行卡终端",
-    "method_guest_online": "顾客在线支付"
+    "method_guest_online": "顾客在线支付",
+    "readiness": {
+      "title": "餐桌准备",
+      "confirm_reset": "请确认餐桌已清理并为下一批客人准备好。",
+      "checking": "正在检查原始请求…",
+      "unknown": "结果尚未确认。请先检查，再发起新请求。",
+      "disabled_recovery": "新请求已停用。仍可检查或重试原始请求。",
+      "check": "检查结果",
+      "retry": "重试原始请求",
+      "storage_unavailable": "此处无法读取或保存恢复数据。请授权员工检查餐桌。",
+      "succeeded": "原始请求已成功。请刷新查看当前餐桌状态；此结果不会开启就餐记录。",
+      "refused": "原始请求已被拒绝。请刷新后再发起新请求。"
+    }
   }
 }

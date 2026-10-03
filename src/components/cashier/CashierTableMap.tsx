@@ -21,6 +21,7 @@ interface CashierTableMapProps {
 
 function mapState(entry: CashierTableEntry, selected: boolean): TableRenderState {
   if (selected) return 'selected';
+  if (entry.status === 'needs-reset') return 'dim';
   if (entry.status === 'closed') return 'dim';
   if (entry.session || entry.status === 'legacy' || entry.status === 'reserved' || entry.status === 'conflict')
     return 'occupied';

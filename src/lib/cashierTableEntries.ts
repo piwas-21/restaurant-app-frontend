@@ -2,7 +2,8 @@ import type { TableDto } from '@/types/reservation';
 import type { TableServiceSessionDto } from '@/types/order';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 
-export type CashierTableStatus = 'available' | 'occupied' | 'closed' | 'legacy' | 'reserved' | 'conflict';
+export type CashierTableStatus =
+  'available' | 'occupied' | 'closed' | 'legacy' | 'reserved' | 'conflict' | 'needs-reset';
 
 export interface CashierTableEntry {
   readonly table: TableDto;
@@ -32,13 +33,15 @@ export function hasLegacyTableOrders(
 }
 
 function tableStatus(
-  table: Pick<TableDto, 'isActive' | 'isOccupied' | 'isReserved' | 'activeOrderCount'>,
+  table: Pick<TableDto, 'isActive' | 'isOccupied' | 'isReserved' | 'activeOrderCount' | 'readinessState'>,
   session: TableServiceSessionDto | null,
+  tableVisitReadinessEnabled: boolean,
 ): CashierTableStatus {
   if (!table.isActive) return 'closed';
   if (session && hasLegacyTableOrders(table, session)) return 'conflict';
   if (session) return 'occupied';
   if (table.isOccupied) return 'legacy';
+  if (tableVisitReadinessEnabled && table.readinessState === 'NeedsReset') return 'needs-reset';
   if (table.isReserved) return 'reserved';
   return 'available';
 }
@@ -47,6 +50,7 @@ function tableStatus(
 export function mergeCashierTableEntries(
   tables: readonly TableDto[],
   sessions: readonly TableServiceSessionDto[],
+  tableVisitReadinessEnabled = false,
 ): CashierTableEntry[] {
   const byId = new Map<string, TableServiceSessionDto>();
   const byNumber = new Map<string, TableServiceSessionDto>();
@@ -58,7 +62,7 @@ export function mergeCashierTableEntries(
   const entries: CashierTableEntry[] = tables.map((table) => {
     const session = byId.get(table.id.toLowerCase()) ?? byNumber.get(tableNumberKey(table.tableNumber)) ?? null;
     if (session) matched.add(session.serviceSessionId);
-    return { table, session, status: tableStatus(table, session) };
+    return { table, session, status: tableStatus(table, session, tableVisitReadinessEnabled) };
   });
 
   // Keep orphaned or historical sessions visible rather than hiding their bills.

@@ -1,0 +1,154 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useOptionalAuth } from '@/components/AuthContext';
+import StaffButton from '@/components/design-system/StaffButton';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
+import { useAccountPaymentActor } from '@/hooks/accountPayments/useAccountPaymentActor';
+import { useTableReadiness } from '@/hooks/tableReadiness/useTableReadiness';
+import { loadAccountPaymentLocale } from '@/services/accountPaymentLocaleService';
+import type { PendingTableReadiness } from '@/types/tableReadiness';
+import styles from './TableReadinessAction.module.css';
+
+interface Props {
+  readonly tableId: string;
+  readonly readinessVersion?: number | null;
+  readonly canMarkReady: boolean;
+  readonly snapshot: object;
+  readonly isStale: boolean;
+  readonly refresh: () => Promise<void>;
+}
+
+type OwnedProps = Props & { readonly actorId: string; readonly actorRole: PendingTableReadiness['actorRole'] };
+
+function OwnedAction({
+  actorId,
+  actorRole,
+  tableId,
+  readinessVersion,
+  canMarkReady,
+  snapshot,
+  isStale,
+  refresh,
+}: OwnedProps) {
+  const { t, i18n } = useTranslation();
+  const { tableVisitReadinessV1: enabled } = useTenantFeatures();
+  const action = useTableReadiness({
+    actorId,
+    actorRole,
+    tableId,
+    readinessVersion,
+    canStart: enabled === true && canMarkReady && !isStale,
+    snapshot,
+    refresh,
+  });
+  const [locale, setLocale] = useState<string | null>(null);
+  const [localeFailed, setLocaleFailed] = useState(false);
+  const [localeRetry, setLocaleRetry] = useState(0);
+  const instance = useRef(i18n);
+  instance.current = i18n;
+  const language = i18n.language;
+  const visible = (enabled === true && canMarkReady) || (action.stage !== 'idle' && action.stage !== 'checking');
+  useEffect(() => {
+    if (!visible) return;
+    let active = true;
+    setLocaleFailed(false);
+    void loadAccountPaymentLocale(instance.current, language).then(
+      () => {
+        if (active) setLocale(language);
+      },
+      () => {
+        if (active) setLocaleFailed(true);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [language, localeRetry, visible]);
+  if (!visible) return null;
+  if (localeFailed)
+    return (
+      <div role="alert">
+        <p>{t('cashier.tables.load_error')}</p>
+        <StaffButton onClick={() => setLocaleRetry((version) => version + 1)}>{t('cashier.tables.retry')}</StaffButton>
+      </div>
+    );
+  if (locale !== language || action.stage === 'checking') {
+    return <output aria-live="polite">{t('cashier.tables.operation_checking')}</output>;
+  }
+  const working = action.stage === 'working';
+  const pending = action.stage === 'pending' || working;
+  return (
+    <section id="table-readiness-actions" className={styles.panel} aria-label={t('accountPayments.readiness.title')}>
+      <h2>{t('accountPayments.readiness.title')}</h2>
+      {action.stage === 'idle' && (
+        <>
+          <p>{t('accountPayments.readiness.confirm_reset')}</p>
+          <StaffButton
+            variant="primary"
+            onClick={() => void action.start()}
+            disabled={!enabled || !canMarkReady || isStale}
+          >
+            {t('server.floor.ready_action')}
+          </StaffButton>
+        </>
+      )}
+      {pending && (
+        <>
+          <output aria-live="polite">
+            {t(working ? 'accountPayments.readiness.checking' : 'accountPayments.readiness.unknown')}
+          </output>
+          {!enabled && <p>{t('accountPayments.readiness.disabled_recovery')}</p>}
+          <div className={styles.actions}>
+            <StaffButton onClick={() => void action.check()} disabled={working}>
+              {t('accountPayments.readiness.check')}
+            </StaffButton>
+            <StaffButton onClick={() => void action.retry()} disabled={working}>
+              {t('accountPayments.readiness.retry')}
+            </StaffButton>
+          </div>
+        </>
+      )}
+      {action.stage === 'unavailable' && <p role="alert">{t('accountPayments.readiness.storage_unavailable')}</p>}
+      {action.stage === 'settled' && (
+        <>
+          <p role="status">
+            {t(
+              action.result?.kind === 'succeeded'
+                ? 'accountPayments.readiness.succeeded'
+                : 'accountPayments.readiness.refused',
+            )}
+          </p>
+          <StaffButton onClick={() => void refresh().catch(() => undefined)}>{t('cashier.tables.retry')}</StaffButton>
+        </>
+      )}
+    </section>
+  );
+}
+
+/** Mount recovery even if the table acquired a new visit or new readiness writes are disabled. */
+export default function TableReadinessAction(props: Props) {
+  const { t } = useTranslation();
+  const { tableVisitReadinessV1: enabled } = useTenantFeatures();
+  const auth = useOptionalAuth();
+  const actor = useAccountPaymentActor();
+  const role = auth?.user?.role;
+  if (role !== 'Admin' && role !== 'Cashier' && role !== 'Server') return null;
+  if (actor.status === 'checking') return enabled ? <output>{t('cashier.tables.operation_checking')}</output> : null;
+  if (actor.status === 'failed' || !actor.actorId)
+    return (
+      <div role="alert">
+        <p>{t('cashier.tables.load_error')}</p>
+        <StaffButton onClick={actor.retry}>{t('cashier.tables.retry')}</StaffButton>
+      </div>
+    );
+  return (
+    <OwnedAction
+      key={`${actor.actorId}:${role}:${props.tableId}`}
+      {...props}
+      actorId={actor.actorId}
+      actorRole={role}
+    />
+  );
+}

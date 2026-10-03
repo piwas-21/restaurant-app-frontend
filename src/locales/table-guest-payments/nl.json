@@ -49,6 +49,7 @@
   "table_guest_payment_Released": "Bijdrage vrijgegeven",
   "table_guest_payment_Failed": "Betaling mislukt",
   "table_guest_payment_ReconciliationRequired": "Bevestiging door personeel nodig",
+  "table_guest_payment_unknown_order": "Onbekende bestelling",
   "table_guest_payment_account_balance": "Het volledige resterende rekeningsaldo",
   "table_guest_payment_order_item": "Bestelling {{orderNumber}}",
   "table_guest_payment_review_item": "{{item}} — bestelling {{orderNumber}}, {{count}} eenheden",

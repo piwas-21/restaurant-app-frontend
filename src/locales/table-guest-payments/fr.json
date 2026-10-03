@@ -49,6 +49,7 @@
   "table_guest_payment_Released": "Participation libérée",
   "table_guest_payment_Failed": "Paiement échoué",
   "table_guest_payment_ReconciliationRequired": "Confirmation du personnel nécessaire",
+  "table_guest_payment_unknown_order": "Commande inconnue",
   "table_guest_payment_account_balance": "Solde restant complet du compte",
   "table_guest_payment_order_item": "Commande {{orderNumber}}",
   "table_guest_payment_review_item": "{{item}} — commande {{orderNumber}}, {{count}} unités",

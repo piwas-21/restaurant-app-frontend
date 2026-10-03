@@ -49,6 +49,7 @@
   "table_guest_payment_Released": "Contribución liberada",
   "table_guest_payment_Failed": "Pago fallido",
   "table_guest_payment_ReconciliationRequired": "El personal debe confirmar el pago",
+  "table_guest_payment_unknown_order": "Pedido desconocido",
   "table_guest_payment_account_balance": "Todo el saldo pendiente de la cuenta",
   "table_guest_payment_order_item": "Pedido {{orderNumber}}",
   "table_guest_payment_review_item": "{{item}} — pedido {{orderNumber}}, {{count}} unidades",

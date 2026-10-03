@@ -16,11 +16,12 @@ export function categoryInventoryIsSourceMismatched(inventory: DeliveryChannelCa
 }
 
 export function categorySourceView(inventory: DeliveryChannelCategoryInventory | null, stale: boolean) {
-  const categories = stale && inventory?.draft ? inventory.draft.categories : (inventory?.categories ?? []);
+  const freezeDraft = stale && categoryInventoryIsSourceMismatched(inventory);
+  const categories = freezeDraft && inventory?.draft ? inventory.draft.categories : (inventory?.categories ?? []);
   let unsupportedSnapshot = null;
   if (inventory && inventory.draft?.sourceRevision === inventory.sourceRevision) {
     unsupportedSnapshot = inventory.draft;
-  } else if (stale && inventory?.draft) {
+  } else if (freezeDraft && inventory?.draft) {
     unsupportedSnapshot = inventory.draft;
   }
   return {

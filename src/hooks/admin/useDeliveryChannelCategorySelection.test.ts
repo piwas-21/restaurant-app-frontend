@@ -566,6 +566,39 @@ it('keeps source review locked while reference and candidate readbacks are pendi
   expect(result.current.selection.stale).toBe(false);
 });
 
+it('uses current category counts during a same-source limit recovery with a saved draft', async () => {
+  const categories = [category, drinksCategory];
+  const currentInventory = {
+    ...inventory,
+    maximumCategoryCount: 1,
+    categories,
+    draft: savedDraft(),
+    draftRevision: 'draft-1',
+  };
+  const check = jest
+    .spyOn(deliveryChannelManagementService, 'checkCategoryReferences')
+    .mockRejectedValueOnce(new ApiError(400, '', undefined, 'CategoryLimitExceeded'))
+    .mockResolvedValue(referenceChanges('source-1', categories));
+  jest.spyOn(deliveryChannelManagementService, 'getCategoryInventory').mockResolvedValue(currentInventory);
+  jest.spyOn(deliveryChannelManagementService, 'getCategoryCandidates').mockResolvedValue({
+    sourceRevision: 'source-1',
+    language: 'en',
+    nextCursor: null,
+    items: [],
+  });
+  const { result } = renderHook(() => useDeliveryChannelCategorySelection(true));
+
+  await waitFor(() => expect(result.current.selectedCount).toBe(79));
+  act(() => result.current.toggleCategory('drinks', true));
+  expect(result.current.selectedCount).toBe(99);
+
+  await act(async () => expect(await result.current.acknowledgeSource()).toBe(false));
+  expect(result.current.stale).toBe(true);
+  expect(result.current.selectionLocked).toBe(false);
+  expect(result.current.selectedCount).toBe(99);
+  expect(check).toHaveBeenCalledTimes(1);
+});
+
 it.each(['CategoryLimitExceeded', 'SelectionOverrideLimitExceeded'] as const)(
   'allows bounded local reductions after %s but keeps writes blocked until source acknowledgment succeeds',
   async (errorCode) => {

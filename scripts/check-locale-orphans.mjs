@@ -116,6 +116,9 @@ const DYNAMIC_PREFIXES = [
   // `orderAmendments.state_${state}` from the quote's finite server enum values.
   'orderAmendments.kind_',
   'orderAmendments.state_',
+  // Account payment views compose the finite server AccountPaymentState labels for each bounded
+  // active attempt and the current operation; both consumers read `accountPayments.state.${state}`.
+  'accountPayments.state.',
   // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
   // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the
@@ -255,6 +258,7 @@ const englishKeys = [
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'en.json'), 'utf8'))),
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'order-workspace/en.json'), 'utf8'))),
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'table-guest/en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'account-payments/en.json'), 'utf8'))),
 ];
 
 const orphans = [];

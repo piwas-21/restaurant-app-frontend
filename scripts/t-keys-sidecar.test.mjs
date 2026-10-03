@@ -5,12 +5,18 @@ import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'nod
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-function runFixture(sidecar, source, tableGuestSidecar = { table_guest_join_action: 'Join table' }) {
+function runFixture(
+  sidecar,
+  source,
+  tableGuestSidecar = { table_guest_join_action: 'Join table' },
+  accountPaymentSidecar = { accountPayments: { captured: 'Paid contributions' } },
+) {
   const root = mkdtempSync(join(tmpdir(), 't-keys-sidecar-'));
   try {
     mkdirSync(join(root, 'scripts'));
     mkdirSync(join(root, 'src/locales/order-workspace'), { recursive: true });
     mkdirSync(join(root, 'src/locales/table-guest'), { recursive: true });
+    mkdirSync(join(root, 'src/locales/account-payments'), { recursive: true });
     copyFileSync(new URL('./check-t-keys.mjs', import.meta.url), join(root, 'scripts/check-t-keys.mjs'));
     writeFileSync(join(root, 'scripts/t-keys-baseline.json'), '{"defaulted":[]}');
     writeFileSync(join(root, 'src/locales/en.json'), '{"save":"Save"}');
@@ -18,6 +24,8 @@ function runFixture(sidecar, source, tableGuestSidecar = { table_guest_join_acti
       writeFileSync(join(root, 'src/locales/order-workspace/en.json'), JSON.stringify(sidecar));
     if (tableGuestSidecar !== null)
       writeFileSync(join(root, 'src/locales/table-guest/en.json'), JSON.stringify(tableGuestSidecar));
+    if (accountPaymentSidecar !== null)
+      writeFileSync(join(root, 'src/locales/account-payments/en.json'), JSON.stringify(accountPaymentSidecar));
     writeFileSync(join(root, 'src/fixture.ts'), source);
     const result = spawnSync(process.execPath, [join(root, 'scripts/check-t-keys.mjs')], { encoding: 'utf8' });
     return { status: result.status, output: result.stdout + result.stderr };
@@ -60,4 +68,19 @@ test('missing table guest keys remain an error', () => {
 
 test('a deleted table guest sidecar fails closed', () => {
   assert.equal(runFixture({ orderAmendments: { open: 'Amend order' } }, "t('save');", null).status, 1);
+});
+
+test('account payment keys resolve from their lazy sidecar', () => {
+  const result = runFixture({}, "t('accountPayments.captured');");
+  assert.equal(result.status, 0, result.output);
+});
+
+test('missing account payment keys remain an error', () => {
+  const result = runFixture({}, "t('accountPayments.missing');");
+  assert.equal(result.status, 1);
+  assert.match(result.output, /accountPayments\.missing/);
+});
+
+test('a deleted account payment sidecar fails closed', () => {
+  assert.equal(runFixture({}, "t('save');", undefined, null).status, 1);
 });

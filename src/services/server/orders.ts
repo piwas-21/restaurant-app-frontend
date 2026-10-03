@@ -104,6 +104,23 @@ export async function getDineInOrders(filters?: DineInOrderFilters): Promise<Pag
   };
 }
 
+/** One server order-list page across native types and all order/payment states. */
+export async function getServerAmendmentOrders(
+  orderType: OrderType | 'All',
+  page = 1,
+  pageSize = 50,
+  search?: string,
+): Promise<PagedResult<OrderDto>> {
+  const params = new URLSearchParams({ scope: 'All', page: String(page), pageSize: String(pageSize) });
+  if (orderType !== 'All') params.set('orderType', orderType);
+  if (search?.trim()) params.set('search', search.trim());
+  const response = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?${params.toString()}`, {
+    requireAuth: true,
+  });
+  if (response.success !== true || !response.data) throw new Error(response.message || 'Failed to fetch orders');
+  return response.data;
+}
+
 export async function updateOrderStatus(orderId: string, newStatus: string, notes?: string): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
@@ -137,6 +154,8 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
 
   return response.data;
 }
+
+export const getServerOrderById = getOrderById;
 
 export async function createServerOrder(
   tableNumber: number,

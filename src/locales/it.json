@@ -3899,5 +3899,8 @@
     "operations": "Ordini e servizio",
     "customers": "Clienti",
     "settings": "Impostazioni"
+  },
+  "serverOrders": {
+    "title": "Ordini"
   }
 }

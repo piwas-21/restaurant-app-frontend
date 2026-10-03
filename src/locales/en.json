@@ -3889,5 +3889,8 @@
     "operations": "Orders & service",
     "customers": "Customers",
     "settings": "Settings"
+  },
+  "serverOrders": {
+    "title": "Orders"
   }
 }

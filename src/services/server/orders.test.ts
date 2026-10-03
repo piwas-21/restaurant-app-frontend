@@ -1,6 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import type { OrderDto } from '@/types/order';
-import { ACTIVE_ORDER_STATUS_FILTER, getDineInOrders } from './orders';
+import { OrderType } from '@/types/order';
+import { ACTIVE_ORDER_STATUS_FILTER, getDineInOrders, getServerAmendmentOrders } from './orders';
 import { getMarketplaceOperationalOrders } from './marketplaceOrders';
 import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 
@@ -95,6 +96,39 @@ describe('getDineInOrders', () => {
 
     await expect(getDineInOrders({ status: ACTIVE_ORDER_STATUS_FILTER })).rejects.toThrow('too large to load safely');
     expect(mockGet).toHaveBeenCalledTimes(1000);
+  });
+});
+
+describe('getServerAmendmentOrders', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it.each(['All', OrderType.Takeaway, OrderType.Delivery] as const)(
+    'requests native Server orders in all-state scope (%s)',
+    async (type) => {
+      mockGet.mockResolvedValueOnce(page([order('o1')], 1, 1));
+
+      await getServerAmendmentOrders(type);
+
+      const params = new URLSearchParams(mockGet.mock.calls[0][0].split('?')[1]);
+      expect(params.get('scope')).toBe('All');
+      expect(params.get('page')).toBe('1');
+      expect(params.get('pageSize')).toBe('50');
+      expect(params.get('orderType')).toBe(type === 'All' ? null : type);
+      expect(mockGet.mock.calls[0][1]).toEqual({ requireAuth: true });
+    },
+  );
+
+  it('applies a server-side search while keeping the selected page bounded', async () => {
+    mockGet.mockResolvedValueOnce(page([order('o1')], 2, 3));
+
+    await getServerAmendmentOrders(OrderType.DineIn, 2, 25, '  table 7  ');
+
+    const params = new URLSearchParams(mockGet.mock.calls[0][0].split('?')[1]);
+    expect(params.get('scope')).toBe('All');
+    expect(params.get('orderType')).toBe(OrderType.DineIn);
+    expect(params.get('page')).toBe('2');
+    expect(params.get('pageSize')).toBe('25');
+    expect(params.get('search')).toBe('table 7');
   });
 });
 

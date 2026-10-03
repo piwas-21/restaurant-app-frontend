@@ -5,9 +5,14 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 export interface TenantFeaturesState {
   serverWorkspaceV2: boolean;
   tableAccountV1: boolean;
+  orderAmendmentsV1: boolean;
 }
 
-const DEFAULT_FEATURES: TenantFeaturesState = { serverWorkspaceV2: false, tableAccountV1: false };
+const DEFAULT_FEATURES: TenantFeaturesState = {
+  serverWorkspaceV2: false,
+  tableAccountV1: false,
+  orderAmendmentsV1: false,
+};
 const TenantFeaturesContext = createContext<TenantFeaturesState>(DEFAULT_FEATURES);
 
 export function TenantFeaturesProvider({

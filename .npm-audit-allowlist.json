@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "GHSA-vfj7-8cjw-p6xm",
+    "severity": "high",
+    "reason": "braces <=3.0.3 has no patched release as of 2026-10-03. Its only dependency path is development-only babel-jest -> @jest/transform -> micromatch, with trusted repository test patterns; absent from the production dependency tree. Recheck upstream https://github.com/advisories/GHSA-vfj7-8cjw-p6xm before expiry and remove when a compatible fix exists.",
+    "expires": "2026-10-10"
+  }
+]

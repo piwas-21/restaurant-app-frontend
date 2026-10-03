@@ -3909,5 +3909,8 @@
     "operations": "Заказы и обслуживание",
     "customers": "Клиенты",
     "settings": "Настройки"
+  },
+  "serverOrders": {
+    "title": "Заказы"
   }
 }

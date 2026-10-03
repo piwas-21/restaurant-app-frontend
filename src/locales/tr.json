@@ -3889,5 +3889,8 @@
     "operations": "Siparişler ve servis",
     "customers": "Müşteriler",
     "settings": "Ayarlar"
+  },
+  "serverOrders": {
+    "title": "Siparişler"
   }
 }

@@ -3889,5 +3889,8 @@
     "operations": "Bestellingen & bediening",
     "customers": "Klanten",
     "settings": "Instellingen"
+  },
+  "serverOrders": {
+    "title": "Bestellingen"
   }
 }

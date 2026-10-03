@@ -3879,5 +3879,8 @@
     "operations": "订单与服务",
     "customers": "顾客",
     "settings": "设置"
+  },
+  "serverOrders": {
+    "title": "订单"
   }
 }

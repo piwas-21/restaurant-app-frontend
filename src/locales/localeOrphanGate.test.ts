@@ -36,9 +36,10 @@ function runGate(englishKeys: Record<string, unknown>, files: Record<string, str
   const root = mkdtempSync(join(tmpdir(), 'orphan-gate-'));
   workdirs.push(root);
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  mkdirSync(join(root, 'src/locales'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/order-workspace'), { recursive: true });
   copyFileSync(SCRIPT, join(root, 'scripts/check-locale-orphans.mjs'));
   writeFileSync(join(root, 'src/locales/en.json'), `${JSON.stringify(englishKeys, null, 2)}\n`);
+  writeFileSync(join(root, 'src/locales/order-workspace/en.json'), '{}\n');
   for (const [rel, contents] of Object.entries(files)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true });
     writeFileSync(join(root, rel), contents);

@@ -4,6 +4,7 @@ import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
@@ -12,6 +13,7 @@ import { tableStatusLabel } from './serverFloorPresentation';
 import styles from './ServerTableWorkspace.module.css';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
+import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
@@ -61,6 +63,7 @@ export default function ServerTableWorkspace({
   requestedOrderId,
 }: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
+  const { orderAmendmentsV1 } = useTenantFeatures();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
@@ -80,6 +83,7 @@ export default function ServerTableWorkspace({
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
+        ...serverOrderNavItem(orderAmendmentsV1, t),
         { href: '/server/takeaway', label: t('server.takeaway.link') },
       ]}
       connectionState={state.floorConnectionState}

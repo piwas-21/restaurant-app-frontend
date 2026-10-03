@@ -3899,5 +3899,8 @@
     "operations": "Pedidos y servicio",
     "customers": "Clientes",
     "settings": "Configuración"
+  },
+  "serverOrders": {
+    "title": "Pedidos"
   }
 }

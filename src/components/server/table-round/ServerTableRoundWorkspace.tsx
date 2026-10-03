@@ -8,6 +8,7 @@ import DraftRecoveryBanner from '@/components/design-system/DraftRecoveryBanner'
 import OperationResultNotice from '@/components/design-system/OperationResultNotice';
 import OperationalSplitView from '@/components/design-system/OperationalSplitView';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import TableServiceSessionBill from '@/components/table-service/TableServiceSessionBill';
 import WaiterBundleCustomization from '@/components/server/WaiterBundleCustomization';
 import { OrderType } from '@/types/order';
@@ -19,6 +20,7 @@ import ServerTableRoundTicket from './ServerTableRoundTicket';
 import { serverTableRoundBlocker, serverTableRoundMessage } from './serverTableRoundMessages';
 import styles from './ServerTableRoundWorkspace.module.css';
 import ServerTasksBadge from '@/components/server/tasks/ServerTasksBadge';
+import { serverOrderNavItem } from '@/components/server/serverWorkspaceOrderNav';
 
 interface Props {
   readonly tableId: string;
@@ -28,6 +30,7 @@ interface Props {
 
 export default function ServerTableRoundWorkspace({ tableId, requestedSessionId, state }: Props) {
   const { t } = useTranslation();
+  const { orderAmendmentsV1 } = useTenantFeatures();
   const round = useServerTableRound(tableId, state, requestedSessionId);
   const [showCatalogOnPhone, setShowCatalogOnPhone] = useState(false);
   const label = state.table?.tableLabel || t('cashier.tables.table_number', 'Table {{table}}', { table: tableId });
@@ -39,6 +42,7 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks'), badge: <ServerTasksBadge /> },
+        ...serverOrderNavItem(orderAmendmentsV1, t),
         { href: `/server/tables/${encodeURIComponent(tableId)}`, label: label },
       ]}
       connectionState={state.floorConnectionState}

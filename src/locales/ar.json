@@ -3929,5 +3929,8 @@
     "operations": "الطلبات والخدمة",
     "customers": "العملاء",
     "settings": "الإعدادات"
+  },
+  "serverOrders": {
+    "title": "الطلبات"
   }
 }

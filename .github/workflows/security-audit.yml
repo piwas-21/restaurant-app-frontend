@@ -64,12 +64,14 @@ jobs:
           node-version: 22
           cache: npm
       # Audit the COMMITTED lockfile only — do not let install rewrite it.
-      # The per-PR npm_audit runs the same command; the value here is that the
+      # The per-PR npm_audit uses the same expiring acceptance parser; the weekly
+      # job has no restored verdict cache, so it fetches current advisories.
+      # The value here is that the
       # weekly cron re-checks the unchanged lockfile against the advisory DB as
       # it exists today, so a CVE disclosed since the last PR surfaces.
       - run: npm ci --ignore-scripts --prefer-offline --no-audit
-      - name: npm audit --audit-level=high
-        run: npm audit --audit-level=high
+      - name: npm audit (live advisories, expiring acceptance parser)
+        run: bash scripts/run-npm-audit.sh
 
   osv_scanner:
     name: OSV-Scanner (full-tree dependency CVEs)

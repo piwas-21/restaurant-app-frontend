@@ -45,8 +45,8 @@ export function readPendingTableReadiness(
     return { status: 'pending', value: parsed.data };
   } catch (_error: unknown) {
     // Unreadable storage cannot establish whether an unresolved request already exists.
-    return { status: 'unavailable' };
   }
+  return { status: 'unavailable' };
 }
 
 /** Preserve the original actor/table/version/key before making a readiness request. */
@@ -61,8 +61,8 @@ export function persistPendingTableReadiness(value: PendingTableReadiness): bool
     return true;
   } catch (_error: unknown) {
     // A request may be sent only after its original descriptor is durably stored.
-    return false;
   }
+  return false;
 }
 
 export function clearPendingTableReadiness(value: PendingTableReadiness): boolean {
@@ -74,6 +74,6 @@ export function clearPendingTableReadiness(value: PendingTableReadiness): boolea
     return true;
   } catch (_error: unknown) {
     // Keep recovery blocked when removal cannot be confirmed; never assume the journal cleared.
-    return false;
   }
+  return false;
 }

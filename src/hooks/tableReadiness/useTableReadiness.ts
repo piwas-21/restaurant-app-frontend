@@ -50,6 +50,7 @@ export function useTableReadiness({
     inFlight.current = true;
     const requestGeneration = ++generation.current;
     setState({ stage: 'working' });
+    let outcomeHandled = false;
     try {
       const result = await (write
         ? markTableReady(operation.tableId, operation.request)
@@ -58,6 +59,7 @@ export function useTableReadiness({
       if (result.kind === 'succeeded' || result.terminal) {
         if (!clearPendingTableReadiness(operation)) {
           setState({ stage: 'unavailable' });
+          outcomeHandled = true;
           return;
         }
         pending.current = null;
@@ -67,11 +69,14 @@ export function useTableReadiness({
       } else {
         setState({ stage: 'pending', result });
       }
+      outcomeHandled = true;
     } catch (_error: unknown) {
       // A lost response cannot settle the operation; retain its original journal for recovery.
-      if (mounted.current && generation.current === requestGeneration) setState({ stage: 'pending' });
     } finally {
-      if (generation.current === requestGeneration) inFlight.current = false;
+      if (generation.current === requestGeneration) {
+        if (!outcomeHandled && mounted.current) setState({ stage: 'pending' });
+        inFlight.current = false;
+      }
     }
   }, []);
 
@@ -125,10 +130,11 @@ export function useTableReadiness({
       }
       pending.current = operation;
       await run(operation, true);
+      return;
     } catch (_error: unknown) {
       // Crypto or storage failure prevents a safe request, so leave readiness unavailable.
-      setState({ stage: 'unavailable' });
     }
+    setState({ stage: 'unavailable' });
   }, [actorId, actorRole, canStart, readinessVersion, run, state.stage, tableId]);
 
   const check = useCallback(async () => {

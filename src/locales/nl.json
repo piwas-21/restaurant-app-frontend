@@ -3898,7 +3898,8 @@
       "removedSelections": "Sommige opgeslagen categorie- of itemkeuzes komen niet meer overeen met het huidige restaurantmenu en zijn uit dit concept verwijderd. Controleer de bijgewerkte selectie voordat u opslaat.",
       "categoryBasisNotice": "Elk artikel staat onder zijn hoofdcategorie. Je kunt elk artikel ook afzonderlijk selecteren.",
       "categoryLimit": "Je kunt maximaal {{maximum}} menucategorieën selecteren. Verwijder een categorie voordat je een andere toevoegt.",
-      "overrideLimit": "Er zijn te veel uitzonderingen voor afzonderlijke artikelen. Wijzig de geselecteerde categorieën of verwijder enkele uitzonderingen."
+      "overrideLimit": "Er zijn te veel uitzonderingen voor afzonderlijke artikelen. Wijzig de geselecteerde categorieën of verwijder enkele uitzonderingen.",
+      "needsSaveNotice": "Je menuselectie bevat niet-opgeslagen wijzigingen. Sla deze op om het menu te controleren voordat je het publiceert."
     }
   },
   "cashier.tables.account": "Tafelrekening",

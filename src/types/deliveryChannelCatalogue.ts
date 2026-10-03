@@ -50,6 +50,8 @@ export type ProviderPriceStatus = 'currentReadback' | 'lastConfirmed' | 'unknown
 /** Frontend mirror of the management catalogue and draft DTOs. */
 export interface DeliveryChannelCatalogue {
   readonly selectionMode?: 'fixedItemsV1' | 'categoryItemsV1';
+  readonly sourceChanged?: boolean;
+  readonly draftSourceRevision?: string | null;
   readonly draft?: DeliveryChannelCategoryDraft | null;
   readonly selectedItems?: readonly DeliveryChannelCategoryItem[];
   readonly taxProfile?: DeliveryChannelReviewedTaxProfile | null;

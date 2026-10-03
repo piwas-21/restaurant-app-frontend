@@ -3910,7 +3910,8 @@
       "removedSelections": "Certains choix de catégories ou d’articles enregistrés ne correspondent plus au menu actuel du restaurant et ont été retirés de ce brouillon. Vérifiez la sélection mise à jour avant de l’enregistrer.",
       "categoryBasisNotice": "Chaque article apparaît dans sa catégorie principale. Vous pouvez aussi sélectionner chaque article individuellement.",
       "categoryLimit": "Vous pouvez sélectionner au maximum {{maximum}} catégories. Retirez une catégorie avant d’en ajouter une autre.",
-      "overrideLimit": "Il y a trop d’exceptions par article. Modifiez les catégories sélectionnées ou retirez certaines exceptions."
+      "overrideLimit": "Il y a trop d’exceptions par article. Modifiez les catégories sélectionnées ou retirez certaines exceptions.",
+      "needsSaveNotice": "Votre sélection de menu contient des modifications non enregistrées. Enregistrez-la pour vérifier le menu avant de le publier."
     }
   },
   "cashier.tables.account": "Compte de table",

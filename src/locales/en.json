@@ -3898,7 +3898,8 @@
       "removedSelections": "Some saved category or item choices no longer match the current restaurant menu and were cleared from this draft. Review the updated selection before saving.",
       "categoryBasisNotice": "Each item appears under its main menu category. You can also select any item separately.",
       "categoryLimit": "You can include at most {{maximum}} menu categories in this selection. Remove a category before adding another.",
-      "overrideLimit": "There are too many individual item exceptions. Change category selections or remove some item exceptions."
+      "overrideLimit": "There are too many individual item exceptions. Change category selections or remove some item exceptions.",
+      "needsSaveNotice": "Your menu selection has unsaved changes. Save it to review the menu before publishing."
     }
   },
   "cashier.tables.account": "Table account",

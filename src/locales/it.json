@@ -3910,7 +3910,8 @@
       "removedSelections": "Alcune categorie o scelte di articoli salvate non corrispondono più al menu attuale del ristorante e sono state rimosse da questa bozza. Controlla la selezione aggiornata prima di salvarla.",
       "categoryBasisNotice": "Ogni articolo compare nella sua categoria principale. Puoi anche selezionare qualsiasi articolo singolarmente.",
       "categoryLimit": "Puoi includere al massimo {{maximum}} categorie. Rimuovi una categoria prima di aggiungerne un’altra.",
-      "overrideLimit": "Ci sono troppe eccezioni per singoli articoli. Modifica le categorie selezionate o rimuovi alcune eccezioni."
+      "overrideLimit": "Ci sono troppe eccezioni per singoli articoli. Modifica le categorie selezionate o rimuovi alcune eccezioni.",
+      "needsSaveNotice": "La selezione del menu contiene modifiche non salvate. Salvala per controllare il menu prima di pubblicarlo."
     }
   },
   "cashier.tables.account": "Conto del tavolo",

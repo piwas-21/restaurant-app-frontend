@@ -13,6 +13,7 @@ import { selectionErrorText } from '@/utils/deliveryChannelCategorySelectionView
 import { useDeliveryChannelCategoryCandidateFilters } from '@/hooks/admin/useDeliveryChannelCategoryCandidateFilters';
 import DeliveryChannelCategoryItems from './DeliveryChannelCategoryItems';
 import DeliveryChannelCategoryList from './DeliveryChannelCategoryList';
+import DeliveryChannelCategoryStatusNotices from './DeliveryChannelCategoryStatusNotices';
 import DeliveryChannelServiceHoursReview from './DeliveryChannelServiceHoursReview';
 import workspaceStyles from './DeliveryChannelWorkspace.module.css';
 import styles from './DeliveryChannelCategorySelectionPanel.module.css';
@@ -108,26 +109,13 @@ export default function DeliveryChannelCategorySelectionPanel({
         )}
       </div>
 
-      {stale && (
-        <p className={styles.warning} role="alert">
-          {t('deliveryChannels.menuSelection.sourceChanged')}
-        </p>
-      )}
-      {removedSelectionNotice && (
-        <p className={styles.warning} role="alert">
-          {t('deliveryChannels.menuSelection.removedSelections')}
-        </p>
-      )}
-      {writeUncertain && (
-        <p className={styles.warning} role="alert">
-          {t('deliveryChannels.menu.saveUncertain')}
-        </p>
-      )}
-      {errorText && (
-        <p className={styles.error} role="alert">
-          {errorText}
-        </p>
-      )}
+      <DeliveryChannelCategoryStatusNotices
+        stale={stale}
+        removedSelectionNotice={removedSelectionNotice}
+        showUnsavedNotice={needsSave && Boolean(inventory.draft) && !stale && !writeUncertain}
+        writeUncertain={writeUncertain}
+        errorText={errorText}
+      />
 
       <div className={styles.filters}>
         <FormField label={t('deliveryChannels.menuSelection.searchLabel')}>

@@ -3910,7 +3910,8 @@
       "removedSelections": "Algunas categorías o artículos guardados ya no coinciden con el menú actual del restaurante y se han quitado de este borrador. Revise la selección actualizada antes de guardarla.",
       "categoryBasisNotice": "Cada artículo aparece en su categoría principal. También puedes seleccionar cualquier artículo por separado.",
       "categoryLimit": "Puedes incluir como máximo {{maximum}} categorías. Quita una categoría antes de añadir otra.",
-      "overrideLimit": "Hay demasiadas excepciones por artículo. Cambia las categorías seleccionadas o elimina algunas excepciones."
+      "overrideLimit": "Hay demasiadas excepciones por artículo. Cambia las categorías seleccionadas o elimina algunas excepciones.",
+      "needsSaveNotice": "Tu selección del menú tiene cambios sin guardar. Guárdala para revisar el menú antes de publicarlo."
     }
   },
   "cashier.tables.account": "Cuenta de mesa",

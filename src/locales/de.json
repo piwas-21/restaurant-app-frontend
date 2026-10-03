@@ -3898,7 +3898,8 @@
       "removedSelections": "Einige gespeicherte Kategorie- oder Artikelauswahlen passen nicht mehr zum aktuellen Restaurantmenü und wurden aus diesem Entwurf entfernt. Prüfen Sie die aktualisierte Auswahl vor dem Speichern.",
       "categoryBasisNotice": "Jeder Artikel erscheint in seiner Hauptkategorie. Sie können jeden Artikel auch einzeln auswählen.",
       "categoryLimit": "Sie können höchstens {{maximum}} Menükategorien auswählen. Entfernen Sie eine Kategorie, bevor Sie eine weitere hinzufügen.",
-      "overrideLimit": "Es gibt zu viele Ausnahmen für einzelne Artikel. Ändern Sie die Kategorieauswahl oder entfernen Sie einige Artikelausnahmen."
+      "overrideLimit": "Es gibt zu viele Ausnahmen für einzelne Artikel. Ändern Sie die Kategorieauswahl oder entfernen Sie einige Artikelausnahmen.",
+      "needsSaveNotice": "Deine Menüauswahl enthält ungespeicherte Änderungen. Speichere sie, um die Speisekarte vor der Veröffentlichung zu prüfen."
     }
   },
   "cashier.tables.account": "Tischkonto",

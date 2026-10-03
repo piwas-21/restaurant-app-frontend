@@ -72,6 +72,15 @@
       "storage_unavailable": "Impossibile leggere o salvare il recupero qui. Chiedi al personale autorizzato di controllare il tavolo.",
       "succeeded": "La richiesta originale è riuscita. Aggiorna il tavolo; questo risultato non apre una visita.",
       "refused": "La richiesta originale è stata rifiutata. Aggiorna prima di una nuova richiesta."
+    },
+    "cash": {
+      "exact_charge": "Importo esatto del conto",
+      "rounding_adjustment": "Rettifica di arrotondamento in contanti",
+      "due": "Contanti da pagare",
+      "receipt": "Ricevuta in contanti registrata",
+      "rounding_note": "L’arrotondamento modifica solo l’importo da pagare in contanti. Non modifica il conto e non aggiunge mance.",
+      "evidence_unavailable": "I dati del pagamento in contanti o la ricevuta sono mancanti o incoerenti. I nuovi incassi sono disabilitati; verifica l’operazione originale.",
+      "legacy_unattested": "L’importo ricevuto e il resto di questo precedente pagamento in contanti non sono verificati. L’importo registrato sul conto resta visibile."
     }
   }
 }

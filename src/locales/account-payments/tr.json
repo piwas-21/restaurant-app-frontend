@@ -72,6 +72,15 @@
       "storage_unavailable": "Kurtarma bilgileri burada okunamıyor veya kaydedilemiyor. Yetkili personelden masayı kontrol etmesini isteyin.",
       "succeeded": "İlk işlem başarılı. Güncel masayı görmek için yenileyin; bu sonuç yeni bir ziyaret açmaz.",
       "refused": "İlk işlem reddedildi. Yeni bir istekten önce yenileyin."
+    },
+    "cash": {
+      "exact_charge": "Kesin hesap tutarı",
+      "rounding_adjustment": "Nakit yuvarlama farkı",
+      "due": "Nakit ödenecek tutar",
+      "receipt": "Kaydedilen nakit ödeme makbuzu",
+      "rounding_note": "Nakit yuvarlama yalnızca nakit ödenecek tutarı değiştirir. Hesap tutarını değiştirmez ve bahşiş eklemez.",
+      "evidence_unavailable": "Nakit ödeme bilgileri veya makbuz eksik ya da tutarsız. Yeni nakit tahsilat kapalıdır; ilk işlemi kontrol edin.",
+      "legacy_unattested": "Bu önceki nakit ödemede alınan tutar ve para üstü doğrulanmamış. Kaydedilen hesap tutarı görünür kalır."
     }
   }
 }

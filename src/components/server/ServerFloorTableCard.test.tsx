@@ -55,6 +55,26 @@ const table = (overrides: Partial<ServerFloorTable> = {}): ServerFloorTable => (
 });
 
 describe('ServerFloorTableCard actions', () => {
+  it('routes explicit reset readiness without exposing a new visit start', () => {
+    render(
+      <ServerFloorTableCard
+        table={table({
+          state: 'NeedsReset',
+          readinessState: 'NeedsReset',
+          readinessVersion: 7,
+          session: null,
+          permittedActions: ['MarkTableReady'],
+        })}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Ready for next guests' })).toHaveAttribute(
+      'href',
+      '/server/tables/table%2F11a',
+    );
+    expect(screen.queryByRole('link', { name: 'Start visit' })).not.toBeInTheDocument();
+    expect(screen.getByText('Needs reset')).toBeInTheDocument();
+  });
+
   it('distinguishes starting a visit from opening table details', () => {
     render(
       <ServerFloorTableCard table={table({ state: 'Available', session: null, permittedActions: ['StartTable'] })} />,

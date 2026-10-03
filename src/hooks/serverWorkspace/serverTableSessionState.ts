@@ -7,7 +7,16 @@ import {
 } from '@/types/serverWorkspace';
 
 export type ServerTableBlocker =
-  'none' | 'loading' | 'unavailable' | 'stale' | 'reserved' | 'inactive' | 'ambiguous' | 'legacy' | 'missing-session';
+  | 'none'
+  | 'loading'
+  | 'unavailable'
+  | 'stale'
+  | 'reserved'
+  | 'inactive'
+  | 'ambiguous'
+  | 'legacy'
+  | 'missing-session'
+  | 'needs-reset';
 
 export interface ServerTableSessionState {
   readonly table: ServerFloorTable | null;
@@ -38,6 +47,7 @@ export function blockerFor(
   if (!isKnownServerFloorTableState(table.state)) return 'unavailable';
   if (floorStale) return 'stale';
   if (isLoading && !session) return 'loading';
+  if (table.state === 'NeedsReset') return 'needs-reset';
   if (table.state === 'Reserved') return 'reserved';
   if (table.state === 'Inactive') return 'inactive';
   if (table.state === 'Ambiguous' || table.hasLegacyAmbiguity) return 'ambiguous';

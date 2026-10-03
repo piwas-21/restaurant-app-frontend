@@ -60,6 +60,18 @@
     "other_cashier": "Von einer anderen Kassenkraft gestartet",
     "method_cash": "Bargeld",
     "method_card": "Kartenterminal",
-    "method_guest_online": "Onlinezahlung durch den Gast"
+    "method_guest_online": "Onlinezahlung durch den Gast",
+    "readiness": {
+      "title": "Tisch vorbereiten",
+      "confirm_reset": "Bestätigen Sie, dass der Tisch abgeräumt und für die nächsten Gäste vorbereitet ist.",
+      "checking": "Ursprüngliche Anfrage wird geprüft…",
+      "unknown": "Das Ergebnis ist nicht bestätigt. Prüfen Sie es vor einer neuen Anfrage.",
+      "disabled_recovery": "Neue Anfragen sind deaktiviert. Die ursprüngliche Anfrage kann geprüft oder wiederholt werden.",
+      "check": "Ergebnis prüfen",
+      "retry": "Ursprüngliche Anfrage wiederholen",
+      "storage_unavailable": "Wiederherstellung kann hier nicht gelesen oder gespeichert werden. Lassen Sie berechtigtes Personal den Tisch prüfen.",
+      "succeeded": "Die ursprüngliche Anfrage war erfolgreich. Aktualisieren Sie den Tisch; dadurch wird kein Besuch eröffnet.",
+      "refused": "Die ursprüngliche Anfrage wurde abgelehnt. Aktualisieren Sie vor einer neuen Anfrage."
+    }
   }
 }

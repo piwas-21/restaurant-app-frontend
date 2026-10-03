@@ -3934,5 +3934,7 @@
   "serverOrders": {
     "title": "Bestellungen"
   },
-  "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Ihre aktuelle Sprache wurde beibehalten. Bitte versuchen Sie es erneut."
+  "languageLoadFailed": "Diese Sprache konnte nicht geladen werden. Ihre aktuelle Sprache wurde beibehalten. Bitte versuchen Sie es erneut.",
+  "server.floor.needs_reset": "Zurücksetzen erforderlich",
+  "server.floor.ready_action": "Bereit für die nächsten Gäste"
 }

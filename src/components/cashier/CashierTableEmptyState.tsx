@@ -28,6 +28,7 @@ export default function CashierTableEmptyState({
   const { t } = useTranslation();
   const canOpen = entry.status === 'available';
   let message = t('cashier.tables.closed_table');
+  if (entry.status === 'needs-reset') message = t('server.floor.needs_reset');
   if (entry.status === 'legacy' || entry.status === 'conflict') {
     message = t('cashier.tables.legacy_table');
   } else if (entry.status === 'reserved') {

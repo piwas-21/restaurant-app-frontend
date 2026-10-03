@@ -60,6 +60,18 @@
     "other_cashier": "Démarré par un autre membre de caisse",
     "method_cash": "Espèces",
     "method_card": "Terminal de carte",
-    "method_guest_online": "Paiement en ligne du client"
+    "method_guest_online": "Paiement en ligne du client",
+    "readiness": {
+      "title": "Préparer la table",
+      "confirm_reset": "Confirmez que la table a été débarrassée et préparée pour les prochains clients.",
+      "checking": "Vérification de la demande initiale…",
+      "unknown": "Le résultat n’est pas confirmé. Vérifiez-le avant une nouvelle demande.",
+      "disabled_recovery": "Les nouvelles demandes sont désactivées. Vous pouvez vérifier ou relancer la demande initiale.",
+      "check": "Vérifier le résultat",
+      "retry": "Relancer la demande initiale",
+      "storage_unavailable": "La reprise ne peut pas être lue ou enregistrée dans cet onglet. Faites vérifier la table par le personnel autorisé.",
+      "succeeded": "La demande initiale a réussi. Actualisez la table ; ce résultat n’ouvre pas de visite.",
+      "refused": "La demande initiale a été refusée. Actualisez avant une nouvelle demande."
+    }
   }
 }

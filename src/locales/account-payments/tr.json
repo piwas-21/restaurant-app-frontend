@@ -60,6 +60,18 @@
     "other_cashier": "Başka bir kasiyerin başlattığı",
     "method_cash": "Nakit",
     "method_card": "Kart terminali",
-    "method_guest_online": "Misafirin çevrimiçi ödemesi"
+    "method_guest_online": "Misafirin çevrimiçi ödemesi",
+    "readiness": {
+      "title": "Masayı hazırlama",
+      "confirm_reset": "Masanın temizlenip sonraki misafirler için hazırlandığını onaylayın.",
+      "checking": "İlk işlem kontrol ediliyor…",
+      "unknown": "İşlem sonucu doğrulanmadı. Yeni bir istekten önce kontrol edin.",
+      "disabled_recovery": "Yeni işlemler kapalı. İlk isteği kontrol edebilir veya yeniden deneyebilirsiniz.",
+      "check": "Sonucu kontrol et",
+      "retry": "İlk isteği yeniden dene",
+      "storage_unavailable": "Kurtarma bilgileri burada okunamıyor veya kaydedilemiyor. Yetkili personelden masayı kontrol etmesini isteyin.",
+      "succeeded": "İlk işlem başarılı. Güncel masayı görmek için yenileyin; bu sonuç yeni bir ziyaret açmaz.",
+      "refused": "İlk işlem reddedildi. Yeni bir istekten önce yenileyin."
+    }
   }
 }

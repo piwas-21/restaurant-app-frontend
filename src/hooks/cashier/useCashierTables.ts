@@ -8,6 +8,7 @@ import {
   openTableServiceSession,
   repairLegacyTableServiceSession,
 } from '@/services/tableServiceSessionService';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
@@ -36,6 +37,7 @@ async function openResolvedTableSession(tableId: string, tableNumber: string): P
 }
 
 export function useCashierTables(): CashierTablesState {
+  const { tableVisitReadinessV1 = false } = useTenantFeatures();
   const [entries, setEntries] = useState<CashierTableEntry[]>([]);
   const [queueState, setQueueState] = useState<CashierTablesState['queueState']>('loading');
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +68,7 @@ export function useCashierTables(): CashierTablesState {
     try {
       const [tables, sessions] = await Promise.all([getCashierTables(), getActiveTableServiceSessions()]);
       if (!mountedRef.current || requestId !== requestRef.current) return;
-      const merged = mergeCashierTableEntries(tables, sessions);
+      const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
       setEntries(merged);
       hasEntriesRef.current = merged.length > 0;
       setQueueState('ready');
@@ -77,7 +79,7 @@ export function useCashierTables(): CashierTablesState {
     } finally {
       if (mountedRef.current && requestId === requestRef.current) setIsLoading(false);
     }
-  }, []);
+  }, [tableVisitReadinessV1]);
 
   useEffect(() => {
     void refresh();

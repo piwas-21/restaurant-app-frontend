@@ -60,6 +60,18 @@
     "other_cashier": "Door een andere kassamedewerker gestart",
     "method_cash": "Contant",
     "method_card": "Kaartterminal",
-    "method_guest_online": "Onlinebetaling door de gast"
+    "method_guest_online": "Onlinebetaling door de gast",
+    "readiness": {
+      "title": "Tafel klaarzetten",
+      "confirm_reset": "Bevestig dat de tafel is afgeruimd en klaargezet voor de volgende gasten.",
+      "checking": "Oorspronkelijk verzoek controleren…",
+      "unknown": "Het resultaat is niet bevestigd. Controleer het vóór een nieuw verzoek.",
+      "disabled_recovery": "Nieuwe verzoeken zijn uitgeschakeld. U kunt het oorspronkelijke verzoek nog controleren of herhalen.",
+      "check": "Resultaat controleren",
+      "retry": "Oorspronkelijk verzoek herhalen",
+      "storage_unavailable": "Herstelgegevens kunnen hier niet worden gelezen of opgeslagen. Laat bevoegd personeel de tafel controleren.",
+      "succeeded": "Het oorspronkelijke verzoek is geslaagd. Vernieuw de tafel; dit resultaat opent geen bezoek.",
+      "refused": "Het oorspronkelijke verzoek is geweigerd. Vernieuw vóór een nieuw verzoek."
+    }
   }
 }

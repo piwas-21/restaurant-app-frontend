@@ -20,6 +20,7 @@ export function sessionTableDisplay(
 }
 
 export function tableStatusLabel(status: CashierTableStatus, t: Translate): string {
+  if (status === 'needs-reset') return t('server.floor.needs_reset');
   if (status === 'occupied') return t('cashier.tables.status_occupied');
   if (status === 'closed') return t('cashier.tables.status_closed');
   if (status === 'legacy') return t('cashier.tables.status_legacy');

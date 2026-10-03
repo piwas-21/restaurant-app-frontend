@@ -1,4 +1,5 @@
 import type { TableOccupancyDto } from './tableOccupancy';
+import type { TableReadinessProjection } from './tableReadiness';
 
 export enum ReservationStatus {
   Pending = 0,
@@ -17,7 +18,7 @@ export const ReservationStatusLabel: Record<ReservationStatus, string> = {
 };
 
 // Shape/size/rotation removed 2026-07-23; legacy wire fields remain harmless (RESERVATIONS-REVAMP §3.2).
-export interface TableDto extends TableOccupancyDto {
+export interface TableDto extends TableOccupancyDto, TableReadinessProjection {
   id: string;
   tableNumber: string;
   maxGuests: number;

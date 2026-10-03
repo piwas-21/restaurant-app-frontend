@@ -60,6 +60,18 @@
     "other_cashier": "Started by another cashier",
     "method_cash": "Cash",
     "method_card": "Card terminal",
-    "method_guest_online": "Guest online payment"
+    "method_guest_online": "Guest online payment",
+    "readiness": {
+      "title": "Table renewal",
+      "confirm_reset": "Confirm the table has been cleared and prepared for the next guests.",
+      "checking": "Checking the original reset…",
+      "unknown": "The reset result is not confirmed. Check it before starting a new request.",
+      "disabled_recovery": "New resets are disabled. You can still check or retry the original request.",
+      "check": "Check reset result",
+      "retry": "Retry original reset",
+      "storage_unavailable": "Reset recovery cannot be read or saved in this tab. Check the table with authorized staff.",
+      "succeeded": "The original reset succeeded. Refresh to see the current table; this result does not open a visit.",
+      "refused": "The original reset was refused. Refresh before reviewing a new request."
+    }
   }
 }

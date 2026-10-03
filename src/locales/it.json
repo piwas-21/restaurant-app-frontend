@@ -3946,5 +3946,7 @@
   "serverOrders": {
     "title": "Ordini"
   },
-  "languageLoadFailed": "Impossibile caricare questa lingua. La lingua attuale è stata mantenuta. Riprova."
+  "languageLoadFailed": "Impossibile caricare questa lingua. La lingua attuale è stata mantenuta. Riprova.",
+  "server.floor.needs_reset": "Da preparare",
+  "server.floor.ready_action": "Pronto per i prossimi ospiti"
 }

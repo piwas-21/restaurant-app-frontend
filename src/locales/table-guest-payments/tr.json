@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Bu teklifi iptal et",
   "table_guest_payment_status": "Ödeme durumunu kontrol et",
   "table_guest_payment_retry_original": "Orijinal isteği yeniden dene",
+  "table_guest_payment_discard_unfinished_quote": "Tamamlanmamış teklifi sil",
   "table_guest_payment_cancel": "Ödeme iptali iste",
   "table_guest_payment_pending": "Ödeme durumu doğrulanıyor. Henüz başka bir katkı başlatma.",
   "table_guest_payment_plan_pending": "Eşit pay değişikliği henüz doğrulanmadı. Yeni bir dağılım oluşturmadan veya değiştirmeden önce ilk isteği kontrol et.",

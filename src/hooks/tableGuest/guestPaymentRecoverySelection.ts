@@ -17,11 +17,15 @@ export async function chooseGuestPaymentRecovery(
     activeIdentity ? fingerprintGuestParticipant(activeIdentity.participantToken) : Promise.resolve(null),
     recoveryIdentity ? fingerprintGuestParticipant(recoveryIdentity.participantToken) : Promise.resolve(null),
   ]);
+  const receiptFingerprint = activeIdentity ? activeFingerprint : recoveryFingerprint;
   const receiptDescriptor = returnAttemptId
-    ? selectReceiptRecoveryAttempt(attempts, returnAttemptId, serviceSessionId, [
-        activeFingerprint,
-        recoveryFingerprint,
-      ])
+    ? selectReceiptRecoveryAttempt(
+        attempts,
+        returnAttemptId,
+        serviceSessionId,
+        [receiptFingerprint],
+        activeIdentity !== null || recoveryIdentity !== null,
+      )
     : null;
   const selected = selectRecoveryAttempt(
     attempts,

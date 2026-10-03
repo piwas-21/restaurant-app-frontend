@@ -8,6 +8,7 @@ export interface GuestPaymentAttemptSummary {
   readonly quotedVersion: number | null;
   readonly reservedExpectedVersion: number | null;
   readonly hasReceiptCredential: boolean;
+  readonly unfinishedQuote: boolean;
   readonly startRequested: boolean;
   readonly attemptId: string | null;
   readonly createdAt: number;

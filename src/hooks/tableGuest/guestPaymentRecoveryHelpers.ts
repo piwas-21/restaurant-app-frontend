@@ -11,6 +11,7 @@ import { withCheckoutAttempt, withQuotedOperation } from '@/services/guestAccoun
 import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
+import { isUnfinishedGuestPaymentQuote } from '@/lib/guestAccountPaymentRules';
 
 export function latestForSession(
   attempts: readonly GuestAccountPaymentAttemptDescriptor[],
@@ -100,13 +101,18 @@ export function selectReceiptRecoveryAttempt(
   returnAttemptId: string,
   serviceSessionId: string | undefined,
   allowedFingerprints: readonly (string | null)[],
+  identityAvailable: boolean,
 ): GuestAccountPaymentAttemptDescriptor | null {
+  const allowed = new Set(allowedFingerprints.filter((value): value is string => value !== null));
   const exact = attempts.find(
     (value) =>
       value.attemptId === returnAttemptId && (!serviceSessionId || value.serviceSessionId === serviceSessionId),
   );
-  if (exact) return exact;
-  const allowed = new Set(allowedFingerprints.filter((value): value is string => value !== null));
+  if (exact) {
+    if (!identityAvailable) return exact;
+    return typeof exact.participantFingerprint === 'string' && allowed.has(exact.participantFingerprint) ? exact : null;
+  }
+  if (identityAvailable && allowed.size === 0) return null;
   if (serviceSessionId && allowed.size === 0) return null;
   const candidates = attempts.filter(
     (value) =>
@@ -214,6 +220,7 @@ export function summarizeDescriptor(descriptor: GuestAccountPaymentAttemptDescri
     quotedVersion: descriptor.quotedVersion,
     reservedExpectedVersion: descriptor.reservedExpectedVersion,
     hasReceiptCredential: descriptor.receiptCredential !== null,
+    unfinishedQuote: isUnfinishedGuestPaymentQuote(descriptor),
     startRequested: descriptor.startRequestedAt !== null,
     attemptId: descriptor.attemptId,
     createdAt: descriptor.createdAt,

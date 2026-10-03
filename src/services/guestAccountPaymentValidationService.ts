@@ -59,6 +59,17 @@ export async function readQuoteResponse(
   return { operation, contribution: await createGuestPaymentContribution(operation) };
 }
 
+export async function readQuoteReplayResponse(
+  response: ApiResponse<unknown>,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  expectedCurrency: string,
+) {
+  const operation = await readOperationResponse(response, descriptor, ['Quoted']);
+  if (operation.currency.toUpperCase() !== expectedCurrency.toUpperCase())
+    throw new Error('The saved guest payment currency no longer matches this visit.');
+  return { operation, contribution: await createGuestPaymentContribution(operation) };
+}
+
 export async function readOperationResponse(
   response: ApiResponse<unknown>,
   descriptor: GuestAccountPaymentAttemptDescriptor,

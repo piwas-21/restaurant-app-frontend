@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Descartar esta oferta",
   "table_guest_payment_status": "Comprobar el estado del pago",
   "table_guest_payment_retry_original": "Reintentar la solicitud original",
+  "table_guest_payment_discard_unfinished_quote": "Descartar la oferta sin terminar",
   "table_guest_payment_cancel": "Solicitar la cancelación del pago",
   "table_guest_payment_pending": "Se está confirmando el estado del pago. No inicies otra contribución todavía.",
   "table_guest_payment_plan_pending": "El cambio del reparto aún se está confirmando. Comprueba la solicitud original antes de crear o cambiar otro reparto.",

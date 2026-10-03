@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Annuler ce devis",
   "table_guest_payment_status": "Vérifier le statut du paiement",
   "table_guest_payment_retry_original": "Réessayer la demande initiale",
+  "table_guest_payment_discard_unfinished_quote": "Abandonner le devis inachevé",
   "table_guest_payment_cancel": "Demander l'annulation du paiement",
   "table_guest_payment_pending": "Le statut du paiement est en cours de vérification. Ne lancez pas une autre participation.",
   "table_guest_payment_plan_pending": "La modification du partage est en attente de confirmation. Vérifiez la demande initiale avant de créer ou modifier un autre partage.",

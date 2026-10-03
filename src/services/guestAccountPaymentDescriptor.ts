@@ -45,6 +45,13 @@ export function withReservation(
   return { ...descriptor, reservedExpectedVersion, receiptCredential };
 }
 
+export function withReceiptCredential(
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  receiptCredential: string,
+): GuestAccountPaymentAttemptDescriptor {
+  return { ...descriptor, receiptCredential };
+}
+
 export function withCheckoutAttempt(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   attemptId: string,

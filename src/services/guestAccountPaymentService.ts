@@ -24,6 +24,7 @@ import {
   guestPaymentRequestOptions,
   participantPaymentRequestOptions,
 } from './guestAccountPaymentRequest';
+import { retryGuestAccountPaymentQuote } from './guestAccountPaymentQuoteRetryService';
 
 const RECEIPT_HEADER = 'X-Account-Payment-Receipt';
 
@@ -183,6 +184,7 @@ function readData<T>(response: { readonly success: boolean; readonly data?: T | 
 export const guestAccountPaymentService = {
   getAccount: getGuestAccountPaymentAccount,
   createQuote: createGuestAccountPaymentQuote,
+  retryQuote: retryGuestAccountPaymentQuote,
   createEqualSharePlan: createGuestEqualSharePlan,
   getEqualSharePlan: getGuestEqualSharePlan,
   getOperation: getGuestAccountPaymentOperation,

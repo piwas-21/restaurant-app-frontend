@@ -19,11 +19,13 @@ import {
   saveGuestAccountPaymentAttempt,
   withQuotedOperation,
 } from '@/services/guestAccountPaymentStorage';
+import { useGuestPaymentQuoteRecoveryAction } from './useGuestPaymentQuoteRecoveryAction';
 
 interface ContributionActionOptions {
   readonly activeIdentity: TableGuestVisitIdentity | null;
   readonly newPaymentsEnabled: boolean;
   readonly canCreatePayment: boolean;
+  readonly isRecoveryLoading: boolean;
   readonly account: GuestAccountPaymentAccount | null;
   readonly canReplaceAttempt: boolean;
   readonly descriptorRef: { current: GuestAccountPaymentAttemptDescriptor | null };
@@ -54,6 +56,7 @@ export function useGuestPaymentContributionActions(options: ContributionActionOp
     setError,
     setStorageUnavailable,
   } = options;
+  const quoteRecovery = useGuestPaymentQuoteRecoveryAction(options);
 
   const reviewContribution = useCallback(
     async (quote: GuestPaymentQuoteChoice) => {
@@ -124,7 +127,8 @@ export function useGuestPaymentContributionActions(options: ContributionActionOp
       setStorageUnavailable,
     ],
   );
-  return { reviewContribution };
+
+  return { reviewContribution, ...quoteRecovery };
 }
 
 function isEligibleQuote(

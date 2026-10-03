@@ -22,6 +22,7 @@
   "table_guest_payment_release": "إلغاء هذا العرض",
   "table_guest_payment_status": "التحقق من حالة الدفع",
   "table_guest_payment_retry_original": "إعادة المحاولة بالطلب الأصلي",
+  "table_guest_payment_discard_unfinished_quote": "تجاهل العرض غير المكتمل",
   "table_guest_payment_cancel": "طلب إلغاء الدفع",
   "table_guest_payment_pending": "جارٍ تأكيد حالة الدفع. لا تبدأ مساهمة أخرى الآن.",
   "table_guest_payment_plan_pending": "تعديل الحصص المتساوية لم يُؤكَّد بعد. تحقّق من الطلب الأصلي قبل إنشاء تقسيم آخر أو تعديله.",

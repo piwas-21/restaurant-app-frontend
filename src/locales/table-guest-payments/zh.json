@@ -22,6 +22,7 @@
   "table_guest_payment_release": "取消此报价",
   "table_guest_payment_status": "检查支付状态",
   "table_guest_payment_retry_original": "重试原始请求",
+  "table_guest_payment_discard_unfinished_quote": "放弃未完成的报价",
   "table_guest_payment_cancel": "请求取消支付",
   "table_guest_payment_pending": "正在确认支付状态。请勿开始另一笔付款。",
   "table_guest_payment_plan_pending": "均分方案变更仍在确认中。创建或修改其他方案前，请先检查原始请求。",

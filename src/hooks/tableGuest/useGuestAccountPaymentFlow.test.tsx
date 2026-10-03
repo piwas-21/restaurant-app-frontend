@@ -26,6 +26,7 @@ jest.mock('@/services/guestAccountPaymentService', () => ({
   guestAccountPaymentService: {
     getAccount: jest.fn(),
     createQuote: jest.fn(),
+    retryQuote: jest.fn(),
     createEqualSharePlan: jest.fn(),
     getEqualSharePlan: jest.fn(),
     getOperation: jest.fn(),
@@ -145,6 +146,19 @@ function equalSharePlan(shareCount = 2): GuestEqualSharePlan {
   };
 }
 
+async function saveUnfinishedQuote(operationId = OPERATION_ID) {
+  const participantFingerprint = await fingerprintGuestParticipant(identity.participantToken);
+  if (!participantFingerprint) throw new Error('test participant fingerprint is unavailable');
+  const descriptor = createGuestAccountPaymentDescriptor(
+    SESSION_ID,
+    operationId,
+    { expectedAccountRevision: 7, mode: 'Amount', paymentMethod: 'OnlinePayment', amountMinor: 1250 },
+    participantFingerprint,
+  );
+  if (!saveGuestAccountPaymentAttempt(descriptor)) throw new Error('test quote descriptor was not saved');
+  return descriptor;
+}
+
 function options(enabled = true, activeIdentity: TableGuestVisitIdentity | null = identity) {
   return {
     activeIdentity,
@@ -222,6 +236,185 @@ describe('useGuestAccountPaymentFlow', () => {
       expect.objectContaining({ operationId: OPERATION_ID, participantFingerprint: expect.any(String) }),
       expect.objectContaining({ accountRevision: 7 }),
     );
+  });
+
+  it('retries an unfinished quote with the frozen operation and reviewed request after account availability changes', async () => {
+    const descriptor = await saveUnfinishedQuote();
+    jest.mocked(guestAccountPaymentService.getOperation).mockRejectedValueOnce(new Error('operation not found'));
+    jest.mocked(guestAccountPaymentService.getAccount).mockResolvedValue({
+      ...account,
+      accountRevision: 8,
+      availableMinor: 250,
+      availableAllocations: [],
+    });
+    jest.mocked(guestAccountPaymentService.retryQuote).mockResolvedValue({
+      operation: operation('Quoted', 1),
+      contribution: { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'c'.repeat(64) },
+    });
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => {
+      expect(await result.current.retryUnfinishedQuote()).toBe(true);
+    });
+
+    expect(guestAccountPaymentService.retryQuote).toHaveBeenCalledWith(identity, descriptor, 'CHF');
+    expect(guestAccountPaymentService.createQuote).not.toHaveBeenCalled();
+    expect(readGuestAccountPaymentAttempts()).toMatchObject({
+      kind: 'ready',
+      attempts: [{ operationId: OPERATION_ID, quote: { expectedAccountRevision: 7, amountMinor: 1250 } }],
+    });
+    expect(result.current.operation?.state).toBe('Quoted');
+    expect(result.current.attempt?.unfinishedQuote).toBe(false);
+  });
+
+  it('allows explicit discard only for a marker-free unfinished quote', async () => {
+    await saveUnfinishedQuote('00000000-0000-4000-8000-000000000011');
+    jest.mocked(guestAccountPaymentService.getOperation).mockRejectedValueOnce(new Error('status unavailable'));
+    jest.mocked(guestAccountPaymentService.createQuote).mockResolvedValue({
+      operation: operation('Quoted', 1),
+      contribution: { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'd'.repeat(64) },
+    });
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      expect(await result.current.discardUnfinishedQuote()).toBe(true);
+    });
+    expect(readGuestAccountPaymentAttempts()).toEqual({ kind: 'empty', attempts: [] });
+    expect(guestAccountPaymentService.reserve).not.toHaveBeenCalled();
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+
+    await act(async () => {
+      expect(
+        await result.current.reviewContribution({
+          mode: 'Amount',
+          paymentMethod: 'OnlinePayment',
+          amountMinor: 1250,
+        }),
+      ).toBe(true);
+    });
+    expect(guestAccountPaymentService.createQuote).toHaveBeenCalledWith(
+      identity,
+      expect.objectContaining({ operationId: OPERATION_ID, expectedAccountRevision: 7 }),
+      expect.objectContaining({ operationId: OPERATION_ID }),
+      expect.objectContaining({ accountRevision: 7 }),
+    );
+  });
+
+  it.each([
+    [
+      'quoted contribution',
+      { contribution: { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'e'.repeat(64) }, quotedVersion: 1 },
+    ],
+    ['saved reservation capability', { receiptCredential: 'A'.repeat(43) }],
+  ])('keeps an unfinished quote held when it has a %s', async (_label, changes) => {
+    const descriptor = await saveUnfinishedQuote();
+    const updated = { ...descriptor, ...changes };
+    expect(saveGuestAccountPaymentAttempt(updated)).toBe(true);
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      expect(await result.current.discardUnfinishedQuote()).toBe(false);
+    });
+    const stored = readGuestAccountPaymentAttempts();
+    expect(stored.kind).toBe('ready');
+    if (stored.kind === 'ready') expect(stored.attempts[0].operationId).toBe(OPERATION_ID);
+    expect(guestAccountPaymentService.retryQuote).not.toHaveBeenCalled();
+  });
+
+  it('persists a reservation marker before reserve and resumes the same operation after a lost response and reload', async () => {
+    jest.mocked(guestAccountPaymentService.createQuote).mockResolvedValue({
+      operation: operation('Quoted', 1),
+      contribution: { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'b'.repeat(64) },
+    });
+    jest
+      .mocked(guestAccountPaymentService.getOperation)
+      .mockResolvedValueOnce(operation('Quoted', 1))
+      .mockResolvedValueOnce(operation('Reserved', 2))
+      .mockResolvedValueOnce(operation('Reserved', 2));
+    let reserveCredential: string | null = null;
+    jest.mocked(guestAccountPaymentService.reserve).mockImplementationOnce(async () => {
+      const saved = readGuestAccountPaymentAttempts();
+      expect(saved.kind).toBe('ready');
+      if (saved.kind === 'ready') {
+        reserveCredential = saved.attempts[0].receiptCredential;
+        expect(reserveCredential).toMatch(/^[A-Za-z0-9_-]{43}$/);
+        expect(saved.attempts[0].reservedExpectedVersion).toBeNull();
+      }
+      throw new Error('reserve committed but response was lost');
+    });
+    jest.mocked(guestAccountPaymentService.startCheckout).mockResolvedValue(checkout());
+    const original = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(original.result.current.account).toEqual(account));
+    await act(async () => {
+      expect(
+        await original.result.current.reviewContribution({
+          mode: 'Amount',
+          paymentMethod: 'OnlinePayment',
+          amountMinor: 1250,
+        }),
+      ).toBe(true);
+      expect(await original.result.current.startOrResumeCheckout()).toBe(false);
+    });
+    original.unmount();
+
+    const pending = readGuestAccountPaymentAttempts();
+    expect(pending.kind).toBe('ready');
+    if (pending.kind !== 'ready') throw new Error('expected durable reserve intent');
+    expect(pending.attempts[0]).toMatchObject({ receiptCredential: reserveCredential, reservedExpectedVersion: null });
+    const recovered = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(recovered.result.current.isLoading).toBe(false));
+    expect(recovered.result.current.operation?.state).toBe('Reserved');
+    await act(async () => {
+      expect(await recovered.result.current.discardUnfinishedQuote()).toBe(false);
+    });
+    await act(async () => {
+      expect(await recovered.result.current.startOrResumeCheckout()).toBe(true);
+    });
+
+    expect(guestAccountPaymentService.reserve).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.startCheckout).toHaveBeenCalledWith(
+      identity,
+      expect.objectContaining({ operationId: OPERATION_ID, receiptCredential: reserveCredential }),
+      2,
+      reserveCredential,
+    );
+  });
+
+  it('does not send reserve when the durable reservation marker cannot be saved', async () => {
+    jest.mocked(guestAccountPaymentService.createQuote).mockResolvedValue({
+      operation: operation('Quoted', 1),
+      contribution: { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'b'.repeat(64) },
+    });
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValue(operation('Quoted', 1));
+    const originalSetItem = Storage.prototype.setItem;
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {
+      if (key === PAYMENT_STORAGE_KEY) {
+        const stored = JSON.parse(value) as { attempts?: Array<{ receiptCredential?: string | null }> };
+        if (stored.attempts?.some((attempt) => attempt.receiptCredential !== null)) throw new Error('quota');
+      }
+      originalSetItem.call(this, key, value);
+    });
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.account).toEqual(account));
+    await act(async () => {
+      expect(
+        await result.current.reviewContribution({
+          mode: 'Amount',
+          paymentMethod: 'OnlinePayment',
+          amountMinor: 1250,
+        }),
+      ).toBe(true);
+      expect(await result.current.startOrResumeCheckout()).toBe(false);
+    });
+
+    expect(guestAccountPaymentService.reserve).not.toHaveBeenCalled();
+    expect(result.current.storageUnavailable).toBe(true);
+    const saved = readGuestAccountPaymentAttempts();
+    expect(saved.kind).toBe('ready');
+    if (saved.kind === 'ready') expect(saved.attempts[0].receiptCredential).toBeNull();
   });
 
   it('recovers a committed checkout after a lost response with the same operation, version and receipt credential when the flag turns off', async () => {
@@ -537,6 +730,43 @@ describe('useGuestAccountPaymentFlow', () => {
     );
     expect(guestAccountPaymentService.getOperation).not.toHaveBeenCalled();
     expect(guestAccountPaymentService.getCheckoutStatus).not.toHaveBeenCalled();
+  });
+
+  it('does not expose a same-session prior participant receipt to the active participant return hint', async () => {
+    const previousFingerprint = await fingerprintGuestParticipant(identity.participantToken);
+    if (!previousFingerprint) throw new Error('test participant fingerprint is unavailable');
+    const previous = withQuotedOperation(
+      createGuestAccountPaymentDescriptor(
+        SESSION_ID,
+        OPERATION_ID,
+        {
+          expectedAccountRevision: 7,
+          mode: 'Amount',
+          paymentMethod: 'OnlinePayment',
+          amountMinor: 1250,
+        },
+        previousFingerprint,
+      ),
+      1,
+      { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'd'.repeat(64) },
+    );
+    const owned = withCheckoutAttempt(withStartRequested(withReservation(previous, 2, 'A'.repeat(43))), ATTEMPT_ID);
+    expect(saveGuestAccountPaymentAttempt(owned)).toBe(true);
+
+    const activeIdentity = { ...identity, participantToken: 'second-participant-secret' };
+    const { result } = renderHook(() =>
+      useGuestAccountPaymentFlow({
+        ...options(false, activeIdentity),
+        recoveryIdentity: identity,
+        returnAttemptId: ATTEMPT_ID,
+      }),
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(guestAccountPaymentService.getReceipt).not.toHaveBeenCalled();
+    expect(result.current.receipts).toEqual([]);
+    expect(result.current.returnReceiptUnavailable).toBe(true);
+    expect(result.current.attempt).toBeNull();
   });
 
   it('does not query a same-visit prior participant operation or block the new participant', async () => {

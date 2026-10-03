@@ -16,6 +16,7 @@ import {
   createReceiptCredential,
   saveGuestAccountPaymentAttempt,
   withCheckoutAttempt,
+  withReceiptCredential,
   withReservation,
   withStartRequested,
 } from '@/services/guestAccountPaymentStorage';
@@ -94,27 +95,63 @@ async function startOrResume(
   if (!context.newPaymentsEnabled || !context.canCreatePayment) return { success: false, openUrl: null };
   let operation = await guestAccountPaymentService.getOperation(identity, descriptor);
   context.setOperation(operation);
+
+  let ready = descriptor;
   if (operation.state === 'Quoted') {
-    operation = await guestAccountPaymentService.reserve(identity, descriptor, {
-      expectedVersion: operation.version,
-      expectedAccountRevision: descriptor.quote.expectedAccountRevision,
-    });
+    ready = await persistReceiptCapability(ready, context);
+    operation = await reserveQuotedOperation(operation, identity, ready);
     context.setOperation(operation);
   }
   if (operation.state !== 'Reserved') return { success: false, openUrl: null };
 
-  let ready = descriptor;
-  if (!ready.receiptCredential || ready.reservedExpectedVersion === null) {
-    const receiptCredential = createReceiptCredential();
-    if (!receiptCredential) throw new Error('secure-storage');
-    ready = withReservation(ready, operation.version, receiptCredential);
-    if (!saveGuestAccountPaymentAttempt(ready)) {
-      context.setStorageUnavailable(true);
-      throw new Error('storage');
-    }
-    context.publishDescriptor(ready);
-  }
+  ready = await persistReceiptCapability(ready, context);
+  ready = await persistReservedVersion(ready, operation, context);
   return postOriginalStart(ready, identity, context);
+}
+
+async function reserveQuotedOperation(
+  operation: GuestAccountPaymentOperation,
+  identity: TableGuestVisitIdentity,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+): Promise<GuestAccountPaymentOperation> {
+  if (operation.state !== 'Quoted') return operation;
+  return guestAccountPaymentService.reserve(identity, descriptor, {
+    expectedVersion: operation.version,
+    expectedAccountRevision: descriptor.quote.expectedAccountRevision,
+  });
+}
+
+async function persistReceiptCapability(
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  context: GuestPaymentStartOptions,
+): Promise<GuestAccountPaymentAttemptDescriptor> {
+  if (descriptor.receiptCredential) return descriptor;
+  const receiptCredential = createReceiptCredential();
+  if (!receiptCredential) throw new Error('secure-storage');
+  const marked = withReceiptCredential(descriptor, receiptCredential);
+  if (!saveGuestAccountPaymentAttempt(marked)) {
+    context.setStorageUnavailable(true);
+    throw new Error('storage');
+  }
+  context.publishDescriptor(marked);
+  return marked;
+}
+
+async function persistReservedVersion(
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  operation: GuestAccountPaymentOperation,
+  context: GuestPaymentStartOptions,
+): Promise<GuestAccountPaymentAttemptDescriptor> {
+  if (descriptor.reservedExpectedVersion !== null) return descriptor;
+  const receiptCredential = descriptor.receiptCredential;
+  if (!receiptCredential) throw new Error('recovery');
+  const ready = withReservation(descriptor, operation.version, receiptCredential);
+  if (!saveGuestAccountPaymentAttempt(ready)) {
+    context.setStorageUnavailable(true);
+    throw new Error('storage');
+  }
+  context.publishDescriptor(ready);
+  return ready;
 }
 
 async function postOriginalStart(

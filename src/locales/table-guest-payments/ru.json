@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Отменить это предложение",
   "table_guest_payment_status": "Проверить статус оплаты",
   "table_guest_payment_retry_original": "Повторить исходный запрос",
+  "table_guest_payment_discard_unfinished_quote": "Отказаться от незавершённого предложения",
   "table_guest_payment_cancel": "Запросить отмену оплаты",
   "table_guest_payment_pending": "Статус оплаты подтверждается. Пока не начинайте другой вклад.",
   "table_guest_payment_plan_pending": "Изменение долей ещё подтверждается. Проверьте исходный запрос, прежде чем создавать или менять другое разделение.",

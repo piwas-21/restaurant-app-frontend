@@ -1,5 +1,5 @@
 import type { AccountPaymentState } from '@/types/accountPayments';
-import type { GuestAccountPaymentAccount } from '@/types/guestAccountPayments';
+import type { GuestAccountPaymentAccount, GuestAccountPaymentAttemptDescriptor } from '@/types/guestAccountPayments';
 import { PAYMENT_CHECKOUT_ALLOWED_HOSTS } from '@/lib/config';
 
 const HELD_STATES = new Set<AccountPaymentState>([
@@ -20,6 +20,20 @@ export function canSafelyReleaseGuestPayment(state: AccountPaymentState, startRe
 
 export function isTerminalGuestPayment(state: AccountPaymentState): boolean {
   return state === 'Captured' || state === 'Released' || state === 'Failed';
+}
+
+export function isUnfinishedGuestPaymentQuote(
+  descriptor: GuestAccountPaymentAttemptDescriptor | null | undefined,
+): descriptor is GuestAccountPaymentAttemptDescriptor {
+  return Boolean(
+    descriptor &&
+    descriptor.contribution === null &&
+    descriptor.quotedVersion === null &&
+    descriptor.reservedExpectedVersion === null &&
+    descriptor.receiptCredential === null &&
+    descriptor.startRequestedAt === null &&
+    descriptor.attemptId === null,
+  );
 }
 
 export function canCreateGuestEqualSharePlan(account: GuestAccountPaymentAccount, shareCount: number): boolean {

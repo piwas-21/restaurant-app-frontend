@@ -16,6 +16,7 @@ const attempt: GuestPaymentAttemptSummary = {
   quotedVersion: 1,
   reservedExpectedVersion: 2,
   hasReceiptCredential: true,
+  unfinishedQuote: false,
   startRequested: true,
   attemptId: null,
   createdAt: 1,
@@ -43,6 +44,8 @@ function flowResult(overrides: Partial<ReturnType<typeof useGuestAccountPaymentF
     resolveOriginalPlan: jest.fn(),
     refreshAccount: jest.fn(),
     reviewContribution: jest.fn(),
+    retryUnfinishedQuote: jest.fn(),
+    discardUnfinishedQuote: jest.fn(),
     createEqualSharePlan: jest.fn(),
     refreshPaymentStatus: jest.fn().mockResolvedValue(true),
     releaseBeforeStart: jest.fn(),
@@ -85,6 +88,45 @@ describe('GuestAccountPaymentPanel', () => {
     renderPanel(false);
 
     expect(screen.getByText('table_guest_payment_return_missing')).toHaveAttribute('role', 'status');
+  });
+
+  it('offers retry and explicit discard only for a marker-free unfinished quote', () => {
+    const retryUnfinishedQuote = jest.fn().mockResolvedValue(true);
+    const discardUnfinishedQuote = jest.fn().mockResolvedValue(true);
+    const unfinishedAttempt = {
+      ...attempt,
+      quotedVersion: null,
+      reservedExpectedVersion: null,
+      hasReceiptCredential: false,
+      unfinishedQuote: true,
+      startRequested: false,
+      attemptId: null,
+    };
+    jest
+      .mocked(useGuestAccountPaymentFlow)
+      .mockReturnValue(flowResult({ attempt: unfinishedAttempt, retryUnfinishedQuote, discardUnfinishedQuote }));
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={{
+          serviceSessionId: attempt.serviceSessionId,
+          participantToken: 'participant-secret',
+          expiresAt: '2030-01-01T00:00:00Z',
+        }}
+        recoveryIdentity={null}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={null}
+        returnHintPresent={false}
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'table_guest_payment_retry_original' }));
+    fireEvent.click(screen.getByRole('button', { name: 'table_guest_payment_discard_unfinished_quote' }));
+
+    expect(retryUnfinishedQuote).toHaveBeenCalledTimes(1);
+    expect(discardUnfinishedQuote).toHaveBeenCalledTimes(1);
   });
 
   it('renders a localized load fallback for a server failure', () => {

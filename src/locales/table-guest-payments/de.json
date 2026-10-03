@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Dieses Angebot verwerfen",
   "table_guest_payment_status": "Zahlungsstatus prüfen",
   "table_guest_payment_retry_original": "Ursprüngliche Anfrage erneut versuchen",
+  "table_guest_payment_discard_unfinished_quote": "Unfertiges Angebot verwerfen",
   "table_guest_payment_cancel": "Zahlungsstornierung anfordern",
   "table_guest_payment_pending": "Der Zahlungsstatus wird bestätigt. Starte noch keinen weiteren Beitrag.",
   "table_guest_payment_plan_pending": "Eine Änderung der Anteile wird noch bestätigt. Prüfe die ursprüngliche Anfrage, bevor du eine weitere Aufteilung erstellst oder änderst.",

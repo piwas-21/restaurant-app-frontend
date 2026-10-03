@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Deze offerte annuleren",
   "table_guest_payment_status": "Betaalstatus controleren",
   "table_guest_payment_retry_original": "De oorspronkelijke aanvraag opnieuw proberen",
+  "table_guest_payment_discard_unfinished_quote": "Onvoltooide offerte verwerpen",
   "table_guest_payment_cancel": "Annulering van betaling aanvragen",
   "table_guest_payment_pending": "De betaalstatus wordt bevestigd. Start nog geen nieuwe bijdrage.",
   "table_guest_payment_plan_pending": "De wijziging van de gelijke delen wordt nog bevestigd. Controleer de oorspronkelijke aanvraag voordat je een andere verdeling maakt of wijzigt.",

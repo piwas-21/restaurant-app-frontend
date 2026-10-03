@@ -22,6 +22,7 @@
   "table_guest_payment_release": "Annulla questo preventivo",
   "table_guest_payment_status": "Controlla lo stato del pagamento",
   "table_guest_payment_retry_original": "Riprova la richiesta originale",
+  "table_guest_payment_discard_unfinished_quote": "Scartare il preventivo incompleto",
   "table_guest_payment_cancel": "Richiedi l'annullamento del pagamento",
   "table_guest_payment_pending": "Lo stato del pagamento è in fase di conferma. Non avviare un altro contributo.",
   "table_guest_payment_plan_pending": "La modifica delle quote è ancora in fase di conferma. Controlla la richiesta originale prima di creare o modificare un'altra ripartizione.",

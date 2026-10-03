@@ -26,6 +26,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
   const receipt = attemptId ? (flow.receipts.find((entry) => entry.attemptId === attemptId)?.receipt ?? null) : null;
   const operation = flow.operation;
   const currentState = flow.checkout?.state ?? operation?.state ?? null;
+  const unfinishedQuote = flow.attempt?.unfinishedQuote === true;
   const preStart =
     flow.attempt?.startRequested === false && (operation?.state === 'Quoted' || operation?.state === 'Reserved');
   const retryOriginal =
@@ -114,18 +115,44 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           onRelease={flow.releaseBeforeStart}
         />
       )}
-      {flow.attempt && !operation && !flow.attempt.startRequested && props.activeIdentity !== null && (
+      {unfinishedQuote && (
         <div className={styles.actions}>
+          {props.activeIdentity && props.newPaymentsEnabled && props.canCreatePayment && (
+            <button
+              type="button"
+              className={styles.button}
+              disabled={flow.isWorking || flow.isLoading || flow.storageUnavailable}
+              onClick={() => void flow.retryUnfinishedQuote()}
+            >
+              {t('table_guest_payment_retry_original')}
+            </button>
+          )}
           <button
             type="button"
             className={styles.button}
-            disabled={flow.isWorking}
-            onClick={() => void flow.refreshPaymentStatus()}
+            disabled={flow.isWorking || flow.isLoading || flow.storageUnavailable}
+            onClick={() => void flow.discardUnfinishedQuote()}
           >
-            {t('table_guest_payment_status')}
+            {t('table_guest_payment_discard_unfinished_quote')}
           </button>
         </div>
       )}
+      {flow.attempt &&
+        !operation &&
+        !flow.attempt.startRequested &&
+        !unfinishedQuote &&
+        props.activeIdentity !== null && (
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.button}
+              disabled={flow.isWorking}
+              onClick={() => void flow.refreshPaymentStatus()}
+            >
+              {t('table_guest_payment_status')}
+            </button>
+          </div>
+        )}
       {flow.attempt?.startRequested && !currentState && retryOriginal && (
         <div className={styles.actions}>
           <button

@@ -141,6 +141,11 @@
   color: var(--feedback-warning-text);
 }
 
+.items .identityFallback {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
 .warning,
 .success {
   margin: 0.75rem 0 0;

@@ -3485,7 +3485,9 @@
       "Confirmed": "Bevestigd",
       "Preparing": "In bereiding",
       "Ready": "Gereed"
-    }
+    },
+    "collection_settlement_title": "Betaling via het bezorgplatform",
+    "collection_settlement_body": "De betaling voor deze bestelling verloopt via {{provider}}. Incasseer hier geen betaling. Controleer de afrekeningen van het platform voor de uitbetalingsstatus."
   },
   "deliveryChannels": {
     "title": "Uber Eats-management",
@@ -3658,7 +3660,12 @@
       "confirmSummary_other": "Dit vervangt het volledige Uber Eats-menu van {{store}} door {{count}} gecontroleerde artikelen.",
       "publicationRevision": "Publicatierevisie",
       "operationId": "ID van publicatiebewerking",
-      "providerItemId": "Uber-artikel-ID"
+      "providerItemId": "Uber-artikel-ID",
+      "reviewedTaxTitle": "Gecontroleerd belastingtarief",
+      "reviewedTaxRate": "Btw: {{rate}}%",
+      "reviewedTaxBody": "Dit tarief geldt voor elk geselecteerd artikel. Controleer of het juist is voordat je publiceert.",
+      "confirmTaxProfile": "Ik heb het belastingtarief voor alle geselecteerde artikelen gecontroleerd.",
+      "merchantTaxVerificationNote": "Controleer de belastinginstellingen van elk restaurant voordat je het activeert."
     },
     "availability": {
       "title": "Beschikbaarheid van winkels",
@@ -3826,7 +3833,10 @@
       "DeliveryUncertain": "Levering of aanvaarding van de bestelling is onzeker. Controleer de Uber Eats-tablet en bestaande Sofra-bestelling; accepteer of maak geen duplicaat.",
       "PayloadExpired": "De bestelmelding is verlopen. Controleer de bestaande Sofra-bestelling en Uber Eats-status; maak niet automatisch een vervanging aan.",
       "ConnectionOperationBusy": "Een andere Uber Eats-verbinding wordt afgerond. Deze autorisatie kan niet meer worden gebruikt. Ga terug naar het beheer en start een nieuwe autorisatie zodra de huidige controle klaar is.",
-      "AuthorizationSuperseded": "Een nieuwere autorisatielink heeft deze vervangen. Ga terug naar het Uber Eats-beheer en controleer de nieuwste verbinding."
+      "AuthorizationSuperseded": "Een nieuwere autorisatielink heeft deze vervangen. Ga terug naar het Uber Eats-beheer en controleer de nieuwste verbinding.",
+      "MissingCategory": "Stel een hoofdcategorie voor dit product in voordat je het publiceert.",
+      "UnavailableCategory": "Deze menucategorie is niet actief. Activeer de categorie of verwijder deze items uit de selectie.",
+      "ReviewedTaxProfileUnavailable": "De gecontroleerde belastinginstellingen ontbreken of zijn inconsistent. Vraag Sofra deze te controleren voordat u dit menu publiceert."
     },
     "errors": {
       "load": "Kan de laatste informatie niet laden.",
@@ -3859,6 +3869,36 @@
       "viewHealth": "Verbindingsstatus controleren",
       "viewPublication": "Publicatie controleren",
       "manageAvailability": "Beschikbaarheid beheren"
+    },
+    "menuSelection": {
+      "title": "Kies wat op Uber Eats verschijnt",
+      "description": "Selecteer hele categorieën of pas afzonderlijke artikelen aan. Opslaan legt dit menu vast voor controle.",
+      "searchLabel": "Menuartikelen zoeken",
+      "categoryFilterLabel": "Filteren op categorie",
+      "allCategories": "Alle categorieën",
+      "category": "Categorie",
+      "item": "Artikel",
+      "categorySelection": {
+        "all": "Alle artikelen geselecteerd",
+        "partial": "Enkele artikelen geselecteerd",
+        "empty": "Geen artikelen geselecteerd"
+      },
+      "noCategories": "Geen menucategorieën gevonden",
+      "noItems": "Geen artikelen gevonden voor deze zoekopdracht",
+      "loadMore": "Meer artikelen laden",
+      "save": "Menuselectie opslaan",
+      "refresh": "Menu vernieuwen",
+      "sourceChanged": "Het restaurantmenu is gewijzigd sinds deze selectie is opgeslagen. Vernieuw het voordat je opslaat of controleert.",
+      "selectionLimit": "Deze selectie bevat {{selected}} artikelen; de huidige limiet is {{maximum}}. Verwijder artikelen of kies minder categorieën.",
+      "hoursDetails": "Menubeschikbaarheid en openingstijden",
+      "selectedCount_one": "{{count}} artikel geselecteerd",
+      "selectedCount_other": "{{count}} artikelen geselecteerd",
+      "unsupportedCount_one": "{{count}} geselecteerd artikel vraagt aandacht",
+      "unsupportedCount_other": "{{count}} geselecteerde artikelen vragen aandacht",
+      "removedSelections": "Sommige opgeslagen categorie- of itemkeuzes komen niet meer overeen met het huidige restaurantmenu en zijn uit dit concept verwijderd. Controleer de bijgewerkte selectie voordat u opslaat.",
+      "categoryBasisNotice": "Elk artikel staat onder zijn hoofdcategorie. Je kunt elk artikel ook afzonderlijk selecteren.",
+      "categoryLimit": "Je kunt maximaal {{maximum}} menucategorieën selecteren. Verwijder een categorie voordat je een andere toevoegt.",
+      "overrideLimit": "Er zijn te veel uitzonderingen voor afzonderlijke artikelen. Wijzig de geselecteerde categorieën of verwijder enkele uitzonderingen."
     }
   },
   "cashier.tables.account": "Tafelrekening",

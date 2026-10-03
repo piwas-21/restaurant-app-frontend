@@ -1,8 +1,10 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeliveryChannelManagementWorkspace from './DeliveryChannelManagementWorkspace';
 import { useDeliveryChannelCatalogue } from '@/hooks/admin/useDeliveryChannelCatalogue';
+import { useDeliveryChannelCategorySelection } from '@/hooks/admin/useDeliveryChannelCategorySelection';
 import { useDeliveryChannelOperations } from '@/hooks/admin/useDeliveryChannelOperations';
 import { useDeliveryChannelOverview } from '@/hooks/admin/useDeliveryChannelOverview';
 import { useDeliveryChannelPublication } from '@/hooks/admin/useDeliveryChannelPublication';
@@ -15,13 +17,39 @@ export default function DeliveryChannelManagement() {
   const locale = i18n.resolvedLanguage || i18n.language || 'en';
   const overview = useDeliveryChannelOverview();
   const catalogue = useDeliveryChannelCatalogue(Boolean(overview.summary?.enabled));
+  const categorySelection = useDeliveryChannelCategorySelection(
+    catalogue.catalogue?.selectionMode === 'categoryItemsV1',
+  );
+  const categoryMode = catalogue.catalogue?.selectionMode === 'categoryItemsV1';
+  const refreshCatalogueData = catalogue.refresh;
+  const refreshCategoryInventory = categorySelection.refresh;
+  const publicationCatalogue = useMemo(() => {
+    if (!categoryMode || !catalogue.catalogue) return catalogue.catalogue;
+    const categoryDraft = categorySelection.inventory?.draft ?? catalogue.catalogue.draft ?? null;
+    return {
+      ...catalogue.catalogue,
+      draft: categoryDraft,
+      draftRevision: categoryDraft?.draftRevision ?? '',
+      sourceRevision:
+        categorySelection.inventory?.sourceRevision ??
+        categoryDraft?.sourceRevision ??
+        catalogue.catalogue.sourceRevision,
+    };
+  }, [catalogue.catalogue, categoryMode, categorySelection.inventory]);
+  const refreshCatalogue = useCallback(async () => {
+    const results = await Promise.all([
+      refreshCatalogueData(),
+      categoryMode ? refreshCategoryInventory() : Promise.resolve(true),
+    ]);
+    return results.every(Boolean);
+  }, [categoryMode, refreshCatalogueData, refreshCategoryInventory]);
   const publication = useDeliveryChannelPublication({
-    catalogue: catalogue.catalogue,
-    selectionVersion: catalogue.selectionVersion,
-    dirty: catalogue.dirty,
-    stale: catalogue.stale,
-    draftWriteUncertain: catalogue.writeUncertain,
-    refreshCatalogue: catalogue.refresh,
+    catalogue: publicationCatalogue,
+    selectionVersion: catalogue.selectionVersion + categorySelection.selectionVersion,
+    dirty: categoryMode ? categorySelection.needsSave : catalogue.dirty,
+    stale: categoryMode ? categorySelection.stale : catalogue.stale,
+    draftWriteUncertain: categoryMode ? categorySelection.writeUncertain : catalogue.writeUncertain,
+    refreshCatalogue,
   });
   const operations = useDeliveryChannelOperations(overview.refresh);
   const summary = overview.summary;
@@ -39,7 +67,7 @@ export default function DeliveryChannelManagement() {
     } else {
       await overview.refresh();
     }
-    await catalogue.refresh();
+    await refreshCatalogue();
   };
 
   const preparePreview = async () => {
@@ -122,6 +150,7 @@ export default function DeliveryChannelManagement() {
       connected={connected}
       overview={overview}
       catalogue={catalogue}
+      categorySelection={categorySelection}
       publication={publication}
       operations={operations}
       activeSection={activeSection}

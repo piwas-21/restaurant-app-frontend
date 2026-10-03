@@ -26,6 +26,7 @@ interface Props {
   readonly onResume: () => Promise<void>;
   readonly onReadStatus: () => Promise<boolean>;
   readonly onConnect: () => void;
+  readonly itemLabels?: ReadonlyMap<string, string>;
 }
 
 type PauseDuration = '15' | '30' | '60' | '240' | 'indefinite';
@@ -52,6 +53,7 @@ export default function DeliveryChannelAvailabilityControls({
   onResume,
   onReadStatus,
   onConnect,
+  itemLabels,
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const [duration, setDuration] = useState<PauseDuration>('30');
@@ -164,7 +166,12 @@ export default function DeliveryChannelAvailabilityControls({
           <output>{t(`deliveryChannels.operations.${feedback.outcome}`)}</output>
         </p>
       )}
-      <DeliveryChannelAvailabilityItems items={availability?.items ?? []} locale={locale} stale={stale} />
+      <DeliveryChannelAvailabilityItems
+        items={availability?.items ?? []}
+        itemLabels={itemLabels}
+        locale={locale}
+        stale={stale}
+      />
       <DeliveryChannelAvailabilityConfirmationModal
         action={confirmAction}
         busy={busy}

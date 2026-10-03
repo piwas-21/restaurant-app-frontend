@@ -94,6 +94,32 @@ describe('orphan gate — the baseline behaviours', () => {
     expect(output).toContain('orphan: cashier.zreport.dead_one');
     expect(output).not.toContain('orphan: cashier.zreport.total_tips');
   });
+
+  it('allows the menu selection count families but rejects adjacent unused copy', () => {
+    const { status, output } = runGate(
+      {
+        deliveryChannels: {
+          menuSelection: {
+            selectedCount_one: 'One selected',
+            selectedCount_other: 'Several selected',
+            unsupportedCount_one: 'One unsupported',
+            unsupportedCount_other: 'Several unsupported',
+            unusedCount_one: 'Never used',
+          },
+        },
+      },
+      {
+        'src/components/Selection.tsx':
+          "t('deliveryChannels.menuSelection.selectedCount', { count });\n" +
+          "t('deliveryChannels.menuSelection.unsupportedCount', { count });\n",
+      },
+    );
+
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: deliveryChannels.menuSelection.unusedCount_one');
+    expect(output).not.toContain('orphan: deliveryChannels.menuSelection.selectedCount_');
+    expect(output).not.toContain('orphan: deliveryChannels.menuSelection.unsupportedCount_');
+  });
 });
 
 describe('orphan gate — the fail-open modes, each measured on the real tree', () => {

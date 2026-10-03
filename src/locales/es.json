@@ -3494,7 +3494,9 @@
       "Confirmed": "Confirmado",
       "Preparing": "En preparación",
       "Ready": "Listo"
-    }
+    },
+    "collection_settlement_title": "Pago a través de la plataforma",
+    "collection_settlement_body": "El pago de este pedido se gestiona a través de {{provider}}. No cobre ningún pago aquí. Consulte las liquidaciones de la plataforma para conocer el estado del abono."
   },
   "deliveryChannels": {
     "title": "Gestión de Uber Eats",
@@ -3668,7 +3670,12 @@
       "confirmSummary_other": "Esto sustituye todo el menú de Uber Eats de {{store}} por {{count}} artículos revisados.",
       "publicationRevision": "Revisión de publicación",
       "operationId": "ID de operación de publicación",
-      "providerItemId": "ID del artículo Uber"
+      "providerItemId": "ID del artículo Uber",
+      "reviewedTaxTitle": "Tipo de impuesto revisado",
+      "reviewedTaxRate": "IVA: {{rate}} %",
+      "reviewedTaxBody": "Este tipo se aplica a todos los artículos seleccionados. Comprueba que sea correcto antes de publicar.",
+      "confirmTaxProfile": "He revisado el tipo de impuesto de todos los artículos seleccionados.",
+      "merchantTaxVerificationNote": "Verifica la configuración fiscal de cada restaurante real antes de activarlo."
     },
     "availability": {
       "title": "Disponibilidad de tienda",
@@ -3836,7 +3843,10 @@
       "DeliveryUncertain": "La entrega o aceptación del pedido es incierta. Consultar la tableta Uber Eats y el pedido existente de Sofra; no acepte ni cree un duplicado.",
       "PayloadExpired": "La notificación del pedido expiró. Verifique el pedido existente de Sofra y el estado de Uber Eats; no cree un reemplazo automáticamente.",
       "ConnectionOperationBusy": "Se está completando otra conexión de Uber Eats. Esta autorización ya no se puede usar. Vuelva a la gestión e inicie una autorización nueva cuando termine la comprobación actual.",
-      "AuthorizationSuperseded": "Un enlace de autorización más reciente ha sustituido a este. Vuelve a la gestión de Uber Eats y comprueba la conexión más reciente."
+      "AuthorizationSuperseded": "Un enlace de autorización más reciente ha sustituido a este. Vuelve a la gestión de Uber Eats y comprueba la conexión más reciente.",
+      "MissingCategory": "Establece una categoría principal para este producto antes de publicarlo.",
+      "UnavailableCategory": "Esta categoría del menú está inactiva. Actívela o quite estos artículos de la selección.",
+      "ReviewedTaxProfileUnavailable": "La configuración fiscal revisada falta o es incoherente. Pida a Sofra que la verifique antes de publicar este menú."
     },
     "errors": {
       "load": "No se pudo cargar la información más reciente.",
@@ -3869,6 +3879,38 @@
       "viewHealth": "Comprobar la conexión",
       "viewPublication": "Revisar publicación",
       "manageAvailability": "Gestionar disponibilidad"
+    },
+    "menuSelection": {
+      "title": "Elige qué se ofrece en Uber Eats",
+      "description": "Selecciona categorías completas o ajusta artículos individuales. Al guardar, este menú queda fijado para su revisión.",
+      "searchLabel": "Buscar artículos del menú",
+      "categoryFilterLabel": "Filtrar por categoría",
+      "allCategories": "Todas las categorías",
+      "category": "Categoría",
+      "item": "Artículo",
+      "categorySelection": {
+        "all": "Todos los artículos seleccionados",
+        "partial": "Algunos artículos seleccionados",
+        "empty": "Ningún artículo seleccionado"
+      },
+      "noCategories": "No se encontraron categorías del menú",
+      "noItems": "Ningún artículo coincide con esta búsqueda",
+      "loadMore": "Cargar más artículos",
+      "save": "Guardar selección del menú",
+      "refresh": "Actualizar menú",
+      "sourceChanged": "El menú del restaurante ha cambiado desde que se guardó esta selección. Actualízalo antes de guardar o revisar.",
+      "selectionLimit": "Esta selección contiene {{selected}} artículos; el límite actual es {{maximum}}. Elimina artículos o elige menos categorías.",
+      "hoursDetails": "Disponibilidad del menú y horarios",
+      "selectedCount_one": "{{count}} artículo seleccionado",
+      "selectedCount_many": "{{count}} artículos seleccionados",
+      "selectedCount_other": "{{count}} artículos seleccionados",
+      "unsupportedCount_one": "{{count}} artículo seleccionado necesita revisión",
+      "unsupportedCount_many": "{{count}} artículos seleccionados necesitan revisión",
+      "unsupportedCount_other": "{{count}} artículos seleccionados necesitan revisión",
+      "removedSelections": "Algunas categorías o artículos guardados ya no coinciden con el menú actual del restaurante y se han quitado de este borrador. Revise la selección actualizada antes de guardarla.",
+      "categoryBasisNotice": "Cada artículo aparece en su categoría principal. También puedes seleccionar cualquier artículo por separado.",
+      "categoryLimit": "Puedes incluir como máximo {{maximum}} categorías. Quita una categoría antes de añadir otra.",
+      "overrideLimit": "Hay demasiadas excepciones por artículo. Cambia las categorías seleccionadas o elimina algunas excepciones."
     }
   },
   "cashier.tables.account": "Cuenta de mesa",

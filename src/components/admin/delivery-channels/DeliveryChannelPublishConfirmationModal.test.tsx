@@ -8,6 +8,7 @@ jest.mock('react-i18next', () => ({
       key === 'deliveryChannels.publication.confirmSummary'
         ? `Replace Uber menu at ${options?.store} with ${options?.count} reviewed items`
         : key,
+    i18n: { resolvedLanguage: 'en', language: 'en' },
   }),
 }));
 
@@ -95,4 +96,58 @@ it('does not allow the confirmation action while publishing is in flight', () =>
 
   expect(screen.getByRole('button', { name: 'deliveryChannels.loading' })).toBeDisabled();
   expect(onPublish).not.toHaveBeenCalled();
+});
+
+it('requires and resets the reviewed tax acknowledgement when the profile revision changes', async () => {
+  const taxPreview: DeliveryChannelPreview = {
+    ...preview,
+    selectionMode: 'categoryItemsV1',
+    taxProfileRevision: 'tax-profile-one',
+    taxProfile: {
+      source: 'reviewedSandboxTemplate',
+      profileRevision: 'tax-profile-one',
+      vatRatePercentage: 21,
+      merchantVerificationRequired: true,
+    },
+  };
+  const onPublish = jest.fn().mockResolvedValue(null);
+  const props = {
+    isOpen: true,
+    canPublish: true,
+    busy: null,
+    storeName: 'Sofra Genève',
+    storeId: 'store-1',
+    onClose: jest.fn(),
+    onPublish,
+  };
+  const { rerender } = render(<DeliveryChannelPublishConfirmationModal {...props} preview={taxPreview} />);
+  const taxAcknowledgement = screen.getByRole('checkbox', { name: 'deliveryChannels.publication.confirmTaxProfile' });
+  const replacementAcknowledgement = screen.getByRole('checkbox', {
+    name: 'deliveryChannels.publication.confirmFullReplacement',
+  });
+
+  fireEvent.click(taxAcknowledgement);
+  fireEvent.click(replacementAcknowledgement);
+  expect(screen.getByRole('button', { name: 'deliveryChannels.publication.confirmPublish' })).toBeEnabled();
+
+  rerender(
+    <DeliveryChannelPublishConfirmationModal
+      {...props}
+      preview={{
+        ...taxPreview,
+        publicationRevision: 'publication-two',
+        taxProfileRevision: 'tax-profile-two',
+        taxProfile: { ...taxPreview.taxProfile!, profileRevision: 'tax-profile-two' },
+      }}
+    />,
+  );
+
+  await waitFor(() => expect(taxAcknowledgement).not.toBeChecked());
+  expect(replacementAcknowledgement).not.toBeChecked();
+  expect(screen.getByRole('button', { name: 'deliveryChannels.publication.confirmPublish' })).toBeDisabled();
+
+  fireEvent.click(screen.getByRole('checkbox', { name: 'deliveryChannels.publication.confirmTaxProfile' }));
+  fireEvent.click(screen.getByRole('checkbox', { name: 'deliveryChannels.publication.confirmFullReplacement' }));
+  fireEvent.click(screen.getByRole('button', { name: 'deliveryChannels.publication.confirmPublish' }));
+  await waitFor(() => expect(onPublish).toHaveBeenCalledWith(true));
 });

@@ -21,6 +21,7 @@ interface Props {
   readonly onResume: () => Promise<void>;
   readonly onReadStatus: () => Promise<boolean>;
   readonly onConnect: () => void;
+  readonly itemLabels?: ReadonlyMap<string, string>;
 }
 
 function statusKey(connected: boolean, paused: boolean): string {
@@ -47,6 +48,7 @@ export default function DeliveryChannelAvailabilityPanel({
   onResume,
   onReadStatus,
   onConnect,
+  itemLabels,
 }: Readonly<Props>) {
   const { t } = useTranslation();
   const paused = availability?.paused ?? summary.paused;
@@ -77,6 +79,7 @@ export default function DeliveryChannelAvailabilityPanel({
         onResume={onResume}
         onReadStatus={onReadStatus}
         onConnect={onConnect}
+        itemLabels={itemLabels}
       />
     </section>
   );

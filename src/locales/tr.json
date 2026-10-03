@@ -3485,7 +3485,9 @@
       "Confirmed": "Onaylandı",
       "Preparing": "Hazırlanıyor",
       "Ready": "Hazır"
-    }
+    },
+    "collection_settlement_title": "Platform üzerinden ödeme",
+    "collection_settlement_body": "Bu siparişin ödemesi {{provider}} üzerinden işlenir. Burada ödeme tahsil etmeyin. Ödemenin hesabınıza aktarılma durumunu platformun mutabakat kayıtlarından kontrol edin."
   },
   "deliveryChannels": {
     "title": "Uber Eats yönetimi",
@@ -3658,7 +3660,12 @@
       "confirmSummary_other": "Bu işlem {{store}} restoranının tüm Uber Eats menüsünü incelenen {{count}} öğeyle değiştirir.",
       "publicationRevision": "Yayım sürümü",
       "operationId": "Yayım işlem kimliği",
-      "providerItemId": "Uber ürün kimliği"
+      "providerItemId": "Uber ürün kimliği",
+      "reviewedTaxTitle": "İncelenen vergi oranı",
+      "reviewedTaxRate": "KDV: %{{rate}}",
+      "reviewedTaxBody": "Bu oran seçilen tüm ürünlere uygulanır. Yayınlamadan önce doğru olduğunu kontrol edin.",
+      "confirmTaxProfile": "Seçilen tüm ürünlerin vergi oranını inceledim.",
+      "merchantTaxVerificationNote": "Etkinleştirmeden önce her gerçek restoranın vergi yapılandırmasını doğrulayın."
     },
     "availability": {
       "title": "Mağaza kullanılabilirliği",
@@ -3826,7 +3833,10 @@
       "DeliveryUncertain": "Siparişin teslimatı veya kabulü belirsizdir. Uber Eats tabletini ve mevcut Sofra siparişini kontrol edin; kabul etmeyin veya kopya oluşturmayın.",
       "PayloadExpired": "Sipariş bildiriminin süresi doldu. Mevcut Sofra siparişini ve Uber Eats durumunu kontrol edin; Otomatik olarak bir yedek oluşturmayın.",
       "ConnectionOperationBusy": "Başka bir Uber Eats bağlantısı tamamlanıyor. Bu yetkilendirme artık kullanılamaz. Yönetim sayfasına dönün ve mevcut kontrol tamamlandıktan sonra yeni bir yetkilendirme başlatın.",
-      "AuthorizationSuperseded": "Bu bağlantının yerini daha yeni bir yetkilendirme bağlantısı aldı. Uber Eats yönetimine dönüp en son bağlantıyı kontrol edin."
+      "AuthorizationSuperseded": "Bu bağlantının yerini daha yeni bir yetkilendirme bağlantısı aldı. Uber Eats yönetimine dönüp en son bağlantıyı kontrol edin.",
+      "MissingCategory": "Bu ürünü yayınlamadan önce menüde bir ana kategori belirleyin.",
+      "UnavailableCategory": "Bu menü kategorisi etkin değil. Kategoriyi etkinleştirin veya bu ürünleri seçimden çıkarın.",
+      "ReviewedTaxProfileUnavailable": "İncelenen vergi ayarları eksik veya tutarsız. Bu menüyü yayınlamadan önce Sofra’dan ayarları doğrulamasını isteyin."
     },
     "errors": {
       "load": "En son bilgiler yüklenemedi.",
@@ -3859,6 +3869,36 @@
       "viewHealth": "Bağlantı durumunu kontrol et",
       "viewPublication": "Yayını incele",
       "manageAvailability": "Müsaitliği yönet"
+    },
+    "menuSelection": {
+      "title": "Uber Eats’te sunulacak ürünleri seçin",
+      "description": "Kategorilerin tamamını seçin veya ürünleri tek tek düzenleyin. Kaydetmek bu menüyü inceleme için sabitler.",
+      "searchLabel": "Menü ürünlerini ara",
+      "categoryFilterLabel": "Kategoriye göre filtrele",
+      "allCategories": "Tüm kategoriler",
+      "category": "Kategori",
+      "item": "Ürün",
+      "categorySelection": {
+        "all": "Tüm ürünler seçildi",
+        "partial": "Bazı ürünler seçildi",
+        "empty": "Hiçbir ürün seçilmedi"
+      },
+      "noCategories": "Menü kategorisi bulunamadı",
+      "noItems": "Bu aramayla eşleşen ürün yok",
+      "loadMore": "Daha fazla ürün yükle",
+      "save": "Menü seçimini kaydet",
+      "refresh": "Menüyü yenile",
+      "sourceChanged": "Bu seçim kaydedildikten sonra restoran menüsü değişti. Kaydetmeden veya incelemeden önce yenileyin.",
+      "selectionLimit": "Bu seçimde {{selected}} ürün var; mevcut sınır {{maximum}}. Ürünleri kaldırın veya daha az kategori seçin.",
+      "hoursDetails": "Menü kullanılabilirliği ve saatler",
+      "selectedCount_one": "{{count}} ürün seçildi",
+      "selectedCount_other": "{{count}} ürün seçildi",
+      "unsupportedCount_one": "Seçilen {{count}} ürünün incelenmesi gerekiyor",
+      "unsupportedCount_other": "Seçilen {{count}} ürünün incelenmesi gerekiyor",
+      "removedSelections": "Kaydedilen bazı kategori veya ürün seçimleri artık güncel restoran menüsüyle eşleşmiyor ve bu taslaktan çıkarıldı. Kaydetmeden önce güncellenen seçimi inceleyin.",
+      "categoryBasisNotice": "Her ürün menüdeki ana kategorisi altında görünür. İstediğiniz ürünü ayrı ayrı da seçebilirsiniz.",
+      "categoryLimit": "Bu seçimde en fazla {{maximum}} menü kategorisi yer alabilir. Başka bir kategori eklemeden önce bir kategoriyi kaldırın.",
+      "overrideLimit": "Ürün bazında çok fazla istisna var. Kategori seçimlerini değiştirin veya bazı ürün istisnalarını kaldırın."
     }
   },
   "cashier.tables.account": "Masa hesabı",

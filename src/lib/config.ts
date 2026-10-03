@@ -139,5 +139,23 @@ export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
   15_000,
 );
 
-/** Exact provider hosts trusted for online checkout redirects; callers still require HTTPS. */
-export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = new Set(['checkout.stripe.com']);
+const CANONICAL_PAYMENT_CHECKOUT_HOST = 'checkout.stripe.com';
+
+/**
+ * Resolve the build-time checkout allowlist. Stripe's canonical checkout host is a protocol
+ * security boundary; configuration may disable it, but can never add another provider host.
+ */
+export function resolvePaymentCheckoutAllowedHosts(raw: string | undefined): ReadonlySet<string> {
+  if (raw === undefined) return new Set([CANONICAL_PAYMENT_CHECKOUT_HOST]);
+
+  const configuredHosts = raw.split(',').map((host) => host.trim());
+  if (configuredHosts.length === 0 || configuredHosts.some((host) => host !== CANONICAL_PAYMENT_CHECKOUT_HOST)) {
+    return new Set();
+  }
+
+  return new Set(configuredHosts);
+}
+
+export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymentCheckoutAllowedHosts(
+  process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
+);

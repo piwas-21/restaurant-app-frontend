@@ -5,6 +5,7 @@ import {
   isTerminalGuestPayment,
   safeStripeCheckoutUrl,
 } from './guestAccountPaymentRules';
+import { resolvePaymentCheckoutAllowedHosts } from './config';
 import type { GuestAccountPaymentAccount } from '@/types/guestAccountPayments';
 
 const account: GuestAccountPaymentAccount = {
@@ -63,5 +64,30 @@ describe('guest account payment guards', () => {
     expect(safeStripeCheckoutUrl('https://checkout.stripe.com:444/pay')).toBeNull();
     expect(safeStripeCheckoutUrl('https://user@checkout.stripe.com/pay')).toBeNull();
     expect(safeStripeCheckoutUrl('javascript:alert(1)')).toBeNull();
+  });
+});
+
+describe('payment checkout host configuration', () => {
+  it('defaults to the canonical Stripe host when configuration is unset', () => {
+    expect([...resolvePaymentCheckoutAllowedHosts(undefined)]).toEqual(['checkout.stripe.com']);
+  });
+
+  it('accepts only the exact canonical Stripe hostname when explicitly configured', () => {
+    expect([...resolvePaymentCheckoutAllowedHosts('checkout.stripe.com')]).toEqual(['checkout.stripe.com']);
+    expect([...resolvePaymentCheckoutAllowedHosts(' checkout.stripe.com,checkout.stripe.com ')]).toEqual([
+      'checkout.stripe.com',
+    ]);
+  });
+
+  it.each([
+    '',
+    'checkout.stripe.co',
+    'Checkout.Stripe.Com',
+    'https://checkout.stripe.com',
+    'checkout.stripe.com:443',
+    'checkout.stripe.com,evil.example',
+    'evil.example',
+  ])('fails closed for unsupported configuration %s', (value) => {
+    expect([...resolvePaymentCheckoutAllowedHosts(value)]).toEqual([]);
   });
 });

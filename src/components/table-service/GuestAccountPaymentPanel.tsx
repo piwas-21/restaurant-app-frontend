@@ -171,7 +171,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
         />
       )}
       {receipt && <PaymentReceipt receipt={receipt} locale={i18n.language} />}
-      {flow.returnReceiptUnavailable && props.returnHintPresent && (
+      {flow.returnReceiptUnavailable && (
         <p className={styles.notice} role="status">
           {t('table_guest_payment_return_missing')}
         </p>

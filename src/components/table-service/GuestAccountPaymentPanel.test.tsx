@@ -77,6 +77,16 @@ describe('GuestAccountPaymentPanel', () => {
     expect(currentFlow.refreshPaymentStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the generic receipt-unavailable state for a saved attempt without a return hint', () => {
+    jest
+      .mocked(useGuestAccountPaymentFlow)
+      .mockReturnValue(flowResult({ attempt: { ...attempt, attemptId: returnedAttemptId } }));
+
+    renderPanel(false);
+
+    expect(screen.getByText('table_guest_payment_return_missing')).toHaveAttribute('role', 'status');
+  });
+
   it('renders a localized load fallback for a server failure', () => {
     jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(flowResult({ error: 'load' }));
 

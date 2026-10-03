@@ -56,13 +56,14 @@ export async function recoverReceiptOnly(
   setReturnReceiptUnavailable: (value: boolean) => void,
 ): Promise<void> {
   const attemptId = returnAttemptId ?? descriptor.attemptId;
+  const canReportReceiptAvailability = Boolean(returnAttemptId || attemptId);
   if (
     !attemptId ||
     !descriptor.receiptCredential ||
     !descriptor.contribution ||
     (returnAttemptId !== null && descriptor.attemptId !== null && descriptor.attemptId !== returnAttemptId)
   ) {
-    setReturnReceiptUnavailable(Boolean(returnAttemptId));
+    setReturnReceiptUnavailable(canReportReceiptAvailability);
     return;
   }
   let receiptAvailable = false;
@@ -72,7 +73,7 @@ export async function recoverReceiptOnly(
   } catch (_error) {
     // Receipt capabilities collapse provider/auth details to the same unavailable status.
   }
-  setReturnReceiptUnavailable(Boolean(returnAttemptId && !receiptAvailable));
+  setReturnReceiptUnavailable(Boolean(canReportReceiptAvailability && !receiptAvailable));
 }
 
 export function selectRecoveryAttempt(

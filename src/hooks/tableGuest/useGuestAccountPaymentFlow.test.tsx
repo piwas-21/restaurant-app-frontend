@@ -167,6 +167,7 @@ describe('useGuestAccountPaymentFlow', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     if (originalCrypto) Object.defineProperty(globalThis, 'crypto', originalCrypto);
     else Reflect.deleteProperty(globalThis, 'crypto');
     if (originalTextEncoder) Object.defineProperty(globalThis, 'TextEncoder', originalTextEncoder);
@@ -418,6 +419,65 @@ describe('useGuestAccountPaymentFlow', () => {
     expect(recoveredDescriptor.kind).toBe('ready');
     if (recoveredDescriptor.kind === 'ready') expect(recoveredDescriptor.attempts[0].attemptId).toBeNull();
   });
+
+  it.each(['unavailable', 'available'] as const)(
+    'reports receipt availability for a saved attempt without a return hint when the read is %s',
+    async (outcome) => {
+      const participantFingerprint = await fingerprintGuestParticipant(identity.participantToken);
+      if (!participantFingerprint) throw new Error('test participant fingerprint is unavailable');
+      const quoted = withQuotedOperation(
+        createGuestAccountPaymentDescriptor(
+          SESSION_ID,
+          OPERATION_ID,
+          {
+            expectedAccountRevision: 7,
+            mode: 'Amount',
+            paymentMethod: 'OnlinePayment',
+            amountMinor: 1250,
+          },
+          participantFingerprint,
+        ),
+        1,
+        { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'd'.repeat(64) },
+      );
+      const pending = withCheckoutAttempt(withStartRequested(withReservation(quoted, 2, 'A'.repeat(43))), ATTEMPT_ID);
+      expect(saveGuestAccountPaymentAttempt(pending)).toBe(true);
+
+      const receipt = {
+        attemptId: ATTEMPT_ID,
+        amountMinor: 1250,
+        currency: 'CHF',
+        state: 'Captured' as const,
+        receivedMinor: 1250,
+        refundedMinor: 0,
+        reconciliationRequired: false,
+        completedAt: '2030-01-01T00:00:00Z',
+        receiptExpiresAt: '2030-01-04T00:00:00Z',
+      };
+      if (outcome === 'unavailable')
+        jest.mocked(guestAccountPaymentService.getReceipt).mockRejectedValueOnce(new Error('receipt read failed'));
+      else jest.mocked(guestAccountPaymentService.getReceipt).mockResolvedValueOnce(receipt);
+
+      const { result } = renderHook(() => useGuestAccountPaymentFlow(options(false, null)));
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(guestAccountPaymentService.getReceipt).toHaveBeenCalledWith(
+        ATTEMPT_ID,
+        'A'.repeat(43),
+        expect.objectContaining({ attemptId: ATTEMPT_ID, operationId: OPERATION_ID }),
+      );
+      expect(result.current.returnReceiptUnavailable).toBe(outcome === 'unavailable');
+      if (outcome === 'available')
+        expect(result.current.receipts).toEqual([
+          expect.objectContaining({ attemptId: ATTEMPT_ID, receipt: expect.objectContaining({ state: 'Captured' }) }),
+        ]);
+
+      const stored = readGuestAccountPaymentAttempts();
+      expect(stored.kind).toBe('ready');
+      if (stored.kind === 'ready')
+        expect(stored.attempts[0]).toMatchObject({ attemptId: ATTEMPT_ID, receiptCredential: 'A'.repeat(43) });
+    },
+  );
 
   it('keeps a closed-visit return receipt retryable with only its saved private capability', async () => {
     const participantFingerprint = await fingerprintGuestParticipant(identity.participantToken);

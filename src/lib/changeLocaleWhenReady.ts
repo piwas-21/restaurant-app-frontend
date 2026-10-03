@@ -1,6 +1,6 @@
 interface LocaleSwitchTarget {
   readonly language: string | undefined;
-  readonly resolvedLanguage?: string | undefined;
+  readonly resolvedLanguage?: string;
   changeLanguage(language: string): Promise<unknown>;
   hasResourceBundle(language: string, namespace: string): boolean;
 }
@@ -26,16 +26,17 @@ export async function changeLocaleWhenReady(
   const previousLocale = instance.resolvedLanguage || instance.language || baseLocale;
   if (toBaseLocale(previousLocale) === baseLocale && instance.hasResourceBundle(baseLocale, 'translation')) return true;
 
-  try {
-    await instance.changeLanguage(locale);
-  } catch (loadError: unknown) {
-    // Dynamic chunk paths are internal; the caller turns false into localized user-facing copy.
-    void loadError;
-    if (switchGenerations.get(instance) === generation) {
-      await restoreLocale(instance, previousLocale);
-    }
-    return false;
-  }
+  const loaded = await instance.changeLanguage(locale).then(
+    () => true,
+    async () => {
+      // Dynamic chunk paths are internal; the caller turns false into localized user-facing copy.
+      if (switchGenerations.get(instance) === generation) {
+        await restoreLocale(instance, previousLocale);
+      }
+      return false;
+    },
+  );
+  if (!loaded) return false;
 
   if (switchGenerations.get(instance) !== generation) return false;
   if (instance.hasResourceBundle(baseLocale, 'translation')) return true;
@@ -49,10 +50,11 @@ function toBaseLocale(locale: string): string {
 }
 
 async function restoreLocale(instance: LocaleSwitchTarget, locale: string): Promise<void> {
-  try {
-    await instance.changeLanguage(locale);
-  } catch (restoreError: unknown) {
-    // Restoration is best-effort; the caller reports the original failure with localized copy.
-    void restoreError;
-  }
+  await instance.changeLanguage(locale).then(
+    () => undefined,
+    () => {
+      // Restoration is best-effort; the caller reports the original failure with localized copy.
+      return undefined;
+    },
+  );
 }

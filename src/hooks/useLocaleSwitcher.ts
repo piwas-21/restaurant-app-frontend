@@ -27,12 +27,12 @@ export function useLocaleSwitcher(i18n: typeof baseI18n, hasUser: boolean, onSuc
       const previousLocales = targets.map((target) =>
         normalizeBundleLocale(target.resolvedLanguage || target.language || 'en'),
       );
-      let messages: Record<string, unknown>;
-      try {
-        messages = await loadLocaleMessages(normalizeBundleLocale(lng));
-      } catch (loadError: unknown) {
+      const loadedBundle = await loadLocaleMessages(normalizeBundleLocale(lng)).then(
+        (messages) => ({ success: true as const, messages }),
+        () => ({ success: false as const }),
+      );
+      if (!loadedBundle.success) {
         // Dynamic chunk details are internal; this path displays localized recovery copy.
-        void loadError;
         if (generation === localeChangeGeneration.current) {
           setLocaleLoadFailed(true);
           notifyLocaleLoadFailure(lng);
@@ -40,6 +40,7 @@ export function useLocaleSwitcher(i18n: typeof baseI18n, hasUser: boolean, onSuc
         return false;
       }
       if (generation !== localeChangeGeneration.current) return false;
+      const messages = loadedBundle.messages;
 
       targets.forEach((target) => {
         if (!target.hasResourceBundle(lng, 'translation')) {

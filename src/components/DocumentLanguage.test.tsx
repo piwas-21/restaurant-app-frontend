@@ -20,6 +20,7 @@ const mockBaseChangeLanguage = jest.fn(async (locale: string) => {
   else mockBaseResolvedLanguage = 'en';
 });
 jest.mock('react-i18next', () => ({
+  I18nContext: jest.requireActual('react').createContext(null),
   useTranslation: () => ({
     i18n: {
       changeLanguage: mockChangeLanguage,

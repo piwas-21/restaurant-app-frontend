@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { persistPendingAmendmentCommit } from '@/hooks/orderAmendments/pendingAmendmentCommit';
 import type { OrderDto } from '@/types/order';
 import type { OrderAmendmentCommitRequest } from '@/types/orderAmendment';
@@ -6,6 +6,8 @@ import { PaymentMethod } from '@/types/order';
 import OrderAmendmentEntryButton from './OrderAmendmentEntryButton';
 
 const mockUseOptionalAuth = jest.fn();
+const mockRetryActor = jest.fn();
+let mockActorFailed = false;
 const mockLoadTranslations = jest.fn((_enabled: boolean) => ({ ready: true, failed: false, retry: jest.fn() }));
 let mockOrderAmendmentsEnabled = true;
 const mockEligibility = jest.fn(() => ({
@@ -20,9 +22,9 @@ jest.mock('@/hooks/accountPayments/useAccountPaymentActor', () => ({
   useAccountPaymentActor: () => {
     const auth = mockUseOptionalAuth();
     return {
-      actorId: auth.isLoading ? undefined : auth.user?.userId,
-      status: auth.isLoading ? 'checking' : 'ready',
-      retry: jest.fn(),
+      actorId: auth.isLoading || mockActorFailed ? undefined : auth.user?.userId,
+      status: auth.isLoading ? 'checking' : mockActorFailed ? 'failed' : 'ready',
+      retry: mockRetryActor,
     };
   },
 }));
@@ -67,6 +69,8 @@ function persistPending(actorId: string) {
 describe('OrderAmendmentEntryButton', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+    mockActorFailed = false;
+    mockRetryActor.mockClear();
     mockLoadTranslations.mockClear();
     mockEligibility.mockReturnValue({ reason: null, ready: true, mode: 'Native', retry: jest.fn() });
     mockOrderAmendmentsEnabled = true;
@@ -169,6 +173,30 @@ describe('OrderAmendmentEntryButton', () => {
     expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
     expect(mockLoadTranslations).toHaveBeenLastCalledWith(true);
   });
+
+  it.each(['Server', 'Cashier'] as const)(
+    'keeps identity retry available to %s while writes are disabled and recovers only after identity resolves',
+    async (operatorRole) => {
+      persistPending('actor-1');
+      mockOrderAmendmentsEnabled = false;
+      mockActorFailed = true;
+      const storageRead = jest.spyOn(Storage.prototype, 'getItem');
+      const view = render(<OrderAmendmentEntryButton order={order('DineIn')} operatorRole={operatorRole} />);
+      expect(screen.getByText('orderAmendments.resolution_context_failed')).toBeInTheDocument();
+      expect(storageRead).not.toHaveBeenCalled();
+      expect(screen.queryByRole('button', { name: 'orderAmendments.check_operation' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+      expect(mockRetryActor).toHaveBeenCalledTimes(1);
+      expect(mockLoadTranslations).toHaveBeenLastCalledWith(true);
+
+      mockActorFailed = false;
+      view.rerender(<OrderAmendmentEntryButton order={order('DineIn')} operatorRole={operatorRole} />);
+      expect(await screen.findByRole('button', { name: 'orderAmendments.check_operation' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+      storageRead.mockRestore();
+    },
+  );
 
   it('offers read-only recovery for a terminal order with its same-actor pending operation', async () => {
     persistPending('actor-1');

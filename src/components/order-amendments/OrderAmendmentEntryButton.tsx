@@ -54,6 +54,31 @@ function retryEligibility(actor: AccountPaymentActor, refresh: (() => void) | un
   }
 }
 
+function canRetryAmendmentEligibility(
+  enabled: boolean,
+  localReason: string | null,
+  actor: AccountPaymentActor,
+  reason: string | null,
+): boolean {
+  return enabled && !localReason && actor.status !== 'checking' && reason !== 'orderAmendments.resolution_checking';
+}
+
+function RecoveryActorState({ actor }: Readonly<{ actor: AccountPaymentActor }>) {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <output className={styles.unavailable} aria-live="polite" aria-atomic="true">
+        {t(actorReason(actor, null) ?? 'orderAmendments.resolution_checking')}
+      </output>
+      {actor.status === 'failed' && (
+        <button type="button" className={styles.action} onClick={actor.retry}>
+          {t('retry')}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function OrderAmendmentEntryButton({
   order,
   operatorRole,
@@ -97,9 +122,10 @@ export default function OrderAmendmentEntryButton({
     recoveryAvailability.status !== 'loading' &&
     recoveryAvailability.status !== 'none',
   );
-  const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || canRecover);
+  const awaitingRecoveryActor = !orderAmendmentsV1 && actor.status !== 'ready';
+  const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || canRecover || awaitingRecoveryActor);
 
-  if (!orderAmendmentsV1 && !canRecover) return null;
+  if (!orderAmendmentsV1 && !canRecover && !awaitingRecoveryActor) return null;
   if (!translations.ready) {
     return (
       <div>
@@ -115,6 +141,10 @@ export default function OrderAmendmentEntryButton({
         )}
       </div>
     );
+  }
+
+  if (awaitingRecoveryActor) {
+    return <RecoveryActorState actor={actor} />;
   }
 
   if (!recoveryOnly && !canRecover) {
@@ -140,11 +170,7 @@ export default function OrderAmendmentEntryButton({
 
   const unavailableKey = unavailableReason(orderAmendmentsV1, showFeatureDisabledNotice, reason);
   if (!canRecover && !unavailableKey) return null;
-  const canRetryEligibility =
-    orderAmendmentsV1 &&
-    !localReason &&
-    actor.status !== 'checking' &&
-    reason !== 'orderAmendments.resolution_checking';
+  const canRetryEligibility = canRetryAmendmentEligibility(orderAmendmentsV1, localReason, actor, reason);
 
   return (
     <>

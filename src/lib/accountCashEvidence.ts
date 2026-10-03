@@ -13,7 +13,7 @@ const terms = {
   adjustmentMinor: safeInteger,
   dueAmountMinor: positiveMinor,
 };
-const settlementSchema = z
+export const accountCashSettlementSchema = z
   .object({ ...terms, paymentMethod: z.enum(['Cash', 'CreditCard', 'OnlinePayment']) })
   .strict();
 const receiptSchema = z
@@ -64,7 +64,7 @@ function receiptMatches(receipt: AccountCashReceipt, settlement: AccountCashSett
 export function readAccountCashEvidence(operation: AccountPaymentOperation): AccountCashEvidence {
   if (operation.cashSettlement === null || operation.cashSettlement === undefined)
     return { status: operation.cashReceipt === null || operation.cashReceipt === undefined ? 'missing' : 'invalid' };
-  const parsed = settlementSchema.safeParse(operation.cashSettlement);
+  const parsed = accountCashSettlementSchema.safeParse(operation.cashSettlement);
   if (!parsed.success || !hasConservedTerms(parsed.data, operation)) return { status: 'invalid' };
   if (operation.cashReceipt === null || operation.cashReceipt === undefined) {
     if (operation.paymentMethod === 'Cash' && operation.state === 'Captured') return { status: 'invalid' };

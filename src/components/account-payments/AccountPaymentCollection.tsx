@@ -37,7 +37,7 @@ export default function AccountPaymentCollection({
     await refreshAccount();
     onUpdated();
   }, [refreshAccount, onUpdated]);
-  const payment = useAccountPaymentOperation(actorId, session.serviceSessionId, enabled, refresh);
+  const payment = useAccountPaymentOperation(actorId, session.serviceSessionId, enabled, refresh, recoveryEnabled);
   const account = reader.account;
   const writesLocked =
     disabled || reader.stale || reader.loading || payment.busy || !enabled || account?.status !== 'Open';
@@ -135,6 +135,7 @@ export default function AccountPaymentCollection({
           pending={payment.pending}
           disabled={disabled || payment.busy || !enabled || payment.storageUnavailable}
           recoveryReleaseEnabled={safeReleaseEnabled}
+          recoveryCollectionEnabled={payment.canRetryCollection && pendingPayment?.stage === 'collecting'}
           onReserve={payment.reserve}
           onCollect={payment.collect}
           onRelease={payment.release}

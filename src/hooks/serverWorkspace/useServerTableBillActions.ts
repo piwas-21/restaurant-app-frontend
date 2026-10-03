@@ -6,7 +6,7 @@ import {
   cancelTableServicePaymentHandoff,
   requestTableServicePaymentHandoff,
 } from '@/services/tableServiceSessionService';
-import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
+import type { TableServiceSessionDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
 
@@ -18,7 +18,6 @@ interface ServerTableBillActions {
   readonly error: string | null;
   readonly requestHandoff: () => Promise<void>;
   readonly cancelHandoff: () => Promise<void>;
-  readonly submitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<void>;
   readonly closeSession: () => Promise<void>;
   readonly reconcilePendingOperation: () => Promise<void>;
   readonly refresh: () => Promise<void>;
@@ -99,15 +98,6 @@ export function useServerTableBillActions(
     [handoffMutating, refreshWorkspace, session, shared],
   );
 
-  const submitPayment = useCallback(
-    async (payment: AddTableServiceSessionPaymentRequest) => {
-      const result = await shared.submitPayment(payment);
-      setMutationSession(result);
-      await refreshWorkspace();
-    },
-    [refreshWorkspace, shared],
-  );
-
   const closeSession = useCallback(async () => {
     const result = await shared.closeSession();
     setMutationSession(result);
@@ -122,7 +112,6 @@ export function useServerTableBillActions(
     error: handoffError ?? shared.error,
     requestHandoff: () => runHandoff('request'),
     cancelHandoff: () => runHandoff('cancel'),
-    submitPayment,
     closeSession,
     reconcilePendingOperation: shared.reconcilePendingOperation,
     refresh,

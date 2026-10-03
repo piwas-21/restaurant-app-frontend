@@ -2,6 +2,7 @@ import { collectAccountPayment, releaseAccountPayment, reserveAccountPayment } f
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 import type { PendingAccountPayment } from './pendingAccountPayment';
 import type { AccountPaymentResult } from './accountPaymentResult';
+import { canRetryAccountPaymentCollection } from './accountPaymentRecovery';
 
 type RunPayment = (
   saved: PendingAccountPayment,
@@ -15,6 +16,11 @@ export function accountPaymentMutationActions(
   operation: AccountPaymentOperation | null,
   serviceSessionId: string,
   run: RunPayment,
+  actorId: string | undefined,
+  collectionEnabled: boolean,
+  recoveryEnabled: boolean,
+  busy: boolean,
+  storageUnavailable: boolean,
 ) {
   const reserve = async () => {
     if (pending?.kind !== 'payment' || operation?.state !== 'Quoted') return;
@@ -27,12 +33,28 @@ export function accountPaymentMutationActions(
   };
   const collect = async () => {
     if (pending?.kind !== 'payment' || operation?.state !== 'Reserved' || pending.stage === 'releasing') return;
+    const recoveringUnknownCollection = pending.stage === 'collecting';
+    if (
+      recoveringUnknownCollection &&
+      !canRetryAccountPaymentCollection(
+        actorId,
+        serviceSessionId,
+        pending,
+        operation,
+        recoveryEnabled,
+        busy,
+        storageUnavailable,
+      )
+    )
+      return;
+    if (!recoveringUnknownCollection && !collectionEnabled) return;
     const expectedVersion = pending.stage === 'collecting' ? pending.expectedVersion : operation.version;
     if (!expectedVersion) return;
     await run(
       { ...pending, stage: 'collecting', expectedVersion },
       () => collectAccountPayment(serviceSessionId, operation.operationId, { expectedVersion }),
       true,
+      recoveringUnknownCollection && !collectionEnabled,
     );
   };
   const release = async () => {

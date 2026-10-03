@@ -75,13 +75,14 @@ function fallback() {
   return <div data-testid="legacy-collection">Legacy tender form</div>;
 }
 
-function renderHost(enabled: boolean, disabled = false, recoveryEnabled = true) {
+function renderHost(enabled: boolean, disabled = false, recoveryEnabled = true, canStartCollection = true) {
   return render(
     <TenantFeaturesProvider features={{ tableAccountPaymentsV1: enabled }}>
       <CashierAccountPaymentCollectionHost
         session={session}
         disabled={disabled}
         recoveryEnabled={recoveryEnabled}
+        canStartCollection={canStartCollection}
         onUpdated={jest.fn()}
         fallback={fallback()}
       />
@@ -123,6 +124,22 @@ describe('CashierAccountPaymentCollectionHost', () => {
     expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
     expect(loadAccountPaymentLocale).not.toHaveBeenCalled();
     expect(loadAccountPaymentCollection).not.toHaveBeenCalled();
+  });
+
+  it('keeps fresh collection dormant when a route-specific capability is absent', async () => {
+    renderHost(true, false, true, false);
+
+    expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
+    expect(loadAccountPaymentLocale).not.toHaveBeenCalled();
+    expect(loadAccountPaymentCollection).not.toHaveBeenCalled();
+  });
+
+  it('still mounts the saved owner recovery when route capability is absent', async () => {
+    expect(savePending(actorId)).toBe(true);
+    renderHost(true, false, true, false);
+
+    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('false:true:true');
+    expect(loadAccountPaymentCollection).toHaveBeenCalledTimes(1);
   });
 
   it('loads the collection and sidecar only after the feature is enabled', async () => {

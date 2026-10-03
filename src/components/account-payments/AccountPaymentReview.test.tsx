@@ -248,6 +248,7 @@ it('does not ask to collect physical money again when the original collection re
       operation={operation}
       pending={{ ...pending, stage: 'collecting' }}
       disabled={false}
+      recoveryCollectionEnabled
       {...handlers}
     />,
   );
@@ -290,6 +291,25 @@ it('after disablement keeps lookup available and disables an unknown collection 
   expect(screen.getByRole('button', { name: 'accountPayments.retry_original' })).toBeDisabled();
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.check_result' }));
   expect(handlers.onCheck).toHaveBeenCalledTimes(1);
+});
+
+it('allows only a separately verified original collection replay after disablement', () => {
+  render(
+    <AccountPaymentReview
+      session={session}
+      operation={operation}
+      pending={{ ...pending, stage: 'collecting' }}
+      disabled
+      recoveryCollectionEnabled
+      {...handlers}
+    />,
+  );
+
+  const retry = screen.getByRole('button', { name: 'accountPayments.retry_original' });
+  expect(retry).toBeEnabled();
+  expect(screen.queryByLabelText('cashier.cash_received')).not.toBeInTheDocument();
+  fireEvent.click(retry);
+  expect(handlers.onCollect).toHaveBeenCalledTimes(1);
 });
 
 it('allows owner-scoped no-money release after flag-off while keeping collection disabled', () => {

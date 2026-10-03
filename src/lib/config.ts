@@ -138,3 +138,6 @@ export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
   process.env.NEXT_PUBLIC_STAFF_PAYMENT_HANDOFF_REFRESH_MS,
   15_000,
 );
+
+/** Exact provider hosts trusted for online checkout redirects; callers still require HTTPS. */
+export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = new Set(['checkout.stripe.com']);

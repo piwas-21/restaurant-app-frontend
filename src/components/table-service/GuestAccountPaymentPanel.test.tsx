@@ -84,4 +84,48 @@ describe('GuestAccountPaymentPanel', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent('table_guest_payment_load_failed');
   });
+
+  it('requires the separate reviewed-quote Continue action before starting checkout', () => {
+    const startOrResumeCheckout = jest.fn().mockResolvedValue(true);
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(
+      flowResult({
+        attempt: { ...attempt, startRequested: false },
+        operation: {
+          serviceSessionId: attempt.serviceSessionId,
+          operationId: attempt.operationId,
+          state: 'Quoted',
+          version: 1,
+          expectedAccountRevision: 2,
+          mode: 'Amount',
+          paymentMethod: 'OnlinePayment',
+          amountMinor: 500,
+          currency: 'CHF',
+          quoteExpiresAt: '2030-01-01T00:10:00Z',
+          reservedAt: null,
+          reservationExpiresAt: null,
+          equalSharePlanId: null,
+          equalShareOrdinal: null,
+          allocations: [],
+        },
+        startOrResumeCheckout,
+      }),
+    );
+
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={null}
+        recoveryIdentity={null}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={null}
+        returnHintPresent={false}
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    expect(startOrResumeCheckout).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'table_guest_payment_continue' }));
+    expect(startOrResumeCheckout).toHaveBeenCalledTimes(1);
+  });
 });

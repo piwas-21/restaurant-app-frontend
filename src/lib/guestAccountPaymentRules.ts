@@ -1,5 +1,6 @@
 import type { AccountPaymentState } from '@/types/accountPayments';
 import type { GuestAccountPaymentAccount } from '@/types/guestAccountPayments';
+import { PAYMENT_CHECKOUT_ALLOWED_HOSTS } from '@/lib/config';
 
 const HELD_STATES = new Set<AccountPaymentState>([
   'Reserved',
@@ -51,7 +52,7 @@ export function safeStripeCheckoutUrl(value: string | null): string | null {
   }
   if (!url) return null;
   return url.protocol === 'https:' &&
-    url.hostname === 'checkout.stripe.com' &&
+    PAYMENT_CHECKOUT_ALLOWED_HOSTS.has(url.hostname) &&
     url.port === '' &&
     !url.username &&
     !url.password

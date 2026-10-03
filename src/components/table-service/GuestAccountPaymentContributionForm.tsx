@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState } from 'react';
+import { Controller, useForm, type FieldErrors } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import type { TableGuestAccountDto } from '@/types/tableGuestVisit';
 import type { GuestAccountPaymentAccount, GuestPaymentEqualShareSummary } from '@/types/guestAccountPayments';
-import { selectAccountPaymentUnits } from '@/lib/accountPaymentSelection';
-import {
-  accountContributionInput,
-  formatAccountPaymentMinor,
-  parseAccountContributionMinor,
-} from '@/lib/accountPaymentMoney';
+import { accountContributionInput, formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import type { GuestPaymentQuoteChoice } from '@/hooks/tableGuest/useGuestPaymentContributionActions';
+import {
+  createGuestAccountPaymentContributionSchema,
+  type GuestAccountPaymentContributionFormValues,
+  type GuestAccountPaymentContributionQuote,
+} from '@/schemas/guestAccountPaymentContribution.schema';
 import { AllocationChoices, EqualShareChoices } from './GuestAccountPaymentChoices';
 import styles from './GuestAccountPayment.module.css';
 
@@ -43,82 +45,83 @@ export default function GuestAccountPaymentContributionForm({
   onCreatePlan,
 }: GuestAccountPaymentContributionFormProps) {
   const { t, i18n } = useTranslation();
-  const [mode, setMode] = useState<ContributionMode>('Amount');
-  const [amountInput, setAmountInput] = useState(defaultAmount(account));
-  const [quantities, setQuantities] = useState<Readonly<Record<string, number>>>({});
   const [shareCount, setShareCount] = useState(Math.min(2, account.limits.maximumEqualShares));
-  const [shareOrdinal, setShareOrdinal] = useState<number | null>(null);
   const [localError, setLocalError] = useState<ContributionError>('');
-  const selectedUnits = selectAccountPaymentUnits(
-    account.availableAllocations.filter((value) => value.orderItemId !== null),
-    quantities,
-    account.limits.maximumSelectedUnits,
+  const contributionSchema = useMemo(
+    () => createGuestAccountPaymentContributionSchema(account, activePlan),
+    [account, activePlan],
   );
+  const { control, register, watch, setValue, handleSubmit } = useForm<
+    GuestAccountPaymentContributionFormValues,
+    unknown,
+    GuestAccountPaymentContributionQuote
+  >({
+    resolver: zodResolver(contributionSchema),
+    defaultValues: { mode: 'Amount', amountInput: defaultAmount(account), quantities: {}, shareOrdinal: null },
+  });
+  const mode = watch('mode');
+  const quantities = watch('quantities');
+  const shareOrdinal = watch('shareOrdinal');
   const onlineLimits = account.limits.online;
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLocalError('');
-    if (!onlineLimits) return;
-    if (mode === 'Amount') {
-      const amountMinor = parseAccountContributionMinor(amountInput, onlineLimits.currency);
-      if (amountMinor === null) {
-        setLocalError('invalid_amount');
-        return;
-      }
-      if (amountMinor < onlineLimits.minimumAmountMinor) {
-        setLocalError('minimum');
-        return;
-      }
-      if (amountMinor > onlineLimits.maximumAmountMinor || amountMinor > account.availableMinor) {
-        setLocalError('maximum');
-        return;
-      }
-      await onReview({ mode: 'Amount', paymentMethod: 'OnlinePayment', amountMinor });
-      return;
-    }
-    if (mode === 'Items') {
-      if (!selectedUnits) {
-        setLocalError('select_units');
-        return;
-      }
-      await onReview({ mode: 'Items', paymentMethod: 'OnlinePayment', selectedUnits });
-      return;
-    }
-    const selectedShare = activePlan?.slots.find((slot) => slot.ordinal === shareOrdinal && slot.isAvailable);
-    if (!activePlan || !selectedShare) {
-      setLocalError('select_share');
-      return;
-    }
-    if (selectedShare.amountMinor < onlineLimits.minimumAmountMinor) {
-      setLocalError('minimum');
-      return;
-    }
-    if (selectedShare.amountMinor > onlineLimits.maximumAmountMinor) {
-      setLocalError('maximum');
-      return;
-    }
-    await onReview({
-      mode: 'Equal',
-      paymentMethod: 'OnlinePayment',
-      equalSharePlanId: activePlan.planId,
-      equalShareOrdinal: selectedShare.ordinal,
-    });
-  };
-
-  const chooseMode = (value: ContributionMode) => {
-    setMode(value);
-    setLocalError('');
-  };
+  const submit = handleSubmit(
+    async (quote) => {
+      setLocalError('');
+      if (disabled) return;
+      await onReview(quote);
+    },
+    (errors) => setLocalError(toContributionError(contributionMessage(errors, mode))),
+  );
 
   return (
     <form className={styles.form} onSubmit={(event) => void submit(event)}>
       <fieldset className={styles.modes}>
         <legend>{t('table_guest_payment_method')}</legend>
         <div className={styles.modeList}>
-          <ModeOption mode="Amount" selected={mode} label={t('table_guest_payment_amount')} onChoose={chooseMode} />
-          <ModeOption mode="Items" selected={mode} label={t('table_guest_payment_items')} onChoose={chooseMode} />
-          <ModeOption mode="Equal" selected={mode} label={t('table_guest_payment_equal')} onChoose={chooseMode} />
+          <Controller
+            name="mode"
+            control={control}
+            render={({ field }) => (
+              <>
+                <ModeOption
+                  mode="Amount"
+                  selected={field.value}
+                  label={t('table_guest_payment_amount')}
+                  onChoose={(value) => {
+                    field.onChange(value);
+                    setLocalError('');
+                  }}
+                  inputRef={field.ref}
+                  name={field.name}
+                  onBlur={field.onBlur}
+                />
+                <ModeOption
+                  mode="Items"
+                  selected={field.value}
+                  label={t('table_guest_payment_items')}
+                  onChoose={(value) => {
+                    field.onChange(value);
+                    setLocalError('');
+                  }}
+                  inputRef={field.ref}
+                  name={field.name}
+                  onBlur={field.onBlur}
+                />
+                <ModeOption
+                  mode="Equal"
+                  selected={field.value}
+                  label={t('table_guest_payment_equal')}
+                  onChoose={(value) => {
+                    field.onChange(value);
+                    setLocalError('');
+                  }}
+                  inputRef={field.ref}
+                  name={field.name}
+                  onBlur={field.onBlur}
+                />
+              </>
+            )}
+          />
         </div>
       </fieldset>
       {mode === 'Amount' && (
@@ -128,8 +131,7 @@ export default function GuestAccountPaymentContributionForm({
             type="text"
             inputMode="decimal"
             autoComplete="off"
-            value={amountInput}
-            onChange={(event) => setAmountInput(event.target.value)}
+            {...register('amountInput', { onChange: () => setLocalError('') })}
             aria-describedby="guest-payment-limits"
           />
         </FormField>
@@ -141,7 +143,10 @@ export default function GuestAccountPaymentContributionForm({
             account={account}
             tableAccount={tableAccount}
             quantities={quantities}
-            onQuantityChange={(key, value) => setQuantities({ ...quantities, [key]: value })}
+            onQuantityChange={(key, value) => {
+              setValue('quantities', { ...quantities, [key]: value }, { shouldDirty: true });
+              setLocalError('');
+            }}
           />
         </fieldset>
       )}
@@ -153,7 +158,10 @@ export default function GuestAccountPaymentContributionForm({
           shareCount={shareCount}
           shareOrdinal={shareOrdinal}
           onShareCountChange={setShareCount}
-          onShareOrdinalChange={setShareOrdinal}
+          onShareOrdinalChange={(value) => {
+            setValue('shareOrdinal', value, { shouldDirty: true });
+            setLocalError('');
+          }}
           onCreatePlan={onCreatePlan}
         />
       )}
@@ -187,20 +195,28 @@ function ModeOption({
   selected,
   label,
   onChoose,
+  inputRef,
+  name,
+  onBlur,
 }: Readonly<{
   mode: ContributionMode;
   selected: ContributionMode;
   label: string;
   onChoose: (mode: ContributionMode) => void;
+  inputRef: (element: HTMLInputElement | null) => void;
+  name: string;
+  onBlur: () => void;
 }>) {
   return (
     <label className={styles.modeOption}>
       <input
+        ref={inputRef}
         type="radio"
-        name="guest-payment-mode"
+        name={name}
         value={mode}
         checked={selected === mode}
         onChange={() => onChoose(mode)}
+        onBlur={onBlur}
       />
       <span>{label}</span>
     </label>
@@ -210,4 +226,23 @@ function ModeOption({
 function defaultAmount(account: GuestAccountPaymentAccount): string {
   const minimum = account.limits.online?.minimumAmountMinor ?? 0;
   return accountContributionInput(minimum) ?? '';
+}
+
+function toContributionError(value: string | undefined): Exclude<ContributionError, ''> {
+  if (value === 'minimum' || value === 'maximum' || value === 'select_units' || value === 'select_share') return value;
+  return 'invalid_amount';
+}
+
+function contributionMessage(
+  errors: FieldErrors<GuestAccountPaymentContributionFormValues>,
+  mode: ContributionMode,
+): string | undefined {
+  if (mode === 'Amount') return fieldErrorMessage(errors.amountInput);
+  if (mode === 'Items') return fieldErrorMessage(errors.quantities);
+  return fieldErrorMessage(errors.shareOrdinal);
+}
+
+function fieldErrorMessage(value: unknown): string | undefined {
+  if (value === null || typeof value !== 'object' || !('message' in value)) return undefined;
+  return typeof value.message === 'string' ? value.message : undefined;
 }

@@ -39,6 +39,9 @@ function runGate(bundles: Record<string, Bundle>, untranslatedBaseline: Record<s
     recursive: true,
   });
   cpSync(join(REPO_ROOT, 'src/locales/table-guest'), join(root, 'src/locales/table-guest'), { recursive: true });
+  cpSync(join(REPO_ROOT, 'src/locales/table-guest-payments'), join(root, 'src/locales/table-guest-payments'), {
+    recursive: true,
+  });
   writeFileSync(join(root, 'scripts/locale-placeholder-baseline.json'), '[]\n');
   writeFileSync(join(root, 'scripts/locale-untranslated-baseline.json'), `${JSON.stringify(untranslatedBaseline)}\n`);
   for (const [name, bundle] of Object.entries(bundles)) {

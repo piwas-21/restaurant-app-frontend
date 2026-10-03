@@ -1,0 +1,161 @@
+.workspace {
+  width: min(100%, 54rem);
+  margin-inline: auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  color: var(--text-primary);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.muted {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.75rem;
+  margin-block: 1.25rem 2rem;
+}
+
+.summaryValue {
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-card);
+}
+
+.summaryValue dt {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.summaryValue dd {
+  margin: 0.35rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.batchList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.batch {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-card);
+}
+
+.batchSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.batchSummary > span {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.batchSummary time {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.items,
+.sideItems,
+.customizations {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0 1rem 1rem;
+  list-style: none;
+}
+
+.sideItems {
+  margin-block-start: 0.4rem;
+  padding-inline-start: 1rem;
+  border-inline-start: 2px solid var(--border-default);
+}
+
+.customizations {
+  gap: 0.25rem;
+  padding-block: 0.35rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.itemLine {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.itemHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.error,
+.notice {
+  margin-block: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-start: 1.5rem;
+}
+
+.button {
+  min-height: 2.7rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buttonPrimary {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-block-start: 1.5rem;
+  color: var(--text-muted);
+}

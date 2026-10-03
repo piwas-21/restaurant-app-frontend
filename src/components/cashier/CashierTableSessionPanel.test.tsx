@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
       if (typeof values !== 'object' || !values) return key;
       return key.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values[name] ?? `{{${name}}}`));
     },
-    i18n: { language: 'en' },
+    i18n: { language: 'en', resolvedLanguage: 'en', addResourceBundle: jest.fn() },
   }),
 }));
 
@@ -53,10 +53,16 @@ const session = {
 function renderPanel(
   current: TableServiceSessionDto,
   overrides: Partial<ComponentProps<typeof CashierTableSessionPanel>> = {},
-  features: { tableAccountV1?: boolean } = {},
+  features: { tableAccountV1?: boolean; tableGuestVisitsV1?: boolean } = {},
 ) {
   return render(
-    <TenantFeaturesProvider features={{ serverWorkspaceV2: false, tableAccountV1: features.tableAccountV1 ?? false }}>
+    <TenantFeaturesProvider
+      features={{
+        serverWorkspaceV2: false,
+        tableAccountV1: features.tableAccountV1 ?? false,
+        tableGuestVisitsV1: features.tableGuestVisitsV1 ?? false,
+      }}
+    >
       <CashierTableSessionPanel
         session={current}
         error={null}
@@ -75,6 +81,13 @@ function renderPanel(
 }
 
 describe('CashierTableSessionPanel', () => {
+  it('shows guest-code issuance for an open visit when the tenant feature is enabled', async () => {
+    renderPanel({ ...session, hasUnassignedActiveOrders: false }, {}, { tableGuestVisitsV1: true });
+
+    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
+  });
+
   it('pins a numbered table link to the selected open visit', () => {
     renderPanel({ ...session, hasUnassignedActiveOrders: false });
 

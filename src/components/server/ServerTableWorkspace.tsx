@@ -14,6 +14,7 @@ import styles from './ServerTableWorkspace.module.css';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
+import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
@@ -63,7 +64,7 @@ export default function ServerTableWorkspace({
   requestedOrderId,
 }: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
-  const { orderAmendmentsV1 } = useTenantFeatures();
+  const { orderAmendmentsV1, tableGuestVisitsV1 } = useTenantFeatures();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
@@ -228,6 +229,12 @@ export default function ServerTableWorkspace({
                 ))}
             </div>
 
+            {session?.status === 'Open' && tableGuestVisitsV1 && (
+              <TableGuestAdmissionCodeSlot
+                serviceSessionId={session.serviceSessionId}
+                disabled={state.isStale || taskContextBlocked}
+              />
+            )}
             {session && (
               <ServerTableBillWorkspace
                 session={session}

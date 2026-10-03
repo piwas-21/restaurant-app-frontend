@@ -13,6 +13,10 @@ import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 // importing it put ~35 kB (+25%) of First Load JS on /cart for every visitor.
 // Same treatment CheckoutReviewLayout gives it.
 const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
+const TableGuestAccountLink = dynamic(() => import('@/components/table-service/TableGuestAccountLink'), { ssr: false });
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+});
 
 type CssModule = Readonly<Record<string, string>>;
 
@@ -68,6 +72,9 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
         <h1 id="cart-heading" className={styles.page.pageTitle}>
           {t('cart_title', 'Your Cart')}
         </h1>
+        <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+          <TableGuestAccountLink />
+        </TableGuestRouteRuntimeLoader>
         <div className={styles.page.emptyCartContainer}>
           <ShoppingCart className={styles.page.emptyCartIcon} size={64} />
           <p className={styles.page.emptyCartMessage}>{t('cart_empty_message', 'Your cart is empty')}</p>
@@ -84,6 +91,9 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
       <h1 id="cart-heading" className={styles.page.pageTitle}>
         {t('cart_title', 'Your Cart')}
       </h1>
+      <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+        <TableGuestAccountLink />
+      </TableGuestRouteRuntimeLoader>
 
       {/* Loading State */}
       {state.isLoading && (

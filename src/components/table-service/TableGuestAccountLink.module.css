@@ -1,0 +1,25 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.65rem;
+  margin-block: 0.75rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  color: var(--text-primary);
+  background: var(--surface-card);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover,
+.link:focus-visible {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

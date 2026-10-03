@@ -23,6 +23,7 @@ import CashierTablePaymentForm from './CashierTablePaymentForm';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
+import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 
 interface CashierTableSessionPanelProps {
   readonly session: TableServiceSessionDto;
@@ -200,6 +201,9 @@ export default function CashierTableSessionPanel({
           </span>
         )}
       </div>
+      {session.status === 'Open' && (
+        <TableGuestAdmissionCodeSlot serviceSessionId={session.serviceSessionId} disabled={writesLocked} />
+      )}
       {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}
       {addRoundIdentityUnavailable && (
         <output className={styles.statusOutput} aria-live="polite">

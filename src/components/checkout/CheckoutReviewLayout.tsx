@@ -10,6 +10,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useCheckoutReview } from '@/hooks/checkout/useCheckoutReview';
 import FidelityPointsCheckout from '@/components/checkout/FidelityPointsCheckout';
 import OrderTypeSection from '@/components/checkout/OrderTypeSection';
@@ -23,8 +24,27 @@ import OrderConfirmationModal from '@/components/checkout/OrderConfirmationModal
 // The order-type/contact edit modals are only needed after an "Edit" click, so keep them out of the
 // review page's initial First Load JS (loaded on demand).
 const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
+const TableGuestRoundReviewContainer = dynamic(
+  () => import('@/components/table-service/TableGuestRoundReviewContainer'),
+  { ssr: false, loading: TableGuestRoundLoading },
+);
+const TableGuestVisitBlocked = dynamic(() => import('@/components/table-service/TableGuestVisitBlocked'), {
+  ssr: false,
+});
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+});
 
 type CssModule = Readonly<Record<string, string>>;
+
+function TableGuestRoundLoading() {
+  const { t } = useTranslation();
+  return (
+    <p>
+      <output>{t('loading', 'Loading...')}</output>
+    </p>
+  );
+}
 
 /** Per-template CSS-module bundle for the review composition. Each template
  *  supplies modules with the SAME class-name keys, so the shared DOM below is
@@ -44,6 +64,14 @@ export interface CheckoutReviewStyles {
 }
 
 export default function CheckoutReviewLayout({ styles: bundle }: { readonly styles: CheckoutReviewStyles }) {
+  return (
+    <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+      <CheckoutReviewContent styles={bundle} />
+    </TableGuestRouteRuntimeLoader>
+  );
+}
+
+function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutReviewStyles }) {
   const styles = bundle.page;
   const {
     t,
@@ -67,6 +95,10 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
     handleCloseConfirmationModal,
     handleTrackOrder,
     handlePlaceOrder,
+    isTableGuestRound,
+    hasPendingRound,
+    isTableVisitBlocked,
+    tableGuestVisitPhase,
     formatPrice,
     formatTotal,
     isLoading,
@@ -99,6 +131,21 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
         onTrackOrder={handleTrackOrder}
       />
     );
+  }
+
+  if (isTableVisitBlocked) {
+    return <TableGuestVisitBlocked phase={tableGuestVisitPhase} />;
+  }
+
+  if (hasPendingRound) {
+    if (tableGuestVisitPhase === 'active') {
+      return <TableGuestRoundReviewContainer formatPrice={formatPrice} recoveryOnly />;
+    }
+    return <TableGuestVisitBlocked phase={tableGuestVisitPhase} />;
+  }
+
+  if (isTableGuestRound) {
+    return <TableGuestRoundReviewContainer formatPrice={formatPrice} />;
   }
 
   return (

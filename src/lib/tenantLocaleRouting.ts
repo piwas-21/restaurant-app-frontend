@@ -70,6 +70,7 @@ export const KNOWN_TENANT_UI_PATHS = [
   '/server/takeaway',
   '/server/tasks',
   '/terms-of-usage',
+  '/table-account',
 ] as const;
 
 export function tenantLocaleFromPathname(pathname: string | null | undefined): LanguageCode | null {

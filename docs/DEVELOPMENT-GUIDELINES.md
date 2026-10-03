@@ -252,6 +252,7 @@ Use design system components for common UI patterns:
 | Component | Use For |
 |---|---|
 | `BaseModal` | All modal/overlay components, including confirm/cancel overlays |
+| `AlertDialog` | Existing confirmation flows with progress and required typed confirmation |
 | `FormField` | Label + input + error pattern in forms |
 | `StatusBadge` | Order/payment/reservation status display |
 | `Button` | All buttons (primary, secondary, danger, ghost) |

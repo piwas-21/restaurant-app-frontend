@@ -126,6 +126,7 @@ describe('CashierLayout authorization', () => {
           serverWorkspaceV2: false,
           tableAccountV1: false,
           orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
           tableAccountPaymentsV1: true,
         }}
       >

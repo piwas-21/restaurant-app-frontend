@@ -10,6 +10,7 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
 import type { PendingTableOperation } from '@/lib/cashierTablePending';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
+import { displayCashierTableError, pendingCashierTableNoticeLabel } from '@/lib/cashierTablePanelLabels';
 import {
   formatTableMoney,
   tableSessionActions,
@@ -42,16 +43,6 @@ interface CashierTableSessionPanelProps {
   readonly onReconcilePendingOperation: () => Promise<void>;
 }
 
-function displayError(error: string | null, t: (key: string) => string): string | null {
-  if (!error) return null;
-  return error.startsWith('cashier.') ? t(error) : error;
-}
-
-function pendingNoticeLabel(operation: PendingTableOperation, t: (key: string) => string): string {
-  if (operation.status === 'Checking') return t('cashier.tables.operation_checking');
-  return operation.kind === 'payment' ? t('cashier.tables.payment_unknown') : t('cashier.tables.close_unknown');
-}
-
 export default function CashierTableSessionPanel({
   session,
   timeZone,
@@ -79,7 +70,7 @@ export default function CashierTableSessionPanel({
   const addRoundHref = tableSessionAddRoundPath(session);
   const addRoundIdentityUnavailable = session.status === 'Open' && !addRoundHref;
   const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict && Boolean(addRoundHref);
-  const message = displayError(error, t);
+  const message = displayCashierTableError(error, t);
   const currency = tableSessionCurrency(session);
   const opened = formatCashierDateTime(
     session.openedAt,
@@ -159,7 +150,7 @@ export default function CashierTableSessionPanel({
       )}
       {pendingOperation && (
         <div className={styles.notice} role="status" aria-live="polite">
-          <span>{pendingNoticeLabel(pendingOperation, t)}</span>
+          <span>{pendingCashierTableNoticeLabel(pendingOperation, t)}</span>
           {pendingOperation.status === 'Unknown' && (
             <StaffButton onClick={() => void onReconcilePendingOperation().catch(() => undefined)}>
               {t('cashier.tables.operation_retry')}

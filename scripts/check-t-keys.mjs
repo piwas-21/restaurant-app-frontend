@@ -38,6 +38,9 @@ const BASELINE_PATH = join(root, 'scripts', 't-keys-baseline.json');
 const REGEN = process.argv.includes('--regen');
 
 const en = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
+// Lazy resources share the runtime translation namespace. Requiring the declared sidecar also
+// fails closed if it disappears; an optional directory scan could silently lose its coverage.
+const localeBundles = [en, JSON.parse(readFileSync(join(root, 'src/locales/order-workspace/en.json'), 'utf8'))];
 
 /**
  * Resolve exactly as i18next does: the NESTED path first, then the literal flat key
@@ -48,6 +51,7 @@ const en = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
 const resolve = (bundle, key) =>
   key.split('.').reduce((node, part) => (typeof node === 'object' && node !== null ? node[part] : undefined), bundle) ??
   bundle[key];
+const hasLocaleKey = (key) => localeBundles.some((bundle) => resolve(bundle, key) !== undefined);
 
 const sourceFiles = [];
 (function walk(dir) {
@@ -179,7 +183,7 @@ for (const file of sourceFiles) {
       let v;
       while ((v = TABLE_VALUE.exec(table))) {
         const key = v[2];
-        if (resolve(en, key) !== undefined) continue;
+        if (hasLocaleKey(key)) continue;
         const entry = missing.get(key) ?? { hasDefault: false, sites: new Set() };
         entry.hasDefault = false; // A table entry is a bare key: there is nowhere to put a default.
         entry.sites.add(relative(root, file));
@@ -191,7 +195,7 @@ for (const file of sourceFiles) {
   let m;
   while ((m = CALL.exec(src))) {
     const key = m[2];
-    if (resolve(en, key) !== undefined) continue;
+    if (hasLocaleKey(key)) continue;
 
     // A second argument counts as a default when it is a string literal, or an options object
     // carrying `defaultValue` — `t('k', { count, defaultValue: '…' })`.
@@ -204,7 +208,7 @@ for (const file of sourceFiles) {
     // locale missing a category still fails — there, not here.
     if (after.startsWith('{') && /\bcount\s*:/.test(after.slice(0, 400))) {
       const categories = new Intl.PluralRules('en').resolvedOptions().pluralCategories;
-      if (categories.every((category) => resolve(en, `${key}_${category}`) !== undefined)) continue;
+      if (categories.every((category) => hasLocaleKey(`${key}_${category}`))) continue;
     }
 
     const hasDefault =

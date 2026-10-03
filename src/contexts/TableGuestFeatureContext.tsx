@@ -9,6 +9,8 @@ export type TableGuestFeatureStatus = 'idle' | 'loading' | 'ready' | 'unavailabl
 
 interface TableGuestFeatureState {
   readonly tableGuestVisitsV1: boolean;
+  readonly tableAccountPaymentsV1: boolean | null;
+  readonly tableGuestAccountPaymentsV1: boolean | null;
   readonly tableGuestFeatureStatus: TableGuestFeatureStatus;
   readonly hasStoredGuestState: boolean;
   readonly retryVersion: number;
@@ -17,6 +19,8 @@ interface TableGuestFeatureState {
 
 const DEFAULT_FEATURE: TableGuestFeatureState = {
   tableGuestVisitsV1: false,
+  tableAccountPaymentsV1: null,
+  tableGuestAccountPaymentsV1: null,
   tableGuestFeatureStatus: 'idle',
   hasStoredGuestState: false,
   retryVersion: 0,
@@ -36,8 +40,15 @@ export function TableGuestFeatureProvider({
   children: ReactNode;
 }>) {
   const { i18n } = useTranslation();
-  const [publicFeature, setPublicFeature] = useState<{ enabled: boolean; status: TableGuestFeatureStatus }>({
+  const [publicFeature, setPublicFeature] = useState<{
+    enabled: boolean;
+    tableAccountPaymentsV1: boolean | null;
+    tableGuestAccountPaymentsV1: boolean | null;
+    status: TableGuestFeatureStatus;
+  }>({
     enabled: false,
+    tableAccountPaymentsV1: null,
+    tableGuestAccountPaymentsV1: null,
     status: 'idle',
   });
   const [guestStringsStatus, setGuestStringsStatus] = useState<TableGuestFeatureStatus>('idle');
@@ -63,18 +74,35 @@ export function TableGuestFeatureProvider({
       return;
     }
     let isCurrent = true;
-    setPublicFeature({ enabled: false, status: 'loading' });
+    setPublicFeature({
+      enabled: false,
+      tableAccountPaymentsV1: null,
+      tableGuestAccountPaymentsV1: null,
+      status: 'loading',
+    });
     publicFeatureRequest.current ??= import('@/services/publicTableGuestFeatureService').then(
       ({ getPublicTableGuestFeature }) => getPublicTableGuestFeature(),
     );
     void publicFeatureRequest.current
       .then((result) => {
         if (isCurrent) {
-          setPublicFeature({ enabled: result.enabled, status: result.available ? 'ready' : 'unavailable' });
+          setPublicFeature({
+            enabled: result.enabled,
+            tableAccountPaymentsV1: result.available ? (result.tableAccountPaymentsV1 ?? null) : null,
+            tableGuestAccountPaymentsV1: result.available ? (result.tableGuestAccountPaymentsV1 ?? null) : null,
+            status: result.available ? 'ready' : 'unavailable',
+          });
         }
       })
       .catch(() => {
-        if (isCurrent) setPublicFeature({ enabled: false, status: 'unavailable' });
+        if (isCurrent) {
+          setPublicFeature({
+            enabled: false,
+            tableAccountPaymentsV1: null,
+            tableGuestAccountPaymentsV1: null,
+            status: 'unavailable',
+          });
+        }
       });
     return () => {
       isCurrent = false;
@@ -120,6 +148,12 @@ export function TableGuestFeatureProvider({
       ...DEFAULT_FEATURE,
       ...features,
       tableGuestVisitsV1: readPublicTableGuestFeature ? publicFeature.enabled : (features?.tableGuestVisitsV1 ?? false),
+      tableAccountPaymentsV1: readPublicTableGuestFeature
+        ? publicFeature.tableAccountPaymentsV1
+        : (features?.tableAccountPaymentsV1 ?? null),
+      tableGuestAccountPaymentsV1: readPublicTableGuestFeature
+        ? publicFeature.tableGuestAccountPaymentsV1
+        : (features?.tableGuestAccountPaymentsV1 ?? null),
       tableGuestFeatureStatus: readPublicTableGuestFeature ? publicFeatureStatus : staticFeatureStatus,
       hasStoredGuestState: hasStoredVisit,
       retryVersion: retryGeneration,

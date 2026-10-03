@@ -1,0 +1,21 @@
+.notice,
+.loading {
+  display: block;
+  margin-block: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.notice button {
+  min-height: 2.7rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--surface-secondary);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+}

@@ -259,6 +259,7 @@ const englishKeys = [
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'order-workspace/en.json'), 'utf8'))),
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'table-guest/en.json'), 'utf8'))),
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'account-payments/en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'table-guest-payments/en.json'), 'utf8'))),
 ];
 
 const orphans = [];

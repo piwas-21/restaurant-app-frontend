@@ -426,29 +426,35 @@ function checkFeatureLocaleBundles(directory, label) {
       for (const key of missing) console.error(`    missing: ${key}`);
       for (const key of extra) console.error(`    extra:   ${key}`);
     }
-    for (const [key, value] of flatten(bundle)) {
-      if (typeof value !== 'string' || !value.trim()) {
-        broken = true;
-        console.error(`✗ ${directory}/${file}:${key} has no usable string value`);
-        continue;
-      }
-      const expectedPlaceholders = placeholdersIn(readValue(english, key));
-      const actualPlaceholders = placeholdersIn(value);
-      if (
-        [...expectedPlaceholders].some((placeholder) => !actualPlaceholders.has(placeholder)) ||
-        [...actualPlaceholders].some((placeholder) => !expectedPlaceholders.has(placeholder))
-      ) {
-        broken = true;
-        console.error(`✗ ${directory}/${file}:${key} has mismatched interpolation placeholders`);
-      }
-      const englishValue = readValue(english, key);
-      if (file !== englishFile && value === englishValue) {
-        broken = true;
-        console.error(`✗ ${directory}/${file}:${key} repeats the English value`);
-      }
-    }
+    if (!checkFeatureLocaleValues(bundle, english, `${directory}/${file}`, file === englishFile)) broken = true;
   }
   if (!broken) console.log(`✓ ${label} feature locale bundle parity holds across ${files.length} locales`);
+  return !broken;
+}
+
+function checkFeatureLocaleValues(bundle, english, location, isEnglish) {
+  let broken = false;
+  for (const [key, value] of flatten(bundle)) {
+    if (typeof value !== 'string' || !value.trim()) {
+      broken = true;
+      console.error(`✗ ${location}:${key} has no usable string value`);
+      continue;
+    }
+    const expectedPlaceholders = placeholdersIn(readValue(english, key));
+    const actualPlaceholders = placeholdersIn(value);
+    if (
+      [...expectedPlaceholders].some((placeholder) => !actualPlaceholders.has(placeholder)) ||
+      [...actualPlaceholders].some((placeholder) => !expectedPlaceholders.has(placeholder))
+    ) {
+      broken = true;
+      console.error(`✗ ${location}:${key} has mismatched interpolation placeholders`);
+    }
+    const englishValue = readValue(english, key);
+    if (!isEnglish && value === englishValue) {
+      broken = true;
+      console.error(`✗ ${location}:${key} repeats the English value`);
+    }
+  }
   return !broken;
 }
 

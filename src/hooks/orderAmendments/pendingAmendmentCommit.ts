@@ -86,8 +86,8 @@ export function readPendingAmendmentCommit(actorId: string, sourceOrderId: strin
     return pending ? { status: 'pending', value: pending } : { status: 'unavailable' };
   } catch (_storageError) {
     // Intentionally convert denied storage or malformed JSON to unavailable without logging stored identities.
-    return { status: 'unavailable' };
   }
+  return { status: 'unavailable' };
 }
 
 /** Persist before the commit POST; a storage failure must prevent sending an unrecoverable write. */
@@ -148,8 +148,8 @@ export function persistPendingAmendmentCommit(value: PendingAmendmentCommit): bo
     return true;
   } catch (_storageError) {
     // Intentionally return false on denied storage; the caller retains the recovery lock and shows its error.
-    return false;
   }
+  return false;
 }
 
 /** Clear only the exact operation that reached a confirmed outcome or an expired unknown state. */
@@ -165,6 +165,6 @@ export function clearPendingAmendmentCommit(actorId: string, sourceOrderId: stri
     return true;
   } catch (_storageError) {
     // Intentionally return false on denied storage; the caller retains the recovery lock and shows its error.
-    return false;
   }
+  return false;
 }

@@ -46,8 +46,8 @@ export function formatAmendmentMinorAmount(
     return formatter.format(amount / 10 ** fractionDigits);
   } catch (_formatError) {
     // Intentionally ignore invalid Intl currency configuration; the caller renders localized unavailable copy.
-    return null;
   }
+  return null;
 }
 
 export function orderItemTitle(item: Pick<OrderItemDto, 'productName' | 'menuName' | 'variationName'>): string {

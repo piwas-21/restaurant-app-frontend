@@ -98,14 +98,14 @@ async function startOrResume(
 
   let ready = descriptor;
   if (operation.state === 'Quoted') {
-    ready = await persistReceiptCapability(ready, context);
+    ready = persistReceiptCapability(ready, context);
     operation = await reserveQuotedOperation(operation, identity, ready);
     context.setOperation(operation);
   }
   if (operation.state !== 'Reserved') return { success: false, openUrl: null };
 
-  ready = await persistReceiptCapability(ready, context);
-  ready = await persistReservedVersion(ready, operation, context);
+  ready = persistReceiptCapability(ready, context);
+  ready = persistReservedVersion(ready, operation, context);
   return postOriginalStart(ready, identity, context);
 }
 

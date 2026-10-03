@@ -78,24 +78,26 @@ export function useGuestPaymentQuoteRecoveryAction(options: QuoteRecoveryActionO
   const discardUnfinishedQuote = useCallback(() => {
     const initial = options.descriptorRef.current;
     if (!isUnfinishedGuestPaymentQuote(initial) || options.isRecoveryLoading) return false;
-    return options.runExclusive(async () => {
-      const descriptor = options.descriptorRef.current;
-      if (
-        !isUnfinishedGuestPaymentQuote(descriptor) ||
-        descriptor.operationId !== initial.operationId ||
-        options.isRecoveryLoading
-      )
-        return false;
-      if (!removeGuestAccountPaymentAttempt(descriptor.serviceSessionId, descriptor.operationId)) {
-        options.setStorageUnavailable(true);
-        return false;
-      }
-      options.publishDescriptor(null);
-      options.setOperation(null);
-      options.setError('');
-      return true;
-    }, false);
+    return options.runExclusive(() => Promise.resolve(discardQuote(options, initial)), false);
   }, [options]);
 
   return { retryUnfinishedQuote, discardUnfinishedQuote };
+}
+
+function discardQuote(options: QuoteRecoveryActionOptions, initial: GuestAccountPaymentAttemptDescriptor): boolean {
+  const descriptor = options.descriptorRef.current;
+  if (
+    !isUnfinishedGuestPaymentQuote(descriptor) ||
+    descriptor.operationId !== initial.operationId ||
+    options.isRecoveryLoading
+  )
+    return false;
+  if (!removeGuestAccountPaymentAttempt(descriptor.serviceSessionId, descriptor.operationId)) {
+    options.setStorageUnavailable(true);
+    return false;
+  }
+  options.publishDescriptor(null);
+  options.setOperation(null);
+  options.setError('');
+  return true;
 }

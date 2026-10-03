@@ -19,14 +19,16 @@ export function useAmendmentResolutionRecoveryInventory(actorId: string, orderId
   const refresh = useCallback(async () => {
     const requestGeneration = ++generation.current;
     setInventory({ status: 'checking' });
+    let values: readonly AmendmentResolutionRecovery[] | null = null;
     try {
-      const values = await listAmendmentResolutionRecovery(actorId, orderId);
-      if (mounted.current && requestGeneration === generation.current)
-        setInventory(values.length === 0 ? { status: 'none' } : { status: 'pending', values });
+      values = await listAmendmentResolutionRecovery(actorId, orderId);
     } catch (_readError: unknown) {
-      // An unavailable or mismatched read cannot authorize another refund or expose private API details.
-      if (mounted.current && requestGeneration === generation.current) setInventory({ status: 'unavailable' });
+      // Private API or mismatched-response details are withheld; the failed read is surfaced as unavailable below.
     }
+    if (!mounted.current || requestGeneration !== generation.current) return;
+    if (values === null) setInventory({ status: 'unavailable' });
+    else if (values.length === 0) setInventory({ status: 'none' });
+    else setInventory({ status: 'pending', values });
   }, [actorId, orderId]);
   useEffect(() => {
     mounted.current = true;

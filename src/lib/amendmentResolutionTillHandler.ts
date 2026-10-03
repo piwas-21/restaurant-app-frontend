@@ -39,11 +39,18 @@ export async function submitTillConfirmationBatch(
   if (!pending) return null;
   if (!original.pendingTillConfirmations && !persistPendingTillConfirmations(original, confirmations)) return null;
 
+  const savedPending = pending;
   let result = currentResult;
   try {
-    for (const confirmation of confirmations) {
-      result = await confirmAmendmentResolutionTill(pending, confirmation);
-    }
+    // Serialize money confirmations; a failed link stops the batch and retains the last proven result.
+    await confirmations.reduce(
+      (chain, confirmation) =>
+        chain.then(async () => {
+          result = await confirmAmendmentResolutionTill(savedPending, confirmation);
+          return result;
+        }),
+      Promise.resolve(currentResult),
+    );
   } catch (_confirmationError: unknown) {
     // A lost response keeps the complete saved batch for an exact idempotent retry.
   }

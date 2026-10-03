@@ -1,5 +1,9 @@
 import { pendingResolutionSchema } from '@/schemas/amendmentResolution.schema';
-import { validatePendingResolution, validateResolutionResult } from '@/lib/amendmentResolutionValidation';
+import {
+  compareResolutionIdentities,
+  validatePendingResolution,
+  validateResolutionResult,
+} from '@/lib/amendmentResolutionValidation';
 import { pendingTillConfirmationsSucceeded } from '@/lib/amendmentResolutionTillValidation';
 import type {
   AmendmentResolutionResult,
@@ -26,9 +30,7 @@ function same(first: string, second: string): boolean {
 }
 
 function compareAmendments(first: PendingAmendmentResolution, second: PendingAmendmentResolution): number {
-  const firstId = first.amendmentId.toLowerCase();
-  const secondId = second.amendmentId.toLowerCase();
-  return firstId < secondId ? -1 : firstId > secondId ? 1 : 0;
+  return compareResolutionIdentities(first.amendmentId, second.amendmentId);
 }
 
 /** Lists only this signed-in actor's matching order journals; any ambiguous record fails closed. */
@@ -69,7 +71,8 @@ export function readPendingAmendmentResolutionsForOrder(
       values.push(validatePendingResolution(parsed.data));
     }
     if (values.length === 0) return { status: 'none' };
-    return { status: 'pending', values: values.sort(compareAmendments) };
+    values.sort(compareAmendments);
+    return { status: 'pending', values };
   } catch (_storageError: unknown) {
     // An incomplete inventory cannot prove that this order has no unresolved resolution.
   }

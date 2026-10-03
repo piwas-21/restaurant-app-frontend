@@ -12,13 +12,19 @@ export type AmendmentResolutionRecoveryBootstrap =
     }
   | { readonly status: 'unavailable' };
 
+function compareKeys(first: string, second: string): number {
+  if (first === second) return 0;
+  return first < second ? -1 : 1;
+}
+
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
   if (value !== null && typeof value === 'object') {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([, entry]) => entry !== undefined)
-      .sort(([first], [second]) => (first < second ? -1 : first > second ? 1 : 0));
-    return `{${entries.map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`).join(',')}}`;
+      .sort(([first], [second]) => compareKeys(first, second));
+    const fields = entries.map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`);
+    return `{${fields.join(',')}}`;
   }
   return JSON.stringify(value) ?? 'null';
 }
@@ -70,6 +76,7 @@ export function restoreAmendmentResolutionRecovery(
       return { status: 'unavailable' };
     return { status: 'pending', value: readback.value, result };
   } catch (_recoveryError: unknown) {
-    return { status: 'unavailable' };
+    // Untrusted recovery or storage details are withheld; callers receive an explicit unavailable result below.
   }
+  return { status: 'unavailable' };
 }

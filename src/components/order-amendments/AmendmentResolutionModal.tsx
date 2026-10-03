@@ -26,7 +26,7 @@ interface Props {
 export default function AmendmentResolutionModal(props: Props) {
   const { t } = useTranslation();
   const { enabled, onChanged } = props;
-  const contextRefresh = useRef<() => Promise<void>>(async () => undefined);
+  const contextRefresh = useRef<() => Promise<void>>(() => Promise.resolve());
   const refresh = useCallback(async () => {
     onChanged();
     if (enabled) await contextRefresh.current();

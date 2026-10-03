@@ -25,10 +25,15 @@ function sum(values: readonly number[]): bigint {
   return values.reduce((total, value) => total + BigInt(value), BigInt(0));
 }
 
+export function compareResolutionIdentities(first: string, second: string): number {
+  const firstId = first.toLowerCase();
+  const secondId = second.toLowerCase();
+  if (firstId === secondId) return 0;
+  return firstId < secondId ? -1 : 1;
+}
+
 export function compareResolutionPaymentIds(first: { paymentId: string }, second: { paymentId: string }): number {
-  const firstId = first.paymentId.toLowerCase();
-  const secondId = second.paymentId.toLowerCase();
-  return firstId < secondId ? -1 : firstId > secondId ? 1 : 0;
+  return compareResolutionIdentities(first.paymentId, second.paymentId);
 }
 const comparePaymentIds = compareResolutionPaymentIds;
 

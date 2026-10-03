@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptionalAuth } from '@/components/AuthContext';
 import StaffButton from '@/components/design-system/StaffButton';
@@ -98,13 +98,15 @@ function ResolvedActorProvider({ orderId, actorId, onChanged, children }: Props 
     ...(inventory?.status === 'pending' ? inventory.values.map((value) => value.amendmentId) : []),
     ...(remote.inventory.status === 'pending' ? remote.inventory.values.map((value) => value.pending.amendmentId) : []),
   ]);
+  const contextValue = useMemo(
+    () => ({
+      open,
+      canStart: orderAmendmentsV1 && inventory?.status === 'none' && remote.inventory.status === 'none',
+    }),
+    [open, orderAmendmentsV1, inventory?.status, remote.inventory.status],
+  );
   return (
-    <AmendmentResolutionUiContext.Provider
-      value={{
-        open,
-        canStart: orderAmendmentsV1 && inventory?.status === 'none' && remote.inventory.status === 'none',
-      }}
-    >
+    <AmendmentResolutionUiContext.Provider value={contextValue}>
       {children}
       {translations.ready && inventory?.status === 'unavailable' && (
         <div role="alert" className={styles.error}>

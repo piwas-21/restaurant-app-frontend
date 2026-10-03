@@ -135,7 +135,7 @@ export default function OrderAmendmentModal({
           </p>
         )}
         {amendment.phase === 'uncertain' && (
-          <p className={styles.stageNotice} role="status">
+          <output className={styles.stageNotice} aria-live="polite" aria-atomic="true">
             {!recoveryOnly &&
             (amendment.operationLookup?.status === 'Unknown' || amendment.operationLookup?.status === 0)
               ? t(
@@ -147,13 +147,13 @@ export default function OrderAmendmentModal({
                   'The result is not confirmed yet. Keep this review open and check the same operation ID.',
                 )}
             {amendment.clientOperationId && <span dir="ltr"> · {amendment.clientOperationId}</span>}
-          </p>
+          </output>
         )}
         {amendment.result && amendment.phase === 'committed' && (
-          <p className={styles.successNotice} role="status">
+          <output className={styles.successNotice} aria-live="polite" aria-atomic="true">
             {t('orderAmendments.committed', 'Amendment committed')} ·{' '}
             <span dir="ltr">{amendment.result.clientOperationId}</span>
-          </p>
+          </output>
         )}
       </div>
     </BaseModal>

@@ -142,6 +142,15 @@ export function useAmendmentCommitRecovery(
     mounted,
   });
 
+  let visibleError: string | null;
+  if (isReady || loadedIdentity === identity) {
+    visibleError = error;
+  } else if (actorId) {
+    visibleError = null;
+  } else {
+    visibleError = 'orderAmendments.actor_unavailable';
+  }
+
   return {
     phase: isReady ? phase : 'idle',
     isReady,
@@ -150,7 +159,7 @@ export function useAmendmentCommitRecovery(
     operationExpiresAt: isReady ? pending?.expiresAt : undefined,
     operationLookup: isReady ? operationLookup : null,
     result: isReady ? result : null,
-    error: isReady || loadedIdentity === identity ? error : actorId ? null : 'orderAmendments.actor_unavailable',
+    error: visibleError,
     canRetrySameCommit: Boolean(
       isReady &&
       pending &&

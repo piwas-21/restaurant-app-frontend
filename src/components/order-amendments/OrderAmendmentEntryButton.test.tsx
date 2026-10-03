@@ -6,12 +6,16 @@ import { PaymentMethod } from '@/types/order';
 import OrderAmendmentEntryButton from './OrderAmendmentEntryButton';
 
 const mockUseOptionalAuth = jest.fn();
+const mockLoadTranslations = jest.fn((_enabled: boolean) => ({ ready: true, failed: false, retry: jest.fn() }));
 let mockOrderAmendmentsEnabled = true;
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/components/AuthContext', () => ({ useOptionalAuth: () => mockUseOptionalAuth() }));
 jest.mock('@/contexts/TenantFeaturesContext', () => ({
   useTenantFeatures: () => ({ orderAmendmentsV1: mockOrderAmendmentsEnabled }),
+}));
+jest.mock('@/hooks/orderAmendments/useOrderAmendmentTranslations', () => ({
+  useOrderAmendmentTranslations: (enabled: boolean) => mockLoadTranslations(enabled),
 }));
 
 const order = (type: string, overrides: Partial<OrderDto> = {}) =>
@@ -45,6 +49,7 @@ function persistPending(actorId: string) {
 describe('OrderAmendmentEntryButton', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+    mockLoadTranslations.mockClear();
     mockOrderAmendmentsEnabled = true;
     mockUseOptionalAuth.mockReturnValue({ user: { userId: 'actor-1' }, isLoading: false });
   });
@@ -125,6 +130,7 @@ describe('OrderAmendmentEntryButton', () => {
     mockOrderAmendmentsEnabled = false;
     const { container } = render(<OrderAmendmentEntryButton order={order('DineIn')} operatorRole="Cashier" />);
     expect(container).toBeEmptyDOMElement();
+    expect(mockLoadTranslations).toHaveBeenLastCalledWith(false);
   });
 
   it('offers actor-scoped recovery while amendments are disabled without exposing a new amendment action', async () => {
@@ -136,6 +142,7 @@ describe('OrderAmendmentEntryButton', () => {
     expect(screen.getByText('orderAmendments.feature_disabled')).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'orderAmendments.check_operation' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+    expect(mockLoadTranslations).toHaveBeenLastCalledWith(true);
   });
 
   it('offers read-only recovery for a terminal order with its same-actor pending operation', async () => {

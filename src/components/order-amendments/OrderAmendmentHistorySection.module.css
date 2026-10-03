@@ -42,8 +42,26 @@
 
 .state,
 .error {
+  display: block;
   margin: 0;
   color: var(--text-secondary);
+}
+
+.retry {
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-3, 0.75rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 0.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .error {

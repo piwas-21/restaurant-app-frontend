@@ -7,6 +7,7 @@ import { useOptionalAuth } from '@/components/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { readPendingAmendmentCommit, type PendingAmendmentRead } from '@/hooks/orderAmendments/pendingAmendmentCommit';
+import { useOrderAmendmentTranslations } from '@/hooks/orderAmendments/useOrderAmendmentTranslations';
 import type { OrderDto } from '@/types/order';
 import styles from './OrderAmendmentEntryButton.module.css';
 
@@ -88,6 +89,25 @@ export default function OrderAmendmentEntryButton({
     recoveryAvailability.status !== 'loading' &&
     recoveryAvailability.status !== 'none',
   );
+  const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || canRecover);
+
+  if (!orderAmendmentsV1 && !canRecover) return null;
+  if (!translations.ready) {
+    return (
+      <div>
+        <output className={styles.unavailable} aria-live="polite" aria-atomic="true">
+          {translations.failed
+            ? t('error_unexpected', 'Order actions could not be loaded. Please try again.')
+            : t('common.loading', 'Loading…')}
+        </output>
+        {translations.failed && (
+          <button type="button" className={styles.action} onClick={translations.retry}>
+            {t('retry', 'Retry')}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (!recoveryOnly) {
     return (
@@ -108,14 +128,12 @@ export default function OrderAmendmentEntryButton({
     );
   }
 
-  if (!orderAmendmentsV1 && !canRecover) return null;
-
-  const unavailableKey =
-    !orderAmendmentsV1 && showFeatureDisabledNotice
-      ? 'orderAmendments.feature_disabled'
-      : reason
-        ? `orderAmendments.${reason}`
-        : null;
+  let unavailableKey: string | null = null;
+  if (!orderAmendmentsV1 && showFeatureDisabledNotice) {
+    unavailableKey = 'orderAmendments.feature_disabled';
+  } else if (reason) {
+    unavailableKey = `orderAmendments.${reason}`;
+  }
   if (!canRecover && !unavailableKey) return null;
 
   return (

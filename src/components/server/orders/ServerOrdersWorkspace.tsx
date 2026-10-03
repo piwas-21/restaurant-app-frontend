@@ -8,6 +8,7 @@ import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell'
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
+import { useServerOrderTranslations } from '@/hooks/useServerOrderTranslations';
 import { getServerAmendmentOrders } from '@/services/server/orders';
 import { OrderType, type OrderDto } from '@/types/order';
 import type { PagedResult } from '@/types/order/common';
@@ -38,6 +39,7 @@ function typeLabel(type: TypeFilter, t: (key: string, fallback: string) => strin
 export default function ServerOrdersWorkspace() {
   const { t } = useTranslation();
   const { orderAmendmentsV1 } = useTenantFeatures();
+  const translations = useServerOrderTranslations(true);
   const [type, setType] = useState<TypeFilter>('All');
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
@@ -76,7 +78,7 @@ export default function ServerOrdersWorkspace() {
       navItems={[
         { href: '/server/floor', label: t('server.floor_plan', 'Floor') },
         { href: '/server/tasks', label: t('server.tasks.title', 'Tasks') },
-        ...(orderAmendmentsV1
+        ...(orderAmendmentsV1 && translations.ready
           ? [{ href: '/server/orders', label: t('serverOrders.title', 'Orders'), active: true }]
           : []),
         { href: '/server/takeaway', label: t('server.takeaway.link') },
@@ -84,103 +86,124 @@ export default function ServerOrdersWorkspace() {
       className={styles.shell}
     >
       <div className={styles.workspace}>
-        <header className={styles.header}>
-          <div>
-            <h1>{t('serverOrders.title', 'Orders')}</h1>
-            {orderAmendmentsV1 && (
-              <p>
-                {t(
-                  'serverOrders.description',
-                  'Find a Dine In, Takeaway, or Delivery order and review its current details before making a change.',
-                )}
-              </p>
-            )}
-          </div>
-        </header>
-        {!orderAmendmentsV1 && (
+        {translations.ready && (
+          <header className={styles.header}>
+            <div>
+              <h1>{t('serverOrders.title', 'Orders')}</h1>
+              {orderAmendmentsV1 && (
+                <p>
+                  {t(
+                    'serverOrders.description',
+                    'Find a Dine In, Takeaway, or Delivery order and review its current details before making a change.',
+                  )}
+                </p>
+              )}
+            </div>
+          </header>
+        )}
+        {!translations.ready && (
+          <output className={styles.state} aria-live="polite" aria-atomic="true">
+            {translations.failed
+              ? t('error_unexpected', 'Order list language could not be loaded. Please try again.')
+              : t('common.loading', 'Loading…')}
+          </output>
+        )}
+        {translations.failed && (
+          <button type="button" className={styles.control} onClick={translations.retry}>
+            {t('retry', 'Retry')}
+          </button>
+        )}
+        {translations.ready && !orderAmendmentsV1 && (
           <p className={styles.state} role="note">
             {t('orderAmendments.feature_disabled', 'Order amendments are not enabled for this restaurant.')}
           </p>
         )}
-        <form className={styles.searchForm} onSubmit={submitSearch}>
-          <FormField label={t('serverOrders.search_label', 'Search order or customer')}>
-            <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} autoComplete="off" />
-          </FormField>
-          <button type="submit" className={styles.control}>
-            {t('serverOrders.search', 'Search')}
-          </button>
-          {search && (
-            <button
-              type="button"
-              className={styles.control}
-              onClick={() => {
-                setSearch('');
-                setSearchInput('');
-                setPage(1);
-              }}
-            >
-              {t('serverOrders.clear_search', 'Clear search')}
-            </button>
-          )}
-        </form>
-        <div
-          className={styles.filters}
-          role="group"
-          aria-label={t('serverOrders.filter_by_type', 'Filter by order type')}
-        >
-          {TYPE_FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className={styles.filterButton}
-              aria-pressed={type === filter}
-              onClick={() => {
-                setType(filter);
-                setPage(1);
-              }}
-            >
-              {typeLabel(filter, t)}
-            </button>
-          ))}
-        </div>
-        {error && (
+        {translations.ready && (
+          <>
+            <form className={styles.searchForm} onSubmit={submitSearch}>
+              <FormField label={t('serverOrders.search_label', 'Search order or customer')}>
+                <input
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  autoComplete="off"
+                />
+              </FormField>
+              <button type="submit" className={styles.control}>
+                {t('serverOrders.search', 'Search')}
+              </button>
+              {search && (
+                <button
+                  type="button"
+                  className={styles.control}
+                  onClick={() => {
+                    setSearch('');
+                    setSearchInput('');
+                    setPage(1);
+                  }}
+                >
+                  {t('serverOrders.clear_search', 'Clear search')}
+                </button>
+              )}
+            </form>
+            <fieldset className={styles.filters}>
+              <legend className={styles.srOnly}>{t('serverOrders.filter_by_type', 'Filter by order type')}</legend>
+              {TYPE_FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={styles.filterButton}
+                  aria-pressed={type === filter}
+                  onClick={() => {
+                    setType(filter);
+                    setPage(1);
+                  }}
+                >
+                  {typeLabel(filter, t)}
+                </button>
+              ))}
+            </fieldset>
+          </>
+        )}
+        {translations.ready && error && (
           <p className={styles.error} role="alert">
             {error.startsWith('serverOrders.') ? t(error) : error}
           </p>
         )}
-        {isLoading && (
-          <p className={styles.state} role="status">
+        {translations.ready && isLoading && (
+          <output className={styles.state} aria-live="polite" aria-atomic="true">
             {t('serverOrders.loading', 'Loading orders…')}
-          </p>
+          </output>
         )}
-        {!isLoading && result?.items.length === 0 && (
+        {translations.ready && !isLoading && result?.items.length === 0 && (
           <p className={styles.state}>{t('serverOrders.empty', 'No orders match these filters.')}</p>
         )}
-        <div className={styles.orderList} aria-busy={isLoading}>
-          {result?.items.map((order) => (
-            <article key={order.id} className={styles.orderRow}>
-              <div className={styles.orderIdentity}>
-                <strong dir="auto">{order.orderNumber}</strong>
-                <span>{typeLabel(order.type as TypeFilter, t)}</span>
-                {order.tableLabel && (
-                  <span dir="auto">
-                    {t('server.table', 'Table')} {order.tableLabel}
-                  </span>
-                )}
-                {order.customerName && <span dir="auto">{order.customerName}</span>}
-              </div>
-              <div className={styles.orderState}>
-                <OrderStatusBadge status={order.status} />
-                <span>{order.paymentStatus}</span>
-                <strong>{formatOrderCurrency(order.total, order)}</strong>
-              </div>
-              <Link className={styles.openOrder} href={`/server/orders/${encodeURIComponent(order.id)}`}>
-                {t('serverOrders.open_order', 'Review order')}
-              </Link>
-            </article>
-          ))}
-        </div>
-        {result && result.totalPages > 1 && (
+        {translations.ready && (
+          <div className={styles.orderList} aria-busy={isLoading}>
+            {result?.items.map((order) => (
+              <article key={order.id} className={styles.orderRow}>
+                <div className={styles.orderIdentity}>
+                  <strong dir="auto">{order.orderNumber}</strong>
+                  <span>{typeLabel(order.type as TypeFilter, t)}</span>
+                  {order.tableLabel && (
+                    <span dir="auto">
+                      {t('server.table', 'Table')} {order.tableLabel}
+                    </span>
+                  )}
+                  {order.customerName && <span dir="auto">{order.customerName}</span>}
+                </div>
+                <div className={styles.orderState}>
+                  <OrderStatusBadge status={order.status} />
+                  <span>{order.paymentStatus}</span>
+                  <strong>{formatOrderCurrency(order.total, order)}</strong>
+                </div>
+                <Link className={styles.openOrder} href={`/server/orders/${encodeURIComponent(order.id)}`}>
+                  {t('serverOrders.open_order', 'Review order')}
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
+        {translations.ready && result && result.totalPages > 1 && (
           <nav className={styles.pagination} aria-label={t('serverOrders.pagination', 'Order pages')}>
             <button
               type="button"

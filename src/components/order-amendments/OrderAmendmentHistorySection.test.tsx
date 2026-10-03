@@ -5,9 +5,11 @@ import type { OrderDto, OrderItemDto } from '@/types/order';
 import type { OrderAmendmentHistory } from '@/types/orderAmendment';
 import OrderAmendmentHistorySection from './OrderAmendmentHistorySection';
 
+const mockI18n = { language: 'en', addResourceBundle: jest.fn() };
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    i18n: { language: 'en' },
+    i18n: mockI18n,
     t: (key: string, options?: string | Record<string, unknown>) => {
       const values = typeof options === 'string' ? {} : (options ?? {});
       const fallback = typeof options === 'string' ? options : values.defaultValue;
@@ -87,7 +89,7 @@ describe('OrderAmendmentHistorySection', () => {
         <OrderAmendmentHistorySection orderId="order-1" refreshKey={1} />
       </TenantFeaturesProvider>,
     );
-    fireEvent.click(screen.getByText('Amendment history'));
+    fireEvent.click(await screen.findByText('Amendment history'));
 
     expect(await screen.findByText(/Void · Soup/)).toBeInTheDocument();
     expect(screen.getByText(/A-101-S1/)).toBeInTheDocument();

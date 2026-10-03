@@ -85,7 +85,7 @@ export function readPendingAmendmentCommit(actorId: string, sourceOrderId: strin
     const pending = toPending(JSON.parse(raw) as unknown, actorId, sourceOrderId);
     return pending ? { status: 'pending', value: pending } : { status: 'unavailable' };
   } catch (_storageError) {
-    // Typed failure reaches the recovery UI; do not log stored actor or operation data.
+    // Intentionally convert denied storage or malformed JSON to unavailable without logging stored identities.
     return { status: 'unavailable' };
   }
 }
@@ -147,7 +147,7 @@ export function persistPendingAmendmentCommit(value: PendingAmendmentCommit): bo
     );
     return true;
   } catch (_storageError) {
-    // The caller retains the recovery lock and displays the localized storage failure.
+    // Intentionally return false on denied storage; the caller retains the recovery lock and shows its error.
     return false;
   }
 }
@@ -160,11 +160,11 @@ export function clearPendingAmendmentCommit(actorId: string, sourceOrderId: stri
     const raw = window.sessionStorage.getItem(key);
     if (raw === null) return true;
     const pending = toPending(JSON.parse(raw) as unknown, actorId, sourceOrderId);
-    if (!pending || pending.request.clientOperationId !== operationId) return false;
+    if (pending?.request.clientOperationId !== operationId) return false;
     window.sessionStorage.removeItem(key);
     return true;
   } catch (_storageError) {
-    // The caller retains the recovery lock and displays the localized storage failure.
+    // Intentionally return false on denied storage; the caller retains the recovery lock and shows its error.
     return false;
   }
 }

@@ -47,7 +47,7 @@ export function useOrderAmendment(order: OrderDto, onCommitted?: () => void) {
             throw new Error('orderAmendments.visit_unavailable');
           }
           if (typeof session.accountRevision !== 'number' || !Number.isSafeInteger(session.accountRevision)) {
-            throw new Error('orderAmendments.account_revision_unavailable');
+            throw new TypeError('orderAmendments.account_revision_unavailable');
           }
           expectedAccountRevision = session.accountRevision;
         }

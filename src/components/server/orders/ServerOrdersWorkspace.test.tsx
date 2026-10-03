@@ -70,6 +70,7 @@ describe('ServerOrdersWorkspace', () => {
     expect(screen.getByText('Order amendments are not enabled for this restaurant.')).toBeInTheDocument();
     await waitFor(() => expect(mockGetOrders).toHaveBeenCalledWith('All', 1, 50, ''));
     expect(await screen.findByText('A-001')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Filter by order type' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Review order' })[0]).toHaveAttribute('href', '/server/orders/order-1');
   });
 

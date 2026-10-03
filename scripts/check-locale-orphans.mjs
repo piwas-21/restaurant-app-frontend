@@ -247,7 +247,10 @@ const flattenKeys = (obj, prefix = '') =>
     return v !== null && typeof v === 'object' && !Array.isArray(v) ? flattenKeys(v, path) : [path];
   });
 
-const englishKeys = flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'en.json'), 'utf8')));
+const englishKeys = [
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'order-workspace/en.json'), 'utf8'))),
+];
 
 const orphans = [];
 for (const key of englishKeys) {

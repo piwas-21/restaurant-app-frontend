@@ -41,7 +41,12 @@ export function normalizeAmendmentHistory(history: OrderAmendmentHistory[]): Ord
 
 function normalizeAmendmentOrder(order: OrderDto): OrderDto {
   const wire = order as unknown as Record<string, unknown>;
-  const items = Array.isArray(wire.items) ? wire.items : Array.isArray(wire.Items) ? wire.Items : [];
+  let items: unknown[] = [];
+  if (Array.isArray(wire.items)) {
+    items = wire.items;
+  } else if (Array.isArray(wire.Items)) {
+    items = wire.Items;
+  }
   return { ...order, items: items.map((item) => normalizeAmendmentItem(item as OrderItemDto)) };
 }
 
@@ -56,11 +61,12 @@ function normalizeAmendmentChange(change: OrderAmendmentChangeSnapshot): OrderAm
 function normalizeAmendmentItem(item: OrderItemDto): OrderItemDto {
   const wire = item as unknown as Record<string, unknown>;
   const { productId, menuId } = amendmentItemIdentity(item);
-  const rawChildren = Array.isArray(wire.sideItems)
-    ? wire.sideItems
-    : Array.isArray(wire.SideItems)
-      ? wire.SideItems
-      : null;
+  let rawChildren: unknown[] | null = null;
+  if (Array.isArray(wire.sideItems)) {
+    rawChildren = wire.sideItems;
+  } else if (Array.isArray(wire.SideItems)) {
+    rawChildren = wire.SideItems;
+  }
   return {
     ...item,
     productId,

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Locale gate (ADR-003, DEV-PHASES-PLAN W1) — three checks over src/locales/*.json, in this order:
+// Locale gate (ADR-003, DEV-PHASES-PLAN W1) — checks over src/locales/*.json and feature bundles:
 //
 //   1. KEY parity      — every key in en.json exists in all other locales and nowhere else; nested
 //                        groups are flattened to dotted paths, so `cashier.zreport.title` counts
@@ -130,7 +130,8 @@ for (const [file, keys] of keySets) {
     const against = file === REFERENCE ? 'its own plural categories' : `expected set derived from ${REFERENCE}`;
     console.error(`✗ ${file}: ${missing.length} missing, ${extra.length} extra vs ${against}`);
     // Name the rule that demands it — "missing: items_many" alone reads like a typo in en.json.
-    const why = (k) => (pluralMember(k) ? ` (plural category '${pluralMember(k).category}' — required by ${file})` : '');
+    const why = (k) =>
+      pluralMember(k) ? ` (plural category '${pluralMember(k).category}' — required by ${file})` : '';
     const notHere = (k) => (PLURAL_SUFFIX.test(k) ? ` (category not in ${file})` : '');
     for (const k of missing) console.error(`    missing: ${k}${why(k)}`);
     for (const k of extra) console.error(`    extra:   ${k}${notHere(k)}`);
@@ -184,8 +185,6 @@ if (emptyValues.length) {
 }
 console.log(`✓ every key in all ${files.length} locales carries a non-empty string value`);
 
-
-
 // ── Placeholder-parity gate ───────────────────────────────────────────────────────────
 // Key parity counts keys and the value gate below compares values TO ENGLISH, so a locale can hold
 // every key, be properly translated, and still have lost an interpolation: a German string missing
@@ -200,7 +199,6 @@ console.log(`✓ every key in all ${files.length} locales carries a non-empty st
 // languages, so position carries no meaning and demanding it would fail on correct translations.
 const placeholdersIn = (value) =>
   typeof value === 'string' ? new Set([...value.matchAll(/\{\{\s*([\w.]+)\s*}}/g)].map((m) => m[1])) : new Set();
-
 
 const englishBundle = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8'));
 const enPairs = flatten(englishBundle);
@@ -395,3 +393,64 @@ console.log(
   `✓ no new untranslated values (${currentTotal} known, baseline ${baselineTotal})` +
     (currentTotal < baselineTotal ? ' — some were translated; regen the baseline to bank it' : ''),
 );
+
+// Feature-scoped locale bundles are loaded on demand and therefore live below subdirectories. Keep
+// their parity, non-empty values, and interpolation safety under the same CI locale gate.
+function checkFeatureLocaleBundles(directory, label) {
+  const localeDirectory = join(LOCALES_DIR, directory);
+  const bundleFiles = readdirSync(localeDirectory).filter((file) => file.endsWith('.json'));
+  const englishFile = 'en.json';
+  if (!bundleFiles.includes(englishFile)) {
+    console.error(`✗ ${label} reference locale ${englishFile} missing from ${localeDirectory}`);
+    return false;
+  }
+  const bundles = new Map(
+    bundleFiles.map((file) => [file, JSON.parse(readFileSync(join(localeDirectory, file), 'utf8'))]),
+  );
+  const english = bundles.get(englishFile);
+  const referenceKeys = new Set(flattenKeys(english));
+  let broken = false;
+  for (const file of files) {
+    const bundle = bundles.get(file);
+    if (!bundle) {
+      broken = true;
+      console.error(`✗ ${directory}/${file}: feature translation bundle is missing`);
+      continue;
+    }
+    const localeKeys = new Set(flattenKeys(bundle));
+    const missing = [...referenceKeys].filter((key) => !localeKeys.has(key));
+    const extra = [...localeKeys].filter((key) => !referenceKeys.has(key));
+    if (missing.length || extra.length) {
+      broken = true;
+      console.error(`✗ ${directory}/${file}: ${missing.length} missing, ${extra.length} extra ${label} key(s)`);
+      for (const key of missing) console.error(`    missing: ${key}`);
+      for (const key of extra) console.error(`    extra:   ${key}`);
+    }
+    for (const [key, value] of flatten(bundle)) {
+      if (typeof value !== 'string' || !value.trim()) {
+        broken = true;
+        console.error(`✗ ${directory}/${file}:${key} has no usable string value`);
+        continue;
+      }
+      const expectedPlaceholders = placeholdersIn(readValue(english, key));
+      const actualPlaceholders = placeholdersIn(value);
+      if (
+        [...expectedPlaceholders].some((placeholder) => !actualPlaceholders.has(placeholder)) ||
+        [...actualPlaceholders].some((placeholder) => !expectedPlaceholders.has(placeholder))
+      ) {
+        broken = true;
+        console.error(`✗ ${directory}/${file}:${key} has mismatched interpolation placeholders`);
+      }
+      const englishValue = readValue(english, key);
+      if (file !== englishFile && value === englishValue) {
+        broken = true;
+        console.error(`✗ ${directory}/${file}:${key} repeats the English value`);
+      }
+    }
+  }
+  if (!broken) console.log(`✓ ${label} feature locale bundle parity holds across ${files.length} locales`);
+  return !broken;
+}
+
+const featureLocaleBundlesValid = checkFeatureLocaleBundles('order-workspace', 'order workspace');
+if (!featureLocaleBundlesValid) process.exit(1);

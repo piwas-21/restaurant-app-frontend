@@ -12,6 +12,7 @@
 .providerNotice,
 .moneyNotice,
 .successNotice {
+  display: block;
   margin: 0;
   padding: var(--space-3, 0.75rem);
   border: 1px solid var(--border-default);

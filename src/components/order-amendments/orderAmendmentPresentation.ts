@@ -45,7 +45,7 @@ export function formatAmendmentMinorAmount(
     const fractionDigits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
     return formatter.format(amount / 10 ** fractionDigits);
   } catch (_formatError) {
-    // The caller renders the localized currency-unavailable state.
+    // Intentionally ignore invalid Intl currency configuration; the caller renders localized unavailable copy.
     return null;
   }
 }

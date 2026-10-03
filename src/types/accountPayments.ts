@@ -12,6 +12,7 @@ export type AccountPaymentState =
   | 'ReconciliationRequired';
 export type AccountPaymentMode = 'Items' | 'Amount' | 'Equal';
 export type AccountManualPaymentMethod = 'Cash' | 'CreditCard';
+export type AccountPaymentSummaryMethod = AccountManualPaymentMethod | 'OnlinePayment';
 
 export interface AccountPaymentAllocation {
   orderId: string;

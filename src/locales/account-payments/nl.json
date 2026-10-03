@@ -59,6 +59,7 @@
     "own_attempt": "Door u gestart",
     "other_cashier": "Door een andere kassamedewerker gestart",
     "method_cash": "Contant",
-    "method_card": "Kaartterminal"
+    "method_card": "Kaartterminal",
+    "method_guest_online": "Onlinebetaling door de gast"
   }
 }

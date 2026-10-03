@@ -59,6 +59,7 @@
     "own_attempt": "Запущено вами",
     "other_cashier": "Запущено другим кассиром",
     "method_cash": "Наличные",
-    "method_card": "Терминал для карт"
+    "method_card": "Терминал для карт",
+    "method_guest_online": "Онлайн-платёж гостя"
   }
 }

@@ -59,6 +59,7 @@
     "own_attempt": "由您发起",
     "other_cashier": "由另一位收银员发起",
     "method_cash": "现金",
-    "method_card": "银行卡终端"
+    "method_card": "银行卡终端",
+    "method_guest_online": "顾客在线支付"
   }
 }

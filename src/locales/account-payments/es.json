@@ -59,6 +59,7 @@
     "own_attempt": "Iniciado por usted",
     "other_cashier": "Iniciado por otro cajero",
     "method_cash": "Efectivo",
-    "method_card": "Terminal de tarjeta"
+    "method_card": "Terminal de tarjeta",
+    "method_guest_online": "Pago en línea del cliente"
   }
 }

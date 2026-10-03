@@ -49,6 +49,24 @@ it('reviews only the available amount and never includes money reserved by anoth
   );
 });
 
+it('keeps guest OnlinePayment outside the staff quote methods', () => {
+  render(
+    <AccountPaymentSelectionForm
+      account={account}
+      session={session}
+      disabled={false}
+      onQuote={onQuote}
+      onPlan={onPlan}
+    />,
+  );
+
+  const method = screen.getByLabelText('cashier.payment_method');
+  expect(method).toHaveValue('Cash');
+  expect(method).toHaveDisplayValue('cashier.table_bill.method_cash');
+  expect(screen.getByRole('option', { name: 'payment_card_at_restaurant' })).toHaveValue('CreditCard');
+  expect(screen.queryByRole('option', { name: 'accountPayments.method_guest_online' })).not.toBeInTheDocument();
+});
+
 it('parses comma-decimal custom contributions exactly and rejects an amount beyond unreserved debt', async () => {
   render(
     <AccountPaymentSelectionForm

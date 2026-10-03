@@ -1,5 +1,5 @@
 import type { ApiResponse } from './order';
-import type { AccountPaymentAllocation, AccountPaymentState, AccountManualPaymentMethod } from './accountPayments';
+import type { AccountPaymentAllocation, AccountPaymentState, AccountPaymentSummaryMethod } from './accountPayments';
 
 export interface AccountEqualShareSlotSummary {
   ordinal: number;
@@ -23,7 +23,7 @@ export interface AccountPaymentAttemptSummary {
   operationId: string | null;
   state: AccountPaymentState;
   version: number;
-  paymentMethod: AccountManualPaymentMethod;
+  paymentMethod: AccountPaymentSummaryMethod;
   amountMinor: number;
   currency: string;
   reservationExpiresAt: string | null;

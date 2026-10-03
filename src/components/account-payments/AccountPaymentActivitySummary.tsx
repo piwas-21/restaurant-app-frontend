@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import type { AccountPaymentAttemptSummary } from '@/types/accountPaymentAccount';
 import styles from './AccountPaymentCollection.module.css';
@@ -32,9 +33,13 @@ export default function AccountPaymentActivitySummary({ capturedMinor, attempts,
               <li key={`${attempt.state}:${attempt.version}:${index}`} className={styles.attempt}>
                 <strong>{t(`accountPayments.state.${attempt.state}`)}</strong>
                 <span className={styles.attemptMeta}>
-                  {money(attempt.amountMinor, attempt.currency)} ·{' '}
-                  {t(attempt.paymentMethod === 'Cash' ? 'accountPayments.method_cash' : 'accountPayments.method_card')}{' '}
-                  · {t(attempt.isOwnOperation ? 'accountPayments.own_attempt' : 'accountPayments.other_cashier')}
+                  {money(attempt.amountMinor, attempt.currency)} · {methodLabel(attempt.paymentMethod, t)}
+                  {attempt.paymentMethod !== 'OnlinePayment' && (
+                    <>
+                      {' '}
+                      · {t(attempt.isOwnOperation ? 'accountPayments.own_attempt' : 'accountPayments.other_cashier')}
+                    </>
+                  )}
                 </span>
               </li>
             ))}
@@ -43,4 +48,10 @@ export default function AccountPaymentActivitySummary({ capturedMinor, attempts,
       )}
     </section>
   );
+}
+
+function methodLabel(method: AccountPaymentAttemptSummary['paymentMethod'], t: TFunction): string {
+  if (method === 'Cash') return t('accountPayments.method_cash');
+  if (method === 'OnlinePayment') return t('accountPayments.method_guest_online');
+  return t('accountPayments.method_card');
 }

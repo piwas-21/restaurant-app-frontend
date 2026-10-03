@@ -59,6 +59,7 @@
     "own_attempt": "Avviato da te",
     "other_cashier": "Avviato da un altro cassiere",
     "method_cash": "Contanti",
-    "method_card": "Terminale per carte"
+    "method_card": "Terminale per carte",
+    "method_guest_online": "Pagamento online dell’ospite"
   }
 }

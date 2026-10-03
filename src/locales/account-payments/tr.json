@@ -59,6 +59,7 @@
     "own_attempt": "Sizin başlattığınız",
     "other_cashier": "Başka bir kasiyerin başlattığı",
     "method_cash": "Nakit",
-    "method_card": "Kart terminali"
+    "method_card": "Kart terminali",
+    "method_guest_online": "Misafirin çevrimiçi ödemesi"
   }
 }

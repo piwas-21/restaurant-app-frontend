@@ -59,6 +59,7 @@
     "own_attempt": "Von Ihnen gestartet",
     "other_cashier": "Von einer anderen Kassenkraft gestartet",
     "method_cash": "Bargeld",
-    "method_card": "Kartenterminal"
+    "method_card": "Kartenterminal",
+    "method_guest_online": "Onlinezahlung durch den Gast"
   }
 }

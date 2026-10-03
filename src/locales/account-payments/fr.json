@@ -59,6 +59,7 @@
     "own_attempt": "Démarré par vous",
     "other_cashier": "Démarré par un autre membre de caisse",
     "method_cash": "Espèces",
-    "method_card": "Terminal de carte"
+    "method_card": "Terminal de carte",
+    "method_guest_online": "Paiement en ligne du client"
   }
 }

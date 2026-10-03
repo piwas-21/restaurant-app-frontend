@@ -59,6 +59,7 @@
     "own_attempt": "بدأته أنت",
     "other_cashier": "بدأه أمين صندوق آخر",
     "method_cash": "نقدًا",
-    "method_card": "بطاقة على جهاز الدفع"
+    "method_card": "بطاقة على جهاز الدفع",
+    "method_guest_online": "دفع إلكتروني من الضيف"
   }
 }

@@ -59,6 +59,7 @@
     "own_attempt": "Started by you",
     "other_cashier": "Started by another cashier",
     "method_cash": "Cash",
-    "method_card": "Card terminal"
+    "method_card": "Card terminal",
+    "method_guest_online": "Guest online payment"
   }
 }

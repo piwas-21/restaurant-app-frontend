@@ -139,6 +139,7 @@ export interface DeliveryChannelCategoryItemStatus {
 
 export interface DeliveryChannelCategoryDraftRequest {
   readonly expectedDraftRevision: string | null;
+  readonly items: readonly [];
   readonly expectedSourceRevision: string;
   readonly categoryIds: readonly string[];
   readonly itemOverrides: readonly DeliveryChannelCategoryItemOverrideRequest[];

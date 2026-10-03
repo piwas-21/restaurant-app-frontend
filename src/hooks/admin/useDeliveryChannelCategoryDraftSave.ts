@@ -116,6 +116,7 @@ export function useDeliveryChannelCategoryDraftSave({
     try {
       const draft = await deliveryChannelManagementService.saveCategoryDraft({
         expectedDraftRevision: inventory.draft?.draftRevision ?? inventory.draftRevision ?? null,
+        items: [],
         expectedSourceRevision: inventory.sourceRevision,
         categoryIds: sortCategoryIds(attempt.categoryIds),
         itemOverrides,

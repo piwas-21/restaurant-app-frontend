@@ -209,6 +209,7 @@ it('saves the full category selection and negative item override with the source
   });
   expect(save).toHaveBeenCalledWith({
     expectedDraftRevision: null,
+    items: [],
     expectedSourceRevision: 'source-1',
     categoryIds: ['mains'],
     itemOverrides: [
@@ -258,6 +259,7 @@ it('lets an owner remove an empty selected category intent before saving the fro
 
   expect(save).toHaveBeenCalledWith({
     expectedDraftRevision: 'draft-1',
+    items: [],
     expectedSourceRevision: 'source-1',
     categoryIds: [],
     itemOverrides: [],
@@ -496,6 +498,7 @@ it('keeps a stale draft frozen until explicit source refresh, then rebases with 
   await act(async () => expect(await result.current.saveDraft()).toBe(true));
   expect(save).toHaveBeenCalledWith({
     expectedDraftRevision: 'draft-1',
+    items: [],
     expectedSourceRevision: 'source-2',
     categoryIds: ['mains'],
     itemOverrides: [
@@ -685,6 +688,7 @@ it.each(['CategoryLimitExceeded', 'SelectionOverrideLimitExceeded'] as const)(
     await act(async () => expect(await result.current.selection.saveDraft()).toBe(true));
     expect(save).toHaveBeenCalledWith({
       expectedDraftRevision: null,
+      items: [],
       expectedSourceRevision: 'source-1',
       categoryIds: errorCode === 'CategoryLimitExceeded' ? ['mains'] : [],
       itemOverrides:
@@ -957,6 +961,7 @@ it('removes only backend-confirmed retired categories and overrides after source
   await act(async () => expect(await result.current.saveDraft()).toBe(true));
   expect(save).toHaveBeenCalledWith({
     expectedDraftRevision: 'draft-1',
+    items: [],
     expectedSourceRevision: 'source-2',
     categoryIds: [],
     itemOverrides: [],

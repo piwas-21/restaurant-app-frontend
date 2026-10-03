@@ -24,6 +24,10 @@ export default function ScanGuestVisitExperience({ qr }: Readonly<{ qr: ScanGues
   const { phase } = useTableGuestVisit();
   const { setTableContext } = useTableContext();
   const requiresAdmission = tableGuestVisitsV1 && tableGuestFeatureStatus === 'ready' && phase === 'notJoined';
+  const handleJoined = () => {
+    const locale = window.location.pathname.split('/').find((segment) => segment.length > 0);
+    router.push(locale ? `/${locale}/menu` : '/menu');
+  };
 
   useEffect(() => {
     if (!requiresAdmission) return;
@@ -39,11 +43,7 @@ export default function ScanGuestVisitExperience({ qr }: Readonly<{ qr: ScanGues
 
   return (
     <main className={styles.page}>
-      <TableGuestAdmissionForm
-        qrCodeData={qr.code}
-        tableLabel={qr.table.tableNumber}
-        onJoined={() => router.push(`/${window.location.pathname.split('/').filter(Boolean)[0]}/menu`)}
-      />
+      <TableGuestAdmissionForm qrCodeData={qr.code} tableLabel={qr.table.tableNumber} onJoined={handleJoined} />
     </main>
   );
 }

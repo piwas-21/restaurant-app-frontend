@@ -23,16 +23,17 @@ export default function TableGuestAccountLine({ item, quantity, formatPrice }: T
       </div>
       {item.ingredientCustomizations.length > 0 && (
         <ul className={styles.customizations}>
-          {item.ingredientCustomizations.map((entry, index) => (
-            <li key={`${entry.name}:${index}`}>
-              {entry.removed
-                ? t('table_guest_removed_item', { item: entry.name })
-                : t(entry.addOn ? 'table_guest_extra_item' : 'table_guest_selected_item', {
-                    item: entry.name,
-                    quantity: entry.quantity,
-                  })}
-            </li>
-          ))}
+          {item.ingredientCustomizations.map((entry, index) => {
+            let label: string;
+            if (entry.removed) {
+              label = t('table_guest_removed_item', { item: entry.name });
+            } else if (entry.addOn) {
+              label = t('table_guest_extra_item', { item: entry.name, quantity: entry.quantity });
+            } else {
+              label = t('table_guest_selected_item', { item: entry.name, quantity: entry.quantity });
+            }
+            return <li key={`${entry.name}:${index}`}>{label}</li>;
+          })}
         </ul>
       )}
       {item.sideItems.length > 0 && (

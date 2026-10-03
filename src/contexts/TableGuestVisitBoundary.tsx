@@ -7,7 +7,13 @@ import { useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
 
 const LazyTableGuestVisitProvider = dynamic(
   () => import('@/contexts/TableGuestVisitProvider').then((module) => module.TableGuestVisitProvider),
-  { loading: () => <p role="status" aria-label="Loading" /> },
+  {
+    loading: () => (
+      <p>
+        <output aria-label="Loading" />
+      </p>
+    ),
+  },
 );
 
 export default function TableGuestVisitBoundary({

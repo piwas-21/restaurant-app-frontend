@@ -36,26 +36,24 @@ export default function TableGuestRoundReview({
 }: TableGuestRoundReviewProps) {
   const { t } = useTranslation();
   const isAcknowledgedWithoutBasket = Boolean(acknowledgement) && items.length === 0 && !pendingRound;
+  let heading = 'table_guest_review_title';
+  if (recoveryOnly) heading = 'table_guest_pending_round_notice';
+  else if (isAcknowledgedWithoutBasket) heading = 'table_guest_account_title';
+  let submitLabel = 'table_guest_round_action';
+  if (pendingRound) submitLabel = 'table_guest_retry_round_action';
+  if (isSubmitting) submitLabel = 'table_guest_joining';
 
   return (
     <main className={styles.page} aria-labelledby="table-round-review-heading">
       <header className={styles.header}>
-        <h1 id="table-round-review-heading">
-          {t(
-            recoveryOnly
-              ? 'table_guest_pending_round_notice'
-              : isAcknowledgedWithoutBasket
-                ? 'table_guest_account_title'
-                : 'table_guest_review_title',
-          )}
-        </h1>
+        <h1 id="table-round-review-heading">{t(heading)}</h1>
         {!recoveryOnly && !isAcknowledgedWithoutBasket && <p>{t('table_guest_round_explanation')}</p>}
       </header>
 
       {acknowledgement && (
         <>
-          <p className={styles.notice} role="status">
-            {t('table_guest_round_added')}
+          <p className={styles.notice}>
+            <output>{t('table_guest_round_added')}</output>
           </p>
           {isAcknowledgedWithoutBasket && (
             <p className={styles.notice}>
@@ -66,8 +64,8 @@ export default function TableGuestRoundReview({
         </>
       )}
       {pendingRound && (
-        <p className={styles.notice} role="status">
-          {t('table_guest_pending_round_notice')}
+        <p className={styles.notice}>
+          <output>{t('table_guest_pending_round_notice')}</output>
         </p>
       )}
       {recoveryOnly && pendingRoundUnavailable && (
@@ -100,9 +98,7 @@ export default function TableGuestRoundReview({
             onClick={() => void onSubmit()}
             disabled={isSubmitting}
           >
-            {isSubmitting
-              ? t('table_guest_joining')
-              : t(pendingRound ? 'table_guest_retry_round_action' : 'table_guest_round_action')}
+            {t(submitLabel)}
           </button>
         )}
         {!recoveryOnly && (

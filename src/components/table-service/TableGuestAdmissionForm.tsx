@@ -43,18 +43,15 @@ export default function TableGuestAdmissionForm({ qrCodeData, tableLabel, onJoin
 
   if (phase === 'loading') {
     return (
-      <p className={styles.message} role="status">
-        {t('loading')}
+      <p className={styles.message}>
+        <output>{t('loading')}</output>
       </p>
     );
   }
   if (!featureEnabled || phase !== 'notJoined') {
-    const message =
-      phase === 'active'
-        ? t('table_guest_already_joined')
-        : phase === 'storageUnavailable'
-          ? t('table_guest_storage_help')
-          : t('table_guest_ended_detail');
+    let message = t('table_guest_ended_detail');
+    if (phase === 'active') message = t('table_guest_already_joined');
+    else if (phase === 'storageUnavailable') message = t('table_guest_storage_help');
     return (
       <section className={styles.panel} aria-labelledby="table-guest-join-heading">
         <h1 id="table-guest-join-heading" className={styles.title}>

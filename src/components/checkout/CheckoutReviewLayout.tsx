@@ -39,7 +39,11 @@ type CssModule = Readonly<Record<string, string>>;
 
 function TableGuestRoundLoading() {
   const { t } = useTranslation();
-  return <p role="status">{t('loading', 'Loading...')}</p>;
+  return (
+    <p>
+      <output>{t('loading', 'Loading...')}</output>
+    </p>
+  );
 }
 
 /** Per-template CSS-module bundle for the review composition. Each template

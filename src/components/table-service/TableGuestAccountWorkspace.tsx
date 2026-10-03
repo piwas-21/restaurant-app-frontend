@@ -116,10 +116,10 @@ export default function TableGuestAccountWorkspace() {
     );
   }
   if (phase !== 'active' || !featureEnabled) {
-    const detail =
-      featureStatus === 'unavailable'
-        ? t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))
-        : t('table_guest_not_joined_detail');
+    let detail = t('table_guest_not_joined_detail');
+    if (featureStatus === 'unavailable') {
+      detail = t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'));
+    }
     return (
       <TableGuestVisitMessage
         title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
@@ -152,14 +152,16 @@ export default function TableGuestAccountWorkspace() {
         </p>
       )}
       {lastRoundAcknowledgement && (
-        <p className={styles.notice} role="status">
-          {t('table_guest_round_added')}
+        <p className={styles.notice}>
+          <output>{t('table_guest_round_added')}</output>
         </p>
       )}
       {pendingRound && (
-        <p className={styles.notice} role="status">
-          {t('table_guest_pending_round_notice')}{' '}
-          <Link href="/checkout/review">{t('table_guest_resolve_round_link')}</Link>
+        <p className={styles.notice}>
+          <output>
+            {t('table_guest_pending_round_notice')}{' '}
+            <Link href="/checkout/review">{t('table_guest_resolve_round_link')}</Link>
+          </output>
         </p>
       )}
       {pendingRoundStatus === 'unknown' && (

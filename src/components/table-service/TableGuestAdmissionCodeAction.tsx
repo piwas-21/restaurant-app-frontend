@@ -61,11 +61,7 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
   };
 
   if (tableGuestFeatureStatus === 'loading' || tableGuestFeatureStatus === 'idle') {
-    return (
-      <output className={styles.panel} role="status">
-        {t('loading')}
-      </output>
-    );
+    return <output className={styles.panel}>{t('loading')}</output>;
   }
   if (tableGuestFeatureStatus === 'unavailable') {
     return (
@@ -83,6 +79,9 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
         new Date(expiresAt),
       )
     : null;
+  let actionLabel = t('table_guest_staff_code_action');
+  if (code || uncertain) actionLabel = t('table_guest_staff_code_replace_action');
+  if (isGenerating) actionLabel = t('table_guest_staff_code_generating');
 
   return (
     <section className={styles.panel} aria-label={t('table_guest_staff_code_title')}>
@@ -107,9 +106,7 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
         onClick={() => void generate()}
         disabled={disabled || isGenerating}
       >
-        {isGenerating
-          ? t('table_guest_staff_code_generating')
-          : t(code || uncertain ? 'table_guest_staff_code_replace_action' : 'table_guest_staff_code_action')}
+        {actionLabel}
       </button>
     </section>
   );

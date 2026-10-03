@@ -49,7 +49,13 @@ export default function TableGuestRouteRuntimeLoader({
       </section>
     );
   }
-  if (!Runtime) return <p role="status">{t('loading')}</p>;
+  if (!Runtime) {
+    return (
+      <p>
+        <output>{t('loading')}</output>
+      </p>
+    );
+  }
 
   return (
     <Runtime

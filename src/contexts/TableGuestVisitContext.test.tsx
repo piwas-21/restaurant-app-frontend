@@ -1,15 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { I18nextProvider } from 'react-i18next';
-import i18n from '../i18n';
 import { ApiError, apiClient } from '@/utils/apiClient';
 import { getPublicTableGuestFeature } from '@/services/publicTableGuestFeatureService';
-import { TableGuestFeatureProvider, useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
+import { useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
 import { loadTableGuestLocale } from '@/services/tableGuestLocaleService';
 import { tableGuestVisitService } from '@/services/tableGuestVisitService';
 import { useTableGuestVisit } from './TableGuestVisitContext';
-import { TableGuestVisitProvider } from './TableGuestVisitProvider';
 import CheckoutTableGuestStateBridge from './CheckoutTableGuestStateBridge';
 import { useCheckoutTableGuestState } from './CheckoutTableGuestStateContext';
+import {
+  createPendingTableGuestRound,
+  createTableGuestVisitIdentity,
+  renderWithTableGuestVisit,
+} from '../test-utils/tableGuestVisitHarness';
 
 jest.mock('@/services/tableGuestLocaleService', () => ({ loadTableGuestLocale: jest.fn() }));
 jest.mock('@/services/publicTableGuestFeatureService', () => ({ getPublicTableGuestFeature: jest.fn() }));
@@ -53,12 +55,6 @@ function CheckoutProbe() {
   return <output aria-label="checkout-state">{`${state.phase}:${state.hasPendingRound ? 'pending' : 'none'}`}</output>;
 }
 
-const visit = {
-  serviceSessionId: 'visit-id',
-  participantToken: 'x'.repeat(40),
-  expiresAt: new Date(Date.now() + 60_000).toISOString(),
-};
-
 describe('TableGuestVisitProvider', () => {
   beforeEach(() => {
     sessionStorage.clear();
@@ -70,7 +66,7 @@ describe('TableGuestVisitProvider', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('holds dine-in recovery while saved visit state awaits the lazy provider', () => {
-    sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(visit));
+    sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(createTableGuestVisitIdentity()));
 
     render(<VisitProbe />);
 
@@ -84,26 +80,10 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('restores only the tab-scoped visit and the non-content pending operation descriptor', async () => {
-    sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(visit));
-    sessionStorage.setItem(
-      'rumi_table_guest_round_attempt_v1',
-      JSON.stringify({
-        serviceSessionId: 'visit-id',
-        operationId: 'operation-id',
-        expectedAccountRevision: 3,
-        expectedBasketFingerprint: 'B'.repeat(64),
-      }),
-    );
+    sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(createTableGuestVisitIdentity()));
+    sessionStorage.setItem('rumi_table_guest_round_attempt_v1', JSON.stringify(createPendingTableGuestRound()));
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { tableGuestVisitsV1: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('active:operation-id'));
     expect(localStorage.getItem('rumi_table_guest_visit_v1')).toBeNull();
@@ -111,24 +91,11 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('preserves a saved participant and lost-response round when the rollout is turned off', async () => {
-    const rawVisit = JSON.stringify(visit);
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'operation-id',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'B'.repeat(64),
-    });
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
+    const rawAttempt = JSON.stringify(createPendingTableGuestRound());
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: false }}>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { tableGuestVisitsV1: false });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('unavailable:operation-id'));
     expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(rawVisit);
@@ -137,26 +104,13 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('preserves a lost-response round across a transient locale failure and explicit retry', async () => {
-    const rawVisit = JSON.stringify(visit);
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'operation-id',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'B'.repeat(64),
-    });
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
+    const rawAttempt = JSON.stringify(createPendingTableGuestRound());
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     jest.mocked(loadTableGuestLocale).mockRejectedValueOnce(new Error('temporary locale failure'));
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { tableGuestVisitsV1: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('unavailable:operation-id'));
     expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(rawVisit);
@@ -171,13 +125,14 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('preserves a lost-response round when the public rollout read recovers on retry', async () => {
-    const rawVisit = JSON.stringify(visit);
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'rollout-retry-operation',
-      expectedAccountRevision: 4,
-      expectedBasketFingerprint: 'D'.repeat(64),
-    });
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
+    const rawAttempt = JSON.stringify(
+      createPendingTableGuestRound({
+        operationId: 'rollout-retry-operation',
+        expectedAccountRevision: 4,
+        expectedBasketFingerprint: 'D'.repeat(64),
+      }),
+    );
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     jest
@@ -185,15 +140,7 @@ describe('TableGuestVisitProvider', () => {
       .mockResolvedValueOnce({ available: false, enabled: false })
       .mockResolvedValueOnce({ available: true, enabled: true });
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider readPublicTableGuestFeature>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { readPublicTableGuestFeature: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('unavailable:rollout-retry-operation'));
     expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(rawVisit);
@@ -207,13 +154,8 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('keeps the visit and pending operation after an account 404 races with feature disablement', async () => {
-    const rawVisit = JSON.stringify(visit);
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'operation-id',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'B'.repeat(64),
-    });
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
+    const rawAttempt = JSON.stringify(createPendingTableGuestRound());
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     jest
@@ -222,15 +164,7 @@ describe('TableGuestVisitProvider', () => {
       .mockResolvedValueOnce({ available: true, enabled: false });
     const accountRead = jest.spyOn(apiClient, 'get').mockRejectedValue(new ApiError(404, ''));
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider readPublicTableGuestFeature>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { readPublicTableGuestFeature: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('active:operation-id'));
     fireEvent.click(screen.getByRole('button', { name: 'read account' }));
@@ -248,13 +182,8 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('keeps a lost-response descriptor after a round 404 races with feature disablement', async () => {
-    const rawVisit = JSON.stringify(visit);
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'operation-id',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'B'.repeat(64),
-    });
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
+    const rawAttempt = JSON.stringify(createPendingTableGuestRound());
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     jest
@@ -263,15 +192,7 @@ describe('TableGuestVisitProvider', () => {
       .mockResolvedValueOnce({ available: true, enabled: false });
     const roundSubmission = jest.spyOn(apiClient, 'post').mockRejectedValue(new ApiError(404, ''));
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider readPublicTableGuestFeature>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { readPublicTableGuestFeature: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('active:operation-id'));
     fireEvent.click(screen.getByRole('button', { name: 'submit round' }));
@@ -289,24 +210,15 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('marks an expired visit ended without resolving it against another party', async () => {
-    const expiredVisit = JSON.stringify({ ...visit, expiresAt: new Date(Date.now() - 1_000).toISOString() });
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'operation-id',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'B'.repeat(64),
-    });
+    const expiredVisit = JSON.stringify(
+      createTableGuestVisitIdentity({
+        expiresAt: new Date(Date.now() - 1_000).toISOString(),
+      }),
+    );
+    const rawAttempt = JSON.stringify(createPendingTableGuestRound());
     sessionStorage.setItem('rumi_table_guest_visit_v1', expiredVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <VisitProbe />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithTableGuestVisit(<VisitProbe />, { tableGuestVisitsV1: true });
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('ended:operation-id'));
     expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBeNull();
@@ -316,27 +228,22 @@ describe('TableGuestVisitProvider', () => {
 
   it('preserves a pending operation when the visit credential is malformed and blocks checkout and rejoin', async () => {
     const rawVisit = '{invalid';
-    const rawAttempt = JSON.stringify({
-      serviceSessionId: 'visit-id',
-      operationId: 'lost-response-operation',
-      expectedAccountRevision: 3,
-      expectedBasketFingerprint: 'C'.repeat(64),
-    });
+    const rawAttempt = JSON.stringify(
+      createPendingTableGuestRound({
+        operationId: 'lost-response-operation',
+        expectedBasketFingerprint: 'C'.repeat(64),
+      }),
+    );
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     const join = jest.spyOn(tableGuestVisitService, 'joinTableGuestVisit');
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <CheckoutTableGuestStateBridge>
-              <VisitProbe />
-              <CheckoutProbe />
-            </CheckoutTableGuestStateBridge>
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
+    renderWithTableGuestVisit(
+      <CheckoutTableGuestStateBridge>
+        <VisitProbe />
+        <CheckoutProbe />
+      </CheckoutTableGuestStateBridge>,
+      { tableGuestVisitsV1: true },
     );
 
     await waitFor(() => expect(screen.getByText('storageUnavailable:lost-response-operation')).toBeInTheDocument());
@@ -350,24 +257,19 @@ describe('TableGuestVisitProvider', () => {
   });
 
   it('blocks departure and new round writes when the pending-operation record cannot be read', async () => {
-    const rawVisit = JSON.stringify(visit);
+    const rawVisit = JSON.stringify(createTableGuestVisitIdentity());
     const rawAttempt = '{invalid';
     sessionStorage.setItem('rumi_table_guest_visit_v1', rawVisit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', rawAttempt);
     const join = jest.spyOn(tableGuestVisitService, 'joinTableGuestVisit');
     const createRound = jest.spyOn(tableGuestVisitService, 'createTableGuestRound');
 
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <CheckoutTableGuestStateBridge>
-              <VisitProbe />
-              <CheckoutProbe />
-            </CheckoutTableGuestStateBridge>
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
+    renderWithTableGuestVisit(
+      <CheckoutTableGuestStateBridge>
+        <VisitProbe />
+        <CheckoutProbe />
+      </CheckoutTableGuestStateBridge>,
+      { tableGuestVisitsV1: true },
     );
 
     await waitFor(() => expect(screen.getByText('active:none')).toBeInTheDocument());

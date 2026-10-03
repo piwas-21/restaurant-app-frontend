@@ -106,8 +106,10 @@ export function TableGuestFeatureProvider({
     };
   }, [i18n, i18n?.language, retryGeneration, shouldLoadGuestStrings]);
 
-  const staticFeatureStatus =
-    features?.tableGuestVisitsV1 === undefined ? 'idle' : features.tableGuestVisitsV1 ? guestStringsStatus : 'ready';
+  let staticFeatureStatus: TableGuestFeatureStatus = 'idle';
+  if (features?.tableGuestVisitsV1 !== undefined) {
+    staticFeatureStatus = features.tableGuestVisitsV1 ? guestStringsStatus : 'ready';
+  }
   const publicFeatureStatus = resolvePublicFeatureStatus(
     publicFeature.status,
     guestStringsStatus,

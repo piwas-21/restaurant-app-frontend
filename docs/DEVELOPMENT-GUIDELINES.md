@@ -100,7 +100,7 @@ export default function OrdersManagementPage() {
 All modals MUST use the `BaseModal` wrapper from the design system:
 
 ```tsx
-import { BaseModal } from '@/design-system/components';
+import BaseModal from '@/components/design-system/BaseModal';
 
 export default function EditOrderModal({ isOpen, onClose, order }: Props) {
   return (
@@ -251,8 +251,7 @@ Use design system components for common UI patterns:
 
 | Component | Use For |
 |---|---|
-| `BaseModal` | All modal/overlay components (60+ modals) |
-| `BaseModal` | Confirm/cancel overlays as well as other modals |
+| `BaseModal` | All modal/overlay components, including confirm/cancel overlays |
 | `FormField` | Label + input + error pattern in forms |
 | `StatusBadge` | Order/payment/reservation status display |
 | `Button` | All buttons (primary, secondary, danger, ghost) |

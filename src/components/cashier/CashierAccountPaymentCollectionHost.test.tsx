@@ -14,6 +14,7 @@ const operationId = 'b90d31c6-bec4-443f-a9ec-25bb070ed4f4';
 const nextServiceSessionId = '78ef9452-1e58-4112-b1de-b0dd06a0e186';
 const session = { serviceSessionId } as TableServiceSessionDto;
 const mockUseState = useState;
+const mockApiGet = jest.fn();
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
@@ -22,6 +23,8 @@ jest.mock('react-i18next', () => ({
 jest.mock('@/components/AuthContext', () => ({
   useOptionalAuth: () => mockUseOptionalAuth(),
 }));
+
+jest.mock('@/utils/apiClient', () => ({ apiClient: { get: (...args: unknown[]) => mockApiGet(...args) } }));
 
 jest.mock('@/services/accountPaymentLocaleService', () => ({
   loadAccountPaymentLocale: jest.fn().mockResolvedValue(undefined),
@@ -55,6 +58,18 @@ jest.mock('./accountPaymentCollectionLoader', () => ({
 }));
 
 const mockUseOptionalAuth = jest.fn();
+
+function oldAuthUser() {
+  return { user: { role: 'Cashier', email: 'not-an-identity@example.com' }, isLoading: false };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
+}
 
 function fallback() {
   return <div data-testid="legacy-collection">Legacy tender form</div>;
@@ -95,6 +110,7 @@ describe('CashierAccountPaymentCollectionHost', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     mockUseOptionalAuth.mockReturnValue({ user: { userId: actorId }, isLoading: false });
+    mockApiGet.mockReset();
     jest.mocked(loadAccountPaymentLocale).mockReset().mockResolvedValue(undefined);
     jest.mocked(loadAccountPaymentCollection).mockClear();
   });
@@ -182,6 +198,99 @@ describe('CashierAccountPaymentCollectionHost', () => {
     expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
     expect(loadAccountPaymentLocale).not.toHaveBeenCalled();
     expect(loadAccountPaymentCollection).not.toHaveBeenCalled();
+  });
+
+  it('resolves an old auth record before permitting the feature-off legacy collection', async () => {
+    mockUseOptionalAuth.mockReturnValue(oldAuthUser());
+    mockApiGet.mockResolvedValue({ success: true, data: { id: actorId } });
+
+    renderHost(false);
+
+    expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
+    expect(mockApiGet).toHaveBeenCalledWith('/api/User/profile', {
+      requireAuth: true,
+      signOutOn401: false,
+    });
+    expect(loadAccountPaymentLocale).not.toHaveBeenCalled();
+    expect(loadAccountPaymentCollection).not.toHaveBeenCalled();
+  });
+
+  it('recovers only the profile-resolved actor’s pending operation while the feature is off', async () => {
+    expect(savePending(actorId)).toBe(true);
+    mockUseOptionalAuth.mockReturnValue(oldAuthUser());
+    mockApiGet.mockResolvedValue({ success: true, data: { id: actorId } });
+
+    renderHost(false);
+
+    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('false:true:true');
+    expect(screen.queryByTestId('legacy-collection')).not.toBeInTheDocument();
+    expect(loadAccountPaymentCollection).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps both fallback and recovery blocked while identity resolution is pending', async () => {
+    expect(savePending(actorId)).toBe(true);
+    mockUseOptionalAuth.mockReturnValue(oldAuthUser());
+    const profile = deferred<{ success: boolean; data: { id: string } }>();
+    mockApiGet.mockReturnValue(profile.promise);
+
+    renderHost(false);
+
+    expect(await screen.findByText('cashier.tables.operation_checking')).toBeInTheDocument();
+    expect(screen.queryByTestId('legacy-collection')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('account-payment-collection')).not.toBeInTheDocument();
+    await waitFor(() => expect(mockApiGet).toHaveBeenCalledTimes(1));
+    profile.resolve({ success: true, data: { id: actorId } });
+    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('false:true:true');
+  });
+
+  it('does not mount stale actor recovery after auth changes while the old profile request is in flight', async () => {
+    expect(savePending(actorId)).toBe(true);
+    const oldAuth = oldAuthUser();
+    let currentAuth = oldAuth;
+    mockUseOptionalAuth.mockImplementation(() => currentAuth);
+    const oldProfile = deferred<{ success: boolean; data: { id: string } }>();
+    mockApiGet
+      .mockImplementationOnce(() => oldProfile.promise)
+      .mockResolvedValueOnce({
+        success: true,
+        data: { id: otherActorId },
+      });
+    const view = renderHost(false);
+    expect(await screen.findByText('cashier.tables.operation_checking')).toBeInTheDocument();
+
+    currentAuth = oldAuthUser();
+    view.rerender(
+      <TenantFeaturesProvider features={{ tableAccountPaymentsV1: false }}>
+        <CashierAccountPaymentCollectionHost
+          session={session}
+          disabled={false}
+          recoveryEnabled={true}
+          onUpdated={jest.fn()}
+          fallback={fallback()}
+        />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
+    oldProfile.resolve({ success: true, data: { id: actorId } });
+    await waitFor(() => expect(mockApiGet).toHaveBeenCalledTimes(2));
+    expect(screen.queryByTestId('account-payment-collection')).not.toBeInTheDocument();
+    expect(readPendingAccountPayment(actorId, serviceSessionId)).toMatchObject({ status: 'pending' });
+  });
+
+  it('offers retry on a failed old-session identity lookup without clearing auth or using legacy collection', async () => {
+    mockUseOptionalAuth.mockReturnValue(oldAuthUser());
+    mockApiGet
+      .mockRejectedValueOnce(new Error('private profile response'))
+      .mockResolvedValueOnce({ success: true, data: { id: actorId } });
+    renderHost(false);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('cashier.tables.load_error');
+    expect(screen.queryByTestId('legacy-collection')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.retry' }));
+
+    expect(await screen.findByTestId('legacy-collection')).toBeInTheDocument();
+    expect(mockUseOptionalAuth()).toEqual(oldAuthUser());
   });
 
   it('treats unreadable recovery storage as read-only recovery instead of enabling legacy collection', async () => {

@@ -23,6 +23,7 @@ const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
 /** Exactly the `User` shape `AuthContext.login` persists. */
 export interface StoredUser {
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;

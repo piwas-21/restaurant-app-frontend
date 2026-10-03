@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
-import { useOptionalAuth } from '@/components/AuthContext';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
+import { useAccountPaymentActor } from '@/hooks/accountPayments/useAccountPaymentActor';
 import { readPendingAccountPayment } from '@/lib/pendingAccountPayment';
 import { loadAccountPaymentLocale } from '@/services/accountPaymentLocaleService';
 import type { TableServiceSessionDto } from '@/types/order';
@@ -24,12 +24,6 @@ interface Props {
 
 type HostState = 'checking' | 'dormant' | 'loading' | 'ready' | 'failed';
 
-function actorIdFromAuth(auth: ReturnType<typeof useOptionalAuth>): string | undefined {
-  const user = auth?.user;
-  if (!user || !('userId' in user)) return undefined;
-  return typeof user.userId === 'string' && user.userId.length > 0 ? user.userId : undefined;
-}
-
 export default function CashierAccountPaymentCollectionHost({
   session,
   disabled,
@@ -38,32 +32,37 @@ export default function CashierAccountPaymentCollectionHost({
   fallback,
 }: Props) {
   const { t, i18n } = useTranslation();
-  const auth = useOptionalAuth();
+  const actor = useAccountPaymentActor();
   const { tableAccountPaymentsV1: enabled } = useTenantFeatures();
-  const actorId = actorIdFromAuth(auth);
+  const { actorId, status: actorStatus } = actor;
   const [state, setState] = useState<HostState>('checking');
   const [Collection, setCollection] = useState<AccountPaymentCollectionComponent | null>(null);
+  const [resolvedKey, setResolvedKey] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const generation = useRef(0);
   const i18nRef = useRef(i18n);
   i18nRef.current = i18n;
   const language = i18n.language;
+  const viewKey =
+    actorId && session.serviceSessionId ? `${actorId}:${session.serviceSessionId}:${enabled}:${language}` : null;
 
   useEffect(() => {
     const currentGeneration = generation.current + 1;
     generation.current = currentGeneration;
     let cancelled = false;
+    setResolvedKey(null);
     setCollection(null);
 
-    if (auth?.isLoading) {
+    if (actorStatus === 'checking') {
       setState('checking');
       return () => {
         cancelled = true;
       };
     }
 
-    if (!actorId || !session.serviceSessionId) {
+    if (actorStatus === 'failed' || !actorId || !session.serviceSessionId) {
       setState('failed');
+      setResolvedKey(viewKey);
       return () => {
         cancelled = true;
       };
@@ -72,6 +71,7 @@ export default function CashierAccountPaymentCollectionHost({
     const saved = readPendingAccountPayment(actorId, session.serviceSessionId);
     if (!enabled && saved.status === 'none') {
       setState('dormant');
+      setResolvedKey(viewKey);
       return () => {
         cancelled = true;
       };
@@ -83,26 +83,41 @@ export default function CashierAccountPaymentCollectionHost({
         if (cancelled || generation.current !== currentGeneration) return;
         setCollection(() => module.default);
         setState('ready');
+        setResolvedKey(viewKey);
       })
       .catch(() => {
         if (cancelled || generation.current !== currentGeneration) return;
         setState('failed');
+        setResolvedKey(viewKey);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [actorId, auth?.isLoading, enabled, language, retryKey, session.serviceSessionId]);
+  }, [actorId, actorStatus, enabled, language, retryKey, session.serviceSessionId, viewKey]);
 
-  if (state === 'dormant') return fallback;
-  if (state === 'checking' || state === 'loading') {
-    return <output aria-live="polite">{t('cashier.tables.operation_checking')}</output>;
-  }
-  if (state === 'failed' || !Collection || !actorId) {
+  const retry = () => {
+    actor.retry();
+    setRetryKey((current) => current + 1);
+  };
+
+  if (actorStatus === 'failed' || state === 'failed') {
     return (
       <div className={styles.error} role="alert">
         <p>{t('cashier.tables.load_error')}</p>
-        <StaffButton onClick={() => setRetryKey((current) => current + 1)}>{t('cashier.tables.retry')}</StaffButton>
+        <StaffButton onClick={retry}>{t('cashier.tables.retry')}</StaffButton>
+      </div>
+    );
+  }
+  if (actorStatus === 'checking' || resolvedKey !== viewKey || state === 'checking' || state === 'loading') {
+    return <output aria-live="polite">{t('cashier.tables.operation_checking')}</output>;
+  }
+  if (state === 'dormant') return fallback;
+  if (!Collection || !actorId) {
+    return (
+      <div className={styles.error} role="alert">
+        <p>{t('cashier.tables.load_error')}</p>
+        <StaffButton onClick={retry}>{t('cashier.tables.retry')}</StaffButton>
       </div>
     );
   }

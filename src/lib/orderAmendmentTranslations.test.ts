@@ -37,7 +37,7 @@ function keysOf(value: object, prefix = ''): string[] {
 describe('order amendment locale chunks', () => {
   it('keeps feature copy out of the shared base locale and supplies matching keys in all ten locales', () => {
     expect(english).not.toHaveProperty('orderAmendments');
-    expect(english).not.toHaveProperty('serverOrders');
+    expect(english.serverOrders).toEqual({ title: 'Orders' });
     const englishKeys = keysOf(bundles.en.orderAmendments);
     const serverOrderKeys = keysOf(bundles.en.serverOrders);
     for (const [locale, bundle] of Object.entries(bundles)) {

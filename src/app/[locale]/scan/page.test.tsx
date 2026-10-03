@@ -253,13 +253,15 @@ describe('ScanPage with table visits enabled', () => {
 
     renderWithPublicFeature();
 
-    expect(await screen.findByText('Ask staff to confirm table visit availability.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    expect(
+      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
     await new Promise((resolve) => window.setTimeout(resolve, 1100));
     expect(mockPushMenu).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry status check' }));
     expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
     expect(mockPushMenu).not.toHaveBeenCalled();
   });
@@ -273,9 +275,11 @@ describe('ScanPage with table visits enabled', () => {
 
     renderWithPublicFeature();
 
-    expect(await screen.findByText('Ask staff to confirm table visit availability.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
     expect(mockPushMenu).not.toHaveBeenCalled();
   });
 });

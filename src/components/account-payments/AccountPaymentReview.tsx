@@ -63,12 +63,12 @@ export default function AccountPaymentReview({
     (operation.paymentMethod !== 'Cash' || (cashReceived !== null && cashReceived >= operation.amountMinor));
   const money = formatAccountPaymentMinor(operation.amountMinor, operation.currency, i18n.language || 'en');
   const allocationScope = mapFrozenAccountPaymentAllocations(operation, session);
-  const modeLabel =
-    operation.mode === 'Items'
-      ? t('accountPayments.mode_items')
-      : operation.mode === 'Equal'
-        ? t('accountPayments.mode_equal')
-        : t('accountPayments.mode_amount');
+  const modeKeys = {
+    Items: 'accountPayments.mode_items',
+    Equal: 'accountPayments.mode_equal',
+    Amount: 'accountPayments.mode_amount',
+  } as const;
+  const modeLabel = t(modeKeys[operation.mode]);
 
   return (
     <section className={styles.review} aria-label={t('accountPayments.review')}>

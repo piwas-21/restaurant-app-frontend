@@ -52,7 +52,7 @@ it('rejects added guest names, free notes, or provider credentials in a descript
   expect(
     persistPendingAccountPayment({ ...payment, customerEmail: 'private@example.invalid' } as PendingAccountPayment),
   ).toBe(false);
-  expect(window.sessionStorage.length).toBe(0);
+  expect(window.sessionStorage).toHaveLength(0);
 });
 
 it('treats an existing empty descriptor as corruption instead of an absent operation', () => {
@@ -75,7 +75,7 @@ it.each(['review', 'reserving', 'reserved', 'collecting', 'releasing'] as const)
   (stage) => {
     const malformed = { ...payment, stage, expectedVersion: 0 } as PendingAccountPayment;
     expect(persistPendingAccountPayment(malformed)).toBe(false);
-    expect(window.sessionStorage.length).toBe(0);
+    expect(window.sessionStorage).toHaveLength(0);
   },
 );
 

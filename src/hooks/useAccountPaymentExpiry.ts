@@ -9,6 +9,6 @@ export function useAccountPaymentExpiry(expiresAt: string | null) {
     const interval = window.setInterval(() => setNow(Date.now()), EXPIRY_CHECK_INTERVAL_MS);
     return () => window.clearInterval(interval);
   }, [expiresAt]);
-  const expiry = expiresAt === null ? NaN : Date.parse(expiresAt);
+  const expiry = expiresAt === null ? Number.NaN : Date.parse(expiresAt);
   return !Number.isFinite(expiry) || expiry <= now;
 }

@@ -72,8 +72,7 @@ export function readPendingAccountPayment(actorId: string, serviceSessionId: str
     )
       return { status: 'unavailable' };
     return { status: 'pending', value: parsed.data };
-  } catch (storageError: unknown) {
-    void storageError;
+  } catch (_storageError: unknown) {
     // Invalid JSON and inaccessible storage both stay unavailable; the caller shows its safe recovery lock.
   }
   return { status: 'unavailable' };
@@ -96,8 +95,7 @@ export function persistPendingAccountPayment(value: PendingAccountPayment): bool
   try {
     window.sessionStorage.setItem(key(value.actorId, value.serviceSessionId), JSON.stringify(parsed.data));
     return true;
-  } catch (storageError: unknown) {
-    void storageError;
+  } catch (_storageError: unknown) {
     // The caller surfaces this false result and blocks writes; storage exception text may contain private data.
   }
   return false;
@@ -110,8 +108,7 @@ export function clearPendingAccountPayment(actorId: string, serviceSessionId: st
   try {
     window.sessionStorage.removeItem(key(actorId, serviceSessionId));
     return true;
-  } catch (storageError: unknown) {
-    void storageError;
+  } catch (_storageError: unknown) {
     // The caller keeps the recovery lock until authoritative reconciliation; do not log storage details.
   }
   return false;

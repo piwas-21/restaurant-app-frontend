@@ -76,7 +76,8 @@ describe('flag-off server order read-only locale', () => {
   it('loads French amendment copy before showing the read-only order detail', async () => {
     const instance = await frenchI18n();
     expect(instance.getResource('fr', 'translation', 'orderAmendments.feature_disabled')).toBeUndefined();
-    expect(instance.getResource('fr', 'translation', 'serverOrders.title')).toBeUndefined();
+    expect(instance.getResource('fr', 'translation', 'serverOrders.title')).toBe('Commandes');
+    expect(instance.getResource('fr', 'translation', 'serverOrders.search_label')).toBeUndefined();
 
     render(
       <I18nextProvider i18n={instance}>
@@ -98,7 +99,8 @@ describe('flag-off server order read-only locale', () => {
 
   it('loads French amendment copy before exposing the read-only order list', async () => {
     const instance = await frenchI18n();
-    expect(instance.getResource('fr', 'translation', 'serverOrders.title')).toBeUndefined();
+    expect(instance.getResource('fr', 'translation', 'serverOrders.title')).toBe('Commandes');
+    expect(instance.getResource('fr', 'translation', 'serverOrders.search_label')).toBeUndefined();
     render(
       <I18nextProvider i18n={instance}>
         <TenantFeaturesProvider features={{ orderAmendmentsV1: false }}>

@@ -52,6 +52,7 @@ describe('tenant locale routing', () => {
     expect([...KNOWN_TENANT_UI_PATHS].sort()).toEqual(actual);
     expect(isKnownTenantUiPath('/admin/user-groups/42')).toBe(true);
     expect(isKnownTenantUiPath('/server/tables/table-1/order')).toBe(true);
+    expect(isKnownTenantUiPath('/table-account')).toBe(true);
     expect(isKnownTenantUiPath('/server/orders/order-1')).toBe(true);
     expect(isKnownTenantUiPath('/admin/not-a-route')).toBe(false);
     expect(isKnownTenantUiPath('/api/health')).toBe(false);

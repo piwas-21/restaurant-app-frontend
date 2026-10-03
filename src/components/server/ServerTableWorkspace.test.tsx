@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import type { ServerFloorTable } from '@/types/serverWorkspace';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
+import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import ServerTableWorkspace from './ServerTableWorkspace';
 
 jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
@@ -39,7 +40,7 @@ jest.mock('react-i18next', () => ({
       const values = typeof fallback === 'object' ? fallback : options;
       return copy.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? `{{${name}}}`));
     },
-    i18n: { language: 'en' },
+    i18n: { language: 'en', resolvedLanguage: 'en', addResourceBundle: jest.fn() },
   }),
 }));
 
@@ -167,6 +168,26 @@ describe('ServerTableWorkspace', () => {
       'href',
       '/server/tables/table-1/order?serviceSessionId=session-1',
     );
+  });
+
+  it('shows guest-code issuance only for an open visit with the tenant feature enabled', async () => {
+    const props = {
+      tableId: 'table-1',
+      state: state({ table: table({ state: 'Open' }), session, canStartTable: false }),
+    };
+
+    const disabled = render(<ServerTableWorkspace {...props} />);
+    expect(screen.queryByText('table_guest_staff_code_title')).not.toBeInTheDocument();
+    disabled.unmount();
+
+    render(
+      <TenantFeaturesProvider features={{ tableGuestVisitsV1: true }}>
+        <ServerTableWorkspace {...props} />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
   });
 
   it('blocks table actions when a task deep link points at an older service session', () => {

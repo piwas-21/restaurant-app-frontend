@@ -40,7 +40,11 @@ const REGEN = process.argv.includes('--regen');
 const en = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
 // Lazy resources share the runtime translation namespace. Requiring the declared sidecar also
 // fails closed if it disappears; an optional directory scan could silently lose its coverage.
-const localeBundles = [en, JSON.parse(readFileSync(join(root, 'src/locales/order-workspace/en.json'), 'utf8'))];
+const localeBundles = [
+  en,
+  JSON.parse(readFileSync(join(root, 'src/locales/order-workspace/en.json'), 'utf8')),
+  JSON.parse(readFileSync(join(root, 'src/locales/table-guest/en.json'), 'utf8')),
+];
 
 /**
  * Resolve exactly as i18next does: the NESTED path first, then the literal flat key

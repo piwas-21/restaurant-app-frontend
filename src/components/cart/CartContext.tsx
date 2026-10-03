@@ -43,10 +43,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // Empty basket
         dispatch({ type: 'SYNC_BASKET', payload: { basket: { ...initialState.basket!, items: [] } } });
       }
+      return true;
     } catch (error) {
       const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       console.error('Error syncing basket:', error);
+      return false;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }

@@ -1,0 +1,102 @@
+'use client';
+
+import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
+import { useTableGuestVisit } from '@/contexts/TableGuestVisitContext';
+import TenantLink from '@/components/TenantLink';
+import { reportTableGuestFailure } from '@/lib/tableGuestFailureDiagnostics';
+import styles from './TableGuestAdmissionForm.module.css';
+
+interface TableGuestAdmissionFormProps {
+  readonly qrCodeData: string;
+  readonly tableLabel: string;
+  readonly onJoined: () => void;
+}
+
+export default function TableGuestAdmissionForm({ qrCodeData, tableLabel, onJoined }: TableGuestAdmissionFormProps) {
+  const { t } = useTranslation();
+  const { joinVisit, phase, featureEnabled } = useTableGuestVisit();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const admissionCode = code.trim().toUpperCase();
+    if (admissionCode.length !== 10) {
+      setError(t('table_guest_code_length'));
+      return;
+    }
+
+    setIsJoining(true);
+    setError('');
+    try {
+      await joinVisit(qrCodeData, admissionCode);
+      onJoined();
+    } catch (joinError) {
+      reportTableGuestFailure('join visit', joinError);
+      setError(t('table_guest_join_failed'));
+      setIsJoining(false);
+    }
+  };
+
+  if (phase === 'loading') {
+    return (
+      <p className={styles.message} role="status">
+        {t('loading')}
+      </p>
+    );
+  }
+  if (!featureEnabled || phase !== 'notJoined') {
+    const message =
+      phase === 'active'
+        ? t('table_guest_already_joined')
+        : phase === 'storageUnavailable'
+          ? t('table_guest_storage_help')
+          : t('table_guest_ended_detail');
+    return (
+      <section className={styles.panel} aria-labelledby="table-guest-join-heading">
+        <h1 id="table-guest-join-heading" className={styles.title}>
+          {t('table_guest_join_title')}
+        </h1>
+        <p className={styles.description}>{message}</p>
+        <TenantLink href="/table-account" className={styles.accountLink}>
+          {t('table_guest_account_link')}
+        </TenantLink>
+      </section>
+    );
+  }
+
+  return (
+    <section className={styles.panel} aria-labelledby="table-guest-join-heading">
+      <h1 id="table-guest-join-heading" className={styles.title}>
+        {t('table_guest_join_title')}
+      </h1>
+      <p className={styles.description}>{t('table_guest_join_description', { table: tableLabel })}</p>
+      <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
+        <FormField label={t('table_guest_code_label')} error={error}>
+          <input
+            type="text"
+            value={code}
+            onChange={(event) => setCode(event.currentTarget.value.toUpperCase().slice(0, 10))}
+            autoComplete="one-time-code"
+            autoCapitalize="characters"
+            spellCheck={false}
+            maxLength={10}
+            aria-describedby={error ? undefined : 'table-guest-code-help'}
+            disabled={isJoining}
+          />
+        </FormField>
+        {!error && (
+          <p id="table-guest-code-help" className={styles.help}>
+            {t('table_guest_code_help')}
+          </p>
+        )}
+        <button type="submit" className={styles.submitButton} disabled={isJoining || code.trim().length !== 10}>
+          {isJoining ? t('table_guest_joining') : t('table_guest_join_action')}
+        </button>
+      </form>
+    </section>
+  );
+}

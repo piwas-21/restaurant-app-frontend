@@ -31,6 +31,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: true,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
     expect(global.fetch).toHaveBeenCalledWith('http://backend.test/api/tenant/features', {
       cache: 'no-store',
@@ -47,6 +48,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -62,6 +64,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: true,
       tableAccountV1: true,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -81,6 +84,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: true,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -95,6 +99,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -107,6 +112,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -117,6 +123,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -127,6 +134,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
   });
 
@@ -141,6 +149,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -155,6 +164,7 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });

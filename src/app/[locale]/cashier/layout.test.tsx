@@ -28,7 +28,14 @@ describe('CashierLayout authorization', () => {
   it('does not render cashier children for another authenticated role', () => {
     mockAuth.mockReturnValue({ user: { role: 'server' }, isLoading: false });
     render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: false, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -41,7 +48,14 @@ describe('CashierLayout authorization', () => {
 
   it('renders children for cashier and admin roles', () => {
     const { rerender } = render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -49,7 +63,14 @@ describe('CashierLayout authorization', () => {
 
     mockAuth.mockReturnValue({ user: { role: 'ADMIN' }, isLoading: false });
     rerender(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -58,7 +79,14 @@ describe('CashierLayout authorization', () => {
 
   it('provides the tenant table-account flag to authorized cashier routes', () => {
     render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+        }}
+      >
         <FeatureProbe />
       </CashierLayoutClient>,
     );
@@ -69,7 +97,14 @@ describe('CashierLayout authorization', () => {
   it('uses the scoped stylesheet for the loading spinner animation', () => {
     mockAuth.mockReturnValue({ user: null, isLoading: true });
     const { container } = render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: false, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );

@@ -37,7 +37,7 @@ const mocked = basketService as jest.Mocked<typeof basketService>;
  * path dispatches its message after the resync rather than before.
  */
 describe('useCartItemMutations — the two basket 404s', () => {
-  const syncBasket = jest.fn<Promise<void>, []>();
+  const syncBasket = jest.fn<Promise<boolean>, []>();
   const dispatch = jest.fn<void, [CartAction]>();
   const ensureSession = jest.fn();
 
@@ -63,7 +63,7 @@ describe('useCartItemMutations — the two basket 404s', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    syncBasket.mockResolvedValue(undefined);
+    syncBasket.mockResolvedValue(true);
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -110,6 +110,7 @@ describe('useCartItemMutations — the two basket 404s', () => {
       syncBasket.mockImplementation(async () => {
         await Promise.resolve();
         dispatch({ type: 'SYNC_BASKET', payload: { basket: emptyBasket } });
+        return true;
       });
       service().mockRejectedValue(notFound('Basket not found', 'BasketNotFound'));
 

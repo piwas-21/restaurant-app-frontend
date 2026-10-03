@@ -6,12 +6,14 @@ export interface TenantFeaturesState {
   serverWorkspaceV2: boolean;
   tableAccountV1: boolean;
   orderAmendmentsV1: boolean;
+  tableGuestVisitsV1: boolean;
 }
 
 const DEFAULT_FEATURES: TenantFeaturesState = {
   serverWorkspaceV2: false,
   tableAccountV1: false,
   orderAmendmentsV1: false,
+  tableGuestVisitsV1: false,
 };
 const TenantFeaturesContext = createContext<TenantFeaturesState>(DEFAULT_FEATURES);
 

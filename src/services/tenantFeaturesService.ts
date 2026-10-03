@@ -9,6 +9,7 @@ export interface TenantFeatures {
   tableAccountV1: boolean;
   orderAmendmentsV1: boolean;
   tableGuestVisitsV1: boolean;
+  tableAccountPaymentsV1: boolean;
 }
 
 interface TenantFeaturesResponse {
@@ -18,6 +19,7 @@ interface TenantFeaturesResponse {
     tableAccountV1?: unknown;
     orderAmendmentsV1?: unknown;
     tableGuestVisitsV1?: unknown;
+    tableAccountPaymentsV1?: unknown;
   };
 }
 
@@ -26,6 +28,7 @@ const DEFAULT_FEATURES: TenantFeatures = {
   tableAccountV1: false,
   orderAmendmentsV1: false,
   tableGuestVisitsV1: false,
+  tableAccountPaymentsV1: false,
 };
 
 /**
@@ -63,6 +66,10 @@ export async function getTenantFeatures(): Promise<TenantFeatures> {
         typeof body.data?.tableGuestVisitsV1 === 'boolean'
           ? body.data.tableGuestVisitsV1
           : DEFAULT_FEATURES.tableGuestVisitsV1,
+      tableAccountPaymentsV1:
+        typeof body.data?.tableAccountPaymentsV1 === 'boolean'
+          ? body.data.tableAccountPaymentsV1
+          : DEFAULT_FEATURES.tableAccountPaymentsV1,
     };
   } catch (error) {
     console.warn('Could not read tenant rollout features; retaining Server Workspace V1', error);

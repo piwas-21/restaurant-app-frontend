@@ -42,9 +42,11 @@ function runGate(
   mkdirSync(join(root, 'scripts'), { recursive: true });
   mkdirSync(join(root, 'src/locales/order-workspace'), { recursive: true });
   mkdirSync(join(root, 'src/locales/table-guest'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/account-payments'), { recursive: true });
   copyFileSync(SCRIPT, join(root, 'scripts/check-locale-orphans.mjs'));
   writeFileSync(join(root, 'src/locales/en.json'), `${JSON.stringify(englishKeys, null, 2)}\n`);
   writeFileSync(join(root, 'src/locales/order-workspace/en.json'), '{}\n');
+  writeFileSync(join(root, 'src/locales/account-payments/en.json'), '{}\n');
   writeFileSync(join(root, 'src/locales/table-guest/en.json'), `${JSON.stringify(tableGuestKeys, null, 2)}\n`);
   for (const [rel, contents] of Object.entries(files)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true });

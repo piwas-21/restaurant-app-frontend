@@ -44,6 +44,7 @@ const localeBundles = [
   en,
   JSON.parse(readFileSync(join(root, 'src/locales/order-workspace/en.json'), 'utf8')),
   JSON.parse(readFileSync(join(root, 'src/locales/table-guest/en.json'), 'utf8')),
+  JSON.parse(readFileSync(join(root, 'src/locales/account-payments/en.json'), 'utf8')),
 ];
 
 /**

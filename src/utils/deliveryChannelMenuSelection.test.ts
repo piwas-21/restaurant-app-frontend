@@ -74,6 +74,28 @@ describe('delivery channel category selection model', () => {
     });
   });
 
+  it('preserves the explicit toggle for a category with no current items', () => {
+    const emptyCategory: DeliveryChannelCategorySummary = {
+      categoryId: 'empty',
+      name: 'Seasonal',
+      displayOrder: 3,
+      totalItemCount: 0,
+      supportedItemCount: 0,
+      unsupportedItemCount: 0,
+    };
+
+    expect(categorySelectionState(emptyCategory, new Set(['empty']), {})).toEqual({
+      selected: true,
+      indeterminate: false,
+      count: 0,
+    });
+    expect(categorySelectionState(emptyCategory, new Set(), {})).toEqual({
+      selected: false,
+      indeterminate: false,
+      count: 0,
+    });
+  });
+
   it('sends only item overrides that differ from their category toggle', () => {
     const selected = new Set(['cat-1']);
     const overrides = categoryOverrideMap([

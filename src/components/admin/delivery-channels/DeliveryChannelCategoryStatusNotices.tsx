@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './DeliveryChannelCategorySelectionPanel.module.css';
 
 interface Props {
-  readonly stale: boolean;
+  readonly sourceChanged: boolean;
   readonly removedSelectionNotice: boolean;
   readonly showUnsavedNotice: boolean;
   readonly writeUncertain: boolean;
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function DeliveryChannelCategoryStatusNotices({
-  stale,
+  sourceChanged,
   removedSelectionNotice,
   showUnsavedNotice,
   writeUncertain,
@@ -21,7 +21,7 @@ export default function DeliveryChannelCategoryStatusNotices({
   const { t } = useTranslation();
   return (
     <>
-      {stale && (
+      {sourceChanged && (
         <p className={styles.warning} role="alert">
           {t('deliveryChannels.menuSelection.sourceChanged')}
         </p>

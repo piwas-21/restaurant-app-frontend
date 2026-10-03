@@ -19,6 +19,7 @@ export function useDeliveryChannelCategoryDraftState(
   draft: DeliveryChannelCategoryDraft | null,
   enabled: boolean,
   locked: boolean,
+  limitRecoveryError: 'categoryLimit' | 'overrideLimit' | null = null,
 ) {
   const [categoryIds, setCategoryIds] = useState<ReadonlySet<string>>(new Set());
   const [overrides, setOverrides] = useState<Readonly<Record<string, DeliveryChannelCategoryItemOverride>>>({});
@@ -51,7 +52,7 @@ export function useDeliveryChannelCategoryDraftState(
 
   const toggleCategory = useCallback(
     (categoryId: string, selected: boolean) => {
-      if (!enabled || locked) return;
+      if (!enabled || locked || (limitRecoveryError !== null && selected)) return;
       const next = toggleCategorySelection(categoryId, selected, categoryIds, overrides);
       localEdits.current = true;
       categoryIdsRef.current = next.categoryIds;
@@ -60,12 +61,18 @@ export function useDeliveryChannelCategoryDraftState(
       setOverrides(next.overrides);
       setSelectionVersion((value) => value + 1);
     },
-    [categoryIds, enabled, locked, overrides],
+    [categoryIds, enabled, limitRecoveryError, locked, overrides],
   );
 
   const toggleItem = useCallback(
     (item: DeliveryChannelCategoryCandidate, selected: boolean) => {
-      if (!enabled || locked) return;
+      if (
+        !enabled ||
+        locked ||
+        limitRecoveryError === 'categoryLimit' ||
+        (limitRecoveryError === 'overrideLimit' && !overrides[item.selectionKey])
+      )
+        return;
       localEdits.current = true;
       setOverrides((current) => {
         const next = updateCategoryItemOverride(item, selected, categoryIds, current);
@@ -74,7 +81,7 @@ export function useDeliveryChannelCategoryDraftState(
       });
       setSelectionVersion((value) => value + 1);
     },
-    [categoryIds, enabled, locked],
+    [categoryIds, enabled, limitRecoveryError, locked, overrides],
   );
 
   const markSaved = useCallback(

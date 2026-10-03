@@ -120,7 +120,10 @@ export function categorySelectionState(
   }
   const safeCount = Math.max(0, Math.min(category.totalItemCount, count));
   return {
-    selected: safeCount === category.totalItemCount && category.totalItemCount > 0,
+    selected:
+      category.totalItemCount === 0
+        ? selectedCategoryIds.has(category.categoryId)
+        : safeCount === category.totalItemCount,
     indeterminate: safeCount > 0 && safeCount < category.totalItemCount,
     count: safeCount,
   };

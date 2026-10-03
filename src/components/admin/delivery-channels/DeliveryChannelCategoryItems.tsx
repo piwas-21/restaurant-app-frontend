@@ -15,6 +15,7 @@ interface Props {
   readonly currency: string;
   readonly locale: string;
   readonly disabled: boolean;
+  readonly limitRecoveryError?: 'categoryLimit' | 'overrideLimit' | null;
   readonly onToggle: (item: DeliveryChannelCategoryCandidate, selected: boolean) => void;
 }
 
@@ -25,6 +26,7 @@ export default function DeliveryChannelCategoryItems({
   currency,
   locale,
   disabled,
+  limitRecoveryError = null,
   onToggle,
 }: Readonly<Props>) {
   const { t } = useTranslation();
@@ -45,7 +47,12 @@ export default function DeliveryChannelCategoryItems({
             <CheckboxField
               label={label}
               checked={selected}
-              disabled={disabled || !item.categoryId}
+              disabled={
+                disabled ||
+                !item.categoryId ||
+                limitRecoveryError === 'categoryLimit' ||
+                (limitRecoveryError === 'overrideLimit' && !overrides[item.selectionKey])
+              }
               onChange={(value) => onToggle(item, value)}
               data-testid={`delivery-channel-menu-item-${item.selectionKey}`}
             />

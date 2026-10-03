@@ -46,7 +46,7 @@ interface Props {
   readonly setWriteUncertain: Dispatch<SetStateAction<boolean>>;
   readonly recordAcknowledgement: (revision: string | null) => void;
   readonly markSaved: (draft: DeliveryChannelCategoryDraft) => void;
-  readonly refreshCanonical: () => Promise<void>;
+  readonly refreshCanonical: () => Promise<void | DeliveryChannelCategoryInventory | null>;
 }
 
 export function categorySaveAttemptMatches(draft: DeliveryChannelCategoryDraft | null, attempt: CategorySaveAttempt) {

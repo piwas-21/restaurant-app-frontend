@@ -32,6 +32,19 @@ function referenceRefreshError(cause: unknown): CategorySelectionError {
   return 'load';
 }
 
+async function limitFailureAfterCandidateRefresh(
+  failure: CategorySelectionError,
+  sourceRevision: string,
+  refreshCandidates: (sourceRevision: string) => Promise<boolean>,
+): Promise<CategorySelectionError> {
+  if (failure !== 'categoryLimit' && failure !== 'overrideLimit') return failure;
+  try {
+    return (await refreshCandidates(sourceRevision)) ? failure : 'load';
+  } catch (cause: unknown) {
+    return referenceRefreshError(cause) === 'stale' ? 'stale' : 'load';
+  }
+}
+
 export function useDeliveryChannelCategorySourceAcknowledgement({
   categoryIds,
   overrides,
@@ -80,7 +93,13 @@ export function useDeliveryChannelCategorySourceAcknowledgement({
     } catch (cause) {
       recordAcknowledgement(null);
       setConflict(true);
-      setError(referenceRefreshError(cause));
+      setError(
+        await limitFailureAfterCandidateRefresh(
+          referenceRefreshError(cause),
+          current.sourceRevision,
+          refreshCandidates,
+        ),
+      );
       return false;
     } finally {
       setBusy(null);

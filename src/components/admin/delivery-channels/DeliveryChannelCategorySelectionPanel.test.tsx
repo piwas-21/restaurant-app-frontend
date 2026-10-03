@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { DeliveryChannelCatalogue } from '@/types/deliveryChannelCatalogue';
 import type {
+  DeliveryChannelCategoryCandidate,
   DeliveryChannelCategoryDraft,
   DeliveryChannelCategoryInventory,
 } from '@/types/deliveryChannelMenuSelection';
@@ -75,6 +76,7 @@ function panelProps(overrides: Partial<PanelProps> = {}): PanelProps {
     removedSelectionNotice: false,
     needsSave: true,
     stale: true,
+    selectionLocked: true,
     writeUncertain: false,
     locale: 'en',
     onSearch: jest.fn(),
@@ -112,4 +114,111 @@ it('shows the unsaved review notice after source acknowledgment and clears it af
 
   view.rerender(panel({ ...initial, stale: false, needsSave: false }));
   expect(screen.queryByText('deliveryChannels.menuSelection.needsSaveNotice')).not.toBeInTheDocument();
+});
+
+it('allows removing an explicitly selected empty category while keeping save and preview locked', () => {
+  const props = panelProps({
+    inventory: {
+      ...inventory,
+      categories: [
+        {
+          categoryId: 'mains',
+          name: 'Mains',
+          displayOrder: 1,
+          totalItemCount: 0,
+          supportedItemCount: 0,
+          unsupportedItemCount: 0,
+        },
+      ],
+      draft: savedDraft,
+    },
+    categoryIds: new Set(['mains']),
+    selectionLocked: false,
+    stale: true,
+    needsSave: true,
+    error: 'overrideLimit',
+    loadErrorMessage: null,
+  });
+  const view = render(panel(props));
+
+  expect(screen.getByText('deliveryChannels.menuSelection.overrideLimit')).toBeInTheDocument();
+  expect(screen.queryByText('deliveryChannels.menuSelection.sourceChanged')).not.toBeInTheDocument();
+  const checkbox = screen.getByTestId('delivery-channel-category-mains');
+  expect(checkbox).toBeChecked();
+  expect(checkbox).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'deliveryChannels.menuSelection.save' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'deliveryChannels.menu.preparePreview' })).toBeDisabled();
+
+  fireEvent.click(checkbox);
+  expect(props.onToggleCategory).toHaveBeenCalledWith('mains', false);
+
+  view.rerender(
+    panel({
+      ...props,
+      inventory: { ...props.inventory, sourceChanged: true },
+    }),
+  );
+  expect(screen.getByText('deliveryChannels.menuSelection.sourceChanged')).toHaveAttribute('role', 'alert');
+});
+
+it('limits override recovery to removing existing item exceptions', () => {
+  const item: DeliveryChannelCategoryCandidate = {
+    selectionKey: 'mains-item::',
+    productId: 'mains-item',
+    variationId: null,
+    categoryId: 'mains',
+    categoryName: 'Mains',
+    categoryDisplayOrder: 1,
+    itemDisplayOrder: 1,
+    name: 'Mains item',
+    variationName: null,
+    priceMinor: 500,
+    available: true,
+    supported: true,
+    blockReason: null,
+  };
+  const props = panelProps({
+    inventory: {
+      ...inventory,
+      categories: [
+        {
+          categoryId: 'mains',
+          name: 'Mains',
+          displayOrder: 1,
+          totalItemCount: 1,
+          supportedItemCount: 1,
+          unsupportedItemCount: 0,
+        },
+      ],
+    },
+    candidates: [item],
+    stale: true,
+    selectionLocked: false,
+    error: 'overrideLimit',
+    loadErrorMessage: null,
+  });
+  const view = render(panel(props));
+  const checkbox = screen.getByTestId(`delivery-channel-menu-item-${item.selectionKey}`);
+  expect(checkbox).toBeDisabled();
+
+  view.rerender(
+    panel({
+      ...props,
+      overrides: {
+        [item.selectionKey]: {
+          selectionKey: item.selectionKey,
+          productId: item.productId,
+          variationId: item.variationId,
+          categoryId: 'mains',
+          selected: true,
+          supported: true,
+        },
+      },
+    }),
+  );
+  expect(checkbox).toBeEnabled();
+  fireEvent.click(checkbox);
+  expect(props.onToggleItem).toHaveBeenCalledWith(item, false);
+  expect(screen.getByRole('button', { name: 'deliveryChannels.menuSelection.save' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'deliveryChannels.menu.preparePreview' })).toBeDisabled();
 });

@@ -17,12 +17,10 @@ import { categoryInventoryIsSourceMismatched } from '@/utils/deliveryChannelCate
 import { applyCanonicalCategoryInventoryRead } from '@/utils/deliveryChannelCategoryInventoryRead';
 import { useDeliveryChannelCategoryLoadError } from './useDeliveryChannelCategoryLoadError';
 
-type CategorySelectionBusy = 'load' | 'save' | null;
-
 export function useDeliveryChannelCategorySelection(enabled: boolean) {
   const { captureLoadError, clear: clearLoadError, message: loadErrorMessage } = useDeliveryChannelCategoryLoadError();
   const [inventory, setInventory] = useState<DeliveryChannelCategoryInventory | null>(null);
-  const [busy, setBusy] = useState<CategorySelectionBusy>(null);
+  const [busy, setBusy] = useState<'load' | 'save' | null>(null);
   const [error, setError] = useState<CategorySelectionError | null>(null);
   const [acknowledgedSourceRevision, setAcknowledgedSourceRevision] = useState<string | null>(null);
   const [saveConflict, setSaveConflict] = useState(false);
@@ -41,10 +39,16 @@ export function useDeliveryChannelCategorySelection(enabled: boolean) {
     saveConflict ||
     candidates.cursorStale ||
     Boolean(sourceMismatch && acknowledgedSourceRevision !== inventory?.sourceRevision);
+  const limitRecoveryError = saveConflict && (error === 'categoryLimit' || error === 'overrideLimit') ? error : null;
+  const selectionLocked =
+    busy !== null ||
+    writeUncertain ||
+    (sourceStale && (!limitRecoveryError || candidates.cursorStale || candidates.error));
   const draftState = useDeliveryChannelCategoryDraftState(
     inventory?.draft ?? null,
     enabled,
-    busy !== null || writeUncertain || sourceStale,
+    selectionLocked,
+    limitRecoveryError,
   );
   const { markSaved: markDraftSaved, synchronize: synchronizeDraft, reconcileToInventory } = draftState;
   const recordAcknowledgement = useCallback((revision: string | null) => {
@@ -110,9 +114,7 @@ export function useDeliveryChannelCategorySelection(enabled: boolean) {
     setRemovedSelectionNotice,
   });
 
-  const refreshCanonical = useCallback(async () => {
-    await loadInventory(false);
-  }, [loadInventory]);
+  const refreshCanonical = useCallback(() => loadInventory(false), [loadInventory]);
 
   useEffect(() => {
     if (enabled) void loadInventory(false);
@@ -125,7 +127,6 @@ export function useDeliveryChannelCategorySelection(enabled: boolean) {
     uncertainWrite.current = writeUncertain;
   }, [writeUncertain]);
 
-  const dirty = draftState.dirty;
   const selectionMetrics = useMemo(
     () =>
       deliveryChannelCategorySelectionMetrics({
@@ -138,7 +139,7 @@ export function useDeliveryChannelCategorySelection(enabled: boolean) {
     [inventory, sourceStale, draftState.categoryIds, draftState.overrides, candidates.knownCandidates],
   );
   const { categories, knownItems, selectedCount, unsupportedCount } = selectionMetrics;
-  const needsSave = Boolean(inventory && (dirty || sourceMismatch || !inventory.draft));
+  const needsSave = Boolean(inventory && (draftState.dirty || sourceMismatch || !inventory.draft));
 
   useEffect(() => {
     if (inventory && !needsSave && !sourceStale) setRemovedSelectionNotice(false);
@@ -183,9 +184,10 @@ export function useDeliveryChannelCategorySelection(enabled: boolean) {
     busy,
     error,
     loadErrorMessage: error === 'load' ? loadErrorMessage : null,
-    dirty,
+    dirty: draftState.dirty,
     needsSave,
     stale: sourceStale,
+    selectionLocked,
     writeUncertain,
     removedSelectionNotice,
     refresh,

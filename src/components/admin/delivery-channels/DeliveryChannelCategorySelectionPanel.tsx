@@ -10,6 +10,7 @@ import type {
 } from '@/types/deliveryChannelMenuSelection';
 import type { DeliveryChannelCategoryOverrideMap } from '@/utils/deliveryChannelMenuSelection';
 import { selectionErrorText } from '@/utils/deliveryChannelCategorySelectionView';
+import { categoryInventoryIsSourceMismatched } from '@/utils/deliveryChannelCategorySource';
 import { useDeliveryChannelCategoryCandidateFilters } from '@/hooks/admin/useDeliveryChannelCategoryCandidateFilters';
 import DeliveryChannelCategoryItems from './DeliveryChannelCategoryItems';
 import DeliveryChannelCategoryList from './DeliveryChannelCategoryList';
@@ -36,6 +37,7 @@ interface Props {
   readonly removedSelectionNotice: boolean;
   readonly needsSave: boolean;
   readonly stale: boolean;
+  readonly selectionLocked: boolean;
   readonly writeUncertain: boolean;
   readonly locale: string;
   readonly onSearch: (query: string, categoryId: string | null) => Promise<boolean>;
@@ -64,6 +66,7 @@ export default function DeliveryChannelCategorySelectionPanel({
   removedSelectionNotice,
   needsSave,
   stale,
+  selectionLocked,
   writeUncertain,
   locale,
   onSearch,
@@ -85,6 +88,8 @@ export default function DeliveryChannelCategorySelectionPanel({
           selectedItems: inventory.maximumSelectedItemCount,
           categories: inventory.maximumCategoryCount,
         });
+  const limitRecoveryError =
+    stale && !selectionLocked && (error === 'categoryLimit' || error === 'overrideLimit') ? error : null;
   const previewDisabled = needsSave || stale || writeUncertain || busyNow || !inventory.draft;
 
   return (
@@ -110,7 +115,7 @@ export default function DeliveryChannelCategorySelectionPanel({
       </div>
 
       <DeliveryChannelCategoryStatusNotices
-        stale={stale}
+        sourceChanged={categoryInventoryIsSourceMismatched(inventory)}
         removedSelectionNotice={removedSelectionNotice}
         showUnsavedNotice={needsSave && Boolean(inventory.draft) && !stale && !writeUncertain}
         writeUncertain={writeUncertain}
@@ -164,7 +169,8 @@ export default function DeliveryChannelCategorySelectionPanel({
             categories={inventory.categories}
             selectedCategoryIds={categoryIds}
             overrides={overrides}
-            disabled={busyNow || stale || writeUncertain}
+            disabled={busyNow || selectionLocked}
+            limitRecoveryError={limitRecoveryError}
             onToggle={onToggleCategory}
           />
         </aside>
@@ -176,7 +182,8 @@ export default function DeliveryChannelCategorySelectionPanel({
             overrides={overrides}
             currency={catalogue.currency}
             locale={locale}
-            disabled={busyNow || stale || writeUncertain}
+            disabled={busyNow || selectionLocked}
+            limitRecoveryError={limitRecoveryError}
             onToggle={onToggleItem}
           />
           {cursor && (

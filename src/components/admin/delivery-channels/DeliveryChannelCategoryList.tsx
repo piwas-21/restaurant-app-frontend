@@ -11,6 +11,7 @@ interface Props {
   readonly selectedCategoryIds: ReadonlySet<string>;
   readonly overrides: DeliveryChannelCategoryOverrideMap;
   readonly disabled: boolean;
+  readonly limitRecoveryError?: 'categoryLimit' | 'overrideLimit' | null;
   readonly onToggle: (categoryId: string, selected: boolean) => void;
 }
 
@@ -19,6 +20,7 @@ export default function DeliveryChannelCategoryList({
   selectedCategoryIds,
   overrides,
   disabled,
+  limitRecoveryError = null,
   onToggle,
 }: Readonly<Props>) {
   const { t } = useTranslation();
@@ -44,7 +46,11 @@ export default function DeliveryChannelCategoryList({
               description={selectionDescription}
               checked={state.selected}
               indeterminate={state.indeterminate}
-              disabled={disabled || category.totalItemCount === 0}
+              disabled={
+                disabled ||
+                (category.totalItemCount === 0 && !state.selected) ||
+                (limitRecoveryError !== null && !state.selected)
+              }
               onChange={(value) => onToggle(category.categoryId, value)}
               data-testid={`delivery-channel-category-${category.categoryId}`}
             />

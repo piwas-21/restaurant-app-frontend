@@ -58,6 +58,7 @@ export default function DeliveryChannelMenuSectionPanel({
           removedSelectionNotice={categorySelection.removedSelectionNotice}
           needsSave={categorySelection.needsSave}
           stale={categorySelection.stale}
+          selectionLocked={categorySelection.selectionLocked}
           writeUncertain={categorySelection.writeUncertain}
           locale={locale}
           onSearch={categorySelection.searchCandidates}

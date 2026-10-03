@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { ApiError } from '@/utils/apiClient';
 import { deliveryChannelManagementService } from '@/services/deliveryChannelManagementService';
 import type {
+  DeliveryChannelCategoryCandidate,
   DeliveryChannelCategoryDraft,
   DeliveryChannelCategoryCandidatePage,
   DeliveryChannelCategoryInventory,
@@ -51,6 +52,44 @@ const blockedItem: DeliveryChannelCategoryItem = {
   supported: false,
   blockReason: 'UnsupportedChoices',
 };
+
+const drinksCategory = {
+  categoryId: 'drinks',
+  name: 'Drinks',
+  displayOrder: 2,
+  totalItemCount: 20,
+  supportedItemCount: 20,
+  unsupportedItemCount: 0,
+};
+
+const sidesCategory = {
+  categoryId: 'sides',
+  name: 'Sides',
+  displayOrder: 3,
+  totalItemCount: 10,
+  supportedItemCount: 10,
+  unsupportedItemCount: 0,
+};
+
+function selectableItem(productId: string, categoryId: string, index: number): DeliveryChannelCategoryCandidate {
+  const itemCategory =
+    [category, drinksCategory, sidesCategory].find((item) => item.categoryId === categoryId) ?? category;
+  return {
+    selectionKey: `${productId}::`,
+    productId,
+    variationId: null,
+    categoryId,
+    categoryName: itemCategory.name,
+    categoryDisplayOrder: itemCategory.displayOrder,
+    itemDisplayOrder: index,
+    name: productId,
+    variationName: null,
+    priceMinor: 500,
+    available: true,
+    supported: true,
+    blockReason: null,
+  };
+}
 
 const catalogue: DeliveryChannelCatalogue = {
   storeId: 'store-1',
@@ -183,6 +222,46 @@ it('saves the full category selection and negative item override with the source
   });
   expect(result.current.needsSave).toBe(false);
   expect(result.current.writeUncertain).toBe(false);
+});
+
+it('lets an owner remove an empty selected category intent before saving the frozen draft', async () => {
+  const emptyCategory = { ...category, totalItemCount: 0, supportedItemCount: 0, unsupportedItemCount: 0 };
+  const emptySavedDraft: DeliveryChannelCategoryDraft = {
+    ...savedDraft(),
+    selectedCategoryIds: ['mains'],
+    itemOverrides: [],
+    categories: [{ ...emptyCategory, selectedItemCount: 0, selectedUnsupportedItemCount: 0, selectionState: 'empty' }],
+    items: [],
+  };
+  const savedWithoutIntent = { ...emptySavedDraft, draftRevision: 'draft-2', selectedCategoryIds: [] };
+  jest.spyOn(deliveryChannelManagementService, 'getCategoryInventory').mockResolvedValue({
+    ...inventory,
+    categories: [emptyCategory],
+    draftRevision: 'draft-1',
+    draft: emptySavedDraft,
+  });
+  jest.spyOn(deliveryChannelManagementService, 'getCategoryCandidates').mockResolvedValue({
+    sourceRevision: 'source-1',
+    language: 'en',
+    nextCursor: null,
+    items: [],
+  });
+  const save = jest.spyOn(deliveryChannelManagementService, 'saveCategoryDraft').mockResolvedValue(savedWithoutIntent);
+  const { result } = renderHook(() => useDeliveryChannelCategorySelection(true));
+  await waitFor(() => expect(result.current.categoryIds.has('mains')).toBe(true));
+  expect(result.current.selectedCount).toBe(0);
+
+  act(() => result.current.toggleCategory('mains', false));
+  expect(result.current.categoryIds.has('mains')).toBe(false);
+  expect(result.current.needsSave).toBe(true);
+  await act(async () => expect(await result.current.saveDraft()).toBe(true));
+
+  expect(save).toHaveBeenCalledWith({
+    expectedDraftRevision: 'draft-1',
+    expectedSourceRevision: 'source-1',
+    categoryIds: [],
+    itemOverrides: [],
+  });
 });
 
 it('preserves an over-limit local selection without submitting an invalid draft', async () => {
@@ -487,6 +566,129 @@ it('keeps source review locked while reference and candidate readbacks are pendi
   expect(result.current.selection.stale).toBe(false);
 });
 
+it.each(['CategoryLimitExceeded', 'SelectionOverrideLimitExceeded'] as const)(
+  'allows bounded local reductions after %s but keeps writes blocked until source acknowledgment succeeds',
+  async (errorCode) => {
+    const categories = [category, drinksCategory, sidesCategory];
+    const limitedInventory = {
+      ...inventory,
+      maximumCategoryCount: 1,
+      maximumItemOverrideCount: 1,
+      categories,
+    };
+    const firstItem = selectableItem('mains-item', 'mains', 1);
+    const secondItem = selectableItem('drinks-item', 'drinks', 1);
+    const thirdItem = selectableItem('sides-item', 'sides', 1);
+    const candidatesPage = {
+      sourceRevision: 'source-1',
+      language: 'en',
+      nextCursor: null,
+      items: [firstItem, secondItem, thirdItem],
+    };
+    jest.spyOn(deliveryChannelManagementService, 'getCategoryInventory').mockResolvedValue(limitedInventory);
+    const check = jest
+      .spyOn(deliveryChannelManagementService, 'checkCategoryReferences')
+      .mockRejectedValueOnce(new ApiError(400, '', undefined, errorCode))
+      .mockResolvedValue(referenceChanges('source-1', categories));
+    jest.spyOn(deliveryChannelManagementService, 'getCategoryCandidates').mockResolvedValue(candidatesPage);
+    const save = jest.spyOn(deliveryChannelManagementService, 'saveCategoryDraft').mockResolvedValue(savedDraft());
+    const preview = jest.spyOn(deliveryChannelManagementService, 'preview');
+    const { result } = renderHook(() => {
+      const selection = useDeliveryChannelCategorySelection(true);
+      const publication = useDeliveryChannelPublication({
+        catalogue,
+        selectionVersion: selection.selectionVersion,
+        dirty: selection.dirty,
+        stale: selection.stale,
+        draftWriteUncertain: selection.writeUncertain,
+        refreshCatalogue: selection.refresh,
+      });
+      return { selection, publication };
+    });
+    await waitFor(() => expect(result.current.selection.candidates).toEqual(candidatesPage.items));
+
+    if (errorCode === 'CategoryLimitExceeded') {
+      act(() => result.current.selection.toggleCategory('mains', true));
+      act(() => result.current.selection.toggleCategory('drinks', true));
+    } else {
+      act(() => {
+        result.current.selection.toggleItem(firstItem, true);
+        result.current.selection.toggleItem(secondItem, true);
+      });
+    }
+    expect(result.current.selection.needsSave).toBe(true);
+
+    await act(async () => expect(await result.current.selection.acknowledgeSource()).toBe(false));
+    expect(check).toHaveBeenCalledTimes(1);
+    expect(result.current.selection.error).toBe(
+      errorCode === 'CategoryLimitExceeded' ? 'categoryLimit' : 'overrideLimit',
+    );
+    expect(result.current.selection.stale).toBe(true);
+    expect(result.current.selection.selectionLocked).toBe(false);
+
+    if (errorCode === 'CategoryLimitExceeded') {
+      act(() => result.current.selection.toggleCategory('sides', true));
+      expect(result.current.selection.categoryIds).toEqual(new Set(['mains', 'drinks']));
+      act(() => result.current.selection.toggleCategory('drinks', false));
+      expect(result.current.selection.categoryIds).toEqual(new Set(['mains']));
+    } else {
+      act(() => result.current.selection.toggleItem(thirdItem, true));
+      expect(Object.keys(result.current.selection.overrides)).toEqual([
+        firstItem.selectionKey,
+        secondItem.selectionKey,
+      ]);
+      act(() => result.current.selection.toggleItem(secondItem, false));
+      expect(Object.keys(result.current.selection.overrides)).toEqual([firstItem.selectionKey]);
+    }
+    await act(async () => expect(await result.current.selection.saveDraft()).toBe(false));
+    await act(async () => expect(await result.current.publication.createPreview()).toBeNull());
+    expect(save).not.toHaveBeenCalled();
+    expect(preview).not.toHaveBeenCalled();
+
+    await act(async () => expect(await result.current.selection.acknowledgeSource()).toBe(true));
+    expect(check).toHaveBeenCalledTimes(2);
+    expect(result.current.selection.stale).toBe(false);
+    expect(result.current.selection.selectionLocked).toBe(false);
+    await act(async () => expect(await result.current.selection.saveDraft()).toBe(true));
+    expect(save).toHaveBeenCalledWith({
+      expectedDraftRevision: null,
+      expectedSourceRevision: 'source-1',
+      categoryIds: errorCode === 'CategoryLimitExceeded' ? ['mains'] : [],
+      itemOverrides:
+        errorCode === 'CategoryLimitExceeded'
+          ? []
+          : [{ productId: firstItem.productId, variationId: null, categoryId: 'mains', selected: true }],
+    });
+  },
+);
+
+it('keeps selection locked when a recognized limit error cannot refresh current-source candidates', async () => {
+  const limitedInventory = { ...inventory, maximumCategoryCount: 0 };
+  const item = selectableItem('mains-item', 'mains', 1);
+  jest.spyOn(deliveryChannelManagementService, 'getCategoryInventory').mockResolvedValue(limitedInventory);
+  jest
+    .spyOn(deliveryChannelManagementService, 'checkCategoryReferences')
+    .mockRejectedValue(new ApiError(400, '', undefined, 'CategoryLimitExceeded'));
+  jest
+    .spyOn(deliveryChannelManagementService, 'getCategoryCandidates')
+    .mockResolvedValueOnce({ sourceRevision: 'source-1', language: 'en', nextCursor: null, items: [item] })
+    .mockRejectedValueOnce(new ApiError(500, '', undefined, 'GatewayUnavailable'));
+  const save = jest.spyOn(deliveryChannelManagementService, 'saveCategoryDraft');
+  const { result } = renderHook(() => useDeliveryChannelCategorySelection(true));
+  await waitFor(() => expect(result.current.candidates).toEqual([item]));
+  act(() => result.current.toggleCategory('mains', true));
+
+  await act(async () => expect(await result.current.acknowledgeSource()).toBe(false));
+
+  expect(result.current.error).toBe('load');
+  expect(result.current.stale).toBe(true);
+  expect(result.current.selectionLocked).toBe(true);
+  act(() => result.current.toggleCategory('mains', false));
+  expect(result.current.categoryIds.has('mains')).toBe(true);
+  await act(async () => expect(await result.current.saveDraft()).toBe(false));
+  expect(save).not.toHaveBeenCalled();
+});
+
 it('does not acknowledge a source when its fresh candidate page is rejected by the backend', async () => {
   jest.spyOn(deliveryChannelManagementService, 'getCategoryInventory').mockResolvedValue(inventory);
   jest
@@ -528,6 +730,7 @@ it('keeps a source locked when the refreshed candidate page has a network error'
   await act(async () => expect(await result.current.acknowledgeSource()).toBe(false));
 
   expect(result.current.stale).toBe(true);
+  expect(result.current.selectionLocked).toBe(true);
   expect(result.current.needsSave).toBe(true);
   await act(async () => expect(await result.current.saveDraft()).toBe(false));
   expect(save).not.toHaveBeenCalled();

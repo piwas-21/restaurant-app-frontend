@@ -13,6 +13,7 @@ import { formatCurrency } from '@/utils/currency';
 import TableGuestAccountBatch from './TableGuestAccountBatch';
 import TableGuestSafeDeparture from './TableGuestSafeDeparture';
 import TableGuestVisitMessage from './TableGuestVisitMessage';
+import GuestAccountPaymentHost from './GuestAccountPaymentHost';
 import styles from './TableGuestAccount.module.css';
 import { reportTableGuestFailure } from '@/lib/tableGuestFailureDiagnostics';
 
@@ -22,7 +23,7 @@ export default function TableGuestAccountWorkspace() {
   const router = useRouter();
   const { clearOrderType } = useOrderType();
   const { clearTableContext } = useTableContext();
-  const { retryTableGuestFeature } = useTableGuestFeature();
+  const { retryTableGuestFeature, tableAccountPaymentsV1, tableGuestAccountPaymentsV1 } = useTableGuestFeature();
   const {
     phase,
     visit,
@@ -40,6 +41,7 @@ export default function TableGuestAccountWorkspace() {
   const [error, setError] = useState('');
   const [confirmedDeparture, setConfirmedDeparture] = useState(false);
   const pendingRoundUnresolved = pendingRound !== null || pendingRoundStatus === 'unknown';
+  const onlinePaymentFeature = tableAccountPaymentsV1 === true && tableGuestAccountPaymentsV1 === true;
   const locale = tenantLocaleFromPathname(pathname);
 
   const refresh = useCallback(async () => {
@@ -54,6 +56,8 @@ export default function TableGuestAccountWorkspace() {
       setIsRefreshing(false);
     }
   }, [getAccount, t]);
+
+  const paymentHost = <GuestAccountPaymentHost tableAccount={account} onAccountUpdated={() => void refresh()} />;
 
   useEffect(() => {
     if (phase !== 'active') return;
@@ -74,45 +78,57 @@ export default function TableGuestAccountWorkspace() {
 
   if (phase === 'loading')
     return (
-      <main className={styles.workspace} aria-live="polite">
-        {t('loading')}
-      </main>
+      <>
+        {paymentHost}
+        <main className={styles.workspace} aria-live="polite">
+          {t('loading')}
+        </main>
+      </>
     );
   if (phase === 'storageUnavailable') {
     return (
-      <TableGuestVisitMessage
-        title={t('table_guest_unavailable_title')}
-        detail={t('table_guest_storage_help')}
-        confirmedDeparture={confirmedDeparture}
-        onConfirmDeparture={setConfirmedDeparture}
-        onLeave={handleSafeDeparture}
-        pending={pendingRoundUnresolved}
-      />
+      <>
+        {paymentHost}
+        <TableGuestVisitMessage
+          title={t('table_guest_unavailable_title')}
+          detail={t('table_guest_storage_help')}
+          confirmedDeparture={confirmedDeparture}
+          onConfirmDeparture={setConfirmedDeparture}
+          onLeave={handleSafeDeparture}
+          pending={pendingRoundUnresolved}
+        />
+      </>
     );
   }
   if (requiresSafeDeparture) {
     return (
-      <TableGuestVisitMessage
-        title={t('table_guest_ended_title')}
-        detail={t('table_guest_ended_detail')}
-        confirmedDeparture={confirmedDeparture}
-        onConfirmDeparture={setConfirmedDeparture}
-        onLeave={handleSafeDeparture}
-        pending={pendingRoundUnresolved}
-      />
+      <>
+        {paymentHost}
+        <TableGuestVisitMessage
+          title={t('table_guest_ended_title')}
+          detail={t('table_guest_ended_detail')}
+          confirmedDeparture={confirmedDeparture}
+          onConfirmDeparture={setConfirmedDeparture}
+          onLeave={handleSafeDeparture}
+          pending={pendingRoundUnresolved}
+        />
+      </>
     );
   }
   if (phase === 'unavailable') {
     return (
-      <TableGuestVisitMessage
-        title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
-        detail={t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))}
-        onRetry={retryTableGuestFeature}
-        confirmedDeparture={confirmedDeparture}
-        onConfirmDeparture={setConfirmedDeparture}
-        onLeave={handleSafeDeparture}
-        pending={pendingRoundUnresolved}
-      />
+      <>
+        {paymentHost}
+        <TableGuestVisitMessage
+          title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
+          detail={t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))}
+          onRetry={retryTableGuestFeature}
+          confirmedDeparture={confirmedDeparture}
+          onConfirmDeparture={setConfirmedDeparture}
+          onLeave={handleSafeDeparture}
+          pending={pendingRoundUnresolved}
+        />
+      </>
     );
   }
   if (phase !== 'active' || !featureEnabled) {
@@ -121,10 +137,13 @@ export default function TableGuestAccountWorkspace() {
       detail = t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'));
     }
     return (
-      <TableGuestVisitMessage
-        title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
-        detail={detail}
-      />
+      <>
+        {paymentHost}
+        <TableGuestVisitMessage
+          title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
+          detail={detail}
+        />
+      </>
     );
   }
 
@@ -170,6 +189,8 @@ export default function TableGuestAccountWorkspace() {
         </p>
       )}
 
+      {paymentHost}
+
       {account && (
         <>
           <dl className={styles.summary} aria-label={t('table_guest_account_summary')}>
@@ -200,7 +221,7 @@ export default function TableGuestAccountWorkspace() {
               <p className={styles.muted}>{t('table_guest_no_rounds')}</p>
             )}
           </section>
-          <p className={styles.muted}>{t('table_guest_staff_settlement')}</p>
+          {!onlinePaymentFeature && <p className={styles.muted}>{t('table_guest_staff_settlement')}</p>}
         </>
       )}
 

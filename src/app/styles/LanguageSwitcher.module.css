@@ -121,6 +121,12 @@ html[data-theme='dark'] .dropdownContainer {
   border-radius: 2px;
 }
 
+.loadFailure {
+  margin: 0.5rem 0;
+  color: var(--error-color);
+  font-size: 0.85rem;
+}
+
 /* Dark mode considerations */
 
 /* Scrollbar: the app's own, from globals.css. This file used to hand-pick its own widths and

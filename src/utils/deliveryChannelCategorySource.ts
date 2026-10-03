@@ -4,6 +4,9 @@ import type {
   DeliveryChannelCategoryItemOverride,
 } from '@/types/deliveryChannelMenuSelection';
 import { categoryItemIsSelected, categoryOverrideRequests } from './deliveryChannelMenuSelection';
+import { sortCategoryIds } from './categoryIdProtocolOrder';
+
+export { sortCategoryIds } from './categoryIdProtocolOrder';
 
 export function categoryInventoryIsSourceMismatched(inventory: DeliveryChannelCategoryInventory | null): boolean {
   return Boolean(
@@ -13,14 +16,16 @@ export function categoryInventoryIsSourceMismatched(inventory: DeliveryChannelCa
 }
 
 export function categorySourceView(inventory: DeliveryChannelCategoryInventory | null, stale: boolean) {
+  const categories = stale && inventory?.draft ? inventory.draft.categories : (inventory?.categories ?? []);
+  let unsupportedSnapshot = null;
+  if (inventory && inventory.draft?.sourceRevision === inventory.sourceRevision) {
+    unsupportedSnapshot = inventory.draft;
+  } else if (stale && inventory?.draft) {
+    unsupportedSnapshot = inventory.draft;
+  }
   return {
-    categories: stale && inventory?.draft ? inventory.draft.categories : (inventory?.categories ?? []),
-    unsupportedSnapshot:
-      inventory && inventory.draft?.sourceRevision === inventory.sourceRevision
-        ? inventory.draft
-        : stale
-          ? (inventory?.draft ?? null)
-          : null,
+    categories,
+    unsupportedSnapshot,
   };
 }
 
@@ -38,7 +43,7 @@ export async function refreshCategoryReferenceSnapshot(
   );
   const changes = await deliveryChannelManagementService.checkCategoryReferences({
     expectedSourceRevision: inventory.sourceRevision,
-    categoryIds: [...categoryIds].sort(),
+    categoryIds: sortCategoryIds(categoryIds),
     itemReferences,
     itemOverrides: categoryOverrideRequests(categoryIds, overrides),
   });

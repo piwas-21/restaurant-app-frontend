@@ -3933,5 +3933,6 @@
   },
   "serverOrders": {
     "title": "Bestellingen"
-  }
+  },
+  "languageLoadFailed": "Deze taal kon niet worden geladen. Uw huidige taal is behouden. Probeer het opnieuw."
 }

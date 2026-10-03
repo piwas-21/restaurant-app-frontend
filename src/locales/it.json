@@ -3945,5 +3945,6 @@
   },
   "serverOrders": {
     "title": "Ordini"
-  }
+  },
+  "languageLoadFailed": "Impossibile caricare questa lingua. La lingua attuale è stata mantenuta. Riprova."
 }

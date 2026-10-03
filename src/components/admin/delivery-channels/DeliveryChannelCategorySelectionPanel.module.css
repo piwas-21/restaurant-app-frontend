@@ -119,6 +119,10 @@
   color: var(--text-secondary);
 }
 
+.dirtyNotice {
+  display: block;
+}
+
 .warning {
   color: var(--feedback-warning-text);
 }

@@ -2,7 +2,7 @@
 
 import { ThemeProvider } from '@/components/ThemeContext';
 import { I18nextProvider } from 'react-i18next';
-import i18n from '../i18n';
+import i18n, { primeLocaleMessages } from '../i18n';
 import { CookieConsentProvider } from '@/components/CookieConsentContext';
 import { CartProvider } from '@/components/cart/CartContext';
 import { SnackbarProvider, closeSnackbar } from 'notistack';
@@ -27,9 +27,19 @@ import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
 export default function ClientProviders({
   modules,
   routeLocale,
+  initialLocaleMessages,
   children,
-}: Readonly<{ modules: ModuleId[]; routeLocale?: string; children: React.ReactNode }>) {
-  const routeI18n = useMemo(() => (routeLocale ? i18n.cloneInstance({ lng: routeLocale }) : i18n), [routeLocale]);
+}: Readonly<{
+  modules: ModuleId[];
+  routeLocale?: string;
+  initialLocaleMessages?: Record<string, unknown>;
+  children: React.ReactNode;
+}>) {
+  const routeI18n = useMemo(() => {
+    if (!routeLocale) return i18n;
+    if (initialLocaleMessages) primeLocaleMessages(routeLocale, initialLocaleMessages);
+    return i18n.cloneInstance({ lng: routeLocale });
+  }, [initialLocaleMessages, routeLocale]);
   return (
     <ModulesProvider modules={modules}>
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>

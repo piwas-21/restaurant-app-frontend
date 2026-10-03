@@ -17,6 +17,7 @@ import ModuleRouteGuard from '@/components/ModuleRouteGuard';
 import { headers } from 'next/headers';
 import { directionFor } from '@/lib/textDirection';
 import { isSupportedPublicLocale } from '@/lib/publicDiscoveryConfig';
+import { loadLocaleMessages } from '@/lib/localeResourceLoader';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const requestHeaders = await headers();
   const requestedLocale = requestHeaders.get('x-tenant-route-locale');
   const routeLocale = requestedLocale && isSupportedPublicLocale(requestedLocale) ? requestedLocale : undefined;
+  const initialLocaleMessages = routeLocale ? await loadLocaleMessages(routeLocale) : undefined;
   const documentLocale = routeLocale ?? 'en';
   return (
     // Middleware overwrites this internal header from a supported public path segment. A caller
@@ -78,7 +80,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             {paletteCss}
           </style>
         ) : null}
-        <ClientProviders modules={modules} routeLocale={routeLocale}>
+        <ClientProviders modules={modules} routeLocale={routeLocale} initialLocaleMessages={initialLocaleMessages}>
           <Shell>
             <ModuleRouteGuard>{children}</ModuleRouteGuard>
           </Shell>

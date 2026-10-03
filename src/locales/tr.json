@@ -3933,5 +3933,6 @@
   },
   "serverOrders": {
     "title": "Siparişler"
-  }
+  },
+  "languageLoadFailed": "Bu dil yüklenemedi. Mevcut diliniz korundu. Lütfen tekrar deneyin."
 }

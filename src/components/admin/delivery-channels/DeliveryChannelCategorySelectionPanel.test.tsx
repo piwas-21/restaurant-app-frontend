@@ -108,7 +108,7 @@ it('shows the unsaved review notice after source acknowledgment and clears it af
   expect(screen.queryByText('deliveryChannels.menuSelection.needsSaveNotice')).not.toBeInTheDocument();
 
   view.rerender(panel({ ...initial, stale: false }));
-  expect(screen.getByText('deliveryChannels.menuSelection.needsSaveNotice')).toHaveAttribute('role', 'status');
+  expect(screen.getByText('deliveryChannels.menuSelection.needsSaveNotice').closest('output')).toBeInTheDocument();
 
   view.rerender(panel({ ...initial, stale: false, needsSave: false }));
   expect(screen.queryByText('deliveryChannels.menuSelection.needsSaveNotice')).not.toBeInTheDocument();

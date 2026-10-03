@@ -11,12 +11,11 @@ import {
   categorySaveAttemptMatches,
   useDeliveryChannelCategoryDraftSave,
   type CategorySaveAttempt,
+  type CategorySelectionError,
 } from './useDeliveryChannelCategoryDraftSave';
 import { categoryInventoryIsSourceMismatched } from '@/utils/deliveryChannelCategorySource';
 import { applyCanonicalCategoryInventoryRead } from '@/utils/deliveryChannelCategoryInventoryRead';
 import { useDeliveryChannelCategoryLoadError } from './useDeliveryChannelCategoryLoadError';
-
-import type { CategorySelectionError } from './useDeliveryChannelCategoryDraftSave';
 
 type CategorySelectionBusy = 'load' | 'save' | null;
 

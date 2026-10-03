@@ -3945,5 +3945,6 @@
   },
   "serverOrders": {
     "title": "Pedidos"
-  }
+  },
+  "languageLoadFailed": "No se pudo cargar ese idioma. Se ha mantenido tu idioma actual. Inténtalo de nuevo."
 }

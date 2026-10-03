@@ -32,9 +32,7 @@ export default function DeliveryChannelCategoryStatusNotices({
         </p>
       )}
       {showUnsavedNotice && (
-        <p className={styles.dirtyNotice} role="status">
-          {t('deliveryChannels.menuSelection.needsSaveNotice')}
-        </p>
+        <output className={styles.dirtyNotice}>{t('deliveryChannels.menuSelection.needsSaveNotice')}</output>
       )}
       {writeUncertain && (
         <p className={styles.warning} role="alert">

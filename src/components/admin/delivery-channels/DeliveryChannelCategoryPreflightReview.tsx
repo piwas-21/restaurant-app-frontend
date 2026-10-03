@@ -6,6 +6,19 @@ import type { DeliveryChannelPreview } from '@/types/deliveryChannelCatalogue';
 import detailsStyles from './DeliveryChannelTechnicalDetails.module.css';
 import styles from './DeliveryChannelPublicationPanel.module.css';
 
+function previewItemStatus(
+  item: NonNullable<DeliveryChannelPreview['selectedItems']>[number],
+  translate: ReturnType<typeof useTranslation>['t'],
+): string {
+  if (!item.supported) {
+    return translate(`deliveryChannels.codes.${item.blockReason ?? 'UnmappedProduct'}`, {
+      defaultValue: translate('deliveryChannels.codes.generic'),
+    });
+  }
+  if (item.available) return translate('deliveryChannels.availability.item.available');
+  return translate('deliveryChannels.availability.item.unavailable');
+}
+
 interface Props {
   readonly preview: DeliveryChannelPreview;
   readonly locale: string;
@@ -89,17 +102,7 @@ export default function DeliveryChannelCategoryPreflightReview({ preview, locale
                     t('deliveryChannels.priceUnavailable'),
                   )}
                 </td>
-                <td>
-                  {item.supported
-                    ? t(
-                        item.available
-                          ? 'deliveryChannels.availability.item.available'
-                          : 'deliveryChannels.availability.item.unavailable',
-                      )
-                    : t(`deliveryChannels.codes.${item.blockReason ?? 'UnmappedProduct'}`, {
-                        defaultValue: t('deliveryChannels.codes.generic'),
-                      })}
-                </td>
+                <td>{previewItemStatus(item, t)}</td>
               </tr>
             ))}
           </tbody>

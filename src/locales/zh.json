@@ -3921,5 +3921,6 @@
   },
   "serverOrders": {
     "title": "订单"
-  }
+  },
+  "languageLoadFailed": "无法加载该语言。已保留您当前的语言，请重试。"
 }

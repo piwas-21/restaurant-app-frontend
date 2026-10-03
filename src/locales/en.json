@@ -3933,5 +3933,6 @@
   },
   "serverOrders": {
     "title": "Orders"
-  }
+  },
+  "languageLoadFailed": "That language could not be loaded. Your current language was kept. Please try again."
 }

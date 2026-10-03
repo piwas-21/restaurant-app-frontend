@@ -29,11 +29,14 @@ export default function DeliveryChannelCategoryList({
     <ul className={styles.categoryList} aria-label={t('deliveryChannels.menuSelection.category')}>
       {categories.map((category) => {
         const state = categorySelectionState(category, selectedCategoryIds, overrides);
-        const selectionDescription = state.indeterminate
-          ? t('deliveryChannels.menuSelection.categorySelection.partial')
-          : state.selected
-            ? t('deliveryChannels.menuSelection.categorySelection.all')
-            : t('deliveryChannels.menuSelection.categorySelection.empty');
+        let selectionDescription: string;
+        if (state.indeterminate) {
+          selectionDescription = t('deliveryChannels.menuSelection.categorySelection.partial');
+        } else if (state.selected) {
+          selectionDescription = t('deliveryChannels.menuSelection.categorySelection.all');
+        } else {
+          selectionDescription = t('deliveryChannels.menuSelection.categorySelection.empty');
+        }
         return (
           <li key={category.categoryId}>
             <CheckboxField

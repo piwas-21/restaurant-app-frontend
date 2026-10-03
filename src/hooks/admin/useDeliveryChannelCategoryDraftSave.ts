@@ -17,6 +17,7 @@ import {
   categorySelectionMatchesDraft,
   normalizedCategoryOverrides,
 } from '@/utils/deliveryChannelMenuSelection';
+import { sortCategoryIds } from '@/utils/categoryIdProtocolOrder';
 
 export type CategorySelectionError =
   'load' | 'selectionLimit' | 'categoryLimit' | 'overrideLimit' | 'stale' | 'uncertain' | 'rejected';
@@ -50,8 +51,7 @@ interface Props {
 
 export function categorySaveAttemptMatches(draft: DeliveryChannelCategoryDraft | null, attempt: CategorySaveAttempt) {
   return Boolean(
-    draft &&
-    draft.sourceRevision === attempt.sourceRevision &&
+    draft?.sourceRevision === attempt.sourceRevision &&
     categorySelectionMatchesDraft(draft, attempt.categoryIds, attempt.overrides),
   );
 }
@@ -117,7 +117,7 @@ export function useDeliveryChannelCategoryDraftSave({
       const draft = await deliveryChannelManagementService.saveCategoryDraft({
         expectedDraftRevision: inventory.draft?.draftRevision ?? inventory.draftRevision ?? null,
         expectedSourceRevision: inventory.sourceRevision,
-        categoryIds: [...attempt.categoryIds].sort(),
+        categoryIds: sortCategoryIds(attempt.categoryIds),
         itemOverrides,
       });
       setInventory((current) =>

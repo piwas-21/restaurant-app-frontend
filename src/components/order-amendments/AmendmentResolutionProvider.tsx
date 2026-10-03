@@ -6,6 +6,8 @@ import { useOptionalAuth } from '@/components/AuthContext';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useAccountPaymentActor } from '@/hooks/accountPayments/useAccountPaymentActor';
 import { useOrderAmendmentTranslations } from '@/hooks/orderAmendments/useOrderAmendmentTranslations';
+import { useAmendmentResolutionRecoveryInventory } from '@/hooks/orderAmendments/useAmendmentResolutionRecoveryInventory';
+import { restoreAmendmentResolutionRecovery } from '@/lib/amendmentResolutionRecoveryBootstrap';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { AmendmentResolutionUiContext } from '@/contexts/AmendmentResolutionUiContext';
 import {
@@ -53,16 +55,21 @@ function ResolvedActorProvider({ orderId, actorId, onChanged, children }: Props 
   const { orderAmendmentsV1 } = useTenantFeatures();
   const [inventory, setInventory] = useState<PendingResolutionsForOrderRead | null>(null);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const remote = useAmendmentResolutionRecoveryInventory(actorId, orderId);
+  const refreshRemote = remote.refresh;
   const refreshInventory = useCallback(
     () => setInventory(readPendingAmendmentResolutionsForOrder(actorId, orderId)),
     [actorId, orderId],
   );
   useEffect(refreshInventory, [refreshInventory]);
-  const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || inventory?.status !== 'none');
+  const translations = useOrderAmendmentTranslations(
+    orderAmendmentsV1 || inventory?.status !== 'none' || remote.inventory.status !== 'none',
+  );
   const changed = useCallback(() => {
     refreshInventory();
+    void refreshRemote();
     onChanged();
-  }, [onChanged, refreshInventory]);
+  }, [onChanged, refreshInventory, refreshRemote]);
   const open = useCallback(
     (amendmentId: string, expected?: Selection['expected']) => setSelection({ amendmentId, expected }),
     [],
@@ -70,10 +77,33 @@ function ResolvedActorProvider({ orderId, actorId, onChanged, children }: Props 
   const close = () => {
     setSelection(null);
     refreshInventory();
+    void refreshRemote();
   };
+  const recover = (amendmentId: string) => {
+    const accepted =
+      remote.inventory.status === 'pending'
+        ? remote.inventory.values.find((value) => value.pending.amendmentId === amendmentId)
+        : undefined;
+    if (accepted) {
+      const restored = restoreAmendmentResolutionRecovery(accepted);
+      if (restored.status !== 'pending') {
+        setInventory({ status: 'unavailable' });
+        return;
+      }
+      refreshInventory();
+    }
+    open(amendmentId);
+  };
+  const recoverable = new Set([
+    ...(inventory?.status === 'pending' ? inventory.values.map((value) => value.amendmentId) : []),
+    ...(remote.inventory.status === 'pending' ? remote.inventory.values.map((value) => value.pending.amendmentId) : []),
+  ]);
   return (
     <AmendmentResolutionUiContext.Provider
-      value={{ open, canStart: orderAmendmentsV1 && inventory?.status === 'none' }}
+      value={{
+        open,
+        canStart: orderAmendmentsV1 && inventory?.status === 'none' && remote.inventory.status === 'none',
+      }}
     >
       {children}
       {translations.ready && inventory?.status === 'unavailable' && (
@@ -82,13 +112,22 @@ function ResolvedActorProvider({ orderId, actorId, onChanged, children }: Props 
           <StaffButton onClick={refreshInventory}>{t('retry')}</StaffButton>
         </div>
       )}
-      {translations.ready && inventory?.status === 'pending' && (
+      {translations.ready && remote.inventory.status === 'checking' && (
+        <output aria-live="polite">{t('common.loading')}</output>
+      )}
+      {translations.ready && remote.inventory.status === 'unavailable' && (
+        <div role="alert" className={styles.error}>
+          <p>{t('error_unexpected')}</p>
+          <StaffButton onClick={() => void refreshRemote()}>{t('retry')}</StaffButton>
+        </div>
+      )}
+      {translations.ready && inventory?.status !== 'unavailable' && recoverable.size > 0 && (
         <section className={styles.recovery}>
           <p className={styles.notice}>{t('orderAmendments.resolution_pending')}</p>
           <div className={styles.actions}>
-            {inventory.values.map((value) => (
-              <StaffButton key={value.amendmentId} onClick={() => open(value.amendmentId)}>
-                {t('orderAmendments.resolution_recover', { reference: value.amendmentId })}
+            {[...recoverable].map((amendmentId) => (
+              <StaffButton key={amendmentId} onClick={() => recover(amendmentId)}>
+                {t('orderAmendments.resolution_recover', { reference: amendmentId })}
               </StaffButton>
             ))}
           </div>

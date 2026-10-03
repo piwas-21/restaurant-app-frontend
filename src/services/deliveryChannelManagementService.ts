@@ -18,6 +18,14 @@ import type {
   DeliveryChannelPublishRequest,
 } from '@/types/deliveryChannelCatalogue';
 import type {
+  DeliveryChannelCategoryCandidatePage,
+  DeliveryChannelCategoryDraft,
+  DeliveryChannelCategoryDraftRequest,
+  DeliveryChannelCategoryInventory,
+  DeliveryChannelCategoryReferenceChanges,
+  DeliveryChannelCategoryReferenceRequest,
+} from '@/types/deliveryChannelMenuSelection';
+import type {
   DeliveryChannelException,
   DeliveryChannelExceptionInbox,
   DeliveryChannelReconcileResult,
@@ -68,6 +76,20 @@ export const deliveryChannelManagementService = {
     if (cursor) query.set('cursor', cursor);
     return apiClient.get<DeliveryChannelCatalogueCandidates>(`${BASE}/catalogue/candidates?${query.toString()}`, AUTH);
   },
+  getCategoryInventory: () => apiClient.get<DeliveryChannelCategoryInventory>(`${BASE}/catalogue/categories`, AUTH),
+  checkCategoryReferences: (request: DeliveryChannelCategoryReferenceRequest) =>
+    apiClient.post<DeliveryChannelCategoryReferenceChanges>(`${BASE}/catalogue/categories/check`, request, AUTH),
+  getCategoryCandidates: (search: string, categoryId: string | null, cursor: string | null, sourceRevision: string) => {
+    const query = new URLSearchParams({ search, sourceRevision });
+    if (categoryId) query.set('categoryId', categoryId);
+    if (cursor) query.set('cursor', cursor);
+    return apiClient.get<DeliveryChannelCategoryCandidatePage>(
+      `${BASE}/catalogue/candidates?${query.toString()}`,
+      AUTH,
+    );
+  },
+  saveCategoryDraft: (request: DeliveryChannelCategoryDraftRequest) =>
+    apiClient.put<DeliveryChannelCategoryDraft>(`${BASE}/catalogue/draft`, request, AUTH),
   saveDraft: (request: DeliveryChannelCatalogueDraftRequest) =>
     apiClient.put<DeliveryChannelCatalogueDraft>(`${BASE}/catalogue/draft`, request, AUTH),
   preview: (request: DeliveryChannelPreviewRequest) =>

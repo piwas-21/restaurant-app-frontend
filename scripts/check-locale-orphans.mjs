@@ -94,6 +94,10 @@ const DYNAMIC_PREFIXES = [
   'deliveryChannels.publication.status.',
   // DeliveryChannelPublishConfirmationModal.tsx calls confirmSummary with count; i18next adds CLDR suffixes.
   'deliveryChannels.publication.confirmSummary_',
+  // DeliveryChannelCategorySelectionPanel.tsx passes count to these exact families;
+  // i18next supplies the locale-specific CLDR suffix at runtime.
+  'deliveryChannels.menuSelection.selectedCount_',
+  'deliveryChannels.menuSelection.unsupportedCount_',
   'deliveryChannels.availability.item.',
   'deliveryChannels.operations.',
   'deliveryChannels.exceptions.kind.',

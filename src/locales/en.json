@@ -3485,7 +3485,9 @@
       "Confirmed": "Confirmed",
       "Preparing": "Preparing",
       "Ready": "Ready"
-    }
+    },
+    "collection_settlement_title": "Marketplace payment",
+    "collection_settlement_body": "This order’s payment is handled through {{provider}}. Do not collect payment here. Check the provider’s settlement records for payout status."
   },
   "deliveryChannels": {
     "title": "Uber Eats management",
@@ -3658,7 +3660,12 @@
       "confirmSummary_other": "This replaces the entire Uber Eats menu at {{store}} with {{count}} reviewed items.",
       "publicationRevision": "Publication revision",
       "operationId": "Publication operation ID",
-      "providerItemId": "Uber item ID"
+      "providerItemId": "Uber item ID",
+      "reviewedTaxTitle": "Reviewed tax rate",
+      "reviewedTaxRate": "VAT: {{rate}}%",
+      "reviewedTaxBody": "This rate applies to every selected item. Check that it is correct before publishing.",
+      "confirmTaxProfile": "I have reviewed the tax rate for all selected items.",
+      "merchantTaxVerificationNote": "Verify each live restaurant’s tax configuration before activation."
     },
     "availability": {
       "title": "Store availability",
@@ -3826,7 +3833,10 @@
       "DeliveryUncertain": "Order delivery or acceptance is uncertain. Check the Uber Eats tablet and existing Sofra order; do not accept or create a duplicate.",
       "PayloadExpired": "The order notification expired. Check the existing Sofra order and Uber Eats state; do not create a replacement automatically.",
       "ConnectionOperationBusy": "Another Uber Eats connection is being completed. This authorization could not be used. Return to management and start a fresh authorization after the current check finishes.",
-      "AuthorizationSuperseded": "A newer authorization link replaced this one. Return to Uber Eats management and check the latest connection."
+      "AuthorizationSuperseded": "A newer authorization link replaced this one. Return to Uber Eats management and check the latest connection.",
+      "MissingCategory": "Set a main menu category for this product before publishing it.",
+      "UnavailableCategory": "This menu category is inactive. Activate it or remove these items from the selection.",
+      "ReviewedTaxProfileUnavailable": "The reviewed tax setup is missing or inconsistent. Ask Sofra to verify it before publishing this menu."
     },
     "errors": {
       "load": "Could not load the latest information.",
@@ -3859,6 +3869,37 @@
       "viewHealth": "Check connection health",
       "viewPublication": "Review publication",
       "manageAvailability": "Manage availability"
+    },
+    "menuSelection": {
+      "title": "Choose what appears on Uber Eats",
+      "description": "Select whole categories or adjust individual items. Saving freezes this menu for review.",
+      "searchLabel": "Search menu items",
+      "categoryFilterLabel": "Filter by category",
+      "allCategories": "All categories",
+      "category": "Category",
+      "item": "Item",
+      "categorySelection": {
+        "all": "All items selected",
+        "partial": "Some items selected",
+        "empty": "No items selected"
+      },
+      "noCategories": "No menu categories found",
+      "noItems": "No items match this search",
+      "loadMore": "Load more items",
+      "save": "Save menu selection",
+      "refresh": "Refresh menu",
+      "sourceChanged": "The restaurant menu changed since this selection was saved. Refresh it before saving or reviewing.",
+      "selectionLimit": "This selection has {{selected}} items; the current limit is {{maximum}}. Remove items or choose fewer categories.",
+      "hoursDetails": "Menu availability and hours",
+      "selectedCount_one": "{{count}} item selected",
+      "selectedCount_other": "{{count}} items selected",
+      "unsupportedCount_one": "{{count}} selected item needs attention",
+      "unsupportedCount_other": "{{count}} selected items need attention",
+      "removedSelections": "Some saved category or item choices no longer match the current restaurant menu and were cleared from this draft. Review the updated selection before saving.",
+      "categoryBasisNotice": "Each item appears under its main menu category. You can also select any item separately.",
+      "categoryLimit": "You can include at most {{maximum}} menu categories in this selection. Remove a category before adding another.",
+      "overrideLimit": "There are too many individual item exceptions. Change category selections or remove some item exceptions.",
+      "needsSaveNotice": "Your menu selection has unsaved changes. Save it to review the menu before publishing."
     }
   },
   "cashier.tables.account": "Table account",
@@ -3892,5 +3933,6 @@
   },
   "serverOrders": {
     "title": "Orders"
-  }
+  },
+  "languageLoadFailed": "That language could not be loaded. Your current language was kept. Please try again."
 }

@@ -46,6 +46,18 @@ const preview: DeliveryChannelPreview = {
   warningCodes: [],
 };
 
+const categoryPreview: DeliveryChannelPreview = {
+  ...preview,
+  selectionMode: 'categoryItemsV1',
+  taxProfileRevision: 'tax-profile-sha',
+  taxProfile: {
+    source: 'reviewedSandboxTemplate',
+    profileRevision: 'tax-profile-sha',
+    vatRatePercentage: 21,
+    merchantVerificationRequired: true,
+  },
+};
+
 afterEach(() => {
   jest.useRealTimers();
   jest.restoreAllMocks();
@@ -84,6 +96,92 @@ describe('useDeliveryChannelPublication', () => {
       await result.current.publish();
     });
     expect(publish).toHaveBeenCalledTimes(1);
+  });
+
+  it('publishes category selections only with an explicit matching tax-profile confirmation', async () => {
+    jest.spyOn(deliveryChannelManagementService, 'preview').mockResolvedValue(categoryPreview);
+    const published: DeliveryChannelPublication = {
+      id: 'publication-1',
+      mappingRevision: 'mapping-1',
+      publicationRevision: categoryPreview.publicationRevision,
+      sourceRevision: categoryPreview.sourceRevision,
+      state: 'verified',
+      providerReadbackVerified: true,
+      providerMenuHash: 'menu-hash',
+      verifiedAt: '2026-10-03T10:00:00Z',
+      resultCode: null,
+    };
+    const publish = jest.spyOn(deliveryChannelManagementService, 'publish').mockResolvedValue(published);
+    const refreshCatalogue = jest.fn().mockResolvedValue(true);
+    const { result } = renderHook(() =>
+      useDeliveryChannelPublication({
+        catalogue,
+        selectionVersion: 0,
+        dirty: false,
+        stale: false,
+        draftWriteUncertain: false,
+        refreshCatalogue,
+      }),
+    );
+
+    await act(async () => result.current.createPreview());
+    expect(result.current.canPublish).toBe(true);
+    await act(async () => result.current.publish());
+    expect(publish).not.toHaveBeenCalled();
+
+    await act(async () => result.current.publish(true));
+    expect(publish).toHaveBeenCalledWith({
+      draftRevision: categoryPreview.draftRevision,
+      publicationRevision: categoryPreview.publicationRevision,
+      confirmedTaxProfile: true,
+      taxProfileRevision: 'tax-profile-sha',
+    });
+  });
+
+  it('blocks category publication when the confirmed tax profile is missing or changed', async () => {
+    const changedTaxProfile = {
+      ...categoryPreview,
+      taxProfile: { ...categoryPreview.taxProfile!, profileRevision: 'different-sha' },
+    };
+    jest.spyOn(deliveryChannelManagementService, 'preview').mockResolvedValue(changedTaxProfile);
+    const publish = jest.spyOn(deliveryChannelManagementService, 'publish');
+    const { result } = renderHook(() =>
+      useDeliveryChannelPublication({
+        catalogue,
+        selectionVersion: 0,
+        dirty: false,
+        stale: false,
+        draftWriteUncertain: false,
+        refreshCatalogue: jest.fn().mockResolvedValue(true),
+      }),
+    );
+
+    await act(async () => result.current.createPreview());
+    expect(result.current.canPublish).toBe(false);
+    await act(async () => result.current.publish(true));
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it('blocks preview and publication until the category source is acknowledged', async () => {
+    const previewRequest = jest.spyOn(deliveryChannelManagementService, 'preview');
+    const publish = jest.spyOn(deliveryChannelManagementService, 'publish');
+    const { result } = renderHook(() =>
+      useDeliveryChannelPublication({
+        catalogue,
+        selectionVersion: 0,
+        dirty: false,
+        stale: true,
+        draftWriteUncertain: false,
+        refreshCatalogue: jest.fn().mockResolvedValue(true),
+      }),
+    );
+
+    await act(async () => expect(await result.current.createPreview()).toBeNull());
+    await act(async () => expect(await result.current.publish(true)).toBeNull());
+
+    expect(previewRequest).not.toHaveBeenCalled();
+    expect(publish).not.toHaveBeenCalled();
+    expect(result.current.canPublish).toBe(false);
   });
 
   it('checks the new pending publication when the catalogue still has an older terminal publication', async () => {

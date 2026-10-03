@@ -191,7 +191,11 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
                 </article>
               ))}
             </section>
-            <OrderAmendmentHistorySection orderId={visibleOrder.id} refreshKey={reloadKey} />
+            <OrderAmendmentHistorySection
+              orderId={visibleOrder.id}
+              refreshKey={reloadKey}
+              onResolutionChanged={refreshOrder}
+            />
             <section className={styles.action} aria-label={t('orderAmendments.actions', 'Order actions')}>
               <OrderAmendmentEntryButton
                 order={visibleOrder}

@@ -4,6 +4,7 @@ import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
+import { getOrderAmendmentEligibility } from '@/services/orderAmendmentEligibilityService';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('next/dynamic', () => () => () => null);
@@ -11,6 +12,14 @@ jest.mock('./FocusOrderDialog', () => ({ __esModule: true, default: () => null }
 jest.mock('./order-details/OrderDetailsNotesSection', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/utils/pdfExportUtils', () => ({ exportKitchenItemsToPDF: jest.fn(), exportOrderToPDF: jest.fn() }));
 jest.mock('@/services/orderAmendmentsService', () => ({ getOrderAmendmentHistory: jest.fn() }));
+jest.mock('@/services/orderAmendmentEligibilityService', () => ({ getOrderAmendmentEligibility: jest.fn() }));
+jest.mock('@/hooks/accountPayments/useAccountPaymentActor', () => ({
+  useAccountPaymentActor: () => ({
+    actorId: '00000000-0000-4000-8000-000000000002',
+    status: 'ready',
+    retry: jest.fn(),
+  }),
+}));
 jest.mock('@/hooks/orderTypes/useConfirmationFlowConfig', () => ({
   useConfirmationFlowConfig: () => ({ flowByType: null }),
   flowLookup: () => () => ({ flow: 'acknowledge' }),
@@ -53,15 +62,24 @@ it('keeps ordinary approval and print controls available', () => {
   expect(exportOrderToPDF).toHaveBeenCalledWith(order, expect.any(Function));
 });
 
-it('shows amendment controls and history only when the tenant flag is enabled', async () => {
-  const order = { ...marketplaceOrder(), type: 'Takeaway', externalOrder: null };
+it('shows amendment controls and history with the tenant flag and current server eligibility', async () => {
+  const order = { ...marketplaceOrder(), type: 'Takeaway', externalOrder: null, version: 1 };
+  jest.mocked(getOrderAmendmentEligibility).mockResolvedValue({
+    orderId: order.id,
+    orderVersion: 1,
+    accountRevision: null,
+    canCreateAmendment: true,
+    reasonCode: null,
+    amendmentMode: 'Native',
+  });
   render(
     <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
       <CashierTicketActions order={order} />
     </TenantFeaturesProvider>,
   );
 
-  expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toBeInTheDocument();
+  expect(await screen.findByRole('button', { name: 'orderAmendments.open' })).toBeInTheDocument();
+  expect(getOrderAmendmentEligibility).toHaveBeenCalledWith(order.id);
   expect(await screen.findByText('0')).toBeInTheDocument();
   expect(getOrderAmendmentHistory).toHaveBeenCalledWith(order.id);
   expect(screen.getByText('orderAmendments.history_title')).toBeInTheDocument();

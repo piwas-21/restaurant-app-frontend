@@ -17,6 +17,13 @@ import styles from './OrderDetailsModal.module.css';
 const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
 
 const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
+const OrderAmendmentHistorySection = dynamic(
+  () => import('@/components/order-amendments/OrderAmendmentHistorySection'),
+  { ssr: false },
+);
+const OrderAmendmentEntryButton = dynamic(() => import('@/components/order-amendments/OrderAmendmentEntryButton'), {
+  ssr: false,
+});
 
 interface OrderDetailsModalProps {
   readonly order: OrderDto;
@@ -55,6 +62,12 @@ export default function OrderDetailsModal({ order: originalOrder, onClose, onOrd
           <OrderDetailsSummary order={order} />
           <ChannelOrderDecision order={order} onOrderChanged={refreshOrder} />
           <ChannelOrderPreparation order={order} onOrderChanged={refreshOrder} />
+          <OrderAmendmentHistorySection
+            orderId={order.id}
+            refreshKey={order.version}
+            onResolutionChanged={refreshOrder}
+          />
+          <OrderAmendmentEntryButton order={order} operatorRole="Admin" onCommitted={refreshOrder} />
           {Boolean(refreshError) && (
             <p role="alert">{getErrorMessage(refreshError) ?? t('delivery_channels.decision_detail_refresh_error')}</p>
           )}

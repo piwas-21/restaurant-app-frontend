@@ -10,6 +10,7 @@ import { guestAccountPaymentService } from '@/services/guestAccountPaymentServic
 import { withCheckoutAttempt, withQuotedOperation } from '@/services/guestAccountPaymentStorage';
 import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 
 export function latestForSession(
   attempts: readonly GuestAccountPaymentAttemptDescriptor[],
@@ -123,7 +124,7 @@ interface ActiveRecoveryCallbacks {
   readonly isCurrent: () => boolean;
   readonly setOperation: (operation: GuestAccountPaymentOperation) => void;
   readonly setCheckout: (checkout: GuestAccountCheckoutStatus) => void;
-  readonly setError: (error: string) => void;
+  readonly setError: (error: GuestPaymentErrorKey) => void;
   readonly setReturnReceiptUnavailable: (value: boolean) => void;
   readonly setIsLoading: (value: boolean) => void;
   readonly fetchReceipt: (

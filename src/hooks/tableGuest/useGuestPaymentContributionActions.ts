@@ -7,6 +7,7 @@ import type {
   GuestAccountPaymentAccount,
   GuestAccountPaymentQuoteDescriptor,
 } from '@/types/guestAccountPayments';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { createPaymentOperationId } from '@/lib/guestAccountPaymentRules';
 import { expectedGuestPaymentAllocations } from '@/lib/guestAccountPaymentScope';
@@ -32,7 +33,7 @@ interface ContributionActionOptions {
   readonly setOperation: (
     operation: import('@/types/guestAccountPayments').GuestAccountPaymentOperation | null,
   ) => void;
-  readonly setError: (error: string) => void;
+  readonly setError: (error: GuestPaymentErrorKey) => void;
   readonly setStorageUnavailable: (unavailable: boolean) => void;
 }
 

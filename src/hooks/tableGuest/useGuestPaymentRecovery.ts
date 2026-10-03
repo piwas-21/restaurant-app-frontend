@@ -12,6 +12,7 @@ import type {
   GuestPaymentReceiptSummary,
   GuestPaymentRecoveryOptions,
 } from '@/types/guestPaymentRecovery';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
 import {
   readGuestAccountPaymentAttempts,
@@ -36,7 +37,7 @@ export function useGuestPaymentRecovery({
   const [isLoading, setIsLoading] = useState(true);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const [returnReceiptUnavailable, setReturnReceiptUnavailable] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<GuestPaymentErrorKey>('');
   const recoveryGeneration = useRef(0);
 
   const publishDescriptor = useCallback((descriptor: GuestAccountPaymentAttemptDescriptor | null) => {

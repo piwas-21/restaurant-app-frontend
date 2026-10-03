@@ -9,6 +9,7 @@ import type {
 } from '@/types/guestAccountPayments';
 import type { GuestAccountPaymentAttemptDescriptor } from '@/types/guestAccountPayments';
 import type { GuestEqualSharePlanIntent } from '@/types/guestEqualSharePlan';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { canCreateGuestEqualSharePlan, createPaymentOperationId } from '@/lib/guestAccountPaymentRules';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
@@ -25,11 +26,11 @@ interface EqualShareActionOptions {
   readonly planIntentRef: { current: GuestEqualSharePlanIntent | null };
   readonly persistIntent: (intent: GuestEqualSharePlanIntent) => boolean;
   readonly completeIntent: (intent: GuestEqualSharePlanIntent, plan: GuestEqualSharePlan) => boolean;
-  readonly setPlanError: (error: string) => void;
+  readonly setPlanError: (error: GuestPaymentErrorKey) => void;
   readonly descriptorRef: { current: GuestAccountPaymentAttemptDescriptor | null };
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
   readonly refreshAccount: () => Promise<GuestAccountPaymentAccount | null>;
-  readonly setError: (error: string) => void;
+  readonly setError: (error: GuestPaymentErrorKey) => void;
   readonly setStorageUnavailable: (unavailable: boolean) => void;
 }
 

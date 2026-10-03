@@ -41,7 +41,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
     !flow.planRecoveryBlocked &&
     !flow.storageUnavailable;
   const panelError = flow.error || flow.planRecoveryError;
-  let panelErrorMessage = panelError;
+  let panelErrorMessage = '';
   if (panelError === 'load') panelErrorMessage = t('table_guest_payment_load_failed');
   else if (panelError === 'action') panelErrorMessage = t('table_guest_payment_action_failed');
 

@@ -7,6 +7,7 @@ import type {
   GuestAccountPaymentAttemptDescriptor,
   GuestAccountPaymentOperation,
 } from '@/types/guestAccountPayments';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { safeStripeCheckoutUrl } from '@/lib/guestAccountPaymentRules';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { fingerprintGuestParticipant } from '@/lib/guestParticipantFingerprint';
@@ -29,7 +30,7 @@ interface GuestPaymentStartOptions {
   readonly fetchReceipt: (descriptor: GuestAccountPaymentAttemptDescriptor, attemptId: string) => Promise<unknown>;
   readonly setOperation: (operation: GuestAccountPaymentOperation | null) => void;
   readonly setCheckout: (checkout: GuestAccountCheckoutStatus | null) => void;
-  readonly setError: (error: string) => void;
+  readonly setError: (error: GuestPaymentErrorKey) => void;
   readonly setStorageUnavailable: (unavailable: boolean) => void;
   readonly refreshAccount: () => Promise<unknown>;
   readonly onAccountUpdated: () => void;

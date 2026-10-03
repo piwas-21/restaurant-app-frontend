@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import type { GuestEqualSharePlan, GuestEqualSharePlanRequest } from '@/types/guestAccountPayments';
 import type { GuestEqualSharePlanIntent } from '@/types/guestEqualSharePlan';
+import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
 import {
@@ -22,8 +23,6 @@ interface PlanRecoveryOptions {
   readonly onAccountUpdated: () => void;
 }
 
-type PlanError = string;
-
 export function useGuestPaymentPlanRecovery(options: PlanRecoveryOptions) {
   const {
     activeIdentity,
@@ -40,7 +39,7 @@ export function useGuestPaymentPlanRecovery(options: PlanRecoveryOptions) {
   const [pendingIntent, setPendingIntent] = useState<GuestEqualSharePlanIntent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
-  const [error, setError] = useState<PlanError>('');
+  const [error, setError] = useState<GuestPaymentErrorKey>('');
   const generation = useRef(0);
 
   const persistIntent = useCallback((intent: GuestEqualSharePlanIntent) => {

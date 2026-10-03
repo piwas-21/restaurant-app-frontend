@@ -77,13 +77,11 @@ describe('GuestAccountPaymentPanel', () => {
     expect(currentFlow.refreshPaymentStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('renders a safe server-authored payment failure instead of translating it as a key', () => {
-    jest
-      .mocked(useGuestAccountPaymentFlow)
-      .mockReturnValue(flowResult({ error: 'The reviewed contribution has expired.' }));
+  it('renders a localized load fallback for a server failure', () => {
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(flowResult({ error: 'load' }));
 
     renderPanel(false);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('The reviewed contribution has expired.');
+    expect(screen.getByRole('alert')).toHaveTextContent('table_guest_payment_load_failed');
   });
 });

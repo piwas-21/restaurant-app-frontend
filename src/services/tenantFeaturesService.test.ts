@@ -32,6 +32,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
     expect(global.fetch).toHaveBeenCalledWith('http://backend.test/api/tenant/features', {
       cache: 'no-store',
@@ -49,6 +50,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -65,6 +67,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: true,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -85,8 +88,46 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: true,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
+
+  it('reads guest visit admission independently from account payment collection', async () => {
+    mockFetch(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true, data: { tableGuestVisitsV1: true } }),
+      }),
+    );
+
+    await expect(getTenantFeatures()).resolves.toEqual({
+      serverWorkspaceV2: false,
+      tableAccountV1: false,
+      orderAmendmentsV1: false,
+      tableGuestVisitsV1: true,
+      tableAccountPaymentsV1: false,
+    });
+  });
+
+  it.each([true, false, 'true', 1, null, undefined])(
+    'accepts only an explicit boolean for account payment collection (%s)',
+    async (flag) => {
+      mockFetch(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { tableAccountPaymentsV1: flag } }),
+        }),
+      );
+
+      await expect(getTenantFeatures()).resolves.toEqual({
+        serverWorkspaceV2: false,
+        tableAccountV1: false,
+        orderAmendmentsV1: false,
+        tableGuestVisitsV1: false,
+        tableAccountPaymentsV1: flag === true ? true : false,
+      });
+    },
+  );
 
   it.each([
     ['a malformed body', {}],
@@ -100,6 +141,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -113,6 +155,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -124,6 +167,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -135,6 +179,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
   });
 
@@ -150,6 +195,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -165,6 +211,7 @@ describe('getTenantFeatures', () => {
       tableAccountV1: false,
       orderAmendmentsV1: false,
       tableGuestVisitsV1: false,
+      tableAccountPaymentsV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });

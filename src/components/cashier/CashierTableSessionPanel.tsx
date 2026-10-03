@@ -19,7 +19,7 @@ import {
 } from '@/lib/cashierTableSession';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
-import CashierTablePaymentForm from './CashierTablePaymentForm';
+import CashierTableSessionPaymentCollection from './CashierTableSessionPaymentCollection';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
@@ -216,9 +216,13 @@ export default function CashierTableSessionPanel({
         timeZone={timeZone}
         fallback={<CashierTableSessionBill session={session} timeZone={timeZone} />}
       />
-      {actions.has('collect') && (
-        <CashierTablePaymentForm session={session} disabled={writesLocked} onSubmit={onSubmitPayment} />
-      )}
+      <CashierTableSessionPaymentCollection
+        session={session}
+        locked={writesLocked}
+        canCollect={actions.has('collect')}
+        onUpdated={onRefresh}
+        onSubmitPayment={onSubmitPayment}
+      />
 
       <BaseModal
         isOpen={showCloseConfirm}

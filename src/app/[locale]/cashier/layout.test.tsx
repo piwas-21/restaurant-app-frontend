@@ -15,8 +15,8 @@ jest.mock('@/components/AuthContext', () => ({ useAuth: () => mockAuth() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 function FeatureProbe() {
-  const { tableAccountV1 } = useTenantFeatures();
-  return <output>{String(tableAccountV1)}</output>;
+  const { tableAccountV1, tableAccountPaymentsV1 } = useTenantFeatures();
+  return <output>{`${String(tableAccountV1)}:${String(tableAccountPaymentsV1)}`}</output>;
 }
 
 describe('CashierLayout authorization', () => {
@@ -34,6 +34,7 @@ describe('CashierLayout authorization', () => {
           tableAccountV1: false,
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
         }}
       >
         <p>private queue</p>
@@ -54,6 +55,7 @@ describe('CashierLayout authorization', () => {
           tableAccountV1: true,
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
         }}
       >
         <p>private queue</p>
@@ -69,6 +71,7 @@ describe('CashierLayout authorization', () => {
           tableAccountV1: true,
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
         }}
       >
         <p>private queue</p>
@@ -85,13 +88,14 @@ describe('CashierLayout authorization', () => {
           tableAccountV1: true,
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
         }}
       >
         <FeatureProbe />
       </CashierLayoutClient>,
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent('true');
+    expect(screen.getByRole('status')).toHaveTextContent('true:false');
   });
 
   it('uses the scoped stylesheet for the loading spinner animation', () => {
@@ -103,6 +107,7 @@ describe('CashierLayout authorization', () => {
           tableAccountV1: false,
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
         }}
       >
         <p>private queue</p>
@@ -112,5 +117,22 @@ describe('CashierLayout authorization', () => {
     const spinner = container.querySelector('svg');
     expect(spinner).toHaveClass('spinner');
     expect(spinner).not.toHaveAttribute('style');
+  });
+
+  it('provides payment collection independently from account presentation', () => {
+    render(
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableAccountPaymentsV1: true,
+        }}
+      >
+        <FeatureProbe />
+      </CashierLayoutClient>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('false:true');
   });
 });

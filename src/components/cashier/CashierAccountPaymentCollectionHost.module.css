@@ -1,0 +1,4 @@
+.error {
+  color: var(--danger-color-dark);
+  margin-block: 0.75rem;
+}

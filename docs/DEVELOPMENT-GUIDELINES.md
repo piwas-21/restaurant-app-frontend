@@ -1,6 +1,6 @@
 # Frontend Development Guidelines
 
-> Next.js 15.5 | React 19 | TypeScript 5 | CSS Modules | i18next (9 languages)
+> Next.js 15.5 | React 19 | TypeScript 5 | CSS Modules | i18next (10 languages)
 
 ---
 
@@ -18,7 +18,7 @@ frontend/src/
   utils/                # Pure utility functions
   schemas/              # Zod validation schemas
   config/               # Language & payment configs
-  locales/              # i18n translation files (9 languages)
+  locales/              # i18n translation files (10 languages)
   styles/               # Shared CSS modules
 ```
 
@@ -26,7 +26,7 @@ frontend/src/
 - **100% functional components** with hooks
 - **Context API** for state management (no Redux/Zustand)
 - **CSS Modules** for scoped styling with global CSS variables
-- **i18next** for internationalization (en, de, tr, it, ar, fr, es, ru, zh)
+- **i18next** for internationalization (en, de, tr, it, ar, fr, nl, es, ru, zh)
 - **Centralized API client** (`apiClient.ts`) with token refresh
 
 ---

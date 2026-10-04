@@ -104,7 +104,12 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
             </div>
           </section>
         )}
-        {state.session && <TableServiceSessionBill session={state.session} />}
+        {state.session && (
+          <details className={styles.accountBill}>
+            <summary>{t('cashier.tables.bill')}</summary>
+            <TableServiceSessionBill session={state.session} />
+          </details>
+        )}
         {round.draftRecovered && (
           <DraftRecoveryBanner
             scopeLabel={t('server.round.draft_scope', { table: label })}

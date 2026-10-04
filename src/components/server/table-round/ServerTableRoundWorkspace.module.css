@@ -17,6 +17,22 @@
   flex: 1;
   min-height: 0;
 }
+.accountBill {
+  flex: 0 0 auto;
+  max-block-size: 30dvh;
+  overflow: auto;
+}
+.accountBill > summary {
+  min-block-size: 3rem;
+  padding-block: var(--space-3, 0.75rem);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.accountBill > summary:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: -3px;
+}
 .heading {
   display: flex;
   align-items: flex-start;

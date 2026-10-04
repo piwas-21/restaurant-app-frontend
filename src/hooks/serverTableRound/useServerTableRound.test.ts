@@ -292,6 +292,54 @@ it('persists an operation before sending and auto-reconciles an unknown outcome'
   expect(markCommitted).toHaveBeenCalledWith(expect.objectContaining({ id: 'order-1' }));
 });
 
+it('allows only one same-scope review while React has not rerendered', async () => {
+  const pending = deferred<Awaited<ReturnType<typeof reviewServerTableRound>>>();
+  mockReview.mockReturnValue(pending.promise);
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('operation-once');
+  const { result } = renderHook(() => useServerTableRound('T-QA/3', state(), 'session-1'));
+  let first!: Promise<void>;
+  let second!: Promise<void>;
+
+  act(() => {
+    first = result.current.review();
+    second = result.current.review();
+  });
+
+  expect(mockReview).toHaveBeenCalledTimes(1);
+  expect(setOperationId).toHaveBeenCalledTimes(1);
+  expect(persistServerTableRoundDraft).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    pending.resolve({ status: 'refused', operationId: 'operation-once', error: 'refused' });
+    await Promise.all([first, second]);
+  });
+});
+
+it('allows only one same-scope reconcile while React has not rerendered', async () => {
+  const pending = deferred<Awaited<ReturnType<typeof reconcileServerTableRound>>>();
+  mockReconcile.mockReturnValue(pending.promise);
+  mockDraftHook.mockReturnValue(
+    draftMock('T-QA/3', 'session-1', 'staff-a@example.test', {
+      operationId: 'operation-a',
+      operationState: 'unknown',
+    }),
+  );
+  const { result } = renderScopedHook();
+  let first!: Promise<void>;
+  let second!: Promise<void>;
+
+  act(() => {
+    first = result.current.reconcile();
+    second = result.current.reconcile();
+  });
+
+  expect(mockReconcile).toHaveBeenCalledTimes(1);
+  expect(mockReconcile).toHaveBeenCalledWith('operation-a');
+  await act(async () => {
+    pending.resolve({ status: 'unknown', operationId: 'operation-a' });
+    await Promise.all([first, second]);
+  });
+});
+
 it('ignores product detail that resolves after staff identity changes', async () => {
   const pending = deferred<Awaited<ReturnType<typeof getProductById>>>();
   mockGetProduct.mockReturnValue(pending.promise);
@@ -323,6 +371,33 @@ it('ignores product detail that resolves after staff identity changes', async ()
   expect(draft.mutate).not.toHaveBeenCalled();
   expect(result.current.tapPendingId).toBeNull();
   expect(result.current.phase).toBe('idle');
+});
+
+it('loads a same-scope product only once before React rerenders', async () => {
+  const pending = deferred<Awaited<ReturnType<typeof getProductById>>>();
+  mockGetProduct.mockReturnValue(pending.promise);
+  const { result } = renderScopedHook();
+  const product = {
+    id: 'p2',
+    name: 'Soup',
+    basePrice: 8,
+    type: 'mainItem',
+    isActive: true,
+    isAvailable: true,
+  } as never;
+  let first!: Promise<void>;
+  let second!: Promise<void>;
+
+  act(() => {
+    first = result.current.tapProduct(product);
+    second = result.current.tapProduct(product);
+  });
+
+  expect(mockGetProduct).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    pending.resolve({ success: true, data: { id: 'p2', name: 'Soup', basePrice: 8 } } as never);
+    await Promise.all([first, second]);
+  });
 });
 
 it('does not apply a review result to a different table after navigation', async () => {

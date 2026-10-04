@@ -1,25 +1,18 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import { getProductById } from '@/services/menuService';
-import { getMenuBundleById } from '@/services/menuBundleService';
-import type { Product } from '@/services/serverService';
-import { OrderType } from '@/types/order';
-import type { MenuBundleItem } from '@/types/menu';
-import type { CustomizationResult, ProductCustomizationDetail } from '@/components/catalog/productCustomizationTypes';
+import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
 import { addCustomizedItem } from '@/components/catalog/orderItems';
 import { buildBundleOrderItem } from '@/components/catalog/bundleOrderItems';
 import type { WaiterBundleCustomizationResult } from '@/components/server/WaiterBundleCustomization';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
-import { decideProductTap } from '@/components/catalog/productTap';
-import { isMenuBundle } from '@/utils/productTypeFilter';
-import { getErrorMessage } from '@/utils/apiClient';
 import { guardRoundMutation } from './serverTableRoundDraftState';
 import { useServerTableRoundCatalog } from './useServerTableRoundCatalog';
 import { useServerTableRoundDraft } from './useServerTableRoundDraft';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { serverTableRoundScopeKey, useServerTableRoundScopeState } from './useServerTableRoundScopeState';
 import { useServerTableRoundOperations } from './useServerTableRoundOperations';
+import { useServerTableRoundProductTap } from './useServerTableRoundProductTap';
 
 export function useServerTableRound(tableId: string, state: ServerTableSessionState, requestedSessionId?: string) {
   const auth = useOptionalAuth();
@@ -64,58 +57,19 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     [draft, isCurrentScope, mutationsLocked, scopeToken, setError],
   );
 
-  const tapProduct = useCallback(
-    async (product: Product) => {
-      if (!isCurrentScope(scopeToken) || mutationsLocked || tapPendingId !== null) return;
-      setTapPendingId(product.id);
-      setError(null);
-      try {
-        if (isMenuBundle(product)) {
-          const response = (await getMenuBundleById(product.id, undefined, OrderType.DineIn)) as {
-            success?: boolean;
-            data?: MenuBundleItem | null;
-          };
-          if (!isCurrentScope(scopeToken)) return;
-          if (!response.success || !response.data || response.data.availability?.canOrder === false) {
-            setError('server.round.bundle_unavailable');
-            return;
-          }
-          setBundleProduct(product);
-          setSelectedBundle(response.data);
-          return;
-        }
-
-        const response = (await getProductById(product.id, undefined, OrderType.DineIn)) as {
-          success?: boolean;
-          data?: ProductCustomizationDetail;
-        };
-        if (!isCurrentScope(scopeToken)) return;
-        if (!response.success || !response.data || response.data.availability?.canOrder === false) {
-          setError('server.round.product_unavailable');
-          return;
-        }
-        const decision = decideProductTap(response.data);
-        if (decision.kind === 'sheet') setSelectedProduct(product);
-        else mutate((current) => addCustomizedItem(current, product, decision.result));
-      } catch (error_: unknown) {
-        if (isCurrentScope(scopeToken)) setError(getErrorMessage(error_) ?? 'server.round.product_unavailable');
-      } finally {
-        if (isCurrentScope(scopeToken)) setTapPendingId(null);
-      }
-    },
-    [
-      isCurrentScope,
-      mutate,
-      mutationsLocked,
-      scopeToken,
-      setBundleProduct,
-      setError,
-      setSelectedBundle,
-      setSelectedProduct,
-      setTapPendingId,
-      tapPendingId,
-    ],
-  );
+  const tapProduct = useServerTableRoundProductTap({
+    scopeToken,
+    isCurrentScope,
+    mutationsLocked,
+    phaseIsIdle: () => phaseRef.current === 'idle',
+    tapPendingId,
+    setTapPendingId,
+    setError,
+    setBundleProduct,
+    setSelectedBundle,
+    setSelectedProduct,
+    mutate,
+  });
 
   const confirmCustomization = useCallback(
     (result: CustomizationResult) => {

@@ -310,6 +310,27 @@ describe('useOrderTypeSwitch', () => {
     expect(mockSyncBasket).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps confirmation pending when the canonical basket refresh fails', async () => {
+    mockedSet
+      .mockResolvedValueOnce(reply({ applied: false, conflicts: [CONFLICT] }))
+      .mockResolvedValueOnce(reply({ removed: [CONFLICT] }));
+    mockSyncBasket.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    const { result } = renderHook(() => useOrderTypeSwitch());
+
+    await act(async () => {
+      await result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    let applied: Awaited<ReturnType<typeof result.current.confirm>> | undefined;
+    await act(async () => {
+      applied = await result.current.confirm();
+    });
+
+    expect(applied).toBeNull();
+    expect(result.current.pending?.orderType).toBe(OrderType.DineIn);
+    expect(result.current.error).toBe('order_type_conflict_error');
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
+  });
+
   it('cancelling leaves both the basket and the order type alone', async () => {
     mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
     const { result } = renderHook(() => useOrderTypeSwitch());
@@ -685,6 +706,22 @@ describe('useOrderTypeSwitch', () => {
     await act(async () => {});
 
     expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway, false);
+  });
+
+  it('warns when a successful automatic assert cannot refresh the canonical basket', async () => {
+    mockItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.DineIn;
+    mockedSet.mockResolvedValue(reply({}));
+    mockSyncBasket.mockResolvedValue(false);
+    const warn = jest.spyOn(console, 'warn');
+
+    renderHook(() => useOrderTypeSwitch());
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith('Could not refresh the basket after asserting its order type.'),
+    );
+
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   it('retries after a REFUSED assert once the cart changes — the case the old local ref could not see', async () => {

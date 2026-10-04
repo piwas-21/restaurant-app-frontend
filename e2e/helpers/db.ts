@@ -1,11 +1,14 @@
 import { Pool } from 'pg';
+import { validateE2EDatabaseTarget } from '../../scripts/e2e-database-target.cjs';
 
 /**
  * Direct Postgres helper for E2E test cleanup.
  *
- * Connection comes from the E2E_DATABASE_URL env var, which scripts/dev-e2e.sh
- * exports before launching Playwright. Hard-fails if unset — production is
- * live, so fail-loud beats a silent fallback that points at the wrong DB.
+ * Connection comes from E2E_DATABASE_URL. Every pool creation first requires
+ * an explicit E2E_DATABASE_TARGET and validates its parsed endpoint; staging
+ * additionally requires the exact write acknowledgement and configured
+ * hostname, database, and resolved port. No URL or credentials are included in
+ * guard errors.
  *
  * Email verification is driven via Mailpit + the real /verify-email UI link
  * (see helpers/mailpit.ts) — there is no DB shortcut for that anymore. This
@@ -21,13 +24,8 @@ let pool: Pool | undefined;
 
 export function getE2EDbPool(): Pool {
   if (!pool) {
+    validateE2EDatabaseTarget();
     const connectionString = process.env.E2E_DATABASE_URL;
-    if (!connectionString) {
-      throw new Error(
-        'E2E_DATABASE_URL is not set. Run tests via scripts/dev-e2e.sh, ' +
-          'or export E2E_DATABASE_URL=postgres://user:pass@host:port/db before invoking Playwright.', // pragma: allowlist secret
-      );
-    }
     pool = new Pool({ connectionString, max: 4 });
   }
   return pool;

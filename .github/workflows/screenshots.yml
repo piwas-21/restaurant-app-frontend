@@ -79,6 +79,8 @@ jobs:
       EmailSettings__BackendBaseUrl: http://localhost:5221
       CorsSettings__AllowedOrigins__0: http://localhost:3100
       E2E_API_BASE_URL: http://localhost:5221
+      E2E_DATABASE_URL: postgres://postgres:postgres123@localhost:5432/restaurantdb # pragma: allowlist secret
+      E2E_DATABASE_TARGET: disposable
       UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots == true && 'true' || 'false' }}
       # Trusted (hardcoded matrix literal). Baked into the build + segments the
       # baseline path via playwright.screenshots.config.ts.
@@ -237,11 +239,7 @@ jobs:
       # that order: the seed is idempotent (fixed UUIDs + ON CONFLICT DO
       # NOTHING) and the startup seeders write disjoint rows.
       - name: Seed test data
-        env:
-          PGPASSWORD: postgres123 # pragma: allowlist secret
-        run: |
-          psql -h localhost -U postgres -d restaurantdb \
-            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+        run: node scripts/e2e-seed.mjs
 
       # Runs inside the version-pinned Playwright image so rendering matches
       # the committed (linux-generated) baselines byte-for-byte. The host

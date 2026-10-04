@@ -48,14 +48,14 @@ done
 : "${E2E_MAILPIT_URL:=http://localhost:8025}"
 export E2E_API_BASE_URL E2E_BASE_URL E2E_MAILPIT_URL
 
-# E2E_DATABASE_URL must be set explicitly — no default. The DB helper hard-fails
-# without it, and a committed literal would trip gitleaks on every MR. Set it
-# in .env.local or export it in your shell. Example for the dev-compose stack:
-#   export E2E_DATABASE_URL=postgres://postgres:postgres123@localhost:5432/restaurantdb  # pragma: allowlist secret
+# E2E_DATABASE_URL and E2E_DATABASE_TARGET must be explicit. The disposable
+# marker is an operator assertion that this database is reserved for E2E; the
+# target preflight also checks its parsed hostname before any DB write. Set both
+# in your shell before invoking this script. The guard runs before Playwright or
+# Next.js loads app env files. Do not mark a shared restaurant DB disposable
+# just because it is reachable on localhost.
 if [[ -z "${E2E_DATABASE_URL:-}" ]]; then
-  fail "E2E_DATABASE_URL is not set. Export it before re-running, e.g.:
-       export E2E_DATABASE_URL=postgres://postgres:<your-password>@localhost:5432/restaurantdb
-       (the dev-compose default password is postgres123 — see backend/docker-compose-dev-all.yml)"
+  fail "E2E_DATABASE_URL is not set. Set it to the dedicated E2E database and set E2E_DATABASE_TARGET=disposable before re-running."
 fi
 export E2E_DATABASE_URL
 
@@ -63,6 +63,7 @@ export E2E_DATABASE_URL
 command -v node >/dev/null || fail "node not installed."
 command -v npx  >/dev/null || fail "npx not installed."
 command -v curl >/dev/null || fail "curl not installed."
+node scripts/e2e-database-target.mjs || fail "E2E database target preflight failed."
 
 # ── 1. Backend up? ───────────────────────────────────────────────────
 backend_up() {
@@ -136,7 +137,7 @@ info "Running Playwright…"
 info "  E2E_API_BASE_URL=${E2E_API_BASE_URL}"
 info "  E2E_BASE_URL=${E2E_BASE_URL}"
 info "  E2E_MAILPIT_URL=${E2E_MAILPIT_URL}"
-info "  E2E_DATABASE_URL=${E2E_DATABASE_URL%@*}@***"  # mask credentials in log
+info "  E2E database target preflight passed."
 
 cd "$FRONTEND_DIR"
 # Run as child (no `exec`) so the cleanup trap fires on Playwright exit and

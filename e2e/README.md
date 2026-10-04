@@ -10,12 +10,33 @@ This directory is the test code. The runner config is [../playwright.config.ts](
 
 ```bash
 npm run test:e2e:install                        # installs the browser binary
-export E2E_DATABASE_URL=postgres://postgres:postgres123@localhost:5432/restaurantdb  # pragma: allowlist secret
+export E2E_DATABASE_TARGET=disposable
+export E2E_DATABASE_URL='postgres://<user>:<password>@localhost:5432/<e2e-database>'
 ```
 
-The DB URL has no committed default — set it in your shell or `.env.local` so
-gitleaks stays happy. The example above uses the dev-compose Postgres password
-purely as a placeholder; replace with your local creds.
+Create a database reserved for E2E and point the local backend at that same
+database. `E2E_DATABASE_TARGET=disposable` is an operator assertion that the DB
+contains only disposable test data; it does not create or isolate a database.
+The guard accepts IPv4 loopback addresses and the exact plain hostnames
+`localhost` and `postgres`; it does not infer safety from a database name.
+Disposable aliases with a trailing dot, bracketed IPv6 URL literals, and
+comma-separated multi-host URLs are unsupported. Keep shared development and
+staging databases out of this target. The URL has no committed default — export
+it in your shell so gitleaks stays happy. Replace the placeholders with the
+local database name and credentials.
+
+For a deliberate staging DB write, use `E2E_DATABASE_TARGET=staging`, set
+`E2E_ALLOW_STAGING_DATABASE_WRITES=YES`, and set
+`E2E_STAGING_DATABASE_HOST`, `E2E_STAGING_DATABASE_NAME`, and
+`E2E_STAGING_DATABASE_PORT` to the expected hostname, database name, and port.
+The guard requires an exact match with the parsed `E2E_DATABASE_URL`, including
+the resolved port, including an inherited `PGPORT` when the URL omits its port.
+A single staging DNS hostname with a trailing dot is supported when the
+configured hostname includes that dot exactly. This opt-in covers direct E2E
+DB fixtures and the SQL seed.
+Remote API-only smoke commands such as `npm run test:e2e:checklist:staging` do
+not use the DB helper or seed and need no DB target marker. Manual raw `psql`
+commands bypass this guard; use `scripts/e2e-seed.mjs` for the shared seed.
 
 **Mailpit (SMTP catcher)** must be running for the auth tests, since
 the verify-email flow drives a real /verify-email link from the email body.
@@ -189,8 +210,8 @@ job runs the comparison inside the same image. The snapshot path template
 deliberately omits `{platform}`.
 
 ```bash
-# One-time stack (same as functional e2e): backend on :5221 + seed applied
-psql "$E2E_DATABASE_URL" -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+# One-time stack (same as functional e2e): backend on :5221 + guarded seed
+node scripts/e2e-seed.mjs
 
 npm run test:screenshots:docker           # compare against committed baselines
 npm run test:screenshots:docker:update    # regenerate baselines (then commit)

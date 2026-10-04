@@ -55,8 +55,7 @@ export function canRetryAccountPaymentCollection(
     !actorId ||
     pending?.kind !== 'payment' ||
     pending.stage !== 'collecting' ||
-    !operation ||
-    operation.state !== 'Reserved' ||
+    operation?.state !== 'Reserved' ||
     !positiveInteger(pending.expectedVersion ?? 0) ||
     pending.expectedVersion !== operation.version ||
     !sameCanonicalIdentity(pending.actorId, actorId) ||

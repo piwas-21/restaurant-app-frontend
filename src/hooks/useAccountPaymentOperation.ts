@@ -64,10 +64,11 @@ export function useAccountPaymentOperation(
       write: boolean,
       allowFeatureOffRecovery = false,
     ) => {
+      const currentActorId = actorId?.toLowerCase();
       if (
         inFlight.current ||
-        !actorId ||
-        saved.actorId.toLowerCase() !== actorId.toLowerCase() ||
+        !currentActorId ||
+        saved.actorId.toLowerCase() !== currentActorId ||
         saved.serviceSessionId.toLowerCase() !== serviceSessionId.toLowerCase() ||
         (write && ((!enabled && !allowFeatureOffRecovery) || storageUnavailable))
       )

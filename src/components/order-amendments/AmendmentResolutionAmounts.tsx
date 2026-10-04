@@ -13,7 +13,11 @@ export default function AmendmentResolutionAmounts({
   const { t, i18n } = useTranslation();
   const amount = (minor: number) =>
     formatAccountPaymentMinor(minor, value.currency, i18n.language) ?? t('orderAmendments.currency_unavailable');
-  const signedAmount = (minor: number) => `${minor > 0 ? '+' : minor < 0 ? '−' : ''}${amount(Math.abs(minor))}`;
+  const signedAmount = (minor: number) => {
+    if (minor > 0) return `+${amount(minor)}`;
+    if (minor < 0) return `−${amount(Math.abs(minor))}`;
+    return amount(0);
+  };
   return (
     <>
       <dl className={styles.amounts}>

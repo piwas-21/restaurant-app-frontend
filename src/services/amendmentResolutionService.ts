@@ -87,8 +87,8 @@ export async function confirmAmendmentResolutionTill(pending: PendingAmendmentRe
   const saved = original.pendingTillConfirmations.find(
     (value) => value.paymentId.toLowerCase() === confirmation.paymentId.toLowerCase(),
   );
-  const inputHasCashReturn = Object.prototype.hasOwnProperty.call(confirmation, 'cashReturnedMinor');
-  const savedHasCashReturn = saved !== undefined && Object.prototype.hasOwnProperty.call(saved, 'cashReturnedMinor');
+  const inputHasCashReturn = Object.hasOwn(confirmation, 'cashReturnedMinor');
+  const savedHasCashReturn = saved !== undefined && Object.hasOwn(saved, 'cashReturnedMinor');
   if (
     !saved ||
     saved.tillReference !== confirmation.tillReference ||

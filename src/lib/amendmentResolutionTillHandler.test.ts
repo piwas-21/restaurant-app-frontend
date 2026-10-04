@@ -1,6 +1,12 @@
 import { waitFor } from '@testing-library/react';
 import { submitTillConfirmationBatch } from './amendmentResolutionTillHandler';
 import { persistPendingAmendmentResolution, readPendingAmendmentResolution } from './pendingAmendmentResolution';
+import {
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  cashReturnProcessingResultFixture,
+  zeroCashReturnConfirmationFixture,
+} from './__fixtures__/amendmentResolutionCash';
 import { pendingResolutionFixture, resolutionIds, resolutionResultFixture } from './__fixtures__/amendmentResolution';
 import { confirmAmendmentResolutionTill } from '@/services/amendmentResolutionService';
 import type { AmendmentResolutionResult } from '@/types/amendmentResolution';
@@ -102,52 +108,10 @@ it('does not post the second confirmation when the first response is unknown', a
 });
 
 it('persists and retries the exact zero cash-return evidence after a lost response', async () => {
-  const pending = { ...pendingResolutionFixture(), operationId: resolutionIds.operation };
-  const cashRefund = {
-    policyVersion: 'chf-cash-5-rappen-v1' as const,
-    originalExactAmountMinor: 335,
-    originalDueAmountMinor: 335,
-    previouslyRefundedExactMinor: 0,
-    previouslyRefundedCashMinor: 0,
-    exactRefundAmountMinor: 1,
-    refundAdjustmentMinor: -1,
-    cashRefundAmountMinor: 0,
-    retainedExactAmountMinor: 334,
-    retainedCashDueMinor: 335,
-  };
-  pending.reviewedQuote.creditMinor = 1_000;
-  pending.reviewedQuote.refundMinor = 1;
-  pending.reviewedQuote.unpaidWaivedMinor = 999;
-  pending.reviewedQuote.refundLegs[0] = {
-    ...pending.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    amountMinor: 1,
-    requiresTillConfirmation: true,
-    scopes: [],
-    cashRefund,
-  };
-  pending.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
-  const result: AmendmentResolutionResult = {
-    ...resolutionResultFixture(),
-    state: 'Processing',
-    resolvedAt: null,
-    creditMinor: 1_000,
-    refundMinor: 1,
-    unpaidWaivedMinor: 999,
-    refundLegs: [
-      {
-        paymentId: resolutionIds.payment,
-        custody: 'ManualTill',
-        state: 'Pending',
-        amountMinor: 1,
-        resolvedAt: null,
-        tillConfirmation: null,
-        cashRefund,
-      },
-    ],
-  };
-  const input = [{ paymentId: resolutionIds.payment, tillReference: 'Till-zero', cashReturnedMinor: 0 }];
+  const pending = cashReturnPendingFixture();
+  const result = cashReturnProcessingResultFixture();
+  const input = [zeroCashReturnConfirmationFixture()];
+  pending.pendingTillConfirmations = input;
   expect(persistPendingAmendmentResolution(pending)).toBe(true);
   confirm.mockImplementationOnce(async (_savedPending, confirmation) => {
     expect(confirmation).toEqual(input[0]);
@@ -165,19 +129,7 @@ it('persists and retries the exact zero cash-return evidence after a lost respon
     value: { pendingTillConfirmations: input },
   });
 
-  const confirmedAt = '2026-10-03T16:00:30Z';
-  const confirmedResult: AmendmentResolutionResult = {
-    ...result,
-    refundLegs: [
-      {
-        ...result.refundLegs[0],
-        state: 'Succeeded',
-        resolvedAt: confirmedAt,
-        tillConfirmation: { tillReference: 'Till-zero', confirmedAt },
-        cashReturn: { exactRefundAmountMinor: 1, refundAdjustmentMinor: -1, cashReturnedMinor: 0, confirmedAt },
-      },
-    ],
-  };
+  const confirmedResult = cashReturnConfirmedResultFixture();
   confirm.mockResolvedValueOnce(confirmedResult);
   const retry = await submitTillConfirmationBatch(first?.pending ?? pending, result);
   expect(confirm).toHaveBeenCalledTimes(2);

@@ -6,7 +6,7 @@ import { readZReportAccountCash, recordedCashRows, unresolvedCashRows } from '@/
 import styles from './ZReportAccountCash.module.css';
 
 interface Props {
-  movements?: ZReportAccountCashMovements | null;
+  readonly movements?: ZReportAccountCashMovements | null;
 }
 
 export default function ZReportAccountCash({ movements }: Props) {
@@ -18,7 +18,7 @@ export default function ZReportAccountCash({ movements }: Props) {
       <h3>{t('cashier.zreport.account_cash_title')}</h3>
       <p>{t('cashier.zreport.account_cash_scope')}</p>
       {!report ? (
-        <p role="status">{t('cashier.zreport.account_cash_unavailable')}</p>
+        <output>{t('cashier.zreport.account_cash_unavailable')}</output>
       ) : (
         <>
           <p>

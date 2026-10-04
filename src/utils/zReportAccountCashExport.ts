@@ -31,7 +31,9 @@ export function zReportAccountCashHtml(value: unknown, t: PaymentTranslationFunc
   const unresolved = report.unresolvedByCurrency
     .map((row) => `<h4>${escapeHtml(row.currency)}</h4>${table(unresolvedCashRows(row, locale))}`)
     .join('');
+  const recordedContent = recorded || `<p>${label('cashier.zreport.account_cash_no_recorded')}</p>`;
+  const unresolvedContent = unresolved || `<p>${label('cashier.zreport.account_cash_no_unresolved')}</p>`;
   return `${section}${heading}<p>${label('cashier.zreport.account_cash_as_of')}: ${escapeHtml(new Date(report.snapshotAtUtc).toLocaleString(locale))}</p>
-    <h3>${label('cashier.zreport.account_cash_recorded')}</h3>${recorded || `<p>${label('cashier.zreport.account_cash_no_recorded')}</p>`}
-    <h3>${label('cashier.zreport.account_cash_unresolved')}</h3><p>${label('cashier.zreport.account_cash_unresolved_scope')}</p>${unresolved || `<p>${label('cashier.zreport.account_cash_no_unresolved')}</p>`}</section>`;
+    <h3>${label('cashier.zreport.account_cash_recorded')}</h3>${recordedContent}
+    <h3>${label('cashier.zreport.account_cash_unresolved')}</h3><p>${label('cashier.zreport.account_cash_unresolved_scope')}</p>${unresolvedContent}</section>`;
 }

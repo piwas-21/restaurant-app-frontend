@@ -7,6 +7,13 @@ import {
   readPendingAmendmentResolutionsForOrder,
 } from './pendingAmendmentResolution';
 import { resolutionTillConfirmationsSchema } from '@/schemas/amendmentResolution.schema';
+import {
+  cashRefundFixture,
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  legacyTillCashPendingFixture,
+  zeroCashReturnConfirmationFixture,
+} from './__fixtures__/amendmentResolutionCash';
 import { pendingResolutionFixture, resolutionIds, resolutionResultFixture } from './__fixtures__/amendmentResolution';
 
 beforeEach(() => window.sessionStorage.clear());
@@ -134,14 +141,7 @@ it('returns a blocking failure when storage cannot persist or clear the original
 });
 
 it('freezes the whole manual confirmation batch and clears it only after exact server proof', () => {
-  const original = pendingResolutionFixture();
-  original.operationId = resolutionIds.operation;
-  original.reviewedQuote.refundLegs[0] = {
-    ...original.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    requiresTillConfirmation: true,
-  };
+  const original = legacyTillCashPendingFixture();
   expect(persistPendingAmendmentResolution(original)).toBe(true);
   const confirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Till-27' }];
   expect(persistPendingTillConfirmations(original, confirmations)).toBe(true);
@@ -177,61 +177,16 @@ it('freezes the whole manual confirmation batch and clears it only after exact s
 });
 
 it('keeps receipt-backed cash evidence frozen through wrong or changed return readbacks', () => {
-  const original = pendingResolutionFixture();
-  original.operationId = resolutionIds.operation;
-  original.reviewedQuote.creditMinor = 1_000;
-  original.reviewedQuote.refundMinor = 1;
-  original.reviewedQuote.unpaidWaivedMinor = 999;
-  const cashRefund = {
-    policyVersion: 'chf-cash-5-rappen-v1' as const,
-    originalExactAmountMinor: 335,
-    originalDueAmountMinor: 335,
-    previouslyRefundedExactMinor: 0,
-    previouslyRefundedCashMinor: 0,
-    exactRefundAmountMinor: 1,
-    refundAdjustmentMinor: -1,
-    cashRefundAmountMinor: 0,
-    retainedExactAmountMinor: 334,
-    retainedCashDueMinor: 335,
-  };
-  original.reviewedQuote.refundLegs[0] = {
-    ...original.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    amountMinor: 1,
-    requiresTillConfirmation: true,
-    scopes: [],
-    cashRefund,
-  };
-  original.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
+  const original = cashReturnPendingFixture();
+  const cashRefund = cashRefundFixture();
   expect(persistPendingAmendmentResolution(original)).toBe(true);
-  const confirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Till-zero', cashReturnedMinor: 0 }];
+  const confirmations = [zeroCashReturnConfirmationFixture()];
   expect(persistPendingTillConfirmations(original, confirmations)).toBe(true);
   const saved = readPendingAmendmentResolution(original.actorId, original.orderId, original.amendmentId);
   expect(saved.status).toBe('pending');
   if (saved.status !== 'pending') throw new Error('Expected the cash-return journal to remain pending');
 
-  const confirmedAt = '2026-10-03T16:00:30Z';
-  const result = {
-    ...resolutionResultFixture(),
-    state: 'Processing' as const,
-    resolvedAt: null,
-    creditMinor: 1_000,
-    refundMinor: 1,
-    unpaidWaivedMinor: 999,
-    refundLegs: [
-      {
-        paymentId: resolutionIds.payment,
-        custody: 'ManualTill' as const,
-        state: 'Succeeded' as const,
-        amountMinor: 1,
-        resolvedAt: confirmedAt,
-        tillConfirmation: { tillReference: 'Till-zero', confirmedAt },
-        cashRefund,
-        cashReturn: { exactRefundAmountMinor: 1, refundAdjustmentMinor: -1, cashReturnedMinor: 0, confirmedAt },
-      },
-    ],
-  };
+  const result = cashReturnConfirmedResultFixture();
   const wrongReturn = {
     ...result,
     refundLegs: [{ ...result.refundLegs[0], cashReturn: { ...result.refundLegs[0].cashReturn, cashReturnedMinor: 1 } }],

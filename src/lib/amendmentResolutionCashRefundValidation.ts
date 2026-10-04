@@ -17,23 +17,21 @@ function due(policy: AmendmentResolutionCashRefund['policyVersion'], currency: s
 }
 
 export function sameCashRefundTerms(
-  first: AmendmentResolutionCashRefund | null | undefined,
-  second: AmendmentResolutionCashRefund | null | undefined,
+  first: AmendmentResolutionCashRefund | null = null,
+  second: AmendmentResolutionCashRefund | null = null,
 ): boolean {
-  const a = first ?? null;
-  const b = second ?? null;
-  if (a === null || b === null) return a === b;
+  if (first === null || second === null) return first === second;
   return (
-    a.policyVersion === b.policyVersion &&
-    a.originalExactAmountMinor === b.originalExactAmountMinor &&
-    a.originalDueAmountMinor === b.originalDueAmountMinor &&
-    a.previouslyRefundedExactMinor === b.previouslyRefundedExactMinor &&
-    a.previouslyRefundedCashMinor === b.previouslyRefundedCashMinor &&
-    a.exactRefundAmountMinor === b.exactRefundAmountMinor &&
-    a.refundAdjustmentMinor === b.refundAdjustmentMinor &&
-    a.cashRefundAmountMinor === b.cashRefundAmountMinor &&
-    a.retainedExactAmountMinor === b.retainedExactAmountMinor &&
-    a.retainedCashDueMinor === b.retainedCashDueMinor
+    first.policyVersion === second.policyVersion &&
+    first.originalExactAmountMinor === second.originalExactAmountMinor &&
+    first.originalDueAmountMinor === second.originalDueAmountMinor &&
+    first.previouslyRefundedExactMinor === second.previouslyRefundedExactMinor &&
+    first.previouslyRefundedCashMinor === second.previouslyRefundedCashMinor &&
+    first.exactRefundAmountMinor === second.exactRefundAmountMinor &&
+    first.refundAdjustmentMinor === second.refundAdjustmentMinor &&
+    first.cashRefundAmountMinor === second.cashRefundAmountMinor &&
+    first.retainedExactAmountMinor === second.retainedExactAmountMinor &&
+    first.retainedCashDueMinor === second.retainedCashDueMinor
   );
 }
 
@@ -63,7 +61,7 @@ export function validateQuoteCashRefund(leg: AmendmentResolutionQuote['refundLeg
 }
 
 function ownsCashReturned(value: object): boolean {
-  return Object.prototype.hasOwnProperty.call(value, 'cashReturnedMinor');
+  return Object.hasOwn(value, 'cashReturnedMinor');
 }
 
 export function validateTillCashIntent(

@@ -1,5 +1,13 @@
 import { apiClient } from '@/utils/apiClient';
 import {
+  cashRefundFixture,
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  cashReturnProcessingResultFixture,
+  legacyTillCashPendingFixture,
+  zeroCashReturnConfirmationFixture,
+} from '@/lib/__fixtures__/amendmentResolutionCash';
+import {
   pendingResolutionFixture,
   resolutionRefusalFixture,
   resolutionIds,
@@ -33,51 +41,9 @@ it('uses authenticated original-client-key GET even without a returned server op
 });
 
 it('binds a lost-operation lookup to the frozen cash refund terms', async () => {
-  const pending = { ...pendingResolutionFixture(), operationId: resolutionIds.operation };
-  const cashRefund = {
-    policyVersion: 'chf-cash-5-rappen-v1' as const,
-    originalExactAmountMinor: 335,
-    originalDueAmountMinor: 335,
-    previouslyRefundedExactMinor: 0,
-    previouslyRefundedCashMinor: 0,
-    exactRefundAmountMinor: 1,
-    refundAdjustmentMinor: -1,
-    cashRefundAmountMinor: 0,
-    retainedExactAmountMinor: 334,
-    retainedCashDueMinor: 335,
-  };
-  pending.reviewedQuote.creditMinor = 1_000;
-  pending.reviewedQuote.refundMinor = 1;
-  pending.reviewedQuote.unpaidWaivedMinor = 999;
-  pending.reviewedQuote.refundLegs[0] = {
-    ...pending.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    amountMinor: 1,
-    requiresTillConfirmation: true,
-    scopes: [],
-    cashRefund,
-  };
-  pending.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
-  const result = {
-    ...resolutionResultFixture(),
-    state: 'Processing' as const,
-    resolvedAt: null,
-    creditMinor: 1_000,
-    refundMinor: 1,
-    unpaidWaivedMinor: 999,
-    refundLegs: [
-      {
-        paymentId: resolutionIds.payment,
-        custody: 'ManualTill' as const,
-        state: 'Pending' as const,
-        amountMinor: 1,
-        resolvedAt: null,
-        tillConfirmation: null,
-        cashRefund,
-      },
-    ],
-  };
+  const pending = cashReturnPendingFixture();
+  const cashRefund = cashRefundFixture();
+  const result = cashReturnProcessingResultFixture();
   get.mockResolvedValueOnce({ success: true, data: { outcome: 'accepted', result } });
   await expect(lookupAmendmentResolution(pending)).resolves.toMatchObject({
     outcome: 'accepted',
@@ -175,33 +141,8 @@ it('posts only the exact persisted till reference and validates its result proof
 });
 
 it('posts only the frozen physical cash amount including zero and rejects altered server terms', async () => {
-  const pending = { ...pendingResolutionFixture(), operationId: resolutionIds.operation };
-  const cashRefund = {
-    policyVersion: 'chf-cash-5-rappen-v1' as const,
-    originalExactAmountMinor: 335,
-    originalDueAmountMinor: 335,
-    previouslyRefundedExactMinor: 0,
-    previouslyRefundedCashMinor: 0,
-    exactRefundAmountMinor: 1,
-    refundAdjustmentMinor: -1,
-    cashRefundAmountMinor: 0,
-    retainedExactAmountMinor: 334,
-    retainedCashDueMinor: 335,
-  };
-  pending.reviewedQuote.creditMinor = 1_000;
-  pending.reviewedQuote.refundMinor = 1;
-  pending.reviewedQuote.unpaidWaivedMinor = 999;
-  pending.reviewedQuote.refundLegs[0] = {
-    ...pending.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    amountMinor: 1,
-    requiresTillConfirmation: true,
-    scopes: [],
-    cashRefund,
-  };
-  pending.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
-  const confirmation = { paymentId: resolutionIds.payment, tillReference: 'Till-zero', cashReturnedMinor: 0 };
+  const pending = cashReturnPendingFixture();
+  const confirmation = zeroCashReturnConfirmationFixture();
   pending.pendingTillConfirmations = [confirmation];
   await expect(confirmAmendmentResolutionTill(pending, { ...confirmation, cashReturnedMinor: 1 })).rejects.toThrow(
     'TillEvidenceMismatch',
@@ -214,27 +155,7 @@ it('posts only the frozen physical cash amount including zero and rejects altere
   ).rejects.toThrow('TillEvidenceMismatch');
   expect(post).not.toHaveBeenCalled();
 
-  const confirmedAt = '2026-10-03T16:00:30Z';
-  const result = {
-    ...resolutionResultFixture(),
-    state: 'Processing' as const,
-    resolvedAt: null,
-    creditMinor: 1_000,
-    refundMinor: 1,
-    unpaidWaivedMinor: 999,
-    refundLegs: [
-      {
-        paymentId: resolutionIds.payment,
-        custody: 'ManualTill' as const,
-        state: 'Succeeded' as const,
-        amountMinor: 1,
-        resolvedAt: confirmedAt,
-        tillConfirmation: { tillReference: 'Till-zero', confirmedAt },
-        cashRefund,
-        cashReturn: { exactRefundAmountMinor: 1, refundAdjustmentMinor: -1, cashReturnedMinor: 0, confirmedAt },
-      },
-    ],
-  };
+  const result = cashReturnConfirmedResultFixture();
   post.mockResolvedValueOnce({
     success: true,
     data: {
@@ -258,16 +179,10 @@ it('posts only the frozen physical cash amount including zero and rejects altere
 });
 
 it('refuses an unjournaled or changed till reference before sending a physical-refund request', async () => {
-  const pending = { ...pendingResolutionFixture(), operationId: resolutionIds.operation };
+  const pending = legacyTillCashPendingFixture();
   await expect(
     confirmAmendmentResolutionTill(pending, { paymentId: resolutionIds.payment, tillReference: 'Till-27' }),
   ).rejects.toThrow('TillEvidenceUnavailable');
-  pending.reviewedQuote.refundLegs[0] = {
-    ...pending.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    requiresTillConfirmation: true,
-  };
   pending.pendingTillConfirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Original-27' }];
   await expect(
     confirmAmendmentResolutionTill(pending, { paymentId: resolutionIds.payment, tillReference: 'Changed-27' }),

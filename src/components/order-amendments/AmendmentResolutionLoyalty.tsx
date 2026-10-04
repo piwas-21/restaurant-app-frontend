@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import StatusBadge from '@/components/design-system/StatusBadge';
+import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import type {
   AmendmentResolutionLoyaltyQuote,
   AmendmentResolutionLoyaltyResult,
@@ -28,15 +28,16 @@ export default function AmendmentResolutionLoyalty({ value }: Props) {
   if (!value) return null;
   const result = 'state' in value ? value : null;
   const held = result?.state === 'HeldShortfall' || result?.state === 'OwnerUnavailable';
+  let tone: StatusBadgeTone = 'neutral';
+  if (result?.state === 'Resolved') tone = 'success';
+  else if (held) tone = 'warning';
   const points = (count: number) =>
     t('amendment_loyalty_points', { count: count, amount: count.toLocaleString(i18n.language || 'en') });
   return (
     <section className={styles.cashRefund} aria-label={t('orderAmendments.loyalty')}>
       <h4>{t('orderAmendments.loyalty')}</h4>
       {result ? (
-        <StatusBadge tone={result.state === 'Resolved' ? 'success' : held ? 'warning' : 'neutral'}>
-          {t(stateCopy[result.state])}
-        </StatusBadge>
+        <StatusBadge tone={tone}>{t(stateCopy[result.state])}</StatusBadge>
       ) : (
         <p className={styles.muted}>{t('orderAmendments.resolution_loyalty_on_settlement')}</p>
       )}

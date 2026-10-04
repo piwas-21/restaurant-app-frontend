@@ -14,7 +14,7 @@ import {
   readServerTableRoundDraftStatus,
 } from '@/lib/serverTableRoundDraft';
 import { serverTableRoundScopeKey } from './useServerTableRoundScopeState';
-import { emptyDraft, invalidateRound } from './serverTableRoundDraftState';
+import { emptyDraft, invalidateRound, updateRoundOperation } from './serverTableRoundDraftState';
 import type { DraftIdentity, RoundOperationState, ScopedDraftState } from './serverTableRoundDraftState';
 
 export type { RoundOperationState } from './serverTableRoundDraftState';
@@ -138,7 +138,8 @@ export function useServerTableRoundDraft(
     [draftScope, updateDraft],
   );
   const setOperationId = useCallback(
-    (operationId: string | undefined) => updateDraft(draftScope, (current) => ({ ...current, operationId })),
+    (operationId: string | undefined) =>
+      updateDraft(draftScope, (current) => updateRoundOperation(current, { operationId })),
     [draftScope, updateDraft],
   );
   const setQuote = useCallback(
@@ -146,7 +147,8 @@ export function useServerTableRoundDraft(
     [draftScope, updateDraft],
   );
   const setOperationState = useCallback(
-    (operationState: RoundOperationState) => updateDraft(draftScope, (current) => ({ ...current, operationState })),
+    (operationState: RoundOperationState) =>
+      updateDraft(draftScope, (current) => updateRoundOperation(current, { operationState })),
     [draftScope, updateDraft],
   );
   const setDraftRecovered = useCallback(
@@ -154,7 +156,7 @@ export function useServerTableRoundDraft(
     [draftScope, updateDraft],
   );
   const discardDraft = useCallback(() => {
-    if (!sessionId || !canUpdateScope(draftScope)) return;
+    if (!sessionId || !canUpdateScope(draftScope) || visibleDraftRef.current.operationState === 'unknown') return;
     setStoredDraft({ ...emptyDraft(draftScope), isReady: true });
     clearServerTableRoundDraft({ tableId, serviceSessionId: sessionId, staffUserId });
   }, [canUpdateScope, draftScope, sessionId, staffUserId, tableId]);

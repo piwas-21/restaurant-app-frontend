@@ -41,6 +41,7 @@ export function emptyDraft(scopeKey: string | null): ScopedDraftState {
 }
 
 export function invalidateRound(current: ScopedDraftState, change: Partial<ScopedDraftState>): ScopedDraftState {
+  if (current.operationState === 'unknown') return current;
   return {
     ...current,
     ...change,
@@ -48,5 +49,18 @@ export function invalidateRound(current: ScopedDraftState, change: Partial<Scope
     quote: null,
     createdOrder: null,
     operationState: 'idle',
+  };
+}
+
+export function updateRoundOperation(current: ScopedDraftState, change: Partial<ScopedDraftState>): ScopedDraftState {
+  return current.operationState === 'unknown' ? current : { ...current, ...change };
+}
+
+export function guardRoundMutation<Arguments extends unknown[]>(
+  allowed: () => boolean,
+  mutation: (...arguments_: Arguments) => void,
+): (...arguments_: Arguments) => void {
+  return (...arguments_) => {
+    if (allowed()) mutation(...arguments_);
   };
 }

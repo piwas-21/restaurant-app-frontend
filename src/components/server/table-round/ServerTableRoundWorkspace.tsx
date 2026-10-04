@@ -115,7 +115,7 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
             scopeLabel={t('server.round.draft_scope', { table: label })}
             onResume={round.resumeDraft}
             onDiscard={round.discardDraft}
-            isBusy={round.phase !== 'idle'}
+            isBusy={round.phase !== 'idle' || round.operationState === 'unknown'}
           />
         )}
         {round.error && round.operationState === 'failed' && (

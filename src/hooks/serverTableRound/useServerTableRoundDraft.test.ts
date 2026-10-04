@@ -93,8 +93,13 @@ describe('useServerTableRoundDraft', () => {
     expect(result.current.items).toEqual(items);
   });
 
-  it('keeps customer identity in recovery and drops the old operation id when it changes', async () => {
-    persistServerTableRoundDraft(draft);
+  it('keeps customer edits available in an ordinary recovered draft', async () => {
+    persistServerTableRoundDraft({
+      tableId: draft.tableId,
+      serviceSessionId: draft.serviceSessionId,
+      items: draft.items,
+      notes: draft.notes,
+    });
     const { result } = renderHook(() => useServerTableRoundDraft('T-QA/3', 'session-1', true, true));
     await act(async () => {
       result.current.setCustomer(customer);
@@ -104,6 +109,63 @@ describe('useServerTableRoundDraft', () => {
     expect(result.current.operationId).toBeUndefined();
     expect(result.current.operationState).toBe('idle');
     expect(readServerTableRoundDraft('T-QA/3', 'session-1')?.customer).toEqual(customer);
+    await act(async () => result.current.discardDraft());
+    expect(readServerTableRoundDraft('T-QA/3', 'session-1')).toBeNull();
+  });
+
+  it('preserves an unknown recovered operation across discard and every draft invalidator', async () => {
+    persistServerTableRoundDraft({ ...draft, customer });
+    const { result } = renderHook(() => useServerTableRoundDraft('T-QA/3', 'session-1', true, true));
+    const saved = readServerTableRoundDraft('T-QA/3', 'session-1');
+    expect(result.current.operationState).toBe('unknown');
+
+    await act(async () => {
+      result.current.mutate(() => []);
+      result.current.setItems([]);
+      result.current.setNotes('changed after recovery');
+      result.current.setCustomer(undefined);
+      result.current.setOperationId(undefined);
+      result.current.setOperationState('idle');
+      result.current.discardDraft();
+    });
+
+    expect(result.current.items).toEqual(items);
+    expect(result.current.notes).toBe('no onions');
+    expect(result.current.customer).toEqual(customer);
+    expect(result.current.operationId).toBe('operation-1');
+    expect(result.current.operationState).toBe('unknown');
+    expect(readServerTableRoundDraft('T-QA/3', 'session-1')).toEqual(saved);
+  });
+
+  it('allows edits after a definitive failed operation', async () => {
+    const { result } = renderHook(() => useServerTableRoundDraft('T-QA/3', 'session-1', true, true));
+    await act(async () => {
+      result.current.setOperationId('failed-operation');
+      result.current.setOperationState('failed');
+    });
+    expect(result.current.operationState).toBe('failed');
+
+    await act(async () => {
+      result.current.setNotes('corrected note');
+      result.current.setCustomer(customer);
+    });
+
+    expect(result.current.notes).toBe('corrected note');
+    expect(result.current.customer).toEqual(customer);
+    expect(result.current.operationId).toBeUndefined();
+    expect(result.current.operationState).toBe('idle');
+  });
+
+  it('allows discarding a definitive failed operation', async () => {
+    const { result } = renderHook(() => useServerTableRoundDraft('T-QA/3', 'session-1', true, true));
+    await act(async () => {
+      result.current.setOperationId('failed-operation');
+      result.current.setOperationState('failed');
+    });
+    expect(result.current.operationState).toBe('failed');
+
+    await act(async () => result.current.discardDraft());
+    expect(readServerTableRoundDraft('T-QA/3', 'session-1')).toBeNull();
   });
 
   it('expires order contents but retains a pending operation when its session closes', async () => {

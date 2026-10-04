@@ -86,6 +86,7 @@ beforeEach(() => {
     isReady: true,
     operationOwnerScopeKey: null,
     mutate: jest.fn(),
+    setItems: jest.fn(),
     setOperationId,
     setQuote,
     setOperationState,
@@ -120,6 +121,7 @@ function draftMock(tableId: string, sessionId: string, staffEmail: string, overr
     draftRecovered: false,
     isReady: true,
     mutate: jest.fn(),
+    setItems: jest.fn(),
     setOperationId: jest.fn(),
     setQuote: jest.fn(),
     setOperationState: jest.fn(),
@@ -172,6 +174,65 @@ it('does not send a round when its recovery descriptor cannot be stored', async 
 
   expect(persistServerTableRoundDraft).toHaveBeenCalled();
   expect(mockReview).not.toHaveBeenCalled();
+});
+
+it('keeps a recovered unknown operation intact when discard and setters are invoked', () => {
+  const recovered = draftMock('T-QA/3', 'session-1', 'staff-a@example.test', {
+    operationId: 'operation-a',
+    operationState: 'unknown',
+    draftRecovered: true,
+  });
+  mockDraftHook.mockReturnValue(recovered);
+  const { result } = renderScopedHook();
+
+  act(() => {
+    result.current.discardDraft();
+    result.current.mutate(() => []);
+    result.current.setItems([]);
+    result.current.setNotes('new note');
+    result.current.setCustomer({ customerUserId: 'user-b' } as never);
+  });
+
+  expect(recovered.discardDraft).not.toHaveBeenCalled();
+  expect(recovered.mutate).not.toHaveBeenCalled();
+  expect(recovered.setItems).not.toHaveBeenCalled();
+  expect(recovered.setNotes).not.toHaveBeenCalled();
+  expect(recovered.setCustomer).not.toHaveBeenCalled();
+  expect(result.current.operationId).toBe('operation-a');
+  expect(result.current.operationState).toBe('unknown');
+});
+
+it('blocks a captured discard and draft setters while async review is in flight', async () => {
+  const pending = deferred<Awaited<ReturnType<typeof reviewServerTableRound>>>();
+  mockReview.mockReturnValue(pending.promise);
+  const draft = draftMock('T-QA/3', 'session-1', 'staff-a@example.test');
+  mockDraftHook.mockReturnValue(draft);
+  const { result } = renderScopedHook();
+  const capturedDiscard = result.current.discardDraft;
+  const capturedSetNotes = result.current.setNotes;
+  let review!: Promise<void>;
+
+  act(() => {
+    review = result.current.review();
+  });
+  expect(result.current.phase).toBe('reviewing');
+  act(() => {
+    capturedDiscard();
+    capturedSetNotes('changed during review');
+    result.current.setItems([]);
+    result.current.setCustomer({ customerUserId: 'user-b' } as never);
+  });
+
+  expect(draft.discardDraft).not.toHaveBeenCalled();
+  expect(draft.setNotes).not.toHaveBeenCalled();
+  expect(draft.setItems).not.toHaveBeenCalled();
+  expect(draft.setCustomer).not.toHaveBeenCalled();
+
+  await act(async () => {
+    pending.resolve({ status: 'refused', operationId: 'operation-1', error: 'refused' });
+    await review;
+  });
+  expect(result.current.phase).toBe('idle');
 });
 
 it('keeps composition locked until the current session draft has hydrated', () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { getProductById } from '@/services/menuService';
 import { getMenuBundleById } from '@/services/menuBundleService';
 import type { Product } from '@/services/serverService';
@@ -14,6 +14,7 @@ import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerT
 import { decideProductTap } from '@/components/catalog/productTap';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import { getErrorMessage } from '@/utils/apiClient';
+import { guardRoundMutation } from './serverTableRoundDraftState';
 import { useServerTableRoundCatalog } from './useServerTableRoundCatalog';
 import { useServerTableRoundDraft } from './useServerTableRoundDraft';
 import { useOptionalAuth } from '@/components/AuthContext';
@@ -43,15 +44,20 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     tapPendingId,
     setTapPendingId,
   } = transient;
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
   const draft = useServerTableRoundDraft(tableId, sessionId, sessionMatchesQuery, !state.isLoading);
 
   const canCompose = Boolean(state.canAddRound && sessionMatchesQuery && sessionId && !state.isStale && draft.isReady);
   const mutationsLocked = phase !== 'idle' || draft.operationState === 'unknown' || !canCompose;
   const canAddItems = !mutationsLocked && tapPendingId === null;
+  const canMutateDraft = () => isCurrentScope(scopeToken) && !mutationsLocked && phaseRef.current === 'idle';
+  const canDiscardDraft = () =>
+    isCurrentScope(scopeToken) && phaseRef.current === 'idle' && draft.operationState !== 'unknown';
 
   const mutate = useCallback(
     (change: Parameters<typeof draft.mutate>[0]) => {
-      if (!isCurrentScope(scopeToken) || mutationsLocked) return;
+      if (!isCurrentScope(scopeToken) || mutationsLocked || phaseRef.current !== 'idle') return;
       setError(null);
       draft.mutate(change);
     },
@@ -140,7 +146,10 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     draft,
     canCompose,
     phase,
-    setPhase,
+    setPhase: (nextPhase) => {
+      phaseRef.current = nextPhase;
+      setPhase(nextPhase);
+    },
     setError,
     scopeToken,
     isCurrentScope,
@@ -149,15 +158,11 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
   return {
     ...catalog,
     ...draft,
-    setNotes: (value: string) => {
-      if (isCurrentScope(scopeToken)) draft.setNotes(value);
-    },
-    setCustomer: (value: Parameters<typeof draft.setCustomer>[0]) => {
-      if (isCurrentScope(scopeToken)) draft.setCustomer(value);
-    },
-    discardDraft: () => {
-      if (isCurrentScope(scopeToken)) draft.discardDraft();
-    },
+    mutate,
+    setItems: guardRoundMutation(canMutateDraft, draft.setItems),
+    setNotes: guardRoundMutation(canMutateDraft, draft.setNotes),
+    setCustomer: guardRoundMutation(canMutateDraft, draft.setCustomer),
+    discardDraft: guardRoundMutation(canDiscardDraft, draft.discardDraft),
     catalogError: catalog.error,
     phase,
     error,

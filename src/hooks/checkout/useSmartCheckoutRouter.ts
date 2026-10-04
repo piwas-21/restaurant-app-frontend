@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useCheckout, type CustomerInfo, type DeliveryAddress } from '@/contexts/CheckoutContext';
+import { useCheckoutTableGuestState } from '@/contexts/CheckoutTableGuestStateContext';
 import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses } from '@/services/addressService';
@@ -80,11 +81,25 @@ function checkoutContextSatisfies(
 export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const { push } = useTenantLocaleRouter();
   const { state: checkoutState, setCustomerInfo, setDeliveryAddress } = useCheckout();
+  const tableVisit = useCheckoutTableGuestState();
   const [isResolving, setIsResolving] = useState(false);
 
   const proceedToCheckout = useCallback(
     async (orderType: OrderType | null, source = 'sidebar'): Promise<CheckoutBlocker | null> => {
       if (!orderType) return 'order-type';
+
+      // Admitted table rounds do not need ordinary checkout contact details. Pending or
+      // unavailable visit state must also reach the review page's recovery/blocked guard,
+      // rather than reopen table selection or allow an unrelated ordinary order. Bridged
+      // loading sets hasPendingRound; the default loading context alone is not visit evidence.
+      if (
+        tableVisit.hasPendingRound ||
+        (orderType === OrderType.DineIn && tableVisit.phase !== 'notJoined' && tableVisit.phase !== 'loading')
+      ) {
+        trackEvent('checkout_opened', { orderType, source, loggedIn: isLoggedInForAnalytics() });
+        push('/checkout/review');
+        return null;
+      }
 
       // Fast path: the type modals (§C1.5.e) already wrote everything we
       // need into CheckoutContext. No API calls, no smart-skip logic — just
@@ -154,7 +169,15 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         setIsResolving(false);
       }
     },
-    [push, checkoutState.customerInfo, checkoutState.deliveryAddress, setCustomerInfo, setDeliveryAddress],
+    [
+      push,
+      checkoutState.customerInfo,
+      checkoutState.deliveryAddress,
+      setCustomerInfo,
+      setDeliveryAddress,
+      tableVisit.hasPendingRound,
+      tableVisit.phase,
+    ],
   );
 
   return { proceedToCheckout, isResolving };

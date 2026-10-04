@@ -40,7 +40,16 @@ const operation: AccountPaymentOperation = {
   reservationExpiresAt: null,
   equalSharePlanId: null,
   equalShareOrdinal: null,
-  allocations: [],
+  allocations: [
+    {
+      orderId: '55555555-5555-4555-8555-555555555555',
+      orderItemId: null,
+      startOrdinal: 1,
+      unitCount: 1,
+      minorPerUnit: 29,
+      amountMinor: 29,
+    },
+  ],
 };
 const refresh = jest.fn(async () => undefined);
 
@@ -135,7 +144,7 @@ it('permits owner lookup after feature disablement and retains the original coll
     expectedVersion: 2,
   });
   api.getAccountPaymentOperation.mockResolvedValue({ ...operation, state: 'Reserved', version: 3 });
-  const { result } = renderHook(() => useAccountPaymentOperation(actor, visit, false, refresh));
+  const { result } = renderHook(() => useAccountPaymentOperation(actor, visit, false, refresh, true));
   await waitFor(() => expect(result.current.operation?.state).toBe('Reserved'));
   await act(async () => {
     await result.current.collect();
@@ -148,6 +157,34 @@ it('permits owner lookup after feature disablement and retains the original coll
   expect(api.reserveAccountPayment).not.toHaveBeenCalled();
   expect(api.releaseAccountPayment).not.toHaveBeenCalled();
   expect(result.current.pending).toMatchObject({ stage: 'collecting', expectedVersion: 2 });
+});
+
+it('replays only the original collecting operation after the account feature is disabled', async () => {
+  const reserved = { ...operation, state: 'Reserved' as const, version: 2 };
+  persistPendingAccountPayment({
+    actorId: actor,
+    serviceSessionId: visit,
+    kind: 'payment',
+    stage: 'collecting',
+    expectedVersion: 2,
+    request,
+  });
+  api.getAccountPaymentOperation.mockResolvedValue(reserved);
+  api.collectAccountPayment.mockResolvedValue({ ...reserved, state: 'Captured', version: 3 });
+  const { result } = renderHook(() => useAccountPaymentOperation(actor, visit, false, refresh, true));
+
+  await waitFor(() => expect(result.current.operation?.state).toBe('Reserved'));
+  await act(async () => {
+    await result.current.collect();
+  });
+
+  expect(api.collectAccountPayment).toHaveBeenCalledTimes(1);
+  expect(api.collectAccountPayment).toHaveBeenCalledWith(visit, request.operationId, { expectedVersion: 2 });
+  expect(api.quoteAccountPayment).not.toHaveBeenCalled();
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.releaseAccountPayment).not.toHaveBeenCalled();
+  expect(readPendingAccountPayment(actor, visit)).toEqual({ status: 'none' });
+  expect(result.current.canStart).toBe(false);
 });
 
 it('permits same-actor safe release after feature disablement using the looked-up version', async () => {

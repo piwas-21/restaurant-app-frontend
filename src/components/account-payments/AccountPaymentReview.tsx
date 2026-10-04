@@ -20,6 +20,7 @@ interface Props {
   readonly pending: PendingAccountPayment | null;
   readonly disabled: boolean;
   readonly recoveryReleaseEnabled?: boolean;
+  readonly recoveryCollectionEnabled?: boolean;
   readonly onReserve: () => Promise<void>;
   readonly onCollect: () => Promise<void>;
   readonly onRelease: () => Promise<void>;
@@ -32,6 +33,7 @@ export default function AccountPaymentReview({
   pending,
   disabled,
   recoveryReleaseEnabled = false,
+  recoveryCollectionEnabled = false,
   onReserve,
   onCollect,
   onRelease,
@@ -167,9 +169,7 @@ export default function AccountPaymentReview({
       )}
       {unknownWrite && (
         <StaffButton
-          disabled={
-            releaseUnknown ? !canRelease : disabled || (collectionUnknown && !allocationScope.complete) || !reserved
-          }
+          disabled={releaseUnknown ? !canRelease : !recoveryCollectionEnabled || !allocationScope.complete || !reserved}
           onClick={() => void (collectionUnknown ? onCollect() : onRelease())}
         >
           {t('accountPayments.retry_original')}

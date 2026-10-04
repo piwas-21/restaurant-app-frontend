@@ -12,12 +12,19 @@ jest.mock('react-i18next', () => ({
     i18n: { language: 'en' },
   }),
 }));
-jest.mock('@/components/cashier/CashierTablePaymentForm', () => ({
-  __esModule: true,
-  default: () => <div data-testid="payment-form" />,
+const mockedActions = useServerTableBillActions as jest.MockedFunction<typeof useServerTableBillActions>;
+let mockAuthRole: string | null = 'Server';
+
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: () => ({ user: mockAuthRole ? { role: mockAuthRole } : null }),
 }));
 
-const mockedActions = useServerTableBillActions as jest.MockedFunction<typeof useServerTableBillActions>;
+jest.mock('./ServerAccountPaymentCollectionHost', () => ({
+  __esModule: true,
+  default: ({ canStartCollection, expanded }: { canStartCollection: boolean; expanded: boolean }) => (
+    <output data-testid="server-account-payment-host">{`${String(canStartCollection)}:${String(expanded)}`}</output>
+  ),
+}));
 
 const session: TableServiceSessionDto = {
   serviceSessionId: 'session-1',
@@ -70,7 +77,6 @@ function mockState(current: TableServiceSessionDto) {
     error: null,
     requestHandoff,
     cancelHandoff,
-    submitPayment: jest.fn(async () => undefined),
     closeSession,
     reconcilePendingOperation: jest.fn(async () => undefined),
     refresh,
@@ -79,6 +85,7 @@ function mockState(current: TableServiceSessionDto) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAuthRole = 'Server';
   mockState(session);
 });
 
@@ -119,14 +126,31 @@ describe('ServerTableBillWorkspace', () => {
     expect(screen.getByText('server.bill.close_blocked_handoff')).toBeInTheDocument();
   });
 
-  it('shows Collect only when the backend permits tender entry', () => {
+  it('replaces the legacy Server tender form with the opted-in account collection host', () => {
     const collectable = { ...session, canCollect: true, canRequestPaymentHandoff: false };
     mockState(collectable);
-    render(<ServerTableBillWorkspace session={collectable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+    render(
+      <TenantFeaturesProvider features={{ tableAccountPaymentsV1: true, serverAccountCollectionV1: true }}>
+        <ServerTableBillWorkspace session={collectable} actionsBlocked={false} refreshWorkspace={jest.fn()} />
+      </TenantFeaturesProvider>,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'server.bill.collect' }));
-    expect(screen.getByTestId('payment-form')).toBeInTheDocument();
+    expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('true:true');
+    expect(screen.queryByTestId('payment-form')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'server.bill.send_to_cashier' })).not.toBeInTheDocument();
+  });
+
+  it('keeps fresh collection absent while the Server opt-in is off but leaves the recovery host mounted', () => {
+    const collectable = { ...session, canCollect: true };
+    render(
+      <TenantFeaturesProvider features={{ tableAccountPaymentsV1: true, serverAccountCollectionV1: false }}>
+        <ServerTableBillWorkspace session={collectable} actionsBlocked={false} refreshWorkspace={jest.fn()} />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'server.bill.collect' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('false:false');
   });
 
   it('labels browser printing honestly without claiming paper output', () => {

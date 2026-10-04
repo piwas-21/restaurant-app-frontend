@@ -35,6 +35,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
         }}
       >
         <p>private queue</p>
@@ -56,6 +57,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
         }}
       >
         <p>private queue</p>
@@ -72,6 +74,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
         }}
       >
         <p>private queue</p>
@@ -89,6 +92,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
         }}
       >
         <FeatureProbe />
@@ -108,6 +112,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
         }}
       >
         <p>private queue</p>
@@ -128,6 +133,7 @@ describe('CashierLayout authorization', () => {
           orderAmendmentsV1: false,
           tableGuestVisitsV1: false,
           tableAccountPaymentsV1: true,
+          serverAccountCollectionV1: false,
         }}
       >
         <FeatureProbe />

@@ -34,6 +34,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).toHaveBeenCalledWith('http://backend.test/api/tenant/features', {
       cache: 'no-store',
@@ -53,6 +54,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -71,6 +73,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -93,6 +96,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -111,6 +115,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: true,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -131,6 +136,24 @@ describe('getTenantFeatures', () => {
         tableGuestVisitsV1: false,
         tableVisitReadinessV1: false,
         tableAccountPaymentsV1: flag === true ? true : false,
+        serverAccountCollectionV1: false,
+      });
+    },
+  );
+
+  it.each([true, false, 'true', 1, null, undefined])(
+    'accepts only an explicit boolean for Server account collection (%s)',
+    async (flag) => {
+      mockFetch(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { serverAccountCollectionV1: flag } }),
+        }),
+      );
+
+      await expect(getTenantFeatures()).resolves.toMatchObject({
+        tableAccountPaymentsV1: false,
+        serverAccountCollectionV1: flag === true,
       });
     },
   );
@@ -149,6 +172,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -164,6 +188,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -177,6 +202,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -190,6 +216,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -207,6 +234,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -237,6 +265,7 @@ describe('getTenantFeatures', () => {
       tableGuestVisitsV1: false,
       tableVisitReadinessV1: false,
       tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });

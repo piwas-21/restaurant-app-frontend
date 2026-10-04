@@ -2,17 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  createAccountEqualSharePlan,
-  getAccountEqualSharePlan,
-  getAccountPaymentOperation,
-  quoteAccountPayment,
-} from '@/services/accountPaymentsService';
-import type {
-  AccountPaymentOperation,
-  CreateAccountEqualSharePlanRequest,
-  CreateAccountPaymentQuoteRequest,
-} from '@/types/accountPayments';
+import { getAccountEqualSharePlan, getAccountPaymentOperation } from '@/services/accountPaymentsService';
+import type { AccountPaymentOperation } from '@/types/accountPayments';
 import {
   clearPendingAccountPayment,
   persistPendingAccountPayment,
@@ -22,12 +13,15 @@ import {
 import useApiError from './useApiError';
 import { accountPaymentMutationActions } from '@/lib/accountPaymentMutationActions';
 import { accountPaymentResultTransition, type AccountPaymentResult } from '@/lib/accountPaymentResult';
+import { canRetryAccountPaymentCollection } from '@/lib/accountPaymentRecovery';
+import { createAccountPaymentDraftActions } from '@/lib/accountPaymentDraftActions';
 
 export function useAccountPaymentOperation(
   actorId: string | undefined,
   serviceSessionId: string,
   enabled: boolean,
   refresh: () => Promise<void>,
+  recoveryEnabled = false,
 ) {
   const { t } = useTranslation();
   const [pending, setPending] = useState<PendingAccountPayment | null>(null);
@@ -70,7 +64,14 @@ export function useAccountPaymentOperation(
       write: boolean,
       allowFeatureOffRecovery = false,
     ) => {
-      if (inFlight.current || !actorId || (write && ((!enabled && !allowFeatureOffRecovery) || storageUnavailable)))
+      const currentActorId = actorId?.toLowerCase();
+      if (
+        inFlight.current ||
+        !currentActorId ||
+        saved.actorId.toLowerCase() !== currentActorId ||
+        saved.serviceSessionId.toLowerCase() !== serviceSessionId.toLowerCase() ||
+        (write && ((!enabled && !allowFeatureOffRecovery) || storageUnavailable))
+      )
         return;
       if (write && !persistPendingAccountPayment(saved)) {
         setStorageUnavailable(true);
@@ -94,7 +95,7 @@ export function useAccountPaymentOperation(
         }
       }
     },
-    [actorId, enabled, storageUnavailable, accept, capture, clear, show, t],
+    [actorId, enabled, serviceSessionId, storageUnavailable, accept, capture, clear, show, t],
   );
 
   const check = useCallback(
@@ -137,44 +138,41 @@ export function useAccountPaymentOperation(
     };
   }, [actorId, serviceSessionId, show, t]);
 
-  const quote = async (request: CreateAccountPaymentQuoteRequest) => {
-    if (!actorId || !ready || pending) return;
-    await run(
-      { actorId, serviceSessionId, kind: 'payment', request, stage: 'quote' },
-      () => quoteAccountPayment(serviceSessionId, request),
-      true,
-    );
-  };
-  const plan = async (request: CreateAccountEqualSharePlanRequest) => {
-    if (!actorId || !ready || pending) return;
-    await run(
-      { actorId, serviceSessionId, kind: 'plan', request },
-      () => createAccountEqualSharePlan(serviceSessionId, request),
-      true,
-    );
-  };
-  const retryPreview = async () => {
-    if (!pending || operation || (pending.kind === 'payment' && pending.stage !== 'quote')) return;
-    await run(
-      pending,
-      () =>
-        pending.kind === 'plan'
-          ? createAccountEqualSharePlan(serviceSessionId, pending.request)
-          : quoteAccountPayment(serviceSessionId, pending.request),
-      true,
-    );
-  };
-  const discardPreview = () => {
-    if (!actorId || busy || pending?.kind !== 'payment' || pending.stage !== 'quote' || operation) return;
-    if (clearPendingAccountPayment(actorId, serviceSessionId, pending.request.operationId)) {
-      setPending(null);
-      clear();
-    } else {
-      setStorageUnavailable(true);
-      show(t('accountPayments.storage_unavailable'));
-    }
-  };
-  const mutations = accountPaymentMutationActions(pending, operation, serviceSessionId, run);
+  const draftActions = createAccountPaymentDraftActions({
+    actorId,
+    serviceSessionId,
+    ready,
+    pending,
+    operation,
+    busy,
+    run,
+    setPending,
+    setStorageUnavailable,
+    clearError: clear,
+    showError: show,
+    storageUnavailableMessage: t('accountPayments.storage_unavailable'),
+  });
+  const mutations = accountPaymentMutationActions(
+    pending,
+    operation,
+    serviceSessionId,
+    run,
+    actorId,
+    enabled,
+    recoveryEnabled,
+    busy,
+    storageUnavailable,
+  );
+
+  const canRetryCollection = canRetryAccountPaymentCollection(
+    actorId,
+    serviceSessionId,
+    pending,
+    operation,
+    recoveryEnabled,
+    busy,
+    storageUnavailable,
+  );
 
   return {
     pending,
@@ -182,13 +180,11 @@ export function useAccountPaymentOperation(
     busy,
     ready,
     storageUnavailable,
+    canRetryCollection,
     error: error.message,
     check,
-    quote,
-    plan,
+    ...draftActions,
     ...mutations,
-    retryPreview,
-    discardPreview,
     canStart: enabled && ready && !pending && !busy && !storageUnavailable,
   };
 }

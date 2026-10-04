@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { CreateAccountEqualSharePlanRequest, CreateAccountPaymentQuoteRequest } from '@/types/accountPayments';
 
 const positiveInteger = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
+export const ACCOUNT_PAYMENT_MAX_SELECTED_UNITS = 1000;
+const accountPaymentUuid = z.string().uuid();
 const unit = z
   .object({ orderId: z.string().uuid(), orderItemId: z.string().uuid(), ordinal: positiveInteger })
   .strict();
@@ -11,7 +13,7 @@ const quoteRequest = z
     expectedAccountRevision: positiveInteger,
     mode: z.enum(['Items', 'Amount', 'Equal']),
     paymentMethod: z.enum(['Cash', 'CreditCard']),
-    selectedUnits: z.array(unit).max(1000).optional(),
+    selectedUnits: z.array(unit).max(ACCOUNT_PAYMENT_MAX_SELECTED_UNITS).optional(),
     amountMinor: positiveInteger.optional(),
     equalSharePlanId: z.string().uuid().optional(),
     equalShareOrdinal: positiveInteger.optional(),
@@ -53,6 +55,15 @@ export type PendingAccountPayment =
 
 export type PendingAccountPaymentRead =
   { status: 'none' } | { status: 'unavailable' } | { status: 'pending'; value: PendingAccountPayment };
+
+export function normalizeAccountPaymentUuid(value: unknown): string | null {
+  const parsed = accountPaymentUuid.safeParse(value);
+  return parsed.success ? parsed.data.toLowerCase() : null;
+}
+
+export function isPositiveAccountPaymentInteger(value: unknown): value is number {
+  return positiveInteger.safeParse(value).success;
+}
 
 function key(actorId: string, serviceSessionId: string): string {
   return `sofra.account-payment.${actorId.toLowerCase()}.${serviceSessionId.toLowerCase()}`;

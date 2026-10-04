@@ -14,7 +14,6 @@ jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
     error: null,
     requestHandoff: jest.fn(),
     cancelHandoff: jest.fn(),
-    submitPayment: jest.fn(),
     closeSession: jest.fn(),
     reconcilePendingOperation: jest.fn(),
     refresh: jest.fn(),

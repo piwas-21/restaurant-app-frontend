@@ -61,7 +61,6 @@ jobs:
       # allowed CORS origin: the screenshot production server listens on 3100.
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://localhost:5221
-      ConnectionStrings__restaurantdb: Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123 # pragma: allowlist secret
       ConnectionStrings__redis: localhost:6379
       JwtSettings__Secret: e2e-only-jwt-secret-not-for-production-at-least-32-chars-long-padding-padding # pragma: allowlist secret
       JwtSettings__Issuer: rumi-e2e
@@ -79,7 +78,6 @@ jobs:
       EmailSettings__BackendBaseUrl: http://localhost:5221
       CorsSettings__AllowedOrigins__0: http://localhost:3100
       E2E_API_BASE_URL: http://localhost:5221
-      E2E_DATABASE_URL: postgres://postgres:postgres123@localhost:5432/restaurantdb # pragma: allowlist secret
       E2E_DATABASE_TARGET: disposable
       UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots == true && 'true' || 'false' }}
       # Trusted (hardcoded matrix literal). Baked into the build + segments the
@@ -100,12 +98,29 @@ jobs:
       # rest of the job already assumes (the backend container and the suite
       # both talk to localhost), so nothing about the topology changes: the same
       # pinned images listen on the same localhost ports with the same
-      # credentials. Readiness moves to the explicit gate below, which fails the
+      # per-run credentials. Readiness moves to the explicit gate below, which fails the
       # job with the container log rather than timing out mysteriously.
+      - name: Configure disposable database credentials
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          import secrets
+          from pathlib import Path
+
+          password = secrets.token_hex(24)
+          print(f"::add-mask::{password}")
+          values = {
+              "POSTGRES_PASSWORD": password,
+              "PGPASSWORD": password,
+              "ConnectionStrings__restaurantdb": f"Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password={password}",
+              "E2E_DATABASE_URL": f"postgres://postgres:{password}@localhost:5432/restaurantdb",
+          }
+          with Path(os.environ["GITHUB_ENV"]).open("a") as output:
+              for name, value in values.items():
+                  output.write(f"{name}={value}\n")
+          PYTHON
+
       - name: Start postgres + redis (background)
-        env:
-          # Same throwaway credential the job's connection strings already use.
-          POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
         run: |
           nohup bash -c '
             set -e
@@ -189,8 +204,6 @@ jobs:
       # bounded loops keep a broken pull from eating the job timeout and dump
       # what happened instead.
       - name: Wait for postgres + redis
-        env:
-          PGPASSWORD: postgres123 # pragma: allowlist secret
         run: |
           for _ in $(seq 1 120); do
             pg_isready -h localhost -U postgres -d restaurantdb >/dev/null 2>&1 && PG_OK=1 && break

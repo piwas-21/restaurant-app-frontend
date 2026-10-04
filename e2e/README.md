@@ -25,6 +25,11 @@ staging databases out of this target. The URL has no committed default — expor
 it in your shell so gitleaks stays happy. Replace the placeholders with the
 local database name and credentials.
 
+The screenshot CI workflow generates a fresh disposable database password
+for each job and passes it to its PostgreSQL service, backend and guarded seed.
+It uses `localhost:5432/restaurantdb` and needs no database repository secret,
+including for fork pull requests.
+
 For a deliberate staging DB write, use `E2E_DATABASE_TARGET=staging`, set
 `E2E_ALLOW_STAGING_DATABASE_WRITES=YES`, and set
 `E2E_STAGING_DATABASE_HOST`, `E2E_STAGING_DATABASE_NAME`, and

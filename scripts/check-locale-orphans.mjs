@@ -48,6 +48,9 @@ const CODE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json']
  * branches is still reported.
  */
 const DYNAMIC_PREFIXES = [
+  // AmendmentResolutionLoyalty.tsx renders t('amendment_loyalty_points', { count });
+  // i18next chooses only this family's CLDR suffix at runtime.
+  'amendment_loyalty_points_',
   'allergen_',
   'api_tokens_scope_desc_',
   'api_tokens_status_',

@@ -3961,5 +3961,15 @@
   },
   "languageLoadFailed": "That language could not be loaded. Your current language was kept. Please try again.",
   "server.floor.needs_reset": "Needs reset",
-  "server.floor.ready_action": "Ready for next guests"
+  "server.floor.ready_action": "Ready for next guests",
+  "amendment_loyalty_points_one": "{{amount}} point",
+  "amendment_loyalty_points_other": "{{amount}} points",
+  "points_transaction_earned": "Points earned",
+  "points_transaction_redeemed": "Points redeemed",
+  "points_transaction_admin": "Administrator adjustment",
+  "points_transaction_expired": "Points expired",
+  "points_transaction_refunded": "Points refunded",
+  "points_transaction_clawback": "Earned points reversed",
+  "points_transaction_restored": "Redeemed points restored",
+  "points_transaction_unknown": "Points adjustment"
 }

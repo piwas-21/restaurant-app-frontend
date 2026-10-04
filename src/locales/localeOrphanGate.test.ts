@@ -67,6 +67,20 @@ afterAll(() => {
 });
 
 describe('orphan gate — the baseline behaviours', () => {
+  it('allows loyalty point plural suffixes but rejects adjacent unused amendment copy', () => {
+    const { status, output } = runGate(
+      {
+        amendment_loyalty_points_one: 'One point',
+        amendment_loyalty_points_other: 'Several points',
+        amendment_loyalty_unused: 'Unused',
+      },
+      { 'src/components/Loyalty.tsx': "t('amendment_loyalty_points', { count });\n" },
+    );
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: amendment_loyalty_unused');
+    expect(output).not.toContain('orphan: amendment_loyalty_points_');
+  });
+
   it('passes when every key is read, and says how much it looked at', () => {
     const { status, output } = runGate(
       { save_now: 'Save' },

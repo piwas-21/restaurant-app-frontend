@@ -3985,5 +3985,17 @@
   },
   "languageLoadFailed": "Не удалось загрузить этот язык. Текущий язык сохранён. Попробуйте ещё раз.",
   "server.floor.needs_reset": "Требуется подготовка",
-  "server.floor.ready_action": "Готов к следующим гостям"
+  "server.floor.ready_action": "Готов к следующим гостям",
+  "amendment_loyalty_points_one": "{{amount}} балл",
+  "amendment_loyalty_points_few": "{{amount}} балла",
+  "amendment_loyalty_points_many": "{{amount}} баллов",
+  "amendment_loyalty_points_other": "{{amount}} балла",
+  "points_transaction_earned": "Начисленные баллы",
+  "points_transaction_redeemed": "Использованные баллы",
+  "points_transaction_admin": "Корректировка администратора",
+  "points_transaction_expired": "Истёкшие баллы",
+  "points_transaction_refunded": "Возвращённые баллы",
+  "points_transaction_clawback": "Начисленные баллы отменены",
+  "points_transaction_restored": "Использованные баллы восстановлены",
+  "points_transaction_unknown": "Корректировка баллов"
 }

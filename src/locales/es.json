@@ -3973,5 +3973,16 @@
   },
   "languageLoadFailed": "No se pudo cargar ese idioma. Se ha mantenido tu idioma actual. Inténtalo de nuevo.",
   "server.floor.needs_reset": "Necesita preparación",
-  "server.floor.ready_action": "Lista para los próximos clientes"
+  "server.floor.ready_action": "Lista para los próximos clientes",
+  "amendment_loyalty_points_one": "{{amount}} punto",
+  "amendment_loyalty_points_many": "{{amount}} puntos",
+  "amendment_loyalty_points_other": "{{amount}} puntos",
+  "points_transaction_earned": "Puntos ganados",
+  "points_transaction_redeemed": "Puntos canjeados",
+  "points_transaction_admin": "Ajuste del administrador",
+  "points_transaction_expired": "Puntos caducados",
+  "points_transaction_refunded": "Puntos reembolsados",
+  "points_transaction_clawback": "Puntos ganados revertidos",
+  "points_transaction_restored": "Puntos canjeados restaurados",
+  "points_transaction_unknown": "Ajuste de puntos"
 }

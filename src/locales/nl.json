@@ -3961,5 +3961,15 @@
   },
   "languageLoadFailed": "Deze taal kon niet worden geladen. Uw huidige taal is behouden. Probeer het opnieuw.",
   "server.floor.needs_reset": "Opnieuw klaarzetten nodig",
-  "server.floor.ready_action": "Klaar voor de volgende gasten"
+  "server.floor.ready_action": "Klaar voor de volgende gasten",
+  "amendment_loyalty_points_one": "{{amount}} punt",
+  "amendment_loyalty_points_other": "{{amount}} punten",
+  "points_transaction_earned": "Punten verdiend",
+  "points_transaction_redeemed": "Punten ingewisseld",
+  "points_transaction_admin": "Aanpassing door beheerder",
+  "points_transaction_expired": "Punten verlopen",
+  "points_transaction_refunded": "Punten terugbetaald",
+  "points_transaction_clawback": "Verdiende punten teruggedraaid",
+  "points_transaction_restored": "Ingewisselde punten hersteld",
+  "points_transaction_unknown": "Puntenaanpassing"
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { resolutionLoyaltyQuoteSchema, resolutionLoyaltyResultSchema } from './amendmentResolutionLoyalty.schema';
 
 // Mirrors OrderAmendmentResolutionRequests/QuoteDto/ResultDto; backend remains authoritative.
 const identity = z
@@ -77,6 +78,7 @@ const refundScope = z
   .strict();
 
 export const resolutionQuoteSchema = z.object({
+  loyalty: resolutionLoyaltyQuoteSchema.nullable().optional(),
   orderId: identity,
   amendmentId: identity,
   clientOperationId: identity,
@@ -102,6 +104,7 @@ export const resolutionQuoteSchema = z.object({
 });
 
 export const resolutionResultSchema = z.object({
+  loyalty: resolutionLoyaltyResultSchema.nullable().optional(),
   operationId: identity,
   clientOperationId: identity,
   amendmentId: identity,

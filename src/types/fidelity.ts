@@ -16,16 +16,18 @@ export enum TransactionType {
   AdminAdjustment = 'AdminAdjustment',
   Expired = 'Expired',
   Refunded = 'Refunded',
+  EarnedClawback = 'EarnedClawback',
+  RedemptionRestored = 'RedemptionRestored',
 }
 
 export interface FidelityPointsTransaction {
   id: string;
-  userId: string;
+  userId: string | null;
   orderId?: string;
   transactionType: TransactionType;
   points: number;
   orderTotal?: number;
-  description: string;
+  description: string | null;
   createdAt: string;
   expiresAt?: string;
 }

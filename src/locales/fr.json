@@ -3973,5 +3973,16 @@
   },
   "languageLoadFailed": "Cette langue n’a pas pu être chargée. Votre langue actuelle a été conservée. Veuillez réessayer.",
   "server.floor.needs_reset": "Remise en état nécessaire",
-  "server.floor.ready_action": "Prête pour les prochains clients"
+  "server.floor.ready_action": "Prête pour les prochains clients",
+  "amendment_loyalty_points_one": "{{amount}} point de fidélité",
+  "amendment_loyalty_points_many": "{{amount}} points de fidélité",
+  "amendment_loyalty_points_other": "{{amount}} points de fidélité",
+  "points_transaction_earned": "Points gagnés",
+  "points_transaction_redeemed": "Points utilisés",
+  "points_transaction_admin": "Ajustement administrateur",
+  "points_transaction_expired": "Points expirés",
+  "points_transaction_refunded": "Points remboursés",
+  "points_transaction_clawback": "Points gagnés retirés",
+  "points_transaction_restored": "Points utilisés rétablis",
+  "points_transaction_unknown": "Ajustement de points"
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fidelityPointsService } from '@/services/fidelityPointsService';
 import type { FidelityPointsTransaction } from '@/types/fidelity';
+import { FIDELITY_TRANSACTION_LABELS } from '@/lib/fidelityTransactionPresentation';
 import styles from './PointsHistoryModal.module.css';
 
 interface PointsHistoryModalProps {
@@ -70,12 +71,14 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
       case 'Earned':
         return '↑';
       case 'Redeemed':
+      case 'EarnedClawback':
         return '↓';
       case 'AdminAdjustment':
         return '⚙';
       case 'Expired':
         return '⏱';
       case 'Refunded':
+      case 'RedemptionRestored':
         return '↩';
       default:
         return '•';
@@ -129,7 +132,7 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
                     <div className={styles.transactionDetails}>
                       <div className={styles.transactionHeader}>
                         <span className={styles.transactionType}>
-                          {fidelityPointsService.getTransactionTypeLabel(transaction.transactionType)}
+                          {t(FIDELITY_TRANSACTION_LABELS[transaction.transactionType] ?? 'points_transaction_unknown')}
                         </span>
                         <span
                           className={`${styles.transactionPoints} ${

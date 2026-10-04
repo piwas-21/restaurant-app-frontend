@@ -3973,5 +3973,16 @@
   },
   "languageLoadFailed": "Impossibile caricare questa lingua. La lingua attuale è stata mantenuta. Riprova.",
   "server.floor.needs_reset": "Da preparare",
-  "server.floor.ready_action": "Pronto per i prossimi ospiti"
+  "server.floor.ready_action": "Pronto per i prossimi ospiti",
+  "amendment_loyalty_points_one": "{{amount}} punto",
+  "amendment_loyalty_points_many": "{{amount}} punti",
+  "amendment_loyalty_points_other": "{{amount}} punti",
+  "points_transaction_earned": "Punti guadagnati",
+  "points_transaction_redeemed": "Punti utilizzati",
+  "points_transaction_admin": "Rettifica dell’amministratore",
+  "points_transaction_expired": "Punti scaduti",
+  "points_transaction_refunded": "Punti rimborsati",
+  "points_transaction_clawback": "Punti guadagnati stornati",
+  "points_transaction_restored": "Punti utilizzati ripristinati",
+  "points_transaction_unknown": "Rettifica dei punti"
 }

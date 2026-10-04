@@ -1,0 +1,29 @@
+.section {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  color: var(--text-primary);
+}
+
+.section p {
+  color: var(--text-secondary);
+  margin-block: 0.5rem;
+}
+
+.figures {
+  margin-block: 0.5rem 1rem;
+}
+
+.figures div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  border-block-end: 1px solid var(--border-default);
+  padding-block: 0.5rem;
+}
+
+.figures dd {
+  margin: 0;
+  text-align: end;
+}

@@ -1,3 +1,5 @@
+import { formatCurrencyMinor } from '@/utils/minorCurrency';
+
 const ACCOUNT_CURRENCIES = new Set(['CHF', 'EUR', 'GBP', 'USD', 'AED']);
 const MINOR_UNITS = BigInt(100);
 
@@ -24,13 +26,5 @@ export function parseAccountContributionMinor(input: string, currency: string): 
 export function formatAccountPaymentMinor(minor: number, currency: string, locale: string): string | null {
   const normalized = accountPaymentCurrency(currency);
   if (!normalized || !Number.isSafeInteger(minor) || minor < 0) return null;
-  const exact = BigInt(minor);
-  const fraction = Number(exact % MINOR_UNITS);
-  const localizedFraction = new Intl.NumberFormat(locale, { minimumIntegerDigits: 2, useGrouping: false }).format(
-    fraction,
-  );
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: normalized })
-    .formatToParts(exact / MINOR_UNITS)
-    .map((part) => (part.type === 'fraction' ? localizedFraction : part.value))
-    .join('');
+  return formatCurrencyMinor(minor, normalized, locale);
 }

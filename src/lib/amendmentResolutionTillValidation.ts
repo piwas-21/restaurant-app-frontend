@@ -35,6 +35,49 @@ export function pendingTillConfirmationsSucceeded(
     });
 }
 
+function serverConfirmedTillEvidence(
+  original: PendingAmendmentResolution,
+  leg: AmendmentResolutionResult['refundLegs'][number],
+): AmendmentResolutionTillConfirmations[number] | null {
+  const tillConfirmation = leg.tillConfirmation;
+  if (!tillConfirmation) return null;
+  const paymentId = leg.paymentId.toLowerCase();
+  const quoteLeg = original.reviewedQuote.refundLegs.find((value) =>
+    sameResolutionIdentity(value.paymentId, paymentId),
+  );
+  if (!quoteLeg) return null;
+  const cashReturnedMinor = quoteLeg.cashRefund ? leg.cashReturn?.cashReturnedMinor : undefined;
+  if (quoteLeg.cashRefund && cashReturnedMinor === undefined) return null;
+  return {
+    paymentId,
+    tillReference: tillConfirmation.tillReference,
+    ...(cashReturnedMinor !== undefined ? { cashReturnedMinor } : {}),
+  };
+}
+
+function requestedTillEvidence(
+  leg: AmendmentResolutionResult['refundLegs'][number],
+  requested: Map<string, AmendmentResolutionTillConfirmations[number]>,
+): AmendmentResolutionTillConfirmations[number] | null {
+  const confirmation = requested.get(leg.paymentId.toLowerCase());
+  return leg.state === 'Pending' && leg.tillConfirmation == null && confirmation ? confirmation : null;
+}
+
+function completeManualBatch(
+  original: PendingAmendmentResolution,
+  manualLegs: AmendmentResolutionResult['refundLegs'],
+  requested: Map<string, AmendmentResolutionTillConfirmations[number]>,
+): AmendmentResolutionTillConfirmations | null {
+  const completeBatch: AmendmentResolutionTillConfirmations = [];
+  for (const leg of manualLegs) {
+    const confirmation =
+      leg.state === 'Succeeded' ? serverConfirmedTillEvidence(original, leg) : requestedTillEvidence(leg, requested);
+    if (!confirmation) return null;
+    completeBatch.push(confirmation);
+  }
+  return completeBatch;
+}
+
 /** Bind one immutable batch to the currently pending ManualTill legs before their first POST. */
 export function preparePendingTillConfirmations(
   pending: PendingAmendmentResolution,
@@ -60,17 +103,8 @@ export function preparePendingTillConfirmations(
   )
     return null;
   const requested = new Map(confirmations.map((confirmation) => [confirmation.paymentId, confirmation]));
-  const completeBatch: AmendmentResolutionTillConfirmations = [];
-  for (const leg of manualLegs) {
-    const paymentId = leg.paymentId.toLowerCase();
-    if (leg.state === 'Succeeded' && leg.tillConfirmation) {
-      completeBatch.push({ paymentId, tillReference: leg.tillConfirmation.tillReference });
-      continue;
-    }
-    const confirmation = requested.get(paymentId);
-    if (leg.state !== 'Pending' || leg.tillConfirmation != null || !confirmation) return null;
-    completeBatch.push(confirmation);
-  }
+  const completeBatch = completeManualBatch(original, manualLegs, requested);
+  if (!completeBatch) return null;
   return validatePendingResolution({ ...original, pendingTillConfirmations: completeBatch });
 }
 

@@ -153,7 +153,16 @@
     "resolution_payment_held": "Deze betaling moet worden afgestemd voordat de bestelling verder kan worden gewijzigd.",
     "resolution_retry_till": "Opgeslagen kassabevestigingen opnieuw proberen",
     "resolution_till_retry_help": "Bij opnieuw proberen worden dezelfde opgeslagen referenties vastgelegd. Betaal deze bedragen niet nogmaals terug.",
-    "resolution_operation_reference": "Correctiereferentie:"
+    "resolution_operation_reference": "Correctiereferentie:",
+    "resolution_cash_exact_refund": "Exact terug te betalen bedrag",
+    "resolution_cash_return_amount": "Fysiek terug te geven contant geld",
+    "resolution_cash_refund_adjustment": "Afrondingsverschil bij contante terugbetaling",
+    "resolution_cash_retained_exact": "Resterend exact bedrag",
+    "resolution_cash_retained_due": "Resterend contant verschuldigd bedrag",
+    "resolution_cash_return_checkbox": "Ik heb {{amount}} daadwerkelijk contant teruggegeven.",
+    "resolution_cash_return_required": "Bevestig het daadwerkelijk teruggegeven contante bedrag voordat je doorgaat.",
+    "resolution_cash_refund_terms": "Oorspronkelijke contante betaling: exact {{originalExact}}, verschuldigd {{originalDue}}. Eerder terugbetaald: exact {{previousExact}}, contant {{previousCash}}.",
+    "resolution_cash_returned_amount": "Contante terugbetaling bevestigd"
   },
   "serverOrders": {
     "title": "Bestellingen",

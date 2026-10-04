@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
 import type { AmendmentResolutionContext } from './amendmentResolutionContext.schema';
-import { resolutionTillConfirmationsSchema } from './amendmentResolution.schema';
+import { AMENDMENT_TILL_REFERENCE_MAX_LENGTH } from './amendmentResolution.schema';
 import type { AmendmentResolutionQuote } from '@/types/amendmentResolution';
 
 const invalid = 'orderAmendments.resolution_invalid_amount';
@@ -42,22 +42,50 @@ export function manualRefundFormSchema(context: AmendmentResolutionContext) {
 export type ManualRefundForm = z.infer<ReturnType<typeof manualRefundFormSchema>>;
 
 export function tillRefundFormSchema(quote: AmendmentResolutionQuote) {
-  const expected = quote.refundLegs.filter((leg) => leg.requiresTillConfirmation).map((leg) => leg.paymentId);
+  const expected = quote.refundLegs.filter((leg) => leg.requiresTillConfirmation);
+  const confirmation = z
+    .object({
+      paymentId: z.string().uuid(),
+      tillReference: z
+        .string()
+        .trim()
+        .max(AMENDMENT_TILL_REFERENCE_MAX_LENGTH)
+        .regex(/^[A-Za-z0-9._/#-]+$/),
+      cashReturnConfirmed: z.boolean(),
+    })
+    .strict();
   return z
-    .object({ tillConfirmations: resolutionTillConfirmationsSchema })
+    .object({ tillConfirmations: z.array(confirmation).min(1) })
     .extend({
       acknowledged: z.boolean().refine((value) => value, 'orderAmendments.resolution_acknowledgement_required'),
     })
     .superRefine((value, ctx) => {
       if (
         value.tillConfirmations.length !== expected.length ||
-        value.tillConfirmations.some((entry, index) => entry.paymentId !== expected[index])
+        value.tillConfirmations.some((entry, index) => entry.paymentId !== expected[index]?.paymentId)
       )
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['tillConfirmations'],
           message: 'orderAmendments.resolution_invalid_reference',
         });
+      value.tillConfirmations.forEach((entry, index) => {
+        const leg = expected[index];
+        if (!leg) return;
+        if (leg.cashRefund && !entry.cashReturnConfirmed) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['tillConfirmations', index, 'cashReturnConfirmed'],
+            message: 'orderAmendments.resolution_cash_return_required',
+          });
+        } else if (!leg.cashRefund && entry.cashReturnConfirmed) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['tillConfirmations', index, 'cashReturnConfirmed'],
+            message: 'orderAmendments.resolution_invalid_reference',
+          });
+        }
+      });
     });
 }
 

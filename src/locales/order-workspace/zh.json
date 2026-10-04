@@ -153,7 +153,16 @@
     "resolution_payment_held": "继续修改前，需要先核对这笔付款。",
     "resolution_retry_till": "重试已保存的收银退款确认",
     "resolution_till_retry_help": "重试会记录相同的已保存编号。请勿再次退还这些款项。",
-    "resolution_operation_reference": "更正编号："
+    "resolution_operation_reference": "更正编号：",
+    "resolution_cash_exact_refund": "精确退款金额",
+    "resolution_cash_return_amount": "实际应退现金",
+    "resolution_cash_refund_adjustment": "现金退款舍入调整",
+    "resolution_cash_retained_exact": "剩余精确金额",
+    "resolution_cash_retained_due": "剩余应付现金",
+    "resolution_cash_return_checkbox": "我已实际退还 {{amount}} 现金。",
+    "resolution_cash_return_required": "继续前请确认实际退还的现金金额。",
+    "resolution_cash_refund_terms": "原现金付款：精确金额 {{originalExact}}，应付 {{originalDue}}。此前已退：精确金额 {{previousExact}}，现金 {{previousCash}}。",
+    "resolution_cash_returned_amount": "已确认现金退款"
   },
   "serverOrders": {
     "title": "订单",

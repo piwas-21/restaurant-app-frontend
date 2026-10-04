@@ -87,7 +87,10 @@ describe('accepted operation till confirmation form', () => {
       },
     ],
   };
-  const valid = { acknowledged: true, tillConfirmations: [{ paymentId: PAYMENT, tillReference: 'TILL-123/#' }] };
+  const valid = {
+    acknowledged: true,
+    tillConfirmations: [{ paymentId: PAYMENT, tillReference: 'TILL-123/#', cashReturnConfirmed: false }],
+  };
   it('requires explicit authorization before starting any refund', () => {
     expect(resolutionApprovalFormSchema.safeParse({ acknowledged: false }).success).toBe(false);
     expect(resolutionApprovalFormSchema.safeParse({ acknowledged: true }).success).toBe(true);
@@ -100,6 +103,73 @@ describe('accepted operation till confirmation form', () => {
     ).toBe(false);
     expect(schema.safeParse({ ...valid, tillConfirmations: [] }).success).toBe(false);
     expect(schema.safeParse({ ...valid, acknowledged: false }).success).toBe(false);
+  });
+  it('requires an explicit physical-return checkbox even when the frozen cash return is zero', () => {
+    const cashQuote: AmendmentResolutionQuote = {
+      ...quote,
+      creditMinor: 333,
+      refundMinor: 1,
+      unpaidWaivedMinor: 332,
+      refundLegs: [
+        {
+          ...quote.refundLegs[0],
+          amountMinor: 1,
+          cashRefund: {
+            policyVersion: 'chf-cash-5-rappen-v1',
+            originalExactAmountMinor: 335,
+            originalDueAmountMinor: 335,
+            previouslyRefundedExactMinor: 0,
+            previouslyRefundedCashMinor: 0,
+            exactRefundAmountMinor: 1,
+            refundAdjustmentMinor: -1,
+            cashRefundAmountMinor: 0,
+            retainedExactAmountMinor: 334,
+            retainedCashDueMinor: 335,
+          },
+        },
+      ],
+    };
+    const schema = tillRefundFormSchema(cashQuote);
+    expect(schema.safeParse(valid).success).toBe(false);
+    expect(
+      schema.safeParse({
+        acknowledged: true,
+        tillConfirmations: [{ ...valid.tillConfirmations[0], cashReturnConfirmed: true }],
+      }).success,
+    ).toBe(true);
+  });
+  it('keeps a mixed legacy manual leg free of cash-return confirmation', () => {
+    const mixedQuote = {
+      ...quote,
+      refundLegs: [
+        quote.refundLegs[0],
+        {
+          ...quote.refundLegs[0],
+          paymentId: SECOND,
+          paymentMethod: 'CreditCard' as const,
+          amountMinor: 1,
+        },
+      ],
+    };
+    const schema = tillRefundFormSchema(mixedQuote);
+    expect(
+      schema.safeParse({
+        acknowledged: true,
+        tillConfirmations: [
+          valid.tillConfirmations[0],
+          { paymentId: SECOND, tillReference: 'TILL-2', cashReturnConfirmed: false },
+        ],
+      }).success,
+    ).toBe(true);
+    expect(
+      schema.safeParse({
+        acknowledged: true,
+        tillConfirmations: [
+          valid.tillConfirmations[0],
+          { paymentId: SECOND, tillReference: 'TILL-2', cashReturnConfirmed: true },
+        ],
+      }).success,
+    ).toBe(false);
   });
   it.each(['', 'Till refund', 'é-27', 'x'.repeat(81)])('rejects malformed till reference %s', (tillReference) => {
     expect(

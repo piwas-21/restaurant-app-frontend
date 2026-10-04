@@ -111,6 +111,51 @@ describe('accepted manual refund sequencing', () => {
       expect(confirmTill).toHaveBeenCalledWith([{ paymentId: resolutionIds.payment, tillReference: 'till/refund-42' }]),
     );
   });
+  it('requires and submits the explicitly confirmed zero physical cash return', async () => {
+    const confirmTill = jest.fn();
+    const cashRefund = {
+      policyVersion: 'chf-cash-5-rappen-v1' as const,
+      originalExactAmountMinor: 335,
+      originalDueAmountMinor: 335,
+      previouslyRefundedExactMinor: 0,
+      previouslyRefundedCashMinor: 0,
+      exactRefundAmountMinor: 1,
+      refundAdjustmentMinor: -1,
+      cashRefundAmountMinor: 0,
+      retainedExactAmountMinor: 334,
+      retainedCashDueMinor: 335,
+    };
+    const quote = {
+      ...manualQuote,
+      creditMinor: 333,
+      refundMinor: 1,
+      unpaidWaivedMinor: 332,
+      refundLegs: [{ ...manualQuote.refundLegs[0], amountMinor: 1, cashRefund }],
+    };
+    const result = {
+      ...manualResult,
+      creditMinor: 333,
+      refundMinor: 1,
+      unpaidWaivedMinor: 332,
+      refundLegs: [{ ...manualResult.refundLegs[0], amountMinor: 1, cashRefund }],
+    };
+    mockFlow.mockReturnValue(state({ reviewedQuote: quote, result, confirmTill }));
+    render(<AmendmentResolutionModal {...props} enabled={false} />);
+    expect(screen.getByText('orderAmendments.resolution_cash_exact_refund')).toBeInTheDocument();
+    const adjustment = screen.getByText('orderAmendments.resolution_cash_refund_adjustment');
+    expect(adjustment.closest('div')).toHaveTextContent('−');
+    const cashReturn = screen.getByRole('checkbox', { name: 'orderAmendments.resolution_cash_return_checkbox' });
+    expect(cashReturn).not.toBeChecked();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'till/zero-return' } });
+    fireEvent.click(cashReturn);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'orderAmendments.resolution_acknowledge_till' }));
+    fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.resolution_confirm_till' }));
+    await waitFor(() =>
+      expect(confirmTill).toHaveBeenCalledWith([
+        { paymentId: resolutionIds.payment, tillReference: 'till/zero-return', cashReturnedMinor: 0 },
+      ]),
+    );
+  });
   it('offers exact saved confirmation retry without asking staff to refund or re-enter references again', () => {
     const retryTill = jest.fn();
     mockFlow.mockReturnValue(state({ hasPendingTillConfirmation: true, retryTill }));

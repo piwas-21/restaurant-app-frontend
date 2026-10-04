@@ -4,6 +4,7 @@
  */
 
 import { ApiResponse } from './common';
+import { ZReportAccountCashMovements } from './zReportAccountCash';
 
 export interface ZReportDiscounts {
   totalDiscounts: number;
@@ -58,6 +59,7 @@ export interface ZReportDto {
   salesByOrderType: ZReportOrderType[];
   salesByProductType: ZReportProductType[];
   topSellingItems: ZReportTopItem[];
+  accountCashMovements?: ZReportAccountCashMovements | null;
 }
 
 export type ZReportApiResponse = ApiResponse<ZReportDto>;

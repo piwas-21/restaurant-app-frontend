@@ -153,7 +153,16 @@
     "resolution_payment_held": "This payment needs reconciliation before further amendments.",
     "resolution_retry_till": "Retry saved till confirmations",
     "resolution_till_retry_help": "Retrying records the same saved references. Do not return these funds again.",
-    "resolution_operation_reference": "Correction reference:"
+    "resolution_operation_reference": "Correction reference:",
+    "resolution_cash_exact_refund": "Exact refund",
+    "resolution_cash_return_amount": "Physical cash to return",
+    "resolution_cash_refund_adjustment": "Cash rounding adjustment",
+    "resolution_cash_retained_exact": "Remaining exact amount",
+    "resolution_cash_retained_due": "Remaining cash due",
+    "resolution_cash_return_checkbox": "I physically returned {{amount}} in cash.",
+    "resolution_cash_return_required": "Confirm the physical cash returned before continuing.",
+    "resolution_cash_refund_terms": "Original cash tender: exact {{originalExact}}, due {{originalDue}}. Previously refunded: exact {{previousExact}}, cash {{previousCash}}.",
+    "resolution_cash_returned_amount": "Cash return confirmed"
   },
   "serverOrders": {
     "title": "Orders",

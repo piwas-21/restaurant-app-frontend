@@ -176,6 +176,79 @@ it('freezes the whole manual confirmation batch and clears it only after exact s
   expect(after.value.pendingTillConfirmations).toBeUndefined();
 });
 
+it('keeps receipt-backed cash evidence frozen through wrong or changed return readbacks', () => {
+  const original = pendingResolutionFixture();
+  original.operationId = resolutionIds.operation;
+  original.reviewedQuote.creditMinor = 1_000;
+  original.reviewedQuote.refundMinor = 1;
+  original.reviewedQuote.unpaidWaivedMinor = 999;
+  const cashRefund = {
+    policyVersion: 'chf-cash-5-rappen-v1' as const,
+    originalExactAmountMinor: 335,
+    originalDueAmountMinor: 335,
+    previouslyRefundedExactMinor: 0,
+    previouslyRefundedCashMinor: 0,
+    exactRefundAmountMinor: 1,
+    refundAdjustmentMinor: -1,
+    cashRefundAmountMinor: 0,
+    retainedExactAmountMinor: 334,
+    retainedCashDueMinor: 335,
+  };
+  original.reviewedQuote.refundLegs[0] = {
+    ...original.reviewedQuote.refundLegs[0],
+    paymentMethod: 'Cash',
+    custody: 'ManualTill',
+    amountMinor: 1,
+    requiresTillConfirmation: true,
+    scopes: [],
+    cashRefund,
+  };
+  original.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
+  expect(persistPendingAmendmentResolution(original)).toBe(true);
+  const confirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Till-zero', cashReturnedMinor: 0 }];
+  expect(persistPendingTillConfirmations(original, confirmations)).toBe(true);
+  const saved = readPendingAmendmentResolution(original.actorId, original.orderId, original.amendmentId);
+  expect(saved.status).toBe('pending');
+  if (saved.status !== 'pending') throw new Error('Expected the cash-return journal to remain pending');
+
+  const confirmedAt = '2026-10-03T16:00:30Z';
+  const result = {
+    ...resolutionResultFixture(),
+    state: 'Processing' as const,
+    resolvedAt: null,
+    creditMinor: 1_000,
+    refundMinor: 1,
+    unpaidWaivedMinor: 999,
+    refundLegs: [
+      {
+        paymentId: resolutionIds.payment,
+        custody: 'ManualTill' as const,
+        state: 'Succeeded' as const,
+        amountMinor: 1,
+        resolvedAt: confirmedAt,
+        tillConfirmation: { tillReference: 'Till-zero', confirmedAt },
+        cashRefund,
+        cashReturn: { exactRefundAmountMinor: 1, refundAdjustmentMinor: -1, cashReturnedMinor: 0, confirmedAt },
+      },
+    ],
+  };
+  const wrongReturn = {
+    ...result,
+    refundLegs: [{ ...result.refundLegs[0], cashReturn: { ...result.refundLegs[0].cashReturn, cashReturnedMinor: 1 } }],
+  };
+  expect(clearPendingTillConfirmations(saved.value, wrongReturn)).toBe(false);
+  const changedTerms = {
+    ...result,
+    refundLegs: [{ ...result.refundLegs[0], cashRefund: { ...cashRefund, retainedCashDueMinor: 330 } }],
+  };
+  expect(clearPendingTillConfirmations(saved.value, changedTerms)).toBe(false);
+  expect(readPendingAmendmentResolution(original.actorId, original.orderId, original.amendmentId)).toMatchObject({
+    status: 'pending',
+    value: { pendingTillConfirmations: confirmations },
+  });
+  expect(clearPendingTillConfirmations(saved.value, result)).toBe(true);
+});
+
 it('normalizes phase-two till references with the reusable evidence schema', () => {
   expect(
     resolutionTillConfirmationsSchema.parse([{ paymentId: resolutionIds.payment, tillReference: ' Till-refund-27 ' }]),

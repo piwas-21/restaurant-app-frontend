@@ -153,7 +153,16 @@
     "resolution_payment_held": "Этот платёж необходимо сверить перед дальнейшими изменениями.",
     "resolution_retry_till": "Повторить сохранённые подтверждения кассы",
     "resolution_till_retry_help": "Повторная попытка записывает те же сохранённые номера. Не возвращайте эти суммы повторно.",
-    "resolution_operation_reference": "Номер корректировки:"
+    "resolution_operation_reference": "Номер корректировки:",
+    "resolution_cash_exact_refund": "Точная сумма возврата",
+    "resolution_cash_return_amount": "Наличные к фактическому возврату",
+    "resolution_cash_refund_adjustment": "Корректировка округления наличного возврата",
+    "resolution_cash_retained_exact": "Оставшаяся точная сумма",
+    "resolution_cash_retained_due": "Оставшаяся сумма к оплате наличными",
+    "resolution_cash_return_checkbox": "Я фактически вернул {{amount}} наличными.",
+    "resolution_cash_return_required": "Перед продолжением подтвердите фактически возвращённую сумму наличными.",
+    "resolution_cash_refund_terms": "Исходный наличный платёж: точно {{originalExact}}, к оплате {{originalDue}}. Ранее возвращено: точно {{previousExact}}, наличными {{previousCash}}.",
+    "resolution_cash_returned_amount": "Возврат наличных подтверждён"
   },
   "serverOrders": {
     "title": "Заказы",

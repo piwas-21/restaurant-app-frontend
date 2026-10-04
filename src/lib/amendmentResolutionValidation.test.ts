@@ -15,6 +15,69 @@ import {
   resolutionRefusalFixture,
   resolutionResultFixture,
 } from './__fixtures__/amendmentResolution';
+import type {
+  AmendmentResolutionCashRefund,
+  AmendmentResolutionResult,
+  PendingAmendmentResolution,
+} from '@/types/amendmentResolution';
+
+function roundedCashRefund(): AmendmentResolutionCashRefund {
+  return {
+    policyVersion: 'chf-cash-5-rappen-v1',
+    originalExactAmountMinor: 333,
+    originalDueAmountMinor: 335,
+    previouslyRefundedExactMinor: 0,
+    previouslyRefundedCashMinor: 0,
+    exactRefundAmountMinor: 1,
+    refundAdjustmentMinor: 4,
+    cashRefundAmountMinor: 5,
+    retainedExactAmountMinor: 332,
+    retainedCashDueMinor: 330,
+  };
+}
+
+function cashRefundPending(cashRefund = roundedCashRefund()): PendingAmendmentResolution {
+  const pending = pendingResolutionFixture();
+  pending.operationId = resolutionIds.operation;
+  pending.reviewedQuote.creditMinor = 1_000;
+  pending.reviewedQuote.refundMinor = 1;
+  pending.reviewedQuote.unpaidWaivedMinor = 999;
+  pending.reviewedQuote.refundLegs = [
+    {
+      ...pending.reviewedQuote.refundLegs[0],
+      paymentMethod: 'Cash',
+      custody: 'ManualTill',
+      amountMinor: 1,
+      requiresTillConfirmation: true,
+      scopes: [],
+      cashRefund,
+    },
+  ];
+  pending.request.quote.manualRefunds = [{ paymentId: resolutionIds.payment, amountMinor: 1 }];
+  return pending;
+}
+
+function cashRefundResult(pending: PendingAmendmentResolution): AmendmentResolutionResult {
+  const quoteLeg = pending.reviewedQuote.refundLegs[0];
+  const result = resolutionResultFixture();
+  result.state = 'Processing';
+  result.resolvedAt = null;
+  result.creditMinor = pending.reviewedQuote.creditMinor;
+  result.refundMinor = pending.reviewedQuote.refundMinor;
+  result.unpaidWaivedMinor = pending.reviewedQuote.unpaidWaivedMinor;
+  result.refundLegs = [
+    {
+      paymentId: quoteLeg.paymentId,
+      custody: 'ManualTill',
+      state: 'Pending',
+      amountMinor: quoteLeg.amountMinor,
+      resolvedAt: null,
+      tillConfirmation: null,
+      cashRefund: quoteLeg.cashRefund,
+    },
+  ];
+  return result;
+}
 
 describe('paid amendment evidence validation', () => {
   it('accepts an independently fixed 10.00 credit, 4.00 refund and 6.00 unpaid waiver', () => {
@@ -387,6 +450,114 @@ describe('paid amendment evidence validation', () => {
     ).toThrow();
     expect(() =>
       validateResolutionOutcome({ outcome: 'refused', refusal, result: resolutionResultFixture() }, pending),
+    ).toThrow();
+  });
+});
+
+describe('receipt-backed cash refund evidence', () => {
+  it('projects a CHF 3.33 original receipt due at 3.35 and preserves the exact refund leg', () => {
+    const pending = cashRefundPending();
+    const result = cashRefundResult(pending);
+    expect(validatePendingResolution(pending).reviewedQuote.refundLegs[0]?.amountMinor).toBe(1);
+    expect(validateResolutionResult(result, pending).refundLegs[0]?.cashRefund).toEqual(roundedCashRefund());
+  });
+
+  it('rejects changed frozen terms, nonconserving cash history, and unsafe minor units', () => {
+    const pending = cashRefundPending();
+    const changedResult = cashRefundResult(pending);
+    changedResult.refundLegs[0] = {
+      ...changedResult.refundLegs[0],
+      cashRefund: { ...roundedCashRefund(), retainedCashDueMinor: 335 },
+    };
+    expect(() => validateResolutionResult(changedResult, pending)).toThrow();
+
+    const impossible = cashRefundPending({ ...roundedCashRefund(), cashRefundAmountMinor: 4 });
+    expect(() => validatePendingResolution(impossible)).toThrow();
+
+    const overflow = cashRefundPending({
+      ...roundedCashRefund(),
+      cashRefundAmountMinor: Number.MAX_SAFE_INTEGER + 1,
+    });
+    expect(() => validatePendingResolution(overflow)).toThrow();
+  });
+
+  it('requires server cash-return proof to match the frozen zero physical return', () => {
+    const zeroRefund: AmendmentResolutionCashRefund = {
+      policyVersion: 'chf-cash-5-rappen-v1',
+      originalExactAmountMinor: 335,
+      originalDueAmountMinor: 335,
+      previouslyRefundedExactMinor: 0,
+      previouslyRefundedCashMinor: 0,
+      exactRefundAmountMinor: 1,
+      refundAdjustmentMinor: -1,
+      cashRefundAmountMinor: 0,
+      retainedExactAmountMinor: 334,
+      retainedCashDueMinor: 335,
+    };
+    const pending = cashRefundPending(zeroRefund);
+    pending.pendingTillConfirmations = [
+      { paymentId: resolutionIds.payment, tillReference: 'Till-zero', cashReturnedMinor: 0 },
+    ];
+    const result = cashRefundResult(pending);
+    result.refundLegs[0] = {
+      ...result.refundLegs[0],
+      state: 'Succeeded',
+      resolvedAt: '2026-10-03T16:00:30Z',
+      tillConfirmation: { tillReference: 'Till-zero', confirmedAt: '2026-10-03T16:00:30Z' },
+      cashReturn: {
+        exactRefundAmountMinor: 1,
+        refundAdjustmentMinor: -1,
+        cashReturnedMinor: 0,
+        confirmedAt: '2026-10-03T16:00:30Z',
+      },
+    };
+    expect(validateResolutionResult(result, pending).refundLegs[0]?.cashReturn?.cashReturnedMinor).toBe(0);
+    const changedReturn = {
+      ...result,
+      refundLegs: [
+        { ...result.refundLegs[0], cashReturn: { ...result.refundLegs[0].cashReturn, cashReturnedMinor: 1 } },
+      ],
+    };
+    expect(() => validateResolutionResult(changedReturn, pending)).toThrow();
+    const missingReturn = {
+      ...result,
+      refundLegs: [{ ...result.refundLegs[0], cashReturn: null }],
+    };
+    expect(() => validateResolutionResult(missingReturn, pending)).toThrow();
+  });
+
+  it('requires only receipt-backed cash legs to carry exact return amounts in a mixed batch', () => {
+    const pending = cashRefundPending();
+    const manualCash = pending.reviewedQuote.refundLegs[0];
+    const legacyPaymentId = resolutionIds.allocation;
+    pending.reviewedQuote.refundMinor = 2;
+    pending.reviewedQuote.unpaidWaivedMinor = 998;
+    pending.reviewedQuote.refundLegs.push({
+      ...manualCash,
+      paymentId: legacyPaymentId,
+      paymentMethod: 'CreditCard',
+      amountMinor: 1,
+      cashRefund: null,
+    });
+    pending.request.quote.manualRefunds.push({ paymentId: legacyPaymentId, amountMinor: 1 });
+
+    const valid = [
+      { paymentId: resolutionIds.payment, tillReference: 'Till-cash', cashReturnedMinor: 5 },
+      { paymentId: legacyPaymentId, tillReference: 'Till-legacy' },
+    ];
+    const frozen = { ...pending, pendingTillConfirmations: valid };
+    expect(validatePendingResolution(frozen).pendingTillConfirmations).toEqual(valid);
+    expect(() =>
+      validatePendingResolution({
+        ...pending,
+        pendingTillConfirmations: [valid[0], { ...valid[1], cashReturnedMinor: null }],
+      }),
+    ).toThrow();
+    expect(() =>
+      validatePendingResolution({
+        ...pending,
+        pendingTillConfirmations: [{ ...valid[0], cashReturnedMinor: 4 }, valid[1]],
+      }),
     ).toThrow();
   });
 });

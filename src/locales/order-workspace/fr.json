@@ -153,7 +153,16 @@
     "resolution_payment_held": "Ce paiement doit être rapproché avant toute nouvelle modification.",
     "resolution_retry_till": "Réessayer les confirmations de caisse enregistrées",
     "resolution_till_retry_help": "La nouvelle tentative enregistre les mêmes références. Ne remboursez pas à nouveau ces montants.",
-    "resolution_operation_reference": "Référence de correction :"
+    "resolution_operation_reference": "Référence de correction :",
+    "resolution_cash_exact_refund": "Remboursement exact",
+    "resolution_cash_return_amount": "Espèces à rendre physiquement",
+    "resolution_cash_refund_adjustment": "Ajustement d’arrondi du remboursement en espèces",
+    "resolution_cash_retained_exact": "Montant exact restant",
+    "resolution_cash_retained_due": "Montant restant dû en espèces",
+    "resolution_cash_return_checkbox": "J’ai rendu physiquement {{amount}} en espèces.",
+    "resolution_cash_return_required": "Confirmez les espèces effectivement rendues avant de continuer.",
+    "resolution_cash_refund_terms": "Paiement initial en espèces : montant exact {{originalExact}}, dû {{originalDue}}. Déjà remboursé : exact {{previousExact}}, espèces {{previousCash}}.",
+    "resolution_cash_returned_amount": "Retour d’espèces confirmé"
   },
   "serverOrders": {
     "title": "Commandes",

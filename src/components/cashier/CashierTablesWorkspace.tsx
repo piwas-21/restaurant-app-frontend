@@ -31,13 +31,15 @@ export default function CashierTablesWorkspace() {
   const [recoveredSession, setRecoveredSession] = useState<TableServiceSessionDto | null>(null);
   const sessionId = route.selectedSessionId ?? selectedFromList?.session?.serviceSessionId ?? null;
   const session = useCashierTableSession(sessionId, recoveredSession);
+  const selectedSession =
+    sessionId && session.session?.serviceSessionId.toLowerCase() === sessionId.toLowerCase() ? session.session : null;
   const timeZoneState = useCashierTenantTimeZoneState();
   const timeZone = timeZoneState.timeZone;
   const [view, setView] = useState<TableView>('map');
   const selectedTableNumber =
-    session.session?.tableNumber != null
-      ? String(session.session.tableNumber)
-      : (selectedFromList?.table.tableNumber ?? route.selectedTableNumber);
+    selectedSession?.tableNumber != null
+      ? String(selectedSession.tableNumber)
+      : (selectedFromList?.table.tableNumber ?? (sessionId ? null : route.selectedTableNumber));
   const hasSelection = Boolean(route.selectedSessionId || route.selectedTableNumber);
   const navigationDisabled = tables.isMutating || session.isMutating || session.pendingOperation !== null;
   const queueState = cashierTableQueueState(
@@ -45,10 +47,12 @@ export default function CashierTablesWorkspace() {
     sessionId,
     session.isLoading,
     session.isStale,
-    Boolean(session.session),
+    Boolean(selectedSession),
     tables.entries.length > 0,
   );
-  const selectedEntry = selectedFromList ?? findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber);
+  const selectedEntry =
+    selectedFromList ??
+    (route.selectedSessionId ? null : findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber));
 
   useEffect(() => {
     if (!navigationDisabled || typeof window === 'undefined') return;
@@ -170,16 +174,22 @@ export default function CashierTablesWorkspace() {
                     snapshot={selectedEntry.table}
                     readinessVersion={selectedEntry.table.readinessVersion}
                     canMarkReady={selectedEntry.status === 'needs-reset' && !selectedEntry.session}
-                    isStale={tables.queueState !== 'ready' || tables.isLoading || navigationDisabled}
+                    isStale={
+                      tables.queueState !== 'ready' ||
+                      tables.isLoading ||
+                      session.isLoading ||
+                      (sessionId !== null && !selectedSession) ||
+                      navigationDisabled
+                    }
                     refresh={tables.refresh}
                   />
                 )}
                 {sessionId && session.isLoading && (
                   <output className={styles.state}>{t('cashier.tables.session_loading')}</output>
                 )}
-                {sessionId && session.session && (!session.isLoading || recoveredSession) && (
+                {sessionId && selectedSession && (
                   <CashierTableSessionPanel
-                    session={session.session}
+                    session={selectedSession}
                     timeZone={timeZone}
                     error={session.error}
                     isMutating={session.isMutating || session.isLoading || tables.isMutating}

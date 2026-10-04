@@ -142,7 +142,13 @@ export const resolutionResultSchema = z.object({
   ),
 });
 
-const refusalCode = z.enum(['quoteExpired', 'sourceVersionConflict', 'accountRevisionConflict', 'quoteChanged']);
+const refusalCode = z.enum([
+  'quoteExpired',
+  'sourceVersionConflict',
+  'accountRevisionConflict',
+  'quoteChanged',
+  'cashHistoryCapacityExceeded',
+]);
 
 export const resolutionRefusalSchema = z
   .object({

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
@@ -8,9 +9,23 @@ import { surfaceOr } from '@/templates/resolve-surface';
 import DefaultCartContents from './CartContents';
 import styles from './CartSheet.module.css';
 
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+  loading: CartSheetRuntimeLoading,
+});
+
 // The active template's cart-half override (craft = order-pad list) or the shared
 // default (classic) — resolved at build time, so classic never bundles craft (T4).
 const CartContents = surfaceOr('CartContents', DefaultCartContents);
+
+function CartSheetRuntimeLoading() {
+  const { t } = useTranslation();
+  return (
+    <p>
+      <output>{t('loading', 'Loading...')}</output>
+    </p>
+  );
+}
 
 export interface CartSheetProps {
   isOpen: boolean;
@@ -51,7 +66,9 @@ export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSh
       className={styles.sheet}
       presentation="responsive-sheet"
     >
-      <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="cart_sheet" />
+      <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+        <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="cart_sheet" />
+      </TableGuestRouteRuntimeLoader>
     </BaseModal>
   );
 }

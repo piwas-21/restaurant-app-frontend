@@ -53,11 +53,9 @@ export default function MenuOrderOverlays({
           that raises the confirm, so leaving it open stacks two BaseModals — and both register a
           GLOBAL window keydown, so one Escape dismisses both. Same rule §9.10 landed for the
           customization sheet: the surface that hands a verdict over closes behind it. */}
-      <CartSheet
-        isOpen={cart.isSheetOpen && followUp.switchFlow.pending === null}
-        onClose={cart.closeSheet}
-        followUp={followUp}
-      />
+      {cart.isSheetOpen && followUp.switchFlow.pending === null && (
+        <CartSheet isOpen onClose={cart.closeSheet} followUp={followUp} />
+      )}
 
       <OrderFlowModals followUp={followUp} />
     </>

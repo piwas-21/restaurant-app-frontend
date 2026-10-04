@@ -18,6 +18,8 @@ interface Props {
   readonly session: TableServiceSessionDto;
   readonly disabled: boolean;
   readonly recoveryEnabled: boolean;
+  readonly canStartCollection?: boolean;
+  readonly showActorFailure?: boolean;
   readonly onUpdated: () => void;
   readonly fallback: ReactNode;
 }
@@ -28,12 +30,15 @@ export default function CashierAccountPaymentCollectionHost({
   session,
   disabled,
   recoveryEnabled,
+  canStartCollection = true,
+  showActorFailure = true,
   onUpdated,
   fallback,
 }: Props) {
   const { t, i18n } = useTranslation();
   const actor = useAccountPaymentActor();
-  const { tableAccountPaymentsV1: enabled } = useTenantFeatures();
+  const { tableAccountPaymentsV1 } = useTenantFeatures();
+  const enabled = tableAccountPaymentsV1 && canStartCollection;
   const { actorId, status: actorStatus } = actor;
   const [state, setState] = useState<HostState>('checking');
   const [Collection, setCollection] = useState<AccountPaymentCollectionComponent | null>(null);
@@ -61,7 +66,7 @@ export default function CashierAccountPaymentCollectionHost({
     }
 
     if (actorStatus === 'failed' || !actorId || !session.serviceSessionId) {
-      setState('failed');
+      setState(actorStatus === 'failed' && !showActorFailure ? 'dormant' : 'failed');
       setResolvedKey(viewKey);
       return () => {
         cancelled = true;
@@ -94,13 +99,14 @@ export default function CashierAccountPaymentCollectionHost({
     return () => {
       cancelled = true;
     };
-  }, [actorId, actorStatus, enabled, language, retryKey, session.serviceSessionId, viewKey]);
+  }, [actorId, actorStatus, enabled, language, retryKey, session.serviceSessionId, showActorFailure, viewKey]);
 
   const retry = () => {
     actor.retry();
     setRetryKey((current) => current + 1);
   };
 
+  if (actorStatus === 'failed' && !showActorFailure) return fallback;
   if (actorStatus === 'failed' || state === 'failed') {
     return (
       <div className={styles.error} role="alert">

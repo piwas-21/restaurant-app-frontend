@@ -10,6 +10,7 @@ export interface TenantFeatures {
   orderAmendmentsV1: boolean;
   tableGuestVisitsV1: boolean;
   tableAccountPaymentsV1: boolean;
+  serverAccountCollectionV1: boolean;
   tableVisitReadinessV1?: boolean;
 }
 
@@ -21,6 +22,7 @@ interface TenantFeaturesResponse {
     orderAmendmentsV1?: unknown;
     tableGuestVisitsV1?: unknown;
     tableAccountPaymentsV1?: unknown;
+    serverAccountCollectionV1?: unknown;
     tableVisitReadinessV1?: unknown;
   };
 }
@@ -31,6 +33,7 @@ const DEFAULT_FEATURES: TenantFeatures = {
   orderAmendmentsV1: false,
   tableGuestVisitsV1: false,
   tableAccountPaymentsV1: false,
+  serverAccountCollectionV1: false,
   tableVisitReadinessV1: false,
 };
 
@@ -73,6 +76,10 @@ export async function getTenantFeatures(): Promise<TenantFeatures> {
         typeof body.data?.tableAccountPaymentsV1 === 'boolean'
           ? body.data.tableAccountPaymentsV1
           : DEFAULT_FEATURES.tableAccountPaymentsV1,
+      serverAccountCollectionV1:
+        typeof body.data?.serverAccountCollectionV1 === 'boolean'
+          ? body.data.serverAccountCollectionV1
+          : DEFAULT_FEATURES.serverAccountCollectionV1,
       tableVisitReadinessV1: body.data?.tableVisitReadinessV1 === true,
     };
   } catch (error) {

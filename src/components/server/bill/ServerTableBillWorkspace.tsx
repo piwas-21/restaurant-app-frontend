@@ -6,12 +6,13 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import OperationResultNotice from '@/components/design-system/OperationResultNotice';
 import StaffButton from '@/components/design-system/StaffButton';
-import CashierTablePaymentForm from '@/components/cashier/CashierTablePaymentForm';
 import TableServiceSessionBill from '@/components/table-service/TableServiceSessionBill';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTableBillActions';
+import { useServerAccountCollectionCapability } from '@/hooks/serverWorkspace/useServerAccountCollectionCapability';
 import type { TableServiceSessionDto } from '@/types/order';
+import ServerAccountPaymentCollectionHost from './ServerAccountPaymentCollectionHost';
 import styles from './ServerTableBillWorkspace.module.css';
 
 interface ServerTableBillWorkspaceProps {
@@ -41,6 +42,7 @@ export default function ServerTableBillWorkspace({
   const { t } = useTranslation();
   const actions = useServerTableBillActions(initialSession, refreshWorkspace);
   const session = actions.session ?? initialSession;
+  const canStartCollection = useServerAccountCollectionCapability(session);
   const [showPayment, setShowPayment] = useState(false);
   const [showClose, setShowClose] = useState(false);
   const [printNotice, setPrintNotice] = useState(false);
@@ -85,7 +87,7 @@ export default function ServerTableBillWorkspace({
           <RefreshCw size={17} aria-hidden="true" />
           {t('refresh')}
         </StaffButton>
-        {session.canCollect && (
+        {canStartCollection && (
           <StaffButton variant="primary" onClick={() => setShowPayment((visible) => !visible)} disabled={writesLocked}>
             {t('server.bill.collect')}
           </StaffButton>
@@ -130,16 +132,14 @@ export default function ServerTableBillWorkspace({
         </p>
       )}
 
-      {showPayment && session.canCollect && (
-        <CashierTablePaymentForm
-          session={session}
-          disabled={writesLocked}
-          onSubmit={async (payment) => {
-            await actions.submitPayment(payment);
-            setShowPayment(false);
-          }}
-        />
-      )}
+      <ServerAccountPaymentCollectionHost
+        session={session}
+        disabled={writesLocked}
+        recoveryEnabled={!writesLocked && session.status === 'Open'}
+        canStartCollection={canStartCollection}
+        expanded={showPayment}
+        onUpdated={() => void actions.refresh().catch(() => undefined)}
+      />
 
       <TableAccountPresentation session={session} fallback={<TableServiceSessionBill session={session} />} />
 

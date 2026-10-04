@@ -8,6 +8,7 @@ import FormField from '@/components/design-system/FormField';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import StaffButton from '@/components/design-system/StaffButton';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
+import { AMENDMENT_TILL_REFERENCE_MAX_LENGTH } from '@/schemas/amendmentResolution.schema';
 import { tillRefundFormSchema, type TillRefundForm } from '@/schemas/amendmentResolutionForm.schema';
 import type { AmendmentResolutionQuote, AmendmentResolutionTillConfirmations } from '@/types/amendmentResolution';
 import styles from './AmendmentResolution.module.css';
@@ -53,7 +54,7 @@ export default function AmendmentResolutionTillForm({ quote, disabled, onConfirm
           }
         >
           <input
-            maxLength={80}
+            maxLength={AMENDMENT_TILL_REFERENCE_MAX_LENGTH}
             autoComplete="off"
             disabled={disabled}
             {...register(`tillConfirmations.${index}.tillReference`)}

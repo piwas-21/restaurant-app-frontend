@@ -10,13 +10,15 @@ const positive = minor.positive();
 const currency = z.string().regex(/^[A-Z]{3}$/);
 const timestamp = z.string().datetime({ offset: true });
 const custody = z.enum(['ManualTill', 'StripeDirect']);
+export const AMENDMENT_TILL_REFERENCE_MAX_LENGTH = 80;
 export const resolutionTillConfirmationRequestSchema = z
   .object({
     paymentId: identity,
     tillReference: z
       .string()
       .trim()
-      .regex(/^[A-Za-z0-9._/#-]{1,80}$/),
+      .max(AMENDMENT_TILL_REFERENCE_MAX_LENGTH)
+      .regex(/^[A-Za-z0-9._/#-]+$/),
   })
   .strict();
 export const resolutionTillConfirmationsSchema = z.array(resolutionTillConfirmationRequestSchema).min(1);
@@ -91,7 +93,10 @@ export const resolutionResultSchema = z.object({
       resolvedAt: timestamp.nullable(),
       tillConfirmation: z
         .object({
-          tillReference: z.string().regex(/^[A-Za-z0-9._/#-]{1,80}$/),
+          tillReference: z
+            .string()
+            .max(AMENDMENT_TILL_REFERENCE_MAX_LENGTH)
+            .regex(/^[A-Za-z0-9._/#-]+$/),
           confirmedAt: timestamp,
         })
         .strict()

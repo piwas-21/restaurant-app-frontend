@@ -606,6 +606,17 @@ jobs:
       - name: Verify E2E database target guard
         run: npm run test:e2e:target
 
+      - name: Verify guarded seed executable resolution
+        run: npm run test:e2e:seed-executable
+
+      # Collecting specs imports the Playwright fixture graph and verifies its
+      # module formats without starting services, calling the API, or touching
+      # the database. Keep the job's existing disposable service target.
+      - name: Collect Playwright specs without starting services
+        env:
+          E2E_REMOTE: '1'
+        run: npm run test:e2e:collect
+
       # The backend is PULLED, not compiled (2026-08-17, CI-PERFORMANCE-PLAN
       # §2). This job used to check the backend repo out at `ref: develop` and
       # `dotnet build` it: 73-84s for the build + 9-11s for `dotnet ef` + 7-9s

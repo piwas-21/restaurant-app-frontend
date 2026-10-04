@@ -63,7 +63,7 @@ export E2E_DATABASE_URL
 command -v node >/dev/null || fail "node not installed."
 command -v npx  >/dev/null || fail "npx not installed."
 command -v curl >/dev/null || fail "curl not installed."
-node scripts/e2e-database-target.mjs || fail "E2E database target preflight failed."
+node scripts/e2e-database-target.cjs || fail "E2E database target preflight failed."
 
 # ── 1. Backend up? ───────────────────────────────────────────────────
 backend_up() {

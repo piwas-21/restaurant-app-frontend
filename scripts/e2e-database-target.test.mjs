@@ -3,12 +3,12 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { createPsqlEnvironment, validateE2EDatabaseTarget } from './e2e-database-target.mjs';
 
 const require = createRequire(import.meta.url);
+const { createPsqlEnvironment, validateE2EDatabaseTarget } = require('./e2e-database-target.cjs');
 const ConnectionParameters = require('pg/lib/connection-parameters');
 const parsePgConnectionString = require('pg-connection-string').parse;
-const validatorPath = fileURLToPath(new URL('./e2e-database-target.mjs', import.meta.url));
+const validatorPath = fileURLToPath(new URL('./e2e-database-target.cjs', import.meta.url));
 const disposable = {
   E2E_DATABASE_TARGET: 'disposable',
   E2E_DATABASE_URL: 'postgres://e2e:encoded%40secret@localhost:5432/e2e_disposable', // pragma: allowlist secret -- synthetic no-connection fixture

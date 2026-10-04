@@ -1,6 +1,6 @@
-import { isIP } from 'node:net';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+// This helper must remain CommonJS for Playwright's test collector.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { isIP } = require('node:net');
 
 const DISPOSABLE_DATABASE_HOSTS = new Set(['localhost', 'postgres']);
 const TARGET_OVERRIDE_QUERY_KEYS = new Set([
@@ -36,11 +36,32 @@ const LIBPQ_QUERY_ENV = new Map([
 ]);
 
 function parsePostgresUrl(rawUrl, env = process.env) {
+  validateUrlInput(rawUrl);
+  parseRawHost(rawUrl);
+  const url = parseUrl(rawUrl);
+  validatePostgresUrl(url);
+
+  const host = normalizeHost(url.hostname);
+  if (host.includes(',')) {
+    throw new Error('E2E_DATABASE_URL must not specify a comma-separated host list.');
+  }
+  const databaseName = parseDatabaseName(url.pathname);
+  const port = resolvePort(url, env);
+
+  validateDatabaseIdentity(url, host, databaseName);
+  validateConnectionOptions(url);
+
+  return { url, host, databaseName, port };
+}
+
+function validateUrlInput(rawUrl) {
   if (typeof rawUrl !== 'string' || rawUrl.length === 0) {
     throw new Error('E2E_DATABASE_URL is required before using the E2E database.');
   }
+}
 
-  const authorityMatch = rawUrl.match(/^[A-Za-z][A-Za-z0-9+.-]*:\/\/([^/?#]*)/);
+function parseRawHost(rawUrl) {
+  const authorityMatch = /^[A-Za-z][A-Za-z0-9+.-]*:\/\/([^/?#]*)/.exec(rawUrl);
   if (!authorityMatch) {
     throw new Error('E2E_DATABASE_URL must be a PostgreSQL URL with a hostname (value hidden).');
   }
@@ -49,26 +70,29 @@ function parsePostgresUrl(rawUrl, env = process.env) {
   if (rawHost.includes('%')) {
     throw new Error('E2E_DATABASE_URL must not percent-encode its hostname (value hidden).');
   }
+}
 
+function parseUrl(rawUrl) {
   let url;
   try {
     url = new URL(rawUrl);
   } catch {
     throw new Error('E2E_DATABASE_URL is malformed (value hidden).');
   }
+  return url;
+}
 
+function validatePostgresUrl(url) {
   if (url.protocol !== 'postgres:' && url.protocol !== 'postgresql:') {
     throw new Error('E2E_DATABASE_URL must use postgres: or postgresql: (value hidden).');
   }
   if (url.hostname.startsWith('[') && url.hostname.endsWith(']')) {
     throw new Error('E2E_DATABASE_URL does not support bracketed IPv6 hosts (value hidden).');
   }
+}
 
-  const host = normalizeHost(url.hostname);
-  if (host.includes(',')) {
-    throw new Error('E2E_DATABASE_URL must not specify a comma-separated host list.');
-  }
-  const encodedDatabaseName = url.pathname.startsWith('/') ? url.pathname.slice(1) : '';
+function parseDatabaseName(pathname) {
+  const encodedDatabaseName = pathname.startsWith('/') ? pathname.slice(1) : '';
   let pgDatabaseName;
   let databaseName;
   try {
@@ -80,16 +104,20 @@ function parsePostgresUrl(rawUrl, env = process.env) {
   if (databaseName !== pgDatabaseName) {
     throw new Error('E2E_DATABASE_URL must not encode reserved characters in the database path (value hidden).');
   }
+  return databaseName;
+}
 
-  const port = resolvePort(url, env);
-
+function validateDatabaseIdentity(url, host, databaseName) {
+  const encodedDatabaseName = url.pathname.startsWith('/') ? url.pathname.slice(1) : '';
   if (!host || !databaseName || encodedDatabaseName.includes('/') || databaseName.includes('\0')) {
     throw new Error('E2E_DATABASE_URL must include a hostname and database name (value hidden).');
   }
   if (url.hash) {
     throw new Error('E2E_DATABASE_URL must not include a fragment (value hidden).');
   }
+}
 
+function validateConnectionOptions(url) {
   const queryKeys = [...url.searchParams.keys()].map((key) => key.toLowerCase());
   if (queryKeys.some((key) => TARGET_OVERRIDE_QUERY_KEYS.has(key))) {
     throw new Error('E2E_DATABASE_URL query parameters must not override the connection target.');
@@ -107,8 +135,6 @@ function parsePostgresUrl(rawUrl, env = process.env) {
   ) {
     throw new Error('E2E_DATABASE_URL has an unsupported SSL option.');
   }
-
-  return { url, host, databaseName, port };
 }
 
 function resolvePort(url, env) {
@@ -178,7 +204,7 @@ function normalizeExpectedStagingPort(value) {
  * Staging requires a second exact acknowledgement and an independently
  * configured hostname/database identity that matches the parsed URL.
  */
-export function validateE2EDatabaseTarget(env = process.env) {
+function validateE2EDatabaseTarget(env = process.env) {
   const { host, databaseName, port } = parsePostgresUrl(env.E2E_DATABASE_URL, env);
 
   if (env.E2E_DATABASE_TARGET === 'disposable') {
@@ -216,7 +242,7 @@ export function validateE2EDatabaseTarget(env = process.env) {
 }
 
 /** Build libpq environment settings for the guarded SQL seed without putting the URL in argv. */
-export function createPsqlEnvironment(env = process.env) {
+function createPsqlEnvironment(env = process.env) {
   validateE2EDatabaseTarget(env);
   const { url, host, databaseName, port } = parsePostgresUrl(env.E2E_DATABASE_URL, env);
   const psqlEnv = { ...env };
@@ -244,7 +270,9 @@ export function createPsqlEnvironment(env = process.env) {
   return psqlEnv;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+module.exports = { createPsqlEnvironment, validateE2EDatabaseTarget };
+
+if (require.main === module) {
   try {
     const { target } = validateE2EDatabaseTarget();
     process.stdout.write(`E2E database target accepted (${target}).\n`);

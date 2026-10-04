@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { validateE2EDatabaseTarget } from '../../scripts/e2e-database-target.mjs';
+import { validateE2EDatabaseTarget } from '../../scripts/e2e-database-target.cjs';
 
 /**
  * Direct Postgres helper for E2E test cleanup.

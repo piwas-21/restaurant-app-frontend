@@ -42,6 +42,15 @@ DB fixtures and the SQL seed.
 Remote API-only smoke commands such as `npm run test:e2e:checklist:staging` do
 not use the DB helper or seed and need no DB target marker. Manual raw `psql`
 commands bypass this guard; use `scripts/e2e-seed.mjs` for the shared seed.
+`npm run test:e2e:collect` lists and imports the Playwright specs without
+starting the web server, calling the API, or connecting to the database. The
+guard and fixture modules remain importable by Playwright's CommonJS loader.
+For a local check, set `E2E_REMOTE=1` and `E2E_BASE_URL` to a syntactically
+valid URL before running the command; collection does not require the backend
+or database to be reachable.
+The shared SQL seed invokes `psql` only from the fixed executable locations
+`/usr/bin/psql`, `/opt/homebrew/bin/psql`, and `/usr/local/bin/psql`; install the
+PostgreSQL client in one of those supported CI or local Homebrew locations.
 
 **Mailpit (SMTP catcher)** must be running for the auth tests, since
 the verify-email flow drives a real /verify-email link from the email body.

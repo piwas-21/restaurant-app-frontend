@@ -141,6 +141,7 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
                 void round.tapProduct(product);
               }}
               tapPendingId={round.tapPendingId}
+              canAddItems={round.canAddItems}
               favoriteIds={round.favoriteIds}
               showFavorites={round.showFavorites}
               onShowFavorites={round.setShowFavorites}

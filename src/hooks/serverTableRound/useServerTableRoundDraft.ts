@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOptionalAuth } from '@/components/AuthContext';
 import type { OrderDto } from '@/types/order';
 import type { OrderItem } from '@/components/catalog/orderItems';
@@ -11,6 +11,7 @@ import {
   persistServerTableRoundDraft,
   readServerTableRoundDraft,
 } from '@/lib/serverTableRoundDraft';
+import { serverTableRoundScopeKey } from './useServerTableRoundScopeState';
 
 export type RoundOperationState = 'idle' | 'committed' | 'failed' | 'unknown';
 
@@ -31,20 +32,31 @@ export function useServerTableRoundDraft(
   const [createdOrder, setCreatedOrder] = useState<OrderDto | null>(null);
   const [operationState, setOperationState] = useState<RoundOperationState>('idle');
   const [draftRecovered, setDraftRecovered] = useState(false);
+  const [hydratedScope, setHydratedScope] = useState<string | null>(null);
+  const hydratedScopeRef = useRef<string | null>(null);
+  const draftScope = serverTableRoundScopeKey(tableId, sessionId, sessionMatchesQuery, staffUserId);
 
   useEffect(() => {
-    if (!sessionId || !sessionMatchesQuery) {
+    if (!draftScope || !sessionId || !sessionMatchesQuery) {
+      hydratedScopeRef.current = null;
+      setHydratedScope(null);
       setItems([]);
       setNotes('');
       setCustomer(undefined);
       setOperationId(undefined);
       setQuote(null);
+      setCreatedOrder(null);
+      setOperationState('idle');
       setDraftRecovered(false);
       // A null session is also the first render while the floor snapshot is loading.
       // Clear only after the floor reader has delivered an authoritative answer.
       if (sessionResolved) clearServerTableRoundDraft();
       return;
     }
+    // Floor refreshes toggle sessionResolved without changing the active visit. Hydrate once for
+    // each table/session/staff scope so a refresh cannot overwrite a product tap still being saved.
+    if (hydratedScopeRef.current === draftScope) return;
+    hydratedScopeRef.current = draftScope;
     const stored = readServerTableRoundDraft(tableId, sessionId, staffUserId);
     setItems(stored?.items ?? []);
     setNotes(stored?.notes ?? '');
@@ -54,10 +66,11 @@ export function useServerTableRoundDraft(
     setQuote(null);
     setCreatedOrder(null);
     setOperationState(stored?.clientOperationId ? 'unknown' : 'idle');
-  }, [sessionId, sessionMatchesQuery, sessionResolved, staffUserId, tableId]);
+    setHydratedScope(draftScope);
+  }, [draftScope, sessionId, sessionMatchesQuery, sessionResolved, staffUserId, tableId]);
 
   useEffect(() => {
-    if (!sessionId || !sessionMatchesQuery) return;
+    if (!draftScope || hydratedScope !== draftScope || !sessionId || !sessionMatchesQuery) return;
     if (!items.length && !notes.trim() && !operationId && !customer) {
       clearServerTableRoundDraft();
       return;
@@ -73,7 +86,18 @@ export function useServerTableRoundDraft(
       },
       staffUserId,
     );
-  }, [customer, items, notes, operationId, sessionId, sessionMatchesQuery, staffUserId, tableId]);
+  }, [
+    customer,
+    draftScope,
+    hydratedScope,
+    items,
+    notes,
+    operationId,
+    sessionId,
+    sessionMatchesQuery,
+    staffUserId,
+    tableId,
+  ]);
 
   const mutate = useCallback((change: (current: OrderItem[]) => OrderItem[]) => {
     setItems(change);
@@ -127,6 +151,7 @@ export function useServerTableRoundDraft(
     createdOrder,
     operationState,
     draftRecovered,
+    isReady: Boolean(draftScope && hydratedScope === draftScope),
     setItems,
     setOperationId,
     setQuote,

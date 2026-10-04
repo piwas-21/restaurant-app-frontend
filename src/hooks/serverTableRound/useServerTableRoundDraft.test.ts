@@ -46,6 +46,26 @@ describe('useServerTableRoundDraft', () => {
     expect(result.current.operationState).toBe('unknown');
   });
 
+  it('keeps a first product tap when the same session refreshes before draft persistence settles', async () => {
+    const { result, rerender } = renderHook(
+      ({ resolved }: HookProps) => useServerTableRoundDraft('T-QA/3', 'session-1', true, resolved),
+      { initialProps: { sessionId: 'session-1', matches: true, resolved: true } as HookProps },
+    );
+
+    expect(result.current.isReady).toBe(true);
+    await act(async () => {
+      result.current.mutate(() => items);
+      rerender({ sessionId: 'session-1', matches: true, resolved: false });
+    });
+
+    expect(result.current.items).toEqual(items);
+    expect(result.current.isReady).toBe(true);
+    expect(readServerTableRoundDraft('T-QA/3', 'session-1')?.items).toEqual(items);
+
+    await act(async () => rerender({ sessionId: 'session-1', matches: true, resolved: true }));
+    expect(result.current.items).toEqual(items);
+  });
+
   it('keeps customer identity in recovery and drops the old operation id when it changes', async () => {
     persistServerTableRoundDraft(draft);
     const { result } = renderHook(() => useServerTableRoundDraft('T-QA/3', 'session-1', true, true));
@@ -81,5 +101,25 @@ describe('useServerTableRoundDraft', () => {
     await act(async () => rerender({ sessionId: 'session-2', matches: false, resolved: true }));
 
     expect(readServerTableRoundDraft('T-QA/3', 'session-1')).toBeNull();
+  });
+
+  it('clears committed and unknown operation notices when the scope closes', async () => {
+    const order = { id: 'order-1', orderNumber: 'R-1' } as never;
+    const { result, rerender } = renderHook(
+      ({ sessionId, matches, resolved }: HookProps) => useServerTableRoundDraft('T-QA/3', sessionId, matches, resolved),
+      { initialProps: { sessionId: 'session-1', matches: true, resolved: true } as HookProps },
+    );
+
+    await act(async () => result.current.markCommitted(order));
+    expect(result.current.createdOrder).toEqual(order);
+    expect(result.current.operationState).toBe('committed');
+    await act(async () => {
+      result.current.setOperationState('unknown');
+      rerender({ sessionId: null, matches: false, resolved: true });
+    });
+
+    expect(result.current.createdOrder).toBeNull();
+    expect(result.current.operationState).toBe('idle');
+    expect(result.current.operationId).toBeUndefined();
   });
 });

@@ -8,6 +8,20 @@ import type { PendingAccountPayment } from './pendingAccountPayment';
 const actorId = '11111111-1111-4111-8111-111111111111';
 const serviceSessionId = '22222222-2222-4222-8222-222222222222';
 const operationId = '33333333-3333-4333-8333-333333333333';
+const cashIntent = {
+  operationId,
+  serviceSessionId,
+  expectedVersion: 2,
+  receivedMinor: 35,
+  settlement: {
+    policyVersion: 'exact-v1' as const,
+    currency: 'EUR',
+    paymentMethod: 'Cash' as const,
+    exactAmountMinor: 29,
+    adjustmentMinor: 0,
+    dueAmountMinor: 29,
+  },
+};
 const payment: PendingAccountPayment = {
   actorId,
   serviceSessionId,
@@ -100,4 +114,28 @@ it('refuses overwriting an escaped operation or changing its frozen request', ()
   expect(persistPendingAccountPayment(replacement)).toBe(false);
   expect(persistPendingAccountPayment({ ...payment, request: { ...payment.request, amountMinor: 30 } })).toBe(false);
   expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: payment });
+});
+
+it('stores the frozen cash intent and refuses changing its terms or received amount', () => {
+  const collected = { ...payment, currency: 'EUR', cashIntent };
+  expect(persistPendingAccountPayment(collected)).toBe(true);
+  expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: collected });
+  expect(persistPendingAccountPayment({ ...collected, cashIntent: { ...cashIntent, receivedMinor: 36 } })).toBe(false);
+  expect(
+    persistPendingAccountPayment({
+      ...collected,
+      cashIntent: { ...cashIntent, settlement: { ...cashIntent.settlement, dueAmountMinor: 30 } },
+    }),
+  ).toBe(false);
+  expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: collected });
+});
+
+it('rejects a cash intent attached to a card descriptor', () => {
+  const cardWithCash = {
+    ...payment,
+    request: { ...payment.request, paymentMethod: 'CreditCard' as const },
+    cashIntent,
+  } as unknown as PendingAccountPayment;
+  expect(persistPendingAccountPayment(cardWithCash)).toBe(false);
+  expect(window.sessionStorage).toHaveLength(0);
 });

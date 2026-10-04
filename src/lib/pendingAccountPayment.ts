@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import type { CreateAccountEqualSharePlanRequest, CreateAccountPaymentQuoteRequest } from '@/types/accountPayments';
+import { accountCashCollectionIntentSchema, type AccountCashCollectionIntent } from './accountCashCollectionIntent';
 
 const positiveInteger = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 export const ACCOUNT_PAYMENT_MAX_SELECTED_UNITS = 1000;
 const accountPaymentUuid = z.string().uuid();
+const accountPaymentCurrency = z.string().regex(/^[A-Z]{3}$/);
 const unit = z
   .object({ orderId: z.string().uuid(), orderItemId: z.string().uuid(), ordinal: positiveInteger })
   .strict();
@@ -38,8 +40,23 @@ const descriptor = z.union([
       request: quoteRequest,
       stage: z.enum(['review', 'reserving', 'reserved', 'collecting', 'releasing']),
       expectedVersion: positiveInteger,
+      currency: accountPaymentCurrency.optional(),
+      cashIntent: accountCashCollectionIntentSchema.optional(),
     })
-    .strict(),
+    .strict()
+    .superRefine((value, context) => {
+      if (value.cashIntent) {
+        if (
+          value.stage !== 'collecting' ||
+          value.request.paymentMethod !== 'Cash' ||
+          value.cashIntent.operationId.toLowerCase() !== value.request.operationId.toLowerCase() ||
+          value.cashIntent.serviceSessionId.toLowerCase() !== value.serviceSessionId.toLowerCase() ||
+          value.cashIntent.expectedVersion !== value.expectedVersion ||
+          (value.currency !== undefined && value.cashIntent.settlement.currency !== value.currency)
+        )
+          context.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid cash collection intent' });
+      }
+    }),
 ]);
 
 export type PendingAccountPayment =
@@ -51,6 +68,8 @@ export type PendingAccountPayment =
       request: CreateAccountPaymentQuoteRequest;
       stage: 'quote' | 'review' | 'reserving' | 'reserved' | 'collecting' | 'releasing';
       expectedVersion?: number;
+      currency?: string;
+      cashIntent?: AccountCashCollectionIntent;
     };
 
 export type PendingAccountPaymentRead =
@@ -89,20 +108,39 @@ export function readPendingAccountPayment(actorId: string, serviceSessionId: str
   return { status: 'unavailable' };
 }
 
+function preservesPaymentBindings(
+  saved: Extract<PendingAccountPayment, { kind: 'payment' }>,
+  incoming: Extract<PendingAccountPayment, { kind: 'payment' }>,
+): boolean {
+  const savedCurrency = 'currency' in saved ? saved.currency : undefined;
+  const savedCashIntent = 'cashIntent' in saved ? saved.cashIntent : undefined;
+  const incomingCurrency = 'currency' in incoming ? incoming.currency : undefined;
+  const incomingCashIntent = 'cashIntent' in incoming ? incoming.cashIntent : undefined;
+  if (savedCurrency !== undefined && incomingCurrency !== savedCurrency) return false;
+  return savedCashIntent === undefined || JSON.stringify(incomingCashIntent) === JSON.stringify(savedCashIntent);
+}
+
+function canReplaceDescriptor(saved: PendingAccountPaymentRead, incoming: PendingAccountPayment): boolean {
+  if (saved.status === 'unavailable') return false;
+  if (saved.status === 'none') return true;
+  if (
+    saved.value.kind !== incoming.kind ||
+    saved.value.request.operationId !== incoming.request.operationId ||
+    JSON.stringify(saved.value.request) !== JSON.stringify(incoming.request)
+  )
+    return false;
+  return (
+    saved.value.kind !== 'payment' || incoming.kind !== 'payment' || preservesPaymentBindings(saved.value, incoming)
+  );
+}
+
 /** Save the original operation and reviewed scope before every write, without guest names or notes. */
 export function persistPendingAccountPayment(value: PendingAccountPayment): boolean {
   if (typeof window === 'undefined') return false;
   const parsed = descriptor.safeParse(value);
   if (!parsed.success) return false;
   const saved = readPendingAccountPayment(value.actorId, value.serviceSessionId);
-  if (saved.status === 'unavailable') return false;
-  if (
-    saved.status === 'pending' &&
-    (saved.value.kind !== parsed.data.kind ||
-      saved.value.request.operationId !== parsed.data.request.operationId ||
-      JSON.stringify(saved.value.request) !== JSON.stringify(parsed.data.request))
-  )
-    return false;
+  if (!canReplaceDescriptor(saved, parsed.data)) return false;
   try {
     window.sessionStorage.setItem(key(value.actorId, value.serviceSessionId), JSON.stringify(parsed.data));
     return true;

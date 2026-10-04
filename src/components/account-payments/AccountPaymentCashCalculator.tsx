@@ -11,7 +11,7 @@ import {
 import styles from './AccountPaymentCollection.module.css';
 
 interface Props {
-  readonly amountMinor: number;
+  readonly dueAmountMinor: number;
   readonly currency: string;
   readonly received: string;
   readonly disabled: boolean;
@@ -19,11 +19,17 @@ interface Props {
 }
 
 /** The calculator is local; change never becomes a tip or recorded contribution. */
-export default function AccountPaymentCashCalculator({ amountMinor, currency, received, disabled, onChange }: Props) {
+export default function AccountPaymentCashCalculator({
+  dueAmountMinor,
+  currency,
+  received,
+  disabled,
+  onChange,
+}: Props) {
   const { t, i18n } = useTranslation();
   const minor = parseAccountContributionMinor(received, currency);
-  const insufficient = received !== '' && (minor === null || minor < amountMinor);
-  const change = minor !== null && minor >= amountMinor ? minor - amountMinor : 0;
+  const insufficient = received !== '' && (minor === null || minor < dueAmountMinor);
+  const change = minor !== null && minor >= dueAmountMinor ? minor - dueAmountMinor : 0;
   return (
     <div className={styles.cash}>
       <FormField
@@ -37,7 +43,7 @@ export default function AccountPaymentCashCalculator({ amountMinor, currency, re
           disabled={disabled}
         />
       </FormField>
-      <StaffButton disabled={disabled} onClick={() => onChange(accountContributionInput(amountMinor) ?? '')}>
+      <StaffButton disabled={disabled} onClick={() => onChange(accountContributionInput(dueAmountMinor) ?? '')}>
         {t('cashier.cash_exact')}
       </StaffButton>
       <output aria-live="polite">

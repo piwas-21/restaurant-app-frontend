@@ -2,17 +2,91 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import StaffButton from '@/components/design-system/StaffButton';
-import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { formatAccountPaymentMinor, parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
+import { canCollectReviewedCash, readAccountCashEvidence } from '@/lib/accountCashEvidence';
+import {
+  accountCashCollectionMatchesIntent,
+  type AccountCashCollectionIntent,
+} from '@/lib/accountCashCollectionIntent';
 import { mapFrozenAccountPaymentAllocations } from '@/lib/accountPaymentReviewScope';
 import { useAccountPaymentExpiry } from '@/hooks/useAccountPaymentExpiry';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 import type { PendingAccountPayment } from '@/lib/pendingAccountPayment';
 import type { TableServiceSessionDto } from '@/types/order';
-import AccountPaymentCashCalculator from './AccountPaymentCashCalculator';
+import AccountPaymentCashEvidence from './AccountPaymentCashEvidence';
+import AccountPaymentReviewActions from './AccountPaymentReviewActions';
 import styles from './AccountPaymentCollection.module.css';
+
+function canReleaseReviewedOperation(
+  recoveryReleaseEnabled: boolean,
+  pending: PendingAccountPayment | null,
+  operation: AccountPaymentOperation,
+  session: TableServiceSessionDto,
+): boolean {
+  return (
+    recoveryReleaseEnabled &&
+    pending?.kind === 'payment' &&
+    pending.serviceSessionId.toLowerCase() === session.serviceSessionId.toLowerCase() &&
+    operation.serviceSessionId.toLowerCase() === session.serviceSessionId.toLowerCase() &&
+    pending.request.operationId.toLowerCase() === operation.operationId.toLowerCase() &&
+    ['Quoted', 'Reserved'].includes(operation.state)
+  );
+}
+
+function isLegacyCashRelease(
+  collectionUnknown: boolean,
+  operation: AccountPaymentOperation,
+  cashIntent: AccountCashCollectionIntent | undefined,
+  reserved: boolean,
+  canRelease: boolean,
+): boolean {
+  return collectionUnknown && operation.paymentMethod === 'Cash' && !cashIntent && reserved && canRelease;
+}
+
+function canCollectReviewedOperation(
+  collected: boolean,
+  operation: AccountPaymentOperation,
+  cashReceived: number | null,
+  cashDueMinor: number | null,
+): boolean {
+  if (!collected || operation.paymentMethod === 'Cash') {
+    return (
+      collected &&
+      operation.paymentMethod === 'Cash' &&
+      cashReceived !== null &&
+      cashDueMinor !== null &&
+      canCollectReviewedCash(operation, cashReceived)
+    );
+  }
+  return true;
+}
+
+function needsCashReconciliation(pending: PendingAccountPayment | null, operation: AccountPaymentOperation): boolean {
+  return (
+    operation.paymentMethod === 'Cash' &&
+    operation.state === 'Captured' &&
+    pending?.kind === 'payment' &&
+    pending.serviceSessionId.toLowerCase() === operation.serviceSessionId.toLowerCase() &&
+    pending.request.operationId.toLowerCase() === operation.operationId.toLowerCase() &&
+    (!pending.cashIntent || !accountCashCollectionMatchesIntent(pending.cashIntent, operation))
+  );
+}
+
+function canReserveReviewedOperation(
+  disabled: boolean,
+  expired: boolean,
+  operation: AccountPaymentOperation,
+  allocationScopeComplete: boolean,
+  cashEvidenceStatus: 'missing' | 'invalid' | 'valid' | null,
+): boolean {
+  return (
+    !disabled &&
+    !expired &&
+    allocationScopeComplete &&
+    (operation.paymentMethod !== 'Cash' || cashEvidenceStatus === 'valid')
+  );
+}
 
 interface Props {
   readonly session: TableServiceSessionDto;
@@ -22,8 +96,8 @@ interface Props {
   readonly recoveryReleaseEnabled?: boolean;
   readonly recoveryCollectionEnabled?: boolean;
   readonly onReserve: () => Promise<void>;
-  readonly onCollect: () => Promise<void>;
-  readonly onRelease: () => Promise<void>;
+  readonly onCollect: (receivedMinor?: number) => Promise<void>;
+  readonly onRelease: (noMoneyConfirmed?: boolean) => Promise<void>;
   readonly onCheck: () => Promise<void>;
 }
 
@@ -50,21 +124,25 @@ export default function AccountPaymentReview({
   const intent = pending?.kind === 'payment' ? pending.stage : null;
   const collectionUnknown = intent === 'collecting';
   const releaseUnknown = intent === 'releasing';
-  const unknownWrite = collectionUnknown || releaseUnknown;
   const terminal = ['Captured', 'Released', 'Failed'].includes(operation.state);
-  const canRelease =
-    recoveryReleaseEnabled &&
-    pending?.kind === 'payment' &&
-    pending.serviceSessionId.toLowerCase() === session.serviceSessionId.toLowerCase() &&
-    operation.serviceSessionId.toLowerCase() === session.serviceSessionId.toLowerCase() &&
-    pending.request.operationId.toLowerCase() === operation.operationId.toLowerCase() &&
-    ['Quoted', 'Reserved'].includes(operation.state);
+  const canRelease = canReleaseReviewedOperation(recoveryReleaseEnabled, pending, operation, session);
+  const cashEvidence = operation.paymentMethod === 'Cash' ? readAccountCashEvidence(operation) : null;
+  const cashDueMinor = cashEvidence?.status === 'valid' ? cashEvidence.settlement.dueAmountMinor : null;
   const cashReceived = parseAccountContributionMinor(received, operation.currency);
-  const canCollect =
-    collected &&
-    (operation.paymentMethod !== 'Cash' || (cashReceived !== null && cashReceived >= operation.amountMinor));
-  const money = formatAccountPaymentMinor(operation.amountMinor, operation.currency, i18n.language || 'en');
+  const cashIntent = pending?.kind === 'payment' ? pending.cashIntent : undefined;
+  const legacyCashRelease = isLegacyCashRelease(collectionUnknown, operation, cashIntent, reserved, canRelease);
+  const unknownWrite = releaseUnknown || (collectionUnknown && !legacyCashRelease);
   const allocationScope = mapFrozenAccountPaymentAllocations(operation, session);
+  const canCollect = canCollectReviewedOperation(collected, operation, cashReceived, cashDueMinor);
+  const canReserve = canReserveReviewedOperation(
+    disabled,
+    expired,
+    operation,
+    allocationScope.complete,
+    cashEvidence?.status ?? null,
+  );
+  const cashReconciliationNeeded = needsCashReconciliation(pending, operation);
+  const money = formatAccountPaymentMinor(operation.amountMinor, operation.currency, i18n.language || 'en');
   const modeKeys = {
     Items: 'accountPayments.mode_items',
     Equal: 'accountPayments.mode_equal',
@@ -111,71 +189,45 @@ export default function AccountPaymentReview({
       <p>
         {operation.paymentMethod === 'Cash' ? t('cashier.table_bill.method_cash') : t('payment_card_at_restaurant')}
       </p>
-      {unknownWrite && <p className={styles.warning}>{t('accountPayments.result_unknown')}</p>}
+      {operation.paymentMethod === 'Cash' && (
+        <AccountPaymentCashEvidence
+          operation={operation}
+          intent={cashIntent}
+          unattested={cashReconciliationNeeded && !cashIntent}
+        />
+      )}
+      {(unknownWrite || legacyCashRelease) && <p className={styles.warning}>{t('accountPayments.result_unknown')}</p>}
       {!terminal && expired && !unknownWrite && <p className={styles.warning}>{t('accountPayments.expired')}</p>}
-      {quoted && !unknownWrite && (
-        <StaffButton
-          variant="primary"
-          disabled={disabled || expired || !allocationScope.complete}
-          onClick={() => void onReserve()}
-        >
-          {t('accountPayments.reserve')}
-        </StaffButton>
-      )}
-      {reserved && !unknownWrite && (
-        <>
-          {operation.paymentMethod === 'Cash' ? (
-            <AccountPaymentCashCalculator
-              amountMinor={operation.amountMinor}
-              currency={operation.currency}
-              received={received}
-              onChange={setReceived}
-              disabled={disabled || expired}
-            />
-          ) : (
-            <p className={styles.note}>{t('cashier.standalone_card_instruction')}</p>
-          )}
-          <FormField label={t('accountPayments.physical_collection_confirm')}>
-            <input
-              type="checkbox"
-              checked={collected}
-              onChange={(event) => setCollected(event.target.checked)}
-              disabled={disabled || expired}
-            />
-          </FormField>
-          <StaffButton
-            variant="primary"
-            disabled={disabled || expired || !allocationScope.complete || !canCollect}
-            onClick={() => void onCollect()}
-          >
-            {t('accountPayments.record_collection')}
-          </StaffButton>
-        </>
-      )}
-      {(quoted || reserved) && !unknownWrite && (
-        <div className={styles.cancel}>
-          <FormField label={t('accountPayments.no_money_collected')}>
-            <input
-              type="checkbox"
-              checked={notCollected}
-              onChange={(event) => setNotCollected(event.target.checked)}
-              disabled={!canRelease || unknownWrite}
-            />
-          </FormField>
-          <StaffButton disabled={!canRelease || !notCollected || collected} onClick={() => void onRelease()}>
-            {t('accountPayments.release')}
-          </StaffButton>
-        </div>
-      )}
-      {unknownWrite && (
-        <StaffButton
-          disabled={releaseUnknown ? !canRelease : !recoveryCollectionEnabled || !allocationScope.complete || !reserved}
-          onClick={() => void (collectionUnknown ? onCollect() : onRelease())}
-        >
-          {t('accountPayments.retry_original')}
-        </StaffButton>
-      )}
-      {!terminal && <StaffButton onClick={() => void onCheck()}>{t('accountPayments.check_result')}</StaffButton>}
+      <AccountPaymentReviewActions
+        operation={operation}
+        quoted={quoted}
+        reserved={reserved}
+        legacyCashRelease={legacyCashRelease}
+        collectionUnknown={collectionUnknown}
+        unknownWrite={unknownWrite}
+        releaseUnknown={releaseUnknown}
+        terminal={terminal}
+        cashReconciliationNeeded={cashReconciliationNeeded}
+        allocationScopeComplete={allocationScope.complete}
+        cashDueMinor={cashDueMinor}
+        cashReceivedMinor={cashReceived}
+        received={received}
+        disabled={disabled}
+        expired={expired}
+        collected={collected}
+        notCollected={notCollected}
+        canCollect={canCollect}
+        canReserve={canReserve}
+        canRelease={canRelease}
+        recoveryCollectionEnabled={recoveryCollectionEnabled}
+        onReceivedChange={setReceived}
+        onCollectedChange={setCollected}
+        onNotCollectedChange={setNotCollected}
+        onReserve={onReserve}
+        onCollect={onCollect}
+        onRelease={onRelease}
+        onCheck={onCheck}
+      />
     </section>
   );
 }

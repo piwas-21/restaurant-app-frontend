@@ -2,20 +2,32 @@
 
 import { useTranslation } from 'react-i18next';
 import { readAccountCashEvidence } from '@/lib/accountCashEvidence';
+import {
+  accountCashCollectionMatchesIntent,
+  type AccountCashCollectionIntent,
+} from '@/lib/accountCashCollectionIntent';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 import styles from './AccountPaymentCollection.module.css';
 
 interface AccountPaymentCashEvidenceProps {
   readonly operation: AccountPaymentOperation;
+  readonly intent?: AccountCashCollectionIntent;
+  readonly unattested?: boolean;
 }
 
-export default function AccountPaymentCashEvidence({ operation }: AccountPaymentCashEvidenceProps) {
+export default function AccountPaymentCashEvidence({
+  operation,
+  intent,
+  unattested = false,
+}: AccountPaymentCashEvidenceProps) {
   const { t, i18n } = useTranslation();
   if (operation.paymentMethod !== 'Cash') return null;
   const evidence = readAccountCashEvidence(operation);
-  if (evidence.status !== 'valid') {
-    const legacy = evidence.status === 'missing' && operation.state === 'Captured';
+  const matchesIntent = intent !== undefined && accountCashCollectionMatchesIntent(intent, operation);
+  if (unattested || evidence.status !== 'valid' || (intent !== undefined && !matchesIntent)) {
+    const legacy =
+      intent === undefined && operation.state === 'Captured' && (unattested || evidence.status === 'missing');
     return (
       <p role="alert" className={styles.warning}>
         {t(legacy ? 'accountPayments.cash.legacy_unattested' : 'accountPayments.cash.evidence_unavailable')}
@@ -58,6 +70,18 @@ export default function AccountPaymentCashEvidence({ operation }: AccountPayment
             </div>
           </dl>
         </div>
+      )}
+      {!receipt && matchesIntent && intent && (
+        <dl className={styles.summary}>
+          <div>
+            <dt>{t('cashier.cash_received')}</dt>
+            <dd>{money(intent.receivedMinor)}</dd>
+          </div>
+          <div>
+            <dt>{t('cashier.cash_change')}</dt>
+            <dd>{money(intent.receivedMinor - settlement.dueAmountMinor)}</dd>
+          </div>
+        </dl>
       )}
     </div>
   );

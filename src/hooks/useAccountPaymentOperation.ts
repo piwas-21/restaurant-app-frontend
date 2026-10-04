@@ -22,6 +22,7 @@ export function useAccountPaymentOperation(
   enabled: boolean,
   refresh: () => Promise<void>,
   recoveryEnabled = false,
+  visitCurrency: string | null = null,
 ) {
   const { t } = useTranslation();
   const [pending, setPending] = useState<PendingAccountPayment | null>(null);
@@ -29,10 +30,7 @@ export function useAccountPaymentOperation(
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
-  const error = useApiError();
-  const capture = error.capture;
-  const show = error.show;
-  const clear = error.clear;
+  const { capture, show, clear, message: errorMessage } = useApiError();
   const inFlight = useRef(false);
   const generation = useRef(0);
 
@@ -43,6 +41,7 @@ export function useAccountPaymentOperation(
         result,
         serviceSessionId,
         t('accountPayments.identity_mismatch'),
+        visitCurrency,
       );
       setOperation(transition.operation);
       const stored = transition.terminal
@@ -54,7 +53,7 @@ export function useAccountPaymentOperation(
       } else setPending(transition.terminal ? null : transition.pending);
       await refresh();
     },
-    [serviceSessionId, refresh, show, t],
+    [serviceSessionId, visitCurrency, refresh, show, t],
   );
 
   const run = useCallback(
@@ -70,7 +69,14 @@ export function useAccountPaymentOperation(
         !currentActorId ||
         saved.actorId.toLowerCase() !== currentActorId ||
         saved.serviceSessionId.toLowerCase() !== serviceSessionId.toLowerCase() ||
-        (write && ((!enabled && !allowFeatureOffRecovery) || storageUnavailable))
+        (write &&
+          ((!enabled && !allowFeatureOffRecovery) ||
+            storageUnavailable ||
+            !visitCurrency ||
+            (saved.kind === 'payment' &&
+              ((saved.currency !== undefined && saved.currency !== visitCurrency) ||
+                (saved.cashIntent !== undefined && saved.cashIntent.settlement.currency !== visitCurrency) ||
+                (operation !== null && operation.currency !== visitCurrency)))))
       )
         return;
       if (write && !persistPendingAccountPayment(saved)) {
@@ -95,7 +101,7 @@ export function useAccountPaymentOperation(
         }
       }
     },
-    [actorId, enabled, serviceSessionId, storageUnavailable, accept, capture, clear, show, t],
+    [actorId, enabled, serviceSessionId, storageUnavailable, operation, visitCurrency, accept, capture, clear, show, t],
   );
 
   const check = useCallback(
@@ -136,7 +142,7 @@ export function useAccountPaymentOperation(
     return () => {
       generation.current += 1;
     };
-  }, [actorId, serviceSessionId, show, t]);
+  }, [actorId, serviceSessionId, visitCurrency, show, t]);
 
   const draftActions = createAccountPaymentDraftActions({
     actorId,
@@ -156,6 +162,7 @@ export function useAccountPaymentOperation(
     pending,
     operation,
     serviceSessionId,
+    visitCurrency,
     run,
     actorId,
     enabled,
@@ -169,6 +176,7 @@ export function useAccountPaymentOperation(
     serviceSessionId,
     pending,
     operation,
+    visitCurrency,
     recoveryEnabled,
     busy,
     storageUnavailable,
@@ -181,10 +189,10 @@ export function useAccountPaymentOperation(
     ready,
     storageUnavailable,
     canRetryCollection,
-    error: error.message,
+    error: errorMessage,
     check,
     ...draftActions,
     ...mutations,
-    canStart: enabled && ready && !pending && !busy && !storageUnavailable,
+    canStart: enabled && visitCurrency !== null && ready && !pending && !busy && !storageUnavailable,
   };
 }

@@ -2,6 +2,7 @@ import { apiClient } from '@/utils/apiClient';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type { ApiResponse } from '@/types/order';
 import type { AccountPaymentAccount, AccountPaymentAccountResponse } from '@/types/accountPaymentAccount';
+import type { CaptureAccountPaymentRequest } from '@/types/accountCashSettlement';
 import type {
   AccountEqualSharePlan,
   AccountEqualSharePlanResponse,
@@ -105,7 +106,7 @@ export async function releaseAccountPayment(
 export async function collectAccountPayment(
   serviceSessionId: string,
   operationId: string,
-  request: VersionedAccountPaymentRequest,
+  request: CaptureAccountPaymentRequest,
 ): Promise<AccountPaymentOperation> {
   return requireData(
     await apiClient.post<AccountPaymentResponse>(`${operationPath(serviceSessionId, operationId)}/collect`, request, {

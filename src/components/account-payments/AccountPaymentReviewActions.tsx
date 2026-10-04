@@ -8,38 +8,46 @@ import type { AccountPaymentOperation } from '@/types/accountPayments';
 import AccountPaymentCashCalculator from './AccountPaymentCashCalculator';
 import styles from './AccountPaymentCollection.module.css';
 
-interface Props {
-  readonly operation: AccountPaymentOperation;
+interface SharedActionProps {
   readonly quoted: boolean;
   readonly reserved: boolean;
-  readonly legacyCashRelease: boolean;
-  readonly collectionUnknown: boolean;
   readonly unknownWrite: boolean;
-  readonly releaseUnknown: boolean;
-  readonly terminal: boolean;
-  readonly cashReconciliationNeeded: boolean;
   readonly allocationScopeComplete: boolean;
+  readonly collected: boolean;
+  readonly onCollect: (receivedMinor?: number) => Promise<void>;
+}
+
+interface WriteActionProps extends SharedActionProps {
+  readonly operation: AccountPaymentOperation;
+  readonly legacyCashRelease: boolean;
   readonly cashDueMinor: number | null;
   readonly cashReceivedMinor: number | null;
   readonly received: string;
   readonly disabled: boolean;
   readonly expired: boolean;
-  readonly collected: boolean;
-  readonly notCollected: boolean;
   readonly canCollect: boolean;
   readonly canReserve: boolean;
-  readonly canRelease: boolean;
-  readonly recoveryCollectionEnabled: boolean;
   readonly onReceivedChange: (received: string) => void;
   readonly onCollectedChange: (collected: boolean) => void;
-  readonly onNotCollectedChange: (notCollected: boolean) => void;
   readonly onReserve: () => Promise<void>;
-  readonly onCollect: (receivedMinor?: number) => Promise<void>;
+}
+
+interface RecoveryActionProps extends SharedActionProps {
+  readonly collectionUnknown: boolean;
+  readonly releaseUnknown: boolean;
+  readonly terminal: boolean;
+  readonly cashReconciliationNeeded: boolean;
+  readonly notCollected: boolean;
+  readonly canRelease: boolean;
+  readonly recoveryCollectionEnabled: boolean;
+  readonly onNotCollectedChange: (notCollected: boolean) => void;
   readonly onRelease: (noMoneyConfirmed?: boolean) => Promise<void>;
   readonly onCheck: () => Promise<void>;
 }
 
-function PaymentWriteActions(props: Props) {
+type Props = WriteActionProps & RecoveryActionProps;
+
+function PaymentWriteActions(props: WriteActionProps) {
   const { t } = useTranslation();
   let tenderInstructions: ReactNode = null;
   if (props.reserved && !props.unknownWrite && !props.legacyCashRelease) {
@@ -99,7 +107,7 @@ function PaymentWriteActions(props: Props) {
   );
 }
 
-function PaymentRecoveryActions(props: Props) {
+function PaymentRecoveryActions(props: RecoveryActionProps) {
   const { t } = useTranslation();
   return (
     <>
@@ -177,11 +185,7 @@ export default function AccountPaymentReviewActions({
         quoted={quoted}
         reserved={reserved}
         legacyCashRelease={legacyCashRelease}
-        collectionUnknown={collectionUnknown}
         unknownWrite={unknownWrite}
-        releaseUnknown={releaseUnknown}
-        terminal={terminal}
-        cashReconciliationNeeded={cashReconciliationNeeded}
         allocationScopeComplete={allocationScopeComplete}
         cashDueMinor={cashDueMinor}
         cashReceivedMinor={cashReceivedMinor}
@@ -189,45 +193,27 @@ export default function AccountPaymentReviewActions({
         disabled={disabled}
         expired={expired}
         collected={collected}
-        notCollected={notCollected}
         canCollect={canCollect}
         canReserve={canReserve}
-        canRelease={canRelease}
-        recoveryCollectionEnabled={recoveryCollectionEnabled}
         onReceivedChange={onReceivedChange}
         onCollectedChange={onCollectedChange}
-        onNotCollectedChange={onNotCollectedChange}
         onReserve={onReserve}
         onCollect={onCollect}
-        onRelease={onRelease}
-        onCheck={onCheck}
       />
       <PaymentRecoveryActions
-        operation={operation}
         quoted={quoted}
         reserved={reserved}
-        legacyCashRelease={legacyCashRelease}
         collectionUnknown={collectionUnknown}
         unknownWrite={unknownWrite}
         releaseUnknown={releaseUnknown}
         terminal={terminal}
         cashReconciliationNeeded={cashReconciliationNeeded}
         allocationScopeComplete={allocationScopeComplete}
-        cashDueMinor={cashDueMinor}
-        cashReceivedMinor={cashReceivedMinor}
-        received={received}
-        disabled={disabled}
-        expired={expired}
         collected={collected}
         notCollected={notCollected}
-        canCollect={canCollect}
-        canReserve={canReserve}
         canRelease={canRelease}
         recoveryCollectionEnabled={recoveryCollectionEnabled}
-        onReceivedChange={onReceivedChange}
-        onCollectedChange={onCollectedChange}
         onNotCollectedChange={onNotCollectedChange}
-        onReserve={onReserve}
         onCollect={onCollect}
         onRelease={onRelease}
         onCheck={onCheck}

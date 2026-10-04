@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
 import FormField from '@/components/design-system/FormField';
 import StaffButton from '@/components/design-system/StaffButton';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
@@ -40,6 +41,25 @@ interface Props {
 
 function PaymentWriteActions(props: Props) {
   const { t } = useTranslation();
+  let tenderInstructions: ReactNode = null;
+  if (props.reserved && !props.unknownWrite && !props.legacyCashRelease) {
+    if (props.operation.paymentMethod === 'Cash') {
+      if (props.cashDueMinor !== null) {
+        tenderInstructions = (
+          <AccountPaymentCashCalculator
+            dueAmountMinor={props.cashDueMinor}
+            currency={props.operation.currency}
+            received={props.received}
+            onChange={props.onReceivedChange}
+            disabled={props.disabled || props.expired}
+          />
+        );
+      }
+    } else {
+      tenderInstructions = <p className={styles.note}>{t('cashier.standalone_card_instruction')}</p>;
+    }
+  }
+
   return (
     <>
       {props.quoted && !props.unknownWrite && (
@@ -49,19 +69,7 @@ function PaymentWriteActions(props: Props) {
       )}
       {props.reserved && !props.unknownWrite && (
         <>
-          {props.legacyCashRelease ? null : props.operation.paymentMethod === 'Cash' ? (
-            props.cashDueMinor === null ? null : (
-              <AccountPaymentCashCalculator
-                dueAmountMinor={props.cashDueMinor}
-                currency={props.operation.currency}
-                received={props.received}
-                onChange={props.onReceivedChange}
-                disabled={props.disabled || props.expired}
-              />
-            )
-          ) : (
-            <p className={styles.note}>{t('cashier.standalone_card_instruction')}</p>
-          )}
+          {tenderInstructions}
           {!props.legacyCashRelease && (
             <>
               <FormField label={t('accountPayments.physical_collection_confirm')}>
@@ -132,11 +140,98 @@ function PaymentRecoveryActions(props: Props) {
   );
 }
 
-export default function AccountPaymentReviewActions(props: Props) {
+export default function AccountPaymentReviewActions({
+  operation,
+  quoted,
+  reserved,
+  legacyCashRelease,
+  collectionUnknown,
+  unknownWrite,
+  releaseUnknown,
+  terminal,
+  cashReconciliationNeeded,
+  allocationScopeComplete,
+  cashDueMinor,
+  cashReceivedMinor,
+  received,
+  disabled,
+  expired,
+  collected,
+  notCollected,
+  canCollect,
+  canReserve,
+  canRelease,
+  recoveryCollectionEnabled,
+  onReceivedChange,
+  onCollectedChange,
+  onNotCollectedChange,
+  onReserve,
+  onCollect,
+  onRelease,
+  onCheck,
+}: Props) {
   return (
     <>
-      <PaymentWriteActions {...props} />
-      <PaymentRecoveryActions {...props} />
+      <PaymentWriteActions
+        operation={operation}
+        quoted={quoted}
+        reserved={reserved}
+        legacyCashRelease={legacyCashRelease}
+        collectionUnknown={collectionUnknown}
+        unknownWrite={unknownWrite}
+        releaseUnknown={releaseUnknown}
+        terminal={terminal}
+        cashReconciliationNeeded={cashReconciliationNeeded}
+        allocationScopeComplete={allocationScopeComplete}
+        cashDueMinor={cashDueMinor}
+        cashReceivedMinor={cashReceivedMinor}
+        received={received}
+        disabled={disabled}
+        expired={expired}
+        collected={collected}
+        notCollected={notCollected}
+        canCollect={canCollect}
+        canReserve={canReserve}
+        canRelease={canRelease}
+        recoveryCollectionEnabled={recoveryCollectionEnabled}
+        onReceivedChange={onReceivedChange}
+        onCollectedChange={onCollectedChange}
+        onNotCollectedChange={onNotCollectedChange}
+        onReserve={onReserve}
+        onCollect={onCollect}
+        onRelease={onRelease}
+        onCheck={onCheck}
+      />
+      <PaymentRecoveryActions
+        operation={operation}
+        quoted={quoted}
+        reserved={reserved}
+        legacyCashRelease={legacyCashRelease}
+        collectionUnknown={collectionUnknown}
+        unknownWrite={unknownWrite}
+        releaseUnknown={releaseUnknown}
+        terminal={terminal}
+        cashReconciliationNeeded={cashReconciliationNeeded}
+        allocationScopeComplete={allocationScopeComplete}
+        cashDueMinor={cashDueMinor}
+        cashReceivedMinor={cashReceivedMinor}
+        received={received}
+        disabled={disabled}
+        expired={expired}
+        collected={collected}
+        notCollected={notCollected}
+        canCollect={canCollect}
+        canReserve={canReserve}
+        canRelease={canRelease}
+        recoveryCollectionEnabled={recoveryCollectionEnabled}
+        onReceivedChange={onReceivedChange}
+        onCollectedChange={onCollectedChange}
+        onNotCollectedChange={onNotCollectedChange}
+        onReserve={onReserve}
+        onCollect={onCollect}
+        onRelease={onRelease}
+        onCheck={onCheck}
+      />
     </>
   );
 }

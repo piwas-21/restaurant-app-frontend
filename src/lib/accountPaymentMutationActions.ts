@@ -49,7 +49,7 @@ function prepareNewCashIntent(
 ): CollectionIntent | null {
   if (pending.cashIntent || receivedMinor === undefined) return null;
   const cashIntent = createAccountCashCollectionIntent(operation, receivedMinor);
-  if (!cashIntent || cashIntent.settlement.currency !== visitCurrency) return null;
+  if (cashIntent?.settlement.currency !== visitCurrency) return null;
   return {
     saved: { ...pending, currency: operation.currency, cashIntent },
     collectedMinor: cashIntent.receivedMinor,

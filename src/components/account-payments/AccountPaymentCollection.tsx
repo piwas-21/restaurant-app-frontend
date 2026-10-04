@@ -39,11 +39,14 @@ export default function AccountPaymentCollection({
     onUpdated();
   }, [refreshAccount, onUpdated]);
   const account = reader.account;
-  const visitCurrency = enabled
-    ? account
-      ? accountPaymentVisitCurrency(session, account)
-      : null
-    : accountPaymentVisitCurrency(session);
+  let visitCurrency: string | null;
+  if (!enabled) {
+    visitCurrency = accountPaymentVisitCurrency(session);
+  } else if (account) {
+    visitCurrency = accountPaymentVisitCurrency(session, account);
+  } else {
+    visitCurrency = null;
+  }
   const payment = useAccountPaymentOperation(
     actorId,
     session.serviceSessionId,

@@ -5,6 +5,7 @@ import { OrderType } from '@/types/order';
 import { trackEvent } from '@/lib/analytics';
 import type { BasketChannelSwitch } from '@/types/basketChannel';
 import {
+  BasketChannelSessionChangedError,
   releaseUncommittedBasketChannelSelection,
   setBasketOrderTypeAndRefresh,
   useBasketChannelReconciliationPending,
@@ -69,6 +70,7 @@ function reply(over: Partial<BasketChannelSwitch>): BasketChannelSwitch {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorage.clear();
   mockSyncBasket.mockResolvedValue(true);
   releaseUncommittedBasketChannelSelection(null);
   mockItemCount = 1;
@@ -155,6 +157,96 @@ describe('useOrderTypeSwitch', () => {
 
     expect(mockSyncBasket).toHaveBeenCalledTimes(1);
     expect(pendingForOtherChannel.result.current).toBe(false);
+  });
+
+  it('does not send a queued channel update under a rotated guest session', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseFirstWrite: ((value: BasketChannelSwitch) => void) | undefined;
+    mockedSet.mockReturnValueOnce(new Promise((resolve) => (releaseFirstWrite = resolve))).mockResolvedValue(reply({}));
+
+    let firstMutation: Promise<unknown> | undefined;
+    let queuedMutation: Promise<unknown> | undefined;
+    act(() => {
+      firstMutation = setBasketOrderTypeAndRefresh(OrderType.Takeaway, null, mockSyncBasket);
+      queuedMutation = setBasketOrderTypeAndRefresh(OrderType.DineIn, null, mockSyncBasket);
+    });
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseFirstWrite?.(reply({}));
+      await expect(firstMutation).rejects.toBeInstanceOf(BasketChannelSessionChangedError);
+      await expect(queuedMutation).rejects.toThrow('guest session changed');
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
+    expect(mockSyncBasket).toHaveBeenNthCalledWith(1, 'guest-session-after-rotation');
+    expect(mockSyncBasket).toHaveBeenNthCalledWith(2, 'guest-session-after-rotation');
+  });
+
+  it('does not commit a channel choice when the guest session rotates during the request', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseWrite: ((value: BasketChannelSwitch) => void) | undefined;
+    mockedSet.mockReturnValueOnce(new Promise((resolve) => (releaseWrite = resolve)));
+    const { result } = renderHook(() => useOrderTypeSwitch());
+    let request: Promise<boolean> | undefined;
+
+    act(() => {
+      request = result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseWrite?.(reply({}));
+      await expect(request).resolves.toBe(false);
+    });
+
+    expect(mockSyncBasket).toHaveBeenCalledWith('guest-session-after-rotation');
+    expect(result.current.pending).toBeNull();
+  });
+
+  it('does not commit an old channel when the guest session rotates during the canonical refresh', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseRead: ((value: boolean) => void) | undefined;
+    mockedSet.mockResolvedValueOnce(reply({}));
+    mockSyncBasket.mockReturnValueOnce(new Promise((resolve) => (releaseRead = resolve)));
+    const pendingChannel = renderHook(() =>
+      useBasketChannelReconciliationPending(mockCurrentOrderType as OrderType | null),
+    );
+    const { result } = renderHook(() => useOrderTypeSwitch());
+    let request: Promise<boolean> | undefined;
+
+    act(() => {
+      request = result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(1));
+    expect(pendingChannel.result.current).toBe(true);
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseRead?.(true);
+      await expect(request).resolves.toBe(false);
+    });
+
+    expect(pendingChannel.result.current).toBe(false);
+    expect(mockSyncBasket).toHaveBeenCalledWith('guest-session-before-rotation');
+  });
+
+  it('refuses a stale basket snapshot when its visit session no longer matches the request header', async () => {
+    localStorage.setItem('rumi_session_id', 'current-session');
+    const staleBasket = {
+      id: 'basket-from-previous-guest',
+      sessionId: 'previous-session',
+      items: [],
+    } as unknown as import('@/types/basket').BasketDto;
+
+    await expect(setBasketOrderTypeAndRefresh(OrderType.Takeaway, staleBasket, mockSyncBasket)).rejects.toBeInstanceOf(
+      BasketChannelSessionChangedError,
+    );
+    expect(mockedSet).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledWith('current-session');
   });
 
   it('refuses the commit and opens the confirm when lines would be dropped', async () => {

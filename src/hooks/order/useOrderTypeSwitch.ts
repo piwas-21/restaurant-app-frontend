@@ -5,6 +5,7 @@ import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSessionContext } from '@/contexts/SessionContext';
 import {
+  isBasketChannelSessionChangedError,
   releaseUncommittedBasketChannelSelection,
   setBasketOrderTypeAndRefresh,
   useAssertBasketChannel,
@@ -137,6 +138,7 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
         setPending({ orderType, conflicts: result.conflicts, source, forceModal });
         return false;
       } catch (err) {
+        if (isBasketChannelSessionChangedError(err)) return false;
         // Fail open on a network error; OrderChannelGuard still blocks an unfulfillable order.
         console.warn('Order-type conflict check failed; allowing the switch:', err);
         markAttempted(orderType);

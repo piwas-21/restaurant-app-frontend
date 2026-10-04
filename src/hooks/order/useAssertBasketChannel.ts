@@ -1,139 +1,27 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { trackEvent } from '@/lib/analytics';
-import { setBasketOrderType } from '@/services/basketChannelService';
 import type { BasketDto } from '@/types/basket';
-import type { BasketChannelSwitch } from '@/types/basketChannel';
 import { OrderType } from '@/types/order';
+import {
+  acknowledgeBasketChannelSelection,
+  markBasketChannelSnapshotRefreshed,
+  setBasketOrderTypeAndRefresh,
+  useBasketChannelReconciliationPending,
+} from './basketChannelMutation';
 
-type SyncBasket = () => Promise<boolean>;
+export {
+  BasketChannelSessionChangedError,
+  acknowledgeBasketChannelSelection,
+  isBasketChannelSessionChangedError,
+  markBasketChannelSnapshotRefreshed,
+  releaseUncommittedBasketChannelSelection,
+  setBasketOrderTypeAndRefresh,
+  useBasketChannelReconciliationPending,
+} from './basketChannelMutation';
 
-let activeChannelWrites = 0;
-let snapshotNeedsRefresh = false;
-let basketBeforeUnconfirmedWrite: BasketDto | null = null;
-let pendingSelectionTarget: OrderType | null = null;
-let channelMutationQueue: Promise<void> = Promise.resolve();
-const listeners = new Set<() => void>();
-
-function publishChannelState() {
-  listeners.forEach((listener) => listener());
-}
-
-function subscribeChannelState(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getChannelState(orderType: OrderType | null) {
-  const targetNotSelected = pendingSelectionTarget !== null && pendingSelectionTarget !== orderType;
-  return activeChannelWrites > 0 || snapshotNeedsRefresh || targetNotSelected;
-}
-
-function beginChannelWrite(basket: BasketDto | null, targetOrderType: OrderType) {
-  if (activeChannelWrites === 0 && snapshotNeedsRefresh && basket !== basketBeforeUnconfirmedWrite) {
-    snapshotNeedsRefresh = false;
-  }
-  if (!snapshotNeedsRefresh) basketBeforeUnconfirmedWrite = basket;
-  pendingSelectionTarget = null;
-  activeChannelWrites += 1;
-  snapshotNeedsRefresh = true;
-  publishChannelState();
-
-  let finished = false;
-  return (basketRefreshed: boolean, applied: boolean) => {
-    if (finished) return;
-    finished = true;
-    activeChannelWrites -= 1;
-    if (activeChannelWrites === 0 && basketRefreshed) {
-      snapshotNeedsRefresh = false;
-      basketBeforeUnconfirmedWrite = null;
-      pendingSelectionTarget = applied ? targetOrderType : null;
-    } else if (activeChannelWrites === 0) {
-      pendingSelectionTarget = null;
-    }
-    publishChannelState();
-  };
-}
-
-export function markBasketChannelSnapshotRefreshed(basket: BasketDto | null) {
-  if (activeChannelWrites > 0) return;
-  let changed = false;
-  if (snapshotNeedsRefresh && basket !== basketBeforeUnconfirmedWrite) {
-    snapshotNeedsRefresh = false;
-    basketBeforeUnconfirmedWrite = null;
-    changed = true;
-  }
-  if (pendingSelectionTarget !== null && basket?.orderType !== pendingSelectionTarget) {
-    pendingSelectionTarget = null;
-    changed = true;
-  }
-  if (changed) publishChannelState();
-}
-
-export function useBasketChannelReconciliationPending(orderType: OrderType | null) {
-  return useSyncExternalStore(
-    subscribeChannelState,
-    () => getChannelState(orderType),
-    () => false,
-  );
-}
-
-export function acknowledgeBasketChannelSelection(orderType: OrderType | null) {
-  if (activeChannelWrites > 0 || !orderType || pendingSelectionTarget !== orderType) return;
-  pendingSelectionTarget = null;
-  publishChannelState();
-}
-
-export function releaseUncommittedBasketChannelSelection(orderType: OrderType | null) {
-  if (activeChannelWrites > 0 || pendingSelectionTarget === null || pendingSelectionTarget === orderType) return;
-  pendingSelectionTarget = null;
-  publishChannelState();
-}
-
-type BasketChannelMutationResult = {
-  result: BasketChannelSwitch;
-  basketRefreshed: boolean;
-};
-
-/** Apply the channel mutation and reconcile the CartContext from the canonical GET response. */
-export async function setBasketOrderTypeAndRefresh(
-  orderType: OrderType,
-  basket: BasketDto | null,
-  syncBasket: SyncBasket,
-  removeConflicts = false,
-): Promise<BasketChannelMutationResult> {
-  const previousMutation = channelMutationQueue;
-  let releaseMutation!: () => void;
-  channelMutationQueue = new Promise((resolve) => {
-    releaseMutation = resolve;
-  });
-  const finish = beginChannelWrite(basket, orderType);
-  let basketRefreshed = false;
-  let applied = false;
-  try {
-    await previousMutation;
-    let result: BasketChannelSwitch;
-    try {
-      result = await setBasketOrderType(orderType, removeConflicts);
-    } catch (error) {
-      basketRefreshed = await readBasket(syncBasket);
-      throw error;
-    }
-    applied = result.applied;
-    basketRefreshed = await readBasket(syncBasket);
-    return { result, basketRefreshed };
-  } finally {
-    finish(basketRefreshed, applied);
-    releaseMutation();
-  }
-}
-
-function readBasket(syncBasket: SyncBasket): Promise<boolean> {
-  return Promise.resolve()
-    .then(syncBasket)
-    .catch(() => false);
-}
+type SyncBasket = (expectedSessionId?: string | null) => Promise<boolean>;
 
 export interface AssertBasketChannel {
   markAttempted: (orderType: OrderType | null) => void;
@@ -185,9 +73,9 @@ export function useAssertBasketChannel(
           console.warn('Could not refresh the basket after asserting its order type.');
         }
       })
-      .catch((err) => {
+      .catch((error) => {
         // Keep this target bounded to one attempt until the canonical basket meaningfully changes.
-        console.warn('Could not assert the basket order type after the basket appeared:', err);
+        console.warn('Could not assert the basket order type after the basket appeared:', error);
       });
   }, [basket, channelWritePending, orderType, purchaseFingerprint, serverOrderType, syncedLineCount, syncBasket]);
 

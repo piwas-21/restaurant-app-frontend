@@ -65,6 +65,14 @@ export function isNotFoundError(error: unknown): boolean {
  * by relative path (`src/utils/apiClientLanguage.test.ts`), because this file shadows the alias.
  */
 export const getRequestLanguage = jest.fn((): string | null => null);
+export const getRequestSessionId = jest.fn((): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem('rumi_session_id');
+  } catch {
+    return null;
+  }
+});
 
 export const apiClient = {
   get: jest.fn(),

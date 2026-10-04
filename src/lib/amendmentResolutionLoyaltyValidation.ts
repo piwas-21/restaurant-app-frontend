@@ -42,11 +42,7 @@ export function validateResolutionLoyaltyResult(
   if (result.state === 'Resolved') {
     requireMatch(loyalty.state === 'Resolved' || loyalty.state === 'None');
     if (loyalty.state === 'None') {
-      requireMatch(
-        loyalty.earnedClawbackPoints === 0 &&
-          loyalty.redemptionRestorationPoints === 0 &&
-          loyalty.suppressedPoints === 0,
-      );
+      requireMatch(loyalty.earnedClawbackPoints === 0 && loyalty.redemptionRestorationPoints === 0);
     }
     requireMatch(
       loyalty.postedClawbackPoints === loyalty.earnedClawbackPoints &&

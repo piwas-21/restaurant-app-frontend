@@ -93,6 +93,32 @@ describe('loyalty evidence in amendment recovery', () => {
     expect(() => validateResolutionResult(result, pending)).toThrow('AmendmentResolutionEvidenceMismatch');
   });
 
+  it('accepts no current adjustment while preserving an earlier award suppression', () => {
+    const { pending, result } = evidence();
+    pending.reviewedQuote.loyalty = {
+      ...reviewed,
+      appliedAwardPoints: 15,
+      suppressedPoints: 10,
+      earnedClawbackPoints: 0,
+      redemptionRestorationPoints: 0,
+    };
+    result.loyalty = {
+      ...result.loyalty!,
+      appliedAwardPoints: 15,
+      suppressedPoints: 10,
+      earnedClawbackPoints: 0,
+      redemptionRestorationPoints: 0,
+      state: 'None',
+      postedClawbackPoints: 0,
+      postedRestorationPoints: 0,
+    };
+    expect(validateResolutionResult(result, pending).loyalty).toMatchObject({
+      state: 'None',
+      suppressedPoints: 10,
+      appliedAwardPoints: 15,
+    });
+  });
+
   it('refuses a response that drops new loyalty evidence and malformed point values', () => {
     const { pending, result } = evidence();
     result.loyalty = null;

@@ -4,8 +4,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSessionContext } from '@/contexts/SessionContext';
-import { setBasketOrderType } from '@/services/basketChannelService';
-import { useAssertBasketChannel } from '@/hooks/order/useAssertBasketChannel';
+import {
+  releaseUncommittedBasketChannelSelection,
+  setBasketOrderTypeAndRefresh,
+  useAssertBasketChannel,
+} from '@/hooks/order/useAssertBasketChannel';
 import type { BasketChannelConflict } from '@/types/basketChannel';
 import { OrderType } from '@/types/order';
 
@@ -78,16 +81,8 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
   // guest already left.
   const inFlightRef = useRef(false);
 
-  // Keeps the server's copy of the channel in step, including the re-assert once a basket exists.
-  // Both arguments come off `state.basket` — the last SYNCED payload — because they must share a
-  // clock (§9.13; the hook's own note explains why a retry keyed on the optimistic count can reach
-  // the server before the change that would let it succeed). `lineCount` above stays optimistic
-  // because it answers a different question: does this switch need a conflict check.
-  const { markAttempted } = useAssertBasketChannel(
-    state.basket?.items.length ?? 0,
-    orderTypeState.orderType,
-    state.basket?.orderType ?? null,
-  );
+  // Reconcile from the last synced basket; optimistic items separately decide whether a switch checks conflicts.
+  const { markAttempted } = useAssertBasketChannel(state.basket, orderTypeState.orderType, syncBasket);
 
   const request = useCallback(
     async (orderType: OrderType, source: string, forceModal: boolean): Promise<boolean> => {
@@ -112,17 +107,15 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
         // would do nothing at all, over a pre-flight nicety.
         try {
           ensureSession();
-          markAttempted(orderType);
-          // Both exits roll the recorded attempt back so the effect re-asserts once a basket exists.
-          // A refusal is a 200 and would otherwise stand as success — reachable even here, because
-          // after a failed mount sync the client sees an empty cart while the SERVER basket still
-          // holds lines. A throw is no longer the expected shape either (§9.13's upsert).
-          void setBasketOrderType(orderType)
-            .then((result) => {
-              if (!result.applied) markAttempted(null);
+          markAttempted(orderTypeState.orderType);
+          // Keep the tap immediate, but do not enable table-round submission until this mutation
+          // and its canonical read settle. The old marker is held only until commitType changes it.
+          void setBasketOrderTypeAndRefresh(orderType, state.basket, syncBasket)
+            .then(({ result, basketRefreshed }) => {
+              if (!result.applied || !basketRefreshed) markAttempted(orderType);
             })
             .catch((err) => {
-              markAttempted(null);
+              markAttempted(orderType);
               console.warn('Could not pre-set the basket order type:', err);
             });
         } catch (err) {
@@ -133,40 +126,43 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
       }
 
       inFlightRef.current = true;
+      // Do not let the reconciliation effect race this user-directed switch against the old choice.
+      markAttempted(orderTypeState.orderType);
       try {
-        const result = await setBasketOrderType(orderType);
+        const { result, basketRefreshed } = await setBasketOrderTypeAndRefresh(orderType, state.basket, syncBasket);
         if (result.applied || result.conflicts.length === 0) {
-          markAttempted(orderType);
+          if (!result.applied || !basketRefreshed) markAttempted(orderType);
           return true;
         }
         setPending({ orderType, conflicts: result.conflicts, source, forceModal });
         return false;
       } catch (err) {
-        // FAIL OPEN, deliberately. We no longer know whether there are conflicts, and refusing the
-        // switch would strand the guest in a channel with no way out over a network blip. Letting
-        // it through degrades to "you find out at checkout" — `OrderChannelGuard` still walks the
-        // whole basket at order creation, so an unfulfillable ORDER cannot be placed either way.
+        // Fail open on a network error; OrderChannelGuard still blocks an unfulfillable order.
         console.warn('Order-type conflict check failed; allowing the switch:', err);
-        // The server may not have taken it. Leave the synced marker alone so the effect re-asserts on the
-        // next cart change rather than assuming an arm that never happened.
+        markAttempted(orderType);
         return true;
       } finally {
         inFlightRef.current = false;
       }
     },
-    [hasLines, pending, orderTypeState.orderType, ensureSession, markAttempted],
+    [hasLines, pending, state.basket, syncBasket, orderTypeState.orderType, ensureSession, markAttempted],
   );
 
   const confirm = useCallback(async (): Promise<PendingOrderTypeSwitch | null> => {
     if (!pending || isApplying) return null;
     setIsApplying(true);
     setError(null);
+    markAttempted(orderTypeState.orderType);
     try {
-      await setBasketOrderType(pending.orderType, true);
-      markAttempted(pending.orderType);
-      // The lines are gone server-side; re-read rather than reconcile locally, so the cart badge,
-      // totals and tax all move together.
-      await syncBasket();
+      const { result, basketRefreshed } = await setBasketOrderTypeAndRefresh(
+        pending.orderType,
+        state.basket,
+        syncBasket,
+        true,
+      );
+      if (!result.applied || !basketRefreshed) {
+        throw new Error('The basket channel switch was not reconciled.');
+      }
       setPending(null);
       return pending;
     } catch (err) {
@@ -180,12 +176,13 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
     } finally {
       setIsApplying(false);
     }
-  }, [pending, isApplying, syncBasket, markAttempted]);
+  }, [pending, isApplying, state.basket, syncBasket, orderTypeState.orderType, markAttempted]);
 
   const cancel = useCallback(() => {
+    releaseUncommittedBasketChannelSelection(orderTypeState.orderType);
     setPending(null);
     setError(null);
-  }, []);
+  }, [orderTypeState.orderType]);
 
   // Memoised so this hook is not the thing churning `pickType`'s identity. It does NOT make
   // `pickType` stable — `syncBasket`, `ensureSession` and `setOrderType` are all unmemoised arrows

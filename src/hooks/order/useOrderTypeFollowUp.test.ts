@@ -1,8 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useOrderTypeFollowUp } from './useOrderTypeFollowUp';
+import { releaseUncommittedBasketChannelSelection } from '@/hooks/order/useAssertBasketChannel';
 
-const mockSetOrderType = jest.fn();
+const mockSetOrderType = jest.fn((type: OrderType) => {
+  mockOrderTypeState.orderType = type;
+});
 const mockSetTable = jest.fn();
 // Complete customer info, so needsTakeawayInfoModal() returns false by default.
 const mockCustomerInfo = { name: 'Guest', email: 'g@test.local', phone: '+41791234567' };
@@ -49,8 +52,9 @@ jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, track
 // useOrderTypeSwitch.test.ts. `mockSetBasketOrderType` still records that the server is told.
 const mockSetBasketOrderType = jest.fn().mockResolvedValue({ applied: true, conflicts: [], removed: [], basket: null });
 const mockCartState = { items: [] as unknown[], basket: { items: [] as unknown[] } };
+const mockSyncBasket = jest.fn().mockResolvedValue(true);
 jest.mock('@/components/cart/CartContext', () => ({
-  useCart: () => ({ state: mockCartState, syncBasket: jest.fn() }),
+  useCart: () => ({ state: mockCartState, syncBasket: mockSyncBasket }),
 }));
 jest.mock('@/services/basketChannelService', () => ({
   setBasketOrderType: (...args: unknown[]) => mockSetBasketOrderType(...args),
@@ -63,6 +67,9 @@ const scanTable = (tableId: string, tableNumber: string) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSyncBasket.mockResolvedValue(true);
+  releaseUncommittedBasketChannelSelection(null);
+  mockOrderTypeState.orderType = null;
   mockTableState.hasTableContext = false;
   mockTableState.tableContext = { tableId: null, tableNumber: '', dineInPinned: false };
   mockReservationsEnabled = true;
@@ -171,18 +178,17 @@ describe('useOrderTypeFollowUp', () => {
 
   it('forceModal opens the Takeaway modal even when the profile is already complete (Edit path)', async () => {
     const { result } = renderHook(() => useOrderTypeFollowUp());
-    // pickType is async + drives its own state updates; waitFor absorbs the flush (no manual act).
-    void result.current.pickType(OrderType.Takeaway, 'checkout_review', true);
+    await act(async () => result.current.pickType(OrderType.Takeaway, 'checkout_review', true));
     await waitFor(() => expect(result.current.followUp).toBe('takeaway'));
   });
 
   it('without forceModal, a Takeaway pick with complete info opens no modal', async () => {
     const { result } = renderHook(() => useOrderTypeFollowUp());
     // Open a modal first so the null assertion is meaningful (a real table→null transition).
-    void result.current.pickType(OrderType.DineIn);
+    await act(async () => result.current.pickType(OrderType.DineIn));
     await waitFor(() => expect(result.current.followUp).toBe('table'));
 
-    void result.current.pickType(OrderType.Takeaway);
+    await act(async () => result.current.pickType(OrderType.Takeaway));
     await waitFor(() => expect(result.current.followUp).toBeNull());
   });
 

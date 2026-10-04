@@ -7,6 +7,7 @@ import { useAccountPaymentAccount } from '@/hooks/useAccountPaymentAccount';
 import { useAccountPaymentOperation } from '@/hooks/useAccountPaymentOperation';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import { canReleaseAccountPaymentRecovery } from '@/lib/accountPaymentRecovery';
+import { accountPaymentVisitCurrency } from '@/lib/accountPaymentCurrencyBinding';
 import type { TableServiceSessionDto } from '@/types/order';
 import AccountPaymentActivitySummary from './AccountPaymentActivitySummary';
 import AccountPaymentSelectionForm from './AccountPaymentSelectionForm';
@@ -37,20 +38,43 @@ export default function AccountPaymentCollection({
     await refreshAccount();
     onUpdated();
   }, [refreshAccount, onUpdated]);
-  const payment = useAccountPaymentOperation(actorId, session.serviceSessionId, enabled, refresh, recoveryEnabled);
   const account = reader.account;
-  const writesLocked =
-    disabled || reader.stale || reader.loading || payment.busy || !enabled || account?.status !== 'Open';
-  const pendingPayment = payment.pending?.kind === 'payment' ? payment.pending : null;
-  const safeReleaseEnabled = canReleaseAccountPaymentRecovery(
+  let visitCurrency: string | null;
+  if (!enabled) {
+    visitCurrency = accountPaymentVisitCurrency(session);
+  } else if (account) {
+    visitCurrency = accountPaymentVisitCurrency(session, account);
+  } else {
+    visitCurrency = null;
+  }
+  const payment = useAccountPaymentOperation(
     actorId,
     session.serviceSessionId,
-    payment.pending,
-    payment.operation,
+    enabled,
+    refresh,
     recoveryEnabled,
-    payment.busy,
-    payment.storageUnavailable,
+    visitCurrency,
   );
+  const writesLocked =
+    disabled ||
+    reader.stale ||
+    reader.loading ||
+    payment.busy ||
+    !enabled ||
+    visitCurrency === null ||
+    account?.status !== 'Open';
+  const pendingPayment = payment.pending?.kind === 'payment' ? payment.pending : null;
+  const safeReleaseEnabled =
+    visitCurrency !== null &&
+    canReleaseAccountPaymentRecovery(
+      actorId,
+      session.serviceSessionId,
+      payment.pending,
+      payment.operation,
+      recoveryEnabled,
+      payment.busy,
+      payment.storageUnavailable,
+    );
   const canRetryPreview =
     payment.pending !== null &&
     !payment.operation &&
@@ -73,6 +97,11 @@ export default function AccountPaymentCollection({
       {payment.error && (
         <p role="alert" className={styles.error}>
           {payment.error}
+        </p>
+      )}
+      {visitCurrency === null && (
+        <p role="alert" className={styles.warning}>
+          {t('cashier.tables.currency_unknown')}
         </p>
       )}
       {account && (
@@ -133,7 +162,7 @@ export default function AccountPaymentCollection({
           session={session}
           operation={payment.operation}
           pending={payment.pending}
-          disabled={disabled || payment.busy || !enabled || payment.storageUnavailable}
+          disabled={disabled || visitCurrency === null || payment.busy || !enabled || payment.storageUnavailable}
           recoveryReleaseEnabled={safeReleaseEnabled}
           recoveryCollectionEnabled={payment.canRetryCollection && pendingPayment?.stage === 'collecting'}
           onReserve={payment.reserve}

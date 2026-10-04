@@ -72,6 +72,15 @@
       "storage_unavailable": "Wiederherstellung kann hier nicht gelesen oder gespeichert werden. Lassen Sie berechtigtes Personal den Tisch prüfen.",
       "succeeded": "Die ursprüngliche Anfrage war erfolgreich. Aktualisieren Sie den Tisch; dadurch wird kein Besuch eröffnet.",
       "refused": "Die ursprüngliche Anfrage wurde abgelehnt. Aktualisieren Sie vor einer neuen Anfrage."
+    },
+    "cash": {
+      "exact_charge": "Exakter Rechnungsbetrag",
+      "rounding_adjustment": "Bargeld-Rundungsanpassung",
+      "due": "Bar zu zahlen",
+      "receipt": "Erfasster Bargeldbeleg",
+      "rounding_note": "Die Bargeldrundung ändert nur den bar zu zahlenden Betrag. Der Rechnungsbetrag bleibt gleich; es wird kein Trinkgeld hinzugefügt.",
+      "evidence_unavailable": "Bargeldangaben oder Belege fehlen oder stimmen nicht überein. Neue Bargeldzahlungen sind gesperrt; prüfen Sie den ursprünglichen Vorgang.",
+      "legacy_unattested": "Für diese frühere Bargeldzahlung sind empfangener Betrag und Wechselgeld nicht bestätigt. Der erfasste Rechnungsbetrag bleibt sichtbar."
     }
   }
 }

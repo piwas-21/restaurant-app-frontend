@@ -1,16 +1,83 @@
 import type { AccountEqualSharePlan, AccountPaymentOperation } from '@/types/accountPayments';
 import type { PendingAccountPayment } from './pendingAccountPayment';
+import { accountCashCollectionMatchesIntent } from './accountCashCollectionIntent';
+import { hasConsistentFrozenAmount, matchesRequestedItemScope } from './accountPaymentRecoveryScope';
 
 export type AccountPaymentResult = AccountPaymentOperation | AccountEqualSharePlan;
 type Transition =
   | { terminal: true; operation: AccountPaymentOperation | null }
   | { terminal: false; operation: AccountPaymentOperation; pending: PendingAccountPayment };
+type PaymentDescriptor = Extract<PendingAccountPayment, { kind: 'payment' }>;
+
+function paymentResultMatchesBinding(
+  saved: PendingAccountPayment,
+  result: AccountPaymentOperation,
+  visitCurrency: string | null,
+): boolean {
+  if (saved.kind !== 'payment' || !visitCurrency || result.currency !== visitCurrency) return false;
+  if (saved.currency !== undefined && result.currency !== saved.currency) return false;
+  return true;
+}
+
+function paymentResultMatchesRequest(saved: PendingAccountPayment, result: AccountPaymentOperation): boolean {
+  if (saved.kind !== 'payment') return false;
+  if (
+    result.mode !== saved.request.mode ||
+    result.paymentMethod !== saved.request.paymentMethod ||
+    result.expectedAccountRevision !== saved.request.expectedAccountRevision
+  )
+    return false;
+  if (
+    saved.request.mode === 'Equal' &&
+    (result.equalSharePlanId !== saved.request.equalSharePlanId ||
+      result.equalShareOrdinal !== saved.request.equalShareOrdinal)
+  )
+    return false;
+  return saved.request.mode !== 'Amount' || result.amountMinor === saved.request.amountMinor;
+}
+
+function hasSafePaymentResultAmounts(result: AccountPaymentOperation): boolean {
+  return (
+    Number.isSafeInteger(result.version) &&
+    result.version >= 1 &&
+    Number.isSafeInteger(result.amountMinor) &&
+    result.amountMinor > 0
+  );
+}
+
+function matchesOriginalCashScope(saved: PaymentDescriptor, result: AccountPaymentOperation): boolean {
+  return (
+    hasConsistentFrozenAmount(result) && (saved.request.mode !== 'Items' || matchesRequestedItemScope(saved, result))
+  );
+}
+
+function matchesCashCaptureIntent(saved: PaymentDescriptor, result: AccountPaymentOperation): boolean {
+  if (result.state !== 'Captured' || result.paymentMethod !== 'Cash') return true;
+  return saved.cashIntent !== undefined && accountCashCollectionMatchesIntent(saved.cashIntent, result);
+}
+
+function matchesPlanResult(
+  saved: PendingAccountPayment,
+  result: AccountEqualSharePlan,
+  visitCurrency: string | null,
+): boolean {
+  return (
+    saved.kind === 'plan' &&
+    visitCurrency !== null &&
+    result.currency === visitCurrency &&
+    result.shareCount === saved.request.shareCount &&
+    result.accountRevision === saved.request.expectedAccountRevision &&
+    Number.isSafeInteger(result.totalMinor) &&
+    result.totalMinor >= result.shareCount
+  );
+}
 
 export function accountPaymentResultTransition(
   saved: PendingAccountPayment,
   result: AccountPaymentResult,
   serviceSessionId: string,
   mismatchMessage: string,
+  visitCurrency: string | null,
 ): Transition {
   if (
     result.operationId.toLowerCase() !== saved.request.operationId.toLowerCase() ||
@@ -18,35 +85,32 @@ export function accountPaymentResultTransition(
   )
     throw new Error(mismatchMessage);
   if ('planId' in result) {
-    if (
-      saved.kind !== 'plan' ||
-      result.shareCount !== saved.request.shareCount ||
-      result.accountRevision !== saved.request.expectedAccountRevision ||
-      !Number.isSafeInteger(result.totalMinor) ||
-      result.totalMinor < result.shareCount
-    )
-      throw new Error(mismatchMessage);
+    if (!matchesPlanResult(saved, result, visitCurrency)) throw new Error(mismatchMessage);
     return { terminal: true, operation: null };
   }
   if (
-    saved.kind !== 'payment' ||
-    result.mode !== saved.request.mode ||
-    result.paymentMethod !== saved.request.paymentMethod ||
-    result.expectedAccountRevision !== saved.request.expectedAccountRevision ||
-    (saved.request.mode === 'Equal' &&
-      (result.equalSharePlanId !== saved.request.equalSharePlanId ||
-        result.equalShareOrdinal !== saved.request.equalShareOrdinal)) ||
-    !Number.isSafeInteger(result.version) ||
-    result.version < 1 ||
-    !Number.isSafeInteger(result.amountMinor) ||
-    result.amountMinor <= 0 ||
-    (saved.request.mode === 'Amount' && result.amountMinor !== saved.request.amountMinor)
+    !paymentResultMatchesBinding(saved, result, visitCurrency) ||
+    !paymentResultMatchesRequest(saved, result) ||
+    !hasSafePaymentResultAmounts(result)
   )
     throw new Error(mismatchMessage);
+  if (saved.kind !== 'payment') throw new Error(mismatchMessage);
+  if (result.paymentMethod === 'Cash' && !matchesOriginalCashScope(saved, result)) throw new Error(mismatchMessage);
+  if (!matchesCashCaptureIntent(saved, result)) {
+    return {
+      terminal: false,
+      operation: result,
+      pending: saved,
+    };
+  }
   if (['Captured', 'Released', 'Failed'].includes(result.state)) return { terminal: true, operation: result };
   // A lookup cannot erase the intent of a collection or release whose response was lost.
   let stage: 'review' | 'reserved' | 'collecting' | 'releasing' = result.state === 'Quoted' ? 'review' : 'reserved';
   if (saved.stage === 'collecting' || saved.stage === 'releasing') stage = saved.stage;
   const expectedVersion = stage === 'collecting' || stage === 'releasing' ? saved.expectedVersion : result.version;
-  return { terminal: false, operation: result, pending: { ...saved, stage, expectedVersion } };
+  return {
+    terminal: false,
+    operation: result,
+    pending: { ...saved, currency: saved.currency ?? result.currency, stage, expectedVersion },
+  };
 }

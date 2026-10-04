@@ -72,6 +72,15 @@
       "storage_unavailable": "No se puede leer o guardar la recuperación aquí. Pida al personal autorizado que revise la mesa.",
       "succeeded": "La solicitud original se completó. Actualice la mesa; este resultado no abre una visita.",
       "refused": "La solicitud original fue rechazada. Actualice antes de otra solicitud."
+    },
+    "cash": {
+      "exact_charge": "Importe exacto de la cuenta",
+      "rounding_adjustment": "Ajuste de redondeo en efectivo",
+      "due": "Efectivo a pagar",
+      "receipt": "Recibo de efectivo registrado",
+      "rounding_note": "El redondeo solo cambia el importe a pagar en efectivo. No cambia la cuenta ni añade propina.",
+      "evidence_unavailable": "Los datos del efectivo o el recibo faltan o no coinciden. Los nuevos cobros están deshabilitados; comprueba la operación original.",
+      "legacy_unattested": "El importe recibido y el cambio de este pago anterior en efectivo no están verificados. El importe registrado en la cuenta sigue visible."
     }
   }
 }

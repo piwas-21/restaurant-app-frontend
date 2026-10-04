@@ -28,6 +28,14 @@ const operation: AccountPaymentOperation = {
   reservationExpiresAt: '2099-10-03T00:00:00Z',
   equalSharePlanId: null,
   equalShareOrdinal: null,
+  cashSettlement: {
+    policyVersion: 'exact-v1',
+    currency: 'EUR',
+    paymentMethod: 'Cash',
+    exactAmountMinor: 29,
+    adjustmentMinor: 0,
+    dueAmountMinor: 29,
+  },
   allocations: [
     { orderId, orderItemId: itemId, startOrdinal: 2, unitCount: 2, minorPerUnit: 14, amountMinor: 28 },
     { orderId, orderItemId: null, startOrdinal: 1, unitCount: 1, minorPerUnit: 1, amountMinor: 1 },
@@ -118,6 +126,94 @@ it('requires sufficient exact cash and physical collection confirmation before r
   expect(collect).toBeEnabled();
   fireEvent.click(collect);
   expect(handlers.onCollect).toHaveBeenCalledTimes(1);
+  expect(handlers.onCollect).toHaveBeenCalledWith(100);
+});
+
+it('uses the CHF physical due for calculator input and submits the saved received amount', () => {
+  const chf: AccountPaymentOperation = {
+    ...operation,
+    currency: 'CHF',
+    amountMinor: 333,
+    allocations: [{ ...operation.allocations[0], unitCount: 1, minorPerUnit: 333, amountMinor: 333 }],
+    cashSettlement: {
+      policyVersion: 'chf-cash-5-rappen-v1',
+      currency: 'CHF',
+      paymentMethod: 'Cash',
+      exactAmountMinor: 333,
+      adjustmentMinor: 2,
+      dueAmountMinor: 335,
+    },
+  };
+  renderReview({ operation: chf });
+  expect(screen.getByText('accountPayments.cash.exact_charge').parentElement).toHaveTextContent(/CHF\s*3\.33/);
+  expect(screen.getByText('accountPayments.cash.rounding_adjustment').parentElement).toHaveTextContent(/CHF\s*0\.02/);
+  expect(screen.getByText('accountPayments.cash.due').parentElement).toHaveTextContent(/CHF\s*3\.35/);
+  fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '4.00' } });
+  expect(screen.getByText(/cashier\.cash_change: CHF\s*0\.65/)).toBeInTheDocument();
+  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.record_collection' }));
+  expect(handlers.onCollect).toHaveBeenCalledWith(400);
+});
+
+it('uses exact EUR minor units when no physical rounding applies', () => {
+  const eur: AccountPaymentOperation = {
+    ...operation,
+    amountMinor: 333,
+    allocations: [{ ...operation.allocations[0], unitCount: 1, minorPerUnit: 333, amountMinor: 333 }],
+    cashSettlement: {
+      policyVersion: 'exact-v1',
+      currency: 'EUR',
+      paymentMethod: 'Cash',
+      exactAmountMinor: 333,
+      adjustmentMinor: 0,
+      dueAmountMinor: 333,
+    },
+  };
+  renderReview({ operation: eur });
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.cash_exact' }));
+  expect(screen.getByLabelText('cashier.cash_received')).toHaveValue('3.33');
+  const collect = screen.getByRole('button', { name: 'accountPayments.record_collection' });
+  expect(collect).toBeDisabled();
+  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
+  expect(collect).toBeEnabled();
+  fireEvent.click(collect);
+  expect(handlers.onCollect).toHaveBeenCalledWith(333);
+});
+
+it('does not invent tender terms for a legacy unknown cash collection', () => {
+  const chf: AccountPaymentOperation = {
+    ...operation,
+    currency: 'CHF',
+    amountMinor: 333,
+    allocations: [{ ...operation.allocations[0], unitCount: 1, minorPerUnit: 333, amountMinor: 333 }],
+    cashSettlement: {
+      policyVersion: 'chf-cash-5-rappen-v1',
+      currency: 'CHF',
+      paymentMethod: 'Cash',
+      exactAmountMinor: 333,
+      adjustmentMinor: 2,
+      dueAmountMinor: 335,
+    },
+  };
+  renderReview({
+    operation: chf,
+    pending: { ...pending, stage: 'collecting', expectedVersion: chf.version, currency: 'CHF' },
+  });
+  expect(screen.getByText('accountPayments.result_unknown')).toBeInTheDocument();
+  expect(screen.queryByLabelText('cashier.cash_received')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'accountPayments.record_collection' })).not.toBeInTheDocument();
+  const release = screen.getByRole('button', { name: 'accountPayments.release' });
+  expect(release).toBeDisabled();
+  fireEvent.click(screen.getByLabelText('accountPayments.no_money_collected'));
+  expect(release).toBeEnabled();
+  fireEvent.click(release);
+  expect(handlers.onRelease).toHaveBeenCalledWith(true);
+});
+
+it('keeps a legacy captured cash amount visible as unattested', () => {
+  renderReview({ operation: { ...operation, state: 'Captured', cashSettlement: null }, pending: null });
+  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.cash.legacy_unattested');
+  expect(screen.queryByRole('button', { name: 'accountPayments.record_collection' })).not.toBeInTheDocument();
 });
 
 it('shows the frozen order, line, and one-based unit range without unrelated bill items', () => {
@@ -152,7 +248,7 @@ it('fails closed when a line product does not equal its frozen allocation amount
     ],
   };
   renderReview({ operation: inconsistent });
-  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.scope_unavailable');
+  expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
 });
 
@@ -163,20 +259,20 @@ it('fails closed when an allocation has non-positive minor-unit pricing', () => 
     allocations: [{ ...operation.allocations[0], startOrdinal: 1, unitCount: 1, minorPerUnit: 0, amountMinor: 1 }],
   };
   renderReview({ operation: invalidAmount });
-  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.scope_unavailable');
+  expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
 });
 
 it('fails closed when valid line allocations do not sum to the quoted total', () => {
   renderReview({ operation: { ...operation, amountMinor: 28 } });
-  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.scope_unavailable');
+  expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
 });
 
 it('fails closed on missing frozen line snapshots instead of claiming generic reviewed items', () => {
   const missingSnapshot = { ...session, bill: { ...session.bill, accountItems: undefined } } as TableServiceSessionDto;
   const { rerender } = renderReview({ session: missingSnapshot });
-  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.scope_unavailable');
+  expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.queryByText('accountPayments.frozen_review')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
 
@@ -198,7 +294,7 @@ it('fails closed when the frozen source line cannot cover the quoted ordinal ran
     bill: { ...session.bill, accountItems: [{ ...session.bill.accountItems?.[0], unitCount: 2 }] },
   } as TableServiceSessionDto;
   renderReview({ session: shortSnapshot });
-  expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.scope_unavailable');
+  expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
 });
 

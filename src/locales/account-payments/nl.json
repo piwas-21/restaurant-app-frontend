@@ -72,6 +72,15 @@
       "storage_unavailable": "Herstelgegevens kunnen hier niet worden gelezen of opgeslagen. Laat bevoegd personeel de tafel controleren.",
       "succeeded": "Het oorspronkelijke verzoek is geslaagd. Vernieuw de tafel; dit resultaat opent geen bezoek.",
       "refused": "Het oorspronkelijke verzoek is geweigerd. Vernieuw vóór een nieuw verzoek."
+    },
+    "cash": {
+      "exact_charge": "Exact rekeningbedrag",
+      "rounding_adjustment": "Afronding voor contant geld",
+      "due": "Contant te betalen",
+      "receipt": "Vastgelegd contant betalingsbewijs",
+      "rounding_note": "Afronding wijzigt alleen het contant te betalen bedrag. Het rekeningbedrag blijft gelijk en er wordt geen fooi toegevoegd.",
+      "evidence_unavailable": "Contante betaalgegevens of bewijs ontbreken of komen niet overeen. Nieuwe contante betalingen zijn geblokkeerd; controleer de oorspronkelijke handeling.",
+      "legacy_unattested": "Het ontvangen bedrag en wisselgeld van deze eerdere contante betaling zijn niet bevestigd. Het vastgelegde rekeningbedrag blijft zichtbaar."
     }
   }
 }

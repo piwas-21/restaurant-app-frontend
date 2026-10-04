@@ -15,7 +15,7 @@ const pending: PendingAccountPayment = {
     operationId,
     expectedAccountRevision: 7,
     mode: 'Amount',
-    paymentMethod: 'Cash',
+    paymentMethod: 'CreditCard',
     amountMinor: 29,
   },
 };
@@ -26,7 +26,7 @@ const operation: AccountPaymentOperation = {
   version: 2,
   expectedAccountRevision: 7,
   mode: 'Amount',
-  paymentMethod: 'Cash',
+  paymentMethod: 'CreditCard',
   amountMinor: 29,
   currency: 'EUR',
   quoteExpiresAt: '2099-10-03T00:00:00Z',
@@ -106,12 +106,30 @@ function canRetryCollection(
   busy = false,
   storageUnavailable = false,
 ): boolean {
-  return canRetryAccountPaymentCollection(actor, visit, saved, current, recoveryEnabled, busy, storageUnavailable);
+  return canRetryAccountPaymentCollection(
+    actor,
+    visit,
+    saved,
+    current,
+    'EUR',
+    recoveryEnabled,
+    busy,
+    storageUnavailable,
+  );
 }
 
 it('allows an exact original collection retry for the same actor, visit, request, version, and frozen scope', () => {
   expect(canRetryCollection()).toBe(true);
   expect(canRetryCollection(actorId.toUpperCase(), serviceSessionId.toUpperCase())).toBe(true);
+});
+
+it('refuses to retry a legacy cash collection without a frozen cash intent', () => {
+  const legacyCash = {
+    ...collecting,
+    request: { ...collecting.request, paymentMethod: 'Cash' as const },
+  };
+  const cashOperation = { ...collectableOperation, paymentMethod: 'Cash' as const };
+  expect(canRetryCollection(actorId, serviceSessionId, legacyCash, cashOperation)).toBe(false);
 });
 
 it.each(malformedIdentities)('rejects a matching malformed actor identity: %s', (invalidId) => {

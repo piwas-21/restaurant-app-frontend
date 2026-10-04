@@ -72,6 +72,15 @@
       "storage_unavailable": "La reprise ne peut pas être lue ou enregistrée dans cet onglet. Faites vérifier la table par le personnel autorisé.",
       "succeeded": "La demande initiale a réussi. Actualisez la table ; ce résultat n’ouvre pas de visite.",
       "refused": "La demande initiale a été refusée. Actualisez avant une nouvelle demande."
+    },
+    "cash": {
+      "exact_charge": "Montant exact du compte",
+      "rounding_adjustment": "Ajustement d’arrondi en espèces",
+      "due": "Espèces à payer",
+      "receipt": "Reçu d’espèces enregistré",
+      "rounding_note": "L’arrondi modifie uniquement le montant à payer en espèces. Il ne modifie pas le compte et n’ajoute aucun pourboire.",
+      "evidence_unavailable": "Les données d’espèces ou le reçu sont indisponibles ou incohérents. Les nouveaux encaissements sont désactivés ; vérifiez l’opération initiale.",
+      "legacy_unattested": "Le montant reçu et la monnaie de cet ancien paiement en espèces ne sont pas vérifiés. Le montant enregistré sur le compte reste visible."
     }
   }
 }

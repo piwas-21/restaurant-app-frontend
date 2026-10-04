@@ -1,4 +1,5 @@
 import type { ApiResponse } from './order';
+import type { AccountCashReceipt, AccountCashSettlement } from './accountCashSettlement';
 
 export type AccountPaymentState =
   | 'Quoted'
@@ -45,6 +46,8 @@ export interface AccountPaymentOperation {
   equalSharePlanId: string | null;
   equalShareOrdinal: number | null;
   allocations: AccountPaymentAllocation[];
+  cashSettlement?: AccountCashSettlement | null;
+  cashReceipt?: AccountCashReceipt | null;
 }
 
 export interface AccountEqualSharePlan {

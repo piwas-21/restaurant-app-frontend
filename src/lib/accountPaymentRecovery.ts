@@ -5,6 +5,7 @@ import {
   type PendingAccountPayment,
 } from './pendingAccountPayment';
 import { hasConsistentFrozenAmount, matchesRequestedItemScope } from './accountPaymentRecoveryScope';
+import { accountCashCollectionMatchesIntent } from './accountCashCollectionIntent';
 
 export function canReleaseAccountPaymentRecovery(
   actorId: string | undefined,
@@ -44,6 +45,7 @@ export function canRetryAccountPaymentCollection(
   serviceSessionId: string,
   pending: PendingAccountPayment | null,
   operation: AccountPaymentOperation | null,
+  visitCurrency: string | null,
   recoveryEnabled: boolean,
   busy: boolean,
   storageUnavailable: boolean,
@@ -56,6 +58,9 @@ export function canRetryAccountPaymentCollection(
     pending?.kind !== 'payment' ||
     pending.stage !== 'collecting' ||
     operation?.state !== 'Reserved' ||
+    !visitCurrency ||
+    operation.currency !== visitCurrency ||
+    (pending.currency !== undefined && pending.currency !== visitCurrency) ||
     !positiveInteger(pending.expectedVersion ?? 0) ||
     pending.expectedVersion !== operation.version ||
     !sameCanonicalIdentity(pending.actorId, actorId) ||
@@ -69,6 +74,13 @@ export function canRetryAccountPaymentCollection(
     pending.request.paymentMethod !== operation.paymentMethod ||
     pending.request.mode !== operation.mode ||
     !hasConsistentFrozenAmount(operation)
+  )
+    return false;
+
+  if (
+    (pending.request.paymentMethod === 'Cash' &&
+      (!pending.cashIntent || !accountCashCollectionMatchesIntent(pending.cashIntent, operation))) ||
+    (pending.request.paymentMethod !== 'Cash' && pending.cashIntent !== undefined)
   )
     return false;
 

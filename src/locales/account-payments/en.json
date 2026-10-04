@@ -72,6 +72,15 @@
       "storage_unavailable": "Reset recovery cannot be read or saved in this tab. Check the table with authorized staff.",
       "succeeded": "The original reset succeeded. Refresh to see the current table; this result does not open a visit.",
       "refused": "The original reset was refused. Refresh before reviewing a new request."
+    },
+    "cash": {
+      "exact_charge": "Exact account charge",
+      "rounding_adjustment": "Cash rounding adjustment",
+      "due": "Cash due",
+      "receipt": "Recorded cash receipt",
+      "rounding_note": "Cash rounding changes only the physical amount due. It does not change the account charge or add a tip.",
+      "evidence_unavailable": "Cash terms or receipt evidence are unavailable or inconsistent. New cash collection is disabled; check the original operation.",
+      "legacy_unattested": "This earlier cash payment has no verified received amount or change. Its recorded account charge remains visible."
     }
   }
 }

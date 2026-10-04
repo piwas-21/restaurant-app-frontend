@@ -16,12 +16,11 @@ import {
   validateResultCashRefund,
   validateTillCashIntent,
 } from './amendmentResolutionCashRefundValidation';
-
+import * as loyaltyEvidence from './amendmentResolutionLoyaltyValidation';
 export function sameResolutionIdentity(first: string, second: string): boolean {
   return first.toLowerCase() === second.toLowerCase();
 }
 const sameIdentity = sameResolutionIdentity;
-
 function requireMatch(matches: boolean): void {
   if (!matches) throw new Error('AmendmentResolutionEvidenceMismatch');
 }
@@ -41,7 +40,6 @@ export function compareResolutionPaymentIds(first: { paymentId: string }, second
   return compareResolutionIdentities(first.paymentId, second.paymentId);
 }
 const comparePaymentIds = compareResolutionPaymentIds;
-
 /** Mirrors backend request canonicalization for refusal matching; the server hash stays opaque. */
 export function canonicalResolutionStartRequest(
   input: AmendmentResolutionStartRequest,
@@ -77,6 +75,7 @@ export function validateResolutionQuote(
   requireMatch(sameIdentity(quote.orderId, orderId) && sameIdentity(quote.amendmentId, amendmentId));
   requireMatch(sameIdentity(quote.clientOperationId, request.clientOperationId) && quote.currency === request.currency);
   validateConservation(quote);
+  loyaltyEvidence.validateResolutionLoyaltyQuote(quote);
   for (const leg of quote.refundLegs) {
     const manual = leg.custody === 'ManualTill';
     requireMatch(leg.requiresTillConfirmation === manual);
@@ -195,5 +194,6 @@ export function validateResolutionResult(
   validateResultIdentity(result, original);
   validateConservation(result);
   validateResultLegs(result, original);
+  loyaltyEvidence.validateResolutionLoyaltyResult(result, original.reviewedQuote);
   return result;
 }

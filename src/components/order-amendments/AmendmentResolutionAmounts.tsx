@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import type { AmendmentResolutionQuote, AmendmentResolutionResult } from '@/types/amendmentResolution';
+import AmendmentResolutionLoyalty from './AmendmentResolutionLoyalty';
 import styles from './AmendmentResolution.module.css';
 
 export default function AmendmentResolutionAmounts({
@@ -81,6 +82,7 @@ export default function AmendmentResolutionAmounts({
           );
         })}
       </div>
+      <AmendmentResolutionLoyalty value={value.loyalty} />
     </>
   );
 }

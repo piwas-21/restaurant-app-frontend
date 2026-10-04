@@ -3949,5 +3949,14 @@
   },
   "languageLoadFailed": "无法加载该语言。已保留您当前的语言，请重试。",
   "server.floor.needs_reset": "需要重新准备",
-  "server.floor.ready_action": "已为下一批客人准备好"
+  "server.floor.ready_action": "已为下一批客人准备好",
+  "amendment_loyalty_points_other": "{{amount}} 积分",
+  "points_transaction_earned": "获得的积分",
+  "points_transaction_redeemed": "已兑换积分",
+  "points_transaction_admin": "管理员调整",
+  "points_transaction_expired": "过期积分",
+  "points_transaction_refunded": "已退还积分",
+  "points_transaction_clawback": "已撤回获得的积分",
+  "points_transaction_restored": "已恢复兑换的积分",
+  "points_transaction_unknown": "积分调整"
 }

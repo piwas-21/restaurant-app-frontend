@@ -4009,5 +4009,19 @@
   },
   "languageLoadFailed": "تعذّر تحميل هذه اللغة. تم الإبقاء على لغتك الحالية. يُرجى المحاولة مرة أخرى.",
   "server.floor.needs_reset": "تحتاج إلى تجهيز",
-  "server.floor.ready_action": "جاهزة للضيوف التاليين"
+  "server.floor.ready_action": "جاهزة للضيوف التاليين",
+  "amendment_loyalty_points_zero": "{{amount}} نقطة",
+  "amendment_loyalty_points_one": "{{amount}} نقطة",
+  "amendment_loyalty_points_two": "{{amount}} نقطتان",
+  "amendment_loyalty_points_few": "{{amount}} نقاط",
+  "amendment_loyalty_points_many": "{{amount}} نقطة",
+  "amendment_loyalty_points_other": "{{amount}} نقطة",
+  "points_transaction_earned": "نقاط مكتسبة",
+  "points_transaction_redeemed": "نقاط مستخدمة",
+  "points_transaction_admin": "تعديل المسؤول",
+  "points_transaction_expired": "نقاط منتهية الصلاحية",
+  "points_transaction_refunded": "نقاط مستردة",
+  "points_transaction_clawback": "نقاط مكتسبة تم سحبها",
+  "points_transaction_restored": "نقاط مستخدمة تمت إعادتها",
+  "points_transaction_unknown": "تعديل النقاط"
 }

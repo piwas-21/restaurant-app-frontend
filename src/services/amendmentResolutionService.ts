@@ -87,7 +87,14 @@ export async function confirmAmendmentResolutionTill(pending: PendingAmendmentRe
   const saved = original.pendingTillConfirmations.find(
     (value) => value.paymentId.toLowerCase() === confirmation.paymentId.toLowerCase(),
   );
-  if (!saved || saved.tillReference !== confirmation.tillReference)
+  const inputHasCashReturn = Object.hasOwn(confirmation, 'cashReturnedMinor');
+  const savedHasCashReturn = saved !== undefined && Object.hasOwn(saved, 'cashReturnedMinor');
+  if (
+    !saved ||
+    saved.tillReference !== confirmation.tillReference ||
+    inputHasCashReturn !== savedHasCashReturn ||
+    (inputHasCashReturn && confirmation.cashReturnedMinor !== saved.cashReturnedMinor)
+  )
     throw new Error('AmendmentResolutionTillEvidenceMismatch');
   const body = await apiClient.post<unknown>(
     `/api/staff/amendment-financial-resolution-operations/${encodeURIComponent(original.operationId)}/confirm-till`,

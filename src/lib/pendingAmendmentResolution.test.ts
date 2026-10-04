@@ -7,6 +7,13 @@ import {
   readPendingAmendmentResolutionsForOrder,
 } from './pendingAmendmentResolution';
 import { resolutionTillConfirmationsSchema } from '@/schemas/amendmentResolution.schema';
+import {
+  cashRefundFixture,
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  legacyTillCashPendingFixture,
+  zeroCashReturnConfirmationFixture,
+} from './__fixtures__/amendmentResolutionCash';
 import { pendingResolutionFixture, resolutionIds, resolutionResultFixture } from './__fixtures__/amendmentResolution';
 
 beforeEach(() => window.sessionStorage.clear());
@@ -134,14 +141,7 @@ it('returns a blocking failure when storage cannot persist or clear the original
 });
 
 it('freezes the whole manual confirmation batch and clears it only after exact server proof', () => {
-  const original = pendingResolutionFixture();
-  original.operationId = resolutionIds.operation;
-  original.reviewedQuote.refundLegs[0] = {
-    ...original.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    requiresTillConfirmation: true,
-  };
+  const original = legacyTillCashPendingFixture();
   expect(persistPendingAmendmentResolution(original)).toBe(true);
   const confirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Till-27' }];
   expect(persistPendingTillConfirmations(original, confirmations)).toBe(true);
@@ -174,6 +174,34 @@ it('freezes the whole manual confirmation batch and clears it only after exact s
   if (after.status !== 'pending') throw new Error('Expected the operation journal to remain for provider recovery');
   expect(after.value.operationId).toBe(resolutionIds.operation);
   expect(after.value.pendingTillConfirmations).toBeUndefined();
+});
+
+it('keeps receipt-backed cash evidence frozen through wrong or changed return readbacks', () => {
+  const original = cashReturnPendingFixture();
+  const cashRefund = cashRefundFixture();
+  expect(persistPendingAmendmentResolution(original)).toBe(true);
+  const confirmations = [zeroCashReturnConfirmationFixture()];
+  expect(persistPendingTillConfirmations(original, confirmations)).toBe(true);
+  const saved = readPendingAmendmentResolution(original.actorId, original.orderId, original.amendmentId);
+  expect(saved.status).toBe('pending');
+  if (saved.status !== 'pending') throw new Error('Expected the cash-return journal to remain pending');
+
+  const result = cashReturnConfirmedResultFixture();
+  const wrongReturn = {
+    ...result,
+    refundLegs: [{ ...result.refundLegs[0], cashReturn: { ...result.refundLegs[0].cashReturn, cashReturnedMinor: 1 } }],
+  };
+  expect(clearPendingTillConfirmations(saved.value, wrongReturn)).toBe(false);
+  const changedTerms = {
+    ...result,
+    refundLegs: [{ ...result.refundLegs[0], cashRefund: { ...cashRefund, retainedCashDueMinor: 330 } }],
+  };
+  expect(clearPendingTillConfirmations(saved.value, changedTerms)).toBe(false);
+  expect(readPendingAmendmentResolution(original.actorId, original.orderId, original.amendmentId)).toMatchObject({
+    status: 'pending',
+    value: { pendingTillConfirmations: confirmations },
+  });
+  expect(clearPendingTillConfirmations(saved.value, result)).toBe(true);
 });
 
 it('normalizes phase-two till references with the reusable evidence schema', () => {

@@ -11,6 +11,11 @@ import type {
   PendingAmendmentResolution,
   AmendmentResolutionStartRequest,
 } from '@/types/amendmentResolution';
+import {
+  validateQuoteCashRefund,
+  validateResultCashRefund,
+  validateTillCashIntent,
+} from './amendmentResolutionCashRefundValidation';
 
 export function sameResolutionIdentity(first: string, second: string): boolean {
   return first.toLowerCase() === second.toLowerCase();
@@ -76,6 +81,7 @@ export function validateResolutionQuote(
     const manual = leg.custody === 'ManualTill';
     requireMatch(leg.requiresTillConfirmation === manual);
     requireMatch(manual ? leg.paymentMethod !== 'OnlinePayment' : leg.paymentMethod === 'OnlinePayment');
+    validateQuoteCashRefund(leg, quote.currency);
     for (const scope of leg.scopes) {
       requireMatch(BigInt(scope.amountMinor) === BigInt(scope.minorPerUnit) * BigInt(scope.unitCount));
       requireMatch(BigInt(scope.startOrdinal) + BigInt(scope.unitCount) - BigInt(1) <= BigInt(2_147_483_647));
@@ -126,6 +132,7 @@ export function validatePendingResolution(pending: PendingAmendmentResolution): 
     );
     requireMatch(pendingTillConfirmations.length === manualPaymentIds.size);
     requireMatch(pendingTillConfirmations.every((value) => manualPaymentIds.has(value.paymentId)));
+    validateTillCashIntent(quote, pendingTillConfirmations);
   }
   return {
     ...parsed,
@@ -156,6 +163,8 @@ function validateResultLeg(
 ): void {
   const quoteLeg = original.reviewedQuote.refundLegs.find((value) => sameIdentity(value.paymentId, leg.paymentId));
   requireMatch(quoteLeg !== undefined && quoteLeg.custody === leg.custody && quoteLeg.amountMinor === leg.amountMinor);
+  if (!quoteLeg) return;
+  validateResultCashRefund(quoteLeg, leg);
   requireMatch(leg.state === 'Succeeded' ? leg.resolvedAt !== null : leg.resolvedAt === null);
   const tillConfirmation = leg.tillConfirmation ?? null;
   if (leg.custody === 'ManualTill') {

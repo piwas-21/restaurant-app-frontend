@@ -4,6 +4,7 @@ import type { AccountPaymentOperation } from '@/types/accountPayments';
 
 const SWISS_CASH_INCREMENT_MINOR = BigInt(5);
 const SWISS_CASH_ROUND_UP_REMAINDER = BigInt(3);
+const MAX_SAFE_MINOR = BigInt(Number.MAX_SAFE_INTEGER);
 const safeInteger = z.number().int().min(Number.MIN_SAFE_INTEGER).max(Number.MAX_SAFE_INTEGER);
 const positiveMinor = safeInteger.positive();
 const terms = {
@@ -30,6 +31,23 @@ export type AccountCashEvidence =
   | { status: 'invalid' }
   | { status: 'valid'; settlement: AccountCashSettlement; receipt: AccountCashReceipt | null };
 
+/** Resolves a previously frozen policy for a retained exact amount; zero is valid after a full refund. */
+export function accountCashDueFromPolicy(
+  policyVersion: string,
+  currency: string,
+  paymentMethod: AccountPaymentOperation['paymentMethod'],
+  exactAmountMinor: number,
+): number | null {
+  if (!Number.isSafeInteger(exactAmountMinor) || exactAmountMinor < 0) return null;
+  if (policyVersion === 'exact-v1') return paymentMethod !== 'Cash' || currency !== 'CHF' ? exactAmountMinor : null;
+  if (policyVersion !== 'chf-cash-5-rappen-v1' || currency !== 'CHF' || paymentMethod !== 'Cash') return null;
+
+  const exact = BigInt(exactAmountMinor);
+  const remainder = exact % SWISS_CASH_INCREMENT_MINOR;
+  const due = exact - remainder + (remainder >= SWISS_CASH_ROUND_UP_REMAINDER ? SWISS_CASH_INCREMENT_MINOR : BigInt(0));
+  return due <= MAX_SAFE_MINOR ? Number(due) : null;
+}
+
 function hasConservedTerms(settlement: AccountCashSettlement, operation: AccountPaymentOperation): boolean {
   if (
     settlement.currency !== operation.currency ||
@@ -39,13 +57,13 @@ function hasConservedTerms(settlement: AccountCashSettlement, operation: Account
     return false;
   const exact = BigInt(settlement.exactAmountMinor);
   const due = BigInt(settlement.dueAmountMinor);
-  if (due !== exact + BigInt(settlement.adjustmentMinor)) return false;
-  const swissCash = settlement.currency === 'CHF' && settlement.paymentMethod === 'Cash';
-  if (!swissCash) return settlement.policyVersion === 'exact-v1' && due === exact;
-  const remainder = exact % SWISS_CASH_INCREMENT_MINOR;
-  const expected =
-    exact - remainder + (remainder >= SWISS_CASH_ROUND_UP_REMAINDER ? SWISS_CASH_INCREMENT_MINOR : BigInt(0));
-  return settlement.policyVersion === 'chf-cash-5-rappen-v1' && due === expected;
+  const expectedDue = accountCashDueFromPolicy(
+    settlement.policyVersion,
+    settlement.currency,
+    settlement.paymentMethod,
+    settlement.exactAmountMinor,
+  );
+  return expectedDue !== null && due === exact + BigInt(settlement.adjustmentMinor) && due === BigInt(expectedDue);
 }
 
 function receiptMatches(receipt: AccountCashReceipt, settlement: AccountCashSettlement): boolean {

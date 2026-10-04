@@ -11,6 +11,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { calendarDayFromReport } from '@/utils/zReportDay';
 import styles from './ZReportModal.module.css';
+import ZReportAccountCash from './ZReportAccountCash';
 
 interface ZReportModalProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ interface ZReportModalProps {
 }
 
 export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Empty until the SERVER names a day (see `zReportDay.ts`). This used to open on the device's
   // UTC day and send it explicitly, so backend #372's corrected default never applied: a cashier
   // closing at 00:30 in Geneva still read YESTERDAY's takings (frontend #511).
@@ -109,7 +110,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
 
   const handleExportPDF = () => {
     if (reportData) {
-      exportZReportToPDF(reportData, t);
+      exportZReportToPDF(reportData, t, i18n?.language || 'en');
     }
   };
 
@@ -197,6 +198,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                 </div>
               </div>
 
+              <ZReportAccountCash movements={reportData.accountCashMovements} />
               <div className={styles.twoColumns}>
                 {/* Left column */}
                 <div>

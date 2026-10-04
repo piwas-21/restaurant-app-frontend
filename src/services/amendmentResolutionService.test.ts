@@ -1,5 +1,13 @@
 import { apiClient } from '@/utils/apiClient';
 import {
+  cashRefundFixture,
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  cashReturnProcessingResultFixture,
+  legacyTillCashPendingFixture,
+  zeroCashReturnConfirmationFixture,
+} from '@/lib/__fixtures__/amendmentResolutionCash';
+import {
   pendingResolutionFixture,
   resolutionRefusalFixture,
   resolutionIds,
@@ -29,6 +37,30 @@ it('uses authenticated original-client-key GET even without a returned server op
     `/api/staff/orders/${original.orderId}/amendments/${original.amendmentId}/financial-resolution/operations/${original.request.quote.clientOperationId}`,
     { requireAuth: true, signOutOn401: false },
   );
+  expect(post).not.toHaveBeenCalled();
+});
+
+it('binds a lost-operation lookup to the frozen cash refund terms', async () => {
+  const pending = cashReturnPendingFixture();
+  const cashRefund = cashRefundFixture();
+  const result = cashReturnProcessingResultFixture();
+  get.mockResolvedValueOnce({ success: true, data: { outcome: 'accepted', result } });
+  await expect(lookupAmendmentResolution(pending)).resolves.toMatchObject({
+    outcome: 'accepted',
+    result: { refundLegs: [{ amountMinor: 1, cashRefund }] },
+  });
+
+  get.mockResolvedValueOnce({
+    success: true,
+    data: {
+      outcome: 'accepted',
+      result: {
+        ...result,
+        refundLegs: [{ ...result.refundLegs[0], cashRefund: { ...cashRefund, retainedExactAmountMinor: 335 } }],
+      },
+    },
+  });
+  await expect(lookupAmendmentResolution(pending)).rejects.toThrow('EvidenceMismatch');
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -108,17 +140,49 @@ it('posts only the exact persisted till reference and validates its result proof
   );
 });
 
+it('posts only the frozen physical cash amount including zero and rejects altered server terms', async () => {
+  const pending = cashReturnPendingFixture();
+  const confirmation = zeroCashReturnConfirmationFixture();
+  pending.pendingTillConfirmations = [confirmation];
+  await expect(confirmAmendmentResolutionTill(pending, { ...confirmation, cashReturnedMinor: 1 })).rejects.toThrow(
+    'TillEvidenceMismatch',
+  );
+  await expect(
+    confirmAmendmentResolutionTill(pending, {
+      paymentId: confirmation.paymentId,
+      tillReference: confirmation.tillReference,
+    }),
+  ).rejects.toThrow('TillEvidenceMismatch');
+  expect(post).not.toHaveBeenCalled();
+
+  const result = cashReturnConfirmedResultFixture();
+  post.mockResolvedValueOnce({
+    success: true,
+    data: {
+      ...result,
+      refundLegs: [
+        { ...result.refundLegs[0], cashReturn: { ...result.refundLegs[0].cashReturn, cashReturnedMinor: 1 } },
+      ],
+    },
+  });
+  await expect(confirmAmendmentResolutionTill(pending, confirmation)).rejects.toThrow('EvidenceMismatch');
+  expect(post).toHaveBeenCalledWith(
+    `/api/staff/amendment-financial-resolution-operations/${resolutionIds.operation}/confirm-till`,
+    confirmation,
+    { requireAuth: true, signOutOn401: false },
+  );
+
+  post.mockResolvedValueOnce({ success: true, data: result });
+  await expect(confirmAmendmentResolutionTill(pending, confirmation)).resolves.toMatchObject({
+    refundLegs: [{ cashReturn: { cashReturnedMinor: 0 } }],
+  });
+});
+
 it('refuses an unjournaled or changed till reference before sending a physical-refund request', async () => {
-  const pending = { ...pendingResolutionFixture(), operationId: resolutionIds.operation };
+  const pending = legacyTillCashPendingFixture();
   await expect(
     confirmAmendmentResolutionTill(pending, { paymentId: resolutionIds.payment, tillReference: 'Till-27' }),
   ).rejects.toThrow('TillEvidenceUnavailable');
-  pending.reviewedQuote.refundLegs[0] = {
-    ...pending.reviewedQuote.refundLegs[0],
-    paymentMethod: 'Cash',
-    custody: 'ManualTill',
-    requiresTillConfirmation: true,
-  };
   pending.pendingTillConfirmations = [{ paymentId: resolutionIds.payment, tillReference: 'Original-27' }];
   await expect(
     confirmAmendmentResolutionTill(pending, { paymentId: resolutionIds.payment, tillReference: 'Changed-27' }),

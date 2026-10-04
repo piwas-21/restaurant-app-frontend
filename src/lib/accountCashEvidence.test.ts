@@ -1,6 +1,6 @@
 import type { AccountCashSettlement } from '@/types/accountCashSettlement';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
-import { canCollectReviewedCash, readAccountCashEvidence } from './accountCashEvidence';
+import { accountCashDueFromPolicy, canCollectReviewedCash, readAccountCashEvidence } from './accountCashEvidence';
 
 const settlement: AccountCashSettlement = {
   policyVersion: 'chf-cash-5-rappen-v1',
@@ -58,6 +58,15 @@ it('permits a rounded-down physical amount without adding the missing cents to t
   };
   expect(canCollectReviewedCash(current, 330)).toBe(true);
   expect(current.amountMinor).toBe(332);
+});
+
+it('resolves retained amounts through the same frozen policy, including zero and non-CHF cash', () => {
+  expect(accountCashDueFromPolicy('chf-cash-5-rappen-v1', 'CHF', 'Cash', 333)).toBe(335);
+  expect(accountCashDueFromPolicy('chf-cash-5-rappen-v1', 'CHF', 'Cash', 0)).toBe(0);
+  expect(accountCashDueFromPolicy('exact-v1', 'EUR', 'Cash', 333)).toBe(333);
+  expect(accountCashDueFromPolicy('exact-v1', 'CHF', 'Cash', 333)).toBeNull();
+  expect(accountCashDueFromPolicy('unknown', 'CHF', 'Cash', 333)).toBeNull();
+  expect(accountCashDueFromPolicy('chf-cash-5-rappen-v1', 'CHF', 'Cash', Number.MAX_SAFE_INTEGER + 1)).toBeNull();
 });
 
 it.each([undefined, null])('keeps legacy %s cash terms unattested and blocks a fresh physical collection', (value) => {

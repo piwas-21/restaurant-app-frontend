@@ -1,6 +1,12 @@
 import { waitFor } from '@testing-library/react';
 import { submitTillConfirmationBatch } from './amendmentResolutionTillHandler';
 import { persistPendingAmendmentResolution, readPendingAmendmentResolution } from './pendingAmendmentResolution';
+import {
+  cashReturnConfirmedResultFixture,
+  cashReturnPendingFixture,
+  cashReturnProcessingResultFixture,
+  zeroCashReturnConfirmationFixture,
+} from './__fixtures__/amendmentResolutionCash';
 import { pendingResolutionFixture, resolutionIds, resolutionResultFixture } from './__fixtures__/amendmentResolution';
 import { confirmAmendmentResolutionTill } from '@/services/amendmentResolutionService';
 import type { AmendmentResolutionResult } from '@/types/amendmentResolution';
@@ -99,4 +105,34 @@ it('does not post the second confirmation when the first response is unknown', a
     status: 'pending',
     value: { pendingTillConfirmations: confirmations },
   });
+});
+
+it('persists and retries the exact zero cash-return evidence after a lost response', async () => {
+  const pending = cashReturnPendingFixture();
+  const result = cashReturnProcessingResultFixture();
+  const input = [zeroCashReturnConfirmationFixture()];
+  pending.pendingTillConfirmations = input;
+  expect(persistPendingAmendmentResolution(pending)).toBe(true);
+  confirm.mockImplementationOnce(async (_savedPending, confirmation) => {
+    expect(confirmation).toEqual(input[0]);
+    expect(readPendingAmendmentResolution(pending.actorId, pending.orderId, pending.amendmentId)).toMatchObject({
+      status: 'pending',
+      value: { pendingTillConfirmations: input },
+    });
+    throw new Error('Confirmation response lost');
+  });
+  const first = await submitTillConfirmationBatch(pending, result, input);
+  expect(first?.pending.pendingTillConfirmations).toEqual(input);
+  expect(confirm.mock.calls[0]?.[1]).toEqual(input[0]);
+  expect(readPendingAmendmentResolution(pending.actorId, pending.orderId, pending.amendmentId)).toMatchObject({
+    status: 'pending',
+    value: { pendingTillConfirmations: input },
+  });
+
+  const confirmedResult = cashReturnConfirmedResultFixture();
+  confirm.mockResolvedValueOnce(confirmedResult);
+  const retry = await submitTillConfirmationBatch(first?.pending ?? pending, result);
+  expect(confirm).toHaveBeenCalledTimes(2);
+  expect(confirm.mock.calls[1]?.[1]).toEqual(input[0]);
+  expect(retry?.result.refundLegs[0]?.cashReturn?.cashReturnedMinor).toBe(0);
 });

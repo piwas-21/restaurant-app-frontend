@@ -153,7 +153,16 @@
     "resolution_payment_held": "يجب تسوية هذه الدفعة قبل إجراء تعديلات إضافية.",
     "resolution_retry_till": "إعادة إرسال تأكيدات الصندوق المحفوظة",
     "resolution_till_retry_help": "تسجّل إعادة المحاولة المراجع المحفوظة نفسها. لا تُعِد هذه المبالغ مرة أخرى.",
-    "resolution_operation_reference": "مرجع التصحيح:"
+    "resolution_operation_reference": "مرجع التصحيح:",
+    "resolution_cash_exact_refund": "المبلغ الدقيق للاسترداد",
+    "resolution_cash_return_amount": "النقد المطلوب إعادته فعلياً",
+    "resolution_cash_refund_adjustment": "تعديل تقريب الاسترداد النقدي",
+    "resolution_cash_retained_exact": "المبلغ الدقيق المتبقي",
+    "resolution_cash_retained_due": "المبلغ النقدي المتبقي المستحق",
+    "resolution_cash_return_checkbox": "أعدت فعلياً {{amount}} نقداً.",
+    "resolution_cash_return_required": "أكّد المبلغ النقدي المعاد فعلياً قبل المتابعة.",
+    "resolution_cash_refund_terms": "الدفع النقدي الأصلي: المبلغ الدقيق {{originalExact}}، والمستحق {{originalDue}}. المسترد سابقاً: الدقيق {{previousExact}}، والنقدي {{previousCash}}.",
+    "resolution_cash_returned_amount": "تم تأكيد إعادة النقد"
   },
   "serverOrders": {
     "title": "الطلبات",

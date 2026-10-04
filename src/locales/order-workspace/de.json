@@ -153,7 +153,16 @@
     "resolution_payment_held": "Diese Zahlung muss vor weiteren Änderungen abgeglichen werden.",
     "resolution_retry_till": "Gespeicherte Kassenbestätigungen erneut senden",
     "resolution_till_retry_help": "Der erneute Versuch erfasst dieselben gespeicherten Referenzen. Zahlen Sie diese Beträge nicht nochmals zurück.",
-    "resolution_operation_reference": "Korrekturreferenz:"
+    "resolution_operation_reference": "Korrekturreferenz:",
+    "resolution_cash_exact_refund": "Exakte Erstattung",
+    "resolution_cash_return_amount": "Tatsächlich zurückzugebendes Bargeld",
+    "resolution_cash_refund_adjustment": "Rundungsanpassung der Barerstattung",
+    "resolution_cash_retained_exact": "Verbleibender exakter Betrag",
+    "resolution_cash_retained_due": "Verbleibender Kassenbetrag",
+    "resolution_cash_return_checkbox": "Ich habe {{amount}} tatsächlich bar zurückgegeben.",
+    "resolution_cash_return_required": "Bestätigen Sie vor dem Fortfahren den tatsächlich zurückgegebenen Bargeldbetrag.",
+    "resolution_cash_refund_terms": "Ursprüngliche Barzahlung: exakt {{originalExact}}, fällig {{originalDue}}. Bisher erstattet: exakt {{previousExact}}, bar {{previousCash}}.",
+    "resolution_cash_returned_amount": "Bestätigte Bargeldrückgabe"
   },
   "serverOrders": {
     "title": "Bestellungen",

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -33,33 +33,76 @@ export default function AmendmentResolutionTillForm({ quote, disabled, onConfirm
     resolver: zodResolver(schema),
     defaultValues: {
       acknowledged: false,
-      tillConfirmations: legs.map((leg) => ({ paymentId: leg.paymentId, tillReference: '' })),
+      tillConfirmations: legs.map((leg) => ({
+        paymentId: leg.paymentId,
+        tillReference: '',
+        cashReturnConfirmed: false,
+      })),
     },
   });
-  const submit = handleSubmit(async ({ tillConfirmations }) => onConfirm(tillConfirmations));
+  const submit = handleSubmit(async ({ tillConfirmations }) =>
+    onConfirm(
+      tillConfirmations.map(({ cashReturnConfirmed, ...confirmation }) => {
+        const leg = legs.find((value) => value.paymentId === confirmation.paymentId);
+        return leg?.cashRefund && cashReturnConfirmed
+          ? { ...confirmation, cashReturnedMinor: leg.cashRefund.cashRefundAmountMinor }
+          : confirmation;
+      }),
+    ),
+  );
   return (
     <form className={styles.form} onSubmit={(event) => void submit(event)}>
       <p className={styles.notice}>{t('orderAmendments.resolution_till_help')}</p>
       {legs.map((leg, index) => (
-        <FormField
-          key={leg.paymentId}
-          label={t('orderAmendments.resolution_reference', {
-            reference: leg.paymentId,
-            amount: formatAccountPaymentMinor(leg.amountMinor, quote.currency, i18n.language),
-          })}
-          error={
-            errors.tillConfirmations?.[index]?.tillReference
-              ? t('orderAmendments.resolution_invalid_reference')
-              : undefined
-          }
-        >
-          <input
-            maxLength={AMENDMENT_TILL_REFERENCE_MAX_LENGTH}
-            autoComplete="off"
-            disabled={disabled}
-            {...register(`tillConfirmations.${index}.tillReference`)}
-          />
-        </FormField>
+        <Fragment key={leg.paymentId}>
+          <FormField
+            label={t('orderAmendments.resolution_reference', {
+              reference: leg.paymentId,
+              amount: formatAccountPaymentMinor(
+                leg.cashRefund?.cashRefundAmountMinor ?? leg.amountMinor,
+                quote.currency,
+                i18n.language,
+              ),
+            })}
+            error={
+              errors.tillConfirmations?.[index]?.tillReference
+                ? t('orderAmendments.resolution_invalid_reference')
+                : undefined
+            }
+          >
+            <input
+              maxLength={AMENDMENT_TILL_REFERENCE_MAX_LENGTH}
+              autoComplete="off"
+              disabled={disabled}
+              {...register(`tillConfirmations.${index}.tillReference`)}
+            />
+          </FormField>
+          {leg.cashRefund && (
+            <Controller
+              name={`tillConfirmations.${index}.cashReturnConfirmed`}
+              control={control}
+              render={({ field }) => (
+                <CheckboxField
+                  label={t('orderAmendments.resolution_cash_return_checkbox', {
+                    amount: formatAccountPaymentMinor(
+                      leg.cashRefund?.cashRefundAmountMinor ?? 0,
+                      quote.currency,
+                      i18n.language,
+                    ),
+                  })}
+                  checked={field.value}
+                  onChange={field.onChange}
+                  disabled={disabled}
+                  error={
+                    errors.tillConfirmations?.[index]?.cashReturnConfirmed
+                      ? t('orderAmendments.resolution_cash_return_required')
+                      : undefined
+                  }
+                />
+              )}
+            />
+          )}
+        </Fragment>
       ))}
       <Controller
         name="acknowledged"

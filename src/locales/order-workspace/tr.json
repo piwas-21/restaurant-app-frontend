@@ -153,7 +153,16 @@
     "resolution_payment_held": "Yeni değişikliklerden önce bu ödemenin mutabakatı yapılmalıdır.",
     "resolution_retry_till": "Kayıtlı kasa onaylarını yeniden gönder",
     "resolution_till_retry_help": "Yeniden deneme aynı kayıtlı referansları işler. Bu tutarları tekrar iade etmeyin.",
-    "resolution_operation_reference": "Düzeltme referansı:"
+    "resolution_operation_reference": "Düzeltme referansı:",
+    "resolution_cash_exact_refund": "Kesin iade tutarı",
+    "resolution_cash_return_amount": "Fiziksel olarak iade edilecek nakit",
+    "resolution_cash_refund_adjustment": "Nakit yuvarlama farkı",
+    "resolution_cash_retained_exact": "Kalan kesin tutar",
+    "resolution_cash_retained_due": "Kalan kasa borcu",
+    "resolution_cash_return_checkbox": "{{amount}} tutarındaki nakdi fiziksel olarak iade ettim.",
+    "resolution_cash_return_required": "Devam etmeden önce fiziksel olarak iade edilen nakdi onaylayın.",
+    "resolution_cash_refund_terms": "İlk nakit ödemesi: kesin {{originalExact}}, ödenecek {{originalDue}}. Önceden iade edilen: kesin {{previousExact}}, nakit {{previousCash}}.",
+    "resolution_cash_returned_amount": "Onaylanan nakit iadesi"
   },
   "serverOrders": {
     "title": "Siparişler",

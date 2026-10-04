@@ -153,7 +153,16 @@
     "resolution_payment_held": "Este pago debe conciliarse antes de realizar más cambios.",
     "resolution_retry_till": "Reintentar las confirmaciones de caja guardadas",
     "resolution_till_retry_help": "El reintento registra las mismas referencias guardadas. No vuelva a devolver estos importes.",
-    "resolution_operation_reference": "Referencia de corrección:"
+    "resolution_operation_reference": "Referencia de corrección:",
+    "resolution_cash_exact_refund": "Reembolso exacto",
+    "resolution_cash_return_amount": "Efectivo que se devolverá físicamente",
+    "resolution_cash_refund_adjustment": "Ajuste de redondeo del reembolso en efectivo",
+    "resolution_cash_retained_exact": "Importe exacto restante",
+    "resolution_cash_retained_due": "Importe restante adeudado en efectivo",
+    "resolution_cash_return_checkbox": "He devuelto físicamente {{amount}} en efectivo.",
+    "resolution_cash_return_required": "Confirme el efectivo devuelto físicamente antes de continuar.",
+    "resolution_cash_refund_terms": "Pago original en efectivo: exacto {{originalExact}}, adeudado {{originalDue}}. Reembolsado anteriormente: exacto {{previousExact}}, efectivo {{previousCash}}.",
+    "resolution_cash_returned_amount": "Devolución en efectivo confirmada"
   },
   "serverOrders": {
     "title": "Pedidos",

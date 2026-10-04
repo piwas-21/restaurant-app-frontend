@@ -2892,6 +2892,7 @@
   "server.round.all_items": "Все позиции",
   "server.round.loading_catalog": "Загрузка меню…",
   "server.round.catalog_error": "Меню недоступно.",
+  "server.round.draft_storage_unavailable": "Не удалось проверить сохранённый дополнительный заказ. Изменение позиций и отправка приостановлены.",
   "server.round.retry": "Повторить",
   "server.round.no_items": "Нет доступных позиций.",
   "server.round.add_item": "Добавить {{name}}",

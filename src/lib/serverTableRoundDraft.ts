@@ -1,47 +1,92 @@
-import type { OrderItem } from '@/components/catalog/orderItems';
-import type { StaffCustomerSelection } from '@/types/staffCustomer';
-import { readStaffCustomerSelection } from '@/types/staffCustomer';
-import { decodeServerTableRoundItems } from './serverTableRoundDraftCodec';
+import {
+  getServerTableRoundDraftScope,
+  isClearlyForeignRecord,
+  keyFor,
+  LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY,
+  ownsRecord,
+  record,
+  restore,
+  SCOPED_SERVER_TABLE_ROUND_DRAFT_PREFIX,
+  SERVER_TABLE_ROUND_DRAFT_TTL_MS,
+  SERVER_TABLE_ROUND_DRAFT_VERSION,
+  type ServerTableRoundDraft,
+  type ServerTableRoundDraftIdentity,
+  type ServerTableRoundDraftScope,
+} from './serverTableRoundDraftStorageCodec';
 
-export const SERVER_TABLE_ROUND_DRAFT_VERSION = 1;
-export const SERVER_TABLE_ROUND_DRAFT_TTL_MS = 30 * 60 * 1000;
-const STORAGE_KEY = 'server.table-round-draft';
+export {
+  getServerTableRoundDraftScope,
+  SERVER_TABLE_ROUND_DRAFT_TTL_MS,
+  SERVER_TABLE_ROUND_DRAFT_VERSION,
+} from './serverTableRoundDraftStorageCodec';
+export type {
+  ServerTableRoundDraft,
+  ServerTableRoundDraftIdentity,
+  ServerTableRoundDraftScope,
+} from './serverTableRoundDraftStorageCodec';
 
-export interface ServerTableRoundDraft {
-  readonly tableId: string;
-  readonly serviceSessionId: string;
-  readonly items: OrderItem[];
-  readonly notes: string;
-  readonly customer?: StaffCustomerSelection;
-  readonly clientOperationId?: string;
+export type ServerTableRoundDraftRead =
+  { readonly status: 'available'; readonly draft: ServerTableRoundDraft | null } | { readonly status: 'blocked' };
+
+function available(draft: ServerTableRoundDraft | null): ServerTableRoundDraftRead {
+  return { status: 'available', draft };
 }
 
-type StoredDraft = Record<string, unknown>;
-
-export type ServerTableRoundDraftScope = { readonly tenantId: string; readonly staffUserId: string };
-
-function readAuthenticatedStaffUserId(): string | undefined {
-  try {
-    const raw = window.localStorage.getItem('user');
-    if (!raw) return undefined;
-    const user = JSON.parse(raw) as { email?: unknown };
-    return text(user.email)?.toLowerCase();
-  } catch (error: unknown) {
-    console.warn('Could not read the authenticated staff identity for round recovery', error);
-    return undefined;
+function removeLegacyIfOwned(identity: ServerTableRoundDraftIdentity, scope: ServerTableRoundDraftScope): void {
+  const raw = window.sessionStorage.getItem(LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY);
+  if (!raw) return;
+  const value = record(raw);
+  if (value && ownsRecord(value, identity, scope)) {
+    window.sessionStorage.removeItem(LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY);
   }
 }
 
-export function getServerTableRoundDraftScope(staffUserId?: string): ServerTableRoundDraftScope | null {
-  if (typeof window === 'undefined') return null;
-  const tenantId = text(window.location.hostname)?.toLowerCase();
-  const resolvedStaffUserId = text(staffUserId)?.toLowerCase() ?? readAuthenticatedStaffUserId();
-  if (!tenantId || !resolvedStaffUserId) return null;
-  return { tenantId, staffUserId: resolvedStaffUserId };
+function clearScopedDraft(identity: ServerTableRoundDraftIdentity, scope: ServerTableRoundDraftScope): void {
+  window.sessionStorage.removeItem(keyFor(identity, scope));
+  removeLegacyIfOwned(identity, scope);
 }
 
-function text(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value : undefined;
+export function readServerTableRoundDraftStatus(
+  tableId: string,
+  serviceSessionId: string,
+  staffUserId?: string,
+): ServerTableRoundDraftRead {
+  if (typeof window === 'undefined') return { status: 'blocked' };
+  const identity = { tableId, serviceSessionId, staffUserId };
+  try {
+    const scope = getServerTableRoundDraftScope(staffUserId);
+    if (!scope) return { status: 'blocked' };
+    const scopedKey = keyFor(identity, scope);
+    const scopedRaw = window.sessionStorage.getItem(scopedKey);
+    if (scopedRaw !== null) {
+      const restored = restore(scopedRaw, identity, scope);
+      if (restored.kind === 'invalid') return { status: 'blocked' };
+      if (restored.kind === 'expired') {
+        window.sessionStorage.removeItem(scopedKey);
+        return available(null);
+      }
+      if (restored.normalizedValue) window.sessionStorage.setItem(scopedKey, restored.normalizedValue);
+      return available(restored.draft);
+    }
+
+    const legacyRaw = window.sessionStorage.getItem(LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY);
+    if (legacyRaw === null) return available(null);
+    const legacyValue = record(legacyRaw);
+    if (!legacyValue) return { status: 'blocked' };
+    if (isClearlyForeignRecord(legacyValue, identity, scope)) return available(null);
+    const restored = restore(legacyRaw, identity, scope);
+    if (restored.kind === 'invalid') return { status: 'blocked' };
+    if (restored.kind === 'expired') {
+      window.sessionStorage.removeItem(LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY);
+      return available(null);
+    }
+    window.sessionStorage.setItem(scopedKey, restored.normalizedValue ?? legacyRaw);
+    window.sessionStorage.removeItem(LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY);
+    return available(restored.draft);
+  } catch (error: unknown) {
+    console.warn('Could not restore the saved table round draft', error);
+    return { status: 'blocked' };
+  }
 }
 
 export function readServerTableRoundDraft(
@@ -49,77 +94,18 @@ export function readServerTableRoundDraft(
   serviceSessionId: string,
   staffUserId?: string,
 ): ServerTableRoundDraft | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const value = JSON.parse(raw) as StoredDraft;
-    const scope = getServerTableRoundDraftScope(staffUserId);
-    const expiresAt = typeof value.expiresAt === 'number' ? value.expiresAt : 0;
-    if (
-      value.version !== SERVER_TABLE_ROUND_DRAFT_VERSION ||
-      value.tableId !== tableId ||
-      value.serviceSessionId !== serviceSessionId ||
-      !scope ||
-      value.tenantId !== scope.tenantId ||
-      value.staffUserId !== scope.staffUserId ||
-      !Array.isArray(value.items)
-    ) {
-      clearServerTableRoundDraft();
-      return null;
-    }
-    const clientOperationId = text(value.clientOperationId);
-    if (expiresAt <= Date.now()) {
-      if (!clientOperationId) {
-        clearServerTableRoundDraft();
-        return null;
-      }
-      // Expire order contents and free text, but retain the idempotency marker until the user
-      // reconciles/discards it, signs out, or the authoritative table session closes.
-      window.sessionStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          version: SERVER_TABLE_ROUND_DRAFT_VERSION,
-          tableId,
-          serviceSessionId,
-          ...scope,
-          items: [],
-          notes: '',
-          clientOperationId,
-          expiresAt: 0,
-        }),
-      );
-      return {
-        tableId,
-        serviceSessionId,
-        items: [],
-        notes: '',
-        customer: readStaffCustomerSelection(value.customer),
-        clientOperationId,
-      };
-    }
-    return {
-      tableId,
-      serviceSessionId,
-      items: decodeServerTableRoundItems(value.items),
-      notes: typeof value.notes === 'string' ? value.notes : '',
-      customer: readStaffCustomerSelection(value.customer),
-      clientOperationId,
-    };
-  } catch (error: unknown) {
-    console.warn('Could not restore the saved table round draft', error);
-    clearServerTableRoundDraft();
-    return null;
-  }
+  const result = readServerTableRoundDraftStatus(tableId, serviceSessionId, staffUserId);
+  return result.status === 'available' ? result.draft : null;
 }
 
-export function persistServerTableRoundDraft(draft: ServerTableRoundDraft, staffUserId?: string): void {
-  if (typeof window === 'undefined') return;
+export function persistServerTableRoundDraft(draft: ServerTableRoundDraft, staffUserId?: string): boolean {
+  if (typeof window === 'undefined') return false;
   try {
+    const identity = { tableId: draft.tableId, serviceSessionId: draft.serviceSessionId, staffUserId };
     const scope = getServerTableRoundDraftScope(staffUserId);
-    if (!scope) return;
+    if (!scope) return false;
     window.sessionStorage.setItem(
-      STORAGE_KEY,
+      keyFor(identity, scope),
       JSON.stringify({
         version: SERVER_TABLE_ROUND_DRAFT_VERSION,
         ...draft,
@@ -127,18 +113,59 @@ export function persistServerTableRoundDraft(draft: ServerTableRoundDraft, staff
         expiresAt: Date.now() + SERVER_TABLE_ROUND_DRAFT_TTL_MS,
       }),
     );
+    return true;
   } catch (error: unknown) {
-    // The in-memory draft remains usable when browser storage is unavailable.
-    console.warn('Could not persist the table round draft; keeping it in memory', error);
+    console.warn('Could not persist the table round draft', error);
+    return false;
   }
 }
 
-export function clearServerTableRoundDraft(): void {
+export function clearServerTableRoundDraft(identity?: ServerTableRoundDraftIdentity): void {
   if (typeof window === 'undefined') return;
   try {
-    window.sessionStorage.removeItem(STORAGE_KEY);
+    if (identity) {
+      const scope = getServerTableRoundDraftScope(identity.staffUserId);
+      if (scope) clearScopedDraft(identity, scope);
+      return;
+    }
+    const keys = Array.from({ length: window.sessionStorage.length }, (_, index) =>
+      window.sessionStorage.key(index),
+    ).filter(
+      (key): key is string =>
+        key === LEGACY_SERVER_TABLE_ROUND_DRAFT_KEY || Boolean(key?.startsWith(SCOPED_SERVER_TABLE_ROUND_DRAFT_PREFIX)),
+    );
+    for (const key of keys) window.sessionStorage.removeItem(key);
   } catch (error: unknown) {
-    // Best effort only.
     console.warn('Could not clear the saved table round draft', error);
+  }
+}
+
+export function expireServerTableRoundDraft(identity: ServerTableRoundDraftIdentity): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const result = readServerTableRoundDraftStatus(identity.tableId, identity.serviceSessionId, identity.staffUserId);
+    if (result.status !== 'available' || !result.draft) return;
+    const draft = result.draft;
+    const scope = getServerTableRoundDraftScope(identity.staffUserId);
+    if (!scope) return;
+    if (!draft.clientOperationId) {
+      clearScopedDraft(identity, scope);
+      return;
+    }
+    window.sessionStorage.setItem(
+      keyFor(identity, scope),
+      JSON.stringify({
+        version: SERVER_TABLE_ROUND_DRAFT_VERSION,
+        tableId: identity.tableId,
+        serviceSessionId: identity.serviceSessionId,
+        ...scope,
+        items: [],
+        notes: '',
+        clientOperationId: draft.clientOperationId,
+        expiresAt: 0,
+      }),
+    );
+  } catch (error: unknown) {
+    console.warn('Could not expire the saved table round draft', error);
   }
 }

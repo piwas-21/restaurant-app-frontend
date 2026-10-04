@@ -2874,6 +2874,7 @@
   "server.round.all_items": "Tüm ürünler",
   "server.round.loading_catalog": "Menü yükleniyor…",
   "server.round.catalog_error": "Menü şu anda kullanılamıyor.",
+  "server.round.draft_storage_unavailable": "Kaydedilen sipariş turu doğrulanamadı. Ürün değişiklikleri ve gönderme duraklatıldı.",
   "server.round.retry": "Tekrar dene",
   "server.round.no_items": "Uygun ürün yok.",
   "server.round.add_item": "{{name}} ekle",

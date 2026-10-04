@@ -2883,6 +2883,7 @@
   "server.round.all_items": "Todos los artículos",
   "server.round.loading_catalog": "Cargando menú…",
   "server.round.catalog_error": "El menú no está disponible.",
+  "server.round.draft_storage_unavailable": "No se pudo verificar la ronda guardada. Los cambios de artículos y el envío están en pausa.",
   "server.round.retry": "Reintentar",
   "server.round.no_items": "No hay artículos disponibles.",
   "server.round.add_item": "Añadir {{name}}",

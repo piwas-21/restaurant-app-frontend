@@ -2865,6 +2865,7 @@
   "server.round.all_items": "全部菜品",
   "server.round.loading_catalog": "正在加载菜单…",
   "server.round.catalog_error": "菜单暂不可用。",
+  "server.round.draft_storage_unavailable": "无法验证已保存的追加订单。商品修改和发送已暂停。",
   "server.round.retry": "重试",
   "server.round.no_items": "没有可用菜品。",
   "server.round.add_item": "添加 {{name}}",

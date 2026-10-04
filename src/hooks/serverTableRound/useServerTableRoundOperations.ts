@@ -34,12 +34,23 @@ export function useServerTableRoundOperations({
   isCurrentScope,
 }: Parameters) {
   const review = useCallback(async () => {
-    if (!isCurrentScope(scopeToken) || !canCompose || !sessionId || !draft.items.length || phase !== 'idle') return;
+    if (
+      !isCurrentScope(scopeToken) ||
+      !draft.isReady ||
+      draft.scopeKey !== scopeToken.key ||
+      (draft.operationId && draft.operationOwnerScopeKey !== scopeToken.key) ||
+      draft.operationState === 'unknown' ||
+      !canCompose ||
+      !sessionId ||
+      !draft.items.length ||
+      phase !== 'idle'
+    )
+      return;
     setPhase('reviewing');
     setError(null);
     const operationId = draft.operationId ?? crypto.randomUUID();
     draft.setOperationId(operationId);
-    persistServerTableRoundDraft(
+    const persisted = persistServerTableRoundDraft(
       {
         tableId,
         serviceSessionId: sessionId,
@@ -50,6 +61,12 @@ export function useServerTableRoundOperations({
       },
       staffUserId,
     );
+    if (!persisted) {
+      draft.setOperationId(undefined);
+      setError('server.round.draft_storage_unavailable');
+      setPhase('idle');
+      return;
+    }
     const outcome = await reviewServerTableRound({
       tableId,
       serviceSessionId: sessionId,
@@ -82,7 +99,15 @@ export function useServerTableRoundOperations({
   }, [canCompose, draft, isCurrentScope, phase, scopeToken, sessionId, setError, setPhase, staffUserId, tableId]);
 
   const reconcile = useCallback(async () => {
-    if (!isCurrentScope(scopeToken) || !draft.operationId || phase !== 'idle') return;
+    if (
+      !isCurrentScope(scopeToken) ||
+      !draft.isReady ||
+      draft.scopeKey !== scopeToken.key ||
+      !draft.operationId ||
+      draft.operationOwnerScopeKey !== scopeToken.key ||
+      phase !== 'idle'
+    )
+      return;
     setPhase('reconciling');
     const outcome = await reconcileServerTableRound(draft.operationId);
     if (!isCurrentScope(scopeToken)) return;

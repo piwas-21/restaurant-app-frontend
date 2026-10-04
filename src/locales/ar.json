@@ -2910,6 +2910,7 @@
   "server.round.all_items": "كل العناصر",
   "server.round.loading_catalog": "جارٍ تحميل القائمة…",
   "server.round.catalog_error": "القائمة غير متاحة.",
+  "server.round.draft_storage_unavailable": "تعذر التحقق من الطلب الإضافي المحفوظ. تم إيقاف تعديل الأصناف وإرسال الطلب مؤقتًا.",
   "server.round.retry": "إعادة المحاولة",
   "server.round.no_items": "لا توجد عناصر متاحة.",
   "server.round.add_item": "إضافة {{name}}",

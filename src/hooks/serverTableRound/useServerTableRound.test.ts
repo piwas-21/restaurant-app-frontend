@@ -1,5 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
+import { useLayoutEffect } from 'react';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
+import { serverTableRoundScopeKey, useServerTableRoundScopeState } from './useServerTableRoundScopeState';
 import { persistServerTableRoundDraft } from '@/lib/serverTableRoundDraft';
 import { getProductById } from '@/services/menuService';
 import { reconcileServerTableRound, reviewServerTableRound } from './serverTableRoundReview';
@@ -7,7 +9,10 @@ import { useServerTableRoundDraft } from './useServerTableRoundDraft';
 import { useServerTableRoundCatalog } from './useServerTableRoundCatalog';
 import { useServerTableRound } from './useServerTableRound';
 
-jest.mock('@/lib/serverTableRoundDraft', () => ({ persistServerTableRoundDraft: jest.fn() }));
+jest.mock('@/lib/serverTableRoundDraft', () => ({
+  ...jest.requireActual('@/lib/serverTableRoundDraft'),
+  persistServerTableRoundDraft: jest.fn(),
+}));
 jest.mock('@/services/menuService', () => ({ getProductById: jest.fn() }));
 jest.mock('@/components/AuthContext', () => ({ useOptionalAuth: jest.fn() }));
 jest.mock('./serverTableRoundReview', () => ({
@@ -51,6 +56,8 @@ const state = (overrides: Partial<ServerTableSessionState> = {}): ServerTableSes
 
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorage.clear();
+  jest.mocked(persistServerTableRoundDraft).mockReturnValue(true);
   mockAuth.mockReturnValue(null);
   mockCatalogHook.mockReturnValue({
     categories: [],
@@ -68,6 +75,7 @@ beforeEach(() => {
     toggleFavorite: jest.fn(),
   });
   mockDraftHook.mockReturnValue({
+    scopeKey: serverTableRoundScopeKey('T-QA/3', 'session-1', true, undefined),
     items: [{ product: { id: 'p1', name: 'Tea' }, quantity: 1, unitPrice: 8 }],
     notes: '',
     operationId: undefined,
@@ -76,6 +84,7 @@ beforeEach(() => {
     operationState: 'idle',
     draftRecovered: false,
     isReady: true,
+    operationOwnerScopeKey: null,
     mutate: jest.fn(),
     setOperationId,
     setQuote,
@@ -96,8 +105,10 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function draftMock(overrides: Record<string, unknown> = {}) {
-  return {
+function draftMock(tableId: string, sessionId: string, staffEmail: string, overrides: Record<string, unknown> = {}) {
+  const scopeKey = serverTableRoundScopeKey(tableId, sessionId, true, staffEmail);
+  const result = {
+    scopeKey,
     items: [{ product: { id: 'p1', name: 'Tea' }, quantity: 1, unitPrice: 8 }],
     notes: '',
     customer: undefined,
@@ -118,6 +129,14 @@ function draftMock(overrides: Record<string, unknown> = {}) {
     discardDraft: jest.fn(),
     markCommitted: jest.fn(),
     ...overrides,
+  };
+  return {
+    ...result,
+    operationOwnerScopeKey: Object.prototype.hasOwnProperty.call(overrides, 'operationOwnerScopeKey')
+      ? overrides.operationOwnerScopeKey
+      : result.operationId
+        ? scopeKey
+        : null,
   };
 }
 
@@ -145,11 +164,50 @@ it('requires the route session id to match before composition is enabled', () =>
   expect(mockDraftHook).toHaveBeenCalledWith('T-QA/3', 'session-1', false, true);
 });
 
+it('does not send a round when its recovery descriptor cannot be stored', async () => {
+  jest.mocked(persistServerTableRoundDraft).mockReturnValue(false);
+  const { result } = renderHook(() => useServerTableRound('T-QA/3', state(), 'session-1'));
+
+  await act(async () => result.current.review());
+
+  expect(persistServerTableRoundDraft).toHaveBeenCalled();
+  expect(mockReview).not.toHaveBeenCalled();
+});
+
 it('keeps composition locked until the current session draft has hydrated', () => {
   mockDraftHook.mockReturnValue({ items: [], operationState: 'idle', isReady: false, mutate: jest.fn() });
   const { result } = renderHook(() => useServerTableRound('T-QA/3', state(), 'session-1'));
 
   expect(result.current.canCompose).toBe(false);
+});
+
+it('masks prior customization and busy state in the first render of a new scope', () => {
+  const snapshots: Array<ReturnType<typeof useServerTableRoundScopeState>> = [];
+  const { result, rerender } = renderHook(
+    ({ scopeKey }: { scopeKey: string }) => {
+      const current = useServerTableRoundScopeState(scopeKey);
+      snapshots.push(current);
+      return current;
+    },
+    { initialProps: { scopeKey: 'scope-a' } },
+  );
+
+  act(() => {
+    result.current.setPhase('reviewing');
+    result.current.setError('old-scope-error');
+    result.current.setSelectedProduct({ id: 'old-product', name: 'Soup' } as never);
+    result.current.setSelectedBundle({ id: 'old-bundle' } as never);
+    result.current.setTapPendingId('old-product');
+  });
+  expect(result.current.selectedProduct?.id).toBe('old-product');
+  snapshots.length = 0;
+  act(() => rerender({ scopeKey: 'scope-b' }));
+
+  expect(snapshots[0]?.phase).toBe('idle');
+  expect(snapshots[0]?.error).toBeNull();
+  expect(snapshots[0]?.selectedProduct).toBeNull();
+  expect(snapshots[0]?.selectedBundle).toBeNull();
+  expect(snapshots[0]?.tapPendingId).toBeNull();
 });
 
 it('persists an operation before sending and auto-reconciles an unknown outcome', async () => {
@@ -176,7 +234,8 @@ it('persists an operation before sending and auto-reconciles an unknown outcome'
 it('ignores product detail that resolves after staff identity changes', async () => {
   const pending = deferred<Awaited<ReturnType<typeof getProductById>>>();
   mockGetProduct.mockReturnValue(pending.promise);
-  const draft = draftMock();
+  const draft = draftMock('T-QA/3', 'session-1', 'staff-a@example.test');
+  const nextDraft = draftMock('T-QA/3', 'session-1', 'staff-b@example.test');
   mockDraftHook.mockReturnValue(draft);
   const { result, rerender } = renderScopedHook();
   const product = {
@@ -193,6 +252,7 @@ it('ignores product detail that resolves after staff identity changes', async ()
     tap = result.current.tapProduct(product);
   });
   expect(result.current.canAddItems).toBe(false);
+  mockDraftHook.mockReturnValue(nextDraft);
   await act(async () => rerender(scopedProps('T-QA/3', 'session-1', 'staff-b@example.test')));
   await act(async () => {
     pending.resolve({ success: true, data: { id: 'p2', name: 'Soup', basePrice: 8 } } as never);
@@ -207,8 +267,8 @@ it('ignores product detail that resolves after staff identity changes', async ()
 it('does not apply a review result to a different table after navigation', async () => {
   const pending = deferred<Awaited<ReturnType<typeof reviewServerTableRound>>>();
   mockReview.mockReturnValue(pending.promise);
-  const tableA = draftMock();
-  const tableB = draftMock();
+  const tableA = draftMock('T-QA/3', 'session-1', 'staff-a@example.test');
+  const tableB = draftMock('T-QA/4', 'session-1', 'staff-a@example.test');
   mockDraftHook.mockImplementation((tableId: string) => (tableId === 'T-QA/3' ? tableA : tableB));
   const { result, rerender } = renderScopedHook();
   let review!: Promise<void>;
@@ -239,8 +299,8 @@ it('keeps automatic reconciliation bound to the scope that reviewed the round', 
   const reconcilePending = deferred<Awaited<ReturnType<typeof reconcileServerTableRound>>>();
   mockReview.mockReturnValue(reviewPending.promise);
   mockReconcile.mockReturnValue(reconcilePending.promise);
-  const tableA = draftMock({ operationId: 'operation-a' });
-  const tableB = draftMock();
+  const tableA = draftMock('T-QA/3', 'session-1', 'staff-a@example.test', { operationId: 'operation-a' });
+  const tableB = draftMock('T-QA/4', 'session-1', 'staff-a@example.test');
   mockDraftHook.mockImplementation((tableId: string) => (tableId === 'T-QA/3' ? tableA : tableB));
   const { result, rerender } = renderScopedHook();
   let review!: Promise<void>;
@@ -268,8 +328,11 @@ it('keeps automatic reconciliation bound to the scope that reviewed the round', 
 it('does not reconcile an old session into the newly active session', async () => {
   const pending = deferred<Awaited<ReturnType<typeof reconcileServerTableRound>>>();
   mockReconcile.mockReturnValue(pending.promise);
-  const sessionA = draftMock({ operationId: 'operation-a', operationState: 'unknown' });
-  const sessionB = draftMock();
+  const sessionA = draftMock('T-QA/3', 'session-1', 'staff-a@example.test', {
+    operationId: 'operation-a',
+    operationState: 'unknown',
+  });
+  const sessionB = draftMock('T-QA/3', 'session-2', 'staff-a@example.test');
   mockDraftHook.mockImplementation((_tableId: string, sessionId: string) =>
     sessionId === 'session-1' ? sessionA : sessionB,
   );
@@ -291,4 +354,49 @@ it('does not reconcile an old session into the newly active session', async () =
   expect(sessionA.setOperationState).not.toHaveBeenCalled();
   expect(sessionB.markCommitted).not.toHaveBeenCalled();
   expect(result.current.phase).toBe('idle');
+});
+
+it('refuses pre-hydration and foreign-owner reconciliation before passive effects', async () => {
+  const scopeA = serverTableRoundScopeKey('T-QA/3', 'session-1', true, 'staff-a@example.test');
+  const scopeB = serverTableRoundScopeKey('T-QA/4', 'session-1', true, 'staff-a@example.test');
+  const draftA = draftMock('T-QA/3', 'session-1', 'staff-a@example.test', {
+    operationId: 'operation-a',
+    operationState: 'unknown',
+  });
+  let draftB = draftMock('T-QA/4', 'session-1', 'staff-a@example.test', {
+    operationId: 'operation-a',
+    operationState: 'unknown',
+    isReady: false,
+    operationOwnerScopeKey: scopeA,
+  });
+  mockDraftHook.mockImplementation((tableId: string) => (tableId === 'T-QA/3' ? draftA : draftB));
+  mockReconcile.mockResolvedValue({ status: 'unknown', operationId: 'operation-a' });
+  const { rerender } = renderHook(
+    ({ tableId, sessionId, routeSessionId, staffEmail, attempt }) => {
+      mockAuth.mockReturnValue({ user: { email: staffEmail } });
+      const round = useServerTableRound(
+        tableId,
+        state({ session: { serviceSessionId: sessionId } as ServerTableSessionState['session'] }),
+        routeSessionId,
+      );
+      const { reconcile } = round;
+      useLayoutEffect(() => {
+        if (attempt > 0) void reconcile();
+      }, [attempt, reconcile]);
+      return round;
+    },
+    { initialProps: { ...scopedProps('T-QA/3', 'session-1', 'staff-a@example.test'), attempt: 0 } },
+  );
+
+  await act(async () => rerender({ ...scopedProps('T-QA/4', 'session-1', 'staff-a@example.test'), attempt: 1 }));
+  expect(mockReconcile).not.toHaveBeenCalled();
+
+  draftB = draftMock('T-QA/4', 'session-1', 'staff-a@example.test', {
+    operationId: 'operation-a',
+    operationState: 'unknown',
+    operationOwnerScopeKey: scopeA,
+  });
+  await act(async () => rerender({ ...scopedProps('T-QA/4', 'session-1', 'staff-a@example.test'), attempt: 2 }));
+  expect(scopeB).not.toBe(scopeA);
+  expect(mockReconcile).not.toHaveBeenCalled();
 });

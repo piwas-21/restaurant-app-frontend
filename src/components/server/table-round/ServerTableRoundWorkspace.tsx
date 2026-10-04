@@ -67,6 +67,19 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
             {t('server.round.session_mismatch')}
           </div>
         )}
+        {round.storageBlocked && (
+          <div className={styles.warning} role="alert">
+            <p>
+              {t(
+                'server.round.draft_storage_unavailable',
+                'Could not verify the saved round. Item changes and sending are paused.',
+              )}
+            </p>
+            <button type="button" onClick={round.retryHydration} disabled={round.phase !== 'idle'}>
+              {t('server.round.retry')}
+            </button>
+          </div>
+        )}
         {!state.session && (
           <div className={styles.warning} role="alert">
             {serverTableRoundBlocker(state, t)}

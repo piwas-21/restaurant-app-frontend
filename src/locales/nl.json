@@ -2874,6 +2874,7 @@
   "server.round.all_items": "Alle items",
   "server.round.loading_catalog": "Menu laden…",
   "server.round.catalog_error": "Het menu is niet beschikbaar.",
+  "server.round.draft_storage_unavailable": "De opgeslagen bestelronde kon niet worden gecontroleerd. Artikelen wijzigen en verzenden zijn tijdelijk geblokkeerd.",
   "server.round.retry": "Opnieuw proberen",
   "server.round.no_items": "Geen beschikbare items.",
   "server.round.add_item": "{{name}} toevoegen",

@@ -11,9 +11,9 @@ import type { OrderAmendmentDraft } from './orderAmendmentTypes';
 import { amendmentErrorMessage, amendmentExpiryPassed } from './orderAmendmentOperationState';
 import { useAmendmentCommitRecovery } from './useAmendmentCommitRecovery';
 
-export function useOrderAmendment(order: OrderDto, onCommitted?: () => void) {
+export function useOrderAmendment(order: OrderDto, onCommitted?: () => void, resolvedActorId?: string) {
   const auth = useOptionalAuth();
-  const actorId = auth?.user?.userId;
+  const actorId = resolvedActorId ?? auth?.user?.userId;
   const recovery = useAmendmentCommitRecovery(order.id, actorId, onCommitted);
   const [quotePhase, setQuotePhase] = useState<'editing' | 'quoting' | 'review'>('editing');
   const [quote, setQuote] = useState<OrderAmendmentQuote | null>(null);

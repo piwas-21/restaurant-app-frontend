@@ -247,3 +247,63 @@ when both the Classic and Craft template comparisons pass. Failures upload
 `*-actual`/`*-diff` PNGs as artifacts. Dispatch with `update_snapshots=true` to
 regenerate baselines in CI; inspect and commit the uploaded template baseline
 artifact on a branch afterwards.
+
+## P11 isolated table-account journey
+
+Run `bash scripts/dev-e2e-p11.sh` only when an isolated local browser run is intended. It creates a
+unique PostgreSQL 16 database and Compose project, a private Compose volume, and distinct high
+loopback ports for PostgreSQL, Redis, API, and UI. API settings and the guarded E2E seed helper are
+derived from that same database identity; the P11 target guard refuses a shared or remote endpoint.
+The mode-0600 run environment contains a fresh 32-byte JWT signing key, with issuer, audience, and
+tenant slug bound to that run ID. The run enables only its local feature switches and disables email,
+online-provider, and Sentry settings.
+The runner resolves `node` from `PATH` by default and requires major version 22; set `NODE22_BIN` to
+select a specific Node 22 executable.
+
+The browser journey marks the seeded table ready through the Server UI, opens and closes an empty visit,
+verifies the unavailable guest-account state and old code refusal, marks the table ready again through the
+Server UI, and starts a second visit. A guest joins with the current code, adds a seeded product through
+the real menu and guest-round review, and Server adds four rounds through the real order workspace.
+Server then commits one line removal through the amendment review; the test checks its typed Kitchen
+delta through the authenticated printer-feed API. Cashier completes a full-balance cash-account
+collection and checks the CHF 60.00 exact charge, due, and received amount, zero change, and zero account
+outstanding in the rendered UI. Server closes that paid visit, the guest account becomes unavailable,
+and Server marks the table ready and opens a distinct third visit. A new guest tab proves the second
+visit code is stale, joins using the third visit code, and sees a separate empty CHF account with zero
+remaining and no rounds.
+
+The cash receipt is a **synthetic local test record**: the browser enters the isolated cashier's
+manual-collection confirmation, but no physical cash changes hands. The run does not start online
+checkout, call a payment provider, connect to a printer, or claim a physical print/acknowledgement.
+After the browser test starts, its result, private logs, and database dump are kept under
+`/tmp/table-account-p11-evidence/<run-id>/`; the dump is made before the runner tears down only its
+run-owned Compose volume. If any failure occurs before the database snapshot completes, the runner
+keeps that exact volume and private run state for inspection. Treat browser traces and dumps as private
+because they include run-issued credentials and table-visit tokens.
+
+The separate connected-payment acceptance uses Stripe test mode and requires a mode-0600 test profile,
+an isolated Stripe CLI executable, a clean pinned backend worktree, and Node 22. To run it without
+Docker, select the native PostgreSQL 18 path explicitly and provide the installed PostgreSQL and Redis
+binary paths:
+
+```bash
+export NODE22_BIN="/path/to/node-22/bin/node"
+export PATH="$(dirname "$NODE22_BIN"):$PATH"
+"$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
+  "$P11_STRIPE_PROFILE" "$P11_BACKEND_DIR" "$P11_STRIPE_CLI" "$P11_BACKEND_SHA" \
+  native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER"
+```
+
+The runner verifies the test-connected account before creating its run-specific database, then starts
+only loopback PostgreSQL/Redis services and the exact pinned local API. It keeps private logs and a
+verified operational database dump under `/tmp/table-account-p11-evidence/<run-id>/`, records whether
+the run used Compose or native services, and stops only its own API/listener/database/Redis processes.
+The run state retains generated credentials and should be treated as private. This runner can create
+and fully refund Stripe **test-mode** charges; it does not make live payments.
+
+For coordinated acceptance that needs the same local API after the browser journey, run
+`P11_KEEP_RUN=1 bash scripts/dev-e2e-p11.sh`. On success, the runner prints the loopback API address
+and a mode-0600 environment profile path, then keeps the API and run-owned Compose services active.
+Press Ctrl-C after the connected consumer finishes; the runner stops its API and removes only that
+run's Compose project. The profile contains database and test signing credentials: pass its path only
+to authorized local acceptance tooling and never print or copy its contents.

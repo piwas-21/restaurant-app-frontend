@@ -97,11 +97,17 @@ test('four phones settle one table through items, amount and equal shares, then 
                 afterCheckout: async (guestOperation, _checkout) => {
                   const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
                   expect(account.reservedMinor).toBe(amountMinor);
-                  expect(
-                    account.activeAttempts.some(
-                      (attempt) => attempt.operationId === guestOperation.operationId && attempt.state === 'Starting',
-                    ),
-                  ).toBe(true);
+                  const phoneReservation = account.activeAttempts.find(
+                    (attempt) => attempt.operationId === guestOperation.operationId,
+                  );
+                  expect(phoneReservation).toBeDefined();
+                  expect(phoneReservation).toMatchObject({
+                    paymentMethod: 'OnlinePayment',
+                    amountMinor,
+                    currency: 'CHF',
+                  });
+                  expect(['Starting', 'Processing']).toContain(phoneReservation?.state);
+                  expect(account.capturedAccountPaymentMinor).toBe(0);
                   if (!cashierOperationId) throw new Error('The cashier contribution was not quoted before checkout.');
                   const review = cashier.page.getByRole('region', { name: 'Review contribution', exact: true });
                   const reserveResponse = cashier.page.waitForResponse(

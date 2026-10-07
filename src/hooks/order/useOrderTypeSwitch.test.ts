@@ -4,6 +4,12 @@ import { setBasketOrderType } from '@/services/basketChannelService';
 import { OrderType } from '@/types/order';
 import { trackEvent } from '@/lib/analytics';
 import type { BasketChannelSwitch } from '@/types/basketChannel';
+import {
+  BasketChannelSessionChangedError,
+  releaseUncommittedBasketChannelSelection,
+  setBasketOrderTypeAndRefresh,
+  useBasketChannelReconciliationPending,
+} from '@/hooks/order/useAssertBasketChannel';
 
 jest.mock('@/services/basketChannelService', () => ({
   setBasketOrderType: jest.fn(),
@@ -17,6 +23,7 @@ let mockCurrentOrderType: string | null = null;
 // What the SERVER says the basket is on — `BasketDto.orderType`, added in §9.13. Null is "not set",
 // which is what every pre-§9.13 caller effectively had.
 let mockServerOrderType: string | null = null;
+let mockServerFingerprint = 'A'.repeat(64);
 // The SYNCED line count, which the reconcile reads — deliberately separate from the optimistic
 // `mockItemCount` so a test can hold them apart, which is the whole reason the hook takes this one.
 let mockBasketItemCount = 1;
@@ -35,6 +42,7 @@ jest.mock('@/components/cart/CartContext', () => ({
         : {
             items: Array.from({ length: mockBasketItemCount }, (_, i) => ({ id: `b${i}` })),
             orderType: mockServerOrderType,
+            purchaseFingerprint: mockServerFingerprint,
           },
     },
     syncBasket: mockSyncBasket,
@@ -62,16 +70,25 @@ function reply(over: Partial<BasketChannelSwitch>): BasketChannelSwitch {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorage.clear();
+  mockSyncBasket.mockResolvedValue(true);
+  releaseUncommittedBasketChannelSelection(null);
   mockItemCount = 1;
   mockBasketItemCount = 1;
   mockBasketIsNull = false;
   mockCurrentOrderType = null;
   mockServerOrderType = null;
+  mockServerFingerprint = 'A'.repeat(64);
   jest.spyOn(console, 'warn').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => jest.restoreAllMocks());
+afterEach(async () => {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  jest.restoreAllMocks();
+});
 
 describe('useOrderTypeSwitch', () => {
   it('sends the channel to the server on every switch — this is what arms the add guard', async () => {
@@ -83,7 +100,7 @@ describe('useOrderTypeSwitch', () => {
     });
 
     // Dry run by default: a caller that forgets the flag must never trigger a deletion.
-    expect(mockedSet).toHaveBeenCalledWith(OrderType.DineIn);
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.DineIn, false);
   });
 
   it('lets a clean switch through without opening anything', async () => {
@@ -97,6 +114,139 @@ describe('useOrderTypeSwitch', () => {
 
     expect(proceed).toBe(true);
     expect(result.current.pending).toBeNull();
+  });
+
+  it('holds the round channel gate until its canonical read and selected type agree', async () => {
+    let releaseRead: ((value: boolean) => void) | undefined;
+    mockSyncBasket.mockReturnValueOnce(new Promise((resolve) => (releaseRead = resolve)));
+    mockedSet.mockResolvedValue(reply({}));
+    const pending = renderHook(() => useBasketChannelReconciliationPending(mockCurrentOrderType as OrderType | null));
+    const hook = renderHook(() => useOrderTypeSwitch());
+
+    let request: Promise<boolean> | undefined;
+    act(() => {
+      request = hook.result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(1));
+    expect(pending.result.current).toBe(true);
+
+    await act(async () => {
+      releaseRead?.(true);
+      await request;
+    });
+    expect(pending.result.current).toBe(true);
+
+    mockCurrentOrderType = OrderType.DineIn;
+    mockServerOrderType = OrderType.DineIn;
+    await act(async () => {
+      hook.rerender();
+      pending.rerender();
+    });
+    await waitFor(() => expect(pending.result.current).toBe(false));
+  });
+
+  it('does not treat a successful canonical read as proof a rejected channel PUT applied', async () => {
+    mockedSet.mockRejectedValue(new Error('channel PUT rejected'));
+    const pendingForOtherChannel = renderHook(() => useBasketChannelReconciliationPending(OrderType.DineIn));
+
+    await act(async () => {
+      await expect(setBasketOrderTypeAndRefresh(OrderType.Takeaway, null, mockSyncBasket)).rejects.toThrow(
+        'channel PUT rejected',
+      );
+    });
+
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
+    expect(pendingForOtherChannel.result.current).toBe(false);
+  });
+
+  it('does not send a queued channel update under a rotated guest session', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseFirstWrite: ((value: BasketChannelSwitch) => void) | undefined;
+    mockedSet.mockReturnValueOnce(new Promise((resolve) => (releaseFirstWrite = resolve))).mockResolvedValue(reply({}));
+
+    let firstMutation: Promise<unknown> | undefined;
+    let queuedMutation: Promise<unknown> | undefined;
+    act(() => {
+      firstMutation = setBasketOrderTypeAndRefresh(OrderType.Takeaway, null, mockSyncBasket);
+      queuedMutation = setBasketOrderTypeAndRefresh(OrderType.DineIn, null, mockSyncBasket);
+    });
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseFirstWrite?.(reply({}));
+      await expect(firstMutation).rejects.toBeInstanceOf(BasketChannelSessionChangedError);
+      await expect(queuedMutation).rejects.toThrow('guest session changed');
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
+    expect(mockSyncBasket).toHaveBeenNthCalledWith(1, 'guest-session-after-rotation');
+    expect(mockSyncBasket).toHaveBeenNthCalledWith(2, 'guest-session-after-rotation');
+  });
+
+  it('does not commit a channel choice when the guest session rotates during the request', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseWrite: ((value: BasketChannelSwitch) => void) | undefined;
+    mockedSet.mockReturnValueOnce(new Promise((resolve) => (releaseWrite = resolve)));
+    const { result } = renderHook(() => useOrderTypeSwitch());
+    let request: Promise<boolean> | undefined;
+
+    act(() => {
+      request = result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseWrite?.(reply({}));
+      await expect(request).resolves.toBe(false);
+    });
+
+    expect(mockSyncBasket).toHaveBeenCalledWith('guest-session-after-rotation');
+    expect(result.current.pending).toBeNull();
+  });
+
+  it('does not commit an old channel when the guest session rotates during the canonical refresh', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-before-rotation');
+    let releaseRead: ((value: boolean) => void) | undefined;
+    mockedSet.mockResolvedValueOnce(reply({}));
+    mockSyncBasket.mockReturnValueOnce(new Promise((resolve) => (releaseRead = resolve)));
+    const pendingChannel = renderHook(() =>
+      useBasketChannelReconciliationPending(mockCurrentOrderType as OrderType | null),
+    );
+    const { result } = renderHook(() => useOrderTypeSwitch());
+    let request: Promise<boolean> | undefined;
+
+    act(() => {
+      request = result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(1));
+    expect(pendingChannel.result.current).toBe(true);
+
+    localStorage.setItem('rumi_session_id', 'guest-session-after-rotation');
+    await act(async () => {
+      releaseRead?.(true);
+      await expect(request).resolves.toBe(false);
+    });
+
+    expect(pendingChannel.result.current).toBe(false);
+    expect(mockSyncBasket).toHaveBeenCalledWith('guest-session-before-rotation');
+  });
+
+  it('refuses a stale basket snapshot when its visit session no longer matches the request header', async () => {
+    localStorage.setItem('rumi_session_id', 'current-session');
+    const staleBasket = {
+      id: 'basket-from-previous-guest',
+      sessionId: 'previous-session',
+      items: [],
+    } as unknown as import('@/types/basket').BasketDto;
+
+    await expect(setBasketOrderTypeAndRefresh(OrderType.Takeaway, staleBasket, mockSyncBasket)).rejects.toBeInstanceOf(
+      BasketChannelSessionChangedError,
+    );
+    expect(mockedSet).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledWith('current-session');
   });
 
   it('refuses the commit and opens the confirm when lines would be dropped', async () => {
@@ -117,7 +267,7 @@ describe('useOrderTypeSwitch', () => {
       source: 'sidebar',
       forceModal: false,
     });
-    expect(mockSyncBasket).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   it('removes and re-reads the basket only once the guest confirms', async () => {
@@ -136,7 +286,7 @@ describe('useOrderTypeSwitch', () => {
     expect(mockedSet).toHaveBeenLastCalledWith(OrderType.DineIn, true);
     expect(applied?.orderType).toBe(OrderType.DineIn);
     // Re-read rather than reconcile locally, so the badge, totals and tax move together.
-    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
     await waitFor(() => expect(result.current.pending).toBeNull());
   });
 
@@ -157,7 +307,28 @@ describe('useOrderTypeSwitch', () => {
     // not happen, so committing the type would arm the new channel over a cart that still holds
     // items it forbids. (The dialog staying open is asserted separately, below.)
     expect(applied).toBeNull();
-    expect(mockSyncBasket).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps confirmation pending when the canonical basket refresh fails', async () => {
+    mockedSet
+      .mockResolvedValueOnce(reply({ applied: false, conflicts: [CONFLICT] }))
+      .mockResolvedValueOnce(reply({ removed: [CONFLICT] }));
+    mockSyncBasket.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    const { result } = renderHook(() => useOrderTypeSwitch());
+
+    await act(async () => {
+      await result.current.request(OrderType.DineIn, 'sidebar', false);
+    });
+    let applied: Awaited<ReturnType<typeof result.current.confirm>> | undefined;
+    await act(async () => {
+      applied = await result.current.confirm();
+    });
+
+    expect(applied).toBeNull();
+    expect(result.current.pending?.orderType).toBe(OrderType.DineIn);
+    expect(result.current.error).toBe('order_type_conflict_error');
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
   });
 
   it('cancelling leaves both the basket and the order type alone', async () => {
@@ -171,7 +342,7 @@ describe('useOrderTypeSwitch', () => {
 
     expect(result.current.pending).toBeNull();
     expect(mockedSet).toHaveBeenCalledTimes(1);
-    expect(mockSyncBasket).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   it('does not make the guest wait on an empty cart, but still tells the server', async () => {
@@ -186,7 +357,7 @@ describe('useOrderTypeSwitch', () => {
 
     expect(proceed).toBe(true);
     expect(result.current.pending).toBeNull();
-    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway, false);
   });
 
   // Was "the 404 an empty cart produces": §9.13's upsert means an empty cart now SUCCEEDS, so this
@@ -207,7 +378,7 @@ describe('useOrderTypeSwitch', () => {
 
   it('FAILS OPEN when the conflict check itself errors', async () => {
     mockedSet.mockRejectedValue(new Error('network'));
-    const { result } = renderHook(() => useOrderTypeSwitch());
+    const { result, rerender } = renderHook(() => useOrderTypeSwitch());
 
     let proceed: boolean | undefined;
     await act(async () => {
@@ -218,6 +389,12 @@ describe('useOrderTypeSwitch', () => {
     // OrderChannelGuard still walks the whole basket at order creation.
     expect(proceed).toBe(true);
     expect(result.current.pending).toBeNull();
+
+    // Committing the requested target must not immediately replay the same rejected PUT.
+    mockCurrentOrderType = OrderType.DineIn;
+    await act(async () => rerender());
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   it('treats an applied:false with no conflicts as permission, not as a block', async () => {
@@ -334,7 +511,7 @@ describe('useOrderTypeSwitch', () => {
     // Without a session header the request is refused before a basket could exist, and the FIRST
     // pick a guest makes is usually on an empty cart.
     expect(mockEnsureSession).toHaveBeenCalled();
-    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway, false);
 
     await act(async () => {
       release?.(reply({}));
@@ -410,7 +587,32 @@ describe('useOrderTypeSwitch', () => {
       rerender();
     });
 
-    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway, false);
+  });
+
+  it('queues a user-directed switch behind an automatic re-assert and canonical read', async () => {
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.DineIn;
+    let releaseAutomaticAssert: ((value: BasketChannelSwitch) => void) | undefined;
+    mockedSet.mockReturnValueOnce(new Promise((resolve) => (releaseAutomaticAssert = resolve)));
+    mockedSet.mockResolvedValue(reply({}));
+    const { result } = renderHook(() => useOrderTypeSwitch());
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+
+    let request: Promise<boolean> | undefined;
+    act(() => {
+      request = result.current.request(OrderType.Delivery, 'sidebar', false);
+    });
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      releaseAutomaticAssert?.(reply({}));
+      await request;
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(2);
+    expect(mockedSet).toHaveBeenNthCalledWith(1, OrderType.Takeaway, false);
+    expect(mockedSet).toHaveBeenNthCalledWith(2, OrderType.Delivery, false);
   });
 
   it('does not re-assert the same channel on every cart change', async () => {
@@ -445,6 +647,37 @@ describe('useOrderTypeSwitch', () => {
     expect(mockedSet).toHaveBeenCalledTimes(2);
   });
 
+  it('does not retry a rejected assert after an unchanged canonical refresh, but retries a changed basket', async () => {
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.DineIn;
+    mockedSet.mockRejectedValueOnce(new Error('temporarily unavailable'));
+    mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
+    const { rerender } = renderHook(() => useOrderTypeSwitch());
+
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
+
+    // A fresh CartContext object with the same channel and purchase fingerprint is not new intent.
+    await act(async () => rerender());
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
+
+    mockServerFingerprint = 'B'.repeat(64);
+    await act(async () => rerender());
+    await waitFor(() => expect(mockedSet).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(mockedSet).toHaveBeenCalledTimes(2);
+    expect(mockSyncBasket).toHaveBeenCalledTimes(2);
+  });
+
   // §9.13's frontend half. Before it the client had only a local ref: it could not tell "the server
   // took it" from "the server refused it", and a refusal was remembered as success — leaving the add
   // guard disarmed for the rest of the session with nothing able to notice.
@@ -472,7 +705,23 @@ describe('useOrderTypeSwitch', () => {
     renderHook(() => useOrderTypeSwitch());
     await act(async () => {});
 
-    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway, false);
+  });
+
+  it('warns when a successful automatic assert cannot refresh the canonical basket', async () => {
+    mockItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.DineIn;
+    mockedSet.mockResolvedValue(reply({}));
+    mockSyncBasket.mockResolvedValue(false);
+    const warn = jest.spyOn(console, 'warn');
+
+    renderHook(() => useOrderTypeSwitch());
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith('Could not refresh the basket after asserting its order type.'),
+    );
+
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   it('retries after a REFUSED assert once the cart changes — the case the old local ref could not see', async () => {
@@ -524,7 +773,7 @@ describe('useOrderTypeSwitch', () => {
     });
     // And it must NOT escalate: no dialog for a switch the guest never asked for, and no silent
     // deletion of their lines.
-    expect(mockSyncBasket).not.toHaveBeenCalled();
+    expect(mockSyncBasket).toHaveBeenCalledTimes(1);
   });
 
   // Line 87's `?? 0` / `?? null`: `state.basket` is null outright after a failed mount sync, and the

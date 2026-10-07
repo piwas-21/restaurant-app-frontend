@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { basketService } from '@/services/basketService';
 import { useSessionContext } from '@/contexts/SessionContext';
-import { getErrorMessage } from '@/utils/apiClient';
+import { getErrorMessage, getRequestSessionId } from '@/utils/apiClient';
 import { useTranslation } from 'react-i18next';
 import { useCartItemMutations } from '@/hooks/cart/useCartItemMutations';
 import { CartContextType } from './cartTypes';
@@ -27,33 +27,45 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // "Basket not found", which describes a row, not the guest's situation.
   const basketGoneError = t('error_basket_not_found', 'Your shopping cart is empty or expired');
   const { sessionId, ensureSession } = useSessionContext();
+  const latestSyncRequestRef = useRef(0);
 
   /**
    * Sync basket from backend
    */
-  const syncBasket = useCallback(async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
+  const syncBasket = useCallback(
+    async (expectedSessionId?: string | null) => {
+      const sessionAtStart = getRequestSessionId();
+      if (expectedSessionId !== undefined && sessionAtStart !== expectedSessionId) return false;
 
-      const basket = await basketService.getBasket();
+      const requestId = ++latestSyncRequestRef.current;
+      try {
+        dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
 
-      if (basket) {
-        dispatch({ type: 'SYNC_BASKET', payload: { basket } });
-      } else {
-        // Empty basket
-        dispatch({ type: 'SYNC_BASKET', payload: { basket: { ...initialState.basket!, items: [] } } });
+        const basket = await basketService.getBasket();
+        if (requestId !== latestSyncRequestRef.current || getRequestSessionId() !== sessionAtStart) return false;
+
+        if (basket) {
+          dispatch({ type: 'SYNC_BASKET', payload: { basket } });
+        } else {
+          // Empty basket
+          dispatch({ type: 'SYNC_BASKET', payload: { basket: { ...initialState.basket!, items: [] } } });
+        }
+        return true;
+      } catch (error) {
+        if (requestId !== latestSyncRequestRef.current || getRequestSessionId() !== sessionAtStart) return false;
+        const errorMessage = getErrorMessage(error) ?? unexpectedError;
+        dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
+        console.error('Error syncing basket:', error);
+        return false;
+      } finally {
+        if (requestId === latestSyncRequestRef.current) {
+          dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+        }
       }
-      return true;
-    } catch (error) {
-      const errorMessage = getErrorMessage(error) ?? unexpectedError;
-      dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
-      console.error('Error syncing basket:', error);
-      return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
-    }
-    // `unexpectedError` is the only reactive value in here — it changes when the LANGUAGE does.
-  }, [unexpectedError]);
+      // `unexpectedError` is the only reactive value in here — it changes when the LANGUAGE does.
+    },
+    [unexpectedError],
+  );
 
   const { addItem, updateItem, removeItem } = useCartItemMutations(
     state,

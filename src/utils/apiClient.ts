@@ -119,7 +119,13 @@ function getAuthToken(): string | null {
   return readStoredValue('auth_token');
 }
 
-function getSessionId(): string | null {
+/**
+ * Return the exact guest identity apiClient will put in X-Session-Id.
+ *
+ * Keep scope checks on queued work tied to this reader: sessionService additionally applies the
+ * expiry policy, while request headers intentionally use the stored value directly.
+ */
+export function getRequestSessionId(): string | null {
   return readStoredValue('rumi_session_id');
 }
 
@@ -214,7 +220,7 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
   }
 
   // Add session ID if available or required
-  const sessionId = skipSession ? null : getSessionId();
+  const sessionId = skipSession ? null : getRequestSessionId();
   if (sessionId) {
     headers['X-Session-Id'] = sessionId;
   } else if (requireSession) {

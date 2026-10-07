@@ -19,6 +19,7 @@ interface Props {
   readonly onRetry: () => void;
   readonly onTapProduct: (product: Product) => void;
   readonly tapPendingId: string | null;
+  readonly canAddItems: boolean;
   readonly favoriteIds: readonly string[];
   readonly showFavorites: boolean;
   readonly onShowFavorites: (show: boolean) => void;
@@ -37,6 +38,7 @@ export default function ServerTableRoundCatalog({
   onRetry,
   onTapProduct,
   tapPendingId,
+  canAddItems,
   favoriteIds,
   showFavorites,
   onShowFavorites,
@@ -129,7 +131,7 @@ export default function ServerTableRoundCatalog({
                 type="button"
                 className={styles.addItem}
                 onClick={() => onTapProduct(product)}
-                disabled={unavailable || tapPendingId === product.id}
+                disabled={unavailable || tapPendingId === product.id || !canAddItems}
                 aria-label={t(unavailable ? 'server.round.unavailable_item' : 'server.round.add_item', {
                   name: product.name,
                 })}

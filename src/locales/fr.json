@@ -2883,6 +2883,7 @@
   "server.round.all_items": "Tous les articles",
   "server.round.loading_catalog": "Chargement du menu…",
   "server.round.catalog_error": "Le menu est indisponible.",
+  "server.round.draft_storage_unavailable": "Impossible de vérifier la commande supplémentaire enregistrée. La modification des articles et l’envoi sont suspendus.",
   "server.round.retry": "Réessayer",
   "server.round.no_items": "Aucun article disponible.",
   "server.round.add_item": "Ajouter {{name}}",

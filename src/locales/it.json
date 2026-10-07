@@ -2883,6 +2883,7 @@
   "server.round.all_items": "Tutti gli articoli",
   "server.round.loading_catalog": "Caricamento menu…",
   "server.round.catalog_error": "Il menu non è disponibile.",
+  "server.round.draft_storage_unavailable": "Impossibile verificare il giro di ordinazioni salvato. Le modifiche agli articoli e l’invio sono sospesi.",
   "server.round.retry": "Riprova",
   "server.round.no_items": "Nessun articolo disponibile.",
   "server.round.add_item": "Aggiungi {{name}}",

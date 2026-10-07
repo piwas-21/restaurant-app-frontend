@@ -2874,6 +2874,7 @@
   "server.round.all_items": "Alle Artikel",
   "server.round.loading_catalog": "Speisekarte wird geladen…",
   "server.round.catalog_error": "Die Speisekarte ist nicht verfügbar.",
+  "server.round.draft_storage_unavailable": "Die gespeicherte Bestellrunde konnte nicht überprüft werden. Artikeländerungen und das Senden sind vorübergehend gesperrt.",
   "server.round.retry": "Erneut versuchen",
   "server.round.no_items": "Keine verfügbaren Artikel.",
   "server.round.add_item": "{{name}} hinzufügen",

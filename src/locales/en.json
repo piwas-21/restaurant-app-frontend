@@ -2874,6 +2874,7 @@
   "server.round.all_items": "All items",
   "server.round.loading_catalog": "Loading menu…",
   "server.round.catalog_error": "The menu is unavailable.",
+  "server.round.draft_storage_unavailable": "Could not verify the saved round. Item changes and sending are paused.",
   "server.round.retry": "Retry",
   "server.round.no_items": "No available items.",
   "server.round.add_item": "Add {{name}}",

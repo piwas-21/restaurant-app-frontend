@@ -67,6 +67,19 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
             {t('server.round.session_mismatch')}
           </div>
         )}
+        {round.storageBlocked && (
+          <div className={styles.warning} role="alert">
+            <p>
+              {t(
+                'server.round.draft_storage_unavailable',
+                'Could not verify the saved round. Item changes and sending are paused.',
+              )}
+            </p>
+            <button type="button" onClick={round.retryHydration} disabled={round.phase !== 'idle'}>
+              {t('server.round.retry')}
+            </button>
+          </div>
+        )}
         {!state.session && (
           <div className={styles.warning} role="alert">
             {serverTableRoundBlocker(state, t)}
@@ -91,13 +104,18 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
             </div>
           </section>
         )}
-        {state.session && <TableServiceSessionBill session={state.session} />}
+        {state.session && (
+          <details className={styles.accountBill}>
+            <summary>{t('cashier.tables.bill')}</summary>
+            <TableServiceSessionBill session={state.session} />
+          </details>
+        )}
         {round.draftRecovered && (
           <DraftRecoveryBanner
             scopeLabel={t('server.round.draft_scope', { table: label })}
             onResume={round.resumeDraft}
             onDiscard={round.discardDraft}
-            isBusy={round.phase !== 'idle'}
+            isBusy={round.phase !== 'idle' || round.operationState === 'unknown'}
           />
         )}
         {round.error && round.operationState === 'failed' && (
@@ -141,6 +159,7 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
                 void round.tapProduct(product);
               }}
               tapPendingId={round.tapPendingId}
+              canAddItems={round.canAddItems}
               favoriteIds={round.favoriteIds}
               showFavorites={round.showFavorites}
               onShowFavorites={round.setShowFavorites}

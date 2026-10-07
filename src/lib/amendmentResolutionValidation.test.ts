@@ -376,6 +376,21 @@ describe('paid amendment evidence validation', () => {
     });
   });
 
+  it('accepts a cash-history admission refusal only for its original request', () => {
+    const pending = pendingResolutionFixture();
+    const refusal = resolutionRefusalFixture(pending);
+    refusal.failureCode = 'cashHistoryCapacityExceeded';
+    expect(validateResolutionOutcome({ outcome: 'refused', refusal, result: null }, pending)).toMatchObject({
+      outcome: 'refused',
+      refusal: { failureCode: 'cashHistoryCapacityExceeded' },
+    });
+    refusal.originalRequest = {
+      ...pending.request,
+      quote: { ...pending.request.quote, expectedOrderVersion: pending.request.quote.expectedOrderVersion + 1 },
+    };
+    expect(() => validateResolutionOutcome({ outcome: 'refused', refusal, result: null }, pending)).toThrow();
+  });
+
   it('matches normalized manual selections by payment identity', () => {
     const pending = pendingResolutionFixture();
     const secondPaymentId = resolutionIds.allocation;

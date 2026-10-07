@@ -18,7 +18,7 @@
  * alias here would test the double instead of the thing.
  */
 
-import { apiClient, ApiError, getErrorMessage } from './apiClient';
+import { apiClient, ApiError, getErrorMessage, getRequestSessionId } from './apiClient';
 
 jest.mock('@/services/authService', () => ({
   refreshToken: jest.fn(),
@@ -124,6 +124,17 @@ describe('request() never authors a message — so getErrorMessage can return nu
     expect(error.status).toBe(400);
     expect(error.message).toBe('');
     expect(getErrorMessage(error)).toBeNull();
+  });
+
+  it('exposes the same guest identity that request() sends in X-Session-Id', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-current');
+    global.fetch = jest.fn().mockResolvedValue(jsonResponse(200, { success: true }));
+
+    expect(getRequestSessionId()).toBe('guest-session-current');
+    await apiClient.get('/api/Basket');
+
+    const request = (global.fetch as jest.Mock).mock.calls[0][1] as { headers: Record<string, string> };
+    expect(request.headers['X-Session-Id']).toBe(getRequestSessionId());
   });
 
   it('keeps a public participant 401 separate from a real saved auth and session identity', async () => {

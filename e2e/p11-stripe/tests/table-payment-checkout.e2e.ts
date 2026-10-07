@@ -1,7 +1,8 @@
-import { expect, type BrowserContext, type Page } from '@playwright/test';
+import { expect, request as apiRequest, type BrowserContext, type Page } from '@playwright/test';
 import { test } from '../../p11/staffUsers';
 import { createTableAccountP11Fixture } from '../../seed/tableAccountP11';
 import { expectNoA11yViolations } from '../../helpers/a11y';
+import { apiBaseUrl } from '../../helpers/config';
 import { closeDbPool } from '../../helpers/db';
 import { addThreeUnitRound, joinVisit, openTableVisit, openVisitContext, responseData } from '../tableVisit';
 import { completeContribution, type PaymentChoice } from '../paymentCheckout';
@@ -9,6 +10,7 @@ import { retainPaymentEvidence } from '../paymentEvidence';
 import { retainRefundEvidence } from '../refundEvidence';
 import type { AccountPaymentAccount } from '../../../src/types/accountPaymentAccount';
 import type { AccountPaymentOperation } from '../../../src/types/accountPayments';
+import type { GuestAccountPaymentOperation } from '../../../src/types/guestAccountPayments';
 
 async function readAccountAfter(page: Page, sessionId: string, action: () => Promise<unknown>) {
   const accountPath = `/api/table-service-sessions/${encodeURIComponent(sessionId)}/account-payments`;
@@ -97,17 +99,65 @@ test('four phones settle one table through items, amount and equal shares, then 
                 afterCheckout: async (guestOperation, _checkout) => {
                   const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
                   expect(account.reservedMinor).toBe(amountMinor);
-                  const phoneReservation = account.activeAttempts.find(
-                    (attempt) => attempt.operationId === guestOperation.operationId,
-                  );
-                  expect(phoneReservation).toBeDefined();
-                  expect(phoneReservation).toMatchObject({
+                  expect(account.capturedAccountPaymentMinor).toBe(0);
+                  expect(account.activeAttempts).toHaveLength(1);
+                  const foreignReservation = account.activeAttempts[0];
+                  expect(foreignReservation).toMatchObject({
+                    operationId: null,
+                    isOwnOperation: false,
                     paymentMethod: 'OnlinePayment',
                     amountMinor,
                     currency: 'CHF',
                   });
-                  expect(['Starting', 'Processing']).toContain(phoneReservation?.state);
-                  expect(account.capturedAccountPaymentMinor).toBe(0);
+                  expect(['Starting', 'Processing']).toContain(foreignReservation.state);
+
+                  const participantToken = await guest.page.evaluate((expectedSessionId) => {
+                    const raw = window.sessionStorage.getItem('rumi_table_guest_visit_v1');
+                    if (!raw) throw new Error('The active guest visit identity is unavailable.');
+                    let value: unknown;
+                    try {
+                      value = JSON.parse(raw);
+                    } catch {
+                      throw new Error('The active guest visit identity is invalid.');
+                    }
+                    if (typeof value !== 'object' || value === null)
+                      throw new Error('The active guest visit identity is invalid.');
+                    const identity = value as { serviceSessionId?: unknown; participantToken?: unknown };
+                    if (
+                      identity.serviceSessionId !== expectedSessionId ||
+                      typeof identity.participantToken !== 'string' ||
+                      identity.participantToken.length < 32
+                    )
+                      throw new Error('The active guest visit identity does not match this table visit.');
+                    return identity.participantToken;
+                  }, visit.sessionId);
+                  const participantApi = await apiRequest.newContext({
+                    baseURL: apiBaseUrl(),
+                    extraHTTPHeaders: { 'X-Table-Participant': participantToken },
+                  });
+                  try {
+                    const operationPath =
+                      `/api/table-guest-visits/${encodeURIComponent(visit.sessionId)}` +
+                      `/account-payments/operations/${encodeURIComponent(guestOperation.operationId)}`;
+                    const guestResponse = await participantApi.get(operationPath);
+                    const guestBody = (await guestResponse.json()) as {
+                      success?: boolean;
+                      data?: GuestAccountPaymentOperation;
+                    };
+                    if (!guestResponse.ok() || guestBody.success !== true || !guestBody.data)
+                      throw new Error(`Guest operation readback failed with HTTP ${guestResponse.status()}.`);
+                    expect(guestBody.data).toMatchObject({
+                      serviceSessionId: visit.sessionId,
+                      operationId: guestOperation.operationId,
+                      mode: 'Items',
+                      paymentMethod: 'OnlinePayment',
+                      amountMinor,
+                      currency: 'CHF',
+                    });
+                    expect(['Starting', 'Processing']).toContain(guestBody.data.state);
+                  } finally {
+                    await participantApi.dispose();
+                  }
                   if (!cashierOperationId) throw new Error('The cashier contribution was not quoted before checkout.');
                   const review = cashier.page.getByRole('region', { name: 'Review contribution', exact: true });
                   const reserveResponse = cashier.page.waitForResponse(

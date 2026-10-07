@@ -50,13 +50,45 @@ export async function completeContribution(
   expect(checkout.checkoutUrl).toMatch(/^https:\/\/checkout\.stripe\.com\//);
   await hooks.afterCheckout?.(operation, checkout);
   await expect(page).toHaveURL(/^https:\/\/checkout\.stripe\.com\//);
+  const sourceCurrency = page.locator('button').filter({ hasText: /\bCHF\b/ });
+  await expect(sourceCurrency).toHaveCount(1);
+  await expect(sourceCurrency).toBeVisible();
+  if (await sourceCurrency.isEnabled()) await sourceCurrency.click();
+  await expect(sourceCurrency).toBeDisabled();
+
+  const cardMethod = page.getByRole('button', { name: 'Pay with card', exact: true });
+  await expect(cardMethod).toHaveCount(1);
+  await expect(cardMethod).toBeVisible();
+  const cardMethodIsOpen = async () => {
+    const [expanded, className] = await Promise.all([
+      cardMethod.getAttribute('aria-expanded'),
+      cardMethod.getAttribute('class'),
+    ]);
+    return expanded === 'true' || className?.split(/\s+/).includes('AccordionButton-open') === true;
+  };
+  if (!(await cardMethodIsOpen())) await cardMethod.click();
+  await expect.poll(cardMethodIsOpen).toBe(true);
+  const cardNumber = page.getByLabel('Card number', { exact: true });
+  const expiration = page.getByLabel('Expiration', { exact: true });
+  const securityCode = page.getByLabel('Credit or debit card CVC/CVV', { exact: true });
+  const cardholder = page.getByLabel('Cardholder name', { exact: true });
+  await expect(cardNumber).toBeVisible();
+  await expect(expiration).toBeVisible();
+  await expect(securityCode).toBeVisible();
+  await expect(cardholder).toBeVisible();
+
+  const payButton = page.locator('button[type="submit"]');
+  await expect(payButton).toHaveCount(1);
+  await expect(payButton).toBeVisible();
+  await expect(payButton).toBeEnabled();
+  await expect(payButton).toContainText(/^Pay/);
   // Stripe's documented successful test card; recording is disabled in this dedicated profile.
   await page.getByLabel('Email', { exact: true }).fill('e2e-p11-checkout@test.local');
-  await page.getByLabel('Card number', { exact: true }).fill('4242424242424242');
-  await page.getByLabel(/Expiration|Expiry/).fill('1235');
-  await page.getByLabel(/CVC|Security code/).fill('123');
-  await page.getByLabel(/Cardholder name|Name on card/).fill('P11 Test Guest');
-  await page.getByRole('button', { name: /^Pay\b/ }).click();
+  await cardNumber.fill('4242424242424242');
+  await expiration.fill('1235');
+  await securityCode.fill('123');
+  await cardholder.fill('P11 Test Guest');
+  await payButton.click();
   await expect(page).toHaveURL(/\/en\/table-account\?/);
   const receipt = page.getByRole('region', { name: 'Your contribution', exact: true });
   await expect(receipt).toContainText('Payment confirmed', { timeout: 120_000 });

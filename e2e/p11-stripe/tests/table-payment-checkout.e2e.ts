@@ -68,7 +68,12 @@ test('four phones settle one table through items, amount and equal shares, then 
                 afterQuote: async (guestOperation) => {
                   const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
                   expect(account.availableMinor).toBeGreaterThanOrEqual(amountMinor);
-                  await cashierCollection.getByLabel('Collect a contribution', { exact: true }).selectOption('Items');
+                  const cashierMode = cashierCollection.getByRole('combobox', {
+                    name: /^Collect a contribution\b/,
+                  });
+                  await expect(cashierMode).toHaveCount(1);
+                  await expect(cashierMode.locator('option[value="Items"]')).toHaveCount(1);
+                  await cashierMode.selectOption('Items');
                   await cashierCollection
                     .getByRole('group', { name: 'Selected items' })
                     .getByRole('spinbutton')

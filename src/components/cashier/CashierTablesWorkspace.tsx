@@ -36,10 +36,10 @@ export default function CashierTablesWorkspace() {
   const timeZoneState = useCashierTenantTimeZoneState();
   const timeZone = timeZoneState.timeZone;
   const [view, setView] = useState<TableView>('map');
-  const selectedTableNumber =
-    selectedSession?.tableNumber != null
-      ? String(selectedSession.tableNumber)
-      : (selectedFromList?.table.tableNumber ?? (sessionId ? null : route.selectedTableNumber));
+  let selectedTableNumber: string | null = route.selectedTableNumber;
+  if (sessionId) selectedTableNumber = null;
+  if (selectedFromList?.table.tableNumber != null) selectedTableNumber = selectedFromList.table.tableNumber;
+  if (selectedSession?.tableNumber != null) selectedTableNumber = String(selectedSession.tableNumber);
   const hasSelection = Boolean(route.selectedSessionId || route.selectedTableNumber);
   const navigationDisabled = tables.isMutating || session.isMutating || session.pendingOperation !== null;
   const queueState = cashierTableQueueState(

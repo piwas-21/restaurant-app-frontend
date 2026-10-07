@@ -19,10 +19,10 @@ function CartPageRuntimeLoadingFallback() {
   const styles = useContext(CartPageStylesContext);
 
   return (
-    <div className={styles?.loadingContainer} role="status">
+    <output className={styles?.loadingContainer} aria-live="polite">
       <Loader2 className={styles?.spinner} size={32} />
-      <p>{t('loading', 'Loading...')}</p>
-    </div>
+      <span>{t('loading', 'Loading...')}</span>
+    </output>
   );
 }
 

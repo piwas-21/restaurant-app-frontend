@@ -82,7 +82,10 @@ it('keeps cart chrome visible while the runtime chunk is unloaded without mounti
   render(<CartPageLayout styles={styles} />);
 
   expect(screen.getByRole('heading', { name: 'Your Cart' })).toBeInTheDocument();
-  expect(screen.getByRole('status')).toHaveTextContent('Loading...');
+  const loadingStatus = screen.getByRole('status');
+  expect(loadingStatus.tagName).toBe('OUTPUT');
+  expect(loadingStatus).toHaveAttribute('aria-live', 'polite');
+  expect(loadingStatus).toHaveTextContent('Loading...');
   expect(mockObservedPhases).toEqual([]);
 });
 

@@ -27,6 +27,28 @@ async function readAccountAfter(page: Page, sessionId: string, action: () => Pro
   return body.data;
 }
 
+async function readGuestParticipantToken(page: Page, expectedSessionId: string) {
+  return page.evaluate((expectedId) => {
+    const raw = window.sessionStorage.getItem('rumi_table_guest_visit_v1');
+    if (!raw) throw new Error('The active guest visit identity is unavailable.');
+    let value: unknown;
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      throw new Error('The active guest visit identity is invalid.');
+    }
+    if (typeof value !== 'object' || value === null) throw new Error('The active guest visit identity is invalid.');
+    const identity = value as { serviceSessionId?: unknown; participantToken?: unknown };
+    if (
+      identity.serviceSessionId !== expectedId ||
+      typeof identity.participantToken !== 'string' ||
+      identity.participantToken.length < 32
+    )
+      throw new Error('The active guest visit identity does not match this table visit.');
+    return identity.participantToken;
+  }, expectedSessionId);
+}
+
 test('four phones settle one table through items, amount and equal shares, then linked refunds', async ({
   browser,
   baseURL,
@@ -59,6 +81,8 @@ test('four phones settle one table through items, amount and equal shares, then 
       const guest = await openVisitContext(browser, baseURL);
       contexts.push(guest.context);
       await joinVisit(guest.page, table, visit.code);
+      const guestParticipantToken =
+        choice === 'Items' ? await readGuestParticipantToken(guest.page, visit.sessionId) : null;
       if (choice === 'Items') await expectNoA11yViolations(guest.page);
       attempts.push(
         await completeContribution(
@@ -111,29 +135,10 @@ test('four phones settle one table through items, amount and equal shares, then 
                   });
                   expect(['Starting', 'Processing']).toContain(foreignReservation.state);
 
-                  const participantToken = await guest.page.evaluate((expectedSessionId) => {
-                    const raw = window.sessionStorage.getItem('rumi_table_guest_visit_v1');
-                    if (!raw) throw new Error('The active guest visit identity is unavailable.');
-                    let value: unknown;
-                    try {
-                      value = JSON.parse(raw);
-                    } catch {
-                      throw new Error('The active guest visit identity is invalid.');
-                    }
-                    if (typeof value !== 'object' || value === null)
-                      throw new Error('The active guest visit identity is invalid.');
-                    const identity = value as { serviceSessionId?: unknown; participantToken?: unknown };
-                    if (
-                      identity.serviceSessionId !== expectedSessionId ||
-                      typeof identity.participantToken !== 'string' ||
-                      identity.participantToken.length < 32
-                    )
-                      throw new Error('The active guest visit identity does not match this table visit.');
-                    return identity.participantToken;
-                  }, visit.sessionId);
+                  if (!guestParticipantToken) throw new Error('The guest participant credential was not captured.');
                   const participantApi = await apiRequest.newContext({
                     baseURL: apiBaseUrl(),
-                    extraHTTPHeaders: { 'X-Table-Participant': participantToken },
+                    extraHTTPHeaders: { 'X-Table-Participant': guestParticipantToken },
                   });
                   try {
                     const operationPath =

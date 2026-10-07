@@ -33,6 +33,21 @@ test('generated environment parsing treats shell syntax as literal text and reje
   }
 });
 
+test('malformed environment diagnostics never echo a secret sentinel', (t) => {
+  const state = privateState(t);
+  const filename = path.join(state, 'runner.env');
+  const sentinel = 'P11_PRIVATE_SECRET_SENTINEL_DO_NOT_ECHO';
+  writeFileSync(filename, `PRINTER_API_KEY=${sentinel}\n`, { mode: 0o600 });
+  let diagnostic = '';
+  try {
+    readGeneratedEnvironment(filename);
+  } catch (error) {
+    diagnostic = error instanceof Error ? `${error.message}\n${error.stack ?? ''}` : String(error);
+  }
+  assert.match(diagnostic, /Invalid generated environment value/);
+  assert.equal(diagnostic.includes(sentinel), false);
+});
+
 test('subprocess output stays in a private log and nonzero exit cannot be reported as success', async (t) => {
   const state = privateState(t);
   const logfile = path.join(state, 'process.log');

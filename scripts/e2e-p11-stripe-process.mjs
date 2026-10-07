@@ -41,7 +41,12 @@ export function parseGeneratedEnvironment(contents) {
         const split = line.indexOf('=');
         const key = line.slice(0, split);
         if (split < 1 || !/^[A-Za-z_][A-Za-z_0-9]*$/.test(key)) throw new Error('Invalid generated run environment.');
-        const value = JSON.parse(line.slice(split + 1));
+        let value;
+        try {
+          value = JSON.parse(line.slice(split + 1));
+        } catch {
+          throw new Error('Invalid generated environment value.');
+        }
         if (typeof value !== 'string' || /[\r\n\0]/.test(value))
           throw new Error('Invalid generated environment value.');
         return [key, value];

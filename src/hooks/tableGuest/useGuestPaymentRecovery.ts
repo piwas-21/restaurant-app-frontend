@@ -27,6 +27,7 @@ export function useGuestPaymentRecovery({
   recoveryIdentity,
   returnAttemptId,
   runExclusive,
+  onReturnedPaymentSettled,
 }: GuestPaymentRecoveryOptions) {
   const descriptorRef = useRef<GuestAccountPaymentAttemptDescriptor | null>(null);
   const [attempt, setAttempt] = useState<GuestPaymentAttemptSummary | null>(null);
@@ -125,6 +126,7 @@ export function useGuestPaymentRecovery({
       setIsLoading,
       fetchReceipt,
       setStorageUnavailable,
+      onReturnedPaymentSettled,
       saveUpdatedDescriptor: (descriptor) => {
         if (!saveGuestAccountPaymentAttempt(descriptor)) return false;
         publishDescriptor(descriptor);
@@ -133,7 +135,15 @@ export function useGuestPaymentRecovery({
       runExclusive,
       waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
     });
-  }, [activeIdentity, fetchReceipt, publishDescriptor, recoveryIdentity, returnAttemptId, runExclusive]);
+  }, [
+    activeIdentity,
+    fetchReceipt,
+    onReturnedPaymentSettled,
+    publishDescriptor,
+    recoveryIdentity,
+    returnAttemptId,
+    runExclusive,
+  ]);
 
   useEffect(() => {
     setIsLoading(true);

@@ -143,6 +143,7 @@ interface ActiveRecoveryCallbacks {
   ) => Promise<GuestPaymentReceipt | null>;
   readonly saveUpdatedDescriptor: (descriptor: GuestAccountPaymentAttemptDescriptor) => boolean;
   readonly setStorageUnavailable: (value: boolean) => void;
+  readonly onReturnedPaymentSettled?: (identity: TableGuestVisitIdentity, isCurrent: () => boolean) => Promise<boolean>;
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
   readonly waitForNextPoll: (delayMs: number) => Promise<boolean>;
 }
@@ -165,7 +166,7 @@ export async function recoverActivePayment(
     }
     callbacks.setOperation(operation);
     if (requiresCheckoutLookup(descriptor)) {
-      await recoverStartedPayment(descriptor, identity, returnAttemptId, callbacks);
+      await recoverStartedPayment(descriptor, identity, returnAttemptId, operation, callbacks);
     } else if (returnAttemptId) {
       callbacks.setReturnReceiptUnavailable(true);
     }
@@ -184,6 +185,7 @@ async function recoverStartedPayment(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   identity: TableGuestVisitIdentity,
   returnAttemptId: string | null,
+  initialOperation: GuestAccountPaymentOperation,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
   const checkout = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
@@ -199,10 +201,16 @@ async function recoverStartedPayment(
     ? await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent)
     : null;
   if (!callbacks.isCurrent()) return;
-  if (canPublishCheckout(checkout, receipt, Boolean(returnAttemptId))) callbacks.setCheckout(checkout);
+  let currentOperation = initialOperation;
+  if (returnAttemptId && isTerminalGuestPayment(checkout.state) && !checkout.reconciliationRequired) {
+    currentOperation =
+      (await confirmReturnedTerminalCheckout(checkout, receipt, identity, next, callbacks)) ?? currentOperation;
+  } else if (canPublishCheckout(checkout, receipt, Boolean(returnAttemptId))) {
+    callbacks.setCheckout(checkout);
+  }
   callbacks.setIsLoading(false);
 
-  await pollReturnedCheckout(identity, returnAttemptId, checkout, next, receipt, callbacks);
+  await pollReturnedCheckout(identity, returnAttemptId, checkout, next, receipt, currentOperation, callbacks);
 }
 
 async function pollReturnedCheckout(
@@ -211,13 +219,15 @@ async function pollReturnedCheckout(
   initialCheckout: GuestAccountCheckoutStatus,
   initialDescriptor: GuestAccountPaymentAttemptDescriptor,
   initialReceipt: GuestPaymentReceipt | null,
+  initialOperation: GuestAccountPaymentOperation,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
   let checkout = initialCheckout;
   let descriptor = initialDescriptor;
   let receipt = initialReceipt;
+  let operation = initialOperation;
   for (const delayMs of RETURNED_CHECKOUT_POLL_DELAYS_MS) {
-    if (!returnAttemptId || isFinalReturnedCheckout(checkout, receipt)) return;
+    if (!returnAttemptId || isFinalReturnedCheckout(checkout, receipt, operation, descriptor, identity)) return;
     if (!(await callbacks.waitForNextPoll(delayMs)) || !callbacks.isCurrent()) return;
 
     const refreshed = await callbacks.runExclusive(async () => {
@@ -230,14 +240,31 @@ async function pollReturnedCheckout(
       if (currentDescriptor !== descriptor && !saveUpdated(currentDescriptor, callbacks)) return null;
       if (currentCheckout.attemptId !== returnAttemptId) {
         callbacks.setReturnReceiptUnavailable(true);
-        return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: null };
+        return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: null, operation };
       }
       const currentReceipt = currentDescriptor.receiptCredential
         ? await callbacks.fetchReceipt(currentDescriptor, currentCheckout.attemptId, callbacks.isCurrent)
         : null;
       if (!callbacks.isCurrent()) return null;
-      if (canPublishCheckout(currentCheckout, currentReceipt, true)) callbacks.setCheckout(currentCheckout);
-      return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: currentReceipt };
+      let currentOperation = operation;
+      if (isTerminalGuestPayment(currentCheckout.state) && !currentCheckout.reconciliationRequired) {
+        currentOperation =
+          (await confirmReturnedTerminalCheckout(
+            currentCheckout,
+            currentReceipt,
+            identity,
+            currentDescriptor,
+            callbacks,
+          )) ?? currentOperation;
+      } else if (canPublishCheckout(currentCheckout, currentReceipt, true)) {
+        callbacks.setCheckout(currentCheckout);
+      }
+      return {
+        checkout: currentCheckout,
+        descriptor: currentDescriptor,
+        receipt: currentReceipt,
+        operation: currentOperation,
+      };
     }, null);
 
     if (!callbacks.isCurrent()) return;
@@ -245,10 +272,43 @@ async function pollReturnedCheckout(
     checkout = refreshed.checkout;
     descriptor = refreshed.descriptor;
     receipt = refreshed.receipt;
+    operation = refreshed.operation;
     if (checkout.attemptId !== returnAttemptId) return;
   }
-  if (isTerminalGuestPayment(checkout.state) && !isFinalReturnedCheckout(checkout, receipt))
+  if (
+    isTerminalGuestPayment(checkout.state) &&
+    !isFinalReturnedCheckout(checkout, receipt, operation, descriptor, identity)
+  )
     callbacks.setReturnReceiptUnavailable(true);
+}
+
+async function confirmReturnedTerminalCheckout(
+  checkout: GuestAccountCheckoutStatus,
+  receipt: GuestPaymentReceipt | null,
+  identity: TableGuestVisitIdentity,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  callbacks: ActiveRecoveryCallbacks,
+): Promise<GuestAccountPaymentOperation | null> {
+  if (!matchesTerminalReceipt(checkout, receipt)) return null;
+  let operation: GuestAccountPaymentOperation;
+  try {
+    operation = await guestAccountPaymentService.getOperation(identity, descriptor);
+  } catch (_error) {
+    if (callbacks.isCurrent()) callbacks.setError('load');
+    return null;
+  }
+  if (!callbacks.isCurrent() || !matchesTerminalOperation(operation, checkout, identity, descriptor)) return null;
+  callbacks.setOperation(operation);
+  callbacks.setCheckout(checkout);
+  callbacks.setReturnReceiptUnavailable(false);
+  if (callbacks.onReturnedPaymentSettled) {
+    try {
+      await callbacks.onReturnedPaymentSettled(identity, callbacks.isCurrent);
+    } catch (_error) {
+      if (callbacks.isCurrent()) callbacks.setError('load');
+    }
+  }
+  return callbacks.isCurrent() ? operation : null;
 }
 
 function canPublishCheckout(
@@ -256,12 +316,28 @@ function canPublishCheckout(
   receipt: GuestPaymentReceipt | null,
   isReturnedAttempt: boolean,
 ): boolean {
-  return !isReturnedAttempt || !isTerminalGuestPayment(checkout.state) || isFinalReturnedCheckout(checkout, receipt);
+  if (!isReturnedAttempt || !isTerminalGuestPayment(checkout.state)) return true;
+  return (
+    checkout.state === 'ReconciliationRequired' ||
+    checkout.reconciliationRequired ||
+    matchesTerminalReceipt(checkout, receipt)
+  );
 }
 
-function isFinalReturnedCheckout(checkout: GuestAccountCheckoutStatus, receipt: GuestPaymentReceipt | null): boolean {
+function isFinalReturnedCheckout(
+  checkout: GuestAccountCheckoutStatus,
+  receipt: GuestPaymentReceipt | null,
+  operation: GuestAccountPaymentOperation,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  identity: TableGuestVisitIdentity,
+): boolean {
   if (checkout.state === 'ReconciliationRequired' || checkout.reconciliationRequired) return true;
-  if (!isTerminalGuestPayment(checkout.state)) return false;
+  return (
+    matchesTerminalReceipt(checkout, receipt) && matchesTerminalOperation(operation, checkout, identity, descriptor)
+  );
+}
+
+function matchesTerminalReceipt(checkout: GuestAccountCheckoutStatus, receipt: GuestPaymentReceipt | null): boolean {
   return (
     receipt !== null &&
     receipt.attemptId.toLowerCase() === checkout.attemptId.toLowerCase() &&
@@ -271,6 +347,21 @@ function isFinalReturnedCheckout(checkout: GuestAccountCheckoutStatus, receipt: 
     receipt.receivedMinor === checkout.receivedMinor &&
     receipt.refundedMinor === checkout.refundedMinor &&
     receipt.reconciliationRequired === checkout.reconciliationRequired
+  );
+}
+
+function matchesTerminalOperation(
+  operation: GuestAccountPaymentOperation,
+  checkout: GuestAccountCheckoutStatus,
+  identity: TableGuestVisitIdentity,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+): boolean {
+  return (
+    operation.serviceSessionId === identity.serviceSessionId &&
+    operation.operationId === descriptor.operationId &&
+    operation.operationId === checkout.operationId &&
+    operation.state === checkout.state &&
+    isTerminalGuestPayment(operation.state)
   );
 }
 

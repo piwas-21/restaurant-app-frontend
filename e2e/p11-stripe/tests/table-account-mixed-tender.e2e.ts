@@ -145,7 +145,9 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     );
     expect(amendment.sourceOrderId).toBe(orderId);
     await expect(amendmentForm.getByRole('status')).toHaveText(`Amendment committed · ${amendment.clientOperationId}`);
-    await amendmentForm.getByRole('button', { name: 'Close', exact: true }).click();
+    const closeAmendment = amendmentForm.getByRole('button').filter({ hasText: /^Close$/ });
+    await expect(closeAmendment).toHaveCount(1);
+    await closeAmendment.click();
     await admin.page.reload();
     await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
     const correction = admin.page.getByRole('dialog', { name: 'Payment correction', exact: true });

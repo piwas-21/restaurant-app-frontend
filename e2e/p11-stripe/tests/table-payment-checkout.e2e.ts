@@ -241,7 +241,9 @@ test('four phones settle one table through items, amount and equal shares, then 
     );
     expect(committed.sourceOrderId).toBe(orderId);
     await expect(amendment.getByRole('status')).toHaveText(`Amendment committed · ${committed.clientOperationId}`);
-    await amendment.getByRole('button', { name: 'Close', exact: true }).click();
+    const closeAmendment = amendment.getByRole('button').filter({ hasText: /^Close$/ });
+    await expect(closeAmendment).toHaveCount(1);
+    await closeAmendment.click();
     await admin.page.reload();
     await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
     const correction = admin.page.getByRole('dialog', { name: 'Payment correction', exact: true });

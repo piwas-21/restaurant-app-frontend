@@ -6,6 +6,11 @@ import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
 import type { OrderDto } from '@/types/order';
 import ServerOrderDetailWorkspace from './ServerOrderDetailWorkspace';
 
+let mockAuthRole: string | undefined = 'Server';
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: () => ({ user: mockAuthRole ? { role: mockAuthRole } : null }),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),
 }));
@@ -29,11 +34,20 @@ jest.mock('@/components/order/MarketplaceOrderSource', () => ({ __esModule: true
 jest.mock('@/components/order/OrderLineSummary', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/components/order-amendments/OrderAmendmentEntryButton', () => {
   const React = jest.requireActual<typeof import('react')>('react');
-  function MockOrderAmendmentEntryButton({ order, onCommitted }: { order: OrderDto; onCommitted?: () => void }) {
+  function MockOrderAmendmentEntryButton({
+    order,
+    operatorRole,
+    onCommitted,
+  }: {
+    order: OrderDto;
+    operatorRole: string;
+    onCommitted?: () => void;
+  }) {
     const [isOpen, setIsOpen] = React.useState(false);
     const [committed, setCommitted] = React.useState(false);
     return (
       <>
+        <output aria-label="Amendment operator role">{operatorRole}</output>
         <button type="button" onClick={() => setIsOpen(true)}>
           Amend {order.id}
         </button>
@@ -84,7 +98,25 @@ const order = (id: string, orderNumber: string): OrderDto =>
 describe('ServerOrderDetailWorkspace', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuthRole = 'Server';
     mockGetHistory.mockResolvedValue([]);
+  });
+
+  it.each([
+    ['Admin', 'Admin'],
+    ['admin', 'Admin'],
+    ['Server', 'Server'],
+    [undefined, 'Server'],
+    ['unexpected', 'Server'],
+  ])('uses the authenticated %s role for served-order amendments', async (role, expectedRole) => {
+    mockAuthRole = role;
+    mockGetOrder.mockResolvedValueOnce({ ...order('served-order', 'S-001'), status: 'Completed' });
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrderDetailWorkspace orderId="served-order" />
+      </TenantFeaturesProvider>,
+    );
+    expect(await screen.findByLabelText('Amendment operator role')).toHaveTextContent(expectedRole);
   });
 
   it('does not expose the previous order while the next exact order ID is loading', async () => {

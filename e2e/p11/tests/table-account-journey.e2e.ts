@@ -373,6 +373,14 @@ p11Test(
         state: 'Committed',
         changes: [expect.objectContaining({ kind: 'Void' })],
       });
+      await expect(amendmentDialog).toHaveCount(1);
+      await expect(amendmentDialog.getByText(/^Amendment committed/)).toBeVisible();
+      const footerClose = amendmentDialog
+        .getByRole('button', { name: 'Close', exact: true })
+        .filter({ hasText: /^Close$/ });
+      await expect(footerClose).toHaveCount(1);
+      await expect(footerClose).toBeVisible();
+      await footerClose.click();
       await expect(amendmentDialog).toHaveCount(0);
       const history = server.page.getByRole('region', { name: 'Amendment history', exact: true });
       await history.locator('summary').click();

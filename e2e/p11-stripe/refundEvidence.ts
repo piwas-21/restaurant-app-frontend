@@ -1,8 +1,23 @@
-import { writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import { getE2EDbPool } from '../helpers/db';
 import type { StoredAttempt } from './paymentEvidence';
+
+const require = createRequire(path.resolve('e2e/p11-stripe/refundEvidence.ts'));
+const { resolvePrivateStripeBrowserArtifactDirectory, writePrivateStripeBrowserEvidence } =
+  require('../../scripts/e2e-p11-stripe-profile.cjs') as {
+    resolvePrivateStripeBrowserArtifactDirectory: (
+      evidenceRoot: string,
+      runId: string,
+      artifactDirectory: string,
+    ) => string;
+    writePrivateStripeBrowserEvidence: (
+      identity: { evidenceRoot: string; runId: string; artifactDirectory: string },
+      filename: string,
+      contents: string,
+    ) => void;
+  };
 
 interface RefundEvidence {
   readonly operation_id: string;
@@ -36,6 +51,16 @@ export async function retainRefundEvidence(
   amendmentId: string,
   capturedAttempts: readonly StoredAttempt[],
 ) {
+  const artifactIdentity = {
+    evidenceRoot: process.env.P11_STRIPE_EVIDENCE_ROOT ?? '',
+    runId: process.env.P11_RUN_ID ?? '',
+    artifactDirectory: process.env.P11_STRIPE_ARTIFACT_DIR ?? '',
+  };
+  resolvePrivateStripeBrowserArtifactDirectory(
+    artifactIdentity.evidenceRoot,
+    artifactIdentity.runId,
+    artifactIdentity.artifactDirectory,
+  );
   const pool = getE2EDbPool();
   const operation = await pool.query<ResolutionEvidence>(
     `SELECT id, state, currency, credit_minor, refund_minor, unpaid_waived_minor
@@ -100,12 +125,9 @@ export async function retainRefundEvidence(
     expect(row.provider_refund_id).toMatch(/^re_[A-Za-z0-9]+$/);
     expect(row.refund_attempt_id).toMatch(/^[a-f0-9-]{36}$/);
   }
-  const artifactDir = process.env.P11_STRIPE_ARTIFACT_DIR;
-  if (artifactDir !== `/tmp/table-account-p11-stripe-evidence/${process.env.P11_RUN_ID}/browser`)
-    throw new Error('The private refund evidence directory is unavailable.');
-  writeFileSync(
-    path.join(artifactDir, 'refund-evidence.json'),
+  writePrivateStripeBrowserEvidence(
+    artifactIdentity,
+    'refund-evidence.json',
     JSON.stringify({ operation: operation.rows[0], refundLegs: result.rows }, null, 2),
-    { mode: 0o600 },
   );
 }

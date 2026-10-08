@@ -28,8 +28,12 @@ interface BrowserStoragePresence {
 }
 
 const require = createRequire(path.resolve('e2e/p11-stripe/guestStorageDiagnostics.ts'));
-const { writePrivateEvidenceFile } = require('../../scripts/e2e-p11-stripe-profile.cjs') as {
-  writePrivateEvidenceFile: (directory: string, filename: string, contents: string) => void;
+const { writePrivateStripeBrowserEvidence } = require('../../scripts/e2e-p11-stripe-profile.cjs') as {
+  writePrivateStripeBrowserEvidence: (
+    identity: { evidenceRoot: string; runId: string; artifactDirectory: string },
+    filename: string,
+    contents: string,
+  ) => void;
 };
 
 export async function readGuestStoragePresence(
@@ -139,15 +143,12 @@ export async function installGuestStorageReturnObserver(
 }
 
 export function retainGuestStorageDiagnostics(snapshots: readonly GuestStorageDiagnostic[]): void {
-  const runId = process.env.P11_RUN_ID;
-  const artifactDirectory = process.env.P11_STRIPE_ARTIFACT_DIR;
-  if (
-    !/^[a-f0-9]{16}$/.test(runId ?? '') ||
-    artifactDirectory !== `/tmp/table-account-p11-stripe-evidence/${runId}/browser`
-  )
-    throw new Error('The private Stripe browser evidence directory is unavailable.');
-  writePrivateEvidenceFile(
-    artifactDirectory,
+  writePrivateStripeBrowserEvidence(
+    {
+      evidenceRoot: process.env.P11_STRIPE_EVIDENCE_ROOT ?? '',
+      runId: process.env.P11_RUN_ID ?? '',
+      artifactDirectory: process.env.P11_STRIPE_ARTIFACT_DIR ?? '',
+    },
     'guest-storage-return-diagnostic.json',
     JSON.stringify({ schemaVersion: 1, snapshots }, null, 2),
   );

@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const {
   PROFILE,
@@ -10,6 +11,9 @@ const {
   buildStripeBrowserEnvironment,
   buildStripeProcessEnvironments,
   ensurePrivateArtifactDirectories,
+  resolvePrivateStripeBrowserArtifactDirectory,
+  writePrivateStripeBrowserEvidence,
+  writePrivateStripeBrowserSnapshot,
   systemEnvironment,
   validateStripeBrowserEnvironment,
 } = require('./e2e-p11-stripe-profile.cjs');
@@ -145,7 +149,7 @@ test('allows only the exact private run-owned Playwright artifact directory', ()
     assert.throws(
       () =>
         validateStripeBrowserEnvironment({ ...browser, P11_STRIPE_ARTIFACT_DIR: path.join(root, 'elsewhere') }, root),
-      /does not match the private run identity/,
+      /does not match its private run identity/,
     );
     assert.throws(
       () =>
@@ -156,6 +160,146 @@ test('allows only the exact private run-owned Playwright artifact directory', ()
     assert.throws(() => validateStripeBrowserEnvironment(browser, root), /mode-0700/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('writes browser evidence under a private non-temp run root and rejects outside paths', () => {
+  const root = fs.mkdtempSync(path.join(os.homedir(), '.p11-stripe-evidence-root-'));
+  const outsideRoot = fs.mkdtempSync(path.join(os.homedir(), '.p11-stripe-evidence-outside-'));
+  const runId = '1234567890abcdef'; // pragma: allowlist secret -- Synthetic run identifier
+  try {
+    const relativeToTemp = path.relative(path.resolve(os.tmpdir()), root);
+    assert.ok(relativeToTemp.startsWith('..'));
+    const directories = ensurePrivateArtifactDirectories(runId, root);
+    assert.equal(
+      resolvePrivateStripeBrowserArtifactDirectory(root, runId, directories.browserDir),
+      directories.browserDir,
+    );
+    const identity = { evidenceRoot: root, runId, artifactDirectory: directories.browserDir };
+    writePrivateStripeBrowserEvidence(identity, 'diagnostic.json', '{"safe":true}');
+    const proofPath = path.join(directories.browserDir, 'diagnostic.json');
+    const proofStat = fs.statSync(proofPath);
+    assert.ok(proofStat.isFile());
+    assert.equal(proofStat.uid, process.getuid());
+    assert.equal(proofStat.mode & 0o777, 0o600);
+    assert.equal(fs.readFileSync(proofPath, 'utf8'), '{"safe":true}');
+    assert.throws(() => writePrivateStripeBrowserEvidence(identity, 'diagnostic.json', '{"changed":true}'));
+    assert.equal(fs.readFileSync(proofPath, 'utf8'), '{"safe":true}');
+    assert.throws(() => writePrivateStripeBrowserEvidence(identity, 'captured-attempts.json', '{"unsafe":true}'));
+    assert.throws(() => writePrivateStripeBrowserSnapshot(identity, 'diagnostic.json', '{"unsafe":true}'));
+
+    writePrivateStripeBrowserSnapshot(identity, 'captured-attempts.json', '{"snapshot":1}');
+    writePrivateStripeBrowserSnapshot(identity, 'captured-attempts.json', '{"snapshot":2}');
+    writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"refundSnapshot":1}');
+    writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"refundSnapshot":2}');
+    const snapshotPath = path.join(directories.browserDir, 'captured-attempts.json');
+    assert.equal(fs.readFileSync(snapshotPath, 'utf8'), '{"snapshot":2}');
+    assert.equal(fs.statSync(snapshotPath).uid, process.getuid());
+    assert.equal(fs.statSync(snapshotPath).mode & 0o777, 0o600);
+    const refundSnapshotPath = path.join(directories.browserDir, 'refunded-attempts.json');
+    assert.equal(fs.readFileSync(refundSnapshotPath, 'utf8'), '{"refundSnapshot":2}');
+    assert.equal(fs.statSync(refundSnapshotPath).uid, process.getuid());
+    assert.equal(fs.statSync(refundSnapshotPath).mode & 0o777, 0o600);
+
+    fs.rmSync(refundSnapshotPath);
+    fs.symlinkSync(proofPath, refundSnapshotPath);
+    assert.throws(
+      () => writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"snapshot":3}'),
+      /existing snapshots must be same-user mode-0600 regular files/,
+    );
+    assert.ok(fs.lstatSync(refundSnapshotPath).isSymbolicLink());
+    assert.equal(fs.readFileSync(proofPath, 'utf8'), '{"safe":true}');
+
+    fs.rmSync(refundSnapshotPath);
+    fs.writeFileSync(refundSnapshotPath, '{"mode":"preserve"}', { mode: 0o600 });
+    fs.chmodSync(refundSnapshotPath, 0o644);
+    assert.throws(
+      () => writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"mode":"replace"}'),
+      /existing snapshots must be same-user mode-0600 regular files/,
+    );
+    assert.equal(fs.readFileSync(refundSnapshotPath, 'utf8'), '{"mode":"preserve"}');
+    assert.equal(fs.statSync(refundSnapshotPath).mode & 0o777, 0o644);
+
+    fs.chmodSync(refundSnapshotPath, 0o600);
+    fs.writeFileSync(refundSnapshotPath, '{"owner":"preserve"}', { mode: 0o600 });
+    const originalOpenSync = fs.openSync;
+    const originalFstatSync = fs.fstatSync;
+    let targetDescriptor;
+    try {
+      fs.openSync = function (filename, ...args) {
+        const descriptor = Reflect.apply(originalOpenSync, fs, [filename, ...args]);
+        if (filename === refundSnapshotPath) targetDescriptor = descriptor;
+        return descriptor;
+      };
+      fs.fstatSync = function (descriptor, ...args) {
+        const stat = Reflect.apply(originalFstatSync, fs, [descriptor, ...args]);
+        if (descriptor !== targetDescriptor) return stat;
+        return {
+          isFile: () => stat.isFile(),
+          uid: stat.uid + 1,
+          mode: stat.mode,
+          nlink: stat.nlink,
+          dev: stat.dev,
+          ino: stat.ino,
+        };
+      };
+      assert.throws(
+        () => writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"owner":"replace"}'),
+        /existing snapshots must be same-user mode-0600 regular files/,
+      );
+    } finally {
+      fs.openSync = originalOpenSync;
+      fs.fstatSync = originalFstatSync;
+    }
+    assert.equal(fs.readFileSync(refundSnapshotPath, 'utf8'), '{"owner":"preserve"}');
+
+    fs.rmSync(refundSnapshotPath);
+    fs.mkdirSync(refundSnapshotPath);
+    const markerPath = path.join(refundSnapshotPath, 'marker');
+    fs.writeFileSync(markerPath, 'directory-preserved', { mode: 0o600 });
+    assert.throws(
+      () => writePrivateStripeBrowserSnapshot(identity, 'refunded-attempts.json', '{"directory":"replace"}'),
+      /existing snapshots must be same-user mode-0600 regular files/,
+    );
+    assert.equal(fs.readFileSync(markerPath, 'utf8'), 'directory-preserved');
+
+    assert.throws(
+      () =>
+        writePrivateStripeBrowserSnapshot(
+          { ...identity, artifactDirectory: path.join(outsideRoot, runId, 'browser') },
+          'captured-attempts.json',
+          '{"snapshot":"outside"}',
+        ),
+      /does not match its private run identity/,
+    );
+    assert.equal(fs.readFileSync(snapshotPath, 'utf8'), '{"snapshot":2}');
+    const beforeFailedWrite = fs.readdirSync(directories.browserDir).sort();
+    const originalWriteFileSync = fs.writeFileSync;
+    try {
+      fs.writeFileSync = function (file, ...args) {
+        if (typeof file === 'number') throw new Error('controlled temp write failure');
+        return Reflect.apply(originalWriteFileSync, fs, [file, ...args]);
+      };
+      assert.throws(
+        () => writePrivateStripeBrowserSnapshot(identity, 'captured-attempts.json', '{"snapshot":"failed"}'),
+        /private snapshot could not be replaced safely/,
+      );
+    } finally {
+      fs.writeFileSync = originalWriteFileSync;
+    }
+    assert.deepEqual(fs.readdirSync(directories.browserDir).sort(), beforeFailedWrite);
+    assert.equal(fs.readFileSync(snapshotPath, 'utf8'), '{"snapshot":2}');
+    assert.throws(
+      () => resolvePrivateStripeBrowserArtifactDirectory(root, runId, path.join(outsideRoot, runId, 'browser')),
+      /does not match its private run identity/,
+    );
+    assert.throws(
+      () => resolvePrivateStripeBrowserArtifactDirectory(root, '0000000000000000', directories.browserDir),
+      /does not match its private run identity/,
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(outsideRoot, { recursive: true, force: true });
   }
 });
 

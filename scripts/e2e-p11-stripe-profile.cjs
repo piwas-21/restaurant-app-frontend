@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { validateP11LocalIdentity } = require('./e2e-p11-target.cjs');
@@ -14,6 +15,7 @@ const API_FIELDS = [
 const SYSTEM_FIELDS = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'DOTNET_ROOT'];
 const TEST_MODULES = 'core,kitchen-board,cashier,server,printing,online-payments';
 const PRIVATE_DIRECTORY_FLAGS = fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | fs.constants.O_NOFOLLOW;
+const REPLACEABLE_BROWSER_EVIDENCE = new Set(['captured-attempts.json', 'refunded-attempts.json']);
 
 function refuse(reason) {
   throw new Error(`P11 Stripe profile refused: ${reason}`);
@@ -140,6 +142,140 @@ function writePrivateEvidenceFile(directory, filename, contents) {
   assertPrivateDirectory(directory);
 }
 
+function inspectPrivateSnapshotTarget(directory, filename) {
+  const target = path.join(directory, filename);
+  let linkStat;
+  try {
+    linkStat = fs.lstatSync(target);
+  } catch (error) {
+    if (error.code === 'ENOENT') return { exists: false };
+    refuse('snapshot evidence could not be safely inspected.');
+  }
+  if (!linkStat.isFile() || linkStat.isSymbolicLink())
+    refuse('existing snapshots must be same-user mode-0600 regular files.');
+
+  let descriptor;
+  try {
+    descriptor = fs.openSync(target, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    const stat = fs.fstatSync(descriptor);
+    if (
+      !stat.isFile() ||
+      stat.uid !== currentUid() ||
+      (stat.mode & 0o777) !== 0o600 ||
+      stat.nlink !== 1 ||
+      stat.dev !== linkStat.dev ||
+      stat.ino !== linkStat.ino
+    )
+      refuse('existing snapshots must be same-user mode-0600 regular files.');
+    return { exists: true, dev: stat.dev, ino: stat.ino };
+  } catch (error) {
+    if (error.message.startsWith('P11 Stripe profile refused:')) throw error;
+    refuse('snapshot evidence could not be safely opened.');
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
+function replacePrivateSnapshotAtomically(directory, filename, contents) {
+  assertPrivateDirectory(directory);
+  if (!REPLACEABLE_BROWSER_EVIDENCE.has(filename)) refuse('this browser evidence file cannot be replaced.');
+  const target = path.join(directory, filename);
+  const original = inspectPrivateSnapshotTarget(directory, filename);
+  const temporary = path.join(directory, `.${filename}.${randomUUID()}.tmp`);
+  const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
+  let descriptor;
+  let parentDescriptor;
+  let renamed = false;
+  try {
+    descriptor = fs.openSync(temporary, flags, 0o600);
+    const temporaryStat = fs.fstatSync(descriptor);
+    if (!temporaryStat.isFile() || temporaryStat.uid !== currentUid() || (temporaryStat.mode & 0o777) !== 0o600)
+      refuse('temporary snapshots must be same-user mode-0600 regular files.');
+    fs.writeFileSync(descriptor, contents);
+    fs.fsyncSync(descriptor);
+    fs.closeSync(descriptor);
+    descriptor = undefined;
+
+    assertPrivateDirectory(directory);
+    const current = inspectPrivateSnapshotTarget(directory, filename);
+    if (
+      current.exists !== original.exists ||
+      (original.exists && (current.dev !== original.dev || current.ino !== original.ino))
+    )
+      refuse('snapshot target changed during refresh.');
+    fs.renameSync(temporary, target);
+    renamed = true;
+    parentDescriptor = fs.openSync(directory, PRIVATE_DIRECTORY_FLAGS);
+    fs.fsyncSync(parentDescriptor);
+    fs.closeSync(parentDescriptor);
+    parentDescriptor = undefined;
+    assertPrivateDirectory(directory);
+    inspectPrivateSnapshotTarget(directory, filename);
+  } catch (error) {
+    if (error.message.startsWith('P11 Stripe profile refused:')) throw error;
+    refuse('private snapshot could not be replaced safely.');
+  } finally {
+    if (descriptor !== undefined) {
+      try {
+        fs.closeSync(descriptor);
+      } catch {}
+    }
+    if (parentDescriptor !== undefined) {
+      try {
+        fs.closeSync(parentDescriptor);
+      } catch {}
+    }
+    if (!renamed) {
+      try {
+        fs.unlinkSync(temporary);
+      } catch (error) {
+        if (error.code !== 'ENOENT') refuse('temporary snapshot could not be removed safely.');
+      }
+    }
+  }
+}
+
+/** Resolve the exact private browser directory generated for this run, regardless of the system temp root. */
+function resolvePrivateStripeBrowserArtifactDirectory(evidenceRoot, runId, artifactDirectory) {
+  if (
+    typeof evidenceRoot !== 'string' ||
+    !path.isAbsolute(evidenceRoot) ||
+    !/^[a-f0-9]{16}$/.test(runId ?? '') ||
+    typeof artifactDirectory !== 'string' ||
+    !path.isAbsolute(artifactDirectory)
+  )
+    refuse('a run-owned browser artifact identity is required.');
+  const root = path.resolve(evidenceRoot);
+  const runDirectory = path.join(root, runId);
+  const browserDirectory = path.join(runDirectory, 'browser');
+  if (path.resolve(artifactDirectory) !== browserDirectory)
+    refuse('the browser artifact directory does not match its private run identity.');
+  assertPrivateDirectory(root);
+  assertPrivateDirectory(runDirectory);
+  assertPrivateDirectory(browserDirectory);
+  return browserDirectory;
+}
+
+function writePrivateStripeBrowserEvidence(identity, filename, contents) {
+  const directory = resolvePrivateStripeBrowserArtifactDirectory(
+    identity?.evidenceRoot,
+    identity?.runId,
+    identity?.artifactDirectory,
+  );
+  if (REPLACEABLE_BROWSER_EVIDENCE.has(filename)) refuse('evolving snapshots require the dedicated snapshot writer.');
+  writePrivateEvidenceFile(directory, filename, contents);
+}
+
+function writePrivateStripeBrowserSnapshot(identity, filename, contents) {
+  const directory = resolvePrivateStripeBrowserArtifactDirectory(
+    identity?.evidenceRoot,
+    identity?.runId,
+    identity?.artifactDirectory,
+  );
+  if (!REPLACEABLE_BROWSER_EVIDENCE.has(filename)) refuse('this browser evidence file cannot be replaced.');
+  replacePrivateSnapshotAtomically(directory, filename, contents);
+}
+
 function buildStripeListenerEnvironment(systemEnv, profile) {
   const accepted = validateStripeProfile(profile);
   return { ...systemEnvironment(systemEnv), STRIPE_API_KEY: accepted.apiKey };
@@ -205,13 +341,7 @@ function validateStripeBrowserEnvironment(env, evidenceRoot = env.P11_STRIPE_EVI
     refuse('an absolute private evidence root is required.');
   if (env.P11_STRIPE_EVIDENCE_ROOT && path.resolve(env.P11_STRIPE_EVIDENCE_ROOT) !== path.resolve(evidenceRoot))
     refuse('the browser evidence root does not match its private run identity.');
-  const expectedRunDirectory = path.join(evidenceRoot, identity.runId);
-  const expectedBrowserDirectory = path.join(expectedRunDirectory, 'browser');
-  if (env.P11_STRIPE_ARTIFACT_DIR !== expectedBrowserDirectory)
-    refuse('the browser artifact directory does not match the private run identity.');
-  assertPrivateDirectory(evidenceRoot);
-  assertPrivateDirectory(expectedRunDirectory);
-  assertPrivateDirectory(expectedBrowserDirectory);
+  resolvePrivateStripeBrowserArtifactDirectory(evidenceRoot, identity.runId, env.P11_STRIPE_ARTIFACT_DIR);
   if (
     Object.entries(env).some(
       ([name]) =>
@@ -237,5 +367,8 @@ module.exports = {
   assertPrivateDirectory,
   ensurePrivateArtifactDirectories,
   writePrivateEvidenceFile,
+  resolvePrivateStripeBrowserArtifactDirectory,
+  writePrivateStripeBrowserEvidence,
+  writePrivateStripeBrowserSnapshot,
   validateStripeBrowserEnvironment,
 };

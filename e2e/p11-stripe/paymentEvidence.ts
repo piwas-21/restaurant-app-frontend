@@ -1,7 +1,22 @@
-import { writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import { getE2EDbPool } from '../helpers/db';
+
+const require = createRequire(path.resolve('e2e/p11-stripe/paymentEvidence.ts'));
+const { resolvePrivateStripeBrowserArtifactDirectory, writePrivateStripeBrowserSnapshot } =
+  require('../../scripts/e2e-p11-stripe-profile.cjs') as {
+    resolvePrivateStripeBrowserArtifactDirectory: (
+      evidenceRoot: string,
+      runId: string,
+      artifactDirectory: string,
+    ) => string;
+    writePrivateStripeBrowserSnapshot: (
+      identity: { evidenceRoot: string; runId: string; artifactDirectory: string },
+      filename: 'captured-attempts.json' | 'refunded-attempts.json',
+      contents: string,
+    ) => void;
+  };
 
 interface CapturedAttempt {
   readonly attemptId: string;
@@ -33,9 +48,16 @@ export async function retainPaymentEvidence(
   attempts: readonly CapturedAttempt[],
   refunded: boolean,
 ) {
-  const artifactDir = process.env.P11_STRIPE_ARTIFACT_DIR;
-  if (artifactDir !== `/tmp/table-account-p11-stripe-evidence/${process.env.P11_RUN_ID}/browser`)
-    throw new Error('The private financial evidence directory is unavailable.');
+  const artifactIdentity = {
+    evidenceRoot: process.env.P11_STRIPE_EVIDENCE_ROOT ?? '',
+    runId: process.env.P11_RUN_ID ?? '',
+    artifactDirectory: process.env.P11_STRIPE_ARTIFACT_DIR ?? '',
+  };
+  resolvePrivateStripeBrowserArtifactDirectory(
+    artifactIdentity.evidenceRoot,
+    artifactIdentity.runId,
+    artifactIdentity.artifactDirectory,
+  );
   const result = await getE2EDbPool().query<StoredAttempt>(
     `SELECT a.id AS attempt_id, a.operation_id, a.mode, a.state, a.amount_minor, a.currency,
        j.provider_session_id, j.provider_intent_id, j.provider_charge_id, j.provider_account_id,
@@ -73,10 +95,10 @@ export async function retainPaymentEvidence(
     expect(row.actor_kind).toBe('GuestParticipant');
     expect(attempts.some((value) => value.attemptId === row.attempt_id)).toBe(true);
   }
-  writeFileSync(
-    path.join(artifactDir, refunded ? 'refunded-attempts.json' : 'captured-attempts.json'),
+  writePrivateStripeBrowserSnapshot(
+    artifactIdentity,
+    refunded ? 'refunded-attempts.json' : 'captured-attempts.json',
     JSON.stringify({ serviceSessionId: sessionId, expectedAttempts: attempts, storedAttempts: result.rows }, null, 2),
-    { mode: 0o600 },
   );
   return result.rows;
 }

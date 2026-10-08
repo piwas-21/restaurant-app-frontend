@@ -23,7 +23,7 @@ const cashLegId = '00000000-0000-4000-8000-000000000011';
 const receiptId = '00000000-0000-4000-8000-000000000012';
 const cashIntentId = '00000000-0000-4000-8000-000000000013';
 
-function queryRows(providerCurrency: string) {
+function queryRows(providerCurrency: string, cachedOnlineRefundedMinor = '501') {
   const online = {
     service_session_id: sessionId,
     attempt_id: onlineAttemptId,
@@ -40,7 +40,7 @@ function queryRows(providerCurrency: string) {
     provider_account_id: 'acct_mixedtest1',
     provider_live_mode: false,
     provider_captured_minor: '501',
-    provider_refunded_minor: '501',
+    provider_refunded_minor: cachedOnlineRefundedMinor,
     reconciliation_required: false,
   };
   const cash = {
@@ -239,8 +239,8 @@ describe('P11 mixed-tender evidence collection', () => {
     evidenceEnvironment.dispose();
   });
 
-  async function collect(providerCurrency: string) {
-    const rows = queryRows(providerCurrency);
+  async function collect(providerCurrency: string, cachedOnlineRefundedMinor?: string) {
+    const rows = queryRows(providerCurrency, cachedOnlineRefundedMinor);
     const query = jest.fn(async (statement: string) => {
       for (const [fragment, result] of rows) {
         if (statement.includes(fragment)) return { rows: result };
@@ -287,6 +287,26 @@ describe('P11 mixed-tender evidence collection', () => {
       ]);
     },
   );
+
+  test.each(['0', '250'])(
+    'preserves a lower cached checkout refund snapshot of %s for independent provider verification',
+    async (cachedRefundedMinor) => {
+      const serialized = await collect('CHF', cachedRefundedMinor);
+      const evidence = JSON.parse(serialized) as {
+        expectedAttempts: Array<{ role: string; provider_refunded_minor: string | null }>;
+      };
+      expect(evidence.expectedAttempts.find((value) => value.role === 'online')?.provider_refunded_minor).toBe(
+        cachedRefundedMinor,
+      );
+    },
+  );
+
+  test('rejects a cached checkout refund above the captured amount without writing evidence', async () => {
+    await expect(collect('CHF', '502')).rejects.toThrow();
+    expect(() =>
+      readFileSync(path.join(evidenceEnvironment.browserDirectory, 'mixed-tender-evidence.json'), 'utf8'),
+    ).toThrow();
+  });
 
   test('rejects a provider observation with a different currency without writing evidence', async () => {
     await expect(collect('EUR')).rejects.toThrow();

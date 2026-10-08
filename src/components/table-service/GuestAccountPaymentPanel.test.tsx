@@ -98,6 +98,65 @@ describe('GuestAccountPaymentPanel', () => {
     expect(currentFlow.refreshPaymentStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('disables receipt-only recovery while a returned attempt is already loading', () => {
+    const currentFlow = flowResult({ isLoading: true });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    renderPanel();
+
+    const statusButton = screen.getByRole('button', { name: 'table_guest_payment_status' });
+    expect(statusButton).toBeDisabled();
+    fireEvent.click(statusButton);
+    expect(currentFlow.refreshPaymentStatus).not.toHaveBeenCalled();
+  });
+
+  it('disables quote continuation and release while payment state is loading', () => {
+    const currentFlow = flowResult({
+      attempt: { ...attempt, startRequested: false },
+      operation: { ...paymentOperation, state: 'Quoted', version: 1 },
+      isLoading: true,
+    });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    renderPanel();
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_continue' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'table_guest_payment_release' })).toBeDisabled();
+  });
+
+  it('disables plan recovery while payment state is loading', () => {
+    const currentFlow = flowResult({
+      pendingPlanIntent: {
+        serviceSessionId: attempt.serviceSessionId,
+        participantFingerprint: 'participant-fingerprint',
+        operationId: attempt.operationId,
+        expectedAccountRevision: 1,
+        shareCount: 2,
+        supersedesPlanId: null,
+        createdAt: 1,
+      },
+      isLoading: true,
+    });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    const identity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={identity}
+        recoveryIdentity={identity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={null}
+        returnHintPresent={false}
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_status' })).toBeDisabled();
+  });
+
   it('disables checkout retry while returned-payment recovery is loading', () => {
     const activeIdentity = {
       serviceSessionId: attempt.serviceSessionId,

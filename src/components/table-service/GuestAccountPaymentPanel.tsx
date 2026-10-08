@@ -81,7 +81,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking || flow.planRecoveryLoading}
+              disabled={flow.isWorking || flow.isLoading || flow.planRecoveryLoading}
               onClick={() => void flow.resolveOriginalPlan()}
             >
               {t(flow.planRetryAvailable ? 'table_guest_payment_retry_original' : 'table_guest_payment_status')}
@@ -109,8 +109,10 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
         <PaymentOperationReview
           operation={operation}
           tableAccount={props.tableAccount}
-          canContinue={props.newPaymentsEnabled && props.canCreatePayment && !flow.storageUnavailable}
-          isWorking={flow.isWorking}
+          canContinue={
+            props.newPaymentsEnabled && props.canCreatePayment && !flow.storageUnavailable && !flow.isLoading
+          }
+          isWorking={flow.isWorking || flow.isLoading}
           onContinue={flow.startOrResumeCheckout}
           onRelease={flow.releaseBeforeStart}
         />
@@ -173,7 +175,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking}
+              disabled={flow.isWorking || flow.isLoading}
               onClick={() => void flow.refreshPaymentStatus()}
             >
               {t('table_guest_payment_status')}

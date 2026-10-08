@@ -64,4 +64,17 @@ describe('ServerTaskCard', () => {
     expect(screen.getByRole('button', { name: 'Kitchen release is required.' })).toBeDisabled();
     expect(screen.queryByRole('link', { name: /takeaway/i })).not.toBeInTheDocument();
   });
+
+  it.each([
+    ['KitchenWorkUnresolved', 'Acknowledge the kitchen work before handover.'],
+    ['KitchenCorrectionUnresolved', 'Acknowledge the kitchen correction before handover.'],
+  ])('shows the operator remedy for %s', (reasonCode, expectedMessage) => {
+    const task: ServerServiceTask = {
+      ...baseTask,
+      permittedDeliveryActions: [{ action: 'HandOver', allowed: false, reasonCode, targetStatus: null }],
+    };
+    render(<ServerTaskCard task={task} isBusy={false} onDeliver={jest.fn()} />);
+
+    expect(screen.getByRole('button', { name: expectedMessage })).toBeDisabled();
+  });
 });

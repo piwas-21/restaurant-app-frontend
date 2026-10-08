@@ -4,13 +4,14 @@ import StaffButton from '@/components/design-system/StaffButton';
 import { orderStatusLabel } from '@/lib/orderStatus';
 import type { KitchenBoardChange, KitchenBoardCorrection } from '@/types/kitchenBoard';
 import KitchenBoardItemTree from './KitchenBoardItemTree';
+import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardWorkCard.module.css';
 
 function ChangeCard({ change }: Readonly<{ change: KitchenBoardChange }>) {
   const { t } = useTranslation();
   return (
     <li className={styles.change}>
-      <strong>{t(`nativeKitchenBoard.change.${change.kind}`, { defaultValue: change.kind })}</strong>
+      <strong>{t(kitchenBoardLabelKey('change', change.kind) ?? change.kind, { defaultValue: change.kind })}</strong>
       {change.previous && (
         <div>
           <span className={styles.changeLabel}>{t('nativeKitchenBoard.previous')}</span>

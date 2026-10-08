@@ -4,6 +4,7 @@ import type { KitchenBoardOrder } from '@/types/kitchenBoard';
 import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import KitchenBoardItemTree from './KitchenBoardItemTree';
+import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardWorkCard.module.css';
 
 function statusTone(status: string): StatusBadgeTone {
@@ -40,7 +41,7 @@ export default function KitchenBoardOrderCard({
           </h3>
           <p className={styles.meta}>
             {location && <span>{location}</span>}
-            <span>{t(`nativeKitchenBoard.orderType.${order.type}`, { defaultValue: order.type })}</span>
+            <span>{t(kitchenBoardLabelKey('orderType', order.type) ?? order.type, { defaultValue: order.type })}</span>
           </p>
         </div>
         <StatusBadge tone={statusTone(order.status)}>{orderStatusLabel(order.status, t)}</StatusBadge>
@@ -57,8 +58,8 @@ export default function KitchenBoardOrderCard({
               size="sm"
             >
               {t('nativeKitchenBoard.routeStatus', {
-                target: t(`nativeKitchenBoard.target.${route.target}`, { defaultValue: route.target }),
-                status: t(`nativeKitchenBoard.route.${route.status}`, { defaultValue: route.status }),
+                target: t(kitchenBoardLabelKey('target', route.target) ?? route.target, { defaultValue: route.target }),
+                status: t(kitchenBoardLabelKey('route', route.status) ?? route.status, { defaultValue: route.status }),
               })}
             </StatusBadge>
           ))}

@@ -8,11 +8,11 @@ import OperationResultNotice, {
   type OperationResultNoticeProps,
 } from '@/components/design-system/OperationResultNotice';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import { ApiError } from '@/utils/apiClient';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useServerTasks, type ServerTasksState } from '@/hooks/serverWorkspace/useServerTasks';
 import type { ServerTaskBucket } from '@/types/serverTasks';
 import ServerTaskCard from './ServerTaskCard';
+import { serverTaskActionError } from './serverTaskErrorMessages';
 import { serverOrderNavItem } from '../serverWorkspaceOrderNav';
 import styles from './ServerTasksWorkspace.module.css';
 
@@ -44,20 +44,6 @@ function latestServerTime(states: readonly ServerTasksState[]): string | null {
       .sort((left, right) => left.localeCompare(right))
       .at(-1) ?? null
   );
-}
-
-function actionError(reason: unknown, t: TFunction): string {
-  if (reason instanceof ApiError) {
-    switch (reason.errorCode) {
-      case 'OrderVersionConflict':
-        return t('server.tasks.version_conflict', 'This order changed. The task list was refreshed.');
-      case 'RequiredRoutingUnresolved':
-        return t('server.tasks.reason_required_routing', 'Resolve required routing before delivery.');
-      default:
-        break;
-    }
-  }
-  return t('server.tasks.delivery_failed', 'The task could not be updated. Try again.');
 }
 
 function bucketTitle(bucket: ServerTaskBucket, t: TFunction): string {
@@ -142,7 +128,7 @@ export default function ServerTasksWorkspace() {
       await active.deliver(orderId);
       setNotice({ state: 'committed', message: t('server.tasks.delivery_saved', 'Task updated.') });
     } catch (reason: unknown) {
-      setNotice({ state: 'failed', message: actionError(reason, t) });
+      setNotice({ state: 'failed', message: serverTaskActionError(reason, t) });
     } finally {
       setBusyOrderId(null);
     }

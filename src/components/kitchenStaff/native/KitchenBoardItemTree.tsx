@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { KitchenBoardItem } from '@/types/kitchenBoard';
+import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardItemTree.module.css';
 
 function ItemNode({ item }: Readonly<{ item: KitchenBoardItem }>) {
@@ -13,7 +14,7 @@ function ItemNode({ item }: Readonly<{ item: KitchenBoardItem }>) {
         <strong dir="auto">{title}</strong>
         {item.kind && (
           <span className={styles.kind}>
-            {t(`nativeKitchenBoard.itemKind.${item.kind}`, { defaultValue: item.kind })}
+            {t(kitchenBoardLabelKey('itemKind', item.kind) ?? item.kind, { defaultValue: item.kind })}
           </span>
         )}
       </div>

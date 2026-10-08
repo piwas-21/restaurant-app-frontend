@@ -22,6 +22,7 @@ import {
   finishTableSessionMutation,
   isCurrentTableSessionMutation,
 } from '@/hooks/cashier/tableSessionMutation';
+import { tableServiceCloseErrorMessage } from './tableServiceSessionErrors';
 export type { TableServiceSessionState } from './tableServiceSessionTypes';
 export function useTableServiceSession(
   serviceSessionId: string | null,
@@ -155,7 +156,7 @@ export function useTableServiceSession(
       } else {
         clearPendingTableOperation(serviceSessionId);
         setPendingOperation(null);
-        const message = getErrorMessage(reason) ?? 'cashier.tables.close_failed';
+        const message = tableServiceCloseErrorMessage(reason);
         setError(message);
         void refresh().finally(() => {
           if (current()) setError(message);

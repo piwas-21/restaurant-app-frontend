@@ -161,6 +161,7 @@ function validateAllocations(values, orderId, attempts) {
 function validateCashReceipt(receipt, cashAttemptId) {
   requireEvidence(
     hasExactKeys(receipt, [
+      'id',
       'attempt_id',
       'policy_version',
       'currency',
@@ -175,7 +176,8 @@ function validateCashReceipt(receipt, cashAttemptId) {
     ]),
   );
   requireEvidence(
-    receipt.attempt_id === cashAttemptId &&
+    requireUuid(receipt.id) &&
+      receipt.attempt_id === cashAttemptId &&
       receipt.policy_version === 'chf-cash-5-rappen-v1' &&
       receipt.currency === EXPECTED_CURRENCY &&
       receipt.payment_method === 'Cash' &&
@@ -187,6 +189,7 @@ function validateCashReceipt(receipt, cashAttemptId) {
       receipt.actor_kind === 'Staff' &&
       receipt.actor_role === 'Cashier',
   );
+  return receipt.id;
 }
 
 function validateResolution(operation, sessionId, orderId, amendmentId) {
@@ -308,7 +311,7 @@ function validateProviderRefund(value, onlineLeg, onlineAttempt, selectedAccount
   return refund;
 }
 
-function validateCashRefund(intent, cashReturn, cashLegId, cashAttemptId) {
+function validateCashRefund(intent, cashReturn, cashLegId, cashAttemptId, cashReceiptId) {
   requireEvidence(
     hasExactKeys(intent, [
       'id',
@@ -331,7 +334,7 @@ function validateCashRefund(intent, cashReturn, cashLegId, cashAttemptId) {
       intent.refund_leg_id === cashLegId &&
       intent.attempt_id === cashAttemptId &&
       requireUuid(intent.id) &&
-      requireUuid(intent.collection_receipt_id) &&
+      intent.collection_receipt_id === cashReceiptId &&
       intent.policy_version === 'chf-cash-5-rappen-v1' &&
       intent.currency === EXPECTED_CURRENCY &&
       intent.original_exact_amount_minor === '999' &&
@@ -415,7 +418,7 @@ function validateMixedTenderEvidence(evidence, selectedAccountId) {
   const amendmentId = requireUuid(evidence.amendmentId);
   const attempts = validateAttempts(evidence.expectedAttempts, sessionId, selectedAccountId);
   const allocations = validateAllocations(evidence.allocations, orderId, attempts);
-  validateCashReceipt(evidence.cashReceipt, attempts.cash.attemptId);
+  const cashReceiptId = validateCashReceipt(evidence.cashReceipt, attempts.cash.attemptId);
   const operationId = validateResolution(evidence.resolution, sessionId, orderId, amendmentId);
   const legs = validateRefundLegs(evidence.refundLegs, operationId, attempts, selectedAccountId);
   requireEvidence(Array.isArray(evidence.providerRefunds) && evidence.providerRefunds.length === 1);
@@ -426,7 +429,13 @@ function validateMixedTenderEvidence(evidence, selectedAccountId) {
     selectedAccountId,
     operationId,
   );
-  validateCashRefund(evidence.cashRefundIntent, evidence.cashRefundEvidence, legs.cash.legId, attempts.cash.attemptId);
+  validateCashRefund(
+    evidence.cashRefundIntent,
+    evidence.cashRefundEvidence,
+    legs.cash.legId,
+    attempts.cash.attemptId,
+    cashReceiptId,
+  );
   validateAllocationReversals(evidence.allocationReversals, orderId, allocations.online, attempts, legs);
   return {
     sessionId,

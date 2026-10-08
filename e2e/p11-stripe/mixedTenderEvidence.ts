@@ -133,13 +133,14 @@ export async function retainMixedTenderEvidence(
   }
 
   const receiptResult = await pool.query(
-    `SELECT attempt_id, policy_version, currency, payment_method, exact_amount_minor, adjustment_minor,
+    `SELECT id, attempt_id, policy_version, currency, payment_method, exact_amount_minor, adjustment_minor,
        due_amount_minor, received_minor, change_minor, actor_kind, actor_role
      FROM account_cash_collection_receipts WHERE attempt_id = $1`,
     [cash!.attempt_id],
   );
   expect(receiptResult.rows).toEqual([
     {
+      id: expect.stringMatching(/^[0-9a-f-]{36}$/i),
       attempt_id: cash!.attempt_id,
       policy_version: 'chf-cash-5-rappen-v1',
       currency: 'CHF',

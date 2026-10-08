@@ -151,6 +151,7 @@ function createFixtureData(profile) {
     expectedAttempts: [online, cash],
     allocations: [allocation(onlineAttemptId, 501), allocation(cashAttemptId, 999)],
     cashReceipt: {
+      id: cashReceiptId,
       attempt_id: cashAttemptId,
       policy_version: 'chf-cash-5-rappen-v1',
       currency: 'CHF',
@@ -425,6 +426,16 @@ test('rejects altered cash rounding or cash-return evidence before provider read
   const current = await fixture(t);
   mutateEvidence(current.evidencePath, (value) => {
     value.cashRefundIntent.cash_refund_amount_minor = '999';
+  });
+  const calls = [];
+  await assert.rejects(() => verify(current, makeReader(current, calls)));
+  assert.equal(calls.length, 0);
+});
+
+test('rejects a valid but unrelated cash collection receipt id before any provider read', async (t) => {
+  const current = await fixture(t);
+  mutateEvidence(current.evidencePath, (value) => {
+    value.cashRefundIntent.collection_receipt_id = randomUUID();
   });
   const calls = [];
   await assert.rejects(() => verify(current, makeReader(current, calls)));

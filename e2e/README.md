@@ -294,6 +294,25 @@ export PATH="$(dirname "$NODE22_BIN"):$PATH"
   native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER"
 ```
 
+The independent mixed-tender case is a separate run and evidence oracle; it leaves the default
+four-phone case unchanged. Append `mixed-tender` as the final argument to select it:
+
+```bash
+TMPDIR=/private/tmp "$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
+  "$P11_STRIPE_PROFILE" "$P11_BACKEND_DIR" "$P11_STRIPE_CLI" "$P11_BACKEND_SHA" \
+  native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER" mixed-tender
+```
+
+That scenario allocates one CHF 15.00 source unit as CHF 5.01 online and CHF 9.99 exact cash.
+The cashier records CHF 10.00 received, including a CHF 0.01 cash-rounding adjustment. A full
+void must produce one capture-linked CHF 5.01 Stripe refund and a separately evidenced CHF 10.00
+cash return for the CHF 9.99 exact cash allocation, with the CHF 0.01 adjustment and zero net
+unsettled balance. Its verifier checks the exact source unit, attempt allocations, collection
+receipt-to-refund-intent identity, refund legs, allocation reversals, and fresh connected-account
+Stripe reads. The till return is a **synthetic staff attestation in the isolated test database**;
+it does not prove physical cash was handed back. This scenario does not change the four-phone
+oracle or claim physical cash acceptance.
+
 The runner verifies the test-connected account before creating its run-specific database, then starts
 only loopback PostgreSQL/Redis services and the exact pinned local API. It keeps private logs and a
 verified operational database dump under `/tmp/table-account-p11-evidence/<run-id>/`, records whether

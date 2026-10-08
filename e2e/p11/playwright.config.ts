@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { defineConfig, devices } from '@playwright/test';
 
 const require = createRequire(path.resolve('e2e/p11/playwright.config.ts'));
-const { validateP11LocalIdentity } = require('../../scripts/e2e-p11-target.cjs') as {
+const { validateP11LocalIdentity, validateP11ArtifactDirectory } = require('../../scripts/e2e-p11-target.cjs') as {
   validateP11LocalIdentity: (env?: NodeJS.ProcessEnv) => {
     runId: string;
     databaseName: string;
@@ -11,14 +11,19 @@ const { validateP11LocalIdentity } = require('../../scripts/e2e-p11-target.cjs')
     apiPort: string;
     uiPort: string;
   };
+  validateP11ArtifactDirectory: (artifactDir: string, stateDir: string, runId: string) => string;
 };
 
 const identity = validateP11LocalIdentity();
 const baseURL = process.env.E2E_BASE_URL;
 const apiURL = process.env.E2E_API_BASE_URL;
-const artifactDir = process.env.P11_ARTIFACT_DIR;
+const artifactDir = validateP11ArtifactDirectory(
+  process.env.P11_ARTIFACT_DIR ?? '',
+  process.env.P11_RUN_STATE_DIR ?? '',
+  identity.runId,
+);
 
-if (!baseURL || !apiURL || !artifactDir?.startsWith('/tmp/table-account-p11.')) {
+if (!baseURL || !apiURL) {
   throw new Error('P11 Playwright must be launched by the isolated local runner.');
 }
 

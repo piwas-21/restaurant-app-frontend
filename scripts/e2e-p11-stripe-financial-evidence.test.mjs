@@ -1,12 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { chmodSync, lstatSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { stripeRunEvidenceFields, verifyStripeFinancialEvidence } from './e2e-p11-stripe-financial-evidence.mjs';
 
-const EVIDENCE_ROOT = '/tmp/table-account-p11-stripe-evidence';
 const ORIGIN = 'https://api.stripe.com';
 const AMOUNTS = [
   ['Items', 1500],
@@ -192,13 +201,13 @@ function createFixtureData(profile) {
 }
 
 async function fixture(t) {
+  const stateDir = mkdtempSync(path.join(tmpdir(), 'p11-financial-evidence-'));
+  const evidenceRoot = path.join(stateDir, 'stripe-evidence');
   const runId = randomBytes(8).toString('hex');
-  const { evidenceDir: runDirectory, browserDir } = profileGuards.ensurePrivateArtifactDirectories(
-    runId,
-    EVIDENCE_ROOT,
-  );
+  const { evidenceDir: runDirectory, browserDir } = profileGuards.ensurePrivateArtifactDirectories(runId, evidenceRoot);
   const runEnv = localTarget(runId);
   const compose = {
+    stateDir,
     runId,
     project: runEnv.P11_COMPOSE_PROJECT,
     args: ['compose', '--env-file', path.join(runDirectory, 'compose.env'), '-p', runEnv.P11_COMPOSE_PROJECT],
@@ -214,7 +223,7 @@ async function fixture(t) {
   const refundPath = path.join(browserDir, 'refund-evidence.json');
   writeFileSync(paymentPath, JSON.stringify(data.payments), { mode: 0o600, flag: 'wx' });
   writeFileSync(refundPath, JSON.stringify(data.refunds), { mode: 0o600, flag: 'wx' });
-  t.after(() => rmSync(runDirectory, { recursive: true, force: true }));
+  t.after(() => rmSync(stateDir, { recursive: true, force: true }));
   return {
     runId,
     runEnv,

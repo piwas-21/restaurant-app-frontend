@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { runSequentially } from './e2e-p11-sequence.mjs';
 
 const DEFAULT_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
 const STOP_GRACE_MS = 5000;
@@ -40,7 +41,7 @@ export function parseGeneratedEnvironment(contents) {
       .map((line) => {
         const split = line.indexOf('=');
         const key = line.slice(0, split);
-        if (split < 1 || !/^[A-Za-z_][A-Za-z_0-9]*$/.test(key)) throw new Error('Invalid generated run environment.');
+        if (split < 1 || !/^[A-Za-z_]\w*$/.test(key)) throw new Error('Invalid generated run environment.');
         let value;
         try {
           value = JSON.parse(line.slice(split + 1));
@@ -116,7 +117,7 @@ function observeChild(child) {
 }
 
 function signalChild(child, signal) {
-  if (!child || child.exitCode !== null || child.signalCode !== null || child.pid === undefined) return;
+  if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return;
   if (process.platform !== 'win32') {
     try {
       process.kill(-child.pid, signal);
@@ -150,12 +151,13 @@ export function startLogged(command, args, env, cwd, logfile, { signal } = {}) {
   const completed = observeChild(child);
   const abort = () => signalChild(child, 'SIGTERM');
   signal?.addEventListener('abort', abort, { once: true });
-  completed.finally(() => signal?.removeEventListener('abort', abort));
+  const removeAbortListener = () => signal?.removeEventListener('abort', abort);
+  completed.then(removeAbortListener, removeAbortListener).catch(() => undefined);
   if (signal?.aborted) abort();
   return { child, completed };
 }
 
-export async function waitForChildClose(child, timeoutMs = DEFAULT_COMMAND_TIMEOUT_MS, signal) {
+export async function waitForChildClose(child, timeoutMs = DEFAULT_COMMAND_TIMEOUT_MS, signal = undefined) {
   const completed = observeChild(child);
   let timer;
   let abort;
@@ -171,7 +173,7 @@ export async function waitForChildClose(child, timeoutMs = DEFAULT_COMMAND_TIMEO
     }),
   ]);
   clearTimeout(timer);
-  if (signal && abort) signal.removeEventListener('abort', abort);
+  if (abort) signal?.removeEventListener('abort', abort);
   if (outcome.reason) {
     signalChild(child, 'SIGTERM');
     const stopped = await resolvesWithin(completed, STOP_GRACE_MS);
@@ -248,8 +250,8 @@ export async function captureLogged(command, args, env, cwd, logfile, options = 
 }
 
 function hasStopped(processState) {
+  if (!processState?.child) return true;
   return (
-    !processState ||
     processState.child.exitCode !== null ||
     processState.child.signalCode !== null ||
     processState.child.pid === undefined
@@ -270,13 +272,13 @@ export async function stopProcess(processState) {
 /** Always attempts the evidence snapshot after stopping every owned process. */
 export async function stopOwnedProcessesAndSnapshot(processes, snapshot) {
   let stopFailed = false;
-  for (const processState of processes) {
+  await runSequentially(processes, async (processState) => {
     try {
       await stopProcess(processState);
     } catch {
       stopFailed = true;
     }
-  }
+  });
   let snapshotResult;
   let snapshotFailed = false;
   try {
@@ -307,53 +309,60 @@ function abortForSignal(controller, signal) {
 
 export async function waitUntil(probe, timeoutMs, processState, signal) {
   const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (signal?.aborted) throw new Error('The acceptance run was interrupted.');
-    if (processState && hasStopped(processState)) throw new Error('An acceptance service stopped before readiness.');
-    const remaining = deadline - Date.now();
-    const probeController = new AbortController();
-    let abortProbe;
-    const interrupted = signal
-      ? new Promise((resolve) => {
-          abortProbe = () => {
-            probeController.abort();
-            resolve({ reason: 'interrupted' });
-          };
-          signal.addEventListener('abort', abortProbe, { once: true });
-          if (signal.aborted) abortProbe();
-        })
-      : new Promise(() => {});
-    let timer;
-    let result;
-    try {
-      result = await Promise.race([
-        Promise.resolve()
-          .then(() => probe(probeController.signal, remaining))
-          .then((value) => ({ value })),
-        new Promise((resolve) => {
-          timer = setTimeout(() => resolve({ reason: 'timeout' }), remaining);
-        }),
-        interrupted,
-      ]);
-    } catch (error) {
-      probeController.abort();
-      clearTimeout(timer);
-      if (signal && abortProbe) signal.removeEventListener('abort', abortProbe);
-      throw error;
-    }
+  return pollReadiness(probe, deadline, processState, signal);
+}
+
+async function pollReadiness(probe, deadline, processState, signal) {
+  if (signal?.aborted) throw new Error('The acceptance run was interrupted.');
+  if (processState && hasStopped(processState)) throw new Error('An acceptance service stopped before readiness.');
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error('The acceptance service did not become ready.');
+  if (await performReadinessProbe(probe, remaining, signal)) return;
+  if (signal?.aborted) throw new Error('The acceptance run was interrupted.');
+  await delay(Math.min(500, Math.max(1, deadline - Date.now())));
+  return pollReadiness(probe, deadline, processState, signal);
+}
+
+async function performReadinessProbe(probe, remaining, signal) {
+  const probeController = new AbortController();
+  let abortProbe;
+  const interrupted = signal
+    ? new Promise((resolve) => {
+        abortProbe = () => {
+          probeController.abort();
+          resolve({ reason: 'interrupted' });
+        };
+        signal.addEventListener('abort', abortProbe, { once: true });
+        if (signal.aborted) abortProbe();
+      })
+    : new Promise(() => {});
+  let timer;
+  let result;
+  try {
+    result = await Promise.race([
+      Promise.resolve()
+        .then(() => probe(probeController.signal, remaining))
+        .then((value) => ({ value })),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve({ reason: 'timeout' }), remaining);
+      }),
+      interrupted,
+    ]);
+  } catch (error) {
+    probeController.abort();
     clearTimeout(timer);
-    if (signal && abortProbe) signal.removeEventListener('abort', abortProbe);
-    if (result.reason) {
-      probeController.abort();
-      throw new Error(
-        result.reason === 'timeout'
-          ? 'The acceptance service did not become ready.'
-          : 'The acceptance run was interrupted.',
-      );
-    }
-    if (result.value) return;
-    if (signal?.aborted) throw new Error('The acceptance run was interrupted.');
-    await delay(Math.min(500, Math.max(1, deadline - Date.now())));
+    signal?.removeEventListener('abort', abortProbe);
+    throw error;
   }
-  throw new Error('The acceptance service did not become ready.');
+  clearTimeout(timer);
+  signal?.removeEventListener('abort', abortProbe);
+  if (result.reason) {
+    probeController.abort();
+    throw new Error(
+      result.reason === 'timeout'
+        ? 'The acceptance service did not become ready.'
+        : 'The acceptance run was interrupted.',
+    );
+  }
+  return result.value;
 }

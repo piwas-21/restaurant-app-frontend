@@ -24,13 +24,14 @@ const COMMON_PASSWORDS = new Set([
   'admin123',
 ]);
 const issuedStaffCredentials = new Set();
+const PRIVATE_DIRECTORY_FLAGS = fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | fs.constants.O_NOFOLLOW;
 
 function fail(message) {
   throw new Error(`P11 local target refused: ${message}`);
 }
 
 function envFileValue(value) {
-  return `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`;
+  return JSON.stringify(String(value));
 }
 
 function writeEnvFile(filePath, values) {
@@ -157,25 +158,65 @@ function createRunOwnedStaffCredential(candidateFactory = () => crypto.randomByt
     if (!/^[a-f0-9]{64}$/.test(candidate)) continue;
 
     const credential = `${candidate}${STAFF_CREDENTIAL_SUFFIX}`;
-    if (
-      credential.length < 8 ||
-      !/[A-Z]/.test(credential) ||
-      !/[a-z]/.test(credential) ||
-      !/[0-9]/.test(credential) ||
-      !/[^a-zA-Z0-9]/.test(credential) ||
-      new Set(credential).size < 4 ||
-      REPEATING_CHARACTER_PATTERN.test(credential) ||
-      COMMON_PASSWORDS.has(credential.toLowerCase()) ||
-      issuedStaffCredentials.has(credential)
-    ) {
-      continue;
-    }
+    if (!isAcceptableStaffCredential(credential)) continue;
 
     issuedStaffCredentials.add(credential);
     return credential;
   }
 
   fail('a unique staff credential meeting backend password rules could not be generated.');
+}
+
+function isAcceptableStaffCredential(credential) {
+  return (
+    credential.length >= 8 &&
+    /[A-Z]/.test(credential) &&
+    /[a-z]/.test(credential) &&
+    /\d/.test(credential) &&
+    /[^a-zA-Z0-9]/.test(credential) &&
+    new Set(credential).size >= 4 &&
+    !REPEATING_CHARACTER_PATTERN.test(credential) &&
+    !COMMON_PASSWORDS.has(credential.toLowerCase()) &&
+    !issuedStaffCredentials.has(credential)
+  );
+}
+
+function assertPrivateArtifactDirectory(directory) {
+  let descriptor;
+  try {
+    const linkStat = fs.lstatSync(directory);
+    if (!linkStat.isDirectory() || linkStat.isSymbolicLink()) fail('Playwright artifacts must not use links.');
+    descriptor = fs.openSync(directory, PRIVATE_DIRECTORY_FLAGS);
+    const stat = fs.fstatSync(descriptor);
+    if (
+      !stat.isDirectory() ||
+      stat.uid !== process.getuid() ||
+      (stat.mode & 0o777) !== 0o700 ||
+      stat.dev !== linkStat.dev ||
+      stat.ino !== linkStat.ino
+    )
+      fail('Playwright artifacts must use same-user mode-0700 directories.');
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('P11 local target refused:')) throw error;
+    fail('Playwright artifacts could not be safely opened.');
+  } finally {
+    if (descriptor !== undefined) fs.closeSync(descriptor);
+  }
+}
+
+function validateP11ArtifactDirectory(artifactDirectory, stateDirectory, runId) {
+  if (
+    typeof artifactDirectory !== 'string' ||
+    !path.isAbsolute(artifactDirectory) ||
+    typeof stateDirectory !== 'string' ||
+    !path.isAbsolute(stateDirectory) ||
+    !/^[a-f0-9]{16}$/.test(runId ?? '') ||
+    path.resolve(artifactDirectory) !== path.join(path.resolve(stateDirectory), 'playwright')
+  )
+    fail('Playwright artifacts must match this private run state.');
+  assertPrivateArtifactDirectory(stateDirectory);
+  assertPrivateArtifactDirectory(artifactDirectory);
+  return artifactDirectory;
 }
 
 function validateP11LocalIdentity(env = process.env) {
@@ -397,4 +438,9 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createRunOwnedStaffCredential, validateInheritedP11Environment, validateP11LocalIdentity };
+module.exports = {
+  createRunOwnedStaffCredential,
+  validateInheritedP11Environment,
+  validateP11LocalIdentity,
+  validateP11ArtifactDirectory,
+};

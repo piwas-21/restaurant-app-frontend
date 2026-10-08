@@ -11,7 +11,7 @@ import {
   stopProcess,
   waitUntil,
 } from './e2e-p11-stripe-process.mjs';
-import { snapshotNativeP11Database } from './e2e-p11-native-postgres-snapshot.mjs';
+import { runSequentially } from './e2e-p11-sequence.mjs';
 
 const REQUIRED_POSTGRES_TOOLS = ['initdb', 'pg_ctl', 'pg_isready', 'createdb', 'pg_dump', 'pg_restore'];
 
@@ -50,11 +50,11 @@ export function resolveNativeRedisTools(serverExecutable) {
 }
 
 export async function verifyNativePostgresTools(tools, systemEnv, cwd, logfile, { signal } = {}) {
-  for (const [name, executable] of Object.entries(tools)) {
+  await runSequentially(Object.entries(tools), async ([name, executable]) => {
     const version = await captureLogged(executable, ['--version'], systemEnv, cwd, logfile, { signal });
     if (!/^\w+(?: \w+)* \(PostgreSQL\) 18(?:\.|\s|$)/.test(version.trim()))
       throw new Error(`The explicit ${name} executable is not PostgreSQL 18.`);
-  }
+  });
 }
 
 async function allocateHighLoopbackPort() {
@@ -68,6 +68,12 @@ async function allocateHighLoopbackPort() {
     if (port >= 49152) return String(port);
   }
   throw new Error('The operating system did not allocate a high loopback port.');
+}
+
+async function allocateDifferentHighLoopbackPort(excludedPort, attemptsRemaining = 10) {
+  if (attemptsRemaining === 0) throw new Error('The operating system did not allocate distinct loopback ports.');
+  const port = await allocateHighLoopbackPort();
+  return port === excludedPort ? allocateDifferentHighLoopbackPort(excludedPort, attemptsRemaining - 1) : port;
 }
 
 function ensurePrivateSubdirectory(parent, name) {
@@ -115,8 +121,7 @@ export async function startNativeP11Services({
   const redisTools = resolveNativeRedisTools(redisServerExecutable);
   const runIdentity = readGeneratedEnvironment(path.join(stateDir, 'compose.env'));
   const pgPort = await allocateHighLoopbackPort();
-  let redisPort = await allocateHighLoopbackPort();
-  while (redisPort === pgPort) redisPort = await allocateHighLoopbackPort();
+  const redisPort = await allocateDifferentHighLoopbackPort(pgPort);
   const dataDir = ensurePrivateSubdirectory(stateDir, 'postgres-data');
   const socketDir = ensurePrivateSubdirectory(stateDir, 'postgres-socket');
   const redisDataDir = ensurePrivateSubdirectory(stateDir, 'redis-data');

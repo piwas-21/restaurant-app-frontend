@@ -11,7 +11,8 @@ const baseURL = process.env.E2E_BASE_URL;
 const apiURL = process.env.E2E_API_BASE_URL;
 const artifactDir = process.env.P11_STRIPE_ARTIFACT_DIR;
 const runId = process.env.P11_RUN_ID;
-if (!baseURL || !apiURL || !runId || artifactDir !== `/tmp/table-account-p11-stripe-evidence/${runId}/browser`)
+const evidenceRoot = process.env.P11_STRIPE_EVIDENCE_ROOT;
+if (!baseURL || !apiURL || !runId || !evidenceRoot || artifactDir !== path.join(evidenceRoot, runId, 'browser'))
   throw new Error('Stripe browser acceptance requires its private run-owned artifact directory.');
 
 const nextEntrypoint = path.resolve('node_modules/next/dist/bin/next');

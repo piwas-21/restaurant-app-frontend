@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { waitForChildClose } from './e2e-p11-stripe-process.mjs';
+import systemTools from './e2e-p11-system-tools.cjs';
 
 const MAX_PROVIDER_RESPONSE_BYTES = 256 * 1024;
 const PROVIDER_COMMAND_TIMEOUT_MS = 40_000;
@@ -32,7 +33,7 @@ export function validateStripeApiOrigin(raw) {
 }
 
 /** GET only, normal TLS, credentials on stdin rather than the process argument list. */
-export async function stripeRead(profile, origin, resource, connected = true, { signal } = {}) {
+export async function stripeRead(profile, origin, resource, connected = true, { signal, curlExecutable } = {}) {
   const accepted = validateStripeProfile(profile);
   requireEvidence(
     /^\/v1\/(accounts\/acct_[A-Za-z0-9]+|balance|checkout\/sessions\/cs_test_[A-Za-z0-9]+|payment_intents\/pi_[A-Za-z0-9]+|charges\/ch_[A-Za-z0-9]+|refunds\?charge=ch_[A-Za-z0-9]+&limit=100)$/.test(
@@ -53,9 +54,9 @@ export async function stripeRead(profile, origin, resource, connected = true, { 
     `${apiOrigin}${resource}`,
   ];
   const env = Object.fromEntries(
-    ['PATH', 'HOME', 'LANG', 'TMPDIR'].filter((name) => process.env[name]).map((name) => [name, process.env[name]]),
+    ['PATH', 'HOME', 'LANG'].filter((name) => process.env[name]).map((name) => [name, process.env[name]]),
   );
-  const child = spawn('curl', args, {
+  const child = spawn(curlExecutable ?? systemTools.resolveSystemExecutable('curl'), args, {
     env,
     shell: false,
     detached: process.platform !== 'win32',

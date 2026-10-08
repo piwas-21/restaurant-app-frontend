@@ -7,6 +7,7 @@ const {
   PROFILE,
   readStripeProfile,
   validateStripeProfile,
+  buildStripeBrowserEnvironment,
   buildStripeProcessEnvironments,
   ensurePrivateArtifactDirectories,
   systemEnvironment,
@@ -81,9 +82,9 @@ test('requires a closed full-test-key profile with the fixture currency', () => 
   assert.throws(() => validateStripeProfile(null), /invalid profile/);
 });
 
-test('only reads small private regular temporary profile files', () => {
+test('only reads small private regular P11 test profile files', () => {
   const dir = fs.mkdtempSync(path.join('/tmp', 'p11-stripe-guard-'));
-  const file = path.join(dir, 'profile.json');
+  const file = path.join(dir, `table-account-p11-stripe-profile-${'a'.repeat(32)}.json`);
   const link = path.join(dir, 'linked.json');
   try {
     fs.writeFileSync(file, JSON.stringify(profile), { mode: 0o600 });
@@ -136,14 +137,20 @@ test('isolates API and listener secrets from Playwright and ignores ambient prov
 test('allows only the exact private run-owned Playwright artifact directory', () => {
   const root = fs.mkdtempSync(path.join('/tmp', 'p11-stripe-artifacts-'));
   try {
-    const processes = buildStripeProcessEnvironments(localTarget(), {}, profile, signingSecret);
+    const target = localTarget();
     const directories = ensurePrivateArtifactDirectories('1234567890abcdef', root); // pragma: allowlist secret -- Synthetic run identifier
-    const browser = { ...processes.browser, P11_STRIPE_ARTIFACT_DIR: directories.browserDir };
+    const browser = buildStripeBrowserEnvironment(target, {}, profile, directories.browserDir);
+    assert.equal(browser.P11_STRIPE_EVIDENCE_ROOT, root);
     assert.equal(validateStripeBrowserEnvironment(browser, root).runId, '1234567890abcdef'); // pragma: allowlist secret -- Synthetic run identifier
     assert.throws(
       () =>
         validateStripeBrowserEnvironment({ ...browser, P11_STRIPE_ARTIFACT_DIR: path.join(root, 'elsewhere') }, root),
       /does not match the private run identity/,
+    );
+    assert.throws(
+      () =>
+        validateStripeBrowserEnvironment({ ...browser, P11_STRIPE_EVIDENCE_ROOT: path.join(root, 'elsewhere') }, root),
+      /evidence root does not match/,
     );
     fs.chmodSync(directories.browserDir, 0o755);
     assert.throws(() => validateStripeBrowserEnvironment(browser, root), /mode-0700/);

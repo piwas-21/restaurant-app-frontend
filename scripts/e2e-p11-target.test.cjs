@@ -1,10 +1,15 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const {
   createRunOwnedStaffCredential,
   validateInheritedP11Environment,
   validateP11LocalIdentity,
+  validateP11ArtifactDirectory,
 } = require('./e2e-p11-target.cjs');
 
 const runId = '0123456789abcdef';
@@ -64,6 +69,49 @@ test('accepts one isolated loopback identity shared by the existing DB guard and
     apiPort,
     uiPort,
   });
+});
+
+test('Playwright artifacts must be a private directory under the active run state', (t) => {
+  const state = fs.mkdtempSync(path.join(os.tmpdir(), 'p11-artifact-control-'));
+  fs.chmodSync(state, 0o700);
+  const artifact = path.join(state, 'playwright');
+  fs.mkdirSync(artifact, { mode: 0o700 });
+  t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+
+  assert.equal(validateP11ArtifactDirectory(artifact, state, runId), artifact);
+  assert.throws(() => validateP11ArtifactDirectory(path.join(state, 'other'), state, runId), /private run state/);
+  fs.chmodSync(artifact, 0o755);
+  assert.throws(() => validateP11ArtifactDirectory(artifact, state, runId), /mode-0700/);
+});
+
+test('generated runner settings round-trip through the private JSON environment format', (t) => {
+  const state = fs.mkdtempSync(path.join(os.tmpdir(), 'p11-runner-env-control-'));
+  fs.chmodSync(state, 0o700);
+  t.after(() => fs.rmSync(state, { recursive: true, force: true }));
+  const helper = path.resolve('scripts/e2e-p11-target.cjs');
+  const env = Object.fromEntries(
+    ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG'].flatMap((name) =>
+      process.env[name] ? [[name, process.env[name]]] : [],
+    ),
+  );
+
+  execFileSync(process.execPath, [helper, 'init', state], { env, stdio: 'ignore' });
+  execFileSync(process.execPath, [helper, 'configure', state, databasePort, redisPort], { env, stdio: 'ignore' });
+  const runnerFile = path.join(state, 'runner.env');
+  const runner = Object.fromEntries(
+    fs
+      .readFileSync(runnerFile, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => {
+        const separator = line.indexOf('=');
+        return [line.slice(0, separator), JSON.parse(line.slice(separator + 1))];
+      }),
+  );
+  assert.equal(fs.statSync(runnerFile).mode & 0o777, 0o600);
+  assert.equal(runner.P11_RUN_ID.length, 16);
+  assert.match(runner.E2E_DATABASE_URL, /^postgres:\/\/p11_[a-f0-9]{16}:/);
+  assert.match(runner.ConnectionStrings__restaurantdb, /;SSL Mode=Disable$/);
 });
 
 test('requires both .NET environment selectors to pin Development and clears Sentry', () => {

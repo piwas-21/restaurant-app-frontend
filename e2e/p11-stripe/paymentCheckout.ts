@@ -5,6 +5,7 @@ import {
   readGuestStoragePresence,
   type GuestStorageDiagnostic,
 } from './guestStorageDiagnostics';
+import { runSequentially } from './sequential';
 import { PRODUCT, responseData } from './tableVisit';
 
 export type PaymentChoice = 'Items' | 'Amount' | 'EqualFirst' | 'EqualSecond';
@@ -88,10 +89,10 @@ export async function completeContribution(
     const expiration = page.getByLabel('Expiration', { exact: true });
     const securityCode = page.getByRole('textbox', { name: 'Credit or debit card CVC/CVV', exact: true });
     const cardholder = page.getByLabel('Cardholder name', { exact: true });
-    for (const field of [cardNumber, expiration, securityCode, cardholder]) {
+    await runSequentially([cardNumber, expiration, securityCode, cardholder], async (field) => {
       await expect(field).toHaveCount(1);
       await expect(field).toBeVisible();
-    }
+    });
 
     const payButton = page.locator('button[type="submit"]');
     await expect(payButton).toHaveCount(1);
@@ -111,7 +112,7 @@ export async function completeContribution(
     const received = receipt.getByText('Received', { exact: true }).locator('xpath=following-sibling::dd[1]');
     const [whole, fraction] = (expectedMinor / 100).toFixed(2).split('.');
     expect((await received.innerText()).replace(/[\u00a0\u202f]/g, ' ').trim()).toMatch(
-      new RegExp(`^(?:CHF\\s*${whole}[.,]${fraction}|${whole}[.,]${fraction}\\s*CHF)$`),
+      new RegExp(String.raw`^(?:CHF\s*${whole}[.,]${fraction}|${whole}[.,]${fraction}\s*CHF)$`),
     );
     return {
       attemptId: checkout.attemptId,

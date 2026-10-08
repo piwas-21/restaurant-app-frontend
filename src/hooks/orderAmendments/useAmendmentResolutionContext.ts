@@ -27,9 +27,8 @@ async function refreshContextAfterRetirement(
     // A stale-version refusal refreshes the context but never replays its old request body.
     await refresh();
     return false;
-  } catch (refreshError: unknown) {
+  } catch (_refreshError: unknown) {
     // The hook exposes a localized generic failure instead of potentially private server details.
-    void refreshError;
     return true;
   }
 }
@@ -112,9 +111,8 @@ export function useAmendmentResolutionContext({ actorId, orderId, amendmentId, e
       try {
         await prepareAmendmentEarningRetirement(orderId, amendmentId, current);
         prepared = true;
-      } catch (retirementError: unknown) {
+      } catch (_retirementError: unknown) {
         // The modal exposes a localized generic failure instead of raw provider or server details.
-        void retirementError;
         failed = true;
       }
       failed = (await refreshContextAfterRetirement(isCurrent, prepared, onPrepared, refresh)) || failed;

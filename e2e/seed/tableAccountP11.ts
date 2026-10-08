@@ -37,17 +37,17 @@ export async function createTableAccountP11Fixture(adminAccessToken: string): Pr
     const response = await api.post(`/api/Tables/${encodeURIComponent(table.tableId)}/generate-qr`);
     const body = (await response.json()) as ApiResponse<GeneratedQr>;
     const qr = body.data;
+    const qrCodeData = qr?.qrCodeData ?? '';
     if (
       !response.ok() ||
       body.success !== true ||
-      !qr ||
-      qr.tableId.toLowerCase() !== table.tableId.toLowerCase() ||
-      qr.tableNumber !== table.tableNumber ||
-      !qr.qrCodeData.startsWith(`table_${table.tableId}_`)
+      qr?.tableId?.toLowerCase() !== table.tableId.toLowerCase() ||
+      qr?.tableNumber !== table.tableNumber ||
+      !qrCodeData.startsWith(`table_${table.tableId}_`)
     ) {
       throw new Error('P11 Admin QR generation did not return the created table identity.');
     }
-    return { ...table, qrCodeData: qr.qrCodeData };
+    return { ...table, qrCodeData };
   } finally {
     await api.dispose();
   }

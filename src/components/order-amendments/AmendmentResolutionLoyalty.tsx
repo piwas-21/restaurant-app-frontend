@@ -37,17 +37,13 @@ export default function AmendmentResolutionLoyalty({ value }: Props) {
   const held = result?.state === 'HeldShortfall' || result?.state === 'OwnerUnavailable';
   const points = (count: number) =>
     t('amendment_loyalty_points', { count: count, amount: count.toLocaleString(i18n.language || 'en') });
+  const dispositionKey = value.earningDisposition
+    ? earningDispositionCopy[value.earningDisposition]
+    : 'orderAmendments.resolution_earning_disposition_unknown';
+  const candidateStateKey = value.earningRetired ? 'orderAmendments.resolution_earning_retired' : dispositionKey;
   const candidate =
     value.earningRetired || value.candidatePoints === null
-      ? {
-          state: value.earningRetired
-            ? t('orderAmendments.resolution_earning_retired')
-            : t(
-                value.earningDisposition
-                  ? earningDispositionCopy[value.earningDisposition]
-                  : 'orderAmendments.resolution_earning_disposition_unknown',
-              ),
-        }
+      ? { state: t(candidateStateKey) }
       : { points: points(value.candidatePoints) };
   let tone: StatusBadgeTone = 'neutral';
   if (result?.state === 'Resolved') tone = 'success';

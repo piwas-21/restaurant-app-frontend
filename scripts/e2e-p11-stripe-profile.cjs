@@ -11,9 +11,8 @@ const API_FIELDS = [
   'Stripe__ConnectedAccountId',
   'AccountCheckoutWebhook__SigningSecret',
 ];
-const SYSTEM_FIELDS = ['PATH', 'HOME', 'USER', 'LOGNAME', 'TMPDIR', 'LANG', 'LC_ALL', 'DOTNET_ROOT'];
+const SYSTEM_FIELDS = ['PATH', 'HOME', 'USER', 'LOGNAME', 'LANG', 'LC_ALL', 'DOTNET_ROOT'];
 const TEST_MODULES = 'core,kitchen-board,cashier,server,printing,online-payments';
-const STRIPE_EVIDENCE_ROOT = '/tmp/table-account-p11-stripe-evidence';
 const PRIVATE_DIRECTORY_FLAGS = fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | fs.constants.O_NOFOLLOW;
 
 function refuse(reason) {
@@ -40,9 +39,7 @@ function validateStripeProfile(value) {
 function readStripeProfile(filename) {
   if (typeof filename !== 'string' || !path.isAbsolute(filename))
     refuse('a private absolute profile path is required.');
-  const canonicalParent = fs.realpathSync(path.dirname(filename));
-  const temporaryRoot = fs.realpathSync('/tmp');
-  if (canonicalParent !== temporaryRoot && !canonicalParent.startsWith(`${temporaryRoot}${path.sep}`))
+  if (!/^table-account-p11-stripe-profile-[a-f0-9]{32}\.json$/.test(path.basename(filename)))
     refuse('the profile must be a temporary test document.');
   const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
   try {
@@ -106,7 +103,7 @@ function createPrivateDirectory(directory) {
 }
 
 /** Create fresh, exclusive run directories beneath the one fixed evidence root. */
-function ensurePrivateArtifactDirectories(runId, root = STRIPE_EVIDENCE_ROOT) {
+function ensurePrivateArtifactDirectories(runId, root) {
   if (!/^[a-f0-9]{16}$/.test(runId ?? '') || !path.isAbsolute(root))
     refuse('a valid run identity and absolute evidence root are required.');
   try {
@@ -161,7 +158,10 @@ function buildStripeBrowserEnvironment(runEnv, systemEnv, profile, artifactDirec
     if (/stripe/i.test(name) && name !== 'P11_STRIPE_PROFILE') delete browser[name];
     if (/signingsecret/i.test(name)) delete browser[name];
   }
-  if (artifactDirectory !== undefined) browser.P11_STRIPE_ARTIFACT_DIR = artifactDirectory;
+  if (artifactDirectory !== undefined) {
+    browser.P11_STRIPE_ARTIFACT_DIR = artifactDirectory;
+    browser.P11_STRIPE_EVIDENCE_ROOT = path.dirname(path.dirname(artifactDirectory));
+  }
   return browser;
 }
 
@@ -193,12 +193,18 @@ function buildStripeProcessEnvironments(runEnv, systemEnv, profile, signingSecre
   return { identity, api, browser, listener };
 }
 
-function validateStripeBrowserEnvironment(env, evidenceRoot = STRIPE_EVIDENCE_ROOT) {
+function validateStripeBrowserEnvironment(env, evidenceRoot = env.P11_STRIPE_EVIDENCE_ROOT) {
   if (env.P11_STRIPE_PROFILE !== PROFILE) refuse('the browser was not launched by the dedicated profile.');
+  if (!env.P11_STRIPE_ARTIFACT_DIR) refuse('the browser artifact directory is missing.');
   const offline = { ...env };
   delete offline.P11_STRIPE_PROFILE;
   delete offline.P11_STRIPE_ARTIFACT_DIR;
+  delete offline.P11_STRIPE_EVIDENCE_ROOT;
   const identity = validateP11LocalIdentity(offline);
+  if (typeof evidenceRoot !== 'string' || !path.isAbsolute(evidenceRoot))
+    refuse('an absolute private evidence root is required.');
+  if (env.P11_STRIPE_EVIDENCE_ROOT && path.resolve(env.P11_STRIPE_EVIDENCE_ROOT) !== path.resolve(evidenceRoot))
+    refuse('the browser evidence root does not match its private run identity.');
   const expectedRunDirectory = path.join(evidenceRoot, identity.runId);
   const expectedBrowserDirectory = path.join(expectedRunDirectory, 'browser');
   if (env.P11_STRIPE_ARTIFACT_DIR !== expectedBrowserDirectory)
@@ -209,7 +215,7 @@ function validateStripeBrowserEnvironment(env, evidenceRoot = STRIPE_EVIDENCE_RO
   if (
     Object.entries(env).some(
       ([name]) =>
-        !['P11_STRIPE_PROFILE', 'P11_STRIPE_ARTIFACT_DIR'].includes(name) &&
+        !['P11_STRIPE_PROFILE', 'P11_STRIPE_ARTIFACT_DIR', 'P11_STRIPE_EVIDENCE_ROOT'].includes(name) &&
         (/stripe/i.test(name) || /signingsecret/i.test(name)),
     )
   )

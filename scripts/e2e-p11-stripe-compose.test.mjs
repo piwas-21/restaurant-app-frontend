@@ -59,6 +59,7 @@ function installFakeDocker(state, context, options = {}) {
   ].join('\n');
   writeFileSync(path.join(bin, 'docker'), `#!${process.execPath}\n${script}\n`, { mode: 0o700 });
   chmodSync(path.join(bin, 'docker'), 0o700);
+  context.dockerExecutable = path.join(bin, 'docker');
   return { bin, invocations };
 }
 
@@ -106,7 +107,7 @@ test('Docker selection accepts a verified local socket and rejects remote contex
   };
   writeFake(localDockerContext.endpoint);
   const systemEnv = { PATH: bin };
-  const local = await resolveLocalDockerContext(systemEnv, state, path.join(state, 'docker-context.log'));
+  const local = await resolveLocalDockerContext(systemEnv, state, path.join(state, 'docker-context.log'), executable);
   assert.deepEqual(local, localDockerContext);
   const calls = readFileSync(invocations, 'utf8')
     .trim()
@@ -118,7 +119,7 @@ test('Docker selection accepts a verified local socket and rejects remote contex
   ]);
   writeFake('ssh://docker@remote.invalid');
   await assert.rejects(
-    resolveLocalDockerContext(systemEnv, state, path.join(state, 'remote-context.log')),
+    resolveLocalDockerContext(systemEnv, state, path.join(state, 'remote-context.log'), executable),
     /local Unix socket/,
   );
   await assert.rejects(
@@ -126,6 +127,7 @@ test('Docker selection accepts a verified local socket and rejects remote contex
       { ...systemEnv, DOCKER_HOST: 'tcp://remote.invalid:2376' },
       state,
       path.join(state, 'host.log'),
+      executable,
     ),
     /endpoint override/,
   );

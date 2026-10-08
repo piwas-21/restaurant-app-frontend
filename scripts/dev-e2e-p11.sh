@@ -150,6 +150,7 @@ done
 [[ "$api_ready" == "true" ]] || fail "the local API did not become healthy; see the private backend log at $STATE_DIR/backend.log."
 
 export P11_ARTIFACT_DIR="$STATE_DIR/playwright"
+export P11_RUN_STATE_DIR="$STATE_DIR"
 export P11_KEEP_RUN="$KEEP_RUN"
 mkdir -p "$P11_ARTIFACT_DIR"
 chmod 700 "$P11_ARTIFACT_DIR"

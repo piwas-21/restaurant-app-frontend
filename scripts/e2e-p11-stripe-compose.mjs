@@ -14,11 +14,35 @@ import path from 'node:path';
 import targetGuards from './e2e-p11-target.cjs';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { captureLogged, parseGeneratedEnvironment, runLogged, waitForChildClose } from './e2e-p11-stripe-process.mjs';
+import systemTools from './e2e-p11-system-tools.cjs';
 
 const MAX_ARCHIVE_LIST_DIAGNOSTICS = 1024 * 1024;
 const MAX_ARCHIVE_LIST_LINE_LENGTH = 4096;
 const DOCKER_CONTEXT_NAME = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 const DOCKER_COMMAND_TIMEOUT_MS = 30_000;
+
+function inspectArchiveLine(line, verifiedTables) {
+  const match = /^\s*\d+;\s+\d+\s+\d+\s+TABLE DATA\s+public\s+(orders|table_service_sessions)(?:\s|$)/.exec(line);
+  if (match) verifiedTables.add(match[1]);
+}
+
+function inspectArchiveChunk(chunk, listingState) {
+  const text = listingState.partialLine + chunk.toString('utf8');
+  let lineStart = 0;
+  while (true) {
+    const lineEnd = text.indexOf('\n', lineStart);
+    if (lineEnd < 0) break;
+    if (!listingState.discardLongLine && lineEnd - lineStart <= MAX_ARCHIVE_LIST_LINE_LENGTH)
+      inspectArchiveLine(text.slice(lineStart, lineEnd).replace(/\r$/, ''), listingState.verifiedTables);
+    lineStart = lineEnd + 1;
+    listingState.discardLongLine = false;
+  }
+  listingState.partialLine = text.slice(lineStart);
+  if (listingState.partialLine.length > MAX_ARCHIVE_LIST_LINE_LENGTH) {
+    listingState.partialLine = '';
+    listingState.discardLongLine = true;
+  }
+}
 
 function requireCleanDockerEnvironment(systemEnv) {
   if (Object.keys(systemEnv).some((name) => /^DOCKER_/i.test(name)))
@@ -103,11 +127,12 @@ function validateComposeIdentity(env, expectedRunId, expectedProject) {
   return env;
 }
 
-export async function resolveLocalDockerContext(systemEnv, cwd, logfile) {
+export async function resolveLocalDockerContext(systemEnv, cwd, logfile, dockerExecutable) {
   requireCleanDockerEnvironment(systemEnv);
+  const command = dockerExecutable ?? systemTools.resolveSystemExecutable('docker');
   const name = validateDockerContextName(
     (
-      await captureLogged('docker', ['context', 'show'], systemEnv, cwd, logfile, {
+      await captureLogged(command, ['context', 'show'], systemEnv, cwd, logfile, {
         timeoutMs: DOCKER_COMMAND_TIMEOUT_MS,
       })
     ).trim(),
@@ -116,7 +141,7 @@ export async function resolveLocalDockerContext(systemEnv, cwd, logfile) {
   try {
     endpoint = JSON.parse(
       await captureLogged(
-        'docker',
+        command,
         ['context', 'inspect', '--format', '{{json .Endpoints.docker.Host}}', name],
         systemEnv,
         cwd,
@@ -130,7 +155,7 @@ export async function resolveLocalDockerContext(systemEnv, cwd, logfile) {
   return { name, endpoint: validateLocalDockerEndpoint(endpoint) };
 }
 
-export function createStripeComposeContext(stateDir, frontendDir, systemEnv, dockerContext) {
+export function createStripeComposeContext(stateDir, frontendDir, systemEnv, dockerContext, dockerExecutable) {
   requireCleanDockerEnvironment(systemEnv);
   profileGuards.assertPrivateDirectory(stateDir);
   validateDockerContextName(dockerContext?.name);
@@ -142,6 +167,7 @@ export function createStripeComposeContext(stateDir, frontendDir, systemEnv, doc
     stateDir,
     frontendDir,
     systemEnv,
+    dockerExecutable,
     runId: env.P11_RUN_ID,
     project: env.P11_COMPOSE_PROJECT,
     dockerContext,
@@ -162,7 +188,7 @@ export function createStripeComposeContext(stateDir, frontendDir, systemEnv, doc
 
 export function runStripeCompose(context, args, options = {}) {
   return runLogged(
-    'docker',
+    context.dockerExecutable ?? systemTools.resolveSystemExecutable('docker'),
     [...context.args, ...args],
     context.systemEnv,
     context.frontendDir,
@@ -173,7 +199,7 @@ export function runStripeCompose(context, args, options = {}) {
 
 export function captureStripeCompose(context, args, options = {}) {
   return captureLogged(
-    'docker',
+    context.dockerExecutable ?? systemTools.resolveSystemExecutable('docker'),
     [...context.args, ...args],
     context.systemEnv,
     context.frontendDir,
@@ -195,32 +221,7 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
   let child;
   let diagnosticBytes = 0;
   let diagnosticsWriteFailed = false;
-  let partialLine = '';
-  let discardLongLine = false;
-  const verifiedTables = new Set();
-
-  function inspectLine(line) {
-    const match = /^\s*\d+;\s+\d+\s+\d+\s+TABLE DATA\s+public\s+(orders|table_service_sessions)(?:\s|$)/.exec(line);
-    if (match) verifiedTables.add(match[1]);
-  }
-
-  function inspectChunk(chunk) {
-    const text = partialLine + chunk.toString('utf8');
-    let lineStart = 0;
-    while (true) {
-      const lineEnd = text.indexOf('\n', lineStart);
-      if (lineEnd < 0) break;
-      if (!discardLongLine && lineEnd - lineStart <= MAX_ARCHIVE_LIST_LINE_LENGTH)
-        inspectLine(text.slice(lineStart, lineEnd).replace(/\r$/, ''));
-      lineStart = lineEnd + 1;
-      discardLongLine = false;
-    }
-    partialLine = text.slice(lineStart);
-    if (partialLine.length > MAX_ARCHIVE_LIST_LINE_LENGTH) {
-      partialLine = '';
-      discardLongLine = true;
-    }
-  }
+  const listingState = { partialLine: '', discardLongLine: false, verifiedTables: new Set() };
 
   try {
     // The caller has already checked this run's generated identity before any archive open.
@@ -242,7 +243,7 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
     )
       throw new Error('Archive diagnostics are not private.');
     const args = [...context.args, 'exec', '-T', 'postgres', 'pg_restore', '--list'];
-    child = spawn('docker', args, {
+    child = spawn(context.dockerExecutable ?? systemTools.resolveSystemExecutable('docker'), args, {
       env: context.systemEnv,
       cwd: context.frontendDir,
       shell: false,
@@ -253,7 +254,7 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
     dumpFd = undefined;
 
     child.stdout.on('data', (chunk) => {
-      inspectChunk(chunk);
+      inspectArchiveChunk(chunk, listingState);
       if (diagnosticBytes < MAX_ARCHIVE_LIST_DIAGNOSTICS) {
         const count = Math.min(chunk.length, MAX_ARCHIVE_LIST_DIAGNOSTICS - diagnosticBytes);
         try {
@@ -267,14 +268,15 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
     });
 
     const code = await waitForChildClose(child, timeoutMs, signal);
-    if (partialLine && !discardLongLine) inspectLine(partialLine.replace(/\r$/, ''));
+    if (listingState.partialLine && !listingState.discardLongLine)
+      inspectArchiveLine(listingState.partialLine.replace(/\r$/, ''), listingState.verifiedTables);
     if (diagnosticsWriteFailed || code !== 0)
       throw new Error('Archive listing failed; retain the owned acceptance stack.');
-    if (!verifiedTables.has('orders') || !verifiedTables.has('table_service_sessions'))
+    if (!listingState.verifiedTables.has('orders') || !listingState.verifiedTables.has('table_service_sessions'))
       throw new Error('Archive listing omitted operational data; retain the owned acceptance stack.');
   } catch (error) {
     if (dumpFd !== undefined) closeSync(dumpFd);
-    if (child && child.exitCode === null && child.signalCode === null)
+    if (child?.exitCode === null && child?.signalCode === null)
       await waitForChildClose(child, 1000).catch(() => undefined);
     if (error instanceof Error && error.message.startsWith('Archive listing omitted operational data')) throw error;
     throw new Error('Archive listing failed; retain the owned acceptance stack.');
@@ -312,7 +314,7 @@ export async function snapshotStripeDatabase(context, runEnv, evidenceDir, { tim
     if (!errorStat.isFile() || errorStat.uid !== process.getuid() || (errorStat.mode & 0o777) !== 0o600)
       throw new Error('Database snapshot diagnostics are not private.');
     child = spawn(
-      'docker',
+      context.dockerExecutable ?? systemTools.resolveSystemExecutable('docker'),
       [
         ...context.args,
         'exec',

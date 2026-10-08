@@ -3,8 +3,8 @@ import path from 'node:path';
 import targetGuards from './e2e-p11-target.cjs';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { stripeRead, validateStripeApiOrigin, verifyCapturedProviderObjects } from './e2e-p11-stripe-provider.mjs';
+import { runSequentially } from './e2e-p11-sequence.mjs';
 
-const EVIDENCE_ROOT = '/tmp/table-account-p11-stripe-evidence';
 const MAX_EVIDENCE_BYTES = 256 * 1024;
 const EXPECTED_CURRENCY = 'CHF';
 const EXPECTED_TOTAL_MINOR = 4500;
@@ -57,7 +57,7 @@ function requireProviderId(value, pattern) {
 }
 
 function requireMoneyString(value) {
-  requireEvidence(typeof value === 'string' && value.length <= 15 && /^(?:0|[1-9][0-9]*)$/.test(value));
+  requireEvidence(typeof value === 'string' && value.length <= 15 && /^(?:0|[1-9]\d*)$/.test(value));
   return BigInt(value);
 }
 
@@ -139,15 +139,18 @@ function validateRunIdentity(runEnv, compose, evidenceDir, browserDir) {
   const projectArg = compose.args.indexOf('-p');
   requireEvidence(projectArg >= 0 && compose.args[projectArg + 1] === compose.project);
 
-  const expectedRunDir = path.join(EVIDENCE_ROOT, identity.runId);
+  const evidenceRoot = path.dirname(evidenceDir);
+  const expectedRunDir = path.join(evidenceRoot, identity.runId);
   const expectedBrowserDir = path.join(expectedRunDir, 'browser');
   requireEvidence(
-    path.resolve(evidenceDir) === expectedRunDir && path.resolve(browserDir) === expectedBrowserDir,
+    path.resolve(evidenceRoot) === path.join(path.resolve(compose.stateDir), 'stripe-evidence') &&
+      path.resolve(evidenceDir) === expectedRunDir &&
+      path.resolve(browserDir) === expectedBrowserDir,
     'Stripe evidence paths do not match the active run identity.',
   );
   const uid = typeof process.getuid === 'function' ? process.getuid() : undefined;
   requireEvidence(Number.isInteger(uid), 'The current user identity is unavailable.');
-  privateDirectory(EVIDENCE_ROOT, uid);
+  privateDirectory(evidenceRoot, uid);
   privateDirectory(expectedRunDir, uid);
   privateDirectory(expectedBrowserDir, uid);
   return { identity, uid };
@@ -180,8 +183,16 @@ function validatePaymentEvidence(payments, selectedAccountId) {
   requireUnique(expected.map((value) => value.attemptId));
   requireUnique(expected.map((value) => value.operationId));
   requireEvidence(
-    JSON.stringify(expected.map(({ mode, amountMinor }) => `${mode}:${amountMinor}`).sort()) ===
-      JSON.stringify(EXPECTED_ATTEMPTS.map(([mode, amount]) => `${mode}:${amount}`).sort()),
+    JSON.stringify(
+      expected
+        .map(({ mode, amountMinor }) => `${mode}:${amountMinor}`)
+        .sort((left, right) => left.localeCompare(right, 'en')),
+    ) ===
+      JSON.stringify(
+        EXPECTED_ATTEMPTS.map(([mode, amount]) => `${mode}:${amount}`).sort((left, right) =>
+          left.localeCompare(right, 'en'),
+        ),
+      ),
   );
   requireEvidence(expected.reduce((sum, value) => sum + value.amountMinor, 0) === EXPECTED_TOTAL_MINOR);
 
@@ -400,7 +411,7 @@ export async function verifyStripeFinancialEvidence({
   });
 
   let providerReadCount = 0;
-  for (const leg of refundEvidence.legs) {
+  await runSequentially(refundEvidence.legs, async (leg) => {
     const attempt = refundEvidence.paymentsById.get(leg.paymentAttemptId);
     requireEvidence(attempt !== undefined);
     const stored = payments.storedByAttempt.get(attempt.attemptId);
@@ -444,7 +455,7 @@ export async function verifyStripeFinancialEvidence({
       charge,
     );
     validateProviderRefundList(refundList, leg, attempt.attemptId);
-  }
+  });
 
   requireEvidence(providerReadCount === 16);
   requireEvidence(identity.runId === compose.runId);

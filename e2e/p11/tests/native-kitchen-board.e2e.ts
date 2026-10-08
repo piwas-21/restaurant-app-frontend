@@ -535,8 +535,13 @@ p11Test(
         .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.')
         .check();
       await review.getByRole('button', { name: 'Record confirmed payment', exact: true }).click();
-      await expect(review.getByRole('heading', { name: 'Recorded cash receipt', exact: true })).toBeVisible();
-      await expect(review.getByText('CHF 15.00', { exact: true })).toBeVisible();
+      const receiptHeading = review.getByRole('heading', { name: 'Recorded cash receipt', exact: true });
+      await expect(receiptHeading).toBeVisible();
+      const receipt = receiptHeading.locator('..');
+      const cashReceived = receipt.getByText('Cash received', { exact: true }).locator('..');
+      await expect(cashReceived.getByRole('definition')).toHaveText('CHF 15.00');
+      const change = receipt.getByText('Change', { exact: true }).locator('..');
+      await expect(change.getByRole('definition')).toHaveText('CHF 0.00');
 
       const settledSessionResponse = await api.get(
         `/api/table-service-sessions/${encodeURIComponent(session.serviceSessionId)}`,

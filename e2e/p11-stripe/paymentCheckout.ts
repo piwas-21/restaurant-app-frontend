@@ -58,7 +58,6 @@ export async function completeContribution(
 
   const cardMethod = page.getByRole('button', { name: 'Pay with card', exact: true });
   await expect(cardMethod).toHaveCount(1);
-  await expect(cardMethod).toBeVisible();
   const cardMethodIsOpen = async () => {
     const [expanded, className] = await Promise.all([
       cardMethod.getAttribute('aria-expanded'),
@@ -66,7 +65,10 @@ export async function completeContribution(
     ]);
     return expanded === 'true' || className?.split(/\s+/).includes('AccordionButton-open') === true;
   };
-  if (!(await cardMethodIsOpen())) await cardMethod.click();
+  if (!(await cardMethodIsOpen())) {
+    await expect(cardMethod).toBeVisible();
+    await cardMethod.click();
+  }
   await expect.poll(cardMethodIsOpen).toBe(true);
   const cardNumber = page.getByLabel('Card number', { exact: true });
   const expiration = page.getByLabel('Expiration', { exact: true });

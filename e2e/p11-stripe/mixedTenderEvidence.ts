@@ -62,11 +62,7 @@ export async function retainMixedTenderEvidence(
     runId: process.env.P11_RUN_ID ?? '',
     artifactDirectory: process.env.P11_STRIPE_ARTIFACT_DIR ?? '',
   };
-  const browserDirectory = resolvePrivateStripeBrowserArtifactDirectory(
-    identity.evidenceRoot,
-    identity.runId,
-    identity.artifactDirectory,
-  );
+  resolvePrivateStripeBrowserArtifactDirectory(identity.evidenceRoot, identity.runId, identity.artifactDirectory);
   const pool = getE2EDbPool();
   const attemptResult = await pool.query<AttemptReadback>(
     `SELECT a.service_session_id, a.id AS attempt_id, a.operation_id, a.mode, a.state, a.payment_method, a.actor_kind,

@@ -385,7 +385,7 @@ test('proves the exact same-unit mixed tender split and linked Stripe refund wit
     refundedMinor: 1500,
     stripeRefundMinor: 501,
     cashExactRefundMinor: 999,
-    cashPhysicalReturnedMinor: 1000,
+    cashAttestedReturnedMinor: 1000,
     cashRefundAdjustmentMinor: 1,
     unresolvedRefundCount: 0,
     refundListHasMore: false,
@@ -407,7 +407,7 @@ test('proves the exact same-unit mixed tender split and linked Stripe refund wit
   );
   assert.equal(mixedTenderRunEvidenceFields(proof).providerCleanupVerified, true);
   assert.equal(
-    mixedTenderRunEvidenceFields({ ...proof, cashPhysicalReturnedMinor: 999 }).providerCleanupVerified,
+    mixedTenderRunEvidenceFields({ ...proof, cashAttestedReturnedMinor: 999 }).providerCleanupVerified,
     false,
   );
 });

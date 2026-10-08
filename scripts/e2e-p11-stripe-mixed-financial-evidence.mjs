@@ -466,7 +466,7 @@ function isCanonicalMixedTenderProof(proof) {
       'refundedMinor',
       'stripeRefundMinor',
       'cashExactRefundMinor',
-      'cashPhysicalReturnedMinor',
+      'cashAttestedReturnedMinor',
       'cashRefundAdjustmentMinor',
       'unresolvedRefundCount',
       'refundListHasMore',
@@ -491,7 +491,7 @@ function isCanonicalMixedTenderProof(proof) {
     proof.refundedMinor === 1500 &&
     proof.stripeRefundMinor === 501 &&
     proof.cashExactRefundMinor === 999 &&
-    proof.cashPhysicalReturnedMinor === 1000 &&
+    proof.cashAttestedReturnedMinor === 1000 &&
     proof.cashRefundAdjustmentMinor === 1 &&
     proof.unresolvedRefundCount === 0 &&
     proof.refundListHasMore === false &&
@@ -584,7 +584,7 @@ export async function verifyMixedTenderFinancialEvidence({
     refundedMinor: 1500,
     stripeRefundMinor: 501,
     cashExactRefundMinor: 999,
-    cashPhysicalReturnedMinor: 1000,
+    cashAttestedReturnedMinor: 1000,
     cashRefundAdjustmentMinor: 1,
     unresolvedRefundCount: 0,
     refundListHasMore: false,

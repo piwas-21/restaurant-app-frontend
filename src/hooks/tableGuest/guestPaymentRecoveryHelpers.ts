@@ -11,7 +11,9 @@ import { withCheckoutAttempt, withQuotedOperation } from '@/services/guestAccoun
 import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
-import { isUnfinishedGuestPaymentQuote } from '@/lib/guestAccountPaymentRules';
+import { isTerminalGuestPayment, isUnfinishedGuestPaymentQuote } from '@/lib/guestAccountPaymentRules';
+
+const RETURNED_CHECKOUT_POLL_DELAYS_MS = [2_000, 4_000, 8_000, 16_000, 20_000, 25_000, 30_000] as const;
 
 export function latestForSession(
   attempts: readonly GuestAccountPaymentAttemptDescriptor[],
@@ -137,9 +139,12 @@ interface ActiveRecoveryCallbacks {
   readonly fetchReceipt: (
     descriptor: GuestAccountPaymentAttemptDescriptor,
     attemptId: string,
+    isCurrent?: () => boolean,
   ) => Promise<GuestPaymentReceipt | null>;
   readonly saveUpdatedDescriptor: (descriptor: GuestAccountPaymentAttemptDescriptor) => boolean;
   readonly setStorageUnavailable: (value: boolean) => void;
+  readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
+  readonly waitForNextPoll: (delayMs: number) => Promise<boolean>;
 }
 
 export async function recoverActivePayment(
@@ -183,7 +188,6 @@ async function recoverStartedPayment(
 ): Promise<void> {
   const checkout = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
   if (!callbacks.isCurrent()) return;
-  callbacks.setCheckout(checkout);
   const next =
     checkout.attemptId === descriptor.attemptId ? descriptor : withCheckoutAttempt(descriptor, checkout.attemptId);
   if (next !== descriptor && !saveUpdated(next, callbacks)) return;
@@ -191,7 +195,78 @@ async function recoverStartedPayment(
     callbacks.setReturnReceiptUnavailable(true);
     return;
   }
-  if (next.receiptCredential) await callbacks.fetchReceipt(next, checkout.attemptId);
+  const receipt = next.receiptCredential
+    ? await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent)
+    : null;
+  if (!callbacks.isCurrent()) return;
+  callbacks.setCheckout(checkout);
+  callbacks.setIsLoading(false);
+
+  await pollReturnedCheckout(identity, returnAttemptId, checkout, next, receipt, callbacks);
+}
+
+async function pollReturnedCheckout(
+  identity: TableGuestVisitIdentity,
+  returnAttemptId: string | null,
+  initialCheckout: GuestAccountCheckoutStatus,
+  initialDescriptor: GuestAccountPaymentAttemptDescriptor,
+  initialReceipt: GuestPaymentReceipt | null,
+  callbacks: ActiveRecoveryCallbacks,
+): Promise<void> {
+  let checkout = initialCheckout;
+  let descriptor = initialDescriptor;
+  let receipt = initialReceipt;
+  for (const delayMs of RETURNED_CHECKOUT_POLL_DELAYS_MS) {
+    if (!returnAttemptId || isFinalReturnedCheckout(checkout, receipt)) return;
+    if (!(await callbacks.waitForNextPoll(delayMs)) || !callbacks.isCurrent()) return;
+
+    const refreshed = await callbacks.runExclusive(async () => {
+      const currentCheckout = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
+      if (!callbacks.isCurrent()) return null;
+      const currentDescriptor =
+        currentCheckout.attemptId === descriptor.attemptId
+          ? descriptor
+          : withCheckoutAttempt(descriptor, currentCheckout.attemptId);
+      if (currentDescriptor !== descriptor && !saveUpdated(currentDescriptor, callbacks)) return null;
+      if (currentCheckout.attemptId !== returnAttemptId) {
+        callbacks.setReturnReceiptUnavailable(true);
+        return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: null };
+      }
+      callbacks.setCheckout(currentCheckout);
+      const currentReceipt = currentDescriptor.receiptCredential
+        ? await callbacks.fetchReceipt(currentDescriptor, currentCheckout.attemptId, callbacks.isCurrent)
+        : null;
+      return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: currentReceipt };
+    }, null);
+
+    if (!callbacks.isCurrent()) return;
+    if (refreshed === null) continue;
+    checkout = refreshed.checkout;
+    descriptor = refreshed.descriptor;
+    receipt = refreshed.receipt;
+    if (checkout.attemptId !== returnAttemptId) return;
+  }
+}
+
+function isFinalReturnedCheckout(checkout: GuestAccountCheckoutStatus, receipt: GuestPaymentReceipt | null): boolean {
+  if (
+    checkout.state === 'ReconciliationRequired' ||
+    checkout.reconciliationRequired ||
+    checkout.state === 'Failed' ||
+    checkout.state === 'Released'
+  )
+    return true;
+  if (!isTerminalGuestPayment(checkout.state)) return false;
+  return (
+    receipt !== null &&
+    receipt.attemptId.toLowerCase() === checkout.attemptId.toLowerCase() &&
+    receipt.amountMinor === checkout.amountMinor &&
+    receipt.currency.toUpperCase() === checkout.currency.toUpperCase() &&
+    receipt.state === checkout.state &&
+    receipt.receivedMinor === checkout.receivedMinor &&
+    receipt.refundedMinor === checkout.refundedMinor &&
+    receipt.reconciliationRequired === checkout.reconciliationRequired
+  );
 }
 
 function saveUpdated(descriptor: GuestAccountPaymentAttemptDescriptor, callbacks: ActiveRecoveryCallbacks): boolean {
@@ -225,4 +300,18 @@ export function summarizeDescriptor(descriptor: GuestAccountPaymentAttemptDescri
     attemptId: descriptor.attemptId,
     createdAt: descriptor.createdAt,
   };
+}
+
+export function waitForRecoveryPoll(delayMs: number, signal: AbortSignal): Promise<boolean> {
+  if (signal.aborted) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const finish = (continuePolling: boolean) => {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', onAbort);
+      resolve(continuePolling);
+    };
+    const onAbort = () => finish(false);
+    const timer = setTimeout(() => finish(true), delayMs);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
 }

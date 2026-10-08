@@ -31,9 +31,9 @@ export interface GuestAccountPaymentFlowOptions {
 export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptions) {
   const { activeIdentity, recoveryIdentity, newPaymentsEnabled, canCreatePayment, returnAttemptId, onAccountUpdated } =
     options;
-  const recovery = useGuestPaymentRecovery({ activeIdentity, recoveryIdentity, returnAttemptId });
-  const { setError: setRecoveryError } = recovery;
   const gate = useGuestPaymentWorkGate();
+  const recovery = useGuestPaymentRecovery({ ...options, runExclusive: gate.runExclusive });
+  const { setError: setRecoveryError } = recovery;
   const [account, setAccount] = useState<GuestAccountPaymentAccount | null>(null);
   const [isAccountLoading, setIsAccountLoading] = useState(false);
   const [storageUnavailable, setStorageUnavailable] = useState(false);

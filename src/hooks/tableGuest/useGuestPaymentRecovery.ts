@@ -5,7 +5,6 @@ import type {
   GuestAccountCheckoutStatus,
   GuestAccountPaymentAttemptDescriptor,
   GuestAccountPaymentOperation,
-  GuestPaymentReceipt,
 } from '@/types/guestAccountPayments';
 import type {
   GuestPaymentAttemptSummary,
@@ -13,21 +12,21 @@ import type {
   GuestPaymentRecoveryOptions,
 } from '@/types/guestPaymentRecovery';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
-import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
+import { readGuestAccountPaymentAttempts, saveGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
 import {
-  readGuestAccountPaymentAttempts,
-  removeGuestAccountPaymentAttempt,
-  saveGuestAccountPaymentAttempt,
-  withCheckoutAttempt,
-  withReceiptExpiry,
-} from '@/services/guestAccountPaymentStorage';
-import { recoverActivePayment, recoverReceiptOnly, summarizeDescriptor } from './guestPaymentRecoveryHelpers';
+  recoverActivePayment,
+  recoverReceiptOnly,
+  summarizeDescriptor,
+  waitForRecoveryPoll,
+} from './guestPaymentRecoveryHelpers';
 import { chooseGuestPaymentRecovery, recoverReturnedReceipt } from './guestPaymentRecoverySelection';
+import { fetchGuestPaymentReceipt } from './guestPaymentRecoveryReceipt';
 
 export function useGuestPaymentRecovery({
   activeIdentity,
   recoveryIdentity,
   returnAttemptId,
+  runExclusive,
 }: GuestPaymentRecoveryOptions) {
   const descriptorRef = useRef<GuestAccountPaymentAttemptDescriptor | null>(null);
   const [attempt, setAttempt] = useState<GuestPaymentAttemptSummary | null>(null);
@@ -39,6 +38,7 @@ export function useGuestPaymentRecovery({
   const [returnReceiptUnavailable, setReturnReceiptUnavailable] = useState(false);
   const [error, setError] = useState<GuestPaymentErrorKey>('');
   const recoveryGeneration = useRef(0);
+  const recoveryAbortController = useRef<AbortController | null>(null);
 
   const publishDescriptor = useCallback((descriptor: GuestAccountPaymentAttemptDescriptor | null) => {
     descriptorRef.current = descriptor;
@@ -46,53 +46,20 @@ export function useGuestPaymentRecovery({
   }, []);
 
   const fetchReceipt = useCallback(
-    async (
-      descriptor: GuestAccountPaymentAttemptDescriptor,
-      attemptId: string,
-    ): Promise<GuestPaymentReceipt | null> => {
-      if (!descriptor.receiptCredential) return null;
-      if (
-        descriptor.receiptExpiresAt &&
-        descriptor.receiptTerminalState &&
-        Date.parse(descriptor.receiptExpiresAt) <= Date.now()
-      ) {
-        removeGuestAccountPaymentAttempt(descriptor.serviceSessionId, descriptor.operationId);
-        if (
-          descriptorRef.current?.serviceSessionId === descriptor.serviceSessionId &&
-          descriptorRef.current.operationId === descriptor.operationId
-        )
-          publishDescriptor(null);
-        setReceipts((current) => current.filter((entry) => entry.attemptId !== attemptId));
-        return null;
-      }
-      const receipt = await guestAccountPaymentService.getReceipt(attemptId, descriptor.receiptCredential, descriptor);
-      const identified =
-        descriptor.attemptId === null ? withCheckoutAttempt(descriptor, receipt.attemptId) : descriptor;
-      const updated = withReceiptExpiry(
-        identified,
-        receipt.receiptExpiresAt,
-        receipt.state,
-        receipt.reconciliationRequired,
-      );
-      const saved = saveGuestAccountPaymentAttempt(updated);
-      if (!saved) setStorageUnavailable(true);
-      const current = descriptorRef.current;
-      if (
-        saved &&
-        current?.serviceSessionId === descriptor.serviceSessionId &&
-        current.operationId === descriptor.operationId
-      )
-        publishDescriptor(updated);
-      setReceipts((current) => [
-        ...current.filter((entry) => entry.attemptId !== attemptId),
-        { attemptId, operationId: descriptor.operationId, receipt },
-      ]);
-      return receipt;
-    },
+    (descriptor: GuestAccountPaymentAttemptDescriptor, attemptId: string, isCurrent: () => boolean = () => true) =>
+      fetchGuestPaymentReceipt(
+        descriptor,
+        attemptId,
+        { descriptorRef, publishDescriptor, setStorageUnavailable, setReceipts },
+        isCurrent,
+      ),
     [publishDescriptor, setStorageUnavailable],
   );
 
   const recoverSavedPayment = useCallback(async () => {
+    recoveryAbortController.current?.abort();
+    const abortController = new AbortController();
+    recoveryAbortController.current = abortController;
     const generation = ++recoveryGeneration.current;
     const isCurrent = () => recoveryGeneration.current === generation;
     setOperation(null);
@@ -163,14 +130,17 @@ export function useGuestPaymentRecovery({
         publishDescriptor(descriptor);
         return true;
       },
+      runExclusive,
+      waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
     });
-  }, [activeIdentity, fetchReceipt, publishDescriptor, recoveryIdentity, returnAttemptId]);
+  }, [activeIdentity, fetchReceipt, publishDescriptor, recoveryIdentity, returnAttemptId, runExclusive]);
 
   useEffect(() => {
     setIsLoading(true);
     void recoverSavedPayment();
     return () => {
       recoveryGeneration.current += 1;
+      recoveryAbortController.current?.abort();
     };
   }, [recoverSavedPayment]);
   return {

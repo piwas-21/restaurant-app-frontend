@@ -159,6 +159,29 @@ async function saveUnfinishedQuote(operationId = OPERATION_ID) {
   return descriptor;
 }
 
+async function saveStartedPaymentAttempt() {
+  const participantFingerprint = await fingerprintGuestParticipant(identity.participantToken);
+  if (!participantFingerprint) throw new Error('test participant fingerprint is unavailable');
+  const quoted = withQuotedOperation(
+    createGuestAccountPaymentDescriptor(
+      SESSION_ID,
+      OPERATION_ID,
+      {
+        expectedAccountRevision: 7,
+        mode: 'Amount',
+        paymentMethod: 'OnlinePayment',
+        amountMinor: 1250,
+      },
+      participantFingerprint,
+    ),
+    1,
+    { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'd'.repeat(64) },
+  );
+  const started = withCheckoutAttempt(withStartRequested(withReservation(quoted, 2, 'A'.repeat(43))), ATTEMPT_ID);
+  if (!saveGuestAccountPaymentAttempt(started)) throw new Error('test checkout descriptor was not saved');
+  return started;
+}
+
 function options(enabled = true, activeIdentity: TableGuestVisitIdentity | null = identity) {
   return {
     activeIdentity,
@@ -488,6 +511,98 @@ describe('useGuestAccountPaymentFlow', () => {
       2,
       receiptCredential,
     );
+  });
+
+  it('refreshes a returned processing receipt until the captured amount is reflected, then stops', async () => {
+    await saveStartedPaymentAttempt();
+    const processingCheckout = { ...checkout(), state: 'Processing' as const, version: 2 };
+    const capturedCheckout = {
+      ...checkout(),
+      state: 'Captured' as const,
+      version: 3,
+      receivedMinor: 1250,
+    };
+    const processingReceipt = {
+      attemptId: ATTEMPT_ID,
+      amountMinor: 1250,
+      currency: 'CHF',
+      state: 'Processing' as const,
+      receivedMinor: 0,
+      refundedMinor: 0,
+      reconciliationRequired: false,
+      completedAt: null,
+      receiptExpiresAt: null,
+    };
+    const capturedReceipt = {
+      ...processingReceipt,
+      state: 'Captured' as const,
+      receivedMinor: 1250,
+      completedAt: '2030-01-01T00:00:00Z',
+      receiptExpiresAt: '2030-01-04T00:00:00Z',
+    };
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValue(operation('Processing', 2));
+    jest
+      .mocked(guestAccountPaymentService.getCheckoutStatus)
+      .mockResolvedValueOnce(processingCheckout)
+      .mockResolvedValueOnce(capturedCheckout);
+    jest
+      .mocked(guestAccountPaymentService.getReceipt)
+      .mockResolvedValueOnce(processingReceipt)
+      .mockResolvedValueOnce(capturedReceipt);
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow({ ...options(false), returnAttemptId: ATTEMPT_ID }));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.receipts[0]?.receipt).toMatchObject({ state: 'Processing', receivedMinor: 0 });
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1);
+
+    await waitFor(
+      () => {
+        expect(result.current.checkout).toMatchObject({ state: 'Captured', receivedMinor: 1250 });
+        expect(result.current.receipts[0]?.receipt).toMatchObject({ state: 'Captured', receivedMinor: 1250 });
+      },
+      { timeout: 5_000 },
+    );
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 2_100)));
+
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(2);
+    expect(guestAccountPaymentService.getReceipt).toHaveBeenCalledTimes(2);
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
+  it('cancels a pending return poll when the active participant changes', async () => {
+    await saveStartedPaymentAttempt();
+    const processingCheckout = { ...checkout(), state: 'Processing' as const, version: 2 };
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValue(operation('Processing', 2));
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockResolvedValue(processingCheckout);
+    jest.mocked(guestAccountPaymentService.getReceipt).mockResolvedValue({
+      attemptId: ATTEMPT_ID,
+      amountMinor: 1250,
+      currency: 'CHF',
+      state: 'Processing',
+      receivedMinor: 0,
+      refundedMinor: 0,
+      reconciliationRequired: false,
+      completedAt: null,
+      receiptExpiresAt: null,
+    });
+    const otherIdentity = { ...identity, participantToken: 'another-participant-secret' };
+    const returnOptions = { ...options(false), returnAttemptId: ATTEMPT_ID };
+    const { result, rerender } = renderHook(
+      ({ activeIdentity }: { activeIdentity: TableGuestVisitIdentity | null }) =>
+        useGuestAccountPaymentFlow({ ...returnOptions, activeIdentity }),
+      { initialProps: { activeIdentity: identity } },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1);
+
+    rerender({ activeIdentity: otherIdentity });
+    await waitFor(() => expect(result.current.returnReceiptUnavailable).toBe(true));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 2_100)));
+
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.getReceipt).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.getOperation).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
   });
 
   it('reads only the saved owner receipt after the visit has ended', async () => {

@@ -226,6 +226,15 @@ function appendArchiveChunk(chunk, child, listingState, diagnosticsFd, diagnosti
   }
 }
 
+function verifyArchiveListingResult(listingState, diagnosticsState, code) {
+  if (listingState.partialLine && !listingState.discardLongLine)
+    inspectArchiveLine(listingState.partialLine.replace(/\r$/, ''), listingState.verifiedTables);
+  if (diagnosticsState.writeFailed || code !== 0)
+    throw new Error('Archive listing failed; retain the owned acceptance stack.');
+  if (!listingState.verifiedTables.has('orders') || !listingState.verifiedTables.has('table_service_sessions'))
+    throw new Error('Archive listing omitted operational data; retain the owned acceptance stack.');
+}
+
 async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signal) {
   const diagnostics = path.join(evidenceDir, 'database-archive-list.log');
   let dumpFd;
@@ -269,12 +278,7 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
     });
 
     const code = await waitForChildClose(child, timeoutMs, signal);
-    if (listingState.partialLine && !listingState.discardLongLine)
-      inspectArchiveLine(listingState.partialLine.replace(/\r$/, ''), listingState.verifiedTables);
-    if (diagnosticsState.writeFailed || code !== 0)
-      throw new Error('Archive listing failed; retain the owned acceptance stack.');
-    if (!listingState.verifiedTables.has('orders') || !listingState.verifiedTables.has('table_service_sessions'))
-      throw new Error('Archive listing omitted operational data; retain the owned acceptance stack.');
+    verifyArchiveListingResult(listingState, diagnosticsState, code);
   } catch (error) {
     if (dumpFd !== undefined) closeSync(dumpFd);
     if (child?.exitCode === null && child?.signalCode === null)

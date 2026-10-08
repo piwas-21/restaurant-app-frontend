@@ -79,6 +79,7 @@ test('four phones settle one table through items, amount and equal shares, then 
     ];
     const attempts: Awaited<ReturnType<typeof completeContribution>>[] = [];
     let cashierOperationId: string | null = null;
+    let releasedCashierOperationId: string | null = null;
     for (const [choice, amountMinor] of choices) {
       const guest = await openVisitContext(browser, baseURL);
       contexts.push(guest.context);
@@ -191,6 +192,7 @@ test('four phones settle one table through items, amount and equal shares, then 
                     () => review.getByRole('button', { name: 'Release this contribution', exact: true }).click(),
                   );
                   expect(release.state).toBe('Released');
+                  releasedCashierOperationId = cashierOperationId;
                   const afterRelease = await readAccountAfter(cashier.page, visit.sessionId, () =>
                     cashierCollection.getByRole('button', { name: 'Refresh', exact: true }).click(),
                   );
@@ -211,8 +213,11 @@ test('four phones settle one table through items, amount and equal shares, then 
           true,
         );
       }
-      await retainPaymentEvidence(visit.sessionId, attempts, false);
+      if (!releasedCashierOperationId) throw new Error('The released cashier attempt was not recorded.');
+      await retainPaymentEvidence(visit.sessionId, attempts, false, releasedCashierOperationId);
     }
+    if (!releasedCashierOperationId) throw new Error('The released cashier attempt was not recorded.');
+    const expectedReleasedCashierOperationId = releasedCashierOperationId;
     expect(new Set(attempts.map((value) => value.attemptId)).size).toBe(4);
     expect(attempts.reduce((sum, value) => sum + value.amountMinor, 0)).toBe(4500);
 
@@ -254,7 +259,12 @@ test('four phones settle one table through items, amount and equal shares, then 
       .poll(
         async () => {
           try {
-            const captured = await retainPaymentEvidence(visit.sessionId, attempts, true);
+            const captured = await retainPaymentEvidence(
+              visit.sessionId,
+              attempts,
+              true,
+              expectedReleasedCashierOperationId,
+            );
             await retainRefundEvidence(visit.sessionId, orderId, committed.amendmentId, captured);
             return true;
           } catch {

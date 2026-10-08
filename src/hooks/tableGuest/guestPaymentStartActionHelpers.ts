@@ -49,11 +49,14 @@ export async function resumeExistingCheckout(
   identity: TableGuestVisitIdentity,
   context: GuestPaymentStartOptions,
 ): Promise<StartCheckoutOutcome> {
-  try {
-    const status = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-    if (!context.isCurrentIdentity(identity)) return FAILED_START;
-    if (isTerminalGuestPayment(status.state) && !status.reconciliationRequired)
-      return { success: true, openUrl: null, recover: true, attemptId: status.attemptId };
+  const status = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor).then(
+    (checkoutStatus) => checkoutStatus,
+    () => null,
+  );
+  if (!context.isCurrentIdentity(identity)) return FAILED_START;
+  if (status && isTerminalGuestPayment(status.state) && !status.reconciliationRequired)
+    return { success: true, openUrl: null, recover: true, attemptId: status.attemptId };
+  if (status) {
     context.setCheckout(status);
     return {
       success: true,
@@ -61,10 +64,8 @@ export async function resumeExistingCheckout(
       recover: false,
       attemptId: null,
     };
-  } catch (_error) {
-    if (!context.isCurrentIdentity(identity)) return FAILED_START;
-    // This read is intentionally best-effort: the identical idempotent POST recovers a lost start response.
   }
+  // A failed status lookup falls through to the same idempotent request, which recovers a lost start response.
   return postOriginalStart(descriptor, identity, context);
 }
 

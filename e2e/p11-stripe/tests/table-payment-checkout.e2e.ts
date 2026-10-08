@@ -8,6 +8,7 @@ import { addThreeUnitRound, joinVisit, openTableVisit, openVisitContext, respons
 import { completeContribution, type PaymentChoice } from '../paymentCheckout';
 import { retainPaymentEvidence } from '../paymentEvidence';
 import { retainRefundEvidence } from '../refundEvidence';
+import { retainGuestStorageDiagnostics, type GuestStorageDiagnostic } from '../guestStorageDiagnostics';
 import type { AccountPaymentAccount } from '../../../src/types/accountPaymentAccount';
 import type { AccountPaymentOperation } from '../../../src/types/accountPayments';
 import type { GuestAccountPaymentOperation } from '../../../src/types/guestAccountPayments';
@@ -58,6 +59,7 @@ test('four phones settle one table through items, amount and equal shares, then 
 }) => {
   if (!baseURL) throw new Error('The dedicated local UI origin is unavailable.');
   const contexts: BrowserContext[] = [];
+  const guestStorageDiagnostics: GuestStorageDiagnostic[] = [];
   try {
     const table = await createTableAccountP11Fixture(p11Admin.accessToken);
     const server = await openVisitContext(browser, baseURL, p11Server);
@@ -91,6 +93,10 @@ test('four phones settle one table through items, amount and equal shares, then 
           amountMinor,
           choice === 'Items'
             ? {
+                expectedAppOrigin: new URL(baseURL).origin,
+                onStorageDiagnostic: (snapshot) => {
+                  guestStorageDiagnostics.push(snapshot);
+                },
                 afterQuote: async (guestOperation) => {
                   const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
                   expect(account.availableMinor).toBeGreaterThanOrEqual(amountMinor);
@@ -259,7 +265,11 @@ test('four phones settle one table through items, amount and equal shares, then 
       )
       .toBe(true);
   } finally {
-    for (const context of contexts) await context.close();
-    await closeDbPool();
+    try {
+      retainGuestStorageDiagnostics(guestStorageDiagnostics);
+    } finally {
+      for (const context of contexts) await context.close();
+      await closeDbPool();
+    }
   }
 });

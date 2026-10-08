@@ -5,7 +5,7 @@ import { rm } from 'node:fs/promises';
 import { request, test as base, type APIRequestContext, type TestInfo } from '@playwright/test';
 import { promoteE2EUser } from '../helpers/db';
 import { apiBaseUrl } from '../helpers/config';
-import { writeAuthStorageState } from '../helpers/storageState';
+import { resolveP11AuthDirectory, writeAuthStorageState } from '../helpers/storageState';
 
 export interface P11StaffUser {
   readonly email: string;
@@ -84,6 +84,7 @@ async function useRunOwnedStaffUser(
       },
       role: `p11-${role.toLowerCase()}`,
       slug: `${testInfo.workerIndex}-${randomUUID()}`,
+      authDirectory: resolveP11AuthDirectory(process.env),
     });
 
     await use({

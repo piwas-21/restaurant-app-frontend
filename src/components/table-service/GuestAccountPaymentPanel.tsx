@@ -39,7 +39,6 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
     account !== null &&
     account.limits.online !== null &&
     flow.canReplaceAttempt &&
-    !flow.planRecoveryBlocked &&
     !flow.storageUnavailable;
   const panelError = flow.error || flow.planRecoveryError;
   let panelErrorMessage = '';

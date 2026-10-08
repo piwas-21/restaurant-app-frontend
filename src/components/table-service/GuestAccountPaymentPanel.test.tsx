@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { GuestAccountPaymentOperation } from '@/types/guestAccountPayments';
 import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { useGuestAccountPaymentFlow } from '@/hooks/tableGuest/useGuestAccountPaymentFlow';
 import GuestAccountPaymentPanel from './GuestAccountPaymentPanel';
@@ -20,6 +21,23 @@ const attempt: GuestPaymentAttemptSummary = {
   startRequested: true,
   attemptId: null,
   createdAt: 1,
+};
+const paymentOperation: GuestAccountPaymentOperation = {
+  serviceSessionId: attempt.serviceSessionId,
+  operationId: attempt.operationId,
+  state: 'Processing',
+  version: 2,
+  expectedAccountRevision: 1,
+  mode: 'Amount',
+  paymentMethod: 'OnlinePayment',
+  amountMinor: 1250,
+  currency: 'CHF',
+  quoteExpiresAt: '2030-01-01T00:00:00Z',
+  reservedAt: null,
+  reservationExpiresAt: null,
+  equalSharePlanId: null,
+  equalShareOrdinal: null,
+  allocations: [],
 };
 
 function flowResult(overrides: Partial<ReturnType<typeof useGuestAccountPaymentFlow>> = {}) {
@@ -78,6 +96,31 @@ describe('GuestAccountPaymentPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'table_guest_payment_status' }));
     expect(currentFlow.refreshPaymentStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables checkout retry while returned-payment recovery is loading', () => {
+    const activeIdentity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    jest
+      .mocked(useGuestAccountPaymentFlow)
+      .mockReturnValue(flowResult({ operation: paymentOperation, isLoading: true }));
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={activeIdentity}
+        recoveryIdentity={activeIdentity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={returnedAttemptId}
+        returnHintPresent
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_retry_original' })).toBeDisabled();
   });
 
   it('shows the generic receipt-unavailable state for a saved attempt without a return hint', () => {

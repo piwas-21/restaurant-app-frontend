@@ -402,6 +402,7 @@ function matchesTerminalOperation(
     operation.serviceSessionId === identity.serviceSessionId &&
     operation.operationId === descriptor.operationId &&
     operation.operationId === checkout.operationId &&
+    operation.version === checkout.version &&
     operation.state === checkout.state &&
     isTerminalGuestPayment(operation.state)
   );

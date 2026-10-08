@@ -1408,6 +1408,41 @@ describe('useGuestAccountPaymentFlow', () => {
     expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
   });
 
+  it('does not publish a terminal receipt when its authoritative operation revision differs', async () => {
+    await saveStartedPaymentAttempt();
+    const staleOperation = operation('Captured', 2);
+    const capturedCheckout = { ...checkout(), state: 'Captured' as const, version: 3, receivedMinor: 1250 };
+    const capturedReceipt = {
+      attemptId: ATTEMPT_ID,
+      amountMinor: 1250,
+      currency: 'CHF',
+      state: 'Captured' as const,
+      receivedMinor: 1250,
+      refundedMinor: 0,
+      reconciliationRequired: false,
+      completedAt: '2030-01-01T00:00:00Z',
+      receiptExpiresAt: '2030-01-04T00:00:00Z',
+    };
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValue(staleOperation);
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockResolvedValue(capturedCheckout);
+    jest.mocked(guestAccountPaymentService.getReceipt).mockResolvedValue(capturedReceipt);
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    jest.mocked(guestAccountPaymentService.getOperation).mockClear();
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockClear();
+    jest.mocked(guestAccountPaymentService.getReceipt).mockClear();
+    await act(async () => {
+      expect(await result.current.refreshPaymentStatus()).toBe(true);
+    });
+
+    expect(guestAccountPaymentService.getOperation).toHaveBeenCalledTimes(2);
+    expect(result.current.operation).toBeNull();
+    expect(result.current.checkout).toBeNull();
+    expect(result.current.receipts).toEqual([]);
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
   it('does not expose a same-session prior participant receipt to the active participant return hint', async () => {
     const previousFingerprint = await fingerprintGuestParticipant(identity.participantToken);
     if (!previousFingerprint) throw new Error('test participant fingerprint is unavailable');

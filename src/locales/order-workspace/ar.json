@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "النقاط المستبعدة من المنح",
     "resolution_loyalty_missing": "النقاط الناقصة",
     "resolution_loyalty_shortfall_help": "لا توجد نقاط متاحة كافية للخصم. اطلب من المسؤول مراجعة الرصيد قبل التحقق من استرداد هذا المبلغ مرة أخرى.",
-    "resolution_loyalty_owner_unavailable_help": "سجل العميل الأصلي غير متاح. اطلب من المسؤول مراجعة هذه العملية قبل إعادة المحاولة."
+    "resolution_loyalty_owner_unavailable_help": "سجل العميل الأصلي غير متاح. اطلب من المسؤول مراجعة هذه العملية قبل إعادة المحاولة.",
+    "resolution_earning_candidate_points": "النقاط المرشحة",
+    "resolution_earning_disposition_unevaluated": "لم يتم تقييم النقاط عند قبول الطلب",
+    "resolution_earning_disposition_no_owner": "لم يكن هناك عميل مرتبط عند القبول",
+    "resolution_earning_disposition_loyalty_disabled": "كان برنامج الولاء معطلاً عند القبول",
+    "resolution_earning_disposition_unknown": "حالة النقاط غير متاحة",
+    "resolution_earning_retired": "تم إلغاء استحقاق النقاط بعد الإزالة الكاملة",
+    "resolution_earning_retirement_required": "هذا الطلب القديم لا يتضمن تقييماً للنقاط. أعدّ الإلغاء قبل مراجعة المبلغ المسترد.",
+    "resolution_prepare_earning_retirement": "إعداد إلغاء نقاط الولاء",
+    "resolution_earning_retirement_failed": "تعذر إعداد إلغاء النقاط. حدّث التفاصيل ثم حاول مجدداً."
   },
   "serverOrders": {
     "title": "الطلبات",

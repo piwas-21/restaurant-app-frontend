@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Punten uitgesloten van toekenning",
     "resolution_loyalty_missing": "Ontbrekende punten",
     "resolution_loyalty_shortfall_help": "Er zijn onvoldoende beschikbare punten voor de aftrek. Vraag een beheerder het saldo te controleren voordat u deze terugbetaling opnieuw controleert.",
-    "resolution_loyalty_owner_unavailable_help": "Het oorspronkelijke klantrecord is niet beschikbaar. Vraag een beheerder deze actie te beoordelen voordat u het opnieuw probeert."
+    "resolution_loyalty_owner_unavailable_help": "Het oorspronkelijke klantrecord is niet beschikbaar. Vraag een beheerder deze actie te beoordelen voordat u het opnieuw probeert.",
+    "resolution_earning_candidate_points": "Potentiële punten",
+    "resolution_earning_disposition_unevaluated": "Punten zijn niet geëvalueerd",
+    "resolution_earning_disposition_no_owner": "Geen klant gekoppeld bij acceptatie",
+    "resolution_earning_disposition_loyalty_disabled": "Loyaliteitsmodule uitgeschakeld bij acceptatie",
+    "resolution_earning_disposition_unknown": "Status van punten niet beschikbaar",
+    "resolution_earning_retired": "Puntentoekenning ingetrokken na volledige verwijdering",
+    "resolution_earning_retirement_required": "Deze oude bestelling heeft geen puntenevaluatie. Bereid de intrekking voor voordat u de terugbetaling beoordeelt.",
+    "resolution_prepare_earning_retirement": "Intrekking van punten voorbereiden",
+    "resolution_earning_retirement_failed": "Intrekking van punten kon niet worden voorbereid. Vernieuw de gegevens en probeer opnieuw."
   },
   "serverOrders": {
     "title": "Bestellingen",

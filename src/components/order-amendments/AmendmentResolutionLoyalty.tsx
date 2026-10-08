@@ -19,6 +19,13 @@ const stateCopy: Record<AmendmentResolutionLoyaltyResult['state'], string> = {
   Resolved: 'orderAmendments.resolution_loyalty_resolved',
 };
 
+const earningDispositionCopy: Record<NonNullable<AmendmentResolutionLoyaltyQuote['earningDisposition']>, string> = {
+  Unevaluated: 'orderAmendments.resolution_earning_disposition_unevaluated',
+  Evaluated: 'orderAmendments.resolution_earning_disposition_unknown',
+  NoCustomerOwnerAtAcceptance: 'orderAmendments.resolution_earning_disposition_no_owner',
+  LoyaltyModuleDisabledAtAcceptance: 'orderAmendments.resolution_earning_disposition_loyalty_disabled',
+};
+
 interface Props {
   readonly value?: AmendmentResolutionLoyaltyQuote | AmendmentResolutionLoyaltyResult | null;
 }
@@ -28,11 +35,23 @@ export default function AmendmentResolutionLoyalty({ value }: Props) {
   if (!value) return null;
   const result = 'state' in value ? value : null;
   const held = result?.state === 'HeldShortfall' || result?.state === 'OwnerUnavailable';
+  const points = (count: number) =>
+    t('amendment_loyalty_points', { count: count, amount: count.toLocaleString(i18n.language || 'en') });
+  const candidate =
+    value.earningRetired || value.candidatePoints === null
+      ? {
+          state: value.earningRetired
+            ? t('orderAmendments.resolution_earning_retired')
+            : t(
+                value.earningDisposition
+                  ? earningDispositionCopy[value.earningDisposition]
+                  : 'orderAmendments.resolution_earning_disposition_unknown',
+              ),
+        }
+      : { points: points(value.candidatePoints) };
   let tone: StatusBadgeTone = 'neutral';
   if (result?.state === 'Resolved') tone = 'success';
   else if (held) tone = 'warning';
-  const points = (count: number) =>
-    t('amendment_loyalty_points', { count: count, amount: count.toLocaleString(i18n.language || 'en') });
   return (
     <section className={styles.cashRefund} aria-label={t('orderAmendments.loyalty')}>
       <h4>{t('orderAmendments.loyalty')}</h4>
@@ -51,6 +70,16 @@ export default function AmendmentResolutionLoyalty({ value }: Props) {
         </p>
       )}
       <dl className={styles.amounts}>
+        <div>
+          <dt>{t('orderAmendments.resolution_earning_candidate_points')}</dt>
+          <dd>
+            {'state' in candidate ? (
+              <StatusBadge tone="neutral">{candidate.state}</StatusBadge>
+            ) : (
+              <bdi>{candidate.points}</bdi>
+            )}
+          </dd>
+        </div>
         <div>
           <dt>{t('orderAmendments.resolution_loyalty_deduct')}</dt>
           <dd>

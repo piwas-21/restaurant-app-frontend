@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Kazanımdan çıkarılan puanlar",
     "resolution_loyalty_missing": "Eksik puanlar",
     "resolution_loyalty_shortfall_help": "Düşülecek tutar için kullanılabilir puan yetersiz. Bu iadeyi yeniden kontrol etmeden önce bir yöneticiden puan bakiyesini incelemesini isteyin.",
-    "resolution_loyalty_owner_unavailable_help": "Asıl müşteri kaydı kullanılamıyor. Yeniden denemeden önce bir yöneticiden bu işlemi incelemesini isteyin."
+    "resolution_loyalty_owner_unavailable_help": "Asıl müşteri kaydı kullanılamıyor. Yeniden denemeden önce bir yöneticiden bu işlemi incelemesini isteyin.",
+    "resolution_earning_candidate_points": "Aday puanlar",
+    "resolution_earning_disposition_unevaluated": "Sipariş kabul edilirken puan değerlendirmesi yapılmadı",
+    "resolution_earning_disposition_no_owner": "Kabul sırasında müşteri hesabı yoktu",
+    "resolution_earning_disposition_loyalty_disabled": "Kabul sırasında sadakat modülü kapalıydı",
+    "resolution_earning_disposition_unknown": "Puan durumu kullanılamıyor",
+    "resolution_earning_retired": "Tam kaldırma sonrası puan kazanımı kapatıldı",
+    "resolution_earning_retirement_required": "Bu eski siparişte puan değerlendirmesi bulunmuyor. İadeyi incelemeden önce puan kazanımını kapatın.",
+    "resolution_prepare_earning_retirement": "Eski puan kaydını kapat",
+    "resolution_earning_retirement_failed": "Puan kaydı kapatılamadı. Ayrıntıları yenileyip tekrar deneyin."
   },
   "serverOrders": {
     "title": "Siparişler",

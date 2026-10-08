@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Points exclus de l’attribution",
     "resolution_loyalty_missing": "Points manquants",
     "resolution_loyalty_shortfall_help": "Les points disponibles sont insuffisants pour la déduction. Demandez à un administrateur de vérifier le solde avant de vérifier à nouveau ce remboursement.",
-    "resolution_loyalty_owner_unavailable_help": "Le dossier du client d’origine est indisponible. Demandez à un administrateur de vérifier cette opération avant de réessayer."
+    "resolution_loyalty_owner_unavailable_help": "Le dossier du client d’origine est indisponible. Demandez à un administrateur de vérifier cette opération avant de réessayer.",
+    "resolution_earning_candidate_points": "Points candidats",
+    "resolution_earning_disposition_unevaluated": "Les points n’ont pas été évalués",
+    "resolution_earning_disposition_no_owner": "Aucun client associé lors de l’acceptation",
+    "resolution_earning_disposition_loyalty_disabled": "Programme de fidélité désactivé lors de l’acceptation",
+    "resolution_earning_disposition_unknown": "Statut des points indisponible",
+    "resolution_earning_retired": "Points retirés après la suppression complète",
+    "resolution_earning_retirement_required": "Cette ancienne commande ne contient aucune évaluation des points. Préparez leur retrait avant d’examiner le remboursement.",
+    "resolution_prepare_earning_retirement": "Préparer le retrait des points de fidélité",
+    "resolution_earning_retirement_failed": "Impossible de préparer le retrait des points. Actualisez les détails et réessayez."
   },
   "serverOrders": {
     "title": "Commandes",

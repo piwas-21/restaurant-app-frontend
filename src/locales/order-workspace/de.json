@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Von der Vergabe ausgeschlossene Punkte",
     "resolution_loyalty_missing": "Fehlende Punkte",
     "resolution_loyalty_shortfall_help": "Es sind nicht genügend Punkte für den Abzug verfügbar. Lassen Sie den Punktestand von einem Administrator prüfen, bevor Sie diese Erstattung erneut prüfen.",
-    "resolution_loyalty_owner_unavailable_help": "Der ursprüngliche Kundendatensatz ist nicht verfügbar. Lassen Sie diesen Vorgang vor einem erneuten Versuch von einem Administrator prüfen."
+    "resolution_loyalty_owner_unavailable_help": "Der ursprüngliche Kundendatensatz ist nicht verfügbar. Lassen Sie diesen Vorgang vor einem erneuten Versuch von einem Administrator prüfen.",
+    "resolution_earning_candidate_points": "Voraussichtliche Punkte",
+    "resolution_earning_disposition_unevaluated": "Punktevergabe wurde nicht ausgewertet",
+    "resolution_earning_disposition_no_owner": "Kein Kundenkonto zum Zeitpunkt der Annahme",
+    "resolution_earning_disposition_loyalty_disabled": "Treueprogramm war zum Zeitpunkt der Annahme deaktiviert",
+    "resolution_earning_disposition_unknown": "Status der Punktevergabe nicht verfügbar",
+    "resolution_earning_retired": "Punktevergabe nach vollständiger Stornierung zurückgezogen",
+    "resolution_earning_retirement_required": "Für diese ältere Bestellung liegt keine Punkteauswertung vor. Bereiten Sie die Zurückziehung vor, bevor Sie die Erstattung prüfen.",
+    "resolution_prepare_earning_retirement": "Punkte-Rücknahme vorbereiten",
+    "resolution_earning_retirement_failed": "Die Punkte-Rücknahme konnte nicht vorbereitet werden. Aktualisieren Sie die Details und versuchen Sie es erneut."
   },
   "serverOrders": {
     "title": "Bestellungen",

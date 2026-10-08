@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Points excluded from award",
     "resolution_loyalty_missing": "Missing points",
     "resolution_loyalty_shortfall_help": "Not enough available points to deduct. Ask an administrator to review the balance before checking this refund again.",
-    "resolution_loyalty_owner_unavailable_help": "The original customer record is unavailable. Ask an administrator to review this operation before retrying."
+    "resolution_loyalty_owner_unavailable_help": "The original customer record is unavailable. Ask an administrator to review this operation before retrying.",
+    "resolution_earning_candidate_points": "Candidate points",
+    "resolution_earning_disposition_unevaluated": "Earning was not evaluated",
+    "resolution_earning_disposition_no_owner": "No customer owner at acceptance",
+    "resolution_earning_disposition_loyalty_disabled": "Loyalty was disabled at acceptance",
+    "resolution_earning_disposition_unknown": "Earning disposition unavailable",
+    "resolution_earning_retired": "Earning retired after full removal",
+    "resolution_earning_retirement_required": "This legacy order has no earning evaluation. Prepare retirement before reviewing its refund.",
+    "resolution_prepare_earning_retirement": "Prepare loyalty retirement",
+    "resolution_earning_retirement_failed": "Earning retirement could not be prepared. Refresh the details and try again."
   },
   "serverOrders": {
     "title": "Orders",

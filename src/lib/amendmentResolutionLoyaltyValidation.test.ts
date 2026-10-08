@@ -119,6 +119,125 @@ describe('loyalty evidence in amendment recovery', () => {
     });
   });
 
+  it('preserves a known-ineligible earning as null while allowing proven redemption restoration', () => {
+    const { pending, result } = evidence();
+    const unevaluated = {
+      ...reviewed,
+      candidatePoints: null,
+      earningDisposition: 'NoCustomerOwnerAtAcceptance' as const,
+      earningRetired: false,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+      redemptionRestorationPoints: 6,
+    };
+    pending.reviewedQuote.loyalty = unevaluated;
+    result.loyalty = {
+      ...result.loyalty!,
+      ...unevaluated,
+      state: 'Resolved',
+      postedClawbackPoints: 0,
+      postedRestorationPoints: 6,
+      availablePointsBeforeClawback: null,
+      clawbackShortfallPoints: null,
+    };
+    delete (result.loyalty as Partial<AmendmentResolutionLoyaltyQuote>).removedUnitCount;
+
+    expect(validateResolutionResult(result, pending).loyalty).toMatchObject({
+      candidatePoints: null,
+      earningDisposition: 'NoCustomerOwnerAtAcceptance',
+      earningRetired: false,
+      earnedClawbackPoints: 0,
+      postedRestorationPoints: 6,
+    });
+  });
+
+  it('preserves retired unknown earning as null while allowing proven redemption restoration', () => {
+    const { pending, result } = evidence();
+    const retired = {
+      ...reviewed,
+      candidatePoints: null,
+      earningDisposition: 'Unevaluated' as const,
+      earningRetired: true,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+      redemptionRestorationPoints: 6,
+    };
+    pending.reviewedQuote.loyalty = retired;
+    result.loyalty = {
+      ...result.loyalty!,
+      ...retired,
+      state: 'Resolved',
+      postedClawbackPoints: 0,
+      postedRestorationPoints: 6,
+      availablePointsBeforeClawback: null,
+      clawbackShortfallPoints: null,
+    };
+    delete (result.loyalty as Partial<AmendmentResolutionLoyaltyQuote>).removedUnitCount;
+
+    expect(validateResolutionResult(result, pending).loyalty).toMatchObject({
+      candidatePoints: null,
+      earningDisposition: 'Unevaluated',
+      earningRetired: true,
+      earnedClawbackPoints: 0,
+      postedRestorationPoints: 6,
+    });
+  });
+
+  it.each([
+    ['applied award', { appliedAwardPoints: 1 }],
+    ['suppressed award', { suppressedPoints: 1 }],
+    ['earned clawback', { earnedClawbackPoints: 1 }],
+    ['evaluated disposition', { earningDisposition: 'Evaluated' as const }],
+    ['unretired unknown earning', { earningDisposition: 'Unevaluated' as const, earningRetired: false }],
+    [
+      'retirement of known ineligibility',
+      { earningDisposition: 'NoCustomerOwnerAtAcceptance' as const, earningRetired: true },
+    ],
+  ])('rejects null candidate evidence with invalid %s', (_label, override) => {
+    const { pending } = evidence();
+    pending.reviewedQuote.loyalty = {
+      ...reviewed,
+      candidatePoints: null,
+      earningDisposition: 'NoCustomerOwnerAtAcceptance',
+      earningRetired: false,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+      ...override,
+    };
+    expect(() => validatePendingResolution(pending)).toThrow('AmendmentResolutionEvidenceMismatch');
+  });
+
+  it('retains resolution when immutable earning disposition or retirement evidence changes', () => {
+    const { pending, result } = evidence();
+    pending.reviewedQuote.loyalty = {
+      ...reviewed,
+      candidatePoints: null,
+      earningDisposition: 'Unevaluated',
+      earningRetired: true,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+    };
+    result.loyalty = {
+      ...result.loyalty!,
+      candidatePoints: null,
+      earningDisposition: 'Unevaluated',
+      earningRetired: true,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+      state: 'Resolved',
+      postedClawbackPoints: 0,
+    };
+    delete (result.loyalty as Partial<AmendmentResolutionLoyaltyQuote>).removedUnitCount;
+    expect(validateResolutionResult(result, pending).state).toBe('Resolved');
+    result.loyalty.earningRetired = false;
+    expect(() => validateResolutionResult(result, pending)).toThrow('AmendmentResolutionEvidenceMismatch');
+  });
+
   it('refuses a response that drops new loyalty evidence and malformed point values', () => {
     const { pending, result } = evidence();
     result.loyalty = null;

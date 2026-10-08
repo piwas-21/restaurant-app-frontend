@@ -15,6 +15,7 @@ const context: AmendmentResolutionContext = {
   amendmentId: AMENDMENT,
   expectedOrderVersion: 7,
   expectedAccountRevision: null,
+  earningRetirementRequired: false,
   currency: 'CHF',
   creditMinor: 333,
   manualRefundCandidates: [{ paymentId: PAYMENT, paymentMethod: 'Cash', availableMinor: 500 }],

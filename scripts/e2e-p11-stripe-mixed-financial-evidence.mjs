@@ -36,13 +36,19 @@ function validateAttempt(value, role, sessionId, selectedAccountId) {
     amount,
   };
   if (role === 'online') {
+    // This checkout journal is a cached reconciliation snapshot. The later connected-account GETs
+    // below prove the canonical refund total; a stale lower journal value is valid, but an
+    // impossible/malformed amount or one above the captured contribution is not.
+    const cachedRefundedMinor = value.provider_refunded_minor;
     requireEvidence(
       value.payment_method === 'OnlinePayment' &&
         value.actor_kind === 'GuestParticipant' &&
         value.provider_account_id === selectedAccountId &&
         value.provider_live_mode === false &&
         value.provider_captured_minor === String(amount) &&
-        value.provider_refunded_minor === String(amount) &&
+        typeof cachedRefundedMinor === 'string' &&
+        /^(0|[1-9]\d{0,18})$/.test(cachedRefundedMinor) &&
+        BigInt(cachedRefundedMinor) <= BigInt(amount) &&
         value.reconciliation_required === false,
     );
     return {

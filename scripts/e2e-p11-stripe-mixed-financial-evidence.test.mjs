@@ -375,6 +375,37 @@ test('proves the exact same-unit mixed tender split and linked Stripe refund wit
   );
 });
 
+test('accepts lower cached checkout refund snapshots only with the independent exact succeeded Stripe refund', async (t) => {
+  for (const cachedRefundedMinor of ['0', '250']) {
+    const current = await fixture(t);
+    mutateEvidence(current.evidencePath, (value) => {
+      value.expectedAttempts.find((attempt) => attempt.role === 'online').provider_refunded_minor = cachedRefundedMinor;
+    });
+    const calls = [];
+    const proof = await verify(current, makeReader(current, calls));
+    assert.equal(proof.stripeRefundMinor, 501);
+    assert.equal(proof.netUnsettledMinor, 0);
+    assert.equal(mixedTenderRunEvidenceFields(proof).providerCleanupVerified, true);
+    assert.equal(calls.length, 4);
+    assert.equal(
+      calls.some((call) => call.resource.startsWith('/v1/refunds?')),
+      true,
+    );
+  }
+});
+
+test('rejects impossible or malformed cached checkout refund snapshots before provider reads', async (t) => {
+  for (const cachedRefundedMinor of ['502', '9223372036854775808', '-1', 'not-a-number', null]) {
+    const current = await fixture(t);
+    mutateEvidence(current.evidencePath, (value) => {
+      value.expectedAttempts.find((attempt) => attempt.role === 'online').provider_refunded_minor = cachedRefundedMinor;
+    });
+    const calls = [];
+    await assert.rejects(() => verify(current, makeReader(current, calls)));
+    assert.equal(calls.length, 0);
+  }
+});
+
 test('rejects a different source unit before any provider read', async (t) => {
   const current = await fixture(t);
   mutateEvidence(current.evidencePath, (value) => {

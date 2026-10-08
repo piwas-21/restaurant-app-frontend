@@ -26,6 +26,7 @@ interface RefundEvidence {
   readonly account_payment_attempt_id: string;
   readonly amount_minor: string;
   readonly currency: string;
+  readonly provider_observation_currency: string;
   readonly state: string;
   readonly custody: string;
   readonly provider_refund_id: string;
@@ -85,13 +86,14 @@ export async function retainRefundEvidence(
   expect(legs.rows).toEqual([{ count: '4', amount_minor: '4500', all_succeeded: true }]);
   const result = await pool.query<RefundEvidence>(
     `SELECT l.operation_id, l.id AS refund_leg_id, e.refund_attempt_id,
-       l.account_payment_attempt_id, l.amount_minor, l.currency, l.state, l.custody,
+       l.account_payment_attempt_id, l.amount_minor, l.currency,
+       e.currency AS provider_observation_currency, l.state, l.custody,
        e.provider_refund_id, e.provider_refund_status, e.provider_charge_id,
        e.provider_intent_id, e.provider_account_id, e.provider_live_mode
      FROM order_amendment_refund_legs l
      JOIN order_amendment_refund_evidence e ON e.refund_leg_id = l.id
        AND e.kind = 'ProviderObservation' AND e.state = 'Succeeded'
-       AND e.amount_minor = l.amount_minor AND e.currency = l.currency
+       AND e.amount_minor = l.amount_minor
        AND e.provider_charge_id = l.provider_charge_id
        AND e.provider_intent_id = l.provider_intent_id
        AND e.provider_account_id = l.provider_account_id
@@ -100,11 +102,15 @@ export async function retainRefundEvidence(
     [operation.rows[0].id],
   );
   expect(result.rows).toHaveLength(4);
-  expect(new Set(result.rows.map((value) => value.account_payment_attempt_id)).size).toBe(4);
-  expect(new Set(result.rows.map((value) => value.provider_refund_id)).size).toBe(4);
-  expect(result.rows.map((value) => Number(value.amount_minor)).sort((a, b) => a - b)).toEqual([501, 1249, 1250, 1500]);
+  const refundLegs = result.rows.map(({ provider_observation_currency, ...row }) => {
+    expect(provider_observation_currency.toUpperCase()).toBe(row.currency);
+    return row;
+  });
+  expect(new Set(refundLegs.map((value) => value.account_payment_attempt_id)).size).toBe(4);
+  expect(new Set(refundLegs.map((value) => value.provider_refund_id)).size).toBe(4);
+  expect(refundLegs.map((value) => Number(value.amount_minor)).sort((a, b) => a - b)).toEqual([501, 1249, 1250, 1500]);
   expect(capturedAttempts).toHaveLength(4);
-  for (const row of result.rows) {
+  for (const row of refundLegs) {
     const captured = capturedAttempts.find((value) => value.attempt_id === row.account_payment_attempt_id);
     expect(captured).toBeDefined();
     expect(row).toMatchObject({
@@ -128,6 +134,6 @@ export async function retainRefundEvidence(
   writePrivateStripeBrowserEvidence(
     artifactIdentity,
     'refund-evidence.json',
-    JSON.stringify({ operation: operation.rows[0], refundLegs: result.rows }, null, 2),
+    JSON.stringify({ operation: operation.rows[0], refundLegs }, null, 2),
   );
 }

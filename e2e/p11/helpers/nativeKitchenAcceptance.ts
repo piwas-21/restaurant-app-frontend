@@ -81,23 +81,33 @@ async function responseData<T>(response: P11Response, label: string): Promise<T>
   return body.data;
 }
 
+interface NativeKitchenCursors {
+  readonly orders: string | null;
+  readonly corrections: string | null;
+  readonly completions: string | null;
+}
+
+function nativeKitchenFeedPath(cursors: NativeKitchenCursors): string {
+  const query = new URLSearchParams({ pageSize: '100' });
+  if (cursors.orders) query.set('ordersCursor', cursors.orders);
+  if (cursors.corrections) query.set('correctionsCursor', cursors.corrections);
+  if (cursors.completions) query.set('completionsCursor', cursors.completions);
+  return `/api/staff/kitchen-board/work?${query.toString()}`;
+}
+
 /** Drains each protected work stream while replaying every current stream cursor unchanged. */
 export async function readNativeKitchenSnapshot(api: APIRequestContext): Promise<NativeKitchenSnapshot> {
   const orders = new Map<string, KitchenBoardOrder>();
   const corrections = new Map<string, KitchenBoardCorrection>();
   const completions = new Map<string, KitchenBoardCompletion>();
-  let cursors: { orders: string | null; corrections: string | null; completions: string | null } = {
+  let cursors: NativeKitchenCursors = {
     orders: null,
     corrections: null,
     completions: null,
   };
 
   for (let page = 0; page < 50; page += 1) {
-    const query = new URLSearchParams({ pageSize: '100' });
-    if (cursors.orders) query.set('ordersCursor', cursors.orders);
-    if (cursors.corrections) query.set('correctionsCursor', cursors.corrections);
-    if (cursors.completions) query.set('completionsCursor', cursors.completions);
-    const response = await api.get(`/api/staff/kitchen-board/work?${query.toString()}`);
+    const response = await api.get(nativeKitchenFeedPath(cursors));
     const feed = await responseData<KitchenBoardWorkFeed>(response, 'native kitchen work feed');
 
     for (const order of feed.orders.items) orders.set(order.orderId.toLowerCase(), order);

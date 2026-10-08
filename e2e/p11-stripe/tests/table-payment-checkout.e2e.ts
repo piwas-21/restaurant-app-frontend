@@ -245,7 +245,15 @@ test('four phones settle one table through items, amount and equal shares, then 
     await expect(closeAmendment).toHaveCount(1);
     await closeAmendment.click();
     await admin.page.reload();
-    await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
+    const history = admin.page.getByRole('region', { name: 'Amendment history', exact: true });
+    await expect(history).toHaveCount(1);
+    const historyDisclosure = history.locator(':scope > details');
+    await expect(historyDisclosure).toHaveCount(1);
+    const historySummary = historyDisclosure.locator(':scope > summary');
+    await expect(historySummary).toHaveCount(1);
+    await historySummary.click();
+    await expect(historyDisclosure).toHaveAttribute('open', '');
+    await history.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
     const correction = admin.page.getByRole('dialog', { name: 'Payment correction', exact: true });
     const quote = await responseData<{ refundMinor: number; refundLegs: readonly { amountMinor: number }[] }>(
       admin.page,

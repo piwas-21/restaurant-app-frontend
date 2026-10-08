@@ -2,6 +2,11 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { expect } from '@playwright/test';
 import { getE2EDbPool } from '../helpers/db';
+import { assertPaymentAttemptActors } from './paymentEvidenceActorChecks';
+import type { CapturedAttempt, StoredAttemptActor } from './paymentEvidenceActorChecks';
+
+export { assertPaymentAttemptActors } from './paymentEvidenceActorChecks';
+export type { CapturedAttempt, StoredAttemptActor } from './paymentEvidenceActorChecks';
 
 const require = createRequire(path.resolve('e2e/p11-stripe/paymentEvidence.ts'));
 const { resolvePrivateStripeBrowserArtifactDirectory, writePrivateStripeBrowserSnapshot } =
@@ -17,13 +22,6 @@ const { resolvePrivateStripeBrowserArtifactDirectory, writePrivateStripeBrowserS
       contents: string,
     ) => void;
   };
-
-interface CapturedAttempt {
-  readonly attemptId: string;
-  readonly operationId: string;
-  readonly mode: string;
-  readonly amountMinor: number;
-}
 
 export interface StoredAttempt {
   readonly attempt_id: string;
@@ -47,6 +45,7 @@ export async function retainPaymentEvidence(
   sessionId: string,
   attempts: readonly CapturedAttempt[],
   refunded: boolean,
+  releasedCashierOperationId: string,
 ) {
   const artifactIdentity = {
     evidenceRoot: process.env.P11_STRIPE_EVIDENCE_ROOT ?? '',
@@ -84,17 +83,15 @@ export async function retainPaymentEvidence(
     expect(row?.provider_intent_id).toMatch(/^pi_[A-Za-z0-9]+$/);
     expect(row?.provider_charge_id).toMatch(/^ch_[A-Za-z0-9]+$/);
   }
-  const actors = await getE2EDbPool().query<{ attempt_id: string; actor_id: string; actor_kind: string }>(
-    `SELECT id AS attempt_id, actor_id, actor_kind FROM account_payment_attempts
-     WHERE service_session_id = $1 ORDER BY created_at, id`,
+  const actors = await getE2EDbPool().query<StoredAttemptActor>(
+    `SELECT a.id AS attempt_id, a.operation_id, a.actor_id, a.actor_kind, a.state,
+       j.attempt_id AS journal_attempt_id
+     FROM account_payment_attempts a
+     LEFT JOIN account_checkout_journals j ON j.attempt_id = a.id
+     WHERE a.service_session_id = $1 ORDER BY a.created_at, a.id`,
     [sessionId],
   );
-  expect(actors.rows).toHaveLength(attempts.length);
-  expect(new Set(actors.rows.map((value) => value.actor_id)).size).toBe(attempts.length);
-  for (const row of actors.rows) {
-    expect(row.actor_kind).toBe('GuestParticipant');
-    expect(attempts.some((value) => value.attemptId === row.attempt_id)).toBe(true);
-  }
+  assertPaymentAttemptActors(actors.rows, attempts, releasedCashierOperationId);
   writePrivateStripeBrowserSnapshot(
     artifactIdentity,
     refunded ? 'refunded-attempts.json' : 'captured-attempts.json',

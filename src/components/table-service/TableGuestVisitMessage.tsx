@@ -24,7 +24,7 @@ export default function TableGuestVisitMessage({
 }>) {
   const { t } = useTranslation();
   return (
-    <main className={styles.workspace}>
+    <section>
       <h1 className={styles.title}>{title}</h1>
       <p className={styles.muted}>{detail}</p>
       {onRetry && (
@@ -45,6 +45,6 @@ export default function TableGuestVisitMessage({
           {t('table_guest_back_to_menu')}
         </Link>
       )}
-    </main>
+    </section>
   );
 }

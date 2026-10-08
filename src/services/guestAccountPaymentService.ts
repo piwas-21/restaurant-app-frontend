@@ -27,13 +27,13 @@ import {
 import { retryGuestAccountPaymentQuote } from './guestAccountPaymentQuoteRetryService';
 
 const RECEIPT_HEADER = 'X-Account-Payment-Receipt';
-
 export async function getGuestAccountPaymentAccount(
   identity: TableGuestVisitIdentity,
+  signal?: AbortSignal,
 ): Promise<GuestAccountPaymentAccount> {
   const response = await apiClient.get<ApiResponse<unknown>>(
     guestPaymentPath(identity.serviceSessionId),
-    participantPaymentRequestOptions(identity),
+    participantPaymentRequestOptions(identity, signal),
   );
   return readAccountResponse(response, identity);
 }
@@ -79,11 +79,12 @@ export async function getGuestEqualSharePlan(identity: TableGuestVisitIdentity, 
 export async function getGuestAccountPaymentOperation(
   identity: TableGuestVisitIdentity,
   descriptor: GuestAccountPaymentAttemptDescriptor,
+  signal?: AbortSignal,
 ) {
   await requireGuestPaymentOwner(identity, descriptor);
   const response = await apiClient.get<ApiResponse<unknown>>(
     `${guestPaymentPath(identity.serviceSessionId)}/operations/${encodeURIComponent(descriptor.operationId)}`,
-    participantPaymentRequestOptions(identity),
+    participantPaymentRequestOptions(identity, signal),
   );
   return readOperationResponse(response, descriptor);
 }
@@ -123,11 +124,12 @@ function checkoutPath(identity: TableGuestVisitIdentity, operationId: string): s
 export async function getGuestCheckoutStatus(
   identity: TableGuestVisitIdentity,
   descriptor: GuestAccountPaymentAttemptDescriptor,
+  signal?: AbortSignal,
 ) {
   await requireGuestPaymentOwner(identity, descriptor);
   const response = await apiClient.get<ApiResponse<unknown>>(
     checkoutPath(identity, descriptor.operationId),
-    participantPaymentRequestOptions(identity),
+    participantPaymentRequestOptions(identity, signal),
   );
   return readCheckoutResponse(response, descriptor);
 }
@@ -168,10 +170,11 @@ export async function getGuestPaymentReceipt(
   attemptId: string,
   receiptCredential: string,
   descriptor: GuestAccountPaymentAttemptDescriptor,
+  signal?: AbortSignal,
 ) {
   const response = await apiClient.get<ApiResponse<unknown>>(
     `/api/account-payment-receipts/${encodeURIComponent(attemptId)}`,
-    guestPaymentRequestOptions({ [RECEIPT_HEADER]: receiptCredential }),
+    guestPaymentRequestOptions({ [RECEIPT_HEADER]: receiptCredential }, signal),
   );
   return readReceiptResponse(response, attemptId, descriptor);
 }

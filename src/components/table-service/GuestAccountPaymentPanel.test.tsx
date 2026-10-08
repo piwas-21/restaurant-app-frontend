@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { GuestAccountPaymentOperation } from '@/types/guestAccountPayments';
 import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { useGuestAccountPaymentFlow } from '@/hooks/tableGuest/useGuestAccountPaymentFlow';
 import GuestAccountPaymentPanel from './GuestAccountPaymentPanel';
@@ -21,6 +22,23 @@ const attempt: GuestPaymentAttemptSummary = {
   attemptId: null,
   createdAt: 1,
 };
+const paymentOperation: GuestAccountPaymentOperation = {
+  serviceSessionId: attempt.serviceSessionId,
+  operationId: attempt.operationId,
+  state: 'Processing',
+  version: 2,
+  expectedAccountRevision: 1,
+  mode: 'Amount',
+  paymentMethod: 'OnlinePayment',
+  amountMinor: 1250,
+  currency: 'CHF',
+  quoteExpiresAt: '2030-01-01T00:00:00Z',
+  reservedAt: null,
+  reservationExpiresAt: null,
+  equalSharePlanId: null,
+  equalShareOrdinal: null,
+  allocations: [],
+};
 
 function flowResult(overrides: Partial<ReturnType<typeof useGuestAccountPaymentFlow>> = {}) {
   return {
@@ -30,6 +48,8 @@ function flowResult(overrides: Partial<ReturnType<typeof useGuestAccountPaymentF
     checkout: null,
     receipts: [],
     isLoading: false,
+    isRecoveryPolling: false,
+    isCancellationWorking: false,
     isAccountLoading: false,
     isWorking: false,
     storageUnavailable: false,
@@ -78,6 +98,140 @@ describe('GuestAccountPaymentPanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'table_guest_payment_status' }));
     expect(currentFlow.refreshPaymentStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables receipt-only recovery while a returned attempt is already loading', () => {
+    const currentFlow = flowResult({ isLoading: true });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    renderPanel();
+
+    const statusButton = screen.getByRole('button', { name: 'table_guest_payment_status' });
+    expect(statusButton).toBeDisabled();
+    fireEvent.click(statusButton);
+    expect(currentFlow.refreshPaymentStatus).not.toHaveBeenCalled();
+  });
+
+  it('disables quote continuation and release while payment state is loading', () => {
+    const currentFlow = flowResult({
+      attempt: { ...attempt, startRequested: false },
+      operation: { ...paymentOperation, state: 'Quoted', version: 1 },
+      isLoading: true,
+    });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    renderPanel();
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_continue' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'table_guest_payment_release' })).toBeDisabled();
+  });
+
+  it('disables plan recovery while payment state is loading', () => {
+    const currentFlow = flowResult({
+      pendingPlanIntent: {
+        serviceSessionId: attempt.serviceSessionId,
+        participantFingerprint: 'participant-fingerprint',
+        operationId: attempt.operationId,
+        expectedAccountRevision: 1,
+        shareCount: 2,
+        supersedesPlanId: null,
+        createdAt: 1,
+      },
+      isLoading: true,
+    });
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(currentFlow);
+    const identity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={identity}
+        recoveryIdentity={identity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={null}
+        returnHintPresent={false}
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_status' })).toBeDisabled();
+  });
+
+  it('disables checkout retry while returned-payment recovery is loading', () => {
+    const activeIdentity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    jest
+      .mocked(useGuestAccountPaymentFlow)
+      .mockReturnValue(flowResult({ operation: paymentOperation, isLoading: true }));
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={activeIdentity}
+        recoveryIdentity={activeIdentity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={returnedAttemptId}
+        returnHintPresent
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'table_guest_payment_retry_original' })).toBeDisabled();
+  });
+
+  it('keeps retry and manual status blocked during polling while allowing cancellation', () => {
+    const requestCancellation = jest.fn().mockResolvedValue(true);
+    const activeIdentity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(
+      flowResult({
+        operation: paymentOperation,
+        checkout: {
+          attemptId: returnedAttemptId,
+          operationId: attempt.operationId,
+          state: 'Processing',
+          version: 2,
+          amountMinor: 1250,
+          currency: 'CHF',
+          expiresAt: '2030-01-01T00:10:00Z',
+          checkoutUrl: null,
+          reconciliationRequired: false,
+          receivedMinor: 0,
+          refundedMinor: 0,
+        },
+        isRecoveryPolling: true,
+        requestCancellation,
+      }),
+    );
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={activeIdentity}
+        recoveryIdentity={activeIdentity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={returnedAttemptId}
+        returnHintPresent
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    const statusButton = screen.getByRole('button', { name: 'table_guest_payment_status' });
+    const cancelButton = screen.getByRole('button', { name: 'table_guest_payment_cancel' });
+    expect(statusButton).toBeDisabled();
+    expect(cancelButton).toBeEnabled();
+    fireEvent.click(statusButton);
+    fireEvent.click(cancelButton);
+    expect(requestCancellation).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'table_guest_payment_retry_original' })).not.toBeInTheDocument();
   });
 
   it('shows the generic receipt-unavailable state for a saved attempt without a return hint', () => {

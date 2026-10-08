@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import type {
   GuestAccountCheckoutStatus,
@@ -10,24 +10,23 @@ import type {
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
-import {
-  removeGuestAccountPaymentAttempt,
-  saveGuestAccountPaymentAttempt,
-  withCheckoutAttempt,
-} from '@/services/guestAccountPaymentStorage';
+import { removeGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
+import type { GuestPaymentRecoveryTarget } from './guestPaymentRecoveryHelpers';
 
 interface CheckoutActionOptions {
   readonly activeIdentity: TableGuestVisitIdentity | null;
   readonly returnAttemptId: string | null;
-  readonly newPaymentsEnabled: boolean;
   readonly descriptorRef: { current: GuestAccountPaymentAttemptDescriptor | null };
   readonly operation: GuestAccountPaymentOperation | null;
   readonly checkout: GuestAccountCheckoutStatus | null;
+  readonly isRecoveryPolling: boolean;
+  readonly stopRecoveryPolling: () => boolean;
+  readonly waitForWorkIdle: () => Promise<void>;
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
   readonly publishDescriptor: (descriptor: GuestAccountPaymentAttemptDescriptor | null) => void;
-  readonly fetchReceipt: (descriptor: GuestAccountPaymentAttemptDescriptor, attemptId: string) => Promise<unknown>;
+  readonly recoverSavedPayment: (target?: GuestPaymentRecoveryTarget) => Promise<void>;
+  readonly isCurrentIdentity: (identity: TableGuestVisitIdentity) => boolean;
   readonly setOperation: (operation: GuestAccountPaymentOperation | null) => void;
-  readonly setCheckout: (checkout: GuestAccountCheckoutStatus | null) => void;
   readonly setError: (error: GuestPaymentErrorKey) => void;
   readonly setStorageUnavailable: (unavailable: boolean) => void;
   readonly refreshAccount: () => Promise<unknown>;
@@ -35,38 +34,49 @@ interface CheckoutActionOptions {
 }
 
 export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
+  const cancellationInProgress = useRef(false);
+  const cancellationGeneration = useRef(0);
+  const [isCancellationWorking, setIsCancellationWorking] = useState(false);
   const refreshPaymentStatus = useCallback(async () => {
     const descriptor = options.descriptorRef.current;
-    const receiptAttemptId = options.returnAttemptId ?? descriptor?.attemptId ?? null;
     const identity = options.activeIdentity;
+    let receiptAttemptId = options.returnAttemptId;
+    if (descriptor) receiptAttemptId = descriptor.attemptId ?? (identity ? null : options.returnAttemptId);
+    if (options.isRecoveryPolling) return false;
     if (!identity && descriptor && receiptAttemptId && descriptor.receiptCredential) {
       return options.runExclusive(async () => {
         options.setError('');
         try {
-          return (await options.fetchReceipt(descriptor, receiptAttemptId)) !== null;
+          await options.recoverSavedPayment({
+            attemptId: receiptAttemptId,
+            operationId: descriptor.operationId,
+            poll: false,
+          });
+          return true;
         } catch (error) {
           options.setError(guestPaymentErrorMessage(error, 'load'));
           return false;
         }
       }, false);
     }
-    if (!descriptor || !identity || descriptor.serviceSessionId !== identity.serviceSessionId) return false;
-    return options.runExclusive(async () => {
-      options.setError('');
-      try {
-        const currentOperation = await guestAccountPaymentService.getOperation(identity, descriptor);
-        options.setOperation(currentOperation);
-        const refreshedCheckout = await refreshCheckoutState(descriptor, identity, options);
-        if (refreshedCheckout && options.newPaymentsEnabled) {
-          await options.refreshAccount();
-          options.onAccountUpdated();
-        }
-        return true;
-      } catch (error) {
-        options.setError(guestPaymentErrorMessage(error, 'action'));
-        return false;
-      }
-    }, false);
+    if (
+      !descriptor ||
+      !identity ||
+      !options.isCurrentIdentity(identity) ||
+      descriptor.serviceSessionId !== identity.serviceSessionId
+    )
+      return false;
+    try {
+      await options.recoverSavedPayment({
+        attemptId: receiptAttemptId,
+        operationId: descriptor.operationId,
+        poll: false,
+      });
+      return true;
+    } catch (error) {
+      options.setError(guestPaymentErrorMessage(error, 'action'));
+      return false;
+    }
   }, [options]);
 
   const releaseBeforeStart = useCallback(async () => {
@@ -78,14 +88,17 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
       !identity ||
       descriptor.serviceSessionId !== identity.serviceSessionId ||
       !operation ||
+      options.isRecoveryPolling ||
       descriptor.startRequestedAt !== null ||
       !['Quoted', 'Reserved'].includes(operation.state)
     )
       return false;
     return options.runExclusive(async () => {
+      if (!options.isCurrentIdentity(identity)) return false;
       options.setError('');
       try {
         const result = await guestAccountPaymentService.release(identity, descriptor, operation.version);
+        if (!options.isCurrentIdentity(identity)) return false;
         options.setOperation(result);
         if (result.state !== 'Released') return false;
         if (!removeGuestAccountPaymentAttempt(descriptor.serviceSessionId, descriptor.operationId)) {
@@ -94,6 +107,7 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
         }
         options.publishDescriptor(null);
         await options.refreshAccount();
+        if (!options.isCurrentIdentity(identity)) return false;
         options.onAccountUpdated();
         return true;
       } catch (error) {
@@ -107,47 +121,56 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
     const descriptor = options.descriptorRef.current;
     const identity = options.activeIdentity;
     const currentCheckout = options.checkout;
-    if (!descriptor || !identity || descriptor.serviceSessionId !== identity.serviceSessionId || !currentCheckout)
+    if (
+      cancellationInProgress.current ||
+      !descriptor ||
+      !identity ||
+      !options.isCurrentIdentity(identity) ||
+      descriptor.serviceSessionId !== identity.serviceSessionId ||
+      !currentCheckout
+    )
       return false;
-    return options.runExclusive(async () => {
+    cancellationInProgress.current = true;
+    const generation = ++cancellationGeneration.current;
+    setIsCancellationWorking(true);
+    let actionError: GuestPaymentErrorKey | null = null;
+    try {
+      if (options.stopRecoveryPolling()) await options.waitForWorkIdle();
+      if (!options.isCurrentIdentity(identity)) return false;
       options.setError('');
-      try {
-        const result = await guestAccountPaymentService.requestCancellation(
-          identity,
-          descriptor,
-          currentCheckout.version,
-        );
-        options.setCheckout(result);
-        const currentOperation = await guestAccountPaymentService.getOperation(identity, descriptor);
-        options.setOperation(currentOperation);
-        const status = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-        options.setCheckout(status);
-        if (descriptor.receiptCredential) await options.fetchReceipt(descriptor, status.attemptId);
-        return true;
-      } catch (error) {
-        options.setError(guestPaymentErrorMessage(error, 'action'));
-        return false;
-      }
-    }, false);
+      const accepted = await options.runExclusive(async () => {
+        if (!options.isCurrentIdentity(identity)) return false;
+        try {
+          await guestAccountPaymentService.requestCancellation(identity, descriptor, currentCheckout.version);
+          return options.isCurrentIdentity(identity);
+        } catch (error) {
+          actionError = guestPaymentErrorMessage(error, 'action');
+          return false;
+        }
+      }, false);
+      if (!options.isCurrentIdentity(identity)) return false;
+      await options.recoverSavedPayment({
+        attemptId: currentCheckout.attemptId,
+        operationId: descriptor.operationId,
+        poll: true,
+      });
+      if (actionError && options.isCurrentIdentity(identity)) options.setError(actionError);
+      return accepted && options.isCurrentIdentity(identity);
+    } finally {
+      finishCancellation(generation, cancellationGeneration, cancellationInProgress, setIsCancellationWorking);
+    }
   }, [options]);
 
-  return { refreshPaymentStatus, releaseBeforeStart, requestCancellation };
+  return { refreshPaymentStatus, releaseBeforeStart, requestCancellation, isCancellationWorking };
 }
 
-async function refreshCheckoutState(
-  descriptor: GuestAccountPaymentAttemptDescriptor,
-  identity: TableGuestVisitIdentity,
-  context: Pick<CheckoutActionOptions, 'publishDescriptor' | 'fetchReceipt' | 'setCheckout' | 'setStorageUnavailable'>,
-): Promise<boolean> {
-  if (descriptor.startRequestedAt === null && descriptor.attemptId === null) return false;
-  const status = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-  context.setCheckout(status);
-  const next =
-    descriptor.attemptId === status.attemptId ? descriptor : withCheckoutAttempt(descriptor, status.attemptId);
-  if (next !== descriptor) {
-    if (saveGuestAccountPaymentAttempt(next)) context.publishDescriptor(next);
-    else context.setStorageUnavailable(true);
-  }
-  if (next.receiptCredential) await context.fetchReceipt(next, status.attemptId);
-  return true;
+function finishCancellation(
+  generation: number,
+  currentGeneration: { readonly current: number },
+  cancellationInProgress: { current: boolean },
+  setIsCancellationWorking: (value: boolean) => void,
+): void {
+  if (currentGeneration.current !== generation) return;
+  cancellationInProgress.current = false;
+  setIsCancellationWorking(false);
 }

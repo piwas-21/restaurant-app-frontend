@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { persistPendingAmendmentCommit } from '@/hooks/orderAmendments/pendingAmendmentCommit';
 import type { OrderDto } from '@/types/order';
 import type { OrderAmendmentCommitRequest } from '@/types/orderAmendment';
@@ -18,6 +18,31 @@ const mockEligibility = jest.fn(() => ({
 }));
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('next/dynamic', () => {
+  const React: typeof import('react') = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => {
+      function MockAmendmentModal({ recoveryOnly }: { readonly recoveryOnly?: boolean }) {
+        const [draft, setDraft] = React.useState('');
+        return React.createElement(
+          'section',
+          { role: 'dialog', 'aria-label': 'Amendment modal', 'data-recovery-only': String(recoveryOnly) },
+          React.createElement(
+            'label',
+            null,
+            'Draft reason',
+            React.createElement('input', {
+              value: draft,
+              onChange: (event: { currentTarget: HTMLInputElement }) => setDraft(event.currentTarget.value),
+            }),
+          ),
+        );
+      }
+      return MockAmendmentModal;
+    },
+  };
+});
 jest.mock('@/hooks/accountPayments/useAccountPaymentActor', () => ({
   useAccountPaymentActor: () => {
     const auth = mockUseOptionalAuth();
@@ -84,6 +109,47 @@ describe('OrderAmendmentEntryButton', () => {
 
     render(<OrderAmendmentEntryButton order={order(type)} operatorRole="Cashier" />);
     expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toBeInTheDocument();
+  });
+
+  it('keeps the open amendment modal mounted when refreshed eligibility changes', async () => {
+    const view = render(<OrderAmendmentEntryButton order={order('DineIn')} operatorRole="Server" />);
+    fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.open' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Amendment modal' });
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Draft reason' }), {
+      target: { value: 'Keep the reviewed draft visible.' },
+    });
+
+    mockEligibility.mockReturnValue({
+      reason: 'orderAmendments.order_refund_activity',
+      ready: false,
+      mode: 'None',
+      retry: jest.fn(),
+    });
+    view.rerender(<OrderAmendmentEntryButton order={order('DineIn', { version: 2 })} operatorRole="Server" />);
+
+    expect(screen.getByText('orderAmendments.order_refund_activity')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Amendment modal' })).toHaveAttribute(
+      'data-recovery-only',
+      'true',
+    );
+    expect(within(dialog).getByRole('textbox', { name: 'Draft reason' })).toHaveValue(
+      'Keep the reviewed draft visible.',
+    );
+  });
+
+  it('does not carry an open amendment draft across actor identity changes', async () => {
+    const view = render(<OrderAmendmentEntryButton order={order('DineIn')} operatorRole="Server" />);
+    fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.open' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Amendment modal' });
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Draft reason' }), {
+      target: { value: 'Actor-scoped draft.' },
+    });
+
+    mockUseOptionalAuth.mockReturnValue({ user: { userId: 'actor-2' }, isLoading: false });
+    view.rerender(<OrderAmendmentEntryButton order={order('DineIn', { version: 2 })} operatorRole="Server" />);
+
+    const replacementDialog = await screen.findByRole('dialog', { name: 'Amendment modal' });
+    expect(within(replacementDialog).getByRole('textbox', { name: 'Draft reason' })).toHaveValue('');
   });
 
   it('explains terminal and refund-reconciliation states instead of exposing an amendment action', () => {

@@ -63,7 +63,10 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     expect(afterOnline.capturedAccountPaymentMinor).toBe(501);
 
     const selection = collection.locator('form').first();
-    await selection.getByLabel('Collect a contribution', { exact: true }).selectOption('Amount');
+    const collectionMode = selection.getByRole('combobox', { name: /^Collect a contribution\b/ });
+    await expect(collectionMode).toHaveCount(1);
+    await expect(collectionMode.locator('option[value="Amount"]')).toHaveCount(1);
+    await collectionMode.selectOption('Amount');
     await selection.getByLabel('Contribution amount', { exact: true }).fill('9.99');
     const cashQuote = await responseData<AccountPaymentOperation>(cashier.page, /\/account-payments\/quotes$/, () =>
       selection.getByRole('button', { name: 'Review contribution', exact: true }).click(),
@@ -136,16 +139,28 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     await responseData(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/quote$`), () =>
       amendmentForm.getByRole('button', { name: 'Get a quote', exact: true }).click(),
     );
-    const amendment = await responseData<{ amendmentId: string; sourceOrderId: string }>(
-      admin.page,
-      new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`),
-      () => amendmentForm.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
+    const amendment = await responseData<{
+      amendmentId: string;
+      clientOperationId: string;
+      sourceOrderId: string;
+    }>(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`), () =>
+      amendmentForm.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
     );
     expect(amendment.sourceOrderId).toBe(orderId);
-    await expect(amendmentForm.getByText('Amendment committed', { exact: true })).toBeVisible();
-    await amendmentForm.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(amendmentForm.getByRole('status')).toHaveText(`Amendment committed · ${amendment.clientOperationId}`);
+    const closeAmendment = amendmentForm.getByRole('button').filter({ hasText: /^Close$/ });
+    await expect(closeAmendment).toHaveCount(1);
+    await closeAmendment.click();
     await admin.page.reload();
-    await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
+    const history = admin.page.getByRole('region', { name: 'Amendment history', exact: true });
+    await expect(history).toHaveCount(1);
+    const historyDisclosure = history.locator(':scope > details');
+    await expect(historyDisclosure).toHaveCount(1);
+    const historySummary = historyDisclosure.locator(':scope > summary');
+    await expect(historySummary).toHaveCount(1);
+    await historySummary.click();
+    await expect(historyDisclosure).toHaveAttribute('open', '');
+    await history.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
     const correction = admin.page.getByRole('dialog', { name: 'Payment correction', exact: true });
     const quote = await responseData<AmendmentResolutionQuote>(admin.page, /\/financial-resolution\/quote$/, () =>
       correction.getByRole('button', { name: 'Review correction', exact: true }).click(),

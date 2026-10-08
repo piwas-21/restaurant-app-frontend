@@ -95,6 +95,7 @@ describe('guest account payment service', () => {
   });
 
   it('reads the private receipt using only its short-lived receipt capability header', async () => {
+    const abortController = new AbortController();
     jest.mocked(apiClient.get).mockResolvedValue({
       success: true,
       data: {
@@ -110,7 +111,12 @@ describe('guest account payment service', () => {
       },
     });
 
-    const result = await getGuestPaymentReceipt(attemptId, receiptCredential, await descriptor());
+    const result = await getGuestPaymentReceipt(
+      attemptId,
+      receiptCredential,
+      await descriptor(),
+      abortController.signal,
+    );
 
     expect(result.attemptId).toBe(attemptId);
     expect(jest.mocked(apiClient.get)).toHaveBeenCalledWith(
@@ -121,6 +127,7 @@ describe('guest account payment service', () => {
         skipSession: true,
         signOutOn401: false,
         headers: { 'X-Account-Payment-Receipt': receiptCredential },
+        signal: abortController.signal,
       }),
     );
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useState, type ComponentType } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
 import { useTableGuestVisit } from '@/contexts/TableGuestVisitContext';
@@ -39,6 +39,7 @@ export default function GuestAccountPaymentHost({ tableAccount, onAccountUpdated
   const [retry, setRetry] = useState(0);
   const [hasRecovery, setHasRecovery] = useState(() => hasGuestAccountPaymentRecovery());
   const [storedVisit, setStoredVisit] = useState<ReturnType<typeof readStoredTableGuestState> | null>(null);
+  const returnHintConsumed = useRef(false);
   const newPaymentsEnabled =
     features.tableGuestVisitsV1 &&
     features.tableAccountPaymentsV1 === true &&
@@ -58,7 +59,10 @@ export default function GuestAccountPaymentHost({ tableAccount, onAccountUpdated
     visit.pendingRoundStatus !== 'unknown';
 
   useLayoutEffect(() => {
-    setReturnHint(stripGuestPaymentReturnFromUrl());
+    if (!returnHintConsumed.current) {
+      returnHintConsumed.current = true;
+      setReturnHint(stripGuestPaymentReturnFromUrl());
+    }
     setStoredVisit(readStoredTableGuestState());
     setHasRecovery(hasGuestAccountPaymentRecovery());
   }, []);

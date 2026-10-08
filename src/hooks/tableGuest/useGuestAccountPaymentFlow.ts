@@ -1,16 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import type {
   GuestAccountCheckoutStatus,
-  GuestAccountPaymentAccount,
   GuestAccountPaymentAttemptDescriptor,
   GuestAccountPaymentOperation,
 } from '@/types/guestAccountPayments';
 import { isTerminalGuestPayment } from '@/lib/guestAccountPaymentRules';
-import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
-import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
 import { useGuestPaymentCheckoutActions } from './useGuestPaymentCheckoutActions';
 import { useGuestPaymentContributionActions, type GuestPaymentQuoteChoice } from './useGuestPaymentContributionActions';
 import { useGuestPaymentEqualSharePlanAction } from './useGuestPaymentEqualSharePlanAction';
@@ -18,6 +15,7 @@ import { useGuestPaymentPlanRecovery } from './useGuestPaymentPlanRecovery';
 import { useGuestPaymentRecovery } from './useGuestPaymentRecovery';
 import { useGuestPaymentStartAction } from './useGuestPaymentStartAction';
 import { useGuestPaymentWorkGate } from './useGuestPaymentWorkGate';
+import { useGuestPaymentAccountState } from './useGuestPaymentAccountState';
 
 export interface GuestAccountPaymentFlowOptions {
   readonly activeIdentity: TableGuestVisitIdentity | null;
@@ -31,28 +29,46 @@ export interface GuestAccountPaymentFlowOptions {
 export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptions) {
   const { activeIdentity, recoveryIdentity, newPaymentsEnabled, canCreatePayment, returnAttemptId, onAccountUpdated } =
     options;
-  const recovery = useGuestPaymentRecovery({ activeIdentity, recoveryIdentity, returnAttemptId });
-  const { setError: setRecoveryError } = recovery;
+  const activeIdentityRef = useRef(activeIdentity);
+  activeIdentityRef.current = activeIdentity;
+  const isCurrentIdentity = useCallback((identity: TableGuestVisitIdentity) => {
+    const current = activeIdentityRef.current;
+    return (
+      current?.serviceSessionId === identity.serviceSessionId && current.participantToken === identity.participantToken
+    );
+  }, []);
   const gate = useGuestPaymentWorkGate();
-  const [account, setAccount] = useState<GuestAccountPaymentAccount | null>(null);
-  const [isAccountLoading, setIsAccountLoading] = useState(false);
+  const returnedPaymentRefreshRef = useRef<
+    (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) => Promise<boolean>
+  >(() => Promise.resolve(true));
+  const onReturnedPaymentSettled = useCallback(
+    (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) =>
+      returnedPaymentRefreshRef.current(identity, isCurrent, signal),
+    [],
+  );
+  const recovery = useGuestPaymentRecovery({
+    activeIdentity,
+    recoveryIdentity,
+    returnAttemptId,
+    runExclusive: gate.runExclusive,
+    onReturnedPaymentSettled,
+  });
+  const { setError: setRecoveryError } = recovery;
+  const { account, isAccountLoading, refreshAccount } = useGuestPaymentAccountState({
+    activeIdentity,
+    canCreatePayment,
+    setError: setRecoveryError,
+  });
   const [storageUnavailable, setStorageUnavailable] = useState(false);
-
-  const refreshAccount = useCallback(async () => {
-    if (!canCreatePayment || !activeIdentity) return null;
-    setIsAccountLoading(true);
-    try {
-      const result = await guestAccountPaymentService.getAccount(activeIdentity);
-      setAccount(result);
-      setRecoveryError('');
-      return result;
-    } catch (error) {
-      setRecoveryError(guestPaymentErrorMessage(error, 'load'));
-      return null;
-    } finally {
-      setIsAccountLoading(false);
-    }
-  }, [activeIdentity, canCreatePayment, setRecoveryError]);
+  returnedPaymentRefreshRef.current = async (identity, isCurrent, signal) => {
+    if (!isCurrent() || signal?.aborted) return false;
+    if (!newPaymentsEnabled || !canCreatePayment) return true;
+    if (identity.serviceSessionId !== activeIdentity?.serviceSessionId) return false;
+    await refreshAccount(identity, isCurrent, true, signal);
+    if (!isCurrent() || signal?.aborted) return false;
+    onAccountUpdated();
+    return true;
+  };
 
   const planRecovery = useGuestPaymentPlanRecovery({
     activeIdentity,
@@ -64,39 +80,14 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     onAccountUpdated,
   });
 
-  useEffect(() => {
-    if (!canCreatePayment || !activeIdentity) {
-      setAccount(null);
-      return;
-    }
-    let current = true;
-    setIsAccountLoading(true);
-    void guestAccountPaymentService
-      .getAccount(activeIdentity)
-      .then((result) => {
-        if (current) setAccount(result);
-      })
-      .catch((error: unknown) => {
-        if (current) setRecoveryError(guestPaymentErrorMessage(error, 'load'));
-      })
-      .finally(() => {
-        if (current) setIsAccountLoading(false);
-      });
-    return () => {
-      current = false;
-    };
-  }, [activeIdentity, canCreatePayment, setRecoveryError]);
-
-  const canReplaceAttempt = canStartAnotherContribution(
-    recovery.descriptorRef.current,
-    recovery.operation,
-    recovery.checkout,
-  );
+  const canReplaceAttempt =
+    canStartAnotherContribution(recovery.descriptorRef.current, recovery.operation, recovery.checkout) &&
+    !recovery.isRecoveryPolling;
   const contributionActions = useGuestPaymentContributionActions({
     activeIdentity,
     newPaymentsEnabled,
     canCreatePayment,
-    isRecoveryLoading: recovery.isLoading,
+    isRecoveryLoading: recovery.isLoading || recovery.isRecoveryPolling,
     account,
     canReplaceAttempt,
     descriptorRef: recovery.descriptorRef,
@@ -114,7 +105,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     account,
     activePlan: account?.activeEqualSharePlan ?? null,
     canReplaceAttempt,
-    isPlanRecoveryBlocked: planRecovery.isBlocked,
+    isPlanRecoveryBlocked: planRecovery.isBlocked || recovery.isRecoveryPolling,
     planIntentRef: planRecovery.intentRef,
     persistIntent: planRecovery.persistIntent,
     completeIntent: planRecovery.completeIntent,
@@ -128,34 +119,38 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
   const checkoutActions = useGuestPaymentCheckoutActions({
     activeIdentity,
     returnAttemptId,
-    newPaymentsEnabled,
     descriptorRef: recovery.descriptorRef,
     operation: recovery.operation,
     checkout: recovery.checkout,
+    isRecoveryPolling: recovery.isRecoveryPolling,
+    stopRecoveryPolling: recovery.stopRecoveryPolling,
+    waitForWorkIdle: gate.waitForIdle,
     runExclusive: gate.runExclusive,
     publishDescriptor: recovery.publishDescriptor,
-    fetchReceipt: recovery.fetchReceipt,
     setOperation: recovery.setOperation,
-    setCheckout: recovery.setCheckout,
     setError: setRecoveryError,
     setStorageUnavailable,
     refreshAccount,
     onAccountUpdated,
+    recoverSavedPayment: recovery.recoverSavedPayment,
+    isCurrentIdentity,
   });
   const startAction = useGuestPaymentStartAction({
     activeIdentity,
     newPaymentsEnabled,
     canCreatePayment,
+    isRecoveryPolling: recovery.isRecoveryPolling,
     descriptorRef: recovery.descriptorRef,
     runExclusive: gate.runExclusive,
     publishDescriptor: recovery.publishDescriptor,
-    fetchReceipt: recovery.fetchReceipt,
     setOperation: recovery.setOperation,
     setCheckout: recovery.setCheckout,
     setError: setRecoveryError,
     setStorageUnavailable,
     refreshAccount,
     onAccountUpdated,
+    recoverSavedPayment: recovery.recoverSavedPayment,
+    isCurrentIdentity,
   });
 
   return {
@@ -165,6 +160,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     checkout: recovery.checkout,
     receipts: recovery.receipts,
     isLoading: recovery.isLoading,
+    isRecoveryPolling: recovery.isRecoveryPolling,
     isAccountLoading,
     isWorking: gate.isWorking,
     storageUnavailable: storageUnavailable || recovery.storageUnavailable || planRecovery.storageUnavailable,

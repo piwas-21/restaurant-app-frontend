@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
@@ -42,12 +42,17 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const requestedOrderId = useRef<string | null>(null);
   const refreshOrder = useCallback(() => setReloadKey((current) => current + 1), []);
 
   useEffect(() => {
     let active = true;
-    setOrder(null);
-    setLoadedOrderId(null);
+    const normalizedOrderId = orderId.toLowerCase();
+    if (requestedOrderId.current !== normalizedOrderId) {
+      setOrder(null);
+      setLoadedOrderId(null);
+    }
+    requestedOrderId.current = normalizedOrderId;
     setIsLoading(true);
     setError(null);
     void getServerOrderById(orderId)

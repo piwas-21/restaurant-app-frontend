@@ -8,6 +8,7 @@ import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import { formatCurrency } from '@/utils/currency';
 import type { ServerServiceTask } from '@/types/serverTasks';
 import { taskIsDeliverable } from '@/hooks/serverWorkspace/useServerTasks';
+import { serverTaskReasonCopy } from './serverTaskErrorMessages';
 import styles from './ServerTaskCard.module.css';
 
 interface ServerTaskCardProps {
@@ -65,20 +66,6 @@ function routingCopy(task: ServerServiceTask, t: TFunction): string {
   }
 }
 
-function reasonCopy(reasonCode: string | null | undefined, t: TFunction): string | null {
-  if (!reasonCode) return null;
-  const known: Record<string, [string, string]> = {
-    RequiredRoutingUnresolved: ['server.tasks.reason_required_routing', 'Resolve required routing before delivery.'],
-    KitchenReleaseRequired: ['server.tasks.reason_kitchen_release', 'Kitchen release is required.'],
-    InvalidStatusTransition: ['server.tasks.reason_status', 'This order status cannot be delivered.'],
-    DeliveryNotPermitted: ['server.tasks.reason_not_permitted', 'Delivery is not permitted for this task.'],
-  };
-  const copy = known[reasonCode];
-  return copy
-    ? t(copy[0], copy[1])
-    : t('server.tasks.reason_not_permitted', 'Delivery is not permitted for this task.');
-}
-
 function tableHref(task: ServerServiceTask): string | null {
   if (!task.tableId || !task.serviceSessionId) return null;
   const params = new URLSearchParams();
@@ -91,7 +78,7 @@ export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCa
   const { t } = useTranslation();
   const action = task.permittedDeliveryActions.find((candidate) => candidate.action === 'HandOver');
   const deliverable = taskIsDeliverable(task);
-  const reason = reasonCopy(action?.reasonCode, t);
+  const reason = serverTaskReasonCopy(action?.reasonCode, t);
   const destination = tableHref(task);
 
   return (

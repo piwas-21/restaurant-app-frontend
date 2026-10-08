@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
+import { useOptionalAuth } from '@/components/AuthContext';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
@@ -35,6 +36,8 @@ function typeCopy(type: string, t: (key: string, fallback: string) => string): s
 
 export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerOrderDetailWorkspaceProps>) {
   const { t } = useTranslation();
+  const auth = useOptionalAuth();
+  const amendmentRole = auth?.user?.role?.toLowerCase() === 'admin' ? 'Admin' : 'Server';
   const { orderAmendmentsV1 } = useTenantFeatures();
   const translations = useServerOrderTranslations(true);
   const [order, setOrder] = useState<OrderDto | null>(null);
@@ -204,7 +207,7 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
             <section className={styles.action} aria-label={t('orderAmendments.actions', 'Order actions')}>
               <OrderAmendmentEntryButton
                 order={visibleOrder}
-                operatorRole="Server"
+                operatorRole={amendmentRole}
                 showFeatureDisabledNotice={false}
                 onCommitted={refreshOrder}
               />

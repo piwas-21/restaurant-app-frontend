@@ -340,7 +340,7 @@ function validateProviderRefundList(list, leg, paymentAttemptId) {
       typeof refund === 'object' &&
       !Array.isArray(refund) &&
       refund.id === leg.refundId &&
-      refund.livemode === false &&
+      refund.object === 'refund' &&
       refund.amount === Number(leg.amountMinor) &&
       refund.currency === 'chf' &&
       refund.status === 'succeeded' &&

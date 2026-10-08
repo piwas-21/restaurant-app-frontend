@@ -122,7 +122,7 @@ function createFixtureData(profile) {
     };
     const refund = {
       id: leg.provider_refund_id,
-      livemode: false,
+      object: 'refund',
       amount: attempt.amountMinor,
       currency: 'chf',
       status: 'succeeded',
@@ -218,6 +218,9 @@ function mutateJson(filename, mutate) {
 test('proves all four exact connected-account captures and full app-linked refunds with 16 fresh GETs', async (t) => {
   const current = await fixture(t);
   const calls = [];
+  const refund = current.providerObjects.get('/v1/refunds?charge=ch_charge1&limit=100').data[0];
+  assert.equal(refund.object, 'refund');
+  assert.equal(Object.hasOwn(refund, 'livemode'), false);
   const proof = await verify(current, makeReader(current, calls));
 
   assert.deepEqual(proof, {
@@ -343,7 +346,7 @@ test('rejects live, wrong-money, and cross-linked Session, Intent, or Charge res
 
 test('requires the exact full succeeded refund, canonical metadata, and a complete list per charge', async (t) => {
   const mutations = [
-    (value) => (value.data[0].livemode = true),
+    (value) => (value.data[0].object = 'charge'),
     (value) => (value.data[0].amount = 1499),
     (value) => (value.data[0].status = 'pending'),
     (value) => (value.data[0].charge = 'ch_other'),

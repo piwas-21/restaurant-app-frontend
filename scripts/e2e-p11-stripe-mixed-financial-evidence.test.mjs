@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { localP11StripeTarget } from './e2e-p11-stripe-test-target.mjs';
+import { assertRefundFixtureProof } from './e2e-p11-stripe-financial-test-assertions.mjs';
 import {
   mixedTenderRunEvidenceFields,
   verifyMixedTenderFinancialEvidence,
@@ -39,7 +40,7 @@ function createFixtureData(profile) {
     order_item_id: orderItemId,
     start_ordinal: 1,
     unit_count: 1,
-    minor_per_unit: '1500',
+    minor_per_unit: String(amount),
     amount_minor: String(amount),
   });
   const online = {
@@ -188,7 +189,7 @@ function createFixtureData(profile) {
         order_item_id: orderItemId,
         start_ordinal: 1,
         unit_count: 1,
-        minor_per_unit: '1500',
+        minor_per_unit: '501',
         amount_minor: '501',
       },
       {
@@ -198,7 +199,7 @@ function createFixtureData(profile) {
         order_item_id: orderItemId,
         start_ordinal: 1,
         unit_count: 1,
-        minor_per_unit: '1500',
+        minor_per_unit: '999',
         amount_minor: '999',
       },
     ],
@@ -320,37 +321,45 @@ function mutateEvidence(filename, mutate) {
 test('proves the exact same-unit mixed tender split and linked Stripe refund with four fresh GETs', async (t) => {
   const current = await fixture(t);
   const calls = [];
-  const refund = current.providerObjects.get('/v1/refunds?charge=ch_mixedcharge1&limit=100').data[0];
-  assert.equal(refund.object, 'refund');
-  assert.equal(Object.hasOwn(refund, 'livemode'), false);
-  const proof = await verify(current, makeReader(current, calls));
-  assert.deepEqual(proof, {
-    verified: true,
-    providerMode: 'test',
-    currency: 'CHF',
-    capturedAttemptCount: 2,
-    capturedMinor: 1500,
-    onlineCapturedMinor: 501,
-    cashCapturedMinor: 999,
-    cashDueMinor: 1000,
-    cashReceivedMinor: 1000,
-    cashChangeMinor: 0,
-    refundLegCount: 2,
-    refundedMinor: 1500,
-    stripeRefundMinor: 501,
-    cashExactRefundMinor: 999,
-    cashAttestedReturnedMinor: 1000,
-    cashRefundAdjustmentMinor: 1,
-    unresolvedRefundCount: 0,
-    refundListHasMore: false,
-    netUnsettledMinor: 0,
-    connectedAccountScoped: true,
-    providerReadCount: 4,
-    onlineAttemptId: current.evidence.expectedAttempts[0].attempt_id,
-    cashAttemptId: current.evidence.expectedAttempts[1].attempt_id,
-    resolutionOperationId: current.evidence.resolution.id,
+  const proof = await assertRefundFixtureProof({
+    current,
+    calls,
+    refundResource: '/v1/refunds?charge=ch_mixedcharge1&limit=100',
+    makeReader,
+    verify,
+    expected: {
+      verified: true,
+      providerMode: 'test',
+      currency: 'CHF',
+      capturedAttemptCount: 2,
+      capturedMinor: 1500,
+      onlineCapturedMinor: 501,
+      cashCapturedMinor: 999,
+      cashDueMinor: 1000,
+      cashReceivedMinor: 1000,
+      cashChangeMinor: 0,
+      refundLegCount: 2,
+      refundedMinor: 1500,
+      stripeRefundMinor: 501,
+      cashExactRefundMinor: 999,
+      cashAttestedReturnedMinor: 1000,
+      cashRefundAdjustmentMinor: 1,
+      unresolvedRefundCount: 0,
+      refundListHasMore: false,
+      netUnsettledMinor: 0,
+      connectedAccountScoped: true,
+      providerReadCount: 4,
+      onlineAttemptId: current.evidence.expectedAttempts[0].attempt_id,
+      cashAttemptId: current.evidence.expectedAttempts[1].attempt_id,
+      resolutionOperationId: current.evidence.resolution.id,
+    },
   });
   assert.equal(calls.length, 4);
+  assert.equal(current.evidence.allocations[0].minor_per_unit !== current.evidence.allocations[1].minor_per_unit, true);
+  assert.equal(
+    current.evidence.allocations.reduce((total, value) => total + Number(value.amount_minor), 0),
+    1500,
+  );
   assert.equal(
     calls.every((call) => call.origin === ORIGIN && call.connected),
     true,
@@ -373,6 +382,86 @@ test('rejects a different source unit before any provider read', async (t) => {
   });
   const calls = [];
   await assert.rejects(() => verify(current, makeReader(current, calls)));
+  assert.equal(calls.length, 0);
+});
+
+test('rejects a different source ordinal before any provider read', async (t) => {
+  const current = await fixture(t);
+  mutateEvidence(current.evidencePath, (value) => {
+    value.allocations[1].start_ordinal = 2;
+  });
+  const calls = [];
+  await assert.rejects(() => verify(current, makeReader(current, calls)));
+  assert.equal(calls.length, 0);
+});
+
+test('rejects an allocation amount that does not match its per-unit contribution', async (t) => {
+  const current = await fixture(t);
+  mutateEvidence(current.evidencePath, (value) => {
+    value.allocations[0].minor_per_unit = '1500';
+  });
+  const calls = [];
+  await assert.rejects(() => verify(current, makeReader(current, calls)));
+  assert.equal(calls.length, 0);
+});
+
+test('rejects a reversal whose amount or capture linkage differs from its allocation', async (t) => {
+  const wrongAmount = await fixture(t);
+  mutateEvidence(wrongAmount.evidencePath, (value) => {
+    value.allocationReversals[0].minor_per_unit = '1500';
+  });
+  await assert.rejects(() => verify(wrongAmount));
+
+  const wrongCapture = await fixture(t);
+  mutateEvidence(wrongCapture.evidencePath, (value) => {
+    value.allocationReversals[0].attempt_id = value.expectedAttempts[1].attempt_id;
+  });
+  await assert.rejects(() => verify(wrongCapture));
+});
+
+test('accepts lowercase provider observation currency and rejects other spellings before provider reads', async (t) => {
+  const lowercase = await fixture(t);
+  mutateEvidence(lowercase.evidencePath, (value) => {
+    value.providerRefunds[0].currency = 'chf';
+  });
+  const calls = [];
+  await verify(lowercase, makeReader(lowercase, calls));
+  assert.equal(calls.length, 4);
+
+  const wrongCurrency = await fixture(t);
+  mutateEvidence(wrongCurrency.evidencePath, (value) => {
+    value.providerRefunds[0].currency = 'EUR';
+  });
+  const rejectedCalls = [];
+  await assert.rejects(() => verify(wrongCurrency, makeReader(wrongCurrency, rejectedCalls)));
+  assert.equal(rejectedCalls.length, 0);
+
+  for (const invalidCurrency of [' chf', null, '\u0441\u043d\u0066']) {
+    const invalid = await fixture(t);
+    mutateEvidence(invalid.evidencePath, (value) => {
+      value.providerRefunds[0].currency = invalidCurrency;
+    });
+    const invalidCalls = [];
+    await assert.rejects(() => verify(invalid, makeReader(invalid, invalidCalls)));
+    assert.equal(invalidCalls.length, 0);
+  }
+});
+
+test('keeps cash-attempt and refund-leg currency exact uppercase', async (t) => {
+  const lowercaseAttempt = await fixture(t);
+  mutateEvidence(lowercaseAttempt.evidencePath, (value) => {
+    value.expectedAttempts[1].currency = 'chf';
+  });
+  const attemptCalls = [];
+  await assert.rejects(() => verify(lowercaseAttempt, makeReader(lowercaseAttempt, attemptCalls)));
+  assert.equal(attemptCalls.length, 0);
+
+  const lowercaseLeg = await fixture(t);
+  mutateEvidence(lowercaseLeg.evidencePath, (value) => {
+    value.refundLegs[0].currency = 'chf';
+  });
+  const calls = [];
+  await assert.rejects(() => verify(lowercaseLeg, makeReader(lowercaseLeg, calls)));
   assert.equal(calls.length, 0);
 });
 

@@ -133,7 +133,7 @@ function validateAllocation(value, orderId, attempts) {
       UUID.test(value.order_item_id) &&
       value.start_ordinal === 1 &&
       value.unit_count === 1 &&
-      value.minor_per_unit === '1500' &&
+      value.minor_per_unit === String(attempt.amount) &&
       value.amount_minor === String(attempt.amount),
   );
   return { ...value, role: attempt.role };
@@ -153,7 +153,9 @@ function validateAllocations(values, orderId, attempts) {
     onlineAllocation.order_item_id === cashAllocation.order_item_id &&
       onlineAllocation.start_ordinal === cashAllocation.start_ordinal &&
       onlineAllocation.unit_count === cashAllocation.unit_count &&
-      onlineAllocation.minor_per_unit === cashAllocation.minor_per_unit,
+      onlineAllocation.amount_minor === String(attempts.online.amount) &&
+      cashAllocation.amount_minor === String(attempts.cash.amount) &&
+      attempts.online.amount + attempts.cash.amount === 1500,
   );
   return { online: onlineAllocation, cash: cashAllocation };
 }
@@ -290,7 +292,8 @@ function validateProviderRefund(value, onlineLeg, onlineAttempt, selectedAccount
       value.refund_leg_id === onlineLeg.legId &&
       value.state === 'Succeeded' &&
       value.amount_minor === '501' &&
-      value.currency === EXPECTED_CURRENCY &&
+      typeof value.currency === 'string' &&
+      value.currency.toUpperCase() === EXPECTED_CURRENCY &&
       value.provider_refund_status === 'succeeded' &&
       value.provider_charge_id === onlineAttempt.chargeId &&
       value.provider_intent_id === onlineAttempt.intentId &&
@@ -364,7 +367,7 @@ function validateCashRefund(intent, cashReturn, cashLegId, cashAttemptId, cashRe
   );
 }
 
-function validateAllocationReversals(values, orderId, onlineAllocation, attempts, legs) {
+function validateAllocationReversals(values, orderId, allocations, attempts, legs) {
   requireEvidence(Array.isArray(values) && values.length === 2);
   const roles = new Set();
   for (const value of values) {
@@ -381,14 +384,17 @@ function validateAllocationReversals(values, orderId, onlineAllocation, attempts
       ]),
     );
     const attempt = attemptForPaymentAttemptId(attempts, value.attempt_id);
+    const allocation = attempt ? allocations[attempt.role] : null;
     requireEvidence(
       attempt &&
+        allocation &&
         value.refund_leg_id === legs[attempt.role].legId &&
         value.order_id === orderId &&
-        value.order_item_id === onlineAllocation.order_item_id &&
-        value.start_ordinal === 1 &&
-        value.unit_count === 1 &&
-        value.minor_per_unit === '1500' &&
+        value.order_item_id === allocation.order_item_id &&
+        value.start_ordinal === allocation.start_ordinal &&
+        value.unit_count === allocation.unit_count &&
+        value.minor_per_unit === allocation.minor_per_unit &&
+        value.amount_minor === allocation.amount_minor &&
         value.amount_minor === String(attempt.amount),
     );
     roles.add(attempt.role);
@@ -436,7 +442,7 @@ function validateMixedTenderEvidence(evidence, selectedAccountId) {
     attempts.cash.attemptId,
     cashReceiptId,
   );
-  validateAllocationReversals(evidence.allocationReversals, orderId, allocations.online, attempts, legs);
+  validateAllocationReversals(evidence.allocationReversals, orderId, allocations, attempts, legs);
   return {
     sessionId,
     orderId,

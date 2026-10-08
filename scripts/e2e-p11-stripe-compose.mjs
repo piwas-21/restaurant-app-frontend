@@ -214,13 +214,24 @@ export function parseStripeComposePort(raw) {
   return match[1];
 }
 
+function appendArchiveChunk(chunk, child, listingState, diagnosticsFd, diagnosticsState) {
+  inspectArchiveChunk(chunk, listingState);
+  if (diagnosticsState.bytes >= MAX_ARCHIVE_LIST_DIAGNOSTICS) return;
+  const count = Math.min(chunk.length, MAX_ARCHIVE_LIST_DIAGNOSTICS - diagnosticsState.bytes);
+  try {
+    diagnosticsState.bytes += writeSync(diagnosticsFd, chunk, 0, count);
+  } catch {
+    diagnosticsState.writeFailed = true;
+    child.kill('SIGKILL');
+  }
+}
+
 async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signal) {
   const diagnostics = path.join(evidenceDir, 'database-archive-list.log');
   let dumpFd;
   let diagnosticsFd;
   let child;
-  let diagnosticBytes = 0;
-  let diagnosticsWriteFailed = false;
+  const diagnosticsState = { bytes: 0, writeFailed: false };
   const listingState = { partialLine: '', discardLongLine: false, verifiedTables: new Set() };
 
   try {
@@ -254,23 +265,13 @@ async function verifyArchiveListing(context, dump, evidenceDir, timeoutMs, signa
     dumpFd = undefined;
 
     child.stdout.on('data', (chunk) => {
-      inspectArchiveChunk(chunk, listingState);
-      if (diagnosticBytes < MAX_ARCHIVE_LIST_DIAGNOSTICS) {
-        const count = Math.min(chunk.length, MAX_ARCHIVE_LIST_DIAGNOSTICS - diagnosticBytes);
-        try {
-          const written = writeSync(diagnosticsFd, chunk, 0, count);
-          diagnosticBytes += written;
-        } catch {
-          diagnosticsWriteFailed = true;
-          child.kill('SIGKILL');
-        }
-      }
+      appendArchiveChunk(chunk, child, listingState, diagnosticsFd, diagnosticsState);
     });
 
     const code = await waitForChildClose(child, timeoutMs, signal);
     if (listingState.partialLine && !listingState.discardLongLine)
       inspectArchiveLine(listingState.partialLine.replace(/\r$/, ''), listingState.verifiedTables);
-    if (diagnosticsWriteFailed || code !== 0)
+    if (diagnosticsState.writeFailed || code !== 0)
       throw new Error('Archive listing failed; retain the owned acceptance stack.');
     if (!listingState.verifiedTables.has('orders') || !listingState.verifiedTables.has('table_service_sessions'))
       throw new Error('Archive listing omitted operational data; retain the owned acceptance stack.');

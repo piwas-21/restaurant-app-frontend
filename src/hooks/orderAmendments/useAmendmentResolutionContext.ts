@@ -23,14 +23,12 @@ async function refreshContextAfterRetirement(
   if (!isCurrent()) return false;
   if (prepared) onPrepared?.();
   if (!isCurrent()) return false;
-  try {
-    // A stale-version refusal refreshes the context but never replays its old request body.
-    await refresh();
-    return false;
-  } catch (_refreshError: unknown) {
-    // The hook exposes a localized generic failure instead of potentially private server details.
-    return true;
-  }
+  // A stale-version refusal refreshes context without replaying the old request body.
+  // Rejections become localized failure state; private server details stay unlogged.
+  return refresh().then(
+    () => false,
+    () => true,
+  );
 }
 
 /** Bind fresh resolution context and Admin preparation to the active actor/order/amendment flow. */
@@ -108,13 +106,12 @@ export function useAmendmentResolutionContext({ actorId, orderId, amendmentId, e
     let failed = false;
     let prepared = false;
     try {
-      try {
-        await prepareAmendmentEarningRetirement(orderId, amendmentId, current);
-        prepared = true;
-      } catch (_retirementError: unknown) {
-        // The modal exposes a localized generic failure instead of raw provider or server details.
-        failed = true;
-      }
+      // The modal uses a localized failure state without exposing rejection details.
+      prepared = await prepareAmendmentEarningRetirement(orderId, amendmentId, current).then(
+        () => true,
+        () => false,
+      );
+      failed = !prepared;
       failed = (await refreshContextAfterRetirement(isCurrent, prepared, onPrepared, refresh)) || failed;
     } finally {
       if (retirementInFlight.current.get(requestScope) === requestOperation) {

@@ -219,7 +219,7 @@ function validateP11ArtifactDirectory(artifactDirectory, stateDirectory, runId) 
   return artifactDirectory;
 }
 
-function validateP11LocalIdentity(env = process.env) {
+function validateP11DevelopmentRun(env) {
   if (env.ASPNETCORE_ENVIRONMENT !== 'Development' || env.DOTNET_ENVIRONMENT !== 'Development') {
     fail('both ASPNETCORE_ENVIRONMENT and DOTNET_ENVIRONMENT must be Development.');
   }
@@ -233,8 +233,10 @@ function validateP11LocalIdentity(env = process.env) {
   }
   if (env.E2E_REMOTE || env.E2E_MAILPIT_URL) fail('remote browser mode and Mailpit are outside this isolated run.');
   if (!/^[a-f0-9]{16}$/.test(env.P11_RUN_ID ?? '')) fail('the run identity is not unique and well-formed.');
+  return env.P11_RUN_ID;
+}
 
-  const runId = env.P11_RUN_ID;
+function validateP11JwtIdentity(env, runId) {
   const jwtIdentity = `table-account-p11-${runId}`;
   if (
     !/^[a-f0-9]{64}$/.test(env.JwtSettings__Secret ?? '') ||
@@ -244,15 +246,19 @@ function validateP11LocalIdentity(env = process.env) {
   ) {
     fail('the JWT signing key and tenant identity must be generated for this isolated run.');
   }
+}
+
+function validateP11ComposeIdentity(env, runId, expectedDatabase, expectedUser) {
   if (
     env.P11_COMPOSE_PROJECT !== `tableaccountp11-${runId}` ||
-    env.P11_DATABASE_NAME !== `p11_${runId}` ||
-    env.P11_DATABASE_USER !== `p11_${runId}`
+    env.P11_DATABASE_NAME !== expectedDatabase ||
+    env.P11_DATABASE_USER !== expectedUser
   ) {
     fail('the Compose project and database names do not match this run identity.');
   }
-  const expectedDatabase = `p11_${runId}`;
-  const expectedUser = `p11_${runId}`;
+}
+
+function validateP11DatabaseUrl(env, expectedDatabase, expectedUser) {
   const url = new URL(env.E2E_DATABASE_URL);
   const urlDatabase = decodeURIComponent(url.pathname.slice(1));
   const urlUser = decodeURIComponent(url.username);
@@ -267,7 +273,10 @@ function validateP11LocalIdentity(env = process.env) {
   }
   const dbPort = url.port;
   if (!dbPort || Number(dbPort) < EPHEMERAL_PORT_FLOOR) fail('the database must use a high loopback port.');
+  return { url, urlPassword, dbPort };
+}
 
+function validateP11BackendDatabase(env, url, expectedDatabase, expectedUser, urlPassword, dbPort) {
   const backendDb = parseComposeConnectionString(env.ConnectionStrings__restaurantdb);
   const value = (name) => backendDb.get(name.toLowerCase());
   const backendPort = value('port');
@@ -281,7 +290,9 @@ function validateP11LocalIdentity(env = process.env) {
   ) {
     fail('the backend and guarded test helper do not share one derived DB endpoint.');
   }
+}
 
+function validateP11ServicePorts(env, dbPort) {
   const api = parseLoopbackHttpUrl('E2E_API_BASE_URL', env.E2E_API_BASE_URL);
   const ui = parseLoopbackHttpUrl('E2E_BASE_URL', env.E2E_BASE_URL);
   if (
@@ -297,7 +308,10 @@ function validateP11LocalIdentity(env = process.env) {
   if (!redis || redis[1] !== env.P11_REDIS_PORT || Number(redis[1]) < EPHEMERAL_PORT_FLOOR) {
     fail('the backend Redis endpoint must use this run’s high loopback port.');
   }
+  return { apiPort: api.port, uiPort: ui.port };
+}
 
+function validateP11FeatureConfiguration(env) {
   const localOnlyFeatures = [
     'TenantFeatures__ServerWorkspaceV2',
     'TenantFeatures__TableAccountV1',
@@ -326,7 +340,19 @@ function validateP11LocalIdentity(env = process.env) {
   ) {
     fail('provider credentials or a payment mode were inherited; this harness does not start online checkout.');
   }
-  return { runId, databaseName: expectedDatabase, databasePort: dbPort, apiPort: api.port, uiPort: ui.port };
+}
+
+function validateP11LocalIdentity(env = process.env) {
+  const runId = validateP11DevelopmentRun(env);
+  const expectedDatabase = `p11_${runId}`;
+  const expectedUser = `p11_${runId}`;
+  validateP11JwtIdentity(env, runId);
+  validateP11ComposeIdentity(env, runId, expectedDatabase, expectedUser);
+  const { url, urlPassword, dbPort } = validateP11DatabaseUrl(env, expectedDatabase, expectedUser);
+  validateP11BackendDatabase(env, url, expectedDatabase, expectedUser, urlPassword, dbPort);
+  const { apiPort, uiPort } = validateP11ServicePorts(env, dbPort);
+  validateP11FeatureConfiguration(env);
+  return { runId, databaseName: expectedDatabase, databasePort: dbPort, apiPort, uiPort };
 }
 
 async function configure(stateDir, postgresPort, redisPort) {

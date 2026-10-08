@@ -72,12 +72,12 @@ export async function completeContribution(
   await expect.poll(cardMethodIsOpen).toBe(true);
   const cardNumber = page.getByLabel('Card number', { exact: true });
   const expiration = page.getByLabel('Expiration', { exact: true });
-  const securityCode = page.getByLabel('Credit or debit card CVC/CVV', { exact: true });
+  const securityCode = page.getByRole('textbox', { name: 'Credit or debit card CVC/CVV', exact: true });
   const cardholder = page.getByLabel('Cardholder name', { exact: true });
-  await expect(cardNumber).toBeVisible();
-  await expect(expiration).toBeVisible();
-  await expect(securityCode).toBeVisible();
-  await expect(cardholder).toBeVisible();
+  for (const field of [cardNumber, expiration, securityCode, cardholder]) {
+    await expect(field).toHaveCount(1);
+    await expect(field).toBeVisible();
+  }
 
   const payButton = page.locator('button[type="submit"]');
   await expect(payButton).toHaveCount(1);

@@ -44,18 +44,7 @@ export interface StartCheckoutOutcome {
 
 const FAILED_START: StartCheckoutOutcome = { success: false, openUrl: null, recover: false, attemptId: null };
 
-export async function startOrResume(
-  descriptor: GuestAccountPaymentAttemptDescriptor,
-  identity: TableGuestVisitIdentity,
-  replay: boolean,
-  context: GuestPaymentStartOptions,
-): Promise<StartCheckoutOutcome> {
-  return replay
-    ? resumeExistingCheckout(descriptor, identity, context)
-    : startNewCheckout(descriptor, identity, context);
-}
-
-async function resumeExistingCheckout(
+export async function resumeExistingCheckout(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   identity: TableGuestVisitIdentity,
   context: GuestPaymentStartOptions,
@@ -74,12 +63,12 @@ async function resumeExistingCheckout(
     };
   } catch (_error) {
     if (!context.isCurrentIdentity(identity)) return FAILED_START;
-    // A status-read failure permits only the identical idempotent POST below.
+    // This read is intentionally best-effort: the identical idempotent POST recovers a lost start response.
   }
   return postOriginalStart(descriptor, identity, context);
 }
 
-async function startNewCheckout(
+export async function startNewCheckout(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   identity: TableGuestVisitIdentity,
   context: GuestPaymentStartOptions,

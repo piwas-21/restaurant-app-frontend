@@ -40,7 +40,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
   const gate = useGuestPaymentWorkGate();
   const returnedPaymentRefreshRef = useRef<
     (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) => Promise<boolean>
-  >(async () => true);
+  >(() => Promise.resolve(true));
   const onReturnedPaymentSettled = useCallback(
     (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) =>
       returnedPaymentRefreshRef.current(identity, isCurrent, signal),

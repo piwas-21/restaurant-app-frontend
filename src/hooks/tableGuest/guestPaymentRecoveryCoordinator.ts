@@ -6,10 +6,10 @@ import type {
   GuestPaymentReceipt,
 } from '@/types/guestAccountPayments';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
-import type { GuestPaymentRecoveryTarget } from './guestPaymentRecoveryHelpers';
 import {
   recoverActivePayment,
   recoverReceiptOnly,
+  type GuestPaymentRecoveryTarget,
   type GuestPaymentRecoveryFetchReceipt,
 } from './guestPaymentRecoveryHelpers';
 import { chooseGuestPaymentRecovery, recoverReturnedReceipt } from './guestPaymentRecoverySelection';

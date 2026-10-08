@@ -1,5 +1,6 @@
 import { webcrypto } from 'node:crypto';
 import { TextEncoder as NodeTextEncoder } from 'node:util';
+import { StrictMode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { render, screen, waitFor } from '@testing-library/react';
 import i18n from '../../i18n';
@@ -180,13 +181,15 @@ describe('table-account payment return during visit hydration', () => {
     sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(identity));
 
     render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <TableGuestAccountWorkspace />
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
+      <StrictMode>
+        <I18nextProvider i18n={i18n}>
+          <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
+            <TableGuestVisitProvider>
+              <TableGuestAccountWorkspace />
+            </TableGuestVisitProvider>
+          </TableGuestFeatureProvider>
+        </I18nextProvider>
+      </StrictMode>,
     );
 
     await waitFor(() => expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1));

@@ -40,9 +40,8 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
   const refreshPaymentStatus = useCallback(async () => {
     const descriptor = options.descriptorRef.current;
     const identity = options.activeIdentity;
-    const receiptAttemptId = descriptor
-      ? (descriptor.attemptId ?? (identity ? null : options.returnAttemptId))
-      : options.returnAttemptId;
+    let receiptAttemptId = options.returnAttemptId;
+    if (descriptor) receiptAttemptId = descriptor.attemptId ?? (identity ? null : options.returnAttemptId);
     if (options.isRecoveryPolling) return false;
     if (!identity && descriptor && receiptAttemptId && descriptor.receiptCredential) {
       return options.runExclusive(async () => {

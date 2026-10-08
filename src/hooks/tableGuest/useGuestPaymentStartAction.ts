@@ -7,7 +7,8 @@ import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { fingerprintGuestParticipant } from '@/lib/guestParticipantFingerprint';
 import type { GuestPaymentRecoveryTarget } from './guestPaymentRecoveryHelpers';
 import {
-  startOrResume,
+  resumeExistingCheckout,
+  startNewCheckout,
   type GuestPaymentStartOptions,
   type StartCheckoutOutcome,
 } from './guestPaymentStartActionHelpers';
@@ -71,7 +72,8 @@ async function runStart(
         return { success: false, openUrl: null, recover: false, attemptId: null };
       options.setError('');
       try {
-        return await startOrResume(descriptor, identity, descriptor.startRequestedAt !== null, options);
+        if (descriptor.startRequestedAt !== null) return await resumeExistingCheckout(descriptor, identity, options);
+        return await startNewCheckout(descriptor, identity, options);
       } catch (error) {
         if (options.isCurrentIdentity(identity)) options.setError(guestPaymentErrorMessage(error, 'action'));
         return { success: false, openUrl: null, recover: false, attemptId: null };

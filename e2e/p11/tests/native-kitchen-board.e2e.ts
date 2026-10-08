@@ -11,6 +11,7 @@ import { getE2EDbPool } from '../../helpers/db';
 import { test as p11Test, type P11StaffUser } from '../staffUsers';
 import { createTableAccountP11Fixture, type TableAccountP11Fixture } from '../../seed/tableAccountP11';
 import {
+  acknowledgeCorrectionWork,
   readNativeKitchenSnapshot,
   readServerTask,
   addGuestBasketRound,
@@ -198,39 +199,6 @@ async function acknowledgeInitialWork(board: Page, round: CreatedRound): Promise
   await expect(acknowledge).toBeEnabled();
   await acknowledge.click();
   await expect(card.getByText('Work complete', { exact: true })).toBeVisible();
-}
-
-async function acknowledgeCorrectionWork(
-  board: Page,
-  orderNumber: string,
-  correction: {
-    readonly orderId: string;
-    readonly workItemId: string;
-    readonly accountRevision: number | null;
-    readonly orderVersion: number;
-  },
-): Promise<void> {
-  if (correction.accountRevision === null || correction.accountRevision <= 0)
-    throw new Error('P11 correction acknowledgement requires an exact positive revision.');
-  const card = correctionCard(board, orderNumber);
-  const button = card.getByRole('button', { name: 'Acknowledge correction', exact: true });
-  await expect(button).toBeEnabled();
-  const result = await requirePostData<{
-    readonly kind: string;
-    readonly accountRevision: number;
-    readonly acknowledgedOrderVersion: number;
-    readonly isCompleted: boolean;
-  }>(
-    board,
-    new RegExp(`^/api/staff/kitchen-board/orders/${correction.orderId}/work-items/${correction.workItemId}/complete$`),
-    () => button.click(),
-  );
-  expect(result).toMatchObject({
-    kind: 'AmendmentCorrection',
-    accountRevision: correction.accountRevision,
-    acknowledgedOrderVersion: correction.orderVersion,
-    isCompleted: true,
-  });
 }
 
 async function readTaskAndSelectBucket(page: Page, api: APIRequestContext, orderId: string): Promise<ServerTask> {
@@ -475,7 +443,7 @@ p11Test(
       await expect(acknowledgeCorrection).toBeVisible();
       await expect(acknowledgeCorrection).toBeEnabled();
       if (!partialCorrection?.accountRevision) throw new Error('P11 correction revision was not returned.');
-      await acknowledgeCorrectionWork(board, firstRound.orderNumber, partialCorrection);
+      await acknowledgeCorrectionWork(board, partialCorrection);
       expectedCompletions.push({
         orderId: firstRound.id,
         workItemId: partialCorrection.workItemId,
@@ -579,7 +547,7 @@ p11Test(
       const fullVoidCard = correctionCard(board, firstRound.orderNumber);
       await expect(fullVoidCard.getByRole('button', { name: 'Acknowledge correction', exact: true })).toBeVisible();
       if (!fullVoidCorrection?.accountRevision) throw new Error('P11 terminal correction revision was not returned.');
-      await acknowledgeCorrectionWork(board, firstRound.orderNumber, fullVoidCorrection);
+      await acknowledgeCorrectionWork(board, fullVoidCorrection);
       expectedCompletions.push({
         orderId: firstRound.id,
         workItemId: fullVoidCorrection.workItemId,

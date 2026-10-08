@@ -70,3 +70,16 @@ export async function addThreeUnitRound(page: Page, tableId: string, sessionId: 
   expect(order.total).toBe(45);
   return order.id;
 }
+
+export async function addSingleUnitRound(page: Page, tableId: string, sessionId: string) {
+  await page.goto(`/en/server/tables/${tableId}/order?serviceSessionId=${encodeURIComponent(sessionId)}`);
+  await page.getByRole('button', { name: `Add ${PRODUCT}`, exact: true }).click();
+  const order = await responseData<{ id: string; serviceSessionId: string; total: number }>(
+    page,
+    /^\/api\/staff\/orders\/round$/,
+    () => page.getByRole('button', { name: 'Send to kitchen', exact: true }).click(),
+  );
+  expect(order.serviceSessionId.toLowerCase()).toBe(sessionId.toLowerCase());
+  expect(order.total).toBe(15);
+  return order.id;
+}

@@ -473,3 +473,17 @@ export async function verifyStripeFinancialEvidence({
     providerReadCount,
   };
 }
+
+export const stripeEvidenceInternals = Object.freeze({
+  EXPECTED_CURRENCY,
+  PROVIDER_IDS,
+  UUID,
+  hasExactKeys,
+  readPrivateJson,
+  requireEvidence,
+  requireProviderId,
+  requireUnique,
+  requireUuid,
+  validateProviderRefundList,
+  validateRunIdentity,
+});

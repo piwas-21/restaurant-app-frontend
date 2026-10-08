@@ -22,10 +22,15 @@ import {
   snapshotStripeDatabase,
 } from './e2e-p11-stripe-compose.mjs';
 import { stripeRunEvidenceFields, verifyStripeFinancialEvidence } from './e2e-p11-stripe-financial-evidence.mjs';
+import {
+  mixedTenderRunEvidenceFields,
+  verifyMixedTenderFinancialEvidence,
+} from './e2e-p11-stripe-mixed-financial-evidence.mjs';
 import { startStripeListener } from './e2e-p11-stripe-listener.mjs';
 import { verifyTestConnectedAccount } from './e2e-p11-stripe-provider.mjs';
 import { startNativeP11Services, stopNativeP11Services } from './e2e-p11-native-postgres.mjs';
 import { snapshotNativeP11Database } from './e2e-p11-native-postgres-snapshot.mjs';
+import { resolveStripeAcceptanceScenario } from './e2e-p11-stripe-scenarios.mjs';
 import systemTools from './e2e-p11-system-tools.cjs';
 
 const frontendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -37,6 +42,7 @@ const [
   stackMode = 'compose',
   postgresBinDirectory,
   redisServerExecutable,
+  scenario = 'four-phone',
 ] = process.argv.slice(2);
 const stripeOrigin = 'https://api.stripe.com';
 const COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
@@ -60,6 +66,7 @@ async function captureGit(args, cwd, logfile, signal) {
 function validateRunnerConfiguration() {
   targetGuards.validateInheritedP11Environment();
   if (process.versions.node.split('.')[0] !== '22') throw new Error('This acceptance runner requires Node 22.');
+  const selectedScenario = resolveStripeAcceptanceScenario(scenario);
   if (
     !backendDir ||
     !path.isAbsolute(backendDir) ||
@@ -76,9 +83,16 @@ function validateRunnerConfiguration() {
     'RestaurantSystem.Infrastructure/RestaurantSystem.Infrastructure.csproj',
   );
   const config = path.join(frontendDir, 'e2e/p11-stripe/playwright.config.ts');
-  if (![apiProject, infrastructure, config, stripeExecutable].every(existsSync))
+  const testSpec = path.join(frontendDir, selectedScenario.testSpec);
+  if (![apiProject, infrastructure, config, stripeExecutable, testSpec].every(existsSync))
     throw new Error('Acceptance source, browser configuration or isolated Stripe CLI is missing.');
-  return { apiProject, infrastructure, config };
+  return {
+    apiProject,
+    infrastructure,
+    config,
+    scenario: selectedScenario.name,
+    testSpec,
+  };
 }
 
 async function verifySourcePins(resources) {
@@ -246,7 +260,7 @@ async function migrateAndSeed(resources, { apiProject, infrastructure }) {
   );
 }
 
-async function startBrowserApi(resources, { apiProject, config }) {
+async function startBrowserApi(resources, { apiProject, config, scenario, testSpec }) {
   const { signal, runEnv, profile, system, state, evidenceDir, browserDir, browserEnv } = resources;
   const listenerStartup = await startStripeListener(stripeExecutable, state, runEnv, profile, system, { signal });
   resources.listener = listenerStartup.listener;
@@ -273,13 +287,15 @@ async function startBrowserApi(resources, { apiProject, config }) {
   profileGuards.validateStripeBrowserEnvironment(browserEnv);
   await runLogged(
     process.execPath,
-    [path.join(frontendDir, 'node_modules/@playwright/test/cli.js'), 'test', '--config', config],
+    [path.join(frontendDir, 'node_modules/@playwright/test/cli.js'), 'test', '--config', config, testSpec],
     browserEnv,
     frontendDir,
     path.join(evidenceDir, 'browser.log'),
     { timeoutMs: PLAYWRIGHT_TIMEOUT_MS, signal },
   );
-  const proof = await verifyStripeFinancialEvidence({
+  const verifyFinancialEvidence =
+    scenario === 'mixed-tender' ? verifyMixedTenderFinancialEvidence : verifyStripeFinancialEvidence;
+  const proof = await verifyFinancialEvidence({
     runEnv,
     compose: resources.compose,
     evidenceDir,
@@ -288,9 +304,12 @@ async function startBrowserApi(resources, { apiProject, config }) {
     origin: stripeOrigin,
     signal,
   });
-  if (!stripeRunEvidenceFields(proof).providerCleanupVerified)
+  const evidenceFields =
+    scenario === 'mixed-tender' ? mixedTenderRunEvidenceFields(proof) : stripeRunEvidenceFields(proof);
+  if (!evidenceFields.providerCleanupVerified)
     throw new Error('The connected Stripe financial evidence was incomplete.');
   resources.providerProof = proof;
+  resources.scenario = scenario;
   resources.completed = true;
 }
 
@@ -321,6 +340,10 @@ async function finalizeRun(resources, uninstallSignalHandlers) {
     : false;
   const cleanupFailed = cleanup.stopFailed || cleanup.snapshotFailed || nativeStopFailed;
   const snapshotVerified = cleanup.snapshotResult !== undefined;
+  const evidenceFields =
+    resources.scenario === 'mixed-tender'
+      ? mixedTenderRunEvidenceFields(resources.providerProof)
+      : stripeRunEvidenceFields(resources.providerProof);
   try {
     if (resources.compose && resources.evidenceDir) {
       profileGuards.writePrivateEvidenceFile(
@@ -328,13 +351,14 @@ async function finalizeRun(resources, uninstallSignalHandlers) {
         'run.json',
         JSON.stringify({
           result:
-            resources.completed && snapshotVerified && !cleanupFailed
+            resources.completed && snapshotVerified && !cleanupFailed && evidenceFields.providerCleanupVerified
               ? 'provider-financial-evidence-verified'
               : 'failed',
           onlineProvider: 'stripe-test',
+          scenario: resources.scenario ?? 'four-phone',
           databaseRuntime: resources.nativeServices ? 'native-postgres18-redis' : 'compose-postgres16-redis',
           snapshot: cleanup.snapshotResult ?? null,
-          ...stripeRunEvidenceFields(resources.providerProof),
+          ...evidenceFields,
         }),
       );
     }
@@ -353,6 +377,7 @@ async function main() {
   const resources = { signal: cancellation.signal, completed: false };
   try {
     const runnerConfig = validateRunnerConfiguration();
+    resources.scenario = runnerConfig.scenario;
     resources.profile = profileGuards.readStripeProfile(profileFile);
     resources.system = profileGuards.systemEnvironment(process.env);
     resources.state = mkdtempSync(path.join(tmpdir(), 'table-account-p11-stripe-'));

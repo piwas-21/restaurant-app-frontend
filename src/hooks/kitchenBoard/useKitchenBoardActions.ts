@@ -82,7 +82,7 @@ export function useKitchenBoardActions(
   const completeInitialOrder = useCallback(
     async (orderId: string) => {
       const order = stateRef.current.orders.find((item) => sameId(item.orderId, orderId));
-      if (!order || order.status !== 'Ready' || !order.canComplete || order.isCompleted) return;
+      if (order?.status !== 'Ready' || !order.canComplete || order.isCompleted) return;
       await runAction(`order:${order.orderId}`, async () => {
         const result = await completeKitchenBoardWork(order.orderId, order.orderId, {
           kind: 'InitialOrder',

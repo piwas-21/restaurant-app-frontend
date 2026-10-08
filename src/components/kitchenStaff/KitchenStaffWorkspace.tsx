@@ -39,11 +39,7 @@ export default function KitchenStaffWorkspace() {
   };
 
   if (isLoading) {
-    return (
-      <p className={styles.loading} role="status">
-        {t('loading')}
-      </p>
-    );
+    return <output className={styles.loading}>{t('loading')}</output>;
   }
   if (!user || !isKitchenStaff(user.role) || !moduleAvailable || !nativeAvailable) {
     return <MarketplaceKitchenBoard />;

@@ -47,6 +47,15 @@ export default function KitchenBoardCorrectionCard({
     correction.tableLabel ??
     (correction.tableNumber === null ? null : t('nativeKitchenBoard.tableNumber', { number: correction.tableNumber }));
   const resolved = correction.withdrawn || correction.isCompleted;
+  let badgeTone: 'neutral' | 'success' | 'warning' = 'warning';
+  let badgeLabel = t('nativeKitchenBoard.correction');
+  if (correction.withdrawn) {
+    badgeTone = 'neutral';
+    badgeLabel = t('nativeKitchenBoard.withdrawn');
+  } else if (resolved) {
+    badgeTone = 'success';
+    badgeLabel = t('nativeKitchenBoard.workCompleted');
+  }
 
   return (
     <article className={styles.card} aria-labelledby={`kitchen-correction-${correction.workItemId}`}>
@@ -60,13 +69,7 @@ export default function KitchenBoardCorrectionCard({
             <span>{orderStatusLabel(correction.status, t)}</span>
           </p>
         </div>
-        <StatusBadge tone={correction.withdrawn ? 'neutral' : resolved ? 'success' : 'warning'}>
-          {correction.withdrawn
-            ? t('nativeKitchenBoard.withdrawn')
-            : resolved
-              ? t('nativeKitchenBoard.workCompleted')
-              : t('nativeKitchenBoard.correction')}
-        </StatusBadge>
+        <StatusBadge tone={badgeTone}>{badgeLabel}</StatusBadge>
       </header>
 
       {correction.summary && (

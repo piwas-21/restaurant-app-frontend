@@ -47,11 +47,7 @@ export default function KitchenBoardNative() {
           {t('nativeKitchenBoard.actionFailed')}
         </p>
       )}
-      {state.isLoading && !state.loaded && (
-        <p className={styles.empty} role="status">
-          {t('loading')}
-        </p>
-      )}
+      {state.isLoading && !state.loaded && <output className={styles.empty}>{t('loading')}</output>}
 
       {state.loaded && (
         <>

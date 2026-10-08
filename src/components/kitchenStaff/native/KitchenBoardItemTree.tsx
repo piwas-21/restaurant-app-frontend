@@ -21,13 +21,18 @@ function ItemNode({ item }: Readonly<{ item: KitchenBoardItem }>) {
       {item.specialInstructions && <p className={styles.instructions}>{item.specialInstructions}</p>}
       {item.ingredients.length > 0 && (
         <ul className={styles.ingredients} aria-label={t('nativeKitchenBoard.ingredients')}>
-          {item.ingredients.map((ingredient) => (
-            <li key={ingredient.ingredientId} data-removed={ingredient.isRemoved || undefined}>
-              {ingredient.isRemoved ? '− ' : ingredient.isAddOn ? '+ ' : ''}
-              {ingredient.ingredientName}
-              {ingredient.quantity !== 1 && <span> · {ingredient.quantity}×</span>}
-            </li>
-          ))}
+          {item.ingredients.map((ingredient) => {
+            let marker = '';
+            if (ingredient.isRemoved) marker = '− ';
+            else if (ingredient.isAddOn) marker = '+ ';
+            return (
+              <li key={ingredient.ingredientId} data-removed={ingredient.isRemoved || undefined}>
+                {marker}
+                {ingredient.ingredientName}
+                {ingredient.quantity !== 1 && <span> · {ingredient.quantity}×</span>}
+              </li>
+            );
+          })}
         </ul>
       )}
       {item.children.length > 0 && (

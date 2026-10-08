@@ -86,22 +86,22 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
       orderItemId,
       startOrdinal,
       unitCount,
-      minorPerUnit,
     }: AccountPaymentAllocation) => ({
       orderId: sourceOrderId,
       orderItemId,
       startOrdinal,
       unitCount,
-      minorPerUnit,
     });
     expect(allocationIdentity(cashQuote.allocations[0])).toEqual(allocationIdentity(onlineAllocations[0]));
     expect(cashQuote.allocations[0].amountMinor).toBe(999);
     expect(onlineAllocations[0].amountMinor).toBe(501);
+    expect(cashQuote.allocations[0].amountMinor + onlineAllocations[0].amountMinor).toBe(1500);
+    expect(onlineAllocations[0]).toMatchObject({ startOrdinal: 1, unitCount: 1, minorPerUnit: 501 });
     expect(cashQuote.allocations[0]).toMatchObject({
       orderItemId: expect.any(String),
       startOrdinal: 1,
       unitCount: 1,
-      minorPerUnit: 1500,
+      minorPerUnit: 999,
     });
 
     const cashReview = collection.getByRole('region', { name: 'Review contribution', exact: true });

@@ -123,10 +123,22 @@ export async function retainMixedTenderEvidence(
       order_id: orderId,
       start_ordinal: 1,
       unit_count: 1,
-      minor_per_unit: '1500',
+      minor_per_unit: attempt.amount_minor,
       amount_minor: attempt.amount_minor,
     });
   }
+  const onlineAllocation = allocations.rows.find((value) => value.attempt_id === online!.attempt_id)!;
+  const cashAllocation = allocations.rows.find((value) => value.attempt_id === cash!.attempt_id)!;
+  expect({
+    order_item_id: cashAllocation.order_item_id,
+    start_ordinal: cashAllocation.start_ordinal,
+    unit_count: cashAllocation.unit_count,
+  }).toEqual({
+    order_item_id: onlineAllocation.order_item_id,
+    start_ordinal: onlineAllocation.start_ordinal,
+    unit_count: onlineAllocation.unit_count,
+  });
+  expect(BigInt(onlineAllocation.amount_minor) + BigInt(cashAllocation.amount_minor)).toBe(BigInt(1500));
 
   const receiptResult = await pool.query(
     `SELECT id, attempt_id, policy_version, currency, payment_method, exact_amount_minor, adjustment_minor,
@@ -210,11 +222,13 @@ export async function retainMixedTenderEvidence(
     [legIds],
   );
   expect(providerRefunds.rows).toHaveLength(1);
-  expect(providerRefunds.rows[0]).toMatchObject({
+  const providerRefund = providerRefunds.rows[0];
+  expect(typeof providerRefund.currency).toBe('string');
+  expect(providerRefund.currency.toUpperCase()).toBe('CHF');
+  expect(providerRefund).toMatchObject({
     refund_leg_id: legs.rows.find((value) => value.account_payment_attempt_id === online!.attempt_id)?.id,
     state: 'Succeeded',
     amount_minor: '501',
-    currency: 'CHF',
     provider_charge_id: online!.provider_charge_id,
     provider_intent_id: online!.provider_intent_id,
     provider_account_id: online!.provider_account_id,
@@ -274,13 +288,16 @@ export async function retainMixedTenderEvidence(
   );
   expect(reversals.rows).toHaveLength(2);
   for (const attempt of [online!, cash!]) {
+    const allocation = allocations.rows.find((value) => value.attempt_id === attempt.attempt_id)!;
+    const refundLeg = legs.rows.find((value) => value.account_payment_attempt_id === attempt.attempt_id)!;
     expect(reversals.rows.find((value) => value.attempt_id === attempt.attempt_id)).toMatchObject({
+      refund_leg_id: refundLeg.id,
       order_id: orderId,
-      order_item_id: allocations.rows[0].order_item_id,
+      order_item_id: allocation.order_item_id,
       start_ordinal: 1,
       unit_count: 1,
-      minor_per_unit: '1500',
-      amount_minor: attempt.amount_minor,
+      minor_per_unit: allocation.minor_per_unit,
+      amount_minor: allocation.amount_minor,
     });
   }
 

@@ -61,7 +61,7 @@ interface StoredCompletion {
   readonly order_id: string;
   readonly work_item_id: string;
   readonly kind: string;
-  readonly account_revision: number | null;
+  readonly account_revision: string | null;
   readonly acknowledged_order_version: number;
 }
 
@@ -349,7 +349,7 @@ async function assertPrivateDeviceAndCompletionEvidence(
 
     const completions = await client.query<StoredCompletion>(
       `SELECT order_id::text AS order_id, work_item_id::text AS work_item_id, kind,
-              account_revision, acknowledged_order_version
+              account_revision::text AS account_revision, acknowledged_order_version
        FROM kitchen_board_work_completions
        WHERE order_id = ANY($1::uuid[])`,
       [orderIds],
@@ -362,7 +362,9 @@ async function assertPrivateDeviceAndCompletionEvidence(
           candidate.work_item_id.toLowerCase() === row.workItemId.toLowerCase() &&
           candidate.kind === row.kind,
       );
-      expect(completion).toMatchObject({ account_revision: row.accountRevision });
+      expect(completion).toMatchObject({
+        account_revision: row.accountRevision === null ? null : String(row.accountRevision),
+      });
       expect(completion?.acknowledged_order_version).toBeGreaterThan(0);
     }
   } finally {

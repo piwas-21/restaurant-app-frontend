@@ -185,9 +185,11 @@ function replacePrivateSnapshotAtomically(directory, filename, contents) {
   const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
   let descriptor;
   let parentDescriptor;
+  let temporaryCreated = false;
   let renamed = false;
   try {
     descriptor = fs.openSync(temporary, flags, 0o600);
+    temporaryCreated = true;
     const temporaryStat = fs.fstatSync(descriptor);
     if (!temporaryStat.isFile() || temporaryStat.uid !== currentUid() || (temporaryStat.mode & 0o777) !== 0o600)
       refuse('temporary snapshots must be same-user mode-0600 regular files.');
@@ -225,7 +227,7 @@ function replacePrivateSnapshotAtomically(directory, filename, contents) {
         fs.closeSync(parentDescriptor);
       } catch {}
     }
-    if (!renamed) {
+    if (temporaryCreated && !renamed) {
       try {
         fs.unlinkSync(temporary);
       } catch (error) {

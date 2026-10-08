@@ -222,12 +222,12 @@ test('writes browser evidence under a private non-temp run root and rejects outs
 
     fs.chmodSync(refundSnapshotPath, 0o600);
     fs.writeFileSync(refundSnapshotPath, '{"owner":"preserve"}', { mode: 0o600 });
-    const originalOpenSync = fs.openSync;
+    const originalOwnerOpenSync = fs.openSync;
     const originalFstatSync = fs.fstatSync;
     let targetDescriptor;
     try {
       fs.openSync = function (filename, ...args) {
-        const descriptor = Reflect.apply(originalOpenSync, fs, [filename, ...args]);
+        const descriptor = Reflect.apply(originalOwnerOpenSync, fs, [filename, ...args]);
         if (filename === refundSnapshotPath) targetDescriptor = descriptor;
         return descriptor;
       };
@@ -248,7 +248,7 @@ test('writes browser evidence under a private non-temp run root and rejects outs
         /existing snapshots must be same-user mode-0600 regular files/,
       );
     } finally {
-      fs.openSync = originalOpenSync;
+      fs.openSync = originalOwnerOpenSync;
       fs.fstatSync = originalFstatSync;
     }
     assert.equal(fs.readFileSync(refundSnapshotPath, 'utf8'), '{"owner":"preserve"}');
@@ -288,6 +288,39 @@ test('writes browser evidence under a private non-temp run root and rejects outs
       fs.writeFileSync = originalWriteFileSync;
     }
     assert.deepEqual(fs.readdirSync(directories.browserDir).sort(), beforeFailedWrite);
+    assert.equal(fs.readFileSync(snapshotPath, 'utf8'), '{"snapshot":2}');
+
+    const originalExclusiveOpenSync = fs.openSync;
+    let preexistingTemporaryPath;
+    try {
+      fs.openSync = function (filename, ...args) {
+        const [flags] = args;
+        if (
+          typeof filename === 'string' &&
+          path.dirname(filename) === directories.browserDir &&
+          path.basename(filename).startsWith('.captured-attempts.json.') &&
+          path.extname(filename) === '.tmp' &&
+          (flags & fs.constants.O_EXCL) !== 0
+        ) {
+          const descriptor = Reflect.apply(originalExclusiveOpenSync, fs, [filename, ...args]);
+          fs.writeFileSync(descriptor, 'preexisting-temp-sentinel');
+          fs.closeSync(descriptor);
+          preexistingTemporaryPath = filename;
+          const error = new Error('controlled exclusive-create collision');
+          error.code = 'EEXIST';
+          throw error;
+        }
+        return Reflect.apply(originalExclusiveOpenSync, fs, [filename, ...args]);
+      };
+      assert.throws(
+        () => writePrivateStripeBrowserSnapshot(identity, 'captured-attempts.json', '{"snapshot":"collision"}'),
+        /private snapshot could not be replaced safely/,
+      );
+    } finally {
+      fs.openSync = originalExclusiveOpenSync;
+    }
+    assert.ok(preexistingTemporaryPath);
+    assert.equal(fs.readFileSync(preexistingTemporaryPath, 'utf8'), 'preexisting-temp-sentinel');
     assert.equal(fs.readFileSync(snapshotPath, 'utf8'), '{"snapshot":2}');
     assert.throws(
       () => resolvePrivateStripeBrowserArtifactDirectory(root, runId, path.join(outsideRoot, runId, 'browser')),

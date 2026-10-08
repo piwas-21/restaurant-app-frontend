@@ -1,5 +1,6 @@
 import { constants } from 'node:fs';
 import { lstat, mkdir, open, unlink, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 /**
@@ -21,6 +22,14 @@ import path from 'node:path';
  */
 
 const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
+const require = createRequire(path.resolve('e2e/helpers/storageState.ts'));
+const { resolvePrivateStripeBrowserArtifactDirectory } = require('../../scripts/e2e-p11-stripe-profile.cjs') as {
+  resolvePrivateStripeBrowserArtifactDirectory: (
+    evidenceRoot: string,
+    runId: string,
+    artifactDirectory: string,
+  ) => string;
+};
 
 /** Exactly the `User` shape `AuthContext.login` persists. */
 export interface StoredUser {
@@ -48,16 +57,22 @@ export interface StorageStateOptions {
 /** Resolve only the private artifact roots created by the cash or Stripe P11 runners. */
 export function resolveP11AuthDirectory(environment: Readonly<Record<string, string | undefined>>): string {
   const stripeDirectory = environment.P11_STRIPE_ARTIFACT_DIR;
-  if (stripeDirectory !== undefined) {
+  const stripeIdentityPresent = stripeDirectory !== undefined || environment.P11_STRIPE_EVIDENCE_ROOT !== undefined;
+  if (stripeIdentityPresent) {
     const runId = environment.P11_RUN_ID;
-    const expected = `/tmp/table-account-p11-stripe-evidence/${runId}/browser`;
+    const evidenceRoot = environment.P11_STRIPE_EVIDENCE_ROOT;
     if (
       environment.P11_ARTIFACT_DIR !== undefined ||
-      !/^[a-f0-9]{16}$/.test(runId ?? '') ||
-      stripeDirectory !== expected
+      typeof stripeDirectory !== 'string' ||
+      typeof evidenceRoot !== 'string' ||
+      typeof runId !== 'string' ||
+      !/^[a-f0-9]{16}$/.test(runId) ||
+      !path.isAbsolute(evidenceRoot) ||
+      !path.isAbsolute(stripeDirectory)
     )
       throw new Error('P11 authentication storage requires its validated private run artifact directory.');
-    return path.join(stripeDirectory, 'auth');
+    const browserDirectory = resolvePrivateStripeBrowserArtifactDirectory(evidenceRoot, runId, stripeDirectory);
+    return path.join(browserDirectory, 'auth');
   }
 
   const cashDirectory = environment.P11_ARTIFACT_DIR;

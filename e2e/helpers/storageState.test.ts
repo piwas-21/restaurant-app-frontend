@@ -5,41 +5,120 @@ import { resolveP11AuthDirectory, writeAuthStorageState } from './storageState';
 
 const STRIPE_RUN_ID = '0123456789abcdef'; // pragma: allowlist secret -- Synthetic run identifier
 
+async function createStripeBrowserDirectory(root: string, runId = STRIPE_RUN_ID) {
+  const evidenceRoot = path.join(root, `stripe-evidence-${runId}`);
+  const runDirectory = path.join(evidenceRoot, runId);
+  const browserDirectory = path.join(runDirectory, 'browser');
+  await mkdir(evidenceRoot, { mode: 0o700 });
+  await mkdir(runDirectory, { mode: 0o700 });
+  await mkdir(browserDirectory, { mode: 0o700 });
+  return { evidenceRoot, browserDirectory };
+}
+
 describe('P11 authentication storage', () => {
   let artifactDirectory: string;
+  let nonTemporaryRoot: string;
 
   beforeEach(async () => {
     artifactDirectory = await mkdtemp(path.join(os.tmpdir(), 'p11-auth-state-'));
     await chmod(artifactDirectory, 0o700);
+    nonTemporaryRoot = await mkdtemp(path.join(os.homedir(), '.p11-auth-root-'));
+    await chmod(nonTemporaryRoot, 0o700);
   });
 
   afterEach(async () => {
     await rm(artifactDirectory, { recursive: true, force: true });
+    await rm(nonTemporaryRoot, { recursive: true, force: true });
   });
 
-  it('routes cash and Stripe fixtures only to their validated run artifact directories', () => {
-    expect(resolveP11AuthDirectory({ P11_ARTIFACT_DIR: '/tmp/table-account-p11.a1b2c3d4/playwright' })).toBe(
-      '/tmp/table-account-p11.a1b2c3d4/playwright/auth',
+  it('routes cash and Stripe fixtures only to their validated run artifact directories', async () => {
+    const cashArtifactDirectory = '/tmp/table-account-p11.a1b2c3d4/playwright';
+    expect(resolveP11AuthDirectory({ P11_ARTIFACT_DIR: cashArtifactDirectory, P11_RUN_ID: STRIPE_RUN_ID })).toBe(
+      path.join(cashArtifactDirectory, 'auth'),
     );
+    const stripe = await createStripeBrowserDirectory(nonTemporaryRoot);
+    expect(stripe.evidenceRoot.startsWith('/tmp/')).toBe(false);
+    expect(stripe.evidenceRoot.startsWith('/private/tmp/')).toBe(false);
     expect(
       resolveP11AuthDirectory({
         P11_RUN_ID: STRIPE_RUN_ID,
-        P11_STRIPE_ARTIFACT_DIR: `/tmp/table-account-p11-stripe-evidence/${STRIPE_RUN_ID}/browser`,
+        P11_STRIPE_EVIDENCE_ROOT: stripe.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: stripe.browserDirectory,
       }),
-    ).toBe(`/tmp/table-account-p11-stripe-evidence/${STRIPE_RUN_ID}/browser/auth`);
+    ).toBe(path.join(stripe.browserDirectory, 'auth'));
   });
 
-  it('rejects ambiguous or unrecognized P11 artifact locations', () => {
+  it('rejects ambiguous or unrecognized P11 artifact locations', async () => {
     expect(() => resolveP11AuthDirectory({ P11_ARTIFACT_DIR: '/tmp/unrelated/playwright' })).toThrow(
       'validated private run artifact directory',
     );
+    const stripe = await createStripeBrowserDirectory(nonTemporaryRoot);
     expect(() =>
       resolveP11AuthDirectory({
         P11_ARTIFACT_DIR: '/tmp/table-account-p11.a1b2c3d4/playwright',
-        P11_STRIPE_ARTIFACT_DIR: `/tmp/table-account-p11-stripe-evidence/${STRIPE_RUN_ID}/browser`,
+        P11_STRIPE_EVIDENCE_ROOT: stripe.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: stripe.browserDirectory,
         P11_RUN_ID: STRIPE_RUN_ID,
       }),
     ).toThrow('validated private run artifact directory');
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: path.join(nonTemporaryRoot, 'other-root'),
+        P11_STRIPE_ARTIFACT_DIR: stripe.browserDirectory,
+        P11_RUN_ID: STRIPE_RUN_ID,
+      }),
+    ).toThrow('P11 Stripe profile refused');
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_ARTIFACT_DIR: stripe.browserDirectory,
+        P11_RUN_ID: STRIPE_RUN_ID,
+      }),
+    ).toThrow('validated private run artifact directory');
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: stripe.evidenceRoot,
+        P11_RUN_ID: STRIPE_RUN_ID,
+      }),
+    ).toThrow('validated private run artifact directory');
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: stripe.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: path.join(stripe.browserDirectory, '..', 'other-browser'),
+        P11_RUN_ID: STRIPE_RUN_ID,
+      }),
+    ).toThrow('P11 Stripe profile refused');
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: stripe.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: stripe.browserDirectory,
+        P11_RUN_ID: '0000000000000000',
+      }),
+    ).toThrow('P11 Stripe profile refused');
+  });
+
+  it('rejects linked or broadly readable Stripe browser directories', async () => {
+    const linked = await createStripeBrowserDirectory(nonTemporaryRoot);
+    const linkedTarget = path.join(nonTemporaryRoot, 'browser-target');
+    await mkdir(linkedTarget, { mode: 0o700 });
+    await rm(linked.browserDirectory, { recursive: true });
+    await symlink(linkedTarget, linked.browserDirectory);
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: linked.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: linked.browserDirectory,
+        P11_RUN_ID: STRIPE_RUN_ID,
+      }),
+    ).toThrow('P11 Stripe profile refused');
+
+    const broad = await createStripeBrowserDirectory(nonTemporaryRoot, '0000000000000000');
+    await chmod(broad.browserDirectory, 0o755);
+    expect(() =>
+      resolveP11AuthDirectory({
+        P11_STRIPE_EVIDENCE_ROOT: broad.evidenceRoot,
+        P11_STRIPE_ARTIFACT_DIR: broad.browserDirectory,
+        P11_RUN_ID: '0000000000000000',
+      }),
+    ).toThrow('P11 Stripe profile refused');
   });
 
   it('writes exclusive mode-0600 files beneath a same-owner mode-0700 directory', async () => {

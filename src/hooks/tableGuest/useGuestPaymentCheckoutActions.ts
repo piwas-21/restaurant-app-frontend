@@ -64,8 +64,7 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
       !descriptor ||
       !identity ||
       !options.isCurrentIdentity(identity) ||
-      descriptor.serviceSessionId !== identity.serviceSessionId ||
-      (descriptor.startRequestedAt === null && descriptor.attemptId === null)
+      descriptor.serviceSessionId !== identity.serviceSessionId
     )
       return false;
     try {
@@ -151,7 +150,6 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
         }
       }, false);
       if (!options.isCurrentIdentity(identity)) return false;
-      finishCancellation(generation, cancellationGeneration, cancellationInProgress, setIsCancellationWorking);
       await options.recoverSavedPayment({
         attemptId: currentCheckout.attemptId,
         operationId: descriptor.operationId,

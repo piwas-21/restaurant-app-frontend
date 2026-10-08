@@ -196,11 +196,15 @@ export async function recoverActivePayment(
     if (!descriptor.contribution) {
       if (operation.state !== 'Quoted' || descriptor.startRequestedAt !== null) throw new Error('unsafe-recovery');
       const contribution = await createGuestPaymentContribution(operation);
+      if (!isActiveRecovery(callbacks)) return;
       const next = withQuotedOperation(descriptor, operation.version, contribution);
       if (!saveUpdated(next, callbacks)) return;
       descriptor = next;
     }
-    const hasStartedCheckout = requiresCheckoutLookup(descriptor);
+    // A captured operation can be observed from another tab before this tab has a
+    // local start marker. Resolve its checkout if possible, but never invent a
+    // receipt capability or publish terminal success without the receipt proof.
+    const hasStartedCheckout = requiresCheckoutLookup(descriptor) || operation.state === 'Captured';
     const shouldWithholdUnmatchedTerminal = hasStartedCheckout && isTerminalGuestPayment(operation.state);
     if (!shouldWithholdUnmatchedTerminal) callbacks.setOperation(operation);
     if (hasStartedCheckout) {
@@ -305,6 +309,7 @@ async function publishInitialCheckout(
     callbacks.setCheckout(checkout);
     return operation;
   }
+  if (!descriptor.receiptCredential) callbacks.setReturnReceiptUnavailable(true);
   return confirmReturnedTerminalCheckout(checkout, receipt, identity, descriptor, callbacks);
 }
 
@@ -321,7 +326,7 @@ async function completeInitialCheckoutRead(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
-  const shouldPoll = shouldPollAfterInitialRead(returnAttemptId, callbacks);
+  const shouldPoll = Boolean(descriptor.receiptCredential) && shouldPollAfterInitialRead(returnAttemptId, callbacks);
   callbacks.setIsRecoveryPolling(shouldPoll);
   callbacks.setIsLoading(false);
   if (!shouldPoll) {

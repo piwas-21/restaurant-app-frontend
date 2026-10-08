@@ -451,6 +451,103 @@ describe('useGuestAccountPaymentFlow', () => {
     if (saved.kind === 'ready') expect(saved.attempts[0].receiptCredential).toBeNull();
   });
 
+  it('keeps a captured operation discovered before this tab started unresolved without a receipt capability', async () => {
+    const participantFingerprint = await fingerprintGuestParticipant(identity.participantToken);
+    if (!participantFingerprint) throw new Error('test participant fingerprint is unavailable');
+    const descriptor = withQuotedOperation(
+      createGuestAccountPaymentDescriptor(
+        SESSION_ID,
+        OPERATION_ID,
+        { expectedAccountRevision: 7, mode: 'Amount', paymentMethod: 'OnlinePayment', amountMinor: 1250 },
+        participantFingerprint,
+      ),
+      1,
+      { amountMinor: 1250, currency: 'CHF', snapshotFingerprint: 'b'.repeat(64) },
+    );
+    if (!saveGuestAccountPaymentAttempt(descriptor)) throw new Error('test pre-start descriptor was not saved');
+    const capturedOperation = operation('Captured', 3);
+    const capturedCheckout = { ...checkout(), state: 'Captured' as const, version: 3, receivedMinor: 1250 };
+    jest
+      .mocked(guestAccountPaymentService.getOperation)
+      .mockResolvedValueOnce(operation('Quoted', 1))
+      .mockResolvedValue(capturedOperation);
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockResolvedValue(capturedCheckout);
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.operation?.state).toBe('Quoted'));
+
+    await act(async () => {
+      expect(await result.current.startOrResumeCheckout()).toBe(true);
+    });
+
+    expect(result.current.operation).toBeNull();
+    expect(result.current.checkout).toBeNull();
+    expect(result.current.returnReceiptUnavailable).toBe(true);
+    expect(result.current.isRecoveryPolling).toBe(false);
+    expect(result.current.canReplaceAttempt).toBe(false);
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.getReceipt).not.toHaveBeenCalled();
+    expect(guestAccountPaymentService.reserve).not.toHaveBeenCalled();
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+
+    await act(async () => {
+      expect(await result.current.refreshPaymentStatus()).toBe(true);
+    });
+
+    expect(result.current.returnReceiptUnavailable).toBe(true);
+    expect(result.current.canReplaceAttempt).toBe(false);
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(2);
+    expect(guestAccountPaymentService.getReceipt).not.toHaveBeenCalled();
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
+  it('does not persist or publish a recovered quote after its identity becomes stale during fingerprinting', async () => {
+    const descriptor = await saveUnfinishedQuote();
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValueOnce(operation('Quoted', 1));
+    const subtle = globalThis.crypto.subtle;
+    const originalDigest = subtle.digest.bind(subtle);
+    let finishDigest!: () => Promise<void>;
+    jest.spyOn(subtle, 'digest').mockImplementation(
+      (algorithm, data) =>
+        new Promise<ArrayBuffer>((resolve, reject) => {
+          finishDigest = async () => {
+            try {
+              resolve(await originalDigest(algorithm, data));
+            } catch (error) {
+              reject(error);
+            }
+          };
+        }),
+    );
+    let isCurrent = true;
+    const saveUpdatedDescriptor = jest.fn(() => true);
+    const recovery = recoverActivePayment(descriptor, identity, null, {
+      isCurrent: () => isCurrent,
+      setOperation: jest.fn(),
+      setCheckout: jest.fn(),
+      setError: jest.fn(),
+      setReturnReceiptUnavailable: jest.fn(),
+      setIsLoading: jest.fn(),
+      setIsRecoveryPolling: jest.fn(),
+      fetchReceipt: jest.fn(),
+      publishReceipt: jest.fn(),
+      saveUpdatedDescriptor,
+      setStorageUnavailable: jest.fn(),
+      runExclusive: async <T,>(read: () => Promise<T>, _blocked: T) => read(),
+      waitForNextPoll: async () => false,
+    });
+
+    await waitFor(() => expect(finishDigest).toBeDefined());
+    isCurrent = false;
+    await finishDigest();
+    await recovery;
+
+    expect(saveUpdatedDescriptor).not.toHaveBeenCalled();
+    const stored = readGuestAccountPaymentAttempts();
+    expect(stored.kind).toBe('ready');
+    if (stored.kind === 'ready') expect(stored.attempts[0].contribution).toBeNull();
+  });
+
   it('recovers a committed checkout after a lost response with the same operation, version and receipt credential when the flag turns off', async () => {
     jest.mocked(guestAccountPaymentService.createQuote).mockResolvedValue({
       operation: operation('Quoted', 1),
@@ -676,7 +773,7 @@ describe('useGuestAccountPaymentFlow', () => {
     expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
   }, 25_000);
 
-  it('blocks replay during the poll delay and lets cancellation restart recovery without stale terminal publication', async () => {
+  it('keeps a cancellation locked through recovery while still allowing the first cancellation during polling', async () => {
     await saveStartedPaymentAttempt();
     const processingCheckout = { ...checkout(), state: 'Processing' as const, version: 2 };
     const failedCheckout = { ...checkout(), state: 'Failed' as const, version: 3 };
@@ -770,7 +867,6 @@ describe('useGuestAccountPaymentFlow', () => {
       .mocked(guestAccountPaymentService.getOperation)
       .mockResolvedValueOnce(operation('Processing', 2))
       .mockResolvedValueOnce(operation('Processing', 2))
-      .mockResolvedValueOnce(operation('Failed', 3))
       .mockResolvedValueOnce(operation('Failed', 3));
     jest
       .mocked(guestAccountPaymentService.getCheckoutStatus)
@@ -783,13 +879,7 @@ describe('useGuestAccountPaymentFlow', () => {
       .mockResolvedValueOnce(processingReceipt)
       .mockResolvedValueOnce(failedReceipt);
 
-    let resolveSecondCancellation!: (value: GuestAccountCheckoutStatus) => void;
-    jest
-      .mocked(guestAccountPaymentService.requestCancellation)
-      .mockResolvedValueOnce(failedCheckout)
-      .mockImplementationOnce(
-        () => new Promise<GuestAccountCheckoutStatus>((resolve) => (resolveSecondCancellation = resolve)),
-      );
+    jest.mocked(guestAccountPaymentService.requestCancellation).mockResolvedValueOnce(failedCheckout);
 
     const { result } = renderHook(() => useGuestAccountPaymentFlow({ ...options(), returnAttemptId: ATTEMPT_ID }));
     await waitFor(() => expect(result.current.isRecoveryPolling).toBe(true));
@@ -801,24 +891,15 @@ describe('useGuestAccountPaymentFlow', () => {
       expect(guestAccountPaymentService.requestCancellation).toHaveBeenCalledTimes(1);
       expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(2);
       expect(result.current.isRecoveryPolling).toBe(true);
-    });
-
-    let secondCancellation!: Promise<boolean>;
-    await act(async () => {
-      secondCancellation = result.current.requestCancellation();
-    });
-    await waitFor(() => {
-      expect(guestAccountPaymentService.requestCancellation).toHaveBeenCalledTimes(2);
       expect(result.current.isCancellationWorking).toBe(true);
     });
-    await act(async () => {
-      expect(await firstCancellation).toBe(true);
-    });
-    expect(result.current.isCancellationWorking).toBe(true);
 
     await act(async () => {
-      resolveSecondCancellation(failedCheckout);
-      expect(await secondCancellation).toBe(true);
+      expect(await result.current.requestCancellation()).toBe(false);
+    });
+    expect(guestAccountPaymentService.requestCancellation).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      expect(await firstCancellation).toBe(true);
     });
     expect(result.current.checkout).toEqual(failedCheckout);
     expect(result.current.operation).toEqual(operation('Failed', 3));

@@ -5,10 +5,10 @@ import { ApiError } from '@/utils/apiClient';
 import { routeApiError } from '@/utils/apiFormErrors';
 import { drainKitchenBoardWorkPages, type KitchenBoardWorkBatch } from '@/services/kitchenBoardFeedSync';
 import { getKitchenBoardWork } from '@/services/kitchenBoardService';
+import { KITCHEN_BOARD_SYNC_INTERVAL_MS } from '@/lib/config';
 import type { KitchenBoardCursors } from '@/types/kitchenBoard';
 import { initialKitchenBoardState, kitchenBoardReducer, type KitchenBoardAction } from './kitchenBoardState';
 
-const SYNC_INTERVAL_MS = 15_000;
 const INVALID_CURSOR_CODES = new Set(['InvalidOperationalQueueCursor', 'ExpiredOperationalQueueCursor']);
 const EMPTY_CURSORS: KitchenBoardCursors = { orders: null, corrections: null, completions: null };
 
@@ -125,7 +125,7 @@ export function useKitchenBoardFeed(enabled: boolean) {
 
     cursorsRef.current = EMPTY_CURSORS;
     void synchronize(true);
-    const interval = window.setInterval(() => void synchronize(false), SYNC_INTERVAL_MS);
+    const interval = window.setInterval(() => void synchronize(false), KITCHEN_BOARD_SYNC_INTERVAL_MS);
     return () => {
       mountedRef.current = false;
       generationRef.current += 1;

@@ -7,6 +7,10 @@ import { useKitchenBoardWork } from './useKitchenBoardWork';
 
 jest.mock('@/services/kitchenBoardService');
 jest.mock('@/services/order/orderCommands');
+jest.mock('@/lib/config', () => ({
+  ...jest.requireActual<typeof import('@/lib/config')>('@/lib/config'),
+  KITCHEN_BOARD_SYNC_INTERVAL_MS: 27_500,
+}));
 
 const mockGetWork = getKitchenBoardWork as jest.MockedFunction<typeof getKitchenBoardWork>;
 const mockCompleteWork = completeKitchenBoardWork as jest.MockedFunction<typeof completeKitchenBoardWork>;
@@ -133,6 +137,24 @@ beforeEach(() => {
 });
 
 describe('useKitchenBoardWork', () => {
+  it('polls at the configured cadence and stops polling on unmount', async () => {
+    jest.useFakeTimers();
+    try {
+      const { unmount } = renderHook(() => useKitchenBoardWork(true));
+      await act(async () => Promise.resolve());
+      expect(mockGetWork).toHaveBeenCalledTimes(1);
+      await act(async () => jest.advanceTimersByTime(27_499));
+      expect(mockGetWork).toHaveBeenCalledTimes(1);
+      await act(async () => jest.advanceTimersByTime(1));
+      expect(mockGetWork).toHaveBeenCalledTimes(2);
+      unmount();
+      await act(async () => jest.advanceTimersByTime(27_500));
+      expect(mockGetWork).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('does not request the native work feed while the workspace is disabled', async () => {
     const { result } = renderHook(() => useKitchenBoardWork(false));
     await waitFor(() => expect(result.current.state.isLoading).toBe(false));

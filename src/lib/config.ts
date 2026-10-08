@@ -141,6 +141,17 @@ export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
   15_000,
 );
 
+const DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS = 15_000;
+const configuredKitchenBoardSyncIntervalMs = positiveIntegerConfig(
+  process.env.NEXT_PUBLIC_KITCHEN_BOARD_SYNC_INTERVAL_MS,
+  DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS,
+);
+/** Build-time native kitchen polling cadence, bounded to 1–60 seconds. */
+export const KITCHEN_BOARD_SYNC_INTERVAL_MS =
+  configuredKitchenBoardSyncIntervalMs >= 1_000 && configuredKitchenBoardSyncIntervalMs <= 60_000
+    ? configuredKitchenBoardSyncIntervalMs
+    : DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS;
+
 const guestPaymentRecoveryConfig = resolveGuestPaymentRecoveryConfig({
   accountReadTimeoutMs: process.env.NEXT_PUBLIC_GUEST_ACCOUNT_READ_TIMEOUT_MS,
   recoveryMaxDurationMs: process.env.NEXT_PUBLIC_GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS,

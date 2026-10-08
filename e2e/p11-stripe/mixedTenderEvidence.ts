@@ -238,6 +238,7 @@ export async function retainMixedTenderEvidence(
   expect(cashIntent.rows[0]).toMatchObject({
     refund_leg_id: legs.rows.find((value) => value.account_payment_attempt_id === cash!.attempt_id)?.id,
     attempt_id: cash!.attempt_id,
+    collection_receipt_id: receiptResult.rows[0].id,
     policy_version: 'chf-cash-5-rappen-v1',
     currency: 'CHF',
     original_exact_amount_minor: '999',

@@ -289,7 +289,7 @@ binary paths:
 ```bash
 export NODE22_BIN="/path/to/node-22/bin/node"
 export PATH="$(dirname "$NODE22_BIN"):$PATH"
-"$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
+TMPDIR=/private/tmp "$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
   "$P11_STRIPE_PROFILE" "$P11_BACKEND_DIR" "$P11_STRIPE_CLI" "$P11_BACKEND_SHA" \
   native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER"
 ```
@@ -315,7 +315,7 @@ oracle or claim physical cash acceptance.
 
 The runner verifies the test-connected account before creating its run-specific database, then starts
 only loopback PostgreSQL/Redis services and the exact pinned local API. It keeps private logs and a
-verified operational database dump under `/tmp/table-account-p11-evidence/<run-id>/`, records whether
+verified operational database dump under `<private-run-state>/stripe-evidence/<run-id>/`, records whether
 the run used Compose or native services, and stops only its own API/listener/database/Redis processes.
 The run state retains generated credentials and should be treated as private. This runner can create
 and fully refund Stripe **test-mode** charges; it does not make live payments.

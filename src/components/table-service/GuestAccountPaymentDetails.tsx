@@ -75,6 +75,8 @@ export function PaymentStatus({
   refundedMinor,
   reconciliationRequired,
   isWorking,
+  isRecoveryPolling,
+  isCancellationWorking,
   retryOriginal,
   showStatus,
   canCancel,
@@ -89,6 +91,8 @@ export function PaymentStatus({
   refundedMinor: number;
   reconciliationRequired: boolean;
   isWorking: boolean;
+  isRecoveryPolling: boolean;
+  isCancellationWorking: boolean;
   retryOriginal: boolean;
   showStatus: boolean;
   canCancel: boolean;
@@ -122,18 +126,33 @@ export function PaymentStatus({
       {reconciliationRequired && <p className={styles.notice}>{t('table_guest_payment_reconciliation')}</p>}
       <div className={styles.actions}>
         {retryOriginal ? (
-          <button type="button" className={styles.button} disabled={isWorking} onClick={() => void onRetry()}>
+          <button
+            type="button"
+            className={styles.button}
+            disabled={isWorking || isRecoveryPolling}
+            onClick={() => void onRetry()}
+          >
             {t('table_guest_payment_retry_original')}
           </button>
         ) : (
           showStatus && (
-            <button type="button" className={styles.button} disabled={isWorking} onClick={() => void onRefresh()}>
+            <button
+              type="button"
+              className={styles.button}
+              disabled={isWorking || isRecoveryPolling}
+              onClick={() => void onRefresh()}
+            >
               {t('table_guest_payment_status')}
             </button>
           )
         )}
         {canCancel && !reconciliationRequired && (
-          <button type="button" className={styles.button} disabled={isWorking} onClick={() => void onCancel()}>
+          <button
+            type="button"
+            className={styles.button}
+            disabled={isCancellationWorking}
+            onClick={() => void onCancel()}
+          >
             {t('table_guest_payment_cancel')}
           </button>
         )}

@@ -12,14 +12,13 @@ import type {
   GuestPaymentRecoveryOptions,
 } from '@/types/guestPaymentRecovery';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
-import { readGuestAccountPaymentAttempts, saveGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
+import { saveGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
 import {
-  recoverActivePayment,
-  recoverReceiptOnly,
   summarizeDescriptor,
   waitForRecoveryPoll,
+  type GuestPaymentRecoveryTarget,
 } from './guestPaymentRecoveryHelpers';
-import { chooseGuestPaymentRecovery, recoverReturnedReceipt } from './guestPaymentRecoverySelection';
+import { recoverStoredPayment } from './guestPaymentRecoveryCoordinator';
 import { useGuestPaymentRecoveryReceiptState } from './useGuestPaymentRecoveryReceiptState';
 
 export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS = 120_000;
@@ -37,6 +36,7 @@ export function useGuestPaymentRecovery({
   const [checkout, setCheckout] = useState<GuestAccountCheckoutStatus | null>(null);
   const [receipts, setReceipts] = useState<readonly GuestPaymentReceiptSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecoveryPolling, setIsRecoveryPolling] = useState(false);
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const [returnReceiptUnavailable, setReturnReceiptUnavailable] = useState(false);
   const [error, setError] = useState<GuestPaymentErrorKey>('');
@@ -55,119 +55,80 @@ export function useGuestPaymentRecovery({
     setReceipts,
   });
 
-  const recoverSavedPayment = useCallback(async () => {
-    setIsLoading(true);
-    recoveryAbortController.current?.abort();
-    const abortController = new AbortController();
-    recoveryAbortController.current = abortController;
-    const generation = ++recoveryGeneration.current;
-    const isCurrent = () => recoveryGeneration.current === generation;
-    const deadlineTimer = setTimeout(() => {
-      if (isCurrent()) {
-        setError('load');
-        setReturnReceiptUnavailable(Boolean(returnAttemptId));
-        setIsLoading(false);
-      }
-      abortController.abort();
-    }, GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS);
-    try {
-      setOperation(null);
-      setCheckout(null);
-      setReceipts([]);
-      setError('');
-      setReturnReceiptUnavailable(false);
-      const stored = readGuestAccountPaymentAttempts();
-      if (stored.kind === 'unavailable') {
-        setStorageUnavailable(true);
-        setIsLoading(false);
-        return;
-      }
-      setStorageUnavailable(false);
-      if (stored.kind === 'empty') {
-        publishDescriptor(null);
-        setIsLoading(false);
-        setReturnReceiptUnavailable(Boolean(returnAttemptId));
-        return;
-      }
-
-      const { selected, receiptDescriptor } = await chooseGuestPaymentRecovery(
-        stored.attempts,
-        returnAttemptId,
-        activeIdentity,
-        recoveryIdentity,
-      );
-      if (!isCurrent() || abortController.signal.aborted) return;
-
-      await recoverReturnedReceipt(
-        returnAttemptId,
-        receiptDescriptor,
-        selected,
-        fetchReceipt,
-        setReturnReceiptUnavailable,
-        abortController.signal,
-        isCurrent,
-      );
-      if (!isCurrent() || abortController.signal.aborted) return;
-
-      if (!selected) {
-        publishDescriptor(!activeIdentity ? receiptDescriptor : null);
+  const recoverSavedPayment = useCallback(
+    async (target?: GuestPaymentRecoveryTarget) => {
+      const recoveryAttemptId = target === undefined ? returnAttemptId : target.attemptId;
+      setIsLoading(true);
+      setIsRecoveryPolling(false);
+      recoveryAbortController.current?.abort();
+      const abortController = new AbortController();
+      recoveryAbortController.current = abortController;
+      const generation = ++recoveryGeneration.current;
+      const isCurrent = () => recoveryGeneration.current === generation;
+      const deadlineTimer = setTimeout(() => {
+        if (isCurrent()) {
+          setError('load');
+          setReturnReceiptUnavailable(Boolean(recoveryAttemptId));
+          setIsLoading(false);
+        }
+        abortController.abort();
+      }, GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS);
+      try {
         setOperation(null);
         setCheckout(null);
-        setIsLoading(false);
-        return;
-      }
-
-      const selectedReturnAttemptId = selected === receiptDescriptor ? returnAttemptId : null;
-      publishDescriptor(selected);
-      if (!returnAttemptId || (selected === receiptDescriptor && activeIdentity !== null))
+        setReceipts([]);
+        setError('');
         setReturnReceiptUnavailable(false);
-      if (selected.serviceSessionId !== activeIdentity?.serviceSessionId) {
-        await recoverReceiptOnly(
-          selected,
-          selectedReturnAttemptId,
-          fetchReceipt,
-          setReturnReceiptUnavailable,
-          abortController.signal,
+        await recoverStoredPayment({
+          target,
+          attemptId: recoveryAttemptId,
+          activeIdentity,
+          recoveryIdentity,
+          signal: abortController.signal,
           isCurrent,
-        );
-        if (isCurrent()) setIsLoading(false);
-        return;
+          publishDescriptor,
+          publishReceipt,
+          fetchReceipt,
+          setOperation,
+          setCheckout,
+          setError,
+          setReturnReceiptUnavailable,
+          setIsLoading,
+          setIsRecoveryPolling,
+          setStorageUnavailable,
+          onReturnedPaymentSettled,
+          runExclusive,
+          saveUpdatedDescriptor: (descriptor) => {
+            if (!saveGuestAccountPaymentAttempt(descriptor)) return false;
+            publishDescriptor(descriptor);
+            return true;
+          },
+          waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
+        });
+      } finally {
+        clearTimeout(deadlineTimer);
+        if (recoveryAbortController.current === abortController) recoveryAbortController.current = null;
       }
+    },
+    [
+      activeIdentity,
+      fetchReceipt,
+      onReturnedPaymentSettled,
+      publishDescriptor,
+      publishReceipt,
+      recoveryIdentity,
+      returnAttemptId,
+      runExclusive,
+    ],
+  );
 
-      await recoverActivePayment(selected, activeIdentity, selectedReturnAttemptId, {
-        isCurrent,
-        signal: abortController.signal,
-        setOperation,
-        setCheckout,
-        setError,
-        setReturnReceiptUnavailable,
-        setIsLoading,
-        fetchReceipt,
-        publishReceipt,
-        setStorageUnavailable,
-        onReturnedPaymentSettled,
-        saveUpdatedDescriptor: (descriptor) => {
-          if (!saveGuestAccountPaymentAttempt(descriptor)) return false;
-          publishDescriptor(descriptor);
-          return true;
-        },
-        runExclusive,
-        waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
-      });
-    } finally {
-      clearTimeout(deadlineTimer);
-      if (recoveryAbortController.current === abortController) recoveryAbortController.current = null;
-    }
-  }, [
-    activeIdentity,
-    fetchReceipt,
-    onReturnedPaymentSettled,
-    publishDescriptor,
-    publishReceipt,
-    recoveryIdentity,
-    returnAttemptId,
-    runExclusive,
-  ]);
+  const stopRecoveryPolling = useCallback(() => {
+    if (!isRecoveryPolling) return false;
+    recoveryGeneration.current += 1;
+    recoveryAbortController.current?.abort();
+    setIsRecoveryPolling(false);
+    return true;
+  }, [isRecoveryPolling]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -186,6 +147,7 @@ export function useGuestPaymentRecovery({
     setCheckout,
     receipts,
     isLoading,
+    isRecoveryPolling,
     storageUnavailable,
     returnReceiptUnavailable,
     error,
@@ -193,5 +155,6 @@ export function useGuestPaymentRecovery({
     publishDescriptor,
     fetchReceipt,
     recoverSavedPayment,
+    stopRecoveryPolling,
   };
 }

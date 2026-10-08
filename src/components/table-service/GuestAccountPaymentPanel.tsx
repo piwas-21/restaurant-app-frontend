@@ -22,7 +22,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
   const { t, i18n } = useTranslation();
   const flow = useGuestAccountPaymentFlow(props);
   const account = flow.account;
-  const attemptId = props.returnAttemptId ?? flow.attempt?.attemptId;
+  const attemptId = flow.attempt ? flow.attempt.attemptId : props.returnAttemptId;
   const receipt = attemptId ? (flow.receipts.find((entry) => entry.attemptId === attemptId)?.receipt ?? null) : null;
   const operation = flow.operation;
   const currentState = flow.checkout?.state ?? operation?.state ?? null;
@@ -81,7 +81,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking || flow.isLoading || flow.planRecoveryLoading}
+              disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling || flow.planRecoveryLoading}
               onClick={() => void flow.resolveOriginalPlan()}
             >
               {t(flow.planRetryAvailable ? 'table_guest_payment_retry_original' : 'table_guest_payment_status')}
@@ -99,7 +99,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           {t('table_guest_payment_pending_round')}
         </output>
       )}
-      {flow.isLoading && flow.attempt && (
+      {(flow.isLoading || flow.isRecoveryPolling) && flow.attempt && (
         <output className={styles.muted} aria-live="polite">
           {t('loading')}
         </output>
@@ -110,9 +110,13 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           operation={operation}
           tableAccount={props.tableAccount}
           canContinue={
-            props.newPaymentsEnabled && props.canCreatePayment && !flow.storageUnavailable && !flow.isLoading
+            props.newPaymentsEnabled &&
+            props.canCreatePayment &&
+            !flow.storageUnavailable &&
+            !flow.isLoading &&
+            !flow.isRecoveryPolling
           }
-          isWorking={flow.isWorking || flow.isLoading}
+          isWorking={flow.isWorking || flow.isLoading || flow.isRecoveryPolling}
           onContinue={flow.startOrResumeCheckout}
           onRelease={flow.releaseBeforeStart}
         />
@@ -123,7 +127,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking || flow.isLoading || flow.storageUnavailable}
+              disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling || flow.storageUnavailable}
               onClick={() => void flow.retryUnfinishedQuote()}
             >
               {t('table_guest_payment_retry_original')}
@@ -132,7 +136,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           <button
             type="button"
             className={styles.button}
-            disabled={flow.isWorking || flow.isLoading || flow.storageUnavailable}
+            disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling || flow.storageUnavailable}
             onClick={() => void flow.discardUnfinishedQuote()}
           >
             {t('table_guest_payment_discard_unfinished_quote')}
@@ -148,7 +152,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking || flow.isLoading}
+              disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling}
               onClick={() => void flow.refreshPaymentStatus()}
             >
               {t('table_guest_payment_status')}
@@ -160,7 +164,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           <button
             type="button"
             className={styles.button}
-            disabled={flow.isWorking || flow.isLoading}
+            disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling}
             onClick={() => void flow.startOrResumeCheckout()}
           >
             {t('table_guest_payment_retry_original')}
@@ -175,7 +179,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
             <button
               type="button"
               className={styles.button}
-              disabled={flow.isWorking || flow.isLoading}
+              disabled={flow.isWorking || flow.isLoading || flow.isRecoveryPolling}
               onClick={() => void flow.refreshPaymentStatus()}
             >
               {t('table_guest_payment_status')}
@@ -191,6 +195,8 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           refundedMinor={flow.checkout?.refundedMinor ?? 0}
           reconciliationRequired={flow.checkout?.reconciliationRequired ?? false}
           isWorking={flow.isWorking || flow.isLoading}
+          isRecoveryPolling={flow.isRecoveryPolling}
+          isCancellationWorking={flow.isCancellationWorking}
           retryOriginal={retryOriginal}
           showStatus={flow.checkout !== null}
           canCancel={canCancel}
@@ -205,7 +211,7 @@ export default function GuestAccountPaymentPanel(props: GuestAccountPaymentPanel
           {t('table_guest_payment_return_missing')}
         </output>
       )}
-      {canShowForm && account && account.availableMinor > 0 && !flow.isLoading && (
+      {canShowForm && account && account.availableMinor > 0 && !flow.isLoading && !flow.isRecoveryPolling && (
         <GuestAccountPaymentContributionForm
           account={account}
           tableAccount={props.tableAccount}

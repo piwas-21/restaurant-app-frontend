@@ -29,6 +29,14 @@ export interface GuestAccountPaymentFlowOptions {
 export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptions) {
   const { activeIdentity, recoveryIdentity, newPaymentsEnabled, canCreatePayment, returnAttemptId, onAccountUpdated } =
     options;
+  const activeIdentityRef = useRef(activeIdentity);
+  activeIdentityRef.current = activeIdentity;
+  const isCurrentIdentity = useCallback((identity: TableGuestVisitIdentity) => {
+    const current = activeIdentityRef.current;
+    return (
+      current?.serviceSessionId === identity.serviceSessionId && current.participantToken === identity.participantToken
+    );
+  }, []);
   const gate = useGuestPaymentWorkGate();
   const returnedPaymentRefreshRef = useRef<
     (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) => Promise<boolean>
@@ -72,16 +80,14 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     onAccountUpdated,
   });
 
-  const canReplaceAttempt = canStartAnotherContribution(
-    recovery.descriptorRef.current,
-    recovery.operation,
-    recovery.checkout,
-  );
+  const canReplaceAttempt =
+    canStartAnotherContribution(recovery.descriptorRef.current, recovery.operation, recovery.checkout) &&
+    !recovery.isRecoveryPolling;
   const contributionActions = useGuestPaymentContributionActions({
     activeIdentity,
     newPaymentsEnabled,
     canCreatePayment,
-    isRecoveryLoading: recovery.isLoading,
+    isRecoveryLoading: recovery.isLoading || recovery.isRecoveryPolling,
     account,
     canReplaceAttempt,
     descriptorRef: recovery.descriptorRef,
@@ -99,7 +105,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     account,
     activePlan: account?.activeEqualSharePlan ?? null,
     canReplaceAttempt,
-    isPlanRecoveryBlocked: planRecovery.isBlocked,
+    isPlanRecoveryBlocked: planRecovery.isBlocked || recovery.isRecoveryPolling,
     planIntentRef: planRecovery.intentRef,
     persistIntent: planRecovery.persistIntent,
     completeIntent: planRecovery.completeIntent,
@@ -116,9 +122,27 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     descriptorRef: recovery.descriptorRef,
     operation: recovery.operation,
     checkout: recovery.checkout,
+    isRecoveryPolling: recovery.isRecoveryPolling,
+    stopRecoveryPolling: recovery.stopRecoveryPolling,
+    waitForWorkIdle: gate.waitForIdle,
     runExclusive: gate.runExclusive,
     publishDescriptor: recovery.publishDescriptor,
-    fetchReceipt: recovery.fetchReceipt,
+    setOperation: recovery.setOperation,
+    setError: setRecoveryError,
+    setStorageUnavailable,
+    refreshAccount,
+    onAccountUpdated,
+    recoverSavedPayment: recovery.recoverSavedPayment,
+    isCurrentIdentity,
+  });
+  const startAction = useGuestPaymentStartAction({
+    activeIdentity,
+    newPaymentsEnabled,
+    canCreatePayment,
+    isRecoveryPolling: recovery.isRecoveryPolling,
+    descriptorRef: recovery.descriptorRef,
+    runExclusive: gate.runExclusive,
+    publishDescriptor: recovery.publishDescriptor,
     setOperation: recovery.setOperation,
     setCheckout: recovery.setCheckout,
     setError: setRecoveryError,
@@ -126,21 +150,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     refreshAccount,
     onAccountUpdated,
     recoverSavedPayment: recovery.recoverSavedPayment,
-  });
-  const startAction = useGuestPaymentStartAction({
-    activeIdentity,
-    newPaymentsEnabled,
-    canCreatePayment,
-    descriptorRef: recovery.descriptorRef,
-    runExclusive: gate.runExclusive,
-    publishDescriptor: recovery.publishDescriptor,
-    fetchReceipt: recovery.fetchReceipt,
-    setOperation: recovery.setOperation,
-    setCheckout: recovery.setCheckout,
-    setError: setRecoveryError,
-    setStorageUnavailable,
-    refreshAccount,
-    onAccountUpdated,
+    isCurrentIdentity,
   });
 
   return {
@@ -150,6 +160,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     checkout: recovery.checkout,
     receipts: recovery.receipts,
     isLoading: recovery.isLoading,
+    isRecoveryPolling: recovery.isRecoveryPolling,
     isAccountLoading,
     isWorking: gate.isWorking,
     storageUnavailable: storageUnavailable || recovery.storageUnavailable || planRecovery.storageUnavailable,

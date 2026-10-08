@@ -16,6 +16,8 @@ describe('guest account payment status', () => {
         refundedMinor={0}
         reconciliationRequired
         isWorking={false}
+        isRecoveryPolling={false}
+        isCancellationWorking={false}
         retryOriginal={false}
         showStatus
         canCancel={false}

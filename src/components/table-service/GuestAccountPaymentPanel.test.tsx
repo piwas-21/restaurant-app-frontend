@@ -48,6 +48,8 @@ function flowResult(overrides: Partial<ReturnType<typeof useGuestAccountPaymentF
     checkout: null,
     receipts: [],
     isLoading: false,
+    isRecoveryPolling: false,
+    isCancellationWorking: false,
     isAccountLoading: false,
     isWorking: false,
     storageUnavailable: false,
@@ -180,6 +182,56 @@ describe('GuestAccountPaymentPanel', () => {
     );
 
     expect(screen.getByRole('button', { name: 'table_guest_payment_retry_original' })).toBeDisabled();
+  });
+
+  it('keeps retry and manual status blocked during polling while allowing cancellation', () => {
+    const requestCancellation = jest.fn().mockResolvedValue(true);
+    const activeIdentity = {
+      serviceSessionId: attempt.serviceSessionId,
+      participantToken: 'participant-secret',
+      expiresAt: '2030-01-01T00:00:00Z',
+    };
+    jest.mocked(useGuestAccountPaymentFlow).mockReturnValue(
+      flowResult({
+        operation: paymentOperation,
+        checkout: {
+          attemptId: returnedAttemptId,
+          operationId: attempt.operationId,
+          state: 'Processing',
+          version: 2,
+          amountMinor: 1250,
+          currency: 'CHF',
+          expiresAt: '2030-01-01T00:10:00Z',
+          checkoutUrl: null,
+          reconciliationRequired: false,
+          receivedMinor: 0,
+          refundedMinor: 0,
+        },
+        isRecoveryPolling: true,
+        requestCancellation,
+      }),
+    );
+    render(
+      <GuestAccountPaymentPanel
+        tableAccount={null}
+        activeIdentity={activeIdentity}
+        recoveryIdentity={activeIdentity}
+        newPaymentsEnabled
+        canCreatePayment
+        returnAttemptId={returnedAttemptId}
+        returnHintPresent
+        onAccountUpdated={jest.fn()}
+      />,
+    );
+
+    const statusButton = screen.getByRole('button', { name: 'table_guest_payment_status' });
+    const cancelButton = screen.getByRole('button', { name: 'table_guest_payment_cancel' });
+    expect(statusButton).toBeDisabled();
+    expect(cancelButton).toBeEnabled();
+    fireEvent.click(statusButton);
+    fireEvent.click(cancelButton);
+    expect(requestCancellation).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'table_guest_payment_retry_original' })).not.toBeInTheDocument();
   });
 
   it('shows the generic receipt-unavailable state for a saved attempt without a return hint', () => {

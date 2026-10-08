@@ -7,6 +7,7 @@ import {
   subtractAllocations,
   totalGuestPaymentAllocations,
 } from './guestAccountPaymentAllocationMath';
+import { sameGuestPaymentCurrency } from './guestAccountPaymentResponsePrimitives';
 
 export function expectedGuestPaymentAllocations(
   account: GuestAccountPaymentAccount,
@@ -57,7 +58,8 @@ function equalShareAllocations(
   if (
     !plan ||
     plan.planId.toLowerCase() !== planId?.toLowerCase() ||
-    plan.accountRevision !== account.accountRevision ||
+    plan.accountRevision > account.accountRevision ||
+    !sameGuestPaymentCurrency(plan.currency, account.currency) ||
     !Number.isSafeInteger(ordinal) ||
     ordinal === undefined ||
     ordinal < 1 ||

@@ -1,0 +1,46 @@
+.workspace {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+  min-block-size: 100%;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  padding-block-end: var(--space-2, 0.5rem);
+  border-block-end: 1px solid var(--border-default);
+}
+
+.tabs button {
+  min-block-size: 2.75rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected='true'] {
+  border-color: var(--brand-primary);
+  box-shadow: inset 0 0 0 1px var(--brand-primary);
+}
+
+.tabs button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.panel {
+  min-inline-size: 0;
+}
+
+.loading {
+  padding: 1.5rem;
+  color: var(--text-secondary);
+}

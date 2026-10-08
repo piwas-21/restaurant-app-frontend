@@ -13,10 +13,10 @@ function LoadingKitchenBoard() {
   );
 }
 
-const MarketplaceKitchenBoard = dynamic(() => import('@/components/kitchenStaff/MarketplaceKitchenBoard'), {
+const KitchenStaffWorkspace = dynamic(() => import('@/components/kitchenStaff/KitchenStaffWorkspace'), {
   loading: LoadingKitchenBoard,
 });
 
 export default function KitchenStaffPage() {
-  return <MarketplaceKitchenBoard />;
+  return <KitchenStaffWorkspace />;
 }

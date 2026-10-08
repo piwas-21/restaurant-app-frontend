@@ -199,7 +199,7 @@ async function recoverStartedPayment(
     ? await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent)
     : null;
   if (!callbacks.isCurrent()) return;
-  callbacks.setCheckout(checkout);
+  if (canPublishCheckout(checkout, receipt, Boolean(returnAttemptId))) callbacks.setCheckout(checkout);
   callbacks.setIsLoading(false);
 
   await pollReturnedCheckout(identity, returnAttemptId, checkout, next, receipt, callbacks);
@@ -232,10 +232,11 @@ async function pollReturnedCheckout(
         callbacks.setReturnReceiptUnavailable(true);
         return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: null };
       }
-      callbacks.setCheckout(currentCheckout);
       const currentReceipt = currentDescriptor.receiptCredential
         ? await callbacks.fetchReceipt(currentDescriptor, currentCheckout.attemptId, callbacks.isCurrent)
         : null;
+      if (!callbacks.isCurrent()) return null;
+      if (canPublishCheckout(currentCheckout, currentReceipt, true)) callbacks.setCheckout(currentCheckout);
       return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: currentReceipt };
     }, null);
 
@@ -246,16 +247,20 @@ async function pollReturnedCheckout(
     receipt = refreshed.receipt;
     if (checkout.attemptId !== returnAttemptId) return;
   }
+  if (isTerminalGuestPayment(checkout.state) && !isFinalReturnedCheckout(checkout, receipt))
+    callbacks.setReturnReceiptUnavailable(true);
+}
+
+function canPublishCheckout(
+  checkout: GuestAccountCheckoutStatus,
+  receipt: GuestPaymentReceipt | null,
+  isReturnedAttempt: boolean,
+): boolean {
+  return !isReturnedAttempt || !isTerminalGuestPayment(checkout.state) || isFinalReturnedCheckout(checkout, receipt);
 }
 
 function isFinalReturnedCheckout(checkout: GuestAccountCheckoutStatus, receipt: GuestPaymentReceipt | null): boolean {
-  if (
-    checkout.state === 'ReconciliationRequired' ||
-    checkout.reconciliationRequired ||
-    checkout.state === 'Failed' ||
-    checkout.state === 'Released'
-  )
-    return true;
+  if (checkout.state === 'ReconciliationRequired' || checkout.reconciliationRequired) return true;
   if (!isTerminalGuestPayment(checkout.state)) return false;
   return (
     receipt !== null &&

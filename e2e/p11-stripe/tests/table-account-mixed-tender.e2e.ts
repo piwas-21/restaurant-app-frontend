@@ -136,13 +136,15 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     await responseData(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/quote$`), () =>
       amendmentForm.getByRole('button', { name: 'Get a quote', exact: true }).click(),
     );
-    const amendment = await responseData<{ amendmentId: string; sourceOrderId: string }>(
-      admin.page,
-      new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`),
-      () => amendmentForm.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
+    const amendment = await responseData<{
+      amendmentId: string;
+      clientOperationId: string;
+      sourceOrderId: string;
+    }>(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`), () =>
+      amendmentForm.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
     );
     expect(amendment.sourceOrderId).toBe(orderId);
-    await expect(amendmentForm.getByText('Amendment committed', { exact: true })).toBeVisible();
+    await expect(amendmentForm.getByRole('status')).toHaveText(`Amendment committed · ${amendment.clientOperationId}`);
     await amendmentForm.getByRole('button', { name: 'Close', exact: true }).click();
     await admin.page.reload();
     await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();

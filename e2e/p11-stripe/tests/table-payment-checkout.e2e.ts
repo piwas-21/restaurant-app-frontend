@@ -232,13 +232,15 @@ test('four phones settle one table through items, amount and equal shares, then 
     await responseData(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/quote$`), () =>
       amendment.getByRole('button', { name: 'Get a quote', exact: true }).click(),
     );
-    const committed = await responseData<{ amendmentId: string; sourceOrderId: string }>(
-      admin.page,
-      new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`),
-      () => amendment.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
+    const committed = await responseData<{
+      amendmentId: string;
+      clientOperationId: string;
+      sourceOrderId: string;
+    }>(admin.page, new RegExp(`^/api/staff/orders/${orderId}/amendments/commit$`), () =>
+      amendment.getByRole('button', { name: 'Confirm amendment', exact: true }).click(),
     );
     expect(committed.sourceOrderId).toBe(orderId);
-    await expect(amendment.getByText('Amendment committed', { exact: true })).toBeVisible();
+    await expect(amendment.getByRole('status')).toHaveText(`Amendment committed · ${committed.clientOperationId}`);
     await amendment.getByRole('button', { name: 'Close', exact: true }).click();
     await admin.page.reload();
     await admin.page.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();

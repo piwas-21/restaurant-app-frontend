@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { FilePenLine, Search } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useAccountPaymentActor, type AccountPaymentActor } from '@/hooks/accountPayments/useAccountPaymentActor';
 import { useOrderAmendmentEligibility } from '@/hooks/orderAmendments/useOrderAmendmentEligibility';
 import { useTranslation } from 'react-i18next';
@@ -79,6 +80,70 @@ function RecoveryActorState({ actor }: Readonly<{ actor: AccountPaymentActor }>)
   );
 }
 
+interface EntryButtonContentProps {
+  readonly enabled: boolean;
+  readonly canRecover: boolean;
+  readonly awaitingRecoveryActor: boolean;
+  readonly translations: ReturnType<typeof useOrderAmendmentTranslations>;
+  readonly actor: AccountPaymentActor;
+  readonly recoveryOnly: boolean;
+  readonly localReason: string | null;
+  readonly reason: string | null;
+  readonly showFeatureDisabledNotice: boolean;
+  readonly onOpen: () => void;
+  readonly onRetry: () => void;
+  readonly t: ReturnType<typeof useTranslation>['t'];
+}
+
+function entryButtonContent(props: Readonly<EntryButtonContentProps>): ReactNode {
+  if (!props.enabled && !props.canRecover && !props.awaitingRecoveryActor) return null;
+  if (!props.translations.ready) {
+    return (
+      <div>
+        <output className={styles.unavailable} aria-live="polite" aria-atomic="true">
+          {props.translations.failed
+            ? props.t('error_unexpected', 'Order actions could not be loaded. Please try again.')
+            : props.t('common.loading', 'Loading…')}
+        </output>
+        {props.translations.failed && (
+          <button type="button" className={styles.action} onClick={props.translations.retry}>
+            {props.t('retry')}
+          </button>
+        )}
+      </div>
+    );
+  }
+  if (props.awaitingRecoveryActor) return <RecoveryActorState actor={props.actor} />;
+  if (!props.recoveryOnly && !props.canRecover) {
+    return (
+      <button type="button" className={styles.action} onClick={props.onOpen}>
+        <FilePenLine size={17} aria-hidden="true" />
+        {props.t('orderAmendments.open', 'Amend order')}
+      </button>
+    );
+  }
+
+  const unavailableKey = unavailableReason(props.enabled, props.showFeatureDisabledNotice, props.reason);
+  const canRetryEligibility = canRetryAmendmentEligibility(props.enabled, props.localReason, props.actor, props.reason);
+  if (!props.canRecover && !unavailableKey) return null;
+  return (
+    <>
+      {unavailableKey && <p className={styles.unavailable}>{props.t(unavailableKey)}</p>}
+      {canRetryEligibility && !props.canRecover && (
+        <button type="button" className={styles.action} onClick={props.onRetry}>
+          {props.t('retry')}
+        </button>
+      )}
+      {props.canRecover && (
+        <button type="button" className={styles.action} onClick={props.onOpen}>
+          <Search size={17} aria-hidden="true" />
+          {props.t('orderAmendments.check_operation', 'Check the original operation')}
+        </button>
+      )}
+    </>
+  );
+}
+
 export default function OrderAmendmentEntryButton({
   order,
   operatorRole,
@@ -124,83 +189,38 @@ export default function OrderAmendmentEntryButton({
   );
   const awaitingRecoveryActor = !orderAmendmentsV1 && actor.status !== 'ready';
   const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || canRecover || awaitingRecoveryActor);
-
-  if (!orderAmendmentsV1 && !canRecover && !awaitingRecoveryActor) return null;
-  if (!translations.ready) {
-    return (
-      <div>
-        <output className={styles.unavailable} aria-live="polite" aria-atomic="true">
-          {translations.failed
-            ? t('error_unexpected', 'Order actions could not be loaded. Please try again.')
-            : t('common.loading', 'Loading…')}
-        </output>
-        {translations.failed && (
-          <button type="button" className={styles.action} onClick={translations.retry}>
-            {t('retry', 'Retry')}
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  if (awaitingRecoveryActor) {
-    return <RecoveryActorState actor={actor} />;
-  }
-
-  if (!recoveryOnly && !canRecover) {
-    return (
-      <>
-        <button type="button" className={styles.action} onClick={() => setIsOpen(true)}>
-          <FilePenLine size={17} aria-hidden="true" />
-          {t('orderAmendments.open', 'Amend order')}
-        </button>
-        {isOpen && (
-          <OrderAmendmentModal
-            key={`${actorId}:${order.id}`}
-            order={order}
-            operatorRole={operatorRole}
-            resolvedActorId={actorId}
-            onClose={() => setIsOpen(false)}
-            onCommitted={onCommitted}
-          />
-        )}
-      </>
-    );
-  }
-
-  const unavailableKey = unavailableReason(orderAmendmentsV1, showFeatureDisabledNotice, reason);
-  if (!canRecover && !unavailableKey) return null;
-  const canRetryEligibility = canRetryAmendmentEligibility(orderAmendmentsV1, localReason, actor, reason);
+  const onOpen = () => setIsOpen(true);
+  const onRetry = () => retryEligibility(actor, onCommitted, eligibility.retry);
+  const content = entryButtonContent({
+    enabled: orderAmendmentsV1,
+    canRecover,
+    awaitingRecoveryActor,
+    translations,
+    actor,
+    recoveryOnly,
+    localReason,
+    reason,
+    showFeatureDisabledNotice,
+    onOpen,
+    onRetry,
+    t,
+  });
+  const modal = isOpen && actorId && translations.ready && (orderAmendmentsV1 || canRecover) && (
+    <OrderAmendmentModal
+      key={`${actorId}:${order.id}`}
+      order={order}
+      operatorRole={operatorRole}
+      recoveryOnly={recoveryOnly}
+      resolvedActorId={actorId}
+      onClose={() => setIsOpen(false)}
+      onCommitted={onCommitted}
+    />
+  );
 
   return (
     <>
-      {unavailableKey && <p className={styles.unavailable}>{t(unavailableKey)}</p>}
-      {canRetryEligibility && !canRecover && (
-        <button
-          type="button"
-          className={styles.action}
-          onClick={() => retryEligibility(actor, onCommitted, eligibility.retry)}
-        >
-          {t('retry')}
-        </button>
-      )}
-      {canRecover && (
-        <button type="button" className={styles.action} onClick={() => setIsOpen(true)}>
-          <Search size={17} aria-hidden="true" />
-          {t('orderAmendments.check_operation', 'Check the original operation')}
-        </button>
-      )}
-      {isOpen && (
-        <OrderAmendmentModal
-          key={`${actorId}:${order.id}`}
-          order={order}
-          operatorRole={operatorRole}
-          recoveryOnly={recoveryOnly}
-          resolvedActorId={actorId}
-          onClose={() => setIsOpen(false)}
-          onCommitted={onCommitted}
-        />
-      )}
+      {content}
+      {modal}
     </>
   );
 }

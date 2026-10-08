@@ -571,7 +571,8 @@ p11Test(
       expect(failedClose.ok()).toBe(true);
       const failedCloseBody = (await failedClose.json()) as ApiEnvelope<unknown>;
       expect(failedCloseBody).toMatchObject({ success: false, errorCode: 'KitchenCorrectionUnresolved' });
-      await expect(server.page.getByRole('alert')).toContainText(CORRECTION_CLOSE_BLOCK);
+      const correctionCloseAlert = server.page.getByRole('alert').filter({ hasText: CORRECTION_CLOSE_BLOCK });
+      await expect(correctionCloseAlert).toHaveText(CORRECTION_CLOSE_BLOCK);
 
       const fullVoidCard = correctionCard(board, firstRound.orderNumber);
       await expect(fullVoidCard.getByRole('button', { name: 'Acknowledge correction', exact: true })).toBeVisible();

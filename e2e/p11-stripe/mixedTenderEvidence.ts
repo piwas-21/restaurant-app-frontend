@@ -91,7 +91,7 @@ export async function retainMixedTenderEvidence(
   });
   const cachedOnlineRefundedMinor = online!.provider_refunded_minor;
   if (typeof cachedOnlineRefundedMinor !== 'string') {
-    throw new Error('The online checkout refund snapshot is missing.');
+    throw new TypeError('The online checkout refund snapshot is missing.');
   }
   expect(cachedOnlineRefundedMinor).toMatch(/^(0|[1-9]\d{0,18})$/);
   expect(BigInt(cachedOnlineRefundedMinor)).toBeLessThanOrEqual(BigInt(online!.provider_captured_minor!));

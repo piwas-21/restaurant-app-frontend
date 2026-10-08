@@ -1,3 +1,5 @@
+import { resolveGuestPaymentRecoveryConfig } from './guestPaymentRecoveryConfig';
+
 /**
  * Build-time tenant configuration (CLAUDE.md §5.12): NEXT_PUBLIC_* values are
  * read once here and exported as typed constants — never scattered through
@@ -138,6 +140,18 @@ export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
   process.env.NEXT_PUBLIC_STAFF_PAYMENT_HANDOFF_REFRESH_MS,
   15_000,
 );
+
+const guestPaymentRecoveryConfig = resolveGuestPaymentRecoveryConfig({
+  accountReadTimeoutMs: process.env.NEXT_PUBLIC_GUEST_ACCOUNT_READ_TIMEOUT_MS,
+  recoveryMaxDurationMs: process.env.NEXT_PUBLIC_GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS,
+  returnedCheckoutPollDelaysMs: process.env.NEXT_PUBLIC_GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_MS,
+});
+
+/** Optional build-time overrides; invalid values use the bounded defaults. */
+export const GUEST_ACCOUNT_READ_TIMEOUT_CONFIG_MS = guestPaymentRecoveryConfig.accountReadTimeoutMs;
+export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_CONFIG_MS = guestPaymentRecoveryConfig.recoveryMaxDurationMs;
+export const GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_CONFIG_MS =
+  guestPaymentRecoveryConfig.returnedCheckoutPollDelaysMs;
 
 const CANONICAL_PAYMENT_CHECKOUT_HOST = 'checkout.stripe.com';
 

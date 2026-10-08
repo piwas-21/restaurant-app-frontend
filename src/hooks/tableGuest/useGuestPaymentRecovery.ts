@@ -13,6 +13,7 @@ import type {
 } from '@/types/guestPaymentRecovery';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { saveGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
+import { GUEST_PAYMENT_RECOVERY_MAX_DURATION_CONFIG_MS } from '@/lib/config';
 import {
   summarizeDescriptor,
   waitForRecoveryPoll,
@@ -21,7 +22,7 @@ import {
 import { recoverStoredPayment } from './guestPaymentRecoveryCoordinator';
 import { useGuestPaymentRecoveryReceiptState } from './useGuestPaymentRecoveryReceiptState';
 
-export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS = 120_000;
+export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS = GUEST_PAYMENT_RECOVERY_MAX_DURATION_CONFIG_MS;
 
 export function useGuestPaymentRecovery({
   activeIdentity,

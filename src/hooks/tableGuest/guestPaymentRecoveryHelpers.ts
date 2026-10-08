@@ -12,8 +12,7 @@ import type { GuestPaymentAttemptSummary } from '@/types/guestPaymentRecovery';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { isTerminalGuestPayment, isUnfinishedGuestPaymentQuote } from '@/lib/guestAccountPaymentRules';
-
-const RETURNED_CHECKOUT_POLL_DELAYS_MS = [2_000, 4_000, 8_000, 16_000, 20_000, 25_000, 30_000] as const;
+import { GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_CONFIG_MS } from '@/lib/config';
 
 interface ReturnedCheckoutRead {
   readonly checkout: GuestAccountCheckoutStatus;
@@ -384,7 +383,7 @@ async function pollReturnedCheckout(
   let descriptor = initialDescriptor;
   let receipt = initialReceipt;
   let operation = initialOperation;
-  for (const delayMs of RETURNED_CHECKOUT_POLL_DELAYS_MS) {
+  for (const delayMs of GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_CONFIG_MS) {
     if (!targetAttemptId || isFinalReturnedCheckout(checkout, receipt, operation, identity, descriptor)) return;
     if (!(await callbacks.waitForNextPoll(delayMs)) || !callbacks.isCurrent()) return;
 

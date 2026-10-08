@@ -5,9 +5,10 @@ import type { TableGuestVisitIdentity } from '@/types/tableGuestVisit';
 import type { GuestAccountPaymentAccount } from '@/types/guestAccountPayments';
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
+import { GUEST_ACCOUNT_READ_TIMEOUT_CONFIG_MS } from '@/lib/config';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
 
-export const GUEST_ACCOUNT_READ_TIMEOUT_MS = 15_000;
+export const GUEST_ACCOUNT_READ_TIMEOUT_MS = GUEST_ACCOUNT_READ_TIMEOUT_CONFIG_MS;
 
 interface GuestPaymentAccountStateOptions {
   readonly activeIdentity: TableGuestVisitIdentity | null;

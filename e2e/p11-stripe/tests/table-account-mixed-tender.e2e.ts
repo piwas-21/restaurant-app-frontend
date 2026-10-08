@@ -63,7 +63,10 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     expect(afterOnline.capturedAccountPaymentMinor).toBe(501);
 
     const selection = collection.locator('form').first();
-    await selection.getByLabel('Collect a contribution', { exact: true }).selectOption('Amount');
+    const collectionMode = selection.getByRole('combobox', { name: /^Collect a contribution\b/ });
+    await expect(collectionMode).toHaveCount(1);
+    await expect(collectionMode.locator('option[value="Amount"]')).toHaveCount(1);
+    await collectionMode.selectOption('Amount');
     await selection.getByLabel('Contribution amount', { exact: true }).fill('9.99');
     const cashQuote = await responseData<AccountPaymentOperation>(cashier.page, /\/account-payments\/quotes$/, () =>
       selection.getByRole('button', { name: 'Review contribution', exact: true }).click(),

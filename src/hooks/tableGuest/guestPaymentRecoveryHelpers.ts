@@ -164,8 +164,11 @@ export async function recoverActivePayment(
       if (!saveUpdated(next, callbacks)) return;
       descriptor = next;
     }
-    callbacks.setOperation(operation);
-    if (requiresCheckoutLookup(descriptor)) {
+    const hasStartedCheckout = requiresCheckoutLookup(descriptor);
+    const shouldWithholdUnmatchedTerminal =
+      Boolean(returnAttemptId) && hasStartedCheckout && isTerminalGuestPayment(operation.state);
+    if (!shouldWithholdUnmatchedTerminal) callbacks.setOperation(operation);
+    if (hasStartedCheckout) {
       await recoverStartedPayment(descriptor, identity, returnAttemptId, operation, callbacks);
     } else if (returnAttemptId) {
       callbacks.setReturnReceiptUnavailable(true);

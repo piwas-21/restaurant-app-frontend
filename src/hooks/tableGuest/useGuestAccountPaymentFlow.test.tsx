@@ -515,6 +515,60 @@ describe('useGuestAccountPaymentFlow', () => {
     );
   });
 
+  it('does not expose a captured operation beside a stale processing receipt', async () => {
+    await saveStartedPaymentAttempt();
+    const processingCheckout = { ...checkout(), state: 'Processing' as const, version: 2 };
+    const capturedCheckout = { ...checkout(), state: 'Captured' as const, version: 3, receivedMinor: 1250 };
+    const processingReceipt = {
+      attemptId: ATTEMPT_ID,
+      amountMinor: 1250,
+      currency: 'CHF',
+      state: 'Processing' as const,
+      receivedMinor: 0,
+      refundedMinor: 0,
+      reconciliationRequired: false,
+      completedAt: null,
+      receiptExpiresAt: null,
+    };
+    const capturedReceipt = {
+      ...processingReceipt,
+      state: 'Captured' as const,
+      receivedMinor: 1250,
+      completedAt: '2030-01-01T00:00:00Z',
+      receiptExpiresAt: '2030-01-04T00:00:00Z',
+    };
+    const capturedOperation = operation('Captured', 3);
+    jest
+      .mocked(guestAccountPaymentService.getOperation)
+      .mockResolvedValueOnce(capturedOperation)
+      .mockResolvedValue(capturedOperation);
+    jest
+      .mocked(guestAccountPaymentService.getCheckoutStatus)
+      .mockResolvedValueOnce(processingCheckout)
+      .mockResolvedValue(capturedCheckout);
+    jest
+      .mocked(guestAccountPaymentService.getReceipt)
+      .mockResolvedValueOnce(processingReceipt)
+      .mockResolvedValue(capturedReceipt);
+    const { result } = renderHook(() => useGuestAccountPaymentFlow({ ...options(), returnAttemptId: ATTEMPT_ID }));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.checkout).toMatchObject({ state: 'Processing' });
+    expect(result.current.receipts[0]?.receipt).toMatchObject({ state: 'Processing', receivedMinor: 0 });
+    expect(result.current.operation).toBeNull();
+    expect(result.current.canReplaceAttempt).toBe(false);
+
+    await waitFor(
+      () => {
+        expect(result.current.checkout).toEqual(capturedCheckout);
+        expect(result.current.receipts[0]?.receipt).toMatchObject({ state: 'Captured', receivedMinor: 1250 });
+        expect(result.current.operation).toEqual(capturedOperation);
+      },
+      { timeout: 5_000 },
+    );
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  }, 10_000);
+
   it('settles the same payer after the returned receipt and operation confirm capture', async () => {
     await saveStartedPaymentAttempt();
     const processingCheckout = { ...checkout(), state: 'Processing' as const, version: 2 };

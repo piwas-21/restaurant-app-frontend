@@ -126,6 +126,7 @@ test('isolates API and listener secrets from Playwright and ignores ambient prov
   assert.equal(processes.api.Stripe__PlatformApiKey, profile.apiKey);
   assert.equal(processes.api.Stripe__ConnectedAccountId, profile.connectedAccountId);
   assert.equal(processes.api.AccountCheckoutWebhook__SigningSecret, signingSecret);
+  assert.equal(processes.api.AccountCheckout__ReturnPath, '/en/table-account');
   assert.equal(processes.api.Modules__Enforce, 'true');
   assert.ok(processes.api.Modules__Enabled.split(',').includes('online-payments'));
   assert.deepEqual(processes.listener, { PATH: '/usr/bin', STRIPE_API_KEY: profile.apiKey });

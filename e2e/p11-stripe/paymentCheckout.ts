@@ -106,7 +106,13 @@ export async function completeContribution(
     await securityCode.fill('123');
     await cardholder.fill('P11 Test Guest');
     await payButton.click();
-    await expect(page).toHaveURL(/\/en\/table-account\?/);
+    await expect(page).toHaveURL(
+      (url) =>
+        url.origin === expectedAppOrigin &&
+        url.pathname === '/en/table-account' &&
+        url.searchParams.get('paymentAttempt') === checkout.attemptId &&
+        url.searchParams.get('canceled') === '0',
+    );
     const receipt = page.getByRole('region', { name: 'Your contribution', exact: true });
     await expect(receipt).toContainText('Payment confirmed', { timeout: 120_000 });
     const received = receipt.getByText('Received', { exact: true }).locator('xpath=following-sibling::dd[1]');

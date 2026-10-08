@@ -176,6 +176,48 @@ function inspectPrivateSnapshotTarget(directory, filename) {
   }
 }
 
+function writeSnapshotTemporary(descriptor, contents) {
+  const stat = fs.fstatSync(descriptor);
+  if (!stat.isFile() || stat.uid !== currentUid() || (stat.mode & 0o777) !== 0o600)
+    refuse('temporary snapshots must be same-user mode-0600 regular files.');
+  fs.writeFileSync(descriptor, contents);
+  fs.fsyncSync(descriptor);
+}
+
+function assertSnapshotTargetUnchanged(directory, filename, original) {
+  const current = inspectPrivateSnapshotTarget(directory, filename);
+  const unchanged =
+    current.exists === original.exists &&
+    (!original.exists || (current.dev === original.dev && current.ino === original.ino));
+  if (!unchanged) refuse('snapshot target changed during refresh.');
+}
+
+function syncPrivateSnapshotDirectory(directory) {
+  let descriptor;
+  try {
+    descriptor = fs.openSync(directory, PRIVATE_DIRECTORY_FLAGS);
+    fs.fsyncSync(descriptor);
+  } finally {
+    closeSnapshotDescriptor(descriptor);
+  }
+}
+
+function closeSnapshotDescriptor(descriptor) {
+  if (descriptor === undefined) return;
+  try {
+    fs.closeSync(descriptor);
+  } catch {}
+}
+
+function removeOwnedSnapshotTemporary(temporary, created, renamed) {
+  if (!created || renamed) return;
+  try {
+    fs.unlinkSync(temporary);
+  } catch (error) {
+    if (error.code !== 'ENOENT') refuse('temporary snapshot could not be removed safely.');
+  }
+}
+
 function replacePrivateSnapshotAtomically(directory, filename, contents) {
   assertPrivateDirectory(directory);
   if (!REPLACEABLE_BROWSER_EVIDENCE.has(filename)) refuse('this browser evidence file cannot be replaced.');
@@ -184,56 +226,28 @@ function replacePrivateSnapshotAtomically(directory, filename, contents) {
   const temporary = path.join(directory, `.${filename}.${randomUUID()}.tmp`);
   const flags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW;
   let descriptor;
-  let parentDescriptor;
   let temporaryCreated = false;
   let renamed = false;
   try {
     descriptor = fs.openSync(temporary, flags, 0o600);
     temporaryCreated = true;
-    const temporaryStat = fs.fstatSync(descriptor);
-    if (!temporaryStat.isFile() || temporaryStat.uid !== currentUid() || (temporaryStat.mode & 0o777) !== 0o600)
-      refuse('temporary snapshots must be same-user mode-0600 regular files.');
-    fs.writeFileSync(descriptor, contents);
-    fs.fsyncSync(descriptor);
+    writeSnapshotTemporary(descriptor, contents);
     fs.closeSync(descriptor);
     descriptor = undefined;
 
     assertPrivateDirectory(directory);
-    const current = inspectPrivateSnapshotTarget(directory, filename);
-    if (
-      current.exists !== original.exists ||
-      (original.exists && (current.dev !== original.dev || current.ino !== original.ino))
-    )
-      refuse('snapshot target changed during refresh.');
+    assertSnapshotTargetUnchanged(directory, filename, original);
     fs.renameSync(temporary, target);
     renamed = true;
-    parentDescriptor = fs.openSync(directory, PRIVATE_DIRECTORY_FLAGS);
-    fs.fsyncSync(parentDescriptor);
-    fs.closeSync(parentDescriptor);
-    parentDescriptor = undefined;
+    syncPrivateSnapshotDirectory(directory);
     assertPrivateDirectory(directory);
     inspectPrivateSnapshotTarget(directory, filename);
   } catch (error) {
     if (error.message.startsWith('P11 Stripe profile refused:')) throw error;
     refuse('private snapshot could not be replaced safely.');
   } finally {
-    if (descriptor !== undefined) {
-      try {
-        fs.closeSync(descriptor);
-      } catch {}
-    }
-    if (parentDescriptor !== undefined) {
-      try {
-        fs.closeSync(parentDescriptor);
-      } catch {}
-    }
-    if (temporaryCreated && !renamed) {
-      try {
-        fs.unlinkSync(temporary);
-      } catch (error) {
-        if (error.code !== 'ENOENT') refuse('temporary snapshot could not be removed safely.');
-      }
-    }
+    closeSnapshotDescriptor(descriptor);
+    removeOwnedSnapshotTemporary(temporary, temporaryCreated, renamed);
   }
 }
 

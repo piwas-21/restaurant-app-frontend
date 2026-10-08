@@ -139,6 +139,60 @@ export async function readNativeKitchenSnapshot(api: APIRequestContext): Promise
   throw new Error('P11 native kitchen streams did not reach their terminal pages.');
 }
 
+/** Acknowledges the exact correction currently displayed on the native kitchen board. */
+export async function acknowledgeCorrectionWork(page: Page, correction: KitchenBoardCorrection): Promise<void> {
+  if (
+    correction.withdrawn ||
+    correction.isCompleted ||
+    !correction.canComplete ||
+    !/^[0-9a-f-]{36}$/i.test(correction.workItemId) ||
+    typeof correction.accountRevision !== 'number' ||
+    !Number.isSafeInteger(correction.accountRevision) ||
+    correction.accountRevision <= 0 ||
+    !Number.isSafeInteger(correction.orderVersion) ||
+    correction.orderVersion <= 0
+  ) {
+    throw new Error('P11 correction acknowledgement requires the exact visible work revision and order version.');
+  }
+
+  const card = page.locator(`article[aria-labelledby="kitchen-correction-${correction.workItemId}"]`);
+  await expect(
+    card.getByRole('heading', { name: `Correction for order ${correction.orderNumber}`, exact: true }),
+  ).toBeVisible();
+  const button = card.getByRole('button', { name: 'Acknowledge correction', exact: true });
+  await expect(button).toBeEnabled();
+
+  const path = `/api/staff/kitchen-board/orders/${encodeURIComponent(correction.orderId)}/work-items/${encodeURIComponent(correction.workItemId)}/complete`;
+  const isCompletionRequest = (request: { url(): string; method(): string }) =>
+    request.method() === 'POST' && new URL(request.url()).pathname === path;
+  const requestPromise = page.waitForRequest(isCompletionRequest);
+  const responsePromise = page.waitForResponse((response) => isCompletionRequest(response.request()));
+  await button.click();
+
+  const request = await requestPromise;
+  expect(request.postDataJSON()).toEqual({
+    kind: 'AmendmentCorrection',
+    expectedOrderVersion: correction.orderVersion,
+    expectedAccountRevision: correction.accountRevision,
+  });
+  const result = await responseData<{
+    readonly orderId: string;
+    readonly workItemId: string;
+    readonly kind: string;
+    readonly accountRevision: number;
+    readonly acknowledgedOrderVersion: number;
+    readonly isCompleted: boolean;
+  }>(await responsePromise, 'native kitchen correction acknowledgement');
+  expect(result).toMatchObject({
+    orderId: correction.orderId,
+    workItemId: correction.workItemId,
+    kind: 'AmendmentCorrection',
+    accountRevision: correction.accountRevision,
+    acknowledgedOrderVersion: correction.orderVersion,
+    isCompleted: true,
+  });
+}
+
 export async function readServerTask(api: APIRequestContext, orderId: string): Promise<ServerTask> {
   const response = await api.get('/api/staff/server-workspace/tasks?pageSize=100');
   const feed = await responseData<{ readonly items: readonly ServerTask[]; readonly hasMore: boolean }>(

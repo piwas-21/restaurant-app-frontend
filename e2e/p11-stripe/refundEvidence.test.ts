@@ -1,7 +1,7 @@
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
-import os from 'node:os';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getE2EDbPool } from '../helpers/db';
+import { createPrivateEvidenceTestEnvironment } from './privateEvidenceTestEnvironment';
 import type { StoredAttempt } from './paymentEvidence';
 import { retainRefundEvidence } from './refundEvidence';
 
@@ -63,39 +63,14 @@ function evidenceRows(providerCurrency: string): Record<string, unknown>[] {
 }
 
 describe('P11 refund evidence currency matching', () => {
-  let evidenceRoot: string;
-  let browserDirectory: string;
-  let previousEnvironment: Partial<
-    Record<'P11_STRIPE_EVIDENCE_ROOT' | 'P11_RUN_ID' | 'P11_STRIPE_ARTIFACT_DIR', string | undefined>
-  >;
+  let evidenceEnvironment: ReturnType<typeof createPrivateEvidenceTestEnvironment>;
 
   beforeEach(() => {
-    const runId = '0000000000000000';
-    evidenceRoot = mkdtempSync(path.join(os.tmpdir(), 'p11-refund-evidence-'));
-    chmodSync(evidenceRoot, 0o700);
-    const runDirectory = path.join(evidenceRoot, runId);
-    browserDirectory = path.join(runDirectory, 'browser');
-    mkdirSync(runDirectory, { mode: 0o700 });
-    mkdirSync(browserDirectory, { mode: 0o700 });
-    chmodSync(runDirectory, 0o700);
-    chmodSync(browserDirectory, 0o700);
-
-    previousEnvironment = {
-      P11_STRIPE_EVIDENCE_ROOT: process.env.P11_STRIPE_EVIDENCE_ROOT,
-      P11_RUN_ID: process.env.P11_RUN_ID,
-      P11_STRIPE_ARTIFACT_DIR: process.env.P11_STRIPE_ARTIFACT_DIR,
-    };
-    process.env.P11_STRIPE_EVIDENCE_ROOT = evidenceRoot;
-    process.env.P11_RUN_ID = runId;
-    process.env.P11_STRIPE_ARTIFACT_DIR = browserDirectory;
+    evidenceEnvironment = createPrivateEvidenceTestEnvironment('p11-refund-evidence-');
   });
 
   afterEach(() => {
-    for (const [name, value] of Object.entries(previousEnvironment)) {
-      if (value === undefined) delete process.env[name];
-      else process.env[name] = value;
-    }
-    rmSync(evidenceRoot, { recursive: true, force: true });
+    evidenceEnvironment.dispose();
   });
 
   async function collect(providerCurrency: string): Promise<readonly string[]> {
@@ -128,7 +103,9 @@ describe('P11 refund evidence currency matching', () => {
       const observationQuery = statements.find((statement) => statement.includes('FROM order_amendment_refund_legs l'));
       expect(observationQuery).toContain('e.currency AS provider_observation_currency');
       expect(observationQuery).not.toMatch(/(?:e\.currency\s*=\s*l\.currency|l\.currency\s*=\s*e\.currency)/i);
-      const written = JSON.parse(readFileSync(path.join(browserDirectory, 'refund-evidence.json'), 'utf8')) as {
+      const written = JSON.parse(
+        readFileSync(path.join(evidenceEnvironment.browserDirectory, 'refund-evidence.json'), 'utf8'),
+      ) as {
         refundLegs: Array<{ currency: string }>;
       };
       expect(written.refundLegs.map((row) => row.currency)).toEqual(['CHF', 'CHF', 'CHF', 'CHF']);
@@ -138,6 +115,6 @@ describe('P11 refund evidence currency matching', () => {
 
   test('rejects a provider observation with a different currency', async () => {
     await expect(collect('EUR')).rejects.toThrow(/Expected: "CHF"/);
-    expect(existsSync(path.join(browserDirectory, 'refund-evidence.json'))).toBe(false);
+    expect(existsSync(path.join(evidenceEnvironment.browserDirectory, 'refund-evidence.json'))).toBe(false);
   });
 });

@@ -7,6 +7,7 @@ import { closeDbPool } from '../../helpers/db';
 import { addSingleUnitRound, joinVisit, openTableVisit, openVisitContext, responseData } from '../tableVisit';
 import { completeContribution } from '../paymentCheckout';
 import { retainMixedTenderEvidence } from '../mixedTenderEvidence';
+import { openPaymentCorrectionDialog } from '../paymentCorrection';
 import type { AccountPaymentAccount } from '../../../src/types/accountPaymentAccount';
 import type { AccountPaymentAllocation, AccountPaymentOperation } from '../../../src/types/accountPayments';
 import type { AmendmentResolutionQuote, AmendmentResolutionResult } from '../../../src/types/amendmentResolution';
@@ -151,17 +152,7 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     const closeAmendment = amendmentForm.getByRole('button').filter({ hasText: /^Close$/ });
     await expect(closeAmendment).toHaveCount(1);
     await closeAmendment.click();
-    await admin.page.reload();
-    const history = admin.page.getByRole('region', { name: 'Amendment history', exact: true });
-    await expect(history).toHaveCount(1);
-    const historyDisclosure = history.locator(':scope > details');
-    await expect(historyDisclosure).toHaveCount(1);
-    const historySummary = historyDisclosure.locator(':scope > summary');
-    await expect(historySummary).toHaveCount(1);
-    await historySummary.click();
-    await expect(historyDisclosure).toHaveAttribute('open', '');
-    await history.getByRole('button', { name: 'Resolve payment correction', exact: true }).click();
-    const correction = admin.page.getByRole('dialog', { name: 'Payment correction', exact: true });
+    const correction = await openPaymentCorrectionDialog(admin.page);
     const quote = await responseData<AmendmentResolutionQuote>(admin.page, /\/financial-resolution\/quote$/, () =>
       correction.getByRole('button', { name: 'Review correction', exact: true }).click(),
     );

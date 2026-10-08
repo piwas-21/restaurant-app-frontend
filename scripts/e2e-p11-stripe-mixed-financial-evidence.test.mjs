@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { localP11StripeTarget } from './e2e-p11-stripe-test-target.mjs';
+import { assertRefundFixtureProof } from './e2e-p11-stripe-financial-test-assertions.mjs';
 import {
   mixedTenderRunEvidenceFields,
   verifyMixedTenderFinancialEvidence,
@@ -320,35 +321,38 @@ function mutateEvidence(filename, mutate) {
 test('proves the exact same-unit mixed tender split and linked Stripe refund with four fresh GETs', async (t) => {
   const current = await fixture(t);
   const calls = [];
-  const refund = current.providerObjects.get('/v1/refunds?charge=ch_mixedcharge1&limit=100').data[0];
-  assert.equal(refund.object, 'refund');
-  assert.equal(Object.hasOwn(refund, 'livemode'), false);
-  const proof = await verify(current, makeReader(current, calls));
-  assert.deepEqual(proof, {
-    verified: true,
-    providerMode: 'test',
-    currency: 'CHF',
-    capturedAttemptCount: 2,
-    capturedMinor: 1500,
-    onlineCapturedMinor: 501,
-    cashCapturedMinor: 999,
-    cashDueMinor: 1000,
-    cashReceivedMinor: 1000,
-    cashChangeMinor: 0,
-    refundLegCount: 2,
-    refundedMinor: 1500,
-    stripeRefundMinor: 501,
-    cashExactRefundMinor: 999,
-    cashAttestedReturnedMinor: 1000,
-    cashRefundAdjustmentMinor: 1,
-    unresolvedRefundCount: 0,
-    refundListHasMore: false,
-    netUnsettledMinor: 0,
-    connectedAccountScoped: true,
-    providerReadCount: 4,
-    onlineAttemptId: current.evidence.expectedAttempts[0].attempt_id,
-    cashAttemptId: current.evidence.expectedAttempts[1].attempt_id,
-    resolutionOperationId: current.evidence.resolution.id,
+  const proof = await assertRefundFixtureProof({
+    current,
+    calls,
+    refundResource: '/v1/refunds?charge=ch_mixedcharge1&limit=100',
+    makeReader,
+    verify,
+    expected: {
+      verified: true,
+      providerMode: 'test',
+      currency: 'CHF',
+      capturedAttemptCount: 2,
+      capturedMinor: 1500,
+      onlineCapturedMinor: 501,
+      cashCapturedMinor: 999,
+      cashDueMinor: 1000,
+      cashReceivedMinor: 1000,
+      cashChangeMinor: 0,
+      refundLegCount: 2,
+      refundedMinor: 1500,
+      stripeRefundMinor: 501,
+      cashExactRefundMinor: 999,
+      cashAttestedReturnedMinor: 1000,
+      cashRefundAdjustmentMinor: 1,
+      unresolvedRefundCount: 0,
+      refundListHasMore: false,
+      netUnsettledMinor: 0,
+      connectedAccountScoped: true,
+      providerReadCount: 4,
+      onlineAttemptId: current.evidence.expectedAttempts[0].attempt_id,
+      cashAttemptId: current.evidence.expectedAttempts[1].attempt_id,
+      resolutionOperationId: current.evidence.resolution.id,
+    },
   });
   assert.equal(calls.length, 4);
   assert.equal(current.evidence.allocations[0].minor_per_unit !== current.evidence.allocations[1].minor_per_unit, true);

@@ -1,19 +1,13 @@
-import { chmodSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import os from 'node:os';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getE2EDbPool } from '../helpers/db';
+import { createPrivateEvidenceTestEnvironment } from './privateEvidenceTestEnvironment';
 import { retainMixedTenderEvidence } from './mixedTenderEvidence';
 
 jest.mock('../helpers/db', () => ({ getE2EDbPool: jest.fn() }));
 jest.mock('@playwright/test', () => ({
   expect: jest.requireActual<typeof import('expect')>('expect').expect,
 }));
-
-const loadCommonJs = createRequire(path.resolve('e2e/p11-stripe/mixedTenderEvidence.test.ts'));
-const { ensurePrivateArtifactDirectories } = loadCommonJs('../../scripts/e2e-p11-stripe-profile.cjs') as {
-  ensurePrivateArtifactDirectories: (runId: string, evidenceRoot: string) => { browserDir: string };
-};
 
 const sessionId = '00000000-0000-4000-8000-000000000001';
 const orderId = '00000000-0000-4000-8000-000000000002';
@@ -235,33 +229,14 @@ function queryRows(providerCurrency: string) {
 }
 
 describe('P11 mixed-tender evidence collection', () => {
-  let evidenceRoot: string;
-  let browserDirectory: string;
-  let previousEnvironment: Partial<
-    Record<'P11_STRIPE_EVIDENCE_ROOT' | 'P11_RUN_ID' | 'P11_STRIPE_ARTIFACT_DIR', string | undefined>
-  >;
+  let evidenceEnvironment: ReturnType<typeof createPrivateEvidenceTestEnvironment>;
 
   beforeEach(() => {
-    const runId = '0000000000000000';
-    evidenceRoot = mkdtempSync(path.join(os.tmpdir(), 'p11-mixed-evidence-'));
-    chmodSync(evidenceRoot, 0o700);
-    browserDirectory = ensurePrivateArtifactDirectories(runId, evidenceRoot).browserDir;
-    previousEnvironment = {
-      P11_STRIPE_EVIDENCE_ROOT: process.env.P11_STRIPE_EVIDENCE_ROOT,
-      P11_RUN_ID: process.env.P11_RUN_ID,
-      P11_STRIPE_ARTIFACT_DIR: process.env.P11_STRIPE_ARTIFACT_DIR,
-    };
-    process.env.P11_STRIPE_EVIDENCE_ROOT = evidenceRoot;
-    process.env.P11_RUN_ID = runId;
-    process.env.P11_STRIPE_ARTIFACT_DIR = browserDirectory;
+    evidenceEnvironment = createPrivateEvidenceTestEnvironment('p11-mixed-evidence-');
   });
 
   afterEach(() => {
-    for (const [name, value] of Object.entries(previousEnvironment)) {
-      if (value === undefined) delete process.env[name];
-      else process.env[name] = value;
-    }
-    rmSync(evidenceRoot, { recursive: true, force: true });
+    evidenceEnvironment.dispose();
   });
 
   async function collect(providerCurrency: string) {
@@ -275,7 +250,7 @@ describe('P11 mixed-tender evidence collection', () => {
     const pool = { query } as unknown as ReturnType<typeof getE2EDbPool>;
     (getE2EDbPool as jest.MockedFunction<typeof getE2EDbPool>).mockReturnValue(pool);
     await retainMixedTenderEvidence(sessionId, orderId, amendmentId, { onlineOperationId, cashOperationId });
-    return readFileSync(path.join(browserDirectory, 'mixed-tender-evidence.json'), 'utf8');
+    return readFileSync(path.join(evidenceEnvironment.browserDirectory, 'mixed-tender-evidence.json'), 'utf8');
   }
 
   test.each(['CHF', 'chf'])(
@@ -315,6 +290,8 @@ describe('P11 mixed-tender evidence collection', () => {
 
   test('rejects a provider observation with a different currency without writing evidence', async () => {
     await expect(collect('EUR')).rejects.toThrow();
-    expect(() => readFileSync(path.join(browserDirectory, 'mixed-tender-evidence.json'), 'utf8')).toThrow();
+    expect(() =>
+      readFileSync(path.join(evidenceEnvironment.browserDirectory, 'mixed-tender-evidence.json'), 'utf8'),
+    ).toThrow();
   });
 });

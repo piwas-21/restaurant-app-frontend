@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import profileGuards from './e2e-p11-stripe-profile.cjs';
 import { localP11StripeTarget } from './e2e-p11-stripe-test-target.mjs';
+import { assertRefundFixtureProof } from './e2e-p11-stripe-financial-test-assertions.mjs';
 import { stripeRunEvidenceFields, verifyStripeFinancialEvidence } from './e2e-p11-stripe-financial-evidence.mjs';
 
 const ORIGIN = 'https://api.stripe.com';
@@ -218,23 +219,25 @@ function mutateJson(filename, mutate) {
 test('proves all four exact connected-account captures and full app-linked refunds with 16 fresh GETs', async (t) => {
   const current = await fixture(t);
   const calls = [];
-  const refund = current.providerObjects.get('/v1/refunds?charge=ch_charge1&limit=100').data[0];
-  assert.equal(refund.object, 'refund');
-  assert.equal(Object.hasOwn(refund, 'livemode'), false);
-  const proof = await verify(current, makeReader(current, calls));
-
-  assert.deepEqual(proof, {
-    verified: true,
-    providerMode: 'test',
-    currency: 'CHF',
-    capturedAttemptCount: 4,
-    capturedMinor: 4500,
-    refundLegCount: 4,
-    refundedMinor: 4500,
-    unresolvedRefundCount: 0,
-    refundListHasMore: false,
-    connectedAccountScoped: true,
-    providerReadCount: 16,
+  const proof = await assertRefundFixtureProof({
+    current,
+    calls,
+    refundResource: '/v1/refunds?charge=ch_charge1&limit=100',
+    makeReader,
+    verify,
+    expected: {
+      verified: true,
+      providerMode: 'test',
+      currency: 'CHF',
+      capturedAttemptCount: 4,
+      capturedMinor: 4500,
+      refundLegCount: 4,
+      refundedMinor: 4500,
+      unresolvedRefundCount: 0,
+      refundListHasMore: false,
+      connectedAccountScoped: true,
+      providerReadCount: 16,
+    },
   });
   assert.equal(calls.length, 16);
   assert.equal(

@@ -11,6 +11,7 @@ export const amendmentResolutionContextSchema = z
     expectedAccountRevision: request.expectedAccountRevision.unwrap(),
     currency: request.currency,
     creditMinor: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    earningRetirementRequired: z.boolean().optional().default(false),
     manualRefundCandidates: z.array(
       z.object({
         paymentId: request.clientOperationId,

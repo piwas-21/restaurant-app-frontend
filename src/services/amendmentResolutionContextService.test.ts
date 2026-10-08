@@ -12,6 +12,7 @@ const context = {
   expectedAccountRevision: 9,
   currency: 'CHF',
   creditMinor: 1000,
+  earningRetirementRequired: false,
   manualRefundCandidates: [{ paymentId: PAYMENT, paymentMethod: 'Cash', availableMinor: 450 }],
 };
 
@@ -55,5 +56,14 @@ describe('authoritative amendment refund review context', () => {
   it('refuses an unsuccessful envelope even with otherwise valid data', async () => {
     jest.mocked(apiClient.get).mockResolvedValue({ success: false, data: context });
     await expect(getAmendmentResolutionContext(ORDER, AMENDMENT)).rejects.toThrow();
+  });
+  it('keeps older context responses usable when the additive retirement flag is absent', async () => {
+    const olderContext = { ...context };
+    Reflect.deleteProperty(olderContext, 'earningRetirementRequired');
+    jest.mocked(apiClient.get).mockResolvedValue({ success: true, data: olderContext });
+    await expect(getAmendmentResolutionContext(ORDER, AMENDMENT)).resolves.toMatchObject({
+      earningRetirementRequired: false,
+      expectedOrderVersion: 7,
+    });
   });
 });

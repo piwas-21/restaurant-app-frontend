@@ -2,9 +2,17 @@ import { z } from 'zod';
 
 // Mirrors OrderAmendmentLoyaltyQuoteDto/ResultDto; balances and obligations stay server-owned.
 const points = z.number().int().nonnegative().max(2_147_483_647);
+const earningDisposition = z.enum([
+  'Unevaluated',
+  'Evaluated',
+  'NoCustomerOwnerAtAcceptance',
+  'LoyaltyModuleDisabledAtAcceptance',
+]);
 const award = {
   awardPending: z.boolean(),
-  candidatePoints: points,
+  candidatePoints: points.nullable(),
+  earningDisposition: earningDisposition.optional(),
+  earningRetired: z.boolean().optional(),
   appliedAwardPoints: points,
   suppressedPoints: points,
   earnedClawbackPoints: points,

@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Puntos excluidos de la asignación",
     "resolution_loyalty_missing": "Puntos faltantes",
     "resolution_loyalty_shortfall_help": "No hay suficientes puntos disponibles para descontar. Pide a un administrador que revise el saldo antes de volver a comprobar este reembolso.",
-    "resolution_loyalty_owner_unavailable_help": "El registro del cliente original no está disponible. Pide a un administrador que revise esta operación antes de reintentarlo."
+    "resolution_loyalty_owner_unavailable_help": "El registro del cliente original no está disponible. Pide a un administrador que revise esta operación antes de reintentarlo.",
+    "resolution_earning_candidate_points": "Puntos candidatos",
+    "resolution_earning_disposition_unevaluated": "Los puntos no se evaluaron",
+    "resolution_earning_disposition_no_owner": "Sin cliente asociado al aceptar",
+    "resolution_earning_disposition_loyalty_disabled": "El módulo de fidelidad estaba desactivado al aceptar",
+    "resolution_earning_disposition_unknown": "Estado de los puntos no disponible",
+    "resolution_earning_retired": "Puntos retirados tras la eliminación completa",
+    "resolution_earning_retirement_required": "Este pedido antiguo no tiene una evaluación de puntos. Prepare su retirada antes de revisar el reembolso.",
+    "resolution_prepare_earning_retirement": "Preparar la retirada de puntos de fidelidad",
+    "resolution_earning_retirement_failed": "No se pudo preparar la retirada de puntos. Actualice los datos e inténtelo de nuevo."
   },
   "serverOrders": {
     "title": "Pedidos",

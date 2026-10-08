@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Баллы, исключённые из начисления",
     "resolution_loyalty_missing": "Недостающие баллы",
     "resolution_loyalty_shortfall_help": "Недостаточно доступных баллов для списания. Попросите администратора проверить баланс перед повторной проверкой этого возврата.",
-    "resolution_loyalty_owner_unavailable_help": "Исходная запись клиента недоступна. Попросите администратора проверить эту операцию перед повторной попыткой."
+    "resolution_loyalty_owner_unavailable_help": "Исходная запись клиента недоступна. Попросите администратора проверить эту операцию перед повторной попыткой.",
+    "resolution_earning_candidate_points": "Расчетные баллы",
+    "resolution_earning_disposition_unevaluated": "Баллы не были рассчитаны",
+    "resolution_earning_disposition_no_owner": "При принятии заказа клиент не был привязан",
+    "resolution_earning_disposition_loyalty_disabled": "При принятии заказа модуль лояльности был отключен",
+    "resolution_earning_disposition_unknown": "Статус баллов недоступен",
+    "resolution_earning_retired": "Начисление баллов аннулировано после полного удаления",
+    "resolution_earning_retirement_required": "В этом старом заказе нет оценки баллов. Подготовьте аннулирование перед проверкой возврата.",
+    "resolution_prepare_earning_retirement": "Подготовить аннулирование баллов",
+    "resolution_earning_retirement_failed": "Не удалось подготовить аннулирование баллов. Обновите данные и повторите попытку."
   },
   "serverOrders": {
     "title": "Заказы",

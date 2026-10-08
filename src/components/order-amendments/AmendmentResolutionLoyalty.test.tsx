@@ -69,4 +69,56 @@ describe('staff loyalty settlement evidence', () => {
     expect(screen.getByText('Points restored').closest('div')).toHaveTextContent('1 point');
     expect(screen.getByText('Points deducted').closest('div')).toHaveTextContent('10 points');
   });
+
+  it('shows a known-ineligible null candidate rather than converting it to zero points', async () => {
+    await show({
+      ...held,
+      candidatePoints: null,
+      earningDisposition: 'NoCustomerOwnerAtAcceptance',
+      earningRetired: false,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+    });
+    const candidate = screen.getByText('Candidate points').closest('div')!;
+    expect(within(candidate).getByText('No customer owner at acceptance')).toBeVisible();
+    expect(within(candidate).queryByText('0 points')).not.toBeInTheDocument();
+  });
+
+  it('labels a retired unknown award separately from an evaluated zero', async () => {
+    await show({
+      ...held,
+      candidatePoints: null,
+      earningDisposition: 'Unevaluated',
+      earningRetired: true,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+    });
+    const candidate = screen.getByText('Candidate points').closest('div')!;
+    expect(within(candidate).getByText('Earning retired after full removal')).toBeVisible();
+    expect(within(candidate).queryByText('0 points')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['NoCustomerOwnerAtAcceptance', 'No customer owner at acceptance'],
+    ['LoyaltyModuleDisabledAtAcceptance', 'Loyalty was disabled at acceptance'],
+  ] as const)('shows the known ineligible disposition %s', async (earningDisposition, label) => {
+    await show({
+      ...held,
+      candidatePoints: null,
+      earningDisposition,
+      earningRetired: false,
+      appliedAwardPoints: 0,
+      suppressedPoints: 0,
+      earnedClawbackPoints: 0,
+    });
+    expect(screen.getByText(label)).toBeVisible();
+  });
+
+  it('continues to show numeric candidates from older responses without a disposition field', async () => {
+    await show(held);
+    const candidate = screen.getByText('Candidate points').closest('div')!;
+    expect(within(candidate).getByText('25 points')).toBeVisible();
+  });
 });

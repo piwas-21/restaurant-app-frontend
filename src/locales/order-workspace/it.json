@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "Punti esclusi dall’assegnazione",
     "resolution_loyalty_missing": "Punti mancanti",
     "resolution_loyalty_shortfall_help": "Non ci sono abbastanza punti disponibili da detrarre. Chiedi a un amministratore di verificare il saldo prima di controllare di nuovo questo rimborso.",
-    "resolution_loyalty_owner_unavailable_help": "Il record del cliente originale non è disponibile. Chiedi a un amministratore di verificare questa operazione prima di riprovare."
+    "resolution_loyalty_owner_unavailable_help": "Il record del cliente originale non è disponibile. Chiedi a un amministratore di verificare questa operazione prima di riprovare.",
+    "resolution_earning_candidate_points": "Punti candidati",
+    "resolution_earning_disposition_unevaluated": "I punti non sono stati valutati",
+    "resolution_earning_disposition_no_owner": "Nessun cliente associato al momento dell’accettazione",
+    "resolution_earning_disposition_loyalty_disabled": "Modulo fedeltà disattivato al momento dell’accettazione",
+    "resolution_earning_disposition_unknown": "Stato dei punti non disponibile",
+    "resolution_earning_retired": "Punti ritirati dopo la rimozione completa",
+    "resolution_earning_retirement_required": "Questo ordine precedente non ha una valutazione dei punti. Prepara il ritiro prima di esaminare il rimborso.",
+    "resolution_prepare_earning_retirement": "Prepara il ritiro dei punti fedeltà",
+    "resolution_earning_retirement_failed": "Impossibile preparare il ritiro dei punti. Aggiorna i dettagli e riprova."
   },
   "serverOrders": {
     "title": "Ordini",

@@ -34,10 +34,16 @@ export default function AmendmentResolutionModal(props: Props) {
   const flow = useAmendmentResolution({ ...props, refresh });
   const canPrepare =
     props.enabled && !flow.hasPending && ['idle', 'reviewFailed', 'review', 'refused'].includes(flow.stage);
-  const context = useAmendmentResolutionContext({ ...props, enabled: canPrepare });
+  const context = useAmendmentResolutionContext({ ...props, enabled: canPrepare, onPrepared: onChanged });
   contextRefresh.current = context.refresh;
   const working = ['checking', 'quoting', 'working'].includes(flow.stage);
-  const canReview = canPrepare && context.context && !context.loading && !context.failed;
+  const canReview =
+    canPrepare &&
+    context.context &&
+    !context.context.earningRetirementRequired &&
+    !context.loading &&
+    !context.failed &&
+    !context.retiring;
   const uncertain = flow.hasPending || flow.stage === 'unavailable';
   const pendingManualIds = new Set(
     flow.result?.refundLegs
@@ -57,7 +63,7 @@ export default function AmendmentResolutionModal(props: Props) {
       onClose={props.onClose}
       title={t('orderAmendments.resolution_title')}
       presentation="responsive-sheet"
-      isPending={flow.stage === 'working' || flow.stage === 'quoting'}
+      isPending={flow.stage === 'working' || flow.stage === 'quoting' || context.retiring}
     >
       <div className={styles.panel}>
         {working && <output aria-live="polite">{t('common.loading')}</output>}
@@ -69,6 +75,22 @@ export default function AmendmentResolutionModal(props: Props) {
               {t('retry')}
             </StaffButton>
           </div>
+        )}
+        {context.context?.earningRetirementRequired && (
+          <section className={styles.recovery}>
+            <p className={styles.notice}>{t('orderAmendments.resolution_earning_retirement_required')}</p>
+            {context.retirementFailed && (
+              <p role="alert" className={styles.error}>
+                {t('orderAmendments.resolution_earning_retirement_failed')}
+              </p>
+            )}
+            <StaffButton
+              disabled={!props.enabled || working || context.loading || context.retiring}
+              onClick={() => void context.prepareEarningRetirement()}
+            >
+              {context.retiring ? t('common.loading') : t('orderAmendments.resolution_prepare_earning_retirement')}
+            </StaffButton>
+          </section>
         )}
         {flow.stage === 'reviewFailed' && (
           <p role="alert" className={styles.error}>
@@ -143,7 +165,15 @@ export default function AmendmentResolutionModal(props: Props) {
           <AmendmentResolutionReview
             key={flow.quote.clientOperationId}
             quote={flow.quote}
-            disabled={!props.enabled || working || context.failed}
+            disabled={
+              !props.enabled ||
+              working ||
+              context.failed ||
+              context.loading ||
+              context.retiring ||
+              !context.context ||
+              context.context.earningRetirementRequired
+            }
             onSettle={flow.settle}
           />
         )}

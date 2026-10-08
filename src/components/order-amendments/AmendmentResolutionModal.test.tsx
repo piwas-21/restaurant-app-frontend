@@ -9,10 +9,14 @@ import AmendmentResolutionModal from './AmendmentResolutionModal';
 
 const mockFlow = jest.fn();
 const mockContext = jest.fn();
+const mockBaseModal = jest.fn();
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
 jest.mock('@/components/design-system/BaseModal', () => ({
   __esModule: true,
-  default: ({ children }: { children: ReactNode }) => <section>{children}</section>,
+  default: ({ children, isPending }: { children: ReactNode; isPending: boolean }) => {
+    mockBaseModal(isPending);
+    return <section>{children}</section>;
+  },
 }));
 jest.mock('@/hooks/orderAmendments/useAmendmentResolution', () => ({
   useAmendmentResolution: (...args: unknown[]) => mockFlow(...args),
@@ -73,7 +77,21 @@ const state = (override: Record<string, unknown> = {}) => ({
 describe('accepted manual refund sequencing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockContext.mockReturnValue({ context: undefined, loading: false, failed: false, refresh: jest.fn() });
+    mockContext.mockReturnValue({
+      context: {
+        orderId: resolutionIds.order,
+        amendmentId: resolutionIds.amendment,
+        expectedOrderVersion: 1,
+        expectedAccountRevision: null,
+        currency: 'CHF',
+        creditMinor: 400,
+        earningRetirementRequired: false,
+        manualRefundCandidates: [],
+      },
+      loading: false,
+      failed: false,
+      refresh: jest.fn(),
+    });
   });
   it('requests only authorization during the initial review, before an operation is accepted', async () => {
     const settle = jest.fn();
@@ -98,6 +116,100 @@ describe('accepted manual refund sequencing', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'orderAmendments.resolution_acknowledge' }));
     fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.resolution_confirm' }));
     await waitFor(() => expect(settle).toHaveBeenCalledWith());
+  });
+  it('requires explicit retirement before showing the refund review form', async () => {
+    const prepareEarningRetirement = jest.fn();
+    mockFlow.mockReturnValue(
+      state({
+        stage: 'idle',
+        hasPending: false,
+        reviewedQuote: undefined,
+        result: undefined,
+      }),
+    );
+    mockContext.mockReturnValue({
+      context: { earningRetirementRequired: true },
+      loading: false,
+      failed: false,
+      retiring: false,
+      retirementFailed: false,
+      refresh: jest.fn(),
+      prepareEarningRetirement,
+    });
+
+    render(<AmendmentResolutionModal {...props} />);
+
+    expect(mockContext).toHaveBeenCalledWith(expect.objectContaining({ onPrepared: props.onChanged }));
+    expect(screen.getByText('orderAmendments.resolution_earning_retirement_required')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'orderAmendments.resolution_review' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.resolution_prepare_earning_retirement' }));
+    expect(prepareEarningRetirement).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks an existing quote while fresh context still requires earning retirement', () => {
+    const settle = jest.fn();
+    mockFlow.mockReturnValue(
+      state({
+        stage: 'review',
+        hasPending: false,
+        reviewedQuote: undefined,
+        result: undefined,
+        quote: manualQuote,
+        settle,
+      }),
+    );
+    mockContext.mockReturnValue({
+      context: { earningRetirementRequired: true },
+      loading: false,
+      failed: false,
+      retiring: false,
+      retirementFailed: false,
+      refresh: jest.fn(),
+      prepareEarningRetirement: jest.fn(),
+    });
+
+    render(<AmendmentResolutionModal {...props} />);
+
+    expect(screen.getByRole('button', { name: 'orderAmendments.resolution_confirm' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'orderAmendments.resolution_confirm' }));
+    expect(settle).not.toHaveBeenCalled();
+  });
+
+  it('keeps the modal pending while the Admin retirement request is in flight', () => {
+    mockFlow.mockReturnValue(state({ stage: 'idle', hasPending: false, reviewedQuote: undefined, result: undefined }));
+    mockContext.mockReturnValue({
+      context: { earningRetirementRequired: true },
+      loading: false,
+      failed: false,
+      retiring: true,
+      retirementFailed: false,
+      refresh: jest.fn(),
+      prepareEarningRetirement: jest.fn(),
+    });
+
+    render(<AmendmentResolutionModal {...props} />);
+
+    expect(mockBaseModal).toHaveBeenLastCalledWith(true);
+    expect(screen.getByRole('button', { name: 'common.loading' })).toBeDisabled();
+  });
+
+  it('does not offer retirement when the fresh context says it is unnecessary', () => {
+    mockFlow.mockReturnValue(state());
+    mockContext.mockReturnValue({
+      context: { earningRetirementRequired: false },
+      loading: false,
+      failed: false,
+      retiring: false,
+      retirementFailed: false,
+      refresh: jest.fn(),
+      prepareEarningRetirement: jest.fn(),
+    });
+
+    render(<AmendmentResolutionModal {...props} />);
+
+    expect(
+      screen.queryByRole('button', { name: 'orderAmendments.resolution_prepare_earning_retirement' }),
+    ).not.toBeInTheDocument();
   });
   it('confirms a frozen manual leg after acceptance even with new reviews disabled', async () => {
     const confirmTill = jest.fn();

@@ -181,7 +181,16 @@
     "resolution_loyalty_suppressed": "不予发放的积分",
     "resolution_loyalty_missing": "缺少的积分",
     "resolution_loyalty_shortfall_help": "可用积分不足，无法扣除。请管理员检查积分余额，然后再查询这笔退款。",
-    "resolution_loyalty_owner_unavailable_help": "原客户记录不可用。请管理员检查此操作后再重试。"
+    "resolution_loyalty_owner_unavailable_help": "原客户记录不可用。请管理员检查此操作后再重试。",
+    "resolution_earning_candidate_points": "待计算积分",
+    "resolution_earning_disposition_unevaluated": "接单时未评估积分",
+    "resolution_earning_disposition_no_owner": "接单时未关联客户",
+    "resolution_earning_disposition_loyalty_disabled": "接单时积分模块已停用",
+    "resolution_earning_disposition_unknown": "积分状态不可用",
+    "resolution_earning_retired": "订单全部移除后已撤销积分资格",
+    "resolution_earning_retirement_required": "此旧订单没有积分评估。请先准备撤销，再审核退款。",
+    "resolution_prepare_earning_retirement": "准备撤销积分资格",
+    "resolution_earning_retirement_failed": "无法准备撤销积分资格。请刷新详情后重试。"
   },
   "serverOrders": {
     "title": "订单",

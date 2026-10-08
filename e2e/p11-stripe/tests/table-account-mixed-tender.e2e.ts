@@ -180,7 +180,7 @@ test('mixed online and cash collection refunds the same CHF unit through both cu
     await cashReturnForm.getByRole('checkbox').nth(0).check();
     await cashReturnForm.getByRole('checkbox').nth(1).check();
     await responseData<AmendmentResolutionResult>(admin.page, /\/confirm-till$/, () =>
-      cashReturnForm.getByRole('button', { name: 'Record cash refunds', exact: true }).click(),
+      cashReturnForm.getByRole('button', { name: 'Record till refunds', exact: true }).click(),
     );
     await expect(correction.getByText('Correction resolved', { exact: true })).toBeVisible({ timeout: 120_000 });
 

@@ -243,7 +243,7 @@ function createFixtureData(profile) {
   };
   const refund = {
     id: providerRefundId,
-    livemode: false,
+    object: 'refund',
     amount: 501,
     currency: 'chf',
     status: 'succeeded',
@@ -320,6 +320,9 @@ function mutateEvidence(filename, mutate) {
 test('proves the exact same-unit mixed tender split and linked Stripe refund with four fresh GETs', async (t) => {
   const current = await fixture(t);
   const calls = [];
+  const refund = current.providerObjects.get('/v1/refunds?charge=ch_mixedcharge1&limit=100').data[0];
+  assert.equal(refund.object, 'refund');
+  assert.equal(Object.hasOwn(refund, 'livemode'), false);
   const proof = await verify(current, makeReader(current, calls));
   assert.deepEqual(proof, {
     verified: true,

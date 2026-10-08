@@ -334,6 +334,8 @@ function buildStripeProcessEnvironments(runEnv, systemEnv, profile, signingSecre
     Stripe__PlatformApiKey: accepted.apiKey,
     Stripe__ConnectedAccountId: accepted.connectedAccountId,
     AccountCheckoutWebhook__SigningSecret: signingSecret,
+    // Keep the English P11 return path explicit so Next dev skips locale redirection after checkout.
+    AccountCheckout__ReturnPath: '/en/table-account',
     AccountOnlineContribution__SettlementCurrency: accepted.currency,
     Localization__Currency: accepted.currency,
     EmailSettings__FrontendBaseUrl: runEnv.E2E_BASE_URL,

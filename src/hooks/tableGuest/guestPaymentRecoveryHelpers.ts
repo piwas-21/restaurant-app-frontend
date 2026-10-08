@@ -15,6 +15,13 @@ import { isTerminalGuestPayment, isUnfinishedGuestPaymentQuote } from '@/lib/gue
 
 const RETURNED_CHECKOUT_POLL_DELAYS_MS = [2_000, 4_000, 8_000, 16_000, 20_000, 25_000, 30_000] as const;
 
+interface ReturnedCheckoutRead {
+  readonly checkout: GuestAccountCheckoutStatus;
+  readonly descriptor: GuestAccountPaymentAttemptDescriptor;
+  readonly receipt: GuestPaymentReceipt | null;
+  readonly operation: GuestAccountPaymentOperation | null;
+}
+
 export function latestForSession(
   attempts: readonly GuestAccountPaymentAttemptDescriptor[],
   serviceSessionId: string | undefined,
@@ -55,8 +62,12 @@ export async function recoverReceiptOnly(
   fetchReceipt: (
     descriptor: GuestAccountPaymentAttemptDescriptor,
     attemptId: string,
+    isCurrent?: () => boolean,
+    signal?: AbortSignal,
   ) => Promise<GuestPaymentReceipt | null>,
   setReturnReceiptUnavailable: (value: boolean) => void,
+  signal?: AbortSignal,
+  isCurrent: () => boolean = () => true,
 ): Promise<void> {
   const attemptId = returnAttemptId ?? descriptor.attemptId;
   const canReportReceiptAvailability = Boolean(returnAttemptId || attemptId);
@@ -66,17 +77,21 @@ export async function recoverReceiptOnly(
     !descriptor.contribution ||
     (returnAttemptId !== null && descriptor.attemptId !== null && descriptor.attemptId !== returnAttemptId)
   ) {
-    setReturnReceiptUnavailable(canReportReceiptAvailability);
+    if (isCurrent() && !signal?.aborted) setReturnReceiptUnavailable(canReportReceiptAvailability);
     return;
   }
   let receiptAvailable = false;
   try {
-    const receipt = await fetchReceipt(descriptor, attemptId);
+    const receipt = signal
+      ? await fetchReceipt(descriptor, attemptId, isCurrent, signal)
+      : await fetchReceipt(descriptor, attemptId, isCurrent);
+    if (!isCurrent() || signal?.aborted) return;
     receiptAvailable = receipt !== null;
   } catch (_error) {
     // Receipt capabilities collapse provider/auth details to the same unavailable status.
   }
-  setReturnReceiptUnavailable(Boolean(canReportReceiptAvailability && !receiptAvailable));
+  if (isCurrent() && !signal?.aborted)
+    setReturnReceiptUnavailable(Boolean(canReportReceiptAvailability && !receiptAvailable));
 }
 
 export function selectRecoveryAttempt(
@@ -131,6 +146,7 @@ export function selectReceiptRecoveryAttempt(
 
 interface ActiveRecoveryCallbacks {
   readonly isCurrent: () => boolean;
+  readonly signal?: AbortSignal;
   readonly setOperation: (operation: GuestAccountPaymentOperation) => void;
   readonly setCheckout: (checkout: GuestAccountCheckoutStatus) => void;
   readonly setError: (error: GuestPaymentErrorKey) => void;
@@ -140,10 +156,17 @@ interface ActiveRecoveryCallbacks {
     descriptor: GuestAccountPaymentAttemptDescriptor,
     attemptId: string,
     isCurrent?: () => boolean,
+    signal?: AbortSignal,
+    deferTerminalPublication?: boolean,
   ) => Promise<GuestPaymentReceipt | null>;
+  readonly publishReceipt: (operationId: string, receipt: GuestPaymentReceipt) => void;
   readonly saveUpdatedDescriptor: (descriptor: GuestAccountPaymentAttemptDescriptor) => boolean;
   readonly setStorageUnavailable: (value: boolean) => void;
-  readonly onReturnedPaymentSettled?: (identity: TableGuestVisitIdentity, isCurrent: () => boolean) => Promise<boolean>;
+  readonly onReturnedPaymentSettled?: (
+    identity: TableGuestVisitIdentity,
+    isCurrent: () => boolean,
+    signal?: AbortSignal,
+  ) => Promise<boolean>;
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
   readonly waitForNextPoll: (delayMs: number) => Promise<boolean>;
 }
@@ -155,8 +178,10 @@ export async function recoverActivePayment(
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
   try {
-    const operation = await guestAccountPaymentService.getOperation(identity, descriptor);
-    if (!callbacks.isCurrent()) return;
+    const operation = callbacks.signal
+      ? await guestAccountPaymentService.getOperation(identity, descriptor, callbacks.signal)
+      : await guestAccountPaymentService.getOperation(identity, descriptor);
+    if (!callbacks.isCurrent() || callbacks.signal?.aborted) return;
     if (!descriptor.contribution) {
       if (operation.state !== 'Quoted' || descriptor.startRequestedAt !== null) throw new Error('unsafe-recovery');
       const contribution = await createGuestPaymentContribution(operation);
@@ -165,8 +190,7 @@ export async function recoverActivePayment(
       descriptor = next;
     }
     const hasStartedCheckout = requiresCheckoutLookup(descriptor);
-    const shouldWithholdUnmatchedTerminal =
-      Boolean(returnAttemptId) && hasStartedCheckout && isTerminalGuestPayment(operation.state);
+    const shouldWithholdUnmatchedTerminal = hasStartedCheckout && isTerminalGuestPayment(operation.state);
     if (!shouldWithholdUnmatchedTerminal) callbacks.setOperation(operation);
     if (hasStartedCheckout) {
       await recoverStartedPayment(descriptor, identity, returnAttemptId, operation, callbacks);
@@ -191,8 +215,10 @@ async function recoverStartedPayment(
   initialOperation: GuestAccountPaymentOperation,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
-  const checkout = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-  if (!callbacks.isCurrent()) return;
+  const checkout = callbacks.signal
+    ? await guestAccountPaymentService.getCheckoutStatus(identity, descriptor, callbacks.signal)
+    : await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
+  if (!callbacks.isCurrent() || callbacks.signal?.aborted) return;
   const next =
     checkout.attemptId === descriptor.attemptId ? descriptor : withCheckoutAttempt(descriptor, checkout.attemptId);
   if (next !== descriptor && !saveUpdated(next, callbacks)) return;
@@ -201,14 +227,17 @@ async function recoverStartedPayment(
     return;
   }
   const receipt = next.receiptCredential
-    ? await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent)
+    ? callbacks.signal
+      ? await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent, callbacks.signal, true)
+      : await callbacks.fetchReceipt(next, checkout.attemptId, callbacks.isCurrent, undefined, true)
     : null;
-  if (!callbacks.isCurrent()) return;
-  let currentOperation = initialOperation;
-  if (returnAttemptId && isTerminalGuestPayment(checkout.state) && !checkout.reconciliationRequired) {
-    currentOperation =
-      (await confirmReturnedTerminalCheckout(checkout, receipt, identity, next, callbacks)) ?? currentOperation;
-  } else if (canPublishCheckout(checkout, receipt, Boolean(returnAttemptId))) {
+  if (!callbacks.isCurrent() || callbacks.signal?.aborted) return;
+  let currentOperation: GuestAccountPaymentOperation | null = isTerminalGuestPayment(initialOperation.state)
+    ? null
+    : initialOperation;
+  if (isTerminalGuestPayment(checkout.state) && !checkout.reconciliationRequired) {
+    currentOperation = await confirmReturnedTerminalCheckout(checkout, receipt, identity, next, callbacks);
+  } else {
     callbacks.setCheckout(checkout);
   }
   callbacks.setIsLoading(false);
@@ -222,7 +251,7 @@ async function pollReturnedCheckout(
   initialCheckout: GuestAccountCheckoutStatus,
   initialDescriptor: GuestAccountPaymentAttemptDescriptor,
   initialReceipt: GuestPaymentReceipt | null,
-  initialOperation: GuestAccountPaymentOperation,
+  initialOperation: GuestAccountPaymentOperation | null,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<void> {
   let checkout = initialCheckout;
@@ -230,45 +259,13 @@ async function pollReturnedCheckout(
   let receipt = initialReceipt;
   let operation = initialOperation;
   for (const delayMs of RETURNED_CHECKOUT_POLL_DELAYS_MS) {
-    if (!returnAttemptId || isFinalReturnedCheckout(checkout, receipt, operation, descriptor, identity)) return;
+    if (!returnAttemptId || isFinalReturnedCheckout(checkout, receipt, operation, identity, descriptor)) return;
     if (!(await callbacks.waitForNextPoll(delayMs)) || !callbacks.isCurrent()) return;
 
-    const refreshed = await callbacks.runExclusive(async () => {
-      const currentCheckout = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-      if (!callbacks.isCurrent()) return null;
-      const currentDescriptor =
-        currentCheckout.attemptId === descriptor.attemptId
-          ? descriptor
-          : withCheckoutAttempt(descriptor, currentCheckout.attemptId);
-      if (currentDescriptor !== descriptor && !saveUpdated(currentDescriptor, callbacks)) return null;
-      if (currentCheckout.attemptId !== returnAttemptId) {
-        callbacks.setReturnReceiptUnavailable(true);
-        return { checkout: currentCheckout, descriptor: currentDescriptor, receipt: null, operation };
-      }
-      const currentReceipt = currentDescriptor.receiptCredential
-        ? await callbacks.fetchReceipt(currentDescriptor, currentCheckout.attemptId, callbacks.isCurrent)
-        : null;
-      if (!callbacks.isCurrent()) return null;
-      let currentOperation = operation;
-      if (isTerminalGuestPayment(currentCheckout.state) && !currentCheckout.reconciliationRequired) {
-        currentOperation =
-          (await confirmReturnedTerminalCheckout(
-            currentCheckout,
-            currentReceipt,
-            identity,
-            currentDescriptor,
-            callbacks,
-          )) ?? currentOperation;
-      } else if (canPublishCheckout(currentCheckout, currentReceipt, true)) {
-        callbacks.setCheckout(currentCheckout);
-      }
-      return {
-        checkout: currentCheckout,
-        descriptor: currentDescriptor,
-        receipt: currentReceipt,
-        operation: currentOperation,
-      };
-    }, null);
+    const refreshed = await callbacks.runExclusive(
+      () => readReturnedCheckout(identity, returnAttemptId, descriptor, operation, callbacks),
+      null,
+    );
 
     if (!callbacks.isCurrent()) return;
     if (refreshed === null) continue;
@@ -280,9 +277,54 @@ async function pollReturnedCheckout(
   }
   if (
     isTerminalGuestPayment(checkout.state) &&
-    !isFinalReturnedCheckout(checkout, receipt, operation, descriptor, identity)
+    !isFinalReturnedCheckout(checkout, receipt, operation, identity, descriptor)
   )
     callbacks.setReturnReceiptUnavailable(true);
+}
+
+async function readReturnedCheckout(
+  identity: TableGuestVisitIdentity,
+  returnAttemptId: string,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  previousOperation: GuestAccountPaymentOperation | null,
+  callbacks: ActiveRecoveryCallbacks,
+): Promise<ReturnedCheckoutRead | null> {
+  try {
+    const checkout = callbacks.signal
+      ? await guestAccountPaymentService.getCheckoutStatus(identity, descriptor, callbacks.signal)
+      : await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
+    if (!callbacks.isCurrent() || callbacks.signal?.aborted) return null;
+    const updatedDescriptor =
+      checkout.attemptId === descriptor.attemptId ? descriptor : withCheckoutAttempt(descriptor, checkout.attemptId);
+    if (updatedDescriptor !== descriptor && !saveUpdated(updatedDescriptor, callbacks)) return null;
+    if (checkout.attemptId !== returnAttemptId) {
+      callbacks.setReturnReceiptUnavailable(true);
+      return { checkout, descriptor: updatedDescriptor, receipt: null, operation: previousOperation };
+    }
+    const receipt = await fetchRecoveryReceipt(updatedDescriptor, checkout.attemptId, callbacks);
+    if (!callbacks.isCurrent() || callbacks.signal?.aborted) return null;
+    const operation =
+      isTerminalGuestPayment(checkout.state) && !checkout.reconciliationRequired
+        ? await confirmReturnedTerminalCheckout(checkout, receipt, identity, updatedDescriptor, callbacks)
+        : previousOperation;
+    if (!isTerminalGuestPayment(checkout.state) || checkout.reconciliationRequired) callbacks.setCheckout(checkout);
+    return { checkout, descriptor: updatedDescriptor, receipt, operation };
+  } catch (error) {
+    if (callbacks.isCurrent() && !callbacks.signal?.aborted)
+      callbacks.setError(guestPaymentErrorMessage(error, 'load'));
+    return null;
+  }
+}
+
+function fetchRecoveryReceipt(
+  descriptor: GuestAccountPaymentAttemptDescriptor,
+  attemptId: string,
+  callbacks: ActiveRecoveryCallbacks,
+): Promise<GuestPaymentReceipt | null> {
+  if (!descriptor.receiptCredential) return Promise.resolve(null);
+  return callbacks.signal
+    ? callbacks.fetchReceipt(descriptor, attemptId, callbacks.isCurrent, callbacks.signal, true)
+    : callbacks.fetchReceipt(descriptor, attemptId, callbacks.isCurrent, undefined, true);
 }
 
 async function confirmReturnedTerminalCheckout(
@@ -292,51 +334,48 @@ async function confirmReturnedTerminalCheckout(
   descriptor: GuestAccountPaymentAttemptDescriptor,
   callbacks: ActiveRecoveryCallbacks,
 ): Promise<GuestAccountPaymentOperation | null> {
-  if (!matchesTerminalReceipt(checkout, receipt)) return null;
+  if (!receipt || !matchesTerminalReceipt(checkout, receipt)) return null;
   let operation: GuestAccountPaymentOperation;
   try {
-    operation = await guestAccountPaymentService.getOperation(identity, descriptor);
+    operation = callbacks.signal
+      ? await guestAccountPaymentService.getOperation(identity, descriptor, callbacks.signal)
+      : await guestAccountPaymentService.getOperation(identity, descriptor);
   } catch (_error) {
-    if (callbacks.isCurrent()) callbacks.setError('load');
+    if (callbacks.isCurrent() && !callbacks.signal?.aborted) callbacks.setError('load');
     return null;
   }
-  if (!callbacks.isCurrent() || !matchesTerminalOperation(operation, checkout, identity, descriptor)) return null;
+  if (
+    !callbacks.isCurrent() ||
+    callbacks.signal?.aborted ||
+    !matchesTerminalOperation(operation, checkout, identity, descriptor)
+  )
+    return null;
+  callbacks.publishReceipt(descriptor.operationId, receipt);
   callbacks.setOperation(operation);
   callbacks.setCheckout(checkout);
   callbacks.setReturnReceiptUnavailable(false);
   if (callbacks.onReturnedPaymentSettled) {
     try {
-      await callbacks.onReturnedPaymentSettled(identity, callbacks.isCurrent);
+      await callbacks.onReturnedPaymentSettled(identity, callbacks.isCurrent, callbacks.signal);
     } catch (_error) {
-      if (callbacks.isCurrent()) callbacks.setError('load');
+      if (callbacks.isCurrent() && !callbacks.signal?.aborted) callbacks.setError('load');
     }
   }
   return callbacks.isCurrent() ? operation : null;
 }
 
-function canPublishCheckout(
-  checkout: GuestAccountCheckoutStatus,
-  receipt: GuestPaymentReceipt | null,
-  isReturnedAttempt: boolean,
-): boolean {
-  if (!isReturnedAttempt || !isTerminalGuestPayment(checkout.state)) return true;
-  return (
-    checkout.state === 'ReconciliationRequired' ||
-    checkout.reconciliationRequired ||
-    matchesTerminalReceipt(checkout, receipt)
-  );
-}
-
 function isFinalReturnedCheckout(
   checkout: GuestAccountCheckoutStatus,
   receipt: GuestPaymentReceipt | null,
-  operation: GuestAccountPaymentOperation,
-  descriptor: GuestAccountPaymentAttemptDescriptor,
+  operation: GuestAccountPaymentOperation | null,
   identity: TableGuestVisitIdentity,
+  descriptor: GuestAccountPaymentAttemptDescriptor,
 ): boolean {
   if (checkout.state === 'ReconciliationRequired' || checkout.reconciliationRequired) return true;
   return (
-    matchesTerminalReceipt(checkout, receipt) && matchesTerminalOperation(operation, checkout, identity, descriptor)
+    operation !== null &&
+    matchesTerminalReceipt(checkout, receipt) &&
+    matchesTerminalOperation(operation, checkout, identity, descriptor)
   );
 }
 
@@ -380,7 +419,8 @@ function markActiveRecoveryFailed(
   returnAttemptId: string | null,
   callbacks: ActiveRecoveryCallbacks,
 ): void {
-  if (callbacks.isCurrent()) callbacks.setError(guestPaymentErrorMessage(error, 'load'));
+  if (!callbacks.isCurrent() || callbacks.signal?.aborted) return;
+  callbacks.setError(guestPaymentErrorMessage(error, 'load'));
   if (returnAttemptId && descriptor.attemptId !== returnAttemptId) {
     callbacks.setReturnReceiptUnavailable(true);
   }

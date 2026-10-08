@@ -21,8 +21,10 @@ export async function fetchGuestPaymentReceipt(
   attemptId: string,
   callbacks: GuestPaymentReceiptRecoveryCallbacks,
   isCurrent: () => boolean = () => true,
+  signal?: AbortSignal,
+  deferTerminalPublication = false,
 ): Promise<GuestPaymentReceipt | null> {
-  if (!isCurrent() || !descriptor.receiptCredential) return null;
+  if (!isCurrent() || signal?.aborted || !descriptor.receiptCredential) return null;
   if (
     descriptor.receiptExpiresAt &&
     descriptor.receiptTerminalState &&
@@ -36,8 +38,10 @@ export async function fetchGuestPaymentReceipt(
     return null;
   }
 
-  const receipt = await guestAccountPaymentService.getReceipt(attemptId, descriptor.receiptCredential, descriptor);
-  if (!isCurrent()) return null;
+  const receipt = signal
+    ? await guestAccountPaymentService.getReceipt(attemptId, descriptor.receiptCredential, descriptor, signal)
+    : await guestAccountPaymentService.getReceipt(attemptId, descriptor.receiptCredential, descriptor);
+  if (!isCurrent() || signal?.aborted) return null;
   const identified = descriptor.attemptId === null ? withCheckoutAttempt(descriptor, receipt.attemptId) : descriptor;
   const updated = withReceiptExpiry(
     identified,
@@ -54,9 +58,19 @@ export async function fetchGuestPaymentReceipt(
     current.operationId === descriptor.operationId
   )
     callbacks.publishDescriptor(updated);
-  callbacks.setReceipts((receipts) => [
-    ...receipts.filter((entry) => entry.attemptId !== attemptId),
-    { attemptId, operationId: descriptor.operationId, receipt },
-  ]);
+  if (!shouldDeferTerminalReceipt(receipt, deferTerminalPublication))
+    callbacks.setReceipts((receipts) => [
+      ...receipts.filter((entry) => entry.attemptId !== attemptId),
+      { attemptId, operationId: descriptor.operationId, receipt },
+    ]);
   return receipt;
+}
+
+function shouldDeferTerminalReceipt(receipt: GuestPaymentReceipt, deferTerminalPublication: boolean): boolean {
+  return (
+    deferTerminalPublication &&
+    !receipt.reconciliationRequired &&
+    receipt.state !== 'ReconciliationRequired' &&
+    ['Captured', 'Released', 'Failed'].includes(receipt.state)
+  );
 }

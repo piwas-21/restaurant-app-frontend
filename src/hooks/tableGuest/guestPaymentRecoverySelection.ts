@@ -43,13 +43,17 @@ export async function recoverReturnedReceipt(
   fetchReceipt: (
     descriptor: GuestAccountPaymentAttemptDescriptor,
     attemptId: string,
+    isCurrent?: () => boolean,
+    signal?: AbortSignal,
   ) => Promise<GuestPaymentReceipt | null>,
   setUnavailable: (value: boolean) => void,
+  signal?: AbortSignal,
+  isCurrent: () => boolean = () => true,
 ): Promise<void> {
   if (!returnAttemptId) return;
   if (receiptDescriptor && selected !== receiptDescriptor) {
-    await recoverReceiptOnly(receiptDescriptor, returnAttemptId, fetchReceipt, setUnavailable);
+    await recoverReceiptOnly(receiptDescriptor, returnAttemptId, fetchReceipt, setUnavailable, signal, isCurrent);
   } else if (!selected) {
-    setUnavailable(true);
+    if (isCurrent() && !signal?.aborted) setUnavailable(true);
   }
 }

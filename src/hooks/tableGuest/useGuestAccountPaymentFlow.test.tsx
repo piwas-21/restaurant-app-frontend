@@ -22,6 +22,8 @@ import {
 import { readGuestEqualSharePlanIntents } from '@/services/guestEqualSharePlanStorage';
 import { recoverActivePayment } from './guestPaymentRecoveryHelpers';
 import { useGuestAccountPaymentFlow } from './useGuestAccountPaymentFlow';
+import { GUEST_ACCOUNT_READ_TIMEOUT_MS } from './useGuestPaymentAccountState';
+import { GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS } from './useGuestPaymentRecovery';
 
 jest.mock('@/services/guestAccountPaymentService', () => ({
   guestAccountPaymentService: {
@@ -548,13 +550,13 @@ describe('useGuestAccountPaymentFlow', () => {
       .mockResolvedValue(capturedCheckout);
     jest
       .mocked(guestAccountPaymentService.getReceipt)
-      .mockResolvedValueOnce(processingReceipt)
+      .mockResolvedValueOnce(capturedReceipt)
       .mockResolvedValue(capturedReceipt);
     const { result } = renderHook(() => useGuestAccountPaymentFlow({ ...options(), returnAttemptId: ATTEMPT_ID }));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.checkout).toMatchObject({ state: 'Processing' });
-    expect(result.current.receipts[0]?.receipt).toMatchObject({ state: 'Processing', receivedMinor: 0 });
+    expect(result.current.receipts).toEqual([]);
     expect(result.current.operation).toBeNull();
     expect(result.current.canReplaceAttempt).toBe(false);
 
@@ -734,6 +736,95 @@ describe('useGuestAccountPaymentFlow', () => {
     expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
   }, 10_000);
 
+  it('keeps the newest account read when an older same-identity response arrives later', async () => {
+    let resolveInitialAccount!: (value: GuestAccountPaymentAccount) => void;
+    const pendingInitialAccount = new Promise<GuestAccountPaymentAccount>((resolve) => {
+      resolveInitialAccount = resolve;
+    });
+    const refreshedAccount = { ...account, outstandingMinor: 3200, availableMinor: 3200 };
+    const staleAccount = { ...account, outstandingMinor: 4100, availableMinor: 4100 };
+    jest
+      .mocked(guestAccountPaymentService.getAccount)
+      .mockImplementationOnce(() => pendingInitialAccount)
+      .mockResolvedValueOnce(refreshedAccount);
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(guestAccountPaymentService.getAccount).toHaveBeenCalledTimes(1));
+    const initialAccountSignal = jest.mocked(guestAccountPaymentService.getAccount).mock.calls[0]?.[1];
+    await act(async () => {
+      await result.current.refreshAccount();
+    });
+    expect(initialAccountSignal).toBeInstanceOf(AbortSignal);
+    expect(initialAccountSignal?.aborted).toBe(true);
+    expect(result.current.account).toEqual(refreshedAccount);
+
+    await act(async () => {
+      resolveInitialAccount(staleAccount);
+      await pendingInitialAccount;
+    });
+
+    expect(result.current.account).toEqual(refreshedAccount);
+    expect(guestAccountPaymentService.getAccount).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not publish an account or clear the timeout error when an aborted read resolves late', async () => {
+    jest.useFakeTimers();
+    let resolveAccount!: (value: GuestAccountPaymentAccount) => void;
+    const pendingAccount = new Promise<GuestAccountPaymentAccount>((resolve) => {
+      resolveAccount = resolve;
+    });
+    jest.mocked(guestAccountPaymentService.getAccount).mockReturnValueOnce(pendingAccount);
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    const requestSignal = jest.mocked(guestAccountPaymentService.getAccount).mock.calls[0]?.[1];
+    expect(requestSignal).toBeInstanceOf(AbortSignal);
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(GUEST_ACCOUNT_READ_TIMEOUT_MS);
+    });
+
+    expect(requestSignal?.aborted).toBe(true);
+    expect(result.current.isAccountLoading).toBe(false);
+    expect(result.current.error).toBe('load');
+
+    await act(async () => {
+      resolveAccount(account);
+      await pendingAccount;
+    });
+
+    expect(result.current.account).toBeNull();
+    expect(result.current.isAccountLoading).toBe(false);
+    expect(result.current.error).toBe('load');
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
+  it('aborts a hung recovery GET at its deadline and leaves the status action available', async () => {
+    await saveStartedPaymentAttempt();
+    jest.useFakeTimers();
+    let requestSignal: AbortSignal | undefined;
+    jest.mocked(guestAccountPaymentService.getOperation).mockImplementation(
+      (_identity, _descriptor, signal) =>
+        new Promise((_resolve, reject) => {
+          requestSignal = signal;
+          signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+        }),
+    );
+
+    const { result } = renderHook(() => useGuestAccountPaymentFlow({ ...options(false), returnAttemptId: ATTEMPT_ID }));
+    await waitFor(() => expect(guestAccountPaymentService.getOperation).toHaveBeenCalledTimes(1));
+    expect(requestSignal?.aborted).toBe(false);
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS);
+    });
+
+    expect(requestSignal?.aborted).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe('load');
+    expect(result.current.returnReceiptUnavailable).toBe(true);
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
   it('keeps confirmed capture visible when the balance refresh fails', async () => {
     await saveStartedPaymentAttempt();
     const capturedCheckout = { ...checkout(), state: 'Captured' as const, version: 3, receivedMinor: 1250 };
@@ -895,6 +986,7 @@ describe('useGuestAccountPaymentFlow', () => {
       setReturnReceiptUnavailable: markUnavailable,
       setIsLoading: jest.fn(),
       fetchReceipt: receiptReads,
+      publishReceipt: jest.fn(),
       saveUpdatedDescriptor: () => true,
       setStorageUnavailable: jest.fn(),
       runExclusive: async <T,>(read: () => Promise<T>, _blocked: T) => read(),
@@ -911,6 +1003,32 @@ describe('useGuestAccountPaymentFlow', () => {
     expect(delays.reduce((total, delay) => total + delay, 0)).toBe(105_000);
     expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(8);
     expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
+  });
+
+  it('does not mark a new recovery unavailable when a superseded operation read fails', async () => {
+    await saveStartedPaymentAttempt();
+    const stored = readGuestAccountPaymentAttempts();
+    if (stored.kind !== 'ready') throw new Error('test payment attempt is unavailable');
+    jest.mocked(guestAccountPaymentService.getOperation).mockRejectedValueOnce(new Error('old read failed'));
+    const markUnavailable = jest.fn();
+    const setError = jest.fn();
+    await recoverActivePayment(stored.attempts[0], identity, '00000000-0000-4000-8000-000000000099', {
+      isCurrent: () => false,
+      setOperation: jest.fn(),
+      setCheckout: jest.fn(),
+      setError,
+      setReturnReceiptUnavailable: markUnavailable,
+      setIsLoading: jest.fn(),
+      fetchReceipt: jest.fn().mockResolvedValue(null),
+      publishReceipt: jest.fn(),
+      saveUpdatedDescriptor: () => true,
+      setStorageUnavailable: jest.fn(),
+      runExclusive: async <T,>(_read: () => Promise<T>, blocked: T) => blocked,
+      waitForNextPoll: async () => false,
+    });
+
+    expect(markUnavailable).not.toHaveBeenCalled();
+    expect(setError).not.toHaveBeenCalled();
   });
 
   it('cancels a pending return poll when the active participant changes', async () => {
@@ -990,8 +1108,11 @@ describe('useGuestAccountPaymentFlow', () => {
       timeout: 5_000,
     });
     expect(guestAccountPaymentService.getReceipt).toHaveBeenCalledTimes(2);
+    const staleReceiptSignal = jest.mocked(guestAccountPaymentService.getReceipt).mock.calls[1]?.[3];
+    expect(staleReceiptSignal).toBeInstanceOf(AbortSignal);
 
     rerender({ activeIdentity: otherIdentity });
+    expect(staleReceiptSignal?.aborted).toBe(true);
     await waitFor(() => expect(result.current.returnReceiptUnavailable).toBe(true));
     await act(async () => {
       resolveReceipt(processingReceipt);
@@ -1044,6 +1165,7 @@ describe('useGuestAccountPaymentFlow', () => {
       ATTEMPT_ID,
       'A'.repeat(43),
       expect.objectContaining({ operationId: OPERATION_ID }),
+      expect.any(AbortSignal),
     );
     expect(guestAccountPaymentService.getOperation).not.toHaveBeenCalled();
     expect(guestAccountPaymentService.getCheckoutStatus).not.toHaveBeenCalled();
@@ -1120,6 +1242,7 @@ describe('useGuestAccountPaymentFlow', () => {
       ATTEMPT_ID,
       receiptCredential,
       expect.objectContaining({ attemptId: null, contribution: expect.any(Object) }),
+      expect.any(AbortSignal),
     );
     expect(guestAccountPaymentService.getOperation).not.toHaveBeenCalled();
     const recoveredDescriptor = readGuestAccountPaymentAttempts();
@@ -1172,6 +1295,7 @@ describe('useGuestAccountPaymentFlow', () => {
         ATTEMPT_ID,
         'A'.repeat(43),
         expect.objectContaining({ attemptId: ATTEMPT_ID, operationId: OPERATION_ID }),
+        expect.any(AbortSignal),
       );
       expect(result.current.returnReceiptUnavailable).toBe(outcome === 'unavailable');
       if (outcome === 'available')
@@ -1241,9 +1365,47 @@ describe('useGuestAccountPaymentFlow', () => {
       ATTEMPT_ID,
       'A'.repeat(43),
       expect.objectContaining({ serviceSessionId: SESSION_ID, attemptId: null }),
+      expect.any(AbortSignal),
     );
     expect(guestAccountPaymentService.getOperation).not.toHaveBeenCalled();
     expect(guestAccountPaymentService.getCheckoutStatus).not.toHaveBeenCalled();
+  });
+
+  it('keeps manual status refresh processing until checkout, receipt, and operation agree', async () => {
+    await saveStartedPaymentAttempt();
+    const processingOperation = operation('Processing', 2);
+    const capturedCheckout = { ...checkout(), state: 'Captured' as const, version: 3, receivedMinor: 1250 };
+    const capturedReceipt = {
+      attemptId: ATTEMPT_ID,
+      amountMinor: 1250,
+      currency: 'CHF',
+      state: 'Captured' as const,
+      receivedMinor: 1250,
+      refundedMinor: 0,
+      reconciliationRequired: false,
+      completedAt: '2030-01-01T00:00:00Z',
+      receiptExpiresAt: '2030-01-04T00:00:00Z',
+    };
+    jest.mocked(guestAccountPaymentService.getOperation).mockResolvedValue(processingOperation);
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockResolvedValue(capturedCheckout);
+    jest.mocked(guestAccountPaymentService.getReceipt).mockResolvedValue(capturedReceipt);
+    const { result } = renderHook(() => useGuestAccountPaymentFlow(options()));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    jest.mocked(guestAccountPaymentService.getOperation).mockClear();
+    jest.mocked(guestAccountPaymentService.getCheckoutStatus).mockClear();
+    jest.mocked(guestAccountPaymentService.getReceipt).mockClear();
+    await act(async () => {
+      expect(await result.current.refreshPaymentStatus()).toBe(true);
+    });
+
+    expect(guestAccountPaymentService.getOperation).toHaveBeenCalledTimes(2);
+    expect(guestAccountPaymentService.getCheckoutStatus).toHaveBeenCalledTimes(1);
+    expect(guestAccountPaymentService.getReceipt).toHaveBeenCalledTimes(1);
+    expect(result.current.operation).toEqual(processingOperation);
+    expect(result.current.checkout).toBeNull();
+    expect(result.current.receipts).toEqual([]);
+    expect(guestAccountPaymentService.startCheckout).not.toHaveBeenCalled();
   });
 
   it('does not expose a same-session prior participant receipt to the active participant return hint', async () => {

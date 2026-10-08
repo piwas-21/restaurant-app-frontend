@@ -10,22 +10,18 @@ import type {
 import type { GuestPaymentErrorKey } from '@/lib/guestPaymentError';
 import { guestPaymentErrorMessage } from '@/lib/guestPaymentError';
 import { guestAccountPaymentService } from '@/services/guestAccountPaymentService';
-import {
-  removeGuestAccountPaymentAttempt,
-  saveGuestAccountPaymentAttempt,
-  withCheckoutAttempt,
-} from '@/services/guestAccountPaymentStorage';
+import { removeGuestAccountPaymentAttempt } from '@/services/guestAccountPaymentStorage';
 
 interface CheckoutActionOptions {
   readonly activeIdentity: TableGuestVisitIdentity | null;
   readonly returnAttemptId: string | null;
-  readonly newPaymentsEnabled: boolean;
   readonly descriptorRef: { current: GuestAccountPaymentAttemptDescriptor | null };
   readonly operation: GuestAccountPaymentOperation | null;
   readonly checkout: GuestAccountCheckoutStatus | null;
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
   readonly publishDescriptor: (descriptor: GuestAccountPaymentAttemptDescriptor | null) => void;
   readonly fetchReceipt: (descriptor: GuestAccountPaymentAttemptDescriptor, attemptId: string) => Promise<unknown>;
+  readonly recoverSavedPayment: () => Promise<void>;
   readonly setOperation: (operation: GuestAccountPaymentOperation | null) => void;
   readonly setCheckout: (checkout: GuestAccountCheckoutStatus | null) => void;
   readonly setError: (error: GuestPaymentErrorKey) => void;
@@ -43,30 +39,28 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
       return options.runExclusive(async () => {
         options.setError('');
         try {
-          return (await options.fetchReceipt(descriptor, receiptAttemptId)) !== null;
+          await options.recoverSavedPayment();
+          return true;
         } catch (error) {
           options.setError(guestPaymentErrorMessage(error, 'load'));
           return false;
         }
       }, false);
     }
-    if (!descriptor || !identity || descriptor.serviceSessionId !== identity.serviceSessionId) return false;
-    return options.runExclusive(async () => {
-      options.setError('');
-      try {
-        const currentOperation = await guestAccountPaymentService.getOperation(identity, descriptor);
-        options.setOperation(currentOperation);
-        const refreshedCheckout = await refreshCheckoutState(descriptor, identity, options);
-        if (refreshedCheckout && options.newPaymentsEnabled) {
-          await options.refreshAccount();
-          options.onAccountUpdated();
-        }
-        return true;
-      } catch (error) {
-        options.setError(guestPaymentErrorMessage(error, 'action'));
-        return false;
-      }
-    }, false);
+    if (
+      !descriptor ||
+      !identity ||
+      descriptor.serviceSessionId !== identity.serviceSessionId ||
+      (descriptor.startRequestedAt === null && descriptor.attemptId === null)
+    )
+      return false;
+    try {
+      await options.recoverSavedPayment();
+      return true;
+    } catch (error) {
+      options.setError(guestPaymentErrorMessage(error, 'action'));
+      return false;
+    }
   }, [options]);
 
   const releaseBeforeStart = useCallback(async () => {
@@ -132,22 +126,4 @@ export function useGuestPaymentCheckoutActions(options: CheckoutActionOptions) {
   }, [options]);
 
   return { refreshPaymentStatus, releaseBeforeStart, requestCancellation };
-}
-
-async function refreshCheckoutState(
-  descriptor: GuestAccountPaymentAttemptDescriptor,
-  identity: TableGuestVisitIdentity,
-  context: Pick<CheckoutActionOptions, 'publishDescriptor' | 'fetchReceipt' | 'setCheckout' | 'setStorageUnavailable'>,
-): Promise<boolean> {
-  if (descriptor.startRequestedAt === null && descriptor.attemptId === null) return false;
-  const status = await guestAccountPaymentService.getCheckoutStatus(identity, descriptor);
-  context.setCheckout(status);
-  const next =
-    descriptor.attemptId === status.attemptId ? descriptor : withCheckoutAttempt(descriptor, status.attemptId);
-  if (next !== descriptor) {
-    if (saveGuestAccountPaymentAttempt(next)) context.publishDescriptor(next);
-    else context.setStorageUnavailable(true);
-  }
-  if (next.receiptCredential) await context.fetchReceipt(next, status.attemptId);
-  return true;
 }

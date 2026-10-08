@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from '@/components/TenantLink';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -76,161 +76,146 @@ export default function TableGuestAccountWorkspace() {
     router.replace(locale ? `/${locale}/menu` : '/menu');
   };
 
-  if (phase === 'loading')
-    return (
-      <>
-        {paymentHost}
-        <main className={styles.workspace} aria-live="polite">
-          {t('loading')}
-        </main>
-      </>
-    );
-  if (phase === 'storageUnavailable') {
-    return (
-      <>
-        {paymentHost}
-        <TableGuestVisitMessage
-          title={t('table_guest_unavailable_title')}
-          detail={t('table_guest_storage_help')}
-          confirmedDeparture={confirmedDeparture}
-          onConfirmDeparture={setConfirmedDeparture}
-          onLeave={handleSafeDeparture}
-          pending={pendingRoundUnresolved}
-        />
-      </>
-    );
-  }
-  if (requiresSafeDeparture) {
-    return (
-      <>
-        {paymentHost}
-        <TableGuestVisitMessage
-          title={t('table_guest_ended_title')}
-          detail={t('table_guest_ended_detail')}
-          confirmedDeparture={confirmedDeparture}
-          onConfirmDeparture={setConfirmedDeparture}
-          onLeave={handleSafeDeparture}
-          pending={pendingRoundUnresolved}
-        />
-      </>
-    );
-  }
-  if (phase === 'unavailable') {
-    return (
-      <>
-        {paymentHost}
-        <TableGuestVisitMessage
-          title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
-          detail={t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))}
-          onRetry={retryTableGuestFeature}
-          confirmedDeparture={confirmedDeparture}
-          onConfirmDeparture={setConfirmedDeparture}
-          onLeave={handleSafeDeparture}
-          pending={pendingRoundUnresolved}
-        />
-      </>
-    );
-  }
-  if (phase !== 'active' || !featureEnabled) {
-    let detail = t('table_guest_not_joined_detail');
-    if (featureStatus === 'unavailable') {
-      detail = t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'));
-    }
-    return (
-      <>
-        {paymentHost}
-        <TableGuestVisitMessage
-          title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
-          detail={detail}
-        />
-      </>
-    );
-  }
-
+  const isActive = phase === 'active' && featureEnabled;
   const formatPrice = (amount: number) => formatCurrency(amount, i18n.language, account?.currency || undefined);
 
-  return (
-    <main className={styles.workspace} aria-labelledby="table-account-heading">
-      <header className={styles.header}>
-        <div>
-          <h1 id="table-account-heading" className={styles.title}>
-            {t('table_guest_account_title')}
-          </h1>
-          <p className={styles.muted}>
-            {t('table_guest_shared_account', { table: account?.tableLabel || t('table_guest_table') })}
-          </p>
-        </div>
-        <button type="button" className={styles.button} onClick={() => void refresh()} disabled={isRefreshing}>
-          {isRefreshing ? t('loading') : t('table_guest_refresh')}
-        </button>
-      </header>
-
-      {error && (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
-      {lastRoundAcknowledgement && (
-        <p className={styles.notice}>
-          <output>{t('table_guest_round_added')}</output>
-        </p>
-      )}
-      {pendingRound && (
-        <p className={styles.notice}>
-          <output>
-            {t('table_guest_pending_round_notice')}{' '}
-            <Link href="/checkout/review">{t('table_guest_resolve_round_link')}</Link>
-          </output>
-        </p>
-      )}
-      {pendingRoundStatus === 'unknown' && (
-        <p className={styles.error} role="alert">
-          {t('table_guest_storage_help')}
-        </p>
-      )}
-
-      {paymentHost}
-
-      {account && (
-        <>
-          <dl className={styles.summary} aria-label={t('table_guest_account_summary')}>
-            <SummaryValue label={t('subtotal')} value={formatPrice(account.subTotal)} />
-            <SummaryValue label={t('discount')} value={formatPrice(account.discount)} />
-            <SummaryValue label={t('tax')} value={formatPrice(account.tax)} />
-            <SummaryValue label={t('tip')} value={formatPrice(account.tip)} />
-            <SummaryValue label={t('total')} value={formatPrice(account.total)} />
-            <SummaryValue label={t('table_guest_paid')} value={formatPrice(account.totalPaid)} />
-            <SummaryValue label={t('table_guest_remaining')} value={formatPrice(account.remaining)} />
-            {account.credit > 0 && <SummaryValue label={t('table_guest_credit')} value={formatPrice(account.credit)} />}
-          </dl>
-
-          <section aria-labelledby="table-guest-batches-heading">
-            <h2 id="table-guest-batches-heading">{t('table_guest_kitchen_batches')}</h2>
-            {account.orders.length > 0 ? (
-              <div className={styles.batchList}>
-                {account.orders.map((order) => (
-                  <TableGuestAccountBatch
-                    key={order.orderId}
-                    order={order}
-                    account={account}
-                    formatPrice={formatPrice}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className={styles.muted}>{t('table_guest_no_rounds')}</p>
-            )}
-          </section>
-          {!onlinePaymentFeature && <p className={styles.muted}>{t('table_guest_staff_settlement')}</p>}
-        </>
-      )}
-
-      <TableGuestSafeDeparture
-        confirmed={confirmedDeparture}
-        onConfirmedChange={setConfirmedDeparture}
+  let content: ReactNode;
+  if (phase === 'loading') content = <p aria-live="polite">{t('loading')}</p>;
+  else if (phase === 'storageUnavailable')
+    content = (
+      <TableGuestVisitMessage
+        title={t('table_guest_unavailable_title')}
+        detail={t('table_guest_storage_help')}
+        confirmedDeparture={confirmedDeparture}
+        onConfirmDeparture={setConfirmedDeparture}
         onLeave={handleSafeDeparture}
         pending={pendingRoundUnresolved}
       />
+    );
+  else if (requiresSafeDeparture)
+    content = (
+      <TableGuestVisitMessage
+        title={t('table_guest_ended_title')}
+        detail={t('table_guest_ended_detail')}
+        confirmedDeparture={confirmedDeparture}
+        onConfirmDeparture={setConfirmedDeparture}
+        onLeave={handleSafeDeparture}
+        pending={pendingRoundUnresolved}
+      />
+    );
+  else if (phase === 'unavailable')
+    content = (
+      <TableGuestVisitMessage
+        title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
+        detail={t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))}
+        onRetry={retryTableGuestFeature}
+        confirmedDeparture={confirmedDeparture}
+        onConfirmDeparture={setConfirmedDeparture}
+        onLeave={handleSafeDeparture}
+        pending={pendingRoundUnresolved}
+      />
+    );
+  else if (!isActive) {
+    const detail =
+      featureStatus === 'unavailable'
+        ? t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))
+        : t('table_guest_not_joined_detail');
+    content = (
+      <TableGuestVisitMessage
+        title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}
+        detail={detail}
+      />
+    );
+  } else
+    content = (
+      <>
+        {error && (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+        {lastRoundAcknowledgement && (
+          <p className={styles.notice}>
+            <output>{t('table_guest_round_added')}</output>
+          </p>
+        )}
+        {pendingRound && (
+          <p className={styles.notice}>
+            <output>
+              {t('table_guest_pending_round_notice')}{' '}
+              <Link href="/checkout/review">{t('table_guest_resolve_round_link')}</Link>
+            </output>
+          </p>
+        )}
+        {pendingRoundStatus === 'unknown' && (
+          <p className={styles.error} role="alert">
+            {t('table_guest_storage_help')}
+          </p>
+        )}
+        {account && (
+          <>
+            <dl className={styles.summary} aria-label={t('table_guest_account_summary')}>
+              <SummaryValue label={t('subtotal')} value={formatPrice(account.subTotal)} />
+              <SummaryValue label={t('discount')} value={formatPrice(account.discount)} />
+              <SummaryValue label={t('tax')} value={formatPrice(account.tax)} />
+              <SummaryValue label={t('tip')} value={formatPrice(account.tip)} />
+              <SummaryValue label={t('total')} value={formatPrice(account.total)} />
+              <SummaryValue label={t('table_guest_paid')} value={formatPrice(account.totalPaid)} />
+              <SummaryValue label={t('table_guest_remaining')} value={formatPrice(account.remaining)} />
+              {account.credit > 0 && (
+                <SummaryValue label={t('table_guest_credit')} value={formatPrice(account.credit)} />
+              )}
+            </dl>
+            <section aria-labelledby="table-guest-batches-heading">
+              <h2 id="table-guest-batches-heading">{t('table_guest_kitchen_batches')}</h2>
+              {account.orders.length > 0 ? (
+                <div className={styles.batchList}>
+                  {account.orders.map((order) => (
+                    <TableGuestAccountBatch
+                      key={order.orderId}
+                      order={order}
+                      account={account}
+                      formatPrice={formatPrice}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.muted}>{t('table_guest_no_rounds')}</p>
+              )}
+            </section>
+            {!onlinePaymentFeature && <p className={styles.muted}>{t('table_guest_staff_settlement')}</p>}
+          </>
+        )}
+        <TableGuestSafeDeparture
+          confirmed={confirmedDeparture}
+          onConfirmedChange={setConfirmedDeparture}
+          onLeave={handleSafeDeparture}
+          pending={pendingRoundUnresolved}
+        />
+      </>
+    );
+
+  return (
+    <main className={styles.workspace} aria-labelledby={isActive ? 'table-account-heading' : undefined}>
+      <header className={isActive ? styles.header : undefined}>
+        {isActive && (
+          <>
+            <div>
+              <h1 id="table-account-heading" className={styles.title}>
+                {t('table_guest_account_title')}
+              </h1>
+              <p className={styles.muted}>
+                {t('table_guest_shared_account', { table: account?.tableLabel || t('table_guest_table') })}
+              </p>
+            </div>
+            <button type="button" className={styles.button} onClick={() => void refresh()} disabled={isRefreshing}>
+              {isRefreshing ? t('loading') : t('table_guest_refresh')}
+            </button>
+          </>
+        )}
+      </header>
+      {paymentHost}
+      {content}
     </main>
   );
 }

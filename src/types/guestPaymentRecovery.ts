@@ -25,5 +25,9 @@ export interface GuestPaymentRecoveryOptions {
   readonly recoveryIdentity: TableGuestVisitIdentity | null;
   readonly returnAttemptId: string | null;
   readonly runExclusive: <T>(operation: () => Promise<T>, blocked: T) => Promise<T>;
-  readonly onReturnedPaymentSettled: (identity: TableGuestVisitIdentity, isCurrent: () => boolean) => Promise<boolean>;
+  readonly onReturnedPaymentSettled: (
+    identity: TableGuestVisitIdentity,
+    isCurrent: () => boolean,
+    signal?: AbortSignal,
+  ) => Promise<boolean>;
 }

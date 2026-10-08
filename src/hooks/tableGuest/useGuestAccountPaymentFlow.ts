@@ -31,11 +31,11 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     options;
   const gate = useGuestPaymentWorkGate();
   const returnedPaymentRefreshRef = useRef<
-    (identity: TableGuestVisitIdentity, isCurrent: () => boolean) => Promise<boolean>
+    (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) => Promise<boolean>
   >(async () => true);
   const onReturnedPaymentSettled = useCallback(
-    (identity: TableGuestVisitIdentity, isCurrent: () => boolean) =>
-      returnedPaymentRefreshRef.current(identity, isCurrent),
+    (identity: TableGuestVisitIdentity, isCurrent: () => boolean, signal?: AbortSignal) =>
+      returnedPaymentRefreshRef.current(identity, isCurrent, signal),
     [],
   );
   const recovery = useGuestPaymentRecovery({
@@ -52,12 +52,12 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     setError: setRecoveryError,
   });
   const [storageUnavailable, setStorageUnavailable] = useState(false);
-  returnedPaymentRefreshRef.current = async (identity, isCurrent) => {
-    if (!isCurrent()) return false;
+  returnedPaymentRefreshRef.current = async (identity, isCurrent, signal) => {
+    if (!isCurrent() || signal?.aborted) return false;
     if (!newPaymentsEnabled || !canCreatePayment) return true;
     if (identity.serviceSessionId !== activeIdentity?.serviceSessionId) return false;
-    await refreshAccount(identity, isCurrent);
-    if (!isCurrent()) return false;
+    await refreshAccount(identity, isCurrent, true, signal);
+    if (!isCurrent() || signal?.aborted) return false;
     onAccountUpdated();
     return true;
   };
@@ -113,7 +113,6 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
   const checkoutActions = useGuestPaymentCheckoutActions({
     activeIdentity,
     returnAttemptId,
-    newPaymentsEnabled,
     descriptorRef: recovery.descriptorRef,
     operation: recovery.operation,
     checkout: recovery.checkout,
@@ -126,6 +125,7 @@ export function useGuestAccountPaymentFlow(options: GuestAccountPaymentFlowOptio
     setStorageUnavailable,
     refreshAccount,
     onAccountUpdated,
+    recoverSavedPayment: recovery.recoverSavedPayment,
   });
   const startAction = useGuestPaymentStartAction({
     activeIdentity,

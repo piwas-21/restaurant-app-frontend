@@ -20,7 +20,9 @@ import {
   waitForRecoveryPoll,
 } from './guestPaymentRecoveryHelpers';
 import { chooseGuestPaymentRecovery, recoverReturnedReceipt } from './guestPaymentRecoverySelection';
-import { fetchGuestPaymentReceipt } from './guestPaymentRecoveryReceipt';
+import { useGuestPaymentRecoveryReceiptState } from './useGuestPaymentRecoveryReceiptState';
+
+export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS = 120_000;
 
 export function useGuestPaymentRecovery({
   activeIdentity,
@@ -46,100 +48,122 @@ export function useGuestPaymentRecovery({
     setAttempt(descriptor ? summarizeDescriptor(descriptor) : null);
   }, []);
 
-  const fetchReceipt = useCallback(
-    (descriptor: GuestAccountPaymentAttemptDescriptor, attemptId: string, isCurrent: () => boolean = () => true) =>
-      fetchGuestPaymentReceipt(
-        descriptor,
-        attemptId,
-        { descriptorRef, publishDescriptor, setStorageUnavailable, setReceipts },
-        isCurrent,
-      ),
-    [publishDescriptor, setStorageUnavailable],
-  );
+  const { publishReceipt, fetchReceipt } = useGuestPaymentRecoveryReceiptState({
+    descriptorRef,
+    publishDescriptor,
+    setStorageUnavailable,
+    setReceipts,
+  });
 
   const recoverSavedPayment = useCallback(async () => {
+    setIsLoading(true);
     recoveryAbortController.current?.abort();
     const abortController = new AbortController();
     recoveryAbortController.current = abortController;
     const generation = ++recoveryGeneration.current;
     const isCurrent = () => recoveryGeneration.current === generation;
-    setOperation(null);
-    setCheckout(null);
-    setReceipts([]);
-    setError('');
-    setReturnReceiptUnavailable(false);
-    const stored = readGuestAccountPaymentAttempts();
-    if (stored.kind === 'unavailable') {
-      setStorageUnavailable(true);
-      setIsLoading(false);
-      return;
-    }
-    setStorageUnavailable(false);
-    if (stored.kind === 'empty') {
-      publishDescriptor(null);
-      setIsLoading(false);
-      setReturnReceiptUnavailable(Boolean(returnAttemptId));
-      return;
-    }
-
-    const { selected, receiptDescriptor } = await chooseGuestPaymentRecovery(
-      stored.attempts,
-      returnAttemptId,
-      activeIdentity,
-      recoveryIdentity,
-    );
-    if (!isCurrent()) return;
-
-    await recoverReturnedReceipt(
-      returnAttemptId,
-      receiptDescriptor,
-      selected,
-      fetchReceipt,
-      setReturnReceiptUnavailable,
-    );
-    if (!isCurrent()) return;
-
-    if (!selected) {
-      publishDescriptor(!activeIdentity ? receiptDescriptor : null);
+    const deadlineTimer = setTimeout(() => {
+      if (isCurrent()) {
+        setError('load');
+        setReturnReceiptUnavailable(Boolean(returnAttemptId));
+        setIsLoading(false);
+      }
+      abortController.abort();
+    }, GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS);
+    try {
       setOperation(null);
       setCheckout(null);
-      setIsLoading(false);
-      return;
-    }
-
-    const selectedReturnAttemptId = selected === receiptDescriptor ? returnAttemptId : null;
-    publishDescriptor(selected);
-    if (!returnAttemptId || (selected === receiptDescriptor && activeIdentity !== null))
+      setReceipts([]);
+      setError('');
       setReturnReceiptUnavailable(false);
-    if (selected.serviceSessionId !== activeIdentity?.serviceSessionId) {
-      await recoverReceiptOnly(selected, selectedReturnAttemptId, fetchReceipt, setReturnReceiptUnavailable);
-      if (isCurrent()) setIsLoading(false);
-      return;
-    }
+      const stored = readGuestAccountPaymentAttempts();
+      if (stored.kind === 'unavailable') {
+        setStorageUnavailable(true);
+        setIsLoading(false);
+        return;
+      }
+      setStorageUnavailable(false);
+      if (stored.kind === 'empty') {
+        publishDescriptor(null);
+        setIsLoading(false);
+        setReturnReceiptUnavailable(Boolean(returnAttemptId));
+        return;
+      }
 
-    await recoverActivePayment(selected, activeIdentity, selectedReturnAttemptId, {
-      isCurrent,
-      setOperation,
-      setCheckout,
-      setError,
-      setReturnReceiptUnavailable,
-      setIsLoading,
-      fetchReceipt,
-      setStorageUnavailable,
-      onReturnedPaymentSettled,
-      saveUpdatedDescriptor: (descriptor) => {
-        if (!saveGuestAccountPaymentAttempt(descriptor)) return false;
-        publishDescriptor(descriptor);
-        return true;
-      },
-      runExclusive,
-      waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
-    });
+      const { selected, receiptDescriptor } = await chooseGuestPaymentRecovery(
+        stored.attempts,
+        returnAttemptId,
+        activeIdentity,
+        recoveryIdentity,
+      );
+      if (!isCurrent() || abortController.signal.aborted) return;
+
+      await recoverReturnedReceipt(
+        returnAttemptId,
+        receiptDescriptor,
+        selected,
+        fetchReceipt,
+        setReturnReceiptUnavailable,
+        abortController.signal,
+        isCurrent,
+      );
+      if (!isCurrent() || abortController.signal.aborted) return;
+
+      if (!selected) {
+        publishDescriptor(!activeIdentity ? receiptDescriptor : null);
+        setOperation(null);
+        setCheckout(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const selectedReturnAttemptId = selected === receiptDescriptor ? returnAttemptId : null;
+      publishDescriptor(selected);
+      if (!returnAttemptId || (selected === receiptDescriptor && activeIdentity !== null))
+        setReturnReceiptUnavailable(false);
+      if (selected.serviceSessionId !== activeIdentity?.serviceSessionId) {
+        await recoverReceiptOnly(
+          selected,
+          selectedReturnAttemptId,
+          fetchReceipt,
+          setReturnReceiptUnavailable,
+          abortController.signal,
+          isCurrent,
+        );
+        if (isCurrent()) setIsLoading(false);
+        return;
+      }
+
+      await recoverActivePayment(selected, activeIdentity, selectedReturnAttemptId, {
+        isCurrent,
+        signal: abortController.signal,
+        setOperation,
+        setCheckout,
+        setError,
+        setReturnReceiptUnavailable,
+        setIsLoading,
+        fetchReceipt,
+        publishReceipt,
+        setStorageUnavailable,
+        onReturnedPaymentSettled,
+        saveUpdatedDescriptor: (descriptor) => {
+          if (!saveGuestAccountPaymentAttempt(descriptor)) return false;
+          publishDescriptor(descriptor);
+          return true;
+        },
+        runExclusive,
+        waitForNextPoll: (delayMs) => waitForRecoveryPoll(delayMs, abortController.signal),
+      });
+    } finally {
+      clearTimeout(deadlineTimer);
+      if (recoveryAbortController.current === abortController) recoveryAbortController.current = null;
+    }
   }, [
     activeIdentity,
     fetchReceipt,
     onReturnedPaymentSettled,
     publishDescriptor,
+    publishReceipt,
     recoveryIdentity,
     returnAttemptId,
     runExclusive,

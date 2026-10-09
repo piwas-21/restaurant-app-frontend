@@ -1,11 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCashierOrders } from './useCashierOrders';
-import { getCashierOrders, getOrderById, getPaymentOperation, refundPayment } from '@/services/cashierService';
+import { getCashierOrderGroups, getOrderById, getPaymentOperation, refundPayment } from '@/services/cashierService';
 import { ApiError } from '@/utils/apiClient';
 import type { CashierOrdersQuery } from './cashier/useCashierFilters';
 
 jest.mock('@/services/cashierService', () => ({
-  getCashierOrders: jest.fn(),
+  getCashierOrderGroups: jest.fn(),
   getOrderById: jest.fn(),
   updateOrderStatus: jest.fn(),
   addPaymentToOrder: jest.fn(),
@@ -23,14 +23,39 @@ jest.mock('./cashier/useCashierOrdersStream', () => ({
   }),
 }));
 
-const mockGetCashierOrders = getCashierOrders as jest.Mock;
+const mockGetCashierOrderGroups = getCashierOrderGroups as jest.Mock;
 const mockGetOrderById = getOrderById as jest.Mock;
 const mockGetPaymentOperation = getPaymentOperation as jest.Mock;
 const mockRefundPayment = refundPayment as jest.Mock;
 
+type OrderStub = { id: string; [key: string]: unknown };
+
+function groupPage(
+  orders: readonly OrderStub[],
+  page = 1,
+  pageSize = 50,
+  totalCount = orders.length,
+  totalPages = Math.ceil(totalCount / pageSize),
+) {
+  return {
+    items: orders.map((order) => ({
+      groupKey: `order:${order.id}`,
+      serviceSessionId: null,
+      tableNumber: null,
+      releasedAt: null,
+      isArchivedFromTable: false,
+      orders: [order],
+    })),
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetCashierOrders.mockResolvedValue({ items: [{ id: 'o1', status: 'Pending' }] });
+  mockGetCashierOrderGroups.mockResolvedValue(groupPage([{ id: 'o1', status: 'Pending' }]));
 });
 
 /**
@@ -41,6 +66,42 @@ beforeEach(() => {
  * unreachable. The boolean is the only thing that distinguishes them (E9 slice 8).
  */
 describe('useCashierOrders — server-paged queue', () => {
+  it('keeps every child order inside a visit even when one group fills the page', async () => {
+    const children = [
+      { id: 'round-1', orderNumber: 'O-1' },
+      { id: 'round-2', orderNumber: 'O-2' },
+    ];
+    mockGetCashierOrderGroups.mockResolvedValueOnce({
+      items: [
+        {
+          groupKey: 'visit:session-7',
+          serviceSessionId: 'session-7',
+          tableNumber: 14,
+          releasedAt: '2026-10-08T12:00:00Z',
+          isArchivedFromTable: false,
+          orders: children,
+        },
+      ],
+      totalCount: 3,
+      page: 1,
+      pageSize: 1,
+      totalPages: 3,
+    });
+
+    const { result } = renderHook(() => useCashierOrders({ page: 1, pageSize: 1 }));
+
+    await waitFor(() => expect(result.current.groups).toHaveLength(1));
+    expect(result.current.groups[0]).toMatchObject({
+      groupKey: 'visit:session-7',
+      serviceSessionId: 'session-7',
+      tableNumber: 14,
+      releasedAt: '2026-10-08T12:00:00Z',
+    });
+    expect(result.current.groups[0].orders.map((order) => order.id)).toEqual(['round-1', 'round-2']);
+    expect(result.current.orders.map((order) => order.orderNumber)).toEqual(['O-1', 'O-2']);
+    expect(result.current.pagination).toMatchObject({ totalCount: 3, pageSize: 1, totalPages: 3 });
+  });
+
   it('sends a search to the server so an order beyond an unfiltered first page is found', async () => {
     const firstPage = Array.from({ length: 10 }, (_, index) => ({
       id: `o${index + 1}`,
@@ -50,9 +111,9 @@ describe('useCashierOrders — server-paged queue', () => {
     const laterOrder = { id: 'o11', orderNumber: 'later-order', status: 'Pending' };
     const initialQuery: CashierOrdersQuery = { page: 1, pageSize: 10 };
 
-    mockGetCashierOrders
-      .mockResolvedValueOnce({ items: firstPage, totalCount: 11, page: 1, pageSize: 10, totalPages: 2 })
-      .mockResolvedValueOnce({ items: [laterOrder], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+    mockGetCashierOrderGroups
+      .mockResolvedValueOnce(groupPage(firstPage, 1, 10, 11, 2))
+      .mockResolvedValueOnce(groupPage([laterOrder], 1, 10, 1, 1));
 
     const { result, rerender } = renderHook(({ query }) => useCashierOrders(query), {
       initialProps: { query: initialQuery },
@@ -62,7 +123,7 @@ describe('useCashierOrders — server-paged queue', () => {
     rerender({ query: { ...initialQuery, search: 'later-order' } });
 
     await waitFor(() =>
-      expect(mockGetCashierOrders).toHaveBeenLastCalledWith({
+      expect(mockGetCashierOrderGroups).toHaveBeenLastCalledWith({
         page: 1,
         pageSize: 10,
         search: 'later-order',
@@ -86,16 +147,10 @@ describe('useCashierOrders — server-paged queue', () => {
       marketplaceOnly: true,
       status: 'PendingApproval',
     };
-    mockGetCashierOrders
-      .mockResolvedValueOnce({
-        items: rows.slice(20),
-        totalCount: 21,
-        page: 2,
-        pageSize: 20,
-        totalPages: 2,
-      })
-      .mockResolvedValueOnce({ items: [], totalCount: 20, page: 2, pageSize: 20, totalPages: 1 })
-      .mockResolvedValueOnce({ items: rows.slice(0, 20), totalCount: 20, page: 1, pageSize: 20, totalPages: 1 });
+    mockGetCashierOrderGroups
+      .mockResolvedValueOnce(groupPage(rows.slice(20), 2, 20, 21, 2))
+      .mockResolvedValueOnce(groupPage([], 2, 20, 20, 1))
+      .mockResolvedValueOnce(groupPage(rows.slice(0, 20), 1, 20, 20, 1));
 
     const { result, rerender } = renderHook(({ query }) => useCashierOrders(query, onPageChange), {
       initialProps: { query: pageTwoQuery },
@@ -119,7 +174,7 @@ describe('useCashierOrders — server-paged queue', () => {
 describe('useCashierOrders — refreshOrders reports its outcome', () => {
   it('resolves true and leaves `error` clear when the fetch lands', async () => {
     const { result } = renderHook(() => useCashierOrders());
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalled());
 
     let outcome: boolean | undefined;
     await act(async () => {
@@ -132,9 +187,9 @@ describe('useCashierOrders — refreshOrders reports its outcome', () => {
 
   it('resolves false — and does NOT reject — when the fetch fails', async () => {
     const { result } = renderHook(() => useCashierOrders());
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalled());
 
-    mockGetCashierOrders.mockRejectedValue(new ApiError(503, 'Till service unavailable'));
+    mockGetCashierOrderGroups.mockRejectedValue(new ApiError(503, 'Till service unavailable'));
     let outcome: boolean | undefined;
     await act(async () => {
       outcome = await result.current.refreshOrders();
@@ -150,7 +205,7 @@ describe('useCashierOrders — refreshOrders reports its outcome', () => {
 
 describe('useCashierOrders — snapshot availability and races', () => {
   it('reports unavailable when the first snapshot fails', async () => {
-    mockGetCashierOrders.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
+    mockGetCashierOrderGroups.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
     const { result } = renderHook(() => useCashierOrders());
 
     await waitFor(() => expect(result.current.queueState).toBe('unavailable'));
@@ -158,13 +213,7 @@ describe('useCashierOrders — snapshot availability and races', () => {
   });
 
   it('treats a successful empty page as ready rather than unavailable', async () => {
-    mockGetCashierOrders.mockResolvedValueOnce({
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 50,
-      totalPages: 0,
-    });
+    mockGetCashierOrderGroups.mockResolvedValueOnce(groupPage([], 1, 50, 0, 0));
     const { result } = renderHook(() => useCashierOrders());
 
     await waitFor(() => expect(result.current.queueState).toBe('ready'));
@@ -175,7 +224,7 @@ describe('useCashierOrders — snapshot availability and races', () => {
     const { result } = renderHook(() => useCashierOrders());
     await waitFor(() => expect(result.current.orders).toHaveLength(1));
 
-    mockGetCashierOrders.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
+    mockGetCashierOrderGroups.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
     await act(async () => {
       await result.current.refreshOrders();
     });
@@ -187,13 +236,13 @@ describe('useCashierOrders — snapshot availability and races', () => {
   it('lets the newest response win when an older response resolves later', async () => {
     let resolveFirst: (value: unknown) => void = () => undefined;
     let resolveSecond: (value: unknown) => void = () => undefined;
-    mockGetCashierOrders.mockImplementationOnce(
+    mockGetCashierOrderGroups.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveFirst = resolve;
         }),
     );
-    mockGetCashierOrders.mockImplementationOnce(
+    mockGetCashierOrderGroups.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
           resolveSecond = resolve;
@@ -203,17 +252,17 @@ describe('useCashierOrders — snapshot availability and races', () => {
     const { result, rerender } = renderHook(({ query }) => useCashierOrders(query), {
       initialProps: { query: { page: 1, pageSize: 10 } as CashierOrdersQuery },
     });
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalledTimes(1));
     rerender({ query: { page: 1, pageSize: 10, search: 'new' } });
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalledTimes(2));
 
     await act(async () => {
-      resolveSecond({ items: [{ id: 'newer' }], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+      resolveSecond(groupPage([{ id: 'newer' }], 1, 10, 1, 1));
     });
     await waitFor(() => expect(result.current.orders.map((order) => order.id)).toEqual(['newer']));
 
     await act(async () => {
-      resolveFirst({ items: [{ id: 'older' }], totalCount: 1, page: 1, pageSize: 10, totalPages: 1 });
+      resolveFirst(groupPage([{ id: 'older' }], 1, 10, 1, 1));
     });
     expect(result.current.orders.map((order) => order.id)).toEqual(['newer']);
     expect(result.current.queueState).toBe('ready');
@@ -231,7 +280,7 @@ describe('useCashierOrders — payment reconciliation lifecycle', () => {
     });
 
     const { result } = renderHook(() => useCashierOrders());
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalled());
 
     let reconciliation;
     await act(async () => {
@@ -262,7 +311,7 @@ describe('useCashierOrders — refund response lifecycle', () => {
     mockGetOrderById.mockResolvedValue(authoritativeOrder);
 
     const { result } = renderHook(() => useCashierOrders());
-    await waitFor(() => expect(mockGetCashierOrders).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalled());
 
     let returnedOrder: typeof authoritativeOrder | undefined;
     await act(async () => {

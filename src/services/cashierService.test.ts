@@ -1,6 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import {
   getCashierOrders,
+  getCashierOrderGroups,
   getCashierTenantContext,
   getCashierTenantDay,
   getPaymentOperation,
@@ -139,6 +140,31 @@ describe('getCashierOrders — operational scope contract', () => {
     expect(endpoint).toContain('tenantDay=2026-03-08');
     expect(endpoint).toContain('startDate=2026-03-08T00%3A00%3A00.000Z');
     expect(endpoint).toContain('endDate=2026-03-08T23%3A59%3A59.000Z');
+  });
+});
+
+describe('getCashierOrderGroups — authoritative group pagination contract', () => {
+  it('sends the same operational filters to the group-paged endpoint', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    const result = { items: [], totalCount: 0, page: 1, pageSize: 25, totalPages: 0 };
+    mockGet.mockResolvedValueOnce({ data: result, success: true });
+
+    await expect(
+      getCashierOrderGroups({
+        scope: 'Operational',
+        status: 'Pending',
+        paymentStatus: 'Pending',
+        search: 'table 7',
+        tableNumber: 7,
+        page: 2,
+        pageSize: 25,
+      }),
+    ).resolves.toEqual(result);
+
+    expect(mockGet).toHaveBeenCalledWith(
+      '/api/orders/cashier-groups?scope=Operational&status=Pending&paymentStatus=Pending&search=table+7&tableNumber=7&page=2&pageSize=25',
+      { requireAuth: true },
+    );
   });
 });
 

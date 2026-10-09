@@ -8,8 +8,11 @@ import { QUEUE_SEARCH_MAX, queueSearchSchema } from '@/schemas/cashierQueueSearc
 import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
 import { ORDER_STATUSES, orderStatusLabel } from '@/lib/orderStatus';
 import type { CashierQueueState } from '@/types/cashier';
+import type { CashierOrderGroupDto } from '@/types/cashier';
 import type { OrderDto } from '@/types/order';
 import CashierReadOnlyOrderList from './CashierReadOnlyOrderList';
+import CashierReadOnlyOrderGroupList from './CashierReadOnlyOrderGroupList';
+import CashierReadOnlyQueuePagination from './CashierReadOnlyQueuePagination';
 import styles from './CashierWorkspaceQueue.module.css';
 
 interface Pagination {
@@ -22,6 +25,7 @@ interface Pagination {
 interface CashierReadOnlyQueuePanelProps {
   readonly destination: 'orders' | 'history';
   readonly orders: readonly OrderDto[];
+  readonly groups?: readonly CashierOrderGroupDto[];
   readonly pagination: Pagination;
   readonly queueState: CashierQueueState;
   readonly isLoading: boolean;
@@ -43,12 +47,15 @@ interface CashierReadOnlyQueuePanelProps {
   readonly onOrderTypeFilterChange: (value: string) => void;
   readonly onMarketplaceOnlyFilterChange?: (value: boolean) => void;
   readonly onPageChange: (page: number) => void;
+  readonly onPageSizeChange?: (pageSize: number) => void;
+  readonly onCollectSession?: (serviceSessionId: string) => void;
   readonly onRetry?: () => void;
 }
 
 export default function CashierReadOnlyQueuePanel({
   destination,
   orders,
+  groups,
   pagination,
   queueState,
   isLoading,
@@ -70,6 +77,8 @@ export default function CashierReadOnlyQueuePanel({
   onOrderTypeFilterChange,
   onMarketplaceOnlyFilterChange,
   onPageChange,
+  onPageSizeChange,
+  onCollectSession,
   onRetry,
 }: CashierReadOnlyQueuePanelProps) {
   const { t } = useTranslation();
@@ -77,6 +86,7 @@ export default function CashierReadOnlyQueuePanel({
   const marketplaceOnly = marketplaceOnlyFilter ?? false;
   const start = pagination.totalCount === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
   const end = Math.min(pagination.page * pagination.pageSize, pagination.totalCount);
+  const showGroups = !isHistory && groups !== undefined;
 
   return (
     <section className={styles.queuePane} aria-label={t('cashier.workspace.queue')} aria-busy={isLoading}>
@@ -173,7 +183,11 @@ export default function CashierReadOnlyQueuePanel({
           </label>
         </div>
         <p className={styles.resultCount} aria-live="polite">
-          {t('cashier.workspace.showing', { start, end, total: pagination.totalCount })}
+          {t(showGroups ? 'cashier.workspace.showing_groups' : 'cashier.workspace.showing', {
+            start,
+            end,
+            total: pagination.totalCount,
+          })}
         </p>
       </div>
       {queueState === 'stale' && (
@@ -205,7 +219,17 @@ export default function CashierReadOnlyQueuePanel({
         {!isLoading && queueState !== 'unavailable' && orders.length === 0 && (
           <div className={styles.stateMessage}>{t('cashier.workspace.no_matches')}</div>
         )}
-        {orders.length > 0 && (
+        {showGroups && groups.length > 0 && (
+          <CashierReadOnlyOrderGroupList
+            groups={groups}
+            selectedOrderId={selectedOrderId}
+            timeZone={timeZone}
+            onSelectOrder={onSelectOrder}
+            onOrderRowRef={onOrderRowRef}
+            onCollectSession={onCollectSession}
+          />
+        )}
+        {!showGroups && orders.length > 0 && (
           <CashierReadOnlyOrderList
             orders={orders}
             selectedOrderId={selectedOrderId}
@@ -215,27 +239,12 @@ export default function CashierReadOnlyQueuePanel({
           />
         )}
       </div>
-      {pagination.totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button
-            type="button"
-            className={styles.stateAction}
-            onClick={() => onPageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1}
-          >
-            {t('previous')}
-          </button>
-          <span>{t('cashier.workspace.page_value', { page: pagination.page, total: pagination.totalPages })}</span>
-          <button
-            type="button"
-            className={styles.stateAction}
-            onClick={() => onPageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages}
-          >
-            {t('next')}
-          </button>
-        </div>
-      )}
+      <CashierReadOnlyQueuePagination
+        isHistory={isHistory}
+        pagination={pagination}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </section>
   );
 }

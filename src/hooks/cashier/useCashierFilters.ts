@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { OrderListScope } from '@/types/order';
 
 export const CASHIER_ORDERS_PAGE_SIZE = 50;
+export const CASHIER_ORDERS_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 export const CASHIER_SEARCH_DEBOUNCE_MS = 300;
 const MAX_BACKEND_INT = 2_147_483_647;
 
@@ -48,6 +49,7 @@ export interface UseCashierFiltersReturn {
   setMarketplaceOnlyFilter: (enabled: boolean) => void;
   setTableNumberFilter: (tableNumber: string) => void;
   setPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
 }
 
 function parseTableNumber(value: string): number | undefined {
@@ -73,6 +75,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
   const [marketplaceOnlyFilterValue, setMarketplaceOnlyFilterValue] = useState(false);
   const [tableNumberFilterValue, setTableNumberFilterValue] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSizeValue] = useState(CASHIER_ORDERS_PAGE_SIZE);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const commitSearch = useCallback((value: string) => {
@@ -84,6 +87,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     (value: string) => {
       searchDraftRef.current = value;
       setSearchQueryDraft(value);
+      setPage(1);
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
       searchTimerRef.current = setTimeout(() => {
         searchTimerRef.current = null;
@@ -126,13 +130,18 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     setTableNumberFilterValue(tableNumber);
     setPage(1);
   }, []);
+  const setPageSize = useCallback((nextPageSize: number) => {
+    if (!(CASHIER_ORDERS_PAGE_SIZE_OPTIONS as readonly number[]).includes(nextPageSize)) return;
+    setPageSizeValue(nextPageSize);
+    setPage(1);
+  }, []);
 
   const query = useMemo<CashierOrdersQuery>(() => {
     const tableNumber = parseTableNumber(tableNumberFilterValue);
     return {
       scope: 'Operational',
       page,
-      pageSize: CASHIER_ORDERS_PAGE_SIZE,
+      pageSize,
       ...(submittedSearch ? { search: submittedSearch } : {}),
       ...(statusFilterValue !== 'all' ? { status: statusFilterValue } : {}),
       ...(paymentStatusFilterValue !== 'all' ? { paymentStatus: paymentStatusFilterValue } : {}),
@@ -144,6 +153,7 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     orderTypeFilterValue,
     marketplaceOnlyFilterValue,
     page,
+    pageSize,
     paymentStatusFilterValue,
     statusFilterValue,
     submittedSearch,
@@ -166,5 +176,6 @@ export function useCashierFilters(): UseCashierFiltersReturn {
     setMarketplaceOnlyFilter,
     setTableNumberFilter,
     setPage,
+    setPageSize,
   };
 }

@@ -20,7 +20,11 @@ import {
   PaymentOperationLookupDto,
 } from '@/types/order';
 import { SseDiagnostics } from '@/types/diagnostics';
-import type { CashierOrdersFilters } from '@/types/cashier';
+import type {
+  CashierOrderGroupDto,
+  CashierOrderGroupPagedResultApiResponse,
+  CashierOrdersFilters,
+} from '@/types/cashier';
 
 /**
  * The server context used by cashier date windows and order timestamps. Date ranges use the
@@ -59,13 +63,7 @@ export async function getCashierTenantDay(): Promise<string | undefined> {
  * legacy All scope remains available to callers that explicitly need a date-windowed list.
  */
 export async function getCashierOrders(filters?: CashierOrdersFilters): Promise<PagedResult<OrderDto>> {
-  const params = new URLSearchParams();
-  const scope = filters?.scope ?? 'Operational';
-
-  params.append('scope', scope);
-  appendCashierOrderFilters(params, filters, scope);
-
-  const queryString = params.toString();
+  const queryString = buildCashierOrderQuery(filters);
   const response = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?${queryString}`, {
     requireAuth: true,
   });
@@ -75,6 +73,31 @@ export async function getCashierOrders(filters?: CashierOrdersFilters): Promise<
   }
 
   return response.data;
+}
+
+/** Read the order-group-paged operational cashier queue. Every returned group retains all orders. */
+export async function getCashierOrderGroups(
+  filters?: CashierOrdersFilters,
+): Promise<PagedResult<CashierOrderGroupDto>> {
+  const queryString = buildCashierOrderQuery(filters);
+  const response = await apiClient.get<CashierOrderGroupPagedResultApiResponse>(
+    `/api/orders/cashier-groups?${queryString}`,
+    { requireAuth: true },
+  );
+
+  if (!response.data) {
+    throw new Error('Failed to fetch cashier order groups');
+  }
+
+  return response.data;
+}
+
+function buildCashierOrderQuery(filters: CashierOrdersFilters | undefined): string {
+  const params = new URLSearchParams();
+  const scope = filters?.scope ?? 'Operational';
+  params.append('scope', scope);
+  appendCashierOrderFilters(params, filters, scope);
+  return params.toString();
 }
 
 function appendCashierOrderFilters(

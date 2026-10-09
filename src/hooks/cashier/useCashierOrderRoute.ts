@@ -30,8 +30,14 @@ export function useCashierOrderRoute() {
   }, [pathname, router, searchParams]);
 
   const navigateToCollection = useCallback(
-    (orderId: string) =>
-      router.push(tenantLocaleHref(pathname, `${CASHIER_COLLECTION_PATH}?order=${encodeURIComponent(orderId)}`)),
+    (orderId?: string, serviceSessionId?: string) => {
+      const params = new URLSearchParams();
+      if (serviceSessionId) params.set('serviceSessionId', serviceSessionId);
+      if (orderId) params.set('order', orderId);
+      const query = params.toString();
+      const target = query ? `${CASHIER_COLLECTION_PATH}?${query}` : CASHIER_COLLECTION_PATH;
+      router.push(tenantLocaleHref(pathname, target));
+    },
     [pathname, router],
   );
 

@@ -22,19 +22,17 @@ describe('TableGuestAdmissionForm', () => {
     jest.clearAllMocks();
   });
 
-  it('joins using the validated QR identity and keeps returned credentials out of navigation', async () => {
+  it('joins using the validated QR identity and stores its local table binding', async () => {
     jest.mocked(tableGuestVisitService.joinTableGuestVisit).mockResolvedValue({
       serviceSessionId: 'visit-id',
       participantToken: 'a'.repeat(40),
       expiresAt: new Date(Date.now() + 60_000).toISOString(),
     });
-    const onJoined = jest.fn();
-
     render(
       <I18nextProvider i18n={i18n}>
         <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
           <TableGuestVisitProvider>
-            <TableGuestAdmissionForm qrCodeData="qr-payload" tableLabel="8" onJoined={onJoined} />
+            <TableGuestAdmissionForm qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
           </TableGuestVisitProvider>
         </TableGuestFeatureProvider>
       </I18nextProvider>,
@@ -43,11 +41,13 @@ describe('TableGuestAdmissionForm', () => {
     fireEvent.change(await screen.findByLabelText('Table visit code'), { target: { value: 'gh23456789' } });
     fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
 
-    await waitFor(() => expect(onJoined).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toContain('table-id'));
     expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledWith('qr-payload', 'GH23456789');
     expect(window.location.href).not.toContain('visit-id');
     expect(window.location.href).not.toContain('a'.repeat(40));
-    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toContain('visit-id');
-    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toContain('participantToken');
+    expect(JSON.parse(sessionStorage.getItem('rumi_table_guest_visit_v1') ?? '{}')).toMatchObject({
+      serviceSessionId: 'visit-id',
+      tableId: 'table-id',
+    });
   });
 });

@@ -88,29 +88,32 @@ export function TableGuestVisitProvider({ children }: Readonly<{ children: React
   }, [markVisitUnavailable, storedState]);
 
   const joinVisit = useCallback(
-    async (qrCodeData: string, admissionCode: string) => {
+    async (qrCodeData: string, admissionCode: string, tableId: string) => {
       if (!isHydrated || tableGuestFeatureStatus !== 'ready' || !tableGuestVisitsV1) {
         throw new Error('Table visit joining is unavailable.');
       }
       if (storedState.kind !== 'none' || pendingRound !== null || pendingRoundStatus === 'unknown') {
         throw new Error('Leave the previous table visit before joining another one.');
       }
+      const validatedTableId = tableId.trim();
+      if (!validatedTableId) throw new Error('A validated table is required to join.');
       const identity = await tableGuestVisitService.joinTableGuestVisit(qrCodeData, admissionCode);
       if (!isUnexpiredIdentity(identity))
         throw new Error('This table visit has expired. Ask staff to create a new code.');
-      if (!writeTableGuestVisit(identity)) {
+      const boundIdentity = { ...identity, tableId: validatedTableId };
+      if (!writeTableGuestVisit(boundIdentity)) {
         setStoredState({ kind: 'storageUnavailable' });
         const pendingRead = readPendingTableGuestRoundForRecovery();
         setPendingRound(pendingRead.kind === 'pending' ? pendingRead.round : null);
         setPendingRoundStatus(pendingRead.kind === 'unavailable' ? 'unknown' : 'known');
         throw new Error('This browser cannot safely keep the table visit open.');
       }
-      setStoredState({ kind: 'visit', identity });
+      setStoredState({ kind: 'visit', identity: boundIdentity });
       setPendingRound(null);
       setPendingRoundStatus('known');
       setVisitUnavailable(false);
       setLastRoundAcknowledgement(null);
-      return identity;
+      return boundIdentity;
     },
     [isHydrated, pendingRound, pendingRoundStatus, storedState.kind, tableGuestFeatureStatus, tableGuestVisitsV1],
   );

@@ -10,11 +10,11 @@ import styles from './TableGuestAdmissionForm.module.css';
 
 interface TableGuestAdmissionFormProps {
   readonly qrCodeData: string;
+  readonly tableId: string;
   readonly tableLabel: string;
-  readonly onJoined: () => void;
 }
 
-export default function TableGuestAdmissionForm({ qrCodeData, tableLabel, onJoined }: TableGuestAdmissionFormProps) {
+export default function TableGuestAdmissionForm({ qrCodeData, tableId, tableLabel }: TableGuestAdmissionFormProps) {
   const { t } = useTranslation();
   const { joinVisit, phase, featureEnabled } = useTableGuestVisit();
   const [code, setCode] = useState('');
@@ -32,8 +32,7 @@ export default function TableGuestAdmissionForm({ qrCodeData, tableLabel, onJoin
     setIsJoining(true);
     setError('');
     try {
-      await joinVisit(qrCodeData, admissionCode);
-      onJoined();
+      await joinVisit(qrCodeData, admissionCode, tableId);
     } catch (joinError) {
       reportTableGuestFailure('join visit', joinError);
       setError(t('table_guest_join_failed'));

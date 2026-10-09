@@ -21,7 +21,7 @@ export interface TableGuestVisitContextValue {
   readonly pendingRoundStatus: 'known' | 'unknown';
   readonly requiresSafeDeparture: boolean;
   readonly lastRoundAcknowledgement: TableGuestRoundAcknowledgement | null;
-  readonly joinVisit: (qrCodeData: string, admissionCode: string) => Promise<TableGuestVisitIdentity>;
+  readonly joinVisit: (qrCodeData: string, admissionCode: string, tableId: string) => Promise<TableGuestVisitIdentity>;
   readonly getAccount: () => Promise<TableGuestAccountDto>;
   readonly createRound: (request: TableGuestRoundRequest) => Promise<TableGuestAccountDto>;
   readonly savePendingRound: (attempt: PendingTableGuestRound) => boolean;

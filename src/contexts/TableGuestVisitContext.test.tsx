@@ -40,7 +40,10 @@ function VisitProbe() {
       <button type="button" onClick={retryTableGuestFeature}>
         retry feature
       </button>
-      <button type="button" onClick={() => void joinVisit('qr-data', 'admission-code').catch(() => undefined)}>
+      <button
+        type="button"
+        onClick={() => void joinVisit('qr-data', 'admission-code', 'table-id').catch(() => undefined)}
+      >
         join next visit
       </button>
       <button type="button" onClick={leaveAfterSafeDeparture}>

@@ -19,6 +19,13 @@ export interface CheckoutPrereqGuard {
   isMissingPrereqs: boolean;
 }
 
+export interface TableGuestVisitPrerequisites {
+  readonly active: boolean;
+  readonly loading: boolean;
+  readonly blocked: boolean;
+  readonly hasPendingRound: boolean;
+}
+
 /**
  * Redirects away from the review page when its prerequisites aren't met — but
  * only once both stores have loaded.
@@ -35,7 +42,7 @@ export interface CheckoutPrereqGuard {
  * order, whose success modal must not be redirected out from under the customer
  * (placing the order clears both the cart and the checkout state).
  */
-export function useCheckoutPrereqGuard(skip: boolean): CheckoutPrereqGuard {
+export function useCheckoutPrereqGuard(skip: boolean, tableVisit?: TableGuestVisitPrerequisites): CheckoutPrereqGuard {
   const { push } = useTenantLocaleRouter();
   const { pushMenu } = useTenantPublicNavigation();
   const { state: checkoutState, isHydrated } = useCheckout();
@@ -43,19 +50,25 @@ export function useCheckoutPrereqGuard(skip: boolean): CheckoutPrereqGuard {
 
   const storesReady = cartState.lastSyncedAt !== null && isHydrated;
   const hasItems = cartState.items.length > 0;
-  const hasCheckoutData = !!checkoutState.orderType && !!checkoutState.customerInfo;
+  const hasCheckoutData = tableVisit?.active === true || (!!checkoutState.orderType && !!checkoutState.customerInfo);
+  // A pending operation is recovery evidence even when its visit/feature read is unavailable.
+  // Do not let ordinary checkout prerequisites redirect away before its exact operation can be
+  // looked up. The guest runtime's loading state still holds the page while this evidence is
+  // being hydrated.
+  const holdForTableVisit =
+    tableVisit?.loading === true || tableVisit?.blocked === true || tableVisit?.hasPendingRound === true;
 
   useEffect(() => {
-    if (skip || !storesReady) return;
+    if (skip || holdForTableVisit || !storesReady) return;
     if (!hasItems) {
       push('/cart');
     } else if (!hasCheckoutData) {
       pushMenu();
     }
-  }, [skip, storesReady, hasItems, hasCheckoutData, push, pushMenu]);
+  }, [skip, holdForTableVisit, storesReady, hasItems, hasCheckoutData, push, pushMenu]);
 
   return {
     storesReady,
-    isMissingPrereqs: !storesReady || !hasItems || !hasCheckoutData,
+    isMissingPrereqs: !holdForTableVisit && (!storesReady || !hasItems || !hasCheckoutData),
   };
 }

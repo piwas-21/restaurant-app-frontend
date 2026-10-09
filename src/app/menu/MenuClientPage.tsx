@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname, useSearchParams } from 'next/navigation';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +27,13 @@ import { useOnePageMenu } from '@/hooks/useOnePageMenu';
 import { useOfferFamilyPresentationReset } from '@/hooks/menu/useOfferFamilyPresentationReset';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
+
+const TableGuestAccountLink = dynamic(() => import('@/components/table-service/TableGuestAccountLink'), {
+  ssr: false,
+});
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+});
 
 import type { PublicMenuClientData } from '@/types/publicDiscovery';
 import { publicMenuPageHref } from '@/lib/publicRouteQuery';
@@ -180,6 +188,9 @@ export default function MenuPage({ initialSnapshot, initialView }: Readonly<Menu
       style={stickyNavOffset}
     >
       <MenuPageHeader />
+      <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+        <TableGuestAccountLink />
+      </TableGuestRouteRuntimeLoader>
 
       <TableBanner position="top" />
 

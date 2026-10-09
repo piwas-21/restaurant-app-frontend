@@ -21,6 +21,81 @@ export function menuBasketPanel(page: Page): Locator {
   return page.getByRole('dialog', { name: /shopping basket/i });
 }
 
+/** Add the first menu card item only after the client has attached its click handlers.
+ *
+ * Plain items write directly to Basket; products with choices open the customization sheet first.
+ * The response waiter is registered before the click, and a visible sheet requires its Add action
+ * to succeed rather than treating an arbitrary locator/click failure as the direct-add path.
+ */
+export async function addFirstMenuItemAndWaitForBasket(page: Page): Promise<void> {
+  await expect(page.locator('main[data-menu-hydrated="true"]')).toBeVisible({ timeout: 15_000 });
+
+  const basketItemUpdatePath = /^\/api\/Basket\/items\/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+  const basketWriteOutcome = page
+    .waitForResponse(
+      (response) => {
+        const { pathname } = new URL(response.url());
+        const method = response.request().method();
+        return (
+          (method === 'POST' && pathname === '/api/Basket/items') ||
+          (method === 'PUT' && basketItemUpdatePath.test(pathname))
+        );
+      },
+      { timeout: 15_000 },
+    )
+    .then(
+      (response) => ({ kind: 'direct-add' as const, response }),
+      (error: unknown) => ({ kind: 'basket-wait-failed' as const, error }),
+    );
+  const customizationDialog = page.getByRole('dialog').filter({
+    has: page.getByRole('button', { name: /^Add to Order\b/i }),
+  });
+  const customizationAddButton = customizationDialog.getByRole('button', { name: /^Add to Order\b/i });
+
+  await page
+    .getByTestId('menu-card')
+    .first()
+    .getByRole('button', { name: /^Add( .+)? to order$/i })
+    .click();
+
+  const nextStep = await Promise.race([
+    basketWriteOutcome,
+    customizationAddButton.waitFor({ state: 'visible', timeout: 15_000 }).then(
+      () => ({ kind: 'customization' as const }),
+      (error: unknown) => ({ kind: 'customization-wait-failed' as const, error }),
+    ),
+  ]);
+
+  if (nextStep.kind === 'basket-wait-failed' || nextStep.kind === 'customization-wait-failed') {
+    throw nextStep.error;
+  }
+
+  let basketResponse: Awaited<ReturnType<Page['waitForResponse']>>;
+  if (nextStep.kind === 'customization') {
+    await customizationAddButton.click();
+    const result = await basketWriteOutcome;
+    if (result.kind !== 'direct-add') throw result.error;
+    basketResponse = result.response;
+  } else {
+    basketResponse = nextStep.response;
+  }
+
+  expect(basketResponse.ok(), `Basket write failed with status ${basketResponse.status()}`).toBeTruthy();
+  const responseBody: unknown = await basketResponse.json();
+  const envelope =
+    typeof responseBody === 'object' && responseBody !== null && !Array.isArray(responseBody)
+      ? (responseBody as Record<string, unknown>)
+      : null;
+  const basket =
+    envelope?.data && typeof envelope.data === 'object' && !Array.isArray(envelope.data)
+      ? (envelope.data as Record<string, unknown>)
+      : null;
+  expect(
+    envelope?.success === true && basket !== null && Array.isArray(basket.items) && basket.items.length > 0,
+    'Basket item mutation must return a successful nonempty basket',
+  ).toBeTruthy();
+}
+
 /**
  * Open the basket and return its panel, ready to act on.
  *

@@ -1,6 +1,6 @@
 # Frontend Development Guidelines
 
-> Next.js 15.5 | React 19 | TypeScript 5 | CSS Modules | i18next (9 languages)
+> Next.js 15.5 | React 19 | TypeScript 5 | CSS Modules | i18next (10 languages)
 
 ---
 
@@ -18,7 +18,7 @@ frontend/src/
   utils/                # Pure utility functions
   schemas/              # Zod validation schemas
   config/               # Language & payment configs
-  locales/              # i18n translation files (9 languages)
+  locales/              # i18n translation files (10 languages)
   styles/               # Shared CSS modules
 ```
 
@@ -26,7 +26,7 @@ frontend/src/
 - **100% functional components** with hooks
 - **Context API** for state management (no Redux/Zustand)
 - **CSS Modules** for scoped styling with global CSS variables
-- **i18next** for internationalization (en, de, tr, it, ar, fr, es, ru, zh)
+- **i18next** for internationalization (en, de, tr, it, ar, fr, nl, es, ru, zh)
 - **Centralized API client** (`apiClient.ts`) with token refresh
 
 ---
@@ -100,7 +100,7 @@ export default function OrdersManagementPage() {
 All modals MUST use the `BaseModal` wrapper from the design system:
 
 ```tsx
-import { BaseModal } from '@/design-system/components';
+import BaseModal from '@/components/design-system/BaseModal';
 
 export default function EditOrderModal({ isOpen, onClose, order }: Props) {
   return (
@@ -238,10 +238,10 @@ export const getOrders = async (filters: OrderFilters): Promise<OrderDto[]> => {
 
 ## i18n (Internationalization)
 
-- 9 languages: en, de, tr, it, ar, fr, es, ru, zh
+- 10 languages: en, de, tr, it, ar, fr, nl, es, ru, zh
 - All user-visible text must use `const { t } = useTranslation()`
 - Translation files in `locales/{lang}.json`
-- Arabic requires RTL support (planned for Sprint 8)
+- Arabic uses RTL; preserve logical CSS properties and isolate identifiers with `bdi` where needed.
 
 ---
 
@@ -251,8 +251,8 @@ Use design system components for common UI patterns:
 
 | Component | Use For |
 |---|---|
-| `BaseModal` | All modal/overlay components (60+ modals) |
-| `AlertDialog` | Confirm/cancel dialogs |
+| `BaseModal` | All modal/overlay components, including confirm/cancel overlays |
+| `AlertDialog` | Existing confirmation flows with progress and required typed confirmation |
 | `FormField` | Label + input + error pattern in forms |
 | `StatusBadge` | Order/payment/reservation status display |
 | `Button` | All buttons (primary, secondary, danger, ghost) |
@@ -380,4 +380,4 @@ Key rules:
 - Use `@testing-library/react` for component tests
 - Use `renderWithProviders()` utility for tests needing context
 - Create test factories in `test-utils/factories.ts` for common mock objects
-- CI/CD: Tests MUST run in GitLab pipeline before merge
+- CI/CD: Tests MUST pass in the owning repository's GitHub Actions checks before merge.

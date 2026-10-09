@@ -12,10 +12,12 @@ import type { CatalogOfferFamily } from '@/types/menu/offerFamily';
  */
 const mockOpenForProduct = jest.fn().mockResolvedValue(undefined);
 const mockOpenForBundle = jest.fn();
+const mockUseOrderType = jest.fn();
 
 jest.mock('./useItemCustomizationSheet', () => ({
   useItemCustomizationSheet: () => ({ kind: 'product', openForProduct: mockOpenForProduct }),
 }));
+jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: () => mockUseOrderType() }));
 jest.mock('./useBundleCustomizationSheet', () => ({
   useBundleCustomizationSheet: () => ({ kind: 'bundle', openForBundle: mockOpenForBundle }),
 }));
@@ -68,7 +70,10 @@ function openedWith() {
   return mockOpenForProduct.mock.calls[0]?.[1];
 }
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockUseOrderType.mockReturnValue({ state: { orderType: OrderType.DineIn } });
+});
 
 describe('useCatalogSheet — order-type verdict handover (§9.10)', () => {
   it('opens a purchase-mode choice for a family and carries its active filters', () => {
@@ -207,7 +212,15 @@ describe('useCatalogSheet — order-type verdict handover (§9.10)', () => {
 
     result.current.openForCatalogItem(product(BLOCKED));
 
-    expect(openedWith()).toMatchObject({ availability: BLOCKED });
+    expect(openedWith()).toMatchObject({ availability: BLOCKED, availabilityOrderType: OrderType.DineIn });
+  });
+
+  it('preserves an explicit unscoped snapshot verdict when the current channel is selected', () => {
+    const { result } = renderHook(() => useCatalogSheet());
+
+    result.current.openForCatalogItem(product(BLOCKED), { availabilityOrderType: null });
+
+    expect(openedWith()).toMatchObject({ availability: BLOCKED, availabilityOrderType: null });
   });
 
   it('FORCES the sheet for a blocked item, so the quick-add path cannot swallow it', () => {

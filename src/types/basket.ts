@@ -85,6 +85,8 @@ export interface BasketItemDto {
  */
 export interface BasketDto {
   id: string;
+  /** Server-derived digest of the purchase-relevant basket, used only for table-visit round replay. */
+  purchaseFingerprint?: string;
   userId?: string;
   sessionId?: string;
   subTotal: number;

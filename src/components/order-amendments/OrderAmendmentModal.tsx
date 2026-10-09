@@ -29,6 +29,7 @@ interface OrderAmendmentModalProps {
   readonly onClose: () => void;
   readonly onCommitted?: () => void;
   readonly recoveryOnly?: boolean;
+  readonly resolvedActorId?: string;
 }
 
 function translatedError(error: string | null, t: (key: string) => string): string | null {
@@ -42,10 +43,11 @@ export default function OrderAmendmentModal({
   onClose,
   onCommitted,
   recoveryOnly = false,
+  resolvedActorId,
 }: Readonly<OrderAmendmentModalProps>) {
   const { t, i18n } = useTranslation();
   const [draft, setDraft] = useState<OrderAmendmentDraft>(EMPTY_DRAFT);
-  const amendment = useOrderAmendment(order, onCommitted);
+  const amendment = useOrderAmendment(order, onCommitted, resolvedActorId);
   const hasWork = draft.additions.length + draft.changes.length > 0;
   const hasIncompleteReplacement = draft.changes.some((change) => change.kind === 'Replace' && !change.current);
   const requiresReason = draft.changes.length > 0 && !draft.reason.trim();

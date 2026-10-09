@@ -459,4 +459,6 @@ function checkFeatureLocaleValues(bundle, english, location, isEnglish) {
 }
 
 const featureLocaleBundlesValid = checkFeatureLocaleBundles('order-workspace', 'order workspace');
-if (!featureLocaleBundlesValid) process.exit(1);
+const tableGuestLocaleBundlesValid = checkFeatureLocaleBundles('table-guest', 'table guest');
+const guestPaymentLocaleBundlesValid = checkFeatureLocaleBundles('table-guest-payments', 'table guest payments');
+if (!featureLocaleBundlesValid || !tableGuestLocaleBundlesValid || !guestPaymentLocaleBundlesValid) process.exit(1);

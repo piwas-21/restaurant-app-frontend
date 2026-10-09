@@ -1,10 +1,15 @@
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { getServerOrderById } from '@/services/server/orders';
 import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
 import type { OrderDto } from '@/types/order';
 import ServerOrderDetailWorkspace from './ServerOrderDetailWorkspace';
+
+let mockAuthRole: string | undefined = 'Server';
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: () => ({ user: mockAuthRole ? { role: mockAuthRole } : null }),
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),
@@ -27,10 +32,47 @@ jest.mock('@/components/TenantLink', () => ({
 }));
 jest.mock('@/components/order/MarketplaceOrderSource', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/components/order/OrderLineSummary', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/order-amendments/OrderAmendmentEntryButton', () => ({
-  __esModule: true,
-  default: ({ order }: { order: OrderDto }) => <button type="button">Amend {order.id}</button>,
-}));
+jest.mock('@/components/order-amendments/OrderAmendmentEntryButton', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  function MockOrderAmendmentEntryButton({
+    order,
+    operatorRole,
+    onCommitted,
+  }: {
+    order: OrderDto;
+    operatorRole: string;
+    onCommitted?: () => void;
+  }) {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [committed, setCommitted] = React.useState(false);
+    return (
+      <>
+        <output aria-label="Amendment operator role">{operatorRole}</output>
+        <button type="button" onClick={() => setIsOpen(true)}>
+          Amend {order.id}
+        </button>
+        {isOpen && (
+          <section role="dialog" aria-label="Amendment">
+            <button
+              type="button"
+              onClick={() => {
+                setCommitted(true);
+                onCommitted?.();
+              }}
+            >
+              Commit amendment
+            </button>
+            {committed && <output>Amendment committed · operation</output>}
+          </section>
+        )}
+      </>
+    );
+  }
+  return {
+    __esModule: true,
+    default: MockOrderAmendmentEntryButton,
+  };
+});
 jest.mock('@/services/server/orders', () => ({ getServerOrderById: jest.fn() }));
 jest.mock('@/services/orderAmendmentsService', () => ({ getOrderAmendmentHistory: jest.fn() }));
 
@@ -56,7 +98,25 @@ const order = (id: string, orderNumber: string): OrderDto =>
 describe('ServerOrderDetailWorkspace', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuthRole = 'Server';
     mockGetHistory.mockResolvedValue([]);
+  });
+
+  it.each([
+    ['Admin', 'Admin'],
+    ['admin', 'Admin'],
+    ['Server', 'Server'],
+    [undefined, 'Server'],
+    ['unexpected', 'Server'],
+  ])('uses the authenticated %s role for served-order amendments', async (role, expectedRole) => {
+    mockAuthRole = role;
+    mockGetOrder.mockResolvedValueOnce({ ...order('served-order', 'S-001'), status: 'Completed' });
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrderDetailWorkspace orderId="served-order" />
+      </TenantFeaturesProvider>,
+    );
+    expect(await screen.findByLabelText('Amendment operator role')).toHaveTextContent(expectedRole);
   });
 
   it('does not expose the previous order while the next exact order ID is loading', async () => {
@@ -105,5 +165,37 @@ describe('ServerOrderDetailWorkspace', () => {
     expect(await screen.findByRole('heading', { name: 'A-003' })).toBeInTheDocument();
     await waitFor(() => expect(mockGetOrder).toHaveBeenCalledWith('order-3'));
     expect(mockGetHistory).not.toHaveBeenCalled();
+  });
+
+  it('keeps a committed amendment visible while refreshing the same order', async () => {
+    mockGetOrder.mockResolvedValueOnce(order('order-4', 'A-004'));
+    const view = render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrderDetailWorkspace orderId="order-4" />
+      </TenantFeaturesProvider>,
+    );
+    expect(await screen.findByRole('heading', { name: 'A-004' })).toBeInTheDocument();
+
+    let resolveRefresh!: (value: OrderDto) => void;
+    mockGetOrder.mockImplementationOnce(
+      () =>
+        new Promise<OrderDto>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Amend order-4' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Commit amendment' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Amendment' });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByRole('status')).toHaveTextContent('Amendment committed');
+    expect(screen.getByRole('heading', { name: 'A-004' })).toBeInTheDocument();
+    expect(screen.getByText('Loading orders…')).toBeInTheDocument();
+
+    await act(async () => resolveRefresh(order('order-4', 'A-004')));
+    expect(screen.getByRole('dialog', { name: 'Amendment' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('status')).toHaveTextContent('Amendment committed');
+
+    view.unmount();
   });
 });

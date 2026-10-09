@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
@@ -8,9 +9,23 @@ import { surfaceOr } from '@/templates/resolve-surface';
 import DefaultCartContents from './CartContents';
 import styles from './CartSheet.module.css';
 
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+  loading: CartSheetRuntimeLoading,
+});
+
 // The active template's cart-half override (craft = order-pad list) or the shared
 // default (classic) — resolved at build time, so classic never bundles craft (T4).
 const CartContents = surfaceOr('CartContents', DefaultCartContents);
+
+function CartSheetRuntimeLoading() {
+  const { t } = useTranslation();
+  return (
+    <p>
+      <output>{t('loading', 'Loading...')}</output>
+    </p>
+  );
+}
 
 export interface CartSheetProps {
   isOpen: boolean;
@@ -32,8 +47,8 @@ export interface CartSheetProps {
  * totals and Proceed-to-Checkout are identical to what the rail showed — including the toggle,
  * which is why removing the rail does not remove a guest's ability to choose a channel.
  *
- * `onProceed` closes the sheet *before* the smart-skip router pushes to /checkout/review, so the
- * user does not see it still open as the route transitions.
+ * The shared contents close the sheet after a successful route or when handing missing details to
+ * the follow-up modal. A blocked table visit keeps the sheet open so its explanation is visible.
  */
 export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSheetProps>) {
   const { t } = useTranslation();
@@ -51,7 +66,9 @@ export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSh
       className={styles.sheet}
       presentation="responsive-sheet"
     >
-      <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="cart_sheet" />
+      <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+        <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="cart_sheet" />
+      </TableGuestRouteRuntimeLoader>
     </BaseModal>
   );
 }

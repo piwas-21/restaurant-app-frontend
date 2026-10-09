@@ -1,3 +1,5 @@
+import { resolveGuestPaymentRecoveryConfig } from './guestPaymentRecoveryConfig';
+
 /**
  * Build-time tenant configuration (CLAUDE.md §5.12): NEXT_PUBLIC_* values are
  * read once here and exported as typed constants — never scattered through
@@ -137,4 +139,48 @@ export const SERVER_ORDER_MAX_PAGES = positiveIntegerConfig(process.env.NEXT_PUB
 export const STAFF_PAYMENT_HANDOFF_REFRESH_MS = positiveIntegerConfig(
   process.env.NEXT_PUBLIC_STAFF_PAYMENT_HANDOFF_REFRESH_MS,
   15_000,
+);
+
+const DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS = 15_000;
+const configuredKitchenBoardSyncIntervalMs = positiveIntegerConfig(
+  process.env.NEXT_PUBLIC_KITCHEN_BOARD_SYNC_INTERVAL_MS,
+  DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS,
+);
+/** Build-time native kitchen polling cadence, bounded to 1–60 seconds. */
+export const KITCHEN_BOARD_SYNC_INTERVAL_MS =
+  configuredKitchenBoardSyncIntervalMs >= 1_000 && configuredKitchenBoardSyncIntervalMs <= 60_000
+    ? configuredKitchenBoardSyncIntervalMs
+    : DEFAULT_KITCHEN_BOARD_SYNC_INTERVAL_MS;
+
+const guestPaymentRecoveryConfig = resolveGuestPaymentRecoveryConfig({
+  accountReadTimeoutMs: process.env.NEXT_PUBLIC_GUEST_ACCOUNT_READ_TIMEOUT_MS,
+  recoveryMaxDurationMs: process.env.NEXT_PUBLIC_GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS,
+  returnedCheckoutPollDelaysMs: process.env.NEXT_PUBLIC_GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_MS,
+});
+
+/** Optional build-time overrides; invalid values use the bounded defaults. */
+export const GUEST_ACCOUNT_READ_TIMEOUT_CONFIG_MS = guestPaymentRecoveryConfig.accountReadTimeoutMs;
+export const GUEST_PAYMENT_RECOVERY_MAX_DURATION_CONFIG_MS = guestPaymentRecoveryConfig.recoveryMaxDurationMs;
+export const GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_CONFIG_MS =
+  guestPaymentRecoveryConfig.returnedCheckoutPollDelaysMs;
+
+const CANONICAL_PAYMENT_CHECKOUT_HOST = 'checkout.stripe.com';
+
+/**
+ * Resolve the build-time checkout allowlist. Stripe's canonical checkout host is a protocol
+ * security boundary; configuration may disable it, but can never add another provider host.
+ */
+export function resolvePaymentCheckoutAllowedHosts(raw: string | undefined): ReadonlySet<string> {
+  if (raw === undefined) return new Set([CANONICAL_PAYMENT_CHECKOUT_HOST]);
+
+  const configuredHosts = raw.split(',').map((host) => host.trim());
+  if (configuredHosts.length === 0 || configuredHosts.some((host) => host !== CANONICAL_PAYMENT_CHECKOUT_HOST)) {
+    return new Set();
+  }
+
+  return new Set(configuredHosts);
+}
+
+export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymentCheckoutAllowedHosts(
+  process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
 );

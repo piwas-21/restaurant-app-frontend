@@ -1,5 +1,6 @@
 import type { ApiResponse, CreateOrderItemDto, OrderItemDto } from './order';
 import type { OrderDto } from './order/orderDto';
+import type { AmendmentResolutionLoyaltyResult } from '@/schemas/amendmentResolutionLoyalty.schema';
 
 /** Amendment lines may reference either a ProductId or MenuId, as the backend accepts both. */
 export type OrderAmendmentItemDto = Omit<CreateOrderItemDto, 'productId' | 'menuId' | 'childItems'> & {
@@ -58,6 +59,7 @@ export interface OrderAmendmentChangeSnapshot {
 }
 
 export interface OrderAmendmentFinancialPreview {
+  loyalty?: AmendmentResolutionLoyaltyResult | null;
   currency?: string | null;
   addedAmountMinor: number;
   removedUnitValueMinor: number;

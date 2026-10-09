@@ -11,27 +11,42 @@ This guide explains how to configure environment variables for different environ
 ## Environment Variables
 
 ### `NEXT_PUBLIC_API_URL`
+
 The base URL for the backend API.
 
 - **Local Development**: `http://localhost:5221` (or your backend port)
 - **Production**: `https://rumirestaurant.ch/api`
 
 ### `NEXT_PUBLIC_IMAGE_BASE_URL`
+
 The base URL for serving images and assets.
 
 - **Local Development**: `http://localhost:5221` (same-origin as the dev backend, serves `/uploads`)
 - **Production**: `https://www.rumirestaurant.ch` (baked by `build-image.yml`; per-tenant images bake their own domain)
+
+### Guest payment recovery settings
+
+The optional `NEXT_PUBLIC_GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_MS`,
+`NEXT_PUBLIC_GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS`, and
+`NEXT_PUBLIC_GUEST_ACCOUNT_READ_TIMEOUT_MS` settings tune client-side payment status recovery at build time.
+They default to the current bounded policy when unset or invalid; see the environment-variable table in
+`README.md` and `.env.example` for the defaults and limits. No configuration is required to keep the defaults.
+For GitHub Actions image builds, set an optional repository variable with the same name to override a value;
+the production, staging, and tenant-image workflows pass these variables through as build arguments. Rebuild the
+image to apply a change because `NEXT_PUBLIC_*` values are compiled into the frontend bundle.
 
 ## Setup Instructions
 
 ### For Local Development
 
 1. Copy the example file:
+
    ```bash
    cp .env.example .env.local
    ```
 
 2. Update `.env.local` with your local backend URL:
+
    ```bash
    NEXT_PUBLIC_API_URL=http://localhost:5221
    ```
@@ -54,18 +69,20 @@ NEXT_PUBLIC_IMAGE_BASE_URL=https://www.rumirestaurant.ch
 
 A merge to `main` publishes `:latest` and `deploy.yml` rolls the prod box. Staging bakes
 `STAGING_PUBLIC_URL` the same way; a **per-tenant** image bakes that tenant's own domain from the
-registry (`build-tenant-image.yml`), which is why a tenant frontend is *rebuilt* rather than pulled
+registry (`build-tenant-image.yml`), which is why a tenant frontend is _rebuilt_ rather than pulled
 when its domain changes.
 
 `.env.production` is still live — Next reads it automatically for a production build, and CI's
-bundle-size job keys its cache on it — but nothing deploys *from* it.
+bundle-size job keys its cache on it — but nothing deploys _from_ it.
 
 ## How It Works
 
 ### During development (`npm run dev`)
+
 Next.js loads `.env.local`, falling back to `.env`.
 
 ### During the Docker build
+
 The Dockerfile takes the values as build arguments and freezes them into the bundle:
 
 ```dockerfile
@@ -76,6 +93,7 @@ ENV NEXT_PUBLIC_IMAGE_BASE_URL=${NEXT_PUBLIC_IMAGE_BASE_URL}
 ```
 
 ### At runtime
+
 Nothing reads them. Caddy on the box routes `/api/*` and `/uploads/*` to the backend and everything
 else to the frontend container — see `deploy/Caddyfile`, which is the only description of that
 routing that is kept in step with the machine it runs on.

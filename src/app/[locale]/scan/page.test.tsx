@@ -1,0 +1,518 @@
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '../../../i18n';
+import baseEnglish from '@/locales/en.json';
+import { TableGuestFeatureProvider } from '@/contexts/TableGuestFeatureContext';
+import { TableGuestVisitProvider } from '@/contexts/TableGuestVisitProvider';
+import { TableContextProvider } from '@/contexts/TableContext';
+import { getPublicTableGuestFeature } from '@/services/publicTableGuestFeatureService';
+import { loadTableGuestLocale } from '@/services/tableGuestLocaleService';
+import { tableGuestVisitService } from '@/services/tableGuestVisitService';
+import tableGuestEnglish from '@/locales/table-guest/en.json';
+import ScanPage from './page';
+
+const mockPushMenu = jest.fn();
+const mockRouter = { push: jest.fn(), replace: jest.fn() };
+let mockQrCode = 'validated-qr-payload';
+const storedVisitKey = 'rumi_table_guest_visit_v1';
+
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/en/scan',
+  useSearchParams: () => new URLSearchParams(`qr=${mockQrCode}`),
+  useRouter: () => mockRouter,
+}));
+jest.mock('next/link', () => {
+  const React = jest.requireActual('react') as typeof import('react');
+  return {
+    __esModule: true,
+    default: (props: { readonly href?: string; readonly children?: ReactNode; readonly [key: string]: unknown }) =>
+      React.createElement('a', props, props.children),
+  };
+});
+jest.mock('@/hooks/useTenantPublicNavigation', () => ({
+  useTenantPublicNavigation: () => ({ pushMenu: mockPushMenu }),
+}));
+jest.mock('@/contexts/TableGuestRouteRuntimeLoader', () => ({
+  __esModule: true,
+  default: ({ children }: { children: ReactNode }) => children,
+}));
+jest.mock('@/services/publicTableGuestFeatureService', () => ({ getPublicTableGuestFeature: jest.fn() }));
+jest.mock('@/services/tableGuestLocaleService', () => ({ loadTableGuestLocale: jest.fn() }));
+
+describe('ScanPage with table visits enabled', () => {
+  beforeEach(() => {
+    mockQrCode = 'validated-qr-payload';
+    sessionStorage.clear();
+    jest.clearAllMocks();
+    window.history.replaceState({}, '', '/en/scan?qr=validated-qr-payload');
+    jest.mocked(getPublicTableGuestFeature).mockReset();
+    jest
+      .mocked(loadTableGuestLocale)
+      .mockReset()
+      .mockImplementation(async (instance, language) => {
+        instance.addResourceBundle(language ?? 'en', 'translation', tableGuestEnglish, true, true);
+      });
+    i18n.removeResourceBundle('en', 'translation');
+    i18n.addResourceBundle('en', 'translation', baseEnglish, true, true);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: { isValid: true, tableId: 'table-id', tableNumber: '8', maxGuests: 6, isOutdoor: false },
+      }),
+    } as Response);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  function renderWithPublicFeature() {
+    return render(
+      <I18nextProvider i18n={i18n}>
+        <TableGuestFeatureProvider readPublicTableGuestFeature>
+          <TableGuestVisitProvider>
+            <TableContextProvider>
+              <ScanPage />
+            </TableContextProvider>
+          </TableGuestVisitProvider>
+        </TableGuestFeatureProvider>
+      </I18nextProvider>,
+    );
+  }
+
+  function renderWithEnabledVisit() {
+    return render(enabledVisitTree());
+  }
+
+  function enabledVisitTree() {
+    return (
+      <I18nextProvider i18n={i18n}>
+        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
+          <TableGuestVisitProvider>
+            <TableContextProvider>
+              <ScanPage />
+            </TableContextProvider>
+          </TableGuestVisitProvider>
+        </TableGuestFeatureProvider>
+      </I18nextProvider>
+    );
+  }
+
+  function successResponse(data: unknown): Response {
+    return { ok: true, json: async () => ({ success: true, data }) } as Response;
+  }
+
+  function validatedTable(tableId = 'table-id', tableNumber = '8') {
+    return { isValid: true, tableId, tableNumber, maxGuests: 6, isOutdoor: false };
+  }
+
+  function account(sessionId: string, tableLabel: string) {
+    return {
+      serviceSessionId: sessionId,
+      tableLabel,
+      accountRevision: 1,
+      subTotal: 0,
+      tax: 0,
+      discount: 0,
+      tip: 0,
+      total: 0,
+      totalPaid: 0,
+      remaining: 0,
+      credit: 0,
+      orders: [],
+      items: [],
+    };
+  }
+
+  function persistStoredVisit(
+    options: {
+      tableId?: string | null;
+      participantToken?: string;
+      expiresInMs?: number;
+    } = {},
+  ): string {
+    const { tableId = 'table-id', participantToken = 'p'.repeat(40), expiresInMs = 60_000 } = options;
+    const visit: {
+      serviceSessionId: string;
+      participantToken: string;
+      expiresAt: string;
+      tableId?: string;
+    } = {
+      serviceSessionId: 'session-1',
+      participantToken,
+      expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
+    };
+    if (tableId !== null) visit.tableId = tableId;
+
+    const serializedVisit = JSON.stringify(visit);
+    sessionStorage.setItem(storedVisitKey, serializedVisit);
+    return serializedVisit;
+  }
+
+  it('validates the QR first, then requires the admission code instead of routing straight to the menu', async () => {
+    renderWithEnabledVisit();
+
+    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/Tables/validate-qr/validated-qr-payload'));
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+
+  it('resumes a newly joined visit only after the active same-table account is confirmed', async () => {
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const joinedIdentity = {
+      serviceSessionId: 'session-1',
+      participantToken: 'p'.repeat(40),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    const join = jest.spyOn(tableGuestVisitService, 'joinTableGuestVisit').mockResolvedValue(joinedIdentity);
+    const accountRead = jest
+      .spyOn(tableGuestVisitService, 'getTableGuestAccount')
+      .mockResolvedValue(account('session-1', '8'));
+
+    renderWithEnabledVisit();
+
+    fireEvent.change(await screen.findByLabelText('Table visit code'), { target: { value: 'gh23456789' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
+
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/en/menu'));
+    const storedVisit = JSON.parse(sessionStorage.getItem('rumi_table_guest_visit_v1') ?? '{}') as {
+      tableId?: string;
+      serviceSessionId?: string;
+    };
+    expect(storedVisit).toMatchObject({ serviceSessionId: 'session-1', tableId: 'table-id' });
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(join).toHaveBeenCalledWith('validated-qr-payload', 'GH23456789');
+    expect(accountRead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        serviceSessionId: 'session-1',
+        tableId: 'table-id',
+      }),
+    );
+  });
+
+  it('resumes a stored visit when its table binding and authoritative account match the scanned QR', async () => {
+    const storedVisit = persistStoredVisit();
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const accountRead = jest
+      .spyOn(tableGuestVisitService, 'getTableGuestAccount')
+      .mockResolvedValue(account('session-1', '8'));
+    const join = jest.spyOn(tableGuestVisitService, 'joinTableGuestVisit');
+
+    renderWithEnabledVisit();
+
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/en/menu'));
+    expect(accountRead).toHaveBeenCalledWith(
+      expect.objectContaining({ serviceSessionId: 'session-1', tableId: 'table-id' }),
+    );
+    expect(join).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(storedVisit);
+  });
+
+  it('does not resume an active visit when the scanned QR belongs to another table', async () => {
+    persistStoredVisit({ tableId: 'other-table' });
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-resume a stored visit that predates the validated table binding', async () => {
+    persistStoredVisit({ tableId: null });
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not resume an active visit after its authoritative account read returns for a different QR', async () => {
+    persistStoredVisit();
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(successResponse(validatedTable()))
+      .mockResolvedValueOnce(successResponse(validatedTable('other-table', '9')));
+    let resolveAccount: (value: ReturnType<typeof account>) => void = () => undefined;
+    const delayedAccount = new Promise<ReturnType<typeof account>>((resolve) => {
+      resolveAccount = resolve;
+    });
+    const accountRead = jest.spyOn(tableGuestVisitService, 'getTableGuestAccount').mockReturnValue(delayedAccount);
+
+    const view = renderWithEnabledVisit();
+    await waitFor(() => expect(accountRead).toHaveBeenCalledTimes(1));
+
+    mockQrCode = 'another-validated-qr';
+    view.rerender(enabledVisitTree());
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    await act(async () => resolveAccount(account('session-1', '8')));
+
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not resume a matching active visit while a round outcome is unresolved', async () => {
+    persistStoredVisit();
+    sessionStorage.setItem(
+      'rumi_table_guest_round_attempt_v1',
+      JSON.stringify({
+        serviceSessionId: 'session-1',
+        operationId: 'round-operation',
+        expectedAccountRevision: 1,
+        expectedBasketFingerprint: 'B'.repeat(64),
+      }),
+    );
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not resume an active matching visit when the rollout is disabled', async () => {
+    persistStoredVisit();
+    jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: true, enabled: false });
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+
+    renderWithPublicFeature();
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Table visit code')).not.toBeInTheDocument();
+  });
+
+  it('does not resume an active matching visit when the public feature read is unavailable', async () => {
+    persistStoredVisit();
+    jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: false, enabled: false });
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const accountRead = jest.spyOn(tableGuestVisitService, 'getTableGuestAccount');
+
+    renderWithPublicFeature();
+
+    expect(await screen.findByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
+    expect(accountRead).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not resume a visit the provider has already marked ended', async () => {
+    sessionStorage.setItem('rumi_table_guest_visit_blocked_v1', 'ended');
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const accountRead = jest.spyOn(tableGuestVisitService, 'getTableGuestAccount');
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(accountRead).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['different session', 'another-session', '8'],
+    ['different table label', 'session-1', '9'],
+  ])('does not resume an active visit when the account read confirms a %s', async (_case, sessionId, tableLabel) => {
+    persistStoredVisit();
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const accountRead = jest
+      .spyOn(tableGuestVisitService, 'getTableGuestAccount')
+      .mockResolvedValue(account(sessionId, tableLabel));
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(accountRead).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect or discard a stored visit after a transient account-read failure', async () => {
+    const storedVisit = persistStoredVisit();
+    global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
+    const accountRead = jest
+      .spyOn(tableGuestVisitService, 'getTableGuestAccount')
+      .mockRejectedValue(new TypeError('temporary account read failure'));
+
+    renderWithEnabledVisit();
+
+    expect(await screen.findByText('Table account unavailable')).toBeInTheDocument();
+    expect(accountRead).toHaveBeenCalledTimes(1);
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(storedVisit);
+  });
+
+  it('does not reuse an earlier valid QR after the route changes to an invalid code', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { isValid: true, tableId: 'table-a', tableNumber: 'A', maxGuests: 4, isOutdoor: false },
+        }),
+      } as Response)
+      .mockResolvedValueOnce({ ok: false, json: async () => ({ success: false }) } as Response);
+    const view = render(enabledVisitTree());
+
+    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    mockQrCode = 'invalid-qr-payload';
+    view.rerender(enabledVisitTree());
+
+    expect(await screen.findByText('Invalid or expired QR code')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Table visit code')).not.toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining('/api/Tables/validate-qr/invalid-qr-payload'),
+    );
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+
+  it('cancels the legacy menu redirect if the guest leaves the scan page first', async () => {
+    const view = render(
+      <I18nextProvider i18n={i18n}>
+        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: false }}>
+          <TableGuestVisitProvider>
+            <TableContextProvider>
+              <ScanPage />
+            </TableContextProvider>
+          </TableGuestVisitProvider>
+        </TableGuestFeatureProvider>
+      </I18nextProvider>,
+    );
+
+    expect(await screen.findByText('QR Code Valid!')).toBeInTheDocument();
+    expect(screen.getByText('Redirecting to menu...')).toBeInTheDocument();
+    view.unmount();
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+
+  it('shows the translated invalid-QR message when the server rejects a QR payload', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ success: false }),
+    } as Response);
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: false }}>
+          <TableGuestVisitProvider>
+            <TableContextProvider>
+              <ScanPage />
+            </TableContextProvider>
+          </TableGuestVisitProvider>
+        </TableGuestFeatureProvider>
+      </I18nextProvider>,
+    );
+
+    expect(await screen.findByText('Invalid or expired QR code')).toBeInTheDocument();
+  });
+
+  it('keeps a saved visit and unresolved round blocked after a confirmed-off retry', async () => {
+    jest
+      .mocked(getPublicTableGuestFeature)
+      .mockResolvedValueOnce({ available: false, enabled: false })
+      .mockResolvedValueOnce({ available: true, enabled: false });
+    const visit = persistStoredVisit({ tableId: null, participantToken: 'x'.repeat(32), expiresInMs: 60 * 60 * 1000 });
+    const pendingRound = JSON.stringify({
+      serviceSessionId: 'session-1',
+      operationId: 'operation-1',
+      expectedAccountRevision: 1,
+      expectedBasketFingerprint: 'a'.repeat(64),
+    });
+    sessionStorage.setItem('rumi_table_guest_round_attempt_v1', pendingRound);
+
+    renderWithPublicFeature();
+
+    expect(await screen.findByText(/Ask staff to confirm/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Retry/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
+    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(visit);
+    expect(sessionStorage.getItem('rumi_table_guest_round_attempt_v1')).toBe(pendingRound);
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+    expect(mockPushMenu).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
+    await waitFor(() => expect(getPublicTableGuestFeature).toHaveBeenCalledTimes(2));
+    expect(screen.getByText(/Ask staff to confirm/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+    expect(mockPushMenu).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBe(visit);
+    expect(sessionStorage.getItem('rumi_table_guest_round_attempt_v1')).toBe(pendingRound);
+  });
+
+  it('allows the confirmed-off legacy QR redirect when there is no saved guest state', async () => {
+    jest
+      .mocked(getPublicTableGuestFeature)
+      .mockResolvedValueOnce({ available: false, enabled: false })
+      .mockResolvedValueOnce({ available: true, enabled: false });
+
+    renderWithPublicFeature();
+
+    expect(await screen.findByText(/Ask staff to confirm/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
+    expect(await screen.findByText('Redirecting to menu...')).toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+
+    expect(mockPushMenu).toHaveBeenCalledTimes(1);
+    expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toBeNull();
+    expect(sessionStorage.getItem('rumi_table_guest_round_attempt_v1')).toBeNull();
+  });
+
+  it('fails closed when storage cannot prove there is no saved guest state', async () => {
+    jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: true, enabled: false });
+    const originalGetItem = Storage.prototype.getItem;
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(function (this: Storage, key: string) {
+      if (key.startsWith('rumi_table_guest_')) throw new Error('storage unavailable');
+      return originalGetItem.call(this, key);
+    });
+
+    renderWithPublicFeature();
+
+    expect(await screen.findByText(/Ask staff to confirm/)).toBeInTheDocument();
+    expect(screen.queryByText('Redirecting to menu...')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+
+  it('keeps the QR flow blocked when the feature is enabled but its locale bundle fails to load', async () => {
+    jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: true, enabled: true });
+    jest.mocked(loadTableGuestLocale).mockRejectedValueOnce(new Error('locale chunk unavailable'));
+
+    renderWithPublicFeature();
+
+    expect(
+      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 1100));
+    expect(mockPushMenu).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry status check' }));
+    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+
+  it('does not offer the legacy menu from an invalid-QR branch while feature status is unavailable', async () => {
+    jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: false, enabled: false });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ success: false }),
+    } as Response);
+
+    renderWithPublicFeature();
+
+    expect(
+      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
+    expect(mockPushMenu).not.toHaveBeenCalled();
+  });
+});

@@ -1,5 +1,6 @@
 'use client';
 
+import { createContext, useContext } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart, Loader2 } from 'lucide-react';
@@ -9,12 +10,31 @@ import CartItemCard from './CartItemCard';
 import CartSummary from './CartSummary';
 import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
 
+type CssModule = Readonly<Record<string, string>>;
+
+const CartPageStylesContext = createContext<CssModule | null>(null);
+
+function CartPageRuntimeLoadingFallback() {
+  const { t } = useTranslation();
+  const styles = useContext(CartPageStylesContext);
+
+  return (
+    <output className={styles?.loadingContainer} aria-live="polite">
+      <Loader2 className={styles?.spinner} size={32} />
+      <span>{t('loading', 'Loading...')}</span>
+    </output>
+  );
+}
+
 // The modal cluster is only reachable from a blocked checkout, and statically
 // importing it put ~35 kB (+25%) of First Load JS on /cart for every visitor.
 // Same treatment CheckoutReviewLayout gives it.
 const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
-
-type CssModule = Readonly<Record<string, string>>;
+const TableGuestAccountLink = dynamic(() => import('@/components/table-service/TableGuestAccountLink'), { ssr: false });
+const TableGuestRouteRuntimeLoader = dynamic(() => import('@/contexts/TableGuestRouteRuntimeLoader'), {
+  ssr: false,
+  loading: () => <CartPageRuntimeLoadingFallback />,
+});
 
 interface CartPageLayoutProps {
   /**
@@ -37,6 +57,23 @@ interface CartPageLayoutProps {
  * modules they pass (ADR-006 cart surface; relocated from app/cart/page.tsx).
  */
 export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>) {
+  const { t } = useTranslation();
+
+  return (
+    <CartPageStylesContext.Provider value={styles.page}>
+      <main className={styles.page.cartContainer} aria-labelledby="cart-heading">
+        <h1 id="cart-heading" className={styles.page.pageTitle}>
+          {t('cart_title', 'Your Cart')}
+        </h1>
+        <TableGuestRouteRuntimeLoader readPublicTableGuestFeature>
+          <CartPageContent styles={styles} />
+        </TableGuestRouteRuntimeLoader>
+      </main>
+    </CartPageStylesContext.Provider>
+  );
+}
+
+function CartPageContent({ styles }: Readonly<CartPageLayoutProps>) {
   const { t } = useTranslation();
   const { menuHref } = useTenantPublicNavigation();
   const {
@@ -64,10 +101,8 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
 
   if (state.items.length === 0) {
     return (
-      <main className={styles.page.cartContainer} aria-labelledby="cart-heading">
-        <h1 id="cart-heading" className={styles.page.pageTitle}>
-          {t('cart_title', 'Your Cart')}
-        </h1>
+      <>
+        <TableGuestAccountLink />
         <div className={styles.page.emptyCartContainer}>
           <ShoppingCart className={styles.page.emptyCartIcon} size={64} />
           <p className={styles.page.emptyCartMessage}>{t('cart_empty_message', 'Your cart is empty')}</p>
@@ -75,15 +110,13 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
             {t('cart_browse_menu_button', 'Browse Menu')}
           </Link>
         </div>
-      </main>
+      </>
     );
   }
 
   return (
-    <main className={styles.page.cartContainer} aria-labelledby="cart-heading">
-      <h1 id="cart-heading" className={styles.page.pageTitle}>
-        {t('cart_title', 'Your Cart')}
-      </h1>
+    <>
+      <TableGuestAccountLink />
 
       {/* Loading State */}
       {state.isLoading && (
@@ -141,6 +174,6 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
       {/* Lets a blocked checkout collect the missing order type / details right
           here, instead of the old unexplained bounce back to /menu. */}
       <OrderFlowModals followUp={orderTypeFollowUp} />
-    </main>
+    </>
   );
 }

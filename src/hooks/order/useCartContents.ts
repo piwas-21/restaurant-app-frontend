@@ -7,19 +7,16 @@
 import React from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
+import { useTableContext } from '@/contexts/TableContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
-import type { OrderType } from '@/types/order';
+import { useTableGuestOrderTypeRecovery } from '@/hooks/order/useTableGuestOrderTypeRecovery';
+import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
 
 export interface UseCartContentsArgs {
-  /**
-   * Toggle click handler (from useOrderTypeFollowUp.pickType); forwards the
-   * surface tag. The third argument forces the follow-up modal open even when
-   * the type would normally commit silently — that's how a blocked checkout
-   * re-collects the details it's missing.
-   */
+  /** Toggle click handler; `forceModal` reopens the detail flow after a refused checkout. */
   pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
-  /** Fired right after Proceed-to-Checkout (lets a mobile sheet close first). */
+  /** Called after checkout routes or when handing missing details to the follow-up modal. */
   onProceed?: () => void;
   /**
    * Analytics surface tag — WHICH cart surface the guest acted on.
@@ -43,14 +40,24 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   React.useEffect(() => {
     clearError();
   }, [clearError]);
-  const { state: orderTypeState, hasChosenOrderType } = useOrderType();
+  const { state: orderTypeState, hasChosenOrderType, setOrderType, setTable } = useOrderType();
+  const { tableContext } = useTableContext();
+  const { tableGuest, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
+    orderType: orderTypeState,
+    tableContext,
+    setOrderType,
+    setTable,
+  });
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
 
   const items = cartState.items;
   const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
   const subtotal = items.reduce((acc, it) => acc + it.itemTotal, 0);
-  const canCheckout = itemCount > 0 && hasChosenOrderType;
-  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0);
+  const tableGuestAvailabilityBlocked = Boolean(tableGuest.blockerMessageKey);
+  const tableGuestCheckoutBlocked =
+    tableGuestAvailabilityBlocked || (tableGuest.visitBound && orderTypeState.orderType !== OrderTypeEnum.DineIn);
+  const canCheckout = itemCount > 0 && hasChosenOrderType && !tableGuestCheckoutBlocked;
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0, tableGuest.blockerMessageKey ?? null);
 
   const handleQty = (basketItemId: string | undefined, next: number) => {
     if (!basketItemId || next < 1) return;
@@ -72,17 +79,19 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     if (itemCount === 0) return;
     const orderType = orderTypeState.orderType;
     if (!orderType) {
-      hint.setBlocker('order-type');
+      hint.setBlocker(tableGuestAvailabilityBlocked ? 'table-guest-unavailable' : 'order-type');
       return;
     }
-    onProceed?.();
     const blocker = await proceedToCheckout(orderType, analyticsSource);
     hint.setBlocker(blocker);
     // Missing contact/address detail is recoverable in one click: reopen the
     // type's own follow-up modal (forceModal, since Takeaway would otherwise
     // decide it has nothing to ask) rather than bouncing to /menu.
     if (blocker === 'details') {
+      onProceed?.();
       pickType(orderType, analyticsSource, true);
+    } else if (blocker === null) {
+      onProceed?.();
     }
   };
 
@@ -90,11 +99,26 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   // stays synchronous.
   const handleCheckout = () => void runCheckout();
 
+  // The menu owns ordinary follow-up state above its lazy table-guest runtime. The cart reads the
+  // admitted visit below that boundary, so active-visit picks must use this context and never the
+  // page callback's loading/default view. Ordinary guests keep the page-owned modal flow.
+  const pickTypeForCart = React.useCallback(
+    (type: OrderType, source?: string, forceModal?: boolean) => {
+      if (tableGuest.visitBound) {
+        if (type === OrderTypeEnum.DineIn) selectActiveVisitDineIn(source ?? analyticsSource);
+        return;
+      }
+      if (forceModal === undefined) pickType(type, source);
+      else pickType(type, source, forceModal);
+    },
+    [selectActiveVisitDineIn, pickType, analyticsSource, tableGuest.visitBound],
+  );
+
   // Memoized so OrderTypeToggle doesn't re-render on every parent render, and so
   // the analytics surface tag flows into `order_type_selected`.
   const handlePick = React.useCallback(
-    (type: OrderType) => pickType(type, analyticsSource),
-    [pickType, analyticsSource],
+    (type: OrderType) => void pickTypeForCart(type, analyticsSource),
+    [pickTypeForCart, analyticsSource],
   );
 
   return {

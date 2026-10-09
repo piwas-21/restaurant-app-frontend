@@ -2,58 +2,26 @@
 
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
-import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
-import type { ServerTableBlocker, ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
+import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
+import { statusTone, blockerCopy, tableLabel } from './serverTableWorkspacePresentation';
 import { tableStatusLabel } from './serverFloorPresentation';
 import styles from './ServerTableWorkspace.module.css';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
+import TableReadinessAction from '@/components/table-service/TableReadinessAction';
+import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
   readonly state: ServerTableSessionState;
   readonly requestedSessionId?: string;
   readonly requestedOrderId?: string;
-}
-
-function statusTone(state: string): StatusBadgeTone {
-  if (state === 'Ready') return 'success';
-  if (state === 'Reserved') return 'warning';
-  if (state === 'Ambiguous' || state === 'Inactive') return 'danger';
-  if (state === 'Open') return 'info';
-  return 'neutral';
-}
-
-function blockerCopy(blocker: ServerTableBlocker, t: TFunction): string | null {
-  switch (blocker) {
-    case 'reserved':
-      return t('cashier.tables.reserved_table');
-    case 'inactive':
-      return t('cashier.tables.closed_table');
-    case 'ambiguous':
-      return t('cashier.tables.ambiguous');
-    case 'legacy':
-      return t('cashier.tables.legacy_table');
-    case 'missing-session':
-      return t('cashier.tables.no_session');
-    case 'stale':
-      return t('server.snapshot_stale');
-    case 'unavailable':
-      return t('cashier.tables.session_unavailable');
-    default:
-      return null;
-  }
-}
-
-function tableLabel(table: ServerTableSessionState['table'], tableId: string, t: TFunction): string {
-  if (table?.tableLabel.trim()) return table.tableLabel;
-  return t('cashier.tables.table_number', 'Table {{table}}', { table: tableId });
 }
 
 export default function ServerTableWorkspace({
@@ -63,7 +31,7 @@ export default function ServerTableWorkspace({
   requestedOrderId,
 }: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
-  const { orderAmendmentsV1 } = useTenantFeatures();
+  const { orderAmendmentsV1, tableGuestVisitsV1 } = useTenantFeatures();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
@@ -141,7 +109,7 @@ export default function ServerTableWorkspace({
                 {session && (
                   <>
                     <div>
-                      <dt>{t('cashier.tables.rounds_other')}</dt>
+                      <dt>{t('cashier.tables.round_count_label')}</dt>
                       <dd>{session.roundCount}</dd>
                     </div>
                     <div>
@@ -192,6 +160,15 @@ export default function ServerTableWorkspace({
               </output>
             )}
 
+            <TableReadinessAction
+              tableId={table.tableId}
+              snapshot={table}
+              readinessVersion={table.readinessVersion}
+              canMarkReady={table.permittedActions.includes('MarkTableReady') && !session}
+              isStale={state.isStale || state.isLoading || state.isStarting || state.isRepairingLegacyOrders}
+              refresh={state.refresh}
+            />
+
             <div className={styles.actionRow}>
               {(state.blocker === 'legacy' || state.blocker === 'ambiguous') &&
                 table.permittedActions.includes('ReviewLegacy') && (
@@ -228,6 +205,12 @@ export default function ServerTableWorkspace({
                 ))}
             </div>
 
+            {session?.status === 'Open' && tableGuestVisitsV1 && (
+              <TableGuestAdmissionCodeSlot
+                serviceSessionId={session.serviceSessionId}
+                disabled={state.isStale || taskContextBlocked}
+              />
+            )}
             {session && (
               <ServerTableBillWorkspace
                 session={session}

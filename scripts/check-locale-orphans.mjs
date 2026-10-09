@@ -48,6 +48,9 @@ const CODE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json']
  * branches is still reported.
  */
 const DYNAMIC_PREFIXES = [
+  // AmendmentResolutionLoyalty.tsx renders t('amendment_loyalty_points', { count });
+  // i18next chooses only this family's CLDR suffix at runtime.
+  'amendment_loyalty_points_',
   'allergen_',
   'api_tokens_scope_desc_',
   'api_tokens_status_',
@@ -116,6 +119,9 @@ const DYNAMIC_PREFIXES = [
   // `orderAmendments.state_${state}` from the quote's finite server enum values.
   'orderAmendments.kind_',
   'orderAmendments.state_',
+  // Account payment views compose the finite server AccountPaymentState labels for each bounded
+  // active attempt and the current operation; both consumers read `accountPayments.state.${state}`.
+  'accountPayments.state.',
   // `src/app/admin/ingredient-translations/page.tsx` composes the plural family
   // `ingredient_translations_unsaved_{category}` via `t('ingredient_translations_unsaved',
   // { count })` — the sticky save bar's "{{count}} unsaved change(s)" caption. Same shape as the
@@ -254,6 +260,9 @@ const flattenKeys = (obj, prefix = '') =>
 const englishKeys = [
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'en.json'), 'utf8'))),
   ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'order-workspace/en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'table-guest/en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'account-payments/en.json'), 'utf8'))),
+  ...flattenKeys(JSON.parse(readFileSync(join(LOCALES_DIR, 'table-guest-payments/en.json'), 'utf8'))),
 ];
 
 const orphans = [];

@@ -9,6 +9,7 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { needsTakeawayInfoModal } from '@/hooks/order/needsTakeawayInfoModal';
 import { useOrderTypeSwitch, type OrderTypeSwitchFlow } from '@/hooks/order/useOrderTypeSwitch';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { useTableGuestOrderTypeRecovery } from './useTableGuestOrderTypeRecovery';
 
 /**
  * Which follow-up modal to display. `table`/`address`/`takeaway` open after a
@@ -62,31 +63,8 @@ interface FollowUpState {
   confirmSwitch: () => void;
 }
 
-/**
- * Owns the order-type picking flow exposed by the cart sidebar
- * (BUGS-IMPROVEMENTS-PLAN §C1.5.c + §C1.5.e).
- *
- *   1. QR-scan landings (table context present) → pin DineIn + the scanned
- *      table number, OVERRIDING any stored choice (plan §2 / gap G1). Once per
- *      SCAN — the marker lives on TableContext, so a later deliberate switch
- *      survives navigating between /menu, /cart and /checkout. No modal pops.
- *   2. Sidebar order-type toggle → `pickType(type)` commits the type
- *      to OrderTypeContext and opens the relevant detail modal:
- *        - DineIn → table modal when reservations are enabled; otherwise no interruption
- *          (a later blocked checkout opens the contact-only `dinein` follow-up)
- *        - Delivery → 'address' modal (always; also captures guest info)
- *        - Takeaway → 'takeaway' modal *only* if the user needs to
- *          provide name/email/phone (guest, OR logged-in with any of
- *          those fields missing on profile). Logged-in users with all
- *          three on file see no modal and the type just commits.
- *   3. Modal Confirm captures the detail; Cancel leaves the type set
- *      with empty detail (recoverable: user can re-click the toggle).
- *
- * The Takeaway-needs-modal? decision is fast-pathed off CheckoutContext
- * first — if customerInfo is already there from a prior modal in this
- * session, no API call. Only when context is empty do we hit
- * /api/User/profile to decide; failure falls through to "open the modal"
- * (safe default — the modal asks for everything anyway).
+/** Owns the sidebar order-type choice and its follow-up details. QR scans and active table visits
+ * keep their pinned Dine-In identity; ordinary channel changes retain the two-phase basket check.
  */
 export function useOrderTypeFollowUp(): FollowUpState {
   const { state: orderTypeState, setOrderType, setTable } = useOrderType();
@@ -95,6 +73,12 @@ export function useOrderTypeFollowUp(): FollowUpState {
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
   const switchFlow = useOrderTypeSwitch();
   const reservationsEnabled = useModuleEnabled('reservations');
+  const { tableGuest, commitActiveVisitDineIn, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
+    orderType: orderTypeState,
+    tableContext,
+    setOrderType,
+    setTable,
+  });
 
   // A module can be removed while a browser still carries an older table choice in localStorage.
   // Clear that manual value once on the new entitlement. A QR scan is explicit physical context,
@@ -128,6 +112,10 @@ export function useOrderTypeFollowUp(): FollowUpState {
   // of `pickType` because the conflict confirm has to run it LATER, once the guest says yes.
   const commitType = useCallback(
     async (type: OrderType, source: string, forceModal: boolean) => {
+      if (type === OrderType.DineIn && selectActiveVisitDineIn(source)) {
+        setFollowUp(null);
+        return;
+      }
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).
@@ -137,6 +125,10 @@ export function useOrderTypeFollowUp(): FollowUpState {
         loggedIn: isLoggedInForAnalytics(),
       });
       if (type === OrderType.DineIn) {
+        if (commitActiveVisitDineIn()) {
+          setFollowUp(null);
+          return;
+        }
         // Table selection is part of the reservations experience. A tenant without that module
         // accepts a plain dine-in order through the same staff decision queue as takeaway and
         // delivery. Only a blocked checkout asks for contact details (`forceModal`).
@@ -159,11 +151,14 @@ export function useOrderTypeFollowUp(): FollowUpState {
         setFollowUp(null);
       }
     },
-    [setOrderType, checkoutState.customerInfo, reservationsEnabled],
+    [setOrderType, checkoutState.customerInfo, reservationsEnabled, commitActiveVisitDineIn, selectActiveVisitDineIn],
   );
 
   const pickType = useCallback(
     async (type: OrderType, source = 'sidebar', forceModal = false) => {
+      if (tableGuest.visitBound && (!tableGuest.active || type !== OrderType.DineIn || !tableGuest.dineInAvailable)) {
+        return;
+      }
       // Ask the server FIRST when the cart could conflict. Committing optimistically and rolling
       // back on a refusal would flip the whole menu's dimming and the tax line for a moment, then
       // undo it — §4.4's "never drop silently" cuts both ways. The intent rides along so a refused
@@ -171,7 +166,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
       if (!(await switchFlow.request(type, source, forceModal))) return;
       await commitType(type, source, forceModal);
     },
-    [switchFlow, commitType],
+    [switchFlow, commitType, tableGuest.visitBound, tableGuest.active, tableGuest.dineInAvailable],
   );
 
   const confirmSwitch = useCallback(() => {

@@ -1,4 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { lstat, mkdir, open, unlink, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 /**
@@ -20,9 +22,18 @@ import path from 'node:path';
  */
 
 const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
+const require = createRequire(path.resolve('e2e/helpers/storageState.ts'));
+const { resolvePrivateStripeBrowserArtifactDirectory } = require('../../scripts/e2e-p11-stripe-profile.cjs') as {
+  resolvePrivateStripeBrowserArtifactDirectory: (
+    evidenceRoot: string,
+    runId: string,
+    artifactDirectory: string,
+  ) => string;
+};
 
 /** Exactly the `User` shape `AuthContext.login` persists. */
 export interface StoredUser {
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -39,13 +50,90 @@ export interface StorageStateOptions {
   role: string;
   /** Per-test discriminator; `testInfo.testId` keeps parallel workers off each other's files. */
   slug: string;
+  /** Optional owner-only directory for run-scoped P11 credentials. */
+  authDirectory?: string;
+}
+
+/** Resolve only the private artifact roots created by the cash or Stripe P11 runners. */
+export function resolveP11AuthDirectory(environment: Readonly<Record<string, string | undefined>>): string {
+  const stripeDirectory = environment.P11_STRIPE_ARTIFACT_DIR;
+  const stripeIdentityPresent = stripeDirectory !== undefined || environment.P11_STRIPE_EVIDENCE_ROOT !== undefined;
+  if (stripeIdentityPresent) {
+    const runId = environment.P11_RUN_ID;
+    const evidenceRoot = environment.P11_STRIPE_EVIDENCE_ROOT;
+    if (
+      environment.P11_ARTIFACT_DIR !== undefined ||
+      typeof stripeDirectory !== 'string' ||
+      typeof evidenceRoot !== 'string' ||
+      typeof runId !== 'string' ||
+      !/^[a-f0-9]{16}$/.test(runId) ||
+      !path.isAbsolute(evidenceRoot) ||
+      !path.isAbsolute(stripeDirectory)
+    )
+      throw new Error('P11 authentication storage requires its validated private run artifact directory.');
+    const browserDirectory = resolvePrivateStripeBrowserArtifactDirectory(evidenceRoot, runId, stripeDirectory);
+    return path.join(browserDirectory, 'auth');
+  }
+
+  const cashDirectory = environment.P11_ARTIFACT_DIR;
+  if (!cashDirectory || !/^\/tmp\/table-account-p11\.[A-Za-z0-9]{6,}\/playwright$/.test(cashDirectory)) {
+    throw new Error('P11 authentication storage requires its validated private run artifact directory.');
+  }
+  return path.join(cashDirectory, 'auth');
 }
 
 /** Write a Playwright storageState file and return its path. */
 export async function writeAuthStorageState(opts: StorageStateOptions): Promise<string> {
+  if (opts.authDirectory) return writePrivateAuthStorageState(opts, opts.authDirectory);
+
   await mkdir(E2E_AUTH_DIR, { recursive: true });
   const file = path.join(E2E_AUTH_DIR, `${opts.role}-${opts.slug}.json`);
-  const state = {
+  await writeFile(file, JSON.stringify(buildAuthStorageState(opts)), 'utf8');
+  return file;
+}
+
+async function writePrivateAuthStorageState(opts: StorageStateOptions, directory: string): Promise<string> {
+  const userId = currentUserId();
+  await assertPrivateDirectory(path.dirname(directory));
+  try {
+    await mkdir(directory, { mode: 0o700 });
+  } catch (error) {
+    if (!isAlreadyExists(error)) throw new Error('P11 authentication storage directory could not be created.');
+  }
+  await assertPrivateDirectory(directory);
+
+  const filename = `${opts.role}-${opts.slug}.json`;
+  if (!/^[A-Za-z0-9_-]+\.json$/.test(filename)) {
+    throw new Error('P11 authentication storage filename is invalid.');
+  }
+  const file = path.join(directory, filename);
+  const flags = constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW;
+  let handle;
+  let created = false;
+  try {
+    handle = await open(file, flags, 0o600);
+    created = true;
+    const stat = await handle.stat();
+    if (!stat.isFile() || stat.uid !== userId || (stat.mode & 0o777) !== 0o600) {
+      throw new Error('P11 authentication storage file is not a private regular file.');
+    }
+    const state = buildAuthStorageState(opts);
+    await handle.writeFile(JSON.stringify(state), 'utf8');
+    await handle.sync();
+  } catch (error) {
+    await handle?.close().catch(() => undefined);
+    handle = undefined;
+    if (created) await unlink(file).catch(() => undefined);
+    throw error;
+  } finally {
+    await handle?.close();
+  }
+  await assertPrivateDirectory(directory);
+  return file;
+}
+
+function buildAuthStorageState(opts: StorageStateOptions) {
+  return {
     cookies: [],
     origins: [
       {
@@ -58,6 +146,36 @@ export async function writeAuthStorageState(opts: StorageStateOptions): Promise<
       },
     ],
   };
-  await writeFile(file, JSON.stringify(state), 'utf8');
-  return file;
+}
+
+async function assertPrivateDirectory(directory: string): Promise<void> {
+  let handle;
+  try {
+    const linked = await lstat(directory);
+    if (!linked.isDirectory() || linked.isSymbolicLink()) throw new Error('not a directory');
+    handle = await open(directory, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+    const opened = await handle.stat();
+    if (
+      !opened.isDirectory() ||
+      opened.uid !== currentUserId() ||
+      (opened.mode & 0o777) !== 0o700 ||
+      opened.dev !== linked.dev ||
+      opened.ino !== linked.ino
+    )
+      throw new Error('directory identity or permissions changed');
+  } catch {
+    throw new Error('P11 authentication storage requires owner-only directories.');
+  } finally {
+    await handle?.close();
+  }
+}
+
+function currentUserId(): number {
+  const userId = process.getuid?.();
+  if (userId === undefined) throw new Error('P11 authentication storage requires a local user identity.');
+  return userId;
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'EEXIST';
 }

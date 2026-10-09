@@ -10,12 +10,47 @@ This directory is the test code. The runner config is [../playwright.config.ts](
 
 ```bash
 npm run test:e2e:install                        # installs the browser binary
-export E2E_DATABASE_URL=postgres://postgres:postgres123@localhost:5432/restaurantdb  # pragma: allowlist secret
+export E2E_DATABASE_TARGET=disposable
+export E2E_DATABASE_URL='postgres://<user>:<password>@localhost:5432/<e2e-database>'
 ```
 
-The DB URL has no committed default — set it in your shell or `.env.local` so
-gitleaks stays happy. The example above uses the dev-compose Postgres password
-purely as a placeholder; replace with your local creds.
+Create a database reserved for E2E and point the local backend at that same
+database. `E2E_DATABASE_TARGET=disposable` is an operator assertion that the DB
+contains only disposable test data; it does not create or isolate a database.
+The guard accepts IPv4 loopback addresses and the exact plain hostnames
+`localhost` and `postgres`; it does not infer safety from a database name.
+Disposable aliases with a trailing dot, bracketed IPv6 URL literals, and
+comma-separated multi-host URLs are unsupported. Keep shared development and
+staging databases out of this target. The URL has no committed default — export
+it in your shell so gitleaks stays happy. Replace the placeholders with the
+local database name and credentials.
+
+The screenshot CI workflow generates a fresh disposable database password
+for each job and passes it to its PostgreSQL service, backend and guarded seed.
+It uses `localhost:5432/restaurantdb` and needs no database repository secret,
+including for fork pull requests.
+
+For a deliberate staging DB write, use `E2E_DATABASE_TARGET=staging`, set
+`E2E_ALLOW_STAGING_DATABASE_WRITES=YES`, and set
+`E2E_STAGING_DATABASE_HOST`, `E2E_STAGING_DATABASE_NAME`, and
+`E2E_STAGING_DATABASE_PORT` to the expected hostname, database name, and port.
+The guard requires an exact match with the parsed `E2E_DATABASE_URL`, including
+the resolved port, including an inherited `PGPORT` when the URL omits its port.
+A single staging DNS hostname with a trailing dot is supported when the
+configured hostname includes that dot exactly. This opt-in covers direct E2E
+DB fixtures and the SQL seed.
+Remote API-only smoke commands such as `npm run test:e2e:checklist:staging` do
+not use the DB helper or seed and need no DB target marker. Manual raw `psql`
+commands bypass this guard; use `scripts/e2e-seed.mjs` for the shared seed.
+`npm run test:e2e:collect` lists and imports the Playwright specs without
+starting the web server, calling the API, or connecting to the database. The
+guard and fixture modules remain importable by Playwright's CommonJS loader.
+For a local check, set `E2E_REMOTE=1` and `E2E_BASE_URL` to a syntactically
+valid URL before running the command; collection does not require the backend
+or database to be reachable.
+The shared SQL seed invokes `psql` only from the fixed executable locations
+`/usr/bin/psql`, `/opt/homebrew/bin/psql`, and `/usr/local/bin/psql`; install the
+PostgreSQL client in one of those supported CI or local Homebrew locations.
 
 **Mailpit (SMTP catcher)** must be running for the auth tests, since
 the verify-email flow drives a real /verify-email link from the email body.
@@ -189,8 +224,8 @@ job runs the comparison inside the same image. The snapshot path template
 deliberately omits `{platform}`.
 
 ```bash
-# One-time stack (same as functional e2e): backend on :5221 + seed applied
-psql "$E2E_DATABASE_URL" -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+# One-time stack (same as functional e2e): backend on :5221 + guarded seed
+node scripts/e2e-seed.mjs
 
 npm run test:screenshots:docker           # compare against committed baselines
 npm run test:screenshots:docker:update    # regenerate baselines (then commit)
@@ -212,3 +247,91 @@ when both the Classic and Craft template comparisons pass. Failures upload
 `*-actual`/`*-diff` PNGs as artifacts. Dispatch with `update_snapshots=true` to
 regenerate baselines in CI; inspect and commit the uploaded template baseline
 artifact on a branch afterwards.
+
+## P11 isolated table-account journey
+
+Run `bash scripts/dev-e2e-p11.sh` only when an isolated local browser run is intended. It creates a
+unique PostgreSQL 16 database and Compose project, a private Compose volume, and distinct high
+loopback ports for PostgreSQL, Redis, API, and UI. API settings and the guarded E2E seed helper are
+derived from that same database identity; the P11 target guard refuses a shared or remote endpoint.
+The mode-0600 run environment contains a fresh 32-byte JWT signing key, with issuer, audience, and
+tenant slug bound to that run ID. The run enables only its local feature switches and disables email,
+online-provider, and Sentry settings.
+The runner resolves `node` from `PATH` by default and requires major version 22; set `NODE22_BIN` to
+select a specific Node 22 executable.
+
+The browser journey marks the seeded table ready through the Server UI, opens and closes an empty visit,
+verifies the unavailable guest-account state and old code refusal, marks the table ready again through the
+Server UI, and starts a second visit. A guest joins with the current code, adds a seeded product through
+the real menu and guest-round review, and Server adds four rounds through the real order workspace.
+Server then commits one line removal through the amendment review; the test checks its typed Kitchen
+delta through the authenticated printer-feed API. Cashier completes a full-balance cash-account
+collection and checks the CHF 60.00 exact charge, due, and received amount, zero change, and zero account
+outstanding in the rendered UI. Server closes that paid visit, the guest account becomes unavailable,
+and Server marks the table ready and opens a distinct third visit. A new guest tab proves the second
+visit code is stale, joins using the third visit code, and sees a separate empty CHF account with zero
+remaining and no rounds.
+
+The cash receipt is a **synthetic local test record**: the browser enters the isolated cashier's
+manual-collection confirmation, but no physical cash changes hands. The run does not start online
+checkout, call a payment provider, connect to a printer, or claim a physical print/acknowledgement.
+After the browser test starts, its result, private logs, and database dump are kept under
+`/tmp/table-account-p11-evidence/<run-id>/`; the dump is made before the runner tears down only its
+run-owned Compose volume. If any failure occurs before the database snapshot completes, the runner
+keeps that exact volume and private run state for inspection. Treat browser traces and dumps as private
+because they include run-issued credentials and table-visit tokens.
+
+The separate connected-payment acceptance uses Stripe test mode and requires a mode-0600 test profile,
+an isolated Stripe CLI executable, a clean pinned backend worktree, and Node 22. To run it without
+Docker, select the native PostgreSQL 18 path explicitly and provide the installed PostgreSQL and Redis
+binary paths:
+
+```bash
+export NODE22_BIN="/path/to/node-22/bin/node"
+export PATH="$(dirname "$NODE22_BIN"):$PATH"
+TMPDIR=/private/tmp "$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
+  "$P11_STRIPE_PROFILE" "$P11_BACKEND_DIR" "$P11_STRIPE_CLI" "$P11_BACKEND_SHA" \
+  native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER"
+```
+
+The independent mixed-tender case is a separate run and evidence oracle; it leaves the default
+four-phone case unchanged. Append `mixed-tender` as the final argument to select it:
+
+```bash
+TMPDIR=/private/tmp "$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
+  "$P11_STRIPE_PROFILE" "$P11_BACKEND_DIR" "$P11_STRIPE_CLI" "$P11_BACKEND_SHA" \
+  native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER" mixed-tender
+```
+
+Build the exact clean backend revision supplied as `P11_BACKEND_SHA` before starting either run.
+The runner uses `dotnet ef database update --no-build` and launches the API with `--no-build`; it
+does not build backend outputs. Before the connected-account check, it requires the API, Domain, and
+Infrastructure assemblies plus the API dependency/runtime configuration files to exist. It hashes
+the local runtime assembly/configuration manifest and API assembly before and after migration, API
+startup, the browser journey, provider readback, and owned-service shutdown. A missing or changed
+runtime file fails acceptance. Once the run evidence directory exists, `source.json` and `run.json`
+record the runtime checkpoint results.
+
+That scenario allocates one CHF 15.00 source unit as CHF 5.01 online and CHF 9.99 exact cash.
+The cashier records CHF 10.00 received, including a CHF 0.01 cash-rounding adjustment. A full
+void must produce one capture-linked CHF 5.01 Stripe refund and a separately evidenced CHF 10.00
+cash return for the CHF 9.99 exact cash allocation, with the CHF 0.01 adjustment and zero net
+unsettled balance. Its verifier checks the exact source unit, attempt allocations, collection
+receipt-to-refund-intent identity, refund legs, allocation reversals, and fresh connected-account
+Stripe reads. The till return is a **synthetic staff attestation in the isolated test database**;
+it does not prove physical cash was handed back. This scenario does not change the four-phone
+oracle or claim physical cash acceptance.
+
+The runner verifies the test-connected account before creating its run-specific database, then starts
+only loopback PostgreSQL/Redis services and the exact pinned local API. It keeps private logs and a
+verified operational database dump under `<private-run-state>/stripe-evidence/<run-id>/`, records whether
+the run used Compose or native services, and stops only its own API/listener/database/Redis processes.
+The run state retains generated credentials and should be treated as private. This runner can create
+and fully refund Stripe **test-mode** charges; it does not make live payments.
+
+For coordinated acceptance that needs the same local API after the browser journey, run
+`P11_KEEP_RUN=1 bash scripts/dev-e2e-p11.sh`. On success, the runner prints the loopback API address
+and a mode-0600 environment profile path, then keeps the API and run-owned Compose services active.
+Press Ctrl-C after the connected consumer finishes; the runner stops its API and removes only that
+run's Compose project. The profile contains database and test signing credentials: pass its path only
+to authorized local acceptance tooling and never print or copy its contents.

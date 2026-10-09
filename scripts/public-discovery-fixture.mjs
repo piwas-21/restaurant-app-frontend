@@ -167,6 +167,7 @@ const endpoints = {
     },
   ],
   '/api/tenant/modules': () => ({ modules: [], enforced: false }),
+  '/api/tenant/features': () => ({ tableGuestVisitsV1: false }),
   '/api/Categories': ({ scenario, url }) =>
     scenario === 'categories-fail'
       ? fixtureError(503, 'Temporary category outage')

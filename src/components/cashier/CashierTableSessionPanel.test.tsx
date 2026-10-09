@@ -3,6 +3,36 @@ import type { TableServiceSessionDto } from '@/types/order';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
 import type { ComponentProps } from 'react';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
+import { loadAccountPaymentCollection } from './accountPaymentCollectionLoader';
+import { loadAccountPaymentLocale } from '@/services/accountPaymentLocaleService';
+
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: () => ({ user: { userId: '3b241101-e2bb-4255-8caf-4136c566a962' }, isLoading: false }),
+}));
+
+jest.mock('@/services/accountPaymentLocaleService', () => ({
+  loadAccountPaymentLocale: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('./accountPaymentCollectionLoader', () => ({
+  loadAccountPaymentCollection: jest.fn(() =>
+    Promise.resolve({
+      default: ({
+        enabled,
+        disabled,
+        recoveryEnabled,
+      }: {
+        enabled: boolean;
+        disabled: boolean;
+        recoveryEnabled: boolean;
+      }) => (
+        <output data-testid="account-payment-collection">
+          {`${String(enabled)}:${String(disabled)}:${String(recoveryEnabled)}`}
+        </output>
+      ),
+    }),
+  ),
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -10,7 +40,7 @@ jest.mock('react-i18next', () => ({
       if (typeof values !== 'object' || !values) return key;
       return key.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values[name] ?? `{{${name}}}`));
     },
-    i18n: { language: 'en' },
+    i18n: { language: 'en', resolvedLanguage: 'en', addResourceBundle: jest.fn() },
   }),
 }));
 
@@ -53,10 +83,17 @@ const session = {
 function renderPanel(
   current: TableServiceSessionDto,
   overrides: Partial<ComponentProps<typeof CashierTableSessionPanel>> = {},
-  features: { tableAccountV1?: boolean } = {},
+  features: { tableAccountV1?: boolean; tableGuestVisitsV1?: boolean; tableAccountPaymentsV1?: boolean } = {},
 ) {
   return render(
-    <TenantFeaturesProvider features={{ serverWorkspaceV2: false, tableAccountV1: features.tableAccountV1 ?? false }}>
+    <TenantFeaturesProvider
+      features={{
+        serverWorkspaceV2: false,
+        tableAccountV1: features.tableAccountV1 ?? false,
+        tableGuestVisitsV1: features.tableGuestVisitsV1 ?? false,
+        tableAccountPaymentsV1: features.tableAccountPaymentsV1 ?? false,
+      }}
+    >
       <CashierTableSessionPanel
         session={current}
         error={null}
@@ -75,6 +112,19 @@ function renderPanel(
 }
 
 describe('CashierTableSessionPanel', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    jest.mocked(loadAccountPaymentCollection).mockClear();
+    jest.mocked(loadAccountPaymentLocale).mockClear();
+  });
+
+  it('shows guest-code issuance for an open visit when the tenant feature is enabled', async () => {
+    renderPanel({ ...session, hasUnassignedActiveOrders: false }, {}, { tableGuestVisitsV1: true });
+
+    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
+  });
+
   it('pins a numbered table link to the selected open visit', () => {
     renderPanel({ ...session, hasUnassignedActiveOrders: false });
 
@@ -155,5 +205,24 @@ describe('CashierTableSessionPanel', () => {
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_items' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_payments' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_activity' })).toBeInTheDocument();
+  });
+
+  it('replaces cashier tender entry with lazy account collection when enabled', async () => {
+    renderPanel({ ...session, hasUnassignedActiveOrders: false }, {}, { tableAccountPaymentsV1: true });
+
+    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('true:false:true');
+    expect(loadAccountPaymentCollection).toHaveBeenCalledTimes(1);
+    expect(loadAccountPaymentLocale).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('heading', { name: 'cashier.tables.payment_title' })).not.toBeInTheDocument();
+  });
+
+  it('keeps owner recovery available when the server disables new collection', async () => {
+    renderPanel(
+      { ...session, canCollect: false, hasUnassignedActiveOrders: false },
+      {},
+      { tableAccountPaymentsV1: true },
+    );
+
+    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('true:true:true');
   });
 });

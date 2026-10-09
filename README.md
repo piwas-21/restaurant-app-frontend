@@ -108,15 +108,18 @@ All MRs require the pipeline to pass before merge.
 
 ## Environment variables
 
-| Variable                                    | Purpose                             | Notes                                                                            |
-| ------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`                       | Backend API base URL                | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod |
-| `TENANT_FEATURES_REQUEST_TIMEOUT_MS`        | Server rollout-feature fetch timeout | Positive milliseconds; fail-closed when absent or invalid |
-| `NEXT_PUBLIC_IMAGE_BASE_URL`                | Image CDN / S3 base                 | E.g. S3 bucket URL                                                               |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`              | Google OAuth client (public)        | Per-environment value                                                            |
-| `NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS` | Cashier tenant-day refresh interval | Positive milliseconds                                                            |
-| `NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE`        | Legacy waiter order page size       | Positive integer; defaults to `100`                                              |
-| `NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES`        | Active-order safety read ceiling    | Positive integer; defaults to `1000`                                             |
+| Variable                                                     | Purpose                               | Notes                                                                                                                                        |
+| ------------------------------------------------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`                                        | Backend API base URL                  | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod                                                             |
+| `TENANT_FEATURES_REQUEST_TIMEOUT_MS`                         | Server rollout-feature fetch timeout  | Positive milliseconds; fail-closed when absent or invalid                                                                                    |
+| `NEXT_PUBLIC_IMAGE_BASE_URL`                                 | Image CDN / S3 base                   | E.g. S3 bucket URL                                                                                                                           |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`                               | Google OAuth client (public)          | Per-environment value                                                                                                                        |
+| `NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS`                  | Cashier tenant-day refresh interval   | Positive milliseconds                                                                                                                        |
+| `NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE`                         | Legacy waiter order page size         | Positive integer; defaults to `100`                                                                                                          |
+| `NEXT_PUBLIC_SERVER_ORDER_MAX_PAGES`                         | Active-order safety read ceiling      | Positive integer; defaults to `1000`                                                                                                         |
+| `NEXT_PUBLIC_GUEST_PAYMENT_RETURNED_CHECKOUT_POLL_DELAYS_MS` | Guest return checkout polling cadence | Optional comma-separated milliseconds; defaults to `2000,4000,8000,16000,20000,25000,30000`; max 12 entries, each ≤30,000 and total ≤120,000 |
+| `NEXT_PUBLIC_GUEST_PAYMENT_RECOVERY_MAX_DURATION_MS`         | Guest payment recovery deadline       | Optional milliseconds; defaults to `120000`, maximum `120000`                                                                                |
+| `NEXT_PUBLIC_GUEST_ACCOUNT_READ_TIMEOUT_MS`                  | Guest account read timeout            | Optional milliseconds; defaults to `15000`, maximum `60000`                                                                                  |
 
 Read variables via `src/lib/config.ts` (typed export), never `process.env.NEXT_PUBLIC_*` scattered across components.
 

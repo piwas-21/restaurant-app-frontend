@@ -119,7 +119,13 @@ function getAuthToken(): string | null {
   return readStoredValue('auth_token');
 }
 
-function getSessionId(): string | null {
+/**
+ * Return the exact guest identity apiClient will put in X-Session-Id.
+ *
+ * Keep scope checks on queued work tied to this reader: sessionService additionally applies the
+ * expiry policy, while request headers intentionally use the stored value directly.
+ */
+export function getRequestSessionId(): string | null {
   return readStoredValue('rumi_session_id');
 }
 
@@ -153,6 +159,10 @@ function clearAuthAndRedirect(): void {
 interface RequestConfig extends RequestInit {
   requireAuth?: boolean;
   requireSession?: boolean;
+  /** Keep a public credential flow independent from any signed-in identity in this browser. */
+  skipAuth?: boolean;
+  /** Keep a public credential flow independent from the customer's legacy session cookie/id. */
+  skipSession?: boolean;
   /**
    * Whether a definitively dead session should END the session — clear storage and bounce to `/`.
    * Default `true`, which is right for anything a user asked for: they cannot continue anyway.
@@ -170,7 +180,14 @@ interface RequestConfig extends RequestInit {
  * Make HTTP request with error handling
  */
 async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
-  const { requireAuth = false, requireSession = false, signOutOn401 = true, ...fetchConfig } = config;
+  const {
+    requireAuth = false,
+    requireSession = false,
+    skipAuth = false,
+    skipSession = false,
+    signOutOn401 = true,
+    ...fetchConfig
+  } = config;
 
   // Build headers
   const headers: Record<string, string> = {};
@@ -194,7 +211,7 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
   }
 
   // Add authentication token if available or required
-  let token = getAuthToken();
+  let token = skipAuth ? null : getAuthToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   } else if (requireAuth) {
@@ -203,7 +220,7 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
   }
 
   // Add session ID if available or required
-  const sessionId = getSessionId();
+  const sessionId = skipSession ? null : getRequestSessionId();
   if (sessionId) {
     headers['X-Session-Id'] = sessionId;
   } else if (requireSession) {

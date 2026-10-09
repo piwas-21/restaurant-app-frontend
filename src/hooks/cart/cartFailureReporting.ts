@@ -16,7 +16,7 @@ import { CartAction, CartState } from '@/components/cart/cartTypes';
  */
 export function createCartFailureReporters(
   dispatch: React.Dispatch<CartAction>,
-  syncBasket: () => Promise<void>,
+  syncBasket: () => Promise<boolean>,
   unexpectedError: string,
   basketGoneError: string,
 ) {

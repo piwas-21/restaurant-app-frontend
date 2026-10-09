@@ -5,8 +5,10 @@ import { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationShee
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
 import { useDrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
+import { useOrderType } from '@/contexts/OrderTypeContext';
 import type { CatalogItem, MenuBundleItem } from '@/types/menu';
 import type { CatalogOfferFamily, CatalogOfferTarget } from '@/types/menu/offerFamily';
+import type { OrderType } from '@/types/order';
 import { matchesFilters } from '@/hooks/menu/useMenuFilters';
 import { anchorTargetForFamily, isOfferTargetOrderable } from '@/utils/offerFamily';
 
@@ -26,6 +28,9 @@ interface UseCatalogSheetArgs {
  * Only one sheet is ever open, so rendering both is safe — each returns null while closed.
  */
 export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {}) {
+  const {
+    state: { orderType },
+  } = useOrderType();
   const [offerFamily, setOfferFamily] = useState<CatalogOfferFamily | null>(null);
   const [offerFamilyFilterIds, setOfferFamilyFilterIds] = useState<ReadonlySet<string>>(new Set());
   // ONE upsell for both bodies (MENU-CUSTOMIZATION-FLOW-PLAN §3.4). It lives here rather than in
@@ -60,14 +65,20 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   const openForProductId = useCallback(
     (productId: string, opts?: OpenSheetOptions) => {
       const blocked = opts?.availability?.canOrder === false;
+      let availabilityOrderType: OrderType | null | undefined;
+      if (opts?.availability) {
+        availabilityOrderType = opts.availabilityOrderType !== undefined ? opts.availabilityOrderType : orderType;
+      }
       // `openForProduct` catches its own failures and surfaces a snackbar, so this should never
       // fire — but the promise still has to be consumed, and logging keeps a future throw loud
       // rather than swallowing it.
-      openForProduct(productId, { ...opts, forceSheet: opts?.forceSheet || blocked }).catch((error) =>
-        console.error('Failed to open the customization sheet:', error),
-      );
+      openForProduct(productId, {
+        ...opts,
+        availabilityOrderType,
+        forceSheet: opts?.forceSheet || blocked,
+      }).catch((error) => console.error('Failed to open the customization sheet:', error));
     },
-    [openForProduct],
+    [openForProduct, orderType],
   );
 
   const openForOfferFamily = useCallback((family: CatalogOfferFamily, filterIds?: ReadonlySet<string>) => {

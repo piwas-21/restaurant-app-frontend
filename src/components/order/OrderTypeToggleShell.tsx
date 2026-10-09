@@ -6,6 +6,7 @@ import { Utensils, ShoppingBag, Truck } from 'lucide-react';
 import { OrderType } from '@/types/order';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
+import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
 
 const ICON_BY_TYPE: Record<OrderType, React.ReactNode> = {
   [OrderType.DineIn]: <Utensils size={18} />,
@@ -69,6 +70,8 @@ export default function OrderTypeToggleShell({
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
+  const tableGuest = useTableGuestDineInAvailability();
+  const visibleTypes = tableGuest.active ? enabled.filter((type) => type === OrderType.DineIn) : enabled;
   const groupRef = useRef<HTMLFieldSetElement>(null);
   /** The last signal this actually SERVICED — not the last it was told about. See below. */
   const servicedRef = useRef(0);
@@ -94,7 +97,24 @@ export default function OrderTypeToggleShell({
     group.querySelector('button')?.focus();
   }, [focusSignal, loading, enabled.length]);
 
-  if (loading || enabled.length === 0) {
+  if (tableGuest.visitBound && tableGuest.blocked) {
+    return (
+      <div>
+        <p>
+          <output>
+            {tableGuest.active ? t('table_guest_dine_in_unavailable') : t('table_guest_unavailable_detail')}
+          </output>
+        </p>
+        {tableGuest.active && (
+          <button type="button" onClick={() => void tableGuest.refreshDineInAvailability()}>
+            {t('table_guest_unavailable_retry_action')}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (loading || visibleTypes.length === 0) {
     // While the admin-enabled list is in flight, render a spacer-shaped skeleton
     // so the panel doesn't visibly jump when the buttons arrive. Empty fallback
     // is also OK if every type is disabled.
@@ -114,7 +134,7 @@ export default function OrderTypeToggleShell({
       aria-describedby={focusSignal > 0 ? blockerHintId : undefined}
     >
       <legend className="sr-only">{t('order_type', 'Order type')}</legend>
-      {enabled.map((type) => {
+      {visibleTypes.map((type) => {
         const isActive = state.orderType === type;
         return (
           <button

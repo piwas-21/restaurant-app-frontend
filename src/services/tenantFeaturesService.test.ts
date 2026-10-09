@@ -31,6 +31,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: true,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).toHaveBeenCalledWith('http://backend.test/api/tenant/features', {
       cache: 'no-store',
@@ -47,6 +51,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -62,6 +70,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: true,
       tableAccountV1: true,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -81,8 +93,70 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: true,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
+
+  it('reads guest visit admission independently from account payment collection', async () => {
+    mockFetch(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ success: true, data: { tableGuestVisitsV1: true } }),
+      }),
+    );
+
+    await expect(getTenantFeatures()).resolves.toEqual({
+      serverWorkspaceV2: false,
+      tableAccountV1: false,
+      orderAmendmentsV1: false,
+      tableGuestVisitsV1: true,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
+    });
+  });
+
+  it.each([true, false, 'true', 1, null, undefined])(
+    'accepts only an explicit boolean for account payment collection (%s)',
+    async (flag) => {
+      mockFetch(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { tableAccountPaymentsV1: flag } }),
+        }),
+      );
+
+      await expect(getTenantFeatures()).resolves.toEqual({
+        serverWorkspaceV2: false,
+        tableAccountV1: false,
+        orderAmendmentsV1: false,
+        tableGuestVisitsV1: false,
+        tableVisitReadinessV1: false,
+        tableAccountPaymentsV1: flag === true ? true : false,
+        serverAccountCollectionV1: false,
+      });
+    },
+  );
+
+  it.each([true, false, 'true', 1, null, undefined])(
+    'accepts only an explicit boolean for Server account collection (%s)',
+    async (flag) => {
+      mockFetch(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { serverAccountCollectionV1: flag } }),
+        }),
+      );
+
+      await expect(getTenantFeatures()).resolves.toMatchObject({
+        tableAccountPaymentsV1: false,
+        serverAccountCollectionV1: flag === true,
+      });
+    },
+  );
 
   it.each([
     ['a malformed body', {}],
@@ -95,6 +169,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -107,6 +185,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -117,6 +199,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -127,6 +213,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
   });
 
@@ -141,9 +231,26 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  it.each([true, false, 'true', 1, null, undefined])(
+    'requires explicit true for table readiness (%s)',
+    async (flag) => {
+      mockFetch(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ success: true, data: { tableVisitReadinessV1: flag } }),
+        }),
+      );
+      await expect(getTenantFeatures()).resolves.toMatchObject({ tableVisitReadinessV1: flag === true });
+    },
+  );
 
   it.each(['', '0', '-1', 'not-a-number'])('fails closed for invalid timeout configuration %p', async (timeout) => {
     jest.resetModules();
@@ -155,6 +262,10 @@ describe('getTenantFeatures', () => {
       serverWorkspaceV2: false,
       tableAccountV1: false,
       orderAmendmentsV1: false,
+      tableGuestVisitsV1: false,
+      tableVisitReadinessV1: false,
+      tableAccountPaymentsV1: false,
+      serverAccountCollectionV1: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });

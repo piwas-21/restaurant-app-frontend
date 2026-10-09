@@ -15,8 +15,8 @@ jest.mock('@/components/AuthContext', () => ({ useAuth: () => mockAuth() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 function FeatureProbe() {
-  const { tableAccountV1 } = useTenantFeatures();
-  return <output>{String(tableAccountV1)}</output>;
+  const { tableAccountV1, tableAccountPaymentsV1 } = useTenantFeatures();
+  return <output>{`${String(tableAccountV1)}:${String(tableAccountPaymentsV1)}`}</output>;
 }
 
 describe('CashierLayout authorization', () => {
@@ -28,7 +28,16 @@ describe('CashierLayout authorization', () => {
   it('does not render cashier children for another authenticated role', () => {
     mockAuth.mockReturnValue({ user: { role: 'server' }, isLoading: false });
     render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: false, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -41,7 +50,16 @@ describe('CashierLayout authorization', () => {
 
   it('renders children for cashier and admin roles', () => {
     const { rerender } = render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -49,7 +67,16 @@ describe('CashierLayout authorization', () => {
 
     mockAuth.mockReturnValue({ user: { role: 'ADMIN' }, isLoading: false });
     rerender(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -58,18 +85,36 @@ describe('CashierLayout authorization', () => {
 
   it('provides the tenant table-account flag to authorized cashier routes', () => {
     render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: true, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: true,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
+        }}
+      >
         <FeatureProbe />
       </CashierLayoutClient>,
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent('true');
+    expect(screen.getByRole('status')).toHaveTextContent('true:false');
   });
 
   it('uses the scoped stylesheet for the loading spinner animation', () => {
     mockAuth.mockReturnValue({ user: null, isLoading: true });
     const { container } = render(
-      <CashierLayoutClient features={{ serverWorkspaceV2: false, tableAccountV1: false, orderAmendmentsV1: false }}>
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: false,
+          serverAccountCollectionV1: false,
+        }}
+      >
         <p>private queue</p>
       </CashierLayoutClient>,
     );
@@ -77,5 +122,24 @@ describe('CashierLayout authorization', () => {
     const spinner = container.querySelector('svg');
     expect(spinner).toHaveClass('spinner');
     expect(spinner).not.toHaveAttribute('style');
+  });
+
+  it('provides payment collection independently from account presentation', () => {
+    render(
+      <CashierLayoutClient
+        features={{
+          serverWorkspaceV2: false,
+          tableAccountV1: false,
+          orderAmendmentsV1: false,
+          tableGuestVisitsV1: false,
+          tableAccountPaymentsV1: true,
+          serverAccountCollectionV1: false,
+        }}
+      >
+        <FeatureProbe />
+      </CashierLayoutClient>,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('false:true');
   });
 });

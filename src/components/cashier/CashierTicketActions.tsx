@@ -167,7 +167,11 @@ export default function CashierTicketActions({
         onConfirm={confirmFocus}
         isLoading={focusBusy}
       />
-      <OrderAmendmentHistorySection orderId={order.id} refreshKey={`${order.version}:${historyRefresh}`} />
+      <OrderAmendmentHistorySection
+        orderId={order.id}
+        refreshKey={`${order.version}:${historyRefresh}`}
+        onResolutionChanged={notifyOrderChanged}
+      />
     </section>
   );
 }

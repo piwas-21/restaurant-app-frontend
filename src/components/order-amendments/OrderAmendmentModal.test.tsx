@@ -178,7 +178,7 @@ describe('OrderAmendmentModal', () => {
 
     render(<OrderAmendmentModal order={order} operatorRole="Cashier" recoveryOnly onClose={onClose} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Amendment committed');
+    expect(screen.getByRole('status')).toHaveTextContent(/^Amendment committed · operation-2$/);
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);

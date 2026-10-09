@@ -32,14 +32,28 @@ const SCRIPT = join(REPO_ROOT, 'scripts/check-locale-orphans.mjs');
 const workdirs: string[] = [];
 
 /** Write `files` (path → contents) beside `en.json`, run the gate, return status + output. */
-function runGate(englishKeys: Record<string, unknown>, files: Record<string, string> = {}) {
+function runGate(
+  englishKeys: Record<string, unknown>,
+  files: Record<string, string> = {},
+  tableGuestKeys: Record<string, unknown> = {},
+  tableGuestPaymentKeys: Record<string, unknown> = {},
+) {
   const root = mkdtempSync(join(tmpdir(), 'orphan-gate-'));
   workdirs.push(root);
   mkdirSync(join(root, 'scripts'), { recursive: true });
   mkdirSync(join(root, 'src/locales/order-workspace'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/table-guest'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/account-payments'), { recursive: true });
+  mkdirSync(join(root, 'src/locales/table-guest-payments'), { recursive: true });
   copyFileSync(SCRIPT, join(root, 'scripts/check-locale-orphans.mjs'));
   writeFileSync(join(root, 'src/locales/en.json'), `${JSON.stringify(englishKeys, null, 2)}\n`);
   writeFileSync(join(root, 'src/locales/order-workspace/en.json'), '{}\n');
+  writeFileSync(join(root, 'src/locales/account-payments/en.json'), '{}\n');
+  writeFileSync(join(root, 'src/locales/table-guest/en.json'), `${JSON.stringify(tableGuestKeys, null, 2)}\n`);
+  writeFileSync(
+    join(root, 'src/locales/table-guest-payments/en.json'),
+    `${JSON.stringify(tableGuestPaymentKeys, null, 2)}\n`,
+  );
   for (const [rel, contents] of Object.entries(files)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true });
     writeFileSync(join(root, rel), contents);
@@ -53,6 +67,20 @@ afterAll(() => {
 });
 
 describe('orphan gate — the baseline behaviours', () => {
+  it('allows loyalty point plural suffixes but rejects adjacent unused amendment copy', () => {
+    const { status, output } = runGate(
+      {
+        amendment_loyalty_points_one: 'One point',
+        amendment_loyalty_points_other: 'Several points',
+        amendment_loyalty_unused: 'Unused',
+      },
+      { 'src/components/Loyalty.tsx': "t('amendment_loyalty_points', { count });\n" },
+    );
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: amendment_loyalty_unused');
+    expect(output).not.toContain('orphan: amendment_loyalty_points_');
+  });
+
   it('passes when every key is read, and says how much it looked at', () => {
     const { status, output } = runGate(
       { save_now: 'Save' },
@@ -119,6 +147,55 @@ describe('orphan gate — the baseline behaviours', () => {
     expect(output).toContain('orphan: deliveryChannels.menuSelection.unusedCount_one');
     expect(output).not.toContain('orphan: deliveryChannels.menuSelection.selectedCount_');
     expect(output).not.toContain('orphan: deliveryChannels.menuSelection.unsupportedCount_');
+  });
+
+  it('counts a key used from the table guest lazy locale sidecar', () => {
+    const { status, output } = runGate(
+      { save_now: 'Save' },
+      { 'src/components/Guest.tsx': "t('save_now'); t('table_guest_join_action');\n" },
+      { table_guest_join_action: 'Join table' },
+    );
+
+    expect(status).toBe(0);
+    expect(output).toContain('no orphaned locale keys');
+  });
+
+  it('fails on an unused table guest sidecar key', () => {
+    const { status, output } = runGate(
+      { save_now: 'Save' },
+      { 'src/components/Guest.tsx': "t('save_now');\n" },
+      { table_guest_unused: 'Unused' },
+    );
+
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: table_guest_unused');
+  });
+
+  it('counts strings referenced by the separate lazy guest payment bundle', () => {
+    const { status, output } = runGate(
+      { save_now: 'Save' },
+      {
+        'src/components/Payment.tsx':
+          "t('save_now'); t('table_guest_payment_title'); t('table_guest_payment_Captured');\n",
+      },
+      {},
+      { table_guest_payment_title: 'Payments', table_guest_payment_Captured: 'Confirmed' },
+    );
+
+    expect(status).toBe(0);
+    expect(output).toContain('no orphaned locale keys');
+  });
+
+  it('fails when a guest payment bundle key is unused', () => {
+    const { status, output } = runGate(
+      { save_now: 'Save' },
+      { 'src/components/Save.tsx': "t('save_now');\n" },
+      {},
+      { table_guest_payment_unused: 'Unused' },
+    );
+
+    expect(status).toBe(1);
+    expect(output).toContain('orphan: table_guest_payment_unused');
   });
 });
 

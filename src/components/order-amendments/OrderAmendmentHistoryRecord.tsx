@@ -7,6 +7,8 @@ import { formatOrderCurrency } from '@/lib/cashierMoney';
 import type { OrderItemDto } from '@/types/order';
 import type { OrderAmendmentChangeSnapshot, OrderAmendmentHistory } from '@/types/orderAmendment';
 import { formatAmendmentMinorAmount } from './orderAmendmentPresentation';
+import AmendmentResolutionEntry from './AmendmentResolutionEntry';
+import AmendmentResolutionLoyalty from './AmendmentResolutionLoyalty';
 import styles from './OrderAmendmentHistorySection.module.css';
 
 interface OrderAmendmentHistoryRecordProps {
@@ -180,6 +182,8 @@ export default function OrderAmendmentHistoryRecord({ record, language }: Readon
           })}
         </p>
       </section>
+      <AmendmentResolutionLoyalty value={financial.loyalty} />
+      <AmendmentResolutionEntry record={record} />
     </li>
   );
 }

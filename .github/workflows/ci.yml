@@ -588,6 +588,7 @@ jobs:
       E2E_BASE_URL: http://localhost:3000
       E2E_MAILPIT_URL: http://localhost:8025
       E2E_DATABASE_URL: postgres://postgres:postgres123@localhost:5432/restaurantdb # pragma: allowlist secret
+      E2E_DATABASE_TARGET: disposable
       NEXT_PUBLIC_API_URL: http://localhost:5221
     steps:
       - name: Checkout frontend
@@ -601,6 +602,20 @@ jobs:
 
       - name: Install npm deps
         run: npm ci --ignore-scripts --prefer-offline --no-audit
+
+      - name: Verify E2E database target guard
+        run: npm run test:e2e:target
+
+      - name: Verify guarded seed executable resolution
+        run: npm run test:e2e:seed-executable
+
+      # Collecting specs imports the Playwright fixture graph and verifies its
+      # module formats without starting services, calling the API, or touching
+      # the database. Keep the job's existing disposable service target.
+      - name: Collect Playwright specs without starting services
+        env:
+          E2E_REMOTE: '1'
+        run: npm run test:e2e:collect
 
       # The backend is PULLED, not compiled (2026-08-17, CI-PERFORMANCE-PLAN
       # §2). This job used to check the backend repo out at `ref: develop` and
@@ -693,11 +708,7 @@ jobs:
       # that order: the seed is idempotent (fixed UUIDs + ON CONFLICT DO
       # NOTHING) and the startup seeders write disjoint rows.
       - name: Seed test data
-        env:
-          PGPASSWORD: postgres123 # pragma: allowlist secret
-        run: |
-          psql -h localhost -U postgres -d restaurantdb \
-            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+        run: node scripts/e2e-seed.mjs
 
       - name: Resolve Playwright version
         run: echo "PLAYWRIGHT_VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_ENV"

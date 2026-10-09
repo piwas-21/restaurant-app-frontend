@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${P11_DATABASE_NAME}
+      POSTGRES_USER: ${P11_DATABASE_USER}
+      POSTGRES_PASSWORD: ${P11_DATABASE_PASSWORD}
+    ports:
+      - '127.0.0.1::5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 1s
+      timeout: 3s
+      retries: 45
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '127.0.0.1::6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 1s
+      timeout: 3s
+      retries: 45
+
+volumes:
+  postgres:
+    name: ${P11_COMPOSE_PROJECT}_postgres

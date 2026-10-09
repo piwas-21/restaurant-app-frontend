@@ -4,6 +4,8 @@ import { formatCurrency } from './currency';
 import { calendarDayFromReport } from './zReportDay';
 import { RESTAURANT_NAME } from '@/lib/config';
 import { getPaymentMethodLabel, type PaymentTranslationFunction } from './paymentMethodDisplay';
+import { zReportAccountCashHtml } from './zReportAccountCashExport';
+import translationEN from '@/locales/en.json';
 
 // `reportDate` is a calendar DAY, not an instant, so the paper must name the day the FIGURES are
 // for: without `timeZone`, the device's zone decided, and west of UTC this printed
@@ -31,7 +33,7 @@ const formatTimestamp = (dateStr: string): string => {
   return new Date(dateStr).toLocaleString('de-CH');
 };
 
-export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFunction): void => {
+export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFunction, locale = 'en'): void => {
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -64,6 +66,8 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
     .total-row td { font-weight: 700; border-top: 2px solid #ddd; border-bottom: none; }
 
     .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; text-align: center; font-size: 10px; color: #999; }
+    .account-cash td:first-child { text-align: start; }
+    .account-cash td:last-child { text-align: end; }
 
     @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style>
@@ -192,6 +196,7 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
       : ''
   }
 
+  ${zReportAccountCashHtml(report.accountCashMovements, t ?? ((key) => translationEN.cashier.zreport[key.replace('cashier.zreport.', '') as keyof typeof translationEN.cashier.zreport] ?? key), locale)}
   <div class="footer">
     Generated: ${formatTimestamp(report.generatedAt)} | ${RESTAURANT_NAME} Z-Report
   </div>

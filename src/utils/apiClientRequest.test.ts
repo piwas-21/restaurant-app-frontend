@@ -18,7 +18,7 @@
  * alias here would test the double instead of the thing.
  */
 
-import { apiClient, ApiError, getErrorMessage } from './apiClient';
+import { apiClient, ApiError, getErrorMessage, getRequestSessionId } from './apiClient';
 
 jest.mock('@/services/authService', () => ({
   refreshToken: jest.fn(),
@@ -124,6 +124,47 @@ describe('request() never authors a message — so getErrorMessage can return nu
     expect(error.status).toBe(400);
     expect(error.message).toBe('');
     expect(getErrorMessage(error)).toBeNull();
+  });
+
+  it('exposes the same guest identity that request() sends in X-Session-Id', async () => {
+    localStorage.setItem('rumi_session_id', 'guest-session-current');
+    global.fetch = jest.fn().mockResolvedValue(jsonResponse(200, { success: true }));
+
+    expect(getRequestSessionId()).toBe('guest-session-current');
+    await apiClient.get('/api/Basket');
+
+    const request = (global.fetch as jest.Mock).mock.calls[0][1] as { headers: Record<string, string> };
+    expect(request.headers['X-Session-Id']).toBe(getRequestSessionId());
+  });
+
+  it('keeps a public participant 401 separate from a real saved auth and session identity', async () => {
+    localStorage.setItem('auth_token', 'staff-access');
+    localStorage.setItem('refresh_token', 'staff-refresh');
+    localStorage.setItem('user', JSON.stringify({ userId: 'staff-1', role: 'Cashier' }));
+    localStorage.setItem('rumi_session_id', 'legacy-session');
+    global.fetch = jest.fn().mockResolvedValue(jsonResponse(401, {}));
+
+    const error = await captureFailure(() =>
+      apiClient.get('/api/table-guest-visits/session/account-payments', {
+        headers: { 'X-Table-Participant': 'participant-credential' },
+        skipAuth: true,
+        skipSession: true,
+        signOutOn401: false,
+        cache: 'no-store',
+      }),
+    );
+
+    expect(error.status).toBe(401);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const request = (global.fetch as jest.Mock).mock.calls[0][1] as { headers: Record<string, string> };
+    expect(request.headers).toMatchObject({ 'X-Table-Participant': 'participant-credential' });
+    expect(request.headers.Authorization).toBeUndefined();
+    expect(request.headers['X-Session-Id']).toBeUndefined();
+    expect(refreshToken).not.toHaveBeenCalled();
+    expect(localStorage.getItem('auth_token')).toBe('staff-access');
+    expect(localStorage.getItem('refresh_token')).toBe('staff-refresh');
+    expect(localStorage.getItem('user')).toContain('Cashier');
+    expect(localStorage.getItem('rumi_session_id')).toBe('legacy-session');
   });
 
   it('a transient refresh failure surfaces with nothing to say, and keeps the user signed in', async () => {

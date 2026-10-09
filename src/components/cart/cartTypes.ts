@@ -95,7 +95,7 @@ export interface CartContextType {
    * live errors before they could be read.
    */
   clearError: () => void;
-  syncBasket: () => Promise<void>;
+  syncBasket: (expectedSessionId?: string | null) => Promise<boolean>;
   addItem: (payload: AddItemPayload) => Promise<void>;
   updateItem: (basketItemId: string, quantity: number, specialInstructions?: string) => Promise<void>;
   removeItem: (basketItemId: string) => Promise<void>;

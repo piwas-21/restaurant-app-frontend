@@ -9,6 +9,11 @@ import {
 } from '@/services/tableServiceSessionService';
 import { useCashierTables } from './useCashierTables';
 
+let mockReadinessEnabled = false;
+jest.mock('@/contexts/TenantFeaturesContext', () => ({
+  useTenantFeatures: () => ({ tableVisitReadinessV1: mockReadinessEnabled }),
+}));
+
 jest.mock('@/services/server/tables');
 jest.mock('@/services/tableServiceSessionService');
 
@@ -54,6 +59,7 @@ function deferred<T>() {
 }
 
 beforeEach(() => {
+  mockReadinessEnabled = false;
   jest.clearAllMocks();
   mockedTables.mockResolvedValue([
     { id: 't1', tableNumber: '01', maxGuests: 2, isActive: true, isOutdoor: false, positionX: 1, positionY: 1 },
@@ -304,3 +310,42 @@ it('joins an alphanumeric outdoor visit to its physical table by id', async () =
   await expect(result.current.openSession('11a')).rejects.toThrow('cashier.tables.open_failed');
   expect(mockedOpen).not.toHaveBeenCalled();
 });
+
+it.each([false, true])(
+  'opens migrated NeedsReset occupancy only through the correct rollout policy (enabled=%s)',
+  async (enabled) => {
+    mockReadinessEnabled = enabled;
+    mockedTables.mockResolvedValue([
+      {
+        id: 'table-11a',
+        tableNumber: '11a',
+        maxGuests: 4,
+        isActive: true,
+        isOutdoor: false,
+        positionX: 0,
+        positionY: 0,
+        readinessState: 'NeedsReset',
+        readinessVersion: 1,
+      },
+    ]);
+    mockedSessions.mockResolvedValue([]);
+    mockedOpen.mockResolvedValue({
+      ...session('new-visit', 11),
+      tableId: 'table-11a',
+      tableNumber: null,
+      tableLabel: '11a',
+    });
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+    expect(result.current.entries[0].status).toBe(enabled ? 'needs-reset' : 'available');
+    if (enabled) {
+      await expect(result.current.openSession('11a')).rejects.toThrow('cashier.tables.open_failed');
+      expect(mockedOpen).not.toHaveBeenCalled();
+    } else {
+      await act(async () => {
+        await result.current.openSession('11a');
+      });
+      expect(mockedOpen).toHaveBeenCalledWith({ tableId: 'table-11a' });
+    }
+  },
+);

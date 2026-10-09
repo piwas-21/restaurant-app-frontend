@@ -1,9 +1,59 @@
-.fallbackButton.fallbackButton {
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
+.page {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(1rem, 5vw, 2rem);
+  background: var(--surface-primary);
+  color: var(--text-primary);
 }
 
-.fallbackButton.fallbackButton:hover:not(:disabled) {
-  background-color: var(--brand-primary);
+.status {
+  width: min(100%, 32rem);
+  text-align: center;
+}
+
+.status h1 {
+  margin-block: 1.25rem 0.5rem;
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+}
+
+.status p {
+  color: var(--text-muted);
+}
+
+.spinner {
+  display: inline-block;
+  width: 2.75rem;
+  aspect-ratio: 1;
+  border: 3px solid var(--border-default);
+  border-block-start-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.errorTitle {
+  color: var(--feedback-error);
+}
+
+.fallbackButton {
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  border: 0;
+  border-radius: var(--radius-md, 0.65rem);
+  background: var(--brand-primary);
   color: var(--text-on-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
 }

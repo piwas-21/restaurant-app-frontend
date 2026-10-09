@@ -27,7 +27,7 @@ export function useCartItemMutations(
   state: CartState,
   dispatch: React.Dispatch<CartAction>,
   ensureSession: () => void,
-  syncBasket: () => Promise<void>,
+  syncBasket: () => Promise<boolean>,
   /**
    * Already-translated sentence for a failure the server did not describe. Passed in rather than
    * resolved here: `getErrorMessage` returns `null` for those now, and this hook has no `t` — the

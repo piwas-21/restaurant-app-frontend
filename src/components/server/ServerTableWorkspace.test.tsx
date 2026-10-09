@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import type { ServerFloorTable } from '@/types/serverWorkspace';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
+import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import ServerTableWorkspace from './ServerTableWorkspace';
 
 jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
@@ -13,7 +14,6 @@ jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
     error: null,
     requestHandoff: jest.fn(),
     cancelHandoff: jest.fn(),
-    submitPayment: jest.fn(),
     closeSession: jest.fn(),
     reconcilePendingOperation: jest.fn(),
     refresh: jest.fn(),
@@ -31,6 +31,7 @@ jest.mock('react-i18next', () => ({
         'cashier.tables.bill': 'Full table bill',
         'cashier.tables.add_round': 'Add round',
         'cashier.tables.reserved_table': 'This table has an active reservation.',
+        'cashier.tables.round_count_label': 'Rounds',
         'cashier.tables.currency_unknown': 'Currency unavailable',
         'server.status_stale': 'Stale data',
         'server.last_confirmed': 'Last confirmed',
@@ -39,7 +40,7 @@ jest.mock('react-i18next', () => ({
       const values = typeof fallback === 'object' ? fallback : options;
       return copy.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? `{{${name}}}`));
     },
-    i18n: { language: 'en' },
+    i18n: { language: 'en', resolvedLanguage: 'en', addResourceBundle: jest.fn() },
   }),
 }));
 
@@ -167,6 +168,43 @@ describe('ServerTableWorkspace', () => {
       'href',
       '/server/tables/table-1/order?serviceSessionId=session-1',
     );
+  });
+
+  it('shows a translated rounds label and a separate zero count for an empty visit', () => {
+    render(
+      <ServerTableWorkspace
+        tableId="table-1"
+        state={state({
+          table: table({ state: 'Open' }),
+          session: { ...session, roundCount: 0 },
+          canStartTable: false,
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Rounds', { selector: 'dt' })).toBeInTheDocument();
+    expect(screen.getByText('0', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.queryByText(/\{\{count\}\}/)).not.toBeInTheDocument();
+  });
+
+  it('shows guest-code issuance only for an open visit with the tenant feature enabled', async () => {
+    const props = {
+      tableId: 'table-1',
+      state: state({ table: table({ state: 'Open' }), session, canStartTable: false }),
+    };
+
+    const disabled = render(<ServerTableWorkspace {...props} />);
+    expect(screen.queryByText('table_guest_staff_code_title')).not.toBeInTheDocument();
+    disabled.unmount();
+
+    render(
+      <TenantFeaturesProvider features={{ tableGuestVisitsV1: true }}>
+        <ServerTableWorkspace {...props} />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
   });
 
   it('blocks table actions when a task deep link points at an older service session', () => {

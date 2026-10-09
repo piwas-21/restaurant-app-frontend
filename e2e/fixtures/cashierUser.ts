@@ -106,6 +106,7 @@ export async function usePromotedStaffUser(
       accessToken: auth.accessToken,
       refreshToken: auth.refreshToken,
       user: {
+        userId: auth.userId,
         firstName: auth.firstName,
         lastName: auth.lastName,
         email: auth.email,

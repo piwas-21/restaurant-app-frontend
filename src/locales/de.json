@@ -2580,7 +2580,6 @@
   "cashier.workspace.collect_for_visit": "Besuch kassieren",
   "cashier.workspace.pages_navigation": "Seitennavigation",
   "cashier.workspace.go_to_page": "Zu Seite {{page}}",
-  "cashier.workspace.page_value": "Seite {{page}} von {{total}}",
   "cashier.workspace.queue_loading": "Bestellungen werden geladen…",
   "cashier.workspace.queue_stale": "Letzte verfügbare Warteschlange wird angezeigt.",
   "cashier.workspace.queue_unavailable": "Bestellungen sind momentan nicht verfügbar.",

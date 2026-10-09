@@ -2588,7 +2588,6 @@
   "cashier.workspace.collect_for_visit": "تحصيل حساب الزيارة",
   "cashier.workspace.pages_navigation": "التنقل بين الصفحات",
   "cashier.workspace.go_to_page": "انتقل إلى الصفحة {{page}}",
-  "cashier.workspace.page_value": "الصفحة {{page}} من {{total}}",
   "cashier.workspace.queue_loading": "جارٍ تحميل الطلبات…",
   "cashier.workspace.queue_stale": "يتم عرض آخر قائمة متاحة.",
   "cashier.workspace.queue_unavailable": "الطلبات غير متاحة الآن.",

@@ -5,6 +5,19 @@ import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerT
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import ServerTableWorkspace from './ServerTableWorkspace';
 
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  refresh: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+};
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => mockRouter,
+  usePathname: () => '/en/server/tables/table-1',
+}));
+
 jest.mock('@/hooks/serverWorkspace/useServerTableBillActions', () => ({
   useServerTableBillActions: (baseSession: TableServiceSessionDto) => ({
     session: baseSession,
@@ -102,6 +115,8 @@ const session: TableServiceSessionDto = {
   },
 };
 
+beforeEach(() => jest.clearAllMocks());
+
 function state(overrides: Partial<ServerTableSessionState> = {}): ServerTableSessionState {
   return {
     table: table(),
@@ -166,7 +181,7 @@ describe('ServerTableWorkspace', () => {
     expect(screen.getAllByText(/CHF.20\.00/)).not.toHaveLength(0);
     expect(screen.getByRole('link', { name: 'Add round' })).toHaveAttribute(
       'href',
-      '/server/tables/table-1/order?serviceSessionId=session-1',
+      '/en/server/tables/table-1/order?serviceSessionId=session-1',
     );
   });
 
@@ -225,6 +240,7 @@ describe('ServerTableWorkspace', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('This task belongs to a different table visit.');
     expect(screen.getByRole('button', { name: 'Add round' })).toBeDisabled();
     expect(screen.queryByRole('link', { name: 'Add round' })).not.toBeInTheDocument();
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it('disables start for reserved, stale, and unknown blockers', () => {

@@ -2578,7 +2578,6 @@
   "cashier.workspace.collect_for_visit": "结算本次桌台服务",
   "cashier.workspace.pages_navigation": "分页导航",
   "cashier.workspace.go_to_page": "转到第 {{page}} 页",
-  "cashier.workspace.page_value": "第 {{page}} 页，共 {{total}} 页",
   "cashier.workspace.queue_loading": "正在加载订单…",
   "cashier.workspace.queue_stale": "正在显示最近可用的队列。",
   "cashier.workspace.queue_unavailable": "订单暂时不可用。",

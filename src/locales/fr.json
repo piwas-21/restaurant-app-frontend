@@ -2582,7 +2582,6 @@
   "cashier.workspace.collect_for_visit": "Encaisser la visite",
   "cashier.workspace.pages_navigation": "Navigation des pages",
   "cashier.workspace.go_to_page": "Aller à la page {{page}}",
-  "cashier.workspace.page_value": "Page {{page}} sur {{total}}",
   "cashier.workspace.queue_loading": "Chargement des commandes…",
   "cashier.workspace.queue_stale": "Dernière file disponible affichée.",
   "cashier.workspace.queue_unavailable": "Les commandes sont temporairement indisponibles.",

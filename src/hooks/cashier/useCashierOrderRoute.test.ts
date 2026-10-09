@@ -44,10 +44,12 @@ describe('useCashierOrderRoute', () => {
   it('routes a visit and its selected child to the session collection target', () => {
     const { result } = renderHook(() => useCashierOrderRoute());
 
-    act(() => result.current.navigateToCollection('order/7', 'session/9'));
-    expect(mockPush).toHaveBeenCalledWith('/cashier/collection?serviceSessionId=session%2F9&order=order%2F7');
+    act(() => result.current.navigateToSessionCollection('session/9', 'order/7', undefined, 'orders'));
+    expect(mockPush).toHaveBeenCalledWith(
+      '/cashier/collection?serviceSessionId=session%2F9&order=order%2F7&returnTo=orders',
+    );
 
-    act(() => result.current.navigateToCollection(undefined, 'session/9'));
-    expect(mockPush).toHaveBeenLastCalledWith('/cashier/collection?serviceSessionId=session%2F9');
+    act(() => result.current.navigateToSessionCollection('session/9', undefined, undefined, 'orders'));
+    expect(mockPush).toHaveBeenLastCalledWith('/cashier/collection?serviceSessionId=session%2F9&returnTo=orders');
   });
 });

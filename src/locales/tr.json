@@ -2580,7 +2580,6 @@
   "cashier.workspace.collect_for_visit": "Ziyaret tahsilatı",
   "cashier.workspace.pages_navigation": "Sayfa gezintisi",
   "cashier.workspace.go_to_page": "{{page}}. sayfaya git",
-  "cashier.workspace.page_value": "{{total}} sayfadan {{page}}. sayfa",
   "cashier.workspace.queue_loading": "Siparişler yükleniyor…",
   "cashier.workspace.queue_stale": "Son kullanılabilir kuyruk gösteriliyor.",
   "cashier.workspace.queue_unavailable": "Siparişler şu anda kullanılamıyor.",

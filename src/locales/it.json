@@ -2582,7 +2582,6 @@
   "cashier.workspace.collect_for_visit": "Incassa la visita",
   "cashier.workspace.pages_navigation": "Navigazione delle pagine",
   "cashier.workspace.go_to_page": "Vai alla pagina {{page}}",
-  "cashier.workspace.page_value": "Pagina {{page}} di {{total}}",
   "cashier.workspace.queue_loading": "Caricamento degli ordini…",
   "cashier.workspace.queue_stale": "Ultima coda disponibile visualizzata.",
   "cashier.workspace.queue_unavailable": "Gli ordini non sono disponibili ora.",

@@ -2580,7 +2580,6 @@
   "cashier.workspace.collect_for_visit": "Collect for visit",
   "cashier.workspace.pages_navigation": "Pages navigation",
   "cashier.workspace.go_to_page": "Go to page {{page}}",
-  "cashier.workspace.page_value": "Page {{page}} of {{total}}",
   "cashier.workspace.queue_loading": "Loading orders…",
   "cashier.workspace.queue_stale": "Showing the last available queue.",
   "cashier.workspace.queue_unavailable": "Orders are unavailable right now.",

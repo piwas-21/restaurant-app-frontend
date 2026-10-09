@@ -2582,7 +2582,6 @@
   "cashier.workspace.collect_for_visit": "Cobrar la visita",
   "cashier.workspace.pages_navigation": "Navegación de páginas",
   "cashier.workspace.go_to_page": "Ir a la página {{page}}",
-  "cashier.workspace.page_value": "Página {{page}} de {{total}}",
   "cashier.workspace.queue_loading": "Cargando pedidos…",
   "cashier.workspace.queue_stale": "Mostrando la última cola disponible.",
   "cashier.workspace.queue_unavailable": "Los pedidos no están disponibles ahora.",

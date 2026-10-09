@@ -2584,7 +2584,6 @@
   "cashier.workspace.collect_for_visit": "Оплатить посещение",
   "cashier.workspace.pages_navigation": "Навигация по страницам",
   "cashier.workspace.go_to_page": "Перейти на страницу {{page}}",
-  "cashier.workspace.page_value": "Страница {{page}} из {{total}}",
   "cashier.workspace.queue_loading": "Загрузка заказов…",
   "cashier.workspace.queue_stale": "Показана последняя доступная очередь.",
   "cashier.workspace.queue_unavailable": "Заказы сейчас недоступны.",

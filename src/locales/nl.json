@@ -2580,7 +2580,6 @@
   "cashier.workspace.collect_for_visit": "Bezoek afrekenen",
   "cashier.workspace.pages_navigation": "Paginanavigatie",
   "cashier.workspace.go_to_page": "Ga naar pagina {{page}}",
-  "cashier.workspace.page_value": "Pagina {{page}} van {{total}}",
   "cashier.workspace.queue_loading": "Bestellingen laden…",
   "cashier.workspace.queue_stale": "Laatste beschikbare rij wordt getoond.",
   "cashier.workspace.queue_unavailable": "Bestellingen zijn nu niet beschikbaar.",

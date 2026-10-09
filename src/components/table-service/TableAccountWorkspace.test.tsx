@@ -240,7 +240,7 @@ describe('TableAccountWorkspace', () => {
     const panel = screen.getByRole('tabpanel');
     expect(within(panel).getByText('cashier.workspace.record_partially_refunded')).toBeInTheDocument();
     expect(within(panel).getByText(/Refunded CHF/)).toHaveTextContent(/3\.00/);
-    expect(within(panel).getByText(/CHF\s*10\.00/)).toBeInTheDocument();
+    expect(within(panel).getByText(/CHF\s*7\.00/)).toBeInTheDocument();
   });
 
   it('supports arrow-key movement between tabs', () => {

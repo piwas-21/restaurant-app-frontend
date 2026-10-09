@@ -3,8 +3,9 @@ import { printHtmlContent } from './pdfExportUtils';
 import { formatCurrency } from './currency';
 import { calendarDayFromReport } from './zReportDay';
 import { RESTAURANT_NAME } from '@/lib/config';
-import { getPaymentMethodLabel, type PaymentTranslationFunction } from './paymentMethodDisplay';
+import type { PaymentTranslationFunction } from './paymentMethodDisplay';
 import { zReportAccountCashHtml } from './zReportAccountCashExport';
+import { zReportTenderHtml } from './zReportTenderExport';
 import translationEN from '@/locales/en.json';
 
 // `reportDate` is a calendar DAY, not an instant, so the paper must name the day the FIGURES are
@@ -34,6 +35,12 @@ const formatTimestamp = (dateStr: string): string => {
 };
 
 export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFunction, locale = 'en'): void => {
+  const translate: PaymentTranslationFunction =
+    t ??
+    ((key, fallback) => {
+      const keyName = key.replace('cashier.zreport.', '');
+      return translationEN.cashier.zreport[keyName as keyof typeof translationEN.cashier.zreport] ?? fallback;
+    });
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -97,7 +104,7 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
       <div class="value">${formatCurrency(report.totalTax)}</div>
     </div>
     <div class="summary-card">
-      <div class="label">Tips</div>
+      <div class="label">${translate('cashier.zreport.order_tips', 'Order tips')}</div>
       <div class="value">${formatCurrency(report.totalTips)}</div>
     </div>
     <div class="summary-card">
@@ -109,19 +116,7 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
   <div class="two-col">
     <div>
       <div class="section">
-        <div class="section-title">Sales by Payment Method</div>
-        ${
-          report.paymentsByMethod.length > 0
-            ? `
-        <table>
-          <thead><tr><th>Method</th><th>Txns</th><th>Amount</th></tr></thead>
-          <tbody>
-            ${report.paymentsByMethod.map((pm) => `<tr><td>${getPaymentMethodLabel(pm.paymentMethod, t)}</td><td>${pm.transactionCount}</td><td>${formatCurrency(pm.totalAmount)}</td></tr>`).join('')}
-          </tbody>
-        </table>`
-            : '<p style="color:#999;font-size:11px;">No payments</p>'
-        }
-      </div>
+        ${zReportTenderHtml(report, translate, locale)}
 
       <div class="section">
         <div class="section-title">Sales by Order Type</div>
@@ -196,7 +191,7 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
       : ''
   }
 
-  ${zReportAccountCashHtml(report.accountCashMovements, t ?? ((key) => translationEN.cashier.zreport[key.replace('cashier.zreport.', '') as keyof typeof translationEN.cashier.zreport] ?? key), locale)}
+  ${zReportAccountCashHtml(report.accountCashMovements, translate, locale)}
   <div class="footer">
     Generated: ${formatTimestamp(report.generatedAt)} | ${RESTAURANT_NAME} Z-Report
   </div>

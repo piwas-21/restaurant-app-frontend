@@ -145,6 +145,8 @@ export default function OrderDetailsModal({ order: originalOrder, onClose, onOrd
           setSelectedPayment={actions.setSelectedPayment}
           refundAmount={actions.refundAmount}
           setRefundAmount={actions.setRefundAmount}
+          refundTipAmount={actions.refundTipAmount}
+          setRefundTipAmount={actions.setRefundTipAmount}
           refundReason={actions.refundReason}
           setRefundReason={actions.setRefundReason}
           isRefunding={actions.isRefunding}

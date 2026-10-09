@@ -20,8 +20,16 @@ export interface ZReportRefunds {
 
 export interface ZReportPaymentMethod {
   paymentMethod: string;
+  currency?: string | null;
   transactionCount: number;
+  orderAmount?: number;
+  tipAmount?: number;
   totalAmount: number;
+}
+
+export interface ZReportCurrencyAmount {
+  currency: string | null;
+  amountMinor: number;
 }
 
 export interface ZReportOrderType {
@@ -51,6 +59,11 @@ export interface ZReportDto {
   totalTax: number;
   totalTips: number;
   totalDeliveryFees: number;
+  /** Additional staff gratuities, separate from legacy guest/order tips. */
+  staffTipsCollected?: ZReportCurrencyAmount[] | null;
+  staffTipsRefunded?: ZReportCurrencyAmount[] | null;
+  /** Net recorded cash tender movement; no opening float or physical cash count is included. */
+  netCashCollected?: ZReportCurrencyAmount[] | null;
   discounts: ZReportDiscounts;
   refunds: ZReportRefunds;
   cancelledOrdersCount: number;

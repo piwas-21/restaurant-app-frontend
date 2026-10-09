@@ -94,6 +94,7 @@ export default function CashierCollectionPanel({
         <CashierCollectionForm
           order={order}
           amount={form.amount}
+          tip={form.tip}
           received={form.received}
           method={form.method}
           transactionId={form.transactionId}
@@ -103,6 +104,7 @@ export default function CashierCollectionPanel({
           isCheckingPayment={isCheckingPayment}
           onSubmit={form.onSubmit}
           onAmountChange={form.onAmountChange}
+          onTipChange={form.onTipChange}
           onReceivedChange={form.onReceivedChange}
           onMethodChange={form.onMethodChange}
           onTransactionChange={form.onTransactionChange}

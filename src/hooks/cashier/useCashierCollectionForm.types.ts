@@ -5,6 +5,8 @@ import type { PendingPaymentOperation } from '@/lib/cashierPendingPayment';
 
 export interface CashierCollectionPaymentOutcome {
   readonly applied: number;
+  readonly tip?: number;
+  readonly tenderTotal?: number;
   readonly change: number;
   readonly remaining: number;
 }
@@ -20,6 +22,7 @@ export interface UseCashierCollectionFormOptions {
 
 export interface CashierCollectionFormController {
   readonly amount: string;
+  readonly tip: string;
   readonly received: string;
   readonly method: string;
   readonly transactionId: string;
@@ -29,6 +32,7 @@ export interface CashierCollectionFormController {
   readonly lastPayment: CashierCollectionPaymentOutcome | null;
   readonly onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   readonly onAmountChange: (value: string) => void;
+  readonly onTipChange: (value: string) => void;
   readonly onReceivedChange: (value: string) => void;
   readonly onMethodChange: (value: string) => void;
   readonly onTransactionChange: (value: string) => void;

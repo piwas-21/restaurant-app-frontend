@@ -94,6 +94,57 @@ describe('generateSimpleReceiptHtml — payment method labels', () => {
     expect(html).toContain('Card at restaurant');
     expect(html).not.toContain('CreditCard');
   });
+
+  it('prints captured staff gratuity and refunds separately from the order amount', () => {
+    const order = singleKitchenBundleOrder();
+    order.totalPaid = 20;
+    order.paymentTipMinor = 200;
+    order.payments = [
+      {
+        id: 'payment-tip',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: 20,
+        status: 'PartiallyRefunded',
+        tipMinor: 300,
+        refundedTipMinor: 100,
+      },
+    ];
+
+    const html = generateSimpleReceiptHtml(order);
+
+    expect(html).toContain('Tip for staff');
+    expect(html).toContain('Tip refunded');
+    expect(html).toContain('Total collected');
+    const printedText = html.replace(/\u00a0/g, ' ');
+    expect(printedText).toContain('CHF 20.00');
+    expect(printedText).toContain('CHF 3.00');
+    expect(printedText).toContain('CHF 1.00');
+    expect(printedText).toContain('CHF 22.00');
+  });
+
+  it('keeps the total-collection line when the recorded staff tip was fully refunded', () => {
+    const order = singleKitchenBundleOrder();
+    order.totalPaid = 20;
+    order.paymentTipMinor = 0;
+    order.payments = [
+      {
+        id: 'payment-tip-refunded',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: 20,
+        status: 'Refunded',
+        tipMinor: 300,
+        refundedTipMinor: 300,
+      },
+    ];
+
+    const printedText = generateSimpleReceiptHtml(order).replace(/\u00a0/g, ' ');
+
+    expect(printedText).toContain('Tip for staff: CHF 3.00');
+    expect(printedText).toContain('Tip refunded: CHF 3.00');
+    expect(printedText).toContain('Total collected: CHF 20.00');
+  });
 });
 
 describe('generateSimpleReceiptHtml — table identity', () => {

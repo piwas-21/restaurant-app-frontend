@@ -42,6 +42,8 @@ export interface AddPaymentToOrderCommand {
   orderId: string;
   paymentMethod: PaymentMethod;
   amount: number;
+  /** Cashier-collected gratuity in exact minor currency units, separate from the food amount. */
+  tipMinor?: number;
   transactionId?: string;
   referenceNumber?: string;
   cardLastFourDigits?: string;
@@ -58,6 +60,8 @@ export interface AddPaymentToOrderCommand {
  */
 export interface RefundPaymentCommand {
   refundAmount: number;
+  /** Cashier-refunded gratuity in exact minor currency units. */
+  refundTipMinor?: number;
   refundReason: string;
 }
 

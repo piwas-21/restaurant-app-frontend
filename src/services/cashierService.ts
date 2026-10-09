@@ -155,6 +155,8 @@ export interface AddPaymentRequest {
   expectedVersion?: number;
   paymentMethod: string;
   amount: number;
+  /** Exact minor-unit gratuity; omitted when zero for older backend compatibility. */
+  tipMinor?: number;
   transactionId?: string;
   referenceNumber?: string;
   cardLastFourDigits?: string;

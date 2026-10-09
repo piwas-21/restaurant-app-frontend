@@ -91,4 +91,52 @@ describe('the printed Z-report names the day the figures are for (#511)', () => 
     expect(html).toContain('Carte au restaurant');
     expect(html).not.toContain('CreditCard');
   });
+
+  it('prints separate currency-aware staff tips and net cash movement', () => {
+    const withTips = report('2026-08-19T00:00:00Z');
+    withTips.staffTipsCollected = [
+      { currency: 'CHF', amountMinor: 300 },
+      { currency: 'EUR', amountMinor: 200 },
+    ];
+    withTips.staffTipsRefunded = [{ currency: 'CHF', amountMinor: 100 }];
+    withTips.netCashCollected = [{ currency: 'CHF', amountMinor: 2_200 }];
+    withTips.paymentsByMethod = [
+      { paymentMethod: 'Cash', currency: 'CHF', transactionCount: 1, orderAmount: 20, tipAmount: 3, totalAmount: 23 },
+    ];
+
+    exportZReportToPDF(withTips);
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toContain('Staff tips collected');
+    expect(html).toContain('Staff tips refunded');
+    expect(html).toContain('Net cash collected');
+    expect(html).toContain('CHF');
+    expect(html).toContain('EUR');
+    expect(html).toContain('23.00');
+  });
+
+  it('keeps unknown tender currencies explicit without applying the tenant currency in PDF rows', () => {
+    const unknownCurrency = report('2026-08-19T00:00:00Z');
+    unknownCurrency.staffTipsCollected = [{ currency: null, amountMinor: 234 }];
+    unknownCurrency.netCashCollected = [{ currency: null, amountMinor: 1_357 }];
+    unknownCurrency.paymentsByMethod = [
+      {
+        paymentMethod: 'Cash',
+        currency: null,
+        transactionCount: 1,
+        orderAmount: 12.34,
+        tipAmount: 1.23,
+        totalAmount: 13.57,
+      },
+    ];
+
+    exportZReportToPDF(unknownCurrency, undefined, 'de-CH');
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toMatch(
+      /<td>Currency unavailable<\/td>\s*<td>1<\/td>\s*<td>12\.34<\/td>\s*<td>1\.23<\/td>\s*<td>13\.57<\/td>/,
+    );
+    expect(html).toMatch(/<td>Staff tips collected<\/td>\s*<td>Currency unavailable<\/td>\s*<td>2\.34<\/td>/);
+    expect(html).toMatch(/<td>Net cash collected<\/td>\s*<td>Currency unavailable<\/td>\s*<td>13\.57<\/td>/);
+  });
 });

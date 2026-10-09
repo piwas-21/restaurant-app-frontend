@@ -1,17 +1,20 @@
 import { z } from 'zod';
 
+const safeMinorAmount = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
+
 export const paymentModalSchema = z
   .object({
     amount: z
       .string()
       .trim()
-      .refine((value) => value !== '' && Number.isFinite(Number(value)) && Number(value) > 0)
-      .transform(Number),
+      .refine((value) => value !== '' && Number.isFinite(Number(value)) && Number(value) > 0),
+    amountMinor: safeMinorAmount,
+    tipMinor: safeMinorAmount,
     paymentMethod: z.string().trim().min(1),
-    cashReceived: z.string().trim().optional(),
+    cashReceivedMinor: safeMinorAmount.optional(),
   })
   .superRefine((value, context) => {
-    if (value.paymentMethod === 'Cash' && Number(value.cashReceived) < Number(value.amount)) {
-      context.addIssue({ code: 'custom', path: ['cashReceived'], message: 'cash_received_too_low' });
+    if (value.paymentMethod === 'Cash' && (value.cashReceivedMinor ?? 0) < value.amountMinor + value.tipMinor) {
+      context.addIssue({ code: 'custom', path: ['cashReceivedMinor'], message: 'cash_received_too_low' });
     }
   });

@@ -2,10 +2,11 @@
  * @jest-environment ./jest-environments/timezone.js
  * @jest-environment-options {"timezone": "America/Los_Angeles"}
  */
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import ZReportModal from './ZReportModal';
 import { getZReport } from '@/services/orderService';
 import { ApiError } from '@/utils/apiClient';
+import { TENANT_LOCALE } from '@/utils/currency';
 import { ZReportDto } from '@/types/order';
 
 jest.mock('react-i18next', () => ({
@@ -115,6 +116,72 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
 
     await waitFor(() => expect(mockGetZReport).toHaveBeenLastCalledWith('2026-03-01'));
     await waitFor(() => expect(dateInput().value).toBe('2026-03-01'));
+  });
+
+  it('shows currency-separated staff tips and net cash tender movement', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue({
+      ...reportFor(tenantDay),
+      staffTipsCollected: [{ currency: 'CHF', amountMinor: 300 }],
+      staffTipsRefunded: [{ currency: 'CHF', amountMinor: 100 }],
+      netCashCollected: [{ currency: 'CHF', amountMinor: 2_200 }],
+      paymentsByMethod: [
+        { paymentMethod: 'Cash', currency: 'CHF', transactionCount: 1, orderAmount: 20, tipAmount: 3, totalAmount: 23 },
+      ],
+    });
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+
+    expect(await screen.findByText('cashier.zreport.tender_summary')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tips_collected')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tips_refunded')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.net_cash_collected')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.order_amount')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tip_amount')).toBeInTheDocument();
+    expect(screen.getAllByText(/3\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/22\.00/).length).toBeGreaterThan(0);
+  });
+
+  it('keeps amounts unlabelled when a payment, staff tip, or cash currency is unknown', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue({
+      ...reportFor(tenantDay),
+      staffTipsCollected: [{ currency: null, amountMinor: 234 }],
+      netCashCollected: [{ currency: null, amountMinor: 1_357 }],
+      paymentsByMethod: [
+        {
+          paymentMethod: 'Cash',
+          currency: null,
+          transactionCount: 1,
+          orderAmount: 12.34,
+          tipAmount: 1.23,
+          totalAmount: 13.57,
+        },
+      ],
+    });
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+
+    await screen.findByText('cashier.zreport.tender_summary');
+    const plainAmount = (value: number) =>
+      new Intl.NumberFormat(TENANT_LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    const paymentTable = screen.getByText('cashier.zreport.order_amount').closest('table');
+    expect(paymentTable).not.toBeNull();
+    const paymentCells = within(paymentTable!.querySelector('tbody tr') as HTMLTableRowElement).getAllByRole('cell');
+    expect(paymentCells[1]).toHaveTextContent('cashier.zreport.currency_unavailable');
+    expect(paymentCells[3].textContent).toBe(plainAmount(12.34));
+    expect(paymentCells[4].textContent).toBe(plainAmount(1.23));
+    expect(paymentCells[5].textContent).toBe(plainAmount(13.57));
+
+    for (const [label, amount] of [
+      ['cashier.zreport.staff_tips_collected', 2.34],
+      ['cashier.zreport.net_cash_collected', 13.57],
+    ] as const) {
+      const row = screen.getByText(label).closest('tr');
+      expect(row).not.toBeNull();
+      const cells = within(row as HTMLTableRowElement).getAllByRole('cell');
+      expect(cells[1]).toHaveTextContent('cashier.zreport.currency_unavailable');
+      expect(cells[2].textContent).toBe(plainAmount(amount));
+    }
   });
 
   it("retries by asking for the restaurant's day when the first load never named one", async () => {
@@ -267,6 +334,56 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
     expect(dateInput().value).toBe('2026-04-02');
     expect(screen.getByText('41')).toBeInTheDocument();
     expect(screen.queryByText('7')).not.toBeInTheDocument();
+  });
+
+  it('hides an old report export while another day or reopened session is loading', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue(reportFor(tenantDay, 11));
+    const { rerender } = render(<ZReportModal isOpen onClose={jest.fn()} />);
+    await screen.findByText('11');
+    const exportButton = () => screen.queryByRole('button', { name: 'cashier.zreport.export_pdf' });
+    expect(exportButton()).toBeInTheDocument();
+
+    let settleNextDay: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleNextDay = resolve;
+      }),
+    );
+    fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
+
+    expect(dateInput().value).toBe('2026-03-01');
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+    expect(screen.queryByText('11')).not.toBeInTheDocument();
+    expect(exportButton()).not.toBeInTheDocument();
+
+    await act(async () => {
+      settleNextDay(reportFor('2026-03-01', 22));
+      await Promise.resolve();
+    });
+    await screen.findByText('22');
+    expect(exportButton()).toBeInTheDocument();
+
+    rerender(<ZReportModal isOpen={false} onClose={jest.fn()} />);
+    let settleReopened: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleReopened = resolve;
+      }),
+    );
+    rerender(<ZReportModal isOpen onClose={jest.fn()} />);
+
+    expect(dateInput().value).toBe('');
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+    expect(screen.queryByText('22')).not.toBeInTheDocument();
+    expect(exportButton()).not.toBeInTheDocument();
+
+    await act(async () => {
+      settleReopened(reportFor(tenantDay, 33));
+      await Promise.resolve();
+    });
+    await screen.findByText('33');
+    expect(exportButton()).toBeInTheDocument();
   });
 
   it('does not let a superseded failure erase the figures that did arrive', async () => {

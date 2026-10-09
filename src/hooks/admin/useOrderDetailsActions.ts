@@ -121,11 +121,14 @@ export function useOrderDetailsActions(
       reason: refundReason,
     });
     if (!draft.ok) {
-      const message = draft.max
-        ? t(draft.errorKey, { max: draft.max })
-        : draft.fallback
-          ? t(draft.errorKey, draft.fallback)
-          : t(draft.errorKey);
+      let message: string;
+      if (draft.max) {
+        message = t(draft.errorKey, { max: draft.max });
+      } else if (draft.fallback) {
+        message = t(draft.errorKey, draft.fallback);
+      } else {
+        message = t(draft.errorKey);
+      }
       apiError.show(message);
       return;
     }

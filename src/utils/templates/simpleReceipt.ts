@@ -95,6 +95,9 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       (payment.status === 'Completed' || payment.status === 'PartiallyRefunded' || payment.status === 'Refunded') &&
       ((payment.tipMinor ?? 0) > 0 || (payment.refundedTipMinor ?? 0) > 0),
   );
+  const totalCollectedLine = hasTipPayment
+    ? `<div><strong>${translate('cashier.collection.total_collected', 'Total collected')}: ${formatOrderCurrency(order.totalPaid + paymentTipAmount, order)}</strong></div>`
+    : '';
   const paymentsHtml =
     order.payments && order.payments.length > 0
       ? `
@@ -117,7 +120,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
             return `<div>${method}: ${formatOrderCurrency(p.amount, order)}</div>${tipLine}${refundLine}`;
           })
           .join('')}
-        ${hasTipPayment ? `<div><strong>${translate('cashier.collection.total_collected', 'Total collected')}: ${formatOrderCurrency(order.totalPaid + paymentTipAmount, order)}</strong></div>` : ''}
+        ${totalCollectedLine}
       </div>
     `
       : '';

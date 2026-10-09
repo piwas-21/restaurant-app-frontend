@@ -50,6 +50,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
       const request = latestRequest.current;
       setIsLoading(true);
       setError(null);
+      // A report belongs to the day in its response. Clear it as soon as another day is
+      // requested so the header can never offer yesterday's figures for export beside a new day.
+      setReportData(null);
       try {
         const data = await getZReport(date);
         if (request !== latestRequest.current) return;
@@ -139,7 +142,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               max={tenantToday || undefined}
               disabled={!tenantToday}
             />
-            {reportData && (
+            {reportData && !isLoading && (
               <button className={styles.exportButton} onClick={handleExportPDF}>
                 <Printer size={16} />
                 {t('cashier.zreport.export_pdf') || 'Print / PDF'}

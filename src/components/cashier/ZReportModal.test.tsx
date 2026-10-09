@@ -293,6 +293,56 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
     expect(screen.queryByText('7')).not.toBeInTheDocument();
   });
 
+  it('hides an old report export while another day or reopened session is loading', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue(reportFor(tenantDay, 11));
+    const { rerender } = render(<ZReportModal isOpen onClose={jest.fn()} />);
+    await screen.findByText('11');
+    const exportButton = () => screen.queryByRole('button', { name: 'cashier.zreport.export_pdf' });
+    expect(exportButton()).toBeInTheDocument();
+
+    let settleNextDay: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleNextDay = resolve;
+      }),
+    );
+    fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
+
+    expect(dateInput().value).toBe('2026-03-01');
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+    expect(screen.queryByText('11')).not.toBeInTheDocument();
+    expect(exportButton()).not.toBeInTheDocument();
+
+    await act(async () => {
+      settleNextDay(reportFor('2026-03-01', 22));
+      await Promise.resolve();
+    });
+    await screen.findByText('22');
+    expect(exportButton()).toBeInTheDocument();
+
+    rerender(<ZReportModal isOpen={false} onClose={jest.fn()} />);
+    let settleReopened: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleReopened = resolve;
+      }),
+    );
+    rerender(<ZReportModal isOpen onClose={jest.fn()} />);
+
+    expect(dateInput().value).toBe('');
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+    expect(screen.queryByText('22')).not.toBeInTheDocument();
+    expect(exportButton()).not.toBeInTheDocument();
+
+    await act(async () => {
+      settleReopened(reportFor(tenantDay, 33));
+      await Promise.resolve();
+    });
+    await screen.findByText('33');
+    expect(exportButton()).toBeInTheDocument();
+  });
+
   it('does not let a superseded failure erase the figures that did arrive', async () => {
     const tenantDay = dayAfterTheDeviceDay();
     mockGetZReport.mockResolvedValue(reportFor(tenantDay));

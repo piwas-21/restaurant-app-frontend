@@ -1,15 +1,15 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
-import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
+import { useItemSheetFeedback } from '@/hooks/menu/useItemSheetFeedback';
 import { useOrderTypeProductRefresh } from '@/hooks/menu/useOrderTypeProductRefresh';
 import { getProductById } from '@/services/menuService';
 import { buildInitialSheetState, hasCustomizationOptions, toLinePriceInput } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
+import { useCatalogAvailabilityEvidence } from '@/hooks/menu/useCatalogAvailabilityEvidence';
 import type { OpenSheetOptions, UseItemCustomizationSheetArgs } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
 import type { CustomizationGroupSelection, DetailedProduct } from '@/types/menu';
@@ -23,11 +23,13 @@ export function useItemCustomizationSheet({
   onLineAdded,
 }: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
-  const { i18n } = useTranslation();
-  const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
-  const currentLanguage = (i18n.language || 'en').split('-')[0];
-
+  const { currentLanguage, notifyAdded, notifyAddFailed } = useItemSheetFeedback(onAdded);
   const isOpeningRef = useRef(false);
+  const {
+    evidenceRef: catalogAvailabilityRef,
+    clear: clearCatalogAvailability,
+    applyOnOpen,
+  } = useCatalogAvailabilityEvidence();
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [detailOrderType, setDetailOrderType] = useState<OrderType | null | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
@@ -41,23 +43,18 @@ export function useItemCustomizationSheet({
   const [selectedSideItems, setSelectedSideItems] = useState<SelectedSide[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [offerMode, setOfferMode] = useState<OfferMode | undefined>(undefined);
-  const notifyAdded = useCallback(
-    (added: Pick<DetailedProduct, 'content' | 'name'>) => {
-      notifyItemAdded(localizedName(added, currentLanguage));
-      onAdded?.();
-    },
-    [notifyItemAdded, onAdded, currentLanguage],
-  );
   const close = useCallback(() => {
     setIsOpen(false);
     setProduct(null);
     setDetailOrderType(undefined);
     setOfferMode(undefined);
-  }, []);
+    clearCatalogAvailability();
+  }, [clearCatalogAvailability]);
   const { currentOrderTypeRef, orderType } = useOrderTypeProductRefresh({
     isOpen,
     product,
     detailOrderType,
+    catalogAvailabilityRef,
     setProduct,
     setSelections: setCustomizationSelections,
     setDetailOrderType,
@@ -73,9 +70,7 @@ export function useItemCustomizationSheet({
       let failedStep: 'load' | 'add' = 'load';
       try {
         const requestedOrderType = currentOrderTypeRef.current;
-        const response = (await getProductById(productId, undefined, requestedOrderType)) as {
-          data?: DetailedProduct;
-        };
+        const response = (await getProductById(productId, undefined, requestedOrderType)) as { data?: DetailedProduct };
         const detail = response?.data;
         if (!detail) throw new Error('Missing product detail');
 
@@ -102,7 +97,7 @@ export function useItemCustomizationSheet({
         setQuantity(1);
         setSpecialInstructions('');
         setDetailOrderType(requestedOrderType);
-        setProduct(opts?.availability ? { ...detail, availability: opts.availability } : detail);
+        setProduct(applyOnOpen(detail, opts, requestedOrderType));
         setIsOpen(true);
       } catch (error) {
         console.error('Error opening product for customization:', error);
@@ -112,7 +107,7 @@ export function useItemCustomizationSheet({
         isOpeningRef.current = false;
       }
     },
-    [addItem, currentOrderTypeRef, notifyAdded, notifyAddFailed, onBundleDetected],
+    [addItem, applyOnOpen, currentOrderTypeRef, notifyAdded, notifyAddFailed, onBundleDetected],
   );
 
   const title = product ? localizedName(product, currentLanguage) : '';
@@ -126,7 +121,6 @@ export function useItemCustomizationSheet({
     customizationSelections,
   };
   const linePrice = useLinePrice(toLinePriceInput(product, selection));
-
   const addToCart = useCallback(async () => {
     if (!product || isSubmitting || detailOrderType !== orderType) return;
     setIsSubmitting(true);

@@ -30,7 +30,9 @@ export async function createServerTableFixture(): Promise<ServerTableFixture> {
     if (reusable) {
       await client.query(
         `UPDATE "Tables"
-         SET is_active = TRUE, updated_at = CURRENT_TIMESTAMP, updated_by = $2
+         SET is_active = TRUE, readiness_state = 'NeedsReset',
+             readiness_version = readiness_version + 1,
+             updated_at = CURRENT_TIMESTAMP, updated_by = $2
          WHERE id = $1`,
         [reusable.id, CREATED_BY],
       );

@@ -24,6 +24,13 @@ interface CreatedOrder {
   orderNumber: string;
 }
 
+interface TableReadinessOutcome {
+  tableId: string;
+  operationId: string;
+  readinessState: string;
+  readinessVersion: number;
+}
+
 const VIEWPORTS: readonly { name: string; viewport: ViewportSize }[] = [
   { name: 'phone', viewport: { width: 390, height: 844 } },
   { name: 'tablet', viewport: { width: 1024, height: 768 } },
@@ -86,6 +93,18 @@ for (const { name, viewport } of VIEWPORTS) {
       const floorCard = server.page.locator('article').filter({ hasText: table.tableNumber });
       await floorCard.getByRole('link', { name: /Open Table/i }).click();
       await server.page.getByRole('heading', { level: 1, name: table.tableNumber }).waitFor();
+
+      const readiness = await requireResponseData<TableReadinessOutcome>(
+        server.page,
+        new RegExp(`^/api/Tables/${table.tableId}/ready$`),
+        async () => {
+          await server.page.getByRole('button', { name: 'Ready for next guests', exact: true }).click();
+        },
+      );
+      expect(readiness).toMatchObject({ tableId: table.tableId, readinessState: 'ReadyForGuests' });
+      expect(readiness.operationId).toMatch(/^[0-9a-f-]{36}$/i);
+      expect(readiness.readinessVersion).toBeGreaterThan(0);
+      await expect(server.page.getByRole('button', { name: /Open Table/ })).toBeEnabled();
 
       await requireResponseData(server.page, /^\/api\/table-service-sessions$/, async () => {
         await server.page.getByRole('button', { name: 'Open Table' }).click();

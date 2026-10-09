@@ -5,6 +5,7 @@ import { useId } from 'react';
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { useCartContents, type UseCartContentsArgs } from '@/hooks/order/useCartContents';
+import BasketChannelRecoveryAlert from '@/components/order/BasketChannelRecoveryAlert';
 import CartLineList from '@/components/order/CartLineList';
 import CartCheckoutButton from '@/components/order/CartCheckoutButton';
 import CraftOrderTypeToggle from './CraftOrderTypeToggle';
@@ -59,19 +60,14 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
           {error}
         </div>
       )}
-      {isChannelRecoveryVisible && (
-        <div className={styles.cartError} role="alert">
-          <p>{channelRecoveryErrorMessage ?? t('basket_channel_recovery_message')}</p>
-          <button
-            type="button"
-            className={styles.iconButton}
-            disabled={isChannelRecoveryRetrying}
-            onClick={() => void retryChannelRecovery()}
-          >
-            {t('retry', 'Retry')}
-          </button>
-        </div>
-      )}
+      <BasketChannelRecoveryAlert
+        visible={isChannelRecoveryVisible}
+        message={channelRecoveryErrorMessage}
+        isRetrying={isChannelRecoveryRetrying}
+        onRetry={retryChannelRecovery}
+        alertClassName={styles.cartError}
+        retryButtonClassName={styles.iconButton}
+      />
 
       {items.length === 0 ? (
         <div className={styles.empty}>

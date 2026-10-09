@@ -6,6 +6,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
 import { useCartContents, type UseCartContentsArgs } from '@/hooks/order/useCartContents';
+import BasketChannelRecoveryAlert from './BasketChannelRecoveryAlert';
 import OrderTypeToggle from './OrderTypeToggle';
 import CartLineList from './CartLineList';
 import CartCheckoutButton from './CartCheckoutButton';
@@ -63,19 +64,14 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
           {error}
         </div>
       )}
-      {isChannelRecoveryVisible && (
-        <div className={styles.cartError} role="alert">
-          <p>{channelRecoveryErrorMessage ?? t('basket_channel_recovery_message')}</p>
-          <button
-            type="button"
-            className={styles.iconButton}
-            disabled={isChannelRecoveryRetrying}
-            onClick={() => void retryChannelRecovery()}
-          >
-            {t('retry', 'Retry')}
-          </button>
-        </div>
-      )}
+      <BasketChannelRecoveryAlert
+        visible={isChannelRecoveryVisible}
+        message={channelRecoveryErrorMessage}
+        isRetrying={isChannelRecoveryRetrying}
+        onRetry={retryChannelRecovery}
+        alertClassName={styles.cartError}
+        retryButtonClassName={styles.iconButton}
+      />
 
       {items.length === 0 ? (
         <div className={styles.empty}>

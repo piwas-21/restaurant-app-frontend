@@ -12,6 +12,7 @@ import {
   tableOrderSettlementState,
   tableSessionCredit,
   tableSessionEligibleOutstanding,
+  tablePaymentFlowTranslationKey,
   type TableOrderSettlementState,
 } from '@/lib/cashierTableSession';
 import styles from './TableServiceSessionBill.module.css';
@@ -80,15 +81,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
   const rounds = displayRounds(session);
   const credit = tableSessionCredit(session);
   const flowLabel = session.bill.paymentFlowMode
-    ? t(
-        `cashier.tables.payment_flow_${
-          session.bill.paymentFlowMode === 'ByItems'
-            ? 'items'
-            : session.bill.paymentFlowMode === 'CustomAmount'
-              ? 'custom'
-              : session.bill.paymentFlowMode.toLowerCase()
-        }`,
-      )
+    ? t(tablePaymentFlowTranslationKey(session.bill.paymentFlowMode))
     : null;
   return (
     <section id="table-session-bill-print" className={styles.bill} aria-labelledby="table-service-bill-title">

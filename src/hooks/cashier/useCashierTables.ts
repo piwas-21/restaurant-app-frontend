@@ -64,31 +64,34 @@ export function useCashierTables(): CashierTablesState {
     };
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (inFlightRef.current) return;
-    const requestId = ++requestRef.current;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [tables, sessions, released] = await Promise.all([
-        getCashierTables(),
-        getActiveTableServiceSessions(),
-        getReleasedTableServiceSessions(),
-      ]);
-      if (!mountedRef.current || requestId !== requestRef.current) return;
-      const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
-      setEntries(merged);
-      setReleasedSessions(released);
-      hasEntriesRef.current = merged.length > 0;
-      setQueueState('ready');
-    } catch (reason: unknown) {
-      if (!mountedRef.current || requestId !== requestRef.current) return;
-      setQueueState(hasEntriesRef.current ? 'stale' : 'unavailable');
-      setError(getErrorMessage(reason) ?? 'cashier.tables.load_error');
-    } finally {
-      if (mountedRef.current && requestId === requestRef.current) setIsLoading(false);
-    }
-  }, [tableVisitReadinessV1]);
+  const refresh = useCallback(
+    async (options?: { allowInFlightMutation?: boolean }) => {
+      if (inFlightRef.current && !options?.allowInFlightMutation) return;
+      const requestId = ++requestRef.current;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [tables, sessions, released] = await Promise.all([
+          getCashierTables(),
+          getActiveTableServiceSessions(),
+          getReleasedTableServiceSessions(),
+        ]);
+        if (!mountedRef.current || requestId !== requestRef.current) return;
+        const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
+        setEntries(merged);
+        setReleasedSessions(released);
+        hasEntriesRef.current = merged.length > 0;
+        setQueueState('ready');
+      } catch (reason: unknown) {
+        if (!mountedRef.current || requestId !== requestRef.current) return;
+        setQueueState(hasEntriesRef.current ? 'stale' : 'unavailable');
+        setError(getErrorMessage(reason) ?? 'cashier.tables.load_error');
+      } finally {
+        if (mountedRef.current && requestId === requestRef.current) setIsLoading(false);
+      }
+    },
+    [tableVisitReadinessV1],
+  );
 
   useEffect(() => {
     void refresh();

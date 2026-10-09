@@ -92,3 +92,10 @@
     max-height: none;
   }
 }
+
+@media print {
+  .billScroll {
+    max-height: none;
+    overflow: visible;
+  }
+}

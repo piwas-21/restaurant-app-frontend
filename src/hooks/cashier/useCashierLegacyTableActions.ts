@@ -10,7 +10,7 @@ import { getErrorMessage } from '@/utils/apiClient';
 import type { CashierTableEntry } from '@/lib/cashierTableEntries';
 
 interface Props {
-  readonly refresh: () => Promise<void>;
+  readonly refresh: (options?: { allowInFlightMutation?: boolean }) => Promise<void>;
   readonly requestRef: MutableRefObject<number>;
   readonly mutationRef: MutableRefObject<number>;
   readonly inFlightRef: MutableRefObject<boolean>;
@@ -100,7 +100,7 @@ export function useCashierLegacyTableActions({
       setError(null);
       try {
         await clearLegacyOrders(numericTableNumber);
-        if (mountedRef.current && mutationId === mutationRef.current) await refresh();
+        if (mountedRef.current && mutationId === mutationRef.current) await refresh({ allowInFlightMutation: true });
       } catch (reason: unknown) {
         if (mountedRef.current && mutationId === mutationRef.current)
           setError(getErrorMessage(reason) ?? 'cashier.tables.clear_failed');

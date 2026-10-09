@@ -7,6 +7,7 @@ import {
   getReleasedTableServiceSessions,
   openTableServiceSession,
   repairLegacyTableServiceSession,
+  clearLegacyTableOrders,
 } from '@/services/tableServiceSessionService';
 import { useCashierTables } from './useCashierTables';
 
@@ -23,6 +24,7 @@ const mockedSessions = jest.mocked(getActiveTableServiceSessions);
 const mockedReleasedSessions = jest.mocked(getReleasedTableServiceSessions);
 const mockedOpen = jest.mocked(openTableServiceSession);
 const mockedRepair = jest.mocked(repairLegacyTableServiceSession);
+const mockedClearLegacy = jest.mocked(clearLegacyTableOrders);
 const session = (id: string, tableNumber: number): TableServiceSessionDto => ({
   serviceSessionId: id,
   tableNumber,
@@ -142,6 +144,49 @@ describe('useCashierTables', () => {
     expect(result.current.error).toBe('cashier.tables.legacy_repair_failed');
     expect(result.current.repairSuccess).toBe(false);
     expect(result.current.isMutating).toBe(false);
+  });
+
+  it('refreshes the table queue immediately after clearing legacy pending orders', async () => {
+    mockedTables
+      .mockResolvedValueOnce([
+        {
+          id: 't2',
+          tableNumber: '2',
+          maxGuests: 4,
+          isActive: true,
+          isOutdoor: false,
+          positionX: 2,
+          positionY: 1,
+          isOccupied: true,
+          activeOrderCount: 1,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 't2',
+          tableNumber: '2',
+          maxGuests: 4,
+          isActive: true,
+          isOutdoor: false,
+          positionX: 2,
+          positionY: 1,
+          isOccupied: false,
+          activeOrderCount: 0,
+        },
+      ]);
+    mockedSessions.mockResolvedValue([]);
+    mockedClearLegacy.mockResolvedValue(undefined);
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+    expect(result.current.entries[0]?.status).toBe('legacy');
+
+    await act(async () => {
+      await result.current.clearLegacyTableOrders('2');
+    });
+
+    expect(mockedClearLegacy).toHaveBeenCalledWith(2);
+    expect(mockedTables).toHaveBeenCalledTimes(2);
+    expect(result.current.entries[0]).toMatchObject({ table: { id: 't2' }, status: 'available' });
   });
 
   it('opens a configured table by stable id and exposes the returned durable session', async () => {

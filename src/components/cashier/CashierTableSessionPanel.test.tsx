@@ -1,4 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { TableServiceSessionDto } from '@/types/order';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
 import type { ComponentProps } from 'react';
@@ -134,6 +136,48 @@ describe('CashierTableSessionPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
     expect(screen.getByText('cashier.tables.release_confirm_preserves')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'cashier.tables.release_table' }).at(-1)).toBeEnabled();
+  });
+
+  it('keeps split and tip bill content printable when TableAccountV1 is active', () => {
+    const current = {
+      ...session,
+      hasUnassignedActiveOrders: false,
+      bill: {
+        ...session.bill,
+        paymentFlowMode: 'CustomAmount' as const,
+        guestCount: 2,
+        guestAmounts: [
+          { guestNumber: 1, amount: 12, status: 'Captured' as const },
+          { guestNumber: 2, amount: 8, status: 'Due' as const },
+        ],
+        paymentTip: 3.5,
+      },
+    };
+    renderPanel(current, {}, { tableAccountV1: true });
+
+    const printRoot = screen.getByTestId('cashier-table-print-bill');
+    expect(printRoot.querySelector('#table-session-bill-print')).toBeInTheDocument();
+    expect(within(printRoot).getByText(/cashier\.tables\.payment_flow_custom/)).toBeInTheDocument();
+    expect(within(printRoot).getAllByText('cashier.tables.split_guest_amount')).toHaveLength(2);
+    expect(within(printRoot).getByText('cashier.tables.payment_tip_received')).toBeInTheDocument();
+    expect(within(printRoot).getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
+    const accountWorkspace = screen.getByRole('region', { name: 'cashier.tables.account' });
+    expect(within(accountWorkspace).getByText(/cashier\.tables\.payment_flow_custom/)).toBeInTheDocument();
+    expect(within(accountWorkspace).getByText('cashier.tables.payment_tip_received')).toBeInTheDocument();
+    expect(within(accountWorkspace).getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
+
+    const printCss = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8');
+    const presentationCss = readFileSync(
+      resolve(process.cwd(), 'src/components/table-service/TableAccountPresentation.module.css'),
+      'utf8',
+    );
+    const billCss = readFileSync(
+      resolve(process.cwd(), 'src/components/table-service/TableServiceSessionBill.module.css'),
+      'utf8',
+    );
+    expect(printCss).toContain('#table-session-bill-print,');
+    expect(presentationCss).toMatch(/@media print[\s\S]*\.printBill[\s\S]*display:\s*block/);
+    expect(billCss).toMatch(/@media print[\s\S]*\.billScroll[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/);
   });
 
   it('requires explicit confirmation before clearing pending orders and freeing a table', async () => {

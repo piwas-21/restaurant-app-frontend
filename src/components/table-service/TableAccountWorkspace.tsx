@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TableServiceSessionDto } from '@/types/order';
-import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
+import {
+  formatTableMoney,
+  tablePaymentFlowTranslationKey,
+  tableSessionEligibleOutstanding,
+} from '@/lib/cashierTableSession';
 import TableAccountActivityPanel from './TableAccountActivityPanel';
 import TableAccountItemsPanel from './TableAccountItemsPanel';
 import TableAccountPaymentsPanel from './TableAccountPaymentsPanel';
@@ -28,6 +32,9 @@ export default function TableAccountWorkspace({ session, timeZone }: TableAccoun
     payments: t('cashier.tables.account_payments'),
     activity: t('cashier.tables.account_activity'),
   };
+  const flowLabel = session.bill.paymentFlowMode
+    ? t(tablePaymentFlowTranslationKey(session.bill.paymentFlowMode))
+    : null;
   const nextTabForKey = (current: AccountTab, key: string): AccountTab | null => {
     const index = TABS.indexOf(current);
     const rtl = i18n.dir?.() === 'rtl';
@@ -65,7 +72,35 @@ export default function TableAccountWorkspace({ session, timeZone }: TableAccoun
             <dd>{money(session.bill.credit)}</dd>
           </div>
         )}
+        {flowLabel && (
+          <div>
+            <dt>{t('cashier.tables.payment_flow')}</dt>
+            <dd>
+              {flowLabel}
+              {session.bill.guestCount
+                ? ` · ${t('cashier.tables.split_guest_count', { count: session.bill.guestCount })}`
+                : ''}
+            </dd>
+          </div>
+        )}
+        {(session.bill.guestAmounts ?? []).map((guest) => (
+          <div key={guest.guestNumber}>
+            <dt>{t('cashier.tables.split_guest_amount', { number: guest.guestNumber })}</dt>
+            <dd>
+              {t(`cashier.tables.split_status_${guest.status.toLowerCase()}`)} · {money(guest.amount)}
+            </dd>
+          </div>
+        ))}
+        {(session.bill.paymentTip ?? 0) > 0 && (
+          <div>
+            <dt>{t('cashier.tables.payment_tip_received')}</dt>
+            <dd>{money(session.bill.paymentTip)}</dd>
+          </div>
+        )}
       </dl>
+      {(session.bill.paymentTip ?? 0) > 0 && (
+        <p className={styles.note}>{t('cashier.tables.tip_food_refund_notice')}</p>
+      )}
       <div className={styles.tabs} role="tablist" aria-label={t('cashier.tables.account')}>
         {TABS.map((tab) => (
           <button

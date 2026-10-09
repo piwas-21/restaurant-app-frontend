@@ -2785,6 +2785,7 @@
   "cashier.tables.capacity_other": "{{count}} kişilik",
   "cashier.tables.rounds_one": "{{count}} sipariş turu",
   "cashier.tables.rounds_other": "{{count}} sipariş turu",
+  "cashier.tables.round_count_label": "Sipariş turları",
   "cashier.tables.legacy_orders_one": "{{count}} eski sipariş",
   "cashier.tables.legacy_orders_other": "{{count}} eski sipariş",
   "cashier.tables.unnamed_table": "Adsız masa",

@@ -2791,6 +2791,7 @@
   "cashier.tables.rounds_many": "{{count}} tournées",
   "cashier.tables.rounds_one": "{{count}} tournée",
   "cashier.tables.rounds_other": "{{count}} tournées",
+  "cashier.tables.round_count_label": "Tournées",
   "cashier.tables.legacy_orders_many": "{{count}} commandes externes",
   "cashier.tables.legacy_orders_one": "{{count}} commande externe",
   "cashier.tables.legacy_orders_other": "{{count}} commandes externes",

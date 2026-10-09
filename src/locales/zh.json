@@ -2779,6 +2779,7 @@
   "cashier.workspace.open_count_other": "{{count}} 个进行中的订单",
   "cashier.tables.capacity_other": "{{count}} 个座位",
   "cashier.tables.rounds_other": "{{count}} 轮点单",
+  "cashier.tables.round_count_label": "点单轮次",
   "cashier.tables.legacy_orders_other": "{{count}} 张会话外订单",
   "cashier.tables.unnamed_table": "未命名桌台",
   "cashier.tables.close_not_recorded": "关闭操作未被记录。该用餐仍在进行中——请核对账单后再次关闭。",

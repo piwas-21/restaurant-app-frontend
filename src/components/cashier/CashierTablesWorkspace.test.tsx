@@ -116,12 +116,15 @@ function sessionState(
     refresh: jest.fn(async () => undefined),
     submitPayment: jest.fn(async () => makeSession(firstVisit)),
     closeSession: jest.fn(async () => makeSession(firstVisit)),
+    releaseTable: jest.fn(async () => makeSession(firstVisit)),
+    clearAndReleaseTable: jest.fn(async () => makeSession(firstVisit)),
     reconcilePendingOperation: jest.fn(async () => undefined),
   };
 }
 
 const tableState: ReturnType<typeof useCashierTables> = {
   entries: [],
+  releasedSessions: [],
   queueState: 'ready',
   isLoading: false,
   isMutating: false,
@@ -129,6 +132,7 @@ const tableState: ReturnType<typeof useCashierTables> = {
   refresh: jest.fn(async () => undefined),
   openSession: jest.fn(async () => makeSession(firstVisit)),
   repairLegacyOrders: jest.fn(async () => makeSession(firstVisit)),
+  clearLegacyTableOrders: jest.fn(async () => undefined),
   repairSuccess: false,
 };
 

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTableBillActions';
 import ServerTableBillWorkspace from './ServerTableBillWorkspace';
@@ -180,6 +180,8 @@ describe('ServerTableBillWorkspace', () => {
 
     expect(screen.getByRole('heading', { name: 'cashier.tables.account' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_items' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'cashier.tables.bill' })).not.toBeInTheDocument();
+    const printBill = screen.getByTestId('cashier-table-print-bill');
+    expect(printBill).toHaveClass('printBill');
+    expect(within(printBill).getByRole('heading', { name: 'cashier.tables.bill' })).toBeInTheDocument();
   });
 });

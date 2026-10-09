@@ -81,6 +81,12 @@
       "rounding_note": "Cash rounding changes only the physical amount due. It does not change the account charge or add a tip.",
       "evidence_unavailable": "Cash terms or receipt evidence are unavailable or inconsistent. New cash collection is disabled; check the original operation.",
       "legacy_unattested": "This earlier cash payment has no verified received amount or change. Its recorded account charge remains visible."
-    }
+    },
+    "custom_guest_shares": "Custom amount per guest",
+    "custom_amounts_must_match_balance": "Enter one positive amount per guest. The amounts must add up to the full available balance.",
+    "share_plan_will_be_replaced": "Creating this plan will replace the current split. Plans with active or captured payments cannot be replaced.",
+    "share_amount": "Guest {{number}} amount",
+    "mode_custom_guest_share": "Custom per-guest contribution",
+    "mode_full": "Full bill"
   }
 }

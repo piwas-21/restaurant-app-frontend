@@ -8,6 +8,26 @@ const PAYMENT_TOLERANCE = 0.01;
 export type TableSessionAction = 'collect' | 'close';
 export type TableOrderSettlementState = 'eligible' | 'settled' | 'credit' | 'refunded' | 'cancelled';
 
+export function tablePaymentFlowTranslationKey(mode: string): string {
+  const keys: Record<string, string> = {
+    Full: 'cashier.tables.payment_flow_full',
+    Amount: 'cashier.tables.payment_flow_amount',
+    Equal: 'cashier.tables.payment_flow_equal',
+    CustomAmount: 'cashier.tables.payment_flow_custom',
+    ByItems: 'cashier.tables.payment_flow_items',
+  };
+  return keys[mode] ?? 'cashier.tables.payment_flow';
+}
+
+export function tableSplitStatusTranslationKey(status: string): string {
+  const keys: Record<string, string> = {
+    Due: 'cashier.tables.split_status_due',
+    Captured: 'cashier.tables.split_status_captured',
+    Reserved: 'cashier.tables.split_status_reserved',
+  };
+  return keys[status] ?? keys.Due;
+}
+
 /** Table service sessions use an integer key; normalise display values such as `01` at the seam. */
 export function tableNumberKey(value: string | number): string {
   const text = String(value).trim();

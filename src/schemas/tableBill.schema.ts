@@ -19,14 +19,19 @@ export const billTenderSchema = z
   .object({
     amount: z.coerce.number({ message: 'cashier.table_bill.error.amount' }).positive('cashier.table_bill.error.amount'),
     paymentMethod: z.nativeEnum(PaymentMethod),
+    tip: z.string().optional(),
     // The legacy table-bill dialog does not collect received cash, so this remains optional there.
     // The Tables workspace supplies it to reject an incomplete cash handoff before recording a tender.
     cashReceived: z.string().optional(),
   })
   .superRefine((value, context) => {
+    const tip = Number(value.tip ?? '0');
+    if (!Number.isFinite(tip) || tip < 0 || Math.round(tip * 100) !== tip * 100) {
+      context.addIssue({ code: 'custom', path: ['tip'], message: 'cashier.table_bill.error.tip' });
+    }
     if (value.paymentMethod === PaymentMethod.Cash && value.cashReceived !== undefined) {
       const received = Number(value.cashReceived);
-      if (!Number.isFinite(received) || received < value.amount) {
+      if (!Number.isFinite(received) || received < value.amount + (Number.isFinite(tip) ? tip : 0)) {
         context.addIssue({ code: 'custom', path: ['cashReceived'], message: 'cashier.cash_received_too_low' });
       }
     }

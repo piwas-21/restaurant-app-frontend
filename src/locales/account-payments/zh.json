@@ -81,6 +81,12 @@
       "rounding_note": "现金舍入只改变应付现金金额，不会改变账单金额或添加小费。",
       "evidence_unavailable": "现金支付信息或收据缺失或不一致。新的现金收款已停用；请核查原始操作。",
       "legacy_unattested": "这笔早期现金支付的实收金额和找零未经核实。已记录的账单金额仍然可见。"
-    }
+    },
+    "custom_guest_shares": "为每位客人自定义金额",
+    "custom_amounts_must_match_balance": "请为每位客人输入正数金额，所有金额之和必须等于全部可用余额。",
+    "share_plan_will_be_replaced": "此计划将替换当前分账。存在进行中或已记录付款的计划不能替换。",
+    "share_amount": "客人 {{number}} 的金额",
+    "mode_custom_guest_share": "每位客人自定义付款",
+    "mode_full": "支付全部账单"
   }
 }

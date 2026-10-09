@@ -1,14 +1,9 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
-import {
-  addTableServiceSessionPayment,
-  closeTableServiceSession,
-  getTableServiceSession,
-} from '@/services/tableServiceSessionService';
+import { addTableServiceSessionPayment, getTableServiceSession } from '@/services/tableServiceSessionService';
 import {
   clearPendingTableOperation,
-  persistPendingTableClose,
   persistPendingTablePayment,
   readPendingTableOperation,
   type PendingTableOperation,
@@ -22,7 +17,7 @@ import {
   finishTableSessionMutation,
   isCurrentTableSessionMutation,
 } from '@/hooks/cashier/tableSessionMutation';
-import { tableServiceCloseErrorMessage } from './tableServiceSessionErrors';
+import { useTableServiceSessionLifecycleActions } from './useTableServiceSessionLifecycleActions';
 export type { TableServiceSessionState } from './tableServiceSessionTypes';
 export function useTableServiceSession(
   serviceSessionId: string | null,
@@ -91,6 +86,22 @@ export function useTableServiceSession(
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [isMutating, pendingOperation]);
+  const lifecycleActions = useTableServiceSessionLifecycleActions({
+    serviceSessionId,
+    session,
+    pendingOperation,
+    refresh,
+    mountedRef,
+    requestRef,
+    operationRef,
+    inFlightRef,
+    setIsLoading,
+    setIsMutating,
+    setPendingOperation,
+    setIsStale,
+    setError,
+    setSession,
+  });
   const executePayment = useCallback(
     async (payment: AddTableServiceSessionPaymentRequest): Promise<TableServiceSessionDto> => {
       if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
@@ -130,43 +141,6 @@ export function useTableServiceSession(
     },
     [pendingOperation, refresh, serviceSessionId, session],
   );
-  const executeClose = useCallback(async (): Promise<TableServiceSessionDto> => {
-    if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-    if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
-    const expectedVersion = session.version;
-    const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
-    const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
-    persistPendingTableClose(serviceSessionId, expectedVersion);
-    setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Checking' });
-    setIsMutating(true);
-    setError(null);
-    try {
-      const result = await closeTableServiceSession(serviceSessionId, { expectedVersion });
-      if (!current()) throw new Error('cashier.tables.operation_stale');
-      clearPendingTableOperation(serviceSessionId);
-      setPendingOperation(null);
-      setSession(result);
-      setIsStale(false);
-      return result;
-    } catch (reason: unknown) {
-      if (!current()) throw reason;
-      if (isPaymentOutcomeUnknown(reason)) {
-        setPendingOperation({ kind: 'close', serviceSessionId, expectedVersion, status: 'Unknown' });
-        setError('cashier.tables.close_unknown');
-      } else {
-        clearPendingTableOperation(serviceSessionId);
-        setPendingOperation(null);
-        const message = tableServiceCloseErrorMessage(reason);
-        setError(message);
-        void refresh().finally(() => {
-          if (current()) setError(message);
-        });
-      }
-      throw reason;
-    } finally {
-      finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
-    }
-  }, [pendingOperation, refresh, serviceSessionId, session]);
   const reconcilePendingOperation = useCallback(async (): Promise<void> => {
     if (!serviceSessionId || pendingOperation?.status !== 'Unknown') return;
     if (inFlightRef.current) return;
@@ -194,7 +168,9 @@ export function useTableServiceSession(
     pendingOperation,
     refresh,
     submitPayment: executePayment,
-    closeSession: executeClose,
+    closeSession: lifecycleActions.executeClose,
+    releaseTable: lifecycleActions.executeRelease,
+    clearAndReleaseTable: lifecycleActions.executeClearAndRelease,
     reconcilePendingOperation,
   };
 }

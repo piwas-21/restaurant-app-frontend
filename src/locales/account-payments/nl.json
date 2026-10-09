@@ -81,6 +81,12 @@
       "rounding_note": "Afronding wijzigt alleen het contant te betalen bedrag. Het rekeningbedrag blijft gelijk en er wordt geen fooi toegevoegd.",
       "evidence_unavailable": "Contante betaalgegevens of bewijs ontbreken of komen niet overeen. Nieuwe contante betalingen zijn geblokkeerd; controleer de oorspronkelijke handeling.",
       "legacy_unattested": "Het ontvangen bedrag en wisselgeld van deze eerdere contante betaling zijn niet bevestigd. Het vastgelegde rekeningbedrag blijft zichtbaar."
-    }
+    },
+    "custom_guest_shares": "Aangepast bedrag per gast",
+    "custom_amounts_must_match_balance": "Voer voor iedere gast een positief bedrag in. De bedragen moeten samen het volledige beschikbare saldo zijn.",
+    "share_plan_will_be_replaced": "Dit plan vervangt de huidige verdeling. Plannen met actieve of vastgelegde betalingen kunnen niet worden vervangen.",
+    "share_amount": "Bedrag voor gast {{number}}",
+    "mode_custom_guest_share": "Aangepaste bijdrage per gast",
+    "mode_full": "Volledige rekening"
   }
 }

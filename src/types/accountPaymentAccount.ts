@@ -15,6 +15,8 @@ export interface AccountEqualShareSummary {
   shareCount: number;
   currency: string;
   isOwnPlan: boolean;
+  isCustom?: boolean;
+  customAmountsMinor?: number[] | null;
   slots: AccountEqualShareSlotSummary[];
   scope: AccountPaymentAllocation[];
 }

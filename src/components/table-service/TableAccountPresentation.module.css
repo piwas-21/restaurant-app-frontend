@@ -1,0 +1,9 @@
+.printBill {
+  display: none;
+}
+
+@media print {
+  .printBill {
+    display: block !important;
+  }
+}

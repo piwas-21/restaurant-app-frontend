@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TableGuestFeatureProvider, useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
 import { createTableGuestAdmissionCode } from '@/services/tableGuestAdmissionCodeService';
@@ -32,6 +33,7 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
   const [code, setCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [uncertain, setUncertain] = useState(false);
+  const [helpVisible, setHelpVisible] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const requestLock = useRef(false);
 
@@ -85,8 +87,25 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
 
   return (
     <section className={styles.panel} aria-label={t('table_guest_staff_code_title')}>
-      <strong>{t('table_guest_staff_code_title')}</strong>
-      <p className={styles.detail}>{t('table_guest_staff_code_replacement_detail')}</p>
+      <div className={styles.heading}>
+        <strong>{t('table_guest_staff_code_title')}</strong>
+        <button
+          type="button"
+          className={styles.helpButton}
+          aria-label={t('table_guest_staff_code_help_label')}
+          aria-expanded={helpVisible}
+          aria-controls="table-guest-code-help"
+          onClick={() => setHelpVisible((visible) => !visible)}
+        >
+          <Info size={18} aria-hidden="true" />
+        </button>
+      </div>
+      {helpVisible && (
+        <div className={styles.helpContent} id="table-guest-code-help">
+          <p className={styles.detail}>{t('table_guest_staff_code_help_text')}</p>
+          <p className={styles.detail}>{t('table_guest_staff_code_replacement_detail')}</p>
+        </div>
+      )}
       {code && formattedExpiry && (
         <div className={styles.codeResult} role="status" aria-live="polite">
           <code className={styles.code} dir="ltr">

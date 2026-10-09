@@ -65,6 +65,10 @@ export default function TipSelector({
   const formatPrice = (minor: number) => formatCurrency(minor / 100, locale, currency);
 
   useEffect(() => {
+    onValidityChange?.(!customAmountInvalid);
+  }, [customAmountInvalid, onValidityChange]);
+
+  useEffect(() => {
     if (customAmountInvalid) return;
     if (selectedTipMinor === 0) {
       setSelectedOption('none');
@@ -97,17 +101,14 @@ export default function TipSelector({
       onTipChange(0);
       setCustomAmount('');
       setCustomAmountInvalid(false);
-      onValidityChange?.(true);
     } else if (option === 'custom') {
       setCustomAmount(selectedTipMinor === 0 ? '' : formatCustomTipMinor(selectedTipMinor, locale));
       setCustomAmountInvalid(false);
-      onValidityChange?.(true);
     } else {
       const amount = percentageTipMinor(subtotalMinor, option);
       onTipChange(amount / 100);
       setCustomAmount(formatCustomTipMinor(amount, locale));
       setCustomAmountInvalid(false);
-      onValidityChange?.(true);
     }
   };
 
@@ -117,15 +118,12 @@ export default function TipSelector({
     if (amount !== null) {
       setSelectedOption('custom');
       setCustomAmountInvalid(false);
-      onValidityChange?.(true);
       onTipChange(amount / 100);
     } else if (value === '') {
       setCustomAmountInvalid(false);
-      onValidityChange?.(true);
       onTipChange(0);
     } else {
       setCustomAmountInvalid(true);
-      onValidityChange?.(false);
     }
   };
 

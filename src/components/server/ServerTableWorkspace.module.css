@@ -144,13 +144,13 @@
   padding-block: var(--space-2, 0.5rem);
   padding-inline: var(--space-3, 0.75rem);
   border: 1px solid var(--feedback-warning);
-  background: var(--feedback-warning-xlight);
+  background: var(--surface-card);
   color: var(--text-primary);
 }
 
 .success {
   border-color: var(--feedback-success);
-  background: var(--feedback-success-xlight);
+  color: var(--feedback-success-text);
 }
 
 .reservation {

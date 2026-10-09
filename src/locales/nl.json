@@ -2785,6 +2785,7 @@
   "cashier.tables.capacity_other": "{{count}} plekken",
   "cashier.tables.rounds_one": "{{count}} bestelronde",
   "cashier.tables.rounds_other": "{{count}} bestelrondes",
+  "cashier.tables.round_count_label": "Bestelrondes",
   "cashier.tables.legacy_orders_one": "{{count}} oudere bestelling",
   "cashier.tables.legacy_orders_other": "{{count}} oudere bestellingen",
   "cashier.tables.unnamed_table": "Naamloze tafel",

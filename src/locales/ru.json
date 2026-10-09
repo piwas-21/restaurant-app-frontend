@@ -2797,6 +2797,7 @@
   "cashier.tables.rounds_many": "{{count}} раундов",
   "cashier.tables.rounds_one": "{{count}} раунд",
   "cashier.tables.rounds_other": "{{count}} раунда",
+  "cashier.tables.round_count_label": "Раунды",
   "cashier.tables.legacy_orders_few": "{{count}} сторонних заказа",
   "cashier.tables.legacy_orders_many": "{{count}} сторонних заказов",
   "cashier.tables.legacy_orders_one": "{{count}} сторонний заказ",

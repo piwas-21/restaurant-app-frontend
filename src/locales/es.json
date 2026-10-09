@@ -2791,6 +2791,7 @@
   "cashier.tables.rounds_many": "{{count}} rondas",
   "cashier.tables.rounds_one": "{{count}} ronda",
   "cashier.tables.rounds_other": "{{count}} rondas",
+  "cashier.tables.round_count_label": "Rondas",
   "cashier.tables.legacy_orders_many": "{{count}} pedidos externos",
   "cashier.tables.legacy_orders_one": "{{count}} pedido externo",
   "cashier.tables.legacy_orders_other": "{{count}} pedidos externos",

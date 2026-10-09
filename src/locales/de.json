@@ -2785,6 +2785,7 @@
   "cashier.tables.capacity_other": "{{count}} Plätze",
   "cashier.tables.rounds_one": "{{count}} Bestellrunde",
   "cashier.tables.rounds_other": "{{count}} Bestellrunden",
+  "cashier.tables.round_count_label": "Bestellrunden",
   "cashier.tables.legacy_orders_one": "{{count}} ältere Bestellung",
   "cashier.tables.legacy_orders_other": "{{count}} ältere Bestellungen",
   "cashier.tables.unnamed_table": "Unbenannter Tisch",

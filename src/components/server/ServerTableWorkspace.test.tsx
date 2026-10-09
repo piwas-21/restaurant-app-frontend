@@ -31,6 +31,7 @@ jest.mock('react-i18next', () => ({
         'cashier.tables.bill': 'Full table bill',
         'cashier.tables.add_round': 'Add round',
         'cashier.tables.reserved_table': 'This table has an active reservation.',
+        'cashier.tables.round_count_label': 'Rounds',
         'cashier.tables.currency_unknown': 'Currency unavailable',
         'server.status_stale': 'Stale data',
         'server.last_confirmed': 'Last confirmed',
@@ -167,6 +168,23 @@ describe('ServerTableWorkspace', () => {
       'href',
       '/server/tables/table-1/order?serviceSessionId=session-1',
     );
+  });
+
+  it('shows a translated rounds label and a separate zero count for an empty visit', () => {
+    render(
+      <ServerTableWorkspace
+        tableId="table-1"
+        state={state({
+          table: table({ state: 'Open' }),
+          session: { ...session, roundCount: 0 },
+          canStartTable: false,
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Rounds', { selector: 'dt' })).toBeInTheDocument();
+    expect(screen.getByText('0', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.queryByText(/\{\{count\}\}/)).not.toBeInTheDocument();
   });
 
   it('shows guest-code issuance only for an open visit with the tenant feature enabled', async () => {

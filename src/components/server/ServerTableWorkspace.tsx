@@ -109,7 +109,7 @@ export default function ServerTableWorkspace({
                 {session && (
                   <>
                     <div>
-                      <dt>{t('cashier.tables.rounds_other')}</dt>
+                      <dt>{t('cashier.tables.round_count_label')}</dt>
                       <dd>{session.roundCount}</dd>
                     </div>
                     <div>

@@ -2785,6 +2785,7 @@
   "cashier.tables.capacity_other": "{{count}} seats",
   "cashier.tables.rounds_one": "{{count}} round",
   "cashier.tables.rounds_other": "{{count}} rounds",
+  "cashier.tables.round_count_label": "Rounds",
   "cashier.tables.legacy_orders_one": "{{count}} legacy order",
   "cashier.tables.legacy_orders_other": "{{count}} legacy orders",
   "cashier.tables.unnamed_table": "Unnamed table",

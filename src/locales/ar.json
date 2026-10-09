@@ -2809,6 +2809,7 @@
   "cashier.tables.rounds_two": "{{count}} جولتين",
   "cashier.tables.rounds_zero": "{{count}} جولات",
   "cashier.tables.rounds_other": "{{count}} جولة",
+  "cashier.tables.round_count_label": "الجولات",
   "cashier.tables.legacy_orders_few": "{{count}} طلبات خارجية",
   "cashier.tables.legacy_orders_many": "{{count}} طلبًا خارجيًا",
   "cashier.tables.legacy_orders_one": "{{count}} طلب خارجي",

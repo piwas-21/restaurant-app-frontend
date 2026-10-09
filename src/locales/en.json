@@ -2005,6 +2005,7 @@
   "order_type_conflict_removing": "Removing…",
   "order_type_conflict_keep": "Cancel to keep your order as it is.",
   "order_type_conflict_error": "Those items could not be removed. Your order is unchanged — please try again.",
+  "basket_channel_recovery_message": "The selected order type could not be confirmed for your basket. Checkout is paused until the basket is up to date. Retry or choose another order type.",
   "module_unavailable_title": "Not available here",
   "module_unavailable_message": "This restaurant does not offer this feature.",
   "module_unavailable_action": "Back to home",

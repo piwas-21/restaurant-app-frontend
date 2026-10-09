@@ -16,6 +16,8 @@ interface OrderTypeToggleProps {
   focusSignal?: number;
   /** Forwarded to the shell — see `OrderTypeToggleShell.blockerHintId`. */
   blockerHintId?: string;
+  /** Locks the selected channel while checkout resolves profile/address prerequisites. */
+  disabled?: boolean;
 }
 
 /**
@@ -26,9 +28,15 @@ interface OrderTypeToggleProps {
  */
 // Memoized so the `useCallback`-stabilised `onPick` from CartContents (PR #74
 // review) actually prevents this child from re-rendering on parent re-renders.
-function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId }: Readonly<OrderTypeToggleProps>) {
+function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId, disabled }: Readonly<OrderTypeToggleProps>) {
   return (
-    <OrderTypeToggleShell onPick={onPick} styles={styles} focusSignal={focusSignal} blockerHintId={blockerHintId} />
+    <OrderTypeToggleShell
+      onPick={onPick}
+      styles={styles}
+      focusSignal={focusSignal}
+      blockerHintId={blockerHintId}
+      disabled={disabled}
+    />
   );
 }
 

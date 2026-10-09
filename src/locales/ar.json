@@ -2013,6 +2013,7 @@
   "order_type_conflict_removing": "جارٍ الإزالة…",
   "order_type_conflict_keep": "ألغِ للإبقاء على طلبك كما هو.",
   "order_type_conflict_error": "تعذّرت إزالة هذه العناصر. لم يتغيّر طلبك — يرجى المحاولة مرة أخرى.",
+  "basket_channel_recovery_message": "تعذّر تأكيد نوع الطلب المحدد لسلتك. تم إيقاف إتمام الطلب مؤقتًا حتى يتم تحديث السلة. أعد المحاولة أو اختر نوع طلب آخر.",
   "module_unavailable_title": "غير متاح هنا",
   "module_unavailable_message": "هذا المطعم لا يوفر هذه الميزة.",
   "module_unavailable_action": "العودة إلى الصفحة الرئيسية",

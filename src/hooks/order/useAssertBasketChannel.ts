@@ -18,6 +18,8 @@ export {
   markBasketChannelSnapshotRefreshed,
   releaseUncommittedBasketChannelSelection,
   setBasketOrderTypeAndRefresh,
+  retryBasketChannelSnapshot,
+  useBasketChannelRecoveryRequired,
   useBasketChannelReconciliationPending,
 } from './basketChannelMutation';
 

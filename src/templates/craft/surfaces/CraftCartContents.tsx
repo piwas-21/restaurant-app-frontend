@@ -28,6 +28,10 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     blockerMessage,
     isOrderTypeSelectionPending,
     isCheckoutPending,
+    isChannelRecoveryVisible,
+    isChannelRecoveryRetrying,
+    channelRecoveryErrorMessage,
+    retryChannelRecovery,
     orderTypeAttempts,
     error,
     isSyncing,
@@ -42,12 +46,30 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
 
   return (
     <>
-      <CraftOrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
+      <CraftOrderTypeToggle
+        onPick={handlePick}
+        focusSignal={orderTypeAttempts}
+        blockerHintId={blockerHintId}
+        disabled={isCheckoutPending || isChannelRecoveryRetrying}
+      />
 
       {/* See CartContents — same slot, same reason (#415). */}
       {error && (
         <div className={styles.cartError} role="alert">
           {error}
+        </div>
+      )}
+      {isChannelRecoveryVisible && (
+        <div className={styles.cartError} role="alert">
+          <p>{channelRecoveryErrorMessage ?? t('basket_channel_recovery_message')}</p>
+          <button
+            type="button"
+            className={styles.iconButton}
+            disabled={isChannelRecoveryRetrying}
+            onClick={() => void retryChannelRecovery()}
+          >
+            {t('retry', 'Retry')}
+          </button>
         </div>
       )}
 

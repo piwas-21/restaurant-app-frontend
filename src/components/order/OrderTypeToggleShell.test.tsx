@@ -49,6 +49,12 @@ describe('OrderTypeToggleShell', () => {
     expect(screen.getByRole('button', { name: /Delivery/ })).toBeInTheDocument();
   });
 
+  it('disables every order-type choice while checkout resolves prerequisites', () => {
+    render(<OrderTypeToggleShell onPick={() => {}} styles={styles} disabled />);
+    expect(screen.getByRole('group', { name: 'Order type' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Takeaway/ })).toBeDisabled();
+  });
+
   it('renders only the admin-enabled subset', () => {
     mockEnabledState = { enabled: [OrderType.Takeaway], loading: false };
     render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);

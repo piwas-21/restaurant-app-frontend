@@ -131,18 +131,20 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
       markAttempted(orderTypeState.orderType);
       try {
         const { result, basketRefreshed } = await setBasketOrderTypeAndRefresh(orderType, state.basket, syncBasket);
-        if (result.applied || result.conflicts.length === 0) {
-          if (!result.applied || !basketRefreshed) markAttempted(orderType);
-          return true;
+        if (!basketRefreshed || (!result.applied && result.conflicts.length === 0)) {
+          // Keep the old type until confirmation; the cart exposes recovery retry.
+          markAttempted(orderType);
+          return false;
         }
+        if (result.applied) return true;
         setPending({ orderType, conflicts: result.conflicts, source, forceModal });
         return false;
       } catch (err) {
         if (isBasketChannelSessionChangedError(err)) return false;
-        // Fail open on a network error; OrderChannelGuard still blocks an unfulfillable order.
-        console.warn('Order-type conflict check failed; allowing the switch:', err);
+        // Keep the type selected until confirmed; the cart exposes a recovery retry.
+        console.warn('Order-type conflict check failed; keeping the current type:', err);
         markAttempted(orderType);
-        return true;
+        return false;
       } finally {
         inFlightRef.current = false;
       }

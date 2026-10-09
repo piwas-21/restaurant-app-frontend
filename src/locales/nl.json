@@ -2005,6 +2005,7 @@
   "order_type_conflict_removing": "Verwijderen…",
   "order_type_conflict_keep": "Annuleer om je bestelling ongewijzigd te laten.",
   "order_type_conflict_error": "Deze items konden niet worden verwijderd. Je bestelling is ongewijzigd — probeer het opnieuw.",
+  "basket_channel_recovery_message": "De gekozen bestelwijze kon niet voor je winkelwagen worden bevestigd. Je kunt niet afrekenen voordat de winkelwagen is bijgewerkt. Probeer het opnieuw of kies een andere bestelwijze.",
   "module_unavailable_title": "Hier niet beschikbaar",
   "module_unavailable_message": "Dit restaurant biedt deze functie niet aan.",
   "module_unavailable_action": "Terug naar home",

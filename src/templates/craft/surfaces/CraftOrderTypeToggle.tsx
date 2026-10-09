@@ -12,6 +12,8 @@ interface CraftOrderTypeToggleProps {
   focusSignal?: number;
   /** Forwarded to the shell — see `OrderTypeToggleShell.blockerHintId`. */
   blockerHintId?: string;
+  /** Locks the selected channel while checkout resolves profile/address prerequisites. */
+  disabled?: boolean;
 }
 
 /**
@@ -20,9 +22,20 @@ interface CraftOrderTypeToggleProps {
  * hand-torn kraft chips — the active one terracotta — to match the order-pad
  * look. Craft-only bundle (rendered by `CraftCartContents`).
  */
-function CraftOrderTypeToggleImpl({ onPick, focusSignal, blockerHintId }: Readonly<CraftOrderTypeToggleProps>) {
+function CraftOrderTypeToggleImpl({
+  onPick,
+  focusSignal,
+  blockerHintId,
+  disabled,
+}: Readonly<CraftOrderTypeToggleProps>) {
   return (
-    <OrderTypeToggleShell onPick={onPick} styles={styles} focusSignal={focusSignal} blockerHintId={blockerHintId} />
+    <OrderTypeToggleShell
+      onPick={onPick}
+      styles={styles}
+      focusSignal={focusSignal}
+      blockerHintId={blockerHintId}
+      disabled={disabled}
+    />
   );
 }
 

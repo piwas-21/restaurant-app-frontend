@@ -2007,6 +2007,7 @@
   "order_type_conflict_removing": "Suppression…",
   "order_type_conflict_keep": "Annulez pour conserver votre commande telle quelle.",
   "order_type_conflict_error": "Ces articles n'ont pas pu être retirés. Votre commande est inchangée — veuillez réessayer.",
+  "basket_channel_recovery_message": "Le type de commande choisi n’a pas pu être confirmé pour votre panier. La validation de votre commande est suspendue jusqu’à la mise à jour du panier. Réessayez ou choisissez un autre type de commande.",
   "module_unavailable_title": "Non disponible ici",
   "module_unavailable_message": "Ce restaurant ne propose pas cette fonctionnalité.",
   "module_unavailable_action": "Retour à l'accueil",

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import CraftCartContents from './CraftCartContents';
 
 jest.mock('react-i18next', () => ({
@@ -16,6 +16,10 @@ const mockHookValue = {
   blockerMessage: '',
   isOrderTypeSelectionPending: false,
   isCheckoutPending: false,
+  isChannelRecoveryVisible: false,
+  isChannelRecoveryRetrying: false,
+  channelRecoveryErrorMessage: null,
+  retryChannelRecovery: jest.fn(),
   isSyncing: false,
   isResolving: false,
   handleQty: jest.fn(),
@@ -24,7 +28,14 @@ const mockHookValue = {
   handlePick: jest.fn(),
 };
 jest.mock('@/hooks/order/useCartContents', () => ({ useCartContents: () => mockHookValue }));
-jest.mock('./CraftOrderTypeToggle', () => ({ __esModule: true, default: () => <div data-testid="craft-toggle" /> }));
+jest.mock('./CraftOrderTypeToggle', () => ({
+  __esModule: true,
+  default: ({ disabled }: { disabled?: boolean }) => (
+    <button type="button" data-testid="craft-toggle" disabled={disabled}>
+      Order type
+    </button>
+  ),
+}));
 jest.mock('@/components/order/OrderLineSummary', () => ({
   __esModule: true,
   default: () => <div data-testid="line-summary" />,
@@ -48,6 +59,10 @@ describe('CraftCartContents', () => {
       blockerMessage: '',
       isOrderTypeSelectionPending: false,
       isCheckoutPending: false,
+      isChannelRecoveryVisible: false,
+      isChannelRecoveryRetrying: false,
+      channelRecoveryErrorMessage: null,
+      retryChannelRecovery: jest.fn(),
       error: null,
     });
   });
@@ -63,6 +78,19 @@ describe('CraftCartContents', () => {
   it('renders no alert when there is no error', () => {
     render(<CraftCartContents pickType={jest.fn()} />);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows a channel recovery explanation and explicit retry', () => {
+    const retryChannelRecovery = jest.fn();
+    Object.assign(mockHookValue, {
+      isChannelRecoveryVisible: true,
+      channelRecoveryErrorMessage: 'The server could not confirm the selected order type.',
+      retryChannelRecovery,
+    });
+    render(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('alert')).toHaveTextContent('The server could not confirm the selected order type.');
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(retryChannelRecovery).toHaveBeenCalledTimes(1);
   });
 
   it('renders the craft empty note + order-type toggle', () => {
@@ -90,6 +118,7 @@ describe('CraftCartContents', () => {
     Object.assign(mockHookValue, { isOrderTypeSelectionPending: false, isCheckoutPending: true });
     rerender(<CraftCartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+    expect(screen.getByTestId('craft-toggle')).toBeDisabled();
 
     Object.assign(mockHookValue, { isCheckoutPending: false });
     rerender(<CraftCartContents pickType={jest.fn()} />);

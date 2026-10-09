@@ -29,6 +29,10 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     blockerMessage,
     isOrderTypeSelectionPending,
     isCheckoutPending,
+    isChannelRecoveryVisible,
+    isChannelRecoveryRetrying,
+    channelRecoveryErrorMessage,
+    retryChannelRecovery,
     orderTypeAttempts,
     error,
     isSyncing,
@@ -44,7 +48,12 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
 
   return (
     <>
-      <OrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
+      <OrderTypeToggle
+        onPick={handlePick}
+        focusSignal={orderTypeAttempts}
+        blockerHintId={blockerHintId}
+        disabled={isCheckoutPending || isChannelRecoveryRetrying}
+      />
 
       {/* Above the list, because it usually explains why the list just changed — a reaped basket
           resyncs to empty, and without this the cart emptied with no word of why (#415).
@@ -52,6 +61,19 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
       {error && (
         <div className={styles.cartError} role="alert">
           {error}
+        </div>
+      )}
+      {isChannelRecoveryVisible && (
+        <div className={styles.cartError} role="alert">
+          <p>{channelRecoveryErrorMessage ?? t('basket_channel_recovery_message')}</p>
+          <button
+            type="button"
+            className={styles.iconButton}
+            disabled={isChannelRecoveryRetrying}
+            onClick={() => void retryChannelRecovery()}
+          >
+            {t('retry', 'Retry')}
+          </button>
         </div>
       )}
 

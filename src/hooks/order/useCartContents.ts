@@ -10,7 +10,7 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
-import { useBasketChannelReconciliationPending } from '@/hooks/order/useAssertBasketChannel';
+import { useBasketChannelRecovery } from '@/hooks/order/useBasketChannelRecovery';
 import { useTableGuestOrderTypeRecovery } from '@/hooks/order/useTableGuestOrderTypeRecovery';
 import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
 
@@ -31,7 +31,7 @@ export interface UseCartContentsArgs {
 }
 
 export function useCartContents({ pickType, onProceed, analyticsSource = 'sidebar' }: UseCartContentsArgs) {
-  const { state: cartState, updateItem, removeItem, clearError } = useCart();
+  const { state: cartState, updateItem, removeItem, clearError, syncBasket } = useCart();
 
   // Drop anything left over from before this surface existed. `state.error` is a single global slot
   // and the provider never remounts, so without this the sidebar on `/menu` would open showing a
@@ -42,7 +42,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     clearError();
   }, [clearError]);
   const { state: orderTypeState, hasChosenOrderType, setOrderType, setTable } = useOrderType();
-  const channelReconciliationPending = useBasketChannelReconciliationPending(orderTypeState.orderType ?? null);
+  const channelRecovery = useBasketChannelRecovery(cartState.basket, orderTypeState.orderType ?? null, syncBasket);
   const { tableContext } = useTableContext();
   const { tableGuest, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
     orderType: orderTypeState,
@@ -55,6 +55,9 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   const [isCheckoutPending, setIsCheckoutPending] = React.useState(false);
   const pendingOrderTypePicksRef = React.useRef(0);
   const checkoutAttemptRef = React.useRef(false);
+  const orderTypeSelectionRevisionRef = React.useRef(0);
+  const currentOrderTypeRef = React.useRef(orderTypeState.orderType);
+  currentOrderTypeRef.current = orderTypeState.orderType;
 
   const items = cartState.items;
   const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
@@ -64,7 +67,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     tableGuestAvailabilityBlocked || (tableGuest.visitBound && orderTypeState.orderType !== OrderTypeEnum.DineIn);
   const canCheckout = itemCount > 0 && hasChosenOrderType && !tableGuestCheckoutBlocked;
   const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0, tableGuest.blockerMessageKey ?? null);
-  const isOrderTypeSelectionPending = pendingOrderTypePicks > 0 || channelReconciliationPending;
+  const isOrderTypeSelectionPending = pendingOrderTypePicks > 0 || channelRecovery.isPending;
 
   const trackOrderTypePick = React.useCallback((selection: void | Promise<void>) => {
     if (selection === undefined) return;
@@ -99,7 +102,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
       itemCount === 0 ||
       checkoutAttemptRef.current ||
       pendingOrderTypePicksRef.current > 0 ||
-      channelReconciliationPending
+      channelRecovery.isPending
     ) {
       return;
     }
@@ -110,9 +113,13 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     }
     checkoutAttemptRef.current = true;
     setIsCheckoutPending(true);
+    const selectionRevision = orderTypeSelectionRevisionRef.current;
     let routed = false;
     try {
       const blocker = await proceedToCheckout(orderType, analyticsSource);
+      if (selectionRevision !== orderTypeSelectionRevisionRef.current || currentOrderTypeRef.current !== orderType) {
+        return;
+      }
       hint.setBlocker(blocker);
       // Missing contact/address detail is recoverable in one click: reopen the
       // type's own follow-up modal (forceModal, since Takeaway would otherwise
@@ -156,7 +163,11 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   // Memoized so OrderTypeToggle doesn't re-render on every parent render, and so
   // the analytics surface tag flows into `order_type_selected`.
   const handlePick = React.useCallback(
-    (type: OrderType) => trackOrderTypePick(pickTypeForCart(type, analyticsSource)),
+    (type: OrderType) => {
+      if (checkoutAttemptRef.current) return;
+      orderTypeSelectionRevisionRef.current += 1;
+      trackOrderTypePick(pickTypeForCart(type, analyticsSource));
+    },
     [pickTypeForCart, analyticsSource, trackOrderTypePick],
   );
 
@@ -169,26 +180,13 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     blockerMessage: hint.message,
     isOrderTypeSelectionPending,
     isCheckoutPending,
-    /**
-     * Non-zero once a Proceed click has been refused for want of an order type, and rising with
-     * every further refusal — what the surface hands the toggle so it can take the focus.
-     *
-     * Gated on the blocker so a 'details' refusal does not send the guest to a control that is
-     * already answered; that one reopens the type's own follow-up modal instead (see below).
-     */
+    isChannelRecoveryVisible: channelRecovery.isVisible,
+    isChannelRecoveryRetrying: channelRecovery.isRetrying,
+    channelRecoveryErrorMessage: channelRecovery.errorMessage,
+    retryChannelRecovery: channelRecovery.retry,
+    /** Count of refused checkout attempts that should focus the order-type picker. */
     orderTypeAttempts: hint.blocker === 'order-type' ? hint.attempts : 0,
-    /**
-     * The cart's failure sentence, resolved for display, or null. Render it verbatim — do NOT pass
-     * it through `t()`. "Resolved" is not the same as "translated": a 5xx or a message-less failure
-     * yields a localized string, but a 4xx deliberately carries the SERVER's own sentence, which is
-     * English. That is the existing contract (the channel guard's reason is written for the guest
-     * and is the actionable half of that feature), not an oversight.
-     *
-     * These surfaces swallow the rethrow from `handleQty`/`handleRemove`, and until #415 nothing
-     * here read this — so on `/menu`, the page guests actually order from, a failed line edit
-     * showed NOTHING: the cart just snapped back. Only the legacy `/cart` route had an error slot.
-     * Both consumers render it now; deleting either render brings the silence back.
-     */
+    /** Cart mutation error text, rendered verbatim by both surfaces. */
     error: cartState.error,
     isSyncing: cartState.isSyncing,
     isResolving,

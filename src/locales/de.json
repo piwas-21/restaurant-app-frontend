@@ -2005,6 +2005,7 @@
   "order_type_conflict_removing": "Wird entfernt…",
   "order_type_conflict_keep": "Brechen Sie ab, um Ihre Bestellung unverändert zu lassen.",
   "order_type_conflict_error": "Diese Artikel konnten nicht entfernt werden. Ihre Bestellung ist unverändert — bitte erneut versuchen.",
+  "basket_channel_recovery_message": "Die gewählte Bestellart konnte für Ihren Warenkorb nicht bestätigt werden. Der Kassenabschluss bleibt gesperrt, bis der Warenkorb aktualisiert ist. Versuchen Sie es erneut oder wählen Sie eine andere Bestellart.",
   "module_unavailable_title": "Hier nicht verfügbar",
   "module_unavailable_message": "Dieses Restaurant bietet diese Funktion nicht an.",
   "module_unavailable_action": "Zurück zur Startseite",

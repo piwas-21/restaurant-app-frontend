@@ -2003,6 +2003,7 @@
   "order_type_conflict_removing": "正在移除…",
   "order_type_conflict_keep": "取消可保持订单不变。",
   "order_type_conflict_error": "无法移除这些商品。您的订单未更改，请重试。",
+  "basket_channel_recovery_message": "无法确认您为购物篮选择的订单类型。购物篮更新前，订单结算已暂停。请重试或选择其他订单类型。",
   "module_unavailable_title": "此处不可用",
   "module_unavailable_message": "本餐厅不提供此功能。",
   "module_unavailable_action": "返回首页",

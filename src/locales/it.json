@@ -2007,6 +2007,7 @@
   "order_type_conflict_removing": "Rimozione…",
   "order_type_conflict_keep": "Annulla per lasciare il tuo ordine invariato.",
   "order_type_conflict_error": "Non è stato possibile rimuovere questi articoli. Il tuo ordine è invariato — riprova.",
+  "basket_channel_recovery_message": "Non è stato possibile confermare il tipo di ordine scelto per il tuo carrello. Non puoi completare l’ordine finché il carrello non è aggiornato. Riprova o scegli un altro tipo di ordine.",
   "module_unavailable_title": "Non disponibile qui",
   "module_unavailable_message": "Questo ristorante non offre questa funzione.",
   "module_unavailable_action": "Torna alla home",

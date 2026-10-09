@@ -2007,6 +2007,7 @@
   "order_type_conflict_removing": "Eliminando…",
   "order_type_conflict_keep": "Cancela para dejar tu pedido como está.",
   "order_type_conflict_error": "No se pudieron eliminar esos artículos. Tu pedido no ha cambiado — inténtalo de nuevo.",
+  "basket_channel_recovery_message": "No se pudo confirmar el tipo de pedido elegido para tu cesta. No podrás finalizar el pedido hasta que se actualice la cesta. Inténtalo de nuevo o elige otro tipo de pedido.",
   "module_unavailable_title": "No disponible aquí",
   "module_unavailable_message": "Este restaurante no ofrece esta función.",
   "module_unavailable_action": "Volver al inicio",

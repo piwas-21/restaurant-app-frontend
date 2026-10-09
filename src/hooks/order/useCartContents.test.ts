@@ -14,10 +14,16 @@ const mockSelectActiveVisitDineIn = jest.fn(() => {
   return true;
 });
 
-let mockCartState: { items: Array<Record<string, unknown>>; isSyncing: boolean; error?: string | null };
+let mockCartState: {
+  items: Array<Record<string, unknown>>;
+  isSyncing: boolean;
+  error?: string | null;
+  basket?: { items: unknown[]; orderType?: OrderType | null } | null;
+};
 let mockOrderTypeState: { orderType: OrderType | undefined };
 let mockHasChosenOrderType: boolean;
 let mockIsResolving: boolean;
+let mockChannelRecovery: { isPending: boolean; isVisible: boolean; isRetrying: boolean; retry: jest.Mock };
 let mockTableGuestState: {
   visitBound: boolean;
   active: boolean;
@@ -31,6 +37,7 @@ jest.mock('@/components/cart/CartContext', () => ({
     updateItem: mockUpdateItem,
     removeItem: mockRemoveItem,
     clearError: mockClearError,
+    syncBasket: jest.fn().mockResolvedValue(true),
   }),
 }));
 jest.mock('@/contexts/OrderTypeContext', () => ({
@@ -43,6 +50,9 @@ jest.mock('@/contexts/OrderTypeContext', () => ({
 }));
 jest.mock('@/hooks/checkout/useSmartCheckoutRouter', () => ({
   useSmartCheckoutRouter: () => ({ proceedToCheckout: mockProceedToCheckout, isResolving: mockIsResolving }),
+}));
+jest.mock('@/hooks/order/useBasketChannelRecovery', () => ({
+  useBasketChannelRecovery: () => mockChannelRecovery,
 }));
 jest.mock('@/contexts/TableContext', () => ({
   useTableContext: () => ({ tableContext: { tableId: 'table-11', tableNumber: '11a' } }),
@@ -76,6 +86,12 @@ describe('useCartContents', () => {
     mockOrderTypeState = { orderType: undefined };
     mockHasChosenOrderType = false;
     mockIsResolving = false;
+    mockChannelRecovery = {
+      isPending: false,
+      isVisible: false,
+      isRetrying: false,
+      retry: jest.fn(),
+    };
     mockTableGuestState = {
       visitBound: false,
       active: false,
@@ -159,6 +175,90 @@ describe('useCartContents', () => {
     expect(mockProceedToCheckout).toHaveBeenCalledWith(OrderType.DineIn, 'mobile_sheet');
     expect(onProceed).toHaveBeenCalledTimes(1);
     expect(sequence).toEqual(['router', 'close']);
+  });
+
+  it('holds checkout while a basket order-type pick is unresolved', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.DineIn };
+    mockHasChosenOrderType = true;
+    let finishPick!: () => void;
+    const pickType = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPick = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useCartContents({ pickType, analyticsSource: 'cart_sheet' }));
+
+    act(() => result.current.handlePick(OrderType.Takeaway));
+    expect(result.current.isOrderTypeSelectionPending).toBe(true);
+
+    await act(async () => result.current.handleCheckout());
+    expect(mockProceedToCheckout).not.toHaveBeenCalled();
+
+    await act(async () => finishPick());
+    expect(result.current.isOrderTypeSelectionPending).toBe(false);
+  });
+
+  it('holds checkout while the background basket-channel reconciliation is pending', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockChannelRecovery = { ...mockChannelRecovery, isPending: true };
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+
+    expect(result.current.isOrderTypeSelectionPending).toBe(true);
+    await act(async () => result.current.handleCheckout());
+    expect(mockProceedToCheckout).not.toHaveBeenCalled();
+  });
+
+  it('locks order-type changes while logged-in profile resolution is pending', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.DineIn };
+    mockHasChosenOrderType = true;
+    let finishProfileLookup!: (blocker: null) => void;
+    mockProceedToCheckout.mockImplementationOnce(() => new Promise<null>((resolve) => (finishProfileLookup = resolve)));
+    const pickType = jest.fn();
+    const onProceed = jest.fn();
+    const { result } = renderHook(() => useCartContents({ pickType, onProceed }));
+
+    act(() => result.current.handleCheckout());
+    expect(result.current.isCheckoutPending).toBe(true);
+
+    act(() => result.current.handlePick(OrderType.Takeaway));
+    expect(pickType).not.toHaveBeenCalled();
+
+    await act(async () => finishProfileLookup(null));
+    expect(mockProceedToCheckout).toHaveBeenCalledWith(OrderType.DineIn, 'sidebar');
+    expect(onProceed).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts only one route attempt for repeated Proceed taps', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.DineIn };
+    mockHasChosenOrderType = true;
+    let finishRoute!: (blocker: null) => void;
+    const onProceed = jest.fn();
+    mockProceedToCheckout.mockImplementationOnce(
+      () =>
+        new Promise<null>((resolve) => {
+          finishRoute = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn(), onProceed }));
+
+    act(() => {
+      result.current.handleCheckout();
+      result.current.handleCheckout();
+    });
+    expect(mockProceedToCheckout).toHaveBeenCalledTimes(1);
+    expect(result.current.isCheckoutPending).toBe(true);
+
+    await act(async () => finishRoute(null));
+    expect(onProceed).toHaveBeenCalledTimes(1);
+    expect(result.current.isCheckoutPending).toBe(true);
+    act(() => result.current.handleCheckout());
+    expect(mockProceedToCheckout).toHaveBeenCalledTimes(1);
   });
 
   it('explains a cart with no order type instead of silently doing nothing', async () => {

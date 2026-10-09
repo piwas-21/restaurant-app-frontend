@@ -6,6 +6,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
 import { useCartContents, type UseCartContentsArgs } from '@/hooks/order/useCartContents';
+import BasketChannelRecoveryAlert from './BasketChannelRecoveryAlert';
 import OrderTypeToggle from './OrderTypeToggle';
 import CartLineList from './CartLineList';
 import CartCheckoutButton from './CartCheckoutButton';
@@ -27,6 +28,12 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     itemCount,
     subtotal,
     blockerMessage,
+    isOrderTypeSelectionPending,
+    isCheckoutPending,
+    isChannelRecoveryVisible,
+    isChannelRecoveryRetrying,
+    channelRecoveryErrorMessage,
+    retryChannelRecovery,
     orderTypeAttempts,
     error,
     isSyncing,
@@ -42,7 +49,12 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
 
   return (
     <>
-      <OrderTypeToggle onPick={handlePick} focusSignal={orderTypeAttempts} blockerHintId={blockerHintId} />
+      <OrderTypeToggle
+        onPick={handlePick}
+        focusSignal={orderTypeAttempts}
+        blockerHintId={blockerHintId}
+        disabled={isCheckoutPending || isChannelRecoveryRetrying}
+      />
 
       {/* Above the list, because it usually explains why the list just changed — a reaped basket
           resyncs to empty, and without this the cart emptied with no word of why (#415).
@@ -52,6 +64,14 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
           {error}
         </div>
       )}
+      <BasketChannelRecoveryAlert
+        visible={isChannelRecoveryVisible}
+        message={channelRecoveryErrorMessage}
+        isRetrying={isChannelRecoveryRetrying}
+        onRetry={retryChannelRecovery}
+        alertClassName={styles.cartError}
+        retryButtonClassName={styles.iconButton}
+      />
 
       {items.length === 0 ? (
         <div className={styles.empty}>
@@ -74,11 +94,10 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
         <span className={styles.totalValue}>{formatPlainCurrency(subtotal)}</span>
       </div>
 
-      {/* Only an empty cart truly disables the CTA. A missing order type leaves it
-          live so the click can explain itself (and the hint below says so up front)
-          — a dead disabled button with no reason was the original complaint. */}
+      {/* A missing order type leaves the CTA live so the click can explain itself. During a channel
+          write or an active route attempt it is disabled, so a tap cannot race the state it depends on. */}
       <CartCheckoutButton
-        disabled={itemCount === 0 || isResolving}
+        disabled={itemCount === 0 || isResolving || isOrderTypeSelectionPending || isCheckoutPending}
         onClick={handleCheckout}
         className={styles.checkoutButton}
       />

@@ -48,6 +48,8 @@ interface OrderTypeToggleShellProps {
    * and a module constant would collide.
    */
   blockerHintId?: string;
+  /** Prevents changing order channels while checkout is resolving prerequisites. */
+  disabled?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ export default function OrderTypeToggleShell({
   styles,
   focusSignal = 0,
   blockerHintId,
+  disabled = false,
 }: Readonly<OrderTypeToggleShellProps>) {
   const { t } = useTranslation();
   const { state } = useOrderType();
@@ -132,6 +135,7 @@ export default function OrderTypeToggleShell({
       ref={groupRef}
       className={`${styles.group} ${focusSignal > 0 ? (styles.needsChoice ?? '') : ''}`.trim()}
       aria-describedby={focusSignal > 0 ? blockerHintId : undefined}
+      disabled={disabled}
     >
       <legend className="sr-only">{t('order_type', 'Order type')}</legend>
       {visibleTypes.map((type) => {

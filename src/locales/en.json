@@ -2670,6 +2670,7 @@
   "cashier.collection.staff_tip_description": "Collected for staff. It is separate from the order balance.",
   "cashier.collection.total_to_collect": "Total to collect",
   "cashier.collection.total_collected": "Total collected",
+  "cashier.collection.tip_refunded": "Tip refunded {{amount}}",
   "cashier.collection.receipt_printed": "Receipt sent to the printer.",
   "cashier.collection.receipt_skipped": "Receipt skipped.",
   "cashier.workspace.tables": "Tables",

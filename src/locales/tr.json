@@ -2670,6 +2670,7 @@
   "cashier.collection.staff_tip_description": "Personel için alınır ve sipariş bakiyesinden ayrı kaydedilir.",
   "cashier.collection.total_to_collect": "Tahsil edilecek toplam",
   "cashier.collection.total_collected": "Tahsil edilen toplam",
+  "cashier.collection.tip_refunded": "Bahşiş iade edildi: {{amount}}",
   "cashier.collection.receipt_printed": "Makbuz yazıcıya gönderildi.",
   "cashier.collection.receipt_skipped": "Makbuz atlandı.",
   "cashier.workspace.tables": "Masalar",

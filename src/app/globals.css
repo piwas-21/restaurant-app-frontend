@@ -936,6 +936,12 @@ select:focus {
     visibility: visible;
   }
 
+  /* When both hidden print roots are mounted, prefer the explicitly opened order modal. */
+  body:has(#order-details-print) #table-session-bill-print,
+  body:has(#order-details-print) #table-session-bill-print * {
+    visibility: hidden !important;
+  }
+
   /* Position the modal for printing - take full width */
   #order-details-print,
   #table-session-bill-print {

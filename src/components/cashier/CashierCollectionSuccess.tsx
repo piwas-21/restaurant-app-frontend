@@ -64,9 +64,8 @@ export default function CashierCollectionSuccess({
         )}
         {(payment.tenderTotal ?? payment.applied) > payment.applied && (
           <p>
-            {t('cashier.collection.total_collected', {
-              amount: formatOrderCurrency(payment.tenderTotal ?? payment.applied, order),
-            })}
+            {t('cashier.collection.total_collected')}:{' '}
+            {formatOrderCurrency(payment.tenderTotal ?? payment.applied, order)}
           </p>
         )}
         {payment.change > 0 && (

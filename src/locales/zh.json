@@ -2668,6 +2668,7 @@
   "cashier.collection.staff_tip_description": "供员工使用，单独记录，不计入订单余额。",
   "cashier.collection.total_to_collect": "应收总额",
   "cashier.collection.total_collected": "实收总额",
+  "cashier.collection.tip_refunded": "小费已退款 {{amount}}",
   "cashier.collection.receipt_printed": "收据已发送到打印机。",
   "cashier.collection.receipt_skipped": "已跳过收据。",
   "cashier.workspace.tables": "餐桌",

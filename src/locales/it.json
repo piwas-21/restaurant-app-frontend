@@ -2672,6 +2672,7 @@
   "cashier.collection.staff_tip_description": "Destinata al personale e registrata separatamente dal saldo dell’ordine.",
   "cashier.collection.total_to_collect": "Totale da riscuotere",
   "cashier.collection.total_collected": "Totale riscosso",
+  "cashier.collection.tip_refunded": "Mancia rimborsata {{amount}}",
   "cashier.collection.receipt_printed": "Ricevuta inviata alla stampante.",
   "cashier.collection.receipt_skipped": "Ricevuta ignorata.",
   "cashier.workspace.tables": "Tavoli",

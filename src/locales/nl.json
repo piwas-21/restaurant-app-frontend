@@ -2670,6 +2670,7 @@
   "cashier.collection.staff_tip_description": "Voor het personeel en apart geregistreerd van het openstaande orderbedrag.",
   "cashier.collection.total_to_collect": "Totaal te innen",
   "cashier.collection.total_collected": "Totaal geïnd",
+  "cashier.collection.tip_refunded": "Fooi terugbetaald {{amount}}",
   "cashier.collection.receipt_printed": "Bon naar de printer gestuurd.",
   "cashier.collection.receipt_skipped": "Bon overgeslagen.",
   "cashier.workspace.tables": "Tafels",

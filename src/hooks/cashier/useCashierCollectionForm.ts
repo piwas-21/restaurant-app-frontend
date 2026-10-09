@@ -89,9 +89,12 @@ export function useCashierCollectionForm({
   const handleMethodChange = useCallback(
     (value: string) => {
       setMethod(value);
+      if (value === PaymentMethod.Cash) {
+        setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order)) ?? 0));
+      }
       clearTransient();
     },
-    [clearTransient],
+    [amount, clearTransient, order, tip],
   );
   const handleTransactionChange = useCallback(
     (value: string) => {

@@ -141,12 +141,19 @@ export function PaymentRows({
             )}
           </span>
           <span>
-            {formatOrderCurrency(payment.amount, { currency })}
+            {formatOrderCurrency(
+              Math.max(0, payment.amount - (showRefundedAmounts ? (payment.refundedAmount ?? 0) : 0)),
+              { currency },
+            )}
             {(payment.tipMinor ?? 0) > 0 && (
               <small className={styles.itemSecondary}>
-                {t('cashier.collection.total_collected', {
-                  amount: formatOrderCurrency(payment.amount + (payment.tipMinor ?? 0) / 100, { currency }),
-                })}
+                {t('cashier.collection.total_collected')}:{' '}
+                {formatOrderCurrency(
+                  Math.max(0, payment.amount - (showRefundedAmounts ? (payment.refundedAmount ?? 0) : 0)) +
+                    Math.max(0, (payment.tipMinor ?? 0) - (showRefundedAmounts ? (payment.refundedTipMinor ?? 0) : 0)) /
+                      100,
+                  { currency },
+                )}
               </small>
             )}
           </span>

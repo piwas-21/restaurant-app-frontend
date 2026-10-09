@@ -30,4 +30,17 @@ describe('CashierCollectionSuccess', () => {
     fireEvent.click(screen.getByRole('button', { name: 'cashier.collection.no_receipt' }));
     expect(screen.getByText('cashier.collection.receipt_skipped')).toBeInTheDocument();
   });
+
+  it('shows the gross collected amount as a visible amount beside its translated label', () => {
+    render(
+      <CashierCollectionSuccess
+        order={order}
+        payment={{ applied: 20, tip: 3, tenderTotal: 23, change: 0, remaining: 0 }}
+        onNextSale={jest.fn()}
+        onReturnToOrder={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('cashier.collection.total_collected: EUR 23.00')).toBeInTheDocument();
+  });
 });

@@ -29,7 +29,7 @@ export default function CashierCollectionPaymentHistory({ order }: CashierCollec
           </div>
         )}
       </div>
-      <PaymentRows payments={order.payments ?? []} currency={order.currency} t={t} />
+      <PaymentRows payments={order.payments ?? []} currency={order.currency} t={t} showRefundedAmounts />
     </aside>
   );
 }

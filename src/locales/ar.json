@@ -2678,6 +2678,7 @@
   "cashier.collection.staff_tip_description": "تُحصّل للموظفين وتُسجل منفصلة عن رصيد الطلب.",
   "cashier.collection.total_to_collect": "إجمالي المبلغ المطلوب تحصيله",
   "cashier.collection.total_collected": "إجمالي المبلغ المحصل",
+  "cashier.collection.tip_refunded": "تم رد الإكرامية {{amount}}",
   "cashier.collection.receipt_printed": "تم إرسال الإيصال إلى الطابعة.",
   "cashier.collection.receipt_skipped": "تم تخطي الإيصال.",
   "cashier.workspace.tables": "الطاولات",

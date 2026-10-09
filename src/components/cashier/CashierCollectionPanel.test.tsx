@@ -106,6 +106,29 @@ describe('CashierCollectionPanel', () => {
     );
   });
 
+  it('recalculates exact cash due after switching methods and editing the draft', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(order({ remainingAmount: 1.5, totalPaid: 18.5 }));
+    renderPanel(onSubmit, { total: 20, remainingAmount: 20 });
+
+    const method = screen.getByRole('combobox', { name: /cashier.payment_method/ });
+    fireEvent.change(method, { target: { value: 'CreditCard' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ }), {
+      target: { value: '18.50' },
+    });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.collection.staff_tip' }), {
+      target: { value: '2.25' },
+    });
+
+    fireEvent.change(method, { target: { value: 'Cash' } });
+    const received = screen.getByRole('spinbutton', { name: 'cashier.cash_received' });
+    expect(received).toHaveValue(20.75);
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 18.5, tipMinor: 225 })),
+    );
+  });
+
   it('labels card recording without offering an online capture method', () => {
     renderPanel();
     fireEvent.change(screen.getByRole('combobox', { name: /cashier.payment_method/ }), {

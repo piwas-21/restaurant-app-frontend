@@ -2672,6 +2672,7 @@
   "cashier.collection.staff_tip_description": "Se destina al personal y se registra aparte del saldo del pedido.",
   "cashier.collection.total_to_collect": "Total a cobrar",
   "cashier.collection.total_collected": "Total cobrado",
+  "cashier.collection.tip_refunded": "Propina reembolsada {{amount}}",
   "cashier.collection.receipt_printed": "Recibo enviado a la impresora.",
   "cashier.collection.receipt_skipped": "Recibo omitido.",
   "cashier.workspace.tables": "Mesas",

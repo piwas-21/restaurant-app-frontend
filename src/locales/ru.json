@@ -2674,6 +2674,7 @@
   "cashier.collection.staff_tip_description": "Для персонала; сумма учитывается отдельно от остатка заказа.",
   "cashier.collection.total_to_collect": "Всего к оплате",
   "cashier.collection.total_collected": "Всего получено",
+  "cashier.collection.tip_refunded": "Чаевые возвращены {{amount}}",
   "cashier.collection.receipt_printed": "Чек отправлен на принтер.",
   "cashier.collection.receipt_skipped": "Чек пропущен.",
   "cashier.workspace.tables": "Столы",

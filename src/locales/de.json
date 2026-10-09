@@ -2670,6 +2670,7 @@
   "cashier.collection.staff_tip_description": "Für das Personal. Es wird getrennt vom offenen Bestellbetrag erfasst.",
   "cashier.collection.total_to_collect": "Gesamtbetrag zum Kassieren",
   "cashier.collection.total_collected": "Gesamt kassiert",
+  "cashier.collection.tip_refunded": "Trinkgeld zurückerstattet {{amount}}",
   "cashier.collection.receipt_printed": "Beleg an den Drucker gesendet.",
   "cashier.collection.receipt_skipped": "Beleg übersprungen.",
   "cashier.workspace.tables": "Tische",

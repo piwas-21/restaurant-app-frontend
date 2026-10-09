@@ -2672,6 +2672,7 @@
   "cashier.collection.staff_tip_description": "Destiné au personnel et enregistré séparément du solde de la commande.",
   "cashier.collection.total_to_collect": "Total à encaisser",
   "cashier.collection.total_collected": "Total encaissé",
+  "cashier.collection.tip_refunded": "Pourboire remboursé {{amount}}",
   "cashier.collection.receipt_printed": "Reçu envoyé à l’imprimante.",
   "cashier.collection.receipt_skipped": "Reçu ignoré.",
   "cashier.workspace.tables": "Tables du restaurant",

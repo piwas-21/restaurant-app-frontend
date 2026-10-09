@@ -1243,7 +1243,7 @@
   "kitchen_type_none": "Niet toegewezen",
   "kitchen_type_frontkitchen": "Voorkeuken",
   "kitchen_type_backkitchen": "Achterkeuken",
-  "kitchen_type_generalkitchen": "Algemene keuken",
+  "kitchen_type_generalkitchen": "Keuken",
   "kitchen_type_none_warning": "Niet aan een station toegewezen — dit item staat niet op een bon voor de voor-/achterkeuken; gebruik de bon voor de algemene keuken of de volledige bestelbon.",
   "print_front_kitchen": "Voorkeuken printen",
   "print_back_kitchen": "Achterkeuken printen",

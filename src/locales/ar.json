@@ -1134,7 +1134,7 @@
   "kitchen_type_none": "غير مخصص",
   "kitchen_type_frontkitchen": "المطبخ الأمامي",
   "kitchen_type_backkitchen": "المطبخ الرئيسي",
-  "kitchen_type_generalkitchen": "المطبخ العام",
+  "kitchen_type_generalkitchen": "المطبخ",
   "kitchen_type_none_warning": "غير مُعيَّن لمحطة، لذا لا يظهر هذا الصنف في تذكرة المطبخ الأمامي/الرئيسي — استخدم تذكرة المطبخ العام أو طباعة الطلب الكاملة.",
   "print_front_kitchen": "طباعة المطبخ الأمامي",
   "print_back_kitchen": "طباعة المطبخ الرئيسي",

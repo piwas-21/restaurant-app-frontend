@@ -909,7 +909,7 @@ select:focus {
   }
 }
 
-/* Print Styles - Hide everything except the order details modal */
+/* Print Styles - Hide everything except the order details modal or table-session bill */
 @media print {
   /* Reset page for printing with minimal margins */
   @page {
@@ -930,12 +930,15 @@ select:focus {
 
   /* Show only the order details modal and its children */
   #order-details-print,
-  #order-details-print * {
+  #order-details-print *,
+  #table-session-bill-print,
+  #table-session-bill-print * {
     visibility: visible;
   }
 
   /* Position the modal for printing - take full width */
-  #order-details-print {
+  #order-details-print,
+  #table-session-bill-print {
     position: absolute !important;
     inset-inline-start: 0 !important;
     top: 0 !important;

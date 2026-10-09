@@ -1,6 +1,7 @@
 import type { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import type { BasketItemDto } from '@/types/basket';
 import { variationLabel } from './variationLabel';
+import { displaySpecialInstructions, orderItemsForDisplay } from '@/utils/orderItemDisplay';
 
 /**
  * Normalized, read-only view-model for one order/cart line's customizations, shared by
@@ -123,8 +124,8 @@ function orderItemToChild(item: OrderItemDto): LineChild {
     name: item.productName ?? '',
     quantity: item.quantity,
     diff: orderDiff(item.ingredientCustomizations),
-    specialInstructions: item.specialInstructions || undefined,
-    children: (item.sideItems ?? []).map(orderItemToChild),
+    specialInstructions: displaySpecialInstructions(item),
+    children: orderItemsForDisplay(item.sideItems ?? []).map(orderItemToChild),
   };
 }
 
@@ -135,14 +136,14 @@ function orderItemToChild(item: OrderItemDto): LineChild {
  * own ingredient diffs.
  */
 export function orderItemToLineSummary(item: OrderItemDto): LineSummary {
-  const childItems = item.sideItems ?? [];
+  const childItems = orderItemsForDisplay(item.sideItems ?? []);
   const sides = childItems.filter((c) => c.kind === 'SideItem');
   const components = childItems.filter((c) => c.kind !== 'SideItem');
 
   return {
     diff: orderDiff(item.ingredientCustomizations),
     sideItems: sides.map((s) => ({ id: s.id, name: s.productName ?? '', quantity: s.quantity, price: s.itemTotal })),
-    specialInstructions: item.specialInstructions || undefined,
+    specialInstructions: displaySpecialInstructions(item),
     children: components.map(orderItemToChild),
   };
 }
@@ -183,7 +184,7 @@ function basketItemToChild(item: BasketItemDto): LineChild {
     quantity: item.quantity,
     diff: basketDiff(item),
     specialInstructions: item.specialInstructions || undefined,
-    children: (item.childItems ?? []).map(basketItemToChild),
+    children: orderItemsForDisplay(item.childItems ?? []).map(basketItemToChild),
     // See LineChild.price — the /cart card's component upcharge, kept through the #189 migration.
     price: item.unitPrice,
   };
@@ -206,6 +207,6 @@ export function basketItemToLineSummary(item: BasketItemDto, language = 'en'): L
       price: s.subTotal,
     })),
     specialInstructions: item.specialInstructions || undefined,
-    children: (item.childItems ?? []).map(basketItemToChild),
+    children: orderItemsForDisplay(item.childItems ?? []).map(basketItemToChild),
   };
 }

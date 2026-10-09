@@ -31,6 +31,21 @@ describe('generateKitchenReceiptHtml — single-kitchen bundle', () => {
   });
 });
 
+describe('generateKitchenReceiptHtml — duplicate variation note', () => {
+  it('prints a variation-only legacy note once but keeps meaningful notes', () => {
+    const order = singleKitchenBundleOrder();
+    order.items[0].variationName = 'French Fries';
+    order.items[0].specialInstructions = 'French Fries';
+
+    const duplicateHtml = generateKitchenReceiptHtml(order, 'FrontKitchen')!;
+    expect(occurrences(duplicateHtml, 'French Fries')).toBe(1);
+    expect(duplicateHtml).not.toContain('NOTE:');
+
+    order.items[0].specialInstructions = 'No salt';
+    expect(generateKitchenReceiptHtml(order, 'FrontKitchen')).toContain('No salt');
+  });
+});
+
 describe('generateKitchenReceiptHtml — table identity', () => {
   it('prints an alphanumeric table label when the numeric compatibility field is null', () => {
     const order = singleKitchenBundleOrder();
@@ -46,6 +61,13 @@ describe('generateKitchenReceiptHtml — table identity', () => {
 });
 
 describe('generateKitchenReceiptHtml — General Kitchen', () => {
+  it('uses the short Kitchen title for an unassigned-kitchen ticket', () => {
+    const html = generateKitchenReceiptHtml(allUnassignedOrder(), 'GeneralKitchen');
+
+    expect(html).toContain('<h1>Kitchen</h1>');
+    expect(html).not.toContain('<h1>General Kitchen</h1>');
+  });
+
   it('shows every all-unassigned line, including nested descendants', () => {
     const html = generateKitchenReceiptHtml(allUnassignedOrder(), 'GeneralKitchen');
 

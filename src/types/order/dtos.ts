@@ -65,7 +65,7 @@ export interface CreateOrderItemDto {
   // while omission preserves the declared price.
   selectedIngredientIds?: string[];
   ingredientQuantities?: Record<string, number>; // Ingredient quantities for kitchen print
-  sectionId?: string; // Owning section for a staff-priced bundle child.
+  sectionId?: string; // Frozen menu-section identity for stable choice grouping in order displays.
   childItems?: CreateOrderItemDto[]; // Child items (e.g. side items, additionals)
   // Child rows only (backend #318): bundle component vs true side. On the CREATE shape because a
   // child row is WRITTEN, not just read — the waiter sheet posts its side items with it.

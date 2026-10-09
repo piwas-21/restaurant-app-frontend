@@ -1097,7 +1097,7 @@
   "kitchen_type_none": "Не назначено",
   "kitchen_type_frontkitchen": "Передняя кухня",
   "kitchen_type_backkitchen": "Задняя кухня",
-  "kitchen_type_generalkitchen": "Общая кухня",
+  "kitchen_type_generalkitchen": "Кухня",
   "kitchen_type_none_warning": "Не назначено станции, поэтому позиция не попадает в чек передней/задней кухни — используйте чек общей кухни или полную распечатку заказа.",
   "print_front_kitchen": "Печать передней кухни",
   "print_back_kitchen": "Печать задней кухни",

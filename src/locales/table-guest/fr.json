@@ -60,5 +60,7 @@
   "table_guest_staff_code_generating": "Génération du code…",
   "table_guest_staff_code_expiry": "Valable jusqu’au {{expiresAt}}",
   "table_guest_staff_code_uncertain": "Nous ne pouvons pas confirmer si un code a été créé. Générez un code de remplacement pour continuer. Les personnes déjà inscrites restent connectées.",
-  "table_guest_unavailable_retry_action": "Vérifier à nouveau"
+  "table_guest_unavailable_retry_action": "Vérifier à nouveau",
+  "table_guest_staff_code_help_label": "À propos des codes de visite",
+  "table_guest_staff_code_help_text": "Un client scanne le QR de la table et saisit ce code pour rejoindre cette visite. Exemple : montrez le code de 10 caractères aux personnes installées ici ; il expire à l’heure indiquée. Un remplacement empêche les nouvelles connexions avec l’ancien code sans déconnecter les personnes déjà inscrites."
 }

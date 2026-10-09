@@ -144,9 +144,11 @@ export default function AccountPaymentReview({
   const cashReconciliationNeeded = needsCashReconciliation(pending, operation);
   const money = formatAccountPaymentMinor(operation.amountMinor, operation.currency, i18n.language || 'en');
   const modeKeys = {
+    Full: 'accountPayments.mode_full',
     Items: 'accountPayments.mode_items',
     Equal: 'accountPayments.mode_equal',
     Amount: 'accountPayments.mode_amount',
+    CustomAmount: 'accountPayments.mode_custom_guest_share',
   } as const;
   const modeLabel = t(modeKeys[operation.mode]);
 
@@ -159,6 +161,19 @@ export default function AccountPaymentReview({
       <p>{modeLabel}</p>
       {operation.mode === 'Equal' && operation.equalShareOrdinal !== null && (
         <p>{t('accountPayments.share_number', { number: operation.equalShareOrdinal })}</p>
+      )}
+      {operation.mode === 'CustomAmount' && operation.customShareOrdinal !== null && (
+        <p>{t('accountPayments.share_number', { number: operation.customShareOrdinal })}</p>
+      )}
+      {(operation.tipMinor ?? 0) > 0 && (
+        <div>
+          <p>
+            {t('cashier.tables.payment_tip')}:{' '}
+            {formatAccountPaymentMinor(operation.tipMinor ?? 0, operation.currency, i18n.language || 'en') ??
+              t('cashier.tables.currency_unknown')}
+          </p>
+          <p className={styles.note}>{t('cashier.tables.tip_food_refund_notice')}</p>
+        </div>
       )}
       <div>
         <h5>{t('accountPayments.frozen_scope')}</h5>

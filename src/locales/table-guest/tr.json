@@ -60,5 +60,7 @@
   "table_guest_staff_code_generating": "Kod oluşturuluyor…",
   "table_guest_staff_code_expiry": "{{expiresAt}} tarihine kadar geçerli",
   "table_guest_staff_code_uncertain": "Kodun oluşturulup oluşturulmadığını doğrulayamadık. Devam etmek için yedek kod oluşturun. Zaten katılmış misafirlerin bağlantısı devam eder.",
-  "table_guest_unavailable_retry_action": "Durumu yeniden denetle"
+  "table_guest_unavailable_retry_action": "Durumu yeniden denetle",
+  "table_guest_staff_code_help_label": "Ziyaret kodu hakkında",
+  "table_guest_staff_code_help_text": "Misafirler bu ziyarete katılmak için masa QR kodunu tarayıp bu kodu girer. Örnek: 10 karakterli kodu masadaki gruba gösterin; kod ekranda belirtilen saatte geçersiz olur. Yeni kod oluşturmak eskisiyle yeni katılımı engeller, daha önce katılan misafirlerin bağlantısı sürer."
 }

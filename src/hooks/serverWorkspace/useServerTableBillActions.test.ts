@@ -51,6 +51,8 @@ function sharedState(current: TableServiceSessionDto | null): TableServiceSessio
     refresh,
     submitPayment: jest.fn(),
     closeSession: jest.fn(),
+    releaseTable: jest.fn(),
+    clearAndReleaseTable: jest.fn(),
     reconcilePendingOperation: jest.fn(),
   };
 }

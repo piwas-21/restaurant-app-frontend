@@ -59,6 +59,38 @@ describe('CashierTablePaymentForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('adds an explicit tip outside the food debt and requires cash to cover both', async () => {
+    const onSubmit = renderForm();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.tables.payment_tip' }), {
+      target: { value: '1.25' },
+    });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), {
+      target: { value: '20' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
+
+    await waitFor(() => expect(screen.getByText('cashier.cash_received_too_low')).toBeInTheDocument());
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), {
+      target: { value: '21.25' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ amount: 20, tipMinor: 125 });
+  });
+
+  it('rejects a tip with more precision than the tender currency supports', async () => {
+    const onSubmit = renderForm();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.tables.payment_tip' }), {
+      target: { value: '1.001' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
+
+    await waitFor(() => expect(screen.getByText('cashier.table_bill.error.tip')).toBeInTheDocument());
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('rotates the operation key when transaction details change', async () => {
     const onSubmit = renderForm();
     fireEvent.change(screen.getByRole('combobox'), { target: { value: PaymentMethod.CreditCard } });

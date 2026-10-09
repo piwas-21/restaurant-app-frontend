@@ -81,6 +81,12 @@
   font-size: 1.25rem;
 }
 
+.tipNotice {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
 @media (max-width: 640px) {
   .billScroll {
     max-height: none;

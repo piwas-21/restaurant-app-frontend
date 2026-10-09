@@ -4,6 +4,7 @@ import type { TableServiceSessionDto } from '@/types/order';
 import { getCashierTables } from '@/services/server/tables';
 import {
   getActiveTableServiceSessions,
+  getReleasedTableServiceSessions,
   openTableServiceSession,
   repairLegacyTableServiceSession,
 } from '@/services/tableServiceSessionService';
@@ -19,6 +20,7 @@ jest.mock('@/services/tableServiceSessionService');
 
 const mockedTables = jest.mocked(getCashierTables);
 const mockedSessions = jest.mocked(getActiveTableServiceSessions);
+const mockedReleasedSessions = jest.mocked(getReleasedTableServiceSessions);
 const mockedOpen = jest.mocked(openTableServiceSession);
 const mockedRepair = jest.mocked(repairLegacyTableServiceSession);
 const session = (id: string, tableNumber: number): TableServiceSessionDto => ({
@@ -77,9 +79,24 @@ beforeEach(() => {
     { id: 't3', tableNumber: '3', maxGuests: 4, isActive: false, isOutdoor: false, positionX: 3, positionY: 1 },
   ]);
   mockedSessions.mockResolvedValue([session('session-4', 4)]);
+  mockedReleasedSessions.mockResolvedValue([]);
 });
 
 describe('useCashierTables', () => {
+  it('keeps released visits outside table occupancy while making them available for cashier review', async () => {
+    const released = { ...session('released-1', 7), isTableReleased: true };
+    mockedReleasedSessions.mockResolvedValue([released]);
+    mockedSessions.mockResolvedValueOnce([]);
+    mockedTables.mockResolvedValueOnce([
+      { id: 't7', tableNumber: '7', maxGuests: 4, isActive: true, isOutdoor: false, positionX: 0, positionY: 0 },
+    ]);
+    const { result } = renderHook(() => useCashierTables());
+    await waitFor(() => expect(result.current.queueState).toBe('ready'));
+
+    expect(result.current.releasedSessions).toEqual([released]);
+    expect(result.current.entries.find((entry) => entry.table.tableNumber === '7')?.status).toBe('available');
+  });
+
   it('keeps legacy occupancy blocked and retains a session with no physical table row', async () => {
     const { result } = renderHook(() => useCashierTables());
     await waitFor(() => expect(result.current.queueState).toBe('ready'));
@@ -227,6 +244,7 @@ describe('useCashierTables', () => {
   it('does not let a refresh started before opening overwrite the new session', async () => {
     const pendingTables = deferred<TableDto[]>();
     const pendingSessions = deferred<TableServiceSessionDto[]>();
+    mockedReleasedSessions.mockResolvedValue([]);
     const { result } = renderHook(() => useCashierTables());
     await waitFor(() => expect(result.current.queueState).toBe('ready'));
 

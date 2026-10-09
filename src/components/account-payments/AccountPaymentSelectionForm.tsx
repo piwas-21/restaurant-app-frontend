@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
-import StaffButton from '@/components/design-system/StaffButton';
 import type { AccountPaymentAccount } from '@/types/accountPaymentAccount';
 import type {
   AccountManualPaymentMethod,
@@ -13,9 +12,14 @@ import type {
 import type { TableServiceSessionDto } from '@/types/order';
 import { accountAllocationKey, selectAccountPaymentUnits } from '@/lib/accountPaymentSelection';
 import { formatAccountPaymentMinor, parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
+import AccountPaymentBasicFields from './AccountPaymentBasicFields';
+import AccountPaymentShareFields, { type AccountPaymentChoice } from './AccountPaymentShareFields';
 import styles from './AccountPaymentCollection.module.css';
 
-type Choice = 'Full' | 'Amount' | 'Items' | 'Equal';
+type PaymentBase = Pick<
+  CreateAccountPaymentQuoteRequest,
+  'operationId' | 'expectedAccountRevision' | 'paymentMethod' | 'tipMinor'
+>;
 interface Props {
   readonly account: AccountPaymentAccount;
   readonly session: TableServiceSessionDto;
@@ -26,19 +30,104 @@ interface Props {
 
 export default function AccountPaymentSelectionForm({ account, session, disabled, onQuote, onPlan }: Props) {
   const { t, i18n } = useTranslation();
-  const [choice, setChoice] = useState<Choice>('Full');
+  const [choice, setChoice] = useState<AccountPaymentChoice>('Full');
   const [method, setMethod] = useState<AccountManualPaymentMethod>('Cash');
   const [amount, setAmount] = useState('');
+  const [tip, setTip] = useState('');
   const [shares, setShares] = useState('2');
   const [ordinal, setOrdinal] = useState('');
+  const [customAmounts, setCustomAmounts] = useState<string[]>(['', '']);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const plan = account.activeEqualSharePlan;
+  const planMatchesChoice = Boolean(
+    plan &&
+    (plan.isCustom ?? false) === (choice === 'CustomAmount') &&
+    (choice === 'Equal' || choice === 'CustomAmount'),
+  );
   const money = (minor: number) =>
     formatAccountPaymentMinor(minor, account.currency, i18n.language || 'en') ?? t('cashier.tables.currency_unknown');
   const items = new Map(
     (session.bill.accountItems ?? []).map((entry) => [`${entry.orderId}:${entry.orderItemId}`, entry]),
   );
+
+  const isSplitChoice = choice === 'Equal' || choice === 'CustomAmount';
+  const createSharePlan = async () => {
+    const shareCount = Number(shares);
+    const validShareCount =
+      Number.isSafeInteger(shareCount) &&
+      shareCount >= 2 &&
+      shareCount <= account.limits.maximumEqualShares &&
+      shareCount <= account.availableMinor;
+    if (!validShareCount) {
+      setError(t('accountPayments.invalid_shares'));
+      return;
+    }
+    const request: CreateAccountEqualSharePlanRequest = {
+      operationId: crypto.randomUUID(),
+      expectedAccountRevision: account.accountRevision,
+      shareCount,
+      ...(plan ? { supersedesPlanId: plan.planId } : {}),
+    };
+    if (choice === 'CustomAmount') {
+      const amounts = customAmounts
+        .slice(0, shareCount)
+        .map((value) => parseAccountContributionMinor(value, account.currency));
+      const totalAmount = amounts.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+      const amountsAreValid =
+        amounts.length === shareCount &&
+        amounts.every((value) => value !== null && Number.isSafeInteger(value) && value > 0) &&
+        Number.isSafeInteger(totalAmount) &&
+        totalAmount === account.availableMinor;
+      if (!amountsAreValid) {
+        setError(t('accountPayments.custom_amounts_must_match_balance'));
+        return;
+      }
+      request.customAmountsMinor = amounts as number[];
+    }
+    await onPlan(request);
+  };
+
+  const quoteShare = async (paymentBase: PaymentBase) => {
+    const slot = plan?.slots.find((value) => value.ordinal === Number(ordinal) && value.isAvailable);
+    if (!plan || !slot) {
+      setError(t('accountPayments.choose_share'));
+      return;
+    }
+    const request =
+      choice === 'Equal'
+        ? { ...paymentBase, mode: 'Equal' as const, equalSharePlanId: plan.planId, equalShareOrdinal: slot.ordinal }
+        : {
+            ...paymentBase,
+            mode: 'CustomAmount' as const,
+            customSharePlanId: plan.planId,
+            customShareOrdinal: slot.ordinal,
+          };
+    await onQuote(request);
+  };
+
+  const quoteItems = async (paymentBase: PaymentBase) => {
+    const selectedUnits = selectAccountPaymentUnits(
+      account.availableAllocations,
+      quantities,
+      account.limits.maximumSelectedUnits,
+    );
+    if (!selectedUnits) {
+      setError(t('accountPayments.choose_items'));
+      return;
+    }
+    await onQuote({ ...paymentBase, mode: 'Items', selectedUnits });
+  };
+
+  const quoteAmount = async (paymentBase: PaymentBase) => {
+    const amountMinor = parseAccountContributionMinor(amount, account.currency);
+    const amountIsValid = amountMinor !== null && amountMinor > 0 && amountMinor <= account.availableMinor;
+    if (!amountIsValid || amountMinor === null) {
+      setError(t('accountPayments.invalid_amount'));
+      return;
+    }
+    await onQuote({ ...paymentBase, mode: 'Amount', amountMinor });
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -49,151 +138,102 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
       expectedAccountRevision: account.accountRevision,
       paymentMethod: method,
     };
-    if (choice === 'Equal' && !plan) {
-      const shareCount = Number(shares);
-      if (
-        !Number.isSafeInteger(shareCount) ||
-        shareCount < 2 ||
-        shareCount > account.limits.maximumEqualShares ||
-        shareCount > account.availableMinor
-      ) {
-        setError(t('accountPayments.invalid_shares'));
-        return;
-      }
-      await onPlan({ operationId: base.operationId, expectedAccountRevision: account.accountRevision, shareCount });
+    if (isSplitChoice && !planMatchesChoice) {
+      await createSharePlan();
       return;
     }
-    if (choice === 'Equal' && plan) {
-      const slot = plan.slots.find((value) => value.ordinal === Number(ordinal) && value.isAvailable);
-      if (!slot) {
-        setError(t('accountPayments.choose_share'));
-        return;
-      }
-      await onQuote({ ...base, mode: 'Equal', equalSharePlanId: plan.planId, equalShareOrdinal: slot.ordinal });
+    const tipMinor = parseAccountContributionMinor(tip || '0', account.currency);
+    if (tipMinor === null) {
+      setError(t('cashier.table_bill.error.tip'));
+      return;
+    }
+    const paymentBase = { ...base, tipMinor };
+    if (isSplitChoice && planMatchesChoice) {
+      await quoteShare(paymentBase);
       return;
     }
     if (choice === 'Items') {
-      const selectedUnits = selectAccountPaymentUnits(
-        account.availableAllocations,
-        quantities,
-        account.limits.maximumSelectedUnits,
-      );
-      if (!selectedUnits) {
-        setError(t('accountPayments.choose_items'));
-        return;
-      }
-      await onQuote({ ...base, mode: 'Items', selectedUnits });
+      await quoteItems(paymentBase);
       return;
     }
-    const amountMinor =
-      choice === 'Full' ? account.availableMinor : parseAccountContributionMinor(amount, account.currency);
-    if (amountMinor === null || amountMinor <= 0 || amountMinor > account.availableMinor) {
-      setError(t('accountPayments.invalid_amount'));
+    if (choice === 'Full') {
+      await onQuote({ ...paymentBase, mode: 'Full' });
       return;
     }
-    await onQuote({ ...base, mode: 'Amount', amountMinor });
+    await quoteAmount(paymentBase);
   };
 
   return (
     <form className={styles.form} onSubmit={(event) => void submit(event)}>
-      <FormField label={t('accountPayments.contribution')}>
-        <select
-          value={choice}
-          onChange={(event) => {
-            setChoice(event.target.value as Choice);
-            setError(null);
-          }}
+      <AccountPaymentBasicFields
+        choice={choice}
+        amount={amount}
+        tip={tip}
+        method={method}
+        error={error}
+        disabled={disabled}
+        showTip={choice === 'Full' || choice === 'Amount' || choice === 'Items' || planMatchesChoice}
+        canSubmit={!disabled && account.availableMinor > 0}
+        isCreatingPlan={isSplitChoice && !planMatchesChoice}
+        onChoiceChange={(nextChoice) => {
+          setChoice(nextChoice);
+          setTip('');
+          setError(null);
+        }}
+        onAmountChange={setAmount}
+        onTipChange={setTip}
+        onMethodChange={setMethod}
+      >
+        {choice === 'Full' && <p>{money(account.availableMinor)}</p>}
+        {choice === 'Items' && (
+          <fieldset disabled={disabled} className={styles.items}>
+            <legend>{t('accountPayments.selected_items')}</legend>
+            {account.availableAllocations
+              .filter((allocation) => allocation.orderItemId !== null)
+              .map((allocation) => {
+                const key = accountAllocationKey(allocation);
+                const entry = items.get(`${allocation.orderId}:${allocation.orderItemId}`);
+                const title =
+                  entry?.itemSnapshot.productName || entry?.itemSnapshot.menuName || t('cashier.tables.unknown_item');
+                return (
+                  <FormField key={key} label={`${title} · ${money(allocation.minorPerUnit)}`}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={Math.min(allocation.unitCount, account.limits.maximumSelectedUnits)}
+                      value={quantities[key] ?? 0}
+                      onChange={(event) =>
+                        setQuantities((current) => ({ ...current, [key]: Number(event.target.value) }))
+                      }
+                    />
+                  </FormField>
+                );
+              })}
+            <p className={styles.note}>{t('accountPayments.item_remaining_note')}</p>
+          </fieldset>
+        )}
+        <AccountPaymentShareFields
+          choice={choice}
+          plan={plan}
+          planMatchesChoice={planMatchesChoice}
+          shares={shares}
+          customAmounts={customAmounts}
+          ordinal={ordinal}
           disabled={disabled}
-        >
-          <option value="Full">{t('accountPayments.full_balance')}</option>
-          <option value="Items">{t('accountPayments.selected_items')}</option>
-          <option value="Amount">{t('accountPayments.custom_amount')}</option>
-          <option value="Equal">{t('accountPayments.equal_shares')}</option>
-        </select>
-      </FormField>
-      {choice === 'Full' && <p>{money(account.availableMinor)}</p>}
-      {choice === 'Amount' && (
-        <FormField label={t('accountPayments.amount')}>
-          <input
-            inputMode="decimal"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            disabled={disabled}
-          />
-        </FormField>
-      )}
-      {choice === 'Items' && (
-        <fieldset disabled={disabled} className={styles.items}>
-          <legend>{t('accountPayments.selected_items')}</legend>
-          {account.availableAllocations
-            .filter((allocation) => allocation.orderItemId !== null)
-            .map((allocation) => {
-              const key = accountAllocationKey(allocation);
-              const entry = items.get(`${allocation.orderId}:${allocation.orderItemId}`);
-              const title =
-                entry?.itemSnapshot.productName || entry?.itemSnapshot.menuName || t('cashier.tables.unknown_item');
-              return (
-                <FormField key={key} label={`${title} · ${money(allocation.minorPerUnit)}`}>
-                  <input
-                    type="number"
-                    min={0}
-                    max={Math.min(allocation.unitCount, account.limits.maximumSelectedUnits)}
-                    value={quantities[key] ?? 0}
-                    onChange={(event) =>
-                      setQuantities((current) => ({ ...current, [key]: Number(event.target.value) }))
-                    }
-                  />
-                </FormField>
-              );
-            })}
-          <p className={styles.note}>{t('accountPayments.item_remaining_note')}</p>
-        </fieldset>
-      )}
-      {choice === 'Equal' &&
-        (plan ? (
-          <FormField label={t('accountPayments.choose_share')}>
-            <select value={ordinal} onChange={(event) => setOrdinal(event.target.value)} disabled={disabled}>
-              <option value="">{t('accountPayments.choose_share')}</option>
-              {plan.slots.map((slot) => (
-                <option key={slot.ordinal} value={slot.ordinal} disabled={!slot.isAvailable}>
-                  {t('accountPayments.share_number', { number: slot.ordinal })} · {money(slot.amountMinor)}
-                  {!slot.isAvailable ? ` · ${t('accountPayments.share_unavailable')}` : ''}
-                </option>
-              ))}
-            </select>
-          </FormField>
-        ) : (
-          <FormField label={t('accountPayments.people')}>
-            <input
-              type="number"
-              min={2}
-              max={account.limits.maximumEqualShares}
-              value={shares}
-              onChange={(event) => setShares(event.target.value)}
-              disabled={disabled}
-            />
-          </FormField>
-        ))}
-      {choice === 'Equal' && <p className={styles.note}>{t('accountPayments.equal_note')}</p>}
-      <FormField label={t('cashier.payment_method')}>
-        <select
-          value={method}
-          onChange={(event) => setMethod(event.target.value as AccountManualPaymentMethod)}
-          disabled={disabled}
-        >
-          <option value="Cash">{t('cashier.table_bill.method_cash')}</option>
-          <option value="CreditCard">{t('payment_card_at_restaurant')}</option>
-        </select>
-      </FormField>
-      {method === 'CreditCard' && <p className={styles.note}>{t('cashier.standalone_card_instruction')}</p>}
-      {error && (
-        <p role="alert" className={styles.error}>
-          {error}
-        </p>
-      )}
-      <StaffButton type="submit" variant="primary" disabled={disabled || account.availableMinor <= 0}>
-        {choice === 'Equal' && !plan ? t('accountPayments.create_plan') : t('accountPayments.review')}
-      </StaffButton>
+          maximumShares={account.limits.maximumEqualShares}
+          money={money}
+          onSharesChange={setShares}
+          onCustomAmountChange={(index, value) =>
+            setCustomAmounts((current) => {
+              const next = [...current];
+              next[index] = value;
+              return next;
+            })
+          }
+          onOrdinalChange={setOrdinal}
+        />
+        {choice === 'Equal' && <p className={styles.note}>{t('accountPayments.equal_note')}</p>}
+      </AccountPaymentBasicFields>
     </form>
   );
 }

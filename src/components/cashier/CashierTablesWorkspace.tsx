@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { List, Map, RefreshCw } from 'lucide-react';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useTranslation } from 'react-i18next';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
@@ -10,12 +9,15 @@ import CashierTableList from './CashierTableList';
 import TableReadinessAction from '@/components/table-service/TableReadinessAction';
 import CashierTableEmptyState from './CashierTableEmptyState';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
+import CashierReleasedTableVisits from './CashierReleasedTableVisits';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
 import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
 import { cashierTableQueueState, findSelectedCashierTableEntry } from '@/lib/cashierTableWorkspace';
 import type { TableServiceSessionDto } from '@/types/order';
+import { useCashierTableWorkspaceActions } from './useCashierTableWorkspaceActions';
+import CashierTableViewControls from './CashierTableViewControls';
 import styles from './CashierTablesWorkspace.module.css';
 
 type TableView = 'map' | 'list';
@@ -53,6 +55,12 @@ export default function CashierTablesWorkspace() {
   const selectedEntry =
     selectedFromList ??
     (route.selectedSessionId ? null : findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber));
+  const { openSession, resolveLegacyOrders } = useCashierTableWorkspaceActions(
+    selectedEntry,
+    tables,
+    route,
+    setRecoveredSession,
+  );
 
   useEffect(() => {
     if (!navigationDisabled || typeof window === 'undefined') return;
@@ -74,20 +82,6 @@ export default function CashierTablesWorkspace() {
     void tables.refresh();
     if (sessionId) void session.refresh();
   }, [session, sessionId, tables]);
-  const openSession = useCallback(async () => {
-    if (!selectedEntry) return;
-    const opened = await tables.openSession(selectedEntry.table.tableNumber);
-    setRecoveredSession(null);
-    route.navigateToSession(opened.serviceSessionId);
-  }, [route, selectedEntry, tables]);
-  const resolveLegacyOrders = useCallback(async () => {
-    if (!selectedEntry?.table.id) return;
-    const repaired = await tables.repairLegacyOrders(selectedEntry.table.id);
-    setRecoveredSession(repaired);
-    route.navigateToSession(repaired.serviceSessionId);
-    await tables.refresh();
-  }, [route, selectedEntry, tables]);
-
   return (
     <CashierWorkspaceShell activeDestination="tables" queueState={queueState} navigationDisabled={navigationDisabled}>
       <section className={styles.destination} aria-labelledby="cashier-tables-title">
@@ -98,29 +92,13 @@ export default function CashierTablesWorkspace() {
             </h1>
             <p className={styles.description}>{t('cashier.workspace.tables_description')}</p>
           </div>
-          <div className={styles.headerActions}>
-            <fieldset className={styles.viewToggle} aria-label={t('cashier.tables.view_toggle')}>
-              <StaffButton
-                variant={view === 'map' ? 'primary' : 'secondary'}
-                className={styles.viewButton}
-                aria-pressed={view === 'map'}
-                onClick={() => setView('map')}
-              >
-                <Map size={17} aria-hidden="true" /> {t('cashier.tables.map')}
-              </StaffButton>
-              <StaffButton
-                variant={view === 'list' ? 'primary' : 'secondary'}
-                className={styles.viewButton}
-                aria-pressed={view === 'list'}
-                onClick={() => setView('list')}
-              >
-                <List size={17} aria-hidden="true" /> {t('cashier.tables.list')}
-              </StaffButton>
-            </fieldset>
-            <StaffButton onClick={refresh} disabled={navigationDisabled || tables.isLoading}>
-              <RefreshCw size={17} aria-hidden="true" /> {t('cashier.workspace.refresh')}
-            </StaffButton>
-          </div>
+          <CashierTableViewControls
+            view={view}
+            disabled={navigationDisabled}
+            isLoading={tables.isLoading}
+            onViewChange={setView}
+            onRefresh={refresh}
+          />
         </header>
         {tables.error && (
           <div className={styles.alert} role="alert">
@@ -132,6 +110,11 @@ export default function CashierTablesWorkspace() {
             {t('cashier.tables.legacy_repair_success')}
           </div>
         )}
+        <CashierReleasedTableVisits
+          sessions={tables.releasedSessions}
+          disabled={navigationDisabled}
+          onSelect={(releasedSessionId) => route.navigateToSession(releasedSessionId)}
+        />
         {timeZoneState.isLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
         {timeZoneState.hasError && (
           <div className={styles.alert} role="alert">
@@ -208,6 +191,16 @@ export default function CashierTablesWorkspace() {
                       await session.closeSession();
                       void tables.refresh();
                     }}
+                    onReleaseTable={async () => {
+                      const released = await session.releaseTable();
+                      setRecoveredSession(released);
+                      void tables.refresh();
+                    }}
+                    onClearAndReleaseTable={async () => {
+                      const released = await session.clearAndReleaseTable();
+                      setRecoveredSession(released);
+                      void tables.refresh();
+                    }}
                     onReconcilePendingOperation={session.reconcilePendingOperation}
                   />
                 )}
@@ -226,6 +219,10 @@ export default function CashierTablesWorkspace() {
                     onBack={route.clearSelection}
                     onOpenSession={() => void openSession().catch(() => undefined)}
                     onResolveLegacyOrders={() => void resolveLegacyOrders().catch(() => undefined)}
+                    onClearLegacyOrders={async () => {
+                      await tables.clearLegacyTableOrders(selectedEntry.table.tableNumber);
+                      route.clearSelection();
+                    }}
                   />
                 )}
                 {!sessionId && !selectedEntry && (

@@ -11,6 +11,8 @@ export interface TableServiceSessionState {
   readonly refresh: () => Promise<void>;
   readonly submitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<TableServiceSessionDto>;
   readonly closeSession: () => Promise<TableServiceSessionDto>;
+  readonly releaseTable: () => Promise<TableServiceSessionDto>;
+  readonly clearAndReleaseTable: () => Promise<TableServiceSessionDto>;
   /** Lookup-only reconciliation; it never replays an uncertain payment POST. */
   readonly reconcilePendingOperation: () => Promise<void>;
 }

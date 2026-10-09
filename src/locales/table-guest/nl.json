@@ -60,5 +60,7 @@
   "table_guest_staff_code_generating": "Code wordt gemaakt…",
   "table_guest_staff_code_expiry": "Geldig tot {{expiresAt}}",
   "table_guest_staff_code_uncertain": "We konden niet bevestigen of er een code is gemaakt. Maak een vervangende code om door te gaan. Gasten die al zijn aangemeld, blijven verbonden.",
-  "table_guest_unavailable_retry_action": "Status opnieuw controleren"
+  "table_guest_unavailable_retry_action": "Status opnieuw controleren",
+  "table_guest_staff_code_help_label": "Over bezoekcodes",
+  "table_guest_staff_code_help_text": "Een gast scant de QR-code van de tafel en voert deze code in om aan dit bezoek deel te nemen. Voorbeeld: toon de code van 10 tekens aan het gezelschap aan deze tafel; de code verloopt op het weergegeven tijdstip. Een nieuwe code voorkomt nieuwe aanmeldingen met de oude code, maar aangemelde gasten blijven verbonden."
 }

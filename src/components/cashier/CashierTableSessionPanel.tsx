@@ -1,30 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import Link from '@/components/TenantLink';
-import { ArrowLeft, Printer, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import BaseModal from '@/components/design-system/BaseModal';
 import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
 import type { PendingTableOperation } from '@/lib/cashierTablePending';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { displayCashierTableError, pendingCashierTableNoticeLabel } from '@/lib/cashierTablePanelLabels';
-import {
-  formatTableMoney,
-  tableSessionActions,
-  tableSessionCurrency,
-  tableSessionEligibleOutstanding,
-  tableSessionAddRoundPath,
-} from '@/lib/cashierTableSession';
+import { formatTableMoney, tableSessionActions } from '@/lib/cashierTableSession';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import CashierTableSessionPaymentCollection from './CashierTableSessionPaymentCollection';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
-import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
 import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
+import CashierTableSessionConfirmationModals from './CashierTableSessionConfirmationModals';
+import CashierTableSessionActions from './CashierTableSessionActions';
 
 interface CashierTableSessionPanelProps {
   readonly session: TableServiceSessionDto;
@@ -40,6 +33,8 @@ interface CashierTableSessionPanelProps {
   readonly onRefresh: () => void;
   readonly onSubmitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<void>;
   readonly onCloseSession: () => Promise<void>;
+  readonly onReleaseTable: () => Promise<void>;
+  readonly onClearAndReleaseTable: () => Promise<void>;
   readonly onReconcilePendingOperation: () => Promise<void>;
 }
 
@@ -57,21 +52,20 @@ export default function CashierTableSessionPanel({
   onRefresh,
   onSubmitPayment,
   onCloseSession,
+  onReleaseTable,
+  onClearAndReleaseTable,
   onReconcilePendingOperation,
 }: CashierTableSessionPanelProps) {
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const tableDisplay = sessionTableDisplay(session, t);
   const actions = tableSessionActions(session);
   const operationLocked = isMutating || pendingOperation !== null;
   const writesLocked = operationLocked || isStale;
-  const closeAllowed = actions.has('close');
   const legacyConflict = hasLegacyConflict || session.hasUnassignedActiveOrders === true;
-  const addRoundHref = tableSessionAddRoundPath(session);
-  const addRoundIdentityUnavailable = session.status === 'Open' && !addRoundHref;
-  const addRoundAllowed = session.status === 'Open' && !writesLocked && !legacyConflict && Boolean(addRoundHref);
   const message = displayCashierTableError(error, t);
-  const currency = tableSessionCurrency(session);
   const opened = formatCashierDateTime(
     session.openedAt,
     i18n.language || 'en',
@@ -86,6 +80,24 @@ export default function CashierTableSessionPanel({
       setShowCloseConfirm(false);
     } catch (_error) {
       // The refusal remains in the panel; a close is never silently retried.
+    }
+  };
+
+  const confirmRelease = async () => {
+    try {
+      await onReleaseTable();
+      setShowReleaseConfirm(false);
+    } catch (_error) {
+      // Keep the confirmation open so staff can review the refusal and try after resolving it.
+    }
+  };
+
+  const confirmClearAndRelease = async () => {
+    try {
+      await onClearAndReleaseTable();
+      setShowClearConfirm(false);
+    } catch (_error) {
+      // Keep the warning visible so the refusal is reviewed before another attempt.
     }
   };
 
@@ -105,7 +117,7 @@ export default function CashierTableSessionPanel({
         </div>
         <div className={styles.headerActions}>
           <StatusBadge tone={session.status === 'Open' ? 'success' : 'neutral'}>
-            {sessionStatusLabel(session.status, t)}
+            {session.isTableReleased ? t('cashier.tables.released_status') : sessionStatusLabel(session.status, t)}
           </StatusBadge>
           <StaffButton onClick={onRefresh} disabled={operationLocked}>
             <RefreshCw size={17} aria-hidden="true" />
@@ -166,40 +178,16 @@ export default function CashierTableSessionPanel({
         </div>
       )}
 
-      <div className={styles.actionRow}>
-        <StaffButton
-          variant="danger"
-          onClick={() => setShowCloseConfirm(true)}
-          disabled={writesLocked || !closeAllowed}
-          aria-describedby={!closeAllowed ? 'cashier-table-close-hint' : undefined}
-        >
-          {t('cashier.tables.close')}
-        </StaffButton>
-        <StaffButton onClick={() => window.print()} disabled={writesLocked}>
-          <Printer size={17} aria-hidden="true" />
-          {t('cashier.tables.print_bill')}
-        </StaffButton>
-        {addRoundAllowed && addRoundHref ? (
-          <Link className={`btn btn-secondary ${buttonStyles.touch}`} href={addRoundHref}>
-            {t('cashier.tables.add_round')}
-          </Link>
-        ) : (
-          <StaffButton disabled>{t('cashier.tables.add_round')}</StaffButton>
-        )}
-        {!closeAllowed && session.status === 'Open' && (
-          <span id="cashier-table-close-hint" className={styles.muted}>
-            {t('cashier.tables.close_not_ready')}
-          </span>
-        )}
-      </div>
-      {session.status === 'Open' && (
+      <CashierTableSessionActions
+        session={session}
+        legacyConflict={legacyConflict}
+        writesLocked={writesLocked}
+        onShowCloseConfirm={() => setShowCloseConfirm(true)}
+        onShowReleaseConfirm={() => setShowReleaseConfirm(true)}
+        onShowClearConfirm={() => setShowClearConfirm(true)}
+      />
+      {session.status === 'Open' && !session.isTableReleased && (
         <TableGuestAdmissionCodeSlot serviceSessionId={session.serviceSessionId} disabled={writesLocked} />
-      )}
-      {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}
-      {addRoundIdentityUnavailable && (
-        <output className={styles.statusOutput} aria-live="polite">
-          {t('cashier.tables.add_round_identity_unavailable')}
-        </output>
       )}
 
       <TableAccountPresentation
@@ -215,28 +203,20 @@ export default function CashierTableSessionPanel({
         onSubmitPayment={onSubmitPayment}
       />
 
-      <BaseModal
-        isOpen={showCloseConfirm}
-        onClose={() => setShowCloseConfirm(false)}
-        title={t('cashier.tables.close_confirm_title')}
-        isPending={isMutating}
-        footer={
-          <div className={styles.formActions}>
-            <StaffButton onClick={() => setShowCloseConfirm(false)} disabled={isMutating}>
-              {t('cashier.tables.cancel')}
-            </StaffButton>
-            <StaffButton variant="danger" onClick={() => void confirmClose()} disabled={isMutating}>
-              {isMutating ? t('cashier.tables.operation_checking') : t('cashier.tables.close_confirm_action')}
-            </StaffButton>
-          </div>
-        }
-      >
-        <p>{t('cashier.tables.close_confirm_message', { table: tableDisplay })}</p>
-        <p className={styles.muted}>
-          {formatTableMoney(tableSessionEligibleOutstanding(session), session) ?? t('cashier.tables.currency_unknown')}
-        </p>
-        {!currency && <p className={styles.warning}>{t('cashier.tables.currency_unknown')}</p>}
-      </BaseModal>
+      <CashierTableSessionConfirmationModals
+        session={session}
+        tableDisplay={tableDisplay}
+        isMutating={isMutating}
+        showCloseConfirm={showCloseConfirm}
+        showReleaseConfirm={showReleaseConfirm}
+        showClearConfirm={showClearConfirm}
+        onCloseConfirmChange={setShowCloseConfirm}
+        onReleaseConfirmChange={setShowReleaseConfirm}
+        onClearConfirmChange={setShowClearConfirm}
+        onConfirmClose={() => void confirmClose()}
+        onConfirmRelease={() => void confirmRelease()}
+        onConfirmClear={() => void confirmClearAndRelease()}
+      />
     </section>
   );
 }

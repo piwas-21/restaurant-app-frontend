@@ -81,6 +81,12 @@
       "rounding_note": "Die Bargeldrundung ändert nur den bar zu zahlenden Betrag. Der Rechnungsbetrag bleibt gleich; es wird kein Trinkgeld hinzugefügt.",
       "evidence_unavailable": "Bargeldangaben oder Belege fehlen oder stimmen nicht überein. Neue Bargeldzahlungen sind gesperrt; prüfen Sie den ursprünglichen Vorgang.",
       "legacy_unattested": "Für diese frühere Bargeldzahlung sind empfangener Betrag und Wechselgeld nicht bestätigt. Der erfasste Rechnungsbetrag bleibt sichtbar."
-    }
+    },
+    "custom_guest_shares": "Individueller Betrag pro Gast",
+    "custom_amounts_must_match_balance": "Geben Sie für jeden Gast einen positiven Betrag ein. Die Summe muss dem gesamten verfügbaren Betrag entsprechen.",
+    "share_plan_will_be_replaced": "Dieser Plan ersetzt die aktuelle Aufteilung. Pläne mit laufenden oder erfassten Zahlungen können nicht ersetzt werden.",
+    "share_amount": "Betrag für Gast {{number}}",
+    "mode_custom_guest_share": "Individueller Beitrag pro Gast",
+    "mode_full": "Gesamte Rechnung"
   }
 }

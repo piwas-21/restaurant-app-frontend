@@ -68,6 +68,11 @@ export interface TableBillDto {
   tax: number;
   discount: number;
   tip: number;
+  /** Captured gratuity paid with tenders, separate from food debt and order tips. */
+  paymentTip?: number;
+  paymentFlowMode?: 'Full' | 'Amount' | 'Equal' | 'CustomAmount' | 'ByItems' | null;
+  guestCount?: number | null;
+  guestAmounts?: { guestNumber: number; amount: number; status: 'Due' | 'Captured' | 'Reserved' }[];
   total: number;
   totalPaid: number;
   /**

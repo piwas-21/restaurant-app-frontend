@@ -81,6 +81,12 @@
       "rounding_note": "Nakit yuvarlama yalnızca nakit ödenecek tutarı değiştirir. Hesap tutarını değiştirmez ve bahşiş eklemez.",
       "evidence_unavailable": "Nakit ödeme bilgileri veya makbuz eksik ya da tutarsız. Yeni nakit tahsilat kapalıdır; ilk işlemi kontrol edin.",
       "legacy_unattested": "Bu önceki nakit ödemede alınan tutar ve para üstü doğrulanmamış. Kaydedilen hesap tutarı görünür kalır."
-    }
+    },
+    "custom_guest_shares": "Misafir başına özel tutar",
+    "custom_amounts_must_match_balance": "Her misafir için sıfırdan büyük bir tutar girin. Tutarların toplamı kullanılabilir bakiyenin tamamı olmalıdır.",
+    "share_plan_will_be_replaced": "Bu plan mevcut bölüşümü değiştirir. Aktif veya tahsil edilmiş ödemesi olan planlar değiştirilemez.",
+    "share_amount": "{{number}}. misafirin tutarı",
+    "mode_custom_guest_share": "Misafir başına özel ödeme",
+    "mode_full": "Hesabın tamamı"
   }
 }

@@ -45,7 +45,7 @@ it('reviews only the available amount and never includes money reserved by anoth
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() => expect(onQuote).toHaveBeenCalledTimes(1));
   expect(onQuote).toHaveBeenCalledWith(
-    expect.objectContaining({ mode: 'Amount', amountMinor: 29, expectedAccountRevision: 7, paymentMethod: 'Cash' }),
+    expect.objectContaining({ mode: 'Full', expectedAccountRevision: 7, paymentMethod: 'Cash', tipMinor: 0 }),
   );
 });
 
@@ -128,6 +128,8 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
       shareCount: 3,
       currency: 'EUR',
       isOwnPlan: false,
+      isCustom: false,
+      customAmountsMinor: null,
       scope: [],
       slots: [
         { ordinal: 1, amountMinor: 334, isAvailable: false, claimState: 'Captured' },
@@ -162,4 +164,50 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
     ),
   );
   expect(onPlan).not.toHaveBeenCalled();
+});
+
+it('records Full as a distinct payment flow and keeps its tip outside the account amount', async () => {
+  render(
+    <AccountPaymentSelectionForm
+      account={account}
+      session={session}
+      disabled={false}
+      onQuote={onQuote}
+      onPlan={onPlan}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText('cashier.tables.payment_tip'), { target: { value: '1.23' } });
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
+  await waitFor(() =>
+    expect(onQuote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'Full',
+        tipMinor: 123,
+      }),
+    ),
+  );
+});
+
+it('creates custom guest amounts only when the immutable plan exactly covers the available balance', async () => {
+  render(
+    <AccountPaymentSelectionForm
+      account={account}
+      session={session}
+      disabled={false}
+      onQuote={onQuote}
+      onPlan={onPlan}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:1'), { target: { value: '0.15' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:2'), { target: { value: '0.14' } });
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.create_plan' }));
+  await waitFor(() =>
+    expect(onPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shareCount: 2,
+        customAmountsMinor: [15, 14],
+      }),
+    ),
+  );
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
 import type { ComponentProps } from 'react';
@@ -104,6 +104,8 @@ function renderPanel(
         onRefresh={jest.fn()}
         onSubmitPayment={jest.fn()}
         onCloseSession={jest.fn()}
+        onReleaseTable={jest.fn()}
+        onClearAndReleaseTable={jest.fn()}
         onReconcilePendingOperation={jest.fn()}
         {...overrides}
       />
@@ -123,6 +125,34 @@ describe('CashierTableSessionPanel', () => {
 
     expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
+  });
+
+  it('confirms freeing a table while keeping its visit payable', async () => {
+    const current = { ...session, hasUnassignedActiveOrders: false, canReleaseTable: true };
+    renderPanel(current);
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+    expect(screen.getByText('cashier.tables.release_confirm_preserves')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'cashier.tables.release_table' }).at(-1)).toBeEnabled();
+  });
+
+  it('requires explicit confirmation before clearing pending orders and freeing a table', async () => {
+    const clear = jest.fn().mockResolvedValue(undefined);
+    renderPanel({ ...session, hasUnassignedActiveOrders: false }, { onClearAndReleaseTable: clear });
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.clear_and_release' }));
+    expect(screen.getByText('cashier.tables.clear_confirm_limits')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'cashier.tables.clear_and_release' }).at(-1)!);
+    await waitFor(() => expect(clear).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not offer rounds or guest admission on a released visit', () => {
+    const current = { ...session, hasUnassignedActiveOrders: false, isTableReleased: true };
+    renderPanel(current, {}, { tableGuestVisitsV1: true });
+
+    expect(screen.queryByRole('link', { name: 'cashier.tables.add_round' })).not.toBeInTheDocument();
+    expect(screen.queryByText('table_guest_staff_code_title')).not.toBeInTheDocument();
+    expect(screen.getByText('cashier.tables.released_status')).toBeInTheDocument();
   });
 
   it('pins a numbered table link to the selected open visit', () => {

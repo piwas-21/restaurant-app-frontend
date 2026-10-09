@@ -73,8 +73,8 @@ export default function TableGuestRoundReview({
         </p>
       )}
       {dineInUnavailable && !pendingRound && (
-        <div className={styles.notice} role="status">
-          <span>{t('table_guest_dine_in_unavailable')}</span>
+        <div className={styles.notice}>
+          <output>{t('table_guest_dine_in_unavailable')}</output>
           <button className={styles.secondaryButton} type="button" onClick={() => void onRetryAvailability()}>
             {t('table_guest_unavailable_retry_action')}
           </button>

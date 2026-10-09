@@ -99,8 +99,12 @@ export default function OrderTypeToggleShell({
 
   if (tableGuest.visitBound && tableGuest.blocked) {
     return (
-      <div role="status">
-        <p>{tableGuest.active ? t('table_guest_dine_in_unavailable') : t('table_guest_unavailable_detail')}</p>
+      <div>
+        <p>
+          <output>
+            {tableGuest.active ? t('table_guest_dine_in_unavailable') : t('table_guest_unavailable_detail')}
+          </output>
+        </p>
         {tableGuest.active && (
           <button type="button" onClick={() => void tableGuest.refreshDineInAvailability()}>
             {t('table_guest_unavailable_retry_action')}

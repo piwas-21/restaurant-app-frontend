@@ -61,8 +61,13 @@ describe('OrderTypeToggleShell', () => {
 
     render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('table_guest_dine_in_unavailable');
+    const status = screen.getByRole('status');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status).toHaveTextContent('table_guest_dine_in_unavailable');
     expect(screen.queryByRole('button', { name: /Takeaway|Delivery/ })).not.toBeInTheDocument();
+    expect(status.closest('div')).toContainElement(
+      screen.getByRole('button', { name: 'table_guest_unavailable_retry_action' }),
+    );
   });
 
   it('keeps an available active visit pinned to Dine-In only', () => {

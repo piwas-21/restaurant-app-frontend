@@ -106,6 +106,19 @@ beforeEach(() => {
 });
 
 describe('TableGuestRoundReviewContainer channel readiness', () => {
+  it('uses a native status output for unavailable dine-in and keeps its retry action', () => {
+    const refreshDineInAvailability = jest.fn().mockResolvedValue(true);
+    mockRound = { ...mockRound, dineInUnavailable: true, refreshDineInAvailability };
+
+    renderReview();
+
+    const status = screen.getByRole('status');
+    expect(status.tagName).toBe('OUTPUT');
+    expect(status).toHaveTextContent(i18n.t('table_guest_dine_in_unavailable'));
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('table_guest_unavailable_retry_action') }));
+    expect(refreshDineInAvailability).toHaveBeenCalledTimes(1);
+  });
+
   it.each(notReadyStates)('does not offer a new round for %s', (_reason, overrides) => {
     mockCartState = stateWith(overrides);
     renderReview();

@@ -1,6 +1,6 @@
 import { generateSimpleReceiptHtml } from './simpleReceipt';
 import { PaymentMethod } from '@/types/order';
-import { singleKitchenBundleOrder, nestedBundleOrder } from '../__fixtures__/bundleOrderFixture';
+import { makeOrderItem, singleKitchenBundleOrder, nestedBundleOrder } from '../__fixtures__/bundleOrderFixture';
 
 /** How many times a product name appears on the bill — the double-render guard. */
 const occurrences = (html: string, needle: string) => html.split(needle).length - 1;
@@ -38,6 +38,42 @@ describe('generateSimpleReceiptHtml — bundle components on the customer bill',
 
     expect(html).toContain('Hummus &amp; &lt;b&gt;Pita&lt;/b&gt;');
   });
+
+  it('keeps selections from one menu section adjacent in their original order', () => {
+    const order = singleKitchenBundleOrder();
+    order.items[0].sideItems = [
+      makeOrderItem({ id: 'steak', productName: 'Steak', kind: 'BundleChild', sectionId: 'meat', quantity: 1 }),
+      makeOrderItem({ id: 'carrier', productName: 'Tacos 3 viandes', kind: 'BundleChild' }),
+      makeOrderItem({ id: 'fries', productName: 'Fries', kind: 'BundleChild', sectionId: 'side' }),
+      makeOrderItem({ id: 'kebab', productName: 'Kebab', kind: 'BundleChild', sectionId: 'meat', quantity: 2 }),
+      makeOrderItem({ id: 'cola', productName: 'Cola', kind: 'BundleChild', sectionId: 'drink' }),
+    ];
+
+    const html = generateSimpleReceiptHtml(order);
+    const steak = html.indexOf('+ Steak');
+    const kebab = html.indexOf('+ Kebab x2');
+    const carrier = html.indexOf('+ Tacos 3 viandes');
+    const fries = html.indexOf('+ Fries');
+    const cola = html.indexOf('+ Cola');
+
+    expect(steak).toBeGreaterThan(-1);
+    expect(kebab).toBeGreaterThan(steak);
+    expect(carrier).toBeGreaterThan(kebab);
+    expect(fries).toBeGreaterThan(carrier);
+    expect(cola).toBeGreaterThan(fries);
+  });
+
+  it('prints a variation-only legacy note once and keeps distinct instructions', () => {
+    const order = singleKitchenBundleOrder();
+    order.items[0].variationName = 'French Fries';
+    order.items[0].specialInstructions = ' French Fries ';
+
+    const duplicateHtml = generateSimpleReceiptHtml(order);
+    expect(duplicateHtml.split('French Fries').length - 1).toBe(1);
+
+    order.items[0].specialInstructions = 'No salt';
+    expect(generateSimpleReceiptHtml(order)).toContain('No salt');
+  });
 });
 
 describe('generateSimpleReceiptHtml — payment method labels', () => {
@@ -57,6 +93,57 @@ describe('generateSimpleReceiptHtml — payment method labels', () => {
 
     expect(html).toContain('Card at restaurant');
     expect(html).not.toContain('CreditCard');
+  });
+
+  it('prints captured staff gratuity and refunds separately from the order amount', () => {
+    const order = singleKitchenBundleOrder();
+    order.totalPaid = 20;
+    order.paymentTipMinor = 200;
+    order.payments = [
+      {
+        id: 'payment-tip',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: 20,
+        status: 'PartiallyRefunded',
+        tipMinor: 300,
+        refundedTipMinor: 100,
+      },
+    ];
+
+    const html = generateSimpleReceiptHtml(order);
+
+    expect(html).toContain('Tip for staff');
+    expect(html).toContain('Tip refunded');
+    expect(html).toContain('Total collected');
+    const printedText = html.replace(/\u00a0/g, ' ');
+    expect(printedText).toContain('CHF 20.00');
+    expect(printedText).toContain('CHF 3.00');
+    expect(printedText).toContain('CHF 1.00');
+    expect(printedText).toContain('CHF 22.00');
+  });
+
+  it('keeps the total-collection line when the recorded staff tip was fully refunded', () => {
+    const order = singleKitchenBundleOrder();
+    order.totalPaid = 20;
+    order.paymentTipMinor = 0;
+    order.payments = [
+      {
+        id: 'payment-tip-refunded',
+        orderId: order.id,
+        paymentMethod: PaymentMethod.Cash,
+        amount: 20,
+        status: 'Refunded',
+        tipMinor: 300,
+        refundedTipMinor: 300,
+      },
+    ];
+
+    const printedText = generateSimpleReceiptHtml(order).replace(/\u00a0/g, ' ');
+
+    expect(printedText).toContain('Tip for staff: CHF 3.00');
+    expect(printedText).toContain('Tip refunded: CHF 3.00');
+    expect(printedText).toContain('Total collected: CHF 20.00');
   });
 });
 

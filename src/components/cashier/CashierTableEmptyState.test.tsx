@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import CashierTableEmptyState from './CashierTableEmptyState';
 
@@ -42,5 +42,23 @@ describe('CashierTableEmptyState', () => {
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.resolve_legacy_orders' }));
     expect(resolve).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('link', { name: /sale/i })).not.toBeInTheDocument();
+  });
+
+  it('requires confirmation before clearing pending legacy orders', async () => {
+    const clear = jest.fn().mockResolvedValue(undefined);
+    render(
+      <CashierTableEmptyState
+        entry={entry}
+        isOpening={false}
+        onBack={jest.fn()}
+        onOpenSession={jest.fn()}
+        onClearLegacyOrders={clear}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.clear_and_release' }));
+    expect(screen.getByText('cashier.tables.clear_confirm_limits')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'cashier.tables.clear_and_release' }).at(-1)!);
+    await waitFor(() => expect(clear).toHaveBeenCalledTimes(1));
   });
 });

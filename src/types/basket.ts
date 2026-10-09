@@ -46,6 +46,8 @@ export interface BasketItemDto {
   variationName?: string;
   menuId?: string;
   menuName?: string;
+  /** Frozen owning menu-section identity for stable bundle-choice ordering. */
+  sectionId?: string;
   variationContent?: Record<
     string,
     {

@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { OrderDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
-import { canCollectPayment } from '@/lib/settlementEligibility';
+import { inputFromMinor, orderTenderTotalMinor } from '@/lib/orderPaymentMoney';
+import { orderCurrency } from '@/lib/cashierMoney';
 import { usePaymentOperationKey } from './usePaymentOperationKey';
-import {
-  PaymentCheckFailedError,
-  PaymentResultUnknownError,
-  StalePaymentOutcomeError,
-} from './useCashierCollectionOutcome';
-import { paymentModalSchema } from '@/components/cashier/paymentModalSchema';
+import { useCashierCollectionSubmit } from './useCashierCollectionSubmit';
 import type {
   CashierCollectionFormController,
   CashierCollectionPaymentOutcome,
@@ -16,12 +12,7 @@ import type {
 } from './useCashierCollectionForm.types';
 
 const initialAmount = (order: OrderDto): string => (order.remainingAmount > 0 ? order.remainingAmount.toFixed(2) : '');
-
-function errorText(error: unknown, t: (key: string) => string): string {
-  const message = error instanceof Error ? error.message : '';
-  if (message.startsWith('cashier.')) return t(message);
-  return message || t('cashier.payment_failed');
-}
+const initialTip = '0.00';
 
 export function useCashierCollectionForm({
   order,
@@ -32,6 +23,7 @@ export function useCashierCollectionForm({
   t,
 }: UseCashierCollectionFormOptions): CashierCollectionFormController {
   const [amount, setAmount] = useState(() => initialAmount(order));
+  const [tip, setTip] = useState(initialTip);
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
   const [received, setReceived] = useState(() => initialAmount(order));
   // Prefilled with the order id (pilot feedback): a recorded card tender then carries a
@@ -53,7 +45,8 @@ export function useCashierCollectionForm({
     orderIdRef.current = order.id;
     const nextAmount = initialAmount(order);
     setAmount(nextAmount);
-    setReceived(nextAmount);
+    setTip(initialTip);
+    setReceived(inputFromMinor(orderTenderTotalMinor(nextAmount, initialTip, orderCurrency(order)) ?? 0));
     setMethod(PaymentMethod.Cash);
     setTransactionId(order.id);
     setNotes('');
@@ -71,10 +64,21 @@ export function useCashierCollectionForm({
     (value: string) => {
       if (Number.isNaN(Number.parseFloat(value)) && value !== '') return;
       setAmount(value);
-      if (method === PaymentMethod.Cash) setReceived(value);
+      if (method === PaymentMethod.Cash)
+        setReceived(inputFromMinor(orderTenderTotalMinor(value, tip, orderCurrency(order)) ?? 0));
       clearTransient();
     },
-    [clearTransient, method],
+    [clearTransient, method, order, tip],
+  );
+  const handleTipChange = useCallback(
+    (value: string) => {
+      if (Number.isNaN(Number.parseFloat(value)) && value !== '') return;
+      setTip(value);
+      if (method === PaymentMethod.Cash)
+        setReceived(inputFromMinor(orderTenderTotalMinor(amount, value, orderCurrency(order)) ?? 0));
+      clearTransient();
+    },
+    [amount, clearTransient, method, order],
   );
   const handleReceivedChange = useCallback((value: string) => setReceived(value), []);
   const handleCashSuggestion = useCallback((value: number) => {
@@ -85,9 +89,12 @@ export function useCashierCollectionForm({
   const handleMethodChange = useCallback(
     (value: string) => {
       setMethod(value);
+      if (value === PaymentMethod.Cash) {
+        setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order)) ?? 0));
+      }
       clearTransient();
     },
-    [clearTransient],
+    [amount, clearTransient, order, tip],
   );
   const handleTransactionChange = useCallback(
     (value: string) => {
@@ -104,70 +111,32 @@ export function useCashierCollectionForm({
     [clearTransient],
   );
 
-  const handleSubmit = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (controlsDisabled || !canCollectPayment(order)) return;
-      const parsed = paymentModalSchema.safeParse({ amount, paymentMethod: method, cashReceived: received });
-      if (!parsed.success) {
-        const invalidField = parsed.error.issues[0]?.path[0];
-        setError(
-          invalidField === 'cashReceived' ? t('cashier.cash_received_too_low') : t('cashier.payment_amount_required'),
-        );
-        return;
-      }
-      if (parsed.data.amount > order.remainingAmount) {
-        setError(t('cashier.payment_exceeds_balance'));
-        return;
-      }
-      setError(null);
-      const applied = parsed.data.amount;
-      const cashReceived = Number.parseFloat(received) || 0;
-      try {
-        const updated = await onSubmit({
-          operationId: operationFor(),
-          expectedVersion: order.version,
-          amount: applied,
-          paymentMethod: method,
-          transactionId: transactionId.trim() || undefined,
-          paymentNotes: notes.trim() || undefined,
-        });
-        setLastPayment({
-          applied,
-          change: method === PaymentMethod.Cash ? Math.max(0, cashReceived - applied) : 0,
-          remaining: updated.remainingAmount,
-        });
-        setAmount(initialAmount(updated));
-        setReceived(initialAmount(updated));
-        setMethod(PaymentMethod.Cash);
-        setTransactionId(updated.id);
-        setNotes('');
-        setError(null);
-        resetOperation();
-      } catch (reason: unknown) {
-        if (reason instanceof StalePaymentOutcomeError) return;
-        if (!(reason instanceof PaymentResultUnknownError) && !(reason instanceof PaymentCheckFailedError))
-          resetOperation();
-        setError(errorText(reason, t));
-      }
-    },
-    [
-      amount,
-      controlsDisabled,
-      method,
-      notes,
-      onSubmit,
-      operationFor,
-      order,
-      received,
-      resetOperation,
-      t,
-      transactionId,
-    ],
-  );
+  const handleSubmit = useCashierCollectionSubmit({
+    order,
+    controlsDisabled,
+    amount,
+    tip,
+    method,
+    received,
+    transactionId,
+    notes,
+    onSubmit,
+    operationFor,
+    resetOperation,
+    t,
+    setAmount,
+    setTip,
+    setReceived,
+    setMethod,
+    setTransactionId,
+    setNotes,
+    setError,
+    setLastPayment,
+  });
 
   return {
     amount,
+    tip,
     received,
     method,
     transactionId,
@@ -177,12 +146,13 @@ export function useCashierCollectionForm({
     lastPayment,
     onSubmit: handleSubmit,
     onAmountChange: handleAmountChange,
+    onTipChange: handleTipChange,
     onReceivedChange: handleReceivedChange,
     onMethodChange: handleMethodChange,
     onTransactionChange: handleTransactionChange,
     onNotesChange: handleNotesChange,
     onSetMaxAmount: () => handleSetAmount(Math.max(0, order.remainingAmount)),
-    onExactCash: () => setReceived(amount),
+    onExactCash: () => setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order)) ?? 0)),
     onCashSuggestion: handleCashSuggestion,
     clearTransient,
     resetOperation,

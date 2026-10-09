@@ -43,6 +43,9 @@ export interface TableServiceSessionDto {
   accountRevision?: number;
   openedAt: string;
   closedAt?: string | null;
+  releasedAt?: string | null;
+  releasedBy?: string | null;
+  isTableReleased?: boolean;
   roundCount: number;
   ageMinutes: number;
   outstanding: number;
@@ -53,6 +56,7 @@ export interface TableServiceSessionDto {
   canRequestPaymentHandoff?: boolean;
   hasPendingPaymentHandoff?: boolean;
   canClose?: boolean;
+  canReleaseTable?: boolean;
   hasUnassignedActiveOrders?: boolean;
   legacyActiveOrderCount?: number;
   bill: TableBillDto;
@@ -72,6 +76,8 @@ export interface AddTableServiceSessionPaymentRequest {
   expectedVersion: number;
   paymentMethod: PaymentMethod;
   amount: number;
+  /** Gratuity in exact currency minor units; it is not applied to order debt. */
+  tipMinor?: number;
   currency?: string;
   transactionId?: string;
   referenceNumber?: string;
@@ -83,6 +89,24 @@ export interface AddTableServiceSessionPaymentRequest {
 export interface CloseTableServiceSessionRequest {
   expectedVersion: number;
 }
+
+export interface ReleaseTableServiceSessionRequest {
+  expectedVersion: number;
+}
+
+export interface ClearPendingTableOrdersRequest {
+  expectedVersion?: number;
+}
+
+export interface ClearedTableOrdersDto {
+  serviceSessionId: string | null;
+  tableNumber: number;
+  cancelledOrderCount: number;
+  clearedAt: string;
+  tableReleasedAt: string | null;
+}
+
+export type ClearedTableOrdersApiResponse = ApiResponse<ClearedTableOrdersDto>;
 
 export interface TableServicePaymentHandoffMutationRequest {
   operationId: string;

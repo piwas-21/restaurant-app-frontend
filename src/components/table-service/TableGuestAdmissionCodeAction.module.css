@@ -1,13 +1,44 @@
 .panel {
   display: grid;
-  flex: 1 1 18rem;
-  gap: 0.6rem;
-  min-width: min(100%, 18rem);
-  padding: 0.9rem;
+  flex: 0 1 auto;
+  gap: 0.45rem;
+  min-width: min(100%, 14rem);
+  padding: 0.65rem 0.75rem;
   border: 1px solid var(--border-default);
   border-radius: 0.65rem;
   background: var(--surface-card);
   color: var(--text-primary);
+}
+
+.heading {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.helpButton {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 2rem;
+  min-width: 2rem;
+}
+
+.helpButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.helpContent {
+  display: grid;
+  gap: 0.3rem;
+  max-width: 42rem;
 }
 
 .detail,
@@ -43,8 +74,8 @@
 
 .button {
   justify-self: start;
-  min-height: 2.75rem;
-  padding-inline: 0.9rem;
+  min-height: 2.35rem;
+  padding-inline: 0.75rem;
   border: 1px solid var(--brand-primary);
   border-radius: 0.5rem;
   background: var(--brand-primary);

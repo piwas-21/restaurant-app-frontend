@@ -81,6 +81,12 @@
       "rounding_note": "El redondeo solo cambia el importe a pagar en efectivo. No cambia la cuenta ni añade propina.",
       "evidence_unavailable": "Los datos del efectivo o el recibo faltan o no coinciden. Los nuevos cobros están deshabilitados; comprueba la operación original.",
       "legacy_unattested": "El importe recibido y el cambio de este pago anterior en efectivo no están verificados. El importe registrado en la cuenta sigue visible."
-    }
+    },
+    "custom_guest_shares": "Importe personalizado por persona",
+    "custom_amounts_must_match_balance": "Introduce un importe positivo por persona. La suma debe coincidir con todo el saldo disponible.",
+    "share_plan_will_be_replaced": "Este plan sustituirá el reparto actual. No se pueden sustituir planes con pagos activos o cobrados.",
+    "share_amount": "Importe de la persona {{number}}",
+    "mode_custom_guest_share": "Contribución personalizada por persona",
+    "mode_full": "Cuenta completa"
   }
 }

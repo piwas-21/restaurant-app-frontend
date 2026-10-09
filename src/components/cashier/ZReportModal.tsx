@@ -7,11 +7,12 @@ import { ZReportDto } from '@/types/order';
 import { getZReport } from '@/services/orderService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { exportZReportToPDF } from '@/utils/zReportExportUtils';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrency, formatCurrencyOrNumber, TENANT_LOCALE } from '@/utils/currency';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { calendarDayFromReport } from '@/utils/zReportDay';
 import styles from './ZReportModal.module.css';
 import ZReportAccountCash from './ZReportAccountCash';
+import ZReportTenderSummary from './ZReportTenderSummary';
 
 interface ZReportModalProps {
   isOpen: boolean;
@@ -46,6 +47,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
       const request = latestRequest.current;
       setIsLoading(true);
       setError(null);
+      // A report belongs to the day in its response. Clear it as soon as another day is
+      // requested so the header can never offer yesterday's figures for export beside a new day.
+      setReportData(null);
       try {
         const data = await getZReport(date);
         if (request !== latestRequest.current) return;
@@ -135,7 +139,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               max={tenantToday || undefined}
               disabled={!tenantToday}
             />
-            {reportData && (
+            {reportData && !isLoading && (
               <button className={styles.exportButton} onClick={handleExportPDF}>
                 <Printer size={16} />
                 {t('cashier.zreport.export_pdf') || 'Print / PDF'}
@@ -189,7 +193,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                   <div className={styles.cardValue}>{formatCurrency(reportData.totalTax)}</div>
                 </div>
                 <div className={styles.card}>
-                  <div className={styles.cardLabel}>{t('cashier.zreport.total_tips') || 'Tips'}</div>
+                  <div className={styles.cardLabel}>
+                    {t('cashier.zreport.order_tips') || t('cashier.zreport.total_tips') || 'Order tips'}
+                  </div>
                   <div className={styles.cardValue}>{formatCurrency(reportData.totalTips)}</div>
                 </div>
                 <div className={styles.card}>
@@ -198,6 +204,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                 </div>
               </div>
 
+              <ZReportTenderSummary report={reportData} />
               <ZReportAccountCash movements={reportData.accountCashMovements} />
               <div className={styles.twoColumns}>
                 {/* Left column */}
@@ -208,24 +215,34 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                       {t('cashier.zreport.payment_methods') || 'Sales by Payment Method'}
                     </div>
                     {reportData.paymentsByMethod.length > 0 ? (
-                      <table className={styles.table}>
-                        <thead>
-                          <tr>
-                            <th>{t('cashier.zreport.payment_method') || 'Method'}</th>
-                            <th>{t('cashier.zreport.transactions') || 'Txns'}</th>
-                            <th>{t('cashier.zreport.amount') || 'Amount'}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {reportData.paymentsByMethod.map((pm) => (
-                            <tr key={pm.paymentMethod}>
-                              <td>{getPaymentMethodLabel(pm.paymentMethod, t)}</td>
-                              <td>{pm.transactionCount}</td>
-                              <td>{formatCurrency(pm.totalAmount)}</td>
+                      <div className={styles.tableScroll}>
+                        <table className={styles.table}>
+                          <thead>
+                            <tr>
+                              <th>{t('cashier.zreport.payment_method') || 'Method'}</th>
+                              <th>{t('cashier.zreport.currency') || 'Currency'}</th>
+                              <th>{t('cashier.zreport.transactions') || 'Txns'}</th>
+                              <th>{t('cashier.zreport.order_amount') || 'Order amount'}</th>
+                              <th>{t('cashier.zreport.staff_tip_amount') || 'Staff tip'}</th>
+                              <th>{t('cashier.zreport.total') || 'Total'}</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {reportData.paymentsByMethod.map((pm) => (
+                              <tr key={`${pm.paymentMethod}-${pm.currency ?? 'unknown'}`}>
+                                <td>{getPaymentMethodLabel(pm.paymentMethod, t)}</td>
+                                <td>{pm.currency ?? t('cashier.zreport.currency_unavailable')}</td>
+                                <td>{pm.transactionCount}</td>
+                                <td>
+                                  {formatCurrencyOrNumber(pm.orderAmount ?? pm.totalAmount, TENANT_LOCALE, pm.currency)}
+                                </td>
+                                <td>{formatCurrencyOrNumber(pm.tipAmount ?? 0, TENANT_LOCALE, pm.currency)}</td>
+                                <td>{formatCurrencyOrNumber(pm.totalAmount, TENANT_LOCALE, pm.currency)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     ) : (
                       <div className={styles.empty}>{t('cashier.zreport.no_data') || 'No data'}</div>
                     )}

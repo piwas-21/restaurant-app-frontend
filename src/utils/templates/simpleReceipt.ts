@@ -10,6 +10,7 @@ import { RESTAURANT_NAME } from '@/lib/config';
 import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -33,6 +34,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto): string => {
   const itemName = item.productName || item.menuName || 'Item';
   const variation = item.variationName ? ` (${item.variationName})` : '';
   const totalPrice = formatOrderCurrency(item.itemTotal, order);
+  const specialInstructions = displaySpecialInstructions(item);
   // What is inside a combo, itemised under the line the guest is being charged for. Prices are off:
   // the parent line carries the whole amount, so each component would otherwise print a bare 0.00.
   const childItemsHtml = buildChildItemsHtml(item.sideItems ?? [], { showPrices: false });
@@ -44,7 +46,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto): string => {
         <span><strong>${totalPrice}</strong></span>
       </div>
       ${childItemsHtml}
-      ${item.specialInstructions ? `<div dir="auto">${escapeHtml(item.specialInstructions)}</div>` : ''}
+      ${specialInstructions ? `<div dir="auto">${escapeHtml(specialInstructions)}</div>` : ''}
     </div>`;
 };
 
@@ -78,17 +80,47 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       : '';
 
   // Payments
+  const capturedTipsMinor =
+    order.paymentTipMinor ??
+    (order.payments ?? []).reduce(
+      (total, payment) =>
+        payment.status === 'Completed' || payment.status === 'PartiallyRefunded' || payment.status === 'Refunded'
+          ? total + Math.max(0, (payment.tipMinor ?? 0) - (payment.refundedTipMinor ?? 0))
+          : total,
+      0,
+    );
+  const paymentTipAmount = capturedTipsMinor / 100;
+  const hasTipPayment = (order.payments ?? []).some(
+    (payment) =>
+      (payment.status === 'Completed' || payment.status === 'PartiallyRefunded' || payment.status === 'Refunded') &&
+      ((payment.tipMinor ?? 0) > 0 || (payment.refundedTipMinor ?? 0) > 0),
+  );
+  const totalCollectedLine = hasTipPayment
+    ? `<div><strong>${translate('cashier.collection.total_collected', 'Total collected')}: ${formatOrderCurrency(order.totalPaid + paymentTipAmount, order)}</strong></div>`
+    : '';
   const paymentsHtml =
     order.payments && order.payments.length > 0
       ? `
       <div style="margin-top: 8px;">
         <strong>${translate('payment', 'PAYMENT')}:</strong>
         ${order.payments
-          .map(
-            (p) =>
-              `<div>${getPaymentMethodLabel(p.paymentMethod, translate)}: ${formatOrderCurrency(p.amount, order)}</div>`,
-          )
+          .map((p) => {
+            const captured = p.status === 'Completed' || p.status === 'PartiallyRefunded' || p.status === 'Refunded';
+            const tip = captured ? (p.tipMinor ?? 0) / 100 : 0;
+            const refundedTip = captured ? (p.refundedTipMinor ?? 0) / 100 : 0;
+            const method = getPaymentMethodLabel(p.paymentMethod, translate);
+            const tipLine =
+              tip > 0
+                ? `<div>${translate('cashier.collection.staff_tip', 'Tip for staff')}: ${formatOrderCurrency(tip, order)}</div>`
+                : '';
+            const refundLine =
+              refundedTip > 0
+                ? `<div>${translate('cashier.refund_tip_amount', 'Tip refunded')}: ${formatOrderCurrency(refundedTip, order)}</div>`
+                : '';
+            return `<div>${method}: ${formatOrderCurrency(p.amount, order)}</div>${tipLine}${refundLine}`;
+          })
           .join('')}
+        ${totalCollectedLine}
       </div>
     `
       : '';

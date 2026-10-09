@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import OrderRefundResultDialogs from './OrderRefundResultDialogs';
 import type { OrderDto, OrderPaymentDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
@@ -23,16 +23,18 @@ const payment = (over: Partial<OrderPaymentDto>): OrderPaymentDto =>
     ...over,
   }) as OrderPaymentDto;
 
-const open = (payments: OrderPaymentDto[]) =>
+const open = (payments: OrderPaymentDto[], selectedPayment: string | null = null) =>
   render(
     <OrderRefundResultDialogs
       order={{ id: 'o1', orderNumber: 'A-1', payments } as unknown as OrderDto}
       showRefundModal
       setShowRefundModal={jest.fn()}
-      selectedPayment={null}
+      selectedPayment={selectedPayment}
       setSelectedPayment={jest.fn()}
       refundAmount=""
       setRefundAmount={jest.fn()}
+      refundTipAmount="0.00"
+      setRefundTipAmount={jest.fn()}
       refundReason=""
       setRefundReason={jest.fn()}
       isRefunding={false}
@@ -73,6 +75,58 @@ describe('OrderRefundResultDialogs — gateway-held tenders', () => {
     expect(screen.queryByText(/^gateway_refund_notice/)).not.toBeInTheDocument();
   });
 
+  it('shows the separate staff-tip refund field only for a tender that collected a tip', () => {
+    open([payment({ id: 'cash-tip', tipMinor: 325 })], 'cash-tip');
+
+    expect(screen.getByRole('spinbutton', { name: /cashier\.refund_tip_amount/ })).toHaveAttribute('max', '3.25');
+    expect(screen.getByText(/cashier\.refund_tip_note/)).toHaveTextContent('cashier.refund_tip_exceeds_payment');
+  });
+
+  it('warns that a tender has one refund action before confirmation', () => {
+    open([payment({ id: 'cash-tip', tipMinor: 325 })]);
+
+    expect(screen.getByText('cashier.refund_single_event_warning')).toBeInTheDocument();
+  });
+
+  it('defaults the refund to the full selected order amount and remaining staff tip', () => {
+    const setRefundAmount = jest.fn();
+    const setRefundTipAmount = jest.fn();
+    render(
+      <OrderRefundResultDialogs
+        order={
+          {
+            id: 'o1',
+            orderNumber: 'A-1',
+            payments: [payment({ id: 'cash-tip', tipMinor: 325 })],
+          } as unknown as OrderDto
+        }
+        showRefundModal
+        setShowRefundModal={jest.fn()}
+        selectedPayment={null}
+        setSelectedPayment={jest.fn()}
+        refundAmount=""
+        setRefundAmount={setRefundAmount}
+        refundTipAmount="0.00"
+        setRefundTipAmount={setRefundTipAmount}
+        refundReason=""
+        setRefundReason={jest.fn()}
+        isRefunding={false}
+        onRefundPayment={jest.fn()}
+        showSuccessModal={false}
+        onSuccessClose={jest.fn()}
+        showCancelSuccessModal={false}
+        onCancelSuccessClose={jest.fn()}
+        error=""
+        clearError={jest.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText(/select_payment/), { target: { value: 'cash-tip' } });
+
+    expect(setRefundAmount).toHaveBeenCalledWith('40.00');
+    expect(setRefundTipAmount).toHaveBeenCalledWith('3.25');
+  });
+
   it('says nothing about a gateway for a tender that is still Processing', () => {
     // Money in flight at Stripe is not money to go and refund. The cashier surface derives its
     // notice from Completed tenders only; deriving this one from the raw list instead pointed an
@@ -87,6 +141,13 @@ describe('OrderRefundResultDialogs — gateway-held tenders', () => {
     ]);
 
     expect(screen.queryByText(/^gateway_refund_notice/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /inflight/ })).not.toBeInTheDocument();
+  });
+
+  it('does not offer a tender that already used its one refund event', () => {
+    open([payment({ id: 'partial', status: 'PartiallyRefunded', refundedAmount: 1 })]);
+
+    expect(screen.queryByRole('option', { name: /partial/ })).not.toBeInTheDocument();
   });
 
   it('says nothing about a gateway for a tender that was already refunded', () => {

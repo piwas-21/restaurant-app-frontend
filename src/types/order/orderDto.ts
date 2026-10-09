@@ -82,11 +82,9 @@ export interface OrderDto {
   customerPhone?: string;
   type: string;
   tableNumber?: number | null;
-  /** Stable table identity for dine-in orders (additive S2 response field). */
+  /** Stable table identity, display label, and visit membership for staff-created dine-in orders. */
   tableId?: string | null;
-  /** Display label for a table, including labels that are not numeric (for example, T-QA). */
   tableLabel?: string | null;
-  /** Explicit visit membership for staff-created dine-in rounds. */
   serviceSessionId?: string | null;
   subTotal: number;
   tax: number;
@@ -99,6 +97,8 @@ export interface OrderDto {
   total: number;
   totalPaid: number;
   remainingAmount: number;
+  /** Net cashier-collected gratuity across captured tenders, in minor currency units. */
+  paymentTipMinor?: number;
   isFullyPaid: boolean;
   status: string;
   paymentStatus: string;

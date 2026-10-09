@@ -5,10 +5,12 @@ import {
   getCashierTenantDay,
   getPaymentOperation,
   refundPayment,
+  addPaymentToOrder,
   approveOrder,
   rejectOrder,
 } from './cashierService';
 import { PaymentMethod, type OrderPaymentDto } from '@/types/order';
+import type { AddPaymentRequest } from './cashierService';
 
 jest.mock('@/utils/apiClient', () => ({
   ...jest.requireActual('@/utils/apiClient'),
@@ -19,6 +21,27 @@ const mockPost = apiClient.post as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe('cashierService.addPaymentToOrder', () => {
+  it('posts staff gratuity in exact minor units alongside the food amount', async () => {
+    const paymentData: AddPaymentRequest = {
+      operationId: 'op-1',
+      expectedVersion: 3,
+      paymentMethod: PaymentMethod.Cash,
+      amount: 20,
+      tipMinor: 300,
+    };
+    const order = { id: 'order-1' };
+    mockPost.mockResolvedValue({ success: true, data: order });
+
+    await expect(addPaymentToOrder('order-1', paymentData)).resolves.toBe(order);
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/orders/order-1/payments',
+      { orderId: 'order-1', ...paymentData },
+      { requireAuth: true },
+    );
+  });
 });
 
 describe('cashierService.refundPayment', () => {

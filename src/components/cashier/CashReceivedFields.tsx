@@ -1,5 +1,6 @@
 import FormField from '@/components/design-system/FormField';
-import { formatOrderCurrency } from '@/lib/cashierMoney';
+import { parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
+import { formatOrderCurrency, orderCurrency } from '@/lib/cashierMoney';
 import styles from './PaymentModal.module.css';
 
 interface CashReceivedFieldsProps {
@@ -29,9 +30,10 @@ export default function CashReceivedFields({
   onSuggestion,
   t,
 }: CashReceivedFieldsProps) {
-  const applied = Number.parseFloat(amount) || 0;
-  const cashReceived = Number.parseFloat(received) || 0;
-  const change = Math.max(0, cashReceived - applied);
+  const currencyCode = orderCurrency({ currency });
+  const amountMinor = parseAccountContributionMinor(amount, currencyCode) ?? 0;
+  const receivedMinor = parseAccountContributionMinor(received, currencyCode) ?? 0;
+  const change = Math.max(0, receivedMinor - amountMinor) / 100;
   // Same resolution as the balance card beside it: the order's currency, else the tenant
   // default. The old strict-null branch alone rendered "Currency unavailable" for the change
   // while every other amount on the page showed tenant money (pilot feedback).

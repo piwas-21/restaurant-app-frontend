@@ -81,6 +81,12 @@
       "rounding_note": "L’arrotondamento modifica solo l’importo da pagare in contanti. Non modifica il conto e non aggiunge mance.",
       "evidence_unavailable": "I dati del pagamento in contanti o la ricevuta sono mancanti o incoerenti. I nuovi incassi sono disabilitati; verifica l’operazione originale.",
       "legacy_unattested": "L’importo ricevuto e il resto di questo precedente pagamento in contanti non sono verificati. L’importo registrato sul conto resta visibile."
-    }
+    },
+    "custom_guest_shares": "Importo personalizzato per ospite",
+    "custom_amounts_must_match_balance": "Inserisci un importo positivo per ogni ospite. La somma deve corrispondere all’intero saldo disponibile.",
+    "share_plan_will_be_replaced": "Questo piano sostituirà la ripartizione attuale. I piani con pagamenti attivi o acquisiti non possono essere sostituiti.",
+    "share_amount": "Importo per l’ospite {{number}}",
+    "mode_custom_guest_share": "Contributo personalizzato per ospite",
+    "mode_full": "Conto completo"
   }
 }

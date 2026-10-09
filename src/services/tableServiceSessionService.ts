@@ -2,8 +2,11 @@ import { apiClient } from '@/utils/apiClient';
 import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type {
   AddTableServiceSessionPaymentRequest,
+  ClearPendingTableOrdersRequest,
+  ClearedTableOrdersApiResponse,
   CloseTableServiceSessionRequest,
   OpenTableServiceSessionRequest,
+  ReleaseTableServiceSessionRequest,
   TableServiceSessionApiResponse,
   TableServiceSessionDto,
   TableServiceSessionListApiResponse,
@@ -35,6 +38,13 @@ function requireData<T>(response: {
 /** Read all open visits. The server assembles each visit's complete bill in this response. */
 export async function getActiveTableServiceSessions(): Promise<TableServiceSessionDto[]> {
   const response = await apiClient.get<TableServiceSessionListApiResponse>(BASE_PATH, { requireAuth: true });
+  return requireData(response);
+}
+
+export async function getReleasedTableServiceSessions(): Promise<TableServiceSessionDto[]> {
+  const response = await apiClient.get<TableServiceSessionListApiResponse>(`${BASE_PATH}/released`, {
+    requireAuth: true,
+  });
   return requireData(response);
 }
 
@@ -102,6 +112,39 @@ export async function closeTableServiceSession(
     { requireAuth: true },
   );
   return requireData(response);
+}
+
+export async function releaseTableServiceSession(
+  serviceSessionId: string,
+  request: ReleaseTableServiceSessionRequest,
+): Promise<TableServiceSessionDto> {
+  const response = await apiClient.post<TableServiceSessionApiResponse>(
+    `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/release`,
+    request,
+    { requireAuth: true },
+  );
+  return requireData(response);
+}
+
+export async function clearPendingTableServiceSessionOrders(
+  serviceSessionId: string,
+  request: ClearPendingTableOrdersRequest,
+): Promise<void> {
+  const response = await apiClient.post<ClearedTableOrdersApiResponse>(
+    `${BASE_PATH}/${encodeURIComponent(serviceSessionId)}/clear-pending-orders`,
+    request,
+    { requireAuth: true },
+  );
+  requireData(response);
+}
+
+export async function clearLegacyTableOrders(tableNumber: number): Promise<void> {
+  const response = await apiClient.post<ClearedTableOrdersApiResponse>(
+    `${BASE_PATH}/legacy/${tableNumber}/clear-pending-orders`,
+    {},
+    { requireAuth: true },
+  );
+  requireData(response);
 }
 
 /** Create one idempotent, version-pinned request for Cashier to collect this visit. */

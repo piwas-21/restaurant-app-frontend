@@ -21,6 +21,7 @@ import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { formatOrderDate } from '@/utils/orderDetailsFormatters';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 import styles from '../OrderDetailsModal.module.css';
 
 interface OrderDetailsInfoProps {
@@ -162,38 +163,41 @@ export default function OrderDetailsInfo({ order }: OrderDetailsInfoProps) {
           {t('order_items', 'Order Items')} ({order.items.length})
         </h3>
         <div className={styles.itemsList}>
-          {order.items.map((item) => (
-            <div key={item.id} className={styles.orderItem}>
-              {item.productImageUrl && (
-                <div className={styles.itemImage}>
-                  <Image
-                    src={item.productImageUrl}
-                    alt={item.productName || ''}
-                    width={60}
-                    height={60}
-                    style={{ objectFit: 'cover' }}
-                  />
-                </div>
-              )}
-              <div className={styles.itemDetails}>
-                <h4 className={styles.itemName}>{item.productName}</h4>
-                {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
-                {item.specialInstructions && (
-                  <p className={styles.itemInstructions}>
-                    <FileText size={12} />
-                    {item.specialInstructions}
-                  </p>
+          {order.items.map((item) => {
+            const specialInstructions = displaySpecialInstructions(item);
+            return (
+              <div key={item.id} className={styles.orderItem}>
+                {item.productImageUrl && (
+                  <div className={styles.itemImage}>
+                    <Image
+                      src={item.productImageUrl}
+                      alt={item.productName || ''}
+                      width={60}
+                      height={60}
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 )}
-                <div className={styles.itemQuantity}>
-                  {t('qty', 'Qty')}: {item.quantity} × {formatOrderCurrency(item.unitPrice, order)}
-                </div>
-                {/* `order.items` is root-only since backend #237 — without this the components of a
+                <div className={styles.itemDetails}>
+                  <h4 className={styles.itemName}>{item.productName}</h4>
+                  {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
+                  {specialInstructions && (
+                    <p className={styles.itemInstructions}>
+                      <FileText size={12} />
+                      {specialInstructions}
+                    </p>
+                  )}
+                  <div className={styles.itemQuantity}>
+                    {t('qty', 'Qty')}: {item.quantity} × {formatOrderCurrency(item.unitPrice, order)}
+                  </div>
+                  {/* `order.items` is root-only since backend #237 — without this the components of a
                     combo are invisible here. Instructions are hidden: rendered above already. */}
-                <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
+                  <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
+                </div>
+                <div className={styles.itemTotal}>{formatOrderCurrency(item.itemTotal, order)}</div>
               </div>
-              <div className={styles.itemTotal}>{formatOrderCurrency(item.itemTotal, order)}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </>

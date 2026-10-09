@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { dismissToastsOverCartButton } from '../../helpers/menuBasket';
+import {
+  addFirstMenuItemAndWaitForBasket,
+  dismissToastsOverCartButton,
+  menuBasketPanel,
+  openMenuBasket,
+  proceedViaSidebarExpectingNavigation,
+} from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — mobile cart bottom-sheet (the C1.5 order-flow redesign, sub-task f).
@@ -79,4 +85,72 @@ test('mobile FAB opens cart bottom-sheet with the same controls as the desktop s
   await expect(sheet.getByRole('group', { name: /order type/i })).toBeVisible();
   await expect(sheet.getByRole('button', { name: /increase quantity/i })).toBeVisible();
   await expect(sheet.getByRole('button', { name: /proceed to checkout/i })).toBeVisible();
+});
+
+test('mobile checkout waits for the selected basket channel before routing', async ({ page }, testInfo) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'rumi_cookie_consent',
+      JSON.stringify({ necessary: true, preferences: true, analytics: true, marketing: true }),
+    );
+  });
+
+  await page.goto('/en/menu');
+  await addFirstMenuItemAndWaitForBasket(page);
+  const sheet = await openMenuBasket(page);
+  const orderTypeButton = sheet
+    .getByRole('group', { name: /order type/i })
+    .getByRole('button', { name: /takeaway/i });
+  const proceedButton = sheet.getByRole('button', { name: /proceed to checkout/i });
+
+  // Hold the real request at the browser boundary to reproduce a slow phone connection without
+  // replacing the API response or any application layer.
+  let releaseChannelRequest!: () => void;
+  let announceChannelRequest!: () => void;
+  const channelRequestEntered = new Promise<void>((resolve) => {
+    announceChannelRequest = resolve;
+  });
+  const channelRequestGate = new Promise<void>((resolve) => {
+    releaseChannelRequest = resolve;
+  });
+  const channelResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/api/Basket/order-type' && response.request().method() === 'PUT',
+    { timeout: 15_000 },
+  );
+  await page.route('**/api/Basket/order-type', async (route) => {
+    announceChannelRequest();
+    await channelRequestGate;
+    await route.continue();
+  });
+
+  try {
+    await orderTypeButton.click();
+    await channelRequestEntered;
+    await expect(proceedButton).toBeDisabled();
+
+    releaseChannelRequest();
+    const response = await channelResponse;
+    expect(response.ok(), 'basket channel switch must succeed').toBeTruthy();
+    await expect(orderTypeButton).toHaveAttribute('aria-pressed', 'true');
+  } finally {
+    releaseChannelRequest();
+    await page.unroute('**/api/Basket/order-type');
+  }
+
+  // A guest still needs contact details. Completing the modal then using Proceed must reach review
+  // on the first tap; the earlier tap during the channel write cannot be lost or routed on stale state.
+  const details = page.getByRole('dialog', { name: /almost there/i });
+  await expect(details).toBeVisible({ timeout: 10_000 });
+  await details.getByLabel(/full name/i).fill('Mobile E2E Guest');
+  await details
+    .getByLabel(/^email/i)
+    .fill('e2e-mobile-' + testInfo.testId + '-' + Date.now() + '@test.local');
+  await details.getByLabel(/^phone/i).fill('+41791234567');
+  await details.getByRole('button', { name: /^confirm$/i }).click();
+  await expect(details).toBeHidden({ timeout: 10_000 });
+
+  await proceedViaSidebarExpectingNavigation(page, sheet);
+  await expect(page).toHaveURL(/\/en\/checkout\/review$/);
+  await expect(menuBasketPanel(page)).toBeHidden();
 });

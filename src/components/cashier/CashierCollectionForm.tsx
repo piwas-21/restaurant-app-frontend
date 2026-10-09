@@ -1,8 +1,10 @@
 import type { FormEvent } from 'react';
 import { CreditCard } from 'lucide-react';
-import { cashSuggestions } from '@/lib/cashierMoney';
+import { cashSuggestions, formatOrderCurrency, orderCurrency } from '@/lib/cashierMoney';
+import { amountFromMinor, inputFromMinor, orderTenderTotalMinor } from '@/lib/orderPaymentMoney';
 import type { OrderDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
+import FormField from '@/components/design-system/FormField';
 import CashReceivedFields from './CashReceivedFields';
 import CashierNumericKeypad from './CashierNumericKeypad';
 import PaymentAmountField from './PaymentAmountField';
@@ -10,10 +12,12 @@ import PaymentMethodField from './PaymentMethodField';
 import PaymentReferenceFields from './PaymentReferenceFields';
 import styles from './CashierCollection.module.css';
 import entry from './CashierCollectionEntry.module.css';
+import fields from './PaymentModal.module.css';
 
 interface CashierCollectionFormProps {
   readonly order: OrderDto;
   readonly amount: string;
+  readonly tip: string;
   readonly received: string;
   readonly method: string;
   readonly transactionId: string;
@@ -23,6 +27,7 @@ interface CashierCollectionFormProps {
   readonly isCheckingPayment: boolean;
   readonly onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
   readonly onAmountChange: (value: string) => void;
+  readonly onTipChange: (value: string) => void;
   readonly onReceivedChange: (value: string) => void;
   readonly onMethodChange: (value: string) => void;
   readonly onTransactionChange: (value: string) => void;
@@ -37,6 +42,7 @@ interface CashierCollectionFormProps {
 export default function CashierCollectionForm({
   order,
   amount,
+  tip,
   received,
   method,
   transactionId,
@@ -46,6 +52,7 @@ export default function CashierCollectionForm({
   isCheckingPayment,
   onSubmit,
   onAmountChange,
+  onTipChange,
   onReceivedChange,
   onMethodChange,
   onTransactionChange,
@@ -56,6 +63,9 @@ export default function CashierCollectionForm({
   t,
   onReturnToOrder,
 }: CashierCollectionFormProps) {
+  const currency = orderCurrency(order);
+  const totalMinor = orderTenderTotalMinor(amount, tip, currency) ?? 0;
+  const tenderTotal = amountFromMinor(totalMinor);
   const pendingLabel = isCheckingPayment ? t('cashier.payment_checking') : t('common.loading');
   let submitLabel = pendingLabel;
   if (!isPending) {
@@ -75,12 +85,27 @@ export default function CashierCollectionForm({
             onSetMaxAmount={onSetMaxAmount}
             t={t}
           />
+          <FormField label={t('cashier.collection.staff_tip')}>
+            <input
+              type="number"
+              className={fields.input}
+              min="0"
+              step="0.01"
+              value={tip}
+              onChange={(event) => onTipChange(event.target.value)}
+              disabled={isPending}
+            />
+          </FormField>
+          <small>{t('cashier.collection.staff_tip_description')}</small>
+          <output aria-live="polite">
+            {t('cashier.collection.total_to_collect')}: {formatOrderCurrency(tenderTotal, order)}
+          </output>
           {method === PaymentMethod.Cash && (
             <CashReceivedFields
-              amount={amount}
+              amount={inputFromMinor(totalMinor)}
               received={received}
-              currency={order.currency}
-              suggestions={cashSuggestions(order.remainingAmount)}
+              currency={currency}
+              suggestions={cashSuggestions(tenderTotal)}
               disabled={isPending}
               onReceivedChange={onReceivedChange}
               onExact={onExactCash}

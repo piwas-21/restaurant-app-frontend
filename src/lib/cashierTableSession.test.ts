@@ -3,6 +3,8 @@ import {
   formatTableMoney,
   tableNumberKey,
   tableOrderSettlementState,
+  tablePaymentFlowTranslationKey,
+  tableSplitStatusTranslationKey,
   tableSessionActions,
   tableSessionCurrency,
 } from './cashierTableSession';
@@ -71,6 +73,21 @@ describe('table session policy', () => {
         }),
       ),
     ).toBe('EUR');
+  });
+});
+
+describe('table bill translation keys', () => {
+  it('maps each supported payment flow and guest collection state to a literal key', () => {
+    expect(tablePaymentFlowTranslationKey('Full')).toBe('cashier.tables.payment_flow_full');
+    expect(tablePaymentFlowTranslationKey('Amount')).toBe('cashier.tables.payment_flow_amount');
+    expect(tablePaymentFlowTranslationKey('Equal')).toBe('cashier.tables.payment_flow_equal');
+    expect(tablePaymentFlowTranslationKey('CustomAmount')).toBe('cashier.tables.payment_flow_custom');
+    expect(tablePaymentFlowTranslationKey('ByItems')).toBe('cashier.tables.payment_flow_items');
+    expect(tablePaymentFlowTranslationKey('FutureMode')).toBe('cashier.tables.payment_flow');
+    expect(tableSplitStatusTranslationKey('Due')).toBe('cashier.tables.split_status_due');
+    expect(tableSplitStatusTranslationKey('Captured')).toBe('cashier.tables.split_status_captured');
+    expect(tableSplitStatusTranslationKey('Reserved')).toBe('cashier.tables.split_status_reserved');
+    expect(tableSplitStatusTranslationKey('FutureStatus')).toBe('cashier.tables.split_status_due');
   });
 });
 

@@ -12,6 +12,8 @@ import {
   tableOrderSettlementState,
   tableSessionCredit,
   tableSessionEligibleOutstanding,
+  tablePaymentFlowTranslationKey,
+  tableSplitStatusTranslationKey,
   type TableOrderSettlementState,
 } from '@/lib/cashierTableSession';
 import styles from './TableServiceSessionBill.module.css';
@@ -79,8 +81,11 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
     formatTableMoney(amount, session) ?? t('cashier.tables.currency_unknown');
   const rounds = displayRounds(session);
   const credit = tableSessionCredit(session);
+  const flowLabel = session.bill.paymentFlowMode
+    ? t(tablePaymentFlowTranslationKey(session.bill.paymentFlowMode))
+    : null;
   return (
-    <section className={styles.bill} aria-labelledby="table-service-bill-title">
+    <section id="table-session-bill-print" className={styles.bill} aria-labelledby="table-service-bill-title">
       <h3 id="table-service-bill-title">{t('cashier.tables.bill')}</h3>
       <div className={styles.billScroll}>
         {rounds.length === 0 && <p className={styles.muted}>{t('cashier.tables.no_rounds')}</p>}
@@ -123,6 +128,27 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
         })}
       </div>
       <div className={styles.totals} aria-live="polite">
+        {flowLabel && (
+          <div className={styles.totalRow}>
+            <span>{t('cashier.tables.payment_flow')}</span>
+            <span className={styles.totalValue}>
+              {flowLabel}
+              {session.bill.guestCount
+                ? ` · ${t('cashier.tables.split_guest_count', {
+                    count: session.bill.guestCount,
+                  })}`
+                : ''}
+            </span>
+          </div>
+        )}
+        {(session.bill.guestAmounts ?? []).map((guest) => (
+          <div key={guest.guestNumber} className={styles.totalRow}>
+            <span>{t('cashier.tables.split_guest_amount', { number: guest.guestNumber })}</span>
+            <span className={styles.totalValue}>
+              {t(tableSplitStatusTranslationKey(guest.status))} · {money(guest.amount)}
+            </span>
+          </div>
+        ))}
         <div className={styles.totalRow}>
           <span>{t('cashier.tables.total')}</span>
           <span className={styles.totalValue}>{money(session.bill.total)}</span>
@@ -131,6 +157,15 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
           <span>{t('cashier.tables.paid')}</span>
           <span className={styles.totalValue}>{money(session.bill.totalPaid)}</span>
         </div>
+        {(session.bill.paymentTip ?? 0) > 0 && (
+          <>
+            <div className={styles.totalRow}>
+              <span>{t('cashier.tables.payment_tip_received')}</span>
+              <span className={styles.totalValue}>{money(session.bill.paymentTip)}</span>
+            </div>
+            <p className={styles.tipNotice}>{t('cashier.tables.tip_food_refund_notice')}</p>
+          </>
+        )}
         {credit > 0 && (
           <div className={styles.totalRow}>
             <span>{t('cashier.tables.round_credit')}</span>

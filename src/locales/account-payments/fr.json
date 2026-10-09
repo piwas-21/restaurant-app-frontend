@@ -81,6 +81,12 @@
       "rounding_note": "L’arrondi modifie uniquement le montant à payer en espèces. Il ne modifie pas le compte et n’ajoute aucun pourboire.",
       "evidence_unavailable": "Les données d’espèces ou le reçu sont indisponibles ou incohérents. Les nouveaux encaissements sont désactivés ; vérifiez l’opération initiale.",
       "legacy_unattested": "Le montant reçu et la monnaie de cet ancien paiement en espèces ne sont pas vérifiés. Le montant enregistré sur le compte reste visible."
-    }
+    },
+    "custom_guest_shares": "Montant personnalisé par personne",
+    "custom_amounts_must_match_balance": "Saisissez un montant positif par personne. Leur somme doit correspondre à tout le solde disponible.",
+    "share_plan_will_be_replaced": "Ce plan remplacera la répartition actuelle. Un plan avec des paiements actifs ou encaissés ne peut pas être remplacé.",
+    "share_amount": "Montant de la personne {{number}}",
+    "mode_custom_guest_share": "Contribution personnalisée par personne",
+    "mode_full": "Addition complète"
   }
 }

@@ -3,7 +3,7 @@
  * Extracted from types/order.ts (Sprint 4/6 type-file split by domain).
  */
 
-import { PaymentMethod, OrderStatus, PaymentRecordStatus } from './enums';
+import { PaymentMethod, OrderStatus } from './enums';
 
 /**
  * Delivery address for orders
@@ -65,7 +65,7 @@ export interface CreateOrderItemDto {
   // while omission preserves the declared price.
   selectedIngredientIds?: string[];
   ingredientQuantities?: Record<string, number>; // Ingredient quantities for kitchen print
-  sectionId?: string; // Owning section for a staff-priced bundle child.
+  sectionId?: string; // Frozen menu-section identity for stable choice grouping in order displays.
   childItems?: CreateOrderItemDto[]; // Child items (e.g. side items, additionals)
   // Child rows only (backend #318): bundle component vs true side. On the CREATE shape because a
   // child row is WRITTEN, not just read — the waiter sheet posts its side items with it.
@@ -104,39 +104,7 @@ export interface CreateOrderPaymentDto {
   paymentNotes?: string;
 }
 
-/**
- * A payment as the backend reports it. Declared standalone rather than extending
- * `CreateOrderPaymentDto`: the write shape is now a strict subset of the read shape, and
- * inheriting would have silently deleted these five fields from every read site when the write
- * DTO was tightened. Mirrors backend `Features/Orders/Dtos/OrderPaymentDto.cs`.
- */
-export interface OrderPaymentDto {
-  operationId?: string | null; // Staff till idempotency key, when present.
-  paymentMethod: PaymentMethod;
-  amount: number;
-  paymentNotes?: string;
-  transactionId?: string;
-  referenceNumber?: string;
-  cardLastFourDigits?: string;
-  cardType?: string;
-  paymentGateway?: string;
-  id: string;
-  orderId: string;
-  /**
-   * Typed rather than `string` so a comparison against a state a payment record cannot hold is a
-   * COMPILE error — `RefundModal` compared it to `'Paid'`, and its refundable list was always
-   * empty. See `PaymentRecordStatus` for the six values and who writes each; `Pending` in
-   * particular is the resting state of every CASH payment, not an edge case, and `Processing` is
-   * an online tender still at Stripe — neither is money the restaurant holds.
-   */
-  status: PaymentRecordStatus;
-  paymentDate?: string;
-  isRefunded?: boolean;
-  refundedAmount?: number;
-  refundDate?: string;
-  refundReason?: string;
-  createdAt?: string;
-}
+export type { OrderPaymentDto } from './paymentDto';
 /**
  * Order status history entry
  */

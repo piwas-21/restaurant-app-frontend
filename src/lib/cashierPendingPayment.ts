@@ -14,6 +14,7 @@ interface StoredPendingPayment {
   readonly operationId?: unknown;
   readonly paymentMethod?: unknown;
   readonly amount?: unknown;
+  readonly tipMinor?: unknown;
   readonly expectedVersion?: unknown;
   readonly transactionId?: unknown;
   readonly referenceNumber?: unknown;
@@ -58,11 +59,16 @@ function toPendingPayment(value: StoredPendingPayment, orderId: string): Pending
     typeof value.expectedVersion === 'number' && Number.isInteger(value.expectedVersion)
       ? value.expectedVersion
       : undefined;
+  const tipMinor =
+    typeof value.tipMinor === 'number' && Number.isSafeInteger(value.tipMinor) && value.tipMinor > 0
+      ? value.tipMinor
+      : undefined;
   return {
     orderId: value.orderId,
     operationId: value.operationId,
     paymentMethod: value.paymentMethod,
     amount: value.amount,
+    tipMinor,
     expectedVersion,
     transactionId: asOptionalString(value.transactionId),
     referenceNumber: asOptionalString(value.referenceNumber),

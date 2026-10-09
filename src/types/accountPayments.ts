@@ -11,7 +11,7 @@ export type AccountPaymentState =
   | 'Released'
   | 'Failed'
   | 'ReconciliationRequired';
-export type AccountPaymentMode = 'Items' | 'Amount' | 'Equal';
+export type AccountPaymentMode = 'Items' | 'Amount' | 'Equal' | 'CustomAmount' | 'Full';
 export type AccountManualPaymentMethod = 'Cash' | 'CreditCard';
 export type AccountPaymentSummaryMethod = AccountManualPaymentMethod | 'OnlinePayment';
 
@@ -45,7 +45,10 @@ export interface AccountPaymentOperation {
   reservationExpiresAt: string | null;
   equalSharePlanId: string | null;
   equalShareOrdinal: number | null;
+  customSharePlanId?: string | null;
+  customShareOrdinal?: number | null;
   allocations: AccountPaymentAllocation[];
+  tipMinor?: number;
   cashSettlement?: AccountCashSettlement | null;
   cashReceipt?: AccountCashReceipt | null;
 }
@@ -61,6 +64,8 @@ export interface AccountEqualSharePlan {
   createdAt: string;
   invalidatedAt: string | null;
   scope: AccountPaymentAllocation[];
+  isCustom?: boolean;
+  customAmountsMinor?: number[] | null;
 }
 
 export interface CreateAccountPaymentQuoteRequest {
@@ -72,6 +77,9 @@ export interface CreateAccountPaymentQuoteRequest {
   amountMinor?: number;
   equalSharePlanId?: string;
   equalShareOrdinal?: number;
+  customSharePlanId?: string;
+  customShareOrdinal?: number;
+  tipMinor?: number;
 }
 
 export interface CreateAccountEqualSharePlanRequest {
@@ -79,6 +87,7 @@ export interface CreateAccountEqualSharePlanRequest {
   expectedAccountRevision: number;
   shareCount: number;
   supersedesPlanId?: string;
+  customAmountsMinor?: number[];
 }
 
 export interface ReserveAccountPaymentRequest {

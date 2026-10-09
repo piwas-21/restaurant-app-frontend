@@ -40,7 +40,7 @@ interface FollowUpState {
    * skip it (complete profile) — used by the review page's "Edit" so the guest
    * can always change their details.
    */
-  pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
+  pickType: (type: OrderType, source?: string, forceModal?: boolean) => Promise<void>;
   closeFollowUp: () => void;
   /**
    * Open the order-type editor (the segmented toggle) — the review page's

@@ -23,6 +23,7 @@ export function isBasketChannelSessionChangedError(error: unknown): error is Bas
 
 let activeChannelWrites = 0;
 let snapshotNeedsRefresh = false;
+let basketChannelRecoveryRequired = false;
 let basketBeforeUnconfirmedWrite: BasketDto | null = null;
 let pendingSelectionTarget: OrderType | null = null;
 let channelMutationQueue: Promise<void> = Promise.resolve();
@@ -39,8 +40,10 @@ function subscribeChannelState(listener: () => void) {
 
 function getChannelState(orderType: OrderType | null) {
   const targetNotSelected = pendingSelectionTarget !== null && pendingSelectionTarget !== orderType;
-  return activeChannelWrites > 0 || snapshotNeedsRefresh || targetNotSelected;
+  return activeChannelWrites > 0 || snapshotNeedsRefresh || basketChannelRecoveryRequired || targetNotSelected;
 }
+
+const getRecoveryRequired = () => activeChannelWrites === 0 && (snapshotNeedsRefresh || basketChannelRecoveryRequired);
 
 function beginChannelWrite(basket: BasketDto | null, targetOrderType: OrderType) {
   if (activeChannelWrites === 0 && snapshotNeedsRefresh && basket !== basketBeforeUnconfirmedWrite) {
@@ -52,10 +55,7 @@ function beginChannelWrite(basket: BasketDto | null, targetOrderType: OrderType)
   snapshotNeedsRefresh = true;
   publishChannelState();
 
-  let finished = false;
-  return (basketRefreshed: boolean, applied: boolean) => {
-    if (finished) return;
-    finished = true;
+  return (basketRefreshed: boolean, applied: boolean, operationFailed: boolean) => {
     activeChannelWrites -= 1;
     if (activeChannelWrites === 0 && basketRefreshed) {
       snapshotNeedsRefresh = false;
@@ -64,6 +64,7 @@ function beginChannelWrite(basket: BasketDto | null, targetOrderType: OrderType)
     } else if (activeChannelWrites === 0) {
       pendingSelectionTarget = null;
     }
+    if (activeChannelWrites === 0) basketChannelRecoveryRequired = operationFailed || !basketRefreshed;
     publishChannelState();
   };
 }
@@ -89,6 +90,10 @@ export function useBasketChannelReconciliationPending(orderType: OrderType | nul
     () => getChannelState(orderType),
     () => false,
   );
+}
+
+export function useBasketChannelRecoveryRequired() {
+  return useSyncExternalStore(subscribeChannelState, getRecoveryRequired, () => false);
 }
 
 export function acknowledgeBasketChannelSelection(orderType: OrderType | null) {
@@ -124,6 +129,7 @@ export async function setBasketOrderTypeAndRefresh(
   const finish = beginChannelWrite(basket, orderType);
   let basketRefreshed = false;
   let applied = false;
+  let operationFailed = false;
   try {
     await previousMutation;
     if (getRequestSessionId() !== expectedSessionId) {
@@ -149,8 +155,40 @@ export async function setBasketOrderTypeAndRefresh(
       throw new BasketChannelSessionChangedError();
     }
     return { result, basketRefreshed };
+  } catch (error) {
+    operationFailed = true;
+    throw error;
   } finally {
-    finish(basketRefreshed, applied);
+    finish(basketRefreshed, applied, operationFailed);
+    releaseMutation();
+  }
+}
+
+/** Re-read the canonical basket when a failed channel operation left its snapshot unconfirmed. */
+export async function retryBasketChannelSnapshot(syncBasket: SyncBasket): Promise<boolean> {
+  const previousMutation = channelMutationQueue;
+  let releaseMutation!: () => void;
+  channelMutationQueue = new Promise((resolve) => {
+    releaseMutation = resolve;
+  });
+  await previousMutation;
+
+  const expectedSessionId = getRequestSessionId();
+  try {
+    if (activeChannelWrites > 0) return false;
+    const basketRefreshed = await readBasket(syncBasket, expectedSessionId);
+    if (!basketRefreshed || getRequestSessionId() !== expectedSessionId || activeChannelWrites > 0) {
+      basketChannelRecoveryRequired = true;
+      publishChannelState();
+      return false;
+    }
+
+    snapshotNeedsRefresh = false;
+    basketBeforeUnconfirmedWrite = null;
+    basketChannelRecoveryRequired = false;
+    publishChannelState();
+    return true;
+  } finally {
     releaseMutation();
   }
 }

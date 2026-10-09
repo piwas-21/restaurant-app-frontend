@@ -5,20 +5,22 @@ import type { TableServiceSessionDto } from '@/types/order';
 import { getCashierTables } from '@/services/server/tables';
 import {
   getActiveTableServiceSessions,
+  getReleasedTableServiceSessions,
   openTableServiceSession,
-  repairLegacyTableServiceSession,
 } from '@/services/tableServiceSessionService';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import { mergeCashierTableEntries, type CashierTableEntry } from '@/lib/cashierTableEntries';
 import { STAFF_PAYMENT_HANDOFF_REFRESH_MS } from '@/lib/config';
+import { useCashierLegacyTableActions } from './useCashierLegacyTableActions';
 
 export type { CashierTableEntry, CashierTableStatus } from '@/lib/cashierTableEntries';
 export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
 
 export interface CashierTablesState {
   readonly entries: readonly CashierTableEntry[];
+  readonly releasedSessions: readonly TableServiceSessionDto[];
   readonly queueState: 'loading' | 'ready' | 'stale' | 'unavailable';
   readonly isLoading: boolean;
   readonly isMutating: boolean;
@@ -26,6 +28,7 @@ export interface CashierTablesState {
   readonly refresh: () => Promise<void>;
   readonly openSession: (tableNumber: string) => Promise<TableServiceSessionDto>;
   readonly repairLegacyOrders: (tableId: string) => Promise<TableServiceSessionDto>;
+  readonly clearLegacyTableOrders: (tableNumber: string) => Promise<void>;
   readonly repairSuccess: boolean;
 }
 
@@ -39,6 +42,7 @@ async function openResolvedTableSession(tableId: string, tableNumber: string): P
 export function useCashierTables(): CashierTablesState {
   const { tableVisitReadinessV1 = false } = useTenantFeatures();
   const [entries, setEntries] = useState<CashierTableEntry[]>([]);
+  const [releasedSessions, setReleasedSessions] = useState<TableServiceSessionDto[]>([]);
   const [queueState, setQueueState] = useState<CashierTablesState['queueState']>('loading');
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
@@ -60,26 +64,34 @@ export function useCashierTables(): CashierTablesState {
     };
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (inFlightRef.current) return;
-    const requestId = ++requestRef.current;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [tables, sessions] = await Promise.all([getCashierTables(), getActiveTableServiceSessions()]);
-      if (!mountedRef.current || requestId !== requestRef.current) return;
-      const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
-      setEntries(merged);
-      hasEntriesRef.current = merged.length > 0;
-      setQueueState('ready');
-    } catch (reason: unknown) {
-      if (!mountedRef.current || requestId !== requestRef.current) return;
-      setQueueState(hasEntriesRef.current ? 'stale' : 'unavailable');
-      setError(getErrorMessage(reason) ?? 'cashier.tables.load_error');
-    } finally {
-      if (mountedRef.current && requestId === requestRef.current) setIsLoading(false);
-    }
-  }, [tableVisitReadinessV1]);
+  const refresh = useCallback(
+    async (options?: { allowInFlightMutation?: boolean }) => {
+      if (inFlightRef.current && !options?.allowInFlightMutation) return;
+      const requestId = ++requestRef.current;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [tables, sessions, released] = await Promise.all([
+          getCashierTables(),
+          getActiveTableServiceSessions(),
+          getReleasedTableServiceSessions(),
+        ]);
+        if (!mountedRef.current || requestId !== requestRef.current) return;
+        const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
+        setEntries(merged);
+        setReleasedSessions(released);
+        hasEntriesRef.current = merged.length > 0;
+        setQueueState('ready');
+      } catch (reason: unknown) {
+        if (!mountedRef.current || requestId !== requestRef.current) return;
+        setQueueState(hasEntriesRef.current ? 'stale' : 'unavailable');
+        setError(getErrorMessage(reason) ?? 'cashier.tables.load_error');
+      } finally {
+        if (mountedRef.current && requestId === requestRef.current) setIsLoading(false);
+      }
+    },
+    [tableVisitReadinessV1],
+  );
 
   useEffect(() => {
     void refresh();
@@ -139,54 +151,30 @@ export function useCashierTables(): CashierTablesState {
     [entries],
   );
 
-  const repairLegacyOrders = useCallback(async (tableId: string): Promise<TableServiceSessionDto> => {
-    if (inFlightRef.current) throw new Error('cashier.tables.operation_pending');
-    if (!tableId.trim()) {
-      const refusal = new Error('cashier.tables.legacy_repair_failed');
-      setError(refusal.message);
-      setRepairSuccess(false);
-      throw refusal;
-    }
-    const mutationId = ++mutationRef.current;
-    requestRef.current += 1;
-    setIsLoading(false);
-    inFlightRef.current = true;
-    setIsMutating(true);
-    setError(null);
-    setRepairSuccess(false);
-    try {
-      const repaired = await repairLegacyTableServiceSession(tableId);
-      if (mountedRef.current && mutationId === mutationRef.current) {
-        setEntries((current) =>
-          current.map((entry) =>
-            entry.table.id === tableId ? { ...entry, session: repaired, status: 'occupied' } : entry,
-          ),
-        );
-        setRepairSuccess(true);
-      }
-      return repaired;
-    } catch (reason: unknown) {
-      if (mountedRef.current && mutationId === mutationRef.current) {
-        setError(getErrorMessage(reason) ?? 'cashier.tables.legacy_repair_failed');
-      }
-      throw reason;
-    } finally {
-      if (mutationId === mutationRef.current) {
-        inFlightRef.current = false;
-        if (mountedRef.current) setIsMutating(false);
-      }
-    }
-  }, []);
+  const legacyActions = useCashierLegacyTableActions({
+    refresh,
+    requestRef,
+    mutationRef,
+    inFlightRef,
+    mountedRef,
+    setIsLoading,
+    setIsMutating,
+    setError,
+    setEntries,
+    setRepairSuccess,
+  });
 
   return {
     entries,
+    releasedSessions,
     queueState,
     isLoading,
     isMutating,
     error,
     refresh,
     openSession: createSession,
-    repairLegacyOrders,
+    repairLegacyOrders: legacyActions.repairLegacyOrders,
+    clearLegacyTableOrders: legacyActions.clearLegacyTableOrders,
     repairSuccess,
   };
 }

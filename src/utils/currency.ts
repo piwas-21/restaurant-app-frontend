@@ -47,6 +47,22 @@ export function formatCurrency(
   }).format(amount);
 }
 
+/** Use a currency marker only when the source supplied one; otherwise keep the amount unlabelled. */
+export function formatCurrencyOrNumber(
+  amount: number,
+  locale: string,
+  currency: string | null | undefined,
+  fractionDigits?: number,
+): string {
+  if (currency) return formatCurrency(amount, locale, currency, fractionDigits);
+
+  const digits = fractionDigits ?? 2;
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(amount);
+}
+
 /** Intl's code/amount separator, normalised so the default build's strings stay byte-identical. */
 const NON_BREAKING_SPACES = /[\u00A0\u202F]/g;
 

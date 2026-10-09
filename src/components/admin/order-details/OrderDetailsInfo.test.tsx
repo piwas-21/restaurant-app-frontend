@@ -37,6 +37,17 @@ describe('OrderDetailsInfo — bundle components', () => {
 
     expect(screen.getAllByText(/No garlic/)).toHaveLength(1);
   });
+
+  it('does not repeat a variation-only legacy note', () => {
+    const order = singleKitchenBundleOrder();
+    order.items[0].variationName = 'French Fries';
+    order.items[0].specialInstructions = 'French Fries';
+
+    render(<OrderDetailsInfo order={order} />);
+
+    expect(screen.getAllByText('French Fries')).toHaveLength(1);
+    expect(screen.queryByText('Special Requests:')).not.toBeInTheDocument();
+  });
 });
 
 /**

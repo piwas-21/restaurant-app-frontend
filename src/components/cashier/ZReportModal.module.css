@@ -88,6 +88,15 @@
   font-size: 0.9rem;
 }
 
+.tableScroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.tableScroll .table {
+  min-width: 38rem;
+}
+
 .table th {
   text-align: start;
   padding: 0.5rem 0.75rem;

@@ -45,6 +45,7 @@
   "table_guest_round_action": "Diese Runde hinzufügen",
   "table_guest_retry_round_action": "Dieselbe Runde erneut versuchen",
   "table_guest_round_stale": "Tischkonto oder Warenkorb haben sich geändert. Der Warenkorb wurde aktualisiert; prüfe ihn erneut.",
+  "table_guest_round_channel_unconfirmed": "Dieser Warenkorb ist noch nicht für eine Bestellung im Restaurant bestätigt. Prüfe oder bearbeite ihn vor dem Senden dieser Runde oder frage das Personal.",
   "table_guest_round_submit_failed": "Diese Runde konnte noch nicht bestätigt werden. Prüfe mit einem erneuten Versuch dieselbe Anfrage.",
   "table_guest_fingerprint_unavailable": "Der geprüfte Warenkorb konnte nicht verifiziert werden. Aktualisiere und prüfe ihn erneut.",
   "table_guest_round_committed_detail": "Diese Runde ist bestätigt. Über das Menü kannst du eine weitere Runde hinzufügen.",

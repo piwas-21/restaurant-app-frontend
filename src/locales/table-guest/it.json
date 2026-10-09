@@ -45,6 +45,7 @@
   "table_guest_round_action": "Aggiungi questo ordine",
   "table_guest_retry_round_action": "Riprova lo stesso ordine",
   "table_guest_round_stale": "Il conto o il carrello sono cambiati. Il carrello è stato aggiornato; controllalo prima di inviare.",
+  "table_guest_round_channel_unconfirmed": "Questo carrello non è ancora confermato per il consumo al tavolo. Controllalo o modificalo prima di inviare questo turno, oppure chiedi aiuto al personale.",
   "table_guest_round_submit_failed": "Questo ordine non è ancora stato confermato. Riprova per verificare la stessa richiesta.",
   "table_guest_fingerprint_unavailable": "Impossibile verificare il carrello revisionato. Aggiorna il carrello e controllalo di nuovo.",
   "table_guest_round_committed_detail": "Questo ordine è confermato. Puoi aggiungerne un altro dal menu.",

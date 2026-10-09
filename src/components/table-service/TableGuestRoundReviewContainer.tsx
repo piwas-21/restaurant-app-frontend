@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableGuestRoundSubmission } from '@/hooks/checkout/useTableGuestRoundSubmission';
+import { OrderType } from '@/types/order';
 import {
   acknowledgeBasketChannelSelection,
   markBasketChannelSnapshotRefreshed,
@@ -47,6 +48,20 @@ export default function TableGuestRoundReviewContainer({
     !channelPending &&
     basketMatchesLocalItems,
   );
+  const basketChannelUnconfirmed = Boolean(
+    !hasPendingRound &&
+    !round.error &&
+    !state.error &&
+    state.basket &&
+    state.items.length > 0 &&
+    orderTypeState.orderType === OrderType.DineIn &&
+    state.basket.orderType !== orderTypeState.orderType &&
+    state.lastSyncedAt !== null &&
+    !state.isLoading &&
+    !state.isSyncing &&
+    !channelPending &&
+    basketMatchesLocalItems,
+  );
 
   useEffect(() => {
     markBasketChannelSnapshotRefreshed(state.basket);
@@ -65,6 +80,7 @@ export default function TableGuestRoundReviewContainer({
       onRetryAvailability={round.refreshDineInAvailability}
       acknowledgement={round.lastRoundAcknowledgement}
       recoveryOnly={recoveryOnly}
+      basketChannelUnconfirmed={basketChannelUnconfirmed}
       canSubmit={round.canSubmit && (hasPendingRound || reviewedBasketReady)}
       formatPrice={formatPrice}
       onSubmit={round.submit}

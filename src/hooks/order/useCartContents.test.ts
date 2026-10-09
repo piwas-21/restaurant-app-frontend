@@ -6,6 +6,13 @@ const mockUpdateItem = jest.fn().mockResolvedValue(undefined);
 const mockRemoveItem = jest.fn().mockResolvedValue(undefined);
 const mockProceedToCheckout = jest.fn().mockResolvedValue(null);
 const mockClearError = jest.fn();
+const mockSetOrderType = jest.fn();
+const mockSetTable = jest.fn();
+const mockSelectActiveVisitDineIn = jest.fn(() => {
+  if (!mockTableGuestState.active || !mockTableGuestState.dineInAvailable) return false;
+  mockSetOrderType(OrderType.DineIn);
+  return true;
+});
 
 let mockCartState: { items: Array<Record<string, unknown>>; isSyncing: boolean; error?: string | null };
 let mockOrderTypeState: { orderType: OrderType | undefined };
@@ -27,13 +34,24 @@ jest.mock('@/components/cart/CartContext', () => ({
   }),
 }));
 jest.mock('@/contexts/OrderTypeContext', () => ({
-  useOrderType: () => ({ state: mockOrderTypeState, hasChosenOrderType: mockHasChosenOrderType }),
+  useOrderType: () => ({
+    state: mockOrderTypeState,
+    hasChosenOrderType: mockHasChosenOrderType,
+    setOrderType: mockSetOrderType,
+    setTable: mockSetTable,
+  }),
 }));
 jest.mock('@/hooks/checkout/useSmartCheckoutRouter', () => ({
   useSmartCheckoutRouter: () => ({ proceedToCheckout: mockProceedToCheckout, isResolving: mockIsResolving }),
 }));
-jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
-  useTableGuestDineInAvailability: () => mockTableGuestState,
+jest.mock('@/contexts/TableContext', () => ({
+  useTableContext: () => ({ tableContext: { tableId: 'table-11', tableNumber: '11a' } }),
+}));
+jest.mock('@/hooks/order/useTableGuestOrderTypeRecovery', () => ({
+  useTableGuestOrderTypeRecovery: () => ({
+    tableGuest: mockTableGuestState,
+    selectActiveVisitDineIn: mockSelectActiveVisitDineIn,
+  }),
 }));
 // Pulled in by useCheckoutBlockerHint, which derives the "why can't I check out?" copy.
 jest.mock('@/contexts/CheckoutContext', () => ({
@@ -266,5 +284,47 @@ describe('useCartContents', () => {
     const { result } = renderHook(() => useCartContents({ pickType }));
     act(() => result.current.handlePick(OrderType.DineIn));
     expect(pickType).toHaveBeenCalledWith(OrderType.DineIn, 'sidebar');
+  });
+
+  it('uses the active visit picker instead of the outer page callback', async () => {
+    mockTableGuestState = {
+      visitBound: true,
+      active: true,
+      dineInAvailable: true,
+      blockerMessageKey: null,
+    };
+    const pickType = jest.fn();
+    const { result } = renderHook(() => useCartContents({ pickType, analyticsSource: 'cart_sheet' }));
+
+    await act(async () => result.current.handlePick(OrderType.DineIn));
+
+    expect(mockSelectActiveVisitDineIn).toHaveBeenCalledWith('cart_sheet');
+    expect(mockSetOrderType).toHaveBeenCalledWith(OrderType.DineIn);
+    expect(pickType).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['Takeaway', OrderType.Takeaway, true, true],
+    ['Delivery', OrderType.Delivery, true, true],
+    ['unavailable DineIn', OrderType.DineIn, true, false],
+    ['ended DineIn', OrderType.DineIn, false, false],
+  ])('keeps a bound visit on its own picker for %s', async (_label, type, active, dineInAvailable) => {
+    mockTableGuestState = {
+      visitBound: true,
+      active,
+      dineInAvailable,
+      blockerMessageKey: null,
+    };
+    const pickType = jest.fn();
+    const { result } = renderHook(() => useCartContents({ pickType }));
+
+    await act(async () => result.current.handlePick(type as OrderType));
+
+    expect(pickType).not.toHaveBeenCalled();
+    if (type === OrderType.DineIn && active && dineInAvailable) {
+      expect(mockSelectActiveVisitDineIn).toHaveBeenCalledWith('sidebar');
+    } else {
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+    }
   });
 });

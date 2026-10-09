@@ -7,9 +7,10 @@
 import React from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
+import { useTableContext } from '@/contexts/TableContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
-import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
+import { useTableGuestOrderTypeRecovery } from '@/hooks/order/useTableGuestOrderTypeRecovery';
 import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
 
 export interface UseCartContentsArgs {
@@ -39,8 +40,14 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   React.useEffect(() => {
     clearError();
   }, [clearError]);
-  const { state: orderTypeState, hasChosenOrderType } = useOrderType();
-  const tableGuest = useTableGuestDineInAvailability();
+  const { state: orderTypeState, hasChosenOrderType, setOrderType, setTable } = useOrderType();
+  const { tableContext } = useTableContext();
+  const { tableGuest, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
+    orderType: orderTypeState,
+    tableContext,
+    setOrderType,
+    setTable,
+  });
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
 
   const items = cartState.items;
@@ -92,11 +99,26 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   // stays synchronous.
   const handleCheckout = () => void runCheckout();
 
+  // The menu owns ordinary follow-up state above its lazy table-guest runtime. The cart reads the
+  // admitted visit below that boundary, so active-visit picks must use this context and never the
+  // page callback's loading/default view. Ordinary guests keep the page-owned modal flow.
+  const pickTypeForCart = React.useCallback(
+    (type: OrderType, source?: string, forceModal?: boolean) => {
+      if (tableGuest.visitBound) {
+        if (type === OrderTypeEnum.DineIn) selectActiveVisitDineIn(source ?? analyticsSource);
+        return;
+      }
+      if (forceModal === undefined) pickType(type, source);
+      else pickType(type, source, forceModal);
+    },
+    [selectActiveVisitDineIn, pickType, analyticsSource, tableGuest.visitBound],
+  );
+
   // Memoized so OrderTypeToggle doesn't re-render on every parent render, and so
   // the analytics surface tag flows into `order_type_selected`.
   const handlePick = React.useCallback(
-    (type: OrderType) => pickType(type, analyticsSource),
-    [pickType, analyticsSource],
+    (type: OrderType) => void pickTypeForCart(type, analyticsSource),
+    [pickTypeForCart, analyticsSource],
   );
 
   return {

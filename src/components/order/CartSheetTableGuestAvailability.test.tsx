@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import CartSheet from './CartSheet';
+import { TableContextProvider } from '@/contexts/TableContext';
 import type { TableGuestVisitPhase } from '@/types/tableGuestVisit';
 import { OrderType } from '@/types/order';
 
@@ -98,7 +99,11 @@ jest.mock('./CartLineList', () => ({
 
 function CartSheetHarness() {
   const [isOpen, setIsOpen] = useState(true);
-  return <CartSheet isOpen={isOpen} onClose={() => setIsOpen(false)} followUp={{ pickType: jest.fn() } as never} />;
+  return (
+    <TableContextProvider>
+      <CartSheet isOpen={isOpen} onClose={() => setIsOpen(false)} followUp={{ pickType: jest.fn() } as never} />
+    </TableContextProvider>
+  );
 }
 
 describe('CartSheet table-guest availability', () => {

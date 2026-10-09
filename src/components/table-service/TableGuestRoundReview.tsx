@@ -18,6 +18,7 @@ interface TableGuestRoundReviewProps {
   readonly onRetryAvailability: () => Promise<boolean>;
   readonly acknowledgement: TableGuestRoundAcknowledgement | null;
   readonly recoveryOnly: boolean;
+  readonly basketChannelUnconfirmed: boolean;
   readonly canSubmit: boolean;
   readonly formatPrice: (amount: number) => string;
   readonly onSubmit: () => Promise<void>;
@@ -34,6 +35,7 @@ export default function TableGuestRoundReview({
   onRetryAvailability,
   acknowledgement,
   recoveryOnly,
+  basketChannelUnconfirmed,
   canSubmit,
   formatPrice,
   onSubmit,
@@ -88,6 +90,11 @@ export default function TableGuestRoundReview({
       {error && (
         <p className={styles.error} role="alert">
           {error}
+        </p>
+      )}
+      {basketChannelUnconfirmed && !error && !recoveryOnly && (
+        <p className={styles.notice}>
+          <output>{t('table_guest_round_channel_unconfirmed')}</output>
         </p>
       )}
 

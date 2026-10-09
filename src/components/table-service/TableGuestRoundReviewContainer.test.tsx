@@ -9,6 +9,7 @@ import type { BasketDto } from '@/types/basket';
 import type { BasketChannelSwitch } from '@/types/basketChannel';
 import type { PendingTableGuestRound } from '@/types/tableGuestVisit';
 import { OrderType } from '@/types/order';
+import tableGuestEnglish from '@/locales/table-guest/en.json';
 
 jest.mock('@/components/checkout/OrderItemsList', () => ({ __esModule: true, default: () => null }));
 jest.mock('next/navigation', () => ({ usePathname: () => '/checkout/review' }));
@@ -62,6 +63,26 @@ const notReadyStates: Array<[string, Partial<CartState>]> = [
   ['an optimistic item change', { items: [{ ...mockBasketItem, basketItemId: mockBasketItem.id, quantity: 2 }] }],
   ['a basket without a completed sync', { lastSyncedAt: null }],
 ];
+const channelMismatch = { ...mockBasket, orderType: OrderType.Takeaway };
+const noticeSuppressionStates: Array<[string, Partial<CartState>, Partial<typeof mockRound>]> = [
+  ['a still-loading basket', { basket: channelMismatch, isLoading: true }, {}],
+  ['an in-flight basket update', { basket: channelMismatch, isSyncing: true }, {}],
+  ['a basket read error', { basket: channelMismatch, error: 'basket read failed' }, {}],
+  ['a basket without a completed sync', { basket: channelMismatch, lastSyncedAt: null }, {}],
+  ['a submission error', { basket: channelMismatch }, { error: 'round failed' }],
+  [
+    'a pending round recovery',
+    { basket: channelMismatch },
+    {
+      pendingRound: {
+        serviceSessionId: 'visit-id',
+        operationId: 'durable-round',
+        expectedAccountRevision: 4,
+        expectedBasketFingerprint: 'A'.repeat(64),
+      },
+    },
+  ],
+];
 
 function stateWith(overrides: Partial<CartState> = {}): CartState {
   return {
@@ -103,9 +124,29 @@ beforeEach(() => {
     lastRoundAcknowledgement: null,
     canSubmit: true,
   };
+  i18n.addResourceBundle('en', 'translation', tableGuestEnglish, true, true);
 });
 
 describe('TableGuestRoundReviewContainer channel readiness', () => {
+  it('holds a mismatched canonical basket and explains how to recover', () => {
+    mockCartState = stateWith({ basket: { ...mockBasket, orderType: OrderType.Takeaway } });
+
+    renderReview();
+
+    expect(screen.queryByRole('button', { name: i18n.t('table_guest_round_action') })).not.toBeInTheDocument();
+    expect(screen.getByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).toBeVisible();
+    expect(screen.getByRole('link', { name: i18n.t('table_guest_round_edit') })).toHaveAttribute('href', '/cart');
+  });
+
+  it.each(noticeSuppressionStates)('keeps the channel warning out of %s', (_reason, cartOverrides, roundOverrides) => {
+    mockCartState = stateWith(cartOverrides);
+    mockRound = { ...mockRound, ...roundOverrides };
+
+    renderReview();
+
+    expect(screen.queryByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).not.toBeInTheDocument();
+  });
+
   it('uses a native status output for unavailable dine-in and keeps its retry action', () => {
     const refreshDineInAvailability = jest.fn().mockResolvedValue(true);
     mockRound = { ...mockRound, dineInUnavailable: true, refreshDineInAvailability };
@@ -152,6 +193,34 @@ describe('TableGuestRoundReviewContainer channel readiness', () => {
       await mutation;
     });
     expect(await screen.findByRole('button')).toBeEnabled();
+  });
+
+  it('shows a refused-channel warning only after the write and canonical read settle', async () => {
+    mockCartState = stateWith({ basket: { ...mockBasket, orderType: OrderType.Takeaway } });
+    let releaseWrite: ((value: BasketChannelSwitch) => void) | undefined;
+    let releaseRead: ((value: boolean) => void) | undefined;
+    mockedSetBasketOrderType.mockReturnValueOnce(new Promise((resolve) => (releaseWrite = resolve)));
+    mockSyncBasket.mockReturnValueOnce(new Promise((resolve) => (releaseRead = resolve)));
+
+    let mutation: Promise<unknown> | undefined;
+    act(() => {
+      mutation = setBasketOrderTypeAndRefresh(OrderType.DineIn, mockCartState.basket, mockSyncBasket);
+    });
+    renderReview();
+    expect(screen.queryByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).not.toBeInTheDocument();
+
+    await act(async () => {
+      releaseWrite?.(switchReply({ applied: false }));
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(mockSyncBasket).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).not.toBeInTheDocument();
+
+    await act(async () => {
+      releaseRead?.(true);
+      await mutation;
+    });
+    expect(await screen.findByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).toBeVisible();
   });
 
   it('keeps a persisted round retry available while the current basket cannot be reviewed', () => {

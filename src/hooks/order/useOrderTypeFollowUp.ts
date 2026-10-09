@@ -73,7 +73,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
   const switchFlow = useOrderTypeSwitch();
   const reservationsEnabled = useModuleEnabled('reservations');
-  const { tableGuest, commitActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
+  const { tableGuest, commitActiveVisitDineIn, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
     orderType: orderTypeState,
     tableContext,
     setOrderType,
@@ -112,6 +112,10 @@ export function useOrderTypeFollowUp(): FollowUpState {
   // of `pickType` because the conflict confirm has to run it LATER, once the guest says yes.
   const commitType = useCallback(
     async (type: OrderType, source: string, forceModal: boolean) => {
+      if (type === OrderType.DineIn && selectActiveVisitDineIn(source)) {
+        setFollowUp(null);
+        return;
+      }
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).
@@ -147,7 +151,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
         setFollowUp(null);
       }
     },
-    [setOrderType, checkoutState.customerInfo, reservationsEnabled, commitActiveVisitDineIn],
+    [setOrderType, checkoutState.customerInfo, reservationsEnabled, commitActiveVisitDineIn, selectActiveVisitDineIn],
   );
 
   const pickType = useCallback(

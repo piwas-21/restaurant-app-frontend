@@ -45,6 +45,7 @@
   "table_guest_round_action": "Añadir esta comanda",
   "table_guest_retry_round_action": "Reintentar la misma comanda",
   "table_guest_round_stale": "La cuenta de mesa o la cesta han cambiado. La cesta se actualizó; revísala antes de enviar.",
+  "table_guest_round_channel_unconfirmed": "Esta cesta aún no está confirmada para comer en el restaurante. Revísala o edítala antes de enviar esta ronda, o pide ayuda al personal.",
   "table_guest_round_submit_failed": "Aún no se pudo confirmar esta comanda. Reintenta para comprobar la misma solicitud.",
   "table_guest_fingerprint_unavailable": "No se pudo verificar la cesta revisada. Actualízala y revísala de nuevo.",
   "table_guest_round_committed_detail": "Esta comanda está confirmada. Puedes añadir otra desde el menú.",

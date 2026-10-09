@@ -45,6 +45,7 @@
   "table_guest_round_action": "Ajouter cette commande",
   "table_guest_retry_round_action": "Réessayer la même commande",
   "table_guest_round_stale": "Le compte ou le panier a changé. Le panier a été actualisé ; vérifiez-le à nouveau avant l’envoi.",
+  "table_guest_round_channel_unconfirmed": "Ce panier n’est pas encore confirmé pour une commande sur place. Vérifiez-le ou modifiez-le avant d’envoyer cette commande, ou demandez de l’aide au personnel.",
   "table_guest_round_submit_failed": "Cette commande n’est pas encore confirmée. Réessayez pour vérifier la même demande.",
   "table_guest_fingerprint_unavailable": "Impossible de vérifier le panier relu. Actualisez le panier puis vérifiez-le à nouveau.",
   "table_guest_round_committed_detail": "Cette commande est confirmée. Vous pouvez en ajouter une autre depuis le menu.",

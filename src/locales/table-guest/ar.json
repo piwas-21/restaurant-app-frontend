@@ -45,6 +45,7 @@
   "table_guest_round_action": "إضافة هذا الطلب",
   "table_guest_retry_round_action": "إعادة محاولة الطلب نفسه",
   "table_guest_round_stale": "تغيّر حساب الطاولة أو السلة. تم تحديث السلة؛ راجعها مجددًا قبل الإرسال.",
+  "table_guest_round_channel_unconfirmed": "لم يتم تأكيد السلة بعد للطلب داخل المطعم. راجع السلة أو عدّلها قبل إرسال هذه الجولة، أو اطلب المساعدة من الموظفين.",
   "table_guest_round_submit_failed": "تعذر تأكيد هذا الطلب بعد. أعد المحاولة للتحقق من الطلب نفسه قبل بدء طلب آخر.",
   "table_guest_fingerprint_unavailable": "تعذر التحقق من السلة التي راجعتها. حدّث السلة وراجعها مجددًا.",
   "table_guest_round_committed_detail": "تم تأكيد هذا الطلب. يمكنك إضافة طلب آخر من القائمة.",

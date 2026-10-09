@@ -50,7 +50,7 @@ export function useCheckoutPrereqGuard(skip: boolean, tableVisit?: TableGuestVis
 
   const storesReady = cartState.lastSyncedAt !== null && isHydrated;
   const hasItems = cartState.items.length > 0;
-  const hasCheckoutData = !!checkoutState.orderType && (tableVisit?.active === true || !!checkoutState.customerInfo);
+  const hasCheckoutData = tableVisit?.active === true || (!!checkoutState.orderType && !!checkoutState.customerInfo);
   // A pending operation is recovery evidence even when its visit/feature read is unavailable.
   // Do not let ordinary checkout prerequisites redirect away before its exact operation can be
   // looked up. The guest runtime's loading state still holds the page while this evidence is

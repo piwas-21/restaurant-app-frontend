@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Chiedi al personale di avviare o confermare una visita prima di ordinare di nuovo. Non riutilizzare un codice precedente.",
   "table_guest_unavailable_title": "Conto del tavolo non disponibile",
   "table_guest_unavailable_detail": "Chiedi al personale se le visite al tavolo sono disponibili.",
+  "table_guest_dine_in_unavailable": "Il servizio al tavolo non è al momento disponibile per questa visita. Il carrello e la visita restano salvati in questa scheda.",
   "table_guest_storage_help": "Questo browser non può conservare in modo sicuro la visita in questa scheda. Abilita l’archiviazione di sessione o chiedi aiuto.",
   "table_guest_not_joined_detail": "Scansiona il QR del tavolo e inserisci il codice visita corrente fornito dal personale.",
   "table_guest_account_summary": "Totali del conto",

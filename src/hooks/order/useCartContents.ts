@@ -9,7 +9,8 @@ import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
-import type { OrderType } from '@/types/order';
+import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
+import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
 
 export interface UseCartContentsArgs {
   /**
@@ -44,13 +45,17 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     clearError();
   }, [clearError]);
   const { state: orderTypeState, hasChosenOrderType } = useOrderType();
+  const tableGuest = useTableGuestDineInAvailability();
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
 
   const items = cartState.items;
   const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
   const subtotal = items.reduce((acc, it) => acc + it.itemTotal, 0);
-  const canCheckout = itemCount > 0 && hasChosenOrderType;
-  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0);
+  const tableGuestAvailabilityBlocked = tableGuest.visitBound && (!tableGuest.active || !tableGuest.dineInAvailable);
+  const tableGuestCheckoutBlocked =
+    tableGuestAvailabilityBlocked || (tableGuest.visitBound && orderTypeState.orderType !== OrderTypeEnum.DineIn);
+  const canCheckout = itemCount > 0 && hasChosenOrderType && !tableGuestCheckoutBlocked;
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0, tableGuestAvailabilityBlocked);
 
   const handleQty = (basketItemId: string | undefined, next: number) => {
     if (!basketItemId || next < 1) return;
@@ -72,7 +77,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     if (itemCount === 0) return;
     const orderType = orderTypeState.orderType;
     if (!orderType) {
-      hint.setBlocker('order-type');
+      hint.setBlocker(tableGuestAvailabilityBlocked ? 'table-guest-unavailable' : 'order-type');
       return;
     }
     onProceed?.();

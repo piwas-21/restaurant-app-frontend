@@ -15,6 +15,7 @@ const mockSetCustomerInfo = jest.fn();
 const mockSetDeliveryAddress = jest.fn();
 let mockCustomerInfo: CustomerInfo | null;
 let mockDeliveryAddress: DeliveryAddress | null;
+let mockTableDineIn: { visitBound: boolean; active: boolean; dineInAvailable: boolean };
 
 jest.mock('@/hooks/useTenantLocaleRouter', () => ({ useTenantLocaleRouter: () => ({ push: mockPush }) }));
 jest.mock('@/contexts/CheckoutContext', () => ({
@@ -26,12 +27,24 @@ jest.mock('@/contexts/CheckoutContext', () => ({
 }));
 jest.mock('@/services/userService', () => ({ getCurrentUser: () => mockGetCurrentUser() }));
 jest.mock('@/services/addressService', () => ({ getMyAddresses: () => mockGetMyAddresses() }));
+jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
+  useTableGuestDineInAvailability: () => mockTableDineIn,
+}));
 jest.mock('@/lib/analytics', () => ({
   trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   isLoggedInForAnalytics: () => false,
 }));
 
 function renderRouter(state: CheckoutTableGuestState) {
+  if (state.phase === 'active') {
+    mockTableDineIn = { visitBound: true, active: true, dineInAvailable: true };
+  } else if (state.phase !== 'notJoined' && state.phase !== 'loading') {
+    mockTableDineIn = { visitBound: true, active: false, dineInAvailable: false };
+  } else if (state.phase === 'loading' && state.hasPendingRound) {
+    mockTableDineIn = { visitBound: true, active: false, dineInAvailable: false };
+  } else {
+    mockTableDineIn = { visitBound: false, active: false, dineInAvailable: false };
+  }
   return renderHook(() => useSmartCheckoutRouter(), {
     wrapper: ({ children }) => (
       <CheckoutTableGuestStateProvider value={state}>{children}</CheckoutTableGuestStateProvider>
@@ -56,6 +69,7 @@ describe('useSmartCheckoutRouter visit-aware entry', () => {
     localStorage.clear();
     mockCustomerInfo = null;
     mockDeliveryAddress = null;
+    mockTableDineIn = { visitBound: false, active: false, dineInAvailable: false };
   });
 
   it.each(['active', 'ended', 'unavailable', 'storageUnavailable'] as const)(
@@ -121,10 +135,11 @@ describe('useSmartCheckoutRouter visit-aware entry', () => {
   );
 
   it.each([OrderType.Takeaway, OrderType.Delivery])(
-    'an active visit does not bypass the ordinary %s details requirement without a pending round',
+    'an active visit routes stale %s state to the guarded table-round review',
     async (orderType) => {
-      expect(await proceed({ ...notJoined, phase: 'active' }, orderType)).toBe('details');
-      expect(mockPush).not.toHaveBeenCalled();
+      expect(await proceed({ ...notJoined, phase: 'active' }, orderType)).toBeNull();
+      expect(mockPush).toHaveBeenCalledWith('/checkout/review');
+      expect(mockGetCurrentUser).not.toHaveBeenCalled();
     },
   );
 
@@ -135,8 +150,32 @@ describe('useSmartCheckoutRouter visit-aware entry', () => {
     expect(mockGetCurrentUser).not.toHaveBeenCalled();
   });
 
-  it('still requires an order type before routing an admitted guest', async () => {
-    expect(await proceed({ ...notJoined, phase: 'active' }, null)).toBe('order-type');
+  it('routes an admitted guest to the table-round review even before the order type is restored', async () => {
+    expect(await proceed({ ...notJoined, phase: 'active' }, null)).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith('/checkout/review');
+  });
+
+  it('blocks an active visit when the public Dine-In availability read says closed', async () => {
+    const { result } = renderRouter({ ...notJoined, phase: 'active' });
+    mockTableDineIn.dineInAvailable = false;
+
+    await act(async () => {
+      expect(await result.current.proceedToCheckout(OrderType.DineIn)).toBe('table-guest-unavailable');
+    });
     expect(mockPush).not.toHaveBeenCalled();
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('routes a pending active round to recovery even while Dine-In is closed', async () => {
+    const { result } = renderRouter({ ...notJoined, phase: 'active', hasPendingRound: true });
+    mockTableDineIn.dineInAvailable = false;
+
+    await act(async () => {
+      expect(await result.current.proceedToCheckout(OrderType.DineIn)).toBeNull();
+    });
+
+    expect(mockPush).toHaveBeenCalledWith('/checkout/review');
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockGetMyAddresses).not.toHaveBeenCalled();
   });
 });

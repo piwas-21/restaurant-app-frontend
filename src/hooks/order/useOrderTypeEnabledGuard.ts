@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
+import { hasStoredTableGuestState } from '@/services/tableGuestVisitStorage';
 
 /**
  * Keeps the persisted order type honest about what the restaurant currently offers
@@ -32,6 +33,11 @@ export function useOrderTypeEnabledGuard(): void {
 
   useEffect(() => {
     if (loading || enabled.length === 0) return;
+
+    // A stored table visit (or unresolved round descriptor) owns its channel. Do not clear the
+    // pinned Dine-In choice just because the restaurant is temporarily closed; the visit surface
+    // will hold new rounds and restore Dine-In when the public availability read permits it.
+    if (hasStoredTableGuestState()) return;
 
     // G4 — the stored choice is no longer offered.
     if (state.orderType !== null && !enabled.includes(state.orderType)) {

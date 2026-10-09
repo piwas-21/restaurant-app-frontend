@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "再次下单前，请工作人员开始或确认新的就餐。请勿重复使用之前的代码。",
   "table_guest_unavailable_title": "桌台账单暂不可用",
   "table_guest_unavailable_detail": "请工作人员确认桌台就餐功能是否可用。",
+  "table_guest_dine_in_unavailable": "此桌次目前无法堂食。购物篮和本次访问仍保存在此标签页中。",
   "table_guest_storage_help": "此浏览器无法在当前标签页中安全保存桌台就餐信息。请启用会话存储或寻求工作人员帮助。",
   "table_guest_not_joined_detail": "扫描桌台二维码，并输入工作人员提供的当前就餐代码。",
   "table_guest_account_summary": "桌台账单总额",

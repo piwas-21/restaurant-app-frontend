@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Pide al personal que inicie o confirme una visita antes de volver a pedir. No reutilices un código anterior.",
   "table_guest_unavailable_title": "Cuenta de mesa no disponible",
   "table_guest_unavailable_detail": "Consulta al personal si las visitas de mesa están disponibles.",
+  "table_guest_dine_in_unavailable": "El servicio en el local no está disponible ahora para esta visita. El carrito y la visita siguen guardados en esta pestaña.",
   "table_guest_storage_help": "Este navegador no puede guardar de forma segura la visita en esta pestaña. Activa el almacenamiento de sesión o pide ayuda.",
   "table_guest_not_joined_detail": "Escanea el QR de la mesa e introduce el código de visita actual del personal.",
   "table_guest_account_summary": "Totales de la cuenta",

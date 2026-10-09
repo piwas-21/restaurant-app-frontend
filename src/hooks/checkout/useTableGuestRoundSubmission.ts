@@ -7,6 +7,7 @@ import { basketService } from '@/services/basketService';
 import type { BasketDto } from '@/types/basket';
 import { ApiError } from '@/utils/apiClient';
 import type { PendingTableGuestRound } from '@/types/tableGuestVisit';
+import { useTableGuestDineInAvailability } from './useTableGuestDineInAvailability';
 
 interface TableGuestRoundSubmissionOptions {
   readonly basket: BasketDto | null;
@@ -23,6 +24,8 @@ export function useTableGuestRoundSubmission({
 }: TableGuestRoundSubmissionOptions) {
   const { t } = useTranslation();
   const visitContext = useTableGuestVisit();
+  const dineInAvailability = useTableGuestDineInAvailability();
+  const refreshDineInAvailability = dineInAvailability.refreshDineInAvailability;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const submissionLock = useRef(false);
@@ -38,6 +41,7 @@ export function useTableGuestRoundSubmission({
         basket,
         itemCount,
         syncBasket,
+        refreshDineInAvailability,
         setError,
         translate: t,
       });
@@ -56,6 +60,12 @@ export function useTableGuestRoundSubmission({
         visitContext.clearPendingRound();
         await Promise.allSettled([visitContext.getAccount(), syncBasket()]);
         setError(t('table_guest_round_stale'));
+      } else if (isOrderTypeUnavailableError(requestError)) {
+        // Availability can change after the preflight read but before the server accepts the
+        // round. Refresh every consumer and keep the exact descriptor so an uncertain retry cannot
+        // create a second operation.
+        await refreshDineInAvailability();
+        setError(t('table_guest_dine_in_unavailable'));
       } else {
         // A lost response is uncertain: keep its descriptor so the next click resends the same operation.
         setError(t('table_guest_round_submit_failed'));
@@ -64,7 +74,7 @@ export function useTableGuestRoundSubmission({
       submissionLock.current = false;
       setIsSubmitting(false);
     }
-  }, [basket, clearCart, itemCount, syncBasket, t, visitContext]);
+  }, [basket, clearCart, itemCount, refreshDineInAvailability, syncBasket, t, visitContext]);
 
   return {
     submit,
@@ -73,7 +83,12 @@ export function useTableGuestRoundSubmission({
     pendingRound: visitContext.pendingRound,
     pendingRoundUnavailable: visitContext.pendingRoundStatus === 'unknown',
     lastRoundAcknowledgement: visitContext.lastRoundAcknowledgement,
-    canSubmit: visitContext.pendingRoundStatus !== 'unknown' && (itemCount > 0 || visitContext.pendingRound !== null),
+    dineInUnavailable: dineInAvailability.dineInUnavailable && visitContext.pendingRound === null,
+    refreshDineInAvailability: dineInAvailability.refreshDineInAvailability,
+    canSubmit:
+      visitContext.phase === 'active' &&
+      visitContext.pendingRoundStatus !== 'unknown' &&
+      (visitContext.pendingRound !== null || (itemCount > 0 && dineInAvailability.dineInAvailable)),
   };
 }
 
@@ -82,6 +97,7 @@ interface PrepareTableGuestRoundAttemptOptions {
   readonly basket: BasketDto | null;
   readonly itemCount: number;
   readonly syncBasket: () => Promise<boolean>;
+  readonly refreshDineInAvailability: () => Promise<boolean>;
   readonly setError: (value: string) => void;
   readonly translate: (key: string) => string;
 }
@@ -91,6 +107,7 @@ async function prepareTableGuestRoundAttempt({
   basket,
   itemCount,
   syncBasket,
+  refreshDineInAvailability,
   setError,
   translate,
 }: PrepareTableGuestRoundAttemptOptions): Promise<PendingTableGuestRound | null> {
@@ -108,6 +125,10 @@ async function prepareTableGuestRoundAttempt({
   }
   if (attempt) return attempt;
   if (itemCount === 0) throw new Error('An empty basket cannot start a table round.');
+  if (!(await refreshDineInAvailability())) {
+    setError(translate('table_guest_dine_in_unavailable'));
+    return null;
+  }
 
   const account = await visitContext.getAccount();
   const freshBasket = await basketService.getBasket();
@@ -170,4 +191,8 @@ function createOperationId(): string | null {
 
 function isStaleTableVisitError(error: unknown): boolean {
   return error instanceof ApiError && error.errorCode === 'TableServiceSessionStale';
+}
+
+function isOrderTypeUnavailableError(error: unknown): boolean {
+  return error instanceof ApiError && error.errorCode === 'OrderTypeNotAvailable';
 }

@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Bitte das Personal, einen Besuch zu starten oder zu bestätigen, bevor du erneut bestellst. Verwende keinen Code eines früheren Besuchs.",
   "table_guest_unavailable_title": "Tischkonto nicht verfügbar",
   "table_guest_unavailable_detail": "Bitte das Personal zu bestätigen, ob Tischbesuche verfügbar sind.",
+  "table_guest_dine_in_unavailable": "Dine-in ist für diesen Tischbesuch momentan nicht verfügbar. Dein Warenkorb und Besuch bleiben in diesem Tab gespeichert.",
   "table_guest_storage_help": "Dieser Browser kann einen Tischbesuch für diesen Tab nicht sicher speichern. Aktiviere den Sitzungsspeicher oder bitte das Personal um Hilfe.",
   "table_guest_not_joined_detail": "Scanne den Tisch-QR-Code und gib den aktuellen Besuchscode des Personals ein.",
   "table_guest_account_summary": "Tischkontosummen",

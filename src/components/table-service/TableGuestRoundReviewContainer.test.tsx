@@ -38,6 +38,8 @@ let mockRound: {
   error: string;
   pendingRound: PendingTableGuestRound | null;
   pendingRoundUnavailable: boolean;
+  dineInUnavailable: boolean;
+  refreshDineInAvailability: () => Promise<boolean>;
   lastRoundAcknowledgement: null;
   canSubmit: boolean;
 };
@@ -96,6 +98,8 @@ beforeEach(() => {
     error: '',
     pendingRound: null,
     pendingRoundUnavailable: false,
+    dineInUnavailable: false,
+    refreshDineInAvailability: jest.fn().mockResolvedValue(false),
     lastRoundAcknowledgement: null,
     canSubmit: true,
   };

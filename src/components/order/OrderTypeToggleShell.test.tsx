@@ -9,12 +9,20 @@ jest.mock('react-i18next', () => ({
 
 let mockOrderTypeState: { orderType: OrderType | undefined };
 let mockEnabledState: { enabled: OrderType[]; loading: boolean };
+let mockTableGuestState: {
+  visitBound: boolean;
+  active: boolean;
+  blocked: boolean;
+};
 
 jest.mock('@/contexts/OrderTypeContext', () => ({
   useOrderType: () => ({ state: mockOrderTypeState }),
 }));
 jest.mock('@/hooks/checkout/useEnabledOrderTypes', () => ({
   useEnabledOrderTypes: () => mockEnabledState,
+}));
+jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
+  useTableGuestDineInAvailability: () => mockTableGuestState,
 }));
 
 const styles = {
@@ -31,6 +39,7 @@ describe('OrderTypeToggleShell', () => {
   beforeEach(() => {
     mockOrderTypeState = { orderType: OrderType.DineIn };
     mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery], loading: false };
+    mockTableGuestState = { visitBound: false, active: false, blocked: false };
   });
 
   it('renders a button per enabled type with the active one pressed', () => {
@@ -45,6 +54,24 @@ describe('OrderTypeToggleShell', () => {
     render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
     expect(screen.queryByRole('button', { name: /Dine In/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Takeaway/ })).toBeInTheDocument();
+  });
+
+  it('holds an active table visit when Dine-In is unavailable instead of offering other channels', () => {
+    mockTableGuestState = { visitBound: true, active: true, blocked: true };
+
+    render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('table_guest_dine_in_unavailable');
+    expect(screen.queryByRole('button', { name: /Takeaway|Delivery/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps an available active visit pinned to Dine-In only', () => {
+    mockTableGuestState = { visitBound: true, active: true, blocked: false };
+
+    render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
+
+    expect(screen.getByRole('button', { name: /Dine In/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Takeaway|Delivery/ })).not.toBeInTheDocument();
   });
 
   it('renders a spacer skeleton (no group) while the enabled list is loading', () => {

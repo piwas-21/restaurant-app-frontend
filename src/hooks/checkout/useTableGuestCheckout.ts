@@ -12,9 +12,11 @@ interface TableGuestCheckoutOptions {
 export default function useTableGuestCheckout({ orderType, hasConfirmedOrder }: TableGuestCheckoutOptions) {
   const tableVisit = useCheckoutTableGuestState();
   const isDineIn = orderType === OrderType.DineIn;
-  const isTableGuestRound = isDineIn && tableVisit.phase === 'active';
+  // The admitted visit is the source of truth even if another tab or old local checkout state left
+  // a stale Takeaway/Delivery choice. It must never fall through to ordinary order placement.
+  const isTableGuestRound = tableVisit.phase === 'active';
   const isTableVisitLoading = tableVisit.phase === 'loading' && (isDineIn || tableVisit.hasPendingRound);
-  const isTableVisitBlocked = isDineIn && ['ended', 'unavailable', 'storageUnavailable'].includes(tableVisit.phase);
+  const isTableVisitBlocked = ['ended', 'unavailable', 'storageUnavailable'].includes(tableVisit.phase);
   const hasAcknowledgement = tableVisit.hasAcknowledgement;
   const { isMissingPrereqs } = useCheckoutPrereqGuard(
     hasConfirmedOrder || isTableVisitLoading || isTableVisitBlocked || hasAcknowledgement,

@@ -42,7 +42,11 @@ export interface CheckoutBlockerHint {
  * BEFORE the customer clicks. 'details' can only be known after the router has
  * consulted the profile, so it's recorded by the click handler.
  */
-export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: boolean): CheckoutBlockerHint {
+export function useCheckoutBlockerHint(
+  hasChosenOrderType: boolean,
+  hasItems: boolean,
+  tableGuestUnavailable = false,
+): CheckoutBlockerHint {
   const { t } = useTranslation();
   const { state: checkoutState } = useCheckout();
   const [blocker, setBlocker] = useState<CheckoutBlocker | null>(null);
@@ -58,6 +62,7 @@ export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: bo
     checkoutState.customerInfo?.email ?? '',
     checkoutState.customerInfo?.phone ?? '',
     checkoutState.deliveryAddress?.street ?? '',
+    tableGuestUnavailable,
   ].join('|');
   useEffect(() => {
     setBlocker(null);
@@ -71,13 +76,18 @@ export function useCheckoutBlockerHint(hasChosenOrderType: boolean, hasItems: bo
     if (next !== null) setAttempts((count) => count + 1);
   }, []);
 
-  const shown = blocker ?? (hasItems && !hasChosenOrderType ? 'order-type' : null);
+  const shown =
+    blocker ??
+    (hasItems && tableGuestUnavailable ? 'table-guest-unavailable' : null) ??
+    (hasItems && !hasChosenOrderType ? 'order-type' : null);
 
   let message = '';
   if (shown === 'order-type') {
     message = t('checkout_blocked_order_type', 'Choose how you want to order to continue');
   } else if (shown === 'details') {
     message = t('checkout_blocked_details', 'We need a few more details before checkout');
+  } else if (shown === 'table-guest-unavailable') {
+    message = t('table_guest_dine_in_unavailable');
   }
 
   return { blocker: shown, message, setBlocker: record, attempts };

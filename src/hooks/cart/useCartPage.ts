@@ -6,6 +6,7 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
+import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
 
 /**
  * State + handlers for the cart page: item quantity/remove, special-instructions editing, promo
@@ -15,12 +16,14 @@ import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 export function useCartPage() {
   const { state, removeItem, updateItem, applyPromoCode, removePromoCode, getTotal, getItemCount } = useCart();
   const { state: orderTypeState, hasChosenOrderType } = useOrderType();
+  const tableGuest = useTableGuestDineInAvailability();
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
   // Hosted here (and rendered by CartPageLayout) so a blocked checkout is fixed
   // on this page. It used to push('/menu') with no explanation — the customer
   // landed back on the menu having no idea what went wrong.
   const orderTypeFollowUp = useOrderTypeFollowUp();
-  const hint = useCheckoutBlockerHint(hasChosenOrderType, state.items.length > 0);
+  const tableGuestAvailabilityBlocked = tableGuest.visitBound && (!tableGuest.active || !tableGuest.dineInAvailable);
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, state.items.length > 0, tableGuestAvailabilityBlocked);
 
   const [promoCode, setPromoCode] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
@@ -33,6 +36,10 @@ export function useCartPage() {
   const runCheckout = async () => {
     const orderType = orderTypeState.orderType;
     if (!orderType) {
+      if (tableGuestAvailabilityBlocked) {
+        hint.setBlocker('table-guest-unavailable');
+        return;
+      }
       // No type yet, and this page has no toggle — the order-type editor is the
       // one thing that can unblock it, so open it right here.
       hint.setBlocker('order-type');

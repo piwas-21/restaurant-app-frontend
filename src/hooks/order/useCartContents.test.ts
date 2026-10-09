@@ -26,6 +26,16 @@ jest.mock('@/contexts/OrderTypeContext', () => ({
 jest.mock('@/hooks/checkout/useSmartCheckoutRouter', () => ({
   useSmartCheckoutRouter: () => ({ proceedToCheckout: mockProceedToCheckout, isResolving: mockIsResolving }),
 }));
+jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
+  useTableGuestDineInAvailability: () => ({
+    visitBound: false,
+    active: false,
+    dineInAvailable: false,
+    blocked: false,
+    dineInUnavailable: false,
+    refreshDineInAvailability: jest.fn().mockResolvedValue(false),
+  }),
+}));
 // Pulled in by useCheckoutBlockerHint, which derives the "why can't I check out?" copy.
 jest.mock('@/contexts/CheckoutContext', () => ({
   useCheckout: () => ({ state: { customerInfo: null, deliveryAddress: null } }),

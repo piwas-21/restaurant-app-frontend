@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Vraag het personeel een bezoek te starten of bevestigen voordat je opnieuw bestelt. Gebruik geen code van een eerder bezoek.",
   "table_guest_unavailable_title": "Tafelrekening niet beschikbaar",
   "table_guest_unavailable_detail": "Vraag het personeel of tafelbezoeken beschikbaar zijn.",
+  "table_guest_dine_in_unavailable": "Dineren in het restaurant is momenteel niet beschikbaar voor dit tafelbezoek. Je mandje en bezoek blijven in dit tabblad bewaard.",
   "table_guest_storage_help": "Deze browser kan het tafelbezoek niet veilig in dit tabblad bewaren. Schakel sessieopslag in of vraag hulp.",
   "table_guest_not_joined_detail": "Scan de tafel-QR en voer de actuele bezoekcode van het personeel in.",
   "table_guest_account_summary": "Totalen van de tafelrekening",

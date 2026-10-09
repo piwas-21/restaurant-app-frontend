@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Yeniden sipariş vermeden önce personelden ziyareti başlatmasını veya doğrulamasını iste. Önceki ziyaretin kodunu kullanma.",
   "table_guest_unavailable_title": "Masa hesabı kullanılamıyor",
   "table_guest_unavailable_detail": "Masa ziyaretlerinin kullanılabilir olup olmadığını personele sor.",
+  "table_guest_dine_in_unavailable": "Masada sipariş verme şu anda bu ziyaret için kullanılamıyor. Sepetiniz ve ziyaretiniz bu sekmede kayıtlı kalır.",
   "table_guest_storage_help": "Bu tarayıcı masa ziyaretini bu sekmede güvenle saklayamıyor. Oturum depolamasını etkinleştir veya yardım iste.",
   "table_guest_not_joined_detail": "Masa QR kodunu tara ve personelin verdiği geçerli ziyaret kodunu gir.",
   "table_guest_account_summary": "Masa hesabı toplamları",

@@ -47,8 +47,8 @@ export interface CartSheetProps {
  * totals and Proceed-to-Checkout are identical to what the rail showed — including the toggle,
  * which is why removing the rail does not remove a guest's ability to choose a channel.
  *
- * `onProceed` closes the sheet *before* the smart-skip router pushes to /checkout/review, so the
- * user does not see it still open as the route transitions.
+ * The shared contents close the sheet after a successful route or when handing missing details to
+ * the follow-up modal. A blocked table visit keeps the sheet open so its explanation is visible.
  */
 export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSheetProps>) {
   const { t } = useTranslation();

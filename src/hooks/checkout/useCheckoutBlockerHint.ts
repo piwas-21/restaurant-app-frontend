@@ -45,7 +45,7 @@ export interface CheckoutBlockerHint {
 export function useCheckoutBlockerHint(
   hasChosenOrderType: boolean,
   hasItems: boolean,
-  tableGuestUnavailable = false,
+  tableGuestUnavailableMessageKey: string | null = null,
 ): CheckoutBlockerHint {
   const { t } = useTranslation();
   const { state: checkoutState } = useCheckout();
@@ -62,7 +62,7 @@ export function useCheckoutBlockerHint(
     checkoutState.customerInfo?.email ?? '',
     checkoutState.customerInfo?.phone ?? '',
     checkoutState.deliveryAddress?.street ?? '',
-    tableGuestUnavailable,
+    tableGuestUnavailableMessageKey ?? '',
   ].join('|');
   useEffect(() => {
     setBlocker(null);
@@ -78,7 +78,7 @@ export function useCheckoutBlockerHint(
 
   const shown =
     blocker ??
-    (hasItems && tableGuestUnavailable ? 'table-guest-unavailable' : null) ??
+    (hasItems && tableGuestUnavailableMessageKey ? 'table-guest-unavailable' : null) ??
     (hasItems && !hasChosenOrderType ? 'order-type' : null);
 
   let message = '';
@@ -87,7 +87,7 @@ export function useCheckoutBlockerHint(
   } else if (shown === 'details') {
     message = t('checkout_blocked_details', 'We need a few more details before checkout');
   } else if (shown === 'table-guest-unavailable') {
-    message = t('table_guest_dine_in_unavailable');
+    message = t(tableGuestUnavailableMessageKey ?? 'table_guest_unavailable_detail');
   }
 
   return { blocker: shown, message, setBlocker: record, attempts };

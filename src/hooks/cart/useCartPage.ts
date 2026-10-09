@@ -22,8 +22,8 @@ export function useCartPage() {
   // on this page. It used to push('/menu') with no explanation — the customer
   // landed back on the menu having no idea what went wrong.
   const orderTypeFollowUp = useOrderTypeFollowUp();
-  const tableGuestAvailabilityBlocked = tableGuest.visitBound && (!tableGuest.active || !tableGuest.dineInAvailable);
-  const hint = useCheckoutBlockerHint(hasChosenOrderType, state.items.length > 0, tableGuestAvailabilityBlocked);
+  const tableGuestAvailabilityBlocked = Boolean(tableGuest.blockerMessageKey);
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, state.items.length > 0, tableGuest.blockerMessageKey ?? null);
 
   const [promoCode, setPromoCode] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);

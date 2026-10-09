@@ -13,14 +13,9 @@ import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestD
 import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
 
 export interface UseCartContentsArgs {
-  /**
-   * Toggle click handler (from useOrderTypeFollowUp.pickType); forwards the
-   * surface tag. The third argument forces the follow-up modal open even when
-   * the type would normally commit silently — that's how a blocked checkout
-   * re-collects the details it's missing.
-   */
+  /** Toggle click handler; `forceModal` reopens the detail flow after a refused checkout. */
   pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
-  /** Fired right after Proceed-to-Checkout (lets a mobile sheet close first). */
+  /** Called after checkout routes or when handing missing details to the follow-up modal. */
   onProceed?: () => void;
   /**
    * Analytics surface tag — WHICH cart surface the guest acted on.
@@ -51,11 +46,11 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   const items = cartState.items;
   const itemCount = items.reduce((acc, it) => acc + it.quantity, 0);
   const subtotal = items.reduce((acc, it) => acc + it.itemTotal, 0);
-  const tableGuestAvailabilityBlocked = tableGuest.visitBound && (!tableGuest.active || !tableGuest.dineInAvailable);
+  const tableGuestAvailabilityBlocked = Boolean(tableGuest.blockerMessageKey);
   const tableGuestCheckoutBlocked =
     tableGuestAvailabilityBlocked || (tableGuest.visitBound && orderTypeState.orderType !== OrderTypeEnum.DineIn);
   const canCheckout = itemCount > 0 && hasChosenOrderType && !tableGuestCheckoutBlocked;
-  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0, tableGuestAvailabilityBlocked);
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, itemCount > 0, tableGuest.blockerMessageKey ?? null);
 
   const handleQty = (basketItemId: string | undefined, next: number) => {
     if (!basketItemId || next < 1) return;
@@ -80,14 +75,16 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
       hint.setBlocker(tableGuestAvailabilityBlocked ? 'table-guest-unavailable' : 'order-type');
       return;
     }
-    onProceed?.();
     const blocker = await proceedToCheckout(orderType, analyticsSource);
     hint.setBlocker(blocker);
     // Missing contact/address detail is recoverable in one click: reopen the
     // type's own follow-up modal (forceModal, since Takeaway would otherwise
     // decide it has nothing to ask) rather than bouncing to /menu.
     if (blocker === 'details') {
+      onProceed?.();
       pickType(orderType, analyticsSource, true);
+    } else if (blocker === null) {
+      onProceed?.();
     }
   };
 

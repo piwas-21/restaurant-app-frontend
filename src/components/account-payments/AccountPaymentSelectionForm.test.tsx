@@ -28,20 +28,23 @@ const account: AccountPaymentAccount = {
 const session = { serviceSessionId: visit, bill: { accountItems: [] } } as unknown as TableServiceSessionDto;
 const onQuote = jest.fn(async () => undefined);
 const onPlan = jest.fn(async () => undefined);
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-it('reviews only the available amount and never includes money reserved by another payer', async () => {
+const renderForm = (paymentAccount = account) =>
   render(
     <AccountPaymentSelectionForm
-      account={account}
+      account={paymentAccount}
       session={session}
       disabled={false}
       onQuote={onQuote}
       onPlan={onPlan}
     />,
   );
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+it('reviews only the available amount and never includes money reserved by another payer', async () => {
+  renderForm();
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() => expect(onQuote).toHaveBeenCalledTimes(1));
   expect(onQuote).toHaveBeenCalledWith(
@@ -50,15 +53,7 @@ it('reviews only the available amount and never includes money reserved by anoth
 });
 
 it('keeps guest OnlinePayment outside the staff quote methods', () => {
-  render(
-    <AccountPaymentSelectionForm
-      account={account}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm();
 
   const method = screen.getByLabelText('cashier.payment_method');
   expect(method).toHaveValue('Cash');
@@ -68,15 +63,7 @@ it('keeps guest OnlinePayment outside the staff quote methods', () => {
 });
 
 it('parses comma-decimal custom contributions exactly and rejects an amount beyond unreserved debt', async () => {
-  render(
-    <AccountPaymentSelectionForm
-      account={account}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm();
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
   fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '0,30' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
@@ -88,15 +75,7 @@ it('parses comma-decimal custom contributions exactly and rejects an amount beyo
 });
 
 it('selects two remaining unit ordinals with the server limit instead of expanding the historical full quantity', async () => {
-  render(
-    <AccountPaymentSelectionForm
-      account={account}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm();
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Items' } });
   const quantity = screen.getByRole('spinbutton');
   expect(quantity).toHaveAttribute('max', '5');
@@ -138,15 +117,7 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
       ],
     },
   };
-  render(
-    <AccountPaymentSelectionForm
-      account={equalAccount}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm(equalAccount);
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Equal' } });
   expect(screen.getByRole('option', { name: /share_number:1/ })).toBeDisabled();
   expect(screen.getByRole('option', { name: /share_number:1/ })).toHaveTextContent('€3.34');
@@ -167,15 +138,7 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
 });
 
 it('records Full as a distinct payment flow and keeps its tip outside the account amount', async () => {
-  render(
-    <AccountPaymentSelectionForm
-      account={account}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm();
   fireEvent.change(screen.getByLabelText('cashier.tables.payment_tip'), { target: { value: '1.23' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() =>
@@ -189,15 +152,7 @@ it('records Full as a distinct payment flow and keeps its tip outside the accoun
 });
 
 it('creates custom guest amounts only when the immutable plan exactly covers the available balance', async () => {
-  render(
-    <AccountPaymentSelectionForm
-      account={account}
-      session={session}
-      disabled={false}
-      onQuote={onQuote}
-      onPlan={onPlan}
-    />,
-  );
+  renderForm();
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:1'), { target: { value: '0.15' } });
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:2'), { target: { value: '0.14' } });

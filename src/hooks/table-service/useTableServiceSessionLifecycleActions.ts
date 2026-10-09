@@ -22,6 +22,8 @@ import {
 } from '@/hooks/cashier/tableSessionMutation';
 import { tableServiceCloseErrorMessage } from './tableServiceSessionErrors';
 
+type SessionLifecycleAction = (serviceSessionId: string, expectedVersion: number) => Promise<TableServiceSessionDto>;
+
 interface Props {
   readonly serviceSessionId: string | null;
   readonly session: TableServiceSessionDto | null;
@@ -55,6 +57,49 @@ export function useTableServiceSessionLifecycleActions({
   setError,
   setSession,
 }: Props) {
+  const executeLifecycleAction = useCallback(
+    async (action: SessionLifecycleAction, fallbackError: string): Promise<TableServiceSessionDto> => {
+      if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
+      if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+      const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
+      const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
+      setIsMutating(true);
+      setError(null);
+      try {
+        const result = await action(serviceSessionId, session.version);
+        if (!current()) throw new Error('cashier.tables.operation_stale');
+        setSession(result);
+        setIsStale(false);
+        return result;
+      } catch (reason: unknown) {
+        if (!current()) throw reason;
+        const message = getErrorMessage(reason) ?? fallbackError;
+        setError(message);
+        void refresh().finally(() => {
+          if (current()) setError(message);
+        });
+        throw reason;
+      } finally {
+        finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
+      }
+    },
+    [
+      inFlightRef,
+      mountedRef,
+      operationRef,
+      pendingOperation,
+      refresh,
+      requestRef,
+      serviceSessionId,
+      session,
+      setError,
+      setIsLoading,
+      setIsMutating,
+      setIsStale,
+      setSession,
+    ],
+  );
+
   const executeClose = useCallback(async (): Promise<TableServiceSessionDto> => {
     if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
     if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
@@ -108,86 +153,23 @@ export function useTableServiceSessionLifecycleActions({
     setSession,
   ]);
 
-  const executeRelease = useCallback(async (): Promise<TableServiceSessionDto> => {
-    if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-    if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
-    const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
-    const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
-    setIsMutating(true);
-    setError(null);
-    try {
-      const result = await releaseTableServiceSession(serviceSessionId, { expectedVersion: session.version });
-      if (!current()) throw new Error('cashier.tables.operation_stale');
-      setSession(result);
-      setIsStale(false);
-      return result;
-    } catch (reason: unknown) {
-      if (!current()) throw reason;
-      const message = getErrorMessage(reason) ?? 'cashier.tables.release_failed';
-      setError(message);
-      void refresh().finally(() => {
-        if (current()) setError(message);
-      });
-      throw reason;
-    } finally {
-      finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
-    }
-  }, [
-    inFlightRef,
-    mountedRef,
-    operationRef,
-    pendingOperation,
-    refresh,
-    requestRef,
-    serviceSessionId,
-    session,
-    setError,
-    setIsLoading,
-    setIsMutating,
-    setIsStale,
-    setSession,
-  ]);
+  const executeRelease = useCallback(
+    () =>
+      executeLifecycleAction(
+        (id, expectedVersion) => releaseTableServiceSession(id, { expectedVersion }),
+        'cashier.tables.release_failed',
+      ),
+    [executeLifecycleAction],
+  );
 
-  const executeClearAndRelease = useCallback(async (): Promise<TableServiceSessionDto> => {
-    if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
-    if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
-    const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
-    const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
-    setIsMutating(true);
-    setError(null);
-    try {
-      await clearPendingTableServiceSessionOrders(serviceSessionId, { expectedVersion: session.version });
-      const result = await getTableServiceSession(serviceSessionId);
-      if (!current()) throw new Error('cashier.tables.operation_stale');
-      setSession(result);
-      setIsStale(false);
-      return result;
-    } catch (reason: unknown) {
-      if (!current()) throw reason;
-      const message = getErrorMessage(reason) ?? 'cashier.tables.clear_failed';
-      setError(message);
-      void refresh().finally(() => {
-        if (current()) setError(message);
-      });
-      throw reason;
-    } finally {
-      finishTableSessionMutation(mountedRef, operationRef, inFlightRef, setIsMutating, operationId);
-    }
-  }, [
-    inFlightRef,
-    mountedRef,
-    operationRef,
-    pendingOperation,
-    refresh,
-    requestRef,
-    serviceSessionId,
-    session,
-    setError,
-    setIsLoading,
-    setIsMutating,
-    setIsStale,
-    setSession,
-  ]);
+  const executeClearAndRelease = useCallback(
+    () =>
+      executeLifecycleAction(async (id, expectedVersion) => {
+        await clearPendingTableServiceSessionOrders(id, { expectedVersion });
+        return getTableServiceSession(id);
+      }, 'cashier.tables.clear_failed'),
+    [executeLifecycleAction],
+  );
 
   return { executeClose, executeRelease, executeClearAndRelease };
 }

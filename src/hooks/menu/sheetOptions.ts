@@ -1,5 +1,6 @@
 import type { ItemAvailability, MenuBundleItem } from '@/types/menu';
 import type { OfferMode } from '@/types/menu/offerFamily';
+import type { OrderType } from '@/types/order';
 
 /**
  * Options for opening the customization sheet (`useItemCustomizationSheet` /
@@ -18,6 +19,8 @@ export interface OpenSheetOptions {
    * requests also send the current channel so nested customization memberships resolve correctly.
    */
   availability?: ItemAvailability;
+  /** Context channel associated with this card verdict; null denotes an unscoped catalog snapshot. */
+  availabilityOrderType?: OrderType | null;
   /** Variation selected in the offer-family step; avoids asking for the same size twice. */
   selectedVariationId?: string | null;
   /** The family purchase mode selected before this sheet opened. */

@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useOrderType } from '@/contexts/OrderTypeContext';
+import type { CatalogAvailabilityEvidence } from '@/hooks/menu/useCatalogAvailabilityEvidence';
 import { getProductById } from '@/services/menuService';
 import { retainOrderableCustomizationSelections } from '@/utils/explicitCustomization';
 import type { CustomizationGroupSelection, DetailedProduct } from '@/types/menu';
@@ -12,6 +13,7 @@ interface UseOrderTypeProductRefreshArgs {
   isOpen: boolean;
   product: DetailedProduct | null;
   detailOrderType: OrderType | null | undefined;
+  catalogAvailabilityRef: MutableRefObject<CatalogAvailabilityEvidence | null>;
   setProduct: Dispatch<SetStateAction<DetailedProduct | null>>;
   setSelections: Dispatch<SetStateAction<CustomizationGroupSelection[]>>;
   setDetailOrderType: Dispatch<SetStateAction<OrderType | null | undefined>>;
@@ -25,6 +27,7 @@ export function useOrderTypeProductRefresh({
   isOpen,
   product,
   detailOrderType,
+  catalogAvailabilityRef,
   setProduct,
   setSelections,
   setDetailOrderType,
@@ -59,7 +62,12 @@ export function useOrderTypeProductRefresh({
         const detail = (response as { data?: DetailedProduct })?.data;
         if (!detail) throw new Error('Missing product detail');
         if (!current) return;
-        setProduct(detail);
+        const catalogEvidence = catalogAvailabilityRef.current;
+        const keepCatalogBlock =
+          catalogEvidence !== null &&
+          (catalogEvidence.orderType === null || catalogEvidence.orderType === requestedOrderType);
+        setProduct(keepCatalogBlock ? { ...detail, availability: catalogEvidence.availability } : detail);
+        if (catalogEvidence && !keepCatalogBlock) catalogAvailabilityRef.current = null;
         setSelections((selections) => retainOrderableCustomizationSelections(detail, selections));
         setDetailOrderType(requestedOrderType);
       })
@@ -83,6 +91,7 @@ export function useOrderTypeProductRefresh({
     isOpen,
     productId,
     orderTypeState.orderType,
+    catalogAvailabilityRef,
     setDetailOrderType,
     setIsLoading,
     setProduct,

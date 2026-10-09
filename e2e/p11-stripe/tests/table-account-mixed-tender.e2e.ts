@@ -32,6 +32,14 @@ interface OpenSession {
   readonly status: string;
 }
 
+function orderRowForNumber(page: Page, orderNumber: string) {
+  return page.getByRole('row').filter({ has: page.getByText(orderNumber, { exact: true }) });
+}
+
+function orderUpdatedSuccessToast(page: Page) {
+  return page.getByRole('alert').filter({ hasText: /^Order updated successfully$/ });
+}
+
 async function readApiData<T>(response: P11Response, label: string): Promise<T> {
   const body = (await response.json()) as ApiEnvelope<T>;
   if (!response.ok() || body.success !== true || body.data === undefined) {
@@ -64,9 +72,13 @@ async function cancelSourceOrderInAdminUi(page: Page, orderId: string, orderNumb
   );
   expect(cancelled).toMatchObject({ id: orderId, status: 'Cancelled' });
 
-  const success = page.getByRole('dialog', { name: 'Order cancelled successfully', exact: true });
-  await expect(success).toBeVisible();
-  await success.getByRole('button', { name: 'Close', exact: true }).click();
+  const successToast = orderUpdatedSuccessToast(page);
+  await expect(successToast).toHaveCount(1);
+  await expect(successToast).toBeVisible();
+
+  const cancelledRow = orderRowForNumber(page, orderNumber);
+  await expect(cancelledRow).toHaveCount(1);
+  await expect(cancelledRow.getByRole('cell', { name: 'Cancelled', exact: true })).toBeVisible();
 }
 
 async function readAccountAfter(page: Page, sessionId: string, action: () => Promise<unknown>) {

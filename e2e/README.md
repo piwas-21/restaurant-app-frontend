@@ -303,6 +303,15 @@ TMPDIR=/private/tmp "$NODE22_BIN" scripts/dev-e2e-p11-stripe.mjs \
   native-pg18 "$P11_POSTGRES18_BIN_DIR" "$P11_REDIS_SERVER" mixed-tender
 ```
 
+Build the exact clean backend revision supplied as `P11_BACKEND_SHA` before starting either run.
+The runner uses `dotnet ef database update --no-build` and launches the API with `--no-build`; it
+does not build backend outputs. Before the connected-account check, it requires the API, Domain, and
+Infrastructure assemblies plus the API dependency/runtime configuration files to exist. It hashes
+the local runtime assembly/configuration manifest and API assembly before and after migration, API
+startup, the browser journey, provider readback, and owned-service shutdown. A missing or changed
+runtime file fails acceptance. Once the run evidence directory exists, `source.json` and `run.json`
+record the runtime checkpoint results.
+
 That scenario allocates one CHF 15.00 source unit as CHF 5.01 online and CHF 9.99 exact cash.
 The cashier records CHF 10.00 received, including a CHF 0.01 cash-rounding adjustment. A full
 void must produce one capture-linked CHF 5.01 Stripe refund and a separately evidenced CHF 10.00

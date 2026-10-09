@@ -7,15 +7,12 @@ import { ZReportDto } from '@/types/order';
 import { getZReport } from '@/services/orderService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { exportZReportToPDF } from '@/utils/zReportExportUtils';
-import { formatCurrency, TENANT_CURRENCY, TENANT_LOCALE } from '@/utils/currency';
+import { formatCurrency, formatCurrencyOrNumber, TENANT_LOCALE } from '@/utils/currency';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { calendarDayFromReport } from '@/utils/zReportDay';
 import styles from './ZReportModal.module.css';
 import ZReportAccountCash from './ZReportAccountCash';
 import ZReportTenderSummary from './ZReportTenderSummary';
-
-const formatTenderAmount = (amount: number, currency: string | null | undefined): string =>
-  formatCurrency(amount, TENANT_LOCALE, currency || TENANT_CURRENCY);
 
 interface ZReportModalProps {
   isOpen: boolean;
@@ -236,9 +233,11 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                                 <td>{getPaymentMethodLabel(pm.paymentMethod, t)}</td>
                                 <td>{pm.currency ?? t('cashier.zreport.currency_unavailable')}</td>
                                 <td>{pm.transactionCount}</td>
-                                <td>{formatTenderAmount(pm.orderAmount ?? pm.totalAmount, pm.currency)}</td>
-                                <td>{formatTenderAmount(pm.tipAmount ?? 0, pm.currency)}</td>
-                                <td>{formatTenderAmount(pm.totalAmount, pm.currency)}</td>
+                                <td>
+                                  {formatCurrencyOrNumber(pm.orderAmount ?? pm.totalAmount, TENANT_LOCALE, pm.currency)}
+                                </td>
+                                <td>{formatCurrencyOrNumber(pm.tipAmount ?? 0, TENANT_LOCALE, pm.currency)}</td>
+                                <td>{formatCurrencyOrNumber(pm.totalAmount, TENANT_LOCALE, pm.currency)}</td>
                               </tr>
                             ))}
                           </tbody>

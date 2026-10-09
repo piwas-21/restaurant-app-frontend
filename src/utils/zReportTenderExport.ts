@@ -1,5 +1,5 @@
 import type { ZReportDto } from '@/types/order';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrencyOrNumber } from '@/utils/currency';
 import type { PaymentTranslationFunction } from './paymentMethodDisplay';
 import { getPaymentMethodLabel } from './paymentMethodDisplay';
 
@@ -17,7 +17,7 @@ const escapeHtml = (value: string): string =>
   );
 
 const formatAmount = (amount: number, currency?: string | null, locale = 'en'): string =>
-  formatCurrency(amount, locale, currency || undefined);
+  formatCurrencyOrNumber(amount, locale, currency);
 
 export function zReportTenderHtml(report: ZReportDto, t: PaymentTranslationFunction, locale: string): string {
   const label = (key: string, fallback: string) => escapeHtml(t(key, fallback));

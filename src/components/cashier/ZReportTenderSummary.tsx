@@ -2,18 +2,16 @@
 
 import { useTranslation } from 'react-i18next';
 import type { ZReportCurrencyAmount, ZReportDto } from '@/types/order/zReport';
-import { formatCurrency } from '@/utils/currency';
+import { formatCurrencyOrNumber } from '@/utils/currency';
 import styles from './ZReportModal.module.css';
 
 interface Props {
   readonly report: ZReportDto;
 }
 
-function formatMinorAmount(value: ZReportCurrencyAmount, locale: string, unknownCurrency: string): string {
+function formatMinorAmount(value: ZReportCurrencyAmount, locale: string): string {
   const amount = value.amountMinor / 100;
-  return value.currency
-    ? formatCurrency(amount, locale, value.currency, 2)
-    : `${new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)} ${unknownCurrency}`;
+  return formatCurrencyOrNumber(amount, locale, value.currency, 2);
 }
 
 export default function ZReportTenderSummary({ report }: Props) {
@@ -48,7 +46,7 @@ export default function ZReportTenderSummary({ report }: Props) {
             <tr key={`${label}-${value.currency ?? 'unknown'}-${index}`}>
               <td>{label}</td>
               <td>{value.currency ?? t('cashier.zreport.currency_unavailable')}</td>
-              <td>{formatMinorAmount(value, locale, t('cashier.zreport.currency_unavailable'))}</td>
+              <td>{formatMinorAmount(value, locale)}</td>
             </tr>
           ))}
         </tbody>

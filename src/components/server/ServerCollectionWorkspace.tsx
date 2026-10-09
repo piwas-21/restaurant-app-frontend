@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
@@ -39,6 +39,24 @@ export default function ServerCollectionWorkspace() {
     { href: '/server/takeaway', label: t('server.takeaway.link') },
   ];
 
+  let collectionContent: ReactNode;
+  if (!serverWorkspaceV2) {
+    collectionContent = <p role="alert">{t('cashier.collection.order_load_failed')}</p>;
+  } else if (serviceSessionId) {
+    collectionContent = (
+      <CashierSessionCollectionRoute
+        key={serviceSessionId}
+        serviceSessionId={serviceSessionId}
+        tableId={tableId}
+        orderId={orderId}
+        serverMode
+        onNavigationLockChange={setNavigationLocked}
+      />
+    );
+  } else {
+    collectionContent = <p role="alert">{t('cashier.collection.order_required')}</p>;
+  }
+
   return (
     <StaffWorkspaceShell
       navItems={navItems}
@@ -46,20 +64,7 @@ export default function ServerCollectionWorkspace() {
         if (!navigationLocked) router.push(href);
       }}
     >
-      {!serverWorkspaceV2 ? (
-        <p role="alert">{t('cashier.collection.order_load_failed')}</p>
-      ) : serviceSessionId ? (
-        <CashierSessionCollectionRoute
-          key={serviceSessionId}
-          serviceSessionId={serviceSessionId}
-          tableId={tableId}
-          orderId={orderId}
-          serverMode
-          onNavigationLockChange={setNavigationLocked}
-        />
-      ) : (
-        <p role="alert">{t('cashier.collection.order_required')}</p>
-      )}
+      {collectionContent}
     </StaffWorkspaceShell>
   );
 }

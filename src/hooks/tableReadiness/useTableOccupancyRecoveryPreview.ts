@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { reportCashierRecoveryFailure } from '@/lib/cashierRecoveryDiagnostics';
 import {
   persistPendingTableOccupancyRecovery,
   readPendingTableOccupancyRecovery,
@@ -64,7 +65,8 @@ export function useTableOccupancyRecoveryPreview({
       }
       setReason('');
       setState({ stage: 'previewed', preview, currency: preview.currency });
-    } catch (_error: unknown) {
+    } catch (error: unknown) {
+      reportCashierRecoveryFailure('preview table recovery', error);
       setState({ stage: 'failed', error: 'preview_failed' });
     }
   }, [actorId, actorRole, canWrite, inFlight, pending, serviceSessionId, setReason, setState, state.stage, tableId]);

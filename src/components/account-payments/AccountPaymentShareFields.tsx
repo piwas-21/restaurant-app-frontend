@@ -90,8 +90,8 @@ export default function AccountPaymentShareFields({
       {choice === 'CustomAmount' && (
         <>
           <p className={styles.note}>{t('accountPayments.custom_shares_scope')}</p>
-          <p className={styles.note} role="status">
-            {remainderLabel}
+          <p className={styles.note}>
+            <output>{remainderLabel}</output>
           </p>
           {Array.from({ length: Math.min(Number(shares) || 0, maximumShares) }, (_, index) => (
             <div key={index} className={styles.shareInput}>

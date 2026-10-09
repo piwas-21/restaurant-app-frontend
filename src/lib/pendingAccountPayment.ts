@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { reportCashierRecoveryFailure } from './cashierRecoveryDiagnostics';
 import {
   ACCOUNT_PAYMENT_MODES,
   type CreateAccountEqualSharePlanRequest,
@@ -179,8 +180,8 @@ export function persistPendingAccountPayment(value: PendingAccountPayment): bool
   try {
     window.sessionStorage.setItem(key(value.actorId, value.serviceSessionId), JSON.stringify(parsed.data));
     return true;
-  } catch (_storageError: unknown) {
-    // Keep storage errors private; callers hold the write lock on failure.
+  } catch (error: unknown) {
+    reportCashierRecoveryFailure('save account payment journal', error);
     return false;
   }
 }
@@ -192,8 +193,8 @@ export function clearPendingAccountPayment(actorId: string, serviceSessionId: st
   try {
     window.sessionStorage.removeItem(key(actorId, serviceSessionId));
     return true;
-  } catch (_storageError: unknown) {
-    // Keep storage errors private; callers hold the recovery lock on failure.
+  } catch (error: unknown) {
+    reportCashierRecoveryFailure('clear account payment journal', error);
     return false;
   }
 }

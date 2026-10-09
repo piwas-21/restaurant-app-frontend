@@ -39,7 +39,7 @@ function pendingTenderOrderScope(
   if (!session) return undefined;
   return session.bill.orders
     .map((order) => order.id)
-    .filter((id) => !managedExternally || !orderId || id.toLowerCase() !== orderId.toLowerCase());
+    .filter((id) => !managedExternally || id.toLowerCase() !== orderId?.toLowerCase());
 }
 
 function collectionReturnDestination(

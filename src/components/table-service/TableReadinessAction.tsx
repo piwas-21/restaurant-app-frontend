@@ -91,6 +91,12 @@ function OwnedAction({
   }
   const working = action.stage === 'working';
   const pending = action.stage === 'pending' || working;
+  let settledMessageKey = 'accountPayments.readiness.refused';
+  if (action.result?.kind === 'succeeded') {
+    settledMessageKey = 'accountPayments.readiness.succeeded';
+  } else if (action.result?.kind === 'refused') {
+    settledMessageKey = refusalMessageKey(action.result.code);
+  }
   return (
     <section id="table-readiness-actions" className={styles.panel} aria-label={t('accountPayments.readiness.title')}>
       <h2>{t('accountPayments.readiness.title')}</h2>
@@ -128,13 +134,7 @@ function OwnedAction({
       {action.stage === 'unavailable' && <p role="alert">{t('accountPayments.readiness.storage_unavailable')}</p>}
       {action.stage === 'settled' && (
         <>
-          <output aria-live="polite">
-            {t(
-              action.result?.kind === 'succeeded'
-                ? 'accountPayments.readiness.succeeded'
-                : refusalMessageKey(action.result?.kind === 'refused' ? action.result.code : ''),
-            )}
-          </output>
+          <output aria-live="polite">{t(settledMessageKey)}</output>
           {action.result?.kind === 'refused' && action.result.code !== 'unknown' && <code>{action.result.code}</code>}
           <StaffButton onClick={() => void refresh().catch(() => undefined)}>
             {t('accountPayments.readiness.refresh')}

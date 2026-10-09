@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { reportCashierRecoveryFailure } from '@/lib/cashierRecoveryDiagnostics';
 import { clearPendingTableOccupancyRecovery } from '@/lib/pendingTableOccupancyRecovery';
 import {
   getTableOccupancyRecoveryOperation,
@@ -62,7 +63,8 @@ export function useTableOccupancyRecovery({
         if (!mounted.current || generation.current !== requestGeneration) return;
         if (result) await acceptOperation(saved, result);
         else setState({ stage: 'pending' });
-      } catch (_error: unknown) {
+      } catch (error: unknown) {
+        reportCashierRecoveryFailure('read table recovery', error);
         if (mounted.current && generation.current === requestGeneration) setState({ stage: 'pending' });
       } finally {
         if (generation.current === requestGeneration) inFlight.current = false;

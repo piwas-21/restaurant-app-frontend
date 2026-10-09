@@ -1,4 +1,5 @@
 import type { AddPaymentRequest } from '@/services/cashierService';
+import { reportCashierRecoveryFailure } from './cashierRecoveryDiagnostics';
 import type { OrderPaymentDto } from '@/types/order';
 
 export type PendingPaymentStatus = 'Checking' | 'Unknown' | 'Unavailable' | 'Refused';
@@ -191,8 +192,8 @@ export function clearPendingPayment(operationId: string, orderId?: string): bool
     }
     window.sessionStorage.removeItem(STORAGE_KEY);
     return window.sessionStorage.getItem(STORAGE_KEY) === null;
-  } catch (_error) {
-    // Storage is best effort; the server operation remains the source of truth.
+  } catch (error: unknown) {
+    reportCashierRecoveryFailure('clear order payment journal', error);
     return false;
   }
 }

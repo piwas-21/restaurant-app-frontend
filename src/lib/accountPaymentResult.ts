@@ -66,8 +66,7 @@ function matchesPlanResult(
   const sameCustomAmounts =
     expectedCustomAmounts === undefined
       ? actualCustomAmounts === undefined || actualCustomAmounts.length === 0
-      : actualCustomAmounts !== undefined &&
-        actualCustomAmounts.length === expectedCustomAmounts.length &&
+      : actualCustomAmounts?.length === expectedCustomAmounts.length &&
         actualCustomAmounts.every((amount, index) => amount === expectedCustomAmounts[index]);
   return (
     saved.kind === 'plan' &&

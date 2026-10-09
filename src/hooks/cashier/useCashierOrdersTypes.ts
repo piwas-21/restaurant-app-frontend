@@ -1,7 +1,6 @@
 import type { AddPaymentRequest } from '@/services/cashierService';
-import type { CashierQueueState } from '@/types/cashier';
 import type { OrderDto, PaymentOperationLookupDto } from '@/types/order';
-import type { CashierOrderGroupDto } from '@/types/cashier';
+import type { CashierOrderGroupDto, CashierQueueState } from '@/types/cashier';
 import type { ConnectionState } from './useCashierOrdersStream';
 
 export interface UseCashierOrdersReturn {

@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { CashierQueueState } from '@/types/cashier';
-import type { CashierOrderGroupDto } from '@/types/cashier';
+import type { CashierOrderGroupDto, CashierQueueState } from '@/types/cashier';
 import type { OrderDto } from '@/types/order';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierReadOnlyQueuePanel from './CashierReadOnlyQueuePanel';

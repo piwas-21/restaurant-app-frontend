@@ -76,14 +76,14 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
     if (allocation.orderItemId === null) return sum;
     return sum + allocation.minorPerUnit * (quantities[accountAllocationKey(allocation)] ?? 0);
   }, 0);
-  const tipSubtotalMinor =
-    choice === 'Amount'
-      ? (parseAccountContributionMinor(amount, account.currency, locale) ?? 0)
-      : choice === 'Items'
-        ? itemSubtotalMinor
-        : choice === 'Equal' || choice === 'CustomAmount'
-          ? (selectedSlot?.amountMinor ?? 0)
-          : account.availableMinor;
+  let tipSubtotalMinor = account.availableMinor;
+  if (choice === 'Amount') {
+    tipSubtotalMinor = parseAccountContributionMinor(amount, account.currency, locale) ?? 0;
+  } else if (choice === 'Items') {
+    tipSubtotalMinor = itemSubtotalMinor;
+  } else if (choice === 'Equal' || choice === 'CustomAmount') {
+    tipSubtotalMinor = selectedSlot?.amountMinor ?? 0;
+  }
   const submit = useAccountPaymentSelectionSubmit({
     account,
     choice,
@@ -197,7 +197,7 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
             const parsedOthers = otherValues.map((value) =>
               value.trim() ? parseAccountContributionMinor(value, account.currency, locale) : 0,
             );
-            if (parsedOthers.some((value) => value === null)) {
+            if (parsedOthers.includes(null)) {
               setCustomSharesAttempted(true);
               setError(t('accountPayments.custom_amounts_must_match_balance'));
               return;

@@ -8,6 +8,8 @@ import {
   type PendingPaymentReadResult,
 } from '@/lib/cashierPendingPayment';
 import { usePaymentReconciliation, type PaymentOperationLookup } from './usePaymentReconciliation';
+import { reportCashierRecoveryFailure } from '@/lib/cashierRecoveryDiagnostics';
+import { cashierSessionOrderScope } from '@/lib/cashierSessionOrderScope';
 
 export type CashierSessionPendingTenderStatus = 'checking' | 'clear' | 'pending' | 'unavailable' | 'settled';
 
@@ -92,21 +94,18 @@ function stateForOutcome(
   scopeKey: string,
   saved: PendingPaymentOperation,
   outcome: 'settled' | 'pending' | 'unavailable',
-  cleared: boolean,
 ): InternalState {
-  return outcome === 'settled' && cleared
-    ? makeState(scopeKey, 'settled')
-    : outcome === 'pending'
-      ? makeState(scopeKey, 'pending', { ...saved, status: 'Unknown' }, 'cashier.payment_result_unknown')
-      : makeState(scopeKey, 'unavailable', { ...saved, status: 'Unavailable' }, 'cashier.payment_check_failed');
+  if (outcome === 'pending') {
+    return makeState(scopeKey, 'pending', { ...saved, status: 'Unknown' }, 'cashier.payment_result_unknown');
+  }
+  return makeState(scopeKey, 'unavailable', { ...saved, status: 'Unavailable' }, 'cashier.payment_check_failed');
 }
 
 export function useCashierSessionPendingTender({
   orderIds,
   lookupPaymentOperation = getPaymentOperation,
 }: Options): CashierSessionPendingTenderState {
-  const orderKey =
-    orderIds === undefined ? null : [...new Set(orderIds.map((id) => id.toLowerCase()))].sort().join('\u001f');
+  const orderKey = cashierSessionOrderScope(orderIds);
   const orderIdsRef = useRef<ReadonlySet<string> | null>(null);
   orderIdsRef.current = orderIds === undefined ? null : new Set(orderIds.map((id) => id.toLowerCase()));
   const descriptorRef = useRef<PendingPaymentOperation | null>(null);
@@ -142,10 +141,14 @@ export function useCashierSessionPendingTender({
       const result = await reconcilePayment(saved.orderId, saved.operationId);
       if (requestId !== requestRef.current || result.status === 'Stale') return;
       const outcome = reconciliationOutcome(result, saved);
-      const cleared = outcome === 'settled' && clearPendingPayment(saved.operationId, saved.orderId);
-      if (cleared) descriptorRef.current = null;
-      setState(stateForOutcome(orderKey, saved, outcome, cleared));
-    } catch (_error) {
+      if (outcome === 'settled' && clearPendingPayment(saved.operationId, saved.orderId)) {
+        descriptorRef.current = null;
+        setState(makeState(orderKey, 'settled'));
+      } else {
+        setState(stateForOutcome(orderKey, saved, outcome));
+      }
+    } catch (error: unknown) {
+      reportCashierRecoveryFailure('check visit tender', error);
       if (requestId === requestRef.current) {
         setState(
           makeState(orderKey, 'unavailable', { ...saved, status: 'Unavailable' }, 'cashier.payment_check_failed'),

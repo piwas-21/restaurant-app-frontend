@@ -74,7 +74,8 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable');
       await navigator.clipboard.writeText(code);
       setCopyState('copied');
-    } catch (_error: unknown) {
+    } catch (error: unknown) {
+      reportTableGuestFailure('copy admission code', error);
       setCopyState('failed');
     }
   };
@@ -131,12 +132,14 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
           <button type="button" className={styles.copyButton} onClick={() => void copyCode()} disabled={disabled}>
             {t('table_guest_staff_code_copy')}
           </button>
-          {copyState !== 'idle' && (
-            <p
-              className={copyState === 'failed' ? styles.error : styles.detail}
-              role={copyState === 'failed' ? 'alert' : 'status'}
-            >
-              {t(copyState === 'copied' ? 'table_guest_staff_code_copied' : 'table_guest_staff_code_copy_failed')}
+          {copyState === 'failed' && (
+            <p className={styles.error} role="alert">
+              {t('table_guest_staff_code_copy_failed')}
+            </p>
+          )}
+          {copyState === 'copied' && (
+            <p className={styles.detail}>
+              <output>{t('table_guest_staff_code_copied')}</output>
             </p>
           )}
           <p className={styles.expiry}>{t('table_guest_staff_code_expiry', { expiresAt: formattedExpiry })}</p>

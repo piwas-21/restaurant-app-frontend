@@ -9,6 +9,7 @@ import {
 import type { OrderDto } from '@/types/order';
 import type { CashierCollectionPaymentOutcome } from './useCashierCollectionForm.types';
 import type { ReconcilePayment } from './useCashierCollectionOutcome';
+import { reportCashierRecoveryFailure } from '@/lib/cashierRecoveryDiagnostics';
 
 interface PendingPaymentRecoveryOptions {
   readonly orderId: string | null;
@@ -82,7 +83,8 @@ export function useCashierPendingPaymentRecovery({
         }
         setPendingPayment({ ...saved, status: 'Unavailable' });
         setError('cashier.payment_check_failed');
-      } catch (_error) {
+      } catch (error: unknown) {
+        reportCashierRecoveryFailure('check order payment', error);
         if (mountedRef.current && requestId === requestNumberRef.current) {
           setPendingPayment({ ...saved, status: 'Unavailable' });
           setError('cashier.payment_check_failed');
@@ -142,10 +144,7 @@ export function useCashierPendingPaymentRecovery({
       await resume(stored.operation);
     } else if (stored.status === 'other-order') {
       setRecoveryError('cashier.payment_recovery_other_order');
-    } else if (stored.status === 'unavailable') {
-      setRecoveryError('cashier.payment_recovery_unreadable');
-      setError('cashier.payment_check_failed');
-    } else if (recoveryError === 'cashier.payment_recovery_unavailable') {
+    } else if (stored.status === 'none' && recoveryError === 'cashier.payment_recovery_unavailable') {
       setRecoveryError(null);
       setError(null);
     } else {

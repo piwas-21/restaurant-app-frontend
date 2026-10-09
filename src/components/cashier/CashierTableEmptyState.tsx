@@ -70,15 +70,13 @@ export default function CashierTableEmptyState({
         </StaffButton>
       )}
       {(entry.status === 'legacy' || entry.status === 'conflict') && (
-        <>
-          <StaffButton
-            variant="primary"
-            onClick={onResolveLegacyOrders}
-            disabled={tableActionLocked || !onResolveLegacyOrders}
-          >
-            {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
-          </StaffButton>
-        </>
+        <StaffButton
+          variant="primary"
+          onClick={onResolveLegacyOrders}
+          disabled={tableActionLocked || !onResolveLegacyOrders}
+        >
+          {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
+        </StaffButton>
       )}
       {onRecoveryComplete && entry.status !== 'available' && (
         <TableOccupancyRecoveryAction

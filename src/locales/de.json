@@ -1130,7 +1130,7 @@
   "kitchen_type_none": "Nicht zugewiesen",
   "kitchen_type_frontkitchen": "Vorderküche",
   "kitchen_type_backkitchen": "Hauptküche",
-  "kitchen_type_generalkitchen": "Gesamtküche",
+  "kitchen_type_generalkitchen": "Küche",
   "kitchen_type_none_warning": "Keiner Station zugewiesen — dieser Artikel erscheint auf keinem Vorder-/Hauptküchenbon; verwenden Sie den Bon der Gesamtküche oder den vollständigen Bestellausdruck.",
   "print_front_kitchen": "Vorderküche drucken",
   "print_back_kitchen": "Hauptküche drucken",

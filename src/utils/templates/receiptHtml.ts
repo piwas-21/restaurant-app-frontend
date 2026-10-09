@@ -7,6 +7,7 @@
  * everything inside a combo. It recurses because the backend builds the tree to arbitrary depth.
  */
 import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
+import { orderItemsForDisplay } from '@/utils/orderItemDisplay';
 import { formatCurrency } from '../currency';
 import { formatOrderCurrency, type CashierCurrencySource } from '@/lib/cashierMoney';
 
@@ -79,7 +80,7 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     ? `<div style="margin-left: ${indent}px; font-size: 11pt; margin-top: 4px;"><strong>${escapeHtml(options.heading)}</strong></div>`
     : '';
 
-  children.forEach((child) => {
+  orderItemsForDisplay(children).forEach((child) => {
     // `> 0`, not just `showPrices` — see ChildItemsOptions. Same rule as OrderLineSummary.tsx.
     let childPrice = '';
     if (options.showPrices && child.itemTotal > 0) {

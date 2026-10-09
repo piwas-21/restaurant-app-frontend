@@ -10,6 +10,7 @@ import { RESTAURANT_NAME } from '@/lib/config';
 import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -33,6 +34,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto): string => {
   const itemName = item.productName || item.menuName || 'Item';
   const variation = item.variationName ? ` (${item.variationName})` : '';
   const totalPrice = formatOrderCurrency(item.itemTotal, order);
+  const specialInstructions = displaySpecialInstructions(item);
   // What is inside a combo, itemised under the line the guest is being charged for. Prices are off:
   // the parent line carries the whole amount, so each component would otherwise print a bare 0.00.
   const childItemsHtml = buildChildItemsHtml(item.sideItems ?? [], { showPrices: false });
@@ -44,7 +46,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto): string => {
         <span><strong>${totalPrice}</strong></span>
       </div>
       ${childItemsHtml}
-      ${item.specialInstructions ? `<div dir="auto">${escapeHtml(item.specialInstructions)}</div>` : ''}
+      ${specialInstructions ? `<div dir="auto">${escapeHtml(specialInstructions)}</div>` : ''}
     </div>`;
 };
 

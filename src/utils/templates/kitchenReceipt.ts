@@ -11,6 +11,7 @@ import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { selectItemsForKitchen } from '../orderItemTree';
 import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -38,7 +39,7 @@ const getKitchenLabel = (kitchenType: KitchenReceiptType, translate: Translation
     case 'BackKitchen':
       return translate('kitchen_type_backkitchen', 'Back Kitchen');
     case 'GeneralKitchen':
-      return translate('kitchen_type_generalkitchen', 'General Kitchen');
+      return translate('kitchen_type_generalkitchen', 'Kitchen');
     default:
       return translate('order_details', 'Order Details');
   }
@@ -52,6 +53,7 @@ const buildKitchenItemHtml = (
   order: OrderDto,
 ): string => {
   const itemName = item.productName || item.menuName || translate('item', 'Item');
+  const specialInstructions = displaySpecialInstructions(item);
 
   let html = `
     <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
@@ -91,10 +93,10 @@ const buildKitchenItemHtml = (
   });
 
   // Special instructions - prominent styling
-  if (item.specialInstructions) {
+  if (specialInstructions) {
     html += `
       <div style="margin: 8px 0 0 16px; padding: 6px 8px; background: #f5f5f5; border-left: 4px solid #000; font-size: 11pt;">
-        <strong>NOTE:</strong> ${escapeHtml(item.specialInstructions)}
+        <strong>NOTE:</strong> ${escapeHtml(specialInstructions)}
       </div>`;
   }
 

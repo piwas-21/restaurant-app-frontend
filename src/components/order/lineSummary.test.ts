@@ -59,6 +59,56 @@ describe('orderItemToLineSummary', () => {
     expect(summary.sideItems).toEqual([{ id: 's1', name: 'Fries', quantity: 2, price: 6 }]);
   });
 
+  it('groups known section siblings without name matching or collapsing unknown rows', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        sideItems: [
+          {
+            id: 'steak',
+            productId: 'p1',
+            productName: 'Steak',
+            quantity: 1,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+            sectionId: 'meat',
+          },
+          {
+            id: 'carrier',
+            productId: 'p2',
+            productName: 'Tacos 3 viandes',
+            quantity: 1,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+          },
+          {
+            id: 'fries',
+            productId: 'p3',
+            productName: 'Fries',
+            quantity: 1,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+            sectionId: 'sides',
+          },
+          {
+            id: 'kebab',
+            productId: 'p4',
+            productName: 'Kebab',
+            quantity: 2,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+            sectionId: 'meat',
+          },
+        ],
+      }),
+    );
+
+    expect(summary.children.map((child) => child.name)).toEqual(['Steak', 'Kebab', 'Tacos 3 viandes', 'Fries']);
+  });
+
   it('treats undefined kind (pre-#158 historical orders) as a bundle component', () => {
     const summary = orderItemToLineSummary(
       orderItem({
@@ -113,6 +163,18 @@ describe('orderItemToLineSummary', () => {
     const summary = orderItemToLineSummary(orderItem({ specialInstructions: 'No salt' }));
     expect(summary.specialInstructions).toBe('No salt');
     expect(isLineSummaryEmpty(summary)).toBe(false);
+  });
+
+  it('does not repeat a legacy note that only mirrors the selected variation', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        variationName: 'French Fries',
+        specialInstructions: ' French   Fries ',
+      }),
+    );
+
+    expect(summary.specialInstructions).toBeUndefined();
+    expect(isLineSummaryEmpty(summary)).toBe(true);
   });
 });
 
@@ -197,6 +259,22 @@ describe('orderItemToLineSummary — chosen paid extras (isAddOn)', () => {
 });
 
 describe('basketItemToLineSummary', () => {
+  it('keeps basket bundle choices from one section adjacent', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 10,
+      itemTotal: 10,
+      childItems: [
+        { id: 'steak', productName: 'Steak', quantity: 1, unitPrice: 0, itemTotal: 0, sectionId: 'meat' },
+        { id: 'carrier', productName: 'Tacos carrier', quantity: 1, unitPrice: 0, itemTotal: 0 },
+        { id: 'fries', productName: 'Fries', quantity: 1, unitPrice: 0, itemTotal: 0, sectionId: 'side' },
+        { id: 'kebab', productName: 'Kebab', quantity: 2, unitPrice: 0, itemTotal: 0, sectionId: 'meat' },
+      ],
+    });
+
+    expect(summary.children.map((child) => child.name)).toEqual(['Steak', 'Kebab', 'Tacos carrier', 'Fries']);
+  });
+
   it('maps added (with quantity), sides, and child components', () => {
     const item: BasketItemDto = {
       quantity: 1,

@@ -103,13 +103,13 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   // admitted visit below that boundary, so active-visit picks must use this context and never the
   // page callback's loading/default view. Ordinary guests keep the page-owned modal flow.
   const pickTypeForCart = React.useCallback(
-    async (type: OrderType, source?: string, forceModal?: boolean) => {
+    (type: OrderType, source?: string, forceModal?: boolean) => {
       if (tableGuest.visitBound) {
         if (type === OrderTypeEnum.DineIn) selectActiveVisitDineIn(source ?? analyticsSource);
         return;
       }
-      if (forceModal === undefined) await pickType(type, source);
-      else await pickType(type, source, forceModal);
+      if (forceModal === undefined) pickType(type, source);
+      else pickType(type, source, forceModal);
     },
     [selectActiveVisitDineIn, pickType, analyticsSource, tableGuest.visitBound],
   );

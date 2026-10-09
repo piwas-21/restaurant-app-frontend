@@ -63,7 +63,9 @@ function collectRuntimeFiles(directory, currentDirectory = directory, files = []
 }
 
 function compareText(left, right) {
-  return left < right ? -1 : left > right ? 1 : 0;
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 function manifestEntry(directory, filename) {
@@ -127,7 +129,7 @@ export function requireRuntimeManifestVerified(checkpoints, integrityFailed = fa
 export function resolveApiRuntimeDirectory(apiProject) {
   if (typeof apiProject !== 'string' || !path.isAbsolute(apiProject)) failClosed();
   const project = readRegularFile(apiProject).toString('utf8');
-  const frameworks = [...project.matchAll(/<TargetFramework>\s*(net[0-9]+\.[0-9]+)\s*<\/TargetFramework>/g)];
+  const frameworks = [...project.matchAll(/<TargetFramework>\s*(net\d+\.\d+)\s*<\/TargetFramework>/g)];
   if (frameworks.length !== 1) failClosed();
   return path.join(path.dirname(apiProject), 'bin', 'Debug', frameworks[0][1]);
 }

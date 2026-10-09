@@ -157,7 +157,8 @@ function isVisitIdentity(value: unknown): value is TableGuestVisitIdentity {
     identity.serviceSessionId.length > 0 &&
     typeof identity.participantToken === 'string' &&
     identity.participantToken.length >= 32 &&
-    typeof identity.expiresAt === 'string'
+    typeof identity.expiresAt === 'string' &&
+    (identity.tableId === undefined || (typeof identity.tableId === 'string' && identity.tableId.trim().length > 0))
   );
 }
 

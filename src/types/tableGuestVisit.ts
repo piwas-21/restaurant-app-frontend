@@ -2,6 +2,8 @@ export interface TableGuestVisitIdentity {
   readonly serviceSessionId: string;
   readonly participantToken: string;
   readonly expiresAt: string;
+  /** Local recovery hint bound to the validated QR used for this successful join. */
+  readonly tableId?: string;
 }
 
 export interface TableGuestAdmissionCodeDto {

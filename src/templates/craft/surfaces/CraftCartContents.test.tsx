@@ -14,6 +14,8 @@ const mockHookValue = {
   subtotal: 0,
   canCheckout: false,
   blockerMessage: '',
+  isOrderTypeSelectionPending: false,
+  isCheckoutPending: false,
   isSyncing: false,
   isResolving: false,
   handleQty: jest.fn(),
@@ -44,6 +46,8 @@ describe('CraftCartContents', () => {
       subtotal: 0,
       canCheckout: false,
       blockerMessage: '',
+      isOrderTypeSelectionPending: false,
+      isCheckoutPending: false,
       error: null,
     });
   });
@@ -75,9 +79,21 @@ describe('CraftCartContents', () => {
     expect(screen.getByTestId('line-summary')).toBeInTheDocument();
   });
 
-  it('disables the checkout CTA only for an empty cart', () => {
-    render(<CraftCartContents pickType={jest.fn()} />);
+  it('disables the checkout CTA for an empty cart or a pending operation', () => {
+    const { rerender } = render(<CraftCartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+
+    Object.assign(mockHookValue, { items: [item()], itemCount: 2, isOrderTypeSelectionPending: true });
+    rerender(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+
+    Object.assign(mockHookValue, { isOrderTypeSelectionPending: false, isCheckoutPending: true });
+    rerender(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+
+    Object.assign(mockHookValue, { isCheckoutPending: false });
+    rerender(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
   });
 
   it('keeps the CTA live without an order type, and prints the reason', () => {

@@ -14,6 +14,8 @@ const mockHookValue = {
   subtotal: 0,
   canCheckout: false,
   blockerMessage: '',
+  isOrderTypeSelectionPending: false,
+  isCheckoutPending: false,
   isSyncing: false,
   isResolving: false,
   handleQty: jest.fn(),
@@ -41,6 +43,8 @@ describe('CartContents (classic)', () => {
       subtotal: 0,
       canCheckout: false,
       blockerMessage: '',
+      isOrderTypeSelectionPending: false,
+      isCheckoutPending: false,
       error: null,
       isResolving: false,
     });
@@ -75,7 +79,7 @@ describe('CartContents (classic)', () => {
     expect(screen.getByTestId('line-summary')).toBeInTheDocument();
   });
 
-  it('disables the checkout button only for an empty cart', () => {
+  it('disables the checkout button for an empty cart or a pending operation', () => {
     const { rerender } = render(<CartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
 
@@ -84,6 +88,14 @@ describe('CartContents (classic)', () => {
     Object.assign(mockHookValue, { items: [item()], itemCount: 2, canCheckout: false });
     rerender(<CartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
+
+    Object.assign(mockHookValue, { isOrderTypeSelectionPending: true });
+    rerender(<CartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+
+    Object.assign(mockHookValue, { isOrderTypeSelectionPending: false, isCheckoutPending: true });
+    rerender(<CartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
   });
 
   it('renders the blocker hint when the flow cannot proceed', () => {

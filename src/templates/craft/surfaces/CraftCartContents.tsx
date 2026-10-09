@@ -26,6 +26,8 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     itemCount,
     subtotal,
     blockerMessage,
+    isOrderTypeSelectionPending,
+    isCheckoutPending,
     orderTypeAttempts,
     error,
     isSyncing,
@@ -71,10 +73,10 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
         </div>
       </div>
 
-      {/* See CartContents: only an empty cart disables the CTA, so a click with no
-          order type can say why instead of silently doing nothing. */}
+      {/* A missing order type leaves the CTA live so the click can explain itself. During a channel
+          write or an active route attempt it is disabled, so a tap cannot race the state it depends on. */}
       <CartCheckoutButton
-        disabled={itemCount === 0 || isResolving}
+        disabled={itemCount === 0 || isResolving || isOrderTypeSelectionPending || isCheckoutPending}
         onClick={handleCheckout}
         className={styles.checkoutButton}
       />

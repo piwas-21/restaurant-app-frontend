@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 
 interface CartCheckoutButtonProps {
-  /** Disabled until an order type is chosen with items, or while resolving the route. */
+  /** Disabled for an empty cart or while order-type and checkout work is resolving. */
   disabled: boolean;
   onClick: () => void;
   /** Host template's checkout-button class (classic pill vs craft letterpress terracotta). */

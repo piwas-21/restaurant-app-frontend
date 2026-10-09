@@ -15,6 +15,7 @@ import ScanPage from './page';
 const mockPushMenu = jest.fn();
 const mockRouter = { push: jest.fn(), replace: jest.fn() };
 let mockQrCode = 'validated-qr-payload';
+const storedVisitKey = 'rumi_table_guest_visit_v1';
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/en/scan',
@@ -123,18 +124,33 @@ describe('ScanPage with table visits enabled', () => {
     };
   }
 
+  function persistStoredVisit(
+    options: {
+      tableId?: string | null;
+      participantToken?: string;
+      expiresInMs?: number;
+    } = {},
+  ): string {
+    const { tableId = 'table-id', participantToken = 'p'.repeat(40), expiresInMs = 60_000 } = options;
+    const visit: {
+      serviceSessionId: string;
+      participantToken: string;
+      expiresAt: string;
+      tableId?: string;
+    } = {
+      serviceSessionId: 'session-1',
+      participantToken,
+      expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
+    };
+    if (tableId !== null) visit.tableId = tableId;
+
+    const serializedVisit = JSON.stringify(visit);
+    sessionStorage.setItem(storedVisitKey, serializedVisit);
+    return serializedVisit;
+  }
+
   it('validates the QR first, then requires the admission code instead of routing straight to the menu', async () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <TableContextProvider>
-              <ScanPage />
-            </TableContextProvider>
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>,
-    );
+    renderWithEnabledVisit();
 
     expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/Tables/validate-qr/validated-qr-payload'));
@@ -175,13 +191,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('resumes a stored visit when its table binding and authoritative account match the scanned QR', async () => {
-    const storedVisit = JSON.stringify({
-      serviceSessionId: 'session-1',
-      participantToken: 'p'.repeat(40),
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
-      tableId: 'table-id',
-    });
-    sessionStorage.setItem('rumi_table_guest_visit_v1', storedVisit);
+    const storedVisit = persistStoredVisit();
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
     const accountRead = jest
       .spyOn(tableGuestVisitService, 'getTableGuestAccount')
@@ -199,15 +209,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not resume an active visit when the scanned QR belongs to another table', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'other-table',
-      }),
-    );
+    persistStoredVisit({ tableId: 'other-table' });
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
 
     renderWithEnabledVisit();
@@ -218,14 +220,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not auto-resume a stored visit that predates the validated table binding', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-      }),
-    );
+    persistStoredVisit({ tableId: null });
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
 
     renderWithEnabledVisit();
@@ -236,15 +231,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not resume an active visit after its authoritative account read returns for a different QR', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'table-id',
-      }),
-    );
+    persistStoredVisit();
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(successResponse(validatedTable()))
@@ -268,15 +255,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not resume a matching active visit while a round outcome is unresolved', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'table-id',
-      }),
-    );
+    persistStoredVisit();
     sessionStorage.setItem(
       'rumi_table_guest_round_attempt_v1',
       JSON.stringify({
@@ -296,15 +275,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not resume an active matching visit when the rollout is disabled', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'table-id',
-      }),
-    );
+    persistStoredVisit();
     jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: true, enabled: false });
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
 
@@ -316,15 +287,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not resume an active matching visit when the public feature read is unavailable', async () => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'table-id',
-      }),
-    );
+    persistStoredVisit();
     jest.mocked(getPublicTableGuestFeature).mockResolvedValue({ available: false, enabled: false });
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
     const accountRead = jest.spyOn(tableGuestVisitService, 'getTableGuestAccount');
@@ -352,15 +315,7 @@ describe('ScanPage with table visits enabled', () => {
     ['different session', 'another-session', '8'],
     ['different table label', 'session-1', '9'],
   ])('does not resume an active visit when the account read confirms a %s', async (_case, sessionId, tableLabel) => {
-    sessionStorage.setItem(
-      'rumi_table_guest_visit_v1',
-      JSON.stringify({
-        serviceSessionId: 'session-1',
-        participantToken: 'p'.repeat(40),
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        tableId: 'table-id',
-      }),
-    );
+    persistStoredVisit();
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
     const accountRead = jest
       .spyOn(tableGuestVisitService, 'getTableGuestAccount')
@@ -374,13 +329,7 @@ describe('ScanPage with table visits enabled', () => {
   });
 
   it('does not redirect or discard a stored visit after a transient account-read failure', async () => {
-    const storedVisit = JSON.stringify({
-      serviceSessionId: 'session-1',
-      participantToken: 'p'.repeat(40),
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
-      tableId: 'table-id',
-    });
-    sessionStorage.setItem('rumi_table_guest_visit_v1', storedVisit);
+    const storedVisit = persistStoredVisit();
     global.fetch = jest.fn().mockResolvedValueOnce(successResponse(validatedTable()));
     const accountRead = jest
       .spyOn(tableGuestVisitService, 'getTableGuestAccount')
@@ -405,22 +354,11 @@ describe('ScanPage with table visits enabled', () => {
         }),
       } as Response)
       .mockResolvedValueOnce({ ok: false, json: async () => ({ success: false }) } as Response);
-    const renderScan = () => (
-      <I18nextProvider i18n={i18n}>
-        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
-          <TableGuestVisitProvider>
-            <TableContextProvider>
-              <ScanPage />
-            </TableContextProvider>
-          </TableGuestVisitProvider>
-        </TableGuestFeatureProvider>
-      </I18nextProvider>
-    );
-    const view = render(renderScan());
+    const view = render(enabledVisitTree());
 
     expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
     mockQrCode = 'invalid-qr-payload';
-    view.rerender(renderScan());
+    view.rerender(enabledVisitTree());
 
     expect(await screen.findByText('Invalid or expired QR code')).toBeInTheDocument();
     expect(screen.queryByLabelText('Table visit code')).not.toBeInTheDocument();
@@ -478,18 +416,13 @@ describe('ScanPage with table visits enabled', () => {
       .mocked(getPublicTableGuestFeature)
       .mockResolvedValueOnce({ available: false, enabled: false })
       .mockResolvedValueOnce({ available: true, enabled: false });
-    const visit = JSON.stringify({
-      serviceSessionId: 'session-1',
-      participantToken: 'x'.repeat(32),
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    });
+    const visit = persistStoredVisit({ tableId: null, participantToken: 'x'.repeat(32), expiresInMs: 60 * 60 * 1000 });
     const pendingRound = JSON.stringify({
       serviceSessionId: 'session-1',
       operationId: 'operation-1',
       expectedAccountRevision: 1,
       expectedBasketFingerprint: 'a'.repeat(64),
     });
-    sessionStorage.setItem('rumi_table_guest_visit_v1', visit);
     sessionStorage.setItem('rumi_table_guest_round_attempt_v1', pendingRound);
 
     renderWithPublicFeature();

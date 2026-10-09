@@ -7,6 +7,7 @@ import { OrderDto } from '@/types/order';
 import { cancelOrder, refundPayment, updateOrderStatus } from '@/services/orderService';
 import { useApiError } from '@/hooks/useApiError';
 import { useOrderDocumentActions } from '@/hooks/admin/useOrderDocumentActions';
+import { buildOrderRefundDraft } from '@/lib/orderRefundDraft';
 
 /**
  * State + action handlers for the OrderDetailsModal (confirm / cancel / refund / print /
@@ -29,6 +30,7 @@ export function useOrderDetailsActions(
   const [isCancelling, setIsCancelling] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [refundAmount, setRefundAmount] = useState('');
+  const [refundTipAmount, setRefundTipAmount] = useState('0.00');
   const [refundReason, setRefundReason] = useState('');
   const [isRefunding, setIsRefunding] = useState(false);
   const apiError = useApiError();
@@ -111,28 +113,27 @@ export function useOrderDetailsActions(
   };
 
   const handleRefundPayment = async () => {
-    if (!selectedPayment || !refundAmount || !refundReason.trim()) {
-      apiError.show(t('fill_refund_details', 'Please fill in all refund details'));
-      return;
-    }
-    if (refundReason.trim().length < 5) {
-      apiError.show(t('cashier.refund_reason_min_length'));
-      return;
-    }
-
-    const amount = parseFloat(refundAmount);
-    if (isNaN(amount) || amount <= 0) {
-      apiError.show(t('enter_valid_refund_amount', 'Please enter a valid refund amount'));
+    const draft = buildOrderRefundDraft({
+      order,
+      paymentId: selectedPayment,
+      amount: refundAmount,
+      tipAmount: refundTipAmount,
+      reason: refundReason,
+    });
+    if (!draft.ok) {
+      const message = draft.max
+        ? t(draft.errorKey, { max: draft.max })
+        : draft.fallback
+          ? t(draft.errorKey, draft.fallback)
+          : t(draft.errorKey);
+      apiError.show(message);
       return;
     }
 
     try {
       setIsRefunding(true);
       apiError.clear();
-      await refundPayment(order.id, selectedPayment, {
-        refundAmount: amount,
-        refundReason,
-      });
+      await refundPayment(order.id, draft.paymentId, draft.command);
       setShowRefundModal(false);
       alert(t('payment_refunded_successfully', 'Payment refunded successfully'));
       onClose();
@@ -167,6 +168,8 @@ export function useOrderDetailsActions(
     setSelectedPayment,
     refundAmount,
     setRefundAmount,
+    refundTipAmount,
+    setRefundTipAmount,
     refundReason,
     setRefundReason,
     isRefunding,

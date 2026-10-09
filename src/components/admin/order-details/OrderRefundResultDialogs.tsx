@@ -1,12 +1,12 @@
 'use client';
 
-import { TENANT_CURRENCY } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import AlertDialog from '@/components/design-system/AlertDialog';
 import BaseModal from '@/components/design-system/BaseModal';
 import { OrderDto } from '@/types/order';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { formatOrderPrice } from '@/utils/orderDetailsFormatters';
+import { orderCurrency } from '@/lib/cashierMoney';
 import { gatewayNames, isHeldByGateway } from '@/utils/tenderCustody';
 import styles from '../OrderDetailsModal.module.css';
 
@@ -19,6 +19,8 @@ interface OrderRefundResultDialogsProps {
   setSelectedPayment: (id: string | null) => void;
   refundAmount: string;
   setRefundAmount: (amount: string) => void;
+  refundTipAmount: string;
+  setRefundTipAmount: (amount: string) => void;
   refundReason: string;
   setRefundReason: (reason: string) => void;
   isRefunding: boolean;
@@ -46,6 +48,8 @@ export default function OrderRefundResultDialogs({
   setSelectedPayment,
   refundAmount,
   setRefundAmount,
+  refundTipAmount,
+  setRefundTipAmount,
   refundReason,
   setRefundReason,
   isRefunding,
@@ -64,13 +68,16 @@ export default function OrderRefundResultDialogs({
   //
   // The NOTICE is derived from Completed tenders only, exactly as the cashier's is. A `Processing`
   // Stripe tender is money still in flight and a `Refunded` one is money already returned — telling
-  // an admin to go and refund either in the dashboard is worse than saying nothing. This filter is
-  // not shared with the select below on purpose: that list has never filtered on status (a
-  // pre-existing looseness the server still refuses), and narrowing it here would be a second,
-  // unrelated behaviour change smuggled into a payments slice.
+  // an admin to go and refund either in the dashboard is worse than saying nothing. The select
+  // also stays limited to tenders that still accept their one supported refund event.
   const completedPayments = (order.payments ?? []).filter((p) => p.status === 'Completed');
-  const selectablePayments = (order.payments ?? []).filter((p) => !isHeldByGateway(p));
+  const selectablePayments = completedPayments.filter((payment) => !isHeldByGateway(payment));
   const gateways = gatewayNames(completedPayments);
+  const selectedPaymentDto = selectablePayments.find((payment) => payment.id === selectedPayment);
+  const refundableTipMinor = Math.max(
+    0,
+    (selectedPaymentDto?.tipMinor ?? 0) - (selectedPaymentDto?.refundedTipMinor ?? 0),
+  );
 
   return (
     <>
@@ -80,6 +87,7 @@ export default function OrderRefundResultDialogs({
           setShowRefundModal(false);
           setSelectedPayment(null);
           setRefundAmount('');
+          setRefundTipAmount('0.00');
           setRefundReason('');
           clearError();
         }}
@@ -92,6 +100,7 @@ export default function OrderRefundResultDialogs({
         <p className={styles.confirmModalMessage}>
           {t('refund_payment_warning', 'This will process a refund for the selected payment.')}
         </p>
+        <p className={styles.confirmModalMessage}>{t('cashier.refund_single_event_warning')}</p>
         {gateways.length > 0 && (
           <p className={styles.confirmModalMessage}>{t('gateway_refund_notice', { gateway: gateways.join(', ') })}</p>
         )}
@@ -100,7 +109,16 @@ export default function OrderRefundResultDialogs({
           <select
             id="paymentSelect"
             value={selectedPayment || ''}
-            onChange={(e) => setSelectedPayment(e.target.value)}
+            onChange={(event) => {
+              const payment = selectablePayments.find((candidate) => candidate.id === event.target.value);
+              setSelectedPayment(event.target.value || null);
+              setRefundAmount(payment ? payment.amount.toFixed(2) : '');
+              setRefundTipAmount(
+                payment
+                  ? (Math.max(0, (payment.tipMinor ?? 0) - (payment.refundedTipMinor ?? 0)) / 100).toFixed(2)
+                  : '0.00',
+              );
+            }}
             className={styles.select}
           >
             <option value="">{t('select_payment_to_refund', '-- Select Payment --')}</option>
@@ -116,7 +134,7 @@ export default function OrderRefundResultDialogs({
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="refundAmount">
-            {t('refund_amount', 'Refund Amount')} ({TENANT_CURRENCY}) *
+            {t('refund_amount', 'Refund Amount')} ({orderCurrency(order)}) *
           </label>
           <input
             id="refundAmount"
@@ -129,6 +147,30 @@ export default function OrderRefundResultDialogs({
             className={styles.input}
           />
         </div>
+        {refundableTipMinor > 0 && (
+          <div className={styles.formGroup}>
+            <label htmlFor="refundTipAmount">
+              {t('cashier.refund_tip_amount')} ({orderCurrency(order)})
+            </label>
+            <input
+              id="refundTipAmount"
+              type="number"
+              step="0.01"
+              min="0"
+              max={(refundableTipMinor / 100).toFixed(2)}
+              value={refundTipAmount}
+              onChange={(event) => setRefundTipAmount(event.target.value)}
+              placeholder="0.00"
+              className={styles.input}
+            />
+            <small>
+              {t('cashier.refund_tip_note')}{' '}
+              {t('cashier.refund_tip_exceeds_payment', {
+                max: `${(refundableTipMinor / 100).toFixed(2)} ${orderCurrency(order)}`,
+              })}
+            </small>
+          </div>
+        )}
         <div className={styles.formGroup}>
           <label htmlFor="refundReason">{t('refund_reason', 'Refund Reason')} *</label>
           <textarea

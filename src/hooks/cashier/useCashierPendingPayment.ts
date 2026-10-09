@@ -22,7 +22,13 @@ interface UseCashierPendingPaymentOptions {
 
 export interface CashierPendingPaymentController {
   readonly pendingPayment: PendingPaymentOperation | null;
-  readonly recoveredPayment: { readonly applied: number; readonly change: number; readonly remaining: number } | null;
+  readonly recoveredPayment: {
+    readonly applied: number;
+    readonly tip?: number;
+    readonly tenderTotal?: number;
+    readonly change: number;
+    readonly remaining: number;
+  } | null;
   readonly markSubmitted: (orderId: string, payment: AddPaymentRequest) => void;
   readonly markCommitted: (operationId: string, order: OrderDto) => void;
   readonly markUnknown: (orderId: string, payment: AddPaymentRequest, order: OrderDto | null) => void;
@@ -55,6 +61,8 @@ export function useCashierPendingPayment({
   );
   const [recoveredPayment, setRecoveredPayment] = useState<{
     readonly applied: number;
+    readonly tip?: number;
+    readonly tenderTotal?: number;
     readonly change: number;
     readonly remaining: number;
   } | null>(null);
@@ -71,7 +79,14 @@ export function useCashierPendingPayment({
         if (result.status === 'Committed') {
           clearPendingPayment(saved.operationId);
           setPendingPayment(null);
-          setRecoveredPayment({ applied: saved.amount, change: 0, remaining: result.order.remainingAmount });
+          const tip = (saved.tipMinor ?? 0) / 100;
+          setRecoveredPayment({
+            applied: saved.amount,
+            tip,
+            tenderTotal: saved.amount + tip,
+            change: 0,
+            remaining: result.order.remainingAmount,
+          });
           paymentRevisionRef.current += 1;
           setOrder(result.order);
           setOutcomeOrderId(result.order.id);

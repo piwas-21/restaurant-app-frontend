@@ -117,6 +117,30 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
     await waitFor(() => expect(dateInput().value).toBe('2026-03-01'));
   });
 
+  it('shows currency-separated staff tips and net cash tender movement', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue({
+      ...reportFor(tenantDay),
+      staffTipsCollected: [{ currency: 'CHF', amountMinor: 300 }],
+      staffTipsRefunded: [{ currency: 'CHF', amountMinor: 100 }],
+      netCashCollected: [{ currency: 'CHF', amountMinor: 2_200 }],
+      paymentsByMethod: [
+        { paymentMethod: 'Cash', currency: 'CHF', transactionCount: 1, orderAmount: 20, tipAmount: 3, totalAmount: 23 },
+      ],
+    });
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+
+    expect(await screen.findByText('cashier.zreport.tender_summary')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tips_collected')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tips_refunded')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.net_cash_collected')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.order_amount')).toBeInTheDocument();
+    expect(screen.getByText('cashier.zreport.staff_tip_amount')).toBeInTheDocument();
+    expect(screen.getAllByText(/3\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/22\.00/).length).toBeGreaterThan(0);
+  });
+
   it("retries by asking for the restaurant's day when the first load never named one", async () => {
     // Nothing told us the day, so retry must omit the parameter again — not send an empty string,
     // which the server would refuse as a malformed date.

@@ -6,6 +6,7 @@ const payment: AddPaymentRequest = {
   expectedVersion: 8,
   paymentMethod: 'Cash',
   amount: 18.5,
+  tipMinor: 275,
   transactionId: 'cash-1',
   paymentNotes: 'counter',
 };

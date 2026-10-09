@@ -22,6 +22,12 @@ export default function CashierCollectionPaymentHistory({ order }: CashierCollec
           <span>{t('cashier.workspace.total_paid')}</span>
           <strong>{formatOrderCurrency(order.totalPaid, order)}</strong>
         </div>
+        {(order.paymentTipMinor ?? 0) > 0 && (
+          <div>
+            <span>{t('cashier.collection.staff_tip')}</span>
+            <strong>{formatOrderCurrency((order.paymentTipMinor ?? 0) / 100, order)}</strong>
+          </div>
+        )}
       </div>
       <PaymentRows payments={order.payments ?? []} currency={order.currency} t={t} />
     </aside>

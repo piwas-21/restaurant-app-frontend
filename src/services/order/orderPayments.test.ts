@@ -20,6 +20,7 @@ describe('order payment service contracts', () => {
       orderId: 'order-1',
       paymentMethod: PaymentMethod.Cash,
       amount: 18,
+      tipMinor: 325,
     };
     const order = { id: 'order-1', payments: [] } as unknown as OrderDto;
     mockPost.mockResolvedValue({ data: order });
@@ -31,6 +32,7 @@ describe('order payment service contracts', () => {
   it('posts backend refund field names for the shared admin path', async () => {
     const command: RefundPaymentCommand = {
       refundAmount: 18,
+      refundTipMinor: 125,
       refundReason: 'Customer request',
     };
     const payment = { id: 'payment-1' } as unknown as OrderPaymentDto;

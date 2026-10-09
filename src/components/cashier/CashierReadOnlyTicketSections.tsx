@@ -127,8 +127,29 @@ export function PaymentRows({
                 })}
               </small>
             )}
+            {(payment.tipMinor ?? 0) > 0 && (
+              <small className={styles.itemSecondary}>
+                {t('cashier.collection.staff_tip')}: {formatOrderCurrency((payment.tipMinor ?? 0) / 100, { currency })}
+              </small>
+            )}
+            {showRefundedAmounts && (payment.refundedTipMinor ?? 0) > 0 && (
+              <small className={styles.itemSecondary}>
+                {t('cashier.collection.tip_refunded', {
+                  amount: formatOrderCurrency((payment.refundedTipMinor ?? 0) / 100, { currency }),
+                })}
+              </small>
+            )}
           </span>
-          <span>{formatOrderCurrency(payment.amount, { currency })}</span>
+          <span>
+            {formatOrderCurrency(payment.amount, { currency })}
+            {(payment.tipMinor ?? 0) > 0 && (
+              <small className={styles.itemSecondary}>
+                {t('cashier.collection.total_collected', {
+                  amount: formatOrderCurrency(payment.amount + (payment.tipMinor ?? 0) / 100, { currency }),
+                })}
+              </small>
+            )}
+          </span>
         </li>
       ))}
     </ul>

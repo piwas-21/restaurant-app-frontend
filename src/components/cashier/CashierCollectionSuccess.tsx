@@ -22,6 +22,8 @@ function remainingMessageFor(
 
 interface LastPayment {
   readonly applied: number;
+  readonly tip?: number;
+  readonly tenderTotal?: number;
   readonly change: number;
   readonly remaining: number;
 }
@@ -55,6 +57,18 @@ export default function CashierCollectionSuccess({
       <div className={styles.successBody} role="status" aria-live="polite">
         <CheckCircle size={20} aria-hidden="true" />
         <p>{t('cashier.collection.applied', { amount: formatOrderCurrency(payment.applied, order) })}</p>
+        {(payment.tip ?? 0) > 0 && (
+          <p>
+            {t('cashier.collection.staff_tip')}: {formatOrderCurrency(payment.tip, order)}
+          </p>
+        )}
+        {(payment.tenderTotal ?? payment.applied) > payment.applied && (
+          <p>
+            {t('cashier.collection.total_collected', {
+              amount: formatOrderCurrency(payment.tenderTotal ?? payment.applied, order),
+            })}
+          </p>
+        )}
         {payment.change > 0 && (
           <p>{t('cashier.collection.change', { amount: formatOrderCurrency(payment.change, order) })}</p>
         )}

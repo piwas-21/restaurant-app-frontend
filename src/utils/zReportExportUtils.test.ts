@@ -91,4 +91,27 @@ describe('the printed Z-report names the day the figures are for (#511)', () => 
     expect(html).toContain('Carte au restaurant');
     expect(html).not.toContain('CreditCard');
   });
+
+  it('prints separate currency-aware staff tips and net cash movement', () => {
+    const withTips = report('2026-08-19T00:00:00Z');
+    withTips.staffTipsCollected = [
+      { currency: 'CHF', amountMinor: 300 },
+      { currency: 'EUR', amountMinor: 200 },
+    ];
+    withTips.staffTipsRefunded = [{ currency: 'CHF', amountMinor: 100 }];
+    withTips.netCashCollected = [{ currency: 'CHF', amountMinor: 2_200 }];
+    withTips.paymentsByMethod = [
+      { paymentMethod: 'Cash', currency: 'CHF', transactionCount: 1, orderAmount: 20, tipAmount: 3, totalAmount: 23 },
+    ];
+
+    exportZReportToPDF(withTips);
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toContain('Staff tips collected');
+    expect(html).toContain('Staff tips refunded');
+    expect(html).toContain('Net cash collected');
+    expect(html).toContain('CHF');
+    expect(html).toContain('EUR');
+    expect(html).toContain('23.00');
+  });
 });

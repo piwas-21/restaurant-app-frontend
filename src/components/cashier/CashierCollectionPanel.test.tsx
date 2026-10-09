@@ -84,6 +84,28 @@ describe('CashierCollectionPanel', () => {
     expect(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ })).toHaveValue(18.5);
   });
 
+  it('adds the staff tip to cash due and change without increasing the order balance', async () => {
+    const onSubmit = jest.fn().mockResolvedValue(order({ remainingAmount: 0, totalPaid: 18.5 }));
+    renderPanel(onSubmit);
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.collection.staff_tip' }), {
+      target: { value: '1.25' },
+    });
+
+    expect(screen.getByRole('spinbutton', { name: 'cashier.cash_received' })).toHaveValue(19.75);
+    expect(screen.getByText(/cashier.collection.total_to_collect/)).toHaveTextContent('EUR 19.75');
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
+
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: 18.5,
+          tipMinor: 125,
+        }),
+      ),
+    );
+  });
+
   it('labels card recording without offering an online capture method', () => {
     renderPanel();
     fireEvent.change(screen.getByRole('combobox', { name: /cashier.payment_method/ }), {

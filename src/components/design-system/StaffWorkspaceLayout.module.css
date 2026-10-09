@@ -86,7 +86,7 @@
 
 .navLink[data-active='true'] {
   border-color: var(--brand-primary);
-  color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
   background: var(--surface-secondary);
 }
 

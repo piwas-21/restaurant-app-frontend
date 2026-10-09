@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "无法确认代码是否已生成。请生成替换代码以继续。已加入的访客仍可继续使用。",
   "table_guest_unavailable_retry_action": "重新检查状态",
   "table_guest_staff_code_help_label": "关于就餐访问码",
-  "table_guest_staff_code_help_text": "客人扫描桌位二维码并输入此代码即可加入本次就餐。示例：向已入座的客人展示这串 10 位代码；代码会在所示时间失效。更换代码后，旧代码不能再用于新加入，但已加入的客人仍可继续使用。"
+  "table_guest_staff_code_help_text": "客人扫描桌位二维码并输入此代码即可加入本次就餐。示例：向已入座的客人展示这串 6 位代码；代码会在所示时间失效。更换代码后，旧代码不能再用于新加入，但已加入的客人仍可继续使用。"
 }

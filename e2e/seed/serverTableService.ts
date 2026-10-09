@@ -69,36 +69,6 @@ export async function createServerTableFixture(): Promise<ServerTableFixture> {
 }
 
 /**
- * Kitchen and printer-app are outside this browser test. Move the round to the
- * exact persisted state their real acknowledgements produce so the Server task
- * feed can exercise its real delivery mutation.
- */
-export async function makeServerRoundDeliverable(orderId: string): Promise<void> {
-  const pool = getE2EDbPool();
-  const order = await pool.query(
-    `UPDATE orders
-     SET status = 'Ready', updated_at = CURRENT_TIMESTAMP
-     WHERE id = $1 AND service_session_id IS NOT NULL`,
-    [orderId],
-  );
-  if (order.rowCount !== 1) {
-    throw new Error(`Expected one table-service order to become Ready; updated ${order.rowCount ?? 0}`);
-  }
-
-  const routing = await pool.query(
-    `UPDATE "OrderRoutingStates"
-     SET status = 'Printed', failure_reason = NULL,
-         last_acknowledged_at = CURRENT_TIMESTAMP,
-         updated_at = CURRENT_TIMESTAMP, version = version + 1
-     WHERE order_id = $1 AND is_required = TRUE`,
-    [orderId],
-  );
-  if ((routing.rowCount ?? 0) < 1) {
-    throw new Error('The created round has no required routing state to acknowledge');
-  }
-}
-
-/**
  * Retire one generated E2E table for reuse without breaking the durable
  * order-change journal, whose FK intentionally forbids hard-deleting orders.
  */

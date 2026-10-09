@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "No pudimos confirmar si se creó un código. Genera un código de reemplazo para continuar. Los invitados que ya se unieron permanecen conectados.",
   "table_guest_unavailable_retry_action": "Volver a comprobar el estado",
   "table_guest_staff_code_help_label": "Acerca de los códigos de visita",
-  "table_guest_staff_code_help_text": "El cliente escanea el QR de la mesa e introduce este código para unirse a esta visita. Ejemplo: muestra el código de 10 caracteres a quienes están sentados aquí; caduca a la hora indicada. Al sustituirlo, se impiden nuevas entradas con el código anterior, pero los invitados ya conectados continúan."
+  "table_guest_staff_code_help_text": "El cliente escanea el QR de la mesa e introduce este código para unirse a esta visita. Ejemplo: muestra el código de 6 caracteres a quienes están sentados aquí; caduca a la hora indicada. Al sustituirlo, se impiden nuevas entradas con el código anterior, pero los invitados ya conectados continúan."
 }

@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "Es ließ sich nicht bestätigen, ob ein Code erstellt wurde. Erstelle einen Ersatzcode, um fortzufahren. Bereits beigetretene Gäste bleiben verbunden.",
   "table_guest_unavailable_retry_action": "Status erneut prüfen",
   "table_guest_staff_code_help_label": "Info zu Besuchscodes",
-  "table_guest_staff_code_help_text": "Gäste scannen den QR-Code des Tisches und geben diesen Code ein, um an diesem Besuch teilzunehmen. Beispiel: Zeigen Sie den 10-stelligen Code den Gästen am Tisch; er läuft zur angezeigten Zeit ab. Ein Ersatzcode verhindert neue Anmeldungen mit dem alten Code, bereits angemeldete Gäste bleiben verbunden."
+  "table_guest_staff_code_help_text": "Gäste scannen den QR-Code des Tisches und geben diesen Code ein, um an diesem Besuch teilzunehmen. Beispiel: Zeigen Sie den 6-stelligen Code den Gästen am Tisch; er läuft zur angezeigten Zeit ab. Ein Ersatzcode verhindert neue Anmeldungen mit dem alten Code, bereits angemeldete Gäste bleiben verbunden."
 }

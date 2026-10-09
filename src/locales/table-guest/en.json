@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "We could not confirm whether a code was created. Generate a replacement code to continue. Guests who already joined stay connected.",
   "table_guest_unavailable_retry_action": "Retry status check",
   "table_guest_staff_code_help_label": "About guest visit codes",
-  "table_guest_staff_code_help_text": "A guest scans the table QR and enters this code to join this visit. Example: show the 10-character code to the party seated here; it expires at the displayed time. Replacing it blocks new joins with the old code but keeps already joined guests connected."
+  "table_guest_staff_code_help_text": "A guest scans the table QR and enters this code to join this visit. Example: show the 6-character code to the party seated here; it expires at the displayed time. Replacing it blocks new joins with the old code but keeps already joined guests connected."
 }

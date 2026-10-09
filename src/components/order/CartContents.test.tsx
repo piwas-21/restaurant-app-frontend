@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom';
+import type { ComponentType } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { UseCartContentsArgs } from '@/hooks/order/useCartContents';
 import CartContents from './CartContents';
+import CraftCartContents from '@/templates/craft/surfaces/CraftCartContents';
 
 jest.mock('react-i18next', () => ({
-  // `i18n` too: `CartLineList` reads `i18n.language` to resolve the line's variation in the
-  // reading language, and a mock returning only `t` throws on the real component's own code.
+  // CartLineList also reads the current language when rendering a variation summary.
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key, i18n: { language: 'en' } }),
 }));
 
@@ -18,7 +20,7 @@ const mockHookValue = {
   isCheckoutPending: false,
   isChannelRecoveryVisible: false,
   isChannelRecoveryRetrying: false,
-  channelRecoveryErrorMessage: null,
+  channelRecoveryErrorMessage: null as string | null,
   retryChannelRecovery: jest.fn(),
   isSyncing: false,
   isResolving: false,
@@ -26,9 +28,10 @@ const mockHookValue = {
   handleRemove: jest.fn(),
   handleCheckout: jest.fn(),
   handlePick: jest.fn(),
+  error: null as string | null,
 };
 jest.mock('@/hooks/order/useCartContents', () => ({ useCartContents: () => mockHookValue }));
-jest.mock('./OrderTypeToggle', () => ({
+jest.mock('@/components/order/OrderTypeToggleShell', () => ({
   __esModule: true,
   default: ({ disabled }: { disabled?: boolean }) => (
     <button type="button" data-testid="order-type-toggle" disabled={disabled}>
@@ -36,7 +39,10 @@ jest.mock('./OrderTypeToggle', () => ({
     </button>
   ),
 }));
-jest.mock('./OrderLineSummary', () => ({ __esModule: true, default: () => <div data-testid="line-summary" /> }));
+jest.mock('@/components/order/OrderLineSummary', () => ({
+  __esModule: true,
+  default: () => <div data-testid="line-summary" />,
+}));
 
 const item = (over: Record<string, unknown> = {}) => ({
   basketItemId: 'b1',
@@ -46,7 +52,17 @@ const item = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-describe('CartContents (classic)', () => {
+const cartSurfaces: Array<{
+  name: string;
+  Component: ComponentType<Readonly<UseCartContentsArgs>>;
+}> = [
+  { name: 'classic', Component: CartContents },
+  { name: 'craft', Component: CraftCartContents },
+];
+
+describe.each(cartSurfaces)('$name cart contents', ({ Component }) => {
+  const renderSurface = () => render(<Component pickType={jest.fn()} />);
+
   beforeEach(() => {
     Object.assign(mockHookValue, {
       items: [],
@@ -65,71 +81,69 @@ describe('CartContents (classic)', () => {
     });
   });
 
-  // #415. This surface swallows the rethrow from handleQty/handleRemove, and until the fix it read
-  // nothing from `error` — so on /menu, the page guests order from, a failed line edit showed
-  // NOTHING and the cart just snapped back. Deleting this render brings that silence back, and only
-  // the legacy /cart route would still say anything.
-  it('renders the cart error, so a failed line edit is not silent', () => {
+  it('renders cart mutation failures instead of silently losing an edited line', () => {
     Object.assign(mockHookValue, { error: 'Your shopping cart is empty or expired' });
-    render(<CartContents pickType={jest.fn()} />);
+    renderSurface();
     expect(screen.getByRole('alert')).toHaveTextContent('Your shopping cart is empty or expired');
   });
 
   it('renders no alert when there is no error', () => {
-    render(<CartContents pickType={jest.fn()} />);
+    renderSurface();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('shows a channel recovery explanation and explicit retry', () => {
+  it('shows the channel recovery explanation and explicit retry', () => {
     const retryChannelRecovery = jest.fn();
     Object.assign(mockHookValue, {
       isChannelRecoveryVisible: true,
       channelRecoveryErrorMessage: 'The server could not confirm the selected order type.',
       retryChannelRecovery,
     });
-    render(<CartContents pickType={jest.fn()} />);
+    renderSurface();
     expect(screen.getByRole('alert')).toHaveTextContent('The server could not confirm the selected order type.');
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(retryChannelRecovery).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the empty state + order-type toggle when the cart is empty', () => {
-    render(<CartContents pickType={jest.fn()} />);
+  it('shows the empty state with its order-type toggle', () => {
+    renderSurface();
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
     expect(screen.getByTestId('order-type-toggle')).toBeInTheDocument();
   });
 
-  it('renders each line name and the total row', () => {
+  it('renders each line name and the total', () => {
     Object.assign(mockHookValue, { items: [item()], subtotal: 24 });
-    render(<CartContents pickType={jest.fn()} />);
+    renderSurface();
     expect(screen.getByText('Shakshuka')).toBeInTheDocument();
     expect(screen.getByText('Total')).toBeInTheDocument();
     expect(screen.getByTestId('line-summary')).toBeInTheDocument();
   });
 
-  it('disables the checkout button for an empty cart or a pending operation', () => {
-    const { rerender } = render(<CartContents pickType={jest.fn()} />);
+  it('keeps the CTA live without an order type, then disables it during pending work', () => {
+    const { rerender } = renderSurface();
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
 
-    // Items but no order type: still clickable, so the click can say why. A dead
-    // disabled button with no explanation was the bug.
     Object.assign(mockHookValue, { items: [item()], itemCount: 2, canCheckout: false });
-    rerender(<CartContents pickType={jest.fn()} />);
+    rerender(<Component pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
 
     Object.assign(mockHookValue, { isOrderTypeSelectionPending: true });
-    rerender(<CartContents pickType={jest.fn()} />);
+    rerender(<Component pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
 
     Object.assign(mockHookValue, { isOrderTypeSelectionPending: false, isCheckoutPending: true });
-    rerender(<CartContents pickType={jest.fn()} />);
+    rerender(<Component pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
     expect(screen.getByTestId('order-type-toggle')).toBeDisabled();
+
+    Object.assign(mockHookValue, { isCheckoutPending: false });
+    rerender(<Component pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
   });
 
-  it('renders the blocker hint when the flow cannot proceed', () => {
+  it('renders the blocker hint when checkout cannot proceed', () => {
     Object.assign(mockHookValue, { items: [item()], itemCount: 2, blockerMessage: 'Pick an order type' });
-    render(<CartContents pickType={jest.fn()} />);
+    renderSurface();
     expect(screen.getByRole('status')).toHaveTextContent('Pick an order type');
   });
 });

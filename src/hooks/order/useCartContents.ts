@@ -126,7 +126,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
       // decide it has nothing to ask) rather than bouncing to /menu.
       if (blocker === 'details') {
         onProceed?.();
-        pickType(orderType, analyticsSource, true);
+        await pickType(orderType, analyticsSource, true);
       } else if (blocker === null) {
         routed = true;
         onProceed?.();

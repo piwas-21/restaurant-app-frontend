@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useCartContents } from './useCartContents';
 
@@ -328,6 +328,32 @@ describe('useCartContents', () => {
     expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true);
     expect(onProceed).toHaveBeenCalledTimes(1);
     expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+  });
+
+  it('holds checkout pending until the missing-details order type follow-up settles', async () => {
+    let finishPick!: () => void;
+    const pickType = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPick = resolve;
+        }),
+    );
+    const onProceed = jest.fn();
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce('details');
+
+    const { result } = renderHook(() => useCartContents({ pickType, onProceed }));
+    act(() => result.current.handleCheckout());
+
+    await waitFor(() => expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true));
+    expect(onProceed).toHaveBeenCalledTimes(1);
+    expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+    expect(result.current.isCheckoutPending).toBe(true);
+
+    await act(async () => finishPick());
+    expect(result.current.isCheckoutPending).toBe(false);
   });
 
   it('keeps the cart surface open when the active table visit is unavailable', async () => {

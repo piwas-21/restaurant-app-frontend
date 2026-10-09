@@ -52,7 +52,7 @@ export function useCartPage() {
     const blocker = await proceedToCheckout(orderType, 'cart_page');
     hint.setBlocker(blocker);
     if (blocker === 'details') {
-      orderTypeFollowUp.pickType(orderType, 'cart_page', true);
+      await orderTypeFollowUp.pickType(orderType, 'cart_page', true);
     }
   };
 

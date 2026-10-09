@@ -24,8 +24,8 @@ export async function assertPublicPageFitsViewport(page, locale, viewportWidth) 
 }
 
 export async function assertMenuFitsViewport(page, locale, viewportWidth) {
-  // Client navigation can update the URL before the menu has finished loading.
-  await page.locator('[data-testid="menu-card"]').first().waitFor({ state: 'visible' });
+  // Measure the hydrated menu, after its server cards have been replaced by client data.
+  await page.locator('main[data-menu-hydrated="true"] [data-testid="menu-card"]').first().waitFor({ state: 'visible' });
   const layout = await page.evaluate(() => {
     const cards = Array.from(document.querySelectorAll('[data-testid="menu-card"]')).map((card) => {
       const { left, right, width } = card.getBoundingClientRect();

@@ -28,6 +28,14 @@ import {
 } from './e2e-p11-stripe-mixed-financial-evidence.mjs';
 import { startStripeListener } from './e2e-p11-stripe-listener.mjs';
 import { verifyTestConnectedAccount } from './e2e-p11-stripe-provider.mjs';
+import {
+  buildEfDatabaseUpdateArgs,
+  isRuntimeManifestVerified,
+  readApiRuntimeManifest,
+  requireRuntimeManifestVerified,
+  resolveApiRuntimeDirectory,
+  sameApiRuntimeManifest,
+} from './e2e-p11-stripe-runtime-manifest.mjs';
 import { startNativeP11Services, stopNativeP11Services } from './e2e-p11-native-postgres.mjs';
 import { snapshotNativeP11Database } from './e2e-p11-native-postgres-snapshot.mjs';
 import { resolveStripeAcceptanceScenario } from './e2e-p11-stripe-scenarios.mjs';
@@ -88,6 +96,7 @@ function validateRunnerConfiguration() {
     throw new Error('Acceptance source, browser configuration or isolated Stripe CLI is missing.');
   return {
     apiProject,
+    apiRuntimeDirectory: resolveApiRuntimeDirectory(apiProject),
     infrastructure,
     config,
     scenario: selectedScenario.name,
@@ -120,6 +129,60 @@ async function verifySourcePins(resources) {
   return { backendHead, frontendHead };
 }
 
+function runtimeManifestSummary(manifest, matchesBaseline) {
+  return {
+    manifestSha256: manifest.digest,
+    apiAssemblySha256: manifest.apiAssemblySha256,
+    fileCount: manifest.fileCount,
+    matchesBaseline,
+  };
+}
+
+function recordRuntimeManifestCheckpoint(resources, checkpoint) {
+  resources.runtimeCheckpoints ??= {};
+  try {
+    const manifest = readApiRuntimeManifest(resources.apiRuntimeDirectory);
+    const matchesBaseline = sameApiRuntimeManifest(resources.runtimeBaseline, manifest);
+    resources.runtimeCheckpoints[checkpoint] = runtimeManifestSummary(manifest, matchesBaseline);
+    if (!matchesBaseline) resources.runtimeIntegrityFailed = true;
+    return matchesBaseline;
+  } catch {
+    resources.runtimeCheckpoints[checkpoint] = { verified: false };
+    resources.runtimeIntegrityFailed = true;
+    return false;
+  }
+}
+
+function requireRuntimeManifestCheckpoint(resources, checkpoint) {
+  if (!recordRuntimeManifestCheckpoint(resources, checkpoint))
+    throw new Error('The pinned API runtime changed or could not be verified during acceptance setup.');
+}
+
+function runtimeManifestEvidence(resources) {
+  return {
+    policy: 'prebuilt-no-build',
+    efDatabaseUpdateNoBuild: true,
+    apiLaunchNoBuild: true,
+    beforeProviderAccountCheck: resources.runtimeCheckpoints?.beforeProviderAccountCheck ?? null,
+    checkpoints: resources.runtimeCheckpoints ?? {},
+    verified: isRuntimeManifestVerified(resources.runtimeCheckpoints, resources.runtimeIntegrityFailed),
+  };
+}
+
+function writeSourceEvidenceIfReady(resources) {
+  if (!resources.evidenceDir || resources.sourceEvidenceWritten) return;
+  profileGuards.writePrivateEvidenceFile(
+    resources.evidenceDir,
+    'source.json',
+    JSON.stringify({
+      ...resources.sourcePins,
+      profile: profileGuards.PROFILE,
+      runtime: runtimeManifestEvidence(resources),
+    }),
+  );
+  resources.sourceEvidenceWritten = true;
+}
+
 async function createOwnedStack(resources, config, sourcePins) {
   const { signal } = resources;
   resources.dockerExecutable = stackMode === 'compose' ? systemTools.resolveSystemExecutable('docker') : undefined;
@@ -133,6 +196,7 @@ async function createOwnedStack(resources, config, sourcePins) {
         )
       : undefined;
   await verifyTestConnectedAccount(resources.profile, stripeOrigin, { signal });
+  requireRuntimeManifestCheckpoint(resources, 'afterProviderAccountCheck');
   resources.target = path.join(frontendDir, 'scripts/e2e-p11-target.cjs');
   await runLogged(
     process.execPath,
@@ -176,11 +240,7 @@ async function createOwnedStack(resources, config, sourcePins) {
   );
   resources.evidenceDir = artifactDirectories.evidenceDir;
   resources.browserDir = artifactDirectories.browserDir;
-  profileGuards.writePrivateEvidenceFile(
-    resources.evidenceDir,
-    'source.json',
-    JSON.stringify({ ...sourcePins, profile: profileGuards.PROFILE }),
-  );
+  resources.sourcePins = sourcePins;
   if (stackMode === 'compose') await configureComposeStack(resources);
   targetGuards.validateP11LocalIdentity(resources.runEnv);
   resources.browserEnv = profileGuards.buildStripeBrowserEnvironment(
@@ -242,14 +302,24 @@ async function probeComposeServices(compose, signal, remaining) {
 
 async function migrateAndSeed(resources, { apiProject, infrastructure }) {
   const { offlineEnv, signal, orchestrationLog } = resources;
-  await runLogged(
-    'dotnet',
-    ['ef', 'database', 'update', '--project', infrastructure, '--startup-project', apiProject],
-    offlineEnv,
-    backendDir,
-    orchestrationLog,
-    { timeoutMs: 10 * 60 * 1000, signal },
-  );
+  requireRuntimeManifestCheckpoint(resources, 'beforeEfMigration');
+  let migrationFailed = false;
+  try {
+    await runLogged(
+      'dotnet',
+      buildEfDatabaseUpdateArgs(infrastructure, apiProject),
+      offlineEnv,
+      backendDir,
+      orchestrationLog,
+      { timeoutMs: 10 * 60 * 1000, signal },
+    );
+  } catch {
+    migrationFailed = true;
+  }
+  const runtimeUnchangedAfterMigration = recordRuntimeManifestCheckpoint(resources, 'afterEfMigration');
+  if (migrationFailed) throw new Error('The no-build database migration failed; private run evidence is retained.');
+  if (!runtimeUnchangedAfterMigration)
+    throw new Error('The API runtime changed during the no-build database migration.');
   await runLogged(
     process.execPath,
     [path.join(frontendDir, 'scripts/e2e-seed.mjs')],
@@ -270,6 +340,7 @@ async function startBrowserApi(resources, { apiProject, config, scenario, testSp
     profile,
     listenerStartup.signingSecret,
   );
+  requireRuntimeManifestCheckpoint(resources, 'beforeApiStart');
   resources.api = startLogged(
     'dotnet',
     ['run', '--project', apiProject, '--no-build', '--no-launch-profile'],
@@ -284,6 +355,7 @@ async function startBrowserApi(resources, { apiProject, config, scenario, testSp
     resources.api,
     signal,
   );
+  requireRuntimeManifestCheckpoint(resources, 'afterApiStart');
   profileGuards.validateStripeBrowserEnvironment(browserEnv);
   await runLogged(
     process.execPath,
@@ -293,6 +365,7 @@ async function startBrowserApi(resources, { apiProject, config, scenario, testSp
     path.join(evidenceDir, 'browser.log'),
     { timeoutMs: PLAYWRIGHT_TIMEOUT_MS, signal },
   );
+  requireRuntimeManifestCheckpoint(resources, 'afterBrowserRun');
   const verifyFinancialEvidence =
     scenario === 'mixed-tender' ? verifyMixedTenderFinancialEvidence : verifyStripeFinancialEvidence;
   const proof = await verifyFinancialEvidence({
@@ -308,6 +381,7 @@ async function startBrowserApi(resources, { apiProject, config, scenario, testSp
     scenario === 'mixed-tender' ? mixedTenderRunEvidenceFields(proof) : stripeRunEvidenceFields(proof);
   if (!evidenceFields.providerCleanupVerified)
     throw new Error('The connected Stripe financial evidence was incomplete.');
+  requireRuntimeManifestCheckpoint(resources, 'afterFinancialReadback');
   resources.providerProof = proof;
   resources.scenario = scenario;
   resources.completed = true;
@@ -338,26 +412,35 @@ async function finalizeRun(resources, uninstallSignalHandlers) {
   const nativeStopFailed = resources.nativeServices
     ? (await stopNativeP11Services(resources.nativeServices)).stopFailed
     : false;
+  recordRuntimeManifestCheckpoint(resources, 'afterOwnedServicesStopped');
   const cleanupFailed = cleanup.stopFailed || cleanup.snapshotFailed || nativeStopFailed;
   const snapshotVerified = cleanup.snapshotResult !== undefined;
+  const runtimeIntegrityVerified = runtimeManifestEvidence(resources).verified;
   const evidenceFields =
     resources.scenario === 'mixed-tender'
       ? mixedTenderRunEvidenceFields(resources.providerProof)
       : stripeRunEvidenceFields(resources.providerProof);
   try {
+    writeSourceEvidenceIfReady(resources);
     if (resources.compose && resources.evidenceDir) {
       profileGuards.writePrivateEvidenceFile(
         resources.evidenceDir,
         'run.json',
         JSON.stringify({
           result:
-            resources.completed && snapshotVerified && !cleanupFailed && evidenceFields.providerCleanupVerified
+            resources.completed &&
+            snapshotVerified &&
+            !cleanupFailed &&
+            evidenceFields.providerCleanupVerified &&
+            runtimeIntegrityVerified
               ? 'provider-financial-evidence-verified'
               : 'failed',
           onlineProvider: 'stripe-test',
           scenario: resources.scenario ?? 'four-phone',
           databaseRuntime: resources.nativeServices ? 'native-postgres18-redis' : 'compose-postgres16-redis',
           snapshot: cleanup.snapshotResult ?? null,
+          sourcePins: resources.sourcePins ?? null,
+          runtime: runtimeManifestEvidence(resources),
           ...evidenceFields,
         }),
       );
@@ -369,12 +452,18 @@ async function finalizeRun(resources, uninstallSignalHandlers) {
     );
   }
   if (cleanupFailed) throw new Error('Acceptance cleanup or the bounded database snapshot did not complete.');
+  requireRuntimeManifestVerified(resources.runtimeCheckpoints, resources.runtimeIntegrityFailed);
 }
 
 async function main() {
   const cancellation = new AbortController();
   const uninstallSignalHandlers = installCancellationHandlers(cancellation);
-  const resources = { signal: cancellation.signal, completed: false };
+  const resources = {
+    signal: cancellation.signal,
+    completed: false,
+    runtimeCheckpoints: {},
+    runtimeIntegrityFailed: false,
+  };
   try {
     const runnerConfig = validateRunnerConfiguration();
     resources.scenario = runnerConfig.scenario;
@@ -384,6 +473,12 @@ async function main() {
     profileGuards.assertPrivateDirectory(resources.state);
     resources.orchestrationLog = path.join(resources.state, 'orchestration.log');
     const sourcePins = await verifySourcePins(resources);
+    resources.sourcePins = sourcePins;
+    resources.apiRuntimeDirectory = runnerConfig.apiRuntimeDirectory;
+    resources.runtimeCheckpoints = {};
+    resources.runtimeIntegrityFailed = false;
+    resources.runtimeBaseline = readApiRuntimeManifest(resources.apiRuntimeDirectory);
+    resources.runtimeCheckpoints.beforeProviderAccountCheck = runtimeManifestSummary(resources.runtimeBaseline, true);
     await createOwnedStack(resources, runnerConfig, sourcePins);
     await migrateAndSeed(resources, runnerConfig);
     await startBrowserApi(resources, runnerConfig);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
@@ -57,6 +57,7 @@ export default function TipSelector({
   const [selectedOption, setSelectedOption] = useState<TipOption>('none');
   const [customAmount, setCustomAmount] = useState('');
   const [customAmountInvalid, setCustomAmountInvalid] = useState(false);
+  const validityCallbackRef = useRef(onValidityChange);
   const subtotalMinor = Number.isFinite(subtotal) ? Math.max(0, Math.round(subtotal * 100)) : 0;
   const selectedTipMinor = Number.isFinite(selectedTipAmount) ? Math.max(0, Math.round(selectedTipAmount * 100)) : 0;
   const tip10 = percentageTipMinor(subtotalMinor, 10);
@@ -65,8 +66,12 @@ export default function TipSelector({
   const formatPrice = (minor: number) => formatCurrency(minor / 100, locale, currency);
 
   useEffect(() => {
-    onValidityChange?.(!customAmountInvalid);
-  }, [customAmountInvalid, onValidityChange]);
+    validityCallbackRef.current = onValidityChange;
+  }, [onValidityChange]);
+
+  useEffect(() => {
+    validityCallbackRef.current?.(!customAmountInvalid);
+  }, [customAmountInvalid]);
 
   useEffect(() => {
     if (customAmountInvalid) return;

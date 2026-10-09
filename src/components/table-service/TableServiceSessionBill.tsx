@@ -13,6 +13,7 @@ import {
   tableSessionCredit,
   tableSessionEligibleOutstanding,
   tablePaymentFlowTranslationKey,
+  tableSplitStatusTranslationKey,
   type TableOrderSettlementState,
 } from '@/lib/cashierTableSession';
 import styles from './TableServiceSessionBill.module.css';
@@ -144,7 +145,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
           <div key={guest.guestNumber} className={styles.totalRow}>
             <span>{t('cashier.tables.split_guest_amount', { number: guest.guestNumber })}</span>
             <span className={styles.totalValue}>
-              {t(`cashier.tables.split_status_${guest.status.toLowerCase()}`)} · {money(guest.amount)}
+              {t(tableSplitStatusTranslationKey(guest.status))} · {money(guest.amount)}
             </span>
           </div>
         ))}

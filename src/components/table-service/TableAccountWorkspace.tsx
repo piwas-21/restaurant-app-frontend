@@ -6,6 +6,7 @@ import type { TableServiceSessionDto } from '@/types/order';
 import {
   formatTableMoney,
   tablePaymentFlowTranslationKey,
+  tableSplitStatusTranslationKey,
   tableSessionEligibleOutstanding,
 } from '@/lib/cashierTableSession';
 import TableAccountActivityPanel from './TableAccountActivityPanel';
@@ -87,7 +88,7 @@ export default function TableAccountWorkspace({ session, timeZone }: TableAccoun
           <div key={guest.guestNumber}>
             <dt>{t('cashier.tables.split_guest_amount', { number: guest.guestNumber })}</dt>
             <dd>
-              {t(`cashier.tables.split_status_${guest.status.toLowerCase()}`)} · {money(guest.amount)}
+              {t(tableSplitStatusTranslationKey(guest.status))} · {money(guest.amount)}
             </dd>
           </div>
         ))}

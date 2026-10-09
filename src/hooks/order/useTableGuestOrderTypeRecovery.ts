@@ -3,6 +3,7 @@
 import { useCallback, useEffect } from 'react';
 import { OrderType } from '@/types/order';
 import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 interface OrderTypeSelection {
   readonly orderType: OrderType | null;
@@ -71,5 +72,20 @@ export function useTableGuestOrderTypeRecovery({
     tableGuest.visit?.tableId,
   ]);
 
-  return { tableGuest, commitActiveVisitDineIn } as const;
+  const selectActiveVisitDineIn = useCallback(
+    (source: string) => {
+      if (!tableGuest.active || !tableGuest.dineInAvailable) return false;
+      if (!commitActiveVisitDineIn()) return false;
+      setOrderType(OrderType.DineIn);
+      trackEvent('order_type_selected', {
+        orderType: OrderType.DineIn,
+        source,
+        loggedIn: isLoggedInForAnalytics(),
+      });
+      return true;
+    },
+    [commitActiveVisitDineIn, setOrderType, tableGuest.active, tableGuest.dineInAvailable],
+  );
+
+  return { tableGuest, commitActiveVisitDineIn, selectActiveVisitDineIn } as const;
 }

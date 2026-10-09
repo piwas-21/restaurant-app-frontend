@@ -14,7 +14,7 @@
     "share_number": "Share {{number}}",
     "share_unavailable": "Paid or in progress",
     "item_remaining_note": "Amounts show each selected quantity’s remaining unpaid value. Shared fees are included in amount contributions.",
-    "equal_note": "Shares stay fixed for the reviewed bill. Rounding adds one cent to some shares; later rounds remain outside this plan.",
+    "equal_note": "For CHF and EUR, earlier shares round down to the nearest 0.05; the last share covers the exact remainder. The plan stays fixed for this bill; later rounds remain outside it.",
     "create_plan": "Review and create shares",
     "review": "Review contribution",
     "identity_mismatch": "The response does not match this reviewed contribution. Keep the original operation and check its result.",
@@ -71,7 +71,16 @@
       "retry": "Retry original reset",
       "storage_unavailable": "Reset recovery cannot be read or saved in this tab. Check the table with authorized staff.",
       "succeeded": "The original reset succeeded. Refresh to see the current table; this result does not open a visit.",
-      "refused": "The original reset was refused. Refresh before reviewing a new request."
+      "refused": "The original reset was refused. Refresh before reviewing a new request.",
+      "version_unavailable": "The table readiness version is missing or invalid. Refresh before marking the table ready.",
+      "refresh": "Refresh table status",
+      "errors": {
+        "version_stale": "The table changed while this action was open. Refresh and try again.",
+        "visit_open": "An active table visit must be closed or recovered before the table can be readied.",
+        "not_available": "This table is not waiting to be readied. Refresh to see its current state.",
+        "inactive": "This table is inactive. Ask an administrator to reactivate it.",
+        "ambiguous": "Multiple visits are linked to this table. Review and recover them before continuing."
+      }
     },
     "cash": {
       "exact_charge": "Exact account charge",
@@ -83,10 +92,67 @@
       "legacy_unattested": "This earlier cash payment has no verified received amount or change. Its recorded account charge remains visible."
     },
     "custom_guest_shares": "Custom amount per guest",
-    "custom_amounts_must_match_balance": "Enter one positive amount per guest. The amounts must add up to the full available balance.",
+    "custom_shares_scope": "Guest shares must cover the full available balance. To collect only part now, choose Custom amount.",
+    "custom_amounts_must_match_balance": "Check each guest amount and the remaining balance shown.",
     "share_plan_will_be_replaced": "Creating this plan will replace the current split. Plans with active or captured payments cannot be replaced.",
     "share_amount": "Guest {{number}} amount",
     "mode_custom_guest_share": "Custom per-guest contribution",
-    "mode_full": "Full bill"
+    "mode_full": "Full bill",
+    "share_preview": "Share preview",
+    "fill_remainder": "Fill remainder",
+    "custom_share_required": "Enter an amount for guest {{number}}.",
+    "custom_share_positive": "Enter a valid positive amount.",
+    "custom_share_invalid": "Enter a valid amount with no more than two decimal places.",
+    "custom_balance_remaining": "{{amount}} remains unassigned.",
+    "custom_balance_over": "Amounts exceed the balance by {{amount}}.",
+    "selected_quantity": "Selected quantity",
+    "recovery": {
+      "title": "Table recovery",
+      "intro": "Review the visit and exact order history before releasing this table.",
+      "review_action": "Review table recovery",
+      "loading": "Loading table recovery preview…",
+      "preview_failed": "The recovery preview could not be loaded. Refresh the table and try again.",
+      "stale_preview": "The table changed after this preview. Load a fresh preview before confirming.",
+      "session_ambiguous": "This table now has more than one possible visit. Resolve the visit, then load a fresh preview.",
+      "refresh_preview": "Load fresh preview",
+      "role_mismatch": "A saved recovery belongs to another staff role. Sign in with the original role or ask an administrator to resolve it.",
+      "operation_mismatch": "The response does not match this table. Keep recovery locked and contact an administrator.",
+      "reason_required": "Enter a reason for this recovery.",
+      "version_missing": "Current account versions are missing. Refresh and review a new preview.",
+      "preview_title": "Recover table {{table}}",
+      "warning": "This archives only physical table occupancy. Previous visits, orders, payment, refund, tender, and kitchen history stay intact. Only unpaid, unsent pending orders may be cancelled. Routed, preparing, ready, paid, refunded, or payment-uncertain orders remain in the prior visit. Nothing is sent to the kitchen or printer.",
+      "count": {
+        "orders": "Orders in preview",
+        "cancelable": "Unsent orders to cancel",
+        "legacy": "Legacy orders to archive from occupancy",
+        "routed": "Orders with routing history",
+        "preparing": "Preparing orders",
+        "ready": "Ready orders",
+        "paid": "Paid or refunded orders",
+        "attempts": "Active payment attempts",
+        "handoffs": "Pending payment handoffs",
+        "checkout": "Hosted checkout attempts"
+      },
+      "outstanding": "Outstanding value retained: {{amount}}",
+      "reason": "Reason for this audited recovery",
+      "cancel": "Back",
+      "confirm": "Release table occupancy",
+      "succeeded": "Recovery recorded: {{cancelled}} unsent orders cancelled, {{archived}} legacy orders archived from occupancy, and {{retained}} orders retained in the prior visit.",
+      "preserved_totals": "Preserved paid: {{paid}} · outstanding: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Will be cancelled (unpaid and not sent)",
+        "ArchivedLegacyOccupancy": "Will be archived from table occupancy; order history stays",
+        "RetainedInPriorVisit": "Will remain in the prior visit"
+      },
+      "original_state": "Original status: {{status}} · payment: {{payment}}",
+      "order_amounts": "Total {{total}} · billing credit {{credit}} · paid {{paid}} · remaining {{remaining}}",
+      "kitchen_history": "Kitchen release or routing history is retained.",
+      "storage_unavailable": "Recovery cannot be saved or read in this tab. No new recovery request will be sent. Check the original operation or contact an administrator.",
+      "completed_storage_warning": "The server confirmed recovery, but this tab could not clear its record. Refresh and check the original operation before continuing.",
+      "check": "Check original result",
+      "retry_same": "Retry same recovery",
+      "unknown": "The result is not confirmed. Check the original operation before starting another request.",
+      "disabled_recovery": "New table recovery requests are disabled. You can still check the original operation."
+    }
   }
 }

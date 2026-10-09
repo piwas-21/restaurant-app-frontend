@@ -4,6 +4,19 @@ import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTabl
 import ServerTableBillWorkspace from './ServerTableBillWorkspace';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  refresh: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+};
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => mockRouter,
+  usePathname: () => '/en/server/tables/table-1',
+}));
+
 jest.mock('@/hooks/serverWorkspace/useServerTableBillActions');
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -126,7 +139,7 @@ describe('ServerTableBillWorkspace', () => {
     expect(screen.getByText('server.bill.close_blocked_handoff')).toBeInTheDocument();
   });
 
-  it('replaces the legacy Server tender form with the opted-in account collection host', () => {
+  it('routes opted-in Server collection to the shared visit page without expanding an inline form', () => {
     const collectable = { ...session, canCollect: true, canRequestPaymentHandoff: false };
     mockState(collectable);
     render(
@@ -136,7 +149,9 @@ describe('ServerTableBillWorkspace', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'server.bill.collect' }));
-    expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('true:true');
+    expect(mockRouter.push).toHaveBeenCalledTimes(1);
+    expect(mockRouter.push).toHaveBeenCalledWith('/en/server/collection?serviceSessionId=session-1&tableId=table-1');
+    expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('true:false');
     expect(screen.queryByTestId('payment-form')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'server.bill.send_to_cashier' })).not.toBeInTheDocument();
   });
@@ -151,6 +166,20 @@ describe('ServerTableBillWorkspace', () => {
 
     expect(screen.queryByRole('button', { name: 'server.bill.collect' })).not.toBeInTheDocument();
     expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('false:false');
+  });
+
+  it('does not offer Server collection to a Cashier role even while the Server flags are enabled', () => {
+    mockAuthRole = 'Cashier';
+    const collectable = { ...session, canCollect: true, canRequestPaymentHandoff: false };
+    render(
+      <TenantFeaturesProvider features={{ tableAccountPaymentsV1: true, serverAccountCollectionV1: true }}>
+        <ServerTableBillWorkspace session={collectable} actionsBlocked={false} refreshWorkspace={jest.fn()} />
+      </TenantFeaturesProvider>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'server.bill.collect' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('server-account-payment-host')).toHaveTextContent('false:false');
+    expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
   it('labels browser printing honestly without claiming paper output', () => {

@@ -128,9 +128,9 @@ jobs:
               -e POSTGRES_USER=postgres \
               -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
               -e POSTGRES_DB=restaurantdb \
-              postgres:16-alpine
+              mirror.gcr.io/library/postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
             docker run -d --name rumi-redis --network host \
-              redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+              mirror.gcr.io/library/redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
           ' > /tmp/services.log 2>&1 &
           echo "starting postgres + redis in the background"
 

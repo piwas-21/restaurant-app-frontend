@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
@@ -16,6 +17,7 @@ import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 import TableReadinessAction from '@/components/table-service/TableReadinessAction';
 import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
+import TableOccupancyRecoveryAction from '@/components/table-service/TableOccupancyRecoveryAction';
 
 interface ServerTableWorkspaceProps {
   readonly tableId: string;
@@ -31,7 +33,8 @@ export default function ServerTableWorkspace({
   requestedOrderId,
 }: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
-  const { orderAmendmentsV1, tableGuestVisitsV1 } = useTenantFeatures();
+  const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
+  const { orderAmendmentsV1, tableGuestVisitsV1, tableVisitReadinessV1 } = useTenantFeatures();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
@@ -165,8 +168,22 @@ export default function ServerTableWorkspace({
               snapshot={table}
               readinessVersion={table.readinessVersion}
               canMarkReady={table.permittedActions.includes('MarkTableReady') && !session}
-              isStale={state.isStale || state.isLoading || state.isStarting || state.isRepairingLegacyOrders}
+              isStale={
+                state.isStale ||
+                state.isLoading ||
+                state.isStarting ||
+                state.isRepairingLegacyOrders ||
+                recoveryOperationPending
+              }
               refresh={state.refresh}
+            />
+            <TableOccupancyRecoveryAction
+              tableId={table.tableId}
+              serviceSessionId={session?.serviceSessionId}
+              enabled={tableVisitReadinessV1 === true}
+              disabled={state.isStale || state.isLoading || state.isStarting || state.isRepairingLegacyOrders}
+              onRecovered={state.refresh}
+              onNavigationLockChange={setRecoveryOperationPending}
             />
 
             <div className={styles.actionRow}>
@@ -176,7 +193,9 @@ export default function ServerTableWorkspace({
                     type="button"
                     className={styles.primaryAction}
                     onClick={() => void state.repairLegacyOrders().catch(() => undefined)}
-                    disabled={state.isRepairingLegacyOrders || state.isStale || state.isStarting}
+                    disabled={
+                      state.isRepairingLegacyOrders || state.isStale || state.isStarting || recoveryOperationPending
+                    }
                   >
                     {state.isRepairingLegacyOrders
                       ? t('cashier.tables.legacy_repairing')
@@ -188,13 +207,13 @@ export default function ServerTableWorkspace({
                   type="button"
                   className={styles.primaryAction}
                   onClick={() => void state.startTable().catch(() => undefined)}
-                  disabled={!state.canStartTable}
+                  disabled={!state.canStartTable || recoveryOperationPending}
                 >
                   {state.isStarting ? t('cashier.tables.opening') : t('server.open_table')}
                 </button>
               )}
               {roundHref &&
-                (state.canAddRound && !taskContextBlocked ? (
+                (state.canAddRound && !taskContextBlocked && !recoveryOperationPending ? (
                   <Link className={styles.secondaryAction} href={roundHref}>
                     {t('cashier.tables.add_round')}
                   </Link>
@@ -203,18 +222,19 @@ export default function ServerTableWorkspace({
                     {t('cashier.tables.add_round')}
                   </button>
                 ))}
+              {session?.status === 'Open' && tableGuestVisitsV1 && (
+                <TableGuestAdmissionCodeSlot
+                  serviceSessionId={session.serviceSessionId}
+                  disabled={state.isStale || taskContextBlocked || recoveryOperationPending}
+                />
+              )}
             </div>
-
-            {session?.status === 'Open' && tableGuestVisitsV1 && (
-              <TableGuestAdmissionCodeSlot
-                serviceSessionId={session.serviceSessionId}
-                disabled={state.isStale || taskContextBlocked}
-              />
-            )}
             {session && (
               <ServerTableBillWorkspace
                 session={session}
-                actionsBlocked={taskContextBlocked || state.isStale || state.isRepairingLegacyOrders}
+                actionsBlocked={
+                  taskContextBlocked || state.isStale || state.isRepairingLegacyOrders || recoveryOperationPending
+                }
                 refreshWorkspace={state.refresh}
               />
             )}

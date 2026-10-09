@@ -3,8 +3,8 @@
   "table_guest_join_title": "Unisciti a questa visita al tavolo",
   "table_guest_join_description": "Inserisci il codice visita fornito dal personale per il tavolo {{table}}.",
   "table_guest_code_label": "Codice visita",
-  "table_guest_code_help": "Inserisci il codice di 10 caratteri mostrato dal personale.",
-  "table_guest_code_length": "Inserisci tutti i 10 caratteri del codice visita.",
+  "table_guest_code_help": "Inserisci il codice visita di 6 o 10 caratteri mostrato dal personale.",
+  "table_guest_code_length": "Inserisci tutti i 6 o 10 caratteri del codice visita.",
   "table_guest_join_failed": "Impossibile unirsi a questa visita. Controlla il codice o chiedine uno nuovo al personale.",
   "table_guest_join_action": "Unisciti al tavolo",
   "table_guest_joining": "Accesso…",
@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "Non è stato possibile confermare la creazione del codice. Genera un codice sostitutivo per continuare. Gli ospiti già entrati restano collegati.",
   "table_guest_unavailable_retry_action": "Ricontrolla lo stato",
   "table_guest_staff_code_help_label": "Informazioni sui codici visita",
-  "table_guest_staff_code_help_text": "Gli ospiti scansionano il QR del tavolo e inseriscono questo codice per unirsi alla visita. Esempio: mostra il codice di 10 caratteri alle persone sedute qui; scade all’ora indicata. Sostituendolo si impediscono nuovi accessi con il vecchio codice, senza disconnettere gli ospiti già entrati."
+  "table_guest_staff_code_help_text": "Gli ospiti scansionano il QR del tavolo e inseriscono questo codice per unirsi alla visita. Esempio: mostra il codice di 6 caratteri alle persone sedute qui; scade all’ora indicata. Sostituendolo si impediscono nuovi accessi con il vecchio codice, senza disconnettere gli ospiti già entrati."
 }

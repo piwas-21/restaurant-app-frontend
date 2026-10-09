@@ -1,5 +1,6 @@
 import FormField from '@/components/design-system/FormField';
-import { parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
+import { useTranslation } from 'react-i18next';
+import { parseCurrencyAmountMinor } from '@/lib/accountPaymentMoney';
 import { formatOrderCurrency, orderCurrency } from '@/lib/cashierMoney';
 import styles from './PaymentModal.module.css';
 
@@ -30,9 +31,11 @@ export default function CashReceivedFields({
   onSuggestion,
   t,
 }: CashReceivedFieldsProps) {
+  const { i18n } = useTranslation();
+  const locale = i18n.language || 'en';
   const currencyCode = orderCurrency({ currency });
-  const amountMinor = parseAccountContributionMinor(amount, currencyCode) ?? 0;
-  const receivedMinor = parseAccountContributionMinor(received, currencyCode) ?? 0;
+  const amountMinor = parseCurrencyAmountMinor(amount, currencyCode, locale) ?? 0;
+  const receivedMinor = parseCurrencyAmountMinor(received, currencyCode, locale) ?? 0;
   const change = Math.max(0, receivedMinor - amountMinor) / 100;
   // Same resolution as the balance card beside it: the order's currency, else the tenant
   // default. The old strict-null branch alone rendered "Currency unavailable" for the change
@@ -43,10 +46,9 @@ export default function CashReceivedFields({
     <div>
       <FormField label={t('cashier.cash_received')} error={error}>
         <input
-          type="number"
+          type="text"
+          inputMode="decimal"
           className={styles.input}
-          min="0"
-          step="0.01"
           value={received}
           onChange={(event) => onReceivedChange(event.target.value)}
           disabled={disabled}

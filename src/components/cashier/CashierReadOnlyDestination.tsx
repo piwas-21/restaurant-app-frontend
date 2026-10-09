@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { CashierQueueState } from '@/types/cashier';
+import type { CashierOrderGroupDto, CashierQueueState } from '@/types/cashier';
 import type { OrderDto } from '@/types/order';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierReadOnlyQueuePanel from './CashierReadOnlyQueuePanel';
@@ -24,6 +24,7 @@ interface CashierReadOnlyDestinationProps {
   readonly description: string;
   readonly timeZone?: string;
   readonly orders: readonly OrderDto[];
+  readonly groups?: readonly CashierOrderGroupDto[];
   readonly pagination: Pagination;
   readonly queueState: CashierQueueState;
   readonly isLoading: boolean;
@@ -42,7 +43,8 @@ interface CashierReadOnlyDestinationProps {
   readonly marketplaceOnlyFilter?: boolean;
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
-  readonly onCollect?: (orderId: string) => void;
+  readonly onCollect?: (orderId: string, serviceSessionId?: string) => void;
+  readonly onCollectSession?: (serviceSessionId: string) => void;
   readonly onOrderChanged?: () => void;
   readonly onBack: () => void;
   readonly onSearchChange: (value: string) => void;
@@ -52,6 +54,7 @@ interface CashierReadOnlyDestinationProps {
   readonly onOrderTypeFilterChange: (value: string) => void;
   readonly onMarketplaceOnlyFilterChange?: (value: boolean) => void;
   readonly onPageChange: (page: number) => void;
+  readonly onPageSizeChange?: (pageSize: number) => void;
   readonly onRetry?: () => void;
 }
 
@@ -60,6 +63,7 @@ export default function CashierReadOnlyDestination({
   description,
   timeZone,
   orders,
+  groups,
   pagination,
   queueState,
   isLoading,
@@ -79,6 +83,7 @@ export default function CashierReadOnlyDestination({
   additionalFilters,
   onSelectOrder,
   onCollect,
+  onCollectSession,
   onOrderChanged,
   onBack,
   onSearchChange,
@@ -88,10 +93,21 @@ export default function CashierReadOnlyDestination({
   onOrderTypeFilterChange,
   onMarketplaceOnlyFilterChange = ignoreMarketplaceFilterChange,
   onPageChange,
+  onPageSizeChange,
   onRetry,
 }: CashierReadOnlyDestinationProps) {
   const { t } = useTranslation();
   const hasSelection = Boolean(selectedOrderId);
+  const collectSelectedOrder = useCallback(
+    (orderId: string) => {
+      const serviceSessionId =
+        selectedOrder?.id.toLowerCase() === orderId.toLowerCase()
+          ? (selectedOrder.serviceSessionId ?? undefined)
+          : undefined;
+      onCollect?.(orderId, serviceSessionId);
+    },
+    [onCollect, selectedOrder],
+  );
   const [isMobile, setIsMobile] = useState(false);
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const ticketHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -166,6 +182,7 @@ export default function CashierReadOnlyDestination({
           <CashierReadOnlyQueuePanel
             destination={destination}
             orders={orders}
+            groups={groups}
             pagination={pagination}
             queueState={queueState}
             isLoading={isLoading}
@@ -187,6 +204,8 @@ export default function CashierReadOnlyDestination({
             onOrderTypeFilterChange={onOrderTypeFilterChange}
             onMarketplaceOnlyFilterChange={onMarketplaceOnlyFilterChange}
             onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            onCollectSession={onCollectSession}
             onRetry={onRetry}
           />
           <section className={styles.ticketPane} aria-label={t('cashier.workspace.order_details')}>
@@ -198,7 +217,7 @@ export default function CashierReadOnlyDestination({
               onRefresh={onRefreshSelectedOrder}
               timeZone={timeZone}
               onBack={hasSelection ? onBack : undefined}
-              onCollect={onCollect}
+              onCollect={onCollect ? collectSelectedOrder : undefined}
               onOrderChanged={onOrderChanged}
               backButtonRef={backButtonRef}
               headingRef={ticketHeadingRef}

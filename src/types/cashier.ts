@@ -1,4 +1,17 @@
 import type { OrderListScope } from './order/commands';
+import type { ApiResponse, OrderDto, PagedResult } from './order';
+
+/** One complete cashier queue group: an open table visit or one standalone order. */
+export interface CashierOrderGroupDto {
+  groupKey: string;
+  serviceSessionId: string | null;
+  tableNumber: number | null;
+  releasedAt: string | null;
+  isArchivedFromTable: boolean;
+  orders: OrderDto[];
+}
+
+export type CashierOrderGroupPagedResultApiResponse = ApiResponse<PagedResult<CashierOrderGroupDto>>;
 
 /** Query parameters supported by the cashier's orders resource. */
 export interface CashierOrdersFilters {

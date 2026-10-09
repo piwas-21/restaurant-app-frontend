@@ -6,7 +6,6 @@ interface CashierPendingPaymentNoticeProps {
   readonly pendingPayment: PendingPaymentOperation;
   readonly isBusy: boolean;
   readonly onRetry: () => void;
-  readonly onAbandon: () => void;
   readonly t: (key: string) => string;
 }
 
@@ -14,7 +13,6 @@ export default function CashierPendingPaymentNotice({
   pendingPayment,
   isBusy,
   onRetry,
-  onAbandon,
   t,
 }: CashierPendingPaymentNoticeProps) {
   const checking = pendingPayment.status === 'Checking';
@@ -33,11 +31,6 @@ export default function CashierPendingPaymentNotice({
           <button type="button" className={styles.button} onClick={onRetry} disabled={isBusy}>
             {t('cashier.collection.retry_payment_check')}
           </button>
-          {pendingPayment.status === 'Unknown' && (
-            <button type="button" className={styles.button} onClick={onAbandon} disabled={isBusy}>
-              {t('cashier.collection.abandon_payment')}
-            </button>
-          )}
         </div>
       )}
     </div>

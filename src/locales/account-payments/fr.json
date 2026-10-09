@@ -14,7 +14,7 @@
     "share_number": "Part {{number}}",
     "share_unavailable": "Payée ou en cours",
     "item_remaining_note": "Les montants indiquent la valeur restant à payer pour chaque quantité sélectionnée. Les frais partagés sont inclus dans les contributions par montant.",
-    "equal_note": "Les parts restent fixes pour la note examinée. L'arrondi ajoute un centime à certaines parts ; les commandes ultérieures restent hors de ce plan.",
+    "equal_note": "Pour le CHF et l’EUR, les premières parts sont arrondies vers le bas au multiple de 0,05 ; la dernière couvre exactement le reste. Le plan reste fixe pour cette note ; les tours suivants en sont exclus.",
     "create_plan": "Examiner et créer les parts",
     "review": "Examiner la contribution",
     "identity_mismatch": "La réponse ne correspond pas à cette contribution examinée. Conservez l'opération d'origine et vérifiez son résultat.",
@@ -71,7 +71,16 @@
       "retry": "Relancer la demande initiale",
       "storage_unavailable": "La reprise ne peut pas être lue ou enregistrée dans cet onglet. Faites vérifier la table par le personnel autorisé.",
       "succeeded": "La demande initiale a réussi. Actualisez la table ; ce résultat n’ouvre pas de visite.",
-      "refused": "La demande initiale a été refusée. Actualisez avant une nouvelle demande."
+      "refused": "La demande initiale a été refusée. Actualisez avant une nouvelle demande.",
+      "version_unavailable": "La version de disponibilité de la table est absente ou invalide. Actualisez avant de déclarer la table prête.",
+      "refresh": "Actualiser le statut de la table",
+      "errors": {
+        "version_stale": "La table a changé. Actualisez son statut, puis réessayez.",
+        "visit_open": "Une visite active doit être clôturée ou récupérée avant de préparer la table.",
+        "not_available": "Cette table n’attend pas actuellement d’être préparée. Actualisez son statut.",
+        "inactive": "Cette table est inactive. Demandez à une personne administratrice de la réactiver.",
+        "ambiguous": "Plusieurs visites sont liées à cette table. Vérifiez-les et récupérez-les avant de continuer."
+      }
     },
     "cash": {
       "exact_charge": "Montant exact du compte",
@@ -83,10 +92,67 @@
       "legacy_unattested": "Le montant reçu et la monnaie de cet ancien paiement en espèces ne sont pas vérifiés. Le montant enregistré sur le compte reste visible."
     },
     "custom_guest_shares": "Montant personnalisé par personne",
-    "custom_amounts_must_match_balance": "Saisissez un montant positif par personne. Leur somme doit correspondre à tout le solde disponible.",
+    "custom_shares_scope": "Les montants doivent couvrir tout le solde disponible. Pour encaisser seulement une partie, choisissez « Montant personnalisé ».",
+    "custom_amounts_must_match_balance": "Vérifiez les montants de chaque personne et le reste affiché.",
     "share_plan_will_be_replaced": "Ce plan remplacera la répartition actuelle. Un plan avec des paiements actifs ou encaissés ne peut pas être remplacé.",
     "share_amount": "Montant de la personne {{number}}",
     "mode_custom_guest_share": "Contribution personnalisée par personne",
-    "mode_full": "Addition complète"
+    "mode_full": "Addition complète",
+    "share_preview": "Aperçu des parts",
+    "fill_remainder": "Compléter le reste",
+    "custom_share_required": "Saisissez un montant pour la personne {{number}}.",
+    "custom_share_positive": "Saisissez un montant positif valide.",
+    "custom_share_invalid": "Saisissez un montant valide avec deux décimales au maximum.",
+    "custom_balance_remaining": "Il reste {{amount}} à répartir.",
+    "custom_balance_over": "Les montants dépassent le solde de {{amount}}.",
+    "selected_quantity": "Quantité sélectionnée",
+    "recovery": {
+      "title": "Récupération de table",
+      "intro": "Vérifiez la visite et les commandes avant de libérer la table.",
+      "review_action": "Vérifier la récupération",
+      "loading": "Chargement de l’aperçu de récupération de la table…",
+      "preview_failed": "Impossible de charger l’aperçu. Actualisez la table puis réessayez.",
+      "stale_preview": "La table a changé depuis cet aperçu. Chargez un nouvel aperçu avant de confirmer.",
+      "session_ambiguous": "Plusieurs visites sont possibles pour cette table. Clarifiez la visite puis chargez un nouvel aperçu.",
+      "refresh_preview": "Charger un nouvel aperçu",
+      "role_mismatch": "Une récupération enregistrée appartient à un autre rôle. Connectez-vous avec le rôle initial ou demandez l’aide d’un administrateur.",
+      "operation_mismatch": "La réponse ne correspond pas à cette table. Laissez la récupération verrouillée et contactez un administrateur.",
+      "reason_required": "Saisissez un motif.",
+      "version_missing": "Les versions actuelles du compte sont manquantes. Actualisez la page et consultez un nouvel aperçu.",
+      "preview_title": "Récupérer la table {{table}}",
+      "warning": "Seule l’occupation physique est archivée. L’historique des visites, commandes, paiements, remboursements et cuisine est conservé. Seules les commandes impayées et non envoyées peuvent être annulées. Les commandes transmises, en préparation, prêtes, payées ou au paiement incertain restent dans la visite précédente. Aucun envoi en cuisine ou à l’imprimante.",
+      "count": {
+        "orders": "Commandes dans l’aperçu",
+        "cancelable": "Commandes impayées et non envoyées à annuler",
+        "legacy": "Anciennes commandes à archiver de l’occupation de la table",
+        "routed": "Commandes avec historique de routage",
+        "preparing": "Commandes en préparation",
+        "ready": "Commandes prêtes",
+        "paid": "Commandes payées ou remboursées",
+        "attempts": "Tentatives de paiement actives",
+        "handoffs": "Transferts de paiement en attente",
+        "checkout": "Tentatives de paiement sur une page de paiement hébergée"
+      },
+      "outstanding": "Montant restant conservé : {{amount}}",
+      "reason": "Motif de cette récupération auditée",
+      "cancel": "Retour",
+      "confirm": "Libérer l’occupation de la table",
+      "succeeded": "Récupération enregistrée : {{cancelled}} commandes non envoyées annulées, {{archived}} anciennes commandes archivées de l’occupation de la table et {{retained}} commandes conservées lors de la visite précédente.",
+      "preserved_totals": "Montant payé conservé : {{paid}} · montant restant : {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Sera annulée (impayée et non envoyée)",
+        "ArchivedLegacyOccupancy": "Sera archivée de l’occupation de la table ; l’historique de la commande est conservé",
+        "RetainedInPriorVisit": "Restera dans la visite précédente"
+      },
+      "original_state": "État d’origine : {{status}} · paiement : {{payment}}",
+      "order_amounts": "Total {{total}} · avoir {{credit}} · payé {{paid}} · restant {{remaining}}",
+      "kitchen_history": "L’historique des envois en cuisine ou du routage est conservé.",
+      "storage_unavailable": "La récupération ne peut pas être enregistrée ou lue dans cet onglet. Aucune nouvelle demande ne sera envoyée.",
+      "completed_storage_warning": "Le serveur a confirmé la récupération, mais cet onglet n’a pas pu effacer son enregistrement. Actualisez la page et vérifiez l’opération d’origine avant de continuer.",
+      "check": "Vérifier le résultat d’origine",
+      "retry_same": "Réessayer la même récupération",
+      "unknown": "Résultat non confirmé. Vérifiez l’opération initiale avant d’en démarrer une autre.",
+      "disabled_recovery": "Les nouvelles récupérations de table sont désactivées. Vous pouvez toujours vérifier l’opération d’origine."
+    }
   }
 }

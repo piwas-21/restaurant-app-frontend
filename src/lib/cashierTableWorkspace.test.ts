@@ -1,5 +1,9 @@
 import type { CashierTableEntry } from './cashierTableEntries';
-import { cashierTableQueueState, findSelectedCashierTableEntry } from './cashierTableWorkspace';
+import {
+  cashierTableQueueState,
+  findRecoveryTableEntryForSession,
+  findSelectedCashierTableEntry,
+} from './cashierTableWorkspace';
 
 const entry = (id: string, tableNumber: string): CashierTableEntry => ({
   table: {
@@ -21,6 +25,18 @@ describe('cashier table workspace selection', () => {
     expect(findSelectedCashierTableEntry(entries, null, '01')?.table.id).toBe('zero-one');
     expect(findSelectedCashierTableEntry([entry('one', '1')], null, '001')?.table.id).toBe('one');
     expect(findSelectedCashierTableEntry(entries, null, '001')).toBeNull();
+  });
+
+  it('resolves recovery by stable table identity or a unique numeric legacy number only', () => {
+    const entries = [entry('table-one', '1'), entry('table-one-copy', '01')];
+    expect(findRecoveryTableEntryForSession(entries, { tableId: 'table-one', tableNumber: null })?.table.id).toBe(
+      'table-one',
+    );
+    expect(
+      findRecoveryTableEntryForSession([entry('table-nine', '09')], { tableId: null, tableNumber: 9 })?.table.id,
+    ).toBe('table-nine');
+    expect(findRecoveryTableEntryForSession(entries, { tableId: null, tableNumber: 1 })).toBeNull();
+    expect(findRecoveryTableEntryForSession([entry('label', 'T-QA')], { tableId: null, tableNumber: null })).toBeNull();
   });
 });
 

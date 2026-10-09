@@ -27,7 +27,7 @@ export default function AccountPaymentCashCalculator({
   onChange,
 }: Props) {
   const { t, i18n } = useTranslation();
-  const minor = parseAccountContributionMinor(received, currency);
+  const minor = parseAccountContributionMinor(received, currency, i18n.language || 'en');
   const insufficient = received !== '' && (minor === null || minor < dueAmountMinor);
   const change = minor !== null && minor >= dueAmountMinor ? minor - dueAmountMinor : 0;
   return (

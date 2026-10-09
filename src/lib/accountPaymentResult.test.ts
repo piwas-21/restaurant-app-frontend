@@ -192,3 +192,36 @@ it('checks the reviewed share count, revision and visit currency before clearing
     accountPaymentResultTransition(planPending, { ...plan, currency: 'CHF' }, visit, 'mismatch', 'EUR'),
   ).toThrow();
 });
+
+it('requires a recovered custom plan to match the exact saved guest amounts', () => {
+  const request = {
+    operationId,
+    expectedAccountRevision: 7,
+    shareCount: 2,
+    customAmountsMinor: [1440, 60],
+  };
+  const pending: PendingAccountPayment = { actorId: actor, serviceSessionId: visit, kind: 'plan', request };
+  const plan: AccountEqualSharePlan = {
+    serviceSessionId: visit,
+    operationId,
+    planId: '55555555-5555-4555-8555-555555555555',
+    accountRevision: 7,
+    totalMinor: 1500,
+    shareCount: 2,
+    currency: 'EUR',
+    createdAt: '2026-10-03T00:00:00Z',
+    invalidatedAt: null,
+    scope: [],
+    customAmountsMinor: [1440, 60],
+  };
+  expect(accountPaymentResultTransition(pending, plan, visit, 'mismatch', 'EUR')).toEqual({
+    terminal: true,
+    operation: null,
+  });
+  expect(() =>
+    accountPaymentResultTransition(pending, { ...plan, customAmountsMinor: [1439, 61] }, visit, 'mismatch', 'EUR'),
+  ).toThrow('mismatch');
+  expect(() =>
+    accountPaymentResultTransition(pending, { ...plan, customAmountsMinor: null }, visit, 'mismatch', 'EUR'),
+  ).toThrow('mismatch');
+});

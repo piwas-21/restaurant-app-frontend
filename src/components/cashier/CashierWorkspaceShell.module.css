@@ -16,6 +16,7 @@
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
   justify-content: space-between;
+  flex: 0 0 auto;
   min-height: 4rem;
   padding: 0.5rem 1rem;
   position: sticky;
@@ -145,13 +146,15 @@
 
 @media (max-width: 900px) {
   .navigation {
-    order: 3;
-    flex-basis: 100%;
+    flex: 0 0 100%;
     justify-content: flex-start;
+    min-width: 0;
+    order: 2;
     overflow-x: auto;
   }
   .actions {
     margin-inline-start: auto;
+    order: 1;
   }
 }
 
@@ -163,12 +166,21 @@
     max-width: 8rem;
   }
   .actions {
-    flex-basis: 100%;
-    justify-content: space-between;
+    display: grid;
+    flex: 0 0 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    order: 1;
+    width: 100%;
   }
-  .health {
-    flex: 1 1 auto;
-    justify-content: center;
+  .navigation {
+    order: 2;
+  }
+  .actions > output {
+    justify-self: start;
+  }
+  .preferences {
+    grid-column: 1 / -1;
+    justify-self: end;
   }
   .content {
     padding: 0.5rem;

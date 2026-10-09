@@ -1,13 +1,8 @@
 'use client';
 
-// Shared checkout review/confirm composition (ADR-006 — Prompt 6 seam). The
-// review page is a full-page template override (like auth): the route file
-// re-exports `@active-template/CheckoutReviewPage`, and each template renders
-// THIS layout with its own CSS-module bundle. Keeping the composition here (not
-// duplicated per template) is the cart/auth dedup recipe — classic and craft
-// differ only in the `styles` bundle, so classic stays byte-identical and Sonar
-// sees no cross-template duplication. All page logic stays in `useCheckoutReview`.
-import React from 'react';
+// Shared checkout review composition per ADR-006: template routes re-export this layout and provide
+// CSS bundles, while useCheckoutReview owns page logic so classic and craft do not duplicate markup.
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +12,7 @@ import OrderTypeSection from '@/components/checkout/OrderTypeSection';
 import CustomerInfoSection from '@/components/checkout/CustomerInfoSection';
 import OrderItemsList from '@/components/checkout/OrderItemsList';
 import PaymentMethodSelector from '@/components/checkout/PaymentMethodSelector';
-import TipSelector from '@/components/checkout/TipSelector';
+import CheckoutReviewTipSelector from '@/components/checkout/CheckoutReviewTipSelector';
 import OrderSummaryCard from '@/components/checkout/OrderSummaryCard';
 import OrderConfirmationModal from '@/components/checkout/OrderConfirmationModal';
 
@@ -72,7 +67,9 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
 }
 
 function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutReviewStyles }) {
+  const { i18n } = useTranslation();
   const styles = bundle.page;
+  const [tipValid, setTipValid] = useState(true);
   const {
     t,
     checkoutState,
@@ -196,7 +193,6 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
                 styles={bundle.payment}
               />
 
-              {/* Special Instructions */}
               {checkoutState.specialInstructions && (
                 <section className={styles.section}>
                   <h2 className={styles.sectionTitle}>{t('special_instructions', 'Special Instructions')}</h2>
@@ -207,12 +203,15 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
               )}
             </div>
 
-            {/* Right Column - Order Summary */}
             <div className={styles.rightColumn}>
-              <TipSelector
+              <CheckoutReviewTipSelector
+                basketId={cartState.basket?.id}
                 subtotal={cartState.basket?.subTotal || 0}
                 selectedTipAmount={checkoutState.tipAmount || 0}
                 onTipChange={setTipAmount}
+                onValidityChange={setTipValid}
+                locale={i18n.language || 'en'}
+                disabled={isSubmitting}
                 styles={bundle.tip}
               />
 
@@ -229,6 +228,7 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
                 redeemedPoints={redeemedPoints}
                 tipAmount={checkoutState.tipAmount || 0}
                 isSubmitting={isSubmitting}
+                placeOrderDisabled={!tipValid}
                 submitError={submitError}
                 formatPrice={formatPrice}
                 formatTotal={formatTotal}

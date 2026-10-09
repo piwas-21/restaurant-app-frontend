@@ -14,12 +14,13 @@ export interface CashierCollectionState {
   readonly isCheckingPayment: boolean;
   readonly error: string | null;
   readonly pendingPayment: ReturnType<typeof useCashierPendingPayment>['pendingPayment'];
+  readonly recoveryError: ReturnType<typeof useCashierPendingPayment>['recoveryError'];
+  readonly recoveryOrderId: ReturnType<typeof useCashierPendingPayment>['recoveryOrderId'];
   readonly recoveredPayment: ReturnType<typeof useCashierPendingPayment>['recoveredPayment'];
   readonly outcomeOrderId: string | null;
   readonly refresh: () => Promise<void>;
-  readonly submitPayment: (payment: AddPaymentRequest) => Promise<OrderDto>;
+  readonly submitPayment: (payment: AddPaymentRequest, cashReceivedMinor?: number) => Promise<OrderDto>;
   readonly retryPendingPayment: () => Promise<void>;
-  readonly abandonPendingPayment: () => void;
 }
 
 /**
@@ -101,21 +102,23 @@ export function useCashierCollection(orderId: string | null): CashierCollectionS
   }, [orderId, refresh]);
 
   const unresolvedPending = pending.pendingPayment && pending.pendingPayment.status !== 'Refused';
+  const pendingRecoveryBlocked = unresolvedPending || pending.recoveryError !== null;
   useEffect(() => {
-    if (!isMutating && !isCheckingPayment && !unresolvedPending) return;
+    if (!isMutating && !isCheckingPayment && !pendingRecoveryBlocked) return;
     const preventDismissal = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = '';
     };
     window.addEventListener('beforeunload', preventDismissal);
     return () => window.removeEventListener('beforeunload', preventDismissal);
-  }, [isCheckingPayment, isMutating, unresolvedPending]);
+  }, [isCheckingPayment, isMutating, pendingRecoveryBlocked]);
 
   const submitPayment = useCallback(
-    async (payment: AddPaymentRequest): Promise<OrderDto> => {
+    async (payment: AddPaymentRequest, cashReceivedMinor?: number): Promise<OrderDto> => {
       if (!order || !orderId || order.id.toLowerCase() !== orderId.toLowerCase()) {
         throw new Error('cashier.collection.order_required');
       }
+      if (pending.recoveryError) throw new Error(pending.recoveryError);
       if (unresolvedPending) throw new Error('cashier.collection.payment_in_progress');
       if (inFlightRef.current) throw new Error('cashier.collection.payment_in_progress');
       const submittedPayment =
@@ -123,12 +126,15 @@ export function useCashierCollection(orderId: string | null): CashierCollectionS
           ? { ...payment, expectedVersion: order.version }
           : payment;
 
+      if (!pending.markSubmitted(order.id, submittedPayment, cashReceivedMinor)) {
+        throw new Error('cashier.payment_recovery_unavailable');
+      }
+
       const requestId = ++requestRef.current;
       paymentRevisionRef.current += 1;
       const inFlightToken = ++inFlightTokenRef.current;
       const isCurrent = () => mountedRef.current && requestId === requestRef.current;
       inFlightRef.current = true;
-      pending.markSubmitted(order.id, submittedPayment);
       setIsMutating(true);
       setError(null);
       try {
@@ -141,6 +147,7 @@ export function useCashierCollection(orderId: string | null): CashierCollectionS
           reason,
           order,
           payment: submittedPayment,
+          cashReceivedMinor,
           isCurrent,
           pending,
           setError,
@@ -165,11 +172,12 @@ export function useCashierCollection(orderId: string | null): CashierCollectionS
     isCheckingPayment,
     error,
     pendingPayment: pending.pendingPayment,
+    recoveryError: pending.recoveryError,
+    recoveryOrderId: pending.recoveryOrderId,
     recoveredPayment: pending.recoveredPayment,
     outcomeOrderId,
     refresh,
     submitPayment,
     retryPendingPayment: pending.retryPendingPayment,
-    abandonPendingPayment: pending.abandonPendingPayment,
   };
 }

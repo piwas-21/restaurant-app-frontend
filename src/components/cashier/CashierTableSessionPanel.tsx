@@ -5,19 +5,18 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import type { AddTableServiceSessionPaymentRequest, TableServiceSessionDto } from '@/types/order';
+import type { TableServiceSessionDto } from '@/types/order';
 import type { PendingTableOperation } from '@/lib/cashierTablePending';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { displayCashierTableError, pendingCashierTableNoticeLabel } from '@/lib/cashierTablePanelLabels';
-import { formatTableMoney, tableSessionActions } from '@/lib/cashierTableSession';
+import { formatTableMoney } from '@/lib/cashierTableSession';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
-import CashierTableSessionPaymentCollection from './CashierTableSessionPaymentCollection';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import styles from './CashierTableSession.module.css';
-import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 import CashierTableSessionConfirmationModals from './CashierTableSessionConfirmationModals';
 import CashierTableSessionActions from './CashierTableSessionActions';
+import TableOccupancyRecoveryAction from '@/components/table-service/TableOccupancyRecoveryAction';
 
 interface CashierTableSessionPanelProps {
   readonly session: TableServiceSessionDto;
@@ -29,12 +28,15 @@ interface CashierTableSessionPanelProps {
   readonly hasLegacyConflict?: boolean;
   readonly isRepairingLegacyOrders?: boolean;
   readonly onResolveLegacyOrders?: () => void;
+  readonly recoveryTableId?: string;
+  readonly recoveryEnabled?: boolean;
+  readonly onRecoveryComplete?: () => Promise<void>;
+  readonly onRecoveryLockChange?: (locked: boolean) => void;
+  readonly recoveryOperationPending?: boolean;
   readonly onBack: () => void;
   readonly onRefresh: () => void;
-  readonly onSubmitPayment: (payment: AddTableServiceSessionPaymentRequest) => Promise<void>;
   readonly onCloseSession: () => Promise<void>;
   readonly onReleaseTable: () => Promise<void>;
-  readonly onClearAndReleaseTable: () => Promise<void>;
   readonly onReconcilePendingOperation: () => Promise<void>;
 }
 
@@ -48,22 +50,23 @@ export default function CashierTableSessionPanel({
   hasLegacyConflict = false,
   isRepairingLegacyOrders = false,
   onResolveLegacyOrders,
+  recoveryTableId,
+  recoveryEnabled = false,
+  onRecoveryComplete,
+  onRecoveryLockChange,
+  recoveryOperationPending = false,
   onBack,
   onRefresh,
-  onSubmitPayment,
   onCloseSession,
   onReleaseTable,
-  onClearAndReleaseTable,
   onReconcilePendingOperation,
 }: CashierTableSessionPanelProps) {
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const tableDisplay = sessionTableDisplay(session, t);
-  const actions = tableSessionActions(session);
   const operationLocked = isMutating || pendingOperation !== null;
-  const writesLocked = operationLocked || isStale;
+  const writesLocked = operationLocked || isStale || recoveryOperationPending;
   const legacyConflict = hasLegacyConflict || session.hasUnassignedActiveOrders === true;
   const message = displayCashierTableError(error, t);
   const opened = formatCashierDateTime(
@@ -92,20 +95,11 @@ export default function CashierTableSessionPanel({
     }
   };
 
-  const confirmClearAndRelease = async () => {
-    try {
-      await onClearAndReleaseTable();
-      setShowClearConfirm(false);
-    } catch (_error) {
-      // Keep the warning visible so the refusal is reviewed before another attempt.
-    }
-  };
-
   return (
     <section className={styles.session} aria-labelledby="cashier-table-session-title">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <StaffButton onClick={onBack} disabled={operationLocked}>
+          <StaffButton onClick={onBack} disabled={operationLocked || recoveryOperationPending}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('cashier.tables.back')}
           </StaffButton>
@@ -184,38 +178,32 @@ export default function CashierTableSessionPanel({
         writesLocked={writesLocked}
         onShowCloseConfirm={() => setShowCloseConfirm(true)}
         onShowReleaseConfirm={() => setShowReleaseConfirm(true)}
-        onShowClearConfirm={() => setShowClearConfirm(true)}
       />
-      {session.status === 'Open' && !session.isTableReleased && (
-        <TableGuestAdmissionCodeSlot serviceSessionId={session.serviceSessionId} disabled={writesLocked} />
+      {recoveryTableId && onRecoveryComplete && (
+        <TableOccupancyRecoveryAction
+          tableId={recoveryTableId}
+          serviceSessionId={session.serviceSessionId}
+          enabled={recoveryEnabled}
+          disabled={operationLocked || isStale || isRepairingLegacyOrders}
+          onRecovered={onRecoveryComplete}
+          onNavigationLockChange={onRecoveryLockChange}
+        />
       )}
-
       <TableAccountPresentation
         session={session}
         timeZone={timeZone}
         fallback={<CashierTableSessionBill session={session} timeZone={timeZone} />}
       />
-      <CashierTableSessionPaymentCollection
-        session={session}
-        locked={writesLocked}
-        canCollect={actions.has('collect')}
-        onUpdated={onRefresh}
-        onSubmitPayment={onSubmitPayment}
-      />
-
       <CashierTableSessionConfirmationModals
         session={session}
         tableDisplay={tableDisplay}
-        isMutating={isMutating}
+        isMutating={isMutating || recoveryOperationPending}
         showCloseConfirm={showCloseConfirm}
         showReleaseConfirm={showReleaseConfirm}
-        showClearConfirm={showClearConfirm}
         onCloseConfirmChange={setShowCloseConfirm}
         onReleaseConfirmChange={setShowReleaseConfirm}
-        onClearConfirmChange={setShowClearConfirm}
         onConfirmClose={() => void confirmClose()}
         onConfirmRelease={() => void confirmRelease()}
-        onConfirmClear={() => void confirmClearAndRelease()}
       />
     </section>
   );

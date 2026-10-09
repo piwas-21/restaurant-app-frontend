@@ -35,6 +35,7 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
   const [uncertain, setUncertain] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const requestLock = useRef(false);
 
   const generate = async () => {
@@ -44,10 +45,15 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
     setCode(null);
     setExpiresAt(null);
     setUncertain(false);
+    setCopyState('idle');
     try {
-      const result = await createTableGuestAdmissionCode(serviceSessionId);
+      const result = await createTableGuestAdmissionCode(serviceSessionId, { preferShortCode: true });
       const expiry = Date.parse(result.expiresAt);
-      if (!/^[A-Z0-9]{10}$/.test(result.admissionCode) || !Number.isFinite(expiry) || expiry <= Date.now()) {
+      if (
+        !/^(?:[0-9A-HJKMNP-TV-Z]{6}|[0-9A-HJKMNP-TV-Z]{10})$/.test(result.admissionCode) ||
+        !Number.isFinite(expiry) ||
+        expiry <= Date.now()
+      ) {
         throw new Error('The guest code response could not be confirmed.');
       }
       setCode(result.admissionCode);
@@ -59,6 +65,18 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
     } finally {
       requestLock.current = false;
       setIsGenerating(false);
+    }
+  };
+
+  const copyCode = async () => {
+    if (!code) return;
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable');
+      await navigator.clipboard.writeText(code);
+      setCopyState('copied');
+    } catch (error: unknown) {
+      reportTableGuestFailure('copy admission code', error);
+      setCopyState('failed');
     }
   };
 
@@ -111,6 +129,19 @@ function AdmissionCodePanel({ serviceSessionId, disabled }: Omit<TableGuestAdmis
           <code className={styles.code} dir="ltr">
             {code}
           </code>
+          <button type="button" className={styles.copyButton} onClick={() => void copyCode()} disabled={disabled}>
+            {t('table_guest_staff_code_copy')}
+          </button>
+          {copyState === 'failed' && (
+            <p className={styles.error} role="alert">
+              {t('table_guest_staff_code_copy_failed')}
+            </p>
+          )}
+          {copyState === 'copied' && (
+            <p className={styles.detail}>
+              <output>{t('table_guest_staff_code_copied')}</output>
+            </p>
+          )}
           <p className={styles.expiry}>{t('table_guest_staff_code_expiry', { expiresAt: formattedExpiry })}</p>
         </div>
       )}

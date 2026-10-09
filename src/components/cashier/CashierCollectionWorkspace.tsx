@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
 import CashierCollectionPanel from './CashierCollectionPanel';
+import CashierSessionCollectionRoute from './CashierSessionCollectionRoute';
 import { useCashierCollection } from '@/hooks/cashier/useCashierCollection';
 import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { canCollectPayment } from '@/lib/settlementEligibility';
@@ -30,14 +31,18 @@ function collectionQueueState(isLoading: boolean, hasOrder: boolean, hasSelected
 export default function CashierCollectionWorkspace() {
   const { t } = useTranslation();
   const route = useCashierOrderRoute();
-  const collection = useCashierCollection(route.selectedOrderId);
+  const [sessionPaymentLocked, setSessionPaymentLocked] = useState(false);
+  const collection = useCashierCollection(route.selectedSessionId ? null : route.selectedOrderId);
+  const linkedSessionId = route.selectedSessionId || collection.order?.serviceSessionId || null;
   const pendingStatus = collection.pendingPayment?.status;
-  const pendingBlocksNavigation = pendingStatus !== undefined && pendingStatus !== 'Refused';
-  const isPending = collection.isMutating || collection.isCheckingPayment;
-  const navigationDisabled = isPending || pendingBlocksNavigation;
+  const pendingBlocksNavigation =
+    (pendingStatus !== undefined && pendingStatus !== 'Refused') || collection.recoveryError !== null;
+  const paymentBusy = collection.isMutating || collection.isCheckingPayment;
+  const isPending = paymentBusy || collection.recoveryError !== null;
+  const navigationDisabled = isPending || pendingBlocksNavigation || sessionPaymentLocked;
   const queueState = collectionQueueState(
-    collection.isLoading,
-    Boolean(collection.order),
+    collection.isLoading && !route.selectedSessionId,
+    Boolean(collection.order || route.selectedSessionId),
     route.selectedOrderId !== null,
   );
   const returnToOrder = useCallback(() => {
@@ -76,8 +81,10 @@ export default function CashierCollectionWorkspace() {
 
   return (
     <CashierWorkspaceShell activeDestination="orders" queueState={queueState} navigationDisabled={navigationDisabled}>
-      {collection.isLoading && <output className={styles.pendingNotice}>{t('cashier.workspace.order_loading')}</output>}
-      {!collection.isLoading && !collection.order && (
+      {collection.isLoading && !route.selectedSessionId && (
+        <output className={styles.pendingNotice}>{t('cashier.workspace.order_loading')}</output>
+      )}
+      {!collection.isLoading && !collection.order && !route.selectedSessionId && (
         <section className={styles.collection} aria-labelledby="cashier-collection-title">
           <h1 id="cashier-collection-title">{t('cashier.collection.title')}</h1>
           <p role={collection.error ? 'alert' : undefined}>
@@ -88,7 +95,23 @@ export default function CashierCollectionWorkspace() {
           </Link>
         </section>
       )}
-      {!collection.isLoading &&
+      {linkedSessionId && (
+        <CashierSessionCollectionRoute
+          key={linkedSessionId}
+          serviceSessionId={linkedSessionId}
+          orderId={route.selectedOrderId}
+          tableId={route.selectedTableId}
+          returnTo={route.sessionReturnTo}
+          legacyTenderManagedExternally={!route.selectedSessionId && route.selectedOrderId !== null}
+          externalWriteLocked={isPending || pendingBlocksNavigation}
+          externalPendingPayment={pendingBlocksNavigation ? collection.pendingPayment : null}
+          externalPaymentBusy={paymentBusy}
+          onRetryExternalPayment={() => void collection.retryPendingPayment()}
+          onNavigationLockChange={setSessionPaymentLocked}
+        />
+      )}
+      {!linkedSessionId &&
+        !collection.isLoading &&
         collection.order &&
         !canCollectPayment(collection.order) &&
         (!hasOutcome || Boolean(collection.order.externalOrder)) && (
@@ -127,19 +150,22 @@ export default function CashierCollectionWorkspace() {
             )}
           </section>
         )}
-      {canShowCollection && collection.order && (
+      {!linkedSessionId && canShowCollection && collection.order && (
         <CashierCollectionPanel
           order={collection.order}
           isPending={isPending}
+          isBusy={paymentBusy}
           isCheckingPayment={collection.isCheckingPayment}
           pendingPayment={collection.pendingPayment}
+          recoveryError={collection.recoveryError}
+          recoveryOrderId={collection.recoveryOrderId}
           recoveredPayment={collection.recoveredPayment}
           onSubmit={collection.submitPayment}
           onBack={returnToOrder}
           onNextSale={route.navigateToOrders}
           onReturnToOrder={returnToOrder}
           onRetryPendingPayment={collection.retryPendingPayment}
-          onAbandonPendingPayment={collection.abandonPendingPayment}
+          onOpenRecoveryOrder={route.navigateToCollection}
           onPrintReceipt={printReceipt}
         />
       )}

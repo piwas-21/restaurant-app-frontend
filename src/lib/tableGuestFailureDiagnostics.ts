@@ -15,6 +15,7 @@ const SAFE_ERROR_NAMES = new Set([
 export type TableGuestFailureOperation =
   | 'clear table context'
   | 'create admission code'
+  | 'copy admission code'
   | 'read account'
   | 'read public feature'
   | 'read pending round'

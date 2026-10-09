@@ -13,13 +13,10 @@ interface Props {
   readonly isMutating: boolean;
   readonly showCloseConfirm: boolean;
   readonly showReleaseConfirm: boolean;
-  readonly showClearConfirm: boolean;
   readonly onCloseConfirmChange: (open: boolean) => void;
   readonly onReleaseConfirmChange: (open: boolean) => void;
-  readonly onClearConfirmChange: (open: boolean) => void;
   readonly onConfirmClose: () => void;
   readonly onConfirmRelease: () => void;
-  readonly onConfirmClear: () => void;
 }
 
 export default function CashierTableSessionConfirmationModals({
@@ -28,13 +25,10 @@ export default function CashierTableSessionConfirmationModals({
   isMutating,
   showCloseConfirm,
   showReleaseConfirm,
-  showClearConfirm,
   onCloseConfirmChange,
   onReleaseConfirmChange,
-  onClearConfirmChange,
   onConfirmClose,
   onConfirmRelease,
-  onConfirmClear,
 }: Props) {
   const { t } = useTranslation();
   const currencyKnown = tableSessionCurrency(session) !== null;
@@ -83,25 +77,6 @@ export default function CashierTableSessionConfirmationModals({
         <p>{t('cashier.tables.release_confirm_message', { table: tableDisplay })}</p>
         <p className={styles.muted}>{t('cashier.tables.release_confirm_preserves')}</p>
         {currencyWarning}
-      </BaseModal>
-      <BaseModal
-        isOpen={showClearConfirm}
-        onClose={() => onClearConfirmChange(false)}
-        title={t('cashier.tables.clear_confirm_title')}
-        isPending={isMutating}
-        footer={
-          <div className={styles.formActions}>
-            <StaffButton onClick={() => onClearConfirmChange(false)} disabled={isMutating}>
-              {t('cashier.tables.cancel')}
-            </StaffButton>
-            <StaffButton variant="danger" onClick={onConfirmClear} disabled={isMutating}>
-              {isMutating ? t('cashier.tables.operation_checking') : t('cashier.tables.clear_and_release')}
-            </StaffButton>
-          </div>
-        }
-      >
-        <p>{t('cashier.tables.clear_confirm_message', { table: tableDisplay })}</p>
-        <p className={styles.warning}>{t('cashier.tables.clear_confirm_limits')}</p>
       </BaseModal>
     </>
   );

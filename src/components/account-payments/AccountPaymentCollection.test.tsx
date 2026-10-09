@@ -268,3 +268,60 @@ it('checks the original operation while feature-off recovery makes no account GE
   expect(api.getAccountPaymentAccount).not.toHaveBeenCalled();
   expect(api.collectAccountPayment).not.toHaveBeenCalled();
 });
+
+it('reconciles a saved operation before refreshing the account from the toolbar', async () => {
+  const account = {
+    serviceSessionId: visit,
+    status: 'Open' as const,
+    accountRevision: 4,
+    currency: 'CHF',
+    outstandingMinor: 100,
+    reservedMinor: 0,
+    availableMinor: 100,
+    capturedAccountPaymentMinor: 0,
+    outstandingAllocations: [],
+    availableAllocations: [],
+    activeEqualSharePlan: null,
+    activeAttempts: [],
+    limits: { maximumSelectedUnits: 20, maximumEqualShares: 10 },
+  };
+  persistPendingAccountPayment({
+    actorId: actor,
+    serviceSessionId: visit,
+    kind: 'payment',
+    stage: 'collecting',
+    expectedVersion: 2,
+    currency: 'CHF',
+    request,
+  });
+  api.getAccountPaymentAccount.mockResolvedValue(account);
+  api.getAccountPaymentOperation.mockResolvedValue(operation);
+
+  render(
+    <AccountPaymentCollection
+      actorId={actor}
+      session={session}
+      enabled
+      disabled={false}
+      recoveryEnabled
+      onUpdated={jest.fn(async () => undefined)}
+    />,
+  );
+
+  await waitFor(() => {
+    expect(api.getAccountPaymentOperation).toHaveBeenCalledTimes(1);
+    expect(api.getAccountPaymentAccount).toHaveBeenCalledTimes(2);
+  });
+  api.getAccountPaymentAccount.mockClear();
+  api.getAccountPaymentOperation.mockClear();
+
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.refresh' }));
+
+  await waitFor(() => {
+    expect(api.getAccountPaymentOperation).toHaveBeenCalledTimes(1);
+    expect(api.getAccountPaymentAccount).toHaveBeenCalledTimes(1);
+  });
+  expect(api.getAccountPaymentOperation.mock.invocationCallOrder[0]).toBeLessThan(
+    api.getAccountPaymentAccount.mock.invocationCallOrder[0],
+  );
+});

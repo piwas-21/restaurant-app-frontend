@@ -22,6 +22,17 @@ interface Props {
 
 type OwnedProps = Props & { readonly actorId: string; readonly actorRole: PendingTableReadiness['actorRole'] };
 
+function refusalMessageKey(code: string): string {
+  const keys: Record<string, string> = {
+    TableReadinessVersionStale: 'accountPayments.readiness.errors.version_stale',
+    TableReadinessVisitOpen: 'accountPayments.readiness.errors.visit_open',
+    TableReadinessNotAvailable: 'accountPayments.readiness.errors.not_available',
+    TableServiceTableInactive: 'accountPayments.readiness.errors.inactive',
+    TableServiceSessionAmbiguous: 'accountPayments.readiness.errors.ambiguous',
+  };
+  return keys[code] ?? 'accountPayments.readiness.refused';
+}
+
 function OwnedAction({
   actorId,
   actorRole,
@@ -34,12 +45,13 @@ function OwnedAction({
 }: OwnedProps) {
   const { t, i18n } = useTranslation();
   const { tableVisitReadinessV1: enabled } = useTenantFeatures();
+  const hasReadinessVersion = Number.isSafeInteger(readinessVersion) && (readinessVersion ?? 0) > 0;
   const action = useTableReadiness({
     actorId,
     actorRole,
     tableId,
     readinessVersion,
-    canStart: enabled === true && canMarkReady && !isStale,
+    canStart: enabled === true && canMarkReady && !isStale && hasReadinessVersion,
     snapshot,
     refresh,
   });
@@ -79,16 +91,25 @@ function OwnedAction({
   }
   const working = action.stage === 'working';
   const pending = action.stage === 'pending' || working;
+  let settledMessageKey = 'accountPayments.readiness.refused';
+  if (action.result?.kind === 'succeeded') {
+    settledMessageKey = 'accountPayments.readiness.succeeded';
+  } else if (action.result?.kind === 'refused') {
+    settledMessageKey = refusalMessageKey(action.result.code);
+  }
   return (
     <section id="table-readiness-actions" className={styles.panel} aria-label={t('accountPayments.readiness.title')}>
       <h2>{t('accountPayments.readiness.title')}</h2>
       {action.stage === 'idle' && (
         <>
           <p>{t('accountPayments.readiness.confirm_reset')}</p>
+          {enabled && canMarkReady && !hasReadinessVersion && (
+            <p role="alert">{t('accountPayments.readiness.version_unavailable')}</p>
+          )}
           <StaffButton
             variant="primary"
             onClick={() => void action.start()}
-            disabled={!enabled || !canMarkReady || isStale}
+            disabled={!enabled || !canMarkReady || isStale || !hasReadinessVersion}
           >
             {t('server.floor.ready_action')}
           </StaffButton>
@@ -113,14 +134,20 @@ function OwnedAction({
       {action.stage === 'unavailable' && <p role="alert">{t('accountPayments.readiness.storage_unavailable')}</p>}
       {action.stage === 'settled' && (
         <>
-          <output aria-live="polite">
-            {t(
-              action.result?.kind === 'succeeded'
-                ? 'accountPayments.readiness.succeeded'
-                : 'accountPayments.readiness.refused',
-            )}
-          </output>
-          <StaffButton onClick={() => void refresh().catch(() => undefined)}>{t('cashier.tables.retry')}</StaffButton>
+          <output aria-live="polite">{t(settledMessageKey)}</output>
+          {action.result?.kind === 'refused' && action.result.code !== 'unknown' && <code>{action.result.code}</code>}
+          <StaffButton onClick={() => void refresh().catch(() => undefined)}>
+            {t('accountPayments.readiness.refresh')}
+          </StaffButton>
+          {action.result?.kind === 'refused' && (
+            <StaffButton
+              variant="primary"
+              onClick={() => void action.start()}
+              disabled={!action.canRetryRefusal || !canMarkReady || isStale || !hasReadinessVersion}
+            >
+              {t('server.floor.ready_action')}
+            </StaffButton>
+          )}
         </>
       )}
     </section>

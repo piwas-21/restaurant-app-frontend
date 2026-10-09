@@ -24,3 +24,8 @@
   background: var(--feedback-danger-xlight);
   color: var(--feedback-danger-dark);
 }
+
+/* Dark feedback ink is paired with a raised dark surface, not the light tints. */
+html[data-theme='dark'] .health {
+  background: var(--surface-secondary);
+}

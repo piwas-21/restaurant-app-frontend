@@ -1,8 +1,14 @@
 import { z } from 'zod';
-import type { CreateAccountEqualSharePlanRequest, CreateAccountPaymentQuoteRequest } from '@/types/accountPayments';
+import { reportCashierRecoveryFailure } from './cashierRecoveryDiagnostics';
+import {
+  ACCOUNT_PAYMENT_MODES,
+  type CreateAccountEqualSharePlanRequest,
+  type CreateAccountPaymentQuoteRequest,
+} from '@/types/accountPayments';
 import { accountCashCollectionIntentSchema, type AccountCashCollectionIntent } from './accountCashCollectionIntent';
 
 const positiveInteger = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
+const nonNegativeInteger = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 export const ACCOUNT_PAYMENT_MAX_SELECTED_UNITS = 1000;
 const accountPaymentUuid = z.string().uuid();
 const accountPaymentCurrency = z.string().regex(/^[A-Z]{3}$/);
@@ -13,22 +19,55 @@ const quoteRequest = z
   .object({
     operationId: z.string().uuid(),
     expectedAccountRevision: positiveInteger,
-    mode: z.enum(['Items', 'Amount', 'Equal']),
+    mode: z.enum(ACCOUNT_PAYMENT_MODES),
     paymentMethod: z.enum(['Cash', 'CreditCard']),
-    selectedUnits: z.array(unit).max(ACCOUNT_PAYMENT_MAX_SELECTED_UNITS).optional(),
+    selectedUnits: z.array(unit).min(1).max(ACCOUNT_PAYMENT_MAX_SELECTED_UNITS).optional(),
     amountMinor: positiveInteger.optional(),
     equalSharePlanId: z.string().uuid().optional(),
     equalShareOrdinal: positiveInteger.optional(),
+    customSharePlanId: z.string().uuid().optional(),
+    customShareOrdinal: positiveInteger.optional(),
+    tipMinor: nonNegativeInteger.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((request, context) => {
+    const requiredByMode: Record<typeof request.mode, Array<keyof typeof request>> = {
+      Items: ['selectedUnits'],
+      Amount: ['amountMinor'],
+      Equal: ['equalSharePlanId', 'equalShareOrdinal'],
+      CustomAmount: ['customSharePlanId', 'customShareOrdinal'],
+      Full: [],
+    };
+    const scopedFields: Array<keyof typeof request> = [
+      'selectedUnits',
+      'amountMinor',
+      'equalSharePlanId',
+      'equalShareOrdinal',
+      'customSharePlanId',
+      'customShareOrdinal',
+    ];
+    for (const key of requiredByMode[request.mode]) {
+      if (request[key] === undefined) context.addIssue({ code: z.ZodIssueCode.custom, path: [key] });
+    }
+    const unrelatedFields = scopedFields.filter(
+      (key) => request[key] !== undefined && !requiredByMode[request.mode].includes(key),
+    );
+    for (const key of unrelatedFields) context.addIssue({ code: z.ZodIssueCode.custom, path: [key] });
+  });
 const planRequest = z
   .object({
     operationId: z.string().uuid(),
     expectedAccountRevision: positiveInteger,
     shareCount: positiveInteger,
     supersedesPlanId: z.string().uuid().optional(),
+    customAmountsMinor: z.array(positiveInteger).min(2).max(ACCOUNT_PAYMENT_MAX_SELECTED_UNITS).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((request, context) => {
+    if (request.customAmountsMinor !== undefined && request.customAmountsMinor.length !== request.shareCount) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['customAmountsMinor'] });
+    }
+  });
 const identity = { actorId: z.string().uuid(), serviceSessionId: z.string().uuid() };
 const descriptor = z.union([
   z.object({ ...identity, kind: z.literal('plan'), request: planRequest }).strict(),
@@ -72,6 +111,8 @@ export type PendingAccountPayment =
       cashIntent?: AccountCashCollectionIntent;
     };
 
+type PendingAccountPaymentWrite = Extract<PendingAccountPayment, { kind: 'payment' }>;
+
 export type PendingAccountPaymentRead =
   { status: 'none' } | { status: 'unavailable' } | { status: 'pending'; value: PendingAccountPayment };
 
@@ -103,21 +144,16 @@ export function readPendingAccountPayment(actorId: string, serviceSessionId: str
       return { status: 'unavailable' };
     return { status: 'pending', value: parsed.data };
   } catch (_storageError: unknown) {
-    // Invalid JSON and inaccessible storage both stay unavailable; the caller shows its safe recovery lock.
+    // Invalid JSON and inaccessible storage both stay unavailable.
   }
   return { status: 'unavailable' };
 }
 
-function preservesPaymentBindings(
-  saved: Extract<PendingAccountPayment, { kind: 'payment' }>,
-  incoming: Extract<PendingAccountPayment, { kind: 'payment' }>,
-): boolean {
-  const savedCurrency = 'currency' in saved ? saved.currency : undefined;
-  const savedCashIntent = 'cashIntent' in saved ? saved.cashIntent : undefined;
-  const incomingCurrency = 'currency' in incoming ? incoming.currency : undefined;
-  const incomingCashIntent = 'cashIntent' in incoming ? incoming.cashIntent : undefined;
-  if (savedCurrency !== undefined && incomingCurrency !== savedCurrency) return false;
-  return savedCashIntent === undefined || JSON.stringify(incomingCashIntent) === JSON.stringify(savedCashIntent);
+function preservesPaymentBindings(saved: PendingAccountPaymentWrite, incoming: PendingAccountPaymentWrite): boolean {
+  return (
+    (saved.currency === undefined || incoming.currency === saved.currency) &&
+    (saved.cashIntent === undefined || JSON.stringify(incoming.cashIntent) === JSON.stringify(saved.cashIntent))
+  );
 }
 
 function canReplaceDescriptor(saved: PendingAccountPaymentRead, incoming: PendingAccountPayment): boolean {
@@ -144,10 +180,10 @@ export function persistPendingAccountPayment(value: PendingAccountPayment): bool
   try {
     window.sessionStorage.setItem(key(value.actorId, value.serviceSessionId), JSON.stringify(parsed.data));
     return true;
-  } catch (_storageError: unknown) {
-    // The caller surfaces this false result and blocks writes; storage exception text may contain private data.
+  } catch (error: unknown) {
+    reportCashierRecoveryFailure('save account payment journal', error);
+    return false;
   }
-  return false;
 }
 
 export function clearPendingAccountPayment(actorId: string, serviceSessionId: string, operationId: string): boolean {
@@ -157,8 +193,8 @@ export function clearPendingAccountPayment(actorId: string, serviceSessionId: st
   try {
     window.sessionStorage.removeItem(key(actorId, serviceSessionId));
     return true;
-  } catch (_storageError: unknown) {
-    // The caller keeps the recovery lock until authoritative reconciliation; do not log storage details.
+  } catch (error: unknown) {
+    reportCashierRecoveryFailure('clear account payment journal', error);
+    return false;
   }
-  return false;
 }

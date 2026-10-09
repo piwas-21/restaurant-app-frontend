@@ -1,257 +1,140 @@
-/* Tip Card Container */
+/* Shared checkout and staff tip controls use the same theme tokens. */
 .tipCard {
-  background: var(--background-color);
-  border: 1px solid var(--border-color);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
   border-radius: 12px;
-  padding: 1.5rem;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  padding: 1.25rem;
 }
 
-[data-theme='dark'] .tipCard {
-  background: var(--secondary-color);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.tipCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme='dark'] .tipCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* Header */
-.tipHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-}
-
+.tipHeader,
 .tipHeaderContent {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 0.5rem;
 }
 
+.tipHeader {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
 .heartIcon {
-  color: var(--primary-color);
+  color: var(--brand-primary);
   flex-shrink: 0;
 }
 
 .tipTitle {
-  margin: 0;
+  color: var(--text-primary);
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-color);
+  margin: 0;
 }
 
 .optionalBadge {
+  background: var(--surface-secondary);
+  border-radius: 12px;
+  color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--secondary-color);
   padding: 0.25rem 0.625rem;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-[data-theme='dark'] .optionalBadge {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
-}
-
-/* Tip Options Grid */
 .tipOptions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1rem;
 }
 
 .tipButton {
+  align-items: center;
+  background: var(--surface-secondary);
+  border: 2px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.875rem 0.5rem;
-  background: var(--background-color);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 70px;
   gap: 0.25rem;
+  justify-content: center;
+  min-height: 4rem;
+  min-width: 0;
+  padding: 0.75rem 0.5rem;
 }
 
-[data-theme='dark'] .tipButton {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
+.tipButton:hover:not(:disabled),
+.tipButton:focus-visible {
+  border-color: var(--brand-primary);
 }
 
-.tipButton:hover {
-  border-color: var(--primary-color);
-  background: var(--color-sky-50-b);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
-}
-
-[data-theme='dark'] .tipButton:hover {
-  border-color: var(--primary-color);
-  background: rgba(74, 158, 255, 0.1);
+.tipButton:focus-visible,
+.customTipInput:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .tipButton.selected {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.tipButton:disabled {
+  cursor: default;
+}
+
+.tipLabel,
+.tipPercentage {
+  color: inherit;
+  font-weight: 600;
 }
 
 .tipLabel {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.tipButton.selected .tipLabel {
-  color: white;
 }
 
 .tipPercentage {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-color);
-}
-
-.tipButton.selected .tipPercentage {
-  color: white;
 }
 
 .tipAmount {
-  font-size: 0.75rem;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 0.75rem;
 }
 
 .tipButton.selected .tipAmount {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-on-primary);
 }
 
-/* Custom Tip Section */
 .customTipContainer {
+  border-top: 1px solid var(--border-default);
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-[data-theme='dark'] .customTipContainer {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.customTipLabel {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.customTipInputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.currencySymbol {
-  position: absolute;
-  inset-inline-start: 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  pointer-events: none;
 }
 
 .customTipInput {
-  width: 100%;
-  /* Was the 4-value shorthand `0.75rem 1rem 0.75rem 3.5rem` — DIRECTIONAL in slots 2 and 4,
-     and therefore invisible to the ratchet's property-anchored regex (DESIGN-SYSTEM.md §8.1).
-     Slot 4 is the gutter reserving room for `.currencySymbol`, which just moved to
-     `inset-inline-start`; split so the two stay on the same edge in `ar`. */
-  padding-block: 0.75rem;
-  padding-inline: 3.5rem 1rem;
-  border: 2px solid var(--border-color);
+  background: var(--surface-secondary);
+  border: 2px solid var(--border-default);
   border-radius: 8px;
+  color: var(--text-primary);
   font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  background: var(--background-color);
-  color: var(--text-color);
-}
-
-[data-theme='dark'] .customTipInput {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-color);
-}
-
-.customTipInput:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-[data-theme='dark'] .customTipInput:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+  padding: 0.75rem 1rem;
+  width: 100%;
 }
 
 .customTipInput::placeholder {
   color: var(--text-secondary);
 }
 
-/* Remove number input arrows */
-.customTipInput::-webkit-outer-spin-button,
-.customTipInput::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.customTipInput[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .tipCard {
-    padding: 1.25rem;
+    padding: 1rem;
   }
-
   .tipOptions {
-    grid-template-columns: repeat(2, 1fr);
     gap: 0.625rem;
-  }
-
-  .tipButton {
-    min-height: 65px;
-    padding: 0.75rem 0.5rem;
-  }
-
-  .tipPercentage {
-    font-size: 0.9375rem;
-  }
-
-  .tipAmount {
-    font-size: 0.6875rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .tipOptions {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -97,15 +97,30 @@ export function useTableReadiness({
   }, [actorId, actorRole, run, tableId]);
 
   useEffect(() => {
-    if (state.stage === 'settled' && canStart && snapshot !== settledSnapshot.current) {
+    if (
+      state.stage === 'settled' &&
+      state.result?.kind === 'succeeded' &&
+      canStart &&
+      snapshot !== settledSnapshot.current
+    ) {
       setState({ stage: 'idle' });
     }
-  }, [canStart, snapshot, state.stage]);
+  }, [canStart, snapshot, state.result, state.stage]);
+
+  const canRetryRefusal =
+    state.stage === 'settled' &&
+    state.result?.kind === 'refused' &&
+    snapshot !== settledSnapshot.current &&
+    canStart &&
+    Number.isSafeInteger(readinessVersion) &&
+    (readinessVersion ?? 0) > 0;
 
   const start = useCallback(async () => {
+    const retryingRefusal =
+      state.stage === 'settled' && state.result?.kind === 'refused' && snapshot !== settledSnapshot.current;
     if (
       inFlight.current ||
-      state.stage !== 'idle' ||
+      (state.stage !== 'idle' && !retryingRefusal) ||
       !canStart ||
       !Number.isSafeInteger(readinessVersion) ||
       (readinessVersion ?? 0) <= 0
@@ -135,7 +150,7 @@ export function useTableReadiness({
       // Crypto or storage failure prevents a safe request, so leave readiness unavailable.
     }
     setState({ stage: 'unavailable' });
-  }, [actorId, actorRole, canStart, readinessVersion, run, state.stage, tableId]);
+  }, [actorId, actorRole, canStart, readinessVersion, run, snapshot, state.result, state.stage, tableId]);
 
   const check = useCallback(async () => {
     if (pending.current) await run(pending.current, false);
@@ -143,5 +158,5 @@ export function useTableReadiness({
   const retry = useCallback(async () => {
     if (pending.current) await run(pending.current, true);
   }, [run]);
-  return { ...state, start, check, retry };
+  return { ...state, canRetryRefusal, start, check, retry };
 }

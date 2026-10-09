@@ -11,7 +11,8 @@ export type AccountPaymentState =
   | 'Released'
   | 'Failed'
   | 'ReconciliationRequired';
-export type AccountPaymentMode = 'Items' | 'Amount' | 'Equal' | 'CustomAmount' | 'Full';
+export const ACCOUNT_PAYMENT_MODES = ['Items', 'Amount', 'Equal', 'CustomAmount', 'Full'] as const;
+export type AccountPaymentMode = (typeof ACCOUNT_PAYMENT_MODES)[number];
 export type AccountManualPaymentMethod = 'Cash' | 'CreditCard';
 export type AccountPaymentSummaryMethod = AccountManualPaymentMethod | 'OnlinePayment';
 
@@ -64,7 +65,6 @@ export interface AccountEqualSharePlan {
   createdAt: string;
   invalidatedAt: string | null;
   scope: AccountPaymentAllocation[];
-  isCustom?: boolean;
   customAmountsMinor?: number[] | null;
 }
 

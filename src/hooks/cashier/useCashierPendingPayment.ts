@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { useCallback, useState, type MutableRefObject } from 'react';
 import type { AddPaymentRequest } from '@/services/cashierService';
 import type { OrderDto } from '@/types/order';
 import {
   clearPendingPayment,
   persistPendingPayment,
-  readPendingPayment,
+  readPendingPaymentState,
   type PendingPaymentOperation,
+  withPendingPaymentStatus,
 } from '@/lib/cashierPendingPayment';
 import type { ReconcilePayment } from './useCashierCollectionOutcome';
+import { paymentRecoveryErrorFor, useCashierPendingPaymentRecovery } from './useCashierPendingPaymentRecovery';
 
 interface UseCashierPendingPaymentOptions {
   readonly orderId: string | null;
@@ -22,28 +24,26 @@ interface UseCashierPendingPaymentOptions {
 
 export interface CashierPendingPaymentController {
   readonly pendingPayment: PendingPaymentOperation | null;
+  readonly recoveryError: string | null;
+  readonly recoveryOrderId: string | null;
   readonly recoveredPayment: {
     readonly applied: number;
     readonly tip?: number;
     readonly tenderTotal?: number;
-    readonly change: number;
+    readonly change?: number;
     readonly remaining: number;
   } | null;
-  readonly markSubmitted: (orderId: string, payment: AddPaymentRequest) => void;
+  readonly markSubmitted: (orderId: string, payment: AddPaymentRequest, cashReceivedMinor?: number) => boolean;
   readonly markCommitted: (operationId: string, order: OrderDto) => void;
-  readonly markUnknown: (orderId: string, payment: AddPaymentRequest, order: OrderDto | null) => void;
-  readonly markUnavailable: (orderId: string, payment: AddPaymentRequest) => void;
+  readonly markUnknown: (
+    orderId: string,
+    payment: AddPaymentRequest,
+    order: OrderDto | null,
+    cashReceivedMinor?: number,
+  ) => void;
+  readonly markUnavailable: (orderId: string, payment: AddPaymentRequest, cashReceivedMinor?: number) => void;
   readonly markRefused: (orderId: string, payment: AddPaymentRequest) => void;
   readonly retryPendingPayment: () => Promise<void>;
-  readonly abandonPendingPayment: () => void;
-}
-
-function withStatus(
-  orderId: string,
-  payment: AddPaymentRequest,
-  status: PendingPaymentOperation['status'],
-): PendingPaymentOperation {
-  return { ...payment, orderId, status };
 }
 
 export function useCashierPendingPayment({
@@ -56,99 +56,74 @@ export function useCashierPendingPayment({
   setOutcomeOrderId,
   paymentRevisionRef,
 }: UseCashierPendingPaymentOptions): CashierPendingPaymentController {
+  const initialState = readPendingPaymentState(orderId);
   const [pendingPayment, setPendingPayment] = useState<PendingPaymentOperation | null>(() =>
-    readPendingPayment(orderId),
+    initialState.status === 'pending' ? initialState.operation : null,
   );
+  const [recoveryError, setRecoveryError] = useState<string | null>(() => paymentRecoveryErrorFor(initialState.status));
   const [recoveredPayment, setRecoveredPayment] = useState<{
     readonly applied: number;
     readonly tip?: number;
     readonly tenderTotal?: number;
-    readonly change: number;
+    readonly change?: number;
     readonly remaining: number;
   } | null>(null);
-  const requestNumberRef = useRef(0);
+  const retryPendingPayment = useCashierPendingPaymentRecovery({
+    orderId,
+    pendingPayment,
+    recoveryError,
+    mountedRef,
+    reconcilePayment,
+    cancelReconciliation,
+    setPendingPayment,
+    setRecoveryError,
+    setRecoveredPayment,
+    setOrder,
+    setError,
+    setOutcomeOrderId,
+    paymentRevisionRef,
+  });
 
-  const resume = useCallback(
-    async (saved: PendingPaymentOperation): Promise<void> => {
-      if (!mountedRef.current || !orderId) return;
-      const requestId = ++requestNumberRef.current;
-      setPendingPayment({ ...saved, status: 'Checking' });
-      try {
-        const result = await reconcilePayment(orderId, saved.operationId);
-        if (!mountedRef.current || requestId !== requestNumberRef.current || result.status === 'Stale') return;
-        if (result.status === 'Committed') {
-          clearPendingPayment(saved.operationId);
-          setPendingPayment(null);
-          const tip = (saved.tipMinor ?? 0) / 100;
-          setRecoveredPayment({
-            applied: saved.amount,
-            tip,
-            tenderTotal: saved.amount + tip,
-            change: 0,
-            remaining: result.order.remainingAmount,
-          });
-          paymentRevisionRef.current += 1;
-          setOrder(result.order);
-          setOutcomeOrderId(result.order.id);
-          setError(null);
-          return;
-        }
-        if (result.status === 'Unknown') {
-          setPendingPayment({ ...saved, status: 'Unknown' });
-          if (result.order) {
-            paymentRevisionRef.current += 1;
-            setOrder(result.order);
-          }
-          setError('cashier.payment_result_unknown');
-          return;
-        }
-        setPendingPayment({ ...saved, status: 'Unavailable' });
-        setError('cashier.payment_check_failed');
-      } catch (_error) {
-        // A failed lookup leaves the operation 'Unavailable'; the error is surfaced as a state the
-        // cashier can retry, so swallowing the value here is the deliberate handling.
-        if (mountedRef.current && requestId === requestNumberRef.current) {
-          setPendingPayment({ ...saved, status: 'Unavailable' });
-          setError('cashier.payment_check_failed');
-        }
-      }
-    },
-    [mountedRef, orderId, paymentRevisionRef, reconcilePayment, setError, setOrder, setOutcomeOrderId],
-  );
-
-  useEffect(() => {
-    setPendingPayment(readPendingPayment(orderId));
+  const markSubmitted = useCallback((nextOrderId: string, payment: AddPaymentRequest, cashReceivedMinor?: number) => {
+    const result = persistPendingPayment(nextOrderId, payment, cashReceivedMinor);
+    if (result !== 'saved') {
+      setRecoveryError(
+        result === 'blocked' ? 'cashier.payment_recovery_unreadable' : 'cashier.payment_recovery_unavailable',
+      );
+      return false;
+    }
     setRecoveredPayment(null);
-    setOutcomeOrderId(null);
-    if (!orderId) return () => undefined;
-    const saved = readPendingPayment(orderId);
-    if (saved) void resume(saved);
-    return () => {
-      requestNumberRef.current += 1;
-      cancelReconciliation();
-    };
-  }, [cancelReconciliation, orderId, resume, setOutcomeOrderId]);
-
-  const markSubmitted = useCallback((nextOrderId: string, payment: AddPaymentRequest) => {
-    setRecoveredPayment(null);
-    persistPendingPayment(nextOrderId, payment);
-    setPendingPayment(withStatus(nextOrderId, payment, 'Checking'));
+    setRecoveryError(null);
+    setPendingPayment(withPendingPaymentStatus(nextOrderId, payment, 'Checking', cashReceivedMinor));
+    return true;
   }, []);
 
   const markCommitted = useCallback(
     (operationId: string, updated: OrderDto) => {
-      clearPendingPayment(operationId);
-      setPendingPayment(null);
+      const cleared = clearPendingPayment(operationId, updated.id);
+      if (cleared) {
+        setPendingPayment(null);
+        setRecoveryError(null);
+      } else {
+        const stored = readPendingPaymentState(updated.id);
+        setPendingPayment(
+          stored.status === 'pending' && stored.operation.operationId === operationId
+            ? withPendingPaymentStatus(updated.id, stored.operation, 'Unavailable', stored.operation.cashReceivedMinor)
+            : null,
+        );
+        setRecoveryError('cashier.payment_recovery_unreadable');
+        setError('cashier.payment_check_failed');
+      }
       paymentRevisionRef.current += 1;
       setOrder(updated);
       setOutcomeOrderId(updated.id);
     },
-    [paymentRevisionRef, setOrder, setOutcomeOrderId],
+    [paymentRevisionRef, setError, setOrder, setOutcomeOrderId],
   );
 
   const markUnknown = useCallback(
-    (nextOrderId: string, payment: AddPaymentRequest, updated: OrderDto | null) => {
-      setPendingPayment(withStatus(nextOrderId, payment, 'Unknown'));
+    (nextOrderId: string, payment: AddPaymentRequest, updated: OrderDto | null, cashReceivedMinor?: number) => {
+      setPendingPayment(withPendingPaymentStatus(nextOrderId, payment, 'Unknown', cashReceivedMinor));
       if (updated) {
         paymentRevisionRef.current += 1;
         setOrder(updated);
@@ -159,35 +134,23 @@ export function useCashierPendingPayment({
   );
 
   const markUnavailable = useCallback(
-    (nextOrderId: string, payment: AddPaymentRequest) => {
-      setPendingPayment(withStatus(nextOrderId, payment, 'Unavailable'));
+    (nextOrderId: string, payment: AddPaymentRequest, cashReceivedMinor?: number) => {
+      setPendingPayment(withPendingPaymentStatus(nextOrderId, payment, 'Unavailable', cashReceivedMinor));
       setError('cashier.payment_check_failed');
     },
     [setError],
   );
 
   const markRefused = useCallback((nextOrderId: string, payment: AddPaymentRequest) => {
-    clearPendingPayment(payment.operationId);
-    setPendingPayment(withStatus(nextOrderId, payment, 'Refused'));
+    const cleared = clearPendingPayment(payment.operationId, nextOrderId);
+    setPendingPayment(cleared ? withPendingPaymentStatus(nextOrderId, payment, 'Refused') : null);
+    if (!cleared) setRecoveryError('cashier.payment_recovery_unreadable');
   }, []);
-
-  const retryPendingPayment = useCallback(async () => {
-    if (!pendingPayment || pendingPayment.status === 'Checking' || pendingPayment.status === 'Refused') return;
-    await resume(pendingPayment);
-  }, [pendingPayment, resume]);
-
-  const abandonPendingPayment = useCallback(() => {
-    if (pendingPayment?.status !== 'Unknown') return;
-    requestNumberRef.current += 1;
-    cancelReconciliation();
-    clearPendingPayment(pendingPayment.operationId);
-    setPendingPayment(null);
-    setRecoveredPayment(null);
-    setError(null);
-  }, [cancelReconciliation, pendingPayment, setError]);
 
   return {
     pendingPayment,
+    recoveryError,
+    recoveryOrderId: initialState.status === 'other-order' ? initialState.operation.orderId : null,
     recoveredPayment,
     markSubmitted,
     markCommitted,
@@ -195,6 +158,5 @@ export function useCashierPendingPayment({
     markUnavailable,
     markRefused,
     retryPendingPayment,
-    abandonPendingPayment,
   };
 }

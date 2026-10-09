@@ -106,9 +106,13 @@ export function useTableServiceSession(
     async (payment: AddTableServiceSessionPaymentRequest): Promise<TableServiceSessionDto> => {
       if (!serviceSessionId || !session) throw new Error('cashier.tables.session_required');
       if (pendingOperation || inFlightRef.current) throw new Error('cashier.tables.operation_pending');
+      if (!persistPendingTablePayment(serviceSessionId, payment)) {
+        const recoveryError = 'cashier.payment_recovery_unavailable';
+        setError(recoveryError);
+        throw new Error(recoveryError);
+      }
       const operationId = beginTableSessionMutation(requestRef, inFlightRef, setIsLoading, operationRef);
       const current = () => isCurrentTableSessionMutation(mountedRef, operationRef, operationId);
-      persistPendingTablePayment(serviceSessionId, payment);
       setPendingOperation({ kind: 'payment', serviceSessionId, ...payment, status: 'Checking' });
       setIsMutating(true);
       setError(null);

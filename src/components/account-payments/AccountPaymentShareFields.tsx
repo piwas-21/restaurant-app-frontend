@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
+import StaffButton from '@/components/design-system/StaffButton';
 import type { AccountEqualShareSummary } from '@/types/accountPaymentAccount';
 import styles from './AccountPaymentCollection.module.css';
 
@@ -17,8 +18,11 @@ interface Props {
   readonly disabled: boolean;
   readonly maximumShares: number;
   readonly money: (minor: number) => string;
+  readonly customErrors: Array<string | undefined>;
+  readonly remainderLabel: string;
   readonly onSharesChange: (value: string) => void;
   readonly onCustomAmountChange: (index: number, value: string) => void;
+  readonly onFillRemainder: (index: number) => void;
   readonly onOrdinalChange: (value: string) => void;
 }
 
@@ -32,8 +36,11 @@ export default function AccountPaymentShareFields({
   disabled,
   maximumShares,
   money,
+  customErrors,
+  remainderLabel,
   onSharesChange,
   onCustomAmountChange,
+  onFillRemainder,
   onOrdinalChange,
 }: Props) {
   const { t } = useTranslation();
@@ -42,17 +49,28 @@ export default function AccountPaymentShareFields({
 
   if (planMatchesChoice && plan) {
     return (
-      <FormField label={t('accountPayments.choose_share')}>
-        <select value={ordinal} onChange={(event) => onOrdinalChange(event.target.value)} disabled={disabled}>
-          <option value="">{t('accountPayments.choose_share')}</option>
+      <>
+        <FormField label={t('accountPayments.choose_share')}>
+          <select value={ordinal} onChange={(event) => onOrdinalChange(event.target.value)} disabled={disabled}>
+            <option value="">{t('accountPayments.choose_share')}</option>
+            {plan.slots.map((slot) => (
+              <option key={slot.ordinal} value={slot.ordinal} disabled={!slot.isAvailable}>
+                {t('accountPayments.share_number', { number: slot.ordinal })} · {money(slot.amountMinor)}
+                {!slot.isAvailable ? ` · ${t('accountPayments.share_unavailable')}` : ''}
+              </option>
+            ))}
+          </select>
+        </FormField>
+        <ul className={styles.sharePreview} aria-label={t('accountPayments.share_preview')}>
           {plan.slots.map((slot) => (
-            <option key={slot.ordinal} value={slot.ordinal} disabled={!slot.isAvailable}>
-              {t('accountPayments.share_number', { number: slot.ordinal })} · {money(slot.amountMinor)}
-              {!slot.isAvailable ? ` · ${t('accountPayments.share_unavailable')}` : ''}
-            </option>
+            <li key={slot.ordinal}>
+              <span>{t('accountPayments.share_number', { number: slot.ordinal })}</span>
+              <strong>{money(slot.amountMinor)}</strong>
+              {!slot.isAvailable && <span>{t('accountPayments.share_unavailable')}</span>}
+            </li>
           ))}
-        </select>
-      </FormField>
+        </ul>
+      </>
     );
   }
 
@@ -69,17 +87,29 @@ export default function AccountPaymentShareFields({
           disabled={disabled}
         />
       </FormField>
-      {choice === 'CustomAmount' &&
-        Array.from({ length: Math.min(Number(shares) || 0, maximumShares) }, (_, index) => (
-          <FormField key={index} label={t('accountPayments.share_amount', { number: index + 1 })}>
-            <input
-              inputMode="decimal"
-              value={customAmounts[index] ?? ''}
-              onChange={(event) => onCustomAmountChange(index, event.target.value)}
-              disabled={disabled}
-            />
-          </FormField>
-        ))}
+      {choice === 'CustomAmount' && (
+        <>
+          <p className={styles.note}>{t('accountPayments.custom_shares_scope')}</p>
+          <p className={styles.note}>
+            <output>{remainderLabel}</output>
+          </p>
+          {Array.from({ length: Math.min(Number(shares) || 0, maximumShares) }, (_, index) => (
+            <div key={index} className={styles.shareInput}>
+              <FormField label={t('accountPayments.share_amount', { number: index + 1 })} error={customErrors[index]}>
+                <input
+                  inputMode="decimal"
+                  value={customAmounts[index] ?? ''}
+                  onChange={(event) => onCustomAmountChange(index, event.target.value)}
+                  disabled={disabled}
+                />
+              </FormField>
+              <StaffButton disabled={disabled} onClick={() => onFillRemainder(index)}>
+                {t('accountPayments.fill_remainder')}
+              </StaffButton>
+            </div>
+          ))}
+        </>
+      )}
     </>
   );
 }

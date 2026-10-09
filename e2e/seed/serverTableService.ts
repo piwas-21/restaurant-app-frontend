@@ -30,7 +30,9 @@ export async function createServerTableFixture(): Promise<ServerTableFixture> {
     if (reusable) {
       await client.query(
         `UPDATE "Tables"
-         SET is_active = TRUE, updated_at = CURRENT_TIMESTAMP, updated_by = $2
+         SET is_active = TRUE, readiness_state = 'NeedsReset',
+             readiness_version = readiness_version + 1,
+             updated_at = CURRENT_TIMESTAMP, updated_by = $2
          WHERE id = $1`,
         [reusable.id, CREATED_BY],
       );
@@ -63,36 +65,6 @@ export async function createServerTableFixture(): Promise<ServerTableFixture> {
     throw error;
   } finally {
     client.release();
-  }
-}
-
-/**
- * Kitchen and printer-app are outside this browser test. Move the round to the
- * exact persisted state their real acknowledgements produce so the Server task
- * feed can exercise its real delivery mutation.
- */
-export async function makeServerRoundDeliverable(orderId: string): Promise<void> {
-  const pool = getE2EDbPool();
-  const order = await pool.query(
-    `UPDATE orders
-     SET status = 'Ready', updated_at = CURRENT_TIMESTAMP
-     WHERE id = $1 AND service_session_id IS NOT NULL`,
-    [orderId],
-  );
-  if (order.rowCount !== 1) {
-    throw new Error(`Expected one table-service order to become Ready; updated ${order.rowCount ?? 0}`);
-  }
-
-  const routing = await pool.query(
-    `UPDATE "OrderRoutingStates"
-     SET status = 'Printed', failure_reason = NULL,
-         last_acknowledged_at = CURRENT_TIMESTAMP,
-         updated_at = CURRENT_TIMESTAMP, version = version + 1
-     WHERE order_id = $1 AND is_required = TRUE`,
-    [orderId],
-  );
-  if ((routing.rowCount ?? 0) < 1) {
-    throw new Error('The created round has no required routing state to acknowledge');
   }
 }
 

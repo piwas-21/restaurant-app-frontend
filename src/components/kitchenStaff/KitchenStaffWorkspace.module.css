@@ -1,5 +1,6 @@
 .workspace {
   display: grid;
+  align-content: start;
   gap: var(--space-3, 0.75rem);
   min-block-size: 100%;
   padding: clamp(0.75rem, 2vw, 1.5rem);

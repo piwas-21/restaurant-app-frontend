@@ -61,11 +61,20 @@ function matchesPlanResult(
   result: AccountEqualSharePlan,
   visitCurrency: string | null,
 ): boolean {
+  const expectedCustomAmounts = saved.kind === 'plan' ? saved.request.customAmountsMinor : undefined;
+  const actualCustomAmounts = result.customAmountsMinor ?? undefined;
+  const sameCustomAmounts =
+    expectedCustomAmounts === undefined
+      ? actualCustomAmounts === undefined || actualCustomAmounts.length === 0
+      : actualCustomAmounts !== undefined &&
+        actualCustomAmounts.length === expectedCustomAmounts.length &&
+        actualCustomAmounts.every((amount, index) => amount === expectedCustomAmounts[index]);
   return (
     saved.kind === 'plan' &&
     visitCurrency !== null &&
     result.currency === visitCurrency &&
     result.shareCount === saved.request.shareCount &&
+    sameCustomAmounts &&
     result.accountRevision === saved.request.expectedAccountRevision &&
     Number.isSafeInteger(result.totalMinor) &&
     result.totalMinor >= result.shareCount

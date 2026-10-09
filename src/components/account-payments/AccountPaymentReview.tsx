@@ -128,7 +128,7 @@ export default function AccountPaymentReview({
   const canRelease = canReleaseReviewedOperation(recoveryReleaseEnabled, pending, operation, session);
   const cashEvidence = operation.paymentMethod === 'Cash' ? readAccountCashEvidence(operation) : null;
   const cashDueMinor = cashEvidence?.status === 'valid' ? cashEvidence.settlement.dueAmountMinor : null;
-  const cashReceived = parseAccountContributionMinor(received, operation.currency);
+  const cashReceived = parseAccountContributionMinor(received, operation.currency, i18n.language || 'en');
   const cashIntent = pending?.kind === 'payment' ? pending.cashIntent : undefined;
   const legacyCashRelease = isLegacyCashRelease(collectionUnknown, operation, cashIntent, reserved, canRelease);
   const unknownWrite = releaseUnknown || (collectionUnknown && !legacyCashRelease);

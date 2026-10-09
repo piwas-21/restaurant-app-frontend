@@ -14,7 +14,7 @@
     "share_number": "Quota {{number}}",
     "share_unavailable": "Pagata o in corso",
     "item_remaining_note": "Gli importi mostrano il valore ancora da pagare per ciascuna quantità selezionata. Le spese condivise sono incluse nei contributi per importo.",
-    "equal_note": "Le quote restano fisse per il conto esaminato. L'arrotondamento aggiunge un centesimo ad alcune quote; i turni successivi non rientrano in questo piano.",
+    "equal_note": "Per CHF ed EUR, le prime quote vengono arrotondate per difetto a 0,05; l’ultima copre esattamente il resto. Il piano resta fisso per questo conto; i turni successivi sono esclusi.",
     "create_plan": "Esamina e crea le quote",
     "review": "Esamina il contributo",
     "identity_mismatch": "La risposta non corrisponde a questo contributo esaminato. Conserva l'operazione originale e controllane l'esito.",
@@ -71,7 +71,16 @@
       "retry": "Ripeti richiesta originale",
       "storage_unavailable": "Impossibile leggere o salvare il recupero qui. Chiedi al personale autorizzato di controllare il tavolo.",
       "succeeded": "La richiesta originale è riuscita. Aggiorna il tavolo; questo risultato non apre una visita.",
-      "refused": "La richiesta originale è stata rifiutata. Aggiorna prima di una nuova richiesta."
+      "refused": "La richiesta originale è stata rifiutata. Aggiorna prima di una nuova richiesta.",
+      "version_unavailable": "La versione di disponibilità del tavolo manca o non è valida. Aggiorna prima di segnalarlo pronto.",
+      "refresh": "Aggiorna lo stato del tavolo",
+      "errors": {
+        "version_stale": "Il tavolo è cambiato. Aggiorna lo stato e riprova.",
+        "visit_open": "Chiudi o recupera la visita attiva prima di preparare il tavolo.",
+        "not_available": "Questo tavolo non è in attesa di essere preparato. Aggiorna lo stato.",
+        "inactive": "Questo tavolo è inattivo. Chiedi a un amministratore di riattivarlo.",
+        "ambiguous": "A questo tavolo sono associate più visite. Verificale e recuperale prima di continuare."
+      }
     },
     "cash": {
       "exact_charge": "Importo esatto del conto",
@@ -83,10 +92,67 @@
       "legacy_unattested": "L’importo ricevuto e il resto di questo precedente pagamento in contanti non sono verificati. L’importo registrato sul conto resta visibile."
     },
     "custom_guest_shares": "Importo personalizzato per ospite",
-    "custom_amounts_must_match_balance": "Inserisci un importo positivo per ogni ospite. La somma deve corrispondere all’intero saldo disponibile.",
+    "custom_shares_scope": "Gli importi devono coprire tutto il saldo disponibile. Per incassare solo una parte, scegli Importo personalizzato.",
+    "custom_amounts_must_match_balance": "Controlla gli importi per ogni ospite e il resto indicato.",
     "share_plan_will_be_replaced": "Questo piano sostituirà la ripartizione attuale. I piani con pagamenti attivi o acquisiti non possono essere sostituiti.",
     "share_amount": "Importo per l’ospite {{number}}",
     "mode_custom_guest_share": "Contributo personalizzato per ospite",
-    "mode_full": "Conto completo"
+    "mode_full": "Conto completo",
+    "share_preview": "Anteprima delle quote",
+    "fill_remainder": "Completa il resto",
+    "custom_share_required": "Inserisci un importo per l’ospite {{number}}.",
+    "custom_share_positive": "Inserisci un importo positivo valido.",
+    "custom_share_invalid": "Inserisci un importo valido con al massimo due decimali.",
+    "custom_balance_remaining": "Restano {{amount}} da assegnare.",
+    "custom_balance_over": "Gli importi superano il saldo di {{amount}}.",
+    "selected_quantity": "Quantità selezionata",
+    "recovery": {
+      "title": "Ripristino occupazione tavolo",
+      "intro": "Controlla visita e ordini prima di liberare il tavolo.",
+      "review_action": "Esamina il ripristino",
+      "loading": "Caricamento dell’anteprima di ripristino del tavolo…",
+      "preview_failed": "Impossibile caricare l’anteprima. Aggiorna il tavolo e riprova.",
+      "stale_preview": "Il tavolo è cambiato dopo questa anteprima. Carica una nuova anteprima prima di confermare.",
+      "session_ambiguous": "Per questo tavolo sono possibili più visite. Chiarisci la visita e carica una nuova anteprima.",
+      "refresh_preview": "Carica una nuova anteprima",
+      "role_mismatch": "Il ripristino salvato appartiene a un altro ruolo. Accedi con il ruolo originale o chiedi aiuto a un amministratore.",
+      "operation_mismatch": "La risposta non corrisponde a questo tavolo. Mantieni bloccato il ripristino e contatta un amministratore.",
+      "reason_required": "Inserisci il motivo.",
+      "version_missing": "Mancano le versioni attuali del conto. Aggiorna la pagina e consulta una nuova anteprima.",
+      "preview_title": "Ripristina il tavolo {{table}}",
+      "warning": "Viene archiviata solo l’occupazione fisica. Cronologia di visite, ordini, pagamenti, rimborsi e cucina resta conservata. Si annullano solo ordini in attesa, non pagati e non inviati. Gli ordini inoltrati, in preparazione, pronti, pagati o con pagamento incerto restano nella visita precedente. Non viene inviato nulla a cucina o stampante.",
+      "count": {
+        "orders": "Ordini nell’anteprima",
+        "cancelable": "Ordini non pagati e non inviati da annullare",
+        "legacy": "Ordini precedenti da archiviare dall’occupazione del tavolo",
+        "routed": "Ordini con cronologia di instradamento",
+        "preparing": "Ordini in preparazione",
+        "ready": "Ordini pronti",
+        "paid": "Ordini pagati o rimborsati",
+        "attempts": "Tentativi di pagamento attivi",
+        "handoffs": "Passaggi di pagamento in sospeso",
+        "checkout": "Tentativi di checkout ospitato"
+      },
+      "outstanding": "Importo residuo che verrà mantenuto: {{amount}}",
+      "reason": "Motivo di questo ripristino registrato",
+      "cancel": "Indietro",
+      "confirm": "Libera l’occupazione del tavolo",
+      "succeeded": "Ripristino registrato: {{cancelled}} ordini non inviati annullati, {{archived}} ordini precedenti archiviati dall’occupazione del tavolo e {{retained}} ordini mantenuti nella visita precedente.",
+      "preserved_totals": "Importo pagato conservato: {{paid}} · importo residuo: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Verrà annullato (non pagato e non inviato)",
+        "ArchivedLegacyOccupancy": "Verrà archiviato dall’occupazione del tavolo; la cronologia dell’ordine sarà conservata",
+        "RetainedInPriorVisit": "Resterà nella visita precedente"
+      },
+      "original_state": "Stato originale: {{status}} · pagamento: {{payment}}",
+      "order_amounts": "Totale {{total}} · credito {{credit}} · pagato {{paid}} · residuo {{remaining}}",
+      "kitchen_history": "La cronologia degli invii in cucina o dell’instradamento viene conservata.",
+      "storage_unavailable": "Impossibile salvare o leggere il ripristino in questa scheda. Non verrà inviata una nuova richiesta.",
+      "completed_storage_warning": "Il server ha confermato il ripristino, ma questa scheda non è riuscita a cancellare la registrazione. Aggiorna la pagina e verifica l’operazione originale prima di continuare.",
+      "check": "Controlla il risultato originale",
+      "retry_same": "Riprova lo stesso ripristino",
+      "unknown": "Risultato non confermato. Controlla l’operazione originale prima di avviarne un’altra.",
+      "disabled_recovery": "Le nuove procedure di ripristino del tavolo sono disattivate. Puoi comunque controllare l’operazione originale."
+    }
   }
 }

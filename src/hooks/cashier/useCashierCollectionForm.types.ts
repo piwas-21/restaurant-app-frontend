@@ -7,7 +7,7 @@ export interface CashierCollectionPaymentOutcome {
   readonly applied: number;
   readonly tip?: number;
   readonly tenderTotal?: number;
-  readonly change: number;
+  readonly change?: number;
   readonly remaining: number;
 }
 
@@ -16,13 +16,15 @@ export interface UseCashierCollectionFormOptions {
   readonly isPending: boolean;
   readonly pendingPayment: PendingPaymentOperation | null | undefined;
   readonly recoveredPayment: CashierCollectionPaymentOutcome | null | undefined;
-  readonly onSubmit: (payment: AddPaymentRequest) => Promise<OrderDto>;
+  readonly onSubmit: (payment: AddPaymentRequest, cashReceivedMinor?: number) => Promise<OrderDto>;
+  readonly locale: string;
   readonly t: (key: string) => string;
 }
 
 export interface CashierCollectionFormController {
   readonly amount: string;
   readonly tip: string;
+  readonly tipValid: boolean;
   readonly received: string;
   readonly method: string;
   readonly transactionId: string;
@@ -33,6 +35,7 @@ export interface CashierCollectionFormController {
   readonly onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   readonly onAmountChange: (value: string) => void;
   readonly onTipChange: (value: string) => void;
+  readonly onTipValidityChange: (valid: boolean) => void;
   readonly onReceivedChange: (value: string) => void;
   readonly onMethodChange: (value: string) => void;
   readonly onTransactionChange: (value: string) => void;

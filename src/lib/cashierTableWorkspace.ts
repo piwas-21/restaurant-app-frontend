@@ -1,6 +1,7 @@
 import { tableNumberKey } from '@/lib/cashierTableSession';
 import type { CashierTableEntry } from '@/lib/cashierTableEntries';
 import type { CashierQueueState } from '@/types/cashier';
+import type { TableServiceSessionDto } from '@/types/order';
 
 export function findSelectedCashierTableEntry(
   entries: readonly CashierTableEntry[],
@@ -18,6 +19,25 @@ export function findSelectedCashierTableEntry(
   const key = tableNumberKey(tableNumber);
   const compatible = entries.filter((entry) => tableNumberKey(entry.table.tableNumber) === key);
   return compatible.length === 1 ? compatible[0] : null;
+}
+
+/** Resolve a visit to one physical table by stable ID or an unambiguous numeric legacy number. */
+export function findRecoveryTableEntryForSession(
+  entries: readonly CashierTableEntry[],
+  session: Pick<TableServiceSessionDto, 'tableId' | 'tableNumber'>,
+): CashierTableEntry | null {
+  if (session.tableId) {
+    const stableMatches = entries.filter((entry) => entry.table.id.toLowerCase() === session.tableId?.toLowerCase());
+    return stableMatches.length === 1 ? stableMatches[0] : null;
+  }
+  if (session.tableNumber == null) return null;
+  const number = session.tableNumber;
+  if (!Number.isSafeInteger(number) || number <= 0) return null;
+  const matches = entries.filter((entry) => {
+    const tableNumber = entry.table.tableNumber.trim();
+    return /^\d+$/.test(tableNumber) && Number(tableNumber) === number;
+  });
+  return matches.length === 1 ? matches[0] : null;
 }
 
 export function cashierTableQueueState(

@@ -14,6 +14,12 @@ interface TableGuestAdmissionFormProps {
   readonly tableLabel: string;
 }
 
+const admissionCodePattern = /^(?:[0-9A-HJKMNP-TV-Z]{6}|[0-9A-HJKMNP-TV-Z]{10})$/;
+
+function normalizeAdmissionCode(value: string): string {
+  return value.replace(/\s+/g, '').toUpperCase();
+}
+
 export default function TableGuestAdmissionForm({ qrCodeData, tableId, tableLabel }: TableGuestAdmissionFormProps) {
   const { t } = useTranslation();
   const { joinVisit, phase, featureEnabled } = useTableGuestVisit();
@@ -23,8 +29,8 @@ export default function TableGuestAdmissionForm({ qrCodeData, tableId, tableLabe
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const admissionCode = code.trim().toUpperCase();
-    if (admissionCode.length !== 10) {
+    const admissionCode = normalizeAdmissionCode(code);
+    if (!admissionCodePattern.test(admissionCode)) {
       setError(t('table_guest_code_length'));
       return;
     }
@@ -75,11 +81,11 @@ export default function TableGuestAdmissionForm({ qrCodeData, tableId, tableLabe
           <input
             type="text"
             value={code}
-            onChange={(event) => setCode(event.currentTarget.value.toUpperCase().slice(0, 10))}
+            onChange={(event) => setCode(event.currentTarget.value.toUpperCase().slice(0, 12))}
             autoComplete="one-time-code"
             autoCapitalize="characters"
             spellCheck={false}
-            maxLength={10}
+            maxLength={12}
             aria-describedby={error ? undefined : 'table-guest-code-help'}
             disabled={isJoining}
           />
@@ -89,7 +95,11 @@ export default function TableGuestAdmissionForm({ qrCodeData, tableId, tableLabe
             {t('table_guest_code_help')}
           </p>
         )}
-        <button type="submit" className={styles.submitButton} disabled={isJoining || code.trim().length !== 10}>
+        <button
+          type="submit"
+          className={styles.submitButton}
+          disabled={isJoining || !admissionCodePattern.test(normalizeAdmissionCode(code))}
+        >
           {isJoining ? t('table_guest_joining') : t('table_guest_join_action')}
         </button>
       </form>

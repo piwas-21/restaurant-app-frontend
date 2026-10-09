@@ -21,6 +21,7 @@ interface Props {
   readonly canStartCollection?: boolean;
   readonly showActorFailure?: boolean;
   readonly onUpdated: () => void;
+  readonly onNavigationLockChange?: (locked: boolean) => void;
   readonly fallback: ReactNode;
 }
 
@@ -33,6 +34,7 @@ export default function CashierAccountPaymentCollectionHost({
   canStartCollection = true,
   showActorFailure = true,
   onUpdated,
+  onNavigationLockChange,
   fallback,
 }: Props) {
   const { t, i18n } = useTranslation();
@@ -137,6 +139,7 @@ export default function CashierAccountPaymentCollectionHost({
       disabled={disabled || !enabled}
       recoveryEnabled={recoveryEnabled}
       onUpdated={onUpdated}
+      onNavigationLockChange={onNavigationLockChange}
     />
   );
 }

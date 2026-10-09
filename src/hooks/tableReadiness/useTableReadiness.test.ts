@@ -78,16 +78,24 @@ it('clears a proven success without opening a visit or changing the current tabl
   expect(mark).not.toHaveBeenCalled();
 });
 
-it('requires a fresh authoritative snapshot after a frozen refusal before starting anew', async () => {
+it('keeps a refusal visible across refresh and requires explicit retry after a fresh snapshot', async () => {
   expect(persistPendingTableReadiness(pending)).toBe(true);
   lookup.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVersionStale', terminal: true });
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('44444444-4444-4444-8444-444444444444');
+  mark.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVisitOpen', terminal: true });
   const { result, rerender } = renderHook((props) => useTableReadiness(props), { initialProps: input });
   await waitFor(() => expect(result.current.stage).toBe('settled'));
   await act(async () => result.current.start());
   expect(mark).not.toHaveBeenCalled();
   rerender({ ...input, snapshot: {} });
-  await waitFor(() => expect(result.current.stage).toBe('idle'));
-  expect(mark).not.toHaveBeenCalled();
+  expect(result.current.stage).toBe('settled');
+  expect(result.current.canRetryRefusal).toBe(true);
+  await act(async () => result.current.start());
+  expect(mark).toHaveBeenCalledWith(pending.tableId, {
+    operationId: '44444444-4444-4444-8444-444444444444',
+    expectedReadinessVersion: pending.request.expectedReadinessVersion,
+  });
+  expect(result.current.stage).toBe('settled');
 });
 
 it('blocks writes if storage cannot preserve the operation', async () => {

@@ -50,6 +50,19 @@ it('requires the physical amount due and keeps the exact bill amount intact', ()
   expect(operation.amountMinor).toBe(333);
 });
 
+it('includes the separately stated tip in physical tender evidence without changing the bill amount', () => {
+  const tipped: AccountPaymentOperation = {
+    ...operation,
+    tipMinor: 125,
+    cashSettlement: { ...settlement, exactAmountMinor: 458, adjustmentMinor: 2, dueAmountMinor: 460 },
+  };
+  expect(readAccountCashEvidence(tipped).status).toBe('valid');
+  expect(canCollectReviewedCash(tipped, 459)).toBe(false);
+  expect(canCollectReviewedCash(tipped, 460)).toBe(true);
+  expect(tipped.amountMinor).toBe(333);
+  expect(tipped.tipMinor).toBe(125);
+});
+
 it('permits a rounded-down physical amount without adding the missing cents to the bill', () => {
   const current = {
     ...operation,

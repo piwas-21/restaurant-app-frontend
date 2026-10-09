@@ -49,10 +49,20 @@ export function accountCashDueFromPolicy(
 }
 
 function hasConservedTerms(settlement: AccountCashSettlement, operation: AccountPaymentOperation): boolean {
+  const tipMinor = operation.tipMinor ?? 0;
+  if (
+    !Number.isSafeInteger(operation.amountMinor) ||
+    operation.amountMinor <= 0 ||
+    !Number.isSafeInteger(tipMinor) ||
+    tipMinor < 0
+  )
+    return false;
+  const tenderExactMinor = BigInt(operation.amountMinor) + BigInt(tipMinor);
   if (
     settlement.currency !== operation.currency ||
     settlement.paymentMethod !== operation.paymentMethod ||
-    settlement.exactAmountMinor !== operation.amountMinor
+    tenderExactMinor > MAX_SAFE_MINOR ||
+    settlement.exactAmountMinor !== Number(tenderExactMinor)
   )
     return false;
   const exact = BigInt(settlement.exactAmountMinor);

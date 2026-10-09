@@ -24,7 +24,7 @@ interface LastPayment {
   readonly applied: number;
   readonly tip?: number;
   readonly tenderTotal?: number;
-  readonly change: number;
+  readonly change?: number;
   readonly remaining: number;
 }
 
@@ -68,7 +68,7 @@ export default function CashierCollectionSuccess({
             {formatOrderCurrency(payment.tenderTotal ?? payment.applied, order)}
           </p>
         )}
-        {payment.change > 0 && (
+        {(payment.change ?? 0) > 0 && (
           <p>{t('cashier.collection.change', { amount: formatOrderCurrency(payment.change, order) })}</p>
         )}
         <p>{remainingMessage}</p>

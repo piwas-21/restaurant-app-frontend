@@ -80,6 +80,43 @@ it('disables fresh reset from a stale floor', async () => {
   expect(mark).not.toHaveBeenCalled();
 });
 
+it('shows a terminal refusal through refresh and offers a new request only after a fresh snapshot', async () => {
+  expect(persistPendingTableReadiness(pending)).toBe(true);
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('44444444-4444-4444-8444-444444444444');
+  lookup.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVersionStale', terminal: true });
+  mark.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVisitOpen', terminal: true });
+  const view = render(<TableReadinessAction {...props} />);
+
+  expect(await screen.findByText('accountPayments.readiness.errors.version_stale')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'accountPayments.readiness.refresh' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'server.floor.ready_action' })).toBeDisabled();
+  expect(readPendingTableReadiness(pending.actorId, pending.actorRole, pending.tableId)).toEqual({ status: 'none' });
+
+  view.rerender(
+    <TableReadinessAction
+      {...props}
+      readinessVersion={8}
+      snapshot={{ readinessState: 'NeedsReset', readinessVersion: 8 }}
+    />,
+  );
+  const retry = await screen.findByRole('button', { name: 'server.floor.ready_action' });
+  expect(retry).toBeEnabled();
+  fireEvent.click(retry);
+  await waitFor(() =>
+    expect(mark).toHaveBeenCalledWith(pending.tableId, {
+      operationId: '44444444-4444-4444-8444-444444444444',
+      expectedReadinessVersion: 8,
+    }),
+  );
+});
+
+it('shows a clear disabled reason when the fresh table snapshot lacks a readiness version', async () => {
+  render(<TableReadinessAction {...props} readinessVersion={null} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('accountPayments.readiness.version_unavailable');
+  expect(screen.getByRole('button', { name: 'server.floor.ready_action' })).toBeDisabled();
+  expect(mark).not.toHaveBeenCalled();
+});
+
 it('does not mount another staff role’s stored operation on role replacement', async () => {
   expect(persistPendingTableReadiness(pending)).toBe(true);
   lookup.mockResolvedValue({ kind: 'refused', code: 'TableReadinessOperationNotFound', terminal: false });

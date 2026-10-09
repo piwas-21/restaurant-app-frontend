@@ -12,12 +12,13 @@ const mockCollectionState = {
   isCheckingPayment: false,
   error: null,
   pendingPayment: null,
+  recoveryError: null,
+  recoveryOrderId: null,
   recoveredPayment: null,
   outcomeOrderId: mockOrder.id,
   refresh: jest.fn(),
   submitPayment: jest.fn(),
   retryPendingPayment: jest.fn(),
-  abandonPendingPayment: jest.fn(),
 } satisfies CashierCollectionState;
 
 jest.mock('react-i18next', () => ({

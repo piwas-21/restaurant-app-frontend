@@ -3,7 +3,12 @@ import AccountPaymentSelectionForm from './AccountPaymentSelectionForm';
 import type { AccountPaymentAccount } from '@/types/accountPaymentAccount';
 import type { TableServiceSessionDto } from '@/types/order';
 
-const translate = (key: string, values?: Record<string, unknown>) => (values ? `${key}:${String(values.number)}` : key);
+const translate = (key: string, values?: Record<string, unknown>) =>
+  values
+    ? `${key}:${Object.entries(values)
+        .map(([name, value]) => `${name}=${String(value)}`)
+        .join(',')}`
+    : key;
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: translate, i18n: { language: 'en' } }) }));
 const visit = '22222222-2222-4222-8222-222222222222';
 const orderId = '33333333-3333-4333-8333-333333333333';
@@ -77,6 +82,7 @@ it('parses comma-decimal custom contributions exactly and rejects an amount beyo
 it('selects two remaining unit ordinals with the server limit instead of expanding the historical full quantity', async () => {
   renderForm();
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Items' } });
+  fireEvent.click(screen.getByRole('checkbox'));
   const quantity = screen.getByRole('spinbutton');
   expect(quantity).toHaveAttribute('max', '5');
   fireEvent.change(quantity, { target: { value: '2' } });
@@ -119,9 +125,9 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
   };
   renderForm(equalAccount);
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Equal' } });
-  expect(screen.getByRole('option', { name: /share_number:1/ })).toBeDisabled();
-  expect(screen.getByRole('option', { name: /share_number:1/ })).toHaveTextContent('€3.34');
-  expect(screen.getByRole('option', { name: /share_number:2/ })).toHaveTextContent('€3.33');
+  expect(screen.getByRole('option', { name: /share_number:number=1/ })).toBeDisabled();
+  expect(screen.getByRole('option', { name: /share_number:number=1/ })).toHaveTextContent('€3.34');
+  expect(screen.getByRole('option', { name: /share_number:number=2/ })).toHaveTextContent('€3.33');
   fireEvent.change(screen.getByLabelText('accountPayments.choose_share'), { target: { value: '2' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() =>
@@ -139,7 +145,7 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
 
 it('records Full as a distinct payment flow and keeps its tip outside the account amount', async () => {
   renderForm();
-  fireEvent.change(screen.getByLabelText('cashier.tables.payment_tip'), { target: { value: '1.23' } });
+  fireEvent.change(screen.getByLabelText(/enter_custom_tip/), { target: { value: '1.23' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() =>
     expect(onQuote).toHaveBeenCalledWith(
@@ -151,11 +157,68 @@ it('records Full as a distinct payment flow and keeps its tip outside the accoun
   );
 });
 
+it('prefills Custom with the current percentage tip and reviews that exact amount', async () => {
+  renderForm({ ...account, availableMinor: 1000, outstandingMinor: 1000 });
+  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
+  fireEvent.click(screen.getByRole('button', { name: /^10%/ }));
+  const customTip = screen.getByLabelText(/enter_custom_tip/);
+
+  fireEvent.focus(customTip);
+  expect(customTip).toHaveValue('1.00');
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
+  await waitFor(() =>
+    expect(onQuote).toHaveBeenCalledWith(expect.objectContaining({ mode: 'Amount', amountMinor: 1000, tipMinor: 100 })),
+  );
+});
+
+it('blocks a previously valid percentage tip while custom text is invalid, then restores the quote with valid input', async () => {
+  const tipAccount = { ...account, availableMinor: 1000, outstandingMinor: 1000 };
+  renderForm(tipAccount);
+  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
+  fireEvent.click(screen.getByRole('button', { name: /^10%/ }));
+  const customTip = screen.getByLabelText(/enter_custom_tip/);
+  for (const invalidTip of ['-2', 'letters', '12.345']) {
+    fireEvent.change(customTip, { target: { value: invalidTip } });
+    expect(screen.getByRole('alert')).toHaveTextContent('cashier.table_bill.error.tip');
+    expect(screen.getByRole('button', { name: 'accountPayments.review' })).toBeDisabled();
+    expect(onQuote).not.toHaveBeenCalled();
+  }
+  fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '9.00' } });
+  expect(customTip).toHaveValue('12.345');
+
+  fireEvent.change(customTip, { target: { value: '1.25' } });
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'accountPayments.review' })).toBeEnabled();
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
+  await waitFor(() =>
+    expect(onQuote).toHaveBeenCalledWith(expect.objectContaining({ mode: 'Amount', amountMinor: 900, tipMinor: 125 })),
+  );
+});
+
+it('clears an invalid custom tip when changing between tip-enabled contribution modes', async () => {
+  renderForm({ ...account, availableMinor: 1000, outstandingMinor: 1000 });
+  const tip = screen.getByLabelText(/enter_custom_tip/);
+  fireEvent.change(tip, { target: { value: '12.345' } });
+  expect(screen.getByRole('button', { name: 'accountPayments.review' })).toBeDisabled();
+
+  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
+  expect(screen.getByLabelText(/enter_custom_tip/)).toHaveValue('');
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
+  await waitFor(() =>
+    expect(onQuote).toHaveBeenCalledWith(expect.objectContaining({ amountMinor: 1000, tipMinor: 0 })),
+  );
+});
+
 it('creates custom guest amounts only when the immutable plan exactly covers the available balance', async () => {
   renderForm();
   fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
-  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:1'), { target: { value: '0.15' } });
-  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:2'), { target: { value: '0.14' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=1'), { target: { value: '0.15' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=2'), { target: { value: '0.14' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.create_plan' }));
   await waitFor(() =>
     expect(onPlan).toHaveBeenCalledWith(
@@ -164,5 +227,22 @@ it('creates custom guest amounts only when the immutable plan exactly covers the
         customAmountsMinor: [15, 14],
       }),
     ),
+  );
+});
+
+it('shows the exact 0.20 remainder and fills one guest amount to cover the available balance', async () => {
+  const fullBalance = { ...account, availableMinor: 171460, outstandingMinor: 171460, reservedMinor: 0 };
+  renderForm(fullBalance);
+  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=1'), { target: { value: '14.40' } });
+  fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=2'), { target: { value: '1,700' } });
+  expect(screen.getByRole('status')).toHaveTextContent('0.20');
+
+  fireEvent.click(screen.getAllByRole('button', { name: 'accountPayments.fill_remainder' })[0]);
+  expect(screen.getByLabelText('accountPayments.share_amount:number=1')).toHaveValue('14.60');
+  expect(screen.getByRole('status')).toHaveTextContent('0.00');
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.create_plan' }));
+  await waitFor(() =>
+    expect(onPlan).toHaveBeenCalledWith(expect.objectContaining({ customAmountsMinor: [1460, 170000] })),
   );
 });

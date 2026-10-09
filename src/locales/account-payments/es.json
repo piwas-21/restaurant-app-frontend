@@ -14,7 +14,7 @@
     "share_number": "Parte {{number}}",
     "share_unavailable": "Pagada o en curso",
     "item_remaining_note": "Los importes muestran el valor pendiente de cada cantidad seleccionada. Las comisiones compartidas se incluyen en las contribuciones por importe.",
-    "equal_note": "Las partes quedan fijadas para la cuenta revisada. El redondeo añade un céntimo a algunas partes; las rondas posteriores quedan fuera de este plan.",
+    "equal_note": "Para CHF y EUR, las primeras partes se redondean hacia abajo a 0,05; la última cubre el resto exacto. El plan queda fijo para esta cuenta; las rondas posteriores quedan fuera.",
     "create_plan": "Revisar y crear las partes",
     "review": "Revisar la contribución",
     "identity_mismatch": "La respuesta no corresponde a esta contribución revisada. Conserva la operación original y comprueba su resultado.",
@@ -71,7 +71,16 @@
       "retry": "Repetir solicitud original",
       "storage_unavailable": "No se puede leer o guardar la recuperación aquí. Pida al personal autorizado que revise la mesa.",
       "succeeded": "La solicitud original se completó. Actualice la mesa; este resultado no abre una visita.",
-      "refused": "La solicitud original fue rechazada. Actualice antes de otra solicitud."
+      "refused": "La solicitud original fue rechazada. Actualice antes de otra solicitud.",
+      "version_unavailable": "La versión de disponibilidad de la mesa falta o no es válida. Actualice antes de marcarla como lista.",
+      "refresh": "Actualizar el estado de la mesa",
+      "errors": {
+        "version_stale": "La mesa ha cambiado. Actualiza su estado e inténtalo de nuevo.",
+        "visit_open": "Debes cerrar o recuperar la visita activa antes de preparar la mesa.",
+        "not_available": "Esta mesa no está pendiente de preparación. Actualiza su estado.",
+        "inactive": "Esta mesa está inactiva. Pide a una persona administradora que la reactive.",
+        "ambiguous": "Hay varias visitas vinculadas a esta mesa. Revísalas y recupéralas antes de continuar."
+      }
     },
     "cash": {
       "exact_charge": "Importe exacto de la cuenta",
@@ -83,10 +92,67 @@
       "legacy_unattested": "El importe recibido y el cambio de este pago anterior en efectivo no están verificados. El importe registrado en la cuenta sigue visible."
     },
     "custom_guest_shares": "Importe personalizado por persona",
-    "custom_amounts_must_match_balance": "Introduce un importe positivo por persona. La suma debe coincidir con todo el saldo disponible.",
+    "custom_shares_scope": "Los importes deben cubrir todo el saldo disponible. Para cobrar solo una parte ahora, elige Importe personalizado.",
+    "custom_amounts_must_match_balance": "Revisa los importes de cada persona y el resto mostrado.",
     "share_plan_will_be_replaced": "Este plan sustituirá el reparto actual. No se pueden sustituir planes con pagos activos o cobrados.",
     "share_amount": "Importe de la persona {{number}}",
     "mode_custom_guest_share": "Contribución personalizada por persona",
-    "mode_full": "Cuenta completa"
+    "mode_full": "Cuenta completa",
+    "share_preview": "Vista previa de las partes",
+    "fill_remainder": "Completar el resto",
+    "custom_share_required": "Introduce un importe para la persona {{number}}.",
+    "custom_share_positive": "Introduce un importe positivo válido.",
+    "custom_share_invalid": "Introduce un importe válido con un máximo de dos decimales.",
+    "custom_balance_remaining": "Quedan {{amount}} por repartir.",
+    "custom_balance_over": "Los importes superan el saldo por {{amount}}.",
+    "selected_quantity": "Cantidad seleccionada",
+    "recovery": {
+      "title": "Recuperación de mesa",
+      "intro": "Revise la visita y los pedidos antes de liberar la mesa.",
+      "review_action": "Revisar recuperación",
+      "loading": "Cargando la vista previa de recuperación de la mesa…",
+      "preview_failed": "No se pudo cargar la vista previa. Actualice la mesa e inténtelo de nuevo.",
+      "stale_preview": "La mesa cambió después de esta vista previa. Cargue una nueva antes de confirmar.",
+      "session_ambiguous": "Hay varias visitas posibles para esta mesa. Aclare la visita y cargue una nueva vista previa.",
+      "refresh_preview": "Cargar una vista previa nueva",
+      "role_mismatch": "La recuperación guardada pertenece a otro rol del personal. Inicie sesión con el rol original o pida ayuda a un administrador.",
+      "operation_mismatch": "La respuesta no corresponde a esta mesa. Mantén bloqueada la recuperación y contacta con un administrador.",
+      "reason_required": "Escriba el motivo.",
+      "version_missing": "Faltan las versiones actuales de la cuenta. Actualiza la página y revisa una nueva vista previa.",
+      "preview_title": "Recuperar la mesa {{table}}",
+      "warning": "Solo se archiva la ocupación física. Se conservan las visitas, pedidos, pagos, reembolsos e historial de cocina. Solo se cancelan pedidos pendientes sin pagar ni enviar. Los pedidos enrutados, en preparación, listos, pagados o con pago incierto permanecen en la visita anterior. No se envía nada a cocina ni a la impresora.",
+      "count": {
+        "orders": "Pedidos en la vista previa",
+        "cancelable": "Pedidos no pagados y no enviados que se cancelarán",
+        "legacy": "Pedidos anteriores que se archivarán de la ocupación de la mesa",
+        "routed": "Pedidos con historial de enrutamiento",
+        "preparing": "Pedidos en preparación",
+        "ready": "Pedidos listos",
+        "paid": "Pedidos pagados o reembolsados",
+        "attempts": "Intentos de pago activos",
+        "handoffs": "Traspasos de pago pendientes",
+        "checkout": "Intentos de pago en una página de pago alojada"
+      },
+      "outstanding": "Importe pendiente que se conservará: {{amount}}",
+      "reason": "Motivo de esta recuperación auditada",
+      "cancel": "Volver",
+      "confirm": "Liberar ocupación de la mesa",
+      "succeeded": "Recuperación registrada: {{cancelled}} pedidos no enviados cancelados, {{archived}} pedidos anteriores archivados de la ocupación de la mesa y {{retained}} pedidos conservados en la visita anterior.",
+      "preserved_totals": "Importe pagado conservado: {{paid}} · importe pendiente: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Se cancelará (pedido no pagado y no enviado)",
+        "ArchivedLegacyOccupancy": "Se archivará de la ocupación de la mesa; se conservará el historial del pedido",
+        "RetainedInPriorVisit": "Permanecerá en la visita anterior"
+      },
+      "original_state": "Estado original: {{status}} · pago: {{payment}}",
+      "order_amounts": "Total {{total}} · crédito {{credit}} · pagado {{paid}} · restante {{remaining}}",
+      "kitchen_history": "Se conservará el historial de envíos a cocina o de enrutamiento.",
+      "storage_unavailable": "No se puede guardar o leer la recuperación en esta pestaña. No se enviará una nueva solicitud.",
+      "completed_storage_warning": "El servidor confirmó la recuperación, pero esta pestaña no pudo borrar su registro. Actualiza la página y comprueba la operación original antes de continuar.",
+      "check": "Comprobar el resultado original",
+      "retry_same": "Reintentar la misma recuperación",
+      "unknown": "Resultado no confirmado. Compruebe la operación original antes de iniciar otra.",
+      "disabled_recovery": "Las nuevas recuperaciones de mesa están desactivadas. Aún puede comprobar la operación original."
+    }
   }
 }

@@ -20,10 +20,12 @@ export function useCashierCollectionForm({
   pendingPayment,
   recoveredPayment,
   onSubmit,
+  locale,
   t,
 }: UseCashierCollectionFormOptions): CashierCollectionFormController {
   const [amount, setAmount] = useState(() => initialAmount(order));
   const [tip, setTip] = useState(initialTip);
+  const [tipValid, setTipValid] = useState(true);
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
   const [received, setReceived] = useState(() => initialAmount(order));
   // Prefilled with the order id (pilot feedback): a recorded card tender then carries a
@@ -46,14 +48,15 @@ export function useCashierCollectionForm({
     const nextAmount = initialAmount(order);
     setAmount(nextAmount);
     setTip(initialTip);
-    setReceived(inputFromMinor(orderTenderTotalMinor(nextAmount, initialTip, orderCurrency(order)) ?? 0));
+    setTipValid(true);
+    setReceived(inputFromMinor(orderTenderTotalMinor(nextAmount, initialTip, orderCurrency(order), locale) ?? 0));
     setMethod(PaymentMethod.Cash);
     setTransactionId(order.id);
     setNotes('');
     setError(null);
     setLastPayment(null);
     resetOperation();
-  }, [order, resetOperation]);
+  }, [locale, order, resetOperation]);
 
   const clearTransient = useCallback(() => {
     resetOperation();
@@ -62,23 +65,29 @@ export function useCashierCollectionForm({
   }, [resetOperation]);
   const handleAmountChange = useCallback(
     (value: string) => {
-      if (Number.isNaN(Number.parseFloat(value)) && value !== '') return;
       setAmount(value);
       if (method === PaymentMethod.Cash)
-        setReceived(inputFromMinor(orderTenderTotalMinor(value, tip, orderCurrency(order)) ?? 0));
+        setReceived(inputFromMinor(orderTenderTotalMinor(value, tip, orderCurrency(order), locale) ?? 0));
       clearTransient();
     },
-    [clearTransient, method, order, tip],
+    [clearTransient, locale, method, order, tip],
   );
   const handleTipChange = useCallback(
     (value: string) => {
-      if (Number.isNaN(Number.parseFloat(value)) && value !== '') return;
       setTip(value);
       if (method === PaymentMethod.Cash)
-        setReceived(inputFromMinor(orderTenderTotalMinor(amount, value, orderCurrency(order)) ?? 0));
+        setReceived(inputFromMinor(orderTenderTotalMinor(amount, value, orderCurrency(order), locale) ?? 0));
       clearTransient();
     },
-    [amount, clearTransient, method, order],
+    [amount, clearTransient, locale, method, order],
+  );
+  const handleTipValidityChange = useCallback(
+    (valid: boolean) => {
+      setTipValid(valid);
+      if (!valid) setError(t('cashier.table_bill.error.tip'));
+      else setError(null);
+    },
+    [t],
   );
   const handleReceivedChange = useCallback((value: string) => setReceived(value), []);
   const handleCashSuggestion = useCallback((value: number) => {
@@ -90,11 +99,11 @@ export function useCashierCollectionForm({
     (value: string) => {
       setMethod(value);
       if (value === PaymentMethod.Cash) {
-        setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order)) ?? 0));
+        setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order), locale) ?? 0));
       }
       clearTransient();
     },
-    [amount, clearTransient, order, tip],
+    [amount, clearTransient, locale, order, tip],
   );
   const handleTransactionChange = useCallback(
     (value: string) => {
@@ -116,6 +125,7 @@ export function useCashierCollectionForm({
     controlsDisabled,
     amount,
     tip,
+    tipValid,
     method,
     received,
     transactionId,
@@ -124,6 +134,7 @@ export function useCashierCollectionForm({
     operationFor,
     resetOperation,
     t,
+    locale,
     setAmount,
     setTip,
     setReceived,
@@ -137,6 +148,7 @@ export function useCashierCollectionForm({
   return {
     amount,
     tip,
+    tipValid,
     received,
     method,
     transactionId,
@@ -147,12 +159,14 @@ export function useCashierCollectionForm({
     onSubmit: handleSubmit,
     onAmountChange: handleAmountChange,
     onTipChange: handleTipChange,
+    onTipValidityChange: handleTipValidityChange,
     onReceivedChange: handleReceivedChange,
     onMethodChange: handleMethodChange,
     onTransactionChange: handleTransactionChange,
     onNotesChange: handleNotesChange,
     onSetMaxAmount: () => handleSetAmount(Math.max(0, order.remainingAmount)),
-    onExactCash: () => setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order)) ?? 0)),
+    onExactCash: () =>
+      setReceived(inputFromMinor(orderTenderTotalMinor(amount, tip, orderCurrency(order), locale) ?? 0)),
     onCashSuggestion: handleCashSuggestion,
     clearTransient,
     resetOperation,

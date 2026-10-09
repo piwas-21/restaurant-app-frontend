@@ -1,6 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { createTableGuestAdmissionCode } from '@/services/tableGuestAdmissionCodeService';
 import TableGuestAdmissionCodeAction from './TableGuestAdmissionCodeAction';
+
+jest.mock('@/services/tableGuestAdmissionCodeService', () => ({ createTableGuestAdmissionCode: jest.fn() }));
 
 jest.mock('@/contexts/TableGuestFeatureContext', () => ({
   TableGuestFeatureProvider: ({ children }: { children: ReactNode }) => children,
@@ -29,4 +32,17 @@ it('explains a guest visit code only after staff opens its compact help control'
   expect(helpButton).toHaveAttribute('aria-expanded', 'true');
   expect(screen.getByText('table_guest_staff_code_help_text')).toBeInTheDocument();
   expect(screen.getByText('table_guest_staff_code_replacement_detail')).toBeInTheDocument();
+});
+
+it('opts into short codes when staff requests a new guest visit code', async () => {
+  jest.mocked(createTableGuestAdmissionCode).mockResolvedValue({
+    admissionCode: 'ABC123',
+    expiresAt: new Date(Date.now() + 60_000).toISOString(),
+  });
+  render(<TableGuestAdmissionCodeAction enabled serviceSessionId="visit-1" />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'table_guest_staff_code_action' }));
+
+  expect(await screen.findByText('ABC123')).toBeInTheDocument();
+  expect(createTableGuestAdmissionCode).toHaveBeenCalledWith('visit-1', { preferShortCode: true });
 });

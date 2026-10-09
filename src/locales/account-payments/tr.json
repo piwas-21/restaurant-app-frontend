@@ -14,7 +14,7 @@
     "share_number": "{{number}}. pay",
     "share_unavailable": "Ödendi veya işlemde",
     "item_remaining_note": "Tutarlar, seçilen her adedin kalan ödenmemiş değerini gösterir. Paylaşılan ücretler tutar katkılarına dahildir.",
-    "equal_note": "Paylar, incelenen hesap için sabit kalır. Yuvarlama bazı paylara bir kuruş ekler; sonraki siparişler bu planın dışında kalır.",
+    "equal_note": "CHF ve EUR için ilk paylar aşağı yuvarlanarak 0,05 katı yapılır; son pay kalan tutarı tam karşılar. Plan bu hesap için sabit kalır; sonraki siparişler plana dahil değildir.",
     "create_plan": "Payları incele ve oluştur",
     "review": "Katkıyı incele",
     "identity_mismatch": "Yanıt, incelenen bu katkıyla eşleşmiyor. İlk işlemi koruyun ve sonucunu kontrol edin.",
@@ -71,7 +71,16 @@
       "retry": "İlk isteği yeniden dene",
       "storage_unavailable": "Kurtarma bilgileri burada okunamıyor veya kaydedilemiyor. Yetkili personelden masayı kontrol etmesini isteyin.",
       "succeeded": "İlk işlem başarılı. Güncel masayı görmek için yenileyin; bu sonuç yeni bir ziyaret açmaz.",
-      "refused": "İlk işlem reddedildi. Yeni bir istekten önce yenileyin."
+      "refused": "İlk işlem reddedildi. Yeni bir istekten önce yenileyin.",
+      "version_unavailable": "Masanın hazır olma sürümü eksik veya geçersiz. Hazır olarak işaretlemeden önce yenileyin.",
+      "refresh": "Masa durumunu yenile",
+      "errors": {
+        "version_stale": "Masa durumu değişti. Durumu yenileyip tekrar deneyin.",
+        "visit_open": "Masayı hazır duruma almadan önce açık ziyareti kapatın veya kurtarın.",
+        "not_available": "Bu masa şu anda hazır duruma alınmayı beklemiyor. Durumu yenileyin.",
+        "inactive": "Bu masa etkin değil. Bir yöneticiden yeniden etkinleştirmesini isteyin.",
+        "ambiguous": "Bu masaya birden fazla ziyaret bağlı. Devam etmeden önce inceleyip kurtarın."
+      }
     },
     "cash": {
       "exact_charge": "Kesin hesap tutarı",
@@ -83,10 +92,67 @@
       "legacy_unattested": "Bu önceki nakit ödemede alınan tutar ve para üstü doğrulanmamış. Kaydedilen hesap tutarı görünür kalır."
     },
     "custom_guest_shares": "Misafir başına özel tutar",
-    "custom_amounts_must_match_balance": "Her misafir için sıfırdan büyük bir tutar girin. Tutarların toplamı kullanılabilir bakiyenin tamamı olmalıdır.",
+    "custom_shares_scope": "Misafir payları kullanılabilir bakiyenin tamamını kapsamalıdır. Şimdi yalnızca bir kısmını almak için Özel tutarı seçin.",
+    "custom_amounts_must_match_balance": "Her misafirin tutarını ve gösterilen kalanı kontrol edin.",
     "share_plan_will_be_replaced": "Bu plan mevcut bölüşümü değiştirir. Aktif veya tahsil edilmiş ödemesi olan planlar değiştirilemez.",
     "share_amount": "{{number}}. misafirin tutarı",
     "mode_custom_guest_share": "Misafir başına özel ödeme",
-    "mode_full": "Hesabın tamamı"
+    "mode_full": "Hesabın tamamı",
+    "share_preview": "Payların ön izlemesi",
+    "fill_remainder": "Kalanı doldur",
+    "custom_share_required": "{{number}}. misafir için tutar girin.",
+    "custom_share_positive": "Geçerli ve sıfırdan büyük bir tutar girin.",
+    "custom_share_invalid": "En fazla iki ondalık basamak içeren geçerli bir tutar girin.",
+    "custom_balance_remaining": "Dağıtılmamış {{amount}} kaldı.",
+    "custom_balance_over": "Tutarlar bakiyeyi {{amount}} aşıyor.",
+    "selected_quantity": "Seçilen miktar",
+    "recovery": {
+      "title": "Masa doluluk kurtarma",
+      "intro": "Masayı boşaltmadan önce ziyareti ve siparişleri inceleyin.",
+      "review_action": "Masa kurtarmayı incele",
+      "loading": "Masa kurtarma önizlemesi yükleniyor…",
+      "preview_failed": "Önizleme yüklenemedi. Masayı yenileyip tekrar deneyin.",
+      "stale_preview": "Bu önizlemeden sonra masa değişti. Onaylamadan önce yeni bir önizleme yükleyin.",
+      "session_ambiguous": "Bu masa için birden fazla ziyaret olası. Ziyareti netleştirip yeni bir önizleme yükleyin.",
+      "refresh_preview": "Yeni önizleme yükle",
+      "role_mismatch": "Kaydedilmiş kurtarma başka bir personel rolüne ait. İlk rol ile oturum açın veya yöneticiden yardım isteyin.",
+      "operation_mismatch": "Yanıt bu masa ile eşleşmiyor. Kurtarma işlemini kilitli tutun ve bir yöneticiyle iletişime geçin.",
+      "reason_required": "Bir neden girin.",
+      "version_missing": "Güncel hesap sürümleri eksik. Sayfayı yenileyin ve yeni bir önizlemeyi inceleyin.",
+      "preview_title": "{{table}} masasını kurtar",
+      "warning": "Yalnızca fiziksel masa doluluğu arşivlenir. Önceki ziyaret, sipariş, ödeme, iade ve mutfak geçmişi korunur. Yalnızca ödenmemiş ve gönderilmemiş siparişler iptal edilir. Yönlendirilmiş, hazırlanıyor, hazır, ödenmiş veya ödemesi belirsiz işlemler önceki ziyarette kalır. Mutfak ya da yazıcıya işlem gönderilmez.",
+      "count": {
+        "orders": "Önizlemedeki siparişler",
+        "cancelable": "İptal edilecek ödenmemiş ve gönderilmemiş siparişler",
+        "legacy": "Masa doluluğundan arşivlenecek eski siparişler",
+        "routed": "Yönlendirme geçmişi olan siparişler",
+        "preparing": "Hazırlanmakta olan siparişler",
+        "ready": "Hazır siparişler",
+        "paid": "Ödenmiş veya iade edilmiş siparişler",
+        "attempts": "Etkin ödeme denemeleri",
+        "handoffs": "Bekleyen ödeme aktarımları",
+        "checkout": "Barındırılan ödeme sayfası denemeleri"
+      },
+      "outstanding": "Korunacak kalan tutar: {{amount}}",
+      "reason": "Bu kayıtlı kurtarma işleminin nedeni",
+      "cancel": "Geri dön",
+      "confirm": "Masa doluluğunu boşalt",
+      "succeeded": "Kurtarma kaydedildi: {{cancelled}} gönderilmemiş sipariş iptal edildi, {{archived}} eski sipariş masa doluluğundan arşivlendi ve {{retained}} sipariş önceki ziyarette korundu.",
+      "preserved_totals": "Korunan ödenmiş tutar: {{paid}} · kalan tutar: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "İptal edilecek (ödenmemiş ve gönderilmemiş)",
+        "ArchivedLegacyOccupancy": "Masa doluluğundan arşivlenecek; sipariş geçmişi korunacak",
+        "RetainedInPriorVisit": "Önceki ziyarette kalacak"
+      },
+      "original_state": "Özgün durum: {{status}} · ödeme: {{payment}}",
+      "order_amounts": "Toplam {{total}} · hesap kredisi {{credit}} · ödenen {{paid}} · kalan {{remaining}}",
+      "kitchen_history": "Mutfağa gönderim veya yönlendirme geçmişi korunur.",
+      "storage_unavailable": "Kurtarma bu sekmede kaydedilemiyor veya okunamıyor. Yeni istek gönderilmeyecek.",
+      "completed_storage_warning": "Sunucu kurtarmayı doğruladı, ancak bu sekme kaydını silemedi. Devam etmeden önce sayfayı yenileyip özgün işlemi kontrol edin.",
+      "check": "Özgün sonucu kontrol et",
+      "retry_same": "Aynı kurtarma işlemini yeniden dene",
+      "unknown": "Sonuç doğrulanmadı. Yeni işlem başlatmadan önce özgün işlemi kontrol edin.",
+      "disabled_recovery": "Yeni masa kurtarma işlemleri devre dışı. İlk işlemin sonucunu yine kontrol edebilirsiniz."
+    }
   }
 }

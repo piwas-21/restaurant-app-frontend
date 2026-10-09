@@ -7,6 +7,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown>) =>
       options ? `${key}:${Object.values(options).join(',')}` : key,
+    i18n: { language: 'en' },
   }),
 }));
 
@@ -39,21 +40,24 @@ const session: TableServiceSessionDto = {
   },
 };
 
-const renderForm = (onSubmit = jest.fn().mockResolvedValue(undefined)) => {
-  render(<CashierTablePaymentForm session={session} disabled={false} onSubmit={onSubmit} />);
+const renderForm = (
+  onSubmit = jest.fn().mockResolvedValue(undefined),
+  paymentSession: TableServiceSessionDto = session,
+) => {
+  render(<CashierTablePaymentForm session={paymentSession} disabled={false} onSubmit={onSubmit} />);
   return onSubmit;
 };
 
 describe('CashierTablePaymentForm', () => {
   it('blocks a cash tender when received cash does not cover the amount', async () => {
     const onSubmit = renderForm();
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), {
+    fireEvent.change(screen.getByLabelText('cashier.cash_received'), {
       target: { value: '19' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
 
     await waitFor(() => expect(screen.getByText('cashier.cash_received_too_low')).toBeInTheDocument());
-    const received = screen.getByRole('spinbutton', { name: 'cashier.cash_received' });
+    const received = screen.getByLabelText('cashier.cash_received');
     expect(received).toHaveAttribute('aria-invalid', 'true');
     expect(received).toHaveAccessibleDescription('cashier.cash_received_too_low');
     expect(onSubmit).not.toHaveBeenCalled();
@@ -61,10 +65,10 @@ describe('CashierTablePaymentForm', () => {
 
   it('adds an explicit tip outside the food debt and requires cash to cover both', async () => {
     const onSubmit = renderForm();
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.tables.payment_tip' }), {
+    fireEvent.change(screen.getByLabelText(/enter_custom_tip/), {
       target: { value: '1.25' },
     });
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), {
+    fireEvent.change(screen.getByLabelText('cashier.cash_received'), {
       target: { value: '20' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
@@ -72,7 +76,7 @@ describe('CashierTablePaymentForm', () => {
     await waitFor(() => expect(screen.getByText('cashier.cash_received_too_low')).toBeInTheDocument());
     expect(onSubmit).not.toHaveBeenCalled();
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.cash_received' }), {
+    fireEvent.change(screen.getByLabelText('cashier.cash_received'), {
       target: { value: '21.25' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
@@ -80,9 +84,23 @@ describe('CashierTablePaymentForm', () => {
     expect(onSubmit.mock.calls[0][0]).toMatchObject({ amount: 20, tipMinor: 125 });
   });
 
+  it('accepts exact custom tips and cash tenders for an ISO tenant currency outside account collection', async () => {
+    const onSubmit = renderForm(jest.fn().mockResolvedValue(undefined), {
+      ...session,
+      currency: 'CAD',
+      bill: { ...session.bill, currency: 'CAD' },
+    });
+    fireEvent.change(screen.getByLabelText(/enter_custom_tip/), { target: { value: '1.25' } });
+    fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '21.25' } });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ amount: 20, tipMinor: 125 });
+  });
+
   it('rejects a tip with more precision than the tender currency supports', async () => {
     const onSubmit = renderForm();
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.tables.payment_tip' }), {
+    fireEvent.change(screen.getByLabelText(/enter_custom_tip/), {
       target: { value: '1.001' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));

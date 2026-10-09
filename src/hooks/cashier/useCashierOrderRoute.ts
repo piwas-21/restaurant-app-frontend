@@ -12,6 +12,11 @@ export function useCashierOrderRoute() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedOrderId = searchParams.get('order');
+  const selectedSessionId = searchParams.get('serviceSessionId');
+  const selectedTableId = searchParams.get('tableId');
+  const requestedReturnTo = searchParams.get('returnTo');
+  const sessionReturnTo: 'orders' | 'tables' | undefined =
+    requestedReturnTo === 'orders' || requestedReturnTo === 'tables' ? requestedReturnTo : undefined;
 
   const navigateWithOrder = useCallback(
     (orderId: string) => {
@@ -41,6 +46,17 @@ export function useCashierOrderRoute() {
     [pathname, router],
   );
 
+  const navigateToSessionCollection = useCallback(
+    (serviceSessionId: string, orderId?: string, tableId?: string, returnTo: 'orders' | 'tables' = 'tables') => {
+      const params = new URLSearchParams({ serviceSessionId });
+      if (orderId) params.set('order', orderId);
+      if (tableId) params.set('tableId', tableId);
+      params.set('returnTo', returnTo);
+      router.push(tenantLocaleHref(pathname, `${CASHIER_COLLECTION_PATH}?${params.toString()}`));
+    },
+    [pathname, router],
+  );
+
   const navigateToOrder = useCallback(
     (orderId: string) =>
       router.push(tenantLocaleHref(pathname, `${CASHIER_ORDERS_PATH}?order=${encodeURIComponent(orderId)}`)),
@@ -54,8 +70,12 @@ export function useCashierOrderRoute() {
 
   return {
     selectedOrderId,
+    selectedSessionId,
+    selectedTableId,
+    sessionReturnTo,
     navigateWithOrder,
     navigateToCollection,
+    navigateToSessionCollection,
     navigateToOrder,
     navigateToOrders,
     clearOrder,

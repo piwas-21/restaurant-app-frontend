@@ -4,6 +4,7 @@ import {
   readPendingAccountPayment,
 } from './pendingAccountPayment';
 import type { PendingAccountPayment } from './pendingAccountPayment';
+import { ACCOUNT_PAYMENT_MODES, type CreateAccountPaymentQuoteRequest } from '@/types/accountPayments';
 
 const actorId = '11111111-1111-4111-8111-111111111111';
 const serviceSessionId = '22222222-2222-4222-8222-222222222222';
@@ -103,6 +104,78 @@ it('keeps the initial quote stage valid without an expected version', () => {
   };
   expect(persistPendingAccountPayment(initialQuote)).toBe(true);
   expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: initialQuote });
+});
+
+it('persists and restores exact custom guest amounts before a plan write', () => {
+  const plan: PendingAccountPayment = {
+    actorId,
+    serviceSessionId,
+    kind: 'plan',
+    request: {
+      operationId,
+      expectedAccountRevision: 7,
+      shareCount: 2,
+      customAmountsMinor: [1440, 60],
+    },
+  };
+  expect(persistPendingAccountPayment(plan)).toBe(true);
+  expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: plan });
+});
+
+it.each([
+  { shareCount: 3, customAmountsMinor: [1440, 60] },
+  { shareCount: 2, customAmountsMinor: [1440, 0] },
+  { shareCount: 2, customAmountsMinor: [1440] },
+])('fails closed on malformed custom plan terms %j', (terms) => {
+  const malformed: PendingAccountPayment = {
+    actorId,
+    serviceSessionId,
+    kind: 'plan',
+    request: { operationId, expectedAccountRevision: 7, ...terms },
+  };
+  expect(persistPendingAccountPayment(malformed)).toBe(false);
+  expect(window.sessionStorage).toHaveLength(0);
+});
+
+it('continues to persist ordinary equal-share plans without custom amounts', () => {
+  const plan: PendingAccountPayment = {
+    actorId,
+    serviceSessionId,
+    kind: 'plan',
+    request: { operationId, expectedAccountRevision: 7, shareCount: 3 },
+  };
+  expect(persistPendingAccountPayment(plan)).toBe(true);
+  expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: plan });
+});
+
+it.each(ACCOUNT_PAYMENT_MODES)('persists and reads a %s quote with its original operation identity', (mode) => {
+  const request: CreateAccountPaymentQuoteRequest = {
+    operationId,
+    expectedAccountRevision: 7,
+    mode,
+    paymentMethod: 'Cash',
+    tipMinor: 17,
+    ...(mode === 'Items'
+      ? {
+          selectedUnits: [
+            {
+              orderId: '44444444-4444-4444-8444-444444444444',
+              orderItemId: '55555555-5555-4555-8555-555555555555',
+              ordinal: 1,
+            },
+          ],
+        }
+      : {}),
+    ...(mode === 'Amount' ? { amountMinor: 29 } : {}),
+    ...(mode === 'Equal' ? { equalSharePlanId: '66666666-6666-4666-8666-666666666666', equalShareOrdinal: 1 } : {}),
+    ...(mode === 'CustomAmount'
+      ? { customSharePlanId: '77777777-7777-4777-8777-777777777777', customShareOrdinal: 1 }
+      : {}),
+  };
+  const quote: PendingAccountPayment = { actorId, serviceSessionId, kind: 'payment', stage: 'quote', request };
+
+  expect(persistPendingAccountPayment(quote)).toBe(true);
+  expect(readPendingAccountPayment(actorId, serviceSessionId)).toEqual({ status: 'pending', value: quote });
 });
 
 it('refuses overwriting an escaped operation or changing its frozen request', () => {

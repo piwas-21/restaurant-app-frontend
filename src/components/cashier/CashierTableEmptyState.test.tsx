@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import CashierTableEmptyState from './CashierTableEmptyState';
 
@@ -9,6 +9,12 @@ jest.mock('react-i18next', () => ({
       return key.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values[name] ?? `{{${name}}}`));
     },
   }),
+}));
+jest.mock('@/components/table-service/TableOccupancyRecoveryAction', () => ({
+  __esModule: true,
+  default: ({ tableId, enabled }: { tableId: string; enabled: boolean }) => (
+    <output data-testid="recovery-action">{`${tableId}:${String(enabled)}`}</output>
+  ),
 }));
 
 const entry: CashierTableEntry = {
@@ -44,21 +50,39 @@ describe('CashierTableEmptyState', () => {
     expect(screen.queryByRole('link', { name: /sale/i })).not.toBeInTheDocument();
   });
 
-  it('requires confirmation before clearing pending legacy orders', async () => {
-    const clear = jest.fn().mockResolvedValue(undefined);
+  it('routes clearing a legacy occupancy through audited recovery instead of the old clear endpoint', () => {
     render(
       <CashierTableEmptyState
         entry={entry}
         isOpening={false}
         onBack={jest.fn()}
         onOpenSession={jest.fn()}
-        onClearLegacyOrders={clear}
+        recoveryEnabled
+        onRecoveryComplete={jest.fn(async () => undefined)}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.clear_and_release' }));
-    expect(screen.getByText('cashier.tables.clear_confirm_limits')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'cashier.tables.clear_and_release' }).at(-1)!);
-    await waitFor(() => expect(clear).toHaveBeenCalledTimes(1));
+    expect(screen.getByTestId('recovery-action')).toHaveTextContent('table-stable-7:true');
+    expect(screen.queryByRole('button', { name: 'cashier.tables.clear_and_release' })).not.toBeInTheDocument();
+  });
+
+  it('locks open and resolve actions while recovery readback is unresolved', () => {
+    const onOpenSession = jest.fn();
+    const onResolveLegacyOrders = jest.fn();
+    render(
+      <CashierTableEmptyState
+        entry={entry}
+        isOpening={false}
+        recoveryOperationPending
+        onBack={jest.fn()}
+        onOpenSession={onOpenSession}
+        onResolveLegacyOrders={onResolveLegacyOrders}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'cashier.tables.back' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'cashier.tables.resolve_legacy_orders' })).toBeDisabled();
+    expect(onOpenSession).not.toHaveBeenCalled();
+    expect(onResolveLegacyOrders).not.toHaveBeenCalled();
   });
 });

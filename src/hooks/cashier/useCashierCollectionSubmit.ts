@@ -2,35 +2,32 @@ import { useCallback, type Dispatch, type FormEvent, type SetStateAction } from 
 import type { OrderDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
 import { canCollectPayment } from '@/lib/settlementEligibility';
-import { parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
-import { amountFromMinor, inputFromMinor, orderTenderTotalMinor, parseOrderTipMinor } from '@/lib/orderPaymentMoney';
+import { amountFromMinor, inputFromMinor, orderTenderTotalMinor } from '@/lib/orderPaymentMoney';
 import { orderCurrency } from '@/lib/cashierMoney';
-import { paymentModalSchema } from '@/components/cashier/paymentModalSchema';
 import type { AddPaymentRequest } from '@/services/cashierService';
 import type { CashierCollectionPaymentOutcome } from './useCashierCollectionForm.types';
+import { validatePaymentDraft } from './validateCashierCollectionDraft';
 import {
   PaymentCheckFailedError,
   PaymentResultUnknownError,
   StalePaymentOutcomeError,
 } from './useCashierCollectionOutcome';
 
-type PaymentDraftResult =
-  | { readonly errorKey: string }
-  | { readonly amountMinor: number; readonly tipMinor: number; readonly cashReceivedMinor: number | undefined };
-
 interface UseCashierCollectionSubmitOptions {
   readonly order: OrderDto;
   readonly controlsDisabled: boolean;
   readonly amount: string;
   readonly tip: string;
+  readonly tipValid: boolean;
   readonly method: string;
   readonly received: string;
   readonly transactionId: string;
   readonly notes: string;
-  readonly onSubmit: (payment: AddPaymentRequest) => Promise<OrderDto>;
+  readonly onSubmit: (payment: AddPaymentRequest, cashReceivedMinor?: number) => Promise<OrderDto>;
   readonly operationFor: () => string;
   readonly resetOperation: () => void;
   readonly t: (key: string) => string;
+  readonly locale: string;
   readonly setAmount: Dispatch<SetStateAction<string>>;
   readonly setTip: Dispatch<SetStateAction<string>>;
   readonly setReceived: Dispatch<SetStateAction<string>>;
@@ -39,45 +36,6 @@ interface UseCashierCollectionSubmitOptions {
   readonly setNotes: Dispatch<SetStateAction<string>>;
   readonly setError: Dispatch<SetStateAction<string | null>>;
   readonly setLastPayment: Dispatch<SetStateAction<CashierCollectionPaymentOutcome | null>>;
-}
-
-function validatePaymentDraft(
-  amount: string,
-  tip: string,
-  method: string,
-  received: string,
-  order: OrderDto,
-): PaymentDraftResult {
-  const currency = orderCurrency(order);
-  const amountMinor = parseAccountContributionMinor(amount, currency);
-  const tipMinor = parseOrderTipMinor(tip, currency);
-  const cashReceivedMinor =
-    method === PaymentMethod.Cash ? parseAccountContributionMinor(received, currency) : undefined;
-  if (amountMinor === null || tipMinor === null || (method === PaymentMethod.Cash && cashReceivedMinor === null)) {
-    return { errorKey: 'cashier.payment_amount_required' };
-  }
-
-  const parsed = paymentModalSchema.safeParse({
-    amount,
-    amountMinor,
-    tipMinor,
-    paymentMethod: method,
-    cashReceivedMinor,
-  });
-  if (!parsed.success) {
-    const invalidField = parsed.error.issues[0]?.path[0];
-    return {
-      errorKey:
-        invalidField === 'cashReceivedMinor' ? 'cashier.cash_received_too_low' : 'cashier.payment_amount_required',
-    };
-  }
-
-  const orderBalanceMinor = parseAccountContributionMinor(Math.max(0, order.remainingAmount).toFixed(2), currency);
-  if (orderBalanceMinor === null || amountMinor > orderBalanceMinor) {
-    return { errorKey: 'cashier.payment_exceeds_balance' };
-  }
-
-  return { amountMinor, tipMinor, cashReceivedMinor: cashReceivedMinor ?? undefined };
 }
 
 function errorText(error: unknown, t: (key: string) => string): string {
@@ -91,6 +49,7 @@ export function useCashierCollectionSubmit({
   controlsDisabled,
   amount,
   tip,
+  tipValid,
   method,
   received,
   transactionId,
@@ -99,6 +58,7 @@ export function useCashierCollectionSubmit({
   operationFor,
   resetOperation,
   t,
+  locale,
   setAmount,
   setTip,
   setReceived,
@@ -112,8 +72,12 @@ export function useCashierCollectionSubmit({
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (controlsDisabled || !canCollectPayment(order)) return;
+      if (!tipValid) {
+        setError(t('cashier.table_bill.error.tip'));
+        return;
+      }
       const currency = orderCurrency(order);
-      const draft = validatePaymentDraft(amount, tip, method, received, order);
+      const draft = validatePaymentDraft(amount, tip, method, received, order, locale);
       if ('errorKey' in draft) {
         setError(t(draft.errorKey));
         return;
@@ -124,15 +88,18 @@ export function useCashierCollectionSubmit({
       const tipAmount = amountFromMinor(tipMinor);
       const tenderTotal = amountFromMinor(amountMinor + tipMinor);
       try {
-        const updated = await onSubmit({
-          operationId: operationFor(),
-          expectedVersion: order.version,
-          amount: applied,
-          ...(tipMinor > 0 ? { tipMinor } : {}),
-          paymentMethod: method,
-          transactionId: transactionId.trim() || undefined,
-          paymentNotes: notes.trim() || undefined,
-        });
+        const updated = await onSubmit(
+          {
+            operationId: operationFor(),
+            expectedVersion: order.version,
+            amount: applied,
+            ...(tipMinor > 0 ? { tipMinor } : {}),
+            paymentMethod: method,
+            transactionId: transactionId.trim() || undefined,
+            paymentNotes: notes.trim() || undefined,
+          },
+          method === PaymentMethod.Cash ? cashReceivedMinor : undefined,
+        );
         setLastPayment({
           applied,
           tip: tipAmount,
@@ -151,6 +118,7 @@ export function useCashierCollectionSubmit({
               updated.remainingAmount > 0 ? updated.remainingAmount.toFixed(2) : '',
               '0.00',
               currency,
+              locale,
             ) ?? 0,
           ),
         );
@@ -174,6 +142,7 @@ export function useCashierCollectionSubmit({
       onSubmit,
       operationFor,
       order,
+      locale,
       received,
       resetOperation,
       setAmount,
@@ -186,6 +155,7 @@ export function useCashierCollectionSubmit({
       setTransactionId,
       t,
       tip,
+      tipValid,
       transactionId,
     ],
   );

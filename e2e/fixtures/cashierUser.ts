@@ -44,10 +44,11 @@ export interface StaffUser {
 
 export type CashierUser = StaffUser;
 
-interface StaffFixtureConfig {
+export interface StaffFixtureConfig {
   role: 'Cashier' | 'Server';
   storageRole: 'cashier' | 'server';
-  fixtureName: 'cashierUser' | 'serverUser';
+  fixtureName: 'cashierUser' | 'serverUser' | 'accountCashierUser' | 'accountServerUser';
+  preserveUser?: boolean;
 }
 
 interface ApiResponse<T> {
@@ -143,11 +144,13 @@ export async function usePromotedStaffUser(
     }
   } finally {
     await ctx.dispose();
-    try {
-      await deleteUserByEmail(email);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn(`[${config.fixtureName}] teardown failed to delete generated user for ${testInfo.testId}:`, err);
+    if (!config.preserveUser) {
+      try {
+        await deleteUserByEmail(email);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn(`[${config.fixtureName}] teardown failed to delete generated user for ${testInfo.testId}:`, err);
+      }
     }
   }
 }

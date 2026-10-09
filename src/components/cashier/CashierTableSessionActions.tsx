@@ -8,6 +8,8 @@ import type { TableServiceSessionDto } from '@/types/order';
 import { tableSessionActions, tableSessionAddRoundPath } from '@/lib/cashierTableSession';
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
+import { CASHIER_COLLECTION_PATH } from '@/lib/cashierWorkspace';
+import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 
 interface Props {
   readonly session: TableServiceSessionDto;
@@ -15,7 +17,6 @@ interface Props {
   readonly writesLocked: boolean;
   readonly onShowCloseConfirm: () => void;
   readonly onShowReleaseConfirm: () => void;
-  readonly onShowClearConfirm: () => void;
 }
 
 export default function CashierTableSessionActions({
@@ -24,7 +25,6 @@ export default function CashierTableSessionActions({
   writesLocked,
   onShowCloseConfirm,
   onShowReleaseConfirm,
-  onShowClearConfirm,
 }: Props) {
   const { t } = useTranslation();
   const actions = tableSessionActions(session);
@@ -34,18 +34,25 @@ export default function CashierTableSessionActions({
   const addRoundAllowed =
     session.status === 'Open' && !session.isTableReleased && !writesLocked && !legacyConflict && Boolean(addRoundHref);
   const releaseAllowed = session.status === 'Open' && !session.isTableReleased && session.canReleaseTable !== false;
+  const collectAllowed = actions.has('collect') && !writesLocked;
+  const collectionParams = new URLSearchParams({ serviceSessionId: session.serviceSessionId });
+  if (session.tableId) collectionParams.set('tableId', session.tableId);
+  const collectionHref = `${CASHIER_COLLECTION_PATH}?${collectionParams.toString()}`;
 
   return (
     <>
       <div className={styles.actionRow}>
+        {collectAllowed && (
+          <Link className={`btn btn-primary ${buttonStyles.touch}`} href={collectionHref}>
+            {t('server.bill.collect')}
+          </Link>
+        )}
+        {session.status === 'Open' && !session.isTableReleased && (
+          <TableGuestAdmissionCodeSlot serviceSessionId={session.serviceSessionId} disabled={writesLocked} />
+        )}
         {releaseAllowed && (
           <StaffButton variant="secondary" onClick={onShowReleaseConfirm} disabled={writesLocked}>
             {t('cashier.tables.release_table')}
-          </StaffButton>
-        )}
-        {session.status === 'Open' && !session.isTableReleased && (
-          <StaffButton variant="danger" onClick={onShowClearConfirm} disabled={writesLocked}>
-            {t('cashier.tables.clear_and_release')}
           </StaffButton>
         )}
         <StaffButton

@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses } from '@/services/addressService';
 import { getProfileCompleteness, pickPreferredAddress } from '@/lib/checkout/profileCompleteness';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
+import { useTableGuestDineInAvailability } from './useTableGuestDineInAvailability';
 
 /**
  * Why a Proceed-to-Checkout click could not route, so the caller can say so and
@@ -18,43 +19,33 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
  *   'details'    — a type is picked but its contact/address data is incomplete,
  *                  so the type's follow-up modal has to collect the rest.
  */
-export type CheckoutBlocker = 'order-type' | 'details';
+export type CheckoutBlocker = 'order-type' | 'details' | 'table-guest-unavailable';
 
 interface SmartCheckoutRouter {
-  /**
-   * Decide whether the chosen order type already has the data it needs
-   * to land on /checkout/review, pre-populate CheckoutContext from the
-   * user's profile and (for Delivery) preferred saved address, then
-   * route to the next page.
-   *
-   * Priority:
-   *   1. CheckoutContext already has everything this type needs
-   *      (e.g. filled inline by the type-modal in §C1.5.e) — skip the
-   *      API calls entirely and go straight to /checkout/review.
-   *   2. Logged-in + profile complete → populate context, push to review.
-   *   3. Otherwise → return the blocker. This used to `router.push('/menu')`
-   *      instead, which was a silent dead end: on /menu that push is a no-op
-   *      (the button looked like it did nothing but reload) and from /cart it
-   *      bounced the customer back to the menu with no explanation. Routing is
-   *      now the caller's business — it owns the surface that can unblock.
-   *
-   * Errors fetching profile/addresses (network blip, 401 after token
-   * expiry, etc.) also report 'details' — the safe default — so a transient
-   * outage degrades to "we'll ask you for these" rather than blocking the order.
-   *
-   * `source` is forwarded to the `checkout_opened` analytics event so the
-   * funnel can attribute the click to the surface that fired it (desktop
-   * sidebar, mobile bottom-sheet, legacy /cart page). Defaults to
-   * 'sidebar' for back-compat with callers that don't supply one.
+  /** Resolve checkout prerequisites; `source` tags the event and defaults to `sidebar`.
    */
   proceedToCheckout: (orderType: OrderType | null, source?: string) => Promise<CheckoutBlocker | null>;
   isResolving: boolean;
 }
 
+function shouldRouteTableGuestToReview(
+  phase: string,
+  hasPendingRound: boolean,
+  visitBound: boolean,
+  active: boolean,
+): boolean {
+  return (
+    hasPendingRound ||
+    (phase !== 'notJoined' && phase !== 'loading' && phase !== 'active') ||
+    (visitBound && !active) ||
+    active ||
+    phase === 'active'
+  );
+}
+
 function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
-  // Key written by services/authService.ts on login; mirrored here to avoid
-  // pulling in the whole auth surface for a single SSR-safe boolean check.
+  // Read the auth key directly to keep this SSR-safe check independent of the auth surface.
   return !!localStorage.getItem('auth_token');
 }
 
@@ -78,39 +69,101 @@ function checkoutContextSatisfies(
   return true;
 }
 
+interface OrdinaryCheckoutOptions {
+  readonly orderType: OrderType | null;
+  readonly source: string;
+  readonly customerInfo: CustomerInfo | null;
+  readonly deliveryAddress: DeliveryAddress | null;
+  readonly push: (path: string) => void;
+  readonly setCustomerInfo: (customerInfo: CustomerInfo) => void;
+  readonly setDeliveryAddress: (deliveryAddress: DeliveryAddress) => void;
+  readonly setIsResolving: (resolving: boolean) => void;
+}
+
+async function resolveOrdinaryCheckout({
+  orderType,
+  source,
+  customerInfo,
+  deliveryAddress,
+  push,
+  setCustomerInfo,
+  setDeliveryAddress,
+  setIsResolving,
+}: OrdinaryCheckoutOptions): Promise<CheckoutBlocker | null> {
+  if (!orderType) return 'order-type';
+  if (checkoutContextSatisfies(orderType, customerInfo, deliveryAddress)) {
+    trackEvent('checkout_opened', { orderType, source, loggedIn: isLoggedInForAnalytics() });
+    push('/checkout/review');
+    return null;
+  }
+  if (!isLoggedIn()) return 'details';
+
+  setIsResolving(true);
+  try {
+    const user = await getCurrentUser();
+    const addresses = orderType === OrderType.Delivery ? await getMyAddresses() : undefined;
+    const { complete } = getProfileCompleteness(user, orderType, addresses);
+    if (!complete) return 'details';
+
+    if (!customerInfo) {
+      setCustomerInfo({
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email,
+        phone: user.phoneNumber ?? '',
+      });
+    }
+
+    if (orderType === OrderType.Delivery && !deliveryAddress && addresses) {
+      const preferred = pickPreferredAddress(addresses);
+      if (preferred) {
+        setDeliveryAddress({
+          street: preferred.addressLine1,
+          city: preferred.city,
+          postalCode: preferred.postalCode,
+          country: preferred.country,
+          additionalInfo: preferred.deliveryInstructions,
+        });
+      }
+    }
+
+    trackEvent('checkout_opened', { orderType, source, loggedIn: true });
+    push('/checkout/review');
+    return null;
+  } catch (error) {
+    console.warn('Smart-skip checkout could not resolve profile, falling back:', error);
+    return 'details';
+  } finally {
+    setIsResolving(false);
+  }
+}
+
 export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const { push } = useTenantLocaleRouter();
   const { state: checkoutState, setCustomerInfo, setDeliveryAddress } = useCheckout();
   const tableVisit = useCheckoutTableGuestState();
+  const tableDineIn = useTableGuestDineInAvailability();
   const [isResolving, setIsResolving] = useState(false);
 
   const proceedToCheckout = useCallback(
     async (orderType: OrderType | null, source = 'sidebar'): Promise<CheckoutBlocker | null> => {
-      if (!orderType) return 'order-type';
-
-      // Admitted table rounds do not need ordinary checkout contact details. Pending or
-      // unavailable visit state must also reach the review page's recovery/blocked guard,
-      // rather than reopen table selection or allow an unrelated ordinary order. Bridged
-      // loading sets hasPendingRound; the default loading context alone is not visit evidence.
+      // Route admitted, pending, and unavailable visits to the guarded review; default loading
+      // context alone is not evidence of a visit.
       if (
-        tableVisit.hasPendingRound ||
-        (orderType === OrderType.DineIn && tableVisit.phase !== 'notJoined' && tableVisit.phase !== 'loading')
+        shouldRouteTableGuestToReview(
+          tableVisit.phase,
+          tableVisit.hasPendingRound,
+          tableDineIn.visitBound,
+          tableDineIn.active,
+        )
       ) {
-        trackEvent('checkout_opened', { orderType, source, loggedIn: isLoggedInForAnalytics() });
-        push('/checkout/review');
-        return null;
-      }
-
-      // Fast path: the type modals (§C1.5.e) already wrote everything we
-      // need into CheckoutContext. No API calls, no smart-skip logic — just
-      // go to review.
-      if (checkoutContextSatisfies(orderType, checkoutState.customerInfo, checkoutState.deliveryAddress)) {
-        // checkout_opened — fires on the user-action path (Proceed click),
-        // not from a route-watching effect, so it never double-fires on
-        // hydration/replay. Only emitted once we've confirmed the route is
-        // actually about to happen (i.e. inputs are sufficient).
+        const activeVisit = tableDineIn.active || tableVisit.phase === 'active';
+        // An admitted visit owns the order channel. Never send it through ordinary checkout when
+        // Dine-In is unavailable or a stale persisted type has not yet been restored.
+        if (activeVisit && !tableVisit.hasPendingRound && !tableDineIn.dineInAvailable) {
+          return 'table-guest-unavailable';
+        }
         trackEvent('checkout_opened', {
-          orderType,
+          orderType: activeVisit ? OrderType.DineIn : (orderType ?? undefined),
           source,
           loggedIn: isLoggedInForAnalytics(),
         });
@@ -118,56 +171,16 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         return null;
       }
 
-      if (!isLoggedIn()) return 'details';
-
-      setIsResolving(true);
-      try {
-        const user = await getCurrentUser();
-        const addresses = orderType === OrderType.Delivery ? await getMyAddresses() : undefined;
-        const { complete } = getProfileCompleteness(user, orderType, addresses);
-
-        if (!complete) return 'details';
-
-        // Only populate fields the user hasn't already set in this session —
-        // a manually filled DeliveryAddressModal must not be clobbered by
-        // the default saved address.
-        if (!checkoutState.customerInfo) {
-          setCustomerInfo({
-            name: `${user.firstName} ${user.lastName}`.trim(),
-            email: user.email,
-            phone: user.phoneNumber ?? '',
-          });
-        }
-
-        if (orderType === OrderType.Delivery && !checkoutState.deliveryAddress && addresses) {
-          const preferred = pickPreferredAddress(addresses);
-          if (preferred) {
-            setDeliveryAddress({
-              street: preferred.addressLine1,
-              city: preferred.city,
-              postalCode: preferred.postalCode,
-              country: preferred.country,
-              additionalInfo: preferred.deliveryInstructions,
-            });
-          }
-        }
-
-        // checkout_opened — smart-skip variant. The logged-in path lands
-        // here when the profile was sufficient and we filled CheckoutContext
-        // from the API. Same payload shape as the fast-path emission above.
-        trackEvent('checkout_opened', {
-          orderType,
-          source,
-          loggedIn: true,
-        });
-        push('/checkout/review');
-        return null;
-      } catch (error) {
-        console.warn('Smart-skip checkout could not resolve profile, falling back:', error);
-        return 'details';
-      } finally {
-        setIsResolving(false);
-      }
+      return resolveOrdinaryCheckout({
+        orderType,
+        source,
+        customerInfo: checkoutState.customerInfo,
+        deliveryAddress: checkoutState.deliveryAddress,
+        push,
+        setCustomerInfo,
+        setDeliveryAddress,
+        setIsResolving,
+      });
     },
     [
       push,
@@ -177,6 +190,9 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
       setDeliveryAddress,
       tableVisit.hasPendingRound,
       tableVisit.phase,
+      tableDineIn.active,
+      tableDineIn.dineInAvailable,
+      tableDineIn.visitBound,
     ],
   );
 

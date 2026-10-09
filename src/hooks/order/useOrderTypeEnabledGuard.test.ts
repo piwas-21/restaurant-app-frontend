@@ -12,6 +12,11 @@ const mockUseEnabled = useEnabledOrderTypes as jest.Mock;
 
 const setOrderType = jest.fn();
 const clearOrderType = jest.fn();
+let mockHasStoredGuestState: boolean;
+
+jest.mock('@/services/tableGuestVisitStorage', () => ({
+  hasStoredTableGuestState: () => mockHasStoredGuestState,
+}));
 
 const arrange = (orderType: OrderType | null, enabled: OrderType[], loading = false) => {
   mockUseOrderType.mockReturnValue({ state: { orderType }, setOrderType, clearOrderType });
@@ -21,7 +26,10 @@ const arrange = (orderType: OrderType | null, enabled: OrderType[], loading = fa
 
 const ALL = [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery];
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockHasStoredGuestState = false;
+});
 
 describe('useOrderTypeEnabledGuard', () => {
   // G4 — the picker only hides the button; the stored choice stayed in force.
@@ -49,6 +57,14 @@ describe('useOrderTypeEnabledGuard', () => {
   it('does not auto-select when more than one type is on offer', () => {
     arrange(null, [OrderType.Takeaway, OrderType.Delivery]);
 
+    expect(setOrderType).not.toHaveBeenCalled();
+  });
+
+  it('preserves the pinned type and does not auto-select a fallback during a stored table visit', () => {
+    mockHasStoredGuestState = true;
+    arrange(OrderType.DineIn, [OrderType.Takeaway, OrderType.Delivery]);
+
+    expect(clearOrderType).not.toHaveBeenCalled();
     expect(setOrderType).not.toHaveBeenCalled();
   });
 

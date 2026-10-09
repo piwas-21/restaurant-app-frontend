@@ -147,15 +147,35 @@ describe('useTableGuestCheckout', () => {
     expect(result.current.isTableVisitBlocked).toBe(false);
   });
 
-  it('keeps ended and transient-unavailable visits out of ordinary dine-in checkout', () => {
-    const { result } = renderCheckout(OrderType.DineIn, {
-      phase: 'unavailable',
-      hasPendingRound: true,
-      hasAcknowledgement: false,
-    });
+  it.each([OrderType.Takeaway, OrderType.Delivery])(
+    'keeps an active visit in table-round checkout when stale persisted type is %s',
+    (orderType) => {
+      const { result } = renderCheckout(orderType, {
+        phase: 'active',
+        hasPendingRound: false,
+        hasAcknowledgement: false,
+      });
 
-    expect(result.current.isTableGuestRound).toBe(false);
-    expect(result.current.isTableVisitBlocked).toBe(true);
-    expect(result.current.tableGuestVisitPhase).toBe('unavailable');
-  });
+      expect(result.current.isTableGuestRound).toBe(true);
+      expect(result.current.isTableVisitBlocked).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockPushMenu).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery])(
+    'keeps ended and transient-unavailable %s visits out of ordinary checkout',
+    (orderType) => {
+      const { result } = renderCheckout(orderType, {
+        phase: 'unavailable',
+        hasPendingRound: true,
+        hasAcknowledgement: false,
+      });
+
+      expect(result.current.isTableGuestRound).toBe(false);
+      expect(result.current.isTableVisitBlocked).toBe(true);
+      expect(result.current.tableGuestVisitPhase).toBe('unavailable');
+    },
+  );
 });

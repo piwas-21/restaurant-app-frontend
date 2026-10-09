@@ -1,26 +1,64 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { OrderType } from '@/types/order';
 import { orderTypeConfigurationService } from '@/services/orderTypeConfigurationService';
 
 const ALL_ORDER_TYPES = [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery] as const;
 
 /**
- * In-flight request shared by every caller in a page load.
+ * Snapshot and in-flight request shared by every consumer in the current page.
  *
  * The hook now has two simultaneous consumers on /menu and /cart — the order-type picker and the
  * app-wide `useOrderTypeEnabledGuard` — and the service has no cache of its own, so each mount was
- * firing its own identical GET. Deliberately a PROMISE and not a value cache: it dedupes
- * concurrent mounts without ever serving a stale enabled-list, and it is cleared when the request
- * settles so a later mount re-reads (dine-in is stripped dynamically at closing time).
+ * firing its own identical GET. The shared snapshot also lets an explicit Retry from one surface
+ * update the picker, cart, and checkout router together. Each new mount still refreshes the public
+ * list, because Dine-In is stripped dynamically at closing time.
  */
-let inFlight: Promise<OrderType[]> | null = null;
+interface EnabledOrderTypesSnapshot {
+  readonly enabled: OrderType[];
+  readonly loading: boolean;
+  readonly confirmed: boolean;
+}
 
-function fetchEnabledOnce(): Promise<OrderType[]> {
-  inFlight ??= orderTypeConfigurationService.getEnabled().finally(() => {
-    inFlight = null;
-  });
+const INITIAL_SNAPSHOT: EnabledOrderTypesSnapshot = { enabled: [], loading: true, confirmed: false };
+let snapshot = INITIAL_SNAPSHOT;
+let inFlight: Promise<OrderType[] | null> | null = null;
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function getSnapshot(): EnabledOrderTypesSnapshot {
+  return snapshot;
+}
+
+function publish(next: EnabledOrderTypesSnapshot): void {
+  snapshot = next;
+  listeners.forEach((listener) => listener());
+}
+
+function refreshEnabledOrderTypes(): Promise<OrderType[] | null> {
+  if (inFlight) return inFlight;
+  publish({ ...snapshot, loading: true });
+  inFlight = orderTypeConfigurationService
+    .getEnabled()
+    .then((result) => {
+      const confirmed = Array.isArray(result) && result.length > 0;
+      const enabled = confirmed ? result : [...ALL_ORDER_TYPES];
+      publish({ enabled, loading: false, confirmed });
+      return confirmed ? result : null;
+    })
+    .catch((error: unknown) => {
+      console.error('Error fetching enabled order types:', error);
+      publish({ enabled: [...ALL_ORDER_TYPES], loading: false, confirmed: false });
+      return null;
+    })
+    .finally(() => {
+      inFlight = null;
+    });
   return inFlight;
 }
 
@@ -34,28 +72,11 @@ function fetchEnabledOnce(): Promise<OrderType[]> {
  * who genuinely wants to disable a type must enable the others.
  */
 export function useEnabledOrderTypes() {
-  const [enabled, setEnabled] = useState<OrderType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const current = useSyncExternalStore(subscribe, getSnapshot, () => INITIAL_SNAPSHOT);
 
   useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        setLoading(true);
-        const result = await fetchEnabledOnce();
-        if (cancelled) return;
-        setEnabled(result.length > 0 ? result : [...ALL_ORDER_TYPES]);
-      } catch (error) {
-        console.error('Error fetching enabled order types:', error);
-        if (!cancelled) setEnabled([...ALL_ORDER_TYPES]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void refreshEnabledOrderTypes();
   }, []);
 
-  return { enabled, loading };
+  return { ...current, refresh: refreshEnabledOrderTypes };
 }

@@ -61,6 +61,8 @@ export default function TableGuestRoundReviewContainer({
       error={round.error}
       pendingRound={round.pendingRound}
       pendingRoundUnavailable={round.pendingRoundUnavailable}
+      dineInUnavailable={round.dineInUnavailable}
+      onRetryAvailability={round.refreshDineInAvailability}
       acknowledgement={round.lastRoundAcknowledgement}
       recoveryOnly={recoveryOnly}
       canSubmit={round.canSubmit && (hasPendingRound || reviewedBasketReady)}

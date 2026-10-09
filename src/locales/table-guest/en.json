@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Ask staff to start or confirm a visit before ordering again. Do not reuse a code from an earlier visit.",
   "table_guest_unavailable_title": "Table account unavailable",
   "table_guest_unavailable_detail": "Ask staff to confirm whether table visits are available.",
+  "table_guest_dine_in_unavailable": "Dine-in is not available for this table visit right now. Your basket and visit remain saved in this tab.",
   "table_guest_storage_help": "This browser cannot safely keep a table visit for this tab. Enable session storage or ask staff for help.",
   "table_guest_not_joined_detail": "Scan the table QR code and enter the current visit code from staff to join.",
   "table_guest_account_summary": "Table account totals",

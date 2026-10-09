@@ -18,6 +18,7 @@
   "table_guest_ended_detail": "Demandez au personnel de démarrer ou confirmer une visite avant de commander. Ne réutilisez pas un ancien code.",
   "table_guest_unavailable_title": "Compte de table indisponible",
   "table_guest_unavailable_detail": "Demandez au personnel si les visites de table sont disponibles.",
+  "table_guest_dine_in_unavailable": "Le service sur place n’est pas disponible pour cette visite pour le moment. Votre panier et votre visite restent enregistrés dans cet onglet.",
   "table_guest_storage_help": "Ce navigateur ne peut pas conserver cette visite en sécurité dans cet onglet. Activez le stockage de session ou demandez de l’aide.",
   "table_guest_not_joined_detail": "Scannez le QR de la table et saisissez le code de visite actuel fourni par le personnel.",
   "table_guest_account_summary": "Totaux du compte de table",

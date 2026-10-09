@@ -28,6 +28,13 @@ const mockTableState = {
 
 // `state` is read by the switch flow to short-circuit a re-pick of the type already in force.
 const mockOrderTypeState = { orderType: null as string | null, table: '' };
+let mockTableGuestState: {
+  phase: 'notJoined' | 'active';
+  visit: { tableId?: string } | null;
+  visitBound: boolean;
+  active: boolean;
+  dineInAvailable: boolean;
+};
 jest.mock('@/contexts/OrderTypeContext', () => ({
   useOrderType: () => ({ state: mockOrderTypeState, setOrderType: mockSetOrderType, setTable: mockSetTable }),
 }));
@@ -42,6 +49,9 @@ jest.mock('@/contexts/CheckoutContext', () => ({
 }));
 jest.mock('@/contexts/ModulesContext', () => ({
   useModuleEnabled: () => mockReservationsEnabled,
+}));
+jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
+  useTableGuestDineInAvailability: () => mockTableGuestState,
 }));
 jest.mock('@/services/userService', () => ({ getCurrentUser: jest.fn() }));
 jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, trackEvent: jest.fn() }));
@@ -74,6 +84,13 @@ beforeEach(() => {
   mockTableState.tableContext = { tableId: null, tableNumber: '', dineInPinned: false };
   mockReservationsEnabled = true;
   mockOrderTypeState.table = '';
+  mockTableGuestState = {
+    phase: 'notJoined',
+    visit: null,
+    visitBound: false,
+    active: false,
+    dineInAvailable: false,
+  };
 });
 
 // G1. A physical scan is the strongest signal there is, so it wins over a stored choice — the
@@ -140,6 +157,42 @@ describe('useOrderTypeFollowUp — QR scan pins dine-in (gap G1)', () => {
 });
 
 describe('useOrderTypeFollowUp', () => {
+  it('restores an admitted available visit and skips the legacy table picker', async () => {
+    mockTableGuestState = {
+      phase: 'active',
+      visit: { tableId: 't-11' },
+      visitBound: true,
+      active: true,
+      dineInAvailable: true,
+    };
+    mockTableState.tableContext = { tableId: 't-11', tableNumber: '11a', dineInPinned: false };
+
+    const { result } = renderHook(() => useOrderTypeFollowUp());
+    await waitFor(() => expect(mockSetOrderType).toHaveBeenCalledWith(OrderType.DineIn));
+
+    await act(async () => result.current.pickType(OrderType.DineIn));
+
+    expect(mockSetTable).toHaveBeenCalledWith('11a');
+    expect(result.current.followUp).toBeNull();
+  });
+
+  it('does not switch an admitted visit to an ordinary order type', async () => {
+    mockTableGuestState = {
+      phase: 'active',
+      visit: { tableId: 't-11' },
+      visitBound: true,
+      active: true,
+      dineInAvailable: false,
+    };
+    const { result } = renderHook(() => useOrderTypeFollowUp());
+    mockSetOrderType.mockClear();
+
+    await act(async () => result.current.pickType(OrderType.Takeaway));
+
+    expect(mockSetOrderType).not.toHaveBeenCalled();
+    expect(mockSetBasketOrderType).not.toHaveBeenCalled();
+  });
+
   it('commits DineIn without table selection when reservations are disabled', async () => {
     mockReservationsEnabled = false;
     const { result } = renderHook(() => useOrderTypeFollowUp());

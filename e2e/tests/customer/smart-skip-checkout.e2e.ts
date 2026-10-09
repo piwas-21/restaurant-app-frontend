@@ -3,7 +3,12 @@ import { test as publicTest } from '@playwright/test';
 import { request } from '@playwright/test';
 import { apiBaseUrl } from '../../helpers/config';
 import { deleteUserByEmail } from '../../helpers/db';
-import { menuBasketPanel, openMenuBasket, proceedViaSidebarExpectingNavigation } from '../../helpers/menuBasket';
+import {
+  addFirstMenuItemAndWaitForBasket,
+  menuBasketPanel,
+  openMenuBasket,
+  proceedViaSidebarExpectingNavigation,
+} from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — smart-skip checkout (BUGS-IMPROVEMENTS-PLAN §C1.5.d + §C1.5.e).
@@ -50,24 +55,7 @@ authedTest('logged-in user with phone skips customer-info on Takeaway', async ({
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.
     const sidebar = menuBasketPanel(page);
-    const basketWritePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
-      { timeout: 10_000 },
-    );
-    await page
-      .getByTestId('menu-card')
-      .first()
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
-      .click();
-    try {
-      await page
-        .getByRole('dialog')
-        .getByRole('button', { name: /^Add( .+)? to order$/i })
-        .click({ timeout: 3_000 });
-    } catch {
-      /* no customization modal — direct add */
-    }
-    await basketWritePromise;
+    await addFirstMenuItemAndWaitForBasket(page);
     // Back into the basket for the toggle / Proceed / line assertions below.
     await openMenuBasket(page);
 
@@ -98,24 +86,7 @@ authedTest(
       // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
       // needs it and leaves the grid behind it clickable in between.
       const sidebar = menuBasketPanel(page);
-      const basketWritePromise = page.waitForResponse(
-        (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
-        { timeout: 10_000 },
-      );
-      await page
-        .getByTestId('menu-card')
-        .first()
-        .getByRole('button', { name: /^Add( .+)? to order$/i })
-        .click();
-      try {
-        await page
-          .getByRole('dialog')
-          .getByRole('button', { name: /^Add( .+)? to order$/i })
-          .click({ timeout: 3_000 });
-      } catch {
-        /* no modal */
-      }
-      await basketWritePromise;
+      await addFirstMenuItemAndWaitForBasket(page);
       // Back into the basket for the toggle / Proceed / line assertions below.
       await openMenuBasket(page);
 
@@ -154,24 +125,7 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.
     const sidebar = menuBasketPanel(page);
-    const basketWritePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
-      { timeout: 10_000 },
-    );
-    await page
-      .getByTestId('menu-card')
-      .first()
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
-      .click();
-    try {
-      await page
-        .getByRole('dialog')
-        .getByRole('button', { name: /^Add( .+)? to order$/i })
-        .click({ timeout: 3_000 });
-    } catch {
-      /* no modal */
-    }
-    await basketWritePromise;
+    await addFirstMenuItemAndWaitForBasket(page);
     // Back into the basket for the toggle / Proceed / line assertions below.
     await openMenuBasket(page);
 
@@ -214,24 +168,7 @@ publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)',
     // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
     // needs it and leaves the grid behind it clickable in between.
     const sidebar = menuBasketPanel(page);
-    const basketWritePromise = page.waitForResponse(
-      (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
-      { timeout: 10_000 },
-    );
-    await page
-      .getByTestId('menu-card')
-      .first()
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
-      .click();
-    try {
-      await page
-        .getByRole('dialog')
-        .getByRole('button', { name: /^Add( .+)? to order$/i })
-        .click({ timeout: 3_000 });
-    } catch {
-      /* no modal */
-    }
-    await basketWritePromise;
+    await addFirstMenuItemAndWaitForBasket(page);
     // Back into the basket for the toggle / Proceed / line assertions below.
     await openMenuBasket(page);
 

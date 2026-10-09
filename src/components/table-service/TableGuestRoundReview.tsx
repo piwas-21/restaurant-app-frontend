@@ -14,6 +14,8 @@ interface TableGuestRoundReviewProps {
   readonly error: string;
   readonly pendingRound: PendingTableGuestRound | null;
   readonly pendingRoundUnavailable: boolean;
+  readonly dineInUnavailable: boolean;
+  readonly onRetryAvailability: () => Promise<boolean>;
   readonly acknowledgement: TableGuestRoundAcknowledgement | null;
   readonly recoveryOnly: boolean;
   readonly canSubmit: boolean;
@@ -28,6 +30,8 @@ export default function TableGuestRoundReview({
   error,
   pendingRound,
   pendingRoundUnavailable,
+  dineInUnavailable,
+  onRetryAvailability,
   acknowledgement,
   recoveryOnly,
   canSubmit,
@@ -67,6 +71,14 @@ export default function TableGuestRoundReview({
         <p className={styles.notice}>
           <output>{t('table_guest_pending_round_notice')}</output>
         </p>
+      )}
+      {dineInUnavailable && !pendingRound && (
+        <div className={styles.notice}>
+          <output>{t('table_guest_dine_in_unavailable')}</output>
+          <button className={styles.secondaryButton} type="button" onClick={() => void onRetryAvailability()}>
+            {t('table_guest_unavailable_retry_action')}
+          </button>
+        </div>
       )}
       {recoveryOnly && pendingRoundUnavailable && (
         <p className={styles.error} role="alert">

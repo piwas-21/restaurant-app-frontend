@@ -45,6 +45,7 @@
   "table_guest_round_action": "Add this round",
   "table_guest_retry_round_action": "Retry the same round",
   "table_guest_round_stale": "The table account or basket changed. The basket was refreshed; review it again before sending.",
+  "table_guest_round_channel_unconfirmed": "This basket is not confirmed for Dine-In yet. Review or edit it before sending this round, or ask staff for help.",
   "table_guest_round_submit_failed": "We could not confirm this round yet. Retry to check the same request before starting another.",
   "table_guest_fingerprint_unavailable": "We could not verify the reviewed basket. Refresh the basket and review it again.",
   "table_guest_round_committed_detail": "This round is confirmed. You can add another round from the menu.",

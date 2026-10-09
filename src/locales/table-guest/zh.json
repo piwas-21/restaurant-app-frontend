@@ -45,6 +45,7 @@
   "table_guest_round_action": "添加本轮订单",
   "table_guest_retry_round_action": "重试同一订单",
   "table_guest_round_stale": "桌台账单或购物篮已更改。购物篮已刷新；请重新确认后再发送。",
+  "table_guest_round_channel_unconfirmed": "这份购物篮尚未确认为堂食订单。发送本轮之前，请检查或编辑购物篮，或向店员寻求帮助。",
   "table_guest_round_submit_failed": "尚未确认本轮订单。请重试以查询同一请求，再开始新一轮。",
   "table_guest_fingerprint_unavailable": "无法验证已确认的购物篮。请刷新并重新确认。",
   "table_guest_round_committed_detail": "本轮订单已确认。你可以从菜单添加下一轮。",

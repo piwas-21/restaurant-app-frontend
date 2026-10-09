@@ -45,6 +45,7 @@
   "table_guest_round_action": "Deze ronde toevoegen",
   "table_guest_retry_round_action": "Dezelfde ronde opnieuw proberen",
   "table_guest_round_stale": "De tafelrekening of mand is gewijzigd. De mand is vernieuwd; controleer die opnieuw voor verzending.",
+  "table_guest_round_channel_unconfirmed": "Deze bestelling is nog niet bevestigd voor dineren in het restaurant. Controleer of bewerk de bestelling voordat je deze ronde verstuurt, of vraag het personeel om hulp.",
   "table_guest_round_submit_failed": "Deze ronde is nog niet bevestigd. Probeer dezelfde aanvraag opnieuw om dit te controleren.",
   "table_guest_fingerprint_unavailable": "De gecontroleerde mand kon niet worden geverifieerd. Vernieuw de mand en controleer opnieuw.",
   "table_guest_round_committed_detail": "Deze ronde is bevestigd. Je kunt via het menu een nieuwe ronde toevoegen.",

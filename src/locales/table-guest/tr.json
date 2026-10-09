@@ -45,6 +45,7 @@
   "table_guest_round_action": "Bu siparişi ekle",
   "table_guest_retry_round_action": "Aynı siparişi yeniden dene",
   "table_guest_round_stale": "Masa hesabı veya sepet değişti. Sepet yenilendi; göndermeden önce tekrar incele.",
+  "table_guest_round_channel_unconfirmed": "Bu sepet, restoranda tüketim için henüz doğrulanmadı. Bu turu göndermeden önce sepeti gözden geçir veya düzenle ya da personelden yardım iste.",
   "table_guest_round_submit_failed": "Bu sipariş henüz doğrulanamadı. Yeni bir sipariş başlatmadan aynı isteği yeniden dene.",
   "table_guest_fingerprint_unavailable": "İncelenen sepet doğrulanamadı. Sepeti yenile ve tekrar incele.",
   "table_guest_round_committed_detail": "Bu sipariş onaylandı. Menüden yeni bir sipariş ekleyebilirsin.",

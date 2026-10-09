@@ -14,10 +14,30 @@ import { useCartContents } from '@/hooks/order/useCartContents';
 import { useEnabledOrderTypes } from './useEnabledOrderTypes';
 import { useTableGuestDineInAvailability } from './useTableGuestDineInAvailability';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
+import TableGuestRoundReviewContainer from '@/components/table-service/TableGuestRoundReviewContainer';
+import type { CartState } from '@/components/cart/cartTypes';
+import type { BasketDto } from '@/types/basket';
+import type { BasketChannelSwitch } from '@/types/basketChannel';
+import tableGuestEnglish from '@/locales/table-guest/en.json';
 
 const mockGetEnabled = jest.fn<Promise<OrderType[]>, []>();
 const mockPush = jest.fn();
 const mockOuterPagePickType = jest.fn();
+const mockSetBasketOrderType = jest.fn<Promise<BasketChannelSwitch>, [OrderType, boolean?]>();
+const mockCreateRound = jest.fn();
+const mockUpdateItem = jest.fn();
+const mockRemoveItem = jest.fn();
+const mockClearError = jest.fn();
+const mockClearCart = jest.fn();
+const mockSyncBasket = jest.fn<Promise<boolean>, [string | null | undefined]>();
+let mockCartState: CartState;
+let mockCanonicalOrderType: OrderType | null;
+let mockCartRevision = 0;
+const mockCartStoreListeners = new Set<() => void>();
+const mockRefreshCartStore = () => {
+  mockCartRevision += 1;
+  mockCartStoreListeners.forEach((listener) => listener());
+};
 
 jest.mock('@/services/orderTypeConfigurationService', () => ({
   orderTypeConfigurationService: { getEnabled: () => mockGetEnabled() },
@@ -26,27 +46,69 @@ jest.mock('@/services/tableGuestLocaleService', () => ({
   loadTableGuestLocale: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('@/components/cart/CartContext', () => {
-  const state = { items: [{ quantity: 1, itemTotal: 2 }], error: null, isSyncing: false };
-  const updateItem = jest.fn();
-  const removeItem = jest.fn();
-  const clearError = jest.fn();
-  return { useCart: () => ({ state, updateItem, removeItem, clearError }) };
+  const react = jest.requireActual('react') as typeof import('react');
+  const subscribe = (listener: () => void) => {
+    mockCartStoreListeners.add(listener);
+    return () => mockCartStoreListeners.delete(listener);
+  };
+  const getSnapshot = () => mockCartRevision;
+  return {
+    useCart: () => {
+      react.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+      return {
+        state: mockCartState,
+        updateItem: mockUpdateItem,
+        removeItem: mockRemoveItem,
+        clearError: mockClearError,
+        syncBasket: mockSyncBasket,
+        clearCart: mockClearCart,
+      };
+    },
+  };
 });
+jest.mock('@/services/basketChannelService', () => ({
+  setBasketOrderType: (...args: [OrderType, boolean?]) => mockSetBasketOrderType(...args),
+  clearBasketOrderType: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('@/services/tableGuestVisitService', () => ({
+  tableGuestVisitService: {
+    joinTableGuestVisit: jest.fn(),
+    getTableGuestAccount: jest.fn(),
+    createTableGuestRound: (...args: unknown[]) => mockCreateRound(...args),
+  },
+  isUnavailableVisitError: () => false,
+  isExpiredVisitError: () => false,
+}));
 jest.mock('@/contexts/SessionContext', () => ({ useSessionContext: () => ({ ensureSession: () => 'session-1' }) }));
 jest.mock('@/contexts/ModulesContext', () => ({ useModuleEnabled: () => false }));
 jest.mock('@/hooks/useTenantLocaleRouter', () => ({ useTenantLocaleRouter: () => ({ push: mockPush }) }));
-jest.mock('@/hooks/order/useOrderTypeSwitch', () => ({
-  useOrderTypeSwitch: () => ({
-    pending: null,
-    isApplying: false,
-    error: null,
-    request: async () => true,
-    confirm: async () => null,
-    cancel: jest.fn(),
-  }),
-}));
-jest.mock('@/hooks/order/useAssertBasketChannel', () => ({ releaseUncommittedBasketChannelSelection: jest.fn() }));
 jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, trackEvent: jest.fn() }));
+
+function makeCartState(basket: BasketDto): CartState {
+  return {
+    items: basket.items.map((item) => ({ ...item, basketItemId: item.id })),
+    basket,
+    isLoading: false,
+    isSyncing: false,
+    error: null,
+    lastSyncedAt: Date.now(),
+  };
+}
+
+function removeTakeawayOnlyLine() {
+  if (!mockCartState.basket) return;
+  const items = mockCartState.basket.items.filter((item) => item.id !== 'line-takeaway');
+  const basket = {
+    ...mockCartState.basket,
+    items,
+    purchaseFingerprint: 'B'.repeat(64),
+    totalItems: 1,
+    subTotal: 10,
+    total: 10,
+  };
+  mockCartState = makeCartState(basket);
+  mockRefreshCartStore();
+}
 
 function RetrySurface() {
   const tableGuest = useTableGuestDineInAvailability();
@@ -73,7 +135,13 @@ function RetrySurface() {
   );
 }
 
-function FollowUpAndCheckoutSurface({ followUp }: { followUp: ReturnType<typeof useOrderTypeFollowUp> }) {
+function FollowUpAndCheckoutSurface({
+  followUp,
+  showReview = false,
+}: {
+  followUp: ReturnType<typeof useOrderTypeFollowUp>;
+  showReview?: boolean;
+}) {
   const cart = useCartContents({ pickType: followUp.pickType });
   const tableGuest = useTableGuestDineInAvailability();
   const { state: orderTypeState } = useOrderType();
@@ -104,11 +172,17 @@ function FollowUpAndCheckoutSurface({ followUp }: { followUp: ReturnType<typeof 
       <button type="button" onClick={cart.handleCheckout}>
         Cart proceed to checkout
       </button>
+      {showReview && <TableGuestRoundReviewContainer formatPrice={(amount) => amount.toFixed(2)} />}
+      {showReview && (
+        <button type="button" data-testid="remove-takeaway-line" onClick={removeTakeawayOnlyLine}>
+          Remove takeaway-only line
+        </button>
+      )}
     </>
   );
 }
 
-function MenuPageControllerOutsideGuestRuntime() {
+function MenuPageControllerOutsideGuestRuntime({ showReview = false }: { showReview?: boolean }) {
   const followUp = useOrderTypeFollowUp();
   const { pickType: followUpPickType } = followUp;
   const pagePickType = React.useCallback(
@@ -124,7 +198,7 @@ function MenuPageControllerOutsideGuestRuntime() {
       <TableGuestVisitProvider>
         <CheckoutTableGuestStateBridge>
           <RetrySurface />
-          <FollowUpAndCheckoutSurface followUp={cartFollowUp} />
+          <FollowUpAndCheckoutSurface followUp={cartFollowUp} showReview={showReview} />
         </CheckoutTableGuestStateBridge>
       </TableGuestVisitProvider>
     </TableGuestFeatureProvider>
@@ -136,6 +210,22 @@ describe('shared table guest Dine-In availability', () => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+    localStorage.setItem('rumi_session_id', 'session-1');
+    mockCartState = {
+      items: [{ quantity: 1, unitPrice: 2, itemTotal: 2 }],
+      basket: null,
+      isLoading: false,
+      isSyncing: false,
+      error: null,
+      lastSyncedAt: null,
+    };
+    mockCanonicalOrderType = null;
+    mockCartRevision = 0;
+    mockCartStoreListeners.clear();
+    mockSyncBasket.mockReset();
+    mockSyncBasket.mockResolvedValue(true);
+    mockSetBasketOrderType.mockReset();
+    mockCreateRound.mockReset();
     sessionStorage.setItem(
       'rumi_table_guest_visit_v1',
       JSON.stringify({
@@ -162,6 +252,7 @@ describe('shared table guest Dine-In availability', () => {
       .mockResolvedValueOnce([OrderType.Takeaway])
       .mockResolvedValueOnce([OrderType.DineIn, OrderType.Takeaway])
       .mockResolvedValueOnce([OrderType.Takeaway]);
+    i18n.addResourceBundle('en', 'translation', tableGuestEnglish, true, true);
   });
 
   it('unblocks every mounted consumer after one retry and restores the pinned table visit', async () => {
@@ -229,5 +320,107 @@ describe('shared table guest Dine-In availability', () => {
     });
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockGetEnabled).toHaveBeenCalledTimes(4);
+  });
+
+  it('keeps review blocked after channel refusal, then unlocks after the guest removes the conflict', async () => {
+    const basket: BasketDto = {
+      id: 'basket-guest',
+      sessionId: 'session-1',
+      purchaseFingerprint: 'A'.repeat(64),
+      subTotal: 20,
+      tax: 0,
+      deliveryFee: 0,
+      discount: 0,
+      customerDiscount: 0,
+      total: 20,
+      totalItems: 2,
+      orderType: OrderType.Takeaway,
+      items: [
+        { id: 'line-dinein', productId: 'soup', productName: 'Soup', quantity: 1, unitPrice: 10, itemTotal: 10 },
+        {
+          id: 'line-takeaway',
+          productId: 'wrap',
+          productName: 'Wrap',
+          quantity: 1,
+          unitPrice: 10,
+          itemTotal: 10,
+        },
+      ],
+    };
+    mockCartState = makeCartState(basket);
+    mockCanonicalOrderType = OrderType.Takeaway;
+    mockSyncBasket.mockImplementation(async (expectedSessionId) => {
+      if (expectedSessionId !== 'session-1' || !mockCartState.basket) return false;
+      mockCartState = makeCartState({ ...mockCartState.basket, orderType: mockCanonicalOrderType });
+      mockRefreshCartStore();
+      return true;
+    });
+    mockSetBasketOrderType.mockImplementation(async (orderType, removeConflicts = false) => {
+      const conflictExists = mockCartState.basket?.items.some((item) => item.id === 'line-takeaway') ?? false;
+      const conflicts = conflictExists
+        ? [
+            {
+              basketItemId: 'line-takeaway',
+              productId: 'wrap',
+              productName: 'Wrap',
+              quantity: 1,
+              allowedOrderTypes: [OrderType.Takeaway, OrderType.Delivery],
+            },
+          ]
+        : [];
+      if (orderType === OrderType.DineIn && conflicts.length > 0 && !removeConflicts) {
+        return { applied: false, conflicts, removed: [], basket: mockCartState.basket };
+      }
+      mockCanonicalOrderType = orderType;
+      return { applied: true, conflicts: [], removed: [], basket: mockCartState.basket };
+    });
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <TableContextProvider>
+          <CheckoutProvider>
+            <OrderTypeProvider>
+              <MenuPageControllerOutsideGuestRuntime showReview />
+            </OrderTypeProvider>
+          </CheckoutProvider>
+        </TableContextProvider>
+      </I18nextProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId('visit-phase')).toHaveTextContent('active'));
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('retry-availability'));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('recovered-order-type')).toHaveTextContent(OrderType.DineIn);
+      expect(mockSetBasketOrderType).toHaveBeenCalledTimes(1);
+      expect(mockSyncBasket).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockSetBasketOrderType).toHaveBeenNthCalledWith(1, OrderType.DineIn, false);
+    expect(mockCartState.basket?.orderType).toBe(OrderType.Takeaway);
+    expect(mockCartState.items).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: tableGuestEnglish.table_guest_round_action })).not.toBeInTheDocument();
+    expect(screen.getByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).toBeVisible();
+    expect(screen.getByRole('link', { name: tableGuestEnglish.table_guest_round_edit })).toHaveAttribute(
+      'href',
+      '/cart',
+    );
+    expect(mockCreateRound).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('remove-takeaway-line'));
+    });
+    expect(mockCartState.items).toHaveLength(1);
+
+    await waitFor(() => {
+      expect(mockSetBasketOrderType).toHaveBeenCalledTimes(2);
+      expect(mockCartState.basket?.orderType).toBe(OrderType.DineIn);
+      expect(screen.getByRole('button', { name: tableGuestEnglish.table_guest_round_action })).toBeEnabled();
+    });
+    expect(mockSetBasketOrderType).toHaveBeenNthCalledWith(2, OrderType.DineIn, false);
+    expect(mockCartState.items).toHaveLength(1);
+    expect(screen.queryByText(tableGuestEnglish.table_guest_round_channel_unconfirmed)).not.toBeInTheDocument();
+    expect(mockCreateRound).not.toHaveBeenCalled();
   });
 });

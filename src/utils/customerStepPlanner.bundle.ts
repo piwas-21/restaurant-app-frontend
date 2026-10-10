@@ -118,9 +118,12 @@ function validateBundleDescriptor(
     return;
   }
   const owner = itemById.get(descriptor.sectionItemId);
+  if (!owner) {
+    issues.push('stale-component-scope');
+    return;
+  }
   if (
-    owner?.section.id !== descriptor.sectionId ||
-    !owner ||
+    owner.section.id !== descriptor.sectionId ||
     owner.item.productId !== descriptor.productId ||
     !componentScopeExists(descriptor.kind, descriptor.scopeId, owner.item)
   ) {

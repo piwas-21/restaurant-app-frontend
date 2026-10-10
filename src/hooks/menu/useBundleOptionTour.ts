@@ -26,9 +26,9 @@ function isDeselectedOption(
   productVariationId?: string | null,
   menuSectionItemId?: string,
 ): boolean {
-  if (!previous || previous.sectionId !== sectionId || previous.itemId !== itemId) return false;
-  if (menuSectionItemId) return previous.menuSectionItemId === menuSectionItemId;
-  return (previous.productVariationId ?? null) === (productVariationId ?? null);
+  if (previous?.sectionId !== sectionId || previous?.itemId !== itemId) return false;
+  if (menuSectionItemId) return previous?.menuSectionItemId === menuSectionItemId;
+  return (previous?.productVariationId ?? null) === (productVariationId ?? null);
 }
 
 /**

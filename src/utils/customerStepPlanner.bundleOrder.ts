@@ -94,7 +94,8 @@ function addRequiredChoiceDependenciesForExtra(
 ): void {
   for (const candidate of sectionScreens) {
     const ref = sectionRef(candidate);
-    if (!ref || ref.parentComponentId !== parentComponentId || !sectionIsRequired(ref, sections)) continue;
+    if (ref?.parentComponentId !== parentComponentId) continue;
+    if (!ref || !sectionIsRequired(ref, sections)) continue;
     addDependency(graph, bySection.get(ref.targetId)?.id, extraStepId);
   }
 }

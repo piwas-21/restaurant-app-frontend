@@ -121,11 +121,7 @@ function resolveOne(
 
   if (selection.menuSectionItemId) {
     const item = section.items.find((candidate) => candidate.id === selection.menuSectionItemId);
-    if (
-      !item ||
-      item.productId !== selection.itemId ||
-      !sameVariation(item.productVariationId, selection.productVariationId)
-    )
+    if (item?.productId !== selection.itemId || !sameVariation(item?.productVariationId, selection.productVariationId))
       return unresolved(index, selection, 'stale-row', section);
     return resolved(index, selection, section, item);
   }

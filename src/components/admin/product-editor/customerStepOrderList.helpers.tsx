@@ -142,7 +142,7 @@ function isRequiredProductStep(ref: ProductCustomerStep, screen: CustomerStepScr
   );
 }
 
-export function StepIcon({ kind, role }: { kind: CustomerStepKind; role: CustomerCompositionRole }) {
+export function StepIcon({ kind, role }: Readonly<{ kind: CustomerStepKind; role: CustomerCompositionRole }>) {
   const Icon = ICON_BY_ROLE[role] ?? ICON_BY_KIND[kind] ?? Utensils;
   return <Icon size={18} />;
 }
@@ -170,16 +170,16 @@ export function SectionParentField({
   disabled,
   t,
   onChange,
-}: {
+}: Readonly<{
   screen: CustomerStepScreen;
   manifest: CustomerStepManifest;
   sections: readonly MenuSection[];
   disabled: boolean;
   t: Translate;
   onChange: (sectionId: string, parentComponentId: string | null) => void;
-}) {
+}>) {
   const ref = screen.refs.find((step) => step.kind === 'BundleSection');
-  if (!ref || ref.kind !== 'BundleSection') return null;
+  if (ref?.kind !== 'BundleSection') return null;
   return (
     <FormField label={t('customer_section_belongs_to')}>
       <select

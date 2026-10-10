@@ -8,32 +8,32 @@ import { resolveBundleRowSelection } from '@/utils/bundleOptionResolution';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
 
 interface Props {
-  section: MenuSection;
-  item: MenuSection['items'][number];
-  selectedOptions: readonly SelectedMenuOption[];
-  selectedCount: number;
-  isRadio: boolean;
-  currentLanguage: string;
-  onToggleOption: (
+  readonly section: MenuSection;
+  readonly item: MenuSection['items'][number];
+  readonly selectedOptions: readonly SelectedMenuOption[];
+  readonly selectedCount: number;
+  readonly isRadio: boolean;
+  readonly currentLanguage: string;
+  readonly onToggleOption: (
     section: MenuSection,
     itemId: string,
     productVariationId?: string | null,
     menuSectionItemId?: string,
   ) => void;
-  onOptionQuantityChange?: (
+  readonly onOptionQuantityChange?: (
     sectionId: string,
     itemId: string,
     quantity: number,
     productVariationId?: string | null,
     menuSectionItemId?: string,
   ) => void;
-  onCustomizeOption?: (
+  readonly onCustomizeOption?: (
     sectionId: string,
     itemId: string,
     productVariationId?: string | null,
     menuSectionItemId?: string,
   ) => void;
-  inlinePanel?: {
+  readonly inlinePanel?: Readonly<{
     expandedOptionKey: string | null;
     onToggle: (sectionId: string, itemId: string, variation?: string | null, menuSectionItemId?: string) => void;
     onChange: (
@@ -43,8 +43,8 @@ interface Props {
       variation?: string | null,
       menuSectionItemId?: string,
     ) => void;
-  };
-  hideSelectionControl?: boolean;
+  }>;
+  readonly hideSelectionControl?: boolean;
 }
 
 export default function BundleSectionOption({

@@ -10,9 +10,10 @@ import type {
   SauceGroupCarrier,
   SelectedMenuOption,
   CustomizationGroupSelection,
+  CustomerCompositionRole,
+  CustomerStepDescriptor,
   ProductCustomizationGroup,
 } from '@/types/menu';
-import type { CustomerCompositionRole, CustomerStepDescriptor } from '@/types/menu';
 
 /**
  * The step model behind the guided customization flow (MENU-CUSTOMIZATION-FLOW-PLAN §3.1).

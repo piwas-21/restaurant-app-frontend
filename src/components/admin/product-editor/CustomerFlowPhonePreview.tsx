@@ -102,14 +102,14 @@ function StepPreview({
   product,
   currentLanguage,
   t,
-}: {
+}: Readonly<{
   active?: CustomizationStep;
   index: number;
   total: number;
   product?: DetailedProduct;
   currentLanguage: string;
   t: Translate;
-}) {
+}>) {
   if (!active) {
     return (
       <main className={styles.content}>
@@ -152,7 +152,7 @@ function StepPreview({
   );
 }
 
-function PreviewChoices({ choices }: { choices: readonly { key: string; name: string }[] }) {
+function PreviewChoices({ choices }: Readonly<{ choices: readonly { key: string; name: string }[] }>) {
   return (
     <ul className={styles.choices}>
       {choices.map((choice) => (

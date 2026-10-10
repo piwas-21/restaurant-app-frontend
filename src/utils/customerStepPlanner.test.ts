@@ -454,6 +454,24 @@ describe('customer step planner', () => {
     expect(extraStep?.ingredientIds).toEqual(['dish-cheese']);
   });
 
+  it('labels the generated component note step without replacing its owning item context', () => {
+    const row = sectionItem('burger-row', 'burger-product', {
+      productName: 'E2E Beef Burger',
+      variations: [
+        { id: 'regular', name: 'Regular', priceModifier: 0, finalPrice: 10, displayOrder: 0, isActive: true },
+      ],
+      detailedIngredients: [ingredient('cheese')],
+    });
+    const sections = [section('main', 'Burgers', 0, [row], true)];
+    const selected = [{ sectionId: 'main', itemId: 'burger-product', menuSectionItemId: 'burger-row', quantity: 1 }];
+
+    const noteStep = buildMixedBundleSteps(sections, undefined, selected).find((step) => step.kind === 'special');
+
+    expect(noteStep?.titleKey).toBe('product_special_requests');
+    expect(noteStep?.title).toBeUndefined();
+    expect(noteStep?.component?.productName).toBe('E2E Beef Burger');
+  });
+
   it('rejects a dependent section whose bound owner is not authored as a Dish', () => {
     const dish = sectionItem('dish-row', 'dish-product');
     const sections = [

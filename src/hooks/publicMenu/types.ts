@@ -1,5 +1,11 @@
-import type { ApiCategory, MenuDefinition, MenuItem, ProductIngredient, SuggestedSideItem } from '@/types/menu';
-import type { CustomerStepManifest } from '@/types/menu';
+import type {
+  ApiCategory,
+  CustomerStepManifest,
+  MenuDefinition,
+  MenuItem,
+  ProductIngredient,
+  SuggestedSideItem,
+} from '@/types/menu';
 
 type ProductVariationDto = NonNullable<MenuItem['variations']>[number];
 

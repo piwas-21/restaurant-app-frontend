@@ -31,16 +31,7 @@ export function getDefaultSteps({
 }): { steps: CustomerStepManifest['steps']; unsupported: number } {
   if (isBundle) {
     const all = defaultBundleStepManifestParts(sections);
-    const steps = all.filter((step) =>
-      step.kind === 'BundleSection'
-        ? isPersistedMenuId(step.targetId)
-        : isBundleComponentStep(step)
-          ? isPersistedMenuId(step.sectionId) &&
-            isPersistedMenuId(step.sectionItemId) &&
-            isPersistedMenuId(step.productId) &&
-            isPersistedMenuId(step.scopeId)
-          : false,
-    );
+    const steps = all.filter(isPersistedBundleStep);
     return { steps, unsupported: all.length - steps.length };
   }
 
@@ -71,6 +62,17 @@ export function getDefaultSteps({
   const missingDraftIds =
     variations.filter((row) => !row.id).length + customizationGroups.filter((group) => !group.id).length;
   return { steps, unsupported: all.length - steps.length + missingSideRefs + missingDraftIds };
+}
+
+function isPersistedBundleStep(step: CustomerStepManifest['steps'][number]): boolean {
+  if (step.kind === 'BundleSection') return isPersistedMenuId(step.targetId);
+  if (!isBundleComponentStep(step)) return false;
+  return (
+    isPersistedMenuId(step.sectionId) &&
+    isPersistedMenuId(step.sectionItemId) &&
+    isPersistedMenuId(step.productId) &&
+    isPersistedMenuId(step.scopeId)
+  );
 }
 
 export function toPreviewProduct(

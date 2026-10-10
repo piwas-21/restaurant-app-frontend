@@ -21,7 +21,10 @@ export const bundleOptionKey = (
   itemId: string,
   productVariationId?: string | null,
   menuSectionItemId?: string,
-) => `${sectionId}::${menuSectionItemId ? `row:${menuSectionItemId}` : itemId}::${productVariationId ?? 'base'}`;
+) => {
+  const itemKey = menuSectionItemId ? `row:${menuSectionItemId}` : itemId;
+  return `${sectionId}::${itemKey}::${productVariationId ?? 'base'}`;
+};
 
 /** Variation identity is part of an option identity; an omitted id means the product's base row. */
 function matchesVariation(actual: string | null | undefined, expected: string | null | undefined): boolean {

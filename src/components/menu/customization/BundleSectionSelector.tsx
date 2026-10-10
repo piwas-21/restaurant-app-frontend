@@ -176,7 +176,7 @@ export default function BundleSectionSelector({
   );
 }
 
-export function SelectionRecoveryNotice({ visible, onClear }: { visible: boolean; onClear?: () => void }) {
+export function SelectionRecoveryNotice({ visible, onClear }: Readonly<{ visible: boolean; onClear?: () => void }>) {
   const { t } = useTranslation();
   if (!visible) return null;
   return (

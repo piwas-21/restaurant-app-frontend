@@ -77,7 +77,6 @@ function makeSpecialRequestScreen(selected: SelectedBundleComponent, ownerId?: s
       id,
       kind: 'special',
       titleKey: 'product_special_requests',
-      title: selected.item.productName,
       singleChoice: false,
       isRequired: false,
       component: selected.item,

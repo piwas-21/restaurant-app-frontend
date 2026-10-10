@@ -19,6 +19,18 @@ export interface BundleOptionLocator {
   productVariationId?: string | null;
 }
 
+function isDeselectedOption(
+  previous: BundleOptionLocator | null,
+  sectionId: string,
+  itemId: string,
+  productVariationId?: string | null,
+  menuSectionItemId?: string,
+): boolean {
+  if (!previous || previous.sectionId !== sectionId || previous.itemId !== itemId) return false;
+  if (menuSectionItemId) return previous.menuSectionItemId === menuSectionItemId;
+  return (previous.productVariationId ?? null) === (productVariationId ?? null);
+}
+
 /**
  * Which option's guided customization screen is open, and whether it is part of a GUIDED walk
  * (partner feedback 2026-09): picking an option that has ingredients/sauces advances straight
@@ -154,14 +166,8 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   /** The sheet's toggle: deselecting the option on screen (or in a walked section) kills the walk. */
   const handleDeselection = useCallback(
     (sectionId: string, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
-      setCustomizingOption((prev) =>
-        prev?.sectionId === sectionId &&
-        prev.itemId === itemId &&
-        (menuSectionItemId
-          ? prev.menuSectionItemId === menuSectionItemId
-          : (prev.productVariationId ?? null) === (productVariationId ?? null))
-          ? null
-          : prev,
+      setCustomizingOption((previous) =>
+        isDeselectedOption(previous, sectionId, itemId, productVariationId, menuSectionItemId) ? null : previous,
       );
       setTourSectionId((prev) => (prev === sectionId ? null : prev));
     },

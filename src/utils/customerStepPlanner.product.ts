@@ -10,6 +10,12 @@ import {
 } from './customerStepManifest';
 import { isCustomerScreenOrderValid } from './customerStepDependencies';
 import { addReview, completeManifest, STEP_TITLES, type PlanResult } from './customerStepPlanner.shared';
+import type { SuggestedSideGroup } from './suggestedSideItems';
+
+type ProductStepRequiredField = 'id' | 'singleChoice' | 'isRequired';
+type ProductStepOptionalField = 'manifestRefs' | 'compositionRole' | 'presentationOrder' | 'presentationLabel';
+type ProductStepProjectionBase = Pick<CustomizationStep, ProductStepRequiredField> &
+  Partial<Pick<CustomizationStep, ProductStepOptionalField>>;
 
 export function buildCustomerProductSteps(
   product: DetailedProduct,
@@ -84,8 +90,7 @@ function projectProductScreen(
 }
 
 function projectProductVariations(
-  base: Pick<CustomizationStep, 'id' | 'singleChoice' | 'isRequired'> &
-    Partial<Pick<CustomizationStep, 'manifestRefs' | 'compositionRole' | 'presentationOrder' | 'presentationLabel'>>,
+  base: ProductStepProjectionBase,
   ids: string[],
   product: DetailedProduct,
 ): CustomizationStep[] {
@@ -102,8 +107,7 @@ function projectProductVariations(
 }
 
 function projectProductGroups(
-  base: Pick<CustomizationStep, 'id' | 'singleChoice' | 'isRequired'> &
-    Partial<Pick<CustomizationStep, 'manifestRefs' | 'compositionRole' | 'presentationOrder' | 'presentationLabel'>>,
+  base: ProductStepProjectionBase,
   ids: string[],
   groups: ReturnType<typeof activeCustomizationGroups>,
   label?: string | null,
@@ -126,8 +130,7 @@ function projectProductGroups(
 }
 
 function projectProductIngredients(
-  base: Pick<CustomizationStep, 'id' | 'singleChoice' | 'isRequired'> &
-    Partial<Pick<CustomizationStep, 'manifestRefs' | 'compositionRole' | 'presentationOrder' | 'presentationLabel'>>,
+  base: ProductStepProjectionBase,
   kind: 'ProductIngredient' | 'ProductSauce',
   ids: string[],
   label: string | null | undefined,
@@ -155,8 +158,7 @@ function projectProductIngredients(
 }
 
 function projectProductSides(
-  base: Pick<CustomizationStep, 'id' | 'singleChoice' | 'isRequired'> &
-    Partial<Pick<CustomizationStep, 'manifestRefs' | 'compositionRole' | 'presentationOrder' | 'presentationLabel'>>,
+  base: ProductStepProjectionBase,
   ids: string[],
   screen: ReturnType<typeof groupCustomerStepScreens>[number],
   product: DetailedProduct,
@@ -165,8 +167,9 @@ function projectProductSides(
     (side) => side.suggestedSideItemId && ids.includes(side.suggestedSideItemId),
   );
   if (!sides.length) return [];
-  const [first] = sides;
-  const sideGroup = first.type === 'beverage' ? 'beverages' : first.type === 'dessert' ? 'desserts' : 'accompaniments';
+  const first = sides[0];
+  if (!first) return [];
+  const sideGroup = getSideGroup(first.type);
   return [
     {
       ...base,
@@ -182,6 +185,13 @@ function projectProductSides(
     },
   ];
 }
+
+function getSideGroup(type: string | undefined): SuggestedSideGroup {
+  if (type === 'beverage') return 'beverages';
+  if (type === 'dessert') return 'desserts';
+  return 'accompaniments';
+}
+
 function productRows(product: DetailedProduct): Map<string, Set<string>> {
   return new Map([
     ['ProductVariation', new Set((product.variations ?? []).filter((row) => row.isActive).map((row) => row.id))],

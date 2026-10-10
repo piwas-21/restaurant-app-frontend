@@ -46,12 +46,9 @@ export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetK
   const lastStep = lastStepRef.current;
   const fallbackId = lastStep?.step.returnStepId ?? lastStep?.step.parentStepId;
   const fallbackIndex = fallbackId ? steps.findIndex((candidate) => candidate.id === fallbackId) : -1;
-  const clampedIndex =
-    requestedIndex >= 0
-      ? requestedIndex
-      : fallbackIndex >= 0
-        ? fallbackIndex
-        : Math.min(lastStep?.index ?? 0, Math.max(0, steps.length - 1));
+  let clampedIndex = Math.min(lastStep?.index ?? 0, Math.max(0, steps.length - 1));
+  if (fallbackIndex >= 0) clampedIndex = fallbackIndex;
+  if (requestedIndex >= 0) clampedIndex = requestedIndex;
   const step = steps[clampedIndex];
   if (step) lastStepRef.current = { step, index: clampedIndex };
   const currentReached = reachedIds.filter((id) => steps.some((candidate) => candidate.id === id));

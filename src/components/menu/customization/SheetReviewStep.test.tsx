@@ -6,16 +6,24 @@ import type { CustomizationStep } from '@/utils/customizationSteps';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     i18n: { language: 'en' },
-    t: (key: string) =>
-      ({
-        offer_family_choose_mode: 'How would you like it?',
-        offer_family_menu: 'Menu',
-        offer_family_item_only: 'Item only',
-        step_nothing_selected: 'None',
-        step_change: 'Change',
-        step_change_named: 'Change {{title}}',
-        special_request_label: 'Special request',
-      })[key] ?? key,
+    t: (key: string, options?: Record<string, unknown>) => {
+      const value =
+        {
+          offer_family_choose_mode: 'How would you like it?',
+          offer_family_menu: 'Menu',
+          offer_family_item_only: 'Item only',
+          step_nothing_selected: 'None',
+          step_change: 'Change',
+          step_change_named: 'Change {{title}}',
+          special_request_label: 'Special request',
+          product_special_requests: 'Special Requests',
+          customer_step_for_item: 'For {{item}}',
+        }[key] ?? key;
+      return Object.entries(options ?? {}).reduce(
+        (translated, [name, replacement]) => translated.replaceAll(`{{${name}}}`, String(replacement)),
+        value,
+      );
+    },
   }),
 }));
 
@@ -74,5 +82,32 @@ describe('SheetReviewStep offer-family mode', () => {
     expect(screen.queryByText('step_nothing_selected')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button'));
     expect(onJump).toHaveBeenCalledWith(step);
+  });
+
+  it('labels component notes and keeps their owning item visible in the review term', () => {
+    const step: CustomizationStep = {
+      id: 'special:burger-row',
+      kind: 'special',
+      titleKey: 'product_special_requests',
+      singleChoice: false,
+      isRequired: false,
+      component: { id: 'burger-row', productId: 'burger', productName: 'E2E Beef Burger' } as NonNullable<
+        CustomizationStep['component']
+      >,
+    };
+
+    const { container } = render(
+      <SheetReviewStep
+        rows={[{ step, values: [] }]}
+        onJump={jest.fn()}
+        specialInstructions=""
+        onInstructionsChange={jest.fn()}
+      />,
+    );
+
+    const term = container.querySelector('dt');
+    expect(term).toBeInTheDocument();
+    expect(term).toHaveTextContent('For E2E Beef Burger');
+    expect(screen.getByText('E2E Beef Burger')).toHaveAttribute('dir', 'auto');
   });
 });

@@ -36,6 +36,14 @@
   color: var(--text-muted);
 }
 
+.componentContext {
+  display: block;
+  margin-block-start: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 .value {
   display: flex;
   flex: 1;

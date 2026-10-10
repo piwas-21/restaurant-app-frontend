@@ -71,18 +71,21 @@ const fixture = (quantity: number, kebab: number, steak: number) => {
 };
 
 it.each([
-  [1, 2, 1, '+ Kebab x2', '+ Steak x1'],
-  [2, 4, 2, '+ Kebab x4', '+ Steak x2'],
-  [3, 6, 3, '+ Kebab x6', '+ Steak x3'],
+  [1, 2, 1, '2x Kebab', '1x Steak'],
+  [2, 4, 2, '4x Kebab', '2x Steak'],
+  [3, 6, 3, '6x Kebab', '3x Steak'],
 ])(
   'uses frozen line totals for %i menus without scaling a second time',
   (quantity, kebab, steak, expectedKebab, expectedSteak) => {
     const order = fixture(quantity, kebab, steak);
     const original = JSON.stringify(order);
     const html = generateKitchenReceiptHtml(JSON.parse(original), 'GeneralKitchen')!;
-    expect(html).toContain(`${expectedKebab} — Total for this line`);
-    expect(html).toContain(`${expectedSteak} — Total for this line`);
-    expect(html).toContain('+ EXTRA Cheddar x1 — Per item: Tacos 3 viandes');
+    expect(html).toContain(expectedKebab);
+    expect(html).toContain(expectedSteak);
+    if (quantity === 1) expect(html).not.toContain('(each)');
+    else expect(html).toContain('Cheddar (each)');
+    expect(html).not.toContain('Total for this line');
+    expect(html).not.toContain('Recorded quantity');
     expect(html).toContain(`<strong>${quantity}x Tacos 3 viandes</strong>`);
     expect(html).not.toContain('+ Tacos 3 viandes');
     expect(html.indexOf('Tacos 3 viandes')).toBeLessThan(html.indexOf('Kebab'));
@@ -108,8 +111,8 @@ it('keeps separately configured lines and unknown historical quantities distinct
     }),
   );
   const html = generateKitchenReceiptHtml(order, 'GeneralKitchen')!;
-  expect(html).toContain('+ Steak x7');
-  expect(html).toContain('✘ NO Cheddar');
+  expect(html).toContain('7x Steak');
+  expect(html).toContain('NO Cheddar');
   expect(html).toContain('2x Menu Tacos 3 Viande');
   expect(html).toContain('1x Menu Tacos 3 Viande');
 });
@@ -127,10 +130,9 @@ it('includes standalone and bundle ingredient changes on cashier receipts withou
     }),
   );
   const html = generateSimpleReceiptHtml(order);
-  expect(html).toContain('EXTRA Cheddar x1 — Per item: Tacos 3 viandes');
+  expect(html).toContain('Cheddar (each)');
   expect(html).toContain('NO Onion');
-  expect(html).toContain('EXTRA Garlic');
-  expect(html).not.toContain('Cheddar (');
+  expect(html).toContain('+ Garlic');
   expect(html).not.toContain('Garlic (');
 });
 
@@ -173,7 +175,7 @@ it('prints authoritative partial balances and captured refunds while preserving 
   expect(html).toContain('Still to pay: CHF 22.00');
   expect(html).toContain('Refund Amount: CHF 2.00');
   expect(html).toContain('30.00');
-  expect(html).not.toContain('Cheddar (');
+  expect(html).toContain('Cheddar (each)');
 });
 
 it('prints explicit unknown quantities even for a single unit without hiding or dividing them', () => {
@@ -197,8 +199,9 @@ it('prints explicit unknown quantities even for a single unit without hiding or 
     }),
   ]);
   const html = generateKitchenReceiptHtml(order, 'GeneralKitchen')!;
-  expect(html).toContain('+ EXTRA Extra sauce x1 — Recorded quantity');
-  expect(html).toContain('+ Choice x1 — Recorded quantity');
+  expect(html).toContain('+ Extra sauce');
+  expect(html).toContain('1x Choice');
+  expect(html).not.toContain('Recorded quantity');
 });
 
 it.each(['Unknown', 'IndependentParentUnits', undefined, null] as const)(
@@ -223,7 +226,8 @@ it.each(['Unknown', 'IndependentParentUnits', undefined, null] as const)(
       }),
     ]);
     const html = generateKitchenReceiptHtml(order, 'GeneralKitchen')!;
-    expect(html).toContain('Cheddar x1 — Recorded quantity');
-    expect(html).not.toContain('Per item');
+    expect(html).toContain('Cheddar');
+    expect(html).not.toContain('(each)');
+    expect(html).not.toContain('Recorded quantity');
   },
 );

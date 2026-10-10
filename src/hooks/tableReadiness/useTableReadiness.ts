@@ -13,15 +13,18 @@ type Stage = 'checking' | 'idle' | 'pending' | 'working' | 'settled' | 'unavaila
 interface State {
   readonly stage: Stage;
   readonly result?: TableReadinessResult;
+  readonly operation?: PendingTableReadiness;
 }
 interface Input {
   readonly actorId: string;
   readonly actorRole: PendingTableReadiness['actorRole'];
   readonly tableId: string;
+  readonly readinessState?: string | null;
   readonly readinessVersion?: number | null;
   readonly canStart: boolean;
-  readonly snapshot: object;
+  readonly isStale?: boolean;
   readonly refresh: () => Promise<void>;
+  readonly onConfirmedReady?: (result: Extract<TableReadinessResult, { kind: 'succeeded' }>['outcome']) => void;
 }
 
 /** Mounted with an actor/role/table key; never replace an unresolved operation after refresh. */
@@ -29,21 +32,22 @@ export function useTableReadiness({
   actorId,
   actorRole,
   tableId,
+  readinessState,
   readinessVersion,
   canStart,
-  snapshot,
+  isStale = false,
   refresh,
+  onConfirmedReady,
 }: Input) {
   const [state, setState] = useState<State>({ stage: 'checking' });
   const pending = useRef<PendingTableReadiness | null>(null);
   const inFlight = useRef(false);
   const generation = useRef(0);
   const mounted = useRef(false);
-  const settledSnapshot = useRef<object | undefined>(undefined);
-  const snapshotRef = useRef(snapshot);
-  snapshotRef.current = snapshot;
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
+  const onConfirmedReadyRef = useRef(onConfirmedReady);
+  onConfirmedReadyRef.current = onConfirmedReady;
 
   const run = useCallback(async (operation: PendingTableReadiness, write: boolean) => {
     if (inFlight.current) return;
@@ -63,8 +67,7 @@ export function useTableReadiness({
           return;
         }
         pending.current = null;
-        settledSnapshot.current = snapshotRef.current;
-        setState({ stage: 'settled', result });
+        setState({ stage: 'settled', result, operation });
         void refreshRef.current().catch(() => undefined);
       } else {
         setState({ stage: 'pending', result });
@@ -96,32 +99,44 @@ export function useTableReadiness({
     };
   }, [actorId, actorRole, run, tableId]);
 
-  useEffect(() => {
-    if (
-      state.stage === 'settled' &&
-      state.result?.kind === 'succeeded' &&
-      canStart &&
-      snapshot !== settledSnapshot.current
-    ) {
-      setState({ stage: 'idle' });
-    }
-  }, [canStart, snapshot, state.result, state.stage]);
+  const success = state.stage === 'settled' && state.result?.kind === 'succeeded' ? state.result : null;
+  const confirmedReady = Boolean(
+    success &&
+    state.operation?.tableId.toLowerCase() === tableId.toLowerCase() &&
+    success.outcome.tableId.toLowerCase() === tableId.toLowerCase() &&
+    readinessState === 'ReadyForGuests' &&
+    Number.isSafeInteger(readinessVersion) &&
+    (readinessVersion ?? 0) >= success.outcome.readinessVersion &&
+    success.outcome.readinessVersion > state.operation.request.expectedReadinessVersion &&
+    !isStale,
+  );
 
-  const canRetryRefusal =
+  useEffect(() => {
+    if (!confirmedReady || !success) return;
+    setState({ stage: 'idle' });
+    onConfirmedReadyRef.current?.(success.outcome);
+  }, [confirmedReady, success]);
+
+  const canRetryRefusal = Boolean(
     state.stage === 'settled' &&
     state.result?.kind === 'refused' &&
-    snapshot !== settledSnapshot.current &&
+    state.result.terminal &&
+    state.operation?.tableId.toLowerCase() === tableId.toLowerCase() &&
     canStart &&
+    !isStale &&
     Number.isSafeInteger(readinessVersion) &&
-    (readinessVersion ?? 0) > 0;
+    (state.result.code === 'TableReadinessVersionStale'
+      ? (readinessVersion ?? 0) > state.operation.request.expectedReadinessVersion
+      : (readinessVersion ?? 0) >= state.operation.request.expectedReadinessVersion),
+  );
 
   const start = useCallback(async () => {
-    const retryingRefusal =
-      state.stage === 'settled' && state.result?.kind === 'refused' && snapshot !== settledSnapshot.current;
+    const retryingRefusal = state.stage === 'settled' && state.result?.kind === 'refused' && canRetryRefusal;
     if (
       inFlight.current ||
       (state.stage !== 'idle' && !retryingRefusal) ||
       !canStart ||
+      isStale ||
       !Number.isSafeInteger(readinessVersion) ||
       (readinessVersion ?? 0) <= 0
     )
@@ -150,7 +165,18 @@ export function useTableReadiness({
       // Crypto or storage failure prevents a safe request, so leave readiness unavailable.
     }
     setState({ stage: 'unavailable' });
-  }, [actorId, actorRole, canStart, readinessVersion, run, snapshot, state.result, state.stage, tableId]);
+  }, [
+    actorId,
+    actorRole,
+    canRetryRefusal,
+    canStart,
+    isStale,
+    readinessVersion,
+    run,
+    state.result,
+    state.stage,
+    tableId,
+  ]);
 
   const check = useCallback(async () => {
     if (pending.current) await run(pending.current, false);

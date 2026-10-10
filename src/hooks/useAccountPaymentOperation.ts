@@ -15,7 +15,6 @@ import { accountPaymentMutationActions } from '@/lib/accountPaymentMutationActio
 import { accountPaymentResultTransition, type AccountPaymentResult } from '@/lib/accountPaymentResult';
 import { canRetryAccountPaymentCollection } from '@/lib/accountPaymentRecovery';
 import { createAccountPaymentDraftActions } from '@/lib/accountPaymentDraftActions';
-
 export function useAccountPaymentOperation(
   actorId: string | undefined,
   serviceSessionId: string,
@@ -52,6 +51,7 @@ export function useAccountPaymentOperation(
         show(t('accountPayments.storage_unavailable'));
       } else setPending(transition.terminal ? null : transition.pending);
       await refresh();
+      return stored;
     },
     [serviceSessionId, visitCurrency, refresh, show, t],
   );
@@ -91,7 +91,10 @@ export function useAccountPaymentOperation(
       clear();
       try {
         const result = await action();
-        if (current === generation.current) await accept(saved, result);
+        if (current === generation.current) {
+          const accepted = await accept(saved, result);
+          if (accepted && current === generation.current) return result;
+        }
       } catch (reason: unknown) {
         if (current === generation.current) capture(reason, { fallback: t('accountPayments.result_unknown') });
       } finally {
@@ -100,10 +103,10 @@ export function useAccountPaymentOperation(
           setBusy(false);
         }
       }
+      return undefined;
     },
     [actorId, enabled, serviceSessionId, storageUnavailable, operation, visitCurrency, accept, capture, clear, show, t],
   );
-
   const check = useCallback(
     async (saved = pending) => {
       if (!saved) return;
@@ -120,7 +123,6 @@ export function useAccountPaymentOperation(
   );
   const checkRef = useRef(check);
   checkRef.current = check;
-
   useEffect(() => {
     generation.current += 1;
     inFlight.current = false;
@@ -143,7 +145,6 @@ export function useAccountPaymentOperation(
       generation.current += 1;
     };
   }, [actorId, serviceSessionId, visitCurrency, show, t]);
-
   const draftActions = createAccountPaymentDraftActions({
     actorId,
     serviceSessionId,
@@ -157,6 +158,7 @@ export function useAccountPaymentOperation(
     clearError: clear,
     showError: show,
     storageUnavailableMessage: t('accountPayments.storage_unavailable'),
+    visitCurrency,
   });
   const mutations = accountPaymentMutationActions(
     pending,

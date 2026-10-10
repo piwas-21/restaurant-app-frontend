@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { OrderItemDto } from '@/types/order';
-import { receiptItems, receiptItemName, quantityScopeLabel } from '@/utils/templates/receiptPresentation';
+import { receiptItems, receiptItemName, quantityScopeSuffix } from '@/utils/templates/receiptPresentation';
 import { customizedIngredientRows } from '@/utils/templates/receiptHtml';
 import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 import styles from './ReceiptItemDetails.module.css';
@@ -27,16 +27,14 @@ export default function ReceiptItemDetails({
             {child.compositionRole === 'Dish' ? (
               <strong dir="auto">
                 {child.quantity}× <span dir="auto">{receiptItemName(child, t('item'))}</span>
+                {quantityScopeSuffix(child, item.quantity, translate)}
               </strong>
             ) : (
               <span dir="auto">
                 {child.quantity}× <span dir="auto">{receiptItemName(child, t('item'))}</span>
+                {quantityScopeSuffix(child, item.quantity, translate)}
               </span>
             )}
-            <span className={styles.scope}>
-              {' '}
-              — {quantityScopeLabel(child, translate, receiptItemName(item, t('item')))}
-            </span>
             <ReceiptItemDetails item={child} />
           </li>
         ))}
@@ -55,11 +53,8 @@ export default function ReceiptItemDetails({
               <span dir="auto">{ingredient.ingredientName}</span>
               {!ingredient.isRemoved && (
                 <>
-                  {' '}
-                  ×{ingredient.quantity}{' '}
-                  <span className={styles.scope}>
-                    — {quantityScopeLabel(ingredient, translate, receiptItemName(item, t('item')))}
-                  </span>
+                  {ingredient.quantity > 1 ? ` ×${ingredient.quantity}` : ''}
+                  {quantityScopeSuffix(ingredient, item.quantity, translate)}
                 </>
               )}
             </li>

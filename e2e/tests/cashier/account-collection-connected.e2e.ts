@@ -65,11 +65,8 @@ async function selectServerTable(page: Page, tableId: string, tableNumber: strin
   expect(page.url()).toContain(`/en/server/tables/${encodeURIComponent(tableId)}`);
   if (floorTable.readinessState !== 'ReadyForGuests') {
     const readyButton = page.getByRole('button', { name: 'Ready for next guests', exact: true });
-    if (await readyButton.isVisible().catch(() => false)) return floorTable.readinessState;
-    const workspaceText = (await page.getByTestId('server-table-workspace').innerText()).slice(0, 500);
-    throw new Error(
-      `Server table ${tableNumber} has no readiness action. Floor state=${floorTable.state}, readiness=${floorTable.readinessState ?? 'missing'}, version=${floorTable.readinessVersion ?? 'missing'}, actions=${floorTable.permittedActions.join(',')}; page=${workspaceText}`,
-    );
+    await expect(readyButton).toBeVisible({ timeout: 20_000 });
+    return floorTable.readinessState;
   }
   return floorTable.readinessState;
 }
@@ -263,23 +260,71 @@ async function quoteCurrentMode(page: Page, sessionId: string, form: Locator) {
   );
 }
 
-async function captureCollectionScreenshots(page: Page, testInfo: TestInfo): Promise<void> {
+async function quoteAndAutoReserve(page: Page, sessionId: string, form: Locator) {
+  const reservePattern = new RegExp(
+    `^/api/table-service-sessions/${sessionId}/account-payments/operations/[^/]+/reserve$`,
+    'i',
+  );
+  const reserveResponsePromise = page.waitForResponse(
+    (response) => reservePattern.test(new URL(response.url()).pathname) && response.request().method() === 'POST',
+  );
+  const quoted = await quoteCurrentMode(page, sessionId, form);
+  const reserveResponse = await reserveResponsePromise;
+  const reservePath = new URL(reserveResponse.url()).pathname;
+  expect(reservePath.toLowerCase()).toBe(
+    `/api/table-service-sessions/${sessionId}/account-payments/operations/${quoted.data.operationId}/reserve`.toLowerCase(),
+  );
+  const body = (await reserveResponse.json()) as ApiEnvelope<AccountPaymentOperation>;
+  if (!reserveResponse.ok() || body.success !== true || body.data === undefined) {
+    throw new Error(`Automatic reservation failed with HTTP ${reserveResponse.status()}: ${body.message ?? 'no data'}`);
+  }
+  expect(body.data).toMatchObject({
+    operationId: quoted.data.operationId,
+    serviceSessionId: quoted.data.serviceSessionId,
+    state: 'Reserved',
+    expectedAccountRevision: quoted.data.expectedAccountRevision,
+    currency: quoted.data.currency,
+  });
+  expect(reserveResponse.request().postDataJSON()).toMatchObject({
+    expectedVersion: quoted.data.version,
+    expectedAccountRevision: quoted.data.expectedAccountRevision,
+  });
+  return { quote: quoted.data, reserved: body.data, quoteResponse: quoted.response, reserveResponse };
+}
+
+async function captureCollectionScreenshots(
+  page: Page,
+  testInfo: TestInfo,
+  stage: 'selection' | 'review',
+): Promise<void> {
   const capture = async (name: string) => {
     const path = testInfo.outputPath(`${name}.png`);
     await page.screenshot({ path, fullPage: true });
     await testInfo.attach(name, { path, contentType: 'image/png' });
   };
+  const setTheme = async (theme: 'light' | 'dark') => {
+    const current = await page.locator('html').getAttribute('data-theme');
+    if (current !== theme) {
+      await page
+        .getByRole('button', { name: theme === 'dark' ? 'Switch to Dark Mode' : 'Switch to Light Mode', exact: true })
+        .click();
+    }
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  };
+  const viewports = [
+    { name: 'phone', width: 390, height: 844 },
+    { name: 'tablet', width: 1024, height: 768 },
+  ] as const;
 
-  await page.setViewportSize({ width: 1280, height: 844 });
-  await capture('collection-light-desktop');
-  await page.getByRole('button', { name: 'Switch to Dark Mode', exact: true }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await capture('collection-dark-desktop');
+  for (const theme of ['light', 'dark'] as const) {
+    await setTheme(theme);
+    for (const viewport of viewports) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await capture(`account-payment-${stage}-${theme}-${viewport.name}`);
+    }
+  }
+  await setTheme('light');
   await page.setViewportSize({ width: 390, height: 844 });
-  await capture('collection-dark-390');
-  await page.getByRole('button', { name: 'Switch to Light Mode', exact: true }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await capture('collection-light-390');
 }
 
 async function verifyQuoteRecovery(
@@ -297,11 +342,11 @@ async function verifyQuoteRecovery(
     accessToken,
     `/api/table-service-sessions/${sessionId}/account-payments/operations/${quote.operationId}`,
   );
-  expect(readback).toMatchObject({ operationId: quote.operationId, mode: quote.mode, state: 'Quoted' });
+  expect(readback).toMatchObject({ operationId: quote.operationId, mode: quote.mode, state: 'Reserved' });
   const review = page.getByRole('region', { name: 'Review contribution', exact: true });
   await expect(review).toBeVisible();
   await expectReviewSummary(review, readback);
-  await expect(page.getByRole('button', { name: 'Confirm reviewed contribution', exact: true })).toBeVisible();
+  await expect(review.getByRole('button', { name: 'Record cash received', exact: true })).toBeVisible();
 }
 
 async function expectReviewSummary(review: Locator, operation: AccountPaymentOperation): Promise<void> {
@@ -375,10 +420,19 @@ test('real cashier UI quotes and reopens all five table-account modes without co
         currency: 'CHF',
         availableMinor: 1500,
       });
-      if (index === 0) await captureCollectionScreenshots(cashier.page, testInfo);
+      if (index === 0) await captureCollectionScreenshots(cashier.page, testInfo, 'selection');
 
-      const choice = form.getByRole('combobox', { name: 'Collect a contribution', exact: true });
-      if (mode.choice !== 'Full') await choice.selectOption(mode.choice);
+      if (mode.choice === 'Amount') await form.getByRole('radio', { name: 'Custom amount', exact: true }).check();
+      if (mode.choice === 'Items') await form.getByRole('radio', { name: 'Selected items', exact: true }).check();
+      if (mode.choice === 'Equal' || mode.choice === 'CustomAmount') {
+        await form.getByRole('radio', { name: 'Split the bill', exact: true }).check();
+        await form
+          .getByRole('radio', {
+            name: mode.choice === 'Equal' ? 'Equal shares' : 'Custom amount per guest',
+            exact: true,
+          })
+          .check();
+      }
 
       if (mode.choice === 'Amount') {
         await form.getByLabel('Contribution amount', { exact: true }).fill('5.01');
@@ -402,8 +456,8 @@ test('real cashier UI quotes and reopens all five table-account modes without co
           `/api/table-service-sessions/${visit.serviceSessionId}/account-payments`,
         );
         expect(updatedAccount.activeEqualSharePlan?.slots.map((slot) => slot.amountMinor)).toEqual([500, 500, 500]);
-        await choice.selectOption('Equal');
-        await expect(choice).toHaveValue('Equal');
+        await form.getByRole('radio', { name: 'Split the bill', exact: true }).check();
+        await form.getByRole('radio', { name: 'Equal shares', exact: true }).check();
         const shareSelector = form.getByRole('combobox', { name: 'Choose an unpaid share', exact: true });
         await expect(shareSelector).toBeVisible();
         await shareSelector.selectOption('1');
@@ -430,8 +484,8 @@ test('real cashier UI quotes and reopens all five table-account modes without co
           `/api/table-service-sessions/${visit.serviceSessionId}/account-payments`,
         );
         expect(updatedAccount.activeEqualSharePlan?.slots.map((slot) => slot.amountMinor)).toEqual([1440, 60]);
-        await choice.selectOption('CustomAmount');
-        await expect(choice).toHaveValue('CustomAmount');
+        await form.getByRole('radio', { name: 'Split the bill', exact: true }).check();
+        await form.getByRole('radio', { name: 'Custom amount per guest', exact: true }).check();
         const shareSelector = form.getByRole('combobox', { name: 'Choose an unpaid share', exact: true });
         await expect(shareSelector).toBeVisible();
         await shareSelector.selectOption('2');
@@ -440,6 +494,7 @@ test('real cashier UI quotes and reopens all five table-account modes without co
       let expectedTipMinor = 0;
       if (mode.choice === 'Full') {
         const quoteCountBeforeInvalidTip = quoteWrites.length;
+        await form.getByText('Add an optional tip', { exact: true }).click();
         await form.getByRole('button', { name: /^10%/ }).click();
         const customTip = form.getByLabel(/Enter custom tip amount/i);
         await customTip.fill('12.345');
@@ -451,8 +506,7 @@ test('real cashier UI quotes and reopens all five table-account modes without co
         expectedTipMinor = 125;
       }
 
-      const quoteResponse = await quoteCurrentMode(cashier.page, visit.serviceSessionId, form);
-      const quote = quoteResponse.data;
+      const { quote, reserved } = await quoteAndAutoReserve(cashier.page, visit.serviceSessionId, form);
       expect(quote).toMatchObject({
         mode: mode.name,
         paymentMethod: 'Cash',
@@ -463,12 +517,16 @@ test('real cashier UI quotes and reopens all five table-account modes without co
       if (mode.choice === 'Items') expect(quote.amountMinor).toBe(1500);
       if (mode.choice === 'Equal') expect(quote.equalShareOrdinal).toBe(1);
       if (mode.choice === 'CustomAmount') expect(quote).toMatchObject({ customShareOrdinal: 2, amountMinor: 60 });
+      expect(reserved).toMatchObject({ operationId: quote.operationId, state: 'Reserved' });
       await expect(collection.getByRole('region', { name: 'Review contribution', exact: true })).toBeVisible();
       await expectReviewSummary(collection.getByRole('region', { name: 'Review contribution', exact: true }), quote);
       await verifyQuoteRecovery(cashier.page, accountCashierUser.accessToken, visit.serviceSessionId, quote);
+      if (index === 0) await captureCollectionScreenshots(cashier.page, testInfo, 'review');
     }
 
-    expect(cashierWrites).toEqual([]);
+    expect(quoteWrites).toHaveLength(modes.length);
+    expect(cashierWrites.filter((path) => /\/reserve$/i.test(path))).toHaveLength(modes.length);
+    expect(cashierWrites.filter((path) => /\/(?:collect|release)$/i.test(path))).toEqual([]);
   } finally {
     await Promise.allSettled(contexts.map((context) => context.close()));
     await Promise.allSettled(tables.map((tableId) => cleanupServerTableFixture(tableId)));
@@ -497,46 +555,38 @@ test('cashier reserves and collects one tipped cash contribution with exact ledg
       visit.visit.orderId,
       false,
     );
+    await form.getByText('Add an optional tip', { exact: true }).click();
     await form.getByRole('button', { name: /^10%/ }).click();
     const customTip = form.getByLabel(/Enter custom tip amount/i);
     await expect(customTip).toHaveValue('1.50');
     await customTip.fill('1.25');
     await expect(customTip).toHaveValue('1.25');
     await expect(form.getByRole('button', { name: 'Review contribution', exact: true })).toBeEnabled();
-    const quote = await quoteCurrentMode(cashier.page, visit.visit.serviceSessionId, form);
-    expect(quote.data).toMatchObject({ mode: 'Full', amountMinor: 1500, tipMinor: 125, paymentMethod: 'Cash' });
-    expect(quote.data.cashSettlement).toMatchObject({
+    const { quote, reserved } = await quoteAndAutoReserve(cashier.page, visit.visit.serviceSessionId, form);
+    expect(quote).toMatchObject({ mode: 'Full', amountMinor: 1500, tipMinor: 125, paymentMethod: 'Cash' });
+    expect(reserved).toMatchObject({ operationId: quote.operationId, state: 'Reserved' });
+    expect(quote.cashSettlement).toMatchObject({
       paymentMethod: 'Cash',
       currency: 'CHF',
       exactAmountMinor: 1625,
     });
-    await expect(
-      cashier.page.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }),
-    ).toBeEnabled();
-
-    const reserve = await postData<AccountPaymentOperation>(
-      cashier.page,
-      new RegExp(
-        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${quote.data.operationId}/reserve$`,
-        'i',
-      ),
-      () => cashier.page.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click(),
-    );
-    expect(reserve.data.state).toBe('Reserved');
-    const dueMinor = reserve.data.cashSettlement?.dueAmountMinor;
+    const dueMinor = reserved.cashSettlement?.dueAmountMinor;
     expect(dueMinor).toBeGreaterThan(0);
     await cashier.page.getByLabel('Cash received', { exact: true }).fill((((dueMinor ?? 0) + 500) / 100).toFixed(2));
-    await cashier.page
-      .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.', { exact: true })
-      .check();
+    await expect(cashier.page.getByRole('button', { name: 'Record cash received', exact: true })).toBeEnabled();
+    await expect(
+      cashier.page.getByLabel('I have received this cash or confirmed this card payment on the separate terminal.', {
+        exact: true,
+      }),
+    ).toHaveCount(0);
 
     const captured = await postData<AccountPaymentOperation>(
       cashier.page,
       new RegExp(
-        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${quote.data.operationId}/collect$`,
+        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${quote.operationId}/collect$`,
         'i',
       ),
-      () => cashier.page.getByRole('button', { name: 'Record confirmed payment', exact: true }).click(),
+      () => cashier.page.getByRole('button', { name: 'Record cash received', exact: true }).click(),
     );
     expect(captured.data).toMatchObject({
       state: 'Captured',
@@ -580,6 +630,75 @@ test('cashier reserves and collects one tipped cash contribution with exact ledg
   }
 });
 
+test('cashier uses the terminal radio and leaves collection behind the explicit terminal action @connected-account-collection', async ({
+  browser,
+  baseURL,
+  accountServerUser,
+  accountCashierUser,
+}) => {
+  test.setTimeout(120_000);
+  const contexts: BrowserContext[] = [];
+  let tableId: string | undefined;
+  const collectWrites: string[] = [];
+  try {
+    const server = await openStaffPage(browser, baseURL, accountServerUser);
+    contexts.push(server.context);
+    const cashier = await openStaffPage(browser, baseURL, accountCashierUser);
+    contexts.push(cashier.context);
+    cashier.page.on('request', (requestValue) => {
+      const path = new URL(requestValue.url()).pathname;
+      if (requestValue.method() === 'POST' && /\/account-payments\/operations\/[^/]+\/collect$/i.test(path)) {
+        collectWrites.push(path);
+      }
+    });
+    const visit = await createVisitWithOrder(server.page);
+    tableId = visit.tableId;
+    const { collection, form } = await openCollection(
+      cashier.page,
+      visit.visit.serviceSessionId,
+      visit.visit.orderId,
+      false,
+    );
+    const methodGroup = form.getByRole('group', { name: 'Payment Method', exact: true });
+    const cash = methodGroup.getByRole('radio', { name: 'Cash', exact: true });
+    const card = methodGroup.getByRole('radio', { name: 'Card terminal', exact: true });
+    await expect(cash).toBeChecked();
+    await expect(card).toBeVisible();
+    await card.check();
+    await expect(card).toBeChecked();
+
+    const { quote, reserved } = await quoteAndAutoReserve(cashier.page, visit.visit.serviceSessionId, form);
+    expect(quote).toMatchObject({ mode: 'Full', paymentMethod: 'CreditCard', state: 'Quoted' });
+    expect(reserved).toMatchObject({ operationId: quote.operationId, state: 'Reserved' });
+    const review = collection.getByRole('region', { name: 'Review contribution', exact: true });
+    await expect(review).toContainText(/terminal/i);
+    const terminalAction = review.getByRole('button', { name: 'Record terminal payment', exact: true });
+    await expect(terminalAction).toBeVisible();
+    await expect(terminalAction).toBeEnabled();
+    await expect(
+      review.getByLabel('I have received this cash or confirmed this card payment on the separate terminal.', {
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    expect(collectWrites).toEqual([]);
+
+    await review.getByLabel('I confirm no money was collected for this contribution.', { exact: true }).check();
+    const released = await postData<AccountPaymentOperation>(
+      cashier.page,
+      new RegExp(
+        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${quote.operationId}/release$`,
+        'i',
+      ),
+      () => review.getByRole('button', { name: 'Release this contribution', exact: true }).click(),
+    );
+    expect(released.data).toMatchObject({ operationId: quote.operationId, state: 'Released' });
+    expect(collectWrites).toEqual([]);
+  } finally {
+    await Promise.allSettled(contexts.map((context) => context.close()));
+    if (tableId) await cleanupServerTableFixture(tableId);
+  }
+});
+
 test('server collection route uses the shared visit contribution UI and returns to its table @connected-account-collection', async ({
   browser,
   baseURL,
@@ -609,14 +728,14 @@ test('server collection route uses the shared visit contribution UI and returns 
     const collection = server.page.getByRole('region', { name: 'Collect a contribution', exact: true });
     const form = collection.locator('form');
     await expect(form.getByRole('button', { name: 'Review contribution', exact: true })).toBeEnabled();
-    const choice = form.getByRole('combobox', { name: 'Collect a contribution', exact: true });
-    await choice.selectOption('Amount');
+    await form.getByRole('radio', { name: 'Custom amount', exact: true }).check();
     await form.getByLabel('Contribution amount', { exact: true }).fill('5.00');
-    const serverQuote = await quoteCurrentMode(server.page, visit.visit.serviceSessionId, form);
-    expect(serverQuote.data).toMatchObject({ mode: 'Amount', amountMinor: 500, state: 'Quoted' });
+    const { quote: serverQuote, reserved } = await quoteAndAutoReserve(server.page, visit.visit.serviceSessionId, form);
+    expect(serverQuote).toMatchObject({ mode: 'Amount', amountMinor: 500, state: 'Quoted' });
+    expect(reserved).toMatchObject({ operationId: serverQuote.operationId, state: 'Reserved' });
     await expectReviewSummary(
       collection.getByRole('region', { name: 'Review contribution', exact: true }),
-      serverQuote.data,
+      serverQuote,
     );
     const back = server.page.getByRole('link', { name: 'Back to tables', exact: true });
     await expect(back).toHaveAttribute(
@@ -628,7 +747,7 @@ test('server collection route uses the shared visit contribution UI and returns 
     const released = await postData<AccountPaymentOperation>(
       server.page,
       new RegExp(
-        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${serverQuote.data.operationId}/release$`,
+        `^/api/table-service-sessions/${visit.visit.serviceSessionId}/account-payments/operations/${serverQuote.operationId}/release$`,
         'i',
       ),
       () => server.page.getByRole('button', { name: 'Release this contribution', exact: true }).click(),

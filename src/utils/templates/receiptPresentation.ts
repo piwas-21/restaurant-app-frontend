@@ -77,15 +77,17 @@ export function receiptOrderTypeLabel(type: string | undefined, translate: Recei
   }
 }
 
-export function quantityScopeLabel(
+export function quantityScopeSuffix(
   row: Pick<OrderItemDto | OrderItemIngredientDto, 'quantityBasis' | 'configurationScope'>,
+  parentQuantity: number,
   translate: ReceiptTranslate = receiptFallback,
-  parentLabel?: string,
 ): string {
-  if (row.quantityBasis === 'PerParentUnit' && row.configurationScope === 'SharedAcrossParentUnits') {
-    const label = translate('receipt.quantity.per_unit', 'Per item');
-    return parentLabel ? `${label}: ${parentLabel}` : label;
+  if (
+    parentQuantity > 1 &&
+    row.quantityBasis === 'PerParentUnit' &&
+    row.configurationScope === 'SharedAcrossParentUnits'
+  ) {
+    return ` (${translate('receipt.quantity.each', 'each')})`;
   }
-  if (row.quantityBasis === 'LineTotal') return translate('receipt.quantity.line_total', 'Total for this line');
-  return translate('receipt.quantity.recorded', 'Recorded quantity');
+  return '';
 }

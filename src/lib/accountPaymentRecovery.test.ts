@@ -299,3 +299,34 @@ it('matches an Equal retry when the valid frozen plan ID differs only by letter 
 
   expect(canRetryCollection(actorId, serviceSessionId, equalRequest, equalOperation)).toBe(true);
 });
+
+it('recovers a lost CustomAmount collection only for the exact frozen custom-share plan and ordinal', () => {
+  const customPlanId = '99999999-9999-4999-8999-999999999999';
+  const customRequest: PendingAccountPayment = {
+    ...collecting,
+    request: {
+      ...collecting.request,
+      mode: 'CustomAmount',
+      amountMinor: undefined,
+      customSharePlanId: customPlanId.toUpperCase(),
+      customShareOrdinal: 2,
+    },
+  };
+  const customOperation: AccountPaymentOperation = {
+    ...collectableOperation,
+    mode: 'CustomAmount',
+    customSharePlanId: customPlanId,
+    customShareOrdinal: 2,
+  };
+
+  expect(canRetryCollection(actorId, serviceSessionId, customRequest, customOperation)).toBe(true);
+  expect(
+    canRetryCollection(actorId, serviceSessionId, customRequest, {
+      ...customOperation,
+      customSharePlanId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    }),
+  ).toBe(false);
+  expect(
+    canRetryCollection(actorId, serviceSessionId, customRequest, { ...customOperation, customShareOrdinal: 1 }),
+  ).toBe(false);
+});

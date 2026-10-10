@@ -13,6 +13,7 @@ import CashierReleasedTableVisits from './CashierReleasedTableVisits';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
+import { useCashierReadyTableReturn } from '@/hooks/cashier/useCashierReadyTableReturn';
 import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
 import {
   cashierTableQueueState,
@@ -62,6 +63,7 @@ export default function CashierTablesWorkspace() {
     selectedFromList ??
     (selectedSession ? findRecoveryTableEntryForSession(tables.entries, selectedSession) : null) ??
     (route.selectedSessionId ? null : findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber));
+  const returnToReadyTable = useCashierReadyTableReturn(route, selectedSession, selectedEntry, tables);
   const recoveryTableId = selectedEntry?.table.id ?? selectedSession?.tableId ?? undefined;
   const { openSession, resolveLegacyOrders } = useCashierTableWorkspaceActions(
     selectedEntry,
@@ -86,10 +88,7 @@ export default function CashierTablesWorkspace() {
     return () => window.removeEventListener('popstate', preventPopState, true);
   }, [navigationDisabled]);
 
-  const selectTable = useCallback(
-    (tableNumber: string, serviceSessionId?: string) => route.navigateToTable(tableNumber, serviceSessionId),
-    [route],
-  );
+  const selectTable = route.navigateToTable;
   const refresh = useCallback(() => {
     void tables.refresh();
     if (sessionId) void session.refresh();
@@ -169,6 +168,7 @@ export default function CashierTablesWorkspace() {
                     snapshot={selectedEntry.table}
                     readinessVersion={selectedEntry.table.readinessVersion}
                     canMarkReady={selectedEntry.status === 'needs-reset' && !selectedEntry.session}
+                    onConfirmedReady={returnToReadyTable}
                     isStale={
                       tables.queueState !== 'ready' ||
                       tables.isLoading ||

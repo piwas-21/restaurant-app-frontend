@@ -63,6 +63,37 @@ it('requires staff confirmation and preserves the original request before POST',
   });
 });
 
+it('hides a completed success after the refreshed table is ready and exposes no repeated reset action', async () => {
+  const outcome = {
+    tableId: pending.tableId,
+    operationId: pending.request.operationId,
+    readinessState: 'ReadyForGuests' as const,
+    readinessVersion: 8,
+  };
+  const onConfirmedReady = jest.fn();
+  mark.mockResolvedValue({ kind: 'succeeded', outcome });
+  const view = render(<TableReadinessAction {...props} onConfirmedReady={onConfirmedReady} />);
+  const action = await screen.findByRole('button', { name: 'server.floor.ready_action' });
+  fireEvent.click(action);
+
+  expect(await screen.findByText('accountPayments.readiness.succeeded')).toBeInTheDocument();
+  expect(props.refresh).toHaveBeenCalledTimes(1);
+  view.rerender(
+    <TableReadinessAction
+      {...props}
+      readinessVersion={8}
+      canMarkReady={false}
+      snapshot={{ readinessState: 'ReadyForGuests', readinessVersion: 8 }}
+      onConfirmedReady={onConfirmedReady}
+    />,
+  );
+
+  await waitFor(() => expect(view.container).toBeEmptyDOMElement());
+  expect(onConfirmedReady).toHaveBeenCalledWith(outcome);
+  expect(screen.queryByText('accountPayments.readiness.succeeded')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'server.floor.ready_action' })).not.toBeInTheDocument();
+});
+
 it('mounts old recovery with rollout off and a different current visit/version', async () => {
   expect(persistPendingTableReadiness(pending)).toBe(true);
   mockEnabled = false;

@@ -36,13 +36,49 @@ it('retains repeated ingredient occurrences and their separate frozen quantity s
     });
     const { rerender } = render(<ReceiptItemDetails item={item} />);
     expect(screen.getAllByText('Cheddar')).toHaveLength(2);
-    expect(screen.getByText(/Per item: Taco/).closest('li')).toHaveTextContent('×1');
-    expect(screen.getByText(/Recorded quantity/).closest('li')).toHaveTextContent('×3');
+    const ingredientRows = screen.getAllByText('Cheddar').map((node) => node.closest('li'));
+    expect(ingredientRows[0]).toHaveTextContent('(each)');
+    expect(ingredientRows[0]).not.toHaveTextContent('×1');
+    expect(ingredientRows[1]).toHaveTextContent('×3');
+    expect(ingredientRows[1]).not.toHaveTextContent('Recorded quantity');
     rerender(<ReceiptItemDetails item={{ ...item, ingredientCustomizations: [item.ingredientCustomizations![1]] }} />);
     expect(screen.getAllByText('Cheddar')).toHaveLength(1);
-    expect(screen.getByText(/Recorded quantity/).closest('li')).toHaveTextContent('×3');
+    expect(screen.getByText('Cheddar').closest('li')).toHaveTextContent('×3');
+    expect(screen.getByText('Cheddar').closest('li')).not.toHaveTextContent('(each)');
     expect(error).not.toHaveBeenCalled();
   } finally {
     error.mockRestore();
   }
+});
+
+it('prints unknown child counts exactly and leaves line totals unlabelled', () => {
+  const item = makeOrderItem({
+    id: 'menu',
+    productName: 'Menu',
+    quantity: 2,
+    sideItems: [
+      makeOrderItem({
+        id: 'line-total',
+        productName: 'Beef',
+        quantity: 4,
+        quantityBasis: 'LineTotal',
+      }),
+      makeOrderItem({ id: 'unknown', productName: 'Legacy Dip', quantity: 7, quantityBasis: 'Unknown' }),
+      makeOrderItem({
+        id: 'per-parent',
+        productName: 'Fries',
+        quantity: 1,
+        quantityBasis: 'PerParentUnit',
+        configurationScope: 'SharedAcrossParentUnits',
+      }),
+    ],
+  });
+
+  const { container } = render(<ReceiptItemDetails item={item} />);
+  const text = container.textContent ?? '';
+  expect(text).toContain('4× Beef');
+  expect(text).toContain('7× Legacy Dip');
+  expect(text).toContain('1× Fries (each)');
+  expect(text).not.toContain('Recorded quantity');
+  expect(text).not.toContain('Total for this line');
 });

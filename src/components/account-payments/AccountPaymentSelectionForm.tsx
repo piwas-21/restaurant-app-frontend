@@ -20,7 +20,9 @@ import {
 import AccountPaymentBasicFields from './AccountPaymentBasicFields';
 import AccountPaymentShareFields, { type AccountPaymentChoice } from './AccountPaymentShareFields';
 import { useAccountPaymentSelectionSubmit } from '@/hooks/accountPayments/useAccountPaymentSelectionSubmit';
+import { accountPaymentItemCheckboxStyles } from './accountPaymentItemCheckboxStyles';
 import styles from './AccountPaymentCollection.module.css';
+import fields from './AccountPaymentBasicFields.module.css';
 
 interface Props {
   readonly account: AccountPaymentAccount;
@@ -54,7 +56,6 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
   const items = new Map(
     (session.bill.accountItems ?? []).map((entry) => [`${entry.orderId}:${entry.orderItemId}`, entry]),
   );
-
   const isSplitChoice = choice === 'Equal' || choice === 'CustomAmount';
   const locale = i18n.language || 'en';
   const customCount = Math.min(Number(shares) || 0, account.limits.maximumEqualShares);
@@ -126,6 +127,12 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
           setTipValid(true);
           setError(null);
         }}
+        onSplitSelect={() => {
+          setChoice(plan?.isCustom ? 'CustomAmount' : 'Equal');
+          setTip('');
+          setTipValid(true);
+          setError(null);
+        }}
         onAmountChange={setAmount}
         onTipChange={setTip}
         onTipValidityChange={setTipValid}
@@ -145,15 +152,19 @@ export default function AccountPaymentSelectionForm({ account, session, disabled
                 const quantity = quantities[key] ?? 0;
                 const maximum = Math.min(allocation.unitCount, account.limits.maximumSelectedUnits);
                 return (
-                  <div key={key}>
+                  <div
+                    key={key}
+                    className={quantity > 0 ? `${fields.itemOption} ${fields.itemOptionSelected}` : fields.itemOption}
+                  >
                     <CheckboxField
+                      styles={accountPaymentItemCheckboxStyles}
                       label={`${title} · ${money(allocation.minorPerUnit)}`}
                       checked={quantity > 0}
                       disabled={disabled}
                       onChange={(checked) => setQuantities((current) => ({ ...current, [key]: checked ? 1 : 0 }))}
                     />
                     {quantity > 0 && maximum > 1 && (
-                      <FormField label={t('accountPayments.selected_quantity')}>
+                      <FormField label={t('accountPayments.selected_quantity')} className={fields.itemQuantity}>
                         <input
                           type="number"
                           min={1}

@@ -50,11 +50,11 @@ describe('generateSimpleReceiptHtml — bundle components on the customer bill',
     ];
 
     const html = generateSimpleReceiptHtml(order);
-    const steak = html.indexOf('+ Steak');
-    const kebab = html.indexOf('+ Kebab x2');
-    const carrier = html.indexOf('+ Tacos 3 viandes');
-    const fries = html.indexOf('+ Fries');
-    const cola = html.indexOf('+ Cola');
+    const steak = html.indexOf('1x Steak');
+    const kebab = html.indexOf('2x Kebab');
+    const carrier = html.indexOf('1x Tacos 3 viandes');
+    const fries = html.indexOf('1x Fries');
+    const cola = html.indexOf('1x Cola');
 
     expect(steak).toBeGreaterThan(-1);
     expect(kebab).toBeGreaterThan(steak);

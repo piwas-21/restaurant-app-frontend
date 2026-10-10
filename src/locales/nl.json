@@ -4102,5 +4102,19 @@
   "table_guest_staff_code_copied": "Code gekopieerd.",
   "table_guest_staff_code_copy_failed": "Code kon niet worden gekopieerd.",
   "cashier.payment_recovery_other_order": "Er staat een opgeslagen betaling voor een andere bestelling. Open die bestelling en controleer de status voordat je een nieuwe betaling int.",
-  "cashier.payment_recovery_open_order": "Opgeslagen betaling openen"
+  "cashier.payment_recovery_open_order": "Opgeslagen betaling openen",
+  "receipt.quantity.per_unit": "Per artikel",
+  "receipt.quantity.line_total": "Totaal voor deze regel",
+  "receipt.quantity.recorded": "Geregistreerde hoeveelheid",
+  "receipt.required_choices": "Verplichte keuzes",
+  "receipt.extras": "Extra's",
+  "receipt.sides": "Bijgerechten",
+  "receipt.drinks": "Dranken",
+  "receipt.status.unpaid": "Onbetaald",
+  "receipt.status.part_paid": "Gedeeltelijk betaald",
+  "receipt.status.paid": "Betaald",
+  "receipt.amount_paid": "Ontvangen betaling",
+  "receipt.amount_remaining": "Nog te betalen",
+  "receipt.title": "Kassabon",
+  "receipt.thanks": "Bedankt voor uw bezoek!"
 }

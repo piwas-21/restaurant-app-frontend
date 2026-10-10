@@ -21,7 +21,9 @@ export const THERMAL_BASE_STYLES = `
   .separator { border-top: 1px dashed #000; margin: 8px 0; }
   .double-separator { border-top: 2px solid #000; margin: 8px 0; }
   .total-line { font-size: 14pt; font-weight: bold; }
-  .flex-row { display: flex; justify-content: space-between; margin: 4px 0; }
+  .flex-row { display: flex; justify-content: space-between; gap: 8px; margin: 4px 0; }
+  .flex-row > :first-child { min-width: 0; }
+  .flex-row > :last-child { white-space: nowrap; direction: ltr; unicode-bidi: isolate; }
   .indent { margin-left: 20px; font-size: 10pt; }
   .strikethrough { text-decoration: line-through; }
   .italic { font-style: italic; }

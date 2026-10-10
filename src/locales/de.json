@@ -4102,5 +4102,19 @@
   "table_guest_staff_code_copied": "Code kopiert.",
   "table_guest_staff_code_copy_failed": "Code konnte nicht kopiert werden.",
   "cashier.payment_recovery_other_order": "Eine gespeicherte Zahlung gehört zu einer anderen Bestellung. Öffnen Sie diese Bestellung und prüfen Sie den Status, bevor Sie eine weitere Zahlung erfassen.",
-  "cashier.payment_recovery_open_order": "Gespeicherte Zahlung öffnen"
+  "cashier.payment_recovery_open_order": "Gespeicherte Zahlung öffnen",
+  "receipt.quantity.per_unit": "Pro Artikel",
+  "receipt.quantity.line_total": "Gesamtmenge dieser Position",
+  "receipt.quantity.recorded": "Erfasste Menge",
+  "receipt.required_choices": "Pflichtauswahlen",
+  "receipt.extras": "Zusätze",
+  "receipt.sides": "Beilagen",
+  "receipt.drinks": "Getränke",
+  "receipt.status.unpaid": "Unbezahlt",
+  "receipt.status.part_paid": "Teilweise bezahlt",
+  "receipt.status.paid": "Bezahlt",
+  "receipt.amount_paid": "Erhaltene Zahlung",
+  "receipt.amount_remaining": "Noch zu zahlen",
+  "receipt.title": "Beleg",
+  "receipt.thanks": "Vielen Dank für Ihren Besuch!"
 }

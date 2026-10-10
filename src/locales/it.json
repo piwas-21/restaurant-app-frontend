@@ -4115,5 +4115,19 @@
   "table_guest_staff_code_copied": "Codice copiato.",
   "table_guest_staff_code_copy_failed": "Impossibile copiare il codice.",
   "cashier.payment_recovery_other_order": "Un pagamento salvato appartiene a un altro ordine. Apri quell’ordine e controllane lo stato prima di incassare un altro pagamento.",
-  "cashier.payment_recovery_open_order": "Apri il pagamento salvato"
+  "cashier.payment_recovery_open_order": "Apri il pagamento salvato",
+  "receipt.quantity.per_unit": "Per articolo",
+  "receipt.quantity.line_total": "Totale per questa riga",
+  "receipt.quantity.recorded": "Quantità registrata",
+  "receipt.required_choices": "Scelte obbligatorie",
+  "receipt.extras": "Extra",
+  "receipt.sides": "Contorni",
+  "receipt.drinks": "Bevande",
+  "receipt.status.unpaid": "Non pagato",
+  "receipt.status.part_paid": "Parzialmente pagato",
+  "receipt.status.paid": "Pagato",
+  "receipt.amount_paid": "Importo ricevuto",
+  "receipt.amount_remaining": "Ancora da pagare",
+  "receipt.title": "Ricevuta",
+  "receipt.thanks": "Grazie per la visita!"
 }

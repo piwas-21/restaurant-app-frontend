@@ -1,8 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import OrderLineSummary from '@/components/order/OrderLineSummary';
-import { orderItemToLineSummary } from '@/components/order/lineSummary';
+import ReceiptItemDetails from '@/components/order/ReceiptItemDetails';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { OrderDto, TableBillRoundDto, TableServiceSessionDto } from '@/types/order';
@@ -117,7 +116,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
                         {item.productName || item.menuName || t('cashier.tables.unknown_item')}
                         {item.variationName ? ` — ${item.variationName}` : ''}
                       </span>
-                      <OrderLineSummary line={orderItemToLineSummary(item)} />
+                      <ReceiptItemDetails item={item} />
                     </div>
                     <span className={styles.lineTotal}>{money(item.itemTotal)}</span>
                   </li>

@@ -5,32 +5,19 @@
  * Includes pricing for customer-facing 'All' prints
  */
 import { OrderDto, OrderItemDto } from '@/types/order';
-import { THERMAL_BASE_STYLES } from './baseStyles';
+import { receiptStyles, receiptDate, receiptDocumentAttributes, type ReceiptOptions } from './receiptOptions';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { selectItemsForKitchen } from '../orderItemTree';
 import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
+import { receiptItems, receiptOrderTypeLabel } from './receiptPresentation';
+import { receiptPaymentHtml } from './receiptPayment';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
 export type KitchenReceiptType = 'FrontKitchen' | 'BackKitchen' | 'GeneralKitchen' | 'All';
-
-// Get order type label
-const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
-  const translate = t || ((key: string, fallback: string) => fallback);
-  switch (type) {
-    case 'DineIn':
-      return translate('order_type.dinein', 'Dine In');
-    case 'Takeaway':
-      return translate('order_type.takeaway', 'Takeaway');
-    case 'Delivery':
-      return translate('order_type.delivery', 'Delivery');
-    default:
-      return type || 'Unknown';
-  }
-};
 
 const getKitchenLabel = (kitchenType: KitchenReceiptType, translate: TranslationFunction): string => {
   switch (kitchenType) {
@@ -57,9 +44,9 @@ const buildKitchenItemHtml = (
 
   let html = `
     <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #ccc;">
-      <div style="display: flex; justify-content: space-between; font-size: 13pt; font-weight: bold;">
-        <span>${item.quantity}x ${escapeHtml(itemName)}</span>
-        ${showPrices ? `<span>${formatOrderCurrency(item.itemTotal, order)}</span>` : ''}
+      <div class="${showPrices ? 'flex-row' : ''}" style="font-size: 13pt; font-weight: bold;">
+        <span dir="auto">${item.quantity}x ${escapeHtml(itemName)}</span>
+        ${showPrices ? `<span dir="ltr">${formatOrderCurrency(item.itemTotal, order)}</span>` : ''}
       </div>`;
 
   // Show unit price breakdown if prices enabled. General/Front/Back tickets do not even format
@@ -71,7 +58,7 @@ const buildKitchenItemHtml = (
 
   // Variation
   if (item.variationName) {
-    html += `<div style="margin-left: 16px; font-size: 11pt;">Size: ${escapeHtml(item.variationName)}</div>`;
+    html += `<div style="margin-left: 16px; font-size: 11pt;">${escapeHtml(translate('variation', 'Size'))}: ${escapeHtml(item.variationName)}</div>`;
   }
 
   // What the kitchen must ACT on — removals, above-default quantities, and paid extras the guest
@@ -79,7 +66,7 @@ const buildKitchenItemHtml = (
   // default quantity 1, which is exactly what a guest's "extra sauce" looks like on the wire:
   // the chosen sauce never reached the printed ticket. One filter with the child rows below.
   customizedIngredientRows(item).forEach((ing) => {
-    html += ingredientRowHtml(ing, 16);
+    html += ingredientRowHtml(ing, 16, translate, item.quantity, itemName);
   });
 
   // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen.
@@ -88,15 +75,18 @@ const buildKitchenItemHtml = (
   html += buildChildItemsHtml(item.sideItems ?? [], {
     showPrices,
     currencySource: order,
-    heading: 'Additionals:',
+    heading: translate('side_items', 'Additionals') + ':',
     withIngredients: true,
+    translate,
+    parentQuantity: item.quantity,
+    parentLabel: itemName,
   });
 
   // Special instructions - prominent styling
   if (specialInstructions) {
     html += `
       <div style="margin: 8px 0 0 16px; padding: 6px 8px; background: #f5f5f5; border-left: 4px solid #000; font-size: 11pt;">
-        <strong>NOTE:</strong> ${escapeHtml(specialInstructions)}
+        <strong>${escapeHtml(translate('note', 'NOTE'))}:</strong> ${escapeHtml(specialInstructions)}
       </div>`;
   }
 
@@ -112,16 +102,18 @@ export const generateKitchenReceiptHtml = (
   order: OrderDto,
   kitchenType: KitchenReceiptType,
   t?: TranslationFunction,
+  options: ReceiptOptions = {},
 ): string | null => {
   const translate = t || ((key: string, fallback: string) => fallback);
 
   // 'All' remains the customer-facing order print. General Kitchen is the explicit kitchen-purpose
   // ticket: it keeps every root and descendant, including unassigned lines, while never carrying
   // the customer money block below. Front/Back continue through the existing recursive routing.
+  const receiptTree = receiptItems(order.items);
   const filteredItems =
     kitchenType === 'All' || kitchenType === 'GeneralKitchen'
-      ? order.items
-      : selectItemsForKitchen(order.items, kitchenType);
+      ? receiptTree
+      : selectItemsForKitchen(receiptTree, kitchenType);
 
   if (filteredItems.length === 0) {
     return null;
@@ -144,7 +136,7 @@ export const generateKitchenReceiptHtml = (
     <div class="double-separator"></div>
     <div style="margin: 8px 0;">
       <div style="display: flex; justify-content: space-between; margin: 4px 0;">
-        <span>Subtotal:</span>
+        <span>${escapeHtml(translate('subtotal', 'Subtotal'))}:</span>
         <span>${formatOrderCurrency(order.subTotal, order)}</span>
       </div>
       ${receiptTaxHtml(order, translate)}
@@ -152,7 +144,7 @@ export const generateKitchenReceiptHtml = (
         order.deliveryFee && order.deliveryFee > 0
           ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
-          <span>Delivery:</span>
+          <span>${escapeHtml(translate('delivery_fee', 'Delivery'))}:</span>
           <span>${formatOrderCurrency(order.deliveryFee, order)}</span>
         </div>
       `
@@ -162,7 +154,7 @@ export const generateKitchenReceiptHtml = (
         order.discount && order.discount > 0
           ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
-          <span>Discount:</span>
+          <span>${escapeHtml(translate('discount', 'Discount'))}:</span>
           <span>-${formatOrderCurrency(order.discount, order)}</span>
         </div>
       `
@@ -171,29 +163,20 @@ export const generateKitchenReceiptHtml = (
     </div>
     <div class="separator"></div>
     <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 14pt; font-weight: bold;">
-      <span>TOTAL:</span>
+      <span>${escapeHtml(translate('total', 'TOTAL'))}:</span>
       <span>${formatOrderCurrency(order.total, order)}</span>
     </div>
-    ${
-      order.payments && order.payments.length > 0
-        ? `
-      <div style="margin-top: 8px;">
-        <strong>Payment:</strong>
-        ${order.payments.map((p) => `<div>${p.paymentMethod}: ${formatOrderCurrency(p.amount, order)}</div>`).join('')}
-      </div>
-    `
-        : ''
-    }
+    ${receiptPaymentHtml(order, translate)}
   `
     : '';
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html ${receiptDocumentAttributes(options)}>
       <head>
         <meta charset="UTF-8">
         <title>${kitchenLabel} - ${escapeHtml(order.orderNumber)}</title>
-        <style>${THERMAL_BASE_STYLES}</style>
+        <style>${receiptStyles(options)}</style>
       </head>
       <body>
         <div class="header">
@@ -203,11 +186,11 @@ export const generateKitchenReceiptHtml = (
         <div class="separator"></div>
 
         <div style="margin: 8px 0;">
-          <div style="font-size: 11pt; font-weight: bold; margin-bottom: 4px; white-space: nowrap;">
-            ${escapeHtml(order.orderNumber)} - ${new Date(order.orderDate).toLocaleDateString()} ${new Date(order.orderDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <div style="font-size: 11pt; font-weight: bold; margin-bottom: 4px; white-space: normal; overflow-wrap: anywhere;">
+            ${escapeHtml(order.orderNumber)} - ${receiptDate(order.orderDate, options)}
           </div>
           <div>
-            <strong>Type:</strong> ${escapeHtml(getOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && tableLabel ? ` - Table ${escapeHtml(tableLabel)}` : ''}
+            <strong>${escapeHtml(translate('type', 'Type'))}:</strong> ${escapeHtml(receiptOrderTypeLabel(order.type, t))}${order.type === 'DineIn' && tableLabel ? ` - ${escapeHtml(translate('table', 'Table'))} ${escapeHtml(tableLabel)}` : ''}
           </div>
         </div>
 
@@ -215,7 +198,7 @@ export const generateKitchenReceiptHtml = (
           includeCustomerDetails && order.customerName
             ? `
           <div style="margin: 8px 0; padding: 6px; background: #f5f5f5;">
-            <strong>Customer:</strong> ${escapeHtml(order.customerName)}
+            <strong>${escapeHtml(translate('customer', 'Customer'))}:</strong> ${escapeHtml(order.customerName)}
           </div>
         `
             : ''
@@ -234,7 +217,7 @@ export const generateKitchenReceiptHtml = (
         <div class="separator"></div>
 
         <div style="text-align: center; font-size: 9pt; color: #666;">
-          Printed: ${new Date().toLocaleString()}
+          ${escapeHtml(translate('date', 'Printed'))}: ${receiptDate(new Date(), options)}
         </div>
       </body>
     </html>

@@ -52,7 +52,7 @@ describe('TicketItems', () => {
   it('uses the shared recursive customization renderer for ingredients and children', () => {
     render(<TicketItems items={[item()]} t={t} />);
 
-    expect(screen.getByText(/added_ingredients/)).toBeInTheDocument();
+    expect(screen.getByText(/receipt.extras/)).toBeInTheDocument();
     expect(screen.getByText('Cheese')).toBeInTheDocument();
     expect(screen.getByText(/removed_ingredients/)).toBeInTheDocument();
     expect(screen.getByText('Onion')).toBeInTheDocument();

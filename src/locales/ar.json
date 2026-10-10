@@ -4154,5 +4154,19 @@
   "table_guest_staff_code_copied": "تم نسخ الرمز.",
   "table_guest_staff_code_copy_failed": "تعذر نسخ الرمز.",
   "cashier.payment_recovery_other_order": "هناك دفعة محفوظة تخص طلبًا آخر. افتح ذلك الطلب للتحقق من حالته قبل تحصيل دفعة أخرى.",
-  "cashier.payment_recovery_open_order": "فتح الطلب ذي الدفعة المحفوظة"
+  "cashier.payment_recovery_open_order": "فتح الطلب ذي الدفعة المحفوظة",
+  "receipt.quantity.per_unit": "لكل صنف",
+  "receipt.quantity.line_total": "إجمالي هذا البند",
+  "receipt.quantity.recorded": "الكمية المسجلة",
+  "receipt.required_choices": "الخيارات المطلوبة",
+  "receipt.extras": "إضافات",
+  "receipt.sides": "أطباق جانبية",
+  "receipt.drinks": "مشروبات",
+  "receipt.status.unpaid": "غير مدفوع",
+  "receipt.status.part_paid": "مدفوع جزئيًا",
+  "receipt.status.paid": "مدفوع",
+  "receipt.amount_paid": "المبلغ المستلم",
+  "receipt.amount_remaining": "المبلغ المتبقي",
+  "receipt.title": "إيصال",
+  "receipt.thanks": "شكراً لزيارتكم!"
 }

@@ -1,8 +1,7 @@
 import type { TFunction } from 'i18next';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import type { OrderItemDto, OrderPaymentDto } from '@/types/order';
-import { orderItemToLineSummary } from '@/components/order/lineSummary';
-import OrderLineSummary from '@/components/order/OrderLineSummary';
+import ReceiptItemDetails from '@/components/order/ReceiptItemDetails';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './CashierWorkspaceTicket.module.css';
 
@@ -92,7 +91,7 @@ export function TicketItems({
                 )}
               </span>
             </div>
-            <OrderLineSummary line={orderItemToLineSummary(item)} />
+            <ReceiptItemDetails item={item} />
           </div>
           <span className={styles.ticketItemPrice}>{formatOrderCurrency(item.itemTotal, { currency })}</span>
         </li>

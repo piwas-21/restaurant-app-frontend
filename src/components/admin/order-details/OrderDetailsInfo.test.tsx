@@ -4,7 +4,10 @@ import OrderDetailsInfo from './OrderDetailsInfo';
 import { singleKitchenBundleOrder, nestedBundleOrder } from '@/utils/__fixtures__/bundleOrderFixture';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (_key: string, fallback?: string) => fallback ?? _key }),
+  useTranslation: () => ({
+    t: (_key: string, fallback?: string | { defaultValue?: string }) =>
+      (typeof fallback === 'string' ? fallback : fallback?.defaultValue) ?? _key,
+  }),
 }));
 
 describe('OrderDetailsInfo — bundle components', () => {
@@ -76,7 +79,7 @@ describe('OrderDetailsInfo — chosen ingredients', () => {
     render(<OrderDetailsInfo order={order} />);
 
     expect(screen.getByText('Garlic Sauce')).toBeInTheDocument();
-    expect(screen.getByText(/Added/)).toBeInTheDocument();
+    expect(screen.getByText(/Extras/)).toBeInTheDocument();
     expect(screen.getByText('Onion')).toBeInTheDocument();
     expect(screen.getByText(/Removed/)).toBeInTheDocument();
     expect(screen.queryByText('Dough')).not.toBeInTheDocument();

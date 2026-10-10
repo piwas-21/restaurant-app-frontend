@@ -155,6 +155,7 @@ export function toBundleItemFromDetail(
 
   return {
     id: detail.id,
+    customerStepManifest: detail.customerStepManifest,
     name: detail.name,
     description: detail.description,
     sourceLocale: detail.sourceLocale,

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { pickEditorSchema } from '@/components/admin/product/schemas';
 import { submitEditProductForm, submitProductForm } from '@/components/admin/product/productFormUtils';
-import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
+import type { ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
 import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
@@ -14,18 +14,11 @@ import { toBundleDefaults, toItemDefaults } from '@/utils/productEditorDefaults'
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
 import { useCustomizationGroupsEditorState } from './useCustomizationGroupsEditorState';
+import { useCustomerStepManifestDraft } from './useCustomerStepManifestDraft';
+import type { UseProductEditorFormOptions } from './useProductEditorForm.types';
 import type { EditorTranslationMetadataPatch } from '@/types/translationMetadata';
 import { applyEditorTranslationMetadata } from '@/utils/applyEditorTranslationMetadata';
 import { useMenuSectionAuthoringState } from './useMenuSectionAuthoringState';
-
-interface UseProductEditorFormOptions {
-  product: ProductDetails;
-  /** Fixed for the hook's lifetime — the page mounts the editor only once the kind is known. */
-  isBundle: boolean;
-  /** `create` on the /new route (empty defaults → POST), `edit` on `[productId]` (→ PUT). */
-  mode?: 'create' | 'edit';
-  onSaved: () => void;
-}
 
 /** Shared create/edit form for products and menu bundles in the unified admin editor. */
 export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved }: UseProductEditorFormOptions) {
@@ -38,6 +31,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const [detailedIngredients, setDetailedIngredients] = useState<ProductIngredient[]>([]);
   const customization = useCustomizationGroupsEditorState(product, isBundle);
   const menuAuthoring = useMenuSectionAuthoringState(product);
+  const customerStepDraft = useCustomerStepManifestDraft(product.id, product.customerStepManifest);
   const { menuDefinition, setMenuDefinition } = menuAuthoring;
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
@@ -99,6 +93,11 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
   const onSubmit = form.handleSubmit(async (data) => {
     const payload: Record<string, unknown> = { ...(data as Record<string, unknown>) };
+
+    // Omission preserves legacy/default behavior. An explicit empty manifest is only sent when
+    // the admin deliberately reset a previously customized order.
+    if (customerStepDraft.isDirty && customerStepDraft.manifest)
+      payload.customerStepManifest = customerStepDraft.manifest;
 
     // Section AND item AND definition ids: every `temp-…` one 400s (Guid? on the wire).
     if (isBundle) payload.menuDefinition = toSubmittableMenuDefinition(menuDefinition);
@@ -178,6 +177,8 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     detailedIngredients,
     changeIngredients,
     isIngredientsDirty,
+    customerStepManifest: customerStepDraft.manifest,
+    changeCustomerStepManifest: customerStepDraft.change,
     customizationGroups: customization.groups,
     changeCustomizationGroups: customization.change,
     moveVariation,
@@ -188,6 +189,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       form.formState.isDirty ||
       isMenuDefinitionDirty ||
       isIngredientsDirty ||
+      customerStepDraft.isDirty ||
       customization.isDirty ||
       imageFiles.length > 0,
     onSubmit,

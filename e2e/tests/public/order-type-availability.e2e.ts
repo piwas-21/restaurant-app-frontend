@@ -163,8 +163,9 @@ test.describe('§9.10 — the customization sheet cannot be used to get around t
     const sheet = page.getByRole('dialog');
     await expect(sheet).toBeVisible({ timeout: 20_000 });
     await expect(sheet.getByText(f.expectedChipText)).toBeVisible();
-    // Before this guard, THIS button was the two-click way around a blocked card.
-    await expect(sheet.getByRole('button', { name: /^Add to Order/ })).toHaveCount(0);
+    // A blocked sheet must not expose the current terminal basket action; checking the former
+    // "Add to Order" copy would pass vacuously after the customer CTA changed.
+    await expect(sheet.getByRole('button', { name: /^Add to basket\b/i })).toHaveCount(0);
     // The quantity stepper goes too — a quantity for something unorderable is noise.
     await expect(sheet.getByRole('button', { name: 'Increase quantity' })).toHaveCount(0);
   });

@@ -3,7 +3,7 @@ import { isSauce, rendersNoSauceAnswer } from './sauceGroup';
 import type { SauceGroupRule } from '@/types/menu/sauce';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import { groupSuggestedSideItems, type SuggestedSideGroup } from './suggestedSideItems';
-import { findBundleOption } from './bundleSelection';
+import { resolveBundleRowSelection } from './bundleOptionResolution';
 import type { CustomizationStep } from './customizationSteps';
 import type { SelectedSide } from './linePrice';
 import type {
@@ -96,7 +96,7 @@ export function productStepSummary(
   }
 }
 
-function customizationGroupSummary(
+export function customizationGroupSummary(
   group: ProductCustomizationGroup,
   ingredients: readonly ProductIngredient[],
   selections: readonly CustomizationGroupSelection[],
@@ -294,7 +294,7 @@ export function bundleStepSummary(section: MenuSection, selectedOptions: readonl
   return section.items
     .map((item) => ({
       item,
-      option: findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
+      option: resolveBundleRowSelection(section, selectedOptions, item).selection,
     }))
     .filter(({ option }) => Boolean(option))
     .map(({ item, option }) => {

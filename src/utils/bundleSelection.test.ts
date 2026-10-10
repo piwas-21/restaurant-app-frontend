@@ -7,6 +7,7 @@ import {
   findBundleOption,
   findBundleSelectionErrors,
   toggleBundleOption,
+  toggleBundleOptionWithDependencies,
   updateBundleOption,
 } from './bundleSelection';
 import { bundleLineUnitPrice } from './linePrice';
@@ -65,6 +66,7 @@ describe('buildBundleOption — base-recipe seeding', () => {
     expect(option).toEqual({
       sectionId: 's1',
       itemId: 'burger',
+      menuSectionItemId: 'si-burger',
       quantity: 1,
       selectedIngredients: ['patty', 'cheese'],
       ingredientQuantities: { patty: 1, cheese: 1 },
@@ -95,11 +97,13 @@ describe('buildBundleOption — base-recipe seeding', () => {
     expect(buildBundleOption('s1', item({ productId: 'coke' }))).toEqual({
       sectionId: 's1',
       itemId: 'coke',
+      menuSectionItemId: 'si-coke',
       quantity: 1,
     });
     expect(buildBundleOption('s1', item({ productId: 'coke', detailedIngredients: [] }))).toEqual({
       sectionId: 's1',
       itemId: 'coke',
+      menuSectionItemId: 'si-coke',
       quantity: 1,
     });
   });
@@ -113,6 +117,7 @@ describe('buildBundleOption — base-recipe seeding', () => {
     ).toEqual({
       sectionId: 'main',
       itemId: 'burger',
+      menuSectionItemId: 'si-burger',
       productVariationId: 'large-portion',
       productVariationPriceModifier: 2.5,
       quantity: 1,
@@ -246,6 +251,45 @@ describe('toggleBundleOption', () => {
     expect(toggleBundleOption(multi, added, 'fries')).toEqual([]);
   });
 
+  it('removes only the selected stable row when product and variation ids are duplicated', () => {
+    const rowA = item({ id: 'row-a', productId: 'same-product', productVariationId: 'regular' });
+    const rowB = item({ id: 'row-b', productId: 'same-product', productVariationId: 'regular' });
+    const duplicateRows = section({ id: 'duplicate-rows', maxSelection: 2, items: [rowA, rowB] });
+    const selected = [buildBundleOption(duplicateRows.id, rowB), buildBundleOption(duplicateRows.id, rowA)];
+
+    expect(toggleBundleOption(duplicateRows, selected, rowA.productId, rowA.productVariationId, rowA.id)).toEqual([
+      selected[0],
+    ]);
+  });
+
+  it('removes dependent choices when a stable parent component is deselected', () => {
+    const first = item({ id: 'dish-a', productId: 'same-dish' });
+    const second = item({ id: 'dish-b', productId: 'same-dish' });
+    const dishSection = section({ id: 'dishes', maxSelection: 2, items: [first, second] });
+    const selected = [
+      buildBundleOption('dishes', first),
+      buildBundleOption('dishes', second),
+      { sectionId: 'meats', itemId: 'chicken', menuSectionItemId: 'meat-a', quantity: 1 },
+    ];
+    const manifest = {
+      schemaVersion: 1 as const,
+      revision: 0,
+      steps: [
+        {
+          kind: 'BundleSection' as const,
+          targetId: 'meats',
+          parentComponentId: first.id,
+          compositionRole: 'RequiredChoice' as const,
+          presentationOrder: 1,
+        },
+      ],
+    };
+
+    expect(
+      toggleBundleOptionWithDependencies(dishSection, selected, first.productId, undefined, first.id, manifest),
+    ).toEqual([selected[1]]);
+  });
+
   it('ignores a toggle past maxSelection rather than evicting an earlier pick', () => {
     const atCap = toggleBundleOption(multi, toggleBundleOption(multi, [], 'fries'), 'salad');
     const beyond = toggleBundleOption(multi, atCap, 'soup');
@@ -340,6 +384,25 @@ describe('updateBundleOption / findBundleOption / countSectionSelections', () =>
     expect(findBundleOption(updated, 'drinks', 'drink', 'large')?.specialInstructions).toBe('extra ice');
     expect(findBundleOption(updated, 'drinks', 'drink', null)?.specialInstructions).toBeUndefined();
     expect(bundleOptionKey('drinks', 'drink', null)).not.toBe(bundleOptionKey('drinks', 'drink', 'large'));
+  });
+
+  it('updates only the exact stable row when product and variation ids are duplicated', () => {
+    const rowA = item({ id: 'row-a', productId: 'same-product', productVariationId: 'regular' });
+    const rowB = item({ id: 'row-b', productId: 'same-product', productVariationId: 'regular' });
+    const selected = [buildBundleOption('duplicate-rows', rowB), buildBundleOption('duplicate-rows', rowA)];
+
+    const updated = updateBundleOption(
+      selected,
+      'duplicate-rows',
+      rowA.productId,
+      { specialInstructions: 'no onions' },
+      rowA.productVariationId,
+      rowA.id,
+    );
+
+    expect(updated[0]).toBe(selected[0]);
+    expect(updated[0].specialInstructions).toBeUndefined();
+    expect(updated[1]).toEqual({ ...selected[1], specialInstructions: 'no onions' });
   });
 });
 

@@ -37,6 +37,8 @@ interface VariationsSectionProps {
   hideBaseProduct?: boolean;
   /** Drop the section's own `<h3>` — the guided flow's step panel already carries the heading. */
   headless?: boolean;
+  /** Keep radio groups independent when a step shows several selected side products. */
+  radioName?: string;
 }
 
 export default function VariationsSection({
@@ -48,6 +50,7 @@ export default function VariationsSection({
   productName,
   hideBaseProduct = false,
   headless = false,
+  radioName = 'variation',
 }: VariationsSectionProps) {
   const { t } = useTranslation();
 
@@ -78,7 +81,7 @@ export default function VariationsSection({
           <label className={styles.variationOption}>
             <input
               type="radio"
-              name="variation"
+              name={radioName}
               checked={selectedVariationId === null}
               onChange={() => onVariationChange(null)}
               className={styles.variationRadio}
@@ -111,7 +114,7 @@ export default function VariationsSection({
             <label key={variationId} className={styles.variationOption}>
               <input
                 type="radio"
-                name="variation"
+                name={radioName}
                 checked={selectedVariationId === variationId}
                 onChange={() => onVariationChange(variationId)}
                 className={styles.variationRadio}

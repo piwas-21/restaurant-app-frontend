@@ -67,6 +67,7 @@ function renderWith(followUp: OrderTypeFollowUp, pending: PendingOrderTypeSwitch
     followUp,
     pickType: jest.fn(),
     closeFollowUp: jest.fn(),
+    confirmFollowUp: jest.fn(),
     editOrderType: jest.fn(),
     editContact: jest.fn(),
     confirmSwitch: jest.fn(),

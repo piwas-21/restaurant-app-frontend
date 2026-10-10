@@ -4,35 +4,25 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
 import { useBundleOptionTour } from '@/hooks/menu/useBundleOptionTour';
+import { useBundleOptionRecovery } from '@/hooks/menu/useBundleOptionRecovery';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
   buildGuestDefaultBundleSelection,
   findBundleSelectionErrors,
-  toggleBundleOption,
+  toggleBundleOptionWithDependencies,
   updateBundleOption,
 } from '@/utils/bundleSelection';
-import { localizedDescription, localizedName } from '@/utils/localizedContent';
+import { localizedDescription, localizedMenuSection, localizedName } from '@/utils/localizedContent';
 import type { MenuBundleItem, MenuSection, SelectedMenuOption } from '@/types/menu';
 import type { OpenSheetOptions } from './sheetOptions';
 import type { OfferMode } from '@/types/menu/offerFamily';
 
 interface UseBundleCustomizationSheetArgs {
-  /** Fired after a successful add — the menu page uses it to animate the cart button. */
   onAdded?: () => void;
-  /** Commits the drinks step's own basket lines, AFTER this line was accepted (§3.4). */
   onLineAdded?: () => Promise<void>;
 }
 
-/**
- * Drives the bundle body of the customer customization sheet (menu-bundles redesign #175, slice 6),
- * replacing `MenuCustomizationModal`. Seeds each section's default options from the one base-recipe
- * rule, live-prices via the shared backend-faithful `useLinePrice`, gates required sections, and
- * adds the bundle line to the basket.
- *
- * No fetch on open: the bundle list payload already carries the full `menuDefinition` (sections →
- * items → per-option `DetailedIngredients`) the drill-in needs.
- */
 export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { i18n } = useTranslation();
@@ -47,9 +37,11 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [offerMode, setOfferMode] = useState<OfferMode | undefined>(undefined);
   const [showValidation, setShowValidation] = useState(false);
-  const sections = useMemo(() => bundle?.menuDefinition?.sections ?? [], [bundle]);
-
-  // The per-option screens' navigation — which option is up, guided walk or review (own hook).
+  const sections = useMemo(
+    () => (bundle?.menuDefinition?.sections ?? []).map((section) => localizedMenuSection(section, currentLanguage)),
+    [bundle, currentLanguage],
+  );
+  const recovery = useBundleOptionRecovery(sections, selectedOptions, setSelectedOptions);
   const optionTour = useBundleOptionTour({ sections, selectedOptions });
   const {
     customizingOption,
@@ -63,8 +55,6 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     handleDeselection: forgetTouredOption,
   } = optionTour;
   const title = bundle ? localizedName(bundle, currentLanguage) : '';
-  // The shared display chain, so a combo whose description was never translated shows the plain one
-  // instead of nothing — the product sheet's F3 gap, which this hook had a copy of.
   const description = bundle ? localizedDescription(bundle, currentLanguage) : undefined;
   const close = useCallback(() => {
     setIsOpen(false);
@@ -75,13 +65,11 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const openForBundle = useCallback(
     (next: MenuBundleItem, opts?: Pick<OpenSheetOptions, 'availability' | 'offerMode'>) => {
       if (!next.menuDefinition) {
-        // A malformed payload, not a server rejection — there is no guest-facing reason to pass on,
-        // so this deliberately lands on the generic fallback.
         notifyAddFailed(null);
         return;
       }
 
-      setSelectedOptions(buildGuestDefaultBundleSelection(next.menuDefinition.sections));
+      setSelectedOptions(buildGuestDefaultBundleSelection(next.menuDefinition.sections, next.customerStepManifest));
       setQuantity(1);
       setSpecialInstructions('');
       resetOptionTour();
@@ -99,36 +87,47 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     sections,
     selectedOptions,
   });
-  // Derived, so a section's error clears the moment it is satisfied. Held back until the guest has
-  // actually tried to add — a freshly-opened sheet does not greet them with red text.
   const selectionErrors = useMemo(
-    () => findBundleSelectionErrors(sections, selectedOptions),
-    [sections, selectedOptions],
+    () => findBundleSelectionErrors(sections, selectedOptions, bundle?.customerStepManifest),
+    [sections, selectedOptions, bundle?.customerStepManifest],
   );
   const visibleErrors = useMemo(() => (showValidation ? selectionErrors : []), [showValidation, selectionErrors]);
-
   const toggleOption = useCallback(
-    (section: MenuSection, itemId: string, productVariationId?: string | null) => {
-      setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId, productVariationId));
-      // Close the option's screen if its option just went away, so re-picking it later doesn't
-      // silently reopen it; a selection change in the walked section kills the walk.
-      forgetTouredOption(section.id, itemId, productVariationId);
+    (section: MenuSection, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
+      setSelectedOptions((prev) =>
+        toggleBundleOptionWithDependencies(
+          section,
+          prev,
+          itemId,
+          productVariationId,
+          menuSectionItemId,
+          bundle?.customerStepManifest,
+        ),
+      );
+      forgetTouredOption(section.id, itemId, productVariationId, menuSectionItemId);
     },
-    [forgetTouredOption],
+    [bundle?.customerStepManifest, forgetTouredOption],
   );
 
   const setOptionCustomization = useCallback(
-    (sectionId: string, itemId: string, patch: Partial<SelectedMenuOption>, productVariationId?: string | null) => {
-      setSelectedOptions((prev) => updateBundleOption(prev, sectionId, itemId, patch, productVariationId));
+    (
+      sectionId: string,
+      itemId: string,
+      patch: Partial<SelectedMenuOption>,
+      productVariationId?: string | null,
+      menuSectionItemId?: string,
+    ) => {
+      setSelectedOptions((prev) =>
+        updateBundleOption(prev, sectionId, itemId, patch, productVariationId, menuSectionItemId),
+      );
     },
     [],
   );
 
   const addToCart = useCallback(async () => {
-    // Guard the money-path add against double submission (rapid clicks / Enter key).
     if (!bundle || isSubmitting) return;
 
-    if (selectionErrors.length > 0) {
+    if (selectionErrors.length > 0 || recovery.hasUnresolvedOptions) {
       setShowValidation(true);
       return;
     }
@@ -141,7 +140,6 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
         specialInstructions: specialInstructions || undefined,
         selectedMenuOptions: selectedOptions,
       });
-      // Strictly after: a rejected line must not leave a lone drink behind in the basket.
       await onLineAdded?.();
       close();
       notifyItemAdded(title);
@@ -163,6 +161,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     quantity,
     selectedOptions,
     selectionErrors,
+    recovery.hasUnresolvedOptions,
     specialInstructions,
     title,
   ]);
@@ -182,6 +181,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     selectedOptions,
     toggleOption,
     setOptionCustomization,
+    clearUnresolvedOptions: recovery.clearUnresolvedOptions,
     customizingOption,
     optionTourSectionId,
     openOptionCustomization,

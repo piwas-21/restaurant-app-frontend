@@ -49,6 +49,39 @@
   color: var(--modal-body-error-color, var(--feedback-error, var(--status-danger)));
 }
 
+.recovery {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--modal-body-option-radius, 10px);
+  background: var(--surface-muted, var(--surface-card));
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.recovery p {
+  margin: 0;
+}
+
+.recoveryAction {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link-default);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.recoveryAction:hover,
+.recoveryAction:focus-visible {
+  color: var(--link-hover);
+}
+
 .options {
   display: flex;
   flex-direction: column;

@@ -138,6 +138,25 @@ describe('productLineUnitPrice', () => {
     expect(price).toBe(23);
   });
 
+  it('uses stable side association and selected variation when pricing standalone sides', () => {
+    expect(
+      productLineUnitPrice({
+        basePrice: 10,
+        selectedIngredientIds: [],
+        sides: [
+          {
+            id: 'cola',
+            suggestedSideItemId: 'side-row-a',
+            price: 3,
+            variations: [{ id: 'large', priceModifier: 1.5 }],
+          },
+          { id: 'cola', suggestedSideItemId: 'side-row-b', price: 4, variations: [{ id: 'large', priceModifier: 2 }] },
+        ],
+        selectedSides: [{ id: 'cola', suggestedSideItemId: 'side-row-b', productVariationId: 'large', quantity: 2 }],
+      }),
+    ).toBe(22);
+  });
+
   it('starts a default (base-recipe) selection at exactly the base price', () => {
     const ingredients = [
       ing({ id: 'dough', isOptional: false, price: 5 }),

@@ -101,7 +101,11 @@ function CartSheetHarness() {
   const [isOpen, setIsOpen] = useState(true);
   return (
     <TableContextProvider>
-      <CartSheet isOpen={isOpen} onClose={() => setIsOpen(false)} followUp={{ pickType: jest.fn() } as never} />
+      <CartSheet
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        followUp={{ pickType: jest.fn(), followUp: null, switchFlow: { pending: null } } as never}
+      />
     </TableContextProvider>
   );
 }

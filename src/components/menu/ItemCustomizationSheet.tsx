@@ -3,12 +3,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
-import BundleOptionCustomizationScreen from '@/components/menu/customization/BundleOptionCustomizationScreen';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow, type SheetController } from '@/hooks/menu/useSheetFlow';
-import { useBundleOptionFlow } from '@/hooks/menu/useBundleOptionFlow';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
-import { footerFor, sheetIntro, OptionFooterBar, ProductFlowBody } from '@/components/menu/customization/SheetSurfaces';
+import { footerFor, sheetIntro, ProductFlowBody } from '@/components/menu/customization/SheetSurfaces';
 import type { OrderType } from '@/types/order';
 import styles from './ItemCustomizationSheet.module.css';
 
@@ -47,14 +45,6 @@ export default function ItemCustomizationSheet({
   const { t } = useTranslation();
   const { isOpen, title, description, quantity, setQuantity, isSubmitting, addToCart, close } = controller;
   const flow = useSheetFlow(controller, drinks);
-  // The per-option screen the bundle sheet navigates to (Customize on a selected option), or null
-  // when the sheet is on its own flow. While it is up, BOTH the body and the footer below are the
-  // option's — the bundle's steps stay exactly where the guest left them.
-  const optionFlow = useBundleOptionFlow(controller, flow.total);
-
-  // Taking the way out ends the option screen first: the line being edited is still in the bundle
-  // controller, so backing out must not throw it away with the sheet.
-  const dismiss = optionFlow ? optionFlow.close : close;
 
   // Narrowed once — the product branch's fields are read four times below.
   const detail = controller.kind === 'product' ? controller.product : null;
@@ -96,38 +86,15 @@ export default function ItemCustomizationSheet({
   const { step } = flow;
   const isGuided = flow.steps.length > 1;
 
-  // The option screen's bar. Its last step commits BACK INTO THE LINE, not an order — so it asks
-  // SheetFooter for the confirm mode (a labelled Done over the same live total) instead of the
-  // quantity stepper and the Add, and the money keeps rendering through the one component.
-  //
-  // Done is mode-aware (partner feedback 2026-09): inside a guided walk it opens the next
-  // option's screens; when the walk is finished it ALSO advances the section flow past the
-  // section the walk answered (the raw advance — the wrapper would otherwise restart the walk);
-  // a review visit just returns to the section it was opened from.
-  const onOptionDone = optionFlow
-    ? () => {
-        const outcome = optionFlow.advanceTour();
-        if (outcome === 'advanced') return;
-        if (outcome === 'done') {
-          flow.stepGoNext();
-          return;
-        }
-        optionFlow.close();
-      }
-    : undefined;
-  const optionFooter = optionFlow ? <OptionFooterBar optionFlow={optionFlow} t={t} onConfirm={onOptionDone} /> : null;
-
   // Blocked ⇒ the whole action bar is replaced by the reason and the way out, on every step. Not
   // disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a
   // quantity that cannot be ordered is noise.
   const footer = footerFor({
-    optionFooter,
     isBlocked,
     notice,
     onSwitchOrderType: switchOrderTypeAndClose,
     styles,
     flow,
-    step,
     isSubmitting,
     quantity,
     setQuantity,
@@ -139,31 +106,18 @@ export default function ItemCustomizationSheet({
   // viewport, so the action bar lands under the URL bar and the flow "does not fit the screen".
   // `90dvh` tracks the real viewport; wide screens keep the centered dialog.
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={dismiss}
-      title={title}
-      size="lg"
-      presentation="responsive-sheet"
-      footer={footer}
-    >
+    <BaseModal isOpen={isOpen} onClose={close} title={title} size="lg" presentation="responsive-sheet" footer={footer}>
       <div className={styles.body}>
-        {optionFlow ? (
-          // The per-option screen REPLACES the bundle body: the intro above describes the combo,
-          // not the option being customized, and the option's steps carry their own progress rail.
-          <BundleOptionCustomizationScreen flow={optionFlow} />
-        ) : (
-          <ProductFlowBody
-            controller={controller}
-            flow={flow}
-            step={step}
-            isGuided={isGuided}
-            drinks={drinks}
-            description={description}
-            t={t}
-            intro={intro}
-          />
-        )}
+        <ProductFlowBody
+          controller={controller}
+          flow={flow}
+          step={step}
+          isGuided={isGuided}
+          drinks={drinks}
+          description={description}
+          t={t}
+          intro={intro}
+        />
       </div>
     </BaseModal>
   );

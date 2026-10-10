@@ -37,6 +37,7 @@ export const SECTION_IDS = {
   media: 'editor-section-media',
   pricing: 'editor-section-pricing',
   options: 'editor-section-options',
+  customerScreens: 'editor-section-customer-screens',
   recipe: 'editor-section-recipe',
   service: 'editor-section-service',
   advanced: 'editor-section-advanced',

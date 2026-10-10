@@ -12,7 +12,7 @@ import { orderStatusLabel } from '@/lib/orderStatus';
 
 // Import templates
 import { generateSimpleReceiptHtml, generateKitchenReceiptHtml } from './templates';
-import type { KitchenReceiptType } from './templates';
+import type { KitchenReceiptType, ReceiptOptions } from './templates';
 
 // Re-export templates for backward compatibility
 export { generateSimpleReceiptHtml, generateKitchenReceiptHtml };
@@ -76,18 +76,18 @@ export const printHtmlContent = (htmlContent: string): void => {
  * Export a single order to PDF using simplified thermal receipt style (80mm)
  * This is the preferred format for thermal printers
  */
-export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void => {
+export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction, options?: ReceiptOptions): void => {
   if (!permitsChannelLocalAction(order, 'PrintReceipt')) return;
-  const html = generateSimpleReceiptHtml(order, t);
+  const html = generateSimpleReceiptHtml(order, t, options);
   printHtmlContent(html);
 };
 
 /**
  * Alias for exportOrderToPDF - explicit thermal receipt export
  */
-export const exportSimpleReceiptToPDF = (order: OrderDto, t?: TranslationFunction): void => {
+export const exportSimpleReceiptToPDF = (order: OrderDto, t?: TranslationFunction, options?: ReceiptOptions): void => {
   if (!permitsChannelLocalAction(order, 'PrintReceipt')) return;
-  const html = generateSimpleReceiptHtml(order, t);
+  const html = generateSimpleReceiptHtml(order, t, options);
   printHtmlContent(html);
 };
 
@@ -99,6 +99,7 @@ export const exportKitchenItemsToPDF = (
   order: OrderDto,
   kitchenType: KitchenReceiptType,
   t?: TranslationFunction,
+  options?: ReceiptOptions,
 ): void => {
   if (
     order.externalOrder &&
@@ -108,7 +109,7 @@ export const exportKitchenItemsToPDF = (
   )
     return;
   const translate = t || ((key: string, fallback: string) => fallback);
-  const html = generateKitchenReceiptHtml(order, kitchenType, t);
+  const html = generateKitchenReceiptHtml(order, kitchenType, t, options);
 
   if (!html) {
     alert(translate('cashier.no_items_for_kitchen', 'No items for this kitchen type'));

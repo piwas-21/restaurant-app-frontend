@@ -13,6 +13,7 @@ import ProductCustomizationGroupsEditor from '@/components/admin/product/Product
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import OfferVersionsSection from './OfferVersionsSection';
+import CustomerStepManifestEditor from './CustomerStepManifestEditor';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
 import type { EditorSection } from './EditorShell';
 
@@ -132,6 +133,13 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
           />
         </>
       ),
+    },
+    {
+      id: SECTION_IDS.customerScreens,
+      label: t('customer_flow_section_title'),
+      showHeading: true,
+      description: t('customer_flow_section_description'),
+      node: <CustomerStepManifestEditor {...context} />,
     },
     {
       id: SECTION_IDS.recipe,

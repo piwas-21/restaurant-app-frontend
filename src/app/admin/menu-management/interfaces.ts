@@ -1,7 +1,14 @@
 import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
-import { IngredientKind, ItemAvailability, KitchenType, MenuDefinition, ProductCustomizationGroup } from '@/types/menu';
+import {
+  IngredientKind,
+  ItemAvailability,
+  KitchenType,
+  MenuDefinition,
+  ProductCustomizationGroup,
+  ProductType,
+} from '@/types/menu';
 import type { TranslationMetadata } from '@/types/translationMetadata';
 import type { CategoryTranslations } from '@/types/categoryTranslations';
 import type { LanguageCode } from '@/config/languageConfig';
@@ -16,10 +23,12 @@ export interface ProductImage {
 
 export interface SideItem {
   id: string;
+  suggestedSideItemId?: string;
   name: string;
   description: string;
   price: number;
   isRequired: boolean;
+  type?: ProductType;
 }
 
 export interface Variation {
@@ -69,6 +78,7 @@ export interface ProductIngredient {
 
 export interface ProductDetails {
   id: string;
+  customerStepManifest?: import('@/types/menu').CustomerStepManifest | null;
   name: string;
   description: string;
   translationMetadata?: TranslationMetadata;

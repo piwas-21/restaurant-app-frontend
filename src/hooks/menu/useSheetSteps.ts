@@ -27,19 +27,34 @@ interface UseSheetStepsArgs {
  * be layered over either body without either learning about the other.
  */
 export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetKey }: UseSheetStepsArgs) {
-  const [index, setIndex] = useState(0);
+  const [cursorId, setCursorId] = useState<string | null>(null);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   // Reached, not completed: a step the guest has SEEN may be jumped back to from the progress bar.
   // Steps ahead of the furthest one reached stay unreachable, so the bar cannot skip a required gate.
-  const [furthest, setFurthest] = useState(0);
+  const [reachedIds, setReachedIds] = useState<string[]>([]);
   // Set only when the guest has actually pressed Continue on an unsatisfied required step. A
   // freshly-arrived step never greets them with red text — the same rule the bundle body's
   // `showValidation` has always followed.
   const [attempted, setAttempted] = useState(false);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stepsRef = useRef(steps);
+  stepsRef.current = steps;
 
-  const clampedIndex = Math.min(index, Math.max(0, steps.length - 1));
+  const lastStepRef = useRef<{ step: CustomizationStep; index: number } | null>(null);
+  const stepIds = steps.map((candidate) => candidate.id).join('|');
+  const requestedIndex = cursorId ? steps.findIndex((candidate) => candidate.id === cursorId) : -1;
+  const lastStep = lastStepRef.current;
+  const fallbackId = lastStep?.step.returnStepId ?? lastStep?.step.parentStepId;
+  const fallbackIndex = fallbackId ? steps.findIndex((candidate) => candidate.id === fallbackId) : -1;
+  let clampedIndex = Math.min(lastStep?.index ?? 0, Math.max(0, steps.length - 1));
+  if (fallbackIndex >= 0) clampedIndex = fallbackIndex;
+  if (requestedIndex >= 0) clampedIndex = requestedIndex;
   const step = steps[clampedIndex];
+  if (step) lastStepRef.current = { step, index: clampedIndex };
+  const currentReached = reachedIds.filter((id) => steps.some((candidate) => candidate.id === id));
+  const reached = new Set(currentReached);
+  let furthest = 0;
+  while (furthest < steps.length - 1 && reached.has(steps[furthest + 1].id)) furthest++;
   const isLast = clampedIndex >= steps.length - 1;
 
   const cancelAutoAdvance = useCallback(() => {
@@ -53,11 +68,22 @@ export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetK
   // previous item was left on, which for a one-step item is an index that no longer exists.
   useEffect(() => {
     cancelAutoAdvance();
-    setIndex(0);
-    setFurthest(0);
+    const firstId = stepsRef.current[0]?.id ?? null;
+    setCursorId(firstId);
+    setReachedIds(firstId ? [firstId] : []);
     setAttempted(false);
     setDirection('forward');
   }, [resetKey, cancelAutoAdvance]);
+
+  useEffect(() => {
+    const active = stepsRef.current[clampedIndex];
+    if (cursorId !== (active?.id ?? null)) setCursorId(active?.id ?? null);
+    setReachedIds((current) => {
+      const retained = current.filter((id) => stepsRef.current.some((candidate) => candidate.id === id));
+      const next = active && !retained.includes(active.id) ? [...retained, active.id] : retained;
+      return next.length === current.length && next.every((id, index) => id === current[index]) ? current : next;
+    });
+  }, [stepIds, cursorId, clampedIndex]);
 
   useEffect(() => cancelAutoAdvance, [cancelAutoAdvance]);
 
@@ -75,11 +101,12 @@ export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetK
         // animation from a side it never left.
         return next < clampedIndex ? 'back' : current;
       });
-      setIndex(next);
-      setFurthest((seen) => Math.max(seen, next));
+      const target = steps[next];
+      setCursorId(target?.id ?? null);
+      if (target) setReachedIds((seen) => (seen.includes(target.id) ? seen : [...seen, target.id]));
       setAttempted(false);
     },
-    [cancelAutoAdvance, clampedIndex],
+    [cancelAutoAdvance, clampedIndex, steps],
   );
 
   /** Reveal the current step's reason without moving — what a refused commit needs. */
@@ -110,18 +137,21 @@ export function useSheetSteps({ steps, gate, sauceMin = 0, sauceIds = [], resetK
   const advanceAfterChoice = useCallback(() => {
     if (!step?.singleChoice || isLast) return;
     cancelAutoAdvance();
-    const armedAt = clampedIndex;
+    const armedStepId = step.id;
     autoAdvanceRef.current = setTimeout(() => {
       autoAdvanceRef.current = null;
-      // Computed from the index this timer was ARMED on, not read back through the setter: a state
-      // updater has to be pure, and StrictMode double-invokes it. Any navigation in between has
-      // already cancelled this timer, so the armed index is still the right one.
-      const next = Math.min(armedAt + 1, steps.length - 1);
-      setIndex(next);
-      setFurthest((seen) => Math.max(seen, next));
+      // Resolve by stable ID against the latest plan. A selected component can insert prerequisite
+      // screens while the single-choice advance is pending; using the old index would skip them.
+      const currentSteps = stepsRef.current;
+      const armedAt = currentSteps.findIndex((candidate) => candidate.id === armedStepId);
+      if (armedAt < 0) return;
+      const next = Math.min(armedAt + 1, currentSteps.length - 1);
+      const target = currentSteps[next];
+      setCursorId(target?.id ?? null);
+      if (target) setReachedIds((seen) => (seen.includes(target.id) ? seen : [...seen, target.id]));
       setDirection('forward');
     }, AUTO_ADVANCE_MS);
-  }, [step, isLast, cancelAutoAdvance, steps.length, clampedIndex]);
+  }, [step, isLast, cancelAutoAdvance]);
 
   return {
     /** `undefined` only for an item with no steps at all, which never opens a sheet. */

@@ -4,6 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
+import { useModalSubmitAction } from '@/hooks/order/useModalSubmitAction';
 import GuestCustomerInfoFields, { type CustomerInfoField } from './GuestCustomerInfoFields';
 import tableModalStyles from './TableSelectionModal.module.css';
 
@@ -83,16 +84,12 @@ export default function TakeawayInfoModal({
     editAll,
   });
 
-  const handleConfirm = async () => {
-    const committed = await guest.commit();
-    if (committed === null) return;
-    onConfirm();
-    onClose();
-  };
+  const { submit: handleConfirm, isSubmitting, errorMessage } = useModalSubmitAction(isOpen, guest.commit, onConfirm);
 
   return (
     <BaseModal
       isOpen={isOpen}
+      isPending={isSubmitting}
       onClose={onClose}
       title={title ?? t('takeaway_info_title', 'Almost there — your details')}
       footer={
@@ -101,7 +98,7 @@ export default function TakeawayInfoModal({
             type="button"
             className={tableModalStyles.secondaryButton}
             onClick={onClose}
-            disabled={guest.isRegistering}
+            disabled={isSubmitting || guest.isRegistering}
           >
             {t('cancel', 'Cancel')}
           </button>
@@ -109,13 +106,18 @@ export default function TakeawayInfoModal({
             type="button"
             className={tableModalStyles.primaryButton}
             onClick={handleConfirm}
-            disabled={guest.isLoadingUser || guest.isRegistering}
+            disabled={isSubmitting || guest.isLoadingUser || guest.isRegistering}
           >
-            {guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
+            {isSubmitting || guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
     >
+      {errorMessage && (
+        <p className={tableModalStyles.requiredHint} role="alert">
+          {errorMessage}
+        </p>
+      )}
       <GuestCustomerInfoFields
         value={guest.value}
         errors={guest.errors}
@@ -124,7 +126,7 @@ export default function TakeawayInfoModal({
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
-        disabled={guest.isRegistering}
+        disabled={isSubmitting || guest.isRegistering}
         wantsRegister={guest.wantsRegister}
         setWantsRegister={guest.setWantsRegister}
         registerValue={guest.registerValue}

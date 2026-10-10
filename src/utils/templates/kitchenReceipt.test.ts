@@ -239,15 +239,18 @@ describe('generateKitchenReceiptHtml — a child row with no total of its own', 
 
   // The child fragment, not a loose `not.toContain('0.00')`: the ticket's own totals block prints
   // "CHF 41.00", so a bare "0.00" search matches money that is supposed to be there.
-  const cokeRow = (html: string) =>
-    html.split('<div style="margin-left: 24px; font-size: 11pt;">')[1]?.split('</div>')[0];
+  const cokeRow = (html: string) => {
+    const document = new DOMParser().parseFromString(html, 'text/html');
+    return Array.from(document.querySelectorAll('.receipt-child')).find((row) => row.textContent?.includes('Coke'))
+      ?.textContent;
+  };
 
   it('prints the side without a price rather than with a zero one', () => {
     const html = generateKitchenReceiptHtml(orderWithSide(), 'All');
 
     expect(html).not.toBeNull();
     // The defect, named: the child used to render as `+ Coke x2 (CHF 0.00)`.
-    expect(cokeRow(html!)).toBe('+ Coke x2');
+    expect(cokeRow(html!)).toBe('+ Coke x2 — Recorded quantity');
   });
 
   it('still prints the PARENT total, so suppressing the zero costs no real price', () => {
@@ -265,7 +268,9 @@ describe('generateKitchenReceiptHtml — a child row with no total of its own', 
     const order = orderWithSide();
     order.items[0].sideItems![0].itemTotal = 5;
 
-    expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(`+ Coke x2 (${formatCurrency(5)})`);
+    expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(
+      `+ Coke x2 (${formatCurrency(5)}) — Recorded quantity`,
+    );
   });
 });
 

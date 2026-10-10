@@ -100,15 +100,26 @@ export default function WaiterBundleCustomization({
           selectedOptions={selectedOptions}
           minSelectionError={errorsBySection.get(section.id)}
           currentLanguage={currentLanguage}
-          onOptionQuantityChange={(sectionId, itemId, nextQuantity, productVariationId) =>
+          onOptionQuantityChange={(sectionId, itemId, nextQuantity, productVariationId, menuSectionItemId) =>
             setSelectedOptions((previous) =>
-              updateBundleOption(previous, sectionId, itemId, { quantity: nextQuantity }, productVariationId),
+              updateBundleOption(
+                previous,
+                sectionId,
+                itemId,
+                { quantity: nextQuantity },
+                productVariationId,
+                menuSectionItemId,
+              ),
             )
           }
-          onToggleOption={(nextSection, itemId, productVariationId) => {
-            setSelectedOptions((previous) => toggleBundleOption(nextSection, previous, itemId, productVariationId));
+          onToggleOption={(nextSection, itemId, productVariationId, menuSectionItemId) => {
+            setSelectedOptions((previous) =>
+              toggleBundleOption(nextSection, previous, itemId, productVariationId, menuSectionItemId),
+            );
             setExpandedOptionKey((previous) =>
-              previous === bundleOptionKey(nextSection.id, itemId, productVariationId) ? null : previous,
+              previous === bundleOptionKey(nextSection.id, itemId, productVariationId, menuSectionItemId)
+                ? null
+                : previous,
             );
           }}
           // The staff modal EXPANDS the option's panel in place — the efficient shape for a counter
@@ -116,13 +127,13 @@ export default function WaiterBundleCustomization({
           // option's guided screen inside `ItemCustomizationSheet`.
           inlinePanel={{
             expandedOptionKey,
-            onToggle: (sectionId, itemId, productVariationId) => {
-              const key = bundleOptionKey(sectionId, itemId, productVariationId);
+            onToggle: (sectionId, itemId, productVariationId, menuSectionItemId) => {
+              const key = bundleOptionKey(sectionId, itemId, productVariationId, menuSectionItemId);
               setExpandedOptionKey((previous) => (previous === key ? null : key));
             },
-            onChange: (sectionId, itemId, patch, productVariationId) =>
+            onChange: (sectionId, itemId, patch, productVariationId, menuSectionItemId) =>
               setSelectedOptions((previous) =>
-                updateBundleOption(previous, sectionId, itemId, patch, productVariationId),
+                updateBundleOption(previous, sectionId, itemId, patch, productVariationId, menuSectionItemId),
               ),
           }}
         />

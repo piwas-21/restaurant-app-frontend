@@ -7,6 +7,7 @@ import BundleMediaPanel from './BundleMediaPanel';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import OfferVersionsSection from './OfferVersionsSection';
+import CustomerStepManifestEditor from './CustomerStepManifestEditor';
 import { buildItemSections } from './itemEditorSections';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
 import type { EditorSection } from './EditorShell';
@@ -97,6 +98,13 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       showHeading: true,
       description: t('editor_bundle_options_description'),
       node: <BundlePanel {...bundleProps} section="options" />,
+    },
+    {
+      id: SECTION_IDS.customerScreens,
+      label: t('customer_flow_section_title'),
+      showHeading: true,
+      description: t('customer_flow_section_description'),
+      node: <CustomerStepManifestEditor {...context} />,
     },
     {
       id: SECTION_IDS.service,

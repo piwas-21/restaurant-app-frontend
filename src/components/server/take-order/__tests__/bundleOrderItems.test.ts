@@ -221,7 +221,7 @@ describe('waiter bundle order mapping', () => {
       ],
     };
     const chosen = toggleBundleOption(meat, buildWaiterBundleDefaultSelection([meat]), 'beef');
-    expect(chosen).toEqual([{ sectionId: 'meat', itemId: 'beef', quantity: 1 }]);
+    expect(chosen).toEqual([{ sectionId: 'meat', itemId: 'beef', quantity: 1, menuSectionItemId: 'beef-row' }]);
     expect(buildBundleChildItems({ sections: [meat], selectedOptions: chosen }, 1)).toEqual([
       {
         productId: 'beef',
@@ -234,6 +234,28 @@ describe('waiter bundle order mapping', () => {
         kind: 'BundleChild',
       },
     ]);
+  });
+
+  it('prices a repeated product choice from the selected stable menu row', () => {
+    const secondBeefRow = {
+      ...drinkSection.items[0],
+      id: 'second-beef-row',
+      productId: 'beef',
+      productName: 'Beef option',
+      additionalPrice: 5,
+      productVariationId: null,
+    };
+    const section = { ...drinkSection, id: 'beef', items: [drinkSection.items[0], secondBeefRow] };
+    const children = buildBundleChildItems(
+      {
+        sections: [section],
+        selectedOptions: [{ sectionId: section.id, itemId: 'beef', menuSectionItemId: 'second-beef-row', quantity: 1 }],
+      },
+      1,
+    );
+
+    expect(children).toHaveLength(1);
+    expect(children[0].unitPrice).toBe(5);
   });
 
   it('matches same-product bundle children by variation and preserves the charged modifier', () => {

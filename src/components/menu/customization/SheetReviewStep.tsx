@@ -3,14 +3,17 @@
 import { useTranslation } from 'react-i18next';
 import SpecialRequestSection from './SpecialRequestSection';
 import { stepLabel } from './stepLabel';
+import BidiTemplate from '@/components/common/BidiTemplate';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { OfferMode } from '@/types/menu/offerFamily';
 import styles from './SheetReviewStep.module.css';
 
 export interface ReviewRow {
   step: CustomizationStep;
-  /** What the guest chose. **Empty means they chose nothing** and is rendered as an explicit None. */
+  /** What the guest chose. Empty answers render as None unless `warning` means the saved choice is unknown. */
   values: string[];
+  /** A saved bundle choice could not be safely matched and needs explicit reselection. */
+  warning?: string;
 }
 
 function modeKeyFor(offerMode: OfferMode): string {
@@ -57,13 +60,24 @@ export default function SheetReviewStep({
             <dd className={styles.value}>{modeLabel}</dd>
           </div>
         )}
-        {rows.map(({ step, values }) => {
+        {rows.map(({ step, values, warning }) => {
           const label = stepLabel(step, t);
           return (
             <div key={step.id} className={styles.row}>
-              <dt className={styles.term}>{label}</dt>
+              <dt className={styles.term}>
+                {label}
+                {step.component?.productName && (
+                  <span className={styles.componentContext}>
+                    <BidiTemplate
+                      translationKey="customer_step_for_item"
+                      placeholder="item"
+                      value={step.component.productName}
+                    />
+                  </span>
+                )}
+              </dt>
               <dd className={styles.value}>
-                {values.length > 0 ? (
+                {values.length > 0 && (
                   <ul className={styles.values}>
                     {values.map((value, position) => (
                       // Keyed by POSITION: two same-named options in different partitions are a
@@ -75,8 +89,12 @@ export default function SheetReviewStep({
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <span className={styles.empty}>{t('step_nothing_selected')}</span>
+                )}
+                {values.length === 0 && !warning && <span className={styles.empty}>{t('step_nothing_selected')}</span>}
+                {warning && (
+                  <p className={styles.warning} role="alert">
+                    {warning}
+                  </p>
                 )}
                 <button type="button" className={styles.change} onClick={() => onJump(step)}>
                   {/* Names the step it returns to, so a screen-reader guest reading the buttons out

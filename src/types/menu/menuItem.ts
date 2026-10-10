@@ -12,9 +12,11 @@ import {
   KitchenType,
 } from './shared';
 import type { ItemAvailability } from './availability';
+import type { CustomerStepManifest } from './customerStepManifest';
 
 export interface MenuItem {
   id: string;
+  customerStepManifest?: CustomerStepManifest | null;
   name: string; // Base name from API for fallback
   description?: string; // Base description from API for description fallback
   /** Language of the base name/description when the API declares one. */

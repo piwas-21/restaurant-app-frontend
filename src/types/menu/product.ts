@@ -15,7 +15,7 @@ import { MenuDefinition } from './bundle';
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
 import type { CustomizationGroupCarrier } from './customizationGroup';
-
+import type { CustomerStepManifest } from './customerStepManifest';
 export interface CreateProductData {
   name: string;
   basePrice: number;
@@ -49,6 +49,7 @@ export interface ProductResponse {
 
 export interface DetailedProduct extends SauceGroupCarrier, CustomizationGroupCarrier {
   id: string;
+  customerStepManifest?: CustomerStepManifest | null;
   name: string;
   description?: string;
   sourceLocale?: string | null;

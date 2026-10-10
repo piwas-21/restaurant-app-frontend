@@ -16,7 +16,7 @@ import { writeAuthStorageState } from '../../helpers/storageState';
  * CI, `adminAuth.assertCredentialConfigured` turns the skip into a red job instead.
  *
  * Its second job is real coverage: that a signed-in admin can open a product and get the editor —
- * §4's SEVEN named sections, in order, populated with that product's data. The component tests
+ * §4's EIGHT named sections, in order, populated with that product's data. The component tests
  * (`ProductEditorSections.test.tsx`) pin the same list against a mocked hook; only this one proves
  * the route, the auth guard, the fetch and the shell agree on a live backend.
  *
@@ -48,7 +48,7 @@ const MIN_PHONE_BUNDLE_NAME_WIDTH = 200;
 const TAB_LABEL_OVERFLOW_TOLERANCE = 1;
 
 /**
- * §4's seven sections, IN ORDER, as the DOM ids `EditorShell` renders.
+ * §4's eight sections, IN ORDER, as the DOM ids `EditorShell` renders.
  *
  * Deliberately literal rather than imported from `editorSectionTypes.ts`. These ids are a
  * user-visible contract — the section nav scrolls to them and a user's collapse preference is
@@ -60,6 +60,7 @@ const SECTION_IDS = [
   'editor-section-media',
   'editor-section-pricing',
   'editor-section-options',
+  'editor-section-customer-screens',
   'editor-section-recipe',
   'editor-section-service',
   'editor-section-advanced',
@@ -124,7 +125,7 @@ test.beforeAll(async ({ request, baseURL }) => {
   storageStatePath = file;
 });
 
-test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, request, baseURL }) => {
+test('a signed-in admin opens a product and gets all eight editor sections', async ({ browser, request, baseURL }) => {
   test.skip(!storageStatePath, skipReason);
 
   // A generous budget, spent only ONCE and only on CI. `webServer` is `next dev`, which compiles a
@@ -163,16 +164,16 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
       { timeout: 120_000 },
     );
 
-    // All seven, and no eighth. The panels are focused tabs, so only one is visible at a time.
+    // All eight, in their contract order. The panels are focused tabs, so only one is visible at a time.
     const sections = page.locator('section[id^="editor-section-"]');
-    await expect(sections, 'the item editor renders exactly §4 seven sections').toHaveCount(SECTION_IDS.length);
+    await expect(sections, 'the item editor renders exactly §4 eight sections').toHaveCount(SECTION_IDS.length);
     const sectionNav = page.getByTestId('editor-section-nav');
     const sectionTabs = sectionNav.getByRole('tab');
     await expect(sectionTabs, 'each editor section has a keyboard-accessible tab').toHaveCount(SECTION_IDS.length);
 
     // The focused tab controls the matching panel, keeps its accessible name, and exposes its
     // heading. Checking each associated panel protects the real browser path without asserting that
-    // all seven panels should be visible at once.
+    // all eight panels should be visible at once.
     for (const [index, id] of SECTION_IDS.entries()) {
       const tab = sectionTabs.nth(index);
       const panelId = `product-editor-form-section-panel-${id}`;

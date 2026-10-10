@@ -12,7 +12,7 @@ interface SheetStepPanelProps {
   /** A required step marks its heading, so the `*` is not carried by the footer alone. */
   isRequired?: boolean;
   requiredLabel?: string;
-  hint?: string;
+  hint?: ReactNode;
   /**
    * Hold a minimum height so the footer does not jump up the screen between steps. Only the guided
    * flow wants it: a single-step sheet has nothing to be steady against, and the floor would just

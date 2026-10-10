@@ -16,8 +16,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { OrderDto } from '@/types/order';
-import OrderLineSummary from '@/components/order/OrderLineSummary';
-import { orderItemToLineSummary } from '@/components/order/lineSummary';
+import ReceiptItemDetails from '@/components/order/ReceiptItemDetails';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { formatOrderDate } from '@/utils/orderDetailsFormatters';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
@@ -192,7 +191,7 @@ export default function OrderDetailsInfo({ order }: OrderDetailsInfoProps) {
                   </div>
                   {/* `order.items` is root-only since backend #237 — without this the components of a
                     combo are invisible here. Instructions are hidden: rendered above already. */}
-                  <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
+                  <ReceiptItemDetails item={item} hideInstructions />
                 </div>
                 <div className={styles.itemTotal}>{formatOrderCurrency(item.itemTotal, order)}</div>
               </div>

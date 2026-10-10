@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
-import { useCheckout } from '@/contexts/CheckoutContext';
 import { OrderType } from '@/types/order';
-import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
-import { needsTakeawayInfoModal } from '@/hooks/order/needsTakeawayInfoModal';
 import { useOrderTypeSwitch, type OrderTypeSwitchFlow } from '@/hooks/order/useOrderTypeSwitch';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import { useTableGuestOrderTypeRecovery } from './useTableGuestOrderTypeRecovery';
+import { useOrderTypeCommit } from './useOrderTypeCommit';
+import { useOrderTypeCheckoutContinuation } from './useOrderTypeCheckoutContinuation';
+import type { OrderTypePickHandler } from '@/types/orderFollowUp';
 
 /**
  * Which follow-up modal to display. `table`/`address`/`takeaway` open after a
@@ -40,8 +40,9 @@ interface FollowUpState {
    * skip it (complete profile) — used by the review page's "Edit" so the guest
    * can always change their details.
    */
-  pickType: (type: OrderType, source?: string, forceModal?: boolean) => Promise<void>;
+  pickType: OrderTypePickHandler;
   closeFollowUp: () => void;
+  confirmFollowUp: () => void;
   /**
    * Open the order-type editor (the segmented toggle) — the review page's
    * "Edit Order Details". Picking a type there calls `pickType`, which commits
@@ -69,10 +70,10 @@ interface FollowUpState {
 export function useOrderTypeFollowUp(): FollowUpState {
   const { state: orderTypeState, setOrderType, setTable } = useOrderType();
   const { hasTableContext, tableContext, setTableContext } = useTableContext();
-  const { state: checkoutState } = useCheckout();
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
   const switchFlow = useOrderTypeSwitch();
   const reservationsEnabled = useModuleEnabled('reservations');
+  const continuation = useOrderTypeCheckoutContinuation();
   const { tableGuest, commitActiveVisitDineIn, selectActiveVisitDineIn } = useTableGuestOrderTypeRecovery({
     orderType: orderTypeState,
     tableContext,
@@ -108,54 +109,15 @@ export function useOrderTypeFollowUp(): FollowUpState {
     setTable(tableNumber);
   }, [hasTableContext, tableContext, setTableContext, setOrderType, setTable]);
 
-  // Everything after the switch is permitted: commit the type and open its detail modal. Split out
-  // of `pickType` because the conflict confirm has to run it LATER, once the guest says yes.
-  const commitType = useCallback(
-    async (type: OrderType, source: string, forceModal: boolean) => {
-      if (type === OrderType.DineIn && selectActiveVisitDineIn(source)) {
-        setFollowUp(null);
-        return;
-      }
-      setOrderType(type);
-      // Funnel anchor — fires once per click, regardless of whether a
-      // follow-up modal opens (the modal is a sub-step of the same intent).
-      trackEvent('order_type_selected', {
-        orderType: type,
-        source,
-        loggedIn: isLoggedInForAnalytics(),
-      });
-      if (type === OrderType.DineIn) {
-        if (commitActiveVisitDineIn()) {
-          setFollowUp(null);
-          return;
-        }
-        // Table selection is part of the reservations experience. A tenant without that module
-        // accepts a plain dine-in order through the same staff decision queue as takeaway and
-        // delivery. Only a blocked checkout asks for contact details (`forceModal`).
-        if (reservationsEnabled) {
-          setFollowUp('table');
-        } else {
-          setFollowUp(forceModal ? 'dinein' : null);
-        }
-        return;
-      }
-      if (type === OrderType.Delivery) {
-        setFollowUp('address');
-        return;
-      }
-
-      // Takeaway: open the info modal only when something is needed (or when forced, e.g. Edit).
-      if (forceModal || (await needsTakeawayInfoModal(checkoutState.customerInfo))) {
-        setFollowUp('takeaway');
-      } else {
-        setFollowUp(null);
-      }
-    },
-    [setOrderType, checkoutState.customerInfo, reservationsEnabled, commitActiveVisitDineIn, selectActiveVisitDineIn],
-  );
+  const commitType = useOrderTypeCommit({
+    reservationsEnabled,
+    setFollowUp,
+    commitActiveVisitDineIn,
+    selectActiveVisitDineIn,
+  });
 
   const pickType = useCallback(
-    async (type: OrderType, source = 'sidebar', forceModal = false) => {
+    async (type: OrderType, source = 'sidebar', forceModal = false, intent?: 'checkout') => {
       if (tableGuest.visitBound && (!tableGuest.active || type !== OrderType.DineIn || !tableGuest.dineInAvailable)) {
         return;
       }
@@ -163,10 +125,11 @@ export function useOrderTypeFollowUp(): FollowUpState {
       // back on a refusal would flip the whole menu's dimming and the tax line for a moment, then
       // undo it — §4.4's "never drop silently" cuts both ways. The intent rides along so a refused
       // switch can replay THIS pick, not whichever one happened last.
+      continuation.request(type, source, intent);
       if (!(await switchFlow.request(type, source, forceModal))) return;
       await commitType(type, source, forceModal);
     },
-    [switchFlow, commitType, tableGuest.visitBound, tableGuest.active, tableGuest.dineInAvailable],
+    [switchFlow, commitType, continuation, tableGuest.visitBound, tableGuest.active, tableGuest.dineInAvailable],
   );
 
   const confirmSwitch = useCallback(() => {
@@ -177,9 +140,35 @@ export function useOrderTypeFollowUp(): FollowUpState {
     })();
   }, [switchFlow, commitType]);
 
-  const closeFollowUp = useCallback(() => setFollowUp(null), []);
-  const editOrderType = useCallback(() => setFollowUp('ordertype'), []);
-  const editContact = useCallback(() => setFollowUp('contact'), []);
+  const closeFollowUp = useCallback(() => {
+    continuation.cancel();
+    setFollowUp(null);
+  }, [continuation]);
+  const confirmFollowUp = useCallback(() => {
+    setFollowUp(null);
+    continuation.confirm();
+  }, [continuation]);
+  const editOrderType = useCallback(() => {
+    continuation.cancel();
+    setFollowUp('ordertype');
+  }, [continuation]);
+  const editContact = useCallback(() => {
+    continuation.cancel();
+    setFollowUp('contact');
+  }, [continuation]);
+  const cancelSwitch = useCallback(() => {
+    continuation.cancel();
+    switchFlow.cancel();
+  }, [continuation, switchFlow]);
 
-  return { followUp, pickType, closeFollowUp, editOrderType, editContact, switchFlow, confirmSwitch };
+  return {
+    followUp,
+    pickType,
+    closeFollowUp,
+    confirmFollowUp,
+    editOrderType,
+    editContact,
+    switchFlow: { ...switchFlow, cancel: cancelSwitch },
+    confirmSwitch,
+  };
 }

@@ -327,8 +327,8 @@ describe('useCartContents', () => {
     await act(async () => result.current.handleCheckout());
 
     // forceModal=true — Takeaway would otherwise decide it has nothing to ask.
-    expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true);
-    expect(onProceed).toHaveBeenCalledTimes(1);
+    expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true, 'checkout');
+    expect(onProceed).not.toHaveBeenCalled();
     expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
   });
 
@@ -349,14 +349,14 @@ describe('useCartContents', () => {
     const { result } = renderHook(() => useCartContents({ pickType, onProceed }));
     act(() => result.current.handleCheckout());
 
-    await waitFor(() => expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true));
+    await waitFor(() => expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true, 'checkout'));
     expect(onProceed).not.toHaveBeenCalled();
     expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
     expect(result.current.isCheckoutPending).toBe(true);
 
     await act(async () => finishPick());
     expect(result.current.isCheckoutPending).toBe(false);
-    expect(onProceed).toHaveBeenCalledTimes(1);
+    expect(onProceed).not.toHaveBeenCalled();
   });
 
   it('keeps the sheet open and permits retry when the missing-details follow-up rejects', async () => {
@@ -383,7 +383,7 @@ describe('useCartContents', () => {
     expect(JSON.stringify(warning.mock.calls)).not.toContain(privateMessage);
 
     act(() => result.current.handleCheckout());
-    await waitFor(() => expect(onProceed).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(pickType).toHaveBeenCalledTimes(2));
     expect(pickType).toHaveBeenCalledTimes(2);
     expect(result.current.isCheckoutPending).toBe(false);
   });

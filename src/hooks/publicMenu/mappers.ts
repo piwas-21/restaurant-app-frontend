@@ -106,6 +106,7 @@ export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): Me
     (Array.isArray(p.images) && p.images[0]?.url ? p.images[0].url : PLACEHOLDER_IMAGE);
   return {
     id: p.id,
+    customerStepManifest: p.customerStepManifest,
     name: fallbackName,
     description: p.description || '',
     sourceLocale: p.sourceLocale,
@@ -135,6 +136,7 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
   const fallbackName = bundle.name || 'Unnamed Bundle';
   return {
     id: bundle.id,
+    customerStepManifest: bundle.customerStepManifest,
     name: fallbackName,
     description: bundle.description || '',
     sourceLocale: bundle.sourceLocale,

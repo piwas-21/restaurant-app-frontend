@@ -250,6 +250,7 @@ describe('ProductEditorPage — the panels each kind can actually support', () =
       'editor_section_basics',
       'editor_section_media',
       'editor_bundle_options_label',
+      'customer_flow_section_title',
       'editor_section_service',
       'editor_section_advanced',
     ]);
@@ -289,6 +290,7 @@ describe('ProductEditorPage — the panels each kind can actually support', () =
       'editor_section_basics',
       'editor_section_media',
       'editor_bundle_options_label',
+      'customer_flow_section_title',
       'editor_section_service',
     ]);
     expect(container.querySelector('#category-chip-cat-a')).not.toBeNull();
@@ -888,6 +890,7 @@ describe('ProductEditorPage — the S1 editor shell', () => {
       'editor_section_media',
       'editor_section_pricing',
       'editor_section_options',
+      'customer_flow_section_title',
       'editor_section_recipe',
       'editor_section_service',
       'editor_section_advanced',

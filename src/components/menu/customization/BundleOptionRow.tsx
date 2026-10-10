@@ -4,6 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
+import BidiTemplate from '@/components/common/BidiTemplate';
 import type { MenuSectionItem } from '@/types/menu';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
 import { resolveChannelNotice } from '@/utils/channelNotice';
@@ -169,7 +170,11 @@ export default function BundleOptionRow({
           aria-expanded={customizeExpanded}
           aria-controls={customizeExpanded !== undefined ? customizePanelId : undefined}
         >
-          {t('customize')}
+          <BidiTemplate
+            translationKey="customer_cta_customize_item"
+            placeholder="item"
+            value={item.productName ?? ''}
+          />
         </button>
       )}
     </div>

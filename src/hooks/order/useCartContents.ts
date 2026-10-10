@@ -10,11 +10,12 @@ import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint'
 import { useBasketChannelRecovery } from '@/hooks/order/useBasketChannelRecovery';
 import { useTableGuestOrderTypeRecovery } from '@/hooks/order/useTableGuestOrderTypeRecovery';
 import { OrderType as OrderTypeEnum, type OrderType } from '@/types/order';
+import type { OrderTypePickHandler } from '@/types/orderFollowUp';
 
 export interface UseCartContentsArgs {
   /** Toggle click handler; `forceModal` reopens the detail flow after a refused checkout. */
-  pickType: (type: OrderType, source?: string, forceModal?: boolean) => void | Promise<void>;
-  /** Called after checkout routes or when handing missing details to the follow-up modal. */
+  pickType: OrderTypePickHandler;
+  /** Called after checkout routes. Missing details retain the basket open intent. */
   onProceed?: () => void;
   /**
    * Analytics surface tag — WHICH cart surface the guest acted on.
@@ -121,8 +122,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
       // type's own follow-up modal (forceModal, since Takeaway would otherwise
       // decide it has nothing to ask) rather than bouncing to /menu.
       if (blocker === 'details') {
-        await pickType(orderType, analyticsSource, true);
-        onProceed?.();
+        await pickType(orderType, analyticsSource, true, 'checkout');
       } else if (blocker === null) {
         routed = true;
         onProceed?.();

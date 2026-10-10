@@ -2,16 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSheetSteps } from './useSheetSteps';
-import {
-  buildBundleSteps,
-  buildProductSteps,
-  offersGenericDrinks,
-  stepBlocker,
-  type CustomizationStep,
-} from '@/utils/customizationSteps';
-import { stepIsSkippable } from '@/utils/customizationSummary';
+import { offersGenericDrinks, stepBlocker, type CustomizationStep } from '@/utils/customizationSteps';
+import { buildCustomerProductSteps, buildMixedBundleSteps } from '@/utils/customerStepPlanner';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { useReviewRows } from './useReviewRows';
+import { hasUnresolvedBundleOptionSelections } from '@/utils/bundleOptionResolution';
 import type { ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
 import type { BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
 import type { DrinkUpsell } from './useDrinkUpsell';
@@ -40,6 +35,9 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   const customizationSelections =
     controller.kind === 'product' ? controller.customizationSelections : EMPTY_CUSTOMIZATION_SELECTIONS;
   const selectedOptions = controller.kind === 'bundle' ? controller.selectedOptions : undefined;
+  const selectedSideItems = controller.kind === 'product' ? controller.selectedSideItems : EMPTY_SIDE_ITEMS;
+  const manifest =
+    controller.kind === 'product' ? controller.product?.customerStepManifest : controller.bundle?.customerStepManifest;
 
   // A step only exists once there is something in it. Deriving it from "we asked for drinks" would
   // put an empty screen in the flow whenever the fetch fails or the tenant sells no beverages.
@@ -55,9 +53,10 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   const withDrinks = drinksAtOpen && product !== null && offersGenericDrinks(product);
 
   const steps = useMemo(() => {
-    if (isBundle) return buildBundleSteps(sections);
-    return product ? buildProductSteps(product, withDrinks) : [];
-  }, [isBundle, sections, product, withDrinks]);
+    if (isBundle) return buildMixedBundleSteps(sections, manifest, selectedOptions ?? []);
+    return product ? buildCustomerProductSteps(product, withDrinks, manifest) : [];
+  }, [isBundle, sections, product, withDrinks, manifest, selectedOptions]);
+  const hasUnresolvedBundleOptions = isBundle && hasUnresolvedBundleOptionSelections(sections, selectedOptions ?? []);
 
   // The sauce gate's two inputs. Read off the PRODUCT's own rule, which is the same carrier
   // `SauceGroupSection` prices from — a second reading here is how a step comes to gate on a
@@ -74,8 +73,8 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   // The fields rather than the controller object: the controller is a fresh identity every render,
   // so depending on it would rebuild the gate on every keystroke in the special-request box.
   const gate = useMemo(
-    () => ({ selectedVariationId, selectedIngredients, selectedOptions, customizationSelections }),
-    [selectedVariationId, selectedIngredients, selectedOptions, customizationSelections],
+    () => ({ selectedVariationId, selectedIngredients, selectedOptions, customizationSelections, selectedSideItems }),
+    [selectedVariationId, selectedIngredients, selectedOptions, customizationSelections, selectedSideItems],
   );
 
   // A drink chosen for the last dish must not ride along with the next one.
@@ -107,29 +106,8 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
     [steps, flow],
   );
 
-  /**
-   * Continue on a BUNDLE section step, partner feedback 2026-09: finishing a multi-select (or
-   * fixed-Plat) section whose picks carry their own ingredients/sauces walks those options'
-   * guided screens one after another — no Customize tap. Only a SATISFIED section enters the
-   * walk (an unmet minimum is the gate's business, and its reason must render first); a section
-   * with nothing to walk advances as before.
-   *
-   * `stepGoNext` is the unwrapped advance: the walk's last Done goes through it, because by then
-   * every walkable option has been opened and finished — re-entering the walk here would loop.
-   */
   const stepGoNext = flow.goNext;
-  const goNext = useCallback(() => {
-    if (
-      controller.kind === 'bundle' &&
-      flow.step?.kind === 'section' &&
-      flow.step.section &&
-      !flow.blocker &&
-      controller.beginOptionTour(flow.step.section)
-    ) {
-      return;
-    }
-    stepGoNext();
-  }, [controller, flow.step, flow.blocker, stepGoNext]);
+  const goNext = flow.goNext;
 
   /**
    * Commit, or send the guest to the first thing standing in the way.
@@ -142,6 +120,16 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
    */
   const addOrJumpToBlocker = useCallback(
     (commit: () => void) => {
+      if (hasUnresolvedBundleOptions) {
+        const recoveryIndex = steps.findIndex((candidate) => candidate.selectionRecovery);
+        const sectionIndex =
+          recoveryIndex >= 0 ? recoveryIndex : steps.findIndex((candidate) => candidate.kind === 'section');
+        if (sectionIndex >= 0) {
+          flow.goTo(sectionIndex);
+          flow.revealBlocker();
+        }
+        return;
+      }
       const blockedIndex = steps.findIndex(
         (candidate) => stepBlocker(candidate, gate, sauceRule.min, sauceIds) !== null,
       );
@@ -152,35 +140,8 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
       flow.goTo(blockedIndex);
       flow.revealBlocker();
     },
-    [steps, gate, sauceRule.min, sauceIds, flow],
+    [steps, gate, sauceRule.min, sauceIds, flow, hasUnresolvedBundleOptions],
   );
-
-  /**
-   * Whether the current step is one the guest may walk past having chosen nothing — which is what
-   * makes the footer say **Skip** instead of Continue (and, on the sauces step, name the "no
-   * sauce" answer itself). The whole decision lives in `stepIsSkippable`, beside the
-   * `stepHasTickedSelection` it replaced the sauces branch of; this memo only feeds it.
-   */
-  const isSkip = useMemo(() => {
-    if (!flow.step || flow.step.isRequired || flow.isLast) return false;
-    const row = reviewRows.find((candidate) => candidate.step.id === flow.step?.id);
-    if (!row) return false;
-    const state = {
-      selectedVariationId: controller.kind === 'product' ? controller.selectedVariationId : null,
-      selectedIngredients: controller.kind === 'product' ? controller.selectedIngredients : EMPTY_IDS,
-      ingredientQuantities: controller.kind === 'product' ? controller.ingredientQuantities : {},
-      selectedSideItems: controller.kind === 'product' ? controller.selectedSideItems : [],
-    };
-    return stepIsSkippable(
-      row.step,
-      controller.kind,
-      row.values,
-      controller.kind === 'product' ? controller.product : null,
-      state,
-      sauceIds,
-      sauceRule,
-    );
-  }, [flow.step, flow.isLast, reviewRows, controller, sauceIds, sauceRule]);
 
   /**
    * What the footer shows. `linePrice` stays the line's own authority — the drinks are separate
@@ -189,9 +150,20 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
    */
   const total = controller.linePrice.total + (drinks?.subtotal ?? 0);
 
-  return { ...flow, stepGoNext, goNext, reviewRows, jumpToStep, addOrJumpToBlocker, isSkip, total };
+  return {
+    ...flow,
+    owner: isBundle ? ('menu' as const) : ('item' as const),
+    stepGoNext,
+    goNext,
+    reviewRows,
+    jumpToStep,
+    addOrJumpToBlocker,
+    hasUnresolvedBundleOptions,
+    total,
+  };
 }
 
 const EMPTY_SECTIONS: never[] = [];
 const EMPTY_IDS: string[] = [];
 const EMPTY_CUSTOMIZATION_SELECTIONS: never[] = [];
+const EMPTY_SIDE_ITEMS: never[] = [];

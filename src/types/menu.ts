@@ -14,3 +14,4 @@ export * from './menu/product';
 export * from './menu/catalogItem';
 export * from './menu/offerFamily';
 export * from './menu/customizationGroup';
+export * from './menu/customerStepManifest';

@@ -12,15 +12,7 @@
 .ingredients > li {
   margin-block: 0.2rem;
 }
-.scope {
-  color: var(--text-secondary);
-}
 .note {
   font-weight: 600;
   margin-block: 0.25rem;
-}
-@media print {
-  .scope {
-    color: inherit;
-  }
 }

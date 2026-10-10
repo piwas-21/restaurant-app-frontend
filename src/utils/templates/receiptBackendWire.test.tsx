@@ -41,10 +41,12 @@ it.each([
   const kitchen = generateKitchenReceiptHtml(lineOrder, 'GeneralKitchen')!;
   const cashier = generateSimpleReceiptHtml(lineOrder);
   for (const html of [kitchen, cashier]) {
-    expect(html).toContain(`+ Beef x${beef} — Total for this line`);
-    expect(html).toContain(`+ Steak x${steak} — Total for this line`);
+    expect(html).toContain(`${beef}x Beef`);
+    expect(html).toContain(`${steak}x Steak`);
     expect(html).toContain('NO Cheese');
-    expect(html).toContain('Chili x2 — Per item: Taco');
+    expect(html).toContain('+ 2x Chili');
+    expect(html).not.toContain('Total for this line');
+    expect(html).not.toContain('Recorded quantity');
     expect(html.indexOf('Steak')).toBeLessThan(html.indexOf('Chili'));
     expect(html.indexOf('Chili')).toBeLessThan(html.indexOf('Side One'));
     expect(html.indexOf('Side Two')).toBeLessThan(html.indexOf('Side Three'));
@@ -87,9 +89,9 @@ it('uses the immediate preparation owner for a side within a required choice', (
     generateKitchenReceiptHtml({ ...order, items: [root] }, 'GeneralKitchen')!,
     generateSimpleReceiptHtml({ ...order, items: [root] }),
   ]) {
-    expect(html).toContain('Nested side x2 — Per item: Beef');
-    expect(html).not.toContain('Nested side x2 — Per item: Taco');
+    expect(html).toContain('2x Nested side (each)');
+    expect(html).not.toContain('2x Nested side (each) (each)');
   }
   render(<ReceiptItemDetails item={root} />);
-  expect(screen.getByText(/Per item: Beef/).closest('li')).toHaveTextContent('2× Nested side');
+  expect(screen.getByText(/Nested side/).closest('li')).toHaveTextContent('2× Nested side (each)');
 });

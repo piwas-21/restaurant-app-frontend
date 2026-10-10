@@ -10,7 +10,7 @@ import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import {
   receiptItems,
   receiptItemName,
-  quantityScopeLabel,
+  quantityScopeSuffix,
   receiptFallback,
   type ReceiptTranslate,
 } from './receiptPresentation';
@@ -36,17 +36,14 @@ export const ingredientRowHtml = (
   indent: number,
   translate: ReceiptTranslate = receiptFallback,
   parentQuantity = 1,
-  parentLabel?: string,
 ): string => {
   const base = `margin-inline-start: calc(var(--receipt-indent, 16px) * ${indent / 16}); font-size: var(--receipt-detail-size, 11pt);`;
   if (ing.isRemoved) {
-    return `<div dir="auto" style="${base}">✘ ${escapeHtml(translate('no', 'NO'))} ${escapeHtml(ing.ingredientName)}</div>`;
+    return `<div dir="auto" style="${base}">${escapeHtml(translate('no', 'NO'))} ${escapeHtml(ing.ingredientName)}</div>`;
   }
-  const suffix = quantitySuffix(ing, parentQuantity);
-  const scope = hasQuantityScope(ing, parentQuantity)
-    ? ` — ${escapeHtml(quantityScopeLabel(ing, translate, parentLabel))}`
-    : '';
-  return `<div dir="auto" style="${base}">+ ${escapeHtml(translate('receipt.extras', 'EXTRA'))} ${escapeHtml(ing.ingredientName)}${suffix}${scope}</div>`;
+  const count = ing.quantity > 1 ? `${ing.quantity}x ` : '';
+  const scope = escapeHtml(quantityScopeSuffix(ing, parentQuantity, translate));
+  return `<div dir="auto" style="${base}">+ ${count}${escapeHtml(ing.ingredientName)}${scope}</div>`;
 };
 
 const HTML_ESCAPES: Record<string, string> = {
@@ -75,20 +72,11 @@ export interface ChildItemsOptions {
   showPrices: boolean;
   translate?: ReceiptTranslate;
   parentQuantity?: number;
-  parentLabel?: string;
   currencySource?: CashierCurrencySource;
-  /** Heading printed above the children, e.g. the kitchen ticket's "Additionals:". Omitted ⇒ none. */
-  heading?: string;
   /** Include frozen ingredient changes; the parent remains the only charge on a customer bill. */
   withIngredients?: boolean;
 }
 
-function hasQuantityScope(row: Pick<OrderItemDto, 'quantityBasis'>, parentQuantity: number): boolean {
-  return row.quantityBasis != null || parentQuantity > 1;
-}
-function quantitySuffix(row: Pick<OrderItemDto, 'quantity' | 'quantityBasis'>, parentQuantity: number): string {
-  return row.quantity > 1 || hasQuantityScope(row, parentQuantity) ? ` x${row.quantity}` : '';
-}
 function childPriceHtml(child: OrderItemDto, options: ChildItemsOptions): string {
   if (!options.showPrices || child.itemTotal <= 0) return '';
   const money = options.currencySource
@@ -96,55 +84,28 @@ function childPriceHtml(child: OrderItemDto, options: ChildItemsOptions): string
     : formatCurrency(child.itemTotal);
   return ` (${money})`;
 }
-function roleHeading(role: OrderItemDto['compositionRole'], translate: ReceiptTranslate): string | undefined {
-  switch (role) {
-    case 'RequiredChoice':
-      return translate('receipt.required_choices', 'Required choices');
-    case 'Side':
-      return translate('receipt.sides', 'Sides');
-    case 'Drink':
-      return translate('receipt.drinks', 'Drinks');
-    default:
-      return undefined;
-  }
-}
-
 /** Render an item's child rows (bundle components + add-on sides), indented one level per depth. */
 export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItemsOptions, depth = 1): string => {
   if (children.length === 0) return '';
 
   const indent = 16 * depth;
-  let html =
-    options.heading && !children.some((child) => child.compositionRole && child.compositionRole !== 'Unknown')
-      ? `<div style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth}); font-size: var(--receipt-detail-size, 11pt); margin-top: 4px;"><strong>${escapeHtml(options.heading)}</strong></div>`
-      : '';
+  let html = '';
 
   const translate = options.translate ?? receiptFallback;
-  let previousRole: OrderItemDto['compositionRole'];
   receiptItems(children).forEach((child) => {
-    const group = roleHeading(child.compositionRole, translate);
-    if (group && previousRole !== child.compositionRole) {
-      html += `<div style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth}); margin-top: 4px;"><strong>${escapeHtml(group)}</strong></div>`;
-    }
-    previousRole = child.compositionRole;
     const childPrice = childPriceHtml(child, options);
-    const childQuantity = quantitySuffix(child, options.parentQuantity ?? 1);
-    const scope = hasQuantityScope(child, options.parentQuantity ?? 1)
-      ? ` — ${escapeHtml(quantityScopeLabel(child, translate, options.parentLabel))}`
-      : '';
+    const scope = escapeHtml(quantityScopeSuffix(child, options.parentQuantity ?? 1, translate));
     const displayName = receiptItemName(child, translate('item', 'Item'));
     const name = escapeHtml(displayName);
     const content =
       child.compositionRole === 'Dish'
-        ? `<strong>${child.quantity}x ${name}</strong>${childPrice}${scope}`
-        : `+ ${name}${childQuantity}${childPrice}${scope}`;
+        ? `<strong>${child.quantity}x ${name}${scope}</strong>${childPrice}`
+        : `${child.compositionRole === 'Extra' ? '+ ' : ''}${child.quantity}x ${name}${scope}${childPrice}`;
     html += `<div class="receipt-child" dir="auto" style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth} + var(--receipt-child-offset, 8px)); font-size: var(--receipt-detail-size, 11pt);">${content}</div>`;
     const descendants = child.sideItems ?? [];
     const nextOptions = {
       ...options,
       parentQuantity: child.quantity,
-      parentLabel: displayName,
-      heading: undefined,
     };
     html += buildChildItemsHtml(
       descendants.filter((row) => row.compositionRole === 'RequiredChoice'),
@@ -153,7 +114,7 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     );
     if (options.withIngredients) {
       customizedIngredientRows(child).forEach((ing) => {
-        html += ingredientRowHtml(ing, indent + 16, translate, child.quantity, displayName);
+        html += ingredientRowHtml(ing, indent + 16, translate, child.quantity);
       });
     }
     html += buildChildItemsHtml(

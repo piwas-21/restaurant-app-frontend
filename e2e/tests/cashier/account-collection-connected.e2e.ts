@@ -65,11 +65,8 @@ async function selectServerTable(page: Page, tableId: string, tableNumber: strin
   expect(page.url()).toContain(`/en/server/tables/${encodeURIComponent(tableId)}`);
   if (floorTable.readinessState !== 'ReadyForGuests') {
     const readyButton = page.getByRole('button', { name: 'Ready for next guests', exact: true });
-    if (await readyButton.isVisible().catch(() => false)) return floorTable.readinessState;
-    const workspaceText = (await page.getByTestId('server-table-workspace').innerText()).slice(0, 500);
-    throw new Error(
-      `Server table ${tableNumber} has no readiness action. Floor state=${floorTable.state}, readiness=${floorTable.readinessState ?? 'missing'}, version=${floorTable.readinessVersion ?? 'missing'}, actions=${floorTable.permittedActions.join(',')}; page=${workspaceText}`,
-    );
+    await expect(readyButton).toBeVisible({ timeout: 20_000 });
+    return floorTable.readinessState;
   }
   return floorTable.readinessState;
 }
@@ -430,7 +427,10 @@ test('real cashier UI quotes and reopens all five table-account modes without co
       if (mode.choice === 'Equal' || mode.choice === 'CustomAmount') {
         await form.getByRole('radio', { name: 'Split the bill', exact: true }).check();
         await form
-          .getByRole('radio', { name: mode.choice === 'Equal' ? 'Equal shares' : 'Custom guest shares', exact: true })
+          .getByRole('radio', {
+            name: mode.choice === 'Equal' ? 'Equal shares' : 'Custom amount per guest',
+            exact: true,
+          })
           .check();
       }
 
@@ -485,7 +485,7 @@ test('real cashier UI quotes and reopens all five table-account modes without co
         );
         expect(updatedAccount.activeEqualSharePlan?.slots.map((slot) => slot.amountMinor)).toEqual([1440, 60]);
         await form.getByRole('radio', { name: 'Split the bill', exact: true }).check();
-        await form.getByRole('radio', { name: 'Custom guest shares', exact: true }).check();
+        await form.getByRole('radio', { name: 'Custom amount per guest', exact: true }).check();
         const shareSelector = form.getByRole('combobox', { name: 'Choose an unpaid share', exact: true });
         await expect(shareSelector).toBeVisible();
         await shareSelector.selectOption('2');

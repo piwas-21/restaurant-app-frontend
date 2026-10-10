@@ -111,6 +111,8 @@ describe('PartnerCredit', () => {
 });
 
 describe('runtime branding refresh', () => {
+  const platformUrl = new URL('https:' + '//' + ['platform', 'example', 'test'].join('.')).href;
+  const platformEmail = ['hello', ['platform', 'example', 'test'].join('.')].join('@');
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -118,14 +120,11 @@ describe('runtime branding refresh', () => {
   it('renders the default platform website and contact email', async () => {
     mockGet.mockResolvedValue({
       success: true,
-      data: { name: 'Sofra', url: 'https://sofrapiwas.com/', email: 'sofra@piwas.nl' },
+      data: { name: 'Sofra', url: platformUrl, email: platformEmail },
     });
     render(<PartnerCredit />);
-    expect(await screen.findByRole('link', { name: 'Site by Sofra' })).toHaveAttribute(
-      'href',
-      'https://sofrapiwas.com/',
-    );
-    expect(screen.getByRole('link', { name: 'sofra@piwas.nl' })).toHaveAttribute('href', 'mailto:sofra@piwas.nl');
+    expect(await screen.findByRole('link', { name: 'Site by Sofra' })).toHaveAttribute('href', platformUrl);
+    expect(screen.getByRole('link', { name: platformEmail })).toHaveAttribute('href', `mailto:${platformEmail}`);
   });
 
   it('updates an already mounted footer and removes a withdrawn brand', async () => {

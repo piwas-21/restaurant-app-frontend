@@ -1,3 +1,4 @@
+import { positiveIntegerConfig } from './configInteger';
 import { resolveGuestPaymentRecoveryConfig } from './guestPaymentRecoveryConfig';
 
 /**
@@ -124,11 +125,6 @@ export const CASHIER_TENANT_DAY_REFRESH_MS =
     ? configuredCashierTenantDayRefreshMs
     : undefined;
 
-function positiveIntegerConfig(raw: string | undefined, fallback: number): number {
-  const configured = Number((raw ?? '').trim());
-  return Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
-}
-
 /** Page size used by the legacy waiter-order compatibility read. */
 export const SERVER_ORDER_PAGE_SIZE = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE, 100);
 
@@ -185,4 +181,4 @@ export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymen
   process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
 );
 
-export { default as TENANT_BRANDING_CONFIG } from './tenantBrandingConfig.json';
+export { TENANT_BRANDING_CONFIG } from './tenantBrandingConfig';

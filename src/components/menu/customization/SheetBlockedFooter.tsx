@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import MenuCardAvailability from '@/components/menu/MenuCardAvailability';
 import type { AvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import type { ReactNode } from 'react';
 
 interface SheetBlockedFooterProps {
   /**
@@ -20,6 +20,7 @@ interface SheetBlockedFooterProps {
    * forward, which is less of the dish than the layout this replaces showed.
    */
   onContinue?: () => void;
+  continueLabel?: ReactNode;
 }
 
 /**
@@ -34,9 +35,8 @@ export default function SheetBlockedFooter({
   onSwitchOrderType,
   styles,
   onContinue,
+  continueLabel,
 }: Readonly<SheetBlockedFooterProps>) {
-  const { t } = useTranslation();
-
   return (
     <div className={styles.blockedFooter}>
       {notice && (
@@ -47,9 +47,9 @@ export default function SheetBlockedFooter({
           styles={styles}
         />
       )}
-      {onContinue && (
+      {onContinue && continueLabel && (
         <button type="button" className={styles.blockedContinue} onClick={onContinue}>
-          {t('step_continue')}
+          {continueLabel}
         </button>
       )}
     </div>

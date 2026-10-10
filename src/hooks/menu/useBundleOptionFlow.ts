@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSheetSteps } from './useSheetSteps';
 import { buildOptionSteps } from '@/utils/customizationSteps';
-import { optionStepIsSkippable } from '@/utils/customizationSummary';
 import { findBundleOption } from '@/utils/bundleSelection';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { activeCustomizationGroups, ingredientIdsForSelections } from '@/utils/explicitCustomization';
@@ -86,28 +85,6 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
       : '',
   });
 
-  /**
-   * The footer's honest verb: Skip where walking past keeps nothing, the named "no sauce" answer
-   * on the sauces step — `optionStepIsSkippable`, the per-option narrowing of `stepIsSkippable`.
-   */
-  const isSkip = useMemo(
-    () =>
-      Boolean(
-        flow.step &&
-        !flow.step.isRequired &&
-        !flow.isLast &&
-        optionStepIsSkippable(
-          flow.step,
-          item?.detailedIngredients ?? [],
-          selectedIngredients,
-          sauceIds,
-          sauceRule,
-          customizationSelections,
-        ),
-      ),
-    [flow.step, flow.isLast, item, selectedIngredients, sauceIds, sauceRule, customizationSelections],
-  );
-
   const patch = useCallback(
     (p: Partial<SelectedMenuOption>) => {
       if (!customizing || !bundle) return;
@@ -153,7 +130,6 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     item,
     option,
     currentLanguage,
-    isSkip,
     total,
     onSelectionChange,
     onQuantityChange,

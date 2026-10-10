@@ -95,7 +95,6 @@ export default function ItemCustomizationSheet({
     onSwitchOrderType: switchOrderTypeAndClose,
     styles,
     flow,
-    step,
     isSubmitting,
     quantity,
     setQuantity,

@@ -8,6 +8,7 @@ import { stepLabel } from '@/components/menu/customization/stepLabel';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { DetailedProduct } from '@/types/menu';
 import { formatPlainCurrency } from '@/utils/currency';
+import { localizedName } from '@/utils/localizedContent';
 import BidiTemplate from '@/components/common/BidiTemplate';
 import styles from './CustomerFlowPhonePreview.module.css';
 
@@ -17,12 +18,20 @@ interface Props {
   readonly itemName: string;
   readonly isBundle: boolean;
   readonly product?: DetailedProduct;
+  readonly currentLanguage: string;
 }
 
 type Translate = (key: string, options?: Record<string, unknown>) => string;
 
 /** Read-only phone rendering of the same planner screens and CTA the guest sees. */
-export default function CustomerFlowPhonePreview({ steps, price, itemName, isBundle, product }: Props) {
+export default function CustomerFlowPhonePreview({
+  steps,
+  price,
+  itemName,
+  isBundle,
+  product,
+  currentLanguage,
+}: Props) {
   const { t } = useTranslation();
   const [selectedStepId, setSelectedStepId] = useState(steps[0]?.id ?? null);
   const active = steps.find((step) => step.id === selectedStepId) ?? steps[0];
@@ -46,7 +55,14 @@ export default function CustomerFlowPhonePreview({ steps, price, itemName, isBun
         <div className={styles.header} dir="auto">
           {itemName}
         </div>
-        <StepPreview active={active} index={activeIndex} total={steps.length} product={product} t={t} />
+        <StepPreview
+          active={active}
+          index={activeIndex}
+          total={steps.length}
+          product={product}
+          currentLanguage={currentLanguage}
+          t={t}
+        />
         <nav className={styles.navigation} aria-label={t('customer_preview_navigation')}>
           <button
             type="button"
@@ -84,12 +100,14 @@ function StepPreview({
   index,
   total,
   product,
+  currentLanguage,
   t,
 }: {
   active?: CustomizationStep;
   index: number;
   total: number;
   product?: DetailedProduct;
+  currentLanguage: string;
   t: Translate;
 }) {
   if (!active) {
@@ -103,7 +121,7 @@ function StepPreview({
 
   const choices = active.section
     ? active.section.items.slice(0, 3).map((item) => ({ key: item.id, name: item.productName ?? '' }))
-    : previewChoices(active, product)
+    : previewChoices(active, product, currentLanguage)
         .slice(0, 3)
         .map((name, choiceIndex) => ({ key: `${active.id}:${choiceIndex}`, name }));
 
@@ -166,33 +184,35 @@ function getPreviewAction(
   return { visual: name, name };
 }
 
-function previewChoices(step: CustomizationStep, product?: DetailedProduct): string[] {
-  if (!step.component) return product ? previewProductChoices(step, product) : [];
-  return previewComponentChoices(step);
+function previewChoices(step: CustomizationStep, product: DetailedProduct | undefined, language: string): string[] {
+  if (!step.component) return product ? previewProductChoices(step, product, language) : [];
+  return previewComponentChoices(step, language);
 }
 
-function previewProductChoices(step: CustomizationStep, product: DetailedProduct): string[] {
+function previewProductChoices(step: CustomizationStep, product: DetailedProduct, language: string): string[] {
   if (step.kind === 'variations')
     return product.variations
       .filter((row) => !step.variationIds?.length || step.variationIds.includes(row.id))
-      .map((row) => row.name);
-  if (step.kind === 'group') return (step.groups ?? (step.group ? [step.group] : [])).map((group) => group.name);
+      .map((row) => localizedName(row, language));
+  if (step.kind === 'group')
+    return (step.groups ?? (step.group ? [step.group] : [])).map((group) => localizedName(group, language));
   if (step.kind === 'sides')
     return product.suggestedSideItems
       .filter((side) => !step.sideItemIds?.length || step.sideItemIds.includes(side.suggestedSideItemId ?? ''))
-      .map((side) => side.name);
+      .map((side) => localizedName(side, language));
   return (product.detailedIngredients ?? [])
     .filter((row) => !step.ingredientIds?.length || step.ingredientIds.includes(row.id))
-    .map((row) => row.name);
+    .map((row) => localizedName(row, language));
 }
 
-function previewComponentChoices(step: CustomizationStep): string[] {
+function previewComponentChoices(step: CustomizationStep, language: string): string[] {
   if (step.kind === 'variations') {
     return (step.component?.variations ?? [])
       .filter((row) => !step.variationIds?.length || step.variationIds.includes(row.id))
-      .map((row) => row.name);
+      .map((row) => localizedName(row, language));
   }
-  if (step.kind === 'group') return (step.groups ?? (step.group ? [step.group] : [])).map((group) => group.name);
+  if (step.kind === 'group')
+    return (step.groups ?? (step.group ? [step.group] : [])).map((group) => localizedName(group, language));
   if (step.kind === 'sides') {
     return (step.component?.suggestedSideItems ?? [])
       .filter((side) => !step.sideItemIds?.length || step.sideItemIds.includes(side.id))
@@ -200,5 +220,5 @@ function previewComponentChoices(step: CustomizationStep): string[] {
   }
   return (step.component?.detailedIngredients ?? [])
     .filter((row) => !step.ingredientIds?.length || step.ingredientIds.includes(row.id))
-    .map((row) => row.name);
+    .map((row) => localizedName(row, language));
 }

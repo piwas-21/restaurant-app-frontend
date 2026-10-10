@@ -88,6 +88,7 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
   margin-block-start: 0.6rem;
@@ -117,6 +118,12 @@
   margin-inline-start: auto;
   color: var(--text-secondary);
   font-size: 0.8125rem;
+}
+
+.moveHint {
+  flex: 1 0 100%;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
 }
 
 .live {

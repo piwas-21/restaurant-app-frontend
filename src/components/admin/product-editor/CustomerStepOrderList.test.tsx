@@ -213,4 +213,120 @@ describe('CustomerStepOrderList', () => {
     expect(within(dishRole).getByRole('option', { name: 'customer_role_dish' })).toBeEnabled();
     expect(within(dishRole).getByRole('option', { name: 'customer_role_extra' })).toBeDisabled();
   });
+
+  it('locks dependency-breaking moves and announces an invalid drop without saving it', () => {
+    const bundleManifest: CustomerStepManifest = {
+      schemaVersion: 1,
+      revision: 2,
+      steps: [
+        { kind: 'BundleSection', targetId: 'dishes', compositionRole: 'Dish', presentationOrder: 0 },
+        {
+          kind: 'BundleSection',
+          targetId: 'meats',
+          compositionRole: 'Side',
+          parentComponentId: 'dish-row',
+          presentationOrder: 1,
+        },
+      ],
+    };
+    const onMove = jest.fn();
+    const dependentScreenId = groupCustomerStepScreens(bundleManifest)[1].id;
+    const view = render(
+      <CustomerStepOrderList
+        manifest={bundleManifest}
+        sections={boundSections}
+        product={product}
+        isBundle
+        disabled={false}
+        invalid={false}
+        onMove={onMove}
+        onRoleChange={jest.fn()}
+        onLabelChange={jest.fn()}
+        onSectionParentChange={jest.fn()}
+        t={t}
+      />,
+    );
+
+    expect(screen.getAllByRole('button', { name: 'customer_move_down' })[0]).toBeDisabled();
+    expect(screen.getAllByRole('button', { name: 'customer_move_up' })[1]).toBeDisabled();
+    expect(screen.getAllByText('customer_order_dependency_blocked')).toHaveLength(2);
+
+    const dataTransfer = { getData: jest.fn().mockReturnValue(dependentScreenId) };
+    fireEvent.drop(view.container.querySelector('li')!, { dataTransfer });
+
+    expect(onMove).not.toHaveBeenCalled();
+    expect(view.container.querySelector('[aria-live="polite"]')).toHaveTextContent('customer_order_dependency_blocked');
+    expect(screen.queryByText('customer_order_updated')).not.toBeInTheDocument();
+  });
+
+  it('reports a rejected move as blocked when the editor declines an otherwise valid drop', () => {
+    const onMove = jest.fn().mockReturnValue(null);
+    const sourceScreenId = groupCustomerStepScreens(manifest)[1].id;
+    const view = render(
+      <CustomerStepOrderList
+        manifest={manifest}
+        sections={[]}
+        product={product}
+        isBundle={false}
+        disabled={false}
+        invalid={false}
+        onMove={onMove}
+        onRoleChange={jest.fn()}
+        onLabelChange={jest.fn()}
+        onSectionParentChange={jest.fn()}
+        t={t}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'customer_move_up' })[1]);
+
+    expect(onMove).toHaveBeenCalledWith(sourceScreenId, 0);
+    expect(view.container.querySelector('[aria-live="polite"]')).toHaveTextContent('customer_order_dependency_blocked');
+    expect(screen.queryByText('customer_order_updated')).not.toBeInTheDocument();
+  });
+
+  it('offers Side for an explicit bundle section such as fries', () => {
+    const sectionManifest: CustomerStepManifest = {
+      schemaVersion: 1,
+      revision: 1,
+      steps: [{ kind: 'BundleSection', targetId: 'fries', compositionRole: 'Extra', presentationOrder: 0 }],
+    };
+    const onRoleChange = jest.fn();
+    render(
+      <CustomerStepOrderList
+        manifest={sectionManifest}
+        sections={[
+          {
+            id: 'fries',
+            name: 'Fries',
+            displayOrder: 0,
+            isRequired: false,
+            minSelection: 0,
+            maxSelection: 1,
+            items: [],
+          },
+        ]}
+        product={product}
+        isBundle
+        disabled={false}
+        invalid={false}
+        onMove={jest.fn()}
+        onRoleChange={onRoleChange}
+        onLabelChange={jest.fn()}
+        onSectionParentChange={jest.fn()}
+        t={t}
+      />,
+    );
+
+    const role = screen.getByRole('combobox', { name: 'customer_step_role' });
+    expect(within(role).getByRole('option', { name: 'customer_role_side' })).toBeEnabled();
+    fireEvent.change(role, { target: { value: 'Side' } });
+    expect(onRoleChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'BundleSection',
+        refs: expect.arrayContaining([expect.objectContaining({ targetId: 'fries' })]),
+      }),
+      'Side',
+    );
+  });
 });

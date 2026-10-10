@@ -128,7 +128,9 @@ export default function CustomerStepManifestEditor({ product, isBundle, isCreate
   const update = (manifest: CustomerStepManifest | null) => editor.changeCustomerStepManifest(manifest);
   const move = (screenId: string, targetIndex: number) => {
     const next = reorderCustomerScreens(effective, screenId, targetIndex, sections);
-    if (next) update(next);
+    if (!next) return null;
+    update(next);
+    return next;
   };
   const setParent = (sectionId: string, parentId: string | null) => {
     const next = changeBundleSectionParent(effective, sectionId, parentId, sections);
@@ -202,6 +204,7 @@ export default function CustomerStepManifestEditor({ product, isBundle, isCreate
             itemName={productName}
             isBundle={isBundle}
             product={previewProduct}
+            currentLanguage={currentLanguage}
           />
           {isBundle && <p className={styles.quoteNote}>{t('customer_flow_quote_reused')}</p>}
         </section>

@@ -40,8 +40,7 @@ export default function BundleComponentStepBody({ controller, step, onChoice }: 
   const selectedIngredients = selected.selectedIngredients ?? [];
   const quantities = selected.ingredientQuantities ?? {};
   const setIngredientSelection = (ids: string[]) => patch({ selectedIngredients: ids });
-  const setIngredientQuantity = (id: string, quantity: number) =>
-    patch({ ingredientQuantities: { ...quantities, [id]: quantity } });
+  const setIngredientQuantity = (id: string, quantity: number) => patch({ ingredientQuantities: { [id]: quantity } });
   const language = (i18n.language || 'en').split('-')[0];
 
   if (step.kind === 'variations') {

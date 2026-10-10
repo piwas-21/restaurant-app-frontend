@@ -8,18 +8,14 @@ import styles from './SheetFooter.module.css';
 
 interface SheetFooterProps {
   total: number;
-  /** The last step commits the order; every earlier one moves the flow on. */
+  /** The last step commits the configured line or confirms a nested edit. */
   isLast: boolean;
   isSubmitting: boolean;
   quantity: number;
   setQuantity: (quantity: number) => void;
   onAdd: () => void;
   onContinue: () => void;
-  continueLabel?: ReactNode;
-  /** The step is optional and the guest has not touched it — the action is honestly "Skip". */
-  isSkip: boolean;
-  /** The "Skip" wording for THIS step ("Sans sauce"), from `stepSkipLabel`; generic verb when absent. */
-  skipLabel?: string;
+  continueLabel: ReactNode;
   /** Why the guest cannot move on yet, revealed only once they have tried (never on arrival). */
   blockedMessage?: string;
   /**
@@ -48,8 +44,6 @@ export default function SheetFooter({
   onAdd,
   onContinue,
   continueLabel,
-  isSkip,
-  skipLabel,
   blockedMessage,
   confirmLabel,
   onConfirm,
@@ -86,7 +80,7 @@ export default function SheetFooter({
             {amount}
           </p>
           <button type="button" className={styles.primary} onClick={onContinue}>
-            {isSkip ? (skipLabel ?? t('step_skip')) : (continueLabel ?? t('step_continue'))}
+            {continueLabel}
           </button>
         </div>
         {announcement}

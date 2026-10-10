@@ -101,7 +101,7 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByText('+CHF 4.00')).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('radio')[0]);
-    expect(onToggleOption).toHaveBeenCalledWith(section, 'burger');
+    expect(onToggleOption).toHaveBeenCalledWith(section, 'burger', undefined, 'si-burger');
   });
 
   it('disables only the unpicked options once a checkbox section is at maxSelection', () => {
@@ -151,7 +151,7 @@ describe('BundleSectionSelector', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'increase_quantity Kebab' }));
-    expect(onOptionQuantityChange).toHaveBeenCalledWith('meat', 'kebab', 3, undefined);
+    expect(onOptionQuantityChange).toHaveBeenCalledWith('meat', 'kebab', 3, undefined, 'si-fries');
     rerender(
       <BundleSectionSelector
         {...props({
@@ -280,23 +280,23 @@ describe('BundleSectionSelector', () => {
     const onCustomizeOption = jest.fn();
     const { rerender } = render(<BundleSectionSelector {...props({ onCustomizeOption })} />);
     // Nothing selected yet → no Customize affordance.
-    expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_customize_item/ })).not.toBeInTheDocument();
 
     const selectedOptions = [{ sectionId: 'main', itemId: 'burger', quantity: 1 }];
     rerender(<BundleSectionSelector {...props({ selectedOptions, onCustomizeOption })} />);
 
-    const customize = screen.getByRole('button', { name: 'customize' });
+    const customize = screen.getByRole('button', { name: /customer_cta_customize_item/ });
     expect(customize).not.toHaveAttribute('aria-expanded');
 
     fireEvent.click(customize);
-    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger');
+    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger', undefined, 'si-burger');
   });
 
   it('never offers Customize for an option with no ingredients', () => {
     const selectedOptions = [{ sectionId: 'main', itemId: 'wrap', quantity: 1 }];
     render(<BundleSectionSelector {...props({ selectedOptions })} />);
 
-    expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_customize_item/ })).not.toBeInTheDocument();
   });
 
   // The staff modal keeps the INLINE panel — expanding in place is the counter shape. This is the
@@ -322,15 +322,24 @@ describe('BundleSectionSelector', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'customize' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /customer_cta_customize_item/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
     const cheeseBox = screen.getByRole('checkbox', { name: /Cheese/ });
     expect(cheeseBox).toBeChecked();
 
     // Deselecting an included-in-base optional must report the removal, so the kitchen ticket can
     // print "NO Cheese" (backend derives IsRemoved from quantity 0 — issue #150).
     fireEvent.click(cheeseBox);
-    expect(onChange).toHaveBeenCalledWith('main', 'burger', { selectedIngredients: [] });
-    expect(onChange).toHaveBeenCalledWith('main', 'burger', { ingredientQuantities: { cheese: 0 } });
+    expect(onChange).toHaveBeenCalledWith('main', 'burger', { selectedIngredients: [] }, undefined, 'si-burger');
+    expect(onChange).toHaveBeenCalledWith(
+      'main',
+      'burger',
+      { ingredientQuantities: { cheese: 0 } },
+      undefined,
+      'si-burger',
+    );
   });
 
   it('flattens the fixed one-item Plat: guest mode raises Customize where the picker was', () => {
@@ -349,8 +358,8 @@ describe('BundleSectionSelector', () => {
     render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions, onCustomizeOption })} />);
 
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'customize' }));
-    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger');
+    fireEvent.click(screen.getByRole('button', { name: /customer_cta_customize_item/ }));
+    expect(onCustomizeOption).toHaveBeenCalledWith('main', 'burger', undefined, 'si-burger');
   });
 
   it('keeps the staff fixed Plat expanded in place, with no Customize button on top', () => {
@@ -376,7 +385,7 @@ describe('BundleSectionSelector', () => {
     );
 
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_customize_item/ })).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Cheese/ })).toBeChecked();
   });
 

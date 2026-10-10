@@ -109,6 +109,10 @@
   border-block-start: 1px solid var(--border-light);
 }
 
+.footer > span {
+  white-space: nowrap;
+}
+
 .footer button {
   max-width: 65%;
   padding: 0.65rem 0.8rem;

@@ -194,7 +194,7 @@ describe('bundle customization uses one shared mixed flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_customize_item' }));
     await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
 
-    expect(screen.getByRole('button', { name: 'step_skip_ingredients' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_next_step' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     expect(mockAddItem).not.toHaveBeenCalled();
   });
@@ -210,7 +210,7 @@ describe('bundle customization uses one shared mixed flow', () => {
 
     fireEvent.click(chicken);
     await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'step_skip' }));
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
 
@@ -231,7 +231,7 @@ describe('bundle customization uses one shared mixed flow', () => {
     await openSheet(requiredSauceBundle);
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_customize_item' }));
     await screen.findByText('customize_ingredients');
-    fireEvent.click(screen.getByRole('button', { name: 'step_skip_ingredients' }));
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
     await screen.findByText('sauces');
 
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
@@ -241,7 +241,7 @@ describe('bundle customization uses one shared mixed flow', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /salsa/i }));
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
     await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: 'step_skip' }));
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
 

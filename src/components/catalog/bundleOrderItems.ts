@@ -29,10 +29,11 @@ export function buildBundleOrderItem(product: Product, bundle: MenuBundleItem, r
 export function buildBundleChildItems(bundle: BundleOrderSelection, parentQuantity: number): CreateOrderItemDto[] {
   return bundle.selectedOptions.flatMap((option) => {
     const section = bundle.sections.find((candidate) => candidate.id === option.sectionId);
-    const selectedItem = section?.items.find(
-      (candidate) =>
-        candidate.productId === option.itemId &&
-        (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
+    const selectedItem = section?.items.find((candidate) =>
+      option.menuSectionItemId
+        ? candidate.id === option.menuSectionItemId && candidate.productId === option.itemId
+        : candidate.productId === option.itemId &&
+          (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
     );
     if (!selectedItem) return [];
 

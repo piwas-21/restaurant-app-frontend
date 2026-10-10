@@ -31,7 +31,7 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   align-items: start;
   gap: 1.25rem;
 }
@@ -90,10 +90,4 @@
 
 .revision {
   display: block;
-}
-
-@media (max-width: 900px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
 }

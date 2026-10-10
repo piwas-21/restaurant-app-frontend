@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSheetSteps } from './useSheetSteps';
 import { offersGenericDrinks, stepBlocker, type CustomizationStep } from '@/utils/customizationSteps';
 import { buildCustomerProductSteps, buildMixedBundleSteps } from '@/utils/customerStepPlanner';
-import { stepIsSkippable } from '@/utils/customizationSummary';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { useReviewRows } from './useReviewRows';
 import type { ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
@@ -133,33 +132,6 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
   );
 
   /**
-   * Whether the current step is one the guest may walk past having chosen nothing — which is what
-   * makes the footer say **Skip** instead of Continue (and, on the sauces step, name the "no
-   * sauce" answer itself). The whole decision lives in `stepIsSkippable`, beside the
-   * `stepHasTickedSelection` it replaced the sauces branch of; this memo only feeds it.
-   */
-  const isSkip = useMemo(() => {
-    if (!flow.step || flow.step.isRequired || flow.isLast) return false;
-    const row = reviewRows.find((candidate) => candidate.step.id === flow.step?.id);
-    if (!row) return false;
-    const state = {
-      selectedVariationId: controller.kind === 'product' ? controller.selectedVariationId : null,
-      selectedIngredients: controller.kind === 'product' ? controller.selectedIngredients : EMPTY_IDS,
-      ingredientQuantities: controller.kind === 'product' ? controller.ingredientQuantities : {},
-      selectedSideItems: controller.kind === 'product' ? controller.selectedSideItems : [],
-    };
-    return stepIsSkippable(
-      row.step,
-      controller.kind,
-      row.values,
-      controller.kind === 'product' ? controller.product : null,
-      state,
-      sauceIds,
-      sauceRule,
-    );
-  }, [flow.step, flow.isLast, reviewRows, controller, sauceIds, sauceRule]);
-
-  /**
    * What the footer shows. `linePrice` stays the line's own authority — the drinks are separate
    * basket lines and never enter it — but the guest is about to be charged for both, so the button
    * has to name the sum they will actually pay.
@@ -174,7 +146,6 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
     reviewRows,
     jumpToStep,
     addOrJumpToBlocker,
-    isSkip,
     total,
   };
 }

@@ -54,7 +54,7 @@ const ingredient = (id: string, name: string, extra: Record<string, unknown> = {
   ...extra,
 });
 
-/** Variations + ingredients + sauces + a beverages side group ⇒ four decisions and a review. */
+/** Variations + ingredients + sauces + a beverages side group, followed by the review. */
 const COMPLEX = {
   id: 'p1',
   name: 'Dürüm',
@@ -69,7 +69,17 @@ const COMPLEX = {
     ingredient('onion', 'Onion', { isIncludedInBasePrice: true }),
     ingredient('garlic', 'Garlic sauce', { kind: 'sauce' }),
   ],
-  suggestedSideItems: [{ id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 }],
+  suggestedSideItems: [
+    {
+      id: 'cola',
+      suggestedSideItemId: 'side-cola',
+      name: 'Cola',
+      price: 3,
+      type: 'beverage',
+      isRequired: false,
+      displayOrder: 1,
+    },
+  ],
 };
 
 /**
@@ -81,8 +91,24 @@ const TWO_SIDE_GROUPS = {
   ...COMPLEX,
   id: 'p4',
   suggestedSideItems: [
-    { id: 'cola', name: 'Cola', price: 3, type: 'beverage', isRequired: false, displayOrder: 1 },
-    { id: 'baklava', name: 'Baklava', price: 5, type: 'dessert', isRequired: false, displayOrder: 2 },
+    {
+      id: 'cola',
+      suggestedSideItemId: 'side-cola',
+      name: 'Cola',
+      price: 3,
+      type: 'beverage',
+      isRequired: false,
+      displayOrder: 1,
+    },
+    {
+      id: 'baklava',
+      suggestedSideItemId: 'side-baklava',
+      name: 'Baklava',
+      price: 5,
+      type: 'dessert',
+      isRequired: false,
+      displayOrder: 2,
+    },
   ],
 };
 
@@ -163,10 +189,14 @@ beforeEach(() => {
   mockedNotice.mockReturnValue(null);
 });
 
-/** The footer's one forward control — Skip/Continue, or the named "no sauce" answer on the sauces
- * step, whose press commits the same goNext. */
-const advance = () =>
-  fireEvent.click(screen.getByRole('button', { name: /^(?:step_(?:skip|continue)(?:_|$)|sauce_none)/ }));
+/** The footer's forward control names the next customer screen. */
+const advance = () => {
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: /^(?:customer_cta_next_step:|customer_cta_review_(?:item|menu)$)/,
+    }),
+  );
+};
 
 describe('the flow is CONDITIONAL — a simple item must not pay for the complex ones', () => {
   it('gives a one-decision item no progress bar, no Continue, and an Add straight away', async () => {
@@ -174,8 +204,8 @@ describe('the flow is CONDITIONAL — a simple item must not pay for the complex
     await openSheet(SIMPLE, upsell([{ id: 'cola', name: 'Cola', price: 3.5 }]));
 
     expect(screen.queryByRole('navigation', { name: 'step_progress' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'step_continue' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^customer_cta_next_step:/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
     // The note has nowhere else to live without a review step, so it stays on the single screen.
     expect(screen.getByLabelText('product_special_requests')).toBeInTheDocument();
   });
@@ -188,7 +218,7 @@ describe('the flow is CONDITIONAL — a simple item must not pay for the complex
     // blocks below it in the same scroll is not rendered at all.
     expect(screen.getByRole('radio', { name: /Large/ })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /Onion/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
   });
 });
 
@@ -204,7 +234,7 @@ describe('the required-step gate', () => {
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /^step_(skip|continue)(_|$)/ }));
+    advance();
     expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
     // Still on the sauces: the drinks group from the next step has not appeared.
     expect(screen.queryByRole('button', { name: /add_ingredient/ })).not.toBeInTheDocument();
@@ -258,7 +288,7 @@ describe('walking the flow', () => {
     expect(screen.getByRole('button', { name: /add_ingredient/ })).toBeInTheDocument(); // the drinks side group
 
     advance();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
   });
 
   /**
@@ -325,7 +355,7 @@ describe('the always-offered drinks step', () => {
     await openSheet(COMPLEX, upsell(DRINKS));
 
     for (let step = 0; step < 4; step += 1) advance();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
     expect(screen.queryByText('step_drinks_hint')).not.toBeInTheDocument();
   });
 
@@ -338,7 +368,7 @@ describe('the always-offered drinks step', () => {
 
     for (let step = 0; step < 4; step += 1) advance();
     // The dish is 12.00 and the chosen drink 3.50; a button that showed 12.00 would under-quote.
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toHaveTextContent('15.50');
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toHaveTextContent('15.50');
   });
 
   it('adds no step at all when the beverage list came back empty', async () => {
@@ -347,7 +377,7 @@ describe('the always-offered drinks step', () => {
     advance();
     advance();
     advance(); // sauces -> review, with no drinks step in between
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
   });
 });
 
@@ -365,7 +395,7 @@ describe('the fixes the first review found', () => {
 
     expect(screen.queryByRole('navigation', { name: 'step_progress' })).not.toBeInTheDocument();
     expect(screen.queryByText('step_drinks_hint')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
   });
 
   /**
@@ -377,11 +407,11 @@ describe('the fixes the first review found', () => {
     const { rerender } = await openSheetWith(NO_BEVERAGES, upsell([]));
 
     for (let step = 0; step < 3; step += 1) advance();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
 
     // The fetch lands while the guest is on the review.
     rerender(<Harness drinks={upsell(DRINKS)} />);
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
     expect(screen.queryByText('step_drinks_hint')).not.toBeInTheDocument();
   });
 
@@ -396,15 +426,15 @@ describe('the fixes the first review found', () => {
 
     // Step one: the reason, the way out, AND a way to read the rest of the dish.
     expect(screen.getByText('Takeaway only')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+    advance();
     expect(screen.getByRole('checkbox', { name: /Onion/ })).toBeInTheDocument();
 
     // …and the last step offers no Add at all.
     for (let step = 0; step < 3; step += 1) {
-      fireEvent.click(screen.getByRole('button', { name: 'step_continue' }));
+      advance();
     }
-    expect(screen.queryByRole('button', { name: /add_to_order/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'step_continue' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^customer_cta_next_step:/ })).not.toBeInTheDocument();
     expect(screen.getByText('Takeaway only')).toBeInTheDocument();
   });
 
@@ -421,7 +451,7 @@ describe('the fixes the first review found', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /Garlic sauce/ }));
     advance();
     advance();
-    expect(screen.getByRole('button', { name: /add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
 
     // Un-satisfy the gate from the review, then come back to the review.
     fireEvent.click(screen.getAllByRole('button', { name: /step_change_named:sauces/ })[0]);
@@ -429,7 +459,7 @@ describe('the fixes the first review found', () => {
     const segments = screen.getAllByRole('button', { name: /^step_n_of_m:/ });
     fireEvent.click(segments[segments.length - 1]);
 
-    fireEvent.click(screen.getByRole('button', { name: /add_to_order/ }));
+    fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
     expect(mockAddItem).not.toHaveBeenCalled();
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
@@ -437,13 +467,10 @@ describe('the fixes the first review found', () => {
 });
 
 /**
- * Partner report (mcdoner, 'Assiette Kebab'): an ingredients step that opens FULLY selected — every
- * row is in the base recipe — used to offer the skip label, which reads as "the answer is NO" while
- * the sheet holds the opposite answer. The skip label is the honest verb for an UNTOUCHED step only
- * (`useSheetFlow.isSkip` = zero values); a step that arrived answered says Continue until the guest
- * empties it by hand — and only then does walking past mean "None".
+ * Forward CTAs name the destination screen regardless of whether the current choice is untouched,
+ * preselected, or emptied by hand.
  */
-describe('the skip label belongs to an untouched step, not an answered one', () => {
+describe('the next label names the destination, not the current selection state', () => {
   /** Every ingredient is in the base recipe (`isIncludedInBasePrice`), so the step opens checked. */
   const PRESELECTED = {
     ...COMPLEX,
@@ -451,39 +478,39 @@ describe('the skip label belongs to an untouched step, not an answered one', () 
     detailedIngredients: [
       ingredient('onion', 'Onion', { isIncludedInBasePrice: true }),
       ingredient('tomato', 'Tomato', { isIncludedInBasePrice: true }),
+      ingredient('garlic', 'Garlic sauce', { kind: 'sauce' }),
     ],
     suggestedSideItems: [],
   };
 
-  it('reads Continue on a step that arrived answered, and the skip label only once emptied', async () => {
+  it('keeps the next destination stable when an ingredient step arrives answered or becomes empty', async () => {
     await openSheet(PRESELECTED);
 
     advance(); // past the variations — answered by buildInitialSheetState
     expect(screen.getByRole('checkbox', { name: /Onion/ })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: /Tomato/ })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^customer_cta_next_step: sauces$/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
 
     // Empty the step by hand — NOW walking past honestly means "None".
     fireEvent.click(screen.getByRole('checkbox', { name: /Onion/ }));
     fireEvent.click(screen.getByRole('checkbox', { name: /Tomato/ }));
-    expect(screen.getByRole('button', { name: 'step_skip_ingredients' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^customer_cta_next_step: sauces$/ })).toBeInTheDocument();
   });
 
-  it('never offers Skip on the variations step — keeping the base row is an answer too', async () => {
+  it('keeps the next destination on variations when the base row is selected', async () => {
     await openSheet(COMPLEX);
 
-    // On arrival the first active variation is seeded; the footer names the forward verb.
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^customer_cta_next_step: customize_ingredients$/ })).toBeInTheDocument();
     // Pick the BASE row: selectedVariationId becomes null, which the review reports as the dish
     // itself — the answer is held, so the verb must not change into a skip.
     fireEvent.click(screen.getByRole('radio', { name: /Dürüm/ }));
     expect(screen.getByRole('radio', { name: /Dürüm/ })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^customer_cta_next_step: customize_ingredients$/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
   });
 
-  it('says Skip drinks only while nothing is added, and Continue once a drink is picked', async () => {
+  it('names the review destination whether drinks are skipped or selected', async () => {
     // No beverages side group — otherwise the dish curates its own and the upsell stands down.
     const fixture = { ...COMPLEX, id: 'p8', suggestedSideItems: [] };
 
@@ -492,7 +519,7 @@ describe('the skip label belongs to an untouched step, not an answered one', () 
     advance(); // ingredients
     advance(); // sauces
     expect(screen.getByText('step_drinks_hint')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'step_skip_drinks' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
     untouched.unmount();
 
     // The SAME step with a picked drink: the summary row carries the answer, so the verb stays
@@ -505,12 +532,12 @@ describe('the skip label belongs to an untouched step, not an answered one', () 
     advance(); // ingredients
     advance(); // sauces
     expect(screen.getByText('step_drinks_hint')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^step_skip/ })).not.toBeInTheDocument();
   });
 });
 
-describe('the sauces step names the answer, not a verb', () => {
+describe('the sauces step keeps a destination CTA and an explicit no-sauce choice', () => {
   /** One optional sauce, no rule — min 0, so the built-in "no sauce" answer renders. */
   const SAUCED = {
     ...COMPLEX,
@@ -539,29 +566,30 @@ describe('the sauces step names the answer, not a verb', () => {
     advance(); // ingredients — onto the sauces step
   }
 
-  it('reads the no-sauce answer while nothing is ticked, and Continue only once a sauce is', async () => {
+  it('keeps Next available with the no-sauce option, then after a sauce is selected', async () => {
     await openOnSauces(SAUCED);
 
     expect(screen.getByRole('checkbox', { name: 'sauce_none' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'sauce_none' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^step_(skip|continue)/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'sauce_none' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
 
-    // Tick one: the answer is now a sauce, so the button is the forward verb again.
+    // Tick one: the chosen sauce changes the answer, but not the destination.
     fireEvent.click(screen.getByRole('checkbox', { name: /Garlic sauce/ }));
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'sauce_none' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'sauce_none' })).not.toBeChecked();
 
     // Untick it: the answer is "no sauce" again — even though the step has been touched, which is
     // the state the old untouched-only rule answered with Continue (partner report, mcdoner).
     fireEvent.click(screen.getByRole('checkbox', { name: /Garlic sauce/ }));
-    expect(screen.getByRole('button', { name: 'sauce_none' })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'sauce_none' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
   });
 
-  it('keeps the forward verb on a required sauces step — a rule with a minimum has no none answer', async () => {
+  it('names the next required step when sauces are required', async () => {
     await openOnSauces(GATED);
 
     expect(screen.queryByRole('checkbox', { name: 'sauce_none' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_next_step: step_drinks' })).toBeInTheDocument();
   });
 
   it('keeps the forward verb when every sauce is fixed — there is no none answer to name', async () => {
@@ -569,6 +597,6 @@ describe('the sauces step names the answer, not a verb', () => {
 
     expect(screen.queryByRole('checkbox', { name: 'sauce_none' })).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /House sauce/ })).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByRole('button', { name: 'step_continue' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'customer_cta_review_item' })).toBeInTheDocument();
   });
 });

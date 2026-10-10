@@ -7,7 +7,7 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import type { CustomerCompositionRole, CustomerStepManifest, MenuSection } from '@/types/menu';
 import type { CustomerStepScreen } from '@/utils/customerStepManifest';
-import { canChangeCustomerScreenRole } from '@/utils/customerStepEditor';
+import { canChangeCustomerScreenRole, reorderCustomerScreens } from '@/utils/customerStepEditor';
 import { groupCustomerStepScreens } from '@/utils/customerStepManifest';
 import { roleLabel, screenInfo, screenIsRequired, SectionParentField, StepIcon } from './customerStepOrderList.helpers';
 import styles from './CustomerStepOrderList.module.css';
@@ -20,7 +20,7 @@ const ROLE_OPTIONS: Record<CustomerStepScreen['kind'], readonly EditableRole[]> 
   ProductCustomizationGroup: ['RequiredChoice', 'Extra'],
   ProductSauce: ['Sauce', 'Extra'],
   ProductSuggestedSide: ['Side', 'Drink'],
-  BundleSection: ['Menu', 'Dish', 'RequiredChoice', 'Extra', 'Drink'],
+  BundleSection: ['Menu', 'Dish', 'RequiredChoice', 'Extra', 'Side', 'Drink'],
   BundleComponentVariation: ['Dish', 'RequiredChoice'],
   BundleComponentIngredient: ['Ingredient', 'Extra'],
   BundleComponentCustomizationGroup: ['RequiredChoice', 'Extra'],
@@ -35,7 +35,7 @@ interface Props {
   readonly isBundle: boolean;
   readonly disabled: boolean;
   readonly invalid: boolean;
-  readonly onMove: (screenId: string, targetIndex: number) => void;
+  readonly onMove: (screenId: string, targetIndex: number) => CustomerStepManifest | null | void;
   readonly onRoleChange: (screen: CustomerStepScreen, role: Exclude<CustomerCompositionRole, 'Unknown'>) => void;
   readonly onLabelChange: (screen: CustomerStepScreen, label: string | null) => void;
   readonly onSectionParentChange: (sectionId: string, parentComponentId: string | null) => void;
@@ -66,10 +66,24 @@ export default function CustomerStepOrderList({
           const info = screenInfo(screen, sections, product, t);
           const required = screenIsRequired(screen, sections, product);
           const unknown = screen.compositionRole === 'Unknown';
-          const move = (to: number) => {
-            onMove(screen.id, to);
+          const canMoveUp = index > 0 && Boolean(reorderCustomerScreens(manifest, screen.id, index - 1, sections));
+          const canMoveDown =
+            index < screens.length - 1 && Boolean(reorderCustomerScreens(manifest, screen.id, index + 1, sections));
+          const dependencyBlocked =
+            !disabled && !invalid && ((index > 0 && !canMoveUp) || (index < screens.length - 1 && !canMoveDown));
+          const dependencyHintId = `customer-step-dependency-${index}`;
+          const commitMove = (screenId: string, to: number) => {
+            if (!reorderCustomerScreens(manifest, screenId, to, sections)) {
+              setAnnouncement(t('customer_order_dependency_blocked'));
+              return;
+            }
+            if (onMove(screenId, to) === null) {
+              setAnnouncement(t('customer_order_dependency_blocked'));
+              return;
+            }
             setAnnouncement(t('customer_order_updated'));
           };
+          const move = (to: number) => commitMove(screen.id, to);
           return (
             <li
               key={screen.id}
@@ -96,10 +110,7 @@ export default function CustomerStepOrderList({
                   return;
                 }
                 const source = event.dataTransfer.getData('text/plain');
-                if (source) {
-                  onMove(source, index);
-                  setAnnouncement(t('customer_order_updated'));
-                }
+                if (source) commitMove(source, index);
                 setDraggedId(null);
               }}
               aria-posinset={index + 1}
@@ -168,18 +179,20 @@ export default function CustomerStepOrderList({
               <div className={styles.actions}>
                 <button
                   type="button"
-                  disabled={disabled || index === 0 || invalid}
+                  disabled={disabled || index === 0 || invalid || !canMoveUp}
                   onClick={() => move(index - 1)}
                   aria-label={t('customer_move_up')}
+                  aria-describedby={dependencyBlocked ? dependencyHintId : undefined}
                 >
                   <ArrowUp size={16} aria-hidden="true" />
                   <span>{t('customer_move_up')}</span>
                 </button>
                 <button
                   type="button"
-                  disabled={disabled || index === screens.length - 1 || invalid}
+                  disabled={disabled || index === screens.length - 1 || invalid || !canMoveDown}
                   onClick={() => move(index + 1)}
                   aria-label={t('customer_move_down')}
+                  aria-describedby={dependencyBlocked ? dependencyHintId : undefined}
                 >
                   <ArrowDown size={16} aria-hidden="true" />
                   <span>{t('customer_move_down')}</span>
@@ -190,6 +203,11 @@ export default function CustomerStepOrderList({
                 >
                   {t('customer_step_position', { current: index + 1, total: screens.length })}
                 </span>
+                {dependencyBlocked && (
+                  <span id={dependencyHintId} className={styles.moveHint}>
+                    {t('customer_order_dependency_blocked')}
+                  </span>
+                )}
               </div>
             </li>
           );

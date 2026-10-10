@@ -93,7 +93,7 @@ describe('ItemCustomizationSheet — order-type guard', () => {
   it('keeps the normal footer when the item is orderable', () => {
     render(<ItemCustomizationSheet controller={controller()} />);
 
-    expect(screen.getByRole('button', { name: /Add to Order|add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
     expect(screen.queryByText('Takeaway and Delivery only')).not.toBeInTheDocument();
   });
 
@@ -124,7 +124,7 @@ describe('ItemCustomizationSheet — order-type guard', () => {
 
     render(<ItemCustomizationSheet controller={controller({ canOrder: false, reason: 'WrongOrderType' })} />);
 
-    expect(screen.queryByRole('button', { name: /Add to Order|add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
   });
 
   it('replaces Add AND the quantity stepper with the reason and the way out when blocked', () => {
@@ -134,7 +134,7 @@ describe('ItemCustomizationSheet — order-type guard', () => {
     render(<ItemCustomizationSheet controller={controller()} onSwitchOrderType={onSwitchOrderType} />);
 
     // The add is gone, not merely disabled — a disabled Add explains nothing (#208).
-    expect(screen.queryByRole('button', { name: /Add to Order|add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
     // …and so is the stepper: a quantity for something that cannot be ordered is noise.
     expect(screen.queryByLabelText('Increase quantity')).not.toBeInTheDocument();
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
@@ -170,14 +170,14 @@ describe('ItemCustomizationSheet — order-type guard', () => {
     render(<ItemCustomizationSheet controller={bundleController(availability)} />);
 
     expect(mockedNotice).toHaveBeenCalledWith(availability);
-    expect(screen.queryByRole('button', { name: /Add to Order|add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
   });
 
   it('keeps the normal footer on an unrestricted bundle', () => {
     render(<ItemCustomizationSheet controller={bundleController(undefined)} />);
 
-    expect(screen.getByRole('button', { name: /Add to Order|add_to_order/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
   });
 
   it('renders nothing at all while closed', () => {

@@ -104,7 +104,7 @@ function variationProduct(ids: string[]): DetailedProduct {
 
 describe('CustomerFlowPhonePreview', () => {
   it('navigates the planned screens, updates the guest CTA, and keeps the final basket action read-only', () => {
-    render(<CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle />);
+    render(<CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle currentLanguage="en" />);
 
     expect(screen.getByRole('heading', { name: 'Tacos' })).toBeInTheDocument();
     expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
@@ -122,15 +122,31 @@ describe('CustomerFlowPhonePreview', () => {
   });
 
   it('keeps the active stable step after a reorder and clamps to the first step when removed', () => {
-    const view = render(<CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle />);
+    const view = render(
+      <CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle currentLanguage="en" />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'customer_preview_next' }));
     view.rerender(
-      <CustomerFlowPhonePreview steps={[steps[1], steps[0], steps[2]]} price={12} itemName="Lunch menu" isBundle />,
+      <CustomerFlowPhonePreview
+        steps={[steps[1], steps[0], steps[2]]}
+        price={12}
+        itemName="Lunch menu"
+        isBundle
+        currentLanguage="en"
+      />,
     );
 
     expect(screen.getByRole('heading', { name: 'customize_ingredients' })).toBeInTheDocument();
     expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
-    view.rerender(<CustomerFlowPhonePreview steps={[steps[0], steps[2]]} price={12} itemName="Lunch menu" isBundle />);
+    view.rerender(
+      <CustomerFlowPhonePreview
+        steps={[steps[0], steps[2]]}
+        price={12}
+        itemName="Lunch menu"
+        isBundle
+        currentLanguage="en"
+      />,
+    );
 
     expect(screen.getByRole('heading', { name: 'Tacos' })).toBeInTheDocument();
   });
@@ -154,6 +170,7 @@ describe('CustomerFlowPhonePreview', () => {
         itemName="Taco"
         isBundle={false}
         product={beforeProduct}
+        currentLanguage="en"
       />,
     );
 
@@ -167,6 +184,7 @@ describe('CustomerFlowPhonePreview', () => {
         itemName="Taco"
         isBundle={false}
         product={afterProduct}
+        currentLanguage="en"
       />,
     );
 
@@ -206,7 +224,15 @@ describe('CustomerFlowPhonePreview', () => {
         { id: 'before', kind: 'ingredients', title: 'Before', singleChoice: false, isRequired: false },
         planned,
       ];
-      render(<CustomerFlowPhonePreview steps={previewSteps} price={12} itemName="Menu" isBundle />);
+      render(
+        <CustomerFlowPhonePreview
+          steps={previewSteps}
+          price={12}
+          itemName="Menu"
+          isBundle
+          currentLanguage={language}
+        />,
+      );
 
       expect(screen.getByRole('button', { name: `Preview only: Next: ${translatedName}` })).toBeDisabled();
       fireEvent.click(screen.getByRole('button', { name: 'customer_preview_next' }));

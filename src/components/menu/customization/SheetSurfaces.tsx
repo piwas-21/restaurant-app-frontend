@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import SheetIntro from './SheetIntro';
 import SheetStepProgress from './SheetStepProgress';
@@ -12,7 +12,7 @@ import SpecialRequestSection from './SpecialRequestSection';
 import BidiTemplate from '@/components/common/BidiTemplate';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow } from '@/hooks/menu/useSheetFlow';
-import { stepHint, stepLabel, stepSkipLabel } from './stepLabel';
+import { stepHint, stepLabel } from './stepLabel';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { SheetController } from '@/hooks/menu/useSheetFlow';
 import type { OrderType } from '@/types/order';
@@ -40,37 +40,26 @@ export function footerFor(args: {
   onSwitchOrderType: ((type: OrderType) => void) | undefined;
   styles: Record<string, string>;
   flow: ReturnType<typeof useSheetFlow>;
-  step: ReturnType<typeof useSheetFlow>['step'];
   isSubmitting: boolean;
   quantity: number;
   setQuantity: (quantity: number) => void;
   addToCart: Parameters<ReturnType<typeof useSheetFlow>['addOrJumpToBlocker']>[0];
   t: ReturnType<typeof useTranslation>['t'];
 }) {
-  const {
-    isBlocked,
-    notice,
-    onSwitchOrderType,
-    styles,
-    flow,
-    step,
-    isSubmitting,
-    quantity,
-    setQuantity,
-    addToCart,
-    t,
-  } = args;
+  const { isBlocked, notice, onSwitchOrderType, styles, flow, isSubmitting, quantity, setQuantity, addToCart, t } =
+    args;
+  const continueLabel = flow.isLast ? undefined : nextCustomerStepLabel(flow, t);
   return isBlocked ? (
     <BlockedFooterBar
       notice={notice}
       onSwitchOrderType={onSwitchOrderType}
       styles={styles}
       onContinue={flow.isLast ? undefined : flow.goNext}
+      continueLabel={continueLabel}
     />
   ) : (
     <StepFooterBar
       flow={flow}
-      step={step}
       isSubmitting={isSubmitting}
       quantity={quantity}
       setQuantity={setQuantity}
@@ -86,15 +75,35 @@ function BlockedFooterBar({
   onSwitchOrderType,
   styles,
   onContinue,
+  continueLabel,
 }: Readonly<{
   notice: ReturnType<typeof useItemAvailabilityNotice>;
   onSwitchOrderType: ((type: OrderType) => void) | undefined;
   styles: Record<string, string>;
   onContinue: (() => void) | undefined;
+  continueLabel: ReactNode;
 }>) {
   return (
-    <SheetBlockedFooter notice={notice} onSwitchOrderType={onSwitchOrderType} styles={styles} onContinue={onContinue} />
+    <SheetBlockedFooter
+      notice={notice}
+      onSwitchOrderType={onSwitchOrderType}
+      styles={styles}
+      onContinue={onContinue}
+      continueLabel={continueLabel}
+    />
   );
+}
+
+function nextCustomerStepLabel(
+  flow: ReturnType<typeof useSheetFlow>,
+  t: ReturnType<typeof useTranslation>['t'],
+): ReactNode {
+  const nextStep = flow.steps[flow.index + 1];
+  if (!nextStep) return null;
+  if (nextStep.kind === 'review') {
+    return t(flow.owner === 'menu' ? 'customer_cta_review_menu' : 'customer_cta_review_item');
+  }
+  return <BidiTemplate translationKey="customer_cta_next_step" placeholder="step" value={stepLabel(nextStep, t)} />;
 }
 
 /** The product branch's body: intro, guided progress + step panel, and the non-guided note. */
@@ -186,7 +195,6 @@ export function ProductFlowBody({
 
 function StepFooterBar({
   flow,
-  step,
   isSubmitting,
   quantity,
   setQuantity,
@@ -194,21 +202,12 @@ function StepFooterBar({
   t,
 }: Readonly<{
   flow: ReturnType<typeof useSheetFlow>;
-  step: ReturnType<typeof useSheetFlow>['step'];
   isSubmitting: boolean;
   quantity: number;
   setQuantity: (quantity: number) => void;
   addToCart: Parameters<ReturnType<typeof useSheetFlow>['addOrJumpToBlocker']>[0];
   t: ReturnType<typeof useTranslation>['t'];
 }>) {
-  const nextStep = flow.steps[flow.index + 1];
-  const continueLabel =
-    nextStep?.kind === 'review' ? (
-      t(flow.owner === 'menu' ? 'customer_cta_review_menu' : 'customer_cta_review_item')
-    ) : nextStep ? (
-      <BidiTemplate translationKey="customer_cta_next_step" placeholder="step" value={stepLabel(nextStep, t)} />
-    ) : undefined;
-
   return (
     <SheetFooter
       total={flow.total}
@@ -218,9 +217,7 @@ function StepFooterBar({
       setQuantity={setQuantity}
       onAdd={() => flow.addOrJumpToBlocker(addToCart)}
       onContinue={flow.goNext}
-      continueLabel={continueLabel}
-      isSkip={flow.isSkip}
-      skipLabel={stepSkipLabel(step, t)}
+      continueLabel={nextCustomerStepLabel(flow, t)}
       blockedMessage={flow.showBlocker ? t(`step_blocked_${flow.blocker}`) : undefined}
     />
   );

@@ -13,7 +13,6 @@ interface SharedActionProps {
   readonly reserved: boolean;
   readonly unknownWrite: boolean;
   readonly allocationScopeComplete: boolean;
-  readonly collected: boolean;
   readonly onCollect: (receivedMinor?: number) => Promise<void>;
 }
 
@@ -32,6 +31,7 @@ interface WriteActionProps extends SharedActionProps {
 }
 
 interface RecoveryActionProps extends SharedActionProps {
+  readonly collected: boolean;
   readonly collectionUnknown: boolean;
   readonly reserveUnknown: boolean;
   readonly releaseUnknown: boolean;
@@ -184,7 +184,6 @@ export default function AccountPaymentReviewActions({
         received={received}
         disabled={disabled}
         expired={expired}
-        collected={collected}
         canCollect={canCollect}
         canReserve={canReserve}
         onReceivedChange={onReceivedChange}

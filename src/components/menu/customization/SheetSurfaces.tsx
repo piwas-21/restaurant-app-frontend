@@ -9,9 +9,9 @@ import SheetStepContent from './SheetStepContent';
 import SheetFooter from './SheetFooter';
 import SheetBlockedFooter from './SheetBlockedFooter';
 import SpecialRequestSection from './SpecialRequestSection';
+import BidiTemplate from '@/components/common/BidiTemplate';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow } from '@/hooks/menu/useSheetFlow';
-import { useBundleOptionFlow } from '@/hooks/menu/useBundleOptionFlow';
 import { stepHint, stepLabel, stepSkipLabel } from './stepLabel';
 import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { SheetController } from '@/hooks/menu/useSheetFlow';
@@ -19,8 +19,8 @@ import type { OrderType } from '@/types/order';
 
 /**
  * The surfaces the customization sheet is assembled from, extracted so the sheet itself stays
- * under the CLAUDE.md §4 file-length and sonar complexity ceilings: which action bar (the option
- * screen's Done, the blocked reason, or the step's verb), and the product flow's body.
+ * under the CLAUDE.md §4 file-length and sonar complexity ceilings: which action bar (the blocked
+ * reason or the step's verb), and the product flow's body.
  */
 /** The intro payload, sourced by kind so a combo is not read off a null product detail. */
 export function sheetIntro(controller: SheetController) {
@@ -33,9 +33,8 @@ export function sheetIntro(controller: SheetController) {
       };
 }
 
-/** Which action bar the sheet shows: the option screen's Done, the blocked reason, or the step verb. */
+/** Which action bar the sheet shows: the blocked reason or the step verb. */
 export function footerFor(args: {
-  optionFooter: React.ReactElement | null;
   isBlocked: boolean;
   notice: ReturnType<typeof useItemAvailabilityNotice>;
   onSwitchOrderType: ((type: OrderType) => void) | undefined;
@@ -49,7 +48,6 @@ export function footerFor(args: {
   t: ReturnType<typeof useTranslation>['t'];
 }) {
   const {
-    optionFooter,
     isBlocked,
     notice,
     onSwitchOrderType,
@@ -62,26 +60,23 @@ export function footerFor(args: {
     addToCart,
     t,
   } = args;
-  return (
-    optionFooter ??
-    (isBlocked ? (
-      <BlockedFooterBar
-        notice={notice}
-        onSwitchOrderType={onSwitchOrderType}
-        styles={styles}
-        onContinue={flow.isLast ? undefined : flow.goNext}
-      />
-    ) : (
-      <StepFooterBar
-        flow={flow}
-        step={step}
-        isSubmitting={isSubmitting}
-        quantity={quantity}
-        setQuantity={setQuantity}
-        addToCart={addToCart}
-        t={t}
-      />
-    ))
+  return isBlocked ? (
+    <BlockedFooterBar
+      notice={notice}
+      onSwitchOrderType={onSwitchOrderType}
+      styles={styles}
+      onContinue={flow.isLast ? undefined : flow.goNext}
+    />
+  ) : (
+    <StepFooterBar
+      flow={flow}
+      step={step}
+      isSubmitting={isSubmitting}
+      quantity={quantity}
+      setQuantity={setQuantity}
+      addToCart={addToCart}
+      t={t}
+    />
   );
 }
 
@@ -99,39 +94,6 @@ function BlockedFooterBar({
 }>) {
   return (
     <SheetBlockedFooter notice={notice} onSwitchOrderType={onSwitchOrderType} styles={styles} onContinue={onContinue} />
-  );
-}
-
-export function OptionFooterBar({
-  optionFlow,
-  t,
-  onConfirm,
-}: Readonly<{
-  optionFlow: ReturnType<typeof useBundleOptionFlow>;
-  t: ReturnType<typeof useTranslation>['t'];
-  /**
-   * Done on the screen's last step — for a guided walk this advances to the next option (the
-   * caller reads `advanceTour`), for a review visit it returns to the section. Defaults to the
-   * plain close when the caller has no walk to arbitrate.
-   */
-  onConfirm?: () => void;
-}>) {
-  if (!optionFlow) return null;
-  return (
-    <SheetFooter
-      total={optionFlow.total}
-      isLast={optionFlow.isLast}
-      isSubmitting={false}
-      quantity={1}
-      setQuantity={() => undefined}
-      onAdd={() => undefined}
-      onConfirm={onConfirm ?? optionFlow.close}
-      confirmLabel={t('done')}
-      onContinue={optionFlow.goNext}
-      isSkip={optionFlow.isSkip}
-      skipLabel={stepSkipLabel(optionFlow.step, t)}
-      blockedMessage={optionFlow.showBlocker ? t(`step_blocked_${optionFlow.blocker}`) : undefined}
-    />
   );
 }
 
@@ -184,13 +146,24 @@ export function ProductFlowBody({
           title={stepLabel(step, t)}
           isRequired={step.isRequired}
           requiredLabel={t('required')}
-          hint={stepHint(step, t)}
+          hint={
+            step?.component?.productName ? (
+              <BidiTemplate
+                translationKey="customer_step_for_item"
+                placeholder="item"
+                value={step.component.productName}
+              />
+            ) : (
+              stepHint(step, t)
+            )
+          }
           steady={isGuided}
         >
           <SheetStepContent
             controller={controller}
             step={step}
             reviewRows={flow.reviewRows}
+            plannedSteps={flow.steps}
             onJump={flow.jumpToStep}
             onChoice={flow.advanceAfterChoice}
             drinks={drinks}
@@ -228,6 +201,14 @@ function StepFooterBar({
   addToCart: Parameters<ReturnType<typeof useSheetFlow>['addOrJumpToBlocker']>[0];
   t: ReturnType<typeof useTranslation>['t'];
 }>) {
+  const nextStep = flow.steps[flow.index + 1];
+  const continueLabel =
+    nextStep?.kind === 'review' ? (
+      t(flow.owner === 'menu' ? 'customer_cta_review_menu' : 'customer_cta_review_item')
+    ) : nextStep ? (
+      <BidiTemplate translationKey="customer_cta_next_step" placeholder="step" value={stepLabel(nextStep, t)} />
+    ) : undefined;
+
   return (
     <SheetFooter
       total={flow.total}
@@ -237,6 +218,7 @@ function StepFooterBar({
       setQuantity={setQuantity}
       onAdd={() => flow.addOrJumpToBlocker(addToCart)}
       onContinue={flow.goNext}
+      continueLabel={continueLabel}
       isSkip={flow.isSkip}
       skipLabel={stepSkipLabel(step, t)}
       blockedMessage={flow.showBlocker ? t(`step_blocked_${flow.blocker}`) : undefined}

@@ -1,5 +1,7 @@
 /** Shared leaf types for the menu/product domain. */
 
+import type { ItemAvailability } from './availability';
+
 export type { ApiCategory } from './category';
 
 export interface MenuItemContent {
@@ -83,6 +85,8 @@ export interface DetailedProductVariation {
  */
 export interface SuggestedSideItem {
   id: string;
+  /** Stable ProductSideItem association row used by customer-step manifests and basket writes. */
+  suggestedSideItemId?: string;
   name: string;
   description?: string;
   price: number;
@@ -91,6 +95,8 @@ export interface SuggestedSideItem {
   displayOrder: number;
   images?: MenuItemImage[];
   type?: ProductType; // Additive P1 field; missing values stay compatible during rollout.
+  availability?: ItemAvailability;
+  variations?: DetailedProductVariation[];
 }
 
 /**
@@ -100,10 +106,15 @@ export interface SuggestedSideItem {
  * (RestaurantSystem.Api/Features/Menus/Dtos/MenuBundleDto.cs).
  */
 export interface MenuSectionSuggestedSideItem {
+  /** Stable ProductSideItem association row id. */
   id: string;
   sideItemProductId: string;
   sideItemProductName?: string;
   sideItemBasePrice: number;
+  sideItemProductType?: ProductType;
+  availability?: ItemAvailability;
+  variations?: DetailedProductVariation[];
+  /** Product availability; only the nested bundle picker consumes this projection. */
   isRequired: boolean;
   displayOrder: number;
 }

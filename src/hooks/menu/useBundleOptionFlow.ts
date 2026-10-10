@@ -35,10 +35,11 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     if (!customizing) return null;
     return sections
       .find((section) => section.id === customizing.sectionId)
-      ?.items.find(
-        (candidate) =>
-          candidate.productId === customizing.itemId &&
-          (candidate.productVariationId ?? null) === (customizing.productVariationId ?? null),
+      ?.items.find((candidate) =>
+        customizing.menuSectionItemId
+          ? candidate.id === customizing.menuSectionItemId
+          : candidate.productId === customizing.itemId &&
+            (candidate.productVariationId ?? null) === (customizing.productVariationId ?? null),
       );
   }, [customizing, sections]);
 
@@ -50,6 +51,7 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
             customizing.sectionId,
             customizing.itemId,
             customizing.productVariationId,
+            customizing.menuSectionItemId,
           )
         : undefined,
     [item, customizing, bundle],
@@ -80,7 +82,7 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     sauceIds,
     // The OPTION, not the sheet: moving from one option's screen to another must start at step one.
     resetKey: customizing
-      ? `${customizing.sectionId}::${customizing.itemId}::${customizing.productVariationId ?? 'base'}`
+      ? `${customizing.sectionId}::${customizing.menuSectionItemId ?? customizing.itemId}::${customizing.productVariationId ?? 'base'}`
       : '',
   });
 
@@ -109,7 +111,13 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
   const patch = useCallback(
     (p: Partial<SelectedMenuOption>) => {
       if (!customizing || !bundle) return;
-      bundle.setOptionCustomization(customizing.sectionId, customizing.itemId, p, customizing.productVariationId);
+      bundle.setOptionCustomization(
+        customizing.sectionId,
+        customizing.itemId,
+        p,
+        customizing.productVariationId,
+        customizing.menuSectionItemId,
+      );
     },
     [customizing, bundle],
   );

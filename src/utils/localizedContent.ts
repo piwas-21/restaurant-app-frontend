@@ -1,3 +1,5 @@
+import type { MenuSection } from '@/types/menu';
+
 /**
  * Locale resolution for a catalog item's display text.
  *
@@ -28,4 +30,20 @@ export function localizedName(item: LocalizedItem, language: string): string {
  */
 export function localizedDescription(item: LocalizedItem, language: string): string | undefined {
   return item.content?.[language]?.description || item.content?.en?.description || item.description;
+}
+
+/** Resolve bundle section copy without changing the stable IDs used for selection or manifests. */
+export type LocalizedMenuSection = MenuSection & { sourceName: string };
+
+export function localizedMenuSection(section: MenuSection, language: string): LocalizedMenuSection {
+  const localized = section.translations?.[language];
+  const english = section.translations?.en;
+  const sourceName =
+    'sourceName' in section && typeof section.sourceName === 'string' ? section.sourceName : section.name;
+  return {
+    ...section,
+    sourceName,
+    name: localized?.name || english?.name || section.name,
+    description: localized?.description || english?.description || section.description,
+  };
 }

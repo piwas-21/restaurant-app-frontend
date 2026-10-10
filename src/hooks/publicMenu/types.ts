@@ -1,4 +1,5 @@
 import type { ApiCategory, MenuDefinition, MenuItem, ProductIngredient, SuggestedSideItem } from '@/types/menu';
+import type { CustomerStepManifest } from '@/types/menu';
 
 type ProductVariationDto = NonNullable<MenuItem['variations']>[number];
 
@@ -42,6 +43,7 @@ export interface ItemAvailabilityDto {
 
 export interface ProductDto {
   id: string;
+  customerStepManifest?: CustomerStepManifest | null;
   name?: string;
   description?: string | null;
   imageUrl?: string;
@@ -76,6 +78,7 @@ export interface ProductDto {
 
 export interface MenuBundleDto {
   id: string;
+  customerStepManifest?: CustomerStepManifest | null;
   name?: string;
   description?: string | null;
   basePrice?: number | string;

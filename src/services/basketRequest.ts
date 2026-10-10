@@ -14,7 +14,11 @@ export function toAddToBasketRequest(item: AddToBasketInput): AddToBasketDto {
     ...(selectedMenuOptions
       ? {
           selectedMenuOptions: selectedMenuOptions.map((option) => {
-            const { productVariationPriceModifier: _ignored, ...requestOption } = option;
+            const {
+              productVariationPriceModifier: _rowModifier,
+              componentProductVariationPriceModifier: _componentModifier,
+              ...requestOption
+            } = option;
             return requestOption;
           }),
         }

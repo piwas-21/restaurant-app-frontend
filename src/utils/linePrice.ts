@@ -36,12 +36,16 @@ export interface PriceableVariation {
 
 export interface PriceableSide {
   id: string;
+  suggestedSideItemId?: string;
   price: number;
+  variations?: readonly PriceableVariation[];
 }
 
 export interface SelectedSide {
   id: string;
+  suggestedSideItemId?: string;
   quantity: number;
+  productVariationId?: string | null;
 }
 
 const toIdSet = (ids: Iterable<string>): Set<string> => (ids instanceof Set ? ids : new Set(ids));
@@ -131,8 +135,14 @@ export function productLineUnitPrice(params: {
   ingredientDelta -= explicitDelta.ingredientAllowance;
 
   const sidesCost = (params.selectedSides ?? []).reduce((sum, selected) => {
-    const side = params.sides?.find((s) => s.id === selected.id);
-    return sum + (side?.price ?? 0) * selected.quantity;
+    const matches = (params.sides ?? []).filter((side) =>
+      selected.suggestedSideItemId
+        ? side.suggestedSideItemId === selected.suggestedSideItemId && side.id === selected.id
+        : side.id === selected.id,
+    );
+    const side = matches.length === 1 ? matches[0] : undefined;
+    const variation = side?.variations?.find((row) => row.id === selected.productVariationId);
+    return sum + ((side?.price ?? 0) + (variation?.priceModifier ?? 0)) * selected.quantity;
   }, 0);
 
   return base + ingredientDelta + explicitDelta.productOptionsCost + sidesCost;
@@ -195,19 +205,26 @@ function explicitGroupPrice(
 export interface SelectedBundleOption {
   sectionId: string;
   itemId: string;
+  menuSectionItemId?: string;
   productVariationId?: string | null;
   /** Copied from the read-side menu-section row for preview pricing; never sent to the server. */
   productVariationPriceModifier?: number | null;
+  componentProductVariationId?: string | null;
+  componentProductVariationPriceModifier?: number | null;
   quantity: number;
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
   customizationSelections?: CustomizationGroupSelection[];
+  selectedSideItems?: readonly SelectedSide[];
 }
 
 export interface PriceableBundleSectionItem {
+  id?: string;
   productId: string;
   productVariationId?: string | null;
   productVariationPriceModifier?: number | null;
+  hideBaseProduct?: boolean;
+  variations?: readonly PriceableVariation[];
   additionalPrice: number;
   detailedIngredients?: readonly PriceableIngredient[];
   /**
@@ -217,6 +234,12 @@ export interface PriceableBundleSectionItem {
    */
   sauceIncludedFree?: number;
   customizationGroups?: readonly ProductCustomizationGroup[];
+  suggestedSideItems?: readonly {
+    id: string;
+    sideItemProductId: string;
+    sideItemBasePrice: number;
+    variations?: readonly PriceableVariation[];
+  }[];
 }
 
 export interface PriceableBundleSection {
@@ -232,39 +255,76 @@ export function bundleLineUnitPrice(params: {
   sections: readonly PriceableBundleSection[];
   selectedOptions: readonly SelectedBundleOption[];
 }): number {
-  let total = params.basePrice;
+  return (
+    params.basePrice +
+    params.selectedOptions.reduce((sum, option) => sum + selectedBundleOptionPrice(option, params.sections), 0)
+  );
+}
 
-  for (const option of params.selectedOptions) {
-    const section = params.sections.find((s) => s.id === option.sectionId);
-    const item = section?.items.find(
-      (candidate) =>
-        candidate.productId === option.itemId &&
-        (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
-    );
-    if (!item) continue;
+function selectedBundleOptionPrice(option: SelectedBundleOption, sections: readonly PriceableBundleSection[]): number {
+  const item = resolveSelectedBundleItem(option, sections);
+  if (!item) return 0;
+  const rowPrice = (item.additionalPrice + selectedVariationModifier(item, option)) * option.quantity;
+  const ingredientDelta = ingredientCustomizationPrice(
+    item.detailedIngredients,
+    option.selectedIngredients ?? [],
+    option.ingredientQuantities,
+    item.customizationGroups?.some((group) => group.isActive) ? 0 : (item.sauceIncludedFree ?? 0),
+  );
+  const explicitDelta = explicitCustomizationPrice(
+    item.customizationGroups,
+    option.customizationSelections,
+    item.detailedIngredients,
+    option.ingredientQuantities,
+  );
+  const customizationPrice =
+    (ingredientDelta - explicitDelta.ingredientAllowance + explicitDelta.productOptionsCost) * option.quantity;
+  return rowPrice + customizationPrice + selectedBundleSidePrice(item, option);
+}
 
-    // The selected read-side payload is seeded from the section row and is used only for the live
-    // preview. The network serializer removes this field; the backend resolves the final amount
-    // from productVariationId.
-    const variationModifier = option.productVariationPriceModifier ?? item.productVariationPriceModifier ?? 0;
-    total += (item.additionalPrice + variationModifier) * option.quantity;
-    let ingredientDelta = ingredientCustomizationPrice(
-      item.detailedIngredients,
-      option.selectedIngredients ?? [],
-      option.ingredientQuantities,
-      item.customizationGroups?.some((group) => group.isActive) ? 0 : (item.sauceIncludedFree ?? 0),
-    );
-    const explicitDelta = explicitCustomizationPrice(
-      item.customizationGroups,
-      option.customizationSelections,
-      item.detailedIngredients,
-      option.ingredientQuantities,
-    );
-    ingredientDelta -= explicitDelta.ingredientAllowance;
-    total += (ingredientDelta + explicitDelta.productOptionsCost) * option.quantity;
-  }
+function resolveSelectedBundleItem(
+  option: SelectedBundleOption,
+  sections: readonly PriceableBundleSection[],
+): PriceableBundleSectionItem | undefined {
+  const section = sections.find((candidate) => candidate.id === option.sectionId);
+  const matches =
+    section?.items.filter((candidate) =>
+      option.menuSectionItemId
+        ? candidate.id === option.menuSectionItemId && candidate.productId === option.itemId
+        : candidate.productId === option.itemId &&
+          (candidate.productVariationId ?? null) === (option.productVariationId ?? null),
+    ) ?? [];
+  // Without stable row identity, only a unique product/variation pair may be priced.
+  return matches.length === 1 ? matches[0] : undefined;
+}
 
-  return total;
+function selectedVariationModifier(item: PriceableBundleSectionItem, option: SelectedBundleOption): number {
+  const fixedModifier = option.productVariationPriceModifier ?? item.productVariationPriceModifier ?? 0;
+  const componentVariation = item.variations?.find((variation) => variation.id === option.componentProductVariationId);
+  const dynamicModifier = option.componentProductVariationPriceModifier ?? componentVariation?.priceModifier ?? 0;
+  return fixedModifier + dynamicModifier;
+}
+
+function selectedBundleSidePrice(item: PriceableBundleSectionItem, option: SelectedBundleOption): number {
+  return (option.selectedSideItems ?? []).reduce((sum, selectedSide) => {
+    const side = resolveBundleSide(item, selectedSide);
+    if (!side) return sum;
+    const variation = side.variations?.find((row) => row.id === selectedSide.productVariationId);
+    return sum + (side.sideItemBasePrice + (variation?.priceModifier ?? 0)) * selectedSide.quantity * option.quantity;
+  }, 0);
+}
+
+function resolveBundleSide(
+  item: PriceableBundleSectionItem,
+  selected: SelectedSide,
+): NonNullable<PriceableBundleSectionItem['suggestedSideItems']>[number] | undefined {
+  const sides = item.suggestedSideItems ?? [];
+  const matches = sides.filter((candidate) =>
+    selected.suggestedSideItemId
+      ? candidate.id === selected.suggestedSideItemId && candidate.sideItemProductId === selected.id
+      : candidate.sideItemProductId === selected.id,
+  );
+  return matches.length === 1 ? matches[0] : undefined;
 }
 
 /** Final line total = unit price × line quantity. */

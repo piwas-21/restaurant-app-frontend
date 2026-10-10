@@ -3,6 +3,7 @@
 import { Minus, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
+import type { ReactNode } from 'react';
 import styles from './SheetFooter.module.css';
 
 interface SheetFooterProps {
@@ -14,6 +15,7 @@ interface SheetFooterProps {
   setQuantity: (quantity: number) => void;
   onAdd: () => void;
   onContinue: () => void;
+  continueLabel?: ReactNode;
   /** The step is optional and the guest has not touched it — the action is honestly "Skip". */
   isSkip: boolean;
   /** The "Skip" wording for THIS step ("Sans sauce"), from `stepSkipLabel`; generic verb when absent. */
@@ -45,6 +47,7 @@ export default function SheetFooter({
   setQuantity,
   onAdd,
   onContinue,
+  continueLabel,
   isSkip,
   skipLabel,
   blockedMessage,
@@ -83,7 +86,7 @@ export default function SheetFooter({
             {amount}
           </p>
           <button type="button" className={styles.primary} onClick={onContinue}>
-            {isSkip ? (skipLabel ?? t('step_skip')) : t('step_continue')}
+            {isSkip ? (skipLabel ?? t('step_skip')) : (continueLabel ?? t('step_continue'))}
           </button>
         </div>
         {announcement}
@@ -132,7 +135,7 @@ export default function SheetFooter({
           </button>
         </div>
         <button type="button" className={styles.primary} onClick={onAdd} disabled={isSubmitting}>
-          {t('add_to_order')} • {amount}
+          {t('customer_cta_add_to_basket')} • {amount}
         </button>
       </div>
       {announcement}

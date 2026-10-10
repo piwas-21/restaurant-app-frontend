@@ -1,0 +1,143 @@
+.listWrap {
+  min-width: 0;
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step-order;
+}
+
+.row {
+  padding: 0.85rem;
+  border: 1px solid var(--border-light);
+  border-radius: 0.8rem;
+  background: var(--surface-card);
+}
+
+.dragging {
+  opacity: 0.55;
+  outline: 2px solid var(--brand-primary);
+}
+
+.rowTop {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.grip {
+  flex: none;
+  color: var(--text-secondary);
+  cursor: grab;
+}
+
+.icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.titleBlock {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.18rem;
+}
+
+.titleBlock strong,
+.context {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 0.5rem 0.75rem;
+  margin-block-start: 0.65rem;
+  padding-inline-start: 2.65rem;
+}
+
+.controls select,
+.controls input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-start: 0.6rem;
+  padding-inline-start: 2.65rem;
+}
+
+.actions button {
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 0.5rem;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.position {
+  margin-inline-start: auto;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 640px) {
+  .rowTop {
+    flex-wrap: wrap;
+  }
+
+  .titleBlock {
+    min-width: calc(100% - 6rem);
+  }
+
+  .controls,
+  .actions {
+    padding-inline-start: 0;
+  }
+}

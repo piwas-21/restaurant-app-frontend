@@ -56,31 +56,32 @@ const controller = (over: Partial<BundleSheetController> = {}) =>
   }) as unknown as BundleSheetController;
 
 /**
- * The guided walk at the point where it starts (partner feedback 2026-09): the primary path into
- * an option's screens is the PICK itself — a single-choice section opens the screens the moment
- * the row is chosen; a multi-select section waits for the guest to finish selecting. The row's
- * Customize affordance is the way BACK into a visited option, never the way in.
+ * Every bundle, including legacy bundles without a saved customerStepManifest, uses the same
+ * mixed step planner. A single-choice pick advances to the next planned screen; a multi-select
+ * section stays open until Continue so the guest can choose multiple rows.
  */
-describe('BundleSheetBody — the pick opens the option’s guided screens', () => {
-  it('opens the guided screen for a single-choice pick with its own ingredients', () => {
+describe('BundleSheetBody — legacy and configured bundles use the mixed flow', () => {
+  it('advances a single-choice pick into the next planned screen without opening a separate tour', () => {
     const onChoice = jest.fn();
     const sheet = controller();
     const step = buildBundleSteps([section(1)])[0];
-    render(<BundleSheetBody controller={sheet} step={step} onChoice={onChoice} />);
+    render(
+      <BundleSheetBody controller={sheet} step={step} onChoice={onChoice} plannedSteps={[step]} onJump={jest.fn()} />,
+    );
 
     fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
 
-    // The section step does NOT announce a choice — the option screen takes over from here, and
-    // the section advances when that screen's Done ends the walk.
-    expect(sheet.beginOptionTourAt).toHaveBeenCalledWith('main', 'burger');
-    expect(onChoice).not.toHaveBeenCalled();
+    expect(sheet.beginOptionTourAt).not.toHaveBeenCalled();
+    expect(onChoice).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the guest on the rows of a multi-select section — the walk starts at Continue', () => {
     const onChoice = jest.fn();
     const sheet = controller();
     const step = buildBundleSteps([section(2)])[0];
-    render(<BundleSheetBody controller={sheet} step={step} onChoice={onChoice} />);
+    render(
+      <BundleSheetBody controller={sheet} step={step} onChoice={onChoice} plannedSteps={[step]} onJump={jest.fn()} />,
+    );
 
     fireEvent.click(screen.getByRole('checkbox', { name: /Burger/ }));
 
@@ -89,17 +90,33 @@ describe('BundleSheetBody — the pick opens the option’s guided screens', () 
     expect(onChoice).not.toHaveBeenCalled();
   });
 
-  it('announces an option with nothing further to configure, single- or multi-choice', () => {
+  it('advances a simple radio choice but leaves multi-select sections open for more choices', () => {
     const onChoice = jest.fn();
     const single = buildBundleSteps([section(1)])[0];
-    const { rerender } = render(<BundleSheetBody controller={controller()} step={single} onChoice={onChoice} />);
+    const { rerender } = render(
+      <BundleSheetBody
+        controller={controller()}
+        step={single}
+        onChoice={onChoice}
+        plannedSteps={[single]}
+        onJump={jest.fn()}
+      />,
+    );
     fireEvent.click(screen.getByRole('radio', { name: /Wrap/ }));
     expect(onChoice).toHaveBeenCalledTimes(1);
 
     const multi = buildBundleSteps([section(2)])[0];
-    rerender(<BundleSheetBody controller={controller()} step={multi} onChoice={onChoice} />);
+    rerender(
+      <BundleSheetBody
+        controller={controller()}
+        step={multi}
+        onChoice={onChoice}
+        plannedSteps={[multi]}
+        onJump={jest.fn()}
+      />,
+    );
     fireEvent.click(screen.getByRole('checkbox', { name: /Wrap/ }));
-    expect(onChoice).toHaveBeenCalledTimes(2);
+    expect(onChoice).toHaveBeenCalledTimes(1);
   });
 
   it('treats a re-pick of the selected radio as a no-op — no re-open, no advance', () => {
@@ -108,7 +125,9 @@ describe('BundleSheetBody — the pick opens the option’s guided screens', () 
       selectedOptions: [{ sectionId: 'main', itemId: 'burger', quantity: 1 }],
     });
     const step = buildBundleSteps([section(1)])[0];
-    render(<BundleSheetBody controller={sheet} step={step} onChoice={onChoice} />);
+    render(
+      <BundleSheetBody controller={sheet} step={step} onChoice={onChoice} plannedSteps={[step]} onJump={jest.fn()} />,
+    );
 
     fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
 
@@ -119,9 +138,40 @@ describe('BundleSheetBody — the pick opens the option’s guided screens', () 
   it('still toggles the option either way — the rule is about NAVIGATING, not selecting', () => {
     const sheet = controller();
     const step = buildBundleSteps([section(1)])[0];
-    render(<BundleSheetBody controller={sheet} step={step} onChoice={jest.fn()} />);
+    render(
+      <BundleSheetBody controller={sheet} step={step} onChoice={jest.fn()} plannedSteps={[step]} onJump={jest.fn()} />,
+    );
 
     fireEvent.click(screen.getByRole('radio', { name: /Burger/ }));
     expect(sheet.toggleOption).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes Customize to that selected component’s first screen in the shared plan', () => {
+    const selectedOptions = [{ sectionId: 'main', itemId: 'burger', menuSectionItemId: 'si-burger', quantity: 1 }];
+    const sheet = controller({ selectedOptions });
+    const sectionStep = buildBundleSteps([section(1)])[0];
+    const componentStep = {
+      id: 'component:si-burger',
+      kind: 'ingredients',
+      titleKey: 'customize_ingredients',
+      singleChoice: false,
+      isRequired: false,
+      sectionItemId: 'si-burger',
+      parentStepId: sectionStep.id,
+    } as const;
+    const onJump = jest.fn();
+    render(
+      <BundleSheetBody
+        controller={sheet}
+        step={sectionStep}
+        onChoice={jest.fn()}
+        plannedSteps={[sectionStep, componentStep]}
+        onJump={onJump}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /customer_cta_customize_item/ }));
+
+    expect(onJump).toHaveBeenCalledWith(componentStep);
   });
 });

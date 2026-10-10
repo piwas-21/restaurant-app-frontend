@@ -15,6 +15,7 @@ interface UseBundleOptionTourArgs {
 export interface BundleOptionLocator {
   sectionId: string;
   itemId: string;
+  menuSectionItemId?: string;
   productVariationId?: string | null;
 }
 
@@ -48,16 +49,32 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   }, []);
 
   /** REVIEW entry — the row's Customize affordance. Done returns to the section, no walk. */
-  const openForReview = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
-    setCustomizingOption({ sectionId, itemId, ...(productVariationId != null ? { productVariationId } : {}) });
-    setTourSectionId(null);
-  }, []);
+  const openForReview = useCallback(
+    (sectionId: string, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
+      setCustomizingOption({
+        sectionId,
+        itemId,
+        ...(menuSectionItemId ? { menuSectionItemId } : {}),
+        ...(productVariationId != null ? { productVariationId } : {}),
+      });
+      setTourSectionId(null);
+    },
+    [],
+  );
 
   /** GUIDED entry for a fresh RADIO pick — the pick IS the navigation. */
-  const beginAt = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
-    setCustomizingOption({ sectionId, itemId, ...(productVariationId != null ? { productVariationId } : {}) });
-    setTourSectionId(sectionId);
-  }, []);
+  const beginAt = useCallback(
+    (sectionId: string, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
+      setCustomizingOption({
+        sectionId,
+        itemId,
+        ...(menuSectionItemId ? { menuSectionItemId } : {}),
+        ...(productVariationId != null ? { productVariationId } : {}),
+      });
+      setTourSectionId(sectionId);
+    },
+    [],
+  );
 
   /**
    * GUIDED entry for a finished MULTI-SELECT (or fixed Plat) section — starts the walk at the
@@ -69,12 +86,13 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
       const first = section.items.find(
         (item) =>
           optionHasCustomization(item) &&
-          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
+          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId, item.id),
       );
       if (!first) return false;
       setCustomizingOption({
         sectionId: section.id,
         itemId: first.productId,
+        menuSectionItemId: first.id,
         ...(first.productVariationId != null ? { productVariationId: first.productVariationId } : {}),
       });
       setTourSectionId(section.id);
@@ -98,15 +116,17 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
     }
     const walkedIndex = section.items.findIndex(
       (item) =>
-        item.productId === customizingOption.itemId &&
-        (item.productVariationId ?? null) === (customizingOption.productVariationId ?? null),
+        item.id === customizingOption.menuSectionItemId ||
+        (!customizingOption.menuSectionItemId &&
+          item.productId === customizingOption.itemId &&
+          (item.productVariationId ?? null) === (customizingOption.productVariationId ?? null)),
     );
     const next = section.items
       .slice(walkedIndex + 1)
       .find(
         (item) =>
           optionHasCustomization(item) &&
-          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId),
+          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId, item.id),
       );
     if (!next) {
       close();
@@ -115,6 +135,7 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
     setCustomizingOption({
       sectionId: section.id,
       itemId: next.productId,
+      menuSectionItemId: next.id,
       ...(next.productVariationId != null ? { productVariationId: next.productVariationId } : {}),
     });
     return 'advanced';
@@ -124,16 +145,21 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
   const reset = close;
 
   /** The sheet's toggle: deselecting the option on screen (or in a walked section) kills the walk. */
-  const handleDeselection = useCallback((sectionId: string, itemId: string, productVariationId?: string | null) => {
-    setCustomizingOption((prev) =>
-      prev?.sectionId === sectionId &&
-      prev.itemId === itemId &&
-      (prev.productVariationId ?? null) === (productVariationId ?? null)
-        ? null
-        : prev,
-    );
-    setTourSectionId((prev) => (prev === sectionId ? null : prev));
-  }, []);
+  const handleDeselection = useCallback(
+    (sectionId: string, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
+      setCustomizingOption((prev) =>
+        prev?.sectionId === sectionId &&
+        prev.itemId === itemId &&
+        (menuSectionItemId
+          ? prev.menuSectionItemId === menuSectionItemId
+          : (prev.productVariationId ?? null) === (productVariationId ?? null))
+          ? null
+          : prev,
+      );
+      setTourSectionId((prev) => (prev === sectionId ? null : prev));
+    },
+    [],
+  );
 
   return {
     customizingOption,

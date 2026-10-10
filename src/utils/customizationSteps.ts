@@ -12,6 +12,7 @@ import type {
   CustomizationGroupSelection,
   ProductCustomizationGroup,
 } from '@/types/menu';
+import type { CustomerCompositionRole, CustomerStepDescriptor } from '@/types/menu';
 
 /**
  * The step model behind the guided customization flow (MENU-CUSTOMIZATION-FLOW-PLAN §3.1).
@@ -45,6 +46,25 @@ export interface CustomizationStep {
   sideGroup?: SuggestedSideGroup;
   /** Explicit tenant-authored choice group. Present only on `group` steps. */
   group?: ProductCustomizationGroup;
+  /** Several stable group references may share one projected screen. */
+  groups?: ProductCustomizationGroup[];
+  /** Stable refs behind an admin-authored screen. */
+  manifestRefs?: CustomerStepDescriptor[];
+  /** Explicit customer composition role, separate from selection rules and prices. */
+  compositionRole?: CustomerCompositionRole;
+  presentationOrder?: number;
+  presentationLabel?: string | null;
+  variationIds?: string[];
+  ingredientIds?: string[];
+  sauceMin?: number;
+  sauceIds?: string[];
+  sideItemIds?: string[];
+  requiredSideItemIds?: string[];
+  component?: MenuSectionItem;
+  sectionItemId?: string;
+  parentStepId?: string;
+  /** Where to return if a selected component removes this dynamic screen. */
+  returnStepId?: string;
 }
 
 /** Everything the gates read. Supplied by whichever sheet controller owns the state. */
@@ -53,6 +73,7 @@ export interface StepGateState {
   selectedIngredients: readonly string[];
   selectedOptions?: readonly SelectedMenuOption[];
   customizationSelections?: readonly CustomizationGroupSelection[];
+  selectedSideItems?: readonly { id: string; suggestedSideItemId?: string; quantity: number }[];
 }
 
 const REVIEW_STEP: CustomizationStep = {
@@ -268,7 +289,7 @@ function withReview(contentSteps: CustomizationStep[]): CustomizationStep[] {
 }
 
 /** Why a required step is not yet satisfied, or `null` when the guest may move on. */
-export type StepBlocker = 'variation' | 'group' | 'sauces' | 'section';
+export type StepBlocker = 'variation' | 'group' | 'sauces' | 'section' | 'side';
 
 /**
  * The gate. Reads the same rules the ADD button already enforces — `isBaseRowHidden` for the base
@@ -282,30 +303,77 @@ export function stepBlocker(
   sauceIds: readonly string[] = [],
 ): StepBlocker | null {
   if (!step.isRequired) return null;
-
-  if (step.kind === 'variations') {
-    // A BACKSTOP, not a gate the guest can reach today: `buildInitialSheetState` seeds the first
-    // active variation, and `isBaseRowHidden` degrades to false when there is none — so a required
-    // variations step opens already answered. Kept because the two rules that make that true live
-    // in other files and either could change; stated here so nobody hunts for the UI that fires it.
-    return state.selectedVariationId === null ? 'variation' : null;
+  switch (step.kind) {
+    case 'variations':
+      return variationBlocker(step, state);
+    case 'sauces':
+      return sauceBlocker(step, state, sauceMin, sauceIds);
+    case 'group':
+      return groupBlocker(step, state);
+    case 'section':
+      return sectionBlocker(step, state);
+    case 'sides':
+      return sideBlocker(step, state);
+    default:
+      return null;
   }
+}
 
-  if (step.kind === 'sauces') {
-    const chosen = sauceIds.filter((id) => state.selectedIngredients.includes(id)).length;
-    return chosen < sauceMin ? 'sauces' : null;
+function variationBlocker(step: CustomizationStep, state: StepGateState): StepBlocker | null {
+  if (step.sectionItemId) {
+    const selected = state.selectedOptions?.find((option) => option.menuSectionItemId === step.sectionItemId);
+    return selected?.componentProductVariationId &&
+      (!step.variationIds?.length || step.variationIds.includes(selected.componentProductVariationId))
+      ? null
+      : 'variation';
   }
+  // Initial state seeds required active variations; this remains a backstop if that changes.
+  return state.selectedVariationId === null ||
+    (step.variationIds?.length && !step.variationIds.includes(state.selectedVariationId))
+    ? 'variation'
+    : null;
+}
 
-  if (step.kind === 'group' && step.group) {
-    return customizationGroupSatisfied(step.group, state.customizationSelections ?? []) ? null : 'group';
-  }
+function sauceBlocker(
+  step: CustomizationStep,
+  state: StepGateState,
+  defaultMinimum: number,
+  defaultIds: readonly string[],
+): StepBlocker | null {
+  const ids = step.sauceIds ?? defaultIds;
+  const minimum = step.sauceMin ?? defaultMinimum;
+  const component = selectedComponentOption(step, state);
+  const selectedIngredients = component?.selectedIngredients ?? state.selectedIngredients;
+  const chosen = ids.filter((id) => selectedIngredients.includes(id)).length;
+  return chosen < minimum ? 'sauces' : null;
+}
 
-  if (step.kind === 'section' && step.section) {
-    const errors = findBundleSelectionErrors([step.section], state.selectedOptions ?? []);
-    return errors.length > 0 ? 'section' : null;
-  }
+function groupBlocker(step: CustomizationStep, state: StepGateState): StepBlocker | null {
+  const groups = step.groups ?? (step.group ? [step.group] : []);
+  const required = groups.filter((group) => group.isRequired || group.minSelection > 0);
+  const selections =
+    selectedComponentOption(step, state)?.customizationSelections ?? state.customizationSelections ?? [];
+  return required.every((group) => customizationGroupSatisfied(group, selections)) ? null : 'group';
+}
 
-  return null;
+function selectedComponentOption(step: CustomizationStep, state: StepGateState): SelectedMenuOption | undefined {
+  return step.sectionItemId
+    ? state.selectedOptions?.find((option) => option.menuSectionItemId === step.sectionItemId)
+    : undefined;
+}
+
+function sectionBlocker(step: CustomizationStep, state: StepGateState): StepBlocker | null {
+  if (!step.section) return null;
+  return findBundleSelectionErrors([step.section], state.selectedOptions ?? []).length ? 'section' : null;
+}
+
+function sideBlocker(step: CustomizationStep, state: StepGateState): StepBlocker | null {
+  if (!step.requiredSideItemIds?.length) return null;
+  const component = step.sectionItemId
+    ? (selectedComponentOption(step, state)?.selectedSideItems ?? [])
+    : (state.selectedSideItems ?? []);
+  const selectedRefs = new Set(component.filter((side) => side.quantity > 0).map((side) => side.suggestedSideItemId));
+  return step.requiredSideItemIds.every((id) => selectedRefs.has(id)) ? null : 'side';
 }
 
 function toCustomizationGroupStep(group: ProductCustomizationGroup): CustomizationStep {

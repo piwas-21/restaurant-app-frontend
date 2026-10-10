@@ -6,14 +6,22 @@ import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { SuggestedSideGroupDefinition } from '@/utils/suggestedSideItems';
 import type { SuggestedSideItem } from '@/types/menu';
+import { findSelectedSide } from '@/utils/selectedSideItem';
+import VariationsSection from './VariationsSection';
 import styles from './SuggestedSideItemsSection.module.css';
 import disclosureStyles from './SuggestedSideItemGroup.module.css';
 
 interface SuggestedSideItemGroupProps {
   group: SuggestedSideGroupDefinition<SuggestedSideItem>;
-  selectedSideItems: Array<{ id: string; quantity: number }>;
-  onAdd: (sideItemId: string) => void;
-  onRemove: (sideItemId: string) => void;
+  selectedSideItems: Array<{
+    id: string;
+    suggestedSideItemId?: string;
+    quantity: number;
+    productVariationId?: string | null;
+  }>;
+  onAdd: (sideItem: SuggestedSideItem) => void;
+  onRemove: (sideItem: SuggestedSideItem) => void;
+  onVariationChange: (sideItem: SuggestedSideItem, variationId: string | null) => void;
   /**
    * `bare` is what the guided flow's per-partition step renders: always open, and WITHOUT the
    * group's own `<h3>`, because the step panel's title already names the partition ("Add a
@@ -39,11 +47,12 @@ export default function SuggestedSideItemGroup({
   selectedSideItems,
   onAdd,
   onRemove,
+  onVariationChange,
   variant = 'disclosure',
 }: Readonly<SuggestedSideItemGroupProps>) {
   const { t } = useTranslation();
-  const hasPreselectedItem = group.items.some((sideItem) =>
-    selectedSideItems.some((selectedItem) => selectedItem.id === sideItem.id && selectedItem.quantity > 0),
+  const hasPreselectedItem = group.items.some(
+    (sideItem) => (findSelectedSide(selectedSideItems, sideItem)?.quantity ?? 0) > 0,
   );
   // Required sides are seeded by the sheet state. Keep their name, price and required marker visible
   // on first render instead of hiding a paid selection behind a collapsed disclosure.
@@ -51,7 +60,7 @@ export default function SuggestedSideItemGroup({
   const [isOpen, setIsOpen] = useState(hasPreselectedItem);
   const isExpanded = isPlain || isOpen;
   const panelId = useId();
-  const quantityFor = (sideItemId: string) => selectedSideItems.find((item) => item.id === sideItemId)?.quantity ?? 0;
+  const selectedSideFor = (sideItem: SuggestedSideItem) => findSelectedSide(selectedSideItems, sideItem);
 
   return (
     <section className={styles.section}>
@@ -80,9 +89,10 @@ export default function SuggestedSideItemGroup({
             <SuggestedSideItemRow
               key={sideItem.id}
               sideItem={sideItem}
-              quantity={quantityFor(sideItem.id)}
+              selected={selectedSideFor(sideItem)}
               onAdd={onAdd}
               onRemove={onRemove}
+              onVariationChange={onVariationChange}
             />
           ))}
         </div>
@@ -93,13 +103,21 @@ export default function SuggestedSideItemGroup({
 
 interface SuggestedSideItemRowProps {
   sideItem: SuggestedSideItem;
-  quantity: number;
-  onAdd: (sideItemId: string) => void;
-  onRemove: (sideItemId: string) => void;
+  selected?: { id: string; suggestedSideItemId?: string; quantity: number; productVariationId?: string | null };
+  onAdd: (sideItem: SuggestedSideItem) => void;
+  onRemove: (sideItem: SuggestedSideItem) => void;
+  onVariationChange: (sideItem: SuggestedSideItem, variationId: string | null) => void;
 }
 
-function SuggestedSideItemRow({ sideItem, quantity, onAdd, onRemove }: Readonly<SuggestedSideItemRowProps>) {
-  const { t } = useTranslation();
+function SuggestedSideItemRow({
+  sideItem,
+  selected,
+  onAdd,
+  onRemove,
+  onVariationChange,
+}: Readonly<SuggestedSideItemRowProps>) {
+  const { t, i18n } = useTranslation();
+  const quantity = selected?.quantity ?? 0;
   const isSelected = quantity > 0;
 
   return (
@@ -125,7 +143,7 @@ function SuggestedSideItemRow({ sideItem, quantity, onAdd, onRemove }: Readonly<
         {isSelected ? (
           <div className={styles.quantityControl}>
             <button
-              onClick={() => onRemove(sideItem.id)}
+              onClick={() => onRemove(sideItem)}
               className={styles.quantityButton}
               aria-label={t('decrease_quantity')}
               type="button"
@@ -134,7 +152,7 @@ function SuggestedSideItemRow({ sideItem, quantity, onAdd, onRemove }: Readonly<
             </button>
             <span className={styles.quantity}>{quantity}</span>
             <button
-              onClick={() => onAdd(sideItem.id)}
+              onClick={() => onAdd(sideItem)}
               className={styles.quantityButton}
               aria-label={t('increase_quantity')}
               type="button"
@@ -143,11 +161,23 @@ function SuggestedSideItemRow({ sideItem, quantity, onAdd, onRemove }: Readonly<
             </button>
           </div>
         ) : (
-          <button onClick={() => onAdd(sideItem.id)} className={styles.addButton} type="button">
+          <button onClick={() => onAdd(sideItem)} className={styles.addButton} type="button">
             {t('add_ingredient')}
           </button>
         )}
       </div>
+      {isSelected && (sideItem.variations?.some((variation) => variation.isActive) ?? false) && (
+        <VariationsSection
+          variations={sideItem.variations ?? []}
+          selectedVariationId={selected?.productVariationId ?? null}
+          onVariationChange={(variationId) => onVariationChange(sideItem, variationId)}
+          basePrice={sideItem.price}
+          currentLanguage={(i18n.language || 'en').split('-')[0]}
+          productName={sideItem.name}
+          headless
+          radioName={`side-variation-${sideItem.suggestedSideItemId ?? sideItem.id}`}
+        />
+      )}
     </div>
   );
 }

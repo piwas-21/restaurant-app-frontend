@@ -1,10 +1,12 @@
 /** Menu definitions, section choices and selected bundle options. */
 
-import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
+import { DetailedIngredient, DetailedProductVariation, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
 import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
-import type { CustomizationGroupSelection, ProductCustomizationGroup } from './customizationGroup';
+import type { ProductCustomizationGroup } from './customizationGroup';
 import type { TranslationMetadata } from '../translationMetadata';
+import type { CustomerStepManifest } from './customerStepManifest';
+export type { SelectedBundleSideItem, SelectedMenuOption } from './selectedMenuOption';
 
 /**
  * Menu bundle definition with sections and scheduling
@@ -65,6 +67,8 @@ export interface MenuSectionItem extends SauceGroupCarrier {
   productVariationName?: string | null;
   /** Authoritative variation modifier copied from the option product's variation. */
   productVariationPriceModifier?: number | null;
+  hideBaseProduct?: boolean;
+  variations?: DetailedProductVariation[];
   productName?: string;
   additionalPrice: number;
   displayOrder: number;
@@ -83,22 +87,6 @@ export interface MenuSectionItemAvailability extends ItemAvailability {
   inheritsOrderTypes: boolean;
 }
 
-/** A customer's selected menu option. */
-export interface SelectedMenuOption {
-  sectionId: string;
-  itemId: string;
-  /** Preserves a variation-aware section item through to SelectedMenuOptionDto. */
-  productVariationId?: string | null;
-  /** Read-side modifier for local line-price preview; basket serialization strips it. */
-  productVariationPriceModifier?: number | null;
-  quantity: number;
-  // Nested customization for this item
-  specialInstructions?: string;
-  selectedIngredients?: string[];
-  ingredientQuantities?: Record<string, number>;
-  customizationSelections?: CustomizationGroupSelection[];
-}
-
 /**
  * Menu bundle for customer display
  */
@@ -110,6 +98,7 @@ export interface MenuBundleItem {
   basePrice: number;
   content?: Record<string, { name: string; description: string }>;
   menuDefinition: MenuDefinition;
+  customerStepManifest?: CustomerStepManifest | null;
   images?: MenuItemImage[];
   isActive: boolean;
   isAvailable: boolean;

@@ -76,6 +76,26 @@ describe('useSheetSteps — moving through the flow', () => {
     expect(result.current.index).toBe(0);
     expect(result.current.furthest).toBe(0);
   });
+
+  it('returns to the owning section when deselecting a component removes its active step', () => {
+    const section = step('section:dishes', { kind: 'section' });
+    const component = step('component:extras', {
+      kind: 'ingredients',
+      parentStepId: section.id,
+      returnStepId: section.id,
+    });
+    const review = step('review', { kind: 'review' });
+    const { result, rerender } = renderHook(({ steps }) => useSheetSteps({ steps, gate: EMPTY_GATE }), {
+      initialProps: { steps: [section, component, review] },
+    });
+
+    act(() => result.current.goNext());
+    expect(result.current.step?.id).toBe(component.id);
+
+    rerender({ steps: [section, review] });
+    expect(result.current.step?.id).toBe(section.id);
+    expect(result.current.index).toBe(0);
+  });
 });
 
 describe('useSheetSteps — the required-step gate', () => {

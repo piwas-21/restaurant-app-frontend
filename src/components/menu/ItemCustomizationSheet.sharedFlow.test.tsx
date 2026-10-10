@@ -303,8 +303,15 @@ describe('bundle customization uses one shared mixed flow', () => {
 
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     const reviewRows = screen.getByRole('dialog').querySelector('dl');
-    const rowFor = (label: string) =>
-      Array.from(reviewRows?.children ?? []).find((row) => row.querySelector('dt')?.textContent?.startsWith(label));
+    const rowFor = (label: string) => {
+      const matches = Array.from(reviewRows?.children ?? []).filter(
+        (row) => row.querySelector('dt')?.firstChild?.textContent === label,
+      );
+      expect(matches).toHaveLength(1);
+      const [row] = matches;
+      if (!row) throw new Error(`Expected one review row labeled ${label}`);
+      return row;
+    };
     expect(rowFor('select_variation')).toHaveTextContent('Large');
     expect(rowFor('sauces')).toHaveTextContent('Ketchup');
     expect(rowFor('customize_ingredients')).toHaveTextContent('Lettuce');

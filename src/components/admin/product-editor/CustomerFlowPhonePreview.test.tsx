@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { CustomerStepManifest, DetailedProduct } from '@/types/menu';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import { buildCustomerProductSteps, buildMixedBundleSteps } from '@/utils/customerStepPlanner';
@@ -103,6 +103,24 @@ function variationProduct(ids: string[]): DetailedProduct {
 }
 
 describe('CustomerFlowPhonePreview', () => {
+  it('derives the status clock from the client time and preview locale', async () => {
+    const { container } = render(
+      <CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle currentLanguage="en" />,
+    );
+    const time = await waitFor(() => {
+      const element = container.querySelector('time');
+      expect(element).not.toBeNull();
+      return element;
+    });
+
+    if (!time) throw new Error('Expected the phone preview to render its status clock');
+    const timestamp = new Date(time.dateTime);
+    expect(timestamp.toString()).not.toBe('Invalid Date');
+    expect(time.textContent).toBe(
+      new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit' }).format(timestamp),
+    );
+  });
+
   it('navigates the planned screens, updates the guest CTA, and keeps the final basket action read-only', () => {
     render(<CustomerFlowPhonePreview steps={steps} price={12} itemName="Lunch menu" isBundle currentLanguage="en" />);
 

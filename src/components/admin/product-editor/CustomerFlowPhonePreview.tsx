@@ -33,10 +33,18 @@ export default function CustomerFlowPhonePreview({
   currentLanguage,
 }: Props) {
   const { t } = useTranslation();
+  const [previewNow, setPreviewNow] = useState<Date | null>(null);
   const [selectedStepId, setSelectedStepId] = useState(steps[0]?.id ?? null);
   const active = steps.find((step) => step.id === selectedStepId) ?? steps[0];
   const activeIndex = active ? steps.findIndex((step) => step.id === active.id) : -1;
   const action = getPreviewAction(steps[activeIndex + 1], isBundle, t);
+  const previewTime = previewNow
+    ? new Intl.DateTimeFormat(currentLanguage, { hour: '2-digit', minute: '2-digit' }).format(previewNow)
+    : null;
+
+  useEffect(() => {
+    setPreviewNow(new Date());
+  }, []);
 
   useEffect(() => {
     if (selectedStepId && !steps.some((step) => step.id === selectedStepId)) {
@@ -49,7 +57,7 @@ export default function CustomerFlowPhonePreview({
       <div className={styles.speaker} />
       <div className={styles.screen}>
         <div className={styles.status}>
-          <span>9:41</span>
+          {previewNow && previewTime && <time dateTime={previewNow.toISOString()}>{previewTime}</time>}
           <span>{t('customer_preview_title')}</span>
         </div>
         <div className={styles.header} dir="auto">

@@ -38,8 +38,13 @@
   cursor: pointer;
 }
 .choiceTileSelected {
-  border-color: var(--brand-primary);
+  border: 2px solid var(--brand-primary);
   background: var(--surface-secondary);
+}
+.choiceTile > span,
+.methodTile > span {
+  flex: 1;
+  min-inline-size: 0;
 }
 .choiceTile:focus-within,
 .methodTile:focus-within {
@@ -53,13 +58,12 @@
   cursor: not-allowed;
 }
 .choiceRadio {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: 0 0 1.25rem;
+  margin: 0;
+  accent-color: var(--brand-primary);
+  cursor: pointer;
 }
 .tipDetails {
   border-block: 1px solid var(--border-default);

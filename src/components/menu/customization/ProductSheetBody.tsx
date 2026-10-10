@@ -51,9 +51,12 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
     setIngredientQuantities((previous) => ({ ...previous, [ingredientId]: quantity }));
 
   if (step.kind === 'variations') {
+    const variations = (product.variations ?? []).filter(
+      (variation) => !step.variationIds?.length || step.variationIds.includes(variation.id),
+    );
     return (
       <VariationsSection
-        variations={product.variations ?? []}
+        variations={variations}
         selectedVariationId={selectedVariationId}
         onVariationChange={(variationId) => {
           setSelectedVariationId(variationId);
@@ -74,7 +77,9 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
     return (
       <IngredientStepsBody
         sauceGroup={product}
-        ingredients={product.detailedIngredients ?? []}
+        ingredients={(product.detailedIngredients ?? []).filter(
+          (ingredient) => !step.ingredientIds?.length || step.ingredientIds.includes(ingredient.id),
+        )}
         step={step}
         selectedIngredients={selectedIngredients}
         ingredientQuantities={ingredientQuantities}
@@ -86,26 +91,34 @@ export default function ProductSheetBody({ controller, step, onChoice }: Readonl
     );
   }
 
-  if (step.kind === 'group' && step.group) {
+  if (step.kind === 'group' && (step.groups?.length || step.group)) {
+    const groups = step.groups ?? (step.group ? [step.group] : []);
     return (
-      <CustomizationGroupSection
-        group={step.group}
-        groups={activeCustomizationGroups(product)}
-        ingredients={product.detailedIngredients ?? []}
-        selections={customizationSelections}
-        onSelectionsChange={setCustomizationSelections}
-        onIngredientSelectionChange={setSelectedIngredients}
-        onIngredientQuantityChange={onQuantityChange}
-        onChoice={onChoice}
-        currentLanguage={currentLanguage}
-      />
+      <>
+        {groups.map((group) => (
+          <CustomizationGroupSection
+            key={group.id}
+            group={group}
+            groups={activeCustomizationGroups(product)}
+            ingredients={product.detailedIngredients ?? []}
+            selections={customizationSelections}
+            onSelectionsChange={setCustomizationSelections}
+            onIngredientSelectionChange={setSelectedIngredients}
+            onIngredientQuantityChange={onQuantityChange}
+            onChoice={onChoice}
+            currentLanguage={currentLanguage}
+          />
+        ))}
+      </>
     );
   }
 
   if (step.kind === 'sides') {
     return (
       <SuggestedSideItemsSection
-        sideItems={product.suggestedSideItems ?? []}
+        sideItems={(product.suggestedSideItems ?? []).filter(
+          (side) => !step.sideItemIds?.length || step.sideItemIds.includes(side.suggestedSideItemId ?? side.id),
+        )}
         selectedSideItems={selectedSideItems}
         onSelectionChange={setSelectedSideItems}
         currentLanguage={currentLanguage}

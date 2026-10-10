@@ -3,6 +3,7 @@
 import React from 'react';
 import ProductSheetBody from './ProductSheetBody';
 import BundleSheetBody from './BundleSheetBody';
+import BundleComponentStepBody from './BundleComponentStepBody';
 import SheetReviewStep, { type ReviewRow } from './SheetReviewStep';
 import DrinksStep from './DrinksStep';
 import type { CustomizationStep } from '@/utils/customizationSteps';
@@ -13,6 +14,7 @@ interface SheetStepContentProps {
   controller: SheetController;
   step: CustomizationStep;
   reviewRows: readonly ReviewRow[];
+  plannedSteps: readonly CustomizationStep[];
   onJump: (step: CustomizationStep) => void;
   onChoice: () => void;
   /** Present whenever a drinks step is in the flow — `useSheetFlow` derives one only if it is. */
@@ -31,6 +33,7 @@ export default function SheetStepContent({
   controller,
   step,
   reviewRows,
+  plannedSteps,
   onJump,
   onChoice,
   drinks,
@@ -52,7 +55,16 @@ export default function SheetStepContent({
   }
 
   if (controller.kind === 'bundle') {
-    return <BundleSheetBody controller={controller} step={step} onChoice={onChoice} />;
+    if (step.component) return <BundleComponentStepBody controller={controller} step={step} onChoice={onChoice} />;
+    return (
+      <BundleSheetBody
+        controller={controller}
+        step={step}
+        onChoice={onChoice}
+        plannedSteps={plannedSteps}
+        onJump={onJump}
+      />
+    );
   }
 
   return <ProductSheetBody controller={controller} step={step} onChoice={onChoice} />;

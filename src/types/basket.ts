@@ -25,6 +25,7 @@ export interface MenuItemSummaryDto {
  */
 export interface BasketSideItemDto {
   id: string;
+  suggestedSideItemId?: string;
   name: string;
   description?: string;
   price: number;
@@ -138,13 +139,20 @@ export interface AddToBasketDto {
   selectedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
   customizationSelections?: CustomizationGroupSelection[];
-  selectedSideItems?: Array<{ id: string; quantity: number }>;
+  selectedSideItems?: Array<{
+    id: string;
+    suggestedSideItemId?: string;
+    quantity: number;
+    productVariationId?: string | null;
+  }>;
   /**
    * Request shape deliberately omits `productVariationPriceModifier`: the backend resolves that
    * value from the selected variation and must remain authoritative for basket pricing. The
    * read-side `SelectedMenuOption` may still carry the modifier for local display pricing.
    */
-  selectedMenuOptions?: Array<Omit<SelectedMenuOption, 'productVariationPriceModifier'>>;
+  selectedMenuOptions?: Array<
+    Omit<SelectedMenuOption, 'productVariationPriceModifier' | 'componentProductVariationPriceModifier'>
+  >;
 }
 
 /**

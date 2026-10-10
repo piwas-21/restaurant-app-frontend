@@ -2,10 +2,9 @@
 
 import React from 'react';
 import BundleSectionSelector from './BundleSectionSelector';
-import { findBundleOption } from '@/utils/bundleSelection';
+import { resolveBundleRowSelection } from '@/utils/bundleOptionResolution';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
-import type { MenuSection } from '@/types/menu';
 
 export type BundleSheetController = ReturnType<typeof useBundleCustomizationSheet>;
 
@@ -15,27 +14,30 @@ interface BundleSheetBodyProps {
   step: CustomizationStep;
   /** Announces that a single-choice section has been answered, so the flow may advance itself. */
   onChoice: () => void;
+  /** The planned component screens make Customize a jump within this same ordered flow. */
+  plannedSteps: readonly CustomizationStep[];
+  onJump: (step: CustomizationStep) => void;
 }
 
 /**
  * The bundle body of `ItemCustomizationSheet` — one menu section at a time
  * (MENU-CUSTOMIZATION-FLOW-PLAN §3).
  *
- * A combo is the case the old single-scroll layout hurt most: four sections, each with its own
- * options and each option carrying a nested "Customize" drill-in, all stacked in one column.
- * Customizing an option now leaves this body entirely — the sheet hosts the option's guided
- * screen (the 2026-09 owner decision superseding #175's inline drill-in), and since partner
- * feedback 2026-09 the sheet walks into that screen BY ITSELF: a picked option with ingredients
- * opens its screens on the pick (single-choice) or when the section is Continued (multi-select).
- * The row's Customize affordance remains as the way back INTO a visited option, not the way in.
+ * A combo's selected-component screens join the same ordered flow as its menu sections. A single
+ * choice advances into its next planned screen; a multi-choice section waits for Continue. The
+ * row's Customize action jumps back to that component's first planned screen.
  */
-export default function BundleSheetBody({ controller, step, onChoice }: Readonly<BundleSheetBodyProps>) {
-  const { selectedOptions, visibleErrors, currentLanguage, toggleOption, openOptionCustomization, beginOptionTourAt } =
-    controller;
+export default function BundleSheetBody({
+  controller,
+  step,
+  onChoice,
+  plannedSteps,
+  onJump,
+}: Readonly<BundleSheetBodyProps>) {
+  const { selectedOptions, visibleErrors, currentLanguage, toggleOption } = controller;
 
   const section = step.section;
   if (!section) return null;
-
   const minSelectionError = visibleErrors.find((error) => error.sectionId === section.id)?.minSelection;
 
   return (
@@ -43,46 +45,29 @@ export default function BundleSheetBody({ controller, step, onChoice }: Readonly
       section={section}
       selectedOptions={selectedOptions}
       minSelectionError={minSelectionError}
+      selectionRecovery={step.selectionRecovery}
+      onClearUnresolved={controller.clearUnresolvedOptions}
       currentLanguage={currentLanguage}
-      onToggleOption={(toggledSection, itemId, productVariationId) => {
+      onToggleOption={(toggledSection, itemId, productVariationId, menuSectionItemId) => {
         // A no-op toggle (re-picking the selected radio) neither advances nor re-opens anything:
         // the guest is already where the pick puts them.
-        const wasSelected = Boolean(findBundleOption(selectedOptions, toggledSection.id, itemId, productVariationId));
-        if (productVariationId == null) toggleOption(toggledSection, itemId);
-        else toggleOption(toggledSection, itemId, productVariationId);
+        const target = toggledSection.items.find((item) => item.id === menuSectionItemId);
+        const rowSelection = target ? resolveBundleRowSelection(toggledSection, selectedOptions, target) : undefined;
+        const wasSelected = Boolean(rowSelection?.selection);
+        toggleOption(toggledSection, itemId, productVariationId, menuSectionItemId);
         if (wasSelected) return;
-        // Partner feedback 2026-09: picking an option that has ingredients/sauces IS the
-        // navigation — the sheet advances straight into its guided screens, no Customize tap. On
-        // a single-choice section that happens the moment the row is picked; a multi-select
-        // section keeps the guest on the rows (they may pick several) and the walk starts when
-        // they Continue. An option with nothing further to configure announces the choice, and
-        // the section auto-advances as before.
-        if (hasOwnCustomization(toggledSection, itemId, productVariationId)) {
-          if (toggledSection.maxSelection === 1) {
-            if (productVariationId == null) beginOptionTourAt(toggledSection.id, itemId);
-            else beginOptionTourAt(toggledSection.id, itemId, productVariationId);
-          }
-          return;
-        }
-        onChoice();
+        if (toggledSection.maxSelection === 1 && (rowSelection?.unresolvedCount ?? 0) <= 1) onChoice();
       }}
-      onCustomizeOption={openOptionCustomization}
-      onOptionQuantityChange={(sectionId, itemId, quantity, productVariationId) =>
-        controller.setOptionCustomization(sectionId, itemId, { quantity }, productVariationId)
+      onCustomizeOption={(_sectionId, _itemId, _productVariationId, menuSectionItemId) => {
+        const plannedStep = plannedSteps.find(
+          (candidate) => candidate.sectionItemId === menuSectionItemId && candidate.parentStepId === step.id,
+        );
+        if (plannedStep) onJump(plannedStep);
+      }}
+      onOptionQuantityChange={(sectionId, itemId, quantity, productVariationId, menuSectionItemId) =>
+        controller.setOptionCustomization(sectionId, itemId, { quantity }, productVariationId, menuSectionItemId)
       }
       hideLegend
     />
-  );
-}
-
-/** Does picking this option open a customization screen the guest would be carried past? */
-function hasOwnCustomization(section: MenuSection, productId: string, productVariationId?: string | null): boolean {
-  const item = section.items.find(
-    (candidate) =>
-      candidate.productId === productId && (candidate.productVariationId ?? null) === (productVariationId ?? null),
-  );
-  return (
-    (item?.customizationGroups?.some((group) => group.isActive) ?? false) ||
-    (item?.detailedIngredients?.length ?? 0) > 0
   );
 }

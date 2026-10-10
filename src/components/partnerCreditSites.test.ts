@@ -24,7 +24,8 @@ const SRC = resolve(__dirname, '..');
  * at a diner, and `/admin`, `/cashier`, `/server` and `/kitchen-staff` are the restaurant's
  * own back office. Remove this entry, not the assertion, if that decision is ever reversed.
  */
-const EXCLUDED = ['app/app-internal-layout.tsx'];
+// This is a simulated CTA inside the admin preview, not a public tenant footer.
+const EXCLUDED = ['app/app-internal-layout.tsx', 'components/admin/product-editor/CustomerFlowPhonePreview.tsx'];
 
 function footerFiles(): string[] {
   const out = execFileSync('grep', ['-rl', '--include=*.tsx', '<footer', SRC], { encoding: 'utf8' });
@@ -59,8 +60,11 @@ describe('partner credit render sites', () => {
     expect(source).toContain('<PartnerCredit />');
   });
 
-  it('excludes only the staff/admin chrome, and only on purpose', () => {
-    expect(EXCLUDED).toEqual(['app/app-internal-layout.tsx']);
+  it('excludes only the staff/admin chrome and a read-only in-admin phone mock, and only on purpose', () => {
+    expect(EXCLUDED).toEqual([
+      'app/app-internal-layout.tsx',
+      'components/admin/product-editor/CustomerFlowPhonePreview.tsx',
+    ]);
     expect(files).toEqual(expect.arrayContaining(EXCLUDED));
   });
 });

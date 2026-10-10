@@ -3,8 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import { useSheetSteps } from './useSheetSteps';
 import { buildOptionSteps } from '@/utils/customizationSteps';
-import { optionStepIsSkippable } from '@/utils/customizationSummary';
-import { findBundleOption } from '@/utils/bundleSelection';
+import { resolveSelectedBundleOption } from '@/utils/bundleOptionResolution';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { activeCustomizationGroups, ingredientIdsForSelections } from '@/utils/explicitCustomization';
 import type { SheetController } from './useSheetFlow';
@@ -31,29 +30,13 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
   const customizing = bundle?.customizingOption ?? null;
   const sections = bundle?.sections ?? EMPTY_SECTIONS;
 
-  const item = useMemo(() => {
-    if (!customizing) return null;
-    return sections
-      .find((section) => section.id === customizing.sectionId)
-      ?.items.find(
-        (candidate) =>
-          candidate.productId === customizing.itemId &&
-          (candidate.productVariationId ?? null) === (customizing.productVariationId ?? null),
-      );
-  }, [customizing, sections]);
-
-  const option = useMemo(
+  const resolution = useMemo(
     () =>
-      item && customizing && bundle
-        ? findBundleOption(
-            bundle.selectedOptions,
-            customizing.sectionId,
-            customizing.itemId,
-            customizing.productVariationId,
-          )
-        : undefined,
-    [item, customizing, bundle],
+      customizing && bundle ? resolveSelectedBundleOption(sections, bundle.selectedOptions, customizing) : undefined,
+    [customizing, bundle, sections],
   );
+  const item = resolution?.item ?? null;
+  const option = resolution?.canonicalSelection;
 
   const steps = useMemo(() => (item ? buildOptionSteps(item) : []), [item]);
   const sauceRule = useMemo(() => toSauceGroupRule(item), [item]);
@@ -80,38 +63,22 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     sauceIds,
     // The OPTION, not the sheet: moving from one option's screen to another must start at step one.
     resetKey: customizing
-      ? `${customizing.sectionId}::${customizing.itemId}::${customizing.productVariationId ?? 'base'}`
+      ? `${customizing.sectionId}::${customizing.menuSectionItemId ?? customizing.itemId}::${customizing.productVariationId ?? 'base'}`
       : '',
   });
 
-  /**
-   * The footer's honest verb: Skip where walking past keeps nothing, the named "no sauce" answer
-   * on the sauces step — `optionStepIsSkippable`, the per-option narrowing of `stepIsSkippable`.
-   */
-  const isSkip = useMemo(
-    () =>
-      Boolean(
-        flow.step &&
-        !flow.step.isRequired &&
-        !flow.isLast &&
-        optionStepIsSkippable(
-          flow.step,
-          item?.detailedIngredients ?? [],
-          selectedIngredients,
-          sauceIds,
-          sauceRule,
-          customizationSelections,
-        ),
-      ),
-    [flow.step, flow.isLast, item, selectedIngredients, sauceIds, sauceRule, customizationSelections],
-  );
-
   const patch = useCallback(
     (p: Partial<SelectedMenuOption>) => {
-      if (!customizing || !bundle) return;
-      bundle.setOptionCustomization(customizing.sectionId, customizing.itemId, p, customizing.productVariationId);
+      if (!customizing || !bundle || !item) return;
+      bundle.setOptionCustomization(
+        customizing.sectionId,
+        customizing.itemId,
+        p,
+        customizing.productVariationId,
+        item.id,
+      );
     },
-    [customizing, bundle],
+    [customizing, bundle, item],
   );
 
   const onSelectionChange = useCallback((selected: string[]) => patch({ selectedIngredients: selected }), [patch]);
@@ -145,7 +112,6 @@ export function useBundleOptionFlow(controller: SheetController, total: number) 
     item,
     option,
     currentLanguage,
-    isSkip,
     total,
     onSelectionChange,
     onQuantityChange,

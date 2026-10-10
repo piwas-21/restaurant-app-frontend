@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
-import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
+import { closeMenuBasket, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * The menu GRID, excluding the featured-special hero.
@@ -28,11 +28,12 @@ const grid = (page: Page) => page.getByTestId('menu-grid');
  * the accessible-name patterns differ:
  *   - menu card button: aria-label = "Add <item-name> to order" (i18n key
  *     `add_item_to_order` interpolating the localised item name)
- *   - customization modal confirm: visible text = "Add to Order", no
- *     aria-label, so accessible name = visible text
- * The regex `/^Add( .+)? to order$/i` matches both. When a product has
- * variations or ingredient options, the card click opens a dialog and the
- * user confirms from there; we handle both paths via the `dialog` lookup.
+ *   - customization modal actions are destination-aware: `Next: <step>` while
+ *     choices remain, then `Review item` when a review screen exists, and
+ *     `Add to basket` at the terminal action.
+ * The regex `/^Add( .+)? to order$/i` still matches the card action. The
+ * Details regression below uses a simple seeded product, so its sheet goes
+ * directly to the terminal action without adding until the guest clicks it.
  *
  * Data dependency: at least one product flagged active + available + not
  * deleted must exist in the dev DB. The basket persists server-side keyed
@@ -182,9 +183,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
   // `view details for <dish>`, not an anchored `details`: the control's accessible name now carries
   // the DISH. Every card offers one, so a screen-reader user listing the page's buttons used to get
   // N identical "Details" entries where the add control beside it already said which dish it added.
-  const detailsButton = grid(page)
-    .getByRole('button', { name: /view details for/i })
-    .first();
+  const detailsButton = grid(page).getByRole('button', { name: /^view details for e2e test product$/i });
   await expect(detailsButton).toBeVisible({ timeout: 15_000 });
 
   // Capture any basket write the moment it's INITIATED (request event, not response), so a
@@ -197,11 +196,12 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
 
   await detailsButton.click();
 
-  // The customization/details sheet opens — a BaseModal dialog whose footer confirm reads
-  // "Add to Order • <price>" (non-anchored match — it ends with the live price, not "to order").
-  const dialog = page.getByRole('dialog');
+  // The details sheet opens for the intended seeded product. It has no customer-choice screens,
+  // so its truthful terminal action is Add to basket. Opening Details must leave that action
+  // uncommitted and must not initiate a Basket write.
+  const dialog = page.getByRole('dialog', { name: 'E2E Test Product' });
   await expect(dialog).toBeVisible({ timeout: 5_000 });
-  await expect(dialog.getByRole('button', { name: /add to order/i })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /^Add to basket\b/i })).toBeVisible();
 
   // The sheet opened — a quick-add would have skipped the dialog and POSTed instead — so the cart
   // must be untouched.
@@ -212,7 +212,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
  * Regression guard — clicking a menu item's image opens the enlarge-on-click
  * lightbox (restored in #234 after f3f1269 deleted it and wired the image to
  * details). The lightbox is NOT the customization sheet: it shows the enlarged
- * image and carries no "Add to Order" button.
+ * image and carries no customization-sheet "Add to basket" action.
  */
 test('clicking a menu item image opens the enlarged-image lightbox', async ({ page }) => {
   await page.goto('/en/menu');
@@ -227,7 +227,7 @@ test('clicking a menu item image opens the enlarged-image lightbox', async ({ pa
   await expect(dialog).toBeVisible({ timeout: 5_000 });
   // It's the image lightbox, not the customization sheet: an enlarged <img> photo is shown
   // (locator('img') targets the real image tag, not the close-button SVG that maps to role=img),
-  // and there is NO "Add to Order" footer (the sheet's signature) inside the dialog.
+  // and there is NO terminal "Add to basket" action (the sheet's signature) inside the dialog.
   await expect(dialog.locator('img').first()).toBeVisible();
-  await expect(dialog.getByRole('button', { name: /add to order/i })).toHaveCount(0);
+  await expect(dialog.getByRole('button', { name: /^Add to basket\b/i })).toHaveCount(0);
 });

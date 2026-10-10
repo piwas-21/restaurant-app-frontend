@@ -3,11 +3,19 @@
 import SuggestedSideItemGroup from './SuggestedSideItemGroup';
 import { groupSuggestedSideItems, type SuggestedSideGroup } from '@/utils/suggestedSideItems';
 import type { SuggestedSideItem } from '@/types/menu';
+import { findSelectedSide } from '@/utils/selectedSideItem';
 
 interface SuggestedSideItemsSectionProps {
   sideItems: SuggestedSideItem[];
-  selectedSideItems: Array<{ id: string; quantity: number }>;
-  onSelectionChange: (selected: Array<{ id: string; quantity: number }>) => void;
+  selectedSideItems: Array<{
+    id: string;
+    suggestedSideItemId?: string;
+    quantity: number;
+    productVariationId?: string | null;
+  }>;
+  onSelectionChange: (
+    selected: Array<{ id: string; suggestedSideItemId?: string; quantity: number; productVariationId?: string | null }>,
+  ) => void;
   currentLanguage: string;
   /** Passed straight through — see `SuggestedSideItemGroup`. */
   variant?: 'disclosure' | 'plain' | 'bare';
@@ -29,21 +37,21 @@ export default function SuggestedSideItemsSection({
 }: Readonly<SuggestedSideItemsSectionProps>) {
   if (!sideItems.length) return null;
 
-  const handleAdd = (sideItemId: string) => {
-    const existing = selectedSideItems.find((item) => item.id === sideItemId);
+  const handleAdd = (sideItem: SuggestedSideItem) => {
+    const existing = findSelectedSide(selectedSideItems, sideItem);
     onSelectionChange(
       existing
-        ? selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity + 1 } : item))
-        : [...selectedSideItems, { id: sideItemId, quantity: 1 }],
+        ? selectedSideItems.map((item) => (item === existing ? { ...item, quantity: item.quantity + 1 } : item))
+        : [...selectedSideItems, { id: sideItem.id, suggestedSideItemId: sideItem.suggestedSideItemId, quantity: 1 }],
     );
   };
-  const handleRemove = (sideItemId: string) => {
-    const existing = selectedSideItems.find((item) => item.id === sideItemId);
+  const handleRemove = (sideItem: SuggestedSideItem) => {
+    const existing = findSelectedSide(selectedSideItems, sideItem);
     if (!existing) return;
     onSelectionChange(
       existing.quantity > 1
-        ? selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity - 1 } : item))
-        : selectedSideItems.filter((item) => item.id !== sideItemId),
+        ? selectedSideItems.map((item) => (item === existing ? { ...item, quantity: item.quantity - 1 } : item))
+        : selectedSideItems.filter((item) => item !== existing),
     );
   };
 
@@ -56,6 +64,13 @@ export default function SuggestedSideItemsSection({
         selectedSideItems={selectedSideItems}
         onAdd={handleAdd}
         onRemove={handleRemove}
+        onVariationChange={(sideItem, productVariationId) => {
+          const existing = findSelectedSide(selectedSideItems, sideItem);
+          if (!existing) return;
+          onSelectionChange(
+            selectedSideItems.map((item) => (item === existing ? { ...item, productVariationId } : item)),
+          );
+        }}
         variant={variant}
       />
     ));

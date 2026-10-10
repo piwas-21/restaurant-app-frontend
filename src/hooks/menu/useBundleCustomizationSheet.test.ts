@@ -5,11 +5,12 @@ import { ApiError } from '@/utils/apiClient';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
 const mockEnqueueSnackbar = jest.fn();
+let mockLanguage = 'en';
 
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ addItem: mockAddItem }) }));
 jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mockEnqueueSnackbar }) }));
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (_k: string, f?: string) => f || _k, i18n: { language: 'en' } }),
+  useTranslation: () => ({ t: (_k: string, f?: string) => f || _k, i18n: { language: mockLanguage } }),
 }));
 
 const cheese = {
@@ -103,11 +104,44 @@ const bundle: MenuBundleItem = {
 };
 
 beforeEach(() => {
+  mockLanguage = 'en';
   mockAddItem.mockClear();
   mockEnqueueSnackbar.mockClear();
 });
 
 describe('useBundleCustomizationSheet', () => {
+  it.each([
+    ['fr', 'Choisissez un plat', 'Choisissez votre plat'],
+    ['en', 'Choose a dish', 'Choose one dish'],
+    ['ar', 'اختر طبقًا', 'اختر طبقًا واحدًا'],
+  ])('returns the %s section copy for guest screens without changing IDs', (language, name, description) => {
+    mockLanguage = language;
+    const section = bundle.menuDefinition!.sections[0];
+    const localizedBundle: MenuBundleItem = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition!,
+        sections: [
+          {
+            ...section,
+            translations: {
+              en: { name: 'Choose a dish', description: 'Choose one dish' },
+              fr: { name: 'Choisissez un plat', description: 'Choisissez votre plat' },
+              ar: { name: 'اختر طبقًا', description: 'اختر طبقًا واحدًا' },
+            },
+          },
+          ...bundle.menuDefinition!.sections.slice(1),
+        ],
+      },
+    };
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() => result.current.openForBundle(localizedBundle));
+
+    expect(result.current.sections[0]).toMatchObject({ id: section.id, name, description });
+    expect(result.current.sections[0].items[0].id).toBe(section.items[0].id);
+  });
+
   it("falls back to the combo's plain description when no translation carries one (F3)", () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
 
@@ -136,6 +170,7 @@ describe('useBundleCustomizationSheet', () => {
       {
         sectionId: 'main',
         itemId: 'burger',
+        menuSectionItemId: 'si-burger',
         quantity: 1,
         selectedIngredients: ['cheese'],
         ingredientQuantities: { cheese: 1 },
@@ -194,11 +229,12 @@ describe('useBundleCustomizationSheet', () => {
         {
           sectionId: 'main',
           itemId: 'burger',
+          menuSectionItemId: 'si-burger',
           quantity: 1,
           selectedIngredients: ['cheese'],
           ingredientQuantities: { cheese: 1 },
         },
-        { sectionId: 'drink', itemId: 'water', quantity: 1 },
+        { sectionId: 'drink', itemId: 'water', menuSectionItemId: 'si-water', quantity: 1 },
       ],
     });
     expect(result.current.isOpen).toBe(false);
@@ -524,6 +560,7 @@ describe('useBundleCustomizationSheet', () => {
       {
         sectionId: 'main',
         itemId: 'burger',
+        menuSectionItemId: 'si-burger',
         quantity: 1,
         selectedIngredients: ['cheese'],
         ingredientQuantities: { cheese: 1 },
@@ -585,7 +622,11 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
     });
     expect(started).toBe(true);
     expect(result.current.optionTourSectionId).toBe('sides');
-    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
+    expect(result.current.customizingOption).toEqual({
+      sectionId: 'sides',
+      itemId: 'fries',
+      menuSectionItemId: 'si-fries',
+    });
 
     // Done opens the next walkable option; soup (no ingredients) is skipped by the walk.
     let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
@@ -593,7 +634,11 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
       outcome = result.current.advanceOptionTour();
     });
     expect(outcome).toBe('advanced');
-    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'salad' });
+    expect(result.current.customizingOption).toEqual({
+      sectionId: 'sides',
+      itemId: 'salad',
+      menuSectionItemId: 'si-salad',
+    });
 
     act(() => {
       outcome = result.current.advanceOptionTour();
@@ -614,7 +659,11 @@ describe('the guided option walk (partner feedback 2026-09)', () => {
       started = result.current.beginOptionTour(sidesSection);
     });
     expect(started).toBe(true);
-    expect(result.current.customizingOption).toEqual({ sectionId: 'sides', itemId: 'fries' });
+    expect(result.current.customizingOption).toEqual({
+      sectionId: 'sides',
+      itemId: 'fries',
+      menuSectionItemId: 'si-fries',
+    });
 
     let outcome: ReturnType<typeof result.current.advanceOptionTour> | undefined;
     act(() => {

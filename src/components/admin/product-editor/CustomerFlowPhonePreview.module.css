@@ -1,0 +1,133 @@
+.phone {
+  width: min(100%, 19rem);
+  margin-inline: auto;
+  padding: 0.65rem;
+  border: 1px solid var(--border-default);
+  border-radius: 2rem;
+  background: var(--surface-secondary);
+}
+
+.speaker {
+  width: 4rem;
+  height: 0.25rem;
+  margin: 0 auto 0.5rem;
+  border-radius: 1rem;
+  background: var(--border-default);
+}
+
+.screen {
+  display: flex;
+  min-height: 28rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: 1.5rem;
+  background: var(--surface-card);
+}
+
+.status,
+.header,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.status,
+.stepCount,
+.scope {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.header {
+  border-block-end: 1px solid var(--border-light);
+  font-weight: 650;
+}
+
+.content {
+  flex: 1;
+  padding: 1.25rem 1rem;
+}
+
+.content h4 {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.scope {
+  margin: 0.5rem 0;
+}
+
+.choices {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choices li {
+  padding: 0.7rem;
+  border: 1px solid var(--border-light);
+  border-radius: 0.65rem;
+}
+
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-block-start: 1px solid var(--border-light);
+}
+
+.navigation button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.navigation button:disabled {
+  color: var(--text-secondary);
+  opacity: 0.55;
+}
+
+.navigation button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.footer {
+  border-block-start: 1px solid var(--border-light);
+}
+
+.footer > span {
+  white-space: nowrap;
+}
+
+.footer button {
+  max-width: 65%;
+  padding: 0.65rem 0.8rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  font: inherit;
+  font-weight: 650;
+}
+
+.caption {
+  display: block;
+  margin-block-start: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-align: center;
+}

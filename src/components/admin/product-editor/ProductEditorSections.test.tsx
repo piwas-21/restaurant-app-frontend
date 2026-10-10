@@ -40,6 +40,7 @@ const SECTION_LABELS = [
   'editor_section_media',
   'editor_section_pricing',
   'editor_section_options',
+  'customer_flow_section_title',
   'editor_section_recipe',
   'editor_section_service',
   'editor_section_advanced',
@@ -87,7 +88,7 @@ const navEntries = (container: HTMLElement) =>
 
 beforeEach(() => jest.clearAllMocks());
 
-describe('the seven sections of §4', () => {
+describe('the editor sections', () => {
   it('renders them in order, and names each one in the nav', async () => {
     const { container } = await renderEditor();
 
@@ -98,6 +99,7 @@ describe('the seven sections of §4', () => {
       'editor-section-media',
       'editor-section-pricing',
       'editor-section-options',
+      'editor-section-customer-screens',
       'editor-section-recipe',
       'editor-section-service',
       'editor-section-advanced',

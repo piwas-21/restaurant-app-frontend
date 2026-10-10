@@ -6,8 +6,10 @@ import type { MenuSection } from '@/types/menu';
  * section must remain a normal picker until its own product decision says otherwise.
  */
 export function isFixedPlatSection(section: MenuSection): boolean {
+  const sourceName =
+    'sourceName' in section && typeof section.sourceName === 'string' ? section.sourceName : section.name;
   return (
-    section.name.trim().toLocaleLowerCase() === 'plat' &&
+    sourceName.trim().toLocaleLowerCase() === 'plat' &&
     section.isRequired &&
     section.minSelection === 1 &&
     section.maxSelection === 1 &&

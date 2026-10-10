@@ -379,6 +379,115 @@ describe('stepBlocker — the gate reads the same rules the Add button enforces'
     ).toBeNull();
   });
 
+  it('reads component sauce and required-group answers from the exact selected bundle row', () => {
+    const sauceStep = {
+      id: 'component-sauces',
+      kind: 'sauces' as const,
+      singleChoice: false,
+      isRequired: true,
+      sectionItemId: 'row-a',
+      sauceIds: ['salsa'],
+      sauceMin: 1,
+    };
+    const group: ProductCustomizationGroup = {
+      id: 'meat',
+      name: 'Meat',
+      displayOrder: 0,
+      isRequired: true,
+      minSelection: 1,
+      maxSelection: 1,
+      includedFreeUnits: 0,
+      isActive: true,
+      content: {},
+      ingredientOptions: [],
+      productOptions: [],
+    };
+    const groupStep = {
+      id: 'component-group',
+      kind: 'group' as const,
+      singleChoice: true,
+      isRequired: true,
+      sectionItemId: 'row-a',
+      group,
+    };
+    const unselected = {
+      ...empty,
+      selectedOptions: [{ sectionId: 'main', itemId: 'taco', menuSectionItemId: 'row-a', quantity: 1 }],
+    };
+    const sauceSelected = {
+      ...unselected,
+      selectedOptions: [{ ...unselected.selectedOptions[0], selectedIngredients: ['salsa'] }],
+    };
+    const groupSelected = {
+      ...unselected,
+      selectedOptions: [
+        {
+          ...unselected.selectedOptions[0],
+          customizationSelections: [
+            { groupId: 'meat', options: [{ kind: 1 as const, optionId: 'chicken', quantity: 1 }] },
+          ],
+        },
+      ],
+    };
+
+    expect(stepBlocker(sauceStep, unselected)).toBe('sauces');
+    expect(stepBlocker(sauceStep, sauceSelected)).toBeNull();
+    expect(stepBlocker(groupStep, unselected)).toBe('group');
+    expect(stepBlocker(groupStep, groupSelected)).toBeNull();
+  });
+
+  it('requires an active component variation and ignores zero-quantity required sides', () => {
+    const variationStep = {
+      id: 'component-variation',
+      kind: 'variations' as const,
+      singleChoice: true,
+      isRequired: true,
+      sectionItemId: 'row-a',
+      variationIds: ['large'],
+    };
+    const sideStep = {
+      id: 'component-side',
+      kind: 'sides' as const,
+      singleChoice: false,
+      isRequired: true,
+      sectionItemId: 'row-a',
+      requiredSideItemIds: ['side-ref'],
+    };
+    const selected = {
+      ...empty,
+      selectedOptions: [
+        {
+          sectionId: 'main',
+          itemId: 'taco',
+          menuSectionItemId: 'row-a',
+          quantity: 1,
+          componentProductVariationId: 'inactive',
+          selectedSideItems: [{ id: 'fries', suggestedSideItemId: 'side-ref', quantity: 0 }],
+        },
+      ],
+    };
+
+    expect(stepBlocker(variationStep, selected)).toBe('variation');
+    expect(stepBlocker(sideStep, selected)).toBe('side');
+    expect(
+      stepBlocker(variationStep, {
+        ...selected,
+        selectedOptions: [{ ...selected.selectedOptions[0], componentProductVariationId: 'large' }],
+      }),
+    ).toBeNull();
+    expect(
+      stepBlocker(sideStep, {
+        ...selected,
+        selectedOptions: [
+          {
+            ...selected.selectedOptions[0],
+            selectedSideItems: [{ id: 'fries', suggestedSideItemId: 'side-ref', quantity: 1 }],
+          },
+        ],
+      }),
+    ).toBeNull();
+  });
+
   it('blocks a required bundle section with nothing chosen', () => {
     const step = buildBundleSteps([section()])[0];
 

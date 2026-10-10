@@ -135,9 +135,9 @@ async function openSaucesStep(max: number, selected: string[]) {
   await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
   // The guided screen: Customize → the ingredients step → Continue to the sauces step.
-  fireEvent.click(screen.getByRole('button', { name: 'customize' }));
+  fireEvent.click(screen.getByRole('button', { name: 'customer_cta_customize_item' }));
   await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
-  fireEvent.click(screen.getByRole('button', { name: /step_continue/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
   await waitFor(() => expect(screen.getByText('sauces')).toBeInTheDocument());
 }
 
@@ -145,6 +145,7 @@ function expectState(selected: string[], quantities: Record<string, number>) {
   expect(JSON.parse(screen.getByRole('status', { name: 'bundle state' }).textContent ?? '')).toEqual({
     sectionId: 'main',
     itemId: 'burger',
+    menuSectionItemId: 'item',
     quantity: 1,
     selectedIngredients: ['cheese', ...selected],
     ingredientQuantities: { cheese: 2, ...quantities },

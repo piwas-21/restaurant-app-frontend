@@ -26,6 +26,7 @@ import { updateProduct, uploadBulkProductImages } from '@/services/productServic
 import { createProduct } from '@/services/menuService';
 import { updateMenuBundle, createMenuBundle, patchMenuBundleSections } from '@/services/menuBundleService';
 import type { MenuSection } from '@/types/menu';
+import { defaultBundleCustomerStepManifest, defaultProductCustomerStepManifest } from '@/utils/customerStepManifest';
 
 /** The shape EditMenuBundleModal builds — editMenuBundleSchema has no category field at all. */
 const bundleFormData = (overrides: Record<string, unknown> = {}) => ({
@@ -45,7 +46,7 @@ const bundleFormData = (overrides: Record<string, unknown> = {}) => ({
 });
 
 /** The shape EditProductModal builds — a plain item never carries a menuDefinition. */
-const itemFormData = () => ({
+const itemFormData = (overrides: Record<string, unknown> = {}) => ({
   id: 'product-1',
   name: 'Margherita',
   description: 'A pizza',
@@ -62,6 +63,7 @@ const itemFormData = () => ({
   content: [{ language: 'en', name: 'Margherita', description: 'A pizza' }],
   preparationTimeMinutes: 10,
   suggestedSideItemIds: [],
+  ...overrides,
 });
 
 // submitEditProductForm swallows every throw into `catch { setError('root', ...) }`, so a test that
@@ -371,6 +373,120 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
     expect(updateProduct).toHaveBeenCalledTimes(1);
     expect(updateMenuBundle).not.toHaveBeenCalled();
     expect(updateProduct).toHaveBeenCalledWith('product-1', expect.objectContaining({ customizationGroups }));
+  });
+
+  it('persists product and bundle defaults with required variations and drink roles on the normal update payloads', async () => {
+    const productManifest = defaultProductCustomerStepManifest({
+      variations: [{ id: 'size-large', isActive: true }],
+      hideBaseProduct: true,
+      suggestedSideItems: [
+        {
+          id: 'drink-product',
+          suggestedSideItemId: 'drink-association',
+          name: 'Cola',
+          price: 2,
+          type: 'beverage',
+          isRequired: false,
+          displayOrder: 0,
+        },
+      ],
+    });
+    await submit(
+      itemFormData({
+        customerStepManifest: productManifest,
+        variations: [
+          { id: 'size-large', name: 'Large', priceModifier: 0, finalPrice: 10, isActive: true, displayOrder: 0 },
+        ],
+        suggestedSideItemIds: ['drink-product'],
+      }),
+      { id: 'product-1' },
+    );
+
+    const productPayload = (updateProduct as jest.Mock).mock.calls[0][1];
+    expect(productPayload.customerStepManifest.steps).toEqual([
+      expect.objectContaining({ kind: 'ProductVariation', targetId: 'size-large', compositionRole: 'RequiredChoice' }),
+      expect.objectContaining({
+        kind: 'ProductSuggestedSide',
+        targetId: 'drink-association',
+        compositionRole: 'Drink',
+      }),
+    ]);
+
+    jest.clearAllMocks();
+    const sections = [
+      {
+        id: 'dish-section',
+        name: 'Meal',
+        displayOrder: 0,
+        isRequired: true,
+        minSelection: 1,
+        maxSelection: 1,
+        allowRepeatedItems: false,
+        items: [
+          {
+            id: 'dish-row',
+            productId: 'dish-product',
+            productName: 'Taco',
+            displayOrder: 0,
+            additionalPrice: 0,
+            isDefault: true,
+            hideBaseProduct: true,
+            variations: [
+              {
+                id: 'component-size',
+                name: 'Large',
+                isActive: true,
+                priceModifier: 0,
+                finalPrice: 10,
+                displayOrder: 0,
+              },
+            ],
+            suggestedSideItems: [
+              {
+                id: 'drink-association',
+                sideItemProductId: 'drink-product',
+                sideItemProductName: 'Cola',
+                sideItemProductType: 'beverage',
+                sideItemBasePrice: 2,
+                isRequired: false,
+                displayOrder: 0,
+              },
+            ],
+          },
+        ],
+      },
+    ] as MenuSection[];
+    const bundleManifest = defaultBundleCustomerStepManifest(sections);
+    await submit(
+      bundleFormData({
+        customerStepManifest: bundleManifest,
+        menuDefinition: { id: 'definition-1', authoringVersion: 12, isAlwaysAvailable: true, sections },
+      }),
+      {
+        id: 'bundle-1',
+        menuDefinition: { authoringVersion: 12, sections },
+      },
+    );
+
+    const bundlePayload = (updateMenuBundle as jest.Mock).mock.calls[0][1];
+    expect(bundlePayload.customerStepManifest.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'BundleComponentVariation',
+          sectionId: 'dish-section',
+          sectionItemId: 'dish-row',
+          scopeId: 'component-size',
+          compositionRole: 'RequiredChoice',
+        }),
+        expect.objectContaining({
+          kind: 'BundleComponentSide',
+          sectionId: 'dish-section',
+          sectionItemId: 'dish-row',
+          scopeId: 'drink-association',
+          compositionRole: 'Drink',
+        }),
+      ]),
+    );
   });
 
   // Deliberately NOT named "no longer depends on categories": categoryIds:[] is what the code

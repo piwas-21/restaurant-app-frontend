@@ -145,7 +145,7 @@ describe('catalog-to-sheet availability handoff', () => {
     render(<ItemCustomizationSheet controller={result.current.product} />);
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Add to Order|add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
     expect(mockAddItem).not.toHaveBeenCalled();
 
     mockOrderType.current = OrderType.Takeaway;

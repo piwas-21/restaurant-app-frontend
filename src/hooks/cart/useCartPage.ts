@@ -52,13 +52,19 @@ export function useCartPage() {
     const blocker = await proceedToCheckout(orderType, 'cart_page');
     hint.setBlocker(blocker);
     if (blocker === 'details') {
-      orderTypeFollowUp.pickType(orderType, 'cart_page', true);
+      await orderTypeFollowUp.pickType(orderType, 'cart_page', true);
     }
   };
 
-  // proceedToCheckout has its own try/catch; fire-and-forget so the DOM handler
-  // stays synchronous.
-  const handleCheckout = () => void runCheckout();
+  // The router handles its own failures; this catches rejected follow-up work without exposing details.
+  const handleCheckout = () => {
+    void runCheckout().catch((error: unknown) => {
+      console.warn(
+        'Cart follow-up failed; the details step remains available for retry.',
+        error instanceof Error ? 'Error' : 'UnknownError',
+      );
+    });
+  };
 
   /**
    * IGNORED ON PURPOSE — and verified end to end rather than asserted, because "handled

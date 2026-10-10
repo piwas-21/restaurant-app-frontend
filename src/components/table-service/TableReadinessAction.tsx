@@ -8,19 +8,29 @@ import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useAccountPaymentActor } from '@/hooks/accountPayments/useAccountPaymentActor';
 import { useTableReadiness } from '@/hooks/tableReadiness/useTableReadiness';
 import { loadAccountPaymentLocale } from '@/services/accountPaymentLocaleService';
-import type { PendingTableReadiness } from '@/types/tableReadiness';
+import type { PendingTableReadiness, TableReadinessOutcome } from '@/types/tableReadiness';
 import styles from './TableReadinessAction.module.css';
 
 interface Props {
   readonly tableId: string;
+  readonly readinessState?: string | null;
   readonly readinessVersion?: number | null;
   readonly canMarkReady: boolean;
+  /** Kept for caller compatibility; readiness evidence comes from explicit projection fields. */
   readonly snapshot: object;
   readonly isStale: boolean;
   readonly refresh: () => Promise<void>;
+  readonly onConfirmedReady?: (outcome: TableReadinessOutcome) => void;
 }
 
 type OwnedProps = Props & { readonly actorId: string; readonly actorRole: PendingTableReadiness['actorRole'] };
+
+function resolveReadinessState(snapshot: object, readinessState: string | null | undefined) {
+  if (readinessState !== undefined) return readinessState;
+  if (!('readinessState' in snapshot)) return undefined;
+  const value = (snapshot as { readonly readinessState?: unknown }).readinessState;
+  return typeof value === 'string' || value === null ? value : undefined;
+}
 
 function refusalMessageKey(code: string): string {
   const keys: Record<string, string> = {
@@ -37,11 +47,13 @@ function OwnedAction({
   actorId,
   actorRole,
   tableId,
+  readinessState,
   readinessVersion,
   canMarkReady,
   snapshot,
   isStale,
   refresh,
+  onConfirmedReady,
 }: OwnedProps) {
   const { t, i18n } = useTranslation();
   const { tableVisitReadinessV1: enabled } = useTenantFeatures();
@@ -50,10 +62,12 @@ function OwnedAction({
     actorId,
     actorRole,
     tableId,
+    readinessState: resolveReadinessState(snapshot, readinessState),
     readinessVersion,
     canStart: enabled === true && canMarkReady && !isStale && hasReadinessVersion,
-    snapshot,
+    isStale,
     refresh,
+    onConfirmedReady,
   });
   const [locale, setLocale] = useState<string | null>(null);
   const [localeFailed, setLocaleFailed] = useState(false);

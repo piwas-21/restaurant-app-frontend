@@ -19,9 +19,10 @@ const input = {
   actorId: pending.actorId,
   actorRole: pending.actorRole,
   tableId: pending.tableId,
+  readinessState: 'NeedsReset',
   readinessVersion: 7,
   canStart: true,
-  snapshot: {},
+  isStale: false,
   refresh,
 };
 beforeEach(() => {
@@ -60,7 +61,7 @@ it('mounts owner lookup with flags off and never generates another operation', a
   expect(read()).toEqual({ status: 'pending', value: pending });
 });
 
-it('clears a proven success without opening a visit or changing the current table locally', async () => {
+it('clears success only after a fresh same-table ready projection advances the readiness version', async () => {
   expect(persistPendingTableReadiness(pending)).toBe(true);
   lookup.mockResolvedValue({
     kind: 'succeeded',
@@ -71,11 +72,40 @@ it('clears a proven success without opening a visit or changing the current tabl
       readinessVersion: 8,
     },
   });
-  const { result } = renderHook(() => useTableReadiness({ ...input, readinessVersion: 99, canStart: false }));
+  const { result, rerender } = renderHook((props) => useTableReadiness(props), {
+    initialProps: { ...input, canStart: false },
+  });
   await waitFor(() => expect(result.current.stage).toBe('settled'));
   expect(read()).toEqual({ status: 'none' });
   expect(refresh).toHaveBeenCalledTimes(1);
   expect(mark).not.toHaveBeenCalled();
+
+  rerender({ ...input, canStart: false, readinessVersion: 7, readinessState: 'ReadyForGuests' });
+  expect(result.current.stage).toBe('settled');
+  rerender({ ...input, canStart: false, readinessVersion: 8, readinessState: 'ReadyForGuests' });
+  await waitFor(() => expect(result.current.stage).toBe('idle'));
+  expect(result.current.result).toBeUndefined();
+});
+
+it('keeps success visible while the refreshed projection is stale, even if its version advanced', async () => {
+  expect(persistPendingTableReadiness(pending)).toBe(true);
+  lookup.mockResolvedValue({
+    kind: 'succeeded',
+    outcome: {
+      tableId: pending.tableId,
+      operationId: pending.request.operationId,
+      readinessState: 'ReadyForGuests',
+      readinessVersion: 8,
+    },
+  });
+  refresh.mockRejectedValueOnce(new Error('refresh failed'));
+  const { result, rerender } = renderHook((props) => useTableReadiness(props), { initialProps: input });
+  await waitFor(() => expect(result.current.stage).toBe('settled'));
+
+  rerender({ ...input, canStart: false, readinessVersion: 8, readinessState: 'ReadyForGuests', isStale: true });
+  expect(result.current.stage).toBe('settled');
+  rerender({ ...input, canStart: false, readinessVersion: 8, readinessState: 'ReadyForGuests', isStale: false });
+  await waitFor(() => expect(result.current.stage).toBe('idle'));
 });
 
 it('keeps a refusal visible across refresh and requires explicit retry after a fresh snapshot', async () => {
@@ -87,13 +117,19 @@ it('keeps a refusal visible across refresh and requires explicit retry after a f
   await waitFor(() => expect(result.current.stage).toBe('settled'));
   await act(async () => result.current.start());
   expect(mark).not.toHaveBeenCalled();
-  rerender({ ...input, snapshot: {} });
+  rerender({ ...input, readinessState: 'ReadyForGuests', canStart: false });
+  expect(result.current.stage).toBe('settled');
+  expect(result.current.canRetryRefusal).toBe(false);
+  await act(async () => result.current.start());
+  expect(mark).not.toHaveBeenCalled();
+
+  rerender({ ...input, readinessVersion: 8, readinessState: 'NeedsReset' });
   expect(result.current.stage).toBe('settled');
   expect(result.current.canRetryRefusal).toBe(true);
   await act(async () => result.current.start());
   expect(mark).toHaveBeenCalledWith(pending.tableId, {
     operationId: '44444444-4444-4444-8444-444444444444',
-    expectedReadinessVersion: pending.request.expectedReadinessVersion,
+    expectedReadinessVersion: 8,
   });
   expect(result.current.stage).toBe('settled');
 });

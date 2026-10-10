@@ -127,7 +127,9 @@ export function useTableReadiness({
     canStart &&
     !isStale &&
     Number.isSafeInteger(readinessVersion) &&
-    (readinessVersion ?? 0) >= state.operation.request.expectedReadinessVersion,
+    (state.result.code === 'TableReadinessVersionStale'
+      ? (readinessVersion ?? 0) > state.operation.request.expectedReadinessVersion
+      : (readinessVersion ?? 0) >= state.operation.request.expectedReadinessVersion),
   );
 
   const start = useCallback(async () => {

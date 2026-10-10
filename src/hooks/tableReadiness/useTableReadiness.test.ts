@@ -125,6 +125,11 @@ it('keeps a refusal visible across refresh and requires explicit retry after a f
   await act(async () => result.current.start());
   expect(mark).not.toHaveBeenCalled();
 
+  rerender({ ...input, readinessVersion: 7, readinessState: 'NeedsReset', canStart: true, isStale: false });
+  expect(result.current.canRetryRefusal).toBe(false);
+  await act(async () => result.current.start());
+  expect(mark).not.toHaveBeenCalled();
+
   rerender({ ...input, readinessVersion: 8, readinessState: 'NeedsReset' });
   expect(result.current.stage).toBe('settled');
   expect(result.current.canRetryRefusal).toBe(true);

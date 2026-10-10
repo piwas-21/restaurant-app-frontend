@@ -1,0 +1,5 @@
+{
+  "refreshMs": 60000,
+  "maxStaleMs": 300000,
+  "requestTimeoutMs": 5000
+}

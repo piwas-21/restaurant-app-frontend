@@ -184,3 +184,5 @@ export function resolvePaymentCheckoutAllowedHosts(raw: string | undefined): Rea
 export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymentCheckoutAllowedHosts(
   process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
 );
+
+export { default as TENANT_BRANDING_CONFIG } from './tenantBrandingConfig.json';

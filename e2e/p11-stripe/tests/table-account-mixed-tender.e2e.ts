@@ -138,11 +138,15 @@ test('mixed tender refunds resolve the kitchen correction before closing and res
     expect(afterOnline.capturedAccountPaymentMinor).toBe(501);
 
     const selection = collection.locator('form').first();
-    const collectionMode = selection.getByRole('combobox', { name: /^Collect a contribution\b/ });
-    await expect(collectionMode).toHaveCount(1);
-    await expect(collectionMode.locator('option[value="Amount"]')).toHaveCount(1);
-    await collectionMode.selectOption('Amount');
+    await selection.getByRole('radio', { name: 'Custom amount', exact: true }).check();
     await selection.getByLabel('Contribution amount', { exact: true }).fill('9.99');
+    const reserveResponsePromise = cashier.page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        /^\/api\/table-service-sessions\/[^/]+\/account-payments\/operations\/[^/]+\/reserve$/i.test(
+          new URL(response.url()).pathname,
+        ),
+    );
     const cashQuote = await responseData<AccountPaymentOperation>(cashier.page, /\/account-payments\/quotes$/, () =>
       selection.getByRole('button', { name: 'Review contribution', exact: true }).click(),
     );
@@ -153,6 +157,16 @@ test('mixed tender refunds resolve the kitchen correction before closing and res
       paymentMethod: 'Cash',
       state: 'Quoted',
     });
+    const reserveResponse = await reserveResponsePromise;
+    const reserve = await readApiData<AccountPaymentOperation>(reserveResponse, 'cash account auto-reservation');
+    expect(new URL(reserveResponse.url()).pathname.toLowerCase()).toBe(
+      `/api/table-service-sessions/${visit.sessionId}/account-payments/operations/${cashQuote.operationId}/reserve`.toLowerCase(),
+    );
+    expect(reserveResponse.request().postDataJSON()).toMatchObject({
+      expectedVersion: cashQuote.version,
+      expectedAccountRevision: cashQuote.expectedAccountRevision,
+    });
+    expect(reserve).toMatchObject({ operationId: cashQuote.operationId, state: 'Reserved' });
     expect(cashQuote.allocations).toHaveLength(1);
     expect(online.operationId).toMatch(/^[a-f0-9-]{36}$/);
     expect(online.attemptId).toMatch(/^[a-f0-9-]{36}$/);
@@ -180,20 +194,12 @@ test('mixed tender refunds resolve the kitchen correction before closing and res
     });
 
     const cashReview = collection.getByRole('region', { name: 'Review contribution', exact: true });
-    const reserve = responseData<AccountPaymentOperation>(
-      cashier.page,
-      new RegExp(`/operations/${cashQuote.operationId}/reserve$`),
-      () => cashReview.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click(),
-    );
-    expect((await reserve).state).toBe('Reserved');
     await cashReview.getByLabel('Cash received', { exact: true }).fill('10.00');
-    await cashReview
-      .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.', { exact: true })
-      .check();
+    await expect(cashReview.getByRole('button', { name: 'Record cash received', exact: true })).toBeEnabled();
     const cashCapture = await responseData<AccountPaymentOperation>(
       cashier.page,
       new RegExp(`/operations/${cashQuote.operationId}/collect$`),
-      () => cashReview.getByRole('button', { name: 'Record confirmed payment', exact: true }).click(),
+      () => cashReview.getByRole('button', { name: 'Record cash received', exact: true }).click(),
     );
     expect(cashCapture.state).toBe('Captured');
 

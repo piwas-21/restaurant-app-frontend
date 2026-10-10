@@ -355,6 +355,11 @@ for (const { name, viewport } of VIEWPORTS) {
       const account = await requireAuthenticatedData<AccountPaymentAccount>(cashierUser.accessToken, accountPath);
       expect(account).toMatchObject({ serviceSessionId: opened.serviceSessionId, currency: 'CHF' });
       expect(account.outstandingMinor).toBeGreaterThan(0);
+      const reserveResponsePromise = cashier.page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' &&
+          new RegExp(`^${accountPath}/operations/[^/]+/reserve$`, 'i').test(new URL(response.url()).pathname),
+      );
       const quote = await requireResponseData<AccountPaymentOperation>(
         cashier.page,
         new RegExp(`^${accountPath}/quotes$`),
@@ -362,6 +367,19 @@ for (const { name, viewport } of VIEWPORTS) {
           await form.getByRole('button', { name: 'Review contribution', exact: true }).click();
         },
       );
+      const reserveResponse = await reserveResponsePromise;
+      const reserveBody = (await reserveResponse.json()) as ApiEnvelope<AccountPaymentOperation>;
+      if (!reserveResponse.ok() || reserveBody.success !== true || !reserveBody.data) {
+        throw new Error(`Automatic account reservation failed with HTTP ${reserveResponse.status()}.`);
+      }
+      expect(new URL(reserveResponse.url()).pathname.toLowerCase()).toBe(
+        `${accountPath}/operations/${quote.operationId}/reserve`.toLowerCase(),
+      );
+      expect(reserveResponse.request().postDataJSON()).toMatchObject({
+        expectedVersion: quote.version,
+        expectedAccountRevision: quote.expectedAccountRevision,
+      });
+      const reserve = reserveBody.data;
       expect(quote).toMatchObject({
         serviceSessionId: opened.serviceSessionId,
         mode: 'Full',
@@ -370,27 +388,16 @@ for (const { name, viewport } of VIEWPORTS) {
         amountMinor: account.availableMinor,
         tipMinor: 0,
       });
-      const reserve = await requireResponseData<AccountPaymentOperation>(
-        cashier.page,
-        new RegExp(`^${accountPath}/operations/${quote.operationId}/reserve$`),
-        async () => {
-          await cashier.page.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click();
-        },
-      );
       expect(reserve.state).toBe('Reserved');
       const dueMinor = reserve.cashSettlement?.dueAmountMinor;
       expect(dueMinor).toBeGreaterThan(0);
       await cashier.page.getByLabel('Cash received', { exact: true }).fill(((dueMinor ?? 0) / 100).toFixed(2));
-      await cashier.page
-        .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.', {
-          exact: true,
-        })
-        .check();
+      await expect(cashier.page.getByRole('button', { name: 'Record cash received', exact: true })).toBeEnabled();
       const captured = await requireResponseData<AccountPaymentOperation>(
         cashier.page,
         new RegExp(`^${accountPath}/operations/${quote.operationId}/collect$`),
         async () => {
-          await cashier.page.getByRole('button', { name: 'Record confirmed payment', exact: true }).click();
+          await cashier.page.getByRole('button', { name: 'Record cash received', exact: true }).click();
         },
       );
       expect(captured).toMatchObject({

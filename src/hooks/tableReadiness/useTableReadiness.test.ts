@@ -113,7 +113,9 @@ it('keeps a refusal visible across refresh and requires explicit retry after a f
   lookup.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVersionStale', terminal: true });
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('44444444-4444-4444-8444-444444444444');
   mark.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVisitOpen', terminal: true });
-  const { result, rerender } = renderHook((props) => useTableReadiness(props), { initialProps: input });
+  const { result, rerender } = renderHook((props) => useTableReadiness(props), {
+    initialProps: { ...input, canStart: false },
+  });
   await waitFor(() => expect(result.current.stage).toBe('settled'));
   await act(async () => result.current.start());
   expect(mark).not.toHaveBeenCalled();
@@ -132,6 +134,45 @@ it('keeps a refusal visible across refresh and requires explicit retry after a f
     expectedReadinessVersion: 8,
   });
   expect(result.current.stage).toBe('settled');
+});
+
+it('allows an explicit retry after VisitOpen clears at the same version, while a stale projection remains blocked', async () => {
+  expect(persistPendingTableReadiness(pending)).toBe(true);
+  lookup.mockResolvedValue({ kind: 'refused', code: 'TableReadinessVisitOpen', terminal: true });
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('44444444-4444-4444-8444-444444444444');
+  mark.mockResolvedValue({
+    kind: 'succeeded',
+    outcome: {
+      tableId: pending.tableId,
+      operationId: '44444444-4444-4444-8444-444444444444',
+      readinessState: 'ReadyForGuests',
+      readinessVersion: 8,
+    },
+  });
+  const { result, rerender } = renderHook((props) => useTableReadiness(props), {
+    initialProps: { ...input, canStart: false },
+  });
+  await waitFor(() => expect(result.current.stage).toBe('settled'));
+  expect(result.current.canRetryRefusal).toBe(false);
+
+  rerender({ ...input, isStale: true });
+  expect(result.current.stage).toBe('settled');
+  expect(result.current.canRetryRefusal).toBe(false);
+  await act(async () => result.current.start());
+  expect(mark).not.toHaveBeenCalled();
+
+  rerender({ ...input, readinessVersion: 7, readinessState: 'NeedsReset', canStart: true, isStale: false });
+  expect(result.current.canRetryRefusal).toBe(true);
+  await act(async () => result.current.start());
+  expect(mark).toHaveBeenCalledWith(pending.tableId, {
+    operationId: '44444444-4444-4444-8444-444444444444',
+    expectedReadinessVersion: 7,
+  });
+  expect(result.current.stage).toBe('settled');
+  expect(result.current.result).toMatchObject({
+    kind: 'succeeded',
+    outcome: { readinessState: 'ReadyForGuests', readinessVersion: 8 },
+  });
 });
 
 it('blocks writes if storage cannot preserve the operation', async () => {

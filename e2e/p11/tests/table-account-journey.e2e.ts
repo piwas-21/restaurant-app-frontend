@@ -9,6 +9,7 @@ import {
 } from '@playwright/test';
 import { test as p11Test, type P11StaffUser } from '../staffUsers';
 import { createTableAccountP11Fixture, type TableAccountP11Fixture } from '../../seed/tableAccountP11';
+import type { AccountPaymentOperation } from '../../../src/types/accountPayments';
 import { openMenuBasket, proceedViaSidebarExpectingNavigation } from '../../helpers/menuBasket';
 
 const PRODUCT = 'E2E Test Product';
@@ -407,16 +408,36 @@ p11Test(
       await cashier.page.goto(`/en/cashier/tables?session=${encodeURIComponent(secondSession.serviceSessionId)}`);
       const collection = cashier.page.getByRole('region', { name: 'Collect a contribution' });
       await expect(collection).toBeVisible();
-      await collection.getByRole('button', { name: 'Review contribution', exact: true }).click();
+      const reserveResponsePromise = cashier.page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' &&
+          new RegExp(
+            `^/api/table-service-sessions/${secondSession.serviceSessionId}/account-payments/operations/[^/]+/reserve$`,
+            'i',
+          ).test(new URL(response.url()).pathname),
+      );
+      const quote = await requirePostData<AccountPaymentOperation>(
+        cashier.page,
+        new RegExp(`^/api/table-service-sessions/${secondSession.serviceSessionId}/account-payments/quotes$`, 'i'),
+        () => collection.getByRole('button', { name: 'Review contribution', exact: true }).click(),
+      );
+      const reserveResponse = await reserveResponsePromise;
+      const reserveBody = (await reserveResponse.json()) as ApiEnvelope<AccountPaymentOperation>;
+      if (!reserveResponse.ok() || reserveBody.success !== true || !reserveBody.data) {
+        throw new Error(`P11 account reservation was refused with HTTP ${reserveResponse.status()}.`);
+      }
+      expect(new URL(reserveResponse.url()).pathname.toLowerCase()).toBe(
+        `/api/table-service-sessions/${secondSession.serviceSessionId}/account-payments/operations/${quote.operationId}/reserve`.toLowerCase(),
+      );
+      expect(reserveResponse.request().postDataJSON()).toMatchObject({
+        expectedVersion: quote.version,
+        expectedAccountRevision: quote.expectedAccountRevision,
+      });
+      expect(reserveBody.data).toMatchObject({ operationId: quote.operationId, state: 'Reserved' });
       const review = cashier.page.getByRole('region', { name: 'Review contribution' });
-      await expect(review.getByRole('button', { name: 'Confirm reviewed contribution', exact: true })).toBeVisible();
-      await review.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click();
       await expect(review.getByRole('button', { name: 'Exact', exact: true })).toBeVisible();
       await review.getByRole('button', { name: 'Exact', exact: true }).click();
-      await review
-        .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.')
-        .check();
-      await review.getByRole('button', { name: 'Record confirmed payment', exact: true }).click();
+      await review.getByRole('button', { name: 'Record cash received', exact: true }).click();
       await expect(review.getByRole('heading', { name: 'Recorded cash receipt' })).toBeVisible();
       await expectChfAmount(review, 'Exact account charge', '60.00');
       await expectChfAmount(review, 'Cash rounding adjustment', '0.00');

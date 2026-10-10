@@ -1,4 +1,4 @@
-import { expect, request as apiRequest, type BrowserContext, type Page } from '@playwright/test';
+import { expect, request as apiRequest, type BrowserContext, type Page, type Response } from '@playwright/test';
 import { test } from '../../p11/staffUsers';
 import { createTableAccountP11Fixture } from '../../seed/tableAccountP11';
 import { expectNoA11yViolations } from '../../helpers/a11y';
@@ -27,6 +27,24 @@ async function readAccountAfter(page: Page, sessionId: string, action: () => Pro
   }
   expect(body.data.serviceSessionId.toLowerCase()).toBe(sessionId.toLowerCase());
   return body.data;
+}
+
+async function readAccountWithToken(accessToken: string, sessionId: string): Promise<AccountPaymentAccount> {
+  const api = await apiRequest.newContext({
+    baseURL: apiBaseUrl(),
+    extraHTTPHeaders: { Authorization: `Bearer ${accessToken}` },
+  });
+  try {
+    const response = await api.get(`/api/table-service-sessions/${encodeURIComponent(sessionId)}/account-payments`);
+    const body = (await response.json()) as { success?: boolean; data?: AccountPaymentAccount };
+    if (!response.ok() || body.success !== true || !body.data) {
+      throw new Error(`Cashier account read failed with HTTP ${response.status()}.`);
+    }
+    expect(body.data.serviceSessionId.toLowerCase()).toBe(sessionId.toLowerCase());
+    return body.data;
+  } finally {
+    await api.dispose();
+  }
 }
 
 async function readGuestParticipantToken(page: Page, expectedSessionId: string) {
@@ -61,6 +79,7 @@ test('four phones settle one table through items, amount and equal shares, then 
   if (!baseURL) throw new Error('The dedicated local UI origin is unavailable.');
   const contexts: BrowserContext[] = [];
   const guestStorageDiagnostics: GuestStorageDiagnostic[] = [];
+  let continueCashierReserve: (() => void) | undefined;
   try {
     const table = await createTableAccountP11Fixture(p11Admin.accessToken);
     const server = await openVisitContext(browser, baseURL, p11Server);
@@ -69,6 +88,23 @@ test('four phones settle one table through items, amount and equal shares, then 
     const orderId = await addThreeUnitRound(server.page, table.tableId, visit.sessionId);
     const cashier = await openVisitContext(browser, baseURL, p11Cashier);
     contexts.push(cashier.context);
+    let cashierReserveResponsePromise: Promise<Response> | null = null;
+    const allowCashierReserve = new Promise<void>((resolve) => {
+      continueCashierReserve = resolve;
+    });
+    let signalCashierReservePaused: (() => void) | undefined;
+    const cashierReservePaused = new Promise<void>((resolve) => {
+      signalCashierReservePaused = resolve;
+    });
+    await cashier.page.route(
+      (url) =>
+        /^\/api\/table-service-sessions\/[^/]+\/account-payments\/operations\/[^/]+\/reserve$/i.test(url.pathname),
+      async (route) => {
+        signalCashierReservePaused?.();
+        await allowCashierReserve;
+        await route.continue();
+      },
+    );
     await cashier.page.goto(`/en/cashier/tables?session=${encodeURIComponent(visit.sessionId)}`);
     const cashierCollection = cashier.page.getByRole('region', { name: 'Collect a contribution', exact: true });
     await expect(cashierCollection).toBeVisible();
@@ -80,6 +116,7 @@ test('four phones settle one table through items, amount and equal shares, then 
     ];
     const attempts: Awaited<ReturnType<typeof completeContribution>>[] = [];
     let cashierOperationId: string | null = null;
+    let cashierQuote: AccountPaymentOperation | null = null;
     let releasedCashierOperationId: string | null = null;
     for (const [choice, amountMinor] of choices) {
       const guest = await openVisitContext(browser, baseURL);
@@ -100,20 +137,23 @@ test('four phones settle one table through items, amount and equal shares, then 
                   guestStorageDiagnostics.push(snapshot);
                 },
                 afterQuote: async (guestOperation) => {
-                  const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
+                  const account = await readAccountWithToken(p11Cashier.accessToken, visit.sessionId);
                   expect(account.availableMinor).toBeGreaterThanOrEqual(amountMinor);
-                  const cashierMode = cashierCollection.getByRole('combobox', {
-                    name: /^Collect a contribution\b/,
-                  });
-                  await expect(cashierMode).toHaveCount(1);
-                  await expect(cashierMode.locator('option[value="Items"]')).toHaveCount(1);
-                  await cashierMode.selectOption('Items');
+                  await cashierCollection.getByRole('radio', { name: 'Selected items', exact: true }).check();
                   await cashierCollection
                     .getByRole('group', { name: 'Selected items' })
                     .getByRole('spinbutton')
                     .first()
                     .fill('1');
-                  const cashierQuote = await responseData<AccountPaymentOperation>(
+                  cashierReserveResponsePromise = cashier.page.waitForResponse(
+                    (response) =>
+                      response.request().method() === 'POST' &&
+                      new RegExp(
+                        `^/api/table-service-sessions/${visit.sessionId}/account-payments/operations/[^/]+/reserve$`,
+                        'i',
+                      ).test(new URL(response.url()).pathname),
+                  );
+                  cashierQuote = await responseData<AccountPaymentOperation>(
                     cashier.page,
                     /\/account-payments\/quotes$/,
                     () => cashierCollection.getByRole('button', { name: 'Review contribution', exact: true }).click(),
@@ -127,9 +167,10 @@ test('four phones settle one table through items, amount and equal shares, then 
                   });
                   expect(cashierQuote.allocations).toEqual(guestOperation.allocations);
                   cashierOperationId = cashierQuote.operationId;
+                  await cashierReservePaused;
                 },
                 afterCheckout: async (guestOperation, _checkout) => {
-                  const account = await readAccountAfter(cashier.page, visit.sessionId, () => cashier.page.reload());
+                  const account = await readAccountWithToken(p11Cashier.accessToken, visit.sessionId);
                   expect(account.reservedMinor).toBe(amountMinor);
                   expect(account.capturedAccountPaymentMinor).toBe(0);
                   expect(account.activeAttempts).toHaveLength(1);
@@ -171,18 +212,42 @@ test('four phones settle one table through items, amount and equal shares, then 
                   } finally {
                     await participantApi.dispose();
                   }
-                  if (!cashierOperationId) throw new Error('The cashier contribution was not quoted before checkout.');
-                  const review = cashier.page.getByRole('region', { name: 'Review contribution', exact: true });
-                  const reserveResponse = cashier.page.waitForResponse(
-                    (value) =>
-                      value.request().method() === 'POST' &&
-                      new URL(value.url()).pathname.endsWith(`/operations/${cashierOperationId}/reserve`),
+                  if (!cashierOperationId || !cashierQuote || !cashierReserveResponsePromise) {
+                    throw new Error('The cashier contribution and automatic reservation were not started.');
+                  }
+                  continueCashierReserve?.();
+                  const refused = await cashierReserveResponsePromise;
+                  expect(new URL(refused.url()).pathname.toLowerCase()).toBe(
+                    `/api/table-service-sessions/${visit.sessionId}/account-payments/operations/${cashierOperationId}/reserve`.toLowerCase(),
                   );
-                  await review.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click();
-                  const refused = await reserveResponse;
+                  expect(refused.request().postDataJSON()).toMatchObject({
+                    expectedVersion: cashierQuote.version,
+                    expectedAccountRevision: cashierQuote.expectedAccountRevision,
+                  });
                   expect(refused.status()).toBe(409);
                   const refusalBody = (await refused.json()) as { success?: boolean };
                   expect(refusalBody.success).toBe(false);
+
+                  const review = cashier.page.getByRole('region', { name: 'Review contribution', exact: true });
+                  const operationPath = new RegExp(
+                    `^/api/table-service-sessions/${visit.sessionId}/account-payments/operations/${cashierOperationId}$`,
+                    'i',
+                  );
+                  const checkResponsePromise = cashier.page.waitForResponse(
+                    (response) =>
+                      response.request().method() === 'GET' && operationPath.test(new URL(response.url()).pathname),
+                  );
+                  await review.getByRole('button', { name: 'Check result', exact: true }).click();
+                  const checkedResponse = await checkResponsePromise;
+                  expect(checkedResponse.ok()).toBe(true);
+                  const checkedBody = (await checkedResponse.json()) as {
+                    success?: boolean;
+                    data?: AccountPaymentOperation;
+                  };
+                  expect(checkedBody).toMatchObject({
+                    success: true,
+                    data: { operationId: cashierOperationId, state: 'Quoted' },
+                  });
 
                   await review
                     .getByLabel('I confirm no money was collected for this contribution.', { exact: true })
@@ -278,6 +343,7 @@ test('four phones settle one table through items, amount and equal shares, then 
       )
       .toBe(true);
   } finally {
+    continueCashierReserve?.();
     try {
       retainGuestStorageDiagnostics(guestStorageDiagnostics);
     } finally {

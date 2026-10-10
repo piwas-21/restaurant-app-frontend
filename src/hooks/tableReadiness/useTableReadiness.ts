@@ -121,12 +121,13 @@ export function useTableReadiness({
   const canRetryRefusal = Boolean(
     state.stage === 'settled' &&
     state.result?.kind === 'refused' &&
+    state.result.terminal &&
     state.operation &&
     state.operation.tableId.toLowerCase() === tableId.toLowerCase() &&
     canStart &&
     !isStale &&
     Number.isSafeInteger(readinessVersion) &&
-    (readinessVersion ?? 0) > state.operation.request.expectedReadinessVersion,
+    (readinessVersion ?? 0) >= state.operation.request.expectedReadinessVersion,
   );
 
   const start = useCallback(async () => {

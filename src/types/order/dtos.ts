@@ -4,6 +4,7 @@
  */
 
 import { PaymentMethod, OrderStatus } from './enums';
+import type { OrderReceiptPresentation } from './receiptPresentation';
 
 /**
  * Delivery address for orders
@@ -44,7 +45,10 @@ export interface DeliveryAddressDto {
 /**
  * Ingredient customization details for an order item
  */
-export interface OrderItemIngredientDto {
+export interface OrderItemIngredientDto extends Pick<
+  OrderReceiptPresentation,
+  'quantityBasis' | 'configurationScope' | 'compositionRole' | 'presentationOrder'
+> {
   ingredientId: string;
   ingredientName: string;
   quantity: number;
@@ -72,7 +76,7 @@ export interface CreateOrderItemDto {
   kind?: 'BundleChild' | 'SideItem';
 }
 
-export interface OrderItemDto extends CreateOrderItemDto {
+export interface OrderItemDto extends CreateOrderItemDto, OrderReceiptPresentation {
   id: string;
   productName?: string;
   productDescription?: string;

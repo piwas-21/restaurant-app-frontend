@@ -4102,5 +4102,19 @@
   "table_guest_staff_code_copied": "Kod kopyalandı.",
   "table_guest_staff_code_copy_failed": "Kod kopyalanamadı.",
   "cashier.payment_recovery_other_order": "Kayıtlı bir ödeme başka bir siparişe ait. Yeni bir ödeme almadan önce durumu kontrol etmek için o siparişi açın.",
-  "cashier.payment_recovery_open_order": "Kayıtlı ödemeyi aç"
+  "cashier.payment_recovery_open_order": "Kayıtlı ödemeyi aç",
+  "receipt.quantity.per_unit": "Her ürün için",
+  "receipt.quantity.line_total": "Bu satırın toplamı",
+  "receipt.quantity.recorded": "Kaydedilen miktar",
+  "receipt.required_choices": "Zorunlu seçimler",
+  "receipt.extras": "Ekstralar",
+  "receipt.sides": "Yan ürünler",
+  "receipt.drinks": "İçecekler",
+  "receipt.status.unpaid": "Ödenmedi",
+  "receipt.status.part_paid": "Kısmen ödendi",
+  "receipt.status.paid": "Ödendi",
+  "receipt.amount_paid": "Alınan ödeme",
+  "receipt.amount_remaining": "Kalan tutar",
+  "receipt.title": "Fiş",
+  "receipt.thanks": "Ziyaretiniz için teşekkür ederiz!"
 }

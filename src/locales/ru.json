@@ -4128,5 +4128,19 @@
   "table_guest_staff_code_copied": "Код скопирован.",
   "table_guest_staff_code_copy_failed": "Не удалось скопировать код.",
   "cashier.payment_recovery_other_order": "Сохранённый платёж относится к другому заказу. Откройте этот заказ и проверьте его статус, прежде чем принимать следующий платёж.",
-  "cashier.payment_recovery_open_order": "Открыть сохранённый платёж"
+  "cashier.payment_recovery_open_order": "Открыть сохранённый платёж",
+  "receipt.quantity.per_unit": "За единицу",
+  "receipt.quantity.line_total": "Итого по позиции",
+  "receipt.quantity.recorded": "Зафиксированное количество",
+  "receipt.required_choices": "Обязательный выбор",
+  "receipt.extras": "Дополнительно",
+  "receipt.sides": "Гарниры",
+  "receipt.drinks": "Напитки",
+  "receipt.status.unpaid": "Не оплачено",
+  "receipt.status.part_paid": "Частично оплачено",
+  "receipt.status.paid": "Оплачено",
+  "receipt.amount_paid": "Полученный платёж",
+  "receipt.amount_remaining": "Осталось оплатить",
+  "receipt.title": "Чек",
+  "receipt.thanks": "Спасибо за ваш визит!"
 }

@@ -9,3 +9,5 @@ export { THERMAL_BASE_STYLES, A4_BASE_STYLES, KITCHEN_STYLES } from './baseStyle
 export { generateSimpleReceiptHtml } from './simpleReceipt';
 export { generateKitchenReceiptHtml } from './kitchenReceipt';
 export type { KitchenReceiptType } from './kitchenReceipt';
+
+export type { ReceiptOptions } from './receiptOptions';

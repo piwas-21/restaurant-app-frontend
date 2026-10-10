@@ -144,18 +144,6 @@
   font-size: 0.8rem;
   margin: 0;
 }
-.pagination {
-  align-items: center;
-  border-top: 1px solid var(--border-default);
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  padding: 0.7rem;
-}
-.pagination span {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
 @media (max-width: 760px) {
   .filterGrid,
   .historyDateFields {

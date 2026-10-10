@@ -9,6 +9,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     i18n: { language: 'en' },
     t: (key: string, options?: Record<string, unknown>) => {
+      if (options?.page !== undefined) return `Go to page ${options.page}`;
       if (options?.start !== undefined) return `${options.start}-${options.end}/${options.total}`;
       if (options?.order !== undefined) return `Open ${options.order}`;
       return key;
@@ -122,5 +123,27 @@ describe('CashierReadOnlyQueuePanel', () => {
     expect(viewport).toBeInTheDocument();
     expect(viewport?.querySelector('ul')).toBeInTheDocument();
     expect(container.querySelector(`.${styles.pagination}`)).toBeInTheDocument();
+  });
+
+  it('offers clickable page numbers, marks the active page, and forwards page-size changes', () => {
+    const onPageChange = jest.fn();
+    const onPageSizeChange = jest.fn();
+    render(
+      <CashierReadOnlyQueuePanel
+        {...props({
+          orders: [],
+          pagination: { totalCount: 212, page: 5, pageSize: 25, totalPages: 9 },
+          onPageChange,
+          onPageSizeChange,
+        })}
+      />,
+    );
+
+    expect(screen.getByText('5')).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(screen.getByRole('button', { name: 'Go to page 4' }));
+    expect(onPageChange).toHaveBeenCalledWith(4);
+
+    fireEvent.change(screen.getByLabelText('cashier.workspace.groups_per_page'), { target: { value: '100' } });
+    expect(onPageSizeChange).toHaveBeenCalledWith(100);
   });
 });

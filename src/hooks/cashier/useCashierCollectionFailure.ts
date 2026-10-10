@@ -16,6 +16,7 @@ interface PaymentFailureContext {
   readonly reason: unknown;
   readonly order: OrderDto;
   readonly payment: AddPaymentRequest;
+  readonly cashReceivedMinor?: number;
   readonly isCurrent: () => boolean;
   readonly pending: CashierPendingPaymentController;
   readonly setError: (error: string | null) => void;
@@ -42,9 +43,9 @@ export async function handlePaymentFailure(context: PaymentFailureContext): Prom
   const { reason, order, payment, isCurrent, pending, setError } = context;
   if (reason instanceof StalePaymentOutcomeError || !isCurrent()) throw new StalePaymentOutcomeError();
   if (reason instanceof PaymentResultUnknownError) {
-    pending.markUnknown(order.id, payment, reason.order);
+    pending.markUnknown(order.id, payment, reason.order, context.cashReceivedMinor);
   } else if (reason instanceof PaymentCheckFailedError) {
-    pending.markUnavailable(order.id, payment);
+    pending.markUnavailable(order.id, payment, context.cashReceivedMinor);
   } else if (isOrderVersionConflict(reason)) {
     return handleVersionConflict(context);
   } else {

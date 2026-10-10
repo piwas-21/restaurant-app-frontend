@@ -35,7 +35,8 @@
 
 .warning {
   background: var(--warning-color);
-  color: var(--text-color);
+  /* The amber fill stays light in both themes, so its ink must stay dark. */
+  color: var(--color-black);
 }
 
 .danger {

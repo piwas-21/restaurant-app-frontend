@@ -11,16 +11,17 @@ afterEach(() => {
 });
 
 describe('useCashierFilters — operational queue', () => {
-  it('uses the operational scope and does not change the request while text is only a draft', () => {
+  it('uses the operational scope, resets the page for a search draft, and debounces its value', () => {
     const { result } = renderHook(() => useCashierFilters());
 
     expect(result.current.query).toEqual({ scope: 'Operational', page: 1, pageSize: 50 });
     act(() => result.current.setPage(2));
     act(() => result.current.setSearchQuery('  table 12  '));
 
-    expect(result.current.query).toEqual({ scope: 'Operational', page: 2, pageSize: 50 });
+    expect(result.current.query).toEqual({ scope: 'Operational', page: 1, pageSize: 50 });
     act(() => jest.advanceTimersByTime(299));
     expect(result.current.query.search).toBeUndefined();
+    expect(result.current.query.page).toBe(1);
 
     act(() => jest.advanceTimersByTime(1));
     expect(result.current.query).toEqual({
@@ -29,6 +30,21 @@ describe('useCashierFilters — operational queue', () => {
       pageSize: 50,
       search: 'table 12',
     });
+  });
+
+  it('resets to the first page when the cashier changes group page size', () => {
+    const { result } = renderHook(() => useCashierFilters());
+
+    act(() => result.current.setPage(4));
+    act(() => result.current.setPageSize(25));
+
+    expect(result.current.query).toEqual({ scope: 'Operational', page: 1, pageSize: 25 });
+    act(() => result.current.setPageSize(101));
+    expect(result.current.query.pageSize).toBe(25);
+
+    act(() => result.current.setPage(3));
+    act(() => result.current.setStatusFilter('Ready'));
+    expect(result.current.query).toMatchObject({ page: 1, status: 'Ready', pageSize: 25 });
   });
 
   it('commits the current draft immediately and cancels its pending debounce', () => {

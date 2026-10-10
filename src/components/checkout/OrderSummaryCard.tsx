@@ -28,6 +28,7 @@ interface OrderSummaryCardProps {
   redeemedPoints: number;
   tipAmount: number;
   isSubmitting: boolean;
+  placeOrderDisabled?: boolean;
   submitError: string;
   formatPrice: (price: number) => string;
   formatTotal: (total: number) => string;
@@ -47,6 +48,7 @@ export default function OrderSummaryCard({
   redeemedPoints,
   tipAmount,
   isSubmitting,
+  placeOrderDisabled = false,
   submitError,
   formatPrice,
   formatTotal,
@@ -123,7 +125,7 @@ export default function OrderSummaryCard({
         </div>
       )}
 
-      <button onClick={onPlaceOrder} disabled={isSubmitting} className={styles.placeOrderButton}>
+      <button onClick={onPlaceOrder} disabled={isSubmitting || placeOrderDisabled} className={styles.placeOrderButton}>
         {isSubmitting ? (
           <>
             <Loader2 size={20} className={styles.spinner} />

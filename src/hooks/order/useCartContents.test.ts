@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useCartContents } from './useCartContents';
 
@@ -99,6 +99,8 @@ describe('useCartContents', () => {
       blockerMessageKey: null,
     };
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   // #415. `state.error` is one global slot written by six places and cleared by one reducer arm,
   // and `CartProvider` sits in the root layout so it never remounts on navigation. Once these cart
@@ -328,6 +330,62 @@ describe('useCartContents', () => {
     expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true);
     expect(onProceed).toHaveBeenCalledTimes(1);
     expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+  });
+
+  it('holds checkout pending until the missing-details order type follow-up settles', async () => {
+    let finishPick!: () => void;
+    const pickType = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPick = resolve;
+        }),
+    );
+    const onProceed = jest.fn();
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce('details');
+
+    const { result } = renderHook(() => useCartContents({ pickType, onProceed }));
+    act(() => result.current.handleCheckout());
+
+    await waitFor(() => expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true));
+    expect(onProceed).not.toHaveBeenCalled();
+    expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+    expect(result.current.isCheckoutPending).toBe(true);
+
+    await act(async () => finishPick());
+    expect(result.current.isCheckoutPending).toBe(false);
+    expect(onProceed).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the sheet open and permits retry when the missing-details follow-up rejects', async () => {
+    const privateMessage = 'profile@example.test';
+    const pickType = jest.fn().mockRejectedValueOnce(new Error(privateMessage)).mockResolvedValueOnce(undefined);
+    const onProceed = jest.fn();
+    const warning = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce('details').mockResolvedValueOnce('details');
+
+    const { result } = renderHook(() => useCartContents({ pickType, onProceed }));
+
+    act(() => result.current.handleCheckout());
+    await waitFor(() => expect(warning).toHaveBeenCalledTimes(1));
+    expect(onProceed).not.toHaveBeenCalled();
+    expect(result.current.isCheckoutPending).toBe(false);
+    expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+    expect(warning).toHaveBeenCalledWith(
+      'Cart follow-up failed; the details step remains available for retry.',
+      'Error',
+    );
+    expect(JSON.stringify(warning.mock.calls)).not.toContain(privateMessage);
+
+    act(() => result.current.handleCheckout());
+    await waitFor(() => expect(onProceed).toHaveBeenCalledTimes(1));
+    expect(pickType).toHaveBeenCalledTimes(2);
+    expect(result.current.isCheckoutPending).toBe(false);
   });
 
   it('keeps the cart surface open when the active table visit is unavailable', async () => {

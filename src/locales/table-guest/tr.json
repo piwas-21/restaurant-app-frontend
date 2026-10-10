@@ -3,8 +3,8 @@
   "table_guest_join_title": "Bu masa ziyaretine katıl",
   "table_guest_join_description": "Personelin {{table}} numaralı masa için verdiği ziyaret kodunu gir.",
   "table_guest_code_label": "Ziyaret kodu",
-  "table_guest_code_help": "Personelin gösterdiği 10 karakterli kodu gir.",
-  "table_guest_code_length": "Ziyaret kodunun 10 karakterinin tamamını gir.",
+  "table_guest_code_help": "Personelin gösterdiği 6 veya 10 karakterli ziyaret kodunu gir.",
+  "table_guest_code_length": "6 veya 10 karakterli ziyaret kodunun tamamını gir.",
   "table_guest_join_failed": "Bu ziyarete katılamadık. Kodu kontrol et veya personelden yeni kod iste.",
   "table_guest_join_action": "Masaya katıl",
   "table_guest_joining": "Katılınıyor…",
@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "Kodun oluşturulup oluşturulmadığını doğrulayamadık. Devam etmek için yedek kod oluşturun. Zaten katılmış misafirlerin bağlantısı devam eder.",
   "table_guest_unavailable_retry_action": "Durumu yeniden denetle",
   "table_guest_staff_code_help_label": "Ziyaret kodu hakkında",
-  "table_guest_staff_code_help_text": "Misafirler bu ziyarete katılmak için masa QR kodunu tarayıp bu kodu girer. Örnek: 10 karakterli kodu masadaki gruba gösterin; kod ekranda belirtilen saatte geçersiz olur. Yeni kod oluşturmak eskisiyle yeni katılımı engeller, daha önce katılan misafirlerin bağlantısı sürer."
+  "table_guest_staff_code_help_text": "Misafirler bu ziyarete katılmak için masa QR kodunu tarayıp bu kodu girer. Örnek: 6 karakterli kodu masadaki gruba gösterin; kod ekranda belirtilen saatte geçersiz olur. Yeni kod oluşturmak eskisiyle yeni katılımı engeller, daha önce katılan misafirlerin bağlantısı sürer."
 }

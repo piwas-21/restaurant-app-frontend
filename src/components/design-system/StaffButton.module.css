@@ -1,7 +1,18 @@
-/* Shared density and focus treatment for staff actions; colors stay in the app's button variants. */
+/* Shared density, contrast and focus treatment for staff actions. */
 .touch {
   justify-content: center;
   min-height: 3rem;
+}
+/* Keep button links readable when the global a:hover rule changes link ink. */
+.touch:global(.btn-primary) {
+  color: var(--text-on-primary);
+}
+.touch:global(.btn-primary):hover:not(:disabled) {
+  background-color: var(--brand-primary-dark);
+  color: var(--text-on-primary);
+}
+html[data-theme='dark'] .touch:global(.btn-primary):hover:not(:disabled) {
+  background-color: var(--brand-primary-elevated);
 }
 .touch:focus-visible {
   outline: 3px solid var(--brand-primary);

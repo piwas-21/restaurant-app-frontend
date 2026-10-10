@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge from '@/components/design-system/StatusBadge';
-import BaseModal from '@/components/design-system/BaseModal';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { tableStatusLabel } from '@/lib/cashierTableLabels';
+import TableOccupancyRecoveryAction from '@/components/table-service/TableOccupancyRecoveryAction';
 import styles from './CashierTableSession.module.css';
 
 interface CashierTableEmptyStateProps {
@@ -17,7 +16,11 @@ interface CashierTableEmptyStateProps {
   readonly onOpenSession: () => void;
   readonly isRepairingLegacyOrders?: boolean;
   readonly onResolveLegacyOrders?: () => void;
-  readonly onClearLegacyOrders?: () => Promise<void>;
+  readonly recoveryEnabled?: boolean;
+  readonly recoveryDisabled?: boolean;
+  readonly recoveryOperationPending?: boolean;
+  readonly onRecoveryComplete?: () => Promise<void>;
+  readonly onRecoveryLockChange?: (locked: boolean) => void;
 }
 
 export default function CashierTableEmptyState({
@@ -27,11 +30,15 @@ export default function CashierTableEmptyState({
   onOpenSession,
   isRepairingLegacyOrders = false,
   onResolveLegacyOrders,
-  onClearLegacyOrders,
+  recoveryEnabled = false,
+  recoveryDisabled = false,
+  recoveryOperationPending = false,
+  onRecoveryComplete,
+  onRecoveryLockChange,
 }: CashierTableEmptyStateProps) {
   const { t } = useTranslation();
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const canOpen = entry.status === 'available';
+  const tableActionLocked = isOpening || isRepairingLegacyOrders || recoveryOperationPending;
   let message = t('cashier.tables.closed_table');
   if (entry.status === 'needs-reset') message = t('server.floor.needs_reset');
   if (entry.status === 'legacy' || entry.status === 'conflict') {
@@ -45,7 +52,7 @@ export default function CashierTableEmptyState({
     <section className={styles.session} aria-labelledby="cashier-table-empty-title">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <StaffButton onClick={onBack} disabled={isOpening}>
+          <StaffButton onClick={onBack} disabled={tableActionLocked}>
             <ArrowLeft size={18} aria-hidden="true" />
             {t('cashier.tables.back')}
           </StaffButton>
@@ -58,59 +65,28 @@ export default function CashierTableEmptyState({
       </header>
       <p>{message}</p>
       {canOpen && (
-        <StaffButton variant="primary" onClick={onOpenSession} disabled={isOpening}>
+        <StaffButton variant="primary" onClick={onOpenSession} disabled={tableActionLocked}>
           {isOpening ? t('cashier.tables.opening') : t('cashier.tables.open_session')}
         </StaffButton>
       )}
       {(entry.status === 'legacy' || entry.status === 'conflict') && (
-        <>
-          <StaffButton
-            variant="primary"
-            onClick={onResolveLegacyOrders}
-            disabled={isOpening || isRepairingLegacyOrders || !onResolveLegacyOrders}
-          >
-            {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
-          </StaffButton>
-          {entry.status === 'legacy' && (
-            <StaffButton
-              variant="danger"
-              onClick={() => setShowClearConfirm(true)}
-              disabled={isOpening || isRepairingLegacyOrders || !onClearLegacyOrders}
-            >
-              {t('cashier.tables.clear_and_release')}
-            </StaffButton>
-          )}
-        </>
+        <StaffButton
+          variant="primary"
+          onClick={onResolveLegacyOrders}
+          disabled={tableActionLocked || !onResolveLegacyOrders}
+        >
+          {isRepairingLegacyOrders ? t('cashier.tables.legacy_repairing') : t('cashier.tables.resolve_legacy_orders')}
+        </StaffButton>
       )}
-      <BaseModal
-        isOpen={showClearConfirm}
-        onClose={() => setShowClearConfirm(false)}
-        title={t('cashier.tables.clear_confirm_title')}
-        isPending={isOpening || isRepairingLegacyOrders}
-        footer={
-          <div className={styles.formActions}>
-            <StaffButton onClick={() => setShowClearConfirm(false)} disabled={isOpening || isRepairingLegacyOrders}>
-              {t('cashier.tables.cancel')}
-            </StaffButton>
-            <StaffButton
-              variant="danger"
-              onClick={() =>
-                void onClearLegacyOrders?.()
-                  .then(() => setShowClearConfirm(false))
-                  .catch(() => undefined)
-              }
-              disabled={isOpening || isRepairingLegacyOrders || !onClearLegacyOrders}
-            >
-              {isOpening || isRepairingLegacyOrders
-                ? t('cashier.tables.operation_checking')
-                : t('cashier.tables.clear_and_release')}
-            </StaffButton>
-          </div>
-        }
-      >
-        <p>{t('cashier.tables.clear_confirm_message', { table: entry.table.tableNumber })}</p>
-        <p className={styles.warning}>{t('cashier.tables.clear_confirm_limits')}</p>
-      </BaseModal>
+      {onRecoveryComplete && entry.status !== 'available' && (
+        <TableOccupancyRecoveryAction
+          tableId={entry.table.id}
+          enabled={recoveryEnabled}
+          disabled={recoveryDisabled || isOpening || isRepairingLegacyOrders}
+          onRecovered={onRecoveryComplete}
+          onNavigationLockChange={onRecoveryLockChange}
+        />
+      )}
     </section>
   );
 }

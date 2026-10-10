@@ -3,8 +3,8 @@
   "table_guest_join_title": "Rejoindre cette visite de table",
   "table_guest_join_description": "Saisissez le code de visite fourni par le personnel pour la table {{table}}.",
   "table_guest_code_label": "Code de visite",
-  "table_guest_code_help": "Saisissez le code de 10 caractères affiché par le personnel.",
-  "table_guest_code_length": "Saisissez les 10 caractères du code de visite.",
+  "table_guest_code_help": "Saisissez le code de visite de 6 ou 10 caractères affiché par le personnel.",
+  "table_guest_code_length": "Saisissez les 6 ou 10 caractères du code de visite.",
   "table_guest_join_failed": "Impossible de rejoindre cette visite. Vérifiez le code ou demandez-en un nouveau au personnel.",
   "table_guest_join_action": "Rejoindre la table",
   "table_guest_joining": "Connexion…",
@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "Nous ne pouvons pas confirmer si un code a été créé. Générez un code de remplacement pour continuer. Les personnes déjà inscrites restent connectées.",
   "table_guest_unavailable_retry_action": "Vérifier à nouveau",
   "table_guest_staff_code_help_label": "À propos des codes de visite",
-  "table_guest_staff_code_help_text": "Un client scanne le QR de la table et saisit ce code pour rejoindre cette visite. Exemple : montrez le code de 10 caractères aux personnes installées ici ; il expire à l’heure indiquée. Un remplacement empêche les nouvelles connexions avec l’ancien code sans déconnecter les personnes déjà inscrites."
+  "table_guest_staff_code_help_text": "Un client scanne le QR de la table et saisit ce code pour rejoindre cette visite. Exemple : montrez le code de 6 caractères aux personnes installées ici ; il expire à l’heure indiquée. Un remplacement empêche les nouvelles connexions avec l’ancien code sans déconnecter les personnes déjà inscrites."
 }

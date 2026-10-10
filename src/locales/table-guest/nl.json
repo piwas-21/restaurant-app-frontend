@@ -3,8 +3,8 @@
   "table_guest_join_title": "Deelnemen aan dit tafelbezoek",
   "table_guest_join_description": "Voer de bezoekcode in die het personeel voor tafel {{table}} gaf.",
   "table_guest_code_label": "Bezoekcode",
-  "table_guest_code_help": "Voer de code van 10 tekens in die het personeel toont.",
-  "table_guest_code_length": "Voer alle 10 tekens van de bezoekcode in.",
+  "table_guest_code_help": "Voer de bezoekcode van 6 of 10 tekens in die het personeel toont.",
+  "table_guest_code_length": "Voer de volledige bezoekcode van 6 of 10 tekens in.",
   "table_guest_join_failed": "Deelnemen is niet gelukt. Controleer de code of vraag het personeel om een nieuwe.",
   "table_guest_join_action": "Deelnemen aan tafel",
   "table_guest_joining": "Deelnemen…",
@@ -62,5 +62,5 @@
   "table_guest_staff_code_uncertain": "We konden niet bevestigen of er een code is gemaakt. Maak een vervangende code om door te gaan. Gasten die al zijn aangemeld, blijven verbonden.",
   "table_guest_unavailable_retry_action": "Status opnieuw controleren",
   "table_guest_staff_code_help_label": "Over bezoekcodes",
-  "table_guest_staff_code_help_text": "Een gast scant de QR-code van de tafel en voert deze code in om aan dit bezoek deel te nemen. Voorbeeld: toon de code van 10 tekens aan het gezelschap aan deze tafel; de code verloopt op het weergegeven tijdstip. Een nieuwe code voorkomt nieuwe aanmeldingen met de oude code, maar aangemelde gasten blijven verbonden."
+  "table_guest_staff_code_help_text": "Een gast scant de QR-code van de tafel en voert deze code in om aan dit bezoek deel te nemen. Voorbeeld: toon de code van 6 tekens aan het gezelschap aan deze tafel; de code verloopt op het weergegeven tijdstip. Een nieuwe code voorkomt nieuwe aanmeldingen met de oude code, maar aangemelde gasten blijven verbonden."
 }

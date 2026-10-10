@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import OperationResultNotice from '@/components/design-system/OperationResultNotice';
 import StaffButton from '@/components/design-system/StaffButton';
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import TableServiceSessionBill from '@/components/table-service/TableServiceSessionBill';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
 import { formatTableMoney } from '@/lib/cashierTableSession';
@@ -40,15 +41,17 @@ export default function ServerTableBillWorkspace({
   refreshWorkspace,
 }: Readonly<ServerTableBillWorkspaceProps>) {
   const { t } = useTranslation();
+  const router = useTenantLocaleRouter();
   const actions = useServerTableBillActions(initialSession, refreshWorkspace);
   const session = actions.session ?? initialSession;
   const canStartCollection = useServerAccountCollectionCapability(session);
-  const [showPayment, setShowPayment] = useState(false);
   const [showClose, setShowClose] = useState(false);
   const [printNotice, setPrintNotice] = useState(false);
   const writesLocked = actionsBlocked || actions.isStale || actions.isMutating;
   const blocker = closeBlocker(session, t);
   const error = safeError(actions.error, t);
+  const collectionParams = new URLSearchParams({ serviceSessionId: session.serviceSessionId });
+  if (session.tableId) collectionParams.set('tableId', session.tableId);
 
   const confirmClose = async () => {
     try {
@@ -88,7 +91,11 @@ export default function ServerTableBillWorkspace({
           {t('refresh')}
         </StaffButton>
         {canStartCollection && (
-          <StaffButton variant="primary" onClick={() => setShowPayment((visible) => !visible)} disabled={writesLocked}>
+          <StaffButton
+            variant="primary"
+            onClick={() => router.push(`/server/collection?${collectionParams.toString()}`)}
+            disabled={writesLocked}
+          >
             {t('server.bill.collect')}
           </StaffButton>
         )}
@@ -137,7 +144,7 @@ export default function ServerTableBillWorkspace({
         disabled={writesLocked}
         recoveryEnabled={!writesLocked && session.status === 'Open'}
         canStartCollection={canStartCollection}
-        expanded={showPayment}
+        expanded={false}
         onUpdated={() => void actions.refresh().catch(() => undefined)}
       />
 

@@ -30,6 +30,7 @@ type StoredOperation = {
   readonly expectedVersion?: unknown;
   readonly paymentMethod?: unknown;
   readonly amount?: unknown;
+  readonly tipMinor?: unknown;
   readonly currency?: unknown;
   readonly transactionId?: unknown;
   readonly referenceNumber?: unknown;
@@ -75,7 +76,9 @@ function toStoredPayment(value: StoredOperation, serviceSessionId: string): Pend
     !PAYMENT_METHODS.has(value.paymentMethod) ||
     typeof value.amount !== 'number' ||
     !Number.isFinite(value.amount) ||
-    value.amount <= 0
+    value.amount <= 0 ||
+    (value.tipMinor !== undefined &&
+      (typeof value.tipMinor !== 'number' || !Number.isInteger(value.tipMinor) || value.tipMinor < 0))
   ) {
     return null;
   }
@@ -87,6 +90,7 @@ function toStoredPayment(value: StoredOperation, serviceSessionId: string): Pend
     expectedVersion: value.expectedVersion,
     paymentMethod: value.paymentMethod as AddTableServiceSessionPaymentRequest['paymentMethod'],
     amount: value.amount,
+    ...(typeof value.tipMinor === 'number' ? { tipMinor: value.tipMinor } : {}),
     currency: optionalString(value.currency),
     transactionId: optionalString(value.transactionId),
     referenceNumber: optionalString(value.referenceNumber),
@@ -127,12 +131,15 @@ export function readPendingTableOperation(serviceSessionId: string | null): Pend
 export function persistPendingTablePayment(
   serviceSessionId: string,
   payment: AddTableServiceSessionPaymentRequest,
-): void {
-  if (typeof window === 'undefined') return;
+): boolean {
+  if (typeof window === 'undefined') return false;
+  const serialized = JSON.stringify({ kind: 'payment', serviceSessionId, ...payment });
   try {
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ kind: 'payment', serviceSessionId, ...payment }));
+    if (window.sessionStorage.getItem(STORAGE_KEY) !== null) return false;
+    window.sessionStorage.setItem(STORAGE_KEY, serialized);
+    return window.sessionStorage.getItem(STORAGE_KEY) === serialized;
   } catch (_error) {
-    // The server operation id remains the source of truth if storage is unavailable.
+    return false;
   }
 }
 

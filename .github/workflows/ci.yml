@@ -507,7 +507,7 @@ jobs:
         shard: [1, 2]
     services:
       postgres:
-        image: postgres:16-alpine
+        image: mirror.gcr.io/library/postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea # same manifest as Docker Hub; avoids shared-runner pull limits
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
@@ -520,15 +520,15 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       mailpit:
-        image: axllent/mailpit:v1.29.7
+        image: mirror.gcr.io/axllent/mailpit:v1.29.7@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc # same manifest as Docker Hub; avoids shared-runner pull limits
         ports:
           - 1025:1025
           - 8025:8025
       # Required by Aspire's AddRedisDistributedCache("redis") in backend
       # Program.cs — the e2e backend runs as a real process and tries to
-      # connect on startup. SHA-pinned to redis:7.4-alpine.
+      # connect on startup. Digest-mirrored from Redis 7.4 to avoid shared-runner pull limits.
       redis:
-        image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # 7.4-alpine
+        image: mirror.gcr.io/library/redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # 7.4-alpine
         ports:
           - 6379:6379
         options: >-
@@ -578,6 +578,15 @@ jobs:
       SeedSettings__AdminEmail: e2e-admin@test.local
       SeedSettings__AdminPassword: E2e-Only!Pass9 # pragma: allowlist secret
       TenantFeatures__ServerWorkspaceV2: 'true'
+      # Connected table-account browser coverage exercises server-owned quotes,
+      # cash collection, guest visit codes, recovery, and readiness through the
+      # real API. The synthetic flow never enables hosted guest checkout.
+      TenantFeatures__TableAccountV1: 'true'
+      TenantFeatures__TableAccountPaymentsV1: 'true'
+      TenantFeatures__TableGuestVisitsV1: 'true'
+      TenantFeatures__TableVisitReadinessV1: 'true'
+      TenantFeatures__ServerAccountCollectionV1: 'true'
+      TenantFeatures__TableGuestAccountPaymentsV1: 'false'
       # Frontend / Playwright config
       # The same credential for `e2e/helpers/adminAuth.ts`, which reads `.env.local` first and
       # then the environment. CI must NOT get a dotfile: writing a credential into the

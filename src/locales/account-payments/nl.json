@@ -14,7 +14,7 @@
     "share_number": "Deel {{number}}",
     "share_unavailable": "Betaald of in behandeling",
     "item_remaining_note": "De bedragen tonen wat voor elke gekozen hoeveelheid nog openstaat. Gedeelde kosten zijn inbegrepen bij bijdragen op basis van een bedrag.",
-    "equal_note": "De delen blijven vast voor de beoordeelde rekening. Door afronding zijn sommige delen één cent hoger; latere rondes vallen buiten dit plan.",
+    "equal_note": "Bij CHF en EUR worden de eerste delen naar beneden afgerond op 0,05; het laatste deel vult het exacte restant aan. Het plan blijft vast voor deze rekening; latere rondes vallen erbuiten.",
     "create_plan": "Delen beoordelen en aanmaken",
     "review": "Bijdrage beoordelen",
     "identity_mismatch": "Het antwoord hoort niet bij deze beoordeelde bijdrage. Behoud de oorspronkelijke bewerking en controleer het resultaat.",
@@ -71,7 +71,16 @@
       "retry": "Oorspronkelijk verzoek herhalen",
       "storage_unavailable": "Herstelgegevens kunnen hier niet worden gelezen of opgeslagen. Laat bevoegd personeel de tafel controleren.",
       "succeeded": "Het oorspronkelijke verzoek is geslaagd. Vernieuw de tafel; dit resultaat opent geen bezoek.",
-      "refused": "Het oorspronkelijke verzoek is geweigerd. Vernieuw vóór een nieuw verzoek."
+      "refused": "Het oorspronkelijke verzoek is geweigerd. Vernieuw vóór een nieuw verzoek.",
+      "version_unavailable": "De gereedheidsversie van de tafel ontbreekt of is ongeldig. Vernieuw voordat u de tafel gereed meldt.",
+      "refresh": "Tafelstatus vernieuwen",
+      "errors": {
+        "version_stale": "De tafel is gewijzigd. Vernieuw de status en probeer het opnieuw.",
+        "visit_open": "Sluit of herstel het actieve tafelbezoek voordat je de tafel gereedmaakt.",
+        "not_available": "Deze tafel wacht niet op voorbereiding. Vernieuw de status.",
+        "inactive": "Deze tafel is inactief. Vraag een beheerder om de tafel opnieuw te activeren.",
+        "ambiguous": "Er zijn meerdere bezoeken aan deze tafel gekoppeld. Controleer en herstel ze voordat je verdergaat."
+      }
     },
     "cash": {
       "exact_charge": "Exact rekeningbedrag",
@@ -83,10 +92,67 @@
       "legacy_unattested": "Het ontvangen bedrag en wisselgeld van deze eerdere contante betaling zijn niet bevestigd. Het vastgelegde rekeningbedrag blijft zichtbaar."
     },
     "custom_guest_shares": "Aangepast bedrag per gast",
-    "custom_amounts_must_match_balance": "Voer voor iedere gast een positief bedrag in. De bedragen moeten samen het volledige beschikbare saldo zijn.",
+    "custom_shares_scope": "De gastbedragen moeten het volledige beschikbare saldo dekken. Kies Eigen bedrag om nu slechts een deel te innen.",
+    "custom_amounts_must_match_balance": "Controleer de bedragen per gast en het getoonde restbedrag.",
     "share_plan_will_be_replaced": "Dit plan vervangt de huidige verdeling. Plannen met actieve of vastgelegde betalingen kunnen niet worden vervangen.",
     "share_amount": "Bedrag voor gast {{number}}",
     "mode_custom_guest_share": "Aangepaste bijdrage per gast",
-    "mode_full": "Volledige rekening"
+    "mode_full": "Volledige rekening",
+    "share_preview": "Overzicht van de delen",
+    "fill_remainder": "Restbedrag invullen",
+    "custom_share_required": "Voer een bedrag in voor gast {{number}}.",
+    "custom_share_positive": "Voer een geldig positief bedrag in.",
+    "custom_share_invalid": "Voer een geldig bedrag met maximaal twee decimalen in.",
+    "custom_balance_remaining": "Er moet nog {{amount}} worden verdeeld.",
+    "custom_balance_over": "De bedragen zijn {{amount}} hoger dan het saldo.",
+    "selected_quantity": "Geselecteerde hoeveelheid",
+    "recovery": {
+      "title": "Tafelbezetting herstellen",
+      "intro": "Bekijk bezoek en bestellingen voordat u de tafel vrijgeeft.",
+      "review_action": "Tafelherstel bekijken",
+      "loading": "Voorbeeld van tafelherstel wordt geladen…",
+      "preview_failed": "Het voorbeeld kon niet worden geladen. Vernieuw de tafel en probeer opnieuw.",
+      "stale_preview": "De tafel is gewijzigd sinds dit voorbeeld. Laad een nieuw voorbeeld voordat u bevestigt.",
+      "session_ambiguous": "Er zijn meerdere mogelijke bezoeken voor deze tafel. Los dit op en laad daarna een nieuw voorbeeld.",
+      "refresh_preview": "Nieuw voorbeeld laden",
+      "role_mismatch": "Een opgeslagen herstel hoort bij een andere personeelsrol. Meld u aan met de oorspronkelijke rol of vraag een beheerder om hulp.",
+      "operation_mismatch": "De reactie hoort niet bij deze tafel. Houd het herstel geblokkeerd en neem contact op met een beheerder.",
+      "reason_required": "Vul een reden in.",
+      "version_missing": "De huidige accountversies ontbreken. Vernieuw de pagina en bekijk een nieuw voorbeeld.",
+      "preview_title": "Tafel {{table}} herstellen",
+      "warning": "Alleen de fysieke tafelbezetting wordt gearchiveerd. Eerdere bezoeken, bestellingen, betalingen, terugbetalingen en keukenhistorie blijven behouden. Alleen onbetaalde, niet-verzonden bestellingen kunnen worden geannuleerd. Doorgestuurde, bereide, gereedstaande, betaalde of onzekere betalingen blijven bij het eerdere bezoek. Er wordt niets naar keuken of printer gestuurd.",
+      "count": {
+        "orders": "Bestellingen in het voorbeeld",
+        "cancelable": "Onbetaalde en niet-verzonden bestellingen om te annuleren",
+        "legacy": "Oude bestellingen die uit de tafelbezetting worden gearchiveerd",
+        "routed": "Bestellingen met routeringsgeschiedenis",
+        "preparing": "Bestellingen in bereiding",
+        "ready": "Gereedstaande bestellingen",
+        "paid": "Betaalde of terugbetaalde bestellingen",
+        "attempts": "Actieve betalingspogingen",
+        "handoffs": "Openstaande betalingsoverdrachten",
+        "checkout": "Pogingen via gehoste checkout"
+      },
+      "outstanding": "Openstaand bedrag dat behouden blijft: {{amount}}",
+      "reason": "Reden voor dit geregistreerde herstel",
+      "cancel": "Terug",
+      "confirm": "Tafelbezetting vrijgeven",
+      "succeeded": "Herstel vastgelegd: {{cancelled}} niet-verzonden bestellingen geannuleerd, {{archived}} oude bestellingen uit de tafelbezetting gearchiveerd en {{retained}} bestellingen behouden bij het vorige bezoek.",
+      "preserved_totals": "Behouden betaald bedrag: {{paid}} · openstaand bedrag: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Wordt geannuleerd (onbetaald en niet verzonden)",
+        "ArchivedLegacyOccupancy": "Wordt uit de tafelbezetting gearchiveerd; de bestelgeschiedenis blijft behouden",
+        "RetainedInPriorVisit": "Blijft bij het vorige bezoek"
+      },
+      "original_state": "Oorspronkelijke status: {{status}} · betaling: {{payment}}",
+      "order_amounts": "Totaal {{total}} · tegoed {{credit}} · betaald {{paid}} · resterend {{remaining}}",
+      "kitchen_history": "De geschiedenis van vrijgave aan de keuken of routering blijft behouden.",
+      "storage_unavailable": "Herstel kan niet in deze tab worden opgeslagen of gelezen. Er wordt geen nieuw verzoek verzonden.",
+      "completed_storage_warning": "De server heeft het herstel bevestigd, maar dit tabblad kon de registratie niet wissen. Vernieuw de pagina en controleer de oorspronkelijke bewerking voordat u verdergaat.",
+      "check": "Oorspronkelijk resultaat controleren",
+      "retry_same": "Datzelfde herstel opnieuw proberen",
+      "unknown": "Resultaat niet bevestigd. Controleer de oorspronkelijke bewerking voordat u iets nieuws start.",
+      "disabled_recovery": "Nieuwe tafelherstelacties zijn uitgeschakeld. U kunt de oorspronkelijke bewerking nog controleren."
+    }
   }
 }

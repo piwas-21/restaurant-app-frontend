@@ -1,9 +1,6 @@
 'use client';
 
-// Cart state + actions shared by the classic CartContents and the craft
-// CraftCartContents surface, so the two renderings never duplicate the cart
-// logic (quantity/remove/checkout wiring, totals, the analytics-tagged
-// order-type pick). Each surface renders its own DOM over this.
+// Shared mutation, checkout, totals, and order-type logic for classic and craft cart surfaces.
 import React from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
@@ -95,8 +92,7 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     });
   };
 
-  // Deliberately NOT gated on `canCheckout` — a click with no order type has to
-  // reach here to say so. Only an empty cart is a true no-op.
+  // Keep the missing-type refusal actionable; only an empty cart is a true no-op.
   const runCheckout = async () => {
     if (
       itemCount === 0 ||
@@ -125,8 +121,8 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
       // type's own follow-up modal (forceModal, since Takeaway would otherwise
       // decide it has nothing to ask) rather than bouncing to /menu.
       if (blocker === 'details') {
+        await pickType(orderType, analyticsSource, true);
         onProceed?.();
-        pickType(orderType, analyticsSource, true);
       } else if (blocker === null) {
         routed = true;
         onProceed?.();
@@ -141,9 +137,15 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     }
   };
 
-  // proceedToCheckout has its own try/catch; fire-and-forget so the DOM handler
-  // stays synchronous.
-  const handleCheckout = () => void runCheckout();
+  // Consume follow-up failures here; the details blocker remains visible for retry.
+  const handleCheckout = () => {
+    void runCheckout().catch((error: unknown) => {
+      console.warn(
+        'Cart follow-up failed; the details step remains available for retry.',
+        error instanceof Error ? 'Error' : 'UnknownError',
+      );
+    });
+  };
 
   // The menu owns ordinary follow-up state above its lazy table-guest runtime. The cart reads the
   // admitted visit below that boundary, so active-visit picks must use this context and never the

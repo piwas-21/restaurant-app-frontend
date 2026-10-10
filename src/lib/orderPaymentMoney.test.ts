@@ -1,9 +1,11 @@
-import { amountFromMinor, inputFromMinor, parseOrderTipMinor } from './orderPaymentMoney';
+import { amountFromMinor, inputFromMinor, orderTenderTotalMinor, parseOrderTipMinor } from './orderPaymentMoney';
 
 describe('exact cashier gratuity money', () => {
   it('parses supported currency tips into exact minor units', () => {
     expect(parseOrderTipMinor('3.25', 'CHF')).toBe(325);
     expect(parseOrderTipMinor(' 1,20 ', 'EUR')).toBe(120);
+    expect(parseOrderTipMinor('12.35', 'CAD')).toBe(1235);
+    expect(orderTenderTotalMinor('1 234,50', '0,50', 'CAD', 'fr')).toBe(123500);
   });
 
   it.each(['-1', '1.001', '1e2', ''])('rejects invalid or inexact tip input %s', (value) => {

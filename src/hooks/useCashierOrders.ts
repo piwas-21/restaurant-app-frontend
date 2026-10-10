@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, type SetStateAction } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  getCashierOrders,
+  getCashierOrderGroups,
   updateOrderStatus,
   addPaymentToOrder,
   refundPayment,
@@ -11,7 +11,6 @@ import {
   toggleFocusOrder,
   getPaymentOperation,
 } from '@/services/cashierService';
-import type { OrderDto } from '@/types/order';
 import type { CashierQueueState } from '@/types/cashier';
 import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream } from './cashier/useCashierOrdersStream';
@@ -19,6 +18,7 @@ import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
 import { CashierOrdersQuery, DEFAULT_QUEUE_QUERY } from './cashier/useCashierFilters';
 import { resolveCashierQueuePage } from './cashier/cashierQueuePage';
 import type { UseCashierOrdersReturn } from './cashier/useCashierOrdersTypes';
+import { useCashierOrderGroupState } from './cashier/useCashierOrderGroupState';
 
 const POLLING_INTERVAL_MS = 5000;
 
@@ -29,7 +29,6 @@ export function useCashierOrders(
   const queryRef = useRef<CashierOrdersQuery>(query);
   queryRef.current = query;
 
-  const [orders, setOrders] = useState<OrderDto[]>([]);
   const [pagination, setPagination] = useState({
     totalCount: 0,
     page: query.page,
@@ -45,10 +44,7 @@ export function useCashierOrders(
   const latestRequestRef = useRef(0);
   const dataRevisionRef = useRef(0);
   const hasSnapshotRef = useRef(false);
-  const updateOrders = useCallback((updater: SetStateAction<OrderDto[]>) => {
-    dataRevisionRef.current += 1;
-    setOrders(updater);
-  }, []);
+  const { groups, orders, replaceGroups, updateOrders } = useCashierOrderGroupState(dataRevisionRef);
 
   const refreshOrders = useCallback(async (): Promise<boolean> => {
     if (!isMountedRef.current) return false;
@@ -62,7 +58,7 @@ export function useCashierOrders(
         endDate: _endDate,
         ...queryWithoutDates
       } = queryRef.current;
-      const result = await getCashierOrders({ ...queryWithoutDates, scope: 'Operational' });
+      const result = await getCashierOrderGroups({ ...queryWithoutDates, scope: 'Operational' });
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
       if (hasSnapshotRef.current && revisionAtRequest !== dataRevisionRef.current) {
         setIsLoading(false);
@@ -72,13 +68,13 @@ export function useCashierOrders(
       const pageResult = resolveCashierQueuePage(result, queryRef.current.page, queryRef.current.pageSize);
       setPagination(pageResult.pagination);
       if (pageResult.requestedPageWasOutOfRange) {
-        updateOrders([]);
+        replaceGroups([]);
         onPageChange?.(pageResult.pagination.page);
         setIsLoading(true);
         return false;
       }
 
-      updateOrders(pageResult.items);
+      replaceGroups(pageResult.items);
       hasSnapshotRef.current = true;
       setQueueState('ready');
       setIsLoading(false);
@@ -92,7 +88,7 @@ export function useCashierOrders(
       console.error('Error fetching orders:', error_);
       return false;
     }
-  }, [onPageChange, updateOrders]);
+  }, [onPageChange, replaceGroups]);
   const stream = useCashierOrdersStream({
     onOrderUpdate: () => void refreshOrders(),
     onReconnectRequested: () => void refreshOrders(),
@@ -131,6 +127,7 @@ export function useCashierOrders(
   const applyMutation = useCashierOrderMutation(updateOrders, setError);
 
   return {
+    groups,
     orders,
     pagination,
     isConnected: stream.isConnected,

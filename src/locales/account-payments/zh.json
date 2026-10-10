@@ -14,7 +14,7 @@
     "share_number": "第 {{number}} 份",
     "share_unavailable": "已付款或处理中",
     "item_remaining_note": "金额显示每个所选数量尚未支付的金额。按金额分摊时会包含共同费用。",
-    "equal_note": "已审核账单的各份金额保持固定。舍入会让部分份额增加一分钱；之后新增的订单不属于此计划。",
+    "equal_note": "对于 CHF 和 EUR，前几份向下取整到 0.05；最后一份精确补足余数。此方案固定用于当前账单，后续订单不包含在内。",
     "create_plan": "审核并创建分摊",
     "review": "审核分摊款",
     "identity_mismatch": "响应与此笔已审核的分摊款不匹配。请保留原操作并检查其结果。",
@@ -71,7 +71,16 @@
       "retry": "重试原始请求",
       "storage_unavailable": "此处无法读取或保存恢复数据。请授权员工检查餐桌。",
       "succeeded": "原始请求已成功。请刷新查看当前餐桌状态；此结果不会开启就餐记录。",
-      "refused": "原始请求已被拒绝。请刷新后再发起新请求。"
+      "refused": "原始请求已被拒绝。请刷新后再发起新请求。",
+      "version_unavailable": "桌台就绪版本缺失或无效。标记桌台就绪前请先刷新。",
+      "refresh": "刷新餐桌状态",
+      "errors": {
+        "version_stale": "餐桌状态已更改。请刷新状态后重试。",
+        "visit_open": "请先关闭或恢复当前就餐访问，再将餐桌设为可用。",
+        "not_available": "此餐桌当前无需重新准备。请刷新状态查看最新情况。",
+        "inactive": "此餐桌已停用。请联系管理员重新启用。",
+        "ambiguous": "此餐桌关联了多次就餐访问。请先检查并恢复，再继续操作。"
+      }
     },
     "cash": {
       "exact_charge": "账单准确金额",
@@ -83,10 +92,67 @@
       "legacy_unattested": "这笔早期现金支付的实收金额和找零未经核实。已记录的账单金额仍然可见。"
     },
     "custom_guest_shares": "为每位客人自定义金额",
-    "custom_amounts_must_match_balance": "请为每位客人输入正数金额，所有金额之和必须等于全部可用余额。",
+    "custom_shares_scope": "每位客人的分摊金额必须覆盖全部可用余额。现在只收取部分金额，请选择自定义金额。",
+    "custom_amounts_must_match_balance": "请检查每位客人的金额和显示的剩余金额。",
     "share_plan_will_be_replaced": "此计划将替换当前分账。存在进行中或已记录付款的计划不能替换。",
     "share_amount": "客人 {{number}} 的金额",
     "mode_custom_guest_share": "每位客人自定义付款",
-    "mode_full": "支付全部账单"
+    "mode_full": "支付全部账单",
+    "share_preview": "份额预览",
+    "fill_remainder": "填入剩余金额",
+    "custom_share_required": "请输入第 {{number}} 位客人的金额。",
+    "custom_share_positive": "请输入有效的正数金额。",
+    "custom_share_invalid": "请输入最多包含两位小数的有效金额。",
+    "custom_balance_remaining": "还有 {{amount}} 尚未分配。",
+    "custom_balance_over": "金额超出余额 {{amount}}。",
+    "selected_quantity": "所选数量",
+    "recovery": {
+      "title": "桌台占用恢复",
+      "intro": "释放桌台前，请核对本次到访和订单。",
+      "review_action": "查看桌台恢复预览",
+      "loading": "正在加载桌台恢复预览…",
+      "preview_failed": "无法加载预览。请刷新桌台后重试。",
+      "stale_preview": "此预览之后桌台状态已更改。请先加载新的预览，再进行确认。",
+      "session_ambiguous": "此桌台可能对应多个到访记录。请先确认到访记录，再加载新的预览。",
+      "refresh_preview": "加载新预览",
+      "role_mismatch": "已保存的恢复记录属于其他员工角色。请使用原角色登录，或联系管理员处理。",
+      "operation_mismatch": "响应与此桌台不匹配。请保持恢复锁定，并联系管理员。",
+      "reason_required": "请输入恢复原因。",
+      "version_missing": "缺少当前账户版本。请刷新并查看新的预览。",
+      "preview_title": "恢复桌台 {{table}}",
+      "warning": "此操作只归档实体桌台占用记录。此前的到访、订单、付款、退款和厨房记录均会保留。仅可取消未付款且未发送的订单。已路由、制作中、已就绪、已付款或付款状态不确定的订单仍保留在此前到访中。不会向厨房或打印机发送操作。",
+      "count": {
+        "orders": "预览中的订单",
+        "cancelable": "待取消的未付款、未发送订单",
+        "legacy": "待从桌台占用记录中归档的历史订单",
+        "routed": "有路由记录的订单",
+        "preparing": "制作中的订单",
+        "ready": "已就绪订单",
+        "paid": "已付款或已退款的订单",
+        "attempts": "进行中的付款尝试",
+        "handoffs": "待处理的付款移交",
+        "checkout": "托管结账尝试"
+      },
+      "outstanding": "保留的未结金额：{{amount}}",
+      "reason": "此次审计恢复的原因",
+      "cancel": "返回",
+      "confirm": "释放桌台占用",
+      "succeeded": "恢复已记录：取消未发送订单 {{cancelled}} 笔，归档桌台占用记录中的历史订单 {{archived}} 笔，并在上次到访中保留订单 {{retained}} 笔。",
+      "preserved_totals": "已保留的付款金额：{{paid}} · 未结金额：{{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "将取消（未付款且未发送）",
+        "ArchivedLegacyOccupancy": "将从桌台占用记录中归档；订单历史仍会保留",
+        "RetainedInPriorVisit": "仍保留在上次到访中"
+      },
+      "original_state": "原始状态：{{status}} · 付款：{{payment}}",
+      "order_amounts": "总额 {{total}} · 账单抵扣 {{credit}} · 已付 {{paid}} · 剩余 {{remaining}}",
+      "kitchen_history": "厨房放行或路由记录将予以保留。",
+      "storage_unavailable": "此标签页无法保存或读取恢复记录，不会发送新请求。",
+      "completed_storage_warning": "服务器已确认恢复，但此标签页无法清除其记录。请刷新并检查原始操作后再继续。",
+      "check": "检查原始操作结果",
+      "retry_same": "重试同一恢复操作",
+      "unknown": "恢复结果尚未确认。开始其他操作前请检查原操作。",
+      "disabled_recovery": "新的桌台恢复请求已停用。您仍可检查原始操作结果。"
+    }
   }
 }

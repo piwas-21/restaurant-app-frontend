@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import FormField from '@/components/design-system/FormField';
 import StaffButton from '@/components/design-system/StaffButton';
+import TipSelector from '@/components/checkout/TipSelector';
+import { accountContributionInput, parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
 import type { AccountManualPaymentMethod } from '@/types/accountPayments';
 import styles from './AccountPaymentCollection.module.css';
 import type { AccountPaymentChoice } from './AccountPaymentShareFields';
@@ -12,6 +14,9 @@ interface Props {
   readonly choice: AccountPaymentChoice;
   readonly amount: string;
   readonly tip: string;
+  readonly tipSubtotalMinor: number;
+  readonly currency: string;
+  readonly locale: string;
   readonly method: AccountManualPaymentMethod;
   readonly error: string | null;
   readonly disabled: boolean;
@@ -22,6 +27,7 @@ interface Props {
   readonly onChoiceChange: (choice: AccountPaymentChoice) => void;
   readonly onAmountChange: (value: string) => void;
   readonly onTipChange: (value: string) => void;
+  readonly onTipValidityChange: (valid: boolean) => void;
   readonly onMethodChange: (method: AccountManualPaymentMethod) => void;
 }
 
@@ -29,6 +35,9 @@ export default function AccountPaymentBasicFields({
   choice,
   amount,
   tip,
+  tipSubtotalMinor,
+  currency,
+  locale,
   method,
   error,
   disabled,
@@ -39,6 +48,7 @@ export default function AccountPaymentBasicFields({
   onChoiceChange,
   onAmountChange,
   onTipChange,
+  onTipValidityChange,
   onMethodChange,
 }: Props) {
   const { t } = useTranslation();
@@ -69,14 +79,16 @@ export default function AccountPaymentBasicFields({
         </FormField>
       )}
       {showTip && (
-        <FormField label={t('cashier.tables.payment_tip')}>
-          <input
-            inputMode="decimal"
-            value={tip}
-            onChange={(event) => onTipChange(event.target.value)}
-            disabled={disabled}
-          />
-        </FormField>
+        <TipSelector
+          key={choice}
+          subtotal={tipSubtotalMinor / 100}
+          selectedTipAmount={(parseAccountContributionMinor(tip || '0', currency, locale) ?? 0) / 100}
+          onTipChange={(value) => onTipChange(accountContributionInput(Math.round(value * 100)) ?? '')}
+          onValidityChange={onTipValidityChange}
+          currency={currency}
+          locale={locale}
+          disabled={disabled}
+        />
       )}
       <FormField label={t('cashier.payment_method')}>
         <select

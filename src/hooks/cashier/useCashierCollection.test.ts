@@ -35,16 +35,16 @@ const payment: AddPaymentRequest = {
   amount: 18.5,
 };
 
-const committedLookup = (updated: OrderDto): PaymentOperationLookupDto =>
+const committedLookup = (updated: OrderDto, submitted: AddPaymentRequest = payment): PaymentOperationLookupDto =>
   ({
-    operationId: payment.operationId,
+    operationId: submitted.operationId,
     status: 'Committed',
     payment: {
       id: 'payment-1',
       orderId: updated.id,
-      operationId: payment.operationId,
-      paymentMethod: 'Cash',
-      amount: payment.amount,
+      operationId: submitted.operationId,
+      paymentMethod: submitted.paymentMethod,
+      amount: submitted.amount,
       paymentDate: '2026-09-13T10:01:00Z',
     },
     order: updated,
@@ -59,6 +59,8 @@ describe('useCashierCollection', () => {
     jest.clearAllMocks();
     window.sessionStorage.clear();
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   it('loads the selected order and applies a definitive payment response', async () => {
     const initial = baseOrder();
@@ -87,6 +89,89 @@ describe('useCashierCollection', () => {
       await result.current.submitPayment(payment);
     });
     expect(mockedAddPayment).toHaveBeenCalledWith(initial.id, { ...payment, expectedVersion: 7 });
+  });
+
+  it('journals reviewed cash received locally without adding it to the API payment request', async () => {
+    const initial = baseOrder({ total: 19.75, remainingAmount: 19.75 });
+    const updated = baseOrder({ total: 19.75, totalPaid: 19.75, remainingAmount: 0, isFullyPaid: true });
+    const cashPayment: AddPaymentRequest = {
+      operationId: 'operation-cash-evidence',
+      paymentMethod: 'Cash',
+      amount: 19.75,
+    };
+    mockedGetOrder.mockResolvedValue(initial);
+    mockedAddPayment.mockImplementation(async () => {
+      const saved = JSON.parse(window.sessionStorage.getItem('cashier.pending-payment') ?? '{}') as {
+        cashReceivedMinor?: number;
+      };
+      expect(saved.cashReceivedMinor).toBe(2000);
+      return updated;
+    });
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+
+    await act(async () => result.current.submitPayment(cashPayment, 2000));
+
+    expect(mockedAddPayment).toHaveBeenCalledWith(initial.id, cashPayment);
+    expect(mockedAddPayment.mock.calls[0][1]).not.toHaveProperty('cashReceivedMinor');
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
+  });
+
+  it('does not post when the recovery descriptor cannot be saved', async () => {
+    const initial = baseOrder();
+    mockedGetOrder.mockResolvedValue(initial);
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage blocked');
+    });
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.payment_recovery_unavailable');
+    });
+
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+    expect(result.current.recoveryError).toBe('cashier.payment_recovery_unavailable');
+  });
+
+  it('blocks standalone collection when a saved payment journal is unreadable', async () => {
+    const initial = baseOrder();
+    mockedGetOrder.mockResolvedValue(initial);
+    window.sessionStorage.setItem('cashier.pending-payment', '{broken');
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+    await waitFor(() => expect(result.current.recoveryError).toBe('cashier.payment_recovery_unreadable'));
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.payment_recovery_unreadable');
+      await result.current.retryPendingPayment();
+    });
+
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+    expect(mockedGetOperation).not.toHaveBeenCalled();
+    expect(result.current.recoveryError).toBe('cashier.payment_recovery_unreadable');
+  });
+
+  it('keeps a valid journal for another order locked until staff opens that order', async () => {
+    const initial = baseOrder();
+    mockedGetOrder.mockResolvedValue(initial);
+    persistPendingPayment('order-with-saved-payment', {
+      ...payment,
+      operationId: 'saved-other-order-operation',
+    });
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+    await waitFor(() => expect(result.current.order).toEqual(initial));
+    await waitFor(() => expect(result.current.recoveryOrderId).toBe('order-with-saved-payment'));
+
+    await act(async () => {
+      await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.payment_recovery_other_order');
+      await result.current.retryPendingPayment();
+    });
+
+    expect(result.current.recoveryError).toBe('cashier.payment_recovery_other_order');
+    expect(mockedGetOperation).not.toHaveBeenCalled();
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).not.toBeNull();
   });
 
   it('reconciles a transport failure by operation id and never repeats the write', async () => {
@@ -163,7 +248,64 @@ describe('useCashierCollection', () => {
     expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
   });
 
-  it('requires explicit abandonment before clearing an unknown operation', async () => {
+  it('recovers change from locally saved cash evidence after a committed payment reload', async () => {
+    const initial = baseOrder({ remainingAmount: 19.75, total: 19.75 });
+    const updated = baseOrder({
+      total: 19.75,
+      totalPaid: 19.75,
+      remainingAmount: 0,
+      isFullyPaid: true,
+      paymentStatus: 'Paid',
+    });
+    const cashPayment: AddPaymentRequest = {
+      operationId: 'operation-cash-change',
+      paymentMethod: 'Cash',
+      amount: 19.75,
+    };
+    persistPendingPayment(initial.id, cashPayment, 2000);
+    mockedGetOrder.mockResolvedValue(initial);
+    mockedGetOperation.mockResolvedValue(committedLookup(updated, cashPayment));
+
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+
+    await waitFor(() =>
+      expect(result.current.recoveredPayment).toMatchObject({
+        applied: 19.75,
+        tenderTotal: 19.75,
+        change: 0.25,
+        remaining: 0,
+      }),
+    );
+    expect(mockedGetOperation).toHaveBeenCalledWith(initial.id, cashPayment.operationId);
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
+  });
+
+  it('keeps a contradictory committed payment blocked and does not claim change', async () => {
+    const initial = baseOrder({ total: 19.75, remainingAmount: 19.75 });
+    const updated = baseOrder({ total: 19.75, totalPaid: 19.75, remainingAmount: 0, isFullyPaid: true });
+    const cashPayment: AddPaymentRequest = {
+      operationId: 'operation-cash-mismatch',
+      paymentMethod: 'Cash',
+      amount: 19.75,
+    };
+    persistPendingPayment(initial.id, cashPayment, 2000);
+    mockedGetOrder.mockResolvedValue(initial);
+    const contradictory = committedLookup(updated, cashPayment);
+    if (!contradictory.payment) throw new Error('Test setup requires the committed payment DTO.');
+    contradictory.payment.amount = 19.5;
+    mockedGetOperation.mockResolvedValue(contradictory);
+    const { result } = renderHook(() => useCashierCollection(initial.id));
+
+    await waitFor(() => expect(result.current.pendingPayment?.status).toBe('Unknown'));
+
+    expect(result.current.recoveredPayment).toBeNull();
+    expect(result.current.order).toEqual(initial);
+    expect(window.sessionStorage.getItem('cashier.pending-payment')).not.toBeNull();
+    expect(mockedAddPayment).not.toHaveBeenCalled();
+  });
+
+  it('keeps an unknown operation journal because client-side clearing cannot prove no payment committed', async () => {
     const initial = baseOrder();
     const unknownLookup = {
       operationId: payment.operationId,
@@ -181,8 +323,9 @@ describe('useCashierCollection', () => {
       await expect(result.current.submitPayment(payment)).rejects.toThrow('cashier.payment_result_unknown');
     });
     expect(window.sessionStorage.getItem('cashier.pending-payment')).not.toBeNull();
-    act(() => result.current.abandonPendingPayment());
-    expect(window.sessionStorage.getItem('cashier.pending-payment')).toBeNull();
+    expect(result.current.pendingPayment?.status).toBe('Unknown');
+    expect(result.current).not.toHaveProperty('abandonPendingPayment');
+    expect(mockedAddPayment).toHaveBeenCalledTimes(1);
   });
   it('refreshes the order and does not retry after an optimistic version conflict', async () => {
     const initial = baseOrder({ version: 4 });

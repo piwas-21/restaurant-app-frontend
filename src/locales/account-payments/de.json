@@ -14,7 +14,7 @@
     "share_number": "Anteil {{number}}",
     "share_unavailable": "Bezahlt oder in Bearbeitung",
     "item_remaining_note": "Die Beträge zeigen den noch offenen Wert der gewählten Mengen. Geteilte Gebühren sind in Beiträgen nach Betrag enthalten.",
-    "equal_note": "Die Anteile bleiben für die geprüfte Rechnung fest. Durch Rundung sind manche Anteile einen Rappen höher; spätere Bestellungen gehören nicht zu diesem Plan.",
+    "equal_note": "Bei CHF und EUR werden die ersten Anteile auf 0,05 abgerundet; der letzte Anteil gleicht den Rest genau aus. Der Plan gilt nur für diese Rechnung; spätere Runden sind nicht enthalten.",
     "create_plan": "Anteile prüfen und erstellen",
     "review": "Beitrag prüfen",
     "identity_mismatch": "Die Antwort gehört nicht zu diesem geprüften Beitrag. Behalten Sie den ursprünglichen Vorgang bei und prüfen Sie sein Ergebnis.",
@@ -71,7 +71,16 @@
       "retry": "Ursprüngliche Anfrage wiederholen",
       "storage_unavailable": "Wiederherstellung kann hier nicht gelesen oder gespeichert werden. Lassen Sie berechtigtes Personal den Tisch prüfen.",
       "succeeded": "Die ursprüngliche Anfrage war erfolgreich. Aktualisieren Sie den Tisch; dadurch wird kein Besuch eröffnet.",
-      "refused": "Die ursprüngliche Anfrage wurde abgelehnt. Aktualisieren Sie vor einer neuen Anfrage."
+      "refused": "Die ursprüngliche Anfrage wurde abgelehnt. Aktualisieren Sie vor einer neuen Anfrage.",
+      "version_unavailable": "Die Bereitschaftsversion des Tisches fehlt oder ist ungültig. Aktualisieren Sie, bevor Sie den Tisch freigeben.",
+      "refresh": "Tischstatus aktualisieren",
+      "errors": {
+        "version_stale": "Der Tisch wurde geändert. Aktualisieren Sie den Status und versuchen Sie es erneut.",
+        "visit_open": "Ein aktiver Tischbesuch muss zuerst geschlossen oder wiederhergestellt werden.",
+        "not_available": "Dieser Tisch muss derzeit nicht für Gäste vorbereitet werden. Aktualisieren Sie den Status.",
+        "inactive": "Dieser Tisch ist inaktiv. Bitten Sie eine Admin-Person, ihn zu aktivieren.",
+        "ambiguous": "Mit diesem Tisch sind mehrere Besuche verknüpft. Prüfen und bereinigen Sie diese zuerst."
+      }
     },
     "cash": {
       "exact_charge": "Exakter Rechnungsbetrag",
@@ -83,10 +92,67 @@
       "legacy_unattested": "Für diese frühere Bargeldzahlung sind empfangener Betrag und Wechselgeld nicht bestätigt. Der erfasste Rechnungsbetrag bleibt sichtbar."
     },
     "custom_guest_shares": "Individueller Betrag pro Gast",
-    "custom_amounts_must_match_balance": "Geben Sie für jeden Gast einen positiven Betrag ein. Die Summe muss dem gesamten verfügbaren Betrag entsprechen.",
+    "custom_shares_scope": "Die Gästebeträge müssen den gesamten verfügbaren Betrag abdecken. Für eine Teilzahlung wählen Sie „Eigener Betrag“.",
+    "custom_amounts_must_match_balance": "Prüfen Sie die Beträge der Gäste und den angezeigten Restbetrag.",
     "share_plan_will_be_replaced": "Dieser Plan ersetzt die aktuelle Aufteilung. Pläne mit laufenden oder erfassten Zahlungen können nicht ersetzt werden.",
     "share_amount": "Betrag für Gast {{number}}",
     "mode_custom_guest_share": "Individueller Beitrag pro Gast",
-    "mode_full": "Gesamte Rechnung"
+    "mode_full": "Gesamte Rechnung",
+    "share_preview": "Anteilsübersicht",
+    "fill_remainder": "Restbetrag einsetzen",
+    "custom_share_required": "Betrag für Gast {{number}} eingeben.",
+    "custom_share_positive": "Einen gültigen positiven Betrag eingeben.",
+    "custom_share_invalid": "Geben Sie einen gültigen Betrag mit höchstens zwei Nachkommastellen ein.",
+    "custom_balance_remaining": "{{amount}} sind noch nicht zugeteilt.",
+    "custom_balance_over": "Die Beträge überschreiten den offenen Betrag um {{amount}}.",
+    "selected_quantity": "Ausgewählte Menge",
+    "recovery": {
+      "title": "Tischbelegung wiederherstellen",
+      "intro": "Prüfen Sie den Besuch und Bestellverlauf, bevor Sie den Tisch freigeben.",
+      "review_action": "Tischwiederherstellung prüfen",
+      "loading": "Vorschau zur Tischwiederherstellung wird geladen…",
+      "preview_failed": "Vorschau konnte nicht geladen werden. Aktualisieren Sie den Tisch und versuchen Sie es erneut.",
+      "stale_preview": "Der Tisch hat sich nach dieser Vorschau geändert. Laden Sie vor der Bestätigung eine neue Vorschau.",
+      "session_ambiguous": "Für diesen Tisch ist mehr als ein Besuch möglich. Klären Sie den Besuch und laden Sie eine neue Vorschau.",
+      "refresh_preview": "Neue Vorschau laden",
+      "role_mismatch": "Eine gespeicherte Wiederherstellung gehört zu einer anderen Personalrolle. Melden Sie sich mit der ursprünglichen Rolle an oder wenden Sie sich an die Administration.",
+      "operation_mismatch": "Die Antwort gehört nicht zu diesem Tisch. Lassen Sie die Wiederherstellung gesperrt und wenden Sie sich an die Administration.",
+      "reason_required": "Geben Sie einen Grund ein.",
+      "version_missing": "Die aktuellen Kontoversionen fehlen. Aktualisieren Sie die Seite und prüfen Sie eine neue Vorschau.",
+      "preview_title": "Tisch {{table}} wiederherstellen",
+      "warning": "Nur die physische Tischbelegung wird archiviert. Frühere Besuche, Bestellungen, Zahlungen, Rückerstattungen und Küchenverläufe bleiben erhalten. Nur unbezahlte, ungesendete Bestellungen können storniert werden. Weitergeleitete, zubereitete, fertige, bezahlte oder unklare Vorgänge bleiben im früheren Besuch. Es wird nichts an Küche oder Drucker gesendet.",
+      "count": {
+        "orders": "Bestellungen in der Vorschau",
+        "cancelable": "Unbezahlte und nicht gesendete Bestellungen zum Stornieren",
+        "legacy": "Alte Bestellungen, die aus der Tischbelegung archiviert werden",
+        "routed": "Bestellungen mit Weiterleitungshistorie",
+        "preparing": "Bestellungen in Zubereitung",
+        "ready": "Fertige Bestellungen",
+        "paid": "Bezahlte oder erstattete Bestellungen",
+        "attempts": "Aktive Zahlungsversuche",
+        "handoffs": "Ausstehende Zahlungsübergaben",
+        "checkout": "Versuche über einen gehosteten Checkout"
+      },
+      "outstanding": "Verbleibender offener Betrag: {{amount}}",
+      "reason": "Grund für diese protokollierte Wiederherstellung",
+      "cancel": "Zurück",
+      "confirm": "Tischbelegung freigeben",
+      "succeeded": "Wiederherstellung gespeichert: {{cancelled}} nicht gesendete Bestellungen storniert, {{archived}} alte Bestellungen aus der Tischbelegung archiviert und {{retained}} Bestellungen im vorherigen Besuch belassen.",
+      "preserved_totals": "Erhaltene Zahlungen: {{paid}} · offener Betrag: {{outstanding}}",
+      "disposition": {
+        "CancelledUnsent": "Wird storniert (unbezahlt und nicht gesendet)",
+        "ArchivedLegacyOccupancy": "Wird aus der Tischbelegung archiviert; der Bestellverlauf bleibt erhalten",
+        "RetainedInPriorVisit": "Bleibt im vorherigen Besuch"
+      },
+      "original_state": "Ursprünglicher Status: {{status}} · Zahlung: {{payment}}",
+      "order_amounts": "Gesamt {{total}} · Gutschrift {{credit}} · bezahlt {{paid}} · offen {{remaining}}",
+      "kitchen_history": "Küchenfreigaben und Weiterleitungshistorie bleiben erhalten.",
+      "storage_unavailable": "Wiederherstellung kann in diesem Tab nicht gespeichert oder gelesen werden. Es wird keine neue Anfrage gesendet.",
+      "completed_storage_warning": "Der Server hat die Wiederherstellung bestätigt, aber dieser Tab konnte den Eintrag nicht löschen. Aktualisieren Sie die Seite und prüfen Sie den ursprünglichen Vorgang, bevor Sie fortfahren.",
+      "check": "Ursprüngliches Ergebnis prüfen",
+      "retry_same": "Dieselbe Wiederherstellung erneut versuchen",
+      "unknown": "Ergebnis unbestätigt. Prüfen Sie den ursprünglichen Vorgang, bevor Sie einen neuen starten.",
+      "disabled_recovery": "Neue Tischwiederherstellungen sind deaktiviert. Sie können weiterhin das Ergebnis des ursprünglichen Vorgangs prüfen."
+    }
   }
 }

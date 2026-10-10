@@ -6,6 +6,7 @@ import CashierCollectionPanel from './CashierCollectionPanel';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: Record<string, unknown>) => (options ? `${key}:${JSON.stringify(options)}` : key),
+    i18n: { language: 'en' },
   }),
 }));
 
@@ -59,15 +60,13 @@ describe('CashierCollectionPanel', () => {
     renderPanel();
 
     expect(screen.getByRole('heading', { name: '1042' })).toBeInTheDocument();
-    expect(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ })).toHaveValue(18.5);
-    expect(screen.getByRole('spinbutton', { name: 'cashier.cash_received' })).toHaveValue(18.5);
+    expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toHaveValue('18.50');
+    expect(screen.getByRole('textbox', { name: 'cashier.cash_received' })).toHaveValue('18.50');
 
-    const twenty = screen.getAllByRole('button').find((button) => button.textContent?.includes('20'));
-    expect(twenty).toBeDefined();
-    fireEvent.click(twenty!);
+    fireEvent.click(screen.getByRole('button', { name: /EUR.*20\.00/ }));
 
-    expect(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ })).toHaveValue(18.5);
-    expect(screen.getByRole('spinbutton', { name: 'cashier.cash_received' })).toHaveValue(20);
+    expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toHaveValue('18.50');
+    expect(screen.getByRole('textbox', { name: 'cashier.cash_received' })).toHaveValue('20.00');
   });
 
   it('submits one applied amount and retains the form after a definitive failure', async () => {
@@ -78,21 +77,68 @@ describe('CashierCollectionPanel', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
 
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 18.5 })));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 18.5 }), expect.any(Number)),
+    );
     expect(await screen.findAllByText('Terminal offline')).not.toHaveLength(0);
     expect(screen.getByRole('textbox', { name: 'cashier.notes' })).toHaveValue('keep this note');
-    expect(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ })).toHaveValue(18.5);
+    expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toHaveValue('18.50');
+  });
+
+  it('offers the saved-order route without labeling recovery as an active tender', () => {
+    const openRecoveryOrder = jest.fn();
+    render(
+      <CashierCollectionPanel
+        order={order()}
+        isPending
+        isCheckingPayment={false}
+        recoveryError="cashier.payment_recovery_other_order"
+        recoveryOrderId="order-original"
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+        onNextSale={jest.fn()}
+        onReturnToOrder={jest.fn()}
+        onOpenRecoveryOrder={openRecoveryOrder}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.payment_recovery_open_order' }));
+
+    expect(openRecoveryOrder).toHaveBeenCalledWith('order-original');
+    expect(screen.getByRole('button', { name: 'cashier.add_payment' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'common.loading' })).not.toBeInTheDocument();
+  });
+
+  it('keeps unreadable recovery blocked while showing an enabled check action, not a sending label', () => {
+    render(
+      <CashierCollectionPanel
+        order={order()}
+        isPending
+        isCheckingPayment={false}
+        recoveryError="cashier.payment_recovery_unreadable"
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+        onNextSale={jest.fn()}
+        onReturnToOrder={jest.fn()}
+        onRetryPendingPayment={jest.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('cashier.payment_recovery_unreadable');
+    expect(screen.getByRole('button', { name: 'cashier.collection.retry_payment_check' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'cashier.add_payment' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'common.loading' })).not.toBeInTheDocument();
   });
 
   it('adds the staff tip to cash due and change without increasing the order balance', async () => {
     const onSubmit = jest.fn().mockResolvedValue(order({ remainingAmount: 0, totalPaid: 18.5 }));
     renderPanel(onSubmit);
 
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.collection.staff_tip' }), {
+    fireEvent.change(screen.getByLabelText(/custom_tip/), {
       target: { value: '1.25' },
     });
 
-    expect(screen.getByRole('spinbutton', { name: 'cashier.cash_received' })).toHaveValue(19.75);
+    expect(screen.getByRole('textbox', { name: 'cashier.cash_received' })).toHaveValue('19.75');
     expect(screen.getByText(/cashier.collection.total_to_collect/)).toHaveTextContent('EUR 19.75');
     fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
 
@@ -102,6 +148,7 @@ describe('CashierCollectionPanel', () => {
           amount: 18.5,
           tipMinor: 125,
         }),
+        expect.any(Number),
       ),
     );
   });
@@ -112,20 +159,23 @@ describe('CashierCollectionPanel', () => {
 
     const method = screen.getByRole('combobox', { name: /cashier.payment_method/ });
     fireEvent.change(method, { target: { value: 'CreditCard' } });
-    fireEvent.change(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /cashier.payment_amount/ }), {
       target: { value: '18.50' },
     });
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'cashier.collection.staff_tip' }), {
+    fireEvent.change(screen.getByLabelText(/custom_tip/), {
       target: { value: '2.25' },
     });
 
     fireEvent.change(method, { target: { value: 'Cash' } });
-    const received = screen.getByRole('spinbutton', { name: 'cashier.cash_received' });
-    expect(received).toHaveValue(20.75);
+    const received = screen.getByRole('textbox', { name: 'cashier.cash_received' });
+    expect(received).toHaveValue('20.75');
     fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
 
     await waitFor(() =>
-      expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ amount: 18.5, tipMinor: 225 })),
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 18.5, tipMinor: 225 }),
+        expect.any(Number),
+      ),
     );
   });
 
@@ -155,6 +205,31 @@ describe('CashierCollectionPanel', () => {
 
     expect(screen.getByRole('button', { name: 'cashier.collection.back_orders' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'cashier.payment_checking' })).toBeDisabled();
-    expect(screen.getByRole('spinbutton', { name: /cashier.payment_amount/ })).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toBeDisabled();
+  });
+
+  it('offers reconciliation but never clears an unknown tender from the browser', () => {
+    render(
+      <CashierCollectionPanel
+        order={order()}
+        isPending={false}
+        isCheckingPayment={false}
+        pendingPayment={{
+          orderId: 'order-1',
+          operationId: 'operation-1',
+          paymentMethod: 'Cash',
+          amount: 18.5,
+          status: 'Unknown',
+        }}
+        onSubmit={jest.fn()}
+        onBack={jest.fn()}
+        onNextSale={jest.fn()}
+        onReturnToOrder={jest.fn()}
+        onRetryPendingPayment={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'cashier.collection.retry_payment_check' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'cashier.collection.abandon_payment' })).not.toBeInTheDocument();
   });
 });

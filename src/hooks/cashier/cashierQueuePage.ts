@@ -1,16 +1,16 @@
-import type { PagedResult, OrderDto } from '@/types/order';
+import type { PagedResult } from '@/types/order';
 
-export interface CashierQueuePage {
-  readonly items: OrderDto[];
+export interface CashierQueuePage<T> {
+  readonly items: T[];
   readonly pagination: { totalCount: number; page: number; pageSize: number; totalPages: number };
   readonly requestedPageWasOutOfRange: boolean;
 }
 
-export function resolveCashierQueuePage(
-  result: PagedResult<OrderDto>,
+export function resolveCashierQueuePage<T>(
+  result: PagedResult<T>,
   requestedPage: number,
   fallbackPageSize: number,
-): CashierQueuePage {
+): CashierQueuePage<T> {
   const items = Array.isArray(result.items) ? result.items : [];
   const pageSize = result.pageSize > 0 ? result.pageSize : fallbackPageSize;
   const totalCount = Number.isFinite(result.totalCount) ? result.totalCount : items.length;

@@ -110,6 +110,7 @@ export default function CashierOrdersWorkspace() {
         description={t('cashier.workspace.orders_description')}
         timeZone={timeZone}
         orders={queue.orders}
+        groups={queue.groups}
         pagination={queue.pagination}
         queueState={queue.queueState}
         isLoading={queue.isLoading}
@@ -135,7 +136,13 @@ export default function CashierOrdersWorkspace() {
           />
         }
         onSelectOrder={route.navigateWithOrder}
-        onCollect={route.navigateToCollection}
+        onCollect={(orderId, serviceSessionId) => {
+          if (serviceSessionId) route.navigateToSessionCollection(serviceSessionId, orderId, undefined, 'orders');
+          else route.navigateToCollection(orderId);
+        }}
+        onCollectSession={(serviceSessionId) =>
+          route.navigateToSessionCollection(serviceSessionId, undefined, undefined, 'orders')
+        }
         onBack={route.clearOrder}
         onSearchChange={filters.setSearchQuery}
         onSearchSubmit={filters.submitSearch}
@@ -144,6 +151,7 @@ export default function CashierOrdersWorkspace() {
         onOrderTypeFilterChange={filters.setOrderTypeFilter}
         onMarketplaceOnlyFilterChange={filters.setMarketplaceOnlyFilter}
         onPageChange={filters.setPage}
+        onPageSizeChange={filters.setPageSize}
         onRetry={() => void queue.refreshOrders()}
       />
       <CashierConfirmModal

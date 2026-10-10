@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { TableServiceSessionDto } from '@/types/order';
@@ -33,6 +33,12 @@ jest.mock('./accountPaymentCollectionLoader', () => ({
         </output>
       ),
     }),
+  ),
+}));
+jest.mock('@/components/table-service/TableOccupancyRecoveryAction', () => ({
+  __esModule: true,
+  default: ({ tableId, serviceSessionId }: { tableId: string; serviceSessionId?: string }) => (
+    <output data-testid="recovery-action">{`${tableId}:${serviceSessionId ?? ''}`}</output>
   ),
 }));
 
@@ -104,10 +110,8 @@ function renderPanel(
         pendingOperation={null}
         onBack={jest.fn()}
         onRefresh={jest.fn()}
-        onSubmitPayment={jest.fn()}
         onCloseSession={jest.fn()}
         onReleaseTable={jest.fn()}
-        onClearAndReleaseTable={jest.fn()}
         onReconcilePendingOperation={jest.fn()}
         {...overrides}
       />
@@ -136,6 +140,24 @@ describe('CashierTableSessionPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
     expect(screen.getByText('cashier.tables.release_confirm_preserves')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'cashier.tables.release_table' }).at(-1)).toBeEnabled();
+  });
+
+  it('locks conflicting visit actions while a table recovery is unresolved', () => {
+    renderPanel(
+      { ...session, hasUnassignedActiveOrders: false, canReleaseTable: true },
+      {
+        recoveryTableId: session.tableId ?? 'table-stable-7',
+        recoveryEnabled: true,
+        recoveryOperationPending: true,
+        onRecoveryComplete: async () => undefined,
+      },
+    );
+
+    expect(screen.getByRole('button', { name: 'cashier.tables.back' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'cashier.tables.release_table' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'cashier.tables.close' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'cashier.tables.add_round' })).toBeDisabled();
+    expect(screen.getByTestId('recovery-action')).toHaveTextContent('table-stable-7:session-1');
   });
 
   it('keeps split and tip bill content printable when TableAccountV1 is active', () => {
@@ -180,14 +202,13 @@ describe('CashierTableSessionPanel', () => {
     expect(billCss).toMatch(/@media print[\s\S]*\.billScroll[\s\S]*max-height:\s*none[\s\S]*overflow:\s*visible/);
   });
 
-  it('requires explicit confirmation before clearing pending orders and freeing a table', async () => {
-    const clear = jest.fn().mockResolvedValue(undefined);
-    renderPanel({ ...session, hasUnassignedActiveOrders: false }, { onClearAndReleaseTable: clear });
-
-    fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.clear_and_release' }));
-    expect(screen.getByText('cashier.tables.clear_confirm_limits')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'cashier.tables.clear_and_release' }).at(-1)!);
-    await waitFor(() => expect(clear).toHaveBeenCalledTimes(1));
+  it('replaces the old clear path with audited occupancy recovery for this visit', () => {
+    renderPanel(
+      { ...session, hasUnassignedActiveOrders: false },
+      { recoveryTableId: 'table-stable-7', recoveryEnabled: true, onRecoveryComplete: jest.fn(async () => undefined) },
+    );
+    expect(screen.getByTestId('recovery-action')).toHaveTextContent('table-stable-7:session-1');
+    expect(screen.queryByRole('button', { name: 'cashier.tables.clear_and_release' })).not.toBeInTheDocument();
   });
 
   it('does not offer rounds or guest admission on a released visit', () => {
@@ -281,22 +302,29 @@ describe('CashierTableSessionPanel', () => {
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_activity' })).toBeInTheDocument();
   });
 
-  it('replaces cashier tender entry with lazy account collection when enabled', async () => {
+  it('routes cashier visit collection to the shared table contribution page', async () => {
     renderPanel({ ...session, hasUnassignedActiveOrders: false }, {}, { tableAccountPaymentsV1: true });
 
-    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('true:false:true');
-    expect(loadAccountPaymentCollection).toHaveBeenCalledTimes(1);
-    expect(loadAccountPaymentLocale).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('link', { name: 'server.bill.collect' })).toHaveAttribute(
+      'href',
+      '/cashier/collection?serviceSessionId=session-1&tableId=table-stable-7',
+    );
+    expect(loadAccountPaymentCollection).not.toHaveBeenCalled();
     expect(screen.queryByRole('heading', { name: 'cashier.tables.payment_title' })).not.toBeInTheDocument();
   });
 
   it('keeps owner recovery available when the server disables new collection', async () => {
     renderPanel(
       { ...session, canCollect: false, hasUnassignedActiveOrders: false },
-      {},
+      {
+        recoveryTableId: session.tableId ?? 'table-stable-7',
+        recoveryEnabled: true,
+        onRecoveryComplete: async () => undefined,
+      },
       { tableAccountPaymentsV1: true },
     );
 
-    expect(await screen.findByTestId('account-payment-collection')).toHaveTextContent('true:true:true');
+    expect(await screen.findByTestId('recovery-action')).toHaveTextContent('table-stable-7:session-1');
+    expect(screen.queryByRole('heading', { name: 'cashier.tables.payment_title' })).not.toBeInTheDocument();
   });
 });

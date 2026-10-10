@@ -4,9 +4,11 @@ import type { ComponentProps } from 'react';
 import type { OrderDto } from '@/types/order';
 import CashierReadOnlyDestination from './CashierReadOnlyDestination';
 
+const mockI18n = { language: 'en-US' };
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    i18n: { language: 'en-US' },
+    i18n: mockI18n,
     t: (key: string, options?: Record<string, unknown>) => {
       if (options?.start !== undefined) return `${options.start}-${options.end}/${options.total}`;
       return key;
@@ -17,6 +19,7 @@ jest.mock('./CashierWorkspaceShell', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
+jest.mock('./CashierTicketActions', () => ({ __esModule: true, default: () => null }));
 
 const order = ({ id = 'one' }: { id?: string } = {}): OrderDto =>
   ({
@@ -82,5 +85,17 @@ describe('CashierReadOnlyDestination mobile focus', () => {
     fireEvent.click(back);
     rerender(<CashierReadOnlyDestination {...baseProps()} />);
     await waitFor(() => expect(row).toHaveFocus());
+  });
+
+  it('passes the selected order visit to the collection action', () => {
+    const onCollect = jest.fn();
+    const selected = { ...order(), serviceSessionId: 'visit-1' } as OrderDto;
+    render(
+      <CashierReadOnlyDestination {...baseProps({ selectedOrderId: 'one', selectedOrder: selected, onCollect })} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.collection.title' }));
+
+    expect(onCollect).toHaveBeenCalledWith('one', 'visit-1');
   });
 });

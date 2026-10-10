@@ -61,6 +61,7 @@ export const KNOWN_TENANT_UI_PATHS = [
   '/reservations',
   '/scan',
   '/server',
+  '/server/collection',
   '/server/floor',
   '/server/marketplace',
   '/server/orders',

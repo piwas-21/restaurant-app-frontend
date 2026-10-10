@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useAccountPaymentAccount } from '@/hooks/useAccountPaymentAccount';
@@ -21,6 +21,7 @@ interface Props {
   readonly disabled: boolean;
   readonly recoveryEnabled: boolean;
   readonly onUpdated: () => void;
+  readonly onNavigationLockChange?: (locked: boolean) => void;
 }
 
 export default function AccountPaymentCollection({
@@ -30,6 +31,7 @@ export default function AccountPaymentCollection({
   disabled,
   recoveryEnabled,
   onUpdated,
+  onNavigationLockChange,
 }: Props) {
   const { t, i18n } = useTranslation();
   const reader = useAccountPaymentAccount(session.serviceSessionId, enabled);
@@ -37,16 +39,11 @@ export default function AccountPaymentCollection({
   const refresh = useCallback(async () => {
     await refreshAccount();
     onUpdated();
-  }, [refreshAccount, onUpdated]);
+  }, [onUpdated, refreshAccount]);
   const account = reader.account;
-  let visitCurrency: string | null;
-  if (!enabled) {
-    visitCurrency = accountPaymentVisitCurrency(session);
-  } else if (account) {
-    visitCurrency = accountPaymentVisitCurrency(session, account);
-  } else {
-    visitCurrency = null;
-  }
+  // The session and bill carry the server-captured visit currency. Use them for safe readback
+  // before the account GET finishes; once loaded, the account must agree with that binding.
+  const visitCurrency = accountPaymentVisitCurrency(session, account);
   const payment = useAccountPaymentOperation(
     actorId,
     session.serviceSessionId,
@@ -55,6 +52,11 @@ export default function AccountPaymentCollection({
     recoveryEnabled,
     visitCurrency,
   );
+  const checkPayment = payment.check;
+  useEffect(() => {
+    onNavigationLockChange?.(payment.busy || payment.pending !== null);
+    return () => onNavigationLockChange?.(false);
+  }, [onNavigationLockChange, payment.busy, payment.pending]);
   const writesLocked =
     disabled ||
     reader.stale ||
@@ -64,6 +66,10 @@ export default function AccountPaymentCollection({
     visitCurrency === null ||
     account?.status !== 'Open';
   const pendingPayment = payment.pending?.kind === 'payment' ? payment.pending : null;
+  const refreshCollection = useCallback(async () => {
+    if (payment.pending) await checkPayment();
+    else await refresh();
+  }, [checkPayment, payment.pending, refresh]);
   const safeReleaseEnabled =
     visitCurrency !== null &&
     canReleaseAccountPaymentRecovery(
@@ -131,7 +137,7 @@ export default function AccountPaymentCollection({
         <p className={styles.note}>{t('accountPayments.other_contributions')}</p>
       )}
       {enabled && (
-        <StaffButton onClick={() => void reader.refresh()} disabled={reader.loading}>
+        <StaffButton onClick={() => void refreshCollection()} disabled={reader.loading || payment.busy}>
           {t('cashier.workspace.refresh')}
         </StaffButton>
       )}

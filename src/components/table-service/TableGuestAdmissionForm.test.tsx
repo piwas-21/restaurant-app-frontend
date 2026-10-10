@@ -50,4 +50,30 @@ describe('TableGuestAdmissionForm', () => {
       tableId: 'table-id',
     });
   });
+
+  it('accepts the new six-character code with spacing and submits its normalized value', async () => {
+    jest.mocked(tableGuestVisitService.joinTableGuestVisit).mockResolvedValue({
+      serviceSessionId: 'visit-id',
+      participantToken: 'b'.repeat(40),
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+    render(
+      <I18nextProvider i18n={i18n}>
+        <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
+          <TableGuestVisitProvider>
+            <TableGuestAdmissionForm qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
+          </TableGuestVisitProvider>
+        </TableGuestFeatureProvider>
+      </I18nextProvider>,
+    );
+
+    const input = await screen.findByLabelText('Table visit code');
+    fireEvent.change(input, { target: { value: 'gh2 345' } });
+    expect(screen.getByRole('button', { name: 'Join table' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
+
+    await waitFor(() =>
+      expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledWith('qr-payload', 'GH2345'),
+    );
+  });
 });

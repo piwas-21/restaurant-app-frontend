@@ -67,6 +67,28 @@
   letter-spacing: 0.12em;
 }
 
+.copyButton {
+  justify-self: start;
+  min-height: 2.25rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.copyButton:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.copyButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .error {
   margin: 0;
   color: var(--feedback-error-text);

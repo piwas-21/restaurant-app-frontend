@@ -14,16 +14,22 @@ import { useCashierTables } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
 import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
-import { cashierTableQueueState, findSelectedCashierTableEntry } from '@/lib/cashierTableWorkspace';
+import {
+  cashierTableQueueState,
+  findRecoveryTableEntryForSession,
+  findSelectedCashierTableEntry,
+} from '@/lib/cashierTableWorkspace';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useCashierTableWorkspaceActions } from './useCashierTableWorkspaceActions';
 import CashierTableViewControls from './CashierTableViewControls';
 import styles from './CashierTablesWorkspace.module.css';
+import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 
 type TableView = 'map' | 'list';
 
 export default function CashierTablesWorkspace() {
   const { t } = useTranslation();
+  const { tableVisitReadinessV1 } = useTenantFeatures();
   const tables = useCashierTables();
   const route = useCashierTableRoute();
   const selectedFromList = useMemo(
@@ -35,15 +41,15 @@ export default function CashierTablesWorkspace() {
   const session = useCashierTableSession(sessionId, recoveredSession);
   const selectedSession =
     sessionId && session.session?.serviceSessionId.toLowerCase() === sessionId.toLowerCase() ? session.session : null;
-  const timeZoneState = useCashierTenantTimeZoneState();
-  const timeZone = timeZoneState.timeZone;
+  const { timeZone, isLoading: timeZoneLoading, hasError: timeZoneHasError } = useCashierTenantTimeZoneState();
   const [view, setView] = useState<TableView>('map');
-  let selectedTableNumber: string | null = route.selectedTableNumber;
-  if (sessionId) selectedTableNumber = null;
+  const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
+  let selectedTableNumber: string | null = sessionId ? null : route.selectedTableNumber;
   if (selectedFromList?.table.tableNumber != null) selectedTableNumber = selectedFromList.table.tableNumber;
   if (selectedSession?.tableNumber != null) selectedTableNumber = String(selectedSession.tableNumber);
   const hasSelection = Boolean(route.selectedSessionId || route.selectedTableNumber);
-  const navigationDisabled = tables.isMutating || session.isMutating || session.pendingOperation !== null;
+  const navigationDisabled =
+    tables.isMutating || session.isMutating || session.pendingOperation !== null || recoveryOperationPending;
   const queueState = cashierTableQueueState(
     tables.queueState,
     sessionId,
@@ -54,13 +60,19 @@ export default function CashierTablesWorkspace() {
   );
   const selectedEntry =
     selectedFromList ??
+    (selectedSession ? findRecoveryTableEntryForSession(tables.entries, selectedSession) : null) ??
     (route.selectedSessionId ? null : findSelectedCashierTableEntry(tables.entries, null, selectedTableNumber));
+  const recoveryTableId = selectedEntry?.table.id ?? selectedSession?.tableId ?? undefined;
   const { openSession, resolveLegacyOrders } = useCashierTableWorkspaceActions(
     selectedEntry,
     tables,
     route,
     setRecoveredSession,
   );
+  const completeRecovery = useCallback(async () => {
+    route.clearSelection();
+    await tables.refresh();
+  }, [route, tables]);
 
   useEffect(() => {
     if (!navigationDisabled || typeof window === 'undefined') return;
@@ -115,8 +127,8 @@ export default function CashierTablesWorkspace() {
           disabled={navigationDisabled}
           onSelect={(releasedSessionId) => route.navigateToSession(releasedSessionId)}
         />
-        {timeZoneState.isLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
-        {timeZoneState.hasError && (
+        {timeZoneLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
+        {timeZoneHasError && (
           <div className={styles.alert} role="alert">
             {t('cashier.tables.time_zone_unavailable')}
           </div>
@@ -180,24 +192,20 @@ export default function CashierTablesWorkspace() {
                     pendingOperation={session.pendingOperation}
                     hasLegacyConflict={selectedEntry?.status === 'conflict'}
                     isRepairingLegacyOrders={tables.isMutating}
+                    recoveryTableId={recoveryTableId}
+                    recoveryEnabled={tableVisitReadinessV1 === true}
+                    recoveryOperationPending={recoveryOperationPending}
+                    onRecoveryComplete={completeRecovery}
+                    onRecoveryLockChange={setRecoveryOperationPending}
                     onResolveLegacyOrders={() => void resolveLegacyOrders().catch(() => undefined)}
                     onBack={route.clearSelection}
                     onRefresh={() => void session.refresh()}
-                    onSubmitPayment={async (payment) => {
-                      await session.submitPayment(payment);
-                      void tables.refresh();
-                    }}
                     onCloseSession={async () => {
                       await session.closeSession();
                       void tables.refresh();
                     }}
                     onReleaseTable={async () => {
                       const released = await session.releaseTable();
-                      setRecoveredSession(released);
-                      void tables.refresh();
-                    }}
-                    onClearAndReleaseTable={async () => {
-                      const released = await session.clearAndReleaseTable();
                       setRecoveredSession(released);
                       void tables.refresh();
                     }}
@@ -216,13 +224,14 @@ export default function CashierTablesWorkspace() {
                     entry={selectedEntry}
                     isOpening={tables.isMutating}
                     isRepairingLegacyOrders={tables.isMutating}
+                    recoveryEnabled={tableVisitReadinessV1 === true}
+                    recoveryDisabled={tables.isMutating || session.isMutating || session.pendingOperation !== null}
+                    recoveryOperationPending={recoveryOperationPending}
+                    onRecoveryComplete={completeRecovery}
+                    onRecoveryLockChange={setRecoveryOperationPending}
                     onBack={route.clearSelection}
                     onOpenSession={() => void openSession().catch(() => undefined)}
                     onResolveLegacyOrders={() => void resolveLegacyOrders().catch(() => undefined)}
-                    onClearLegacyOrders={async () => {
-                      await tables.clearLegacyTableOrders(selectedEntry.table.tableNumber);
-                      route.clearSelection();
-                    }}
                   />
                 )}
                 {!sessionId && !selectedEntry && (

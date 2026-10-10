@@ -53,6 +53,9 @@ jest.mock('@/contexts/ModulesContext', () => ({
 jest.mock('@/hooks/checkout/useTableGuestDineInAvailability', () => ({
   useTableGuestDineInAvailability: () => mockTableGuestState,
 }));
+jest.mock('@/hooks/checkout/useSmartCheckoutRouter', () => ({
+  useSmartCheckoutRouter: () => ({ proceedToCheckout: jest.fn().mockResolvedValue(null) }),
+}));
 jest.mock('@/services/userService', () => ({ getCurrentUser: jest.fn() }));
 jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, trackEvent: jest.fn() }));
 

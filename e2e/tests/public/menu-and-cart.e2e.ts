@@ -150,15 +150,20 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
   await expect(sidebar.getByRole('button', { name: /increase quantity/i })).toBeVisible();
   await expect(sidebar.getByRole('button', { name: /remove item/i })).toBeVisible();
 
-  // Proceed to Checkout is now enabled (cart non-empty + type chosen).
-  // The takeaway info modal was cancelled, so CheckoutContext.customerInfo
-  // is empty — smart-skip falls back to /menu (§C1.5.h: customer-info page
-  // retired) so the modal can collect the missing inputs. The test stays
-  // on /menu to lock in this fallback target.
+  // Contact was cancelled earlier. Explicit Proceed collects it, then resumes checkout using
+  // the selected channel and existing basket without a second tap or a menu-page detour.
   const proceed = sidebar.getByRole('button', { name: /proceed to checkout/i });
   await expect(proceed).toBeEnabled();
   await proceed.click();
-  await expect(page).toHaveURL(/\/en\/menu$/);
+  const details = page.getByRole('dialog', { name: /almost there/i });
+  await expect(details).toBeVisible();
+  await expect(sidebar).toBeHidden();
+  await details.getByLabel(/full name/i).fill('Checkout E2E Guest');
+  await details.getByLabel(/^email/i).fill('e2e-continuation-' + Date.now() + '@test.local');
+  await details.getByLabel(/^phone/i).fill('+41791234567');
+  await details.getByRole('button', { name: /^confirm$/i }).click();
+  await expect(page).toHaveURL(/\/en\/checkout\/review$/);
+  await expect(page.getByText('Checkout E2E Guest', { exact: true })).toBeVisible();
 });
 
 /**

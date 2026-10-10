@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import TableSelector from '@/components/checkout/TableSelector';
 import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
+import { useModalSubmitAction } from '@/hooks/order/useModalSubmitAction';
 import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import styles from './TableSelectionModal.module.css';
 
@@ -72,35 +73,46 @@ export default function TableSelectionModal({
     setShowTableRequired(false);
   };
 
-  const handleConfirm = async () => {
+  const collect = async () => {
     if (!selected) {
       setShowTableRequired(true);
       // The picker can be scrolled out of view in a long modal — say what is wrong AND take the
       // guest to it. `tabIndex={-1}` makes the wrapper focusable so screen readers land there too.
       tablePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       tablePickerRef.current?.focus({ preventScroll: true });
-      return;
+      return null;
     }
     if (guest.visibleFields.length > 0 || guest.wantsRegister) {
       const committed = await guest.commit();
-      if (committed === null) return;
+      if (committed === null) return null;
     }
-    onConfirm(selected);
-    onClose();
+    return selected;
   };
+  const { submit: handleConfirm, isSubmitting, errorMessage } = useModalSubmitAction(isOpen, collect, onConfirm);
 
   return (
     <BaseModal
       isOpen={isOpen}
+      isPending={isSubmitting}
       onClose={onClose}
       title={t('table_selection_title', 'Select your table')}
       footer={
         <>
-          <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={guest.isRegistering}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={onClose}
+            disabled={isSubmitting || guest.isRegistering}
+          >
             {t('cancel', 'Cancel')}
           </button>
-          <button type="button" className={styles.primaryButton} onClick={handleConfirm} disabled={guest.isRegistering}>
-            {guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={handleConfirm}
+            disabled={isSubmitting || guest.isRegistering}
+          >
+            {isSubmitting || guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
@@ -115,6 +127,11 @@ export default function TableSelectionModal({
           {t('table_required_hint', 'Choose a table to continue.')}
         </p>
       )}
+      {errorMessage && (
+        <p className={styles.requiredHint} role="alert">
+          {errorMessage}
+        </p>
+      )}
       <GuestCustomerInfoFields
         value={guest.value}
         errors={guest.errors}
@@ -123,7 +140,7 @@ export default function TableSelectionModal({
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
-        disabled={guest.isRegistering}
+        disabled={isSubmitting || guest.isRegistering}
         wantsRegister={guest.wantsRegister}
         setWantsRegister={guest.setWantsRegister}
         registerValue={guest.registerValue}

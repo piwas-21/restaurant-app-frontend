@@ -132,14 +132,13 @@ test('mobile checkout waits for the selected basket channel before routing', asy
     releaseChannelRequest();
     const response = await channelResponse;
     expect(response.ok(), 'basket channel switch must succeed').toBeTruthy();
-    await expect(orderTypeButton).toHaveAttribute('aria-pressed', 'true');
   } finally {
     releaseChannelRequest();
     await page.unroute('**/api/Basket/order-type');
   }
 
-  // A guest still needs contact details. Completing the modal then using Proceed must reach review
-  // on the first tap; the earlier tap during the channel write cannot be lost or routed on stale state.
+  // A type selection yields to contact details. Saving them restores the SAME basket without
+  // opening it again; this browsing action must not automatically leave the menu.
   const details = page.getByRole('dialog', { name: /almost there/i });
   await expect(details).toBeVisible({ timeout: 10_000 });
   await details.getByLabel(/full name/i).fill('Mobile E2E Guest');
@@ -150,6 +149,9 @@ test('mobile checkout waits for the selected basket channel before routing', asy
   await details.getByRole('button', { name: /^confirm$/i }).click();
   await expect(details).toBeHidden({ timeout: 10_000 });
 
+  await expect(sheet).toBeVisible();
+  await expect(orderTypeButton).toHaveAttribute('aria-pressed', 'true');
+  await expect(page).toHaveURL(/\/en\/menu$/);
   await proceedViaSidebarExpectingNavigation(page, sheet);
   await expect(page).toHaveURL(/\/en\/checkout\/review$/);
   await expect(menuBasketPanel(page)).toBeHidden();

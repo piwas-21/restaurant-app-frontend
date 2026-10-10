@@ -1,19 +1,15 @@
-import { test, expect } from '@playwright/test';
-import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
+import { test, expect, type Page, type Locator } from '@playwright/test';
+import { menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
-/**
- * HIGH-tier — C1.5.c acceptance: the user picks order type via the
- * sidebar toggle on /menu (no welcome modal anymore). DineIn opens the
- * table modal, Delivery opens the address modal, Takeaway commits with
- * no follow-up. All without leaving /menu.
- *
- * Tests verify the toggle-click → right follow-up handoff. They do NOT
- * exercise the inner table-pick / address-fill flows — those belong in
- * component-level tests for TableSelector + DeliveryAddressSection.
- *
- * Sidebar is desktop-only (hidden under 1024px). Playwright's default
- * viewport is 1280×720 so the sidebar renders by default.
- */
+/** Channel selection yields the basket to details. Cancellation restores the same channel. */
+async function expectCancelRestoresBasket(page: Page, details: Locator, channel: RegExp) {
+  await expect(menuBasketPanel(page)).toBeHidden();
+  await details.getByRole('button', { name: /^cancel$/i }).click();
+  const basket = menuBasketPanel(page);
+  await expect(basket).toBeVisible();
+  await expect(basket.getByRole('button', { name: channel, pressed: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/en\/menu$/);
+}
 
 test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async ({ page }) => {
   await page.goto('/en/menu');
@@ -30,8 +26,7 @@ test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async
   const tableModal = page.getByRole('dialog', { name: /select your table/i });
   await expect(tableModal).toBeVisible({ timeout: 15_000 });
 
-  // Toggle's active state reflects the chosen type.
-  await expect(toggle.getByRole('button', { name: /dine in/i, pressed: true })).toBeVisible();
+  await expectCancelRestoresBasket(page, tableModal, /dine in/i);
 });
 
 test('delivery: sidebar toggle → Delivery → address modal opens', async ({ page }) => {
@@ -45,7 +40,7 @@ test('delivery: sidebar toggle → Delivery → address modal opens', async ({ p
   const addressModal = page.getByRole('dialog', { name: /where should we deliver/i });
   await expect(addressModal).toBeVisible({ timeout: 15_000 });
 
-  await expect(toggle.getByRole('button', { name: /delivery/i, pressed: true })).toBeVisible();
+  await expectCancelRestoresBasket(page, addressModal, /delivery/i);
 });
 
 test('takeaway: sidebar toggle → Takeaway → guest info modal opens', async ({ page }) => {
@@ -62,5 +57,5 @@ test('takeaway: sidebar toggle → Takeaway → guest info modal opens', async (
   // modal entirely; covered in customer/smart-skip-checkout.e2e.ts.
   const takeawayModal = page.getByRole('dialog', { name: /almost there/i });
   await expect(takeawayModal).toBeVisible({ timeout: 15_000 });
-  await expect(toggle.getByRole('button', { name: /takeaway/i, pressed: true })).toBeVisible();
+  await expectCancelRestoresBasket(page, takeawayModal, /takeaway/i);
 });

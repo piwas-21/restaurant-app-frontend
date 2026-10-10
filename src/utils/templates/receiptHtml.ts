@@ -7,7 +7,13 @@
  * everything inside a combo. It recurses because the backend builds the tree to arbitrary depth.
  */
 import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
-import { receiptItems, quantityScopeLabel, receiptFallback, type ReceiptTranslate } from './receiptPresentation';
+import {
+  receiptItems,
+  receiptItemName,
+  quantityScopeLabel,
+  receiptFallback,
+  type ReceiptTranslate,
+} from './receiptPresentation';
 import { formatCurrency } from '../currency';
 import { formatOrderCurrency, type CashierCurrencySource } from '@/lib/cashierMoney';
 
@@ -126,7 +132,8 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     const scope = hasQuantityScope(child, options.parentQuantity ?? 1)
       ? ` — ${escapeHtml(quantityScopeLabel(child, translate, options.parentLabel))}`
       : '';
-    const name = escapeHtml(child.presentationLabel || child.productName || translate('item', 'Item'));
+    const displayName = receiptItemName(child, translate('item', 'Item'));
+    const name = escapeHtml(displayName);
     const content =
       child.compositionRole === 'Dish'
         ? `<strong>${child.quantity}x ${name}</strong>${childPrice}${scope}`
@@ -136,7 +143,7 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     const nextOptions = {
       ...options,
       parentQuantity: child.quantity,
-      parentLabel: child.presentationLabel || child.productName,
+      parentLabel: displayName,
       heading: undefined,
     };
     html += buildChildItemsHtml(
@@ -146,13 +153,7 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     );
     if (options.withIngredients) {
       customizedIngredientRows(child).forEach((ing) => {
-        html += ingredientRowHtml(
-          ing,
-          indent + 16,
-          translate,
-          child.quantity,
-          child.presentationLabel || child.productName,
-        );
+        html += ingredientRowHtml(ing, indent + 16, translate, child.quantity, displayName);
       });
     }
     html += buildChildItemsHtml(

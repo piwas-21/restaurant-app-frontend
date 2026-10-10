@@ -58,6 +58,12 @@ export function receiptItems(items: readonly OrderItemDto[]): OrderItemDto[] {
 export type ReceiptTranslate = (key: string, fallback: string) => string;
 export const receiptFallback: ReceiptTranslate = (_key, fallback) => fallback;
 
+/** A context label on a choice describes its owner, not the choice's own frozen name. */
+export function receiptItemName(item: OrderItemDto, fallback = 'Item'): string {
+  const name = item.productName || item.menuName || fallback;
+  return item.compositionRole === 'Dish' ? item.presentationLabel || name : name;
+}
+
 export function receiptOrderTypeLabel(type: string | undefined, translate: ReceiptTranslate = receiptFallback): string {
   switch (type) {
     case 'DineIn':

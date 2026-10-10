@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { OrderItemDto } from '@/types/order';
-import { receiptItems, quantityScopeLabel } from '@/utils/templates/receiptPresentation';
+import { receiptItems, receiptItemName, quantityScopeLabel } from '@/utils/templates/receiptPresentation';
 import { customizedIngredientRows } from '@/utils/templates/receiptHtml';
 import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 import styles from './ReceiptItemDetails.module.css';
@@ -26,16 +26,16 @@ export default function ReceiptItemDetails({
           <li key={child.id}>
             {child.compositionRole === 'Dish' ? (
               <strong dir="auto">
-                {child.quantity}× <span dir="auto">{child.presentationLabel || child.productName || t('item')}</span>
+                {child.quantity}× <span dir="auto">{receiptItemName(child, t('item'))}</span>
               </strong>
             ) : (
               <span dir="auto">
-                {child.quantity}× <span dir="auto">{child.presentationLabel || child.productName || t('item')}</span>
+                {child.quantity}× <span dir="auto">{receiptItemName(child, t('item'))}</span>
               </span>
             )}
             <span className={styles.scope}>
               {' '}
-              — {quantityScopeLabel(child, translate, item.presentationLabel || item.productName || item.menuName)}
+              — {quantityScopeLabel(child, translate, receiptItemName(item, t('item')))}
             </span>
             <ReceiptItemDetails item={child} />
           </li>
@@ -58,12 +58,7 @@ export default function ReceiptItemDetails({
                   {' '}
                   ×{ingredient.quantity}{' '}
                   <span className={styles.scope}>
-                    —{' '}
-                    {quantityScopeLabel(
-                      ingredient,
-                      translate,
-                      item.presentationLabel || item.productName || item.menuName,
-                    )}
+                    — {quantityScopeLabel(ingredient, translate, receiptItemName(item, t('item')))}
                   </span>
                 </>
               )}

@@ -97,10 +97,11 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     const scope = escapeHtml(quantityScopeSuffix(child, options.parentQuantity ?? 1, translate));
     const displayName = receiptItemName(child, translate('item', 'Item'));
     const name = escapeHtml(displayName);
+    const extraPrefix = child.compositionRole === 'Extra' ? '+ ' : '';
     const content =
       child.compositionRole === 'Dish'
         ? `<strong>${child.quantity}x ${name}${scope}</strong>${childPrice}`
-        : `${child.compositionRole === 'Extra' ? '+ ' : ''}${child.quantity}x ${name}${scope}${childPrice}`;
+        : `${extraPrefix}${child.quantity}x ${name}${scope}${childPrice}`;
     html += `<div class="receipt-child" dir="auto" style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth} + var(--receipt-child-offset, 8px)); font-size: var(--receipt-detail-size, 11pt);">${content}</div>`;
     const descendants = child.sideItems ?? [];
     const nextOptions = {

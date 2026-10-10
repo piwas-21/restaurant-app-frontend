@@ -102,8 +102,7 @@ export function useTableReadiness({
   const success = state.stage === 'settled' && state.result?.kind === 'succeeded' ? state.result : null;
   const confirmedReady = Boolean(
     success &&
-    state.operation &&
-    state.operation.tableId.toLowerCase() === tableId.toLowerCase() &&
+    state.operation?.tableId.toLowerCase() === tableId.toLowerCase() &&
     success.outcome.tableId.toLowerCase() === tableId.toLowerCase() &&
     readinessState === 'ReadyForGuests' &&
     Number.isSafeInteger(readinessVersion) &&
@@ -122,8 +121,7 @@ export function useTableReadiness({
     state.stage === 'settled' &&
     state.result?.kind === 'refused' &&
     state.result.terminal &&
-    state.operation &&
-    state.operation.tableId.toLowerCase() === tableId.toLowerCase() &&
+    state.operation?.tableId.toLowerCase() === tableId.toLowerCase() &&
     canStart &&
     !isStale &&
     Number.isSafeInteger(readinessVersion) &&

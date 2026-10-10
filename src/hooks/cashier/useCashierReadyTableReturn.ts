@@ -28,8 +28,7 @@ export function useCashierReadyTableReturn(
     (outcome: TableReadinessOutcome) => {
       if (
         !selectedSessionId ||
-        !selectedSession ||
-        selectedSession.serviceSessionId.toLowerCase() !== selectedSessionId.toLowerCase() ||
+        selectedSession?.serviceSessionId.toLowerCase() !== selectedSessionId.toLowerCase() ||
         (!selectedSession.isTableReleased && !selectedSession.releasedAt) ||
         !selectedEntry ||
         selectedEntry.session ||

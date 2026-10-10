@@ -90,6 +90,24 @@ describe('BundleSheetBody — legacy and configured bundles use the mixed flow',
     expect(onChoice).not.toHaveBeenCalled();
   });
 
+  it('shows the recovery warning and waits for an explicit clear before replacing ambiguous drafts', () => {
+    const clearUnresolvedOptions = jest.fn();
+    const step = { ...buildBundleSteps([section(2)])[0], selectionRecovery: true };
+    render(
+      <BundleSheetBody
+        controller={controller({ clearUnresolvedOptions })}
+        step={step}
+        onChoice={jest.fn()}
+        plannedSteps={[step]}
+        onJump={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('customer_selection_recover');
+    fireEvent.click(screen.getByRole('button', { name: 'customer_selection_clear' }));
+    expect(clearUnresolvedOptions).toHaveBeenCalledTimes(1);
+  });
+
   it('advances a simple radio choice but leaves multi-select sections open for more choices', () => {
     const onChoice = jest.fn();
     const single = buildBundleSteps([section(1)])[0];

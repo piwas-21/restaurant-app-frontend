@@ -4167,6 +4167,8 @@
   "customer_cta_review_item": "مراجعة الصنف",
   "customer_cta_review_menu": "مراجعة الوجبة",
   "customer_cta_add_to_basket": "أضف إلى السلة",
+  "customer_selection_recover": "لم يعد أحد الاختيارات المحفوظة يطابق خيارًا واحدًا في القائمة. اختر خيارًا صالحًا من القائمة أو احذف جميع الخيارات غير المطابقة للمتابعة. ستبقى مسودتك محفوظة حتى تحذفها.",
+  "customer_selection_clear": "احذف جميع الخيارات غير المطابقة وأعد الاختيار",
   "customer_step_for_item": "لـ {{item}}",
   "step_review_item": "مراجعة الصنف",
   "step_review_menu": "مراجعة القائمة",

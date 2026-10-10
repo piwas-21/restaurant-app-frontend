@@ -4115,6 +4115,8 @@
   "customer_cta_review_item": "Artikel prüfen",
   "customer_cta_review_menu": "Menü prüfen",
   "customer_cta_add_to_basket": "In den Warenkorb",
+  "customer_selection_recover": "Eine gespeicherte Auswahl passt nicht mehr eindeutig zu einer Menüoption. Wählen Sie im Menü eine gültige Option oder löschen Sie alle nicht zugeordneten Auswahlen, um fortzufahren. Ihr Entwurf bleibt bis zum Löschen erhalten.",
+  "customer_selection_clear": "Alle nicht zugeordneten Auswahlen löschen und neu wählen",
   "customer_step_for_item": "Für {{item}}",
   "step_review_item": "Artikel prüfen",
   "step_review_menu": "Menü prüfen",

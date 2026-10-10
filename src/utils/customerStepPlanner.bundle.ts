@@ -21,6 +21,7 @@ import {
   resolveSelectedComponents,
   type SelectedBundleComponent,
 } from './customerStepPlanner.bundleComponents';
+import { resolveBundleOptionSelections } from './bundleOptionResolution';
 
 export function buildMixedBundleSteps(
   sections: readonly MenuSection[],
@@ -30,9 +31,31 @@ export function buildMixedBundleSteps(
   const effective = manifest?.steps.length
     ? manifest
     : defaultBundleCustomerStepManifest(sections, manifest?.revision ?? 0);
-  if (effective.steps.length === 0) return buildBundleSteps(sections);
+  if (effective.steps.length === 0) return markSelectionRecovery(buildBundleSteps(sections), sections, selectedOptions);
   const result = planBundleManifest(sections, effective, selectedOptions);
-  return result.valid ? addReview(result.steps, 'menu') : buildBundleSteps(sections);
+  if (!result.valid) return markSelectionRecovery(buildBundleSteps(sections), sections, selectedOptions);
+  return addReview(markSelectionRecovery(result.steps, sections, selectedOptions), 'menu');
+}
+
+function markSelectionRecovery(
+  steps: CustomizationStep[],
+  sections: readonly MenuSection[],
+  selections: readonly SelectedMenuOption[],
+): CustomizationStep[] {
+  const unresolved = resolveBundleOptionSelections(sections, selections).filter((entry) => entry.status !== 'resolved');
+  if (!unresolved.length) return steps;
+  const sectionSteps = steps.filter((step) => step.kind === 'section' && step.section);
+  const availableIds = new Set(sectionSteps.map((step) => step.section?.id));
+  const recoveryIds = new Set(
+    unresolved.filter((entry) => availableIds.has(entry.sectionId)).map((entry) => entry.sectionId),
+  );
+  if (unresolved.some((entry) => !availableIds.has(entry.sectionId)) && sectionSteps[0]?.section)
+    recoveryIds.add(sectionSteps[0].section.id);
+  return steps.map((step) =>
+    step.kind === 'section' && step.section && recoveryIds.has(step.section.id)
+      ? { ...step, selectionRecovery: true }
+      : step,
+  );
 }
 
 export function inspectBundleManifest(sections: readonly MenuSection[], manifest: CustomerStepManifest): string[] {

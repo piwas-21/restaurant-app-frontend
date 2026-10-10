@@ -4128,6 +4128,8 @@
   "customer_cta_review_item": "Vérifier l’article",
   "customer_cta_review_menu": "Vérifier le menu",
   "customer_cta_add_to_basket": "Ajouter au panier",
+  "customer_selection_recover": "Un choix enregistré ne correspond plus à une option unique du menu. Sélectionnez une option valide ou supprimez tous les choix sans correspondance pour continuer. Votre brouillon reste intact jusqu’à leur suppression.",
+  "customer_selection_clear": "Supprimer tous les choix sans correspondance et sélectionner à nouveau",
   "customer_step_for_item": "Pour {{item}}",
   "step_review_item": "Vérifier l’article",
   "step_review_menu": "Vérifier le menu",

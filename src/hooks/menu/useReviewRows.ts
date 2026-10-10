@@ -6,6 +6,7 @@ import type { ReviewRow } from '@/components/menu/customization/SheetReviewStep'
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import { bundleStepSummary, productStepSummary } from '@/utils/customizationSummary';
 import { bundleComponentStepSummary } from '@/utils/bundleComponentSummary';
+import { resolveBundleOptionSelections } from '@/utils/bundleOptionResolution';
 import type { SheetController } from './useSheetFlow';
 
 interface UseReviewRowsArgs {
@@ -29,18 +30,17 @@ export function useReviewRows({ controller, steps, drinkSummary }: UseReviewRows
       step.kind === 'drinks' ? (drinkSummary?.(controller.currentLanguage) ?? []) : null;
 
     if (controller.kind === 'bundle') {
+      const canonicalOptions = resolveBundleOptionSelections(controller.sections, controller.selectedOptions).flatMap(
+        (entry) => (entry.status === 'resolved' && entry.canonicalSelection ? [entry.canonicalSelection] : []),
+      );
       return contentSteps.map((step) => ({
         step,
         values:
           drinkValues(step) ??
           (step.section
             ? bundleStepSummary(step.section, controller.selectedOptions)
-            : bundleComponentStepSummary(
-                step,
-                controller.selectedOptions,
-                controller.currentLanguage,
-                t('sauce_none'),
-              )),
+            : bundleComponentStepSummary(step, canonicalOptions, controller.currentLanguage, t('sauce_none'))),
+        ...(step.selectionRecovery ? { warning: t('customer_selection_recover') } : {}),
       }));
     }
 

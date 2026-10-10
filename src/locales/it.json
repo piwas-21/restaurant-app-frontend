@@ -4128,6 +4128,8 @@
   "customer_cta_review_item": "Rivedi l’articolo",
   "customer_cta_review_menu": "Rivedi il menu",
   "customer_cta_add_to_basket": "Aggiungi al carrello",
+  "customer_selection_recover": "Una scelta salvata non corrisponde più a un’unica opzione del menu. Seleziona un’opzione valida o elimina tutte le scelte non corrispondenti per continuare. La bozza resta finché non le elimini.",
+  "customer_selection_clear": "Elimina tutte le scelte non corrispondenti e seleziona di nuovo",
   "customer_step_for_item": "Per {{item}}",
   "step_review_item": "Rivedi l’articolo",
   "step_review_menu": "Rivedi il menu",

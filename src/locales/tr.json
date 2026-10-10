@@ -4115,6 +4115,8 @@
   "customer_cta_review_item": "Ürünü gözden geçir",
   "customer_cta_review_menu": "Menüyü gözden geçir",
   "customer_cta_add_to_basket": "Sepete ekle",
+  "customer_selection_recover": "Kayıtlı bir seçim artık menüdeki tek bir seçenekle eşleşmiyor. Geçerli bir seçenek belirleyin veya devam etmek için eşleşmeyen tüm seçimleri silin. Silene kadar taslağınız korunur.",
+  "customer_selection_clear": "Eşleşmeyen tüm seçimleri sil ve yeniden seç",
   "customer_step_for_item": "{{item}} için",
   "step_review_item": "Ürünü gözden geçir",
   "step_review_menu": "Menüyü gözden geçir",

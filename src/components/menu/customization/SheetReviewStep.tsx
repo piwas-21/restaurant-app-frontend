@@ -9,8 +9,10 @@ import styles from './SheetReviewStep.module.css';
 
 export interface ReviewRow {
   step: CustomizationStep;
-  /** What the guest chose. **Empty means they chose nothing** and is rendered as an explicit None. */
+  /** What the guest chose. Empty answers render as None unless `warning` means the saved choice is unknown. */
   values: string[];
+  /** A saved bundle choice could not be safely matched and needs explicit reselection. */
+  warning?: string;
 }
 
 function modeKeyFor(offerMode: OfferMode): string {
@@ -57,7 +59,7 @@ export default function SheetReviewStep({
             <dd className={styles.value}>{modeLabel}</dd>
           </div>
         )}
-        {rows.map(({ step, values }) => {
+        {rows.map(({ step, values, warning }) => {
           const label = stepLabel(step, t);
           return (
             <div key={step.id} className={styles.row}>
@@ -75,8 +77,13 @@ export default function SheetReviewStep({
                       </li>
                     ))}
                   </ul>
-                ) : (
+                ) : !warning ? (
                   <span className={styles.empty}>{t('step_nothing_selected')}</span>
+                ) : null}
+                {warning && (
+                  <p className={styles.warning} role="alert">
+                    {warning}
+                  </p>
                 )}
                 <button type="button" className={styles.change} onClick={() => onJump(step)}>
                   {/* Names the step it returns to, so a screen-reader guest reading the buttons out

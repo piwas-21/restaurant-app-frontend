@@ -4115,6 +4115,8 @@
   "customer_cta_review_item": "Review item",
   "customer_cta_review_menu": "Review menu",
   "customer_cta_add_to_basket": "Add to basket",
+  "customer_selection_recover": "A saved choice no longer matches one menu option. Select a valid option from the menu, or clear all unmatched choices to continue. Your draft remains until you clear them.",
+  "customer_selection_clear": "Clear all unmatched choices and reselect",
   "customer_step_for_item": "For {{item}}",
   "step_review_item": "Review item",
   "step_review_menu": "Review menu",

@@ -26,6 +26,9 @@ interface BundleSectionSelectorProps {
   selectedOptions: readonly SelectedMenuOption[];
   /** The section's unmet `minSelection`, present only once the guest has tried to add. */
   minSelectionError?: number;
+  /** An old selection cannot be bound to a unique current row. */
+  selectionRecovery?: boolean;
+  onClearUnresolved?: () => void;
   currentLanguage: string;
   onToggleOption: (
     section: MenuSection,
@@ -62,6 +65,8 @@ export default function BundleSectionSelector({
   section,
   selectedOptions,
   minSelectionError,
+  selectionRecovery = false,
+  onClearUnresolved,
   currentLanguage,
   onToggleOption,
   onOptionQuantityChange,
@@ -94,6 +99,7 @@ export default function BundleSectionSelector({
         aria-label={section.name}
         aria-describedby={minSelectionError !== undefined ? errorId : undefined}
       >
+        <SelectionRecoveryNotice visible={selectionRecovery} onClear={onClearUnresolved} />
         {minSelectionError !== undefined && (
           <p className={styles.error} id={errorId} role="alert">
             {t('please_select_at_least_options', { count: minSelectionError })}
@@ -122,6 +128,7 @@ export default function BundleSectionSelector({
       aria-label={hideLegend ? section.name : undefined}
       aria-describedby={minSelectionError ? errorId : undefined}
     >
+      <SelectionRecoveryNotice visible={selectionRecovery} onClear={onClearUnresolved} />
       {!hideLegend && (
         <legend className={styles.legend}>
           <span className={styles.name}>
@@ -166,5 +173,20 @@ export default function BundleSectionSelector({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+export function SelectionRecoveryNotice({ visible, onClear }: { visible: boolean; onClear?: () => void }) {
+  const { t } = useTranslation();
+  if (!visible) return null;
+  return (
+    <div className={styles.recovery} role="alert">
+      <p>{t('customer_selection_recover')}</p>
+      {onClear && (
+        <button type="button" className={styles.recoveryAction} onClick={onClear}>
+          {t('customer_selection_clear')}
+        </button>
+      )}
+    </div>
   );
 }

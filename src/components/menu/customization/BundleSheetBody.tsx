@@ -2,7 +2,7 @@
 
 import React from 'react';
 import BundleSectionSelector from './BundleSectionSelector';
-import { findBundleOption } from '@/utils/bundleSelection';
+import { resolveBundleRowSelection } from '@/utils/bundleOptionResolution';
 import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
 
@@ -45,16 +45,18 @@ export default function BundleSheetBody({
       section={section}
       selectedOptions={selectedOptions}
       minSelectionError={minSelectionError}
+      selectionRecovery={step.selectionRecovery}
+      onClearUnresolved={controller.clearUnresolvedOptions}
       currentLanguage={currentLanguage}
       onToggleOption={(toggledSection, itemId, productVariationId, menuSectionItemId) => {
         // A no-op toggle (re-picking the selected radio) neither advances nor re-opens anything:
         // the guest is already where the pick puts them.
-        const wasSelected = Boolean(
-          findBundleOption(selectedOptions, toggledSection.id, itemId, productVariationId, menuSectionItemId),
-        );
+        const target = toggledSection.items.find((item) => item.id === menuSectionItemId);
+        const rowSelection = target ? resolveBundleRowSelection(toggledSection, selectedOptions, target) : undefined;
+        const wasSelected = Boolean(rowSelection?.selection);
         toggleOption(toggledSection, itemId, productVariationId, menuSectionItemId);
         if (wasSelected) return;
-        if (toggledSection.maxSelection === 1) onChoice();
+        if (toggledSection.maxSelection === 1 && (rowSelection?.unresolvedCount ?? 0) <= 1) onChoice();
       }}
       onCustomizeOption={(_sectionId, _itemId, _productVariationId, menuSectionItemId) => {
         const plannedStep = plannedSteps.find(

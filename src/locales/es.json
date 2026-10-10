@@ -4128,6 +4128,8 @@
   "customer_cta_review_item": "Revisar artículo",
   "customer_cta_review_menu": "Revisar menú",
   "customer_cta_add_to_basket": "Añadir a la cesta",
+  "customer_selection_recover": "Una elección guardada ya no corresponde a una única opción del menú. Selecciona una opción válida o elimina todas las elecciones sin correspondencia para continuar. El borrador se conserva hasta que las elimines.",
+  "customer_selection_clear": "Eliminar todas las elecciones sin correspondencia y volver a elegir",
   "customer_step_for_item": "Para {{item}}",
   "step_review_item": "Revisar artículo",
   "step_review_menu": "Revisar menú",

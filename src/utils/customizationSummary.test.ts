@@ -163,6 +163,35 @@ describe('bundleStepSummary', () => {
     expect(bundleStepSummary(section, [])).toEqual([]);
     expect(bundleStepSummary(section, [{ sectionId: 's1', itemId: 'ayran', quantity: 1 }])).toEqual(['Ayran']);
   });
+
+  it('does not duplicate an ambiguous legacy choice across repeated product rows', () => {
+    const repeated = {
+      ...section,
+      items: [
+        { ...section.items[1], id: 'ayran-a' },
+        { ...section.items[1], id: 'ayran-b' },
+      ],
+    };
+
+    expect(bundleStepSummary(repeated, [{ sectionId: 's1', itemId: 'ayran', quantity: 1 }])).toEqual([]);
+  });
+
+  it('keeps stable selections attached to their own repeated product row', () => {
+    const repeated = {
+      ...section,
+      items: [
+        { ...section.items[1], id: 'ayran-a', productVariationName: 'Regular' },
+        { ...section.items[1], id: 'ayran-b', productVariationName: 'Large' },
+      ],
+    };
+
+    expect(
+      bundleStepSummary(repeated, [
+        { sectionId: 's1', itemId: 'ayran', menuSectionItemId: 'ayran-a', quantity: 1 },
+        { sectionId: 's1', itemId: 'ayran', menuSectionItemId: 'ayran-b', quantity: 1 },
+      ]),
+    ).toEqual(['Ayran · Regular', 'Ayran · Large']);
+  });
 });
 
 describe('stepHasTickedSelection — the skip verb belongs to an untouched step', () => {

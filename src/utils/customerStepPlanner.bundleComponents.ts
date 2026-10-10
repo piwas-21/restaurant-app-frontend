@@ -4,6 +4,7 @@ import { activeCustomizationGroups } from './explicitCustomization';
 import { isSauce, toSauceGroupRule } from './sauceGroup';
 import type { CustomizationStep } from './customizationSteps';
 import { STEP_TITLES, type CustomerScreen, type DynamicCustomerScreen } from './customerStepPlanner.shared';
+import { resolveBundleOptionSelections } from './bundleOptionResolution';
 
 export interface SelectedBundleComponent {
   section: MenuSection;
@@ -207,23 +208,9 @@ export function resolveSelectedComponents(
   sections: readonly MenuSection[],
   selected: readonly SelectedMenuOption[],
 ): SelectedBundleComponent[] {
-  return selected.flatMap((selection) => {
-    const section = sections.find((candidate) => candidate.id === selection.sectionId);
-    if (!section) return [];
-    let item: MenuSectionItem | undefined;
-    if (selection.menuSectionItemId) {
-      item = section.items.find((candidate) => candidate.id === selection.menuSectionItemId);
-      if (item?.productId !== selection.itemId) return [];
-    } else {
-      const matches = section.items.filter(
-        (candidate) =>
-          candidate.productId === selection.itemId &&
-          (candidate.productVariationId ?? null) === (selection.productVariationId ?? null),
-      );
-      if (matches.length !== 1) return [];
-      item = matches[0];
-    }
-    if (!item) return [];
+  return resolveBundleOptionSelections(sections, selected).flatMap((resolution) => {
+    const { section, item } = resolution;
+    if (resolution.status !== 'resolved' || !section || !item) return [];
     const hasCustomization =
       (item.variations?.some((variation) => variation.isActive) ?? false) ||
       (item.customizationGroups?.some((group) => group.isActive) ?? false) ||

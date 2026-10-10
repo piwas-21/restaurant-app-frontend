@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/components/cart/CartContext';
 import { useBundleOptionTour } from '@/hooks/menu/useBundleOptionTour';
+import { useBundleOptionRecovery } from '@/hooks/menu/useBundleOptionRecovery';
 import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
@@ -22,9 +23,6 @@ interface UseBundleCustomizationSheetArgs {
   onLineAdded?: () => Promise<void>;
 }
 
-/**
- * Drives bundle customization from the menu payload, with shared pricing and required-selection gates.
- */
 export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { i18n } = useTranslation();
@@ -43,6 +41,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     () => (bundle?.menuDefinition?.sections ?? []).map((section) => localizedMenuSection(section, currentLanguage)),
     [bundle, currentLanguage],
   );
+  const recovery = useBundleOptionRecovery(sections, selectedOptions, setSelectedOptions);
   const optionTour = useBundleOptionTour({ sections, selectedOptions });
   const {
     customizingOption,
@@ -93,7 +92,6 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     [sections, selectedOptions, bundle?.customerStepManifest],
   );
   const visibleErrors = useMemo(() => (showValidation ? selectionErrors : []), [showValidation, selectionErrors]);
-
   const toggleOption = useCallback(
     (section: MenuSection, itemId: string, productVariationId?: string | null, menuSectionItemId?: string) => {
       setSelectedOptions((prev) =>
@@ -129,7 +127,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
   const addToCart = useCallback(async () => {
     if (!bundle || isSubmitting) return;
 
-    if (selectionErrors.length > 0) {
+    if (selectionErrors.length > 0 || recovery.hasUnresolvedOptions) {
       setShowValidation(true);
       return;
     }
@@ -163,6 +161,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     quantity,
     selectedOptions,
     selectionErrors,
+    recovery.hasUnresolvedOptions,
     specialInstructions,
     title,
   ]);
@@ -182,6 +181,7 @@ export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleC
     selectedOptions,
     toggleOption,
     setOptionCustomization,
+    clearUnresolvedOptions: recovery.clearUnresolvedOptions,
     customizingOption,
     optionTourSectionId,
     openOptionCustomization,

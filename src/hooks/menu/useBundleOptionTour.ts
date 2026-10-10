@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { findBundleOption } from '@/utils/bundleSelection';
+import { resolveSelectedBundleOption } from '@/utils/bundleOptionResolution';
 import type { MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
 
 /** The outcome of Done on the option screen's last step — see `advance`. */
@@ -86,7 +86,12 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
       const first = section.items.find(
         (item) =>
           optionHasCustomization(item) &&
-          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId, item.id),
+          resolveSelectedBundleOption(sections, selectedOptions, {
+            sectionId: section.id,
+            itemId: item.productId,
+            productVariationId: item.productVariationId,
+            menuSectionItemId: item.id,
+          }),
       );
       if (!first) return false;
       setCustomizingOption({
@@ -98,7 +103,7 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
       setTourSectionId(section.id);
       return true;
     },
-    [selectedOptions],
+    [sections, selectedOptions],
   );
 
   /**
@@ -114,20 +119,22 @@ export function useBundleOptionTour({ sections, selectedOptions }: UseBundleOpti
       close();
       return 'done';
     }
-    const walkedIndex = section.items.findIndex(
+    const walked = resolveSelectedBundleOption(sections, selectedOptions, customizingOption);
+    const walkedIndex = walked ? section.items.findIndex((item) => item.id === walked.item?.id) : -1;
+    if (walkedIndex < 0) {
+      close();
+      return 'done';
+    }
+    const next = section.items.slice(walkedIndex + 1).find(
       (item) =>
-        item.id === customizingOption.menuSectionItemId ||
-        (!customizingOption.menuSectionItemId &&
-          item.productId === customizingOption.itemId &&
-          (item.productVariationId ?? null) === (customizingOption.productVariationId ?? null)),
+        optionHasCustomization(item) &&
+        resolveSelectedBundleOption(sections, selectedOptions, {
+          sectionId: section.id,
+          itemId: item.productId,
+          productVariationId: item.productVariationId,
+          menuSectionItemId: item.id,
+        }),
     );
-    const next = section.items
-      .slice(walkedIndex + 1)
-      .find(
-        (item) =>
-          optionHasCustomization(item) &&
-          findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId, item.id),
-      );
     if (!next) {
       close();
       return 'done';

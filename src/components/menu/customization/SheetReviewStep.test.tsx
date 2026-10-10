@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import SheetReviewStep from './SheetReviewStep';
+import type { CustomizationStep } from '@/utils/customizationSteps';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -49,5 +50,29 @@ describe('SheetReviewStep offer-family mode', () => {
     );
 
     expect(screen.getByTestId('offer-family-review-mode')).toHaveTextContent('How would you like it?Item only');
+  });
+
+  it('shows an explicit recovery warning and keeps the section change link available', () => {
+    const onJump = jest.fn();
+    const step: CustomizationStep = {
+      id: 'section:main',
+      kind: 'section',
+      title: 'Main',
+      singleChoice: true,
+      isRequired: true,
+    };
+    render(
+      <SheetReviewStep
+        rows={[{ step, values: [], warning: 'This saved choice needs to be selected again.' }]}
+        onJump={onJump}
+        specialInstructions=""
+        onInstructionsChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('This saved choice needs to be selected again.');
+    expect(screen.queryByText('step_nothing_selected')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button'));
+    expect(onJump).toHaveBeenCalledWith(step);
   });
 });

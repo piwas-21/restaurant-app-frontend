@@ -209,6 +209,28 @@ describe('BundleSectionSelector', () => {
     expect(screen.getByText('Unavailable')).toBeInTheDocument();
   });
 
+  it('does not let an explicitly stale draft recover onto an unavailable row', () => {
+    const unavailableSection: MenuSection = {
+      ...section,
+      items: [
+        {
+          ...section.items[0],
+          availability: {
+            canOrder: false,
+            reason: 'Unavailable',
+            allowedOrderTypes: [OrderType.DineIn],
+            inheritsOrderTypes: true,
+          },
+        },
+      ],
+    };
+    const selectedOptions = [{ sectionId: 'main', itemId: 'burger', menuSectionItemId: 'removed-row', quantity: 1 }];
+
+    render(<BundleSectionSelector {...props({ section: unavailableSection, selectedOptions })} />);
+
+    expect(screen.getByRole('radio', { name: /Burger/ })).toBeDisabled();
+  });
+
   it('disables a channel-restricted option and names the channels where it can be ordered', () => {
     const restrictedSection: MenuSection = {
       ...section,

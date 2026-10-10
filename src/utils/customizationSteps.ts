@@ -65,6 +65,8 @@ export interface CustomizationStep {
   parentStepId?: string;
   /** Where to return if a selected component removes this dynamic screen. */
   returnStepId?: string;
+  /** A saved bundle selection needs an explicit reselect before this section can be submitted. */
+  selectionRecovery?: boolean;
 }
 
 /** Everything the gates read. Supplied by whichever sheet controller owns the state. */

@@ -4115,6 +4115,8 @@
   "customer_cta_review_item": "Artikel bekijken",
   "customer_cta_review_menu": "Menu controleren",
   "customer_cta_add_to_basket": "Toevoegen aan winkelmandje",
+  "customer_selection_recover": "Een opgeslagen keuze komt niet meer overeen met één menuoptie. Kies een geldige optie uit het menu of verwijder alle niet-passende keuzes om verder te gaan. Je concept blijft bewaard totdat je ze verwijdert.",
+  "customer_selection_clear": "Alle niet-passende keuzes wissen en opnieuw selecteren",
   "customer_step_for_item": "Voor {{item}}",
   "step_review_item": "Artikel bekijken",
   "step_review_menu": "Menu bekijken",

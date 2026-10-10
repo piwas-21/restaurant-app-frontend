@@ -4102,6 +4102,8 @@
   "customer_cta_review_item": "查看商品",
   "customer_cta_review_menu": "检查套餐",
   "customer_cta_add_to_basket": "加入购物车",
+  "customer_selection_recover": "已保存的选项不再唯一对应菜单中的某个选项。请选择有效选项，或清除所有未匹配选项后继续。清除前会保留草稿。",
+  "customer_selection_clear": "清除所有未匹配选项并重新选择",
   "customer_step_for_item": "适用于{{item}}",
   "step_review_item": "查看商品",
   "step_review_menu": "查看菜单",

@@ -3,7 +3,8 @@
 import React from 'react';
 import BundleOptionRow from './BundleOptionRow';
 import BundleOptionInlinePanel from './BundleOptionInlinePanel';
-import { bundleOptionKey, findBundleOption } from '@/utils/bundleSelection';
+import { bundleOptionKey } from '@/utils/bundleSelection';
+import { resolveBundleRowSelection } from '@/utils/bundleOptionResolution';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
 
 interface Props {
@@ -59,7 +60,9 @@ export default function BundleSectionOption({
   inlinePanel,
   hideSelectionControl = false,
 }: Props) {
-  const option = findBundleOption(selectedOptions, section.id, item.productId, item.productVariationId, item.id);
+  const rowSelection = resolveBundleRowSelection(section, selectedOptions, item);
+  const option = rowSelection.selection;
+  const canRecover = rowSelection.recoverableIndex !== undefined;
   const unavailableForGuest = !inlinePanel && item.availability?.canOrder === false;
   const key = bundleOptionKey(section.id, item.productId, item.productVariationId, item.id);
   const legacyBaseKey = `${section.id}::${item.productId}`;
@@ -92,7 +95,9 @@ export default function BundleSectionOption({
         sectionId={section.id}
         inputType={isRadio ? 'radio' : 'checkbox'}
         isSelected={Boolean(option)}
-        isDisabled={!option && (unavailableForGuest || (!isRadio && selectedCount >= section.maxSelection))}
+        isDisabled={
+          !option && (unavailableForGuest || (!canRecover && !isRadio && selectedCount >= section.maxSelection))
+        }
         selectedQuantity={section.allowRepeatedItems && option ? option.quantity : undefined}
         canIncreaseQuantity={selectedCount < section.maxSelection}
         onQuantityChange={

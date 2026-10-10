@@ -6,6 +6,7 @@ import {
   defaultCustomizationSelections,
   ingredientIdsForSelections,
 } from './explicitCustomization';
+import { resolveBundleRowSelection } from './bundleOptionResolution';
 
 /**
  * Pure section-selection rules for the bundle body of the customization sheet (menu-bundles
@@ -210,7 +211,16 @@ export function toggleBundleOption(
   );
   if (!item) return [...selectedOptions];
 
-  const selectedOption = findBundleOption(selectedOptions, section.id, itemId, item.productVariationId, item.id);
+  const rowSelection = resolveBundleRowSelection(section, selectedOptions, item);
+  if (rowSelection.recoverableIndex !== undefined) {
+    return selectedOptions.map((option, index) =>
+      index === rowSelection.recoverableIndex ? { ...option, menuSectionItemId: item.id } : option,
+    );
+  }
+  if (rowSelection.unresolvedCount > 0) return [...selectedOptions];
+
+  const selectedOption =
+    rowSelection.selectedIndex === undefined ? undefined : selectedOptions[rowSelection.selectedIndex];
   const isSelected = Boolean(selectedOption);
 
   if (section.maxSelection === 1) {

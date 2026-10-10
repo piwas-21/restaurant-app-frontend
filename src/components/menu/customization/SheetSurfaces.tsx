@@ -9,6 +9,7 @@ import SheetStepContent from './SheetStepContent';
 import SheetFooter from './SheetFooter';
 import SheetBlockedFooter from './SheetBlockedFooter';
 import SpecialRequestSection from './SpecialRequestSection';
+import { SelectionRecoveryNotice } from './BundleSectionSelector';
 import BidiTemplate from '@/components/common/BidiTemplate';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useSheetFlow } from '@/hooks/menu/useSheetFlow';
@@ -137,6 +138,12 @@ export function ProductFlowBody({
         allergens={intro.allergens}
         preparationTimeMinutes={intro.preparationTimeMinutes}
       />
+
+      {controller.kind === 'bundle' &&
+        flow.hasUnresolvedBundleOptions &&
+        !flow.steps.some((entry) => entry.kind === 'section') && (
+          <SelectionRecoveryNotice visible onClear={controller.clearUnresolvedOptions} />
+        )}
 
       {isGuided && (
         <SheetStepProgress

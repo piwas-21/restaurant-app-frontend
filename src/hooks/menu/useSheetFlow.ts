@@ -6,6 +6,7 @@ import { offersGenericDrinks, stepBlocker, type CustomizationStep } from '@/util
 import { buildCustomerProductSteps, buildMixedBundleSteps } from '@/utils/customerStepPlanner';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
 import { useReviewRows } from './useReviewRows';
+import { hasUnresolvedBundleOptionSelections } from '@/utils/bundleOptionResolution';
 import type { ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
 import type { BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
 import type { DrinkUpsell } from './useDrinkUpsell';
@@ -55,6 +56,7 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
     if (isBundle) return buildMixedBundleSteps(sections, manifest, selectedOptions ?? []);
     return product ? buildCustomerProductSteps(product, withDrinks, manifest) : [];
   }, [isBundle, sections, product, withDrinks, manifest, selectedOptions]);
+  const hasUnresolvedBundleOptions = isBundle && hasUnresolvedBundleOptionSelections(sections, selectedOptions ?? []);
 
   // The sauce gate's two inputs. Read off the PRODUCT's own rule, which is the same carrier
   // `SauceGroupSection` prices from — a second reading here is how a step comes to gate on a
@@ -118,6 +120,16 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
    */
   const addOrJumpToBlocker = useCallback(
     (commit: () => void) => {
+      if (hasUnresolvedBundleOptions) {
+        const recoveryIndex = steps.findIndex((candidate) => candidate.selectionRecovery);
+        const sectionIndex =
+          recoveryIndex >= 0 ? recoveryIndex : steps.findIndex((candidate) => candidate.kind === 'section');
+        if (sectionIndex >= 0) {
+          flow.goTo(sectionIndex);
+          flow.revealBlocker();
+        }
+        return;
+      }
       const blockedIndex = steps.findIndex(
         (candidate) => stepBlocker(candidate, gate, sauceRule.min, sauceIds) !== null,
       );
@@ -128,7 +140,7 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
       flow.goTo(blockedIndex);
       flow.revealBlocker();
     },
-    [steps, gate, sauceRule.min, sauceIds, flow],
+    [steps, gate, sauceRule.min, sauceIds, flow, hasUnresolvedBundleOptions],
   );
 
   /**
@@ -146,6 +158,7 @@ export function useSheetFlow(controller: SheetController, drinks?: DrinkUpsell) 
     reviewRows,
     jumpToStep,
     addOrJumpToBlocker,
+    hasUnresolvedBundleOptions,
     total,
   };
 }

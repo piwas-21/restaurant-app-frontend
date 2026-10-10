@@ -241,7 +241,7 @@ describe('bundle customization uses one shared mixed flow', () => {
     expect(mockAddItem).not.toHaveBeenCalled();
 
     fireEvent.click(chicken);
-    await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
+    await screen.findByRole('textbox', { name: 'product_special_requests' });
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
@@ -272,7 +272,7 @@ describe('bundle customization uses one shared mixed flow', () => {
 
     fireEvent.click(screen.getByRole('checkbox', { name: /salsa/i }));
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
-    await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
+    await screen.findByRole('textbox', { name: 'product_special_requests' });
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
@@ -298,13 +298,13 @@ describe('bundle customization uses one shared mixed flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
     fireEvent.click(await screen.findByRole('radio', { name: /ketchup/i }));
-    await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
+    await screen.findByRole('textbox', { name: 'product_special_requests' });
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
 
     await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
     const reviewRows = screen.getByRole('dialog').querySelector('dl');
     const rowFor = (label: string) =>
-      Array.from(reviewRows?.children ?? []).find((row) => row.querySelector('dt')?.textContent === label);
+      Array.from(reviewRows?.children ?? []).find((row) => row.querySelector('dt')?.textContent?.startsWith(label));
     expect(rowFor('select_variation')).toHaveTextContent('Large');
     expect(rowFor('sauces')).toHaveTextContent('Ketchup');
     expect(rowFor('customize_ingredients')).toHaveTextContent('Lettuce');

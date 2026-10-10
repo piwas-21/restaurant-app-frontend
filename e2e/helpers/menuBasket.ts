@@ -23,9 +23,11 @@ export function menuBasketPanel(page: Page): Locator {
 
 /** Add the first menu card item only after the client has attached its click handlers.
  *
- * Plain items write directly to Basket; products with choices open the customization sheet first.
- * The response waiter is registered before the click, and a visible sheet requires its Add action
- * to succeed rather than treating an arbitrary locator/click failure as the direct-add path.
+ * Plain seeded items write directly to Basket. If the card opens a simple customization sheet,
+ * this helper confirms only its explicit terminal Add to basket action; it never picks choices on a
+ * guest's behalf. Multi-step choice journeys select a named fixture and drive its screens directly.
+ * The response waiter is registered before the click, and a visible sheet must expose that exact
+ * terminal action rather than treating an arbitrary locator/click failure as the direct-add path.
  */
 export async function addFirstMenuItemAndWaitForBasket(page: Page): Promise<void> {
   await expect(page.locator('main[data-menu-hydrated="true"]')).toBeVisible({ timeout: 15_000 });
@@ -48,9 +50,9 @@ export async function addFirstMenuItemAndWaitForBasket(page: Page): Promise<void
       (error: unknown) => ({ kind: 'basket-wait-failed' as const, error }),
     );
   const customizationDialog = page.getByRole('dialog').filter({
-    has: page.getByRole('button', { name: /^Add to Order\b/i }),
+    has: page.getByRole('button', { name: /^Add to basket\b/i }),
   });
-  const customizationAddButton = customizationDialog.getByRole('button', { name: /^Add to Order\b/i });
+  const customizationAddButton = customizationDialog.getByRole('button', { name: /^Add to basket\b/i });
 
   await page
     .getByTestId('menu-card')

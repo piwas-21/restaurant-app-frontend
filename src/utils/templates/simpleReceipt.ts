@@ -15,6 +15,19 @@ import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
+function deliveryAddressHtml(order: OrderDto, translate: TranslationFunction): string {
+  if (order.type !== 'Delivery' || !order.deliveryAddress) return '';
+  const address = order.deliveryAddress;
+  return `
+    <div style="margin: 10px 0; padding: 8px; border: 1px dashed #000;">
+      <strong>${translate('delivery_to', 'DELIVERY TO')}:</strong><br/>
+      ${escapeHtml(address.addressLine1 || '')}
+      ${address.addressLine2 ? '<br/>' + escapeHtml(address.addressLine2) : ''}
+      <br/>${escapeHtml(address.postalCode || '')} ${escapeHtml(address.city || '')}
+      ${address.phone ? '<br/>Tel: ' + escapeHtml(address.phone) : ''}
+    </div>`;
+}
+
 // Build item HTML - simple format (name, qty, total only - no unit price breakdown)
 const buildItemHtml = (item: OrderItemDto, order: OrderDto, translate: TranslationFunction): string => {
   const itemName = item.productName || item.menuName || 'Item';
@@ -60,19 +73,7 @@ export const generateSimpleReceiptHtml = (
 
   const tableLabel = getOrderTableLabel(order);
 
-  // Delivery address
-  const deliveryAddress =
-    order.type === 'Delivery' && order.deliveryAddress
-      ? `
-      <div style="margin: 10px 0; padding: 8px; border: 1px dashed #000;">
-        <strong>${translate('delivery_to', 'DELIVERY TO')}:</strong><br/>
-        ${escapeHtml(order.deliveryAddress.addressLine1 || '')}
-        ${order.deliveryAddress.addressLine2 ? '<br/>' + escapeHtml(order.deliveryAddress.addressLine2) : ''}
-        <br/>${escapeHtml(order.deliveryAddress.postalCode || '')} ${escapeHtml(order.deliveryAddress.city || '')}
-        ${order.deliveryAddress.phone ? '<br/>Tel: ' + escapeHtml(order.deliveryAddress.phone) : ''}
-      </div>
-    `
-      : '';
+  const deliveryAddress = deliveryAddressHtml(order, translate);
 
   const paymentsHtml = receiptPaymentHtml(order, translate);
 

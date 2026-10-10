@@ -7,19 +7,18 @@ import { receiptFallback, type ReceiptTranslate } from './receiptPresentation';
 export const isCapturedPayment = (payment: OrderPaymentDto): boolean =>
   payment.status === 'Completed' || payment.status === 'PartiallyRefunded' || payment.status === 'Refunded';
 
+function paymentStatusLabel(order: OrderDto, translate: ReceiptTranslate): string {
+  if (order.paymentStatus === 'Refunded') return translate('payment_status_refunded', 'Refunded');
+  if (order.paymentStatus === 'Overpaid') return translate('payment_status_overpaid', 'Overpaid');
+  if (order.isFullyPaid) return translate('receipt.status.paid', 'Paid');
+  if (order.totalPaid > 0) return translate('receipt.status.part_paid', 'Partly paid');
+  return translate('receipt.status.unpaid', 'Unpaid');
+}
+
 /** Food balance is server-owned. Pending tender declarations are never presented as received money. */
 export function receiptPaymentHtml(order: OrderDto, translate: ReceiptTranslate = receiptFallback): string {
   const money = (amount: number) => formatOrderCurrency(amount, order);
-  const status =
-    order.paymentStatus === 'Refunded'
-      ? translate('payment_status_refunded', 'Refunded')
-      : order.paymentStatus === 'Overpaid'
-        ? translate('payment_status_overpaid', 'Overpaid')
-        : order.isFullyPaid
-          ? translate('receipt.status.paid', 'Paid')
-          : order.totalPaid > 0
-            ? translate('receipt.status.part_paid', 'Partly paid')
-            : translate('receipt.status.unpaid', 'Unpaid');
+  const status = paymentStatusLabel(order, translate);
   const rows = (order.payments ?? [])
     .map((payment) => {
       const method = escapeHtml(getPaymentMethodLabel(payment.paymentMethod, translate));

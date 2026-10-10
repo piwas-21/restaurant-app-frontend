@@ -45,19 +45,12 @@ function isLegacyCashRelease(
 }
 
 function canCollectReviewedOperation(
-  collected: boolean,
   operation: AccountPaymentOperation,
   cashReceived: number | null,
   cashDueMinor: number | null,
 ): boolean {
-  if (!collected || operation.paymentMethod === 'Cash') {
-    return (
-      collected &&
-      operation.paymentMethod === 'Cash' &&
-      cashReceived !== null &&
-      cashDueMinor !== null &&
-      canCollectReviewedCash(operation, cashReceived)
-    );
+  if (operation.paymentMethod === 'Cash') {
+    return cashReceived !== null && cashDueMinor !== null && canCollectReviewedCash(operation, cashReceived);
   }
   return true;
 }
@@ -124,6 +117,7 @@ export default function AccountPaymentReview({
   const intent = pending?.kind === 'payment' ? pending.stage : null;
   const collectionUnknown = intent === 'collecting';
   const releaseUnknown = intent === 'releasing';
+  const reserveUnknown = intent === 'reserving';
   const terminal = ['Captured', 'Released', 'Failed'].includes(operation.state);
   const canRelease = canReleaseReviewedOperation(recoveryReleaseEnabled, pending, operation, session);
   const cashEvidence = operation.paymentMethod === 'Cash' ? readAccountCashEvidence(operation) : null;
@@ -131,9 +125,9 @@ export default function AccountPaymentReview({
   const cashReceived = parseAccountContributionMinor(received, operation.currency, i18n.language || 'en');
   const cashIntent = pending?.kind === 'payment' ? pending.cashIntent : undefined;
   const legacyCashRelease = isLegacyCashRelease(collectionUnknown, operation, cashIntent, reserved, canRelease);
-  const unknownWrite = releaseUnknown || (collectionUnknown && !legacyCashRelease);
+  const unknownWrite = reserveUnknown || releaseUnknown || (collectionUnknown && !legacyCashRelease);
   const allocationScope = mapFrozenAccountPaymentAllocations(operation, session);
-  const canCollect = canCollectReviewedOperation(collected, operation, cashReceived, cashDueMinor);
+  const canCollect = canCollectReviewedOperation(operation, cashReceived, cashDueMinor);
   const canReserve = canReserveReviewedOperation(
     disabled,
     expired,
@@ -219,6 +213,7 @@ export default function AccountPaymentReview({
         reserved={reserved}
         legacyCashRelease={legacyCashRelease}
         collectionUnknown={collectionUnknown}
+        reserveUnknown={reserveUnknown}
         unknownWrite={unknownWrite}
         releaseUnknown={releaseUnknown}
         terminal={terminal}
@@ -236,10 +231,12 @@ export default function AccountPaymentReview({
         canRelease={canRelease}
         recoveryCollectionEnabled={recoveryCollectionEnabled}
         onReceivedChange={setReceived}
-        onCollectedChange={setCollected}
         onNotCollectedChange={setNotCollected}
         onReserve={onReserve}
-        onCollect={onCollect}
+        onCollect={(receivedMinor) => {
+          setCollected(true);
+          return onCollect(receivedMinor);
+        }}
         onRelease={onRelease}
         onCheck={onCheck}
       />

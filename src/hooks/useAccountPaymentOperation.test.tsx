@@ -157,6 +157,7 @@ afterEach(() => {
 });
 
 it('persists the original operation before sending and blocks simultaneous double-click writes', async () => {
+  api.reserveAccountPayment.mockResolvedValue({ ...operation, state: 'Reserved', version: 2 });
   let resolve: (result: AccountPaymentOperation) => void = () => undefined;
   api.quoteAccountPayment.mockImplementation(() => {
     expect(readPendingAccountPayment(actor, visit)).toMatchObject({ status: 'pending', value: { request } });
@@ -176,7 +177,112 @@ it('persists the original operation before sending and blocks simultaneous doubl
     resolve(operation);
     await first;
   });
+  expect(api.reserveAccountPayment).toHaveBeenCalledTimes(1);
+  expect(api.reserveAccountPayment).toHaveBeenCalledWith(visit, request.operationId, {
+    expectedVersion: operation.version,
+    expectedAccountRevision: request.expectedAccountRevision,
+  });
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+  expect(result.current.operation?.state).toBe('Reserved');
+  expect(result.current.pending).toMatchObject({ stage: 'reserved', request, expectedVersion: 2, currency: 'EUR' });
+});
+
+it('keeps a stale quote pending for operator review without reserving or collecting it', async () => {
+  api.quoteAccountPayment.mockResolvedValue({ ...operation, expectedAccountRevision: 6 });
+  const { result } = renderOperationHook();
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    await result.current.quote(request);
+  });
+
+  expect(result.current.operation).toBeNull();
+  expect(result.current.pending).toMatchObject({ stage: 'quote', request });
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+});
+
+it('checks an unknown reserve result without retrying or collecting automatically', async () => {
+  api.quoteAccountPayment.mockResolvedValue(operation);
+  api.reserveAccountPayment.mockRejectedValue(new Error('response lost'));
+  const { result } = renderOperationHook();
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    await result.current.quote(request);
+  });
+
+  expect(api.reserveAccountPayment).toHaveBeenCalledTimes(1);
+  expect(result.current.operation?.state).toBe('Quoted');
+  expect(result.current.pending).toMatchObject({ stage: 'reserving', request, expectedVersion: 1 });
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+  await act(async () => {
+    await result.current.reserve();
+  });
+  expect(api.reserveAccountPayment).toHaveBeenCalledTimes(1);
+
+  api.getAccountPaymentOperation.mockResolvedValue({ ...operation, state: 'Reserved', version: 2 });
+  await act(async () => {
+    await result.current.check();
+  });
+
+  expect(result.current.operation?.state).toBe('Reserved');
+  expect(result.current.pending).toMatchObject({ stage: 'reserved', request, expectedVersion: 2 });
+  expect(api.reserveAccountPayment).toHaveBeenCalledTimes(1);
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+});
+
+it('does not reserve a restored quote until an operator explicitly starts reservation', async () => {
+  persistPendingAccountPayment({
+    actorId: actor,
+    serviceSessionId: visit,
+    kind: 'payment',
+    stage: 'quote',
+    request,
+  });
+  api.getAccountPaymentOperation.mockResolvedValue(operation);
+  const { result } = renderOperationHook();
+
+  await waitFor(() => expect(result.current.operation?.state).toBe('Quoted'));
   expect(result.current.pending).toMatchObject({ stage: 'review', request });
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+});
+
+it('never reserves an invalid cash quote or collects it', async () => {
+  api.quoteAccountPayment.mockResolvedValue({
+    ...cashQuoted,
+    cashSettlement: { ...cashSettlement, exactAmountMinor: cashSettlement.exactAmountMinor + 1 },
+  });
+  const { result } = renderOperationHook(actor, true, false, 'CHF');
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    await result.current.quote(cashRequest);
+    await result.current.reserve();
+  });
+
+  expect(result.current.operation?.state).toBe('Quoted');
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+});
+
+it('never reserves a card quote whose frozen allocation total is inconsistent', async () => {
+  api.quoteAccountPayment.mockResolvedValue({
+    ...operation,
+    allocations: [{ ...operation.allocations[0], amountMinor: 28 }],
+  });
+  const { result } = renderOperationHook();
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    await result.current.quote(request);
+    await result.current.reserve();
+  });
+
+  expect(result.current.operation?.state).toBe('Quoted');
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
 });
 
 it('refuses a quote before network I/O when recovery storage cannot be written', async () => {
@@ -191,6 +297,28 @@ it('refuses a quote before network I/O when recovery storage cannot be written',
   expect(api.quoteAccountPayment).not.toHaveBeenCalled();
   expect(result.current.storageUnavailable).toBe(true);
   expect(result.current.error).toBe('accountPayments.storage_unavailable');
+});
+
+it('never reserves when the quoted result cannot be durably saved to the recovery journal', async () => {
+  api.quoteAccountPayment.mockResolvedValue(operation);
+  const originalSetItem = Storage.prototype.setItem;
+  let writeCount = 0;
+  jest.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key: string, value: string) {
+    writeCount += 1;
+    if (writeCount === 2) throw new Error('journal update denied');
+    originalSetItem.call(this, key, value);
+  });
+  const { result } = renderOperationHook();
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    await result.current.quote(request);
+  });
+
+  expect(writeCount).toBe(2);
+  expect(result.current.storageUnavailable).toBe(true);
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
 });
 
 it('recovers a lost collection response after remount without creating or releasing another payment', async () => {
@@ -364,6 +492,40 @@ it('does not attach an old actor response to the next actor after authentication
   expect(readPendingAccountPayment(secondActor, visit).status).toBe('none');
 });
 
+it('does not reserve a quote if the cashier changes while acceptance refresh is pending', async () => {
+  let finishRefresh: () => void = () => undefined;
+  const delayedRefresh = jest.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finishRefresh = resolve;
+      }),
+  );
+  const secondActor = '55555555-5555-4555-8555-555555555555';
+  api.quoteAccountPayment.mockResolvedValue(operation);
+  api.reserveAccountPayment.mockResolvedValue({ ...operation, state: 'Reserved', version: 2 });
+  const { result, rerender } = renderHook(
+    ({ actorId }) => useAccountPaymentOperation(actorId, visit, true, delayedRefresh, false, 'EUR'),
+    { initialProps: { actorId: actor } },
+  );
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+  let submission: Promise<void> = Promise.resolve();
+  act(() => {
+    submission = result.current.quote(request);
+  });
+  await waitFor(() => expect(delayedRefresh).toHaveBeenCalledTimes(1));
+  rerender({ actorId: secondActor });
+  await waitFor(() => expect(result.current.canStart).toBe(true));
+
+  await act(async () => {
+    finishRefresh();
+    await submission;
+  });
+
+  expect(api.reserveAccountPayment).not.toHaveBeenCalled();
+  expect(api.collectAccountPayment).not.toHaveBeenCalled();
+  expect(readPendingAccountPayment(secondActor, visit).status).toBe('none');
+});
+
 it('replays a lost cash capture from the immutable stored intent and clears only its matching receipt', async () => {
   api.quoteAccountPayment.mockResolvedValue(cashQuoted);
   api.reserveAccountPayment.mockResolvedValue(cashReserved);
@@ -380,10 +542,6 @@ it('replays a lost cash capture from the immutable stored intent and clears only
   await waitFor(() => expect(first.result.current.canStart).toBe(true));
   await act(async () => {
     await first.result.current.quote(cashRequest);
-  });
-  await waitFor(() => expect(first.result.current.operation?.state).toBe('Quoted'));
-  await act(async () => {
-    await first.result.current.reserve();
   });
   await waitFor(() => expect(first.result.current.operation?.state).toBe('Reserved'));
   await act(async () => {
@@ -431,10 +589,6 @@ it('holds a same-amount cash capture whose frozen item scope differs, then clear
   await waitFor(() => expect(hook.result.current.canStart).toBe(true));
   await act(async () => {
     await hook.result.current.quote(cashItemsRequest);
-  });
-  await waitFor(() => expect(hook.result.current.operation?.state).toBe('Quoted'));
-  await act(async () => {
-    await hook.result.current.reserve();
   });
   await waitFor(() => expect(hook.result.current.operation?.state).toBe('Reserved'));
   await act(async () => {

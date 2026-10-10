@@ -114,12 +114,11 @@ function renderReview(
   );
 }
 
-it('requires sufficient exact cash and physical collection confirmation before recording', () => {
+it('requires sufficient exact cash before the explicit received-cash action is enabled', () => {
   renderReview();
-  const collect = screen.getByRole('button', { name: 'accountPayments.record_collection' });
+  const collect = screen.getByRole('button', { name: 'accountPayments.record_cash_received' });
   expect(collect).toBeDisabled();
   fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '0.28' } });
-  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
   expect(collect).toBeDisabled();
   fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '1,00' } });
   expect(screen.getByRole('status')).toHaveTextContent('€0.71');
@@ -150,8 +149,7 @@ it('uses the CHF physical due for calculator input and submits the saved receive
   expect(screen.getByText('accountPayments.cash.due').parentElement).toHaveTextContent(/CHF\s*3\.35/);
   fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '4.00' } });
   expect(screen.getByText(/cashier\.cash_change: CHF\s*0\.65/)).toBeInTheDocument();
-  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
-  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.record_collection' }));
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.record_cash_received' }));
   expect(handlers.onCollect).toHaveBeenCalledWith(400);
 });
 
@@ -172,9 +170,7 @@ it('uses exact EUR minor units when no physical rounding applies', () => {
   renderReview({ operation: eur });
   fireEvent.click(screen.getByRole('button', { name: 'cashier.cash_exact' }));
   expect(screen.getByLabelText('cashier.cash_received')).toHaveValue('3.33');
-  const collect = screen.getByRole('button', { name: 'accountPayments.record_collection' });
-  expect(collect).toBeDisabled();
-  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
+  const collect = screen.getByRole('button', { name: 'accountPayments.record_cash_received' });
   expect(collect).toBeEnabled();
   fireEvent.click(collect);
   expect(handlers.onCollect).toHaveBeenCalledWith(333);
@@ -201,7 +197,7 @@ it('does not invent tender terms for a legacy unknown cash collection', () => {
   });
   expect(screen.getByText('accountPayments.result_unknown')).toBeInTheDocument();
   expect(screen.queryByLabelText('cashier.cash_received')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'accountPayments.record_collection' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'accountPayments.record_cash_received' })).not.toBeInTheDocument();
   const release = screen.getByRole('button', { name: 'accountPayments.release' });
   expect(release).toBeDisabled();
   fireEvent.click(screen.getByLabelText('accountPayments.no_money_collected'));
@@ -213,7 +209,7 @@ it('does not invent tender terms for a legacy unknown cash collection', () => {
 it('keeps a legacy captured cash amount visible as unattested', () => {
   renderReview({ operation: { ...operation, state: 'Captured', cashSettlement: null }, pending: null });
   expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.cash.legacy_unattested');
-  expect(screen.queryByRole('button', { name: 'accountPayments.record_collection' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'accountPayments.record_cash_received' })).not.toBeInTheDocument();
 });
 
 it('shows the frozen order, line, and one-based unit range without unrelated bill items', () => {
@@ -249,7 +245,7 @@ it('fails closed when a line product does not equal its frozen allocation amount
   };
   renderReview({ operation: inconsistent });
   expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
 });
 
 it('fails closed when an allocation has non-positive minor-unit pricing', () => {
@@ -260,13 +256,13 @@ it('fails closed when an allocation has non-positive minor-unit pricing', () => 
   };
   renderReview({ operation: invalidAmount });
   expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
 });
 
 it('fails closed when valid line allocations do not sum to the quoted total', () => {
   renderReview({ operation: { ...operation, amountMinor: 28 } });
   expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
 });
 
 it('fails closed on missing frozen line snapshots instead of claiming generic reviewed items', () => {
@@ -274,7 +270,7 @@ it('fails closed on missing frozen line snapshots instead of claiming generic re
   const { rerender } = renderReview({ session: missingSnapshot });
   expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
   expect(screen.queryByText('accountPayments.frozen_review')).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
 
   rerender(
     <AccountPaymentReview
@@ -295,7 +291,7 @@ it('fails closed when the frozen source line cannot cover the quoted ordinal ran
   } as TableServiceSessionDto;
   renderReview({ session: shortSnapshot });
   expect(screen.getByText('accountPayments.scope_unavailable')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
 });
 
 it('identifies the exact equal-share ordinal as well as the source allocation', () => {
@@ -329,7 +325,7 @@ it('leaves an expired reservation locked but allows explicit no-money release an
       {...handlers}
     />,
   );
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
   fireEvent.click(screen.getByLabelText('accountPayments.no_money_collected'));
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.release' }));
   expect(handlers.onRelease).toHaveBeenCalledTimes(1);
@@ -367,9 +363,9 @@ it('requires card confirmation from the standalone terminal and never claims to 
   );
   expect(screen.getByText('cashier.standalone_card_instruction')).toBeInTheDocument();
   expect(screen.queryByLabelText('cashier.cash_received')).not.toBeInTheDocument();
-  const collect = screen.getByRole('button', { name: 'accountPayments.record_collection' });
-  expect(collect).toBeDisabled();
-  fireEvent.click(screen.getByLabelText('accountPayments.physical_collection_confirm'));
+  const collect = screen.getByRole('button', { name: 'accountPayments.record_terminal_payment' });
+  expect(screen.queryByLabelText('accountPayments.physical_collection_confirm')).not.toBeInTheDocument();
+  expect(collect).toBeEnabled();
   fireEvent.click(collect);
   expect(handlers.onCollect).toHaveBeenCalledTimes(1);
 });
@@ -420,7 +416,7 @@ it('allows owner-scoped no-money release after flag-off while keeping collection
     />,
   );
 
-  expect(screen.getByRole('button', { name: 'accountPayments.record_collection' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'accountPayments.record_cash_received' })).toBeDisabled();
   const release = screen.getByRole('button', { name: 'accountPayments.release' });
   expect(release).toBeDisabled();
   fireEvent.click(screen.getByLabelText('accountPayments.no_money_collected'));

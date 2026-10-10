@@ -15,7 +15,7 @@ interface CollectionIntent {
   readonly recoveringUnknownCollection: boolean;
 }
 
-function cashScopeMatchesRequest(pending: PaymentDescriptor, operation: AccountPaymentOperation): boolean {
+function scopeMatchesRequest(pending: PaymentDescriptor, operation: AccountPaymentOperation): boolean {
   return (
     hasConsistentFrozenAmount(operation) &&
     (pending.request.mode !== 'Items' || matchesRequestedItemScope(pending, operation))
@@ -69,7 +69,7 @@ function prepareCollectionIntent(
     if (receivedMinor !== undefined || pending.cashIntent !== undefined) return null;
     return { saved: pending, collectedMinor: undefined, recoveringUnknownCollection };
   }
-  if (!cashScopeMatchesRequest(pending, operation)) return null;
+  if (!scopeMatchesRequest(pending, operation)) return null;
   if (recoveringUnknownCollection) return prepareCashRecoveryIntent(pending, operation, receivedMinor);
   return prepareNewCashIntent(pending, operation, receivedMinor, visitCurrency);
 }
@@ -79,7 +79,7 @@ type RunPayment = (
   action: () => Promise<AccountPaymentResult>,
   write: boolean,
   allowFeatureOffRecovery?: boolean,
-) => Promise<void>;
+) => Promise<AccountPaymentResult | undefined>;
 
 export function accountPaymentMutationActions(
   pending: PendingAccountPayment | null,
@@ -96,12 +96,13 @@ export function accountPaymentMutationActions(
   const reserve = async () => {
     if (
       pending?.kind !== 'payment' ||
+      pending.stage !== 'review' ||
       operation?.state !== 'Quoted' ||
+      !scopeMatchesRequest(pending, operation) ||
       !visitCurrency ||
       operation.currency !== visitCurrency ||
       (pending.currency !== undefined && pending.currency !== visitCurrency) ||
-      (operation.paymentMethod === 'Cash' &&
-        (readAccountCashEvidence(operation).status !== 'valid' || !cashScopeMatchesRequest(pending, operation)))
+      (operation.paymentMethod === 'Cash' && readAccountCashEvidence(operation).status !== 'valid')
     )
       return;
     const request = { expectedVersion: operation.version, expectedAccountRevision: operation.expectedAccountRevision };

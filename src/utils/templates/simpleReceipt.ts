@@ -41,10 +41,9 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto, translate: Translati
     withIngredients: true,
     translate,
     parentQuantity: item.quantity,
-    parentLabel: itemName,
   });
   const ingredientsHtml = customizedIngredientRows(item)
-    .map((ingredient) => ingredientRowHtml(ingredient, 16, translate, item.quantity, itemName))
+    .map((ingredient) => ingredientRowHtml(ingredient, 16, translate, item.quantity))
     .join('');
 
   return `

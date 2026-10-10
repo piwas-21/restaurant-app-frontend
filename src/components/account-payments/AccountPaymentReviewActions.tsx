@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
-import FormField from '@/components/design-system/FormField';
+import CheckboxField from '@/components/design-system/CheckboxField';
 import StaffButton from '@/components/design-system/StaffButton';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 import AccountPaymentCashCalculator from './AccountPaymentCashCalculator';
@@ -13,7 +13,6 @@ interface SharedActionProps {
   readonly reserved: boolean;
   readonly unknownWrite: boolean;
   readonly allocationScopeComplete: boolean;
-  readonly collected: boolean;
   readonly onCollect: (receivedMinor?: number) => Promise<void>;
 }
 
@@ -28,12 +27,13 @@ interface WriteActionProps extends SharedActionProps {
   readonly canCollect: boolean;
   readonly canReserve: boolean;
   readonly onReceivedChange: (received: string) => void;
-  readonly onCollectedChange: (collected: boolean) => void;
   readonly onReserve: () => Promise<void>;
 }
 
 interface RecoveryActionProps extends SharedActionProps {
+  readonly collected: boolean;
   readonly collectionUnknown: boolean;
+  readonly reserveUnknown: boolean;
   readonly releaseUnknown: boolean;
   readonly terminal: boolean;
   readonly cashReconciliationNeeded: boolean;
@@ -79,27 +79,21 @@ function PaymentWriteActions(props: WriteActionProps) {
         <>
           {tenderInstructions}
           {!props.legacyCashRelease && (
-            <>
-              <FormField label={t('accountPayments.physical_collection_confirm')}>
-                <input
-                  type="checkbox"
-                  checked={props.collected}
-                  onChange={(event) => props.onCollectedChange(event.target.checked)}
-                  disabled={props.disabled || props.expired}
-                />
-              </FormField>
-              <StaffButton
-                variant="primary"
-                disabled={props.disabled || props.expired || !props.allocationScopeComplete || !props.canCollect}
-                onClick={() =>
-                  void props.onCollect(
-                    props.operation.paymentMethod === 'Cash' ? (props.cashReceivedMinor ?? undefined) : undefined,
-                  )
-                }
-              >
-                {t('accountPayments.record_collection')}
-              </StaffButton>
-            </>
+            <StaffButton
+              variant="primary"
+              disabled={props.disabled || props.expired || !props.allocationScopeComplete || !props.canCollect}
+              onClick={() =>
+                void props.onCollect(
+                  props.operation.paymentMethod === 'Cash' ? (props.cashReceivedMinor ?? undefined) : undefined,
+                )
+              }
+            >
+              {t(
+                props.operation.paymentMethod === 'Cash'
+                  ? 'accountPayments.record_cash_received'
+                  : 'accountPayments.record_terminal_payment',
+              )}
+            </StaffButton>
           )}
         </>
       )}
@@ -113,14 +107,12 @@ function PaymentRecoveryActions(props: RecoveryActionProps) {
     <>
       {(props.quoted || props.reserved) && !props.unknownWrite && (
         <div className={styles.cancel}>
-          <FormField label={t('accountPayments.no_money_collected')}>
-            <input
-              type="checkbox"
-              checked={props.notCollected}
-              onChange={(event) => props.onNotCollectedChange(event.target.checked)}
-              disabled={!props.canRelease || props.unknownWrite}
-            />
-          </FormField>
+          <CheckboxField
+            label={t('accountPayments.no_money_collected')}
+            checked={props.notCollected}
+            onChange={props.onNotCollectedChange}
+            disabled={!props.canRelease || props.unknownWrite}
+          />
           <StaffButton
             disabled={!props.canRelease || !props.notCollected || props.collected}
             onClick={() => void props.onRelease(props.notCollected)}
@@ -129,7 +121,7 @@ function PaymentRecoveryActions(props: RecoveryActionProps) {
           </StaffButton>
         </div>
       )}
-      {props.unknownWrite && !props.terminal && (
+      {props.unknownWrite && !props.reserveUnknown && !props.terminal && (
         <StaffButton
           disabled={
             props.releaseUnknown
@@ -154,6 +146,7 @@ export default function AccountPaymentReviewActions({
   reserved,
   legacyCashRelease,
   collectionUnknown,
+  reserveUnknown,
   unknownWrite,
   releaseUnknown,
   terminal,
@@ -171,7 +164,6 @@ export default function AccountPaymentReviewActions({
   canRelease,
   recoveryCollectionEnabled,
   onReceivedChange,
-  onCollectedChange,
   onNotCollectedChange,
   onReserve,
   onCollect,
@@ -192,11 +184,9 @@ export default function AccountPaymentReviewActions({
         received={received}
         disabled={disabled}
         expired={expired}
-        collected={collected}
         canCollect={canCollect}
         canReserve={canReserve}
         onReceivedChange={onReceivedChange}
-        onCollectedChange={onCollectedChange}
         onReserve={onReserve}
         onCollect={onCollect}
       />
@@ -204,6 +194,7 @@ export default function AccountPaymentReviewActions({
         quoted={quoted}
         reserved={reserved}
         collectionUnknown={collectionUnknown}
+        reserveUnknown={reserveUnknown}
         unknownWrite={unknownWrite}
         releaseUnknown={releaseUnknown}
         terminal={terminal}

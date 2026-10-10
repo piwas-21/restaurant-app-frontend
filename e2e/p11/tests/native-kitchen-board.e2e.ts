@@ -10,6 +10,7 @@ import {
 import { getE2EDbPool } from '../../helpers/db';
 import { test as p11Test, type P11StaffUser } from '../staffUsers';
 import { createTableAccountP11Fixture, type TableAccountP11Fixture } from '../../seed/tableAccountP11';
+import type { AccountPaymentOperation } from '../../../src/types/accountPayments';
 import {
   acknowledgeCorrectionWork,
   readNativeKitchenSnapshot,
@@ -497,14 +498,32 @@ p11Test(
       await cashier.page.goto(`/en/cashier/tables?session=${encodeURIComponent(session.serviceSessionId)}`);
       const collection = cashier.page.getByRole('region', { name: 'Collect a contribution' });
       await expect(collection).toBeVisible();
-      await collection.getByRole('button', { name: 'Review contribution', exact: true }).click();
+      const reserveResponsePromise = cashier.page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' &&
+          new RegExp(
+            `^/api/table-service-sessions/${session.serviceSessionId}/account-payments/operations/[^/]+/reserve$`,
+            'i',
+          ).test(new URL(response.url()).pathname),
+      );
+      const quote = await requirePostData<AccountPaymentOperation>(
+        cashier.page,
+        new RegExp(`^/api/table-service-sessions/${session.serviceSessionId}/account-payments/quotes$`, 'i'),
+        () => collection.getByRole('button', { name: 'Review contribution', exact: true }).click(),
+      );
+      const reserveResponse = await reserveResponsePromise;
+      const reserve = await requireApiData<AccountPaymentOperation>(reserveResponse, 'account payment reservation');
+      expect(new URL(reserveResponse.url()).pathname.toLowerCase()).toBe(
+        `/api/table-service-sessions/${session.serviceSessionId}/account-payments/operations/${quote.operationId}/reserve`.toLowerCase(),
+      );
+      expect(reserveResponse.request().postDataJSON()).toMatchObject({
+        expectedVersion: quote.version,
+        expectedAccountRevision: quote.expectedAccountRevision,
+      });
+      expect(reserve).toMatchObject({ operationId: quote.operationId, state: 'Reserved' });
       const review = cashier.page.getByRole('region', { name: 'Review contribution' });
-      await review.getByRole('button', { name: 'Confirm reviewed contribution', exact: true }).click();
       await review.getByRole('button', { name: 'Exact', exact: true }).click();
-      await review
-        .getByLabel('I have received this cash or confirmed this card payment on the separate terminal.')
-        .check();
-      await review.getByRole('button', { name: 'Record confirmed payment', exact: true }).click();
+      await review.getByRole('button', { name: 'Record cash received', exact: true }).click();
       const receiptHeading = review.getByRole('heading', { name: 'Recorded cash receipt', exact: true });
       await expect(receiptHeading).toBeVisible();
       const receipt = receiptHeading.locator('..');

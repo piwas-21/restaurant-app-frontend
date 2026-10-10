@@ -24,16 +24,24 @@ function paymentResultMatchesRequest(saved: PendingAccountPayment, result: Accou
   if (
     result.mode !== saved.request.mode ||
     result.paymentMethod !== saved.request.paymentMethod ||
-    result.expectedAccountRevision !== saved.request.expectedAccountRevision
+    result.expectedAccountRevision !== saved.request.expectedAccountRevision ||
+    (result.tipMinor ?? 0) !== (saved.request.tipMinor ?? 0)
   )
     return false;
-  if (
-    saved.request.mode === 'Equal' &&
-    (result.equalSharePlanId !== saved.request.equalSharePlanId ||
-      result.equalShareOrdinal !== saved.request.equalShareOrdinal)
-  )
-    return false;
-  return saved.request.mode !== 'Amount' || result.amountMinor === saved.request.amountMinor;
+  if (saved.request.mode === 'Equal') {
+    return (
+      result.equalSharePlanId === saved.request.equalSharePlanId &&
+      result.equalShareOrdinal === saved.request.equalShareOrdinal
+    );
+  }
+  if (saved.request.mode === 'CustomAmount') {
+    return (
+      result.customSharePlanId === saved.request.customSharePlanId &&
+      result.customShareOrdinal === saved.request.customShareOrdinal
+    );
+  }
+  if (saved.request.mode === 'Amount') return result.amountMinor === saved.request.amountMinor;
+  return saved.request.mode !== 'Items' || matchesRequestedItemScope(saved, result);
 }
 
 function hasSafePaymentResultAmounts(result: AccountPaymentOperation): boolean {

@@ -66,7 +66,7 @@ const buildKitchenItemHtml = (
   // default quantity 1, which is exactly what a guest's "extra sauce" looks like on the wire:
   // the chosen sauce never reached the printed ticket. One filter with the child rows below.
   customizedIngredientRows(item).forEach((ing) => {
-    html += ingredientRowHtml(ing, 16, translate, item.quantity, itemName);
+    html += ingredientRowHtml(ing, 16, translate, item.quantity);
   });
 
   // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen.
@@ -75,11 +75,9 @@ const buildKitchenItemHtml = (
   html += buildChildItemsHtml(item.sideItems ?? [], {
     showPrices,
     currencySource: order,
-    heading: translate('side_items', 'Additionals') + ':',
     withIngredients: true,
     translate,
     parentQuantity: item.quantity,
-    parentLabel: itemName,
   });
 
   // Special instructions - prominent styling

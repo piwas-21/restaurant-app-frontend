@@ -221,7 +221,7 @@ it.each(['reserved', 'reserving'] as const)(
     expect(screen.queryByText('cashier.cash_received')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'accountPayments.check_result' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'accountPayments.retry_original' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'accountPayments.record_collection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'accountPayments.record_cash_received' })).not.toBeInTheDocument();
     expect(readPendingAccountPayment(actor, visit)).toMatchObject({
       status: 'pending',
       value: { stage, request, currency: 'CHF' },

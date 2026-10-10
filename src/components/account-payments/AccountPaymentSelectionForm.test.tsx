@@ -50,6 +50,9 @@ beforeEach(() => {
 
 it('reviews only the available amount and never includes money reserved by another payer', async () => {
   renderForm();
+  expect(screen.getByRole('radio', { name: 'accountPayments.full_balance' })).toBeChecked();
+  expect(screen.queryByText('€10.29')).not.toBeInTheDocument();
+  expect(screen.getByText('€0.29')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() => expect(onQuote).toHaveBeenCalledTimes(1));
   expect(onQuote).toHaveBeenCalledWith(
@@ -60,16 +63,18 @@ it('reviews only the available amount and never includes money reserved by anoth
 it('keeps guest OnlinePayment outside the staff quote methods', () => {
   renderForm();
 
-  const method = screen.getByLabelText('cashier.payment_method');
-  expect(method).toHaveValue('Cash');
-  expect(method).toHaveDisplayValue('cashier.table_bill.method_cash');
-  expect(screen.getByRole('option', { name: 'payment_card_at_restaurant' })).toHaveValue('CreditCard');
-  expect(screen.queryByRole('option', { name: 'accountPayments.method_guest_online' })).not.toBeInTheDocument();
+  expect(screen.getByRole('group', { name: 'cashier.payment_method' })).toBeInTheDocument();
+  expect(screen.getByRole('radio', { name: 'accountPayments.method_cash' })).toBeChecked();
+  expect(screen.getByRole('radio', { name: 'accountPayments.method_card' })).toBeInTheDocument();
+  expect(screen.queryByRole('radio', { name: 'accountPayments.method_guest_online' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.method_card' }));
+  expect(screen.getByRole('radio', { name: 'accountPayments.method_card' })).toBeChecked();
+  expect(screen.getByText('cashier.standalone_card_instruction')).toBeInTheDocument();
 });
 
 it('parses comma-decimal custom contributions exactly and rejects an amount beyond unreserved debt', async () => {
   renderForm();
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_amount' }));
   fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '0,30' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   expect(screen.getByRole('alert')).toHaveTextContent('accountPayments.invalid_amount');
@@ -81,7 +86,7 @@ it('parses comma-decimal custom contributions exactly and rejects an amount beyo
 
 it('selects two remaining unit ordinals with the server limit instead of expanding the historical full quantity', async () => {
   renderForm();
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Items' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.selected_items' }));
   fireEvent.click(screen.getByRole('checkbox'));
   const quantity = screen.getByRole('spinbutton');
   expect(quantity).toHaveAttribute('max', '5');
@@ -124,7 +129,8 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
     },
   };
   renderForm(equalAccount);
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Equal' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.split' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.equal_shares' }));
   expect(screen.getByRole('option', { name: /share_number:number=1/ })).toBeDisabled();
   expect(screen.getByRole('option', { name: /share_number:number=1/ })).toHaveTextContent('€3.34');
   expect(screen.getByRole('option', { name: /share_number:number=2/ })).toHaveTextContent('€3.33');
@@ -145,6 +151,7 @@ it('displays frozen equal shares with remainder and keeps a captured slot unavai
 
 it('records Full as a distinct payment flow and keeps its tip outside the account amount', async () => {
   renderForm();
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
   fireEvent.change(screen.getByLabelText(/enter_custom_tip/), { target: { value: '1.23' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
   await waitFor(() =>
@@ -159,7 +166,8 @@ it('records Full as a distinct payment flow and keeps its tip outside the accoun
 
 it('prefills Custom with the current percentage tip and reviews that exact amount', async () => {
   renderForm({ ...account, availableMinor: 1000, outstandingMinor: 1000 });
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_amount' }));
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
   fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
   fireEvent.click(screen.getByRole('button', { name: /^10%/ }));
   const customTip = screen.getByLabelText(/enter_custom_tip/);
@@ -175,7 +183,8 @@ it('prefills Custom with the current percentage tip and reviews that exact amoun
 it('blocks a previously valid percentage tip while custom text is invalid, then restores the quote with valid input', async () => {
   const tipAccount = { ...account, availableMinor: 1000, outstandingMinor: 1000 };
   renderForm(tipAccount);
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_amount' }));
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
   fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
   fireEvent.click(screen.getByRole('button', { name: /^10%/ }));
   const customTip = screen.getByLabelText(/enter_custom_tip/);
@@ -199,11 +208,13 @@ it('blocks a previously valid percentage tip while custom text is invalid, then 
 
 it('clears an invalid custom tip when changing between tip-enabled contribution modes', async () => {
   renderForm({ ...account, availableMinor: 1000, outstandingMinor: 1000 });
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
   const tip = screen.getByLabelText(/enter_custom_tip/);
   fireEvent.change(tip, { target: { value: '12.345' } });
   expect(screen.getByRole('button', { name: 'accountPayments.review' })).toBeDisabled();
 
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'Amount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_amount' }));
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
   fireEvent.change(screen.getByLabelText('accountPayments.amount'), { target: { value: '10.00' } });
   expect(screen.getByLabelText(/enter_custom_tip/)).toHaveValue('');
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -216,7 +227,8 @@ it('clears an invalid custom tip when changing between tip-enabled contribution 
 
 it('creates custom guest amounts only when the immutable plan exactly covers the available balance', async () => {
   renderForm();
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.split' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_guest_shares' }));
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=1'), { target: { value: '0.15' } });
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=2'), { target: { value: '0.14' } });
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.create_plan' }));
@@ -233,7 +245,8 @@ it('creates custom guest amounts only when the immutable plan exactly covers the
 it('shows the exact 0.20 remainder and fills one guest amount to cover the available balance', async () => {
   const fullBalance = { ...account, availableMinor: 171460, outstandingMinor: 171460, reservedMinor: 0 };
   renderForm(fullBalance);
-  fireEvent.change(screen.getByLabelText('accountPayments.contribution'), { target: { value: 'CustomAmount' } });
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.split' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'accountPayments.custom_guest_shares' }));
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=1'), { target: { value: '14.40' } });
   fireEvent.change(screen.getByLabelText('accountPayments.share_amount:number=2'), { target: { value: '1,700' } });
   expect(screen.getByRole('status')).toHaveTextContent('0.20');

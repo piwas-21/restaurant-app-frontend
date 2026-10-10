@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
@@ -22,16 +22,61 @@ jest.mock('@/components/table-service/TableReadinessAction', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   return {
     __esModule: true,
-    default: ({ tableId, canMarkReady, isStale }: { tableId: string; canMarkReady: boolean; isStale: boolean }) =>
-      React.createElement('div', {
-        'data-testid': 'readiness-action',
-        'data-table-id': tableId,
-        'data-can-mark-ready': String(canMarkReady),
-        'data-stale': String(isStale),
-      }),
+    default: ({
+      tableId,
+      canMarkReady,
+      isStale,
+      onConfirmedReady,
+    }: {
+      tableId: string;
+      canMarkReady: boolean;
+      isStale: boolean;
+      onConfirmedReady?: (outcome: {
+        tableId: string;
+        readinessState: 'ReadyForGuests';
+        readinessVersion: number;
+        operationId: string;
+      }) => void;
+    }) =>
+      React.createElement(
+        React.Fragment,
+        null,
+        React.createElement('div', {
+          'data-testid': 'readiness-action',
+          'data-table-id': tableId,
+          'data-can-mark-ready': String(canMarkReady),
+          'data-stale': String(isStale),
+        }),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            'data-testid': 'confirm-ready-refresh',
+            onClick: () =>
+              onConfirmedReady?.({
+                tableId,
+                readinessState: 'ReadyForGuests',
+                readinessVersion: 9,
+                operationId: '44444444-4444-4444-8444-444444444444',
+              }),
+          },
+          'confirm readiness refresh',
+        ),
+      ),
   };
 });
-jest.mock('./CashierTableEmptyState', () => ({ __esModule: true, default: () => null }));
+jest.mock('./CashierTableEmptyState', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  return {
+    __esModule: true,
+    default: ({ entry }: { entry: CashierTableEntry }) =>
+      React.createElement(
+        'div',
+        { 'data-testid': 'cashier-empty-state', 'data-status': entry.status },
+        entry.table.tableNumber,
+      ),
+  };
+});
 jest.mock('./CashierTableSessionPanel', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   let mountId = 0;
@@ -85,6 +130,11 @@ const staleNeedsResetEntry: CashierTableEntry = {
   session: null,
   status: 'needs-reset',
 };
+const readyEntry: CashierTableEntry = {
+  ...staleNeedsResetEntry,
+  table: { ...staleNeedsResetEntry.table, readinessState: 'ReadyForGuests', readinessVersion: 9 },
+  status: 'available',
+};
 
 function makeSession(serviceSessionId: string): TableServiceSessionDto {
   return {
@@ -98,6 +148,17 @@ function makeSession(serviceSessionId: string): TableServiceSessionDto {
     outstanding: 12,
     bill: { serviceSessionId, currency: 'CHF', accountItems: [], orders: [] },
   } as unknown as TableServiceSessionDto;
+}
+
+function makeReleasedSession(serviceSessionId: string): TableServiceSessionDto {
+  return {
+    ...makeSession(serviceSessionId),
+    tableId: 'table-a',
+    status: 'Closed',
+    closedAt: '2026-10-04T12:30:00Z',
+    releasedAt: '2026-10-04T12:30:00Z',
+    isTableReleased: true,
+  };
 }
 
 function sessionState(
@@ -214,4 +275,77 @@ it('does not expose a prior table readiness action while a different visit is un
   expect(screen.queryByTestId('cashier-session-panel')).not.toBeInTheDocument();
   expect(screen.queryByTestId('readiness-action')).not.toBeInTheDocument();
   expect(screen.getByText('cashier.tables.session_loading')).toBeInTheDocument();
+});
+
+it('returns from a released visit to the refreshed empty table and keeps the visit in history', () => {
+  const releasedVisit = makeReleasedSession(firstVisit);
+  const navigateToTable = jest.fn();
+  jest.mocked(useCashierTables).mockReturnValue({
+    ...tableState,
+    entries: [staleNeedsResetEntry],
+    releasedSessions: [releasedVisit],
+  });
+  jest.mocked(useCashierTableRoute).mockReturnValue({
+    selectedSessionId: firstVisit,
+    selectedTableNumber: null,
+    navigateToTable,
+    navigateToSession: jest.fn(),
+    clearSelection: jest.fn(),
+  });
+  jest.mocked(useCashierTableSession).mockReturnValue(sessionState(releasedVisit, false));
+  const view = render(<CashierTablesWorkspace />);
+
+  expect(screen.getByTestId('cashier-session-panel')).toHaveAttribute('data-session-id', firstVisit);
+  fireEvent.click(screen.getByTestId('confirm-ready-refresh'));
+  expect(navigateToTable).not.toHaveBeenCalled();
+
+  jest.mocked(useCashierTables).mockReturnValue({
+    ...tableState,
+    entries: [readyEntry],
+    releasedSessions: [releasedVisit],
+  });
+  view.rerender(<CashierTablesWorkspace />);
+  fireEvent.click(screen.getByTestId('confirm-ready-refresh'));
+
+  expect(navigateToTable).toHaveBeenCalledWith('7');
+  expect(tableState.openSession).not.toHaveBeenCalled();
+  expect(screen.getByRole('heading', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
+
+  jest.mocked(useCashierTableRoute).mockReturnValue({
+    selectedSessionId: null,
+    selectedTableNumber: '7',
+    navigateToTable,
+    navigateToSession: jest.fn(),
+    clearSelection: jest.fn(),
+  });
+  view.rerender(<CashierTablesWorkspace />);
+
+  expect(screen.getByTestId('cashier-empty-state')).toHaveAttribute('data-status', 'available');
+  expect(screen.queryByTestId('cashier-session-panel')).not.toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /cashier.tables.released_due/ })).toBeEnabled();
+  expect(tableState.openSession).not.toHaveBeenCalled();
+});
+
+it('keeps a released visit selected when the same table has a newer active visit', () => {
+  const releasedVisit = makeReleasedSession(firstVisit);
+  const navigateToTable = jest.fn();
+  const newActiveEntry: CashierTableEntry = {
+    ...readyEntry,
+    session: makeSession(nextVisit),
+    status: 'occupied',
+  };
+  jest.mocked(useCashierTables).mockReturnValue({ ...tableState, entries: [newActiveEntry] });
+  jest.mocked(useCashierTableRoute).mockReturnValue({
+    selectedSessionId: firstVisit,
+    selectedTableNumber: null,
+    navigateToTable,
+    navigateToSession: jest.fn(),
+    clearSelection: jest.fn(),
+  });
+  jest.mocked(useCashierTableSession).mockReturnValue(sessionState(releasedVisit, false));
+  render(<CashierTablesWorkspace />);
+
+  fireEvent.click(screen.getByTestId('confirm-ready-refresh'));
+  expect(navigateToTable).not.toHaveBeenCalled();
 });

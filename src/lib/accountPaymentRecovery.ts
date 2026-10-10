@@ -101,11 +101,27 @@ export function canRetryAccountPaymentCollection(
       matchesRequestedItemScope(pending, operation)
     );
   }
-  return (
-    pending.request.selectedUnits === undefined &&
-    pending.request.amountMinor === undefined &&
-    positiveInteger(pending.request.equalShareOrdinal ?? 0) &&
-    sameCanonicalIdentity(pending.request.equalSharePlanId, operation.equalSharePlanId) &&
-    pending.request.equalShareOrdinal === operation.equalShareOrdinal
-  );
+  if (pending.request.mode === 'Equal') {
+    return (
+      pending.request.selectedUnits === undefined &&
+      pending.request.amountMinor === undefined &&
+      positiveInteger(pending.request.equalShareOrdinal ?? 0) &&
+      sameCanonicalIdentity(pending.request.equalSharePlanId, operation.equalSharePlanId) &&
+      pending.request.equalShareOrdinal === operation.equalShareOrdinal
+    );
+  }
+  if (pending.request.mode === 'CustomAmount') {
+    return (
+      pending.request.selectedUnits === undefined &&
+      pending.request.amountMinor === undefined &&
+      pending.request.equalSharePlanId === undefined &&
+      pending.request.equalShareOrdinal === undefined &&
+      operation.equalSharePlanId === null &&
+      operation.equalShareOrdinal === null &&
+      positiveInteger(pending.request.customShareOrdinal ?? 0) &&
+      sameCanonicalIdentity(pending.request.customSharePlanId, operation.customSharePlanId) &&
+      pending.request.customShareOrdinal === operation.customShareOrdinal
+    );
+  }
+  return false;
 }

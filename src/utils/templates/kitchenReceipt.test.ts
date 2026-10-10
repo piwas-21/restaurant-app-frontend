@@ -23,7 +23,7 @@ describe('generateKitchenReceiptHtml — single-kitchen bundle', () => {
     expect(occurrences(html!, 'Mezze Combo')).toBe(1);
     expect(occurrences(html!, 'Hummus')).toBe(1);
     expect(occurrences(html!, 'Fattoush Salad')).toBe(1);
-    expect(html).toContain('Additionals:');
+    expect(html).not.toContain('Additionals:');
   });
 
   it('prints no back-kitchen ticket at all', () => {
@@ -250,7 +250,7 @@ describe('generateKitchenReceiptHtml — a child row with no total of its own', 
 
     expect(html).not.toBeNull();
     // The defect, named: the child used to render as `+ Coke x2 (CHF 0.00)`.
-    expect(cokeRow(html!)).toBe('+ Coke x2 — Recorded quantity');
+    expect(cokeRow(html!)).toBe('2x Coke');
   });
 
   it('still prints the PARENT total, so suppressing the zero costs no real price', () => {
@@ -268,9 +268,7 @@ describe('generateKitchenReceiptHtml — a child row with no total of its own', 
     const order = orderWithSide();
     order.items[0].sideItems![0].itemTotal = 5;
 
-    expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(
-      `+ Coke x2 (${formatCurrency(5)}) — Recorded quantity`,
-    );
+    expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(`2x Coke (${formatCurrency(5)})`);
   });
 });
 
@@ -297,15 +295,15 @@ describe('generateKitchenReceiptHtml — chosen ingredients reach the ticket', (
       }),
     ]);
 
-  it('prints a chosen add-on at quantity 1 as an EXTRA line', () => {
+  it('prints a chosen add-on at quantity 1 as a modifier line', () => {
     const html = generateKitchenReceiptHtml(orderWithChoices(), 'FrontKitchen');
-    expect(html).toContain('+ EXTRA Garlic Sauce');
+    expect(html).toContain('+ Garlic Sauce');
   });
 
   it('still prints removals and extra portions', () => {
     const html = generateKitchenReceiptHtml(orderWithChoices(), 'FrontKitchen');
-    expect(html).toContain('✘ NO Onion');
-    expect(html).toContain('+ EXTRA Meat x2');
+    expect(html).toContain('NO Onion');
+    expect(html).toContain('+ 2x Meat');
   });
 
   it('does not print what the guest never chose, nor the plain base recipe', () => {
@@ -336,6 +334,6 @@ describe('generateKitchenReceiptHtml — chosen ingredients reach the ticket', (
 
     const html = generateKitchenReceiptHtml(order, 'FrontKitchen');
     const afterHummus = html!.split('Hummus')[1] ?? '';
-    expect(afterHummus).toContain('+ EXTRA Harissa');
+    expect(afterHummus).toContain('+ Harissa');
   });
 });

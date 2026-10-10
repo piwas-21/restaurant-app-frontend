@@ -47,8 +47,8 @@ export interface CartSheetProps {
  * totals and Proceed-to-Checkout are identical to what the rail showed — including the toggle,
  * which is why removing the rail does not remove a guest's ability to choose a channel.
  *
- * The shared contents close the sheet after a successful route or when handing missing details to
- * the follow-up modal. A blocked table visit keeps the sheet open so its explanation is visible.
+ * The sheet yields to follow-up details while retaining its open intent. Confirming an ordinary
+ * type selection or cancelling details restores the basket; explicit checkout may resume routing.
  */
 export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSheetProps>) {
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSh
     // column WebKit collapsed to a strip (2026-09-18 staging report) — the shared presentation
     // replaces it; the desktop slide-over (>=769px) stays defined in the module CSS.
     <BaseModal
-      isOpen={isOpen}
+      isOpen={isOpen && followUp.followUp === null && followUp.switchFlow.pending === null}
       onClose={onClose}
       title={t('shopping_basket', 'Shopping Basket')}
       className={styles.sheet}

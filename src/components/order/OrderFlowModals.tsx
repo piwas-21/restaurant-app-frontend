@@ -51,14 +51,20 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
       <TableSelectionModal
         isOpen={followUp.followUp === 'table'}
         onClose={followUp.closeFollowUp}
-        onConfirm={setTable}
+        onConfirm={(table) => {
+          setTable(table);
+          followUp.confirmFollowUp();
+        }}
         initialTable={state.table}
       />
 
       <DeliveryAddressModal
         isOpen={followUp.followUp === 'address'}
         onClose={followUp.closeFollowUp}
-        onConfirm={setAddress}
+        onConfirm={(address) => {
+          setAddress(address);
+          followUp.confirmFollowUp();
+        }}
         initial={state.deliveryAddress}
       />
 
@@ -71,7 +77,7 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
       <TakeawayInfoModal
         isOpen={followUp.followUp === 'dinein' || followUp.followUp === 'takeaway' || followUp.followUp === 'contact'}
         onClose={followUp.closeFollowUp}
-        onConfirm={followUp.closeFollowUp}
+        onConfirm={followUp.confirmFollowUp}
         title={followUp.followUp === 'contact' ? t('edit_contact_title', 'Edit your details') : undefined}
         requiredFields={contactRequiredFields}
         editAll={followUp.followUp === 'contact'}

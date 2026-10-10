@@ -6,6 +6,7 @@ import BaseModal from '@/components/design-system/BaseModal';
 import DeliveryAddressSection from '@/components/checkout/order-type/DeliveryAddressSection';
 import { useDeliveryAddress } from '@/hooks/checkout/useDeliveryAddress';
 import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
+import { useModalSubmitAction } from '@/hooks/order/useModalSubmitAction';
 import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import type { DeliveryAddress } from '@/contexts/CheckoutContext';
 import tableModalStyles from './TableSelectionModal.module.css';
@@ -76,28 +77,29 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
     source: 'delivery_modal',
   });
 
-  const handleConfirm = async () => {
-    if (!address.validate()) return;
+  const collect = async () => {
+    if (!address.validate()) return null;
     if (guest.visibleFields.length > 0 || guest.wantsRegister) {
       const committed = await guest.commit();
-      if (committed === null) return;
+      if (committed === null) return null;
     }
     const persisted = await address.persistIfRequested();
-    if (!persisted) return;
+    if (!persisted) return null;
     const trimmed = address.trimmed();
-    onConfirm({
+    return {
       street: trimmed.street,
       city: trimmed.city,
       postalCode: trimmed.postalCode,
       country: trimmed.country,
       additionalInfo: trimmed.additionalInfo,
-    });
-    onClose();
+    };
   };
+  const { submit: handleConfirm, isSubmitting, errorMessage } = useModalSubmitAction(isOpen, collect, onConfirm);
 
   return (
     <BaseModal
       isOpen={isOpen}
+      isPending={isSubmitting}
       onClose={onClose}
       title={t('delivery_address_modal_title', 'Where should we deliver?')}
       footer={
@@ -106,7 +108,7 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
             type="button"
             className={tableModalStyles.secondaryButton}
             onClick={onClose}
-            disabled={address.savingAddress || guest.isRegistering}
+            disabled={isSubmitting || address.savingAddress || guest.isRegistering}
           >
             {t('cancel', 'Cancel')}
           </button>
@@ -114,14 +116,21 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
             type="button"
             className={tableModalStyles.primaryButton}
             onClick={handleConfirm}
-            disabled={address.savingAddress || guest.isRegistering}
+            disabled={isSubmitting || address.savingAddress || guest.isRegistering}
           >
-            {address.savingAddress || guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
+            {isSubmitting || address.savingAddress || guest.isRegistering
+              ? t('saving', 'Saving…')
+              : t('confirm', 'Confirm')}
           </button>
         </>
       }
     >
       <DeliveryAddressSection address={address} />
+      {errorMessage && (
+        <p className={tableModalStyles.requiredHint} role="alert">
+          {errorMessage}
+        </p>
+      )}
       <GuestCustomerInfoFields
         value={guest.value}
         errors={guest.errors}
@@ -130,7 +139,7 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
-        disabled={address.savingAddress || guest.isRegistering}
+        disabled={isSubmitting || address.savingAddress || guest.isRegistering}
         wantsRegister={guest.wantsRegister}
         setWantsRegister={guest.setWantsRegister}
         registerValue={guest.registerValue}

@@ -92,7 +92,11 @@ jest.mock('./CartContents', () => {
 });
 
 function renderCart() {
-  const followUp = { pickType: jest.fn() } as unknown as CartSheetProps['followUp'];
+  const followUp = {
+    pickType: jest.fn(),
+    followUp: null,
+    switchFlow: { pending: null },
+  } as unknown as CartSheetProps['followUp'];
   return render(<CartSheet isOpen onClose={jest.fn()} followUp={followUp} />);
 }
 
@@ -126,4 +130,20 @@ describe('CartSheet shell', () => {
 
     expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'responsive-sheet');
   });
+});
+
+it('yields to details without clearing the basket open intent, then restores the sheet', () => {
+  const followUp = {
+    pickType: jest.fn(),
+    followUp: null,
+    switchFlow: { pending: null },
+  } as unknown as CartSheetProps['followUp'];
+  const close = jest.fn();
+  const { rerender } = render(<CartSheet isOpen onClose={close} followUp={followUp} />);
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+  rerender(<CartSheet isOpen onClose={close} followUp={{ ...followUp, followUp: 'takeaway' }} />);
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(close).not.toHaveBeenCalled();
+  rerender(<CartSheet isOpen onClose={close} followUp={followUp} />);
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
 });

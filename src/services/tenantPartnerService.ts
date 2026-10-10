@@ -1,13 +1,19 @@
 import { apiClient } from '@/utils/apiClient';
+import { TENANT_BRANDING_CONFIG } from '@/lib/config';
 import type { ApiResponse } from '@/types/order';
 import type { TenantPartnerDto } from '@/types/tenantPartner';
 
-/**
- * Public read — no auth required (SOFRA-PARTNER-PLAN §11d, S4a). Modelled on
- * `GET /api/tenant/modules`: founder/operator-controlled per-tenant data that the frontend
- * cannot read itself, because its own knobs are `NEXT_PUBLIC_*` and baked into the
- * per-tenant image at build time.
- */
+/** Public attribution has its own bounded request, independent of login/session recovery. */
 export const getTenantPartner = async () => {
-  return apiClient.get<ApiResponse<TenantPartnerDto>>('/api/tenant/partner');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TENANT_BRANDING_CONFIG.requestTimeoutMs);
+  try {
+    return await apiClient.get<ApiResponse<TenantPartnerDto>>('/api/tenant/partner', {
+      signal: controller.signal,
+      skipAuth: true,
+      skipSession: true,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import PartnerCredit from './PartnerCredit';
 import { getTenantPartner } from '@/services/tenantPartnerService';
 import { invalidateTenantPartnerCache } from '@/hooks/useTenantPartner';
@@ -108,4 +108,85 @@ describe('PartnerCredit', () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
   });
+});
+
+describe('runtime branding refresh', () => {
+  const platformUrl = new URL('https:' + '//' + ['platform', 'example', 'test'].join('.')).href;
+  const platformEmail = ['hello', ['platform', 'example', 'test'].join('.')].join('@');
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders the default platform website and contact email', async () => {
+    mockGet.mockResolvedValue({
+      success: true,
+      data: { name: 'Sofra', url: platformUrl, email: platformEmail },
+    });
+    render(<PartnerCredit />);
+    expect(await screen.findByRole('link', { name: 'Site by Sofra' })).toHaveAttribute('href', platformUrl);
+    expect(screen.getByRole('link', { name: platformEmail })).toHaveAttribute('href', `mailto:${platformEmail}`);
+  });
+
+  it('updates an already mounted footer and removes a withdrawn brand', async () => {
+    jest.useFakeTimers();
+    mockGet
+      .mockResolvedValueOnce({ data: { name: 'Original', url: null } })
+      .mockResolvedValueOnce({ data: { name: 'Updated', url: null } })
+      .mockResolvedValueOnce({ data: { name: null, url: null, email: null } });
+    const { container } = render(<PartnerCredit />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByText('Site by Original')).toBeVisible();
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+    expect(screen.getByText('Site by Updated')).toBeVisible();
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('bounds the lifetime of cached branding when the endpoint fails', async () => {
+    jest.useFakeTimers();
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockGet.mockResolvedValueOnce({ data: { name: 'Cached', url: null } }).mockRejectedValue(new Error('offline'));
+    const { container } = render(<PartnerCredit />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+    expect(screen.getByText('Site by Cached')).toBeVisible();
+    for (let index = 0; index < 5; index++) {
+      await act(async () => {
+        jest.advanceTimersByTime(60000);
+      });
+    }
+    expect(container).toBeEmptyDOMElement();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});
+
+it('expires a mounted credit even while the next transport request remains pending', async () => {
+  jest.useFakeTimers();
+  mockGet
+    .mockResolvedValueOnce({ data: { name: 'Cached', url: null } })
+    .mockImplementation(() => new Promise(() => {}));
+  const { container, unmount } = render(<PartnerCredit />);
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(screen.getByText('Site by Cached')).toBeVisible();
+  for (let index = 0; index < 6; index++) {
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+  }
+  expect(container).toBeEmptyDOMElement();
+  unmount();
+  jest.useRealTimers();
 });

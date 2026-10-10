@@ -92,3 +92,13 @@ confirmed equivalent pages are separate; see [PUBLIC-DISCOVERY.md](PUBLIC-DISCOV
 3. Add it to `HOME_AND_SEO_KEYS` in `src/locales/tenantNeutralCopy.test.ts`.
 4. If a tenant pack should override it, add it to **every** locale of that pack (the pack contract
    test requires identical key sets across all ten).
+
+## Runtime platform and partner credit
+
+Both tenant templates use `PartnerCredit` and `/api/tenant/partner` for public attribution.
+Enabled partner sites follow the partner's published name and optional website automatically.
+Unpartnered sites show the platform's configured Sofra website and company contact email.
+The email is attribution, not the restaurant's contact address. Restaurant opt-outs and
+unpublished/withdrawn partner brands render no credit. Mounted pages refresh every minute;
+normal publication takes at most two refresh intervals. An unavailable endpoint cannot block
+ordering and cached footer attribution expires after five minutes without a successful read.

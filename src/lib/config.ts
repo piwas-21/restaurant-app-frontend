@@ -1,3 +1,5 @@
+import { positiveIntegerConfig } from './configInteger';
+import { resolveTenantBrandingConfig } from './tenantBrandingConfig';
 import { resolveGuestPaymentRecoveryConfig } from './guestPaymentRecoveryConfig';
 
 /**
@@ -124,11 +126,6 @@ export const CASHIER_TENANT_DAY_REFRESH_MS =
     ? configuredCashierTenantDayRefreshMs
     : undefined;
 
-function positiveIntegerConfig(raw: string | undefined, fallback: number): number {
-  const configured = Number((raw ?? '').trim());
-  return Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
-}
-
 /** Page size used by the legacy waiter-order compatibility read. */
 export const SERVER_ORDER_PAGE_SIZE = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE, 100);
 
@@ -184,3 +181,9 @@ export function resolvePaymentCheckoutAllowedHosts(raw: string | undefined): Rea
 export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymentCheckoutAllowedHosts(
   process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
 );
+
+export const TENANT_BRANDING_CONFIG = resolveTenantBrandingConfig({
+  refreshMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_REFRESH_MS,
+  maxStaleMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_MAX_STALE_MS,
+  requestTimeoutMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_REQUEST_TIMEOUT_MS,
+});

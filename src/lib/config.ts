@@ -1,4 +1,5 @@
 import { positiveIntegerConfig } from './configInteger';
+import { resolveTenantBrandingConfig } from './tenantBrandingConfig';
 import { resolveGuestPaymentRecoveryConfig } from './guestPaymentRecoveryConfig';
 
 /**
@@ -181,4 +182,8 @@ export const PAYMENT_CHECKOUT_ALLOWED_HOSTS: ReadonlySet<string> = resolvePaymen
   process.env.NEXT_PUBLIC_PAYMENT_CHECKOUT_ALLOWED_HOSTS,
 );
 
-export { TENANT_BRANDING_CONFIG } from './tenantBrandingConfig';
+export const TENANT_BRANDING_CONFIG = resolveTenantBrandingConfig({
+  refreshMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_REFRESH_MS,
+  maxStaleMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_MAX_STALE_MS,
+  requestTimeoutMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_REQUEST_TIMEOUT_MS,
+});

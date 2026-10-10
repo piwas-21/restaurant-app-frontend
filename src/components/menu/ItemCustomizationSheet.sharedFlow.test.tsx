@@ -138,6 +138,38 @@ const requiredSauceBundle: MenuBundleItem = {
   },
 };
 
+const reviewChoicesBundle: MenuBundleItem = {
+  ...bundle,
+  basePrice: 18,
+  menuDefinition: {
+    ...bundle.menuDefinition!,
+    sections: [
+      {
+        ...burgerSection,
+        items: [
+          {
+            ...burgerSection.items[0],
+            additionalPrice: 0,
+            hideBaseProduct: false,
+            variations: [
+              { id: 'regular', name: 'Regular', priceModifier: 0, finalPrice: 18, isActive: true, displayOrder: 1 },
+              { id: 'large', name: 'Large', priceModifier: 2, finalPrice: 20, isActive: true, displayOrder: 2 },
+            ],
+            detailedIngredients: [
+              ingredient('lettuce', { name: 'Lettuce', isOptional: false, isIncludedInBasePrice: true }),
+              ingredient('cheese', { name: 'Cheese', price: 2 }),
+              ingredient('ketchup', { name: 'Ketchup', kind: 'sauce', price: 1 }),
+            ],
+            sauceMin: 0,
+            sauceMax: 1,
+            sauceIncludedFree: 1,
+          },
+        ],
+      },
+    ],
+  },
+};
+
 const harness = { controller: undefined as ReturnType<typeof useBundleCustomizationSheet> | undefined };
 
 function Harness() {
@@ -254,5 +286,32 @@ describe('bundle customization uses one shared mixed flow', () => {
         }),
       ]),
     );
+  });
+
+  it('reviews the selected component row and keeps its authoritative quote', async () => {
+    await openSheet(reviewChoicesBundle);
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_customize_item' }));
+
+    fireEvent.click(await screen.findByRole('radio', { name: /Large/ }));
+    fireEvent.click(await screen.findByRole('checkbox', { name: /cheese/i }));
+    expect(screen.getAllByText(/22[.,]00/).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_next_step' }));
+    fireEvent.click(await screen.findByRole('radio', { name: /ketchup/i }));
+    await waitFor(() => expect(screen.getByText('product_special_requests')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: 'customer_cta_review_menu' }));
+
+    await waitFor(() => expect(screen.getByText('step_review_menu')).toBeInTheDocument());
+    const reviewRows = screen.getByRole('dialog').querySelector('dl');
+    const rowFor = (label: string) =>
+      Array.from(reviewRows?.children ?? []).find((row) => row.querySelector('dt')?.textContent === label);
+    expect(rowFor('select_variation')).toHaveTextContent('Large');
+    expect(rowFor('sauces')).toHaveTextContent('Ketchup');
+    expect(rowFor('customize_ingredients')).toHaveTextContent('Lettuce');
+    expect(rowFor('customize_ingredients')).toHaveTextContent('Cheese');
+    expect(rowFor('select_variation')).not.toHaveTextContent('step_nothing_selected');
+    expect(rowFor('sauces')).not.toHaveTextContent('step_nothing_selected');
+    expect(rowFor('customize_ingredients')).not.toHaveTextContent('step_nothing_selected');
+    expect(screen.getAllByText(/22[.,]00/).length).toBeGreaterThan(0);
   });
 });

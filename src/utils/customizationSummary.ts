@@ -96,7 +96,7 @@ export function productStepSummary(
   }
 }
 
-function customizationGroupSummary(
+export function customizationGroupSummary(
   group: ProductCustomizationGroup,
   ingredients: readonly ProductIngredient[],
   selections: readonly CustomizationGroupSelection[],

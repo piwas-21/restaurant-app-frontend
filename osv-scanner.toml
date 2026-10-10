@@ -6,4 +6,4 @@
 [[IgnoredVulns]]
 id = "GHSA-vfj7-8cjw-p6xm"
 ignoreUntil = 2026-10-17
-reason = "Re-reviewed 2026-10-10: braces <=3.0.3 still has no patched release (npm latest 3.0.3). Its only dependency path is development-only babel-jest -> @jest/transform -> micromatch using trusted repository test patterns. Absent from the production dependency tree and deployed runtime resolution, verified with React/Next positive controls. Recheck https://github.com/advisories/GHSA-vfj7-8cjw-p6xm before expiry and remove when a compatible fix exists."
+reason = "Re-reviewed 2026-10-10: braces <=3.0.3 still has no patched release (npm latest 3.0.3). All dependency paths are confined to development-only Jest tooling (@jest/core or @jest/transform -> micromatch) using trusted repository test patterns. Absent from the production dependency tree and deployed runtime resolution, verified with React/Next positive controls. Recheck https://github.com/advisories/GHSA-vfj7-8cjw-p6xm before expiry and remove when a compatible fix exists."

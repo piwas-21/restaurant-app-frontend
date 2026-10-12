@@ -75,8 +75,8 @@
   opacity: 1;
 }
 
-/* Mobile navigation belongs to the shared chrome below the public tablet breakpoint. */
-@media (max-width: 768px) {
+/* Shared navigation uses its drawer through tablet widths; the desktop row starts at 1025px. */
+@media (max-width: 1024px) {
   /* Adjust cart badge position for mobile menu */
   .cartBadge {
     position: relative;

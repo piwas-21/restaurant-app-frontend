@@ -13,6 +13,7 @@ import { formatTableMoney } from '@/lib/cashierTableSession';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
+import { getErrorMessage } from '@/utils/apiClient';
 import styles from './CashierTableSession.module.css';
 import CashierTableSessionConfirmationModals from './CashierTableSessionConfirmationModals';
 import CashierTableSessionActions from './CashierTableSessionActions';
@@ -64,9 +65,9 @@ export default function CashierTableSessionPanel({
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
-  const [releaseError, setReleaseError] = useState(false);
+  const [releaseError, setReleaseError] = useState<string | null>(null);
   const changeReleaseConfirmation = (open: boolean) => {
-    setReleaseError(false);
+    setReleaseError(null);
     setShowReleaseConfirm(open);
   };
   const tableDisplay = sessionTableDisplay(session, t);
@@ -92,14 +93,13 @@ export default function CashierTableSessionPanel({
   };
 
   const confirmRelease = async () => {
-    setReleaseError(false);
+    setReleaseError(null);
     try {
       await onReleaseTable();
-      setReleaseError(false);
+      setReleaseError(null);
       setShowReleaseConfirm(false);
-    } catch (_error) {
-      // The parent hook supplies the API reason; show its message or the localized fallback in the modal.
-      setReleaseError(true);
+    } catch (reason: unknown) {
+      setReleaseError(displayCashierTableError(getErrorMessage(reason), t) ?? t('cashier.tables.release_failed'));
     }
   };
 
@@ -208,7 +208,7 @@ export default function CashierTableSessionPanel({
         isMutating={isMutating || recoveryOperationPending}
         showCloseConfirm={showCloseConfirm}
         showReleaseConfirm={showReleaseConfirm}
-        releaseError={releaseError ? (message ?? t('cashier.tables.release_failed')) : null}
+        releaseError={releaseError}
         onCloseConfirmChange={setShowCloseConfirm}
         onReleaseConfirmChange={changeReleaseConfirmation}
         onConfirmClose={() => void confirmClose()}

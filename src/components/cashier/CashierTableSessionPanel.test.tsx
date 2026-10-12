@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { ApiError } from '@/utils/apiClient';
 import type { TableServiceSessionDto } from '@/types/order';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
 import type { ComponentProps } from 'react';
@@ -341,4 +342,16 @@ it('shows a failed release inside the confirmation and clears it after a success
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   expect(screen.queryByText('cashier.tables.release_failed')).not.toBeInTheDocument();
   expect(release).toHaveBeenCalledTimes(2);
+});
+
+it('shows a presentable API refusal inside the open release confirmation', async () => {
+  const release = jest.fn().mockRejectedValueOnce(new ApiError(409, 'Resolve the previous visit first.'));
+  renderPanel({ ...session, hasUnassignedActiveOrders: false, canReleaseTable: true }, { onReleaseTable: release });
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent(
+      'Resolve the previous visit first.',
+    ),
+  );
 });

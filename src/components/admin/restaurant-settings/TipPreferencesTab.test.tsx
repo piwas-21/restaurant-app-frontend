@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TipPreferencesTab from './TipPreferencesTab';
+import { ApiError } from '@/utils/apiClient';
 import { updateTipPreferences } from '@/services/tipPreferencesService';
 
 const mockRefetch = jest.fn(async () => undefined);
@@ -69,4 +70,22 @@ it('requires the configured restaurant currency before saving or previewing fixe
   expect(screen.getByRole('alert')).toHaveTextContent('tip_preferences.currency_required');
   expect(screen.getByRole('button', { name: 'save' })).toBeDisabled();
   expect(screen.getByLabelText('tip_preferences.preview')).not.toHaveTextContent('€');
+});
+
+it('shows a presentable server rejection and keeps the entered presets for correction', async () => {
+  jest.mocked(updateTipPreferences).mockRejectedValueOnce(new ApiError(400, 'Select the restaurant current currency.'));
+  render(<TipPreferencesTab />);
+  fireEvent.click(screen.getByRole('radio', { name: 'tip_preferences.fixed' }));
+  fireEvent.click(screen.getByRole('button', { name: 'save' }));
+  expect(await screen.findByText('Select the restaurant current currency.')).toBeInTheDocument();
+  expect(screen.getAllByRole('textbox')[0]).toHaveValue('1');
+  expect(screen.getByRole('button', { name: 'save' })).toBeEnabled();
+});
+
+it('keeps raw transport details out of the visible save failure', async () => {
+  jest.mocked(updateTipPreferences).mockRejectedValueOnce(new Error('private request detail'));
+  render(<TipPreferencesTab />);
+  fireEvent.click(screen.getByRole('button', { name: 'save' }));
+  expect(await screen.findByText('tip_preferences.save_failed')).toBeInTheDocument();
+  expect(screen.queryByText('private request detail')).not.toBeInTheDocument();
 });

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { updateTipPreferences } from '@/services/tipPreferencesService';
+import { getErrorMessage } from '@/utils/apiClient';
 import {
   MAX_TIP_PRESETS,
   parseTipPreferenceValues,
@@ -80,9 +81,8 @@ export function useTipPreferencesEditor() {
       if (!response.success || !response.data) throw new Error('tip preferences refused');
       await reader.refetch();
       setMessage(t('tip_preferences.saved'));
-    } catch (_error: unknown) {
-      // Show a localized failure; raw transport errors can contain request details.
-      setMessage(t('tip_preferences.save_failed'));
+    } catch (reason: unknown) {
+      setMessage(getErrorMessage(reason) ?? t('tip_preferences.save_failed'));
     }
   });
   return {

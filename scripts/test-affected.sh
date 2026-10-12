@@ -27,6 +27,7 @@
 # Usage:
 #   scripts/test-affected.sh              # diff vs origin/develop
 #   scripts/test-affected.sh origin/main  # diff vs alternate upstream
+#   JEST_MAX_WORKERS=2 git push            # limit concurrency on a busy shared machine
 #
 # Behavior:
 #   - Determine changed .ts/.tsx/.js/.jsx files under src/ between $UPSTREAM and HEAD.
@@ -35,7 +36,9 @@
 #   - --passWithNoTests so changed source files without a colocated test do not
 #     fail the gate (they're already caught by lint/typecheck/file-length).
 #   - --bail so the dev sees the first failure fast.
-#   - --maxWorkers=50% so the gate survives a shared machine. Jest defaults to
+#   - --maxWorkers defaults to 50%; JEST_MAX_WORKERS can cap concurrency further.
+#     This changes worker count only: the selected tests, assertions and timeouts remain intact.
+#     50% helps the gate survive a shared machine. Jest defaults to
 #     one worker per core, which is right for an idle laptop and wrong here:
 #     several agents share this checkout, and under a load average of 37 (11
 #     jest processes from a sibling's full-suite run) three different tests
@@ -101,4 +104,4 @@ fi
 
 # Use xargs to safely pass many filenames to jest without blowing the shell
 # arg limit. NUL-delim via -0 keeps spaces/newlines in filenames intact.
-xargs -0 "${JEST_CMD[@]}" --findRelatedTests --passWithNoTests --bail --maxWorkers=50% < "$CHANGED_FILE"
+xargs -0 "${JEST_CMD[@]}" --findRelatedTests --passWithNoTests --bail --maxWorkers="${JEST_MAX_WORKERS:-50%}" < "$CHANGED_FILE"

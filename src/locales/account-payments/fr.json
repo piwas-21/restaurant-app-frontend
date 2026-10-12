@@ -31,7 +31,6 @@
     "unit_range": "Unités {{first}}–{{last}}",
     "scope_unavailable": "Les articles sources figés de cette contribution sont indisponibles ou ne correspondent pas à son détail. L'encaissement est désactivé ; actualisez le compte ou vérifiez le résultat de l'opération.",
     "expired": "Cet examen ou cette réservation a expiré. Vérifiez son résultat et ne la libérez que si aucun paiement n'a été encaissé.",
-    "reserve": "Confirmer la contribution examinée",
     "record_cash_received": "Enregistrer les espèces reçues",
     "record_terminal_payment": "Enregistrer le paiement par terminal",
     "no_money_collected": "Je confirme qu'aucun paiement n'a été encaissé pour cette contribution.",

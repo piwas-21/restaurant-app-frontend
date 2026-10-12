@@ -31,7 +31,6 @@
     "unit_range": "Eenheden {{first}}–{{last}}",
     "scope_unavailable": "De vastgelegde bronitems voor deze bijdrage zijn niet beschikbaar of komen niet overeen met de verdeling. Innen is uitgeschakeld; vernieuw de rekening of controleer het resultaat.",
     "expired": "Deze beoordeling of reservering is verlopen. Controleer het resultaat en geef alleen vrij als er geen geld is aangenomen.",
-    "reserve": "Beoordeelde bijdrage bevestigen",
     "record_cash_received": "Ontvangen contant geld registreren",
     "record_terminal_payment": "Terminalbetaling registreren",
     "no_money_collected": "Ik bevestig dat voor deze bijdrage geen geld is aangenomen.",

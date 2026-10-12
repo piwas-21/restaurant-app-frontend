@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTableBillActions';
 import ServerTableBillWorkspace from './ServerTableBillWorkspace';
@@ -78,6 +78,7 @@ const session: TableServiceSessionDto = {
 
 const requestHandoff = jest.fn(async () => undefined);
 const cancelHandoff = jest.fn(async () => undefined);
+const releaseTable = jest.fn(async () => undefined);
 const closeSession = jest.fn(async () => undefined);
 const refresh = jest.fn(async () => undefined);
 
@@ -91,6 +92,7 @@ function mockState(current: TableServiceSessionDto) {
     requestHandoff,
     cancelHandoff,
     closeSession,
+    releaseTable,
     reconcilePendingOperation: jest.fn(async () => undefined),
     refresh,
   });
@@ -108,8 +110,7 @@ describe('ServerTableBillWorkspace', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'server.bill.send_to_cashier' }));
     expect(requestHandoff).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('button', { name: 'server.bill.close_visit' })).toBeDisabled();
-    expect(screen.getByText('server.bill.close_blocked_balance')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'server.bill.close_visit' })).not.toBeInTheDocument();
   });
 
   it('shows pending handoff truth and exposes an explicit cancellation remedy', () => {
@@ -136,7 +137,6 @@ describe('ServerTableBillWorkspace', () => {
     expect(screen.getByText(/server.bill.handoff_pending/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'server.bill.cancel_handoff' }));
     expect(cancelHandoff).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('server.bill.close_blocked_handoff')).toBeInTheDocument();
   });
 
   it('routes opted-in Server collection to the shared visit page without expanding an inline form', () => {
@@ -213,4 +213,44 @@ describe('ServerTableBillWorkspace', () => {
     expect(printBill).toHaveClass('printBill');
     expect(within(printBill).getByRole('heading', { name: 'cashier.tables.bill' })).toBeInTheDocument();
   });
+});
+
+it('frees an unpaid table without forcing financial or kitchen closure', async () => {
+  const releasable = { ...session, canReleaseTable: true };
+  mockState(releasable);
+  render(<ServerTableBillWorkspace session={releasable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  expect(screen.getByRole('dialog')).toHaveTextContent('staff_table_reuse.confirm');
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(releaseTable).toHaveBeenCalledTimes(1);
+  expect(closeSession).not.toHaveBeenCalled();
+});
+
+it('keeps a release failure visible inside the confirmation without closing the visit', async () => {
+  const releasable = { ...session, canReleaseTable: true };
+  releaseTable.mockRejectedValueOnce(new Error('release failed'));
+  mockState(releasable);
+  render(<ServerTableBillWorkspace session={releasable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('cashier.tables.release_failed'),
+  );
+  expect(closeSession).not.toHaveBeenCalled();
+});
+
+it('clears a previous release error when retrying successfully in the same confirmation', async () => {
+  const releasable = { ...session, canReleaseTable: true };
+  releaseTable.mockRejectedValueOnce(new Error('release failed')).mockResolvedValueOnce(undefined);
+  mockState(releasable);
+  render(<ServerTableBillWorkspace session={releasable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('cashier.tables.release_failed'),
+  );
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.queryByText('cashier.tables.release_failed')).not.toBeInTheDocument();
 });

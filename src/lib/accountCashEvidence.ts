@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { accountContributionInput } from './accountPaymentMoney';
 import type { AccountCashReceipt, AccountCashSettlement } from '@/types/accountCashSettlement';
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 
@@ -120,4 +121,10 @@ export function canCollectReviewedCash(operation: AccountPaymentOperation, recei
     receivedMinor !== undefined &&
     receivedMinor >= evidence.settlement.dueAmountMinor
   );
+}
+
+/** Exact physical cash is the editable default; acknowledgement still happens only on Record cash received. */
+export function initialAccountCashReceived(operation: AccountPaymentOperation): string {
+  const evidence = operation.paymentMethod === 'Cash' ? readAccountCashEvidence(operation) : null;
+  return evidence?.status === 'valid' ? (accountContributionInput(evidence.settlement.dueAmountMinor) ?? '') : '';
 }

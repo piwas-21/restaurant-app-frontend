@@ -31,7 +31,6 @@
     "unit_range": "数量 {{first}}–{{last}}",
     "scope_unavailable": "此笔分摊款保存的原始商品不可用或与分配金额不匹配。收款已停用；请刷新账户或检查操作结果。",
     "expired": "此审核或预留已过期。请检查结果；只有确认未收款时才释放。",
-    "reserve": "确认已审核的分摊款",
     "record_cash_received": "记录收到的现金",
     "record_terminal_payment": "记录终端付款",
     "no_money_collected": "我确认此分摊款尚未收取任何款项。",

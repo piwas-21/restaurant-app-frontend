@@ -92,6 +92,7 @@ export interface CloseTableServiceSessionRequest {
 
 export interface ReleaseTableServiceSessionRequest {
   expectedVersion: number;
+  markReady?: boolean;
 }
 
 export interface ClearPendingTableOrdersRequest {

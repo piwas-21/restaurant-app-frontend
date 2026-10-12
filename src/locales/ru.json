@@ -2739,7 +2739,6 @@
   "cashier.tables.close_confirm_message": "Закрыть сервисный визит стола {{table}}? Сервер проверит, что все раунды оплачены и завершены.",
   "cashier.tables.close_confirm_title": "Закрыть визит стола",
   "cashier.tables.close_failed": "Не удалось закрыть визит. Проверьте текущий счёт.",
-  "cashier.tables.close_not_ready": "Визит можно закрыть только после завершения всех раундов и обнуления баланса.",
   "cashier.tables.close_unknown": "Результат закрытия неизвестен. Не начинайте новый визит, пока не проверите эту операцию.",
   "cashier.tables.closed_table": "Этот стол закрыт. Откройте его в настройках перед началом визита.",
   "cashier.tables.invalid_table": "Введите корректный номер стола.",
@@ -3011,10 +3010,6 @@
   "server.tasks.session_mismatch": "Эта задача относится к другому визиту за столом. Обновите список перед продолжением.",
   "server.bill.title": "Счёт и визит",
   "server.bill.operation_failed": "Не удалось выполнить действие со счётом. Обновите данные и повторите попытку.",
-  "server.bill.close_blocked_handoff": "Завершите или отмените запрос кассиру перед закрытием визита.",
-  "server.bill.close_blocked_legacy": "Менеджер должен разобрать непривязанные заказы до закрытия.",
-  "server.bill.close_blocked_balance": "Примите оплату или отправьте остаток кассиру до закрытия.",
-  "server.bill.close_blocked_rounds": "Все раунды должны быть завершены или отменены до закрытия.",
   "server.bill.close_blocked_kitchen_work": "Подтвердите работу кухни перед закрытием этого визита.",
   "server.bill.close_blocked_kitchen_correction": "Подтвердите исправление кухни перед закрытием этого визита.",
   "server.bill.handoff_pending": "Кассиру отправлен запрос на {{amount}}.",
@@ -4094,7 +4089,6 @@
   "cashier.tables.released_status": "Стол освобождён · визит ожидает оплаты",
   "cashier.tables.release_table": "Освободить стол",
   "cashier.tables.release_confirm_title": "Освободить этот стол?",
-  "cashier.tables.release_confirm_message": "Освободите {{table}} для новой компании. Заказы и остаток прежнего визита сохраняются в нём.",
   "cashier.tables.release_confirm_preserves": "Заказы и платежи сохраняются. Ожидающие операции не отправляются на кухню или принтеры. Откройте визит в разделе «Освобождённые столы», чтобы принять оплату.",
   "cashier.tables.release_failed": "Не удалось освободить стол. Обновите визит и повторите попытку.",
   "cashier.tables.payment_flow": "Способ оплаты",
@@ -4187,5 +4181,25 @@
   "customer_preview_step_count": "Шаг {{current}} из {{total}}",
   "customer_preview_read_only": "Только предпросмотр",
   "customer_preview_bundle_caption": "Предпросмотр заказа меню",
-  "customer_preview_item_caption": "Предпросмотр заказа блюда"
+  "customer_preview_item_caption": "Предпросмотр заказа блюда",
+  "tip_preferences": {
+    "title": "Чаевые",
+    "description": "Выберите кнопки чаевых для гостей и персонала.",
+    "display": "Показывать чаевые как",
+    "percentage": "Проценты",
+    "fixed": "Фиксированные суммы",
+    "amount": "Сумма",
+    "values_hint": "Оставьте неиспользуемые поля пустыми. До шести разных положительных значений. Без чаевых и Своя сумма доступны всегда.",
+    "preview": "Предпросмотр",
+    "load_failed": "Не удалось загрузить варианты чаевых. Повторите попытку, выберите без чаевых или введите сумму.",
+    "saved": "Настройки чаевых сохранены.",
+    "save_failed": "Не удалось сохранить. Повторите попытку.",
+    "currency_required": "Сначала укажите валюту в общих настройках."
+  },
+  "staff_table_reuse": {
+    "refresh_failed": "Стол освобождён. Не удалось обновить план зала. Нажмите «Обновить».",
+    "confirm": "Гости ушли, стол {{table}} убран и готов для следующих гостей.",
+    "balance": "Остаток по предыдущему визиту: {{amount}}.",
+    "guests_left": "Гости ушли"
+  }
 }

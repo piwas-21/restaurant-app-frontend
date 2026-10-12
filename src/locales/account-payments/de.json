@@ -31,7 +31,6 @@
     "unit_range": "Einheiten {{first}}–{{last}}",
     "scope_unavailable": "Die eingefrorenen Quellartikel für diesen Beitrag sind nicht verfügbar oder stimmen nicht mit der Belastung überein. Die Zahlung ist gesperrt; aktualisieren Sie das Konto oder prüfen Sie das Ergebnis.",
     "expired": "Diese Prüfung oder Reservierung ist abgelaufen. Prüfen Sie das Ergebnis und geben Sie sie nur frei, wenn kein Geld angenommen wurde.",
-    "reserve": "Geprüften Beitrag bestätigen",
     "record_cash_received": "Erhaltenes Bargeld verbuchen",
     "record_terminal_payment": "Kartenzahlung am Terminal verbuchen",
     "no_money_collected": "Ich bestätige, dass für diesen Beitrag kein Geld angenommen wurde.",

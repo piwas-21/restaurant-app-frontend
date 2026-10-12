@@ -2745,7 +2745,6 @@
   "cashier.tables.close_confirm_message": "هل تريد إغلاق زيارة الخدمة للطاولة {{table}}؟ سيتحقق الخادم من تسوية جميع الجولات وحلها.",
   "cashier.tables.close_confirm_title": "إغلاق زيارة الطاولة",
   "cashier.tables.close_failed": "تعذر إغلاق زيارة الطاولة. راجع الفاتورة الحالية.",
-  "cashier.tables.close_not_ready": "لا يمكن إغلاق الزيارة إلا بعد حل جميع الجولات ووصول الرصيد إلى صفر.",
   "cashier.tables.close_unknown": "نتيجة الإغلاق غير معروفة. لا تبدأ زيارة جديدة قبل التحقق من هذه العملية.",
   "cashier.tables.closed_table": "هذه الطاولة مغلقة. أعد فتحها من إعدادات الطاولات قبل بدء زيارة.",
   "cashier.tables.invalid_table": "أدخل رقم طاولة صالحاً.",
@@ -3029,10 +3028,6 @@
   "server.tasks.session_mismatch": "تنتمي هذه المهمة إلى زيارة طاولة مختلفة. حدّث قائمة المهام قبل المتابعة.",
   "server.bill.title": "الفاتورة والزيارة",
   "server.bill.operation_failed": "تعذر إكمال إجراء الفاتورة. حدّث الصفحة وحاول مجددًا.",
-  "server.bill.close_blocked_handoff": "أكمل طلب الصندوق أو ألغِه قبل إغلاق هذه الزيارة.",
-  "server.bill.close_blocked_legacy": "يجب على المدير معالجة الطلبات غير المرتبطة قبل الإغلاق.",
-  "server.bill.close_blocked_balance": "حصّل الرصيد المتبقي أو أرسله إلى الصندوق قبل الإغلاق.",
-  "server.bill.close_blocked_rounds": "يجب إكمال جميع الجولات أو إلغاؤها قبل الإغلاق.",
   "server.bill.close_blocked_kitchen_work": "أكّد عمل المطبخ قبل إغلاق هذه الزيارة.",
   "server.bill.close_blocked_kitchen_correction": "أكّد تصحيح المطبخ قبل إغلاق هذه الزيارة.",
   "server.bill.handoff_pending": "طُلب التحصيل من الصندوق بمبلغ {{amount}}.",
@@ -4120,7 +4115,6 @@
   "cashier.tables.released_status": "أُخليت الطاولة · الزيارة قابلة للتحصيل",
   "cashier.tables.release_table": "إخلاء الطاولة",
   "cashier.tables.release_confirm_title": "هل تريد إخلاء هذه الطاولة؟",
-  "cashier.tables.release_confirm_message": "أخلِ {{table}} لاستقبال مجموعة جديدة. تبقى الطلبات والرصيد الحاليان مرتبطين بهذه الزيارة.",
   "cashier.tables.release_confirm_preserves": "تُحفظ الطلبات والمدفوعات. لن تُرسل الأعمال المعلقة إلى المطبخ أو الطابعات. افتح الزيارة من قائمة الزيارات التي أُخليت طاولاتها لتحصيل المبلغ.",
   "cashier.tables.release_failed": "تعذر إخلاء الطاولة. حدّث الزيارة قبل المحاولة مرة أخرى.",
   "cashier.tables.payment_flow": "طريقة الدفع",
@@ -4213,5 +4207,25 @@
   "customer_preview_step_count": "الخطوة {{current}} من {{total}}",
   "customer_preview_read_only": "معاينة فقط",
   "customer_preview_bundle_caption": "معاينة طلب القائمة",
-  "customer_preview_item_caption": "معاينة طلب الصنف"
+  "customer_preview_item_caption": "معاينة طلب الصنف",
+  "tip_preferences": {
+    "title": "الإكراميات",
+    "description": "اختر أزرار الإكرامية السريعة للضيوف والموظفين.",
+    "display": "عرض الإكراميات على شكل",
+    "percentage": "نسب مئوية",
+    "fixed": "مبالغ ثابتة",
+    "amount": "المبلغ",
+    "values_hint": "اترك الحقول غير المستخدمة فارغة. حتى ست قيم موجبة مختلفة. بدون إكرامية ومبلغ مخصص متاحان دائماً.",
+    "preview": "معاينة",
+    "load_failed": "تعذر تحميل خيارات الإكرامية. أعد المحاولة أو اختر بدون إكرامية أو أدخل مبلغًا.",
+    "saved": "تم حفظ إعدادات الإكرامية.",
+    "save_failed": "تعذر الحفظ. حاول مرة أخرى.",
+    "currency_required": "حدد عملة المطعم في الإعدادات العامة أولاً."
+  },
+  "staff_table_reuse": {
+    "refresh_failed": "تم إخلاء الطاولة. تعذر تحديث مخطط القاعة. اختر تحديث لتحديثه.",
+    "confirm": "غادر الضيوف والطاولة {{table}} نظيفة وجاهزة للضيوف القادمين.",
+    "balance": "المتبقي من الزيارة السابقة: {{amount}}.",
+    "guests_left": "غادر الضيوف"
+  }
 }

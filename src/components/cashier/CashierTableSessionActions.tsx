@@ -55,14 +55,11 @@ export default function CashierTableSessionActions({
             {t('cashier.tables.release_table')}
           </StaffButton>
         )}
-        <StaffButton
-          variant="danger"
-          onClick={onShowCloseConfirm}
-          disabled={writesLocked || !closeAllowed}
-          aria-describedby={!closeAllowed ? 'cashier-table-close-hint' : undefined}
-        >
-          {t('cashier.tables.close')}
-        </StaffButton>
+        {closeAllowed && (
+          <StaffButton variant="secondary" onClick={onShowCloseConfirm} disabled={writesLocked}>
+            {t('cashier.tables.close')}
+          </StaffButton>
+        )}
         <StaffButton onClick={() => window.print()} disabled={writesLocked}>
           <Printer size={17} aria-hidden="true" />
           {t('cashier.tables.print_bill')}
@@ -73,11 +70,6 @@ export default function CashierTableSessionActions({
           </Link>
         ) : (
           <StaffButton disabled>{t('cashier.tables.add_round')}</StaffButton>
-        )}
-        {!closeAllowed && session.status === 'Open' && (
-          <span id="cashier-table-close-hint" className={styles.muted}>
-            {t('cashier.tables.close_not_ready')}
-          </span>
         )}
       </div>
       {legacyConflict && <p className={styles.muted}>{t('cashier.tables.add_round_unavailable')}</p>}

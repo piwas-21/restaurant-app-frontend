@@ -2733,7 +2733,6 @@
   "cashier.tables.close_confirm_message": "{{table}} numaralı masanın servis ziyareti kapatılsın mı? Sunucu tüm turların ödenip tamamlandığını doğrulayacak.",
   "cashier.tables.close_confirm_title": "Masa ziyaretini kapat",
   "cashier.tables.close_failed": "Masa ziyareti kapatılamadı. Güncel hesabı kontrol edin.",
-  "cashier.tables.close_not_ready": "Ziyaret yalnızca tüm turlar tamamlanıp bakiye sıfır olduğunda kapatılabilir.",
   "cashier.tables.close_unknown": "Kapatma sonucu bilinmiyor. Bu işlemi kontrol etmeden yeni ziyaret başlatmayın.",
   "cashier.tables.closed_table": "Bu masa kapalı. Ziyaret başlatmadan önce masa ayarlarından açın.",
   "cashier.tables.invalid_table": "Geçerli bir masa numarası girin.",
@@ -2993,10 +2992,6 @@
   "server.tasks.session_mismatch": "Bu görev farklı bir masa ziyaretine ait. Devam etmeden önce görev listesini yenileyin.",
   "server.bill.title": "Hesap ve ziyaret",
   "server.bill.operation_failed": "Hesap işlemi tamamlanamadı. Yenileyip tekrar deneyin.",
-  "server.bill.close_blocked_handoff": "Bu ziyareti kapatmadan önce kasa talebini tamamlayın veya iptal edin.",
-  "server.bill.close_blocked_legacy": "Atanmamış masa siparişlerini kapatmadan önce bir yönetici çözmelidir.",
-  "server.bill.close_blocked_balance": "Kapatmadan önce kalan tutarı tahsil edin veya kasaya gönderin.",
-  "server.bill.close_blocked_rounds": "Kapatmadan önce tüm turlar tamamlanmalı veya iptal edilmelidir.",
   "server.bill.close_blocked_kitchen_work": "Bu ziyareti kapatmadan önce mutfak işini onaylayın.",
   "server.bill.close_blocked_kitchen_correction": "Bu ziyareti kapatmadan önce mutfak düzeltmesini onaylayın.",
   "server.bill.handoff_pending": "{{amount}} için kasa tahsilat talebi gönderildi.",
@@ -4068,7 +4063,6 @@
   "cashier.tables.released_status": "Masa boşaltıldı · ziyaret ödemeye açık",
   "cashier.tables.release_table": "Masayı boşalt",
   "cashier.tables.release_confirm_title": "Bu masa boşaltılsın mı?",
-  "cashier.tables.release_confirm_message": "{{table}} masasını yeni misafirler için boşaltın. Mevcut siparişler ve bakiye bu ziyarete bağlı kalır.",
   "cashier.tables.release_confirm_preserves": "Siparişler ve ödemeler korunur. Bekleyen işler mutfağa veya yazıcılara gönderilmez. Ödeme almak için Boşaltılan Masalar bölümünden bu ziyareti açın.",
   "cashier.tables.release_failed": "Masa boşaltılamadı. Yeniden denemeden önce ziyareti yenileyin.",
   "cashier.tables.payment_flow": "Ödeme şekli",
@@ -4161,5 +4155,25 @@
   "customer_preview_step_count": "{{total}} adımın {{current}}. adımı",
   "customer_preview_read_only": "Yalnızca önizleme",
   "customer_preview_bundle_caption": "Menü sipariş önizlemesi",
-  "customer_preview_item_caption": "Ürün sipariş önizlemesi"
+  "customer_preview_item_caption": "Ürün sipariş önizlemesi",
+  "tip_preferences": {
+    "title": "Bahşişler",
+    "description": "Misafirler ve personel için hızlı bahşiş düğmelerini seçin.",
+    "display": "Bahşiş gösterimi",
+    "percentage": "Yüzdeler",
+    "fixed": "Sabit tutarlar",
+    "amount": "Tutar",
+    "values_hint": "Kullanılmayan alanları boş bırakın. En fazla altı farklı pozitif değer. Bahşiş yok ve Özel tutar her zaman kullanılabilir.",
+    "preview": "Önizleme",
+    "load_failed": "Bahşiş seçenekleri yüklenemedi. Yeniden deneyin, bahşiş yok seçin veya bir tutar girin.",
+    "saved": "Bahşiş ayarları kaydedildi.",
+    "save_failed": "Kaydedilemedi. Tekrar deneyin.",
+    "currency_required": "Önce Genel ayarlarda restoranın para birimini belirleyin."
+  },
+  "staff_table_reuse": {
+    "refresh_failed": "Masa boşaltıldı. Salon görünümü yenilenemedi. Güncellemek için Yenile’yi seçin.",
+    "confirm": "Misafirler ayrıldı; {{table}} masası temiz ve yeni misafirlere hazır.",
+    "balance": "Önceki ziyaretin kalan tutarı: {{amount}}.",
+    "guests_left": "Misafirler ayrıldı"
+  }
 }

@@ -114,10 +114,12 @@ function renderReview(
   );
 }
 
-it('requires sufficient exact cash before the explicit received-cash action is enabled', () => {
+it('starts at exact cash and blocks an insufficient edited amount before explicit recording', () => {
   renderReview();
   const collect = screen.getByRole('button', { name: 'accountPayments.record_cash_received' });
-  expect(collect).toBeDisabled();
+  expect(collect).toBeEnabled();
+  expect(screen.getByLabelText('cashier.cash_received')).toHaveValue('0.29');
+  expect(handlers.onCollect).not.toHaveBeenCalled();
   fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '0.28' } });
   expect(collect).toBeDisabled();
   fireEvent.change(screen.getByLabelText('cashier.cash_received'), { target: { value: '1,00' } });
@@ -281,7 +283,7 @@ it('fails closed on missing frozen line snapshots instead of claiming generic re
       {...handlers}
     />,
   );
-  expect(screen.getByRole('button', { name: 'accountPayments.reserve' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'continue' })).toBeDisabled();
 });
 
 it('fails closed when the frozen source line cannot cover the quoted ordinal range', () => {

@@ -31,7 +31,6 @@
     "unit_range": "Unità {{first}}–{{last}}",
     "scope_unavailable": "Gli articoli di origine salvati per questo contributo non sono disponibili o non corrispondono all'addebito. L'incasso è disattivato; aggiorna il conto o controlla l'esito dell'operazione.",
     "expired": "Questa verifica o prenotazione è scaduta. Controllane l'esito e rilasciala solo se non è stato incassato denaro.",
-    "reserve": "Conferma il contributo esaminato",
     "record_cash_received": "Registra i contanti ricevuti",
     "record_terminal_payment": "Registra il pagamento al terminale",
     "no_money_collected": "Confermo che non è stato incassato denaro per questo contributo.",

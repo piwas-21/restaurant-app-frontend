@@ -2736,7 +2736,6 @@
   "cashier.tables.close_confirm_message": "¿Cerrar la visita de servicio de la mesa {{table}}? El servidor comprobará que todas las rondas estén saldadas y resueltas.",
   "cashier.tables.close_confirm_title": "Cerrar visita de mesa",
   "cashier.tables.close_failed": "No se pudo cerrar la visita. Revisa la cuenta actual.",
-  "cashier.tables.close_not_ready": "La visita solo se puede cerrar cuando todas las rondas estén resueltas y el saldo sea cero.",
   "cashier.tables.close_unknown": "El resultado del cierre es desconocido. No inicies otra visita hasta comprobar esta operación.",
   "cashier.tables.closed_table": "Esta mesa está cerrada. Ábrela en los ajustes antes de iniciar una visita.",
   "cashier.tables.invalid_table": "Introduce un número de mesa válido.",
@@ -3002,10 +3001,6 @@
   "server.tasks.session_mismatch": "Esta tarea pertenece a otra visita de mesa. Actualiza la lista antes de continuar.",
   "server.bill.title": "Cuenta y visita",
   "server.bill.operation_failed": "No se pudo completar la acción de la cuenta. Actualiza e inténtalo de nuevo.",
-  "server.bill.close_blocked_handoff": "Resuelve o cancela la solicitud a caja antes de cerrar esta visita.",
-  "server.bill.close_blocked_legacy": "Un responsable debe resolver los pedidos sin asignar antes del cierre.",
-  "server.bill.close_blocked_balance": "Cobra o envía el saldo restante a caja antes de cerrar.",
-  "server.bill.close_blocked_rounds": "Todas las rondas deben completarse o cancelarse antes de cerrar.",
   "server.bill.close_blocked_kitchen_work": "Confirma el trabajo de cocina antes de cerrar esta visita.",
   "server.bill.close_blocked_kitchen_correction": "Confirma la corrección de cocina antes de cerrar esta visita.",
   "server.bill.handoff_pending": "Cobro solicitado a caja por {{amount}}.",
@@ -4081,7 +4076,6 @@
   "cashier.tables.released_status": "Mesa liberada · visita pendiente de cobro",
   "cashier.tables.release_table": "Liberar mesa",
   "cashier.tables.release_confirm_title": "¿Liberar esta mesa?",
-  "cashier.tables.release_confirm_message": "Libera {{table}} para un nuevo grupo. Los pedidos y el saldo actuales seguirán vinculados a esta visita.",
   "cashier.tables.release_confirm_preserves": "Se conservan los pedidos y pagos. El trabajo pendiente no se envía a cocina ni a las impresoras. Vuelve a Visitas liberadas para cobrar.",
   "cashier.tables.release_failed": "No se pudo liberar la mesa. Actualiza la visita antes de volver a intentarlo.",
   "cashier.tables.payment_flow": "Forma de pago",
@@ -4174,5 +4168,25 @@
   "customer_preview_step_count": "Paso {{current}} de {{total}}",
   "customer_preview_read_only": "Solo vista previa",
   "customer_preview_bundle_caption": "Vista previa del pedido del menú",
-  "customer_preview_item_caption": "Vista previa del pedido del artículo"
+  "customer_preview_item_caption": "Vista previa del pedido del artículo",
+  "tip_preferences": {
+    "title": "Propinas",
+    "description": "Elige los botones de propina para clientes y personal.",
+    "display": "Mostrar propinas como",
+    "percentage": "Porcentajes",
+    "fixed": "Importes fijos",
+    "amount": "Importe",
+    "values_hint": "Deja vacíos los campos no utilizados. Hasta seis valores positivos distintos. Sin propina e Importe personalizado siempre disponibles.",
+    "preview": "Vista previa",
+    "load_failed": "No se pudieron cargar las opciones de propina. Reintenta, elige sin propina o introduce un importe.",
+    "saved": "Configuración de propinas guardada.",
+    "save_failed": "No se pudo guardar. Inténtalo de nuevo.",
+    "currency_required": "Configura primero la moneda en los ajustes generales."
+  },
+  "staff_table_reuse": {
+    "refresh_failed": "Mesa liberada. No se pudo actualizar el plano. Pulsa Actualizar para ponerlo al día.",
+    "confirm": "Los clientes se han ido y la mesa {{table}} está limpia y lista para los siguientes.",
+    "balance": "Saldo de la visita anterior: {{amount}}.",
+    "guests_left": "Los clientes se han ido"
+  }
 }

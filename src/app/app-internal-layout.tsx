@@ -161,6 +161,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
             >
               <Link
                 href={homeHref}
+                className={navStyles.brandLink}
                 style={{ textDecoration: 'none', color: 'var(--primary-color)', display: 'flex', alignItems: 'center' }}
                 onClick={closeMobileMenu}
               >

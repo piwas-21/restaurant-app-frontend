@@ -8,6 +8,7 @@
  * is what these types reflect).
  */
 
+import type { TipPreferences } from '@/types/tipPreferences';
 import type { ApiResponse } from '@/types/order';
 import type { BundlePresentationMode } from '@/types/menu/offerFamily';
 
@@ -77,6 +78,7 @@ export interface RestaurantInfoDto {
   showMenuBundlesOnAllTab?: boolean;
   /** New presentation path; absent preserves the legacy menu surface. */
   bundlePresentationMode?: BundlePresentationMode | null;
+  tipPreferences?: TipPreferences | null;
 }
 
 /** Which stored logo an upload or delete addresses. Mirrors the backend `LogoVariant`. */

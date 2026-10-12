@@ -12,6 +12,7 @@ import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSe
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
 import LogoTab from '@/components/admin/restaurant-settings/LogoTab';
 import LandingTab from '@/components/admin/restaurant-settings/LandingTab';
+import TipPreferencesTab from '@/components/admin/restaurant-settings/TipPreferencesTab';
 import PaymentsTab from '@/components/admin/restaurant-settings/PaymentsTab';
 import { useModules } from '@/contexts/ModulesContext';
 import { isTabAvailable, isTabId, type TabType } from '@/app/admin/restaurant-settings/tabs';
@@ -40,6 +41,7 @@ function RestaurantSettingsContent() {
     { id: 'appearance' as TabType, label: t('appearance_settings', 'Appearance'), icon: '🎨' },
     { id: 'logo' as TabType, label: t('logo_settings', 'Logo'), icon: '🖼️' },
     { id: 'landing' as TabType, label: t('landing_settings', 'Landing Page'), icon: '🏞️' },
+    { id: 'tips' as TabType, label: t('tip_preferences.title'), icon: '💰' },
     { id: 'payments' as TabType, label: t('payments_settings', 'Card Payments'), icon: '💳' },
   ].filter((tab) => available(tab.id));
 
@@ -80,6 +82,7 @@ function RestaurantSettingsContent() {
         {activeTab === 'appearance' && <AppearanceTab />}
         {activeTab === 'logo' && <LogoTab />}
         {activeTab === 'landing' && <LandingTab />}
+        {activeTab === 'tips' && <TipPreferencesTab />}
         {activeTab === 'payments' && <PaymentsTab />}
       </div>
     </div>

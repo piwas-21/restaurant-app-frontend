@@ -2736,7 +2736,6 @@
   "cashier.tables.close_confirm_message": "Chiudere la visita del tavolo {{table}}? Il server verificherà che tutti i turni siano saldati e risolti.",
   "cashier.tables.close_confirm_title": "Chiudi visita del tavolo",
   "cashier.tables.close_failed": "Impossibile chiudere la visita. Controlla il conto attuale.",
-  "cashier.tables.close_not_ready": "La visita si può chiudere solo quando tutti i turni sono risolti e il saldo è zero.",
   "cashier.tables.close_unknown": "Il risultato della chiusura è sconosciuto. Non iniziare un’altra visita prima di aver controllato questa operazione.",
   "cashier.tables.closed_table": "Questo tavolo è chiuso. Riaprilo nelle impostazioni prima di iniziare una visita.",
   "cashier.tables.invalid_table": "Inserisci un numero di tavolo valido.",
@@ -3002,10 +3001,6 @@
   "server.tasks.session_mismatch": "Questa attività appartiene a una visita diversa. Aggiorna l’elenco prima di continuare.",
   "server.bill.title": "Conto e visita",
   "server.bill.operation_failed": "L’azione sul conto non è riuscita. Aggiorna e riprova.",
-  "server.bill.close_blocked_handoff": "Completa o annulla la richiesta alla cassa prima di chiudere la visita.",
-  "server.bill.close_blocked_legacy": "Un responsabile deve risolvere gli ordini non assegnati prima della chiusura.",
-  "server.bill.close_blocked_balance": "Incassa o invia il saldo alla cassa prima di chiudere.",
-  "server.bill.close_blocked_rounds": "Tutti i giri devono essere completati o annullati prima della chiusura.",
   "server.bill.close_blocked_kitchen_work": "Conferma il lavoro della cucina prima di chiudere questa visita.",
   "server.bill.close_blocked_kitchen_correction": "Conferma la correzione della cucina prima di chiudere questa visita.",
   "server.bill.handoff_pending": "Incasso alla cassa richiesto per {{amount}}.",
@@ -4081,7 +4076,6 @@
   "cashier.tables.released_status": "Tavolo liberato · visita da saldare",
   "cashier.tables.release_table": "Libera tavolo",
   "cashier.tables.release_confirm_title": "Liberare questo tavolo?",
-  "cashier.tables.release_confirm_message": "Libera {{table}} per un nuovo gruppo. Gli ordini e il saldo esistenti restano collegati a questa visita.",
   "cashier.tables.release_confirm_preserves": "Ordini e pagamenti vengono conservati. Le attività in sospeso non vengono inviate alla cucina o alle stampanti. Torna a Visite liberate per incassare.",
   "cashier.tables.release_failed": "Impossibile liberare il tavolo. Aggiorna la visita prima di riprovare.",
   "cashier.tables.payment_flow": "Metodo di pagamento",
@@ -4174,5 +4168,23 @@
   "customer_preview_step_count": "Passaggio {{current}} di {{total}}",
   "customer_preview_read_only": "Solo anteprima",
   "customer_preview_bundle_caption": "Anteprima ordine menu",
-  "customer_preview_item_caption": "Anteprima ordine articolo"
+  "customer_preview_item_caption": "Anteprima ordine articolo",
+  "tip_preferences": {
+    "title": "Mance",
+    "description": "Scegli i pulsanti per le mance mostrati a clienti e personale.",
+    "display": "Mostra le mance come",
+    "percentage": "Percentuali",
+    "fixed": "Importi fissi",
+    "amount": "Importo",
+    "values_hint": "Lascia vuoti i campi inutilizzati. Fino a sei valori positivi distinti. Nessuna mancia e Importo libero restano disponibili.",
+    "preview": "Anteprima",
+    "saved": "Impostazioni delle mance salvate.",
+    "save_failed": "Salvataggio non riuscito. Riprova.",
+    "currency_required": "Imposta prima la valuta nelle impostazioni generali."
+  },
+  "staff_table_reuse": {
+    "confirm": "I clienti sono andati via e il tavolo {{table}} è pulito e pronto per i prossimi ospiti.",
+    "balance": "Saldo della visita precedente: {{amount}}.",
+    "guests_left": "I clienti sono andati via"
+  }
 }

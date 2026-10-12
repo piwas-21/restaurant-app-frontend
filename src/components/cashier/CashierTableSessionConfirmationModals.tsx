@@ -5,6 +5,7 @@ import BaseModal from '@/components/design-system/BaseModal';
 import StaffButton from '@/components/design-system/StaffButton';
 import type { TableServiceSessionDto } from '@/types/order';
 import { formatTableMoney, tableSessionCurrency, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
+import FreeTableConfirmationModal from '@/components/table-service/FreeTableConfirmationModal';
 import styles from './CashierTableSession.module.css';
 
 interface Props {
@@ -58,26 +59,13 @@ export default function CashierTableSessionConfirmationModals({
         <p className={styles.muted}>{outstanding}</p>
         {currencyWarning}
       </BaseModal>
-      <BaseModal
+      <FreeTableConfirmationModal
+        session={session}
         isOpen={showReleaseConfirm}
-        onClose={() => onReleaseConfirmChange(false)}
-        title={t('cashier.tables.release_confirm_title')}
         isPending={isMutating}
-        footer={
-          <div className={styles.formActions}>
-            <StaffButton onClick={() => onReleaseConfirmChange(false)} disabled={isMutating}>
-              {t('cashier.tables.cancel')}
-            </StaffButton>
-            <StaffButton variant="primary" onClick={onConfirmRelease} disabled={isMutating}>
-              {isMutating ? t('cashier.tables.operation_checking') : t('cashier.tables.release_table')}
-            </StaffButton>
-          </div>
-        }
-      >
-        <p>{t('cashier.tables.release_confirm_message', { table: tableDisplay })}</p>
-        <p className={styles.muted}>{t('cashier.tables.release_confirm_preserves')}</p>
-        {currencyWarning}
-      </BaseModal>
+        onClose={() => onReleaseConfirmChange(false)}
+        onConfirm={onConfirmRelease}
+      />
     </>
   );
 }

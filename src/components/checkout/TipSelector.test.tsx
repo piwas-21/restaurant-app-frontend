@@ -2,6 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { useCallback, useState } from 'react';
 import TipSelector from './TipSelector';
 
+jest.mock('@/hooks/useRestaurantInfo', () => ({ useRestaurantInfo: () => ({ info: null }) }));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
@@ -123,4 +125,56 @@ it('does not report validity again for a render that keeps invalid state and cal
   rerender(<TipSelector {...props} />);
 
   expect(onValidityChange).toHaveBeenCalledTimes(1);
+});
+
+it('records fixed EUR presets without percentage calculation or rounding', () => {
+  const change = jest.fn();
+  render(
+    <TipSelector
+      subtotal={73.45}
+      selectedTipAmount={0}
+      onTipChange={change}
+      currency="EUR"
+      locale="fr"
+      preferences={{ mode: 'fixed', values: [100, 200, 300, 400], currency: 'EUR' }}
+    />,
+  );
+  expect(screen.queryByRole('button', { name: /10%/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /2,00/ }));
+  expect(change).toHaveBeenLastCalledWith(2);
+  fireEvent.click(screen.getByRole('button', { name: 'No Tip' }));
+  expect(change).toHaveBeenLastCalledWith(0);
+  expect(screen.getByRole('textbox', { name: 'Enter custom tip amount' })).toBeInTheDocument();
+});
+
+it('never offers fixed EUR presets on an older CHF account', () => {
+  render(
+    <TipSelector
+      subtotal={50}
+      selectedTipAmount={0}
+      onTipChange={jest.fn()}
+      currency="CHF"
+      locale="en"
+      preferences={{ mode: 'fixed', values: [100, 200, 300, 400], currency: 'EUR' }}
+    />,
+  );
+  expect(screen.getAllByRole('button')).toHaveLength(1);
+  expect(screen.getByRole('button', { name: 'No Tip' })).toBeInTheDocument();
+});
+
+it('uses configured percentages rather than the platform defaults', () => {
+  const change = jest.fn();
+  render(
+    <TipSelector
+      subtotal={100}
+      selectedTipAmount={0}
+      onTipChange={change}
+      currency="EUR"
+      locale="en"
+      preferences={{ mode: 'percentage', values: [5, 8], currency: null }}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: /8%/ }));
+  expect(change).toHaveBeenLastCalledWith(8);
+  expect(screen.queryByRole('button', { name: /15%/ })).not.toBeInTheDocument();
 });

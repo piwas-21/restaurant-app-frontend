@@ -7,6 +7,7 @@ import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell'
 import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import CashierSessionCollectionRoute from '@/components/cashier/CashierSessionCollectionRoute';
+import styles from './ServerCollectionWorkspace.module.css';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 
@@ -64,7 +65,7 @@ export default function ServerCollectionWorkspace() {
         if (!navigationLocked) router.push(href);
       }}
     >
-      {collectionContent}
+      <div className={styles.content}>{collectionContent}</div>
     </StaffWorkspaceShell>
   );
 }

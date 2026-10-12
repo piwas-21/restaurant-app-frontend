@@ -31,7 +31,6 @@
     "unit_range": "Units {{first}}–{{last}}",
     "scope_unavailable": "The frozen source items for this contribution are unavailable or do not match its allocation. Collection is disabled; refresh the account or check the operation result.",
     "expired": "This review or reservation has expired. Check its result and release it only if no money was collected.",
-    "reserve": "Confirm reviewed contribution",
     "record_cash_received": "Record cash received",
     "record_terminal_payment": "Record terminal payment",
     "no_money_collected": "I confirm no money was collected for this contribution.",

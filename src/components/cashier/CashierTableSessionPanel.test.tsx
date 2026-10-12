@@ -155,7 +155,7 @@ describe('CashierTableSessionPanel', () => {
 
     expect(screen.getByRole('button', { name: 'cashier.tables.back' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'cashier.tables.release_table' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'cashier.tables.close' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'cashier.tables.close' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'cashier.tables.add_round' })).toBeDisabled();
     expect(screen.getByTestId('recovery-action')).toHaveTextContent('table-stable-7:session-1');
   });

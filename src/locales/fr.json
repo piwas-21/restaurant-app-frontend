@@ -2736,7 +2736,6 @@
   "cashier.tables.close_confirm_message": "Fermer la visite de service de la table {{table}} ? Le serveur vérifiera que toutes les tournées sont réglées et terminées.",
   "cashier.tables.close_confirm_title": "Fermer la visite de table",
   "cashier.tables.close_failed": "La visite ne peut pas être fermée. Vérifiez la note actuelle.",
-  "cashier.tables.close_not_ready": "La visite ne peut être fermée que lorsque toutes les tournées sont terminées et le solde est nul.",
   "cashier.tables.close_unknown": "Le résultat de la fermeture est inconnu. Ne démarrez pas une autre visite avant de vérifier cette opération.",
   "cashier.tables.closed_table": "Cette table est fermée. Rouvrez-la dans les paramètres avant de démarrer une visite.",
   "cashier.tables.invalid_table": "Saisissez un numéro de table valide.",
@@ -3002,10 +3001,6 @@
   "server.tasks.session_mismatch": "Cette tâche appartient à une autre visite de table. Actualisez la liste avant de continuer.",
   "server.bill.title": "Addition et service",
   "server.bill.operation_failed": "L’action sur l’addition n’a pas abouti. Actualisez puis réessayez.",
-  "server.bill.close_blocked_handoff": "Traitez ou annulez la demande à la caisse avant de clôturer ce service.",
-  "server.bill.close_blocked_legacy": "Un responsable doit résoudre les commandes non attribuées avant la clôture.",
-  "server.bill.close_blocked_balance": "Encaissez ou envoyez le solde à la caisse avant de clôturer.",
-  "server.bill.close_blocked_rounds": "Toutes les commandes doivent être terminées ou annulées avant la clôture.",
   "server.bill.close_blocked_kitchen_work": "Confirmez le travail de la cuisine avant de clôturer cette visite.",
   "server.bill.close_blocked_kitchen_correction": "Confirmez la correction de cuisine avant de clôturer cette visite.",
   "server.bill.handoff_pending": "Encaissement demandé à la caisse pour {{amount}}.",
@@ -4081,7 +4076,6 @@
   "cashier.tables.released_status": "Table libérée · visite payable",
   "cashier.tables.release_table": "Libérer la table",
   "cashier.tables.release_confirm_title": "Libérer cette table ?",
-  "cashier.tables.release_confirm_message": "Libérer {{table}} pour un nouveau groupe. Les commandes et le solde actuels restent liés à cette visite.",
   "cashier.tables.release_confirm_preserves": "Les commandes et paiements sont conservés. Les tâches en attente ne sont envoyées ni en cuisine ni aux imprimantes. Retrouvez cette visite dans Visites libérées pour encaisser.",
   "cashier.tables.release_failed": "Impossible de libérer la table. Actualisez la visite avant de réessayer.",
   "cashier.tables.payment_flow": "Mode de paiement",
@@ -4174,5 +4168,23 @@
   "customer_preview_step_count": "Étape {{current}} sur {{total}}",
   "customer_preview_read_only": "Aperçu uniquement",
   "customer_preview_bundle_caption": "Aperçu de la commande du menu",
-  "customer_preview_item_caption": "Aperçu de la commande de l’article"
+  "customer_preview_item_caption": "Aperçu de la commande de l’article",
+  "tip_preferences": {
+    "title": "Pourboires",
+    "description": "Choisissez les boutons de pourboire affichés aux clients et au personnel.",
+    "display": "Afficher les pourboires en",
+    "percentage": "Pourcentages",
+    "fixed": "Montants fixes",
+    "amount": "Montant",
+    "values_hint": "Laissez les champs inutilisés vides. Jusqu’à six valeurs positives distinctes. Sans pourboire et Montant libre restent disponibles.",
+    "preview": "Aperçu",
+    "saved": "Paramètres de pourboire enregistrés.",
+    "save_failed": "Impossible d’enregistrer. Réessayez.",
+    "currency_required": "Définissez d’abord la devise dans les paramètres généraux."
+  },
+  "staff_table_reuse": {
+    "confirm": "Les clients sont partis et la table {{table}} est nettoyée et prête pour les suivants.",
+    "balance": "Solde de la visite précédente : {{amount}}.",
+    "guests_left": "Les clients sont partis"
+  }
 }

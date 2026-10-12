@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { computeViewBox, screenToPlanCm, type ViewBox } from '@/lib/floorPlan/geometry';
 import { isZoomed as isZoomedVb, panViewBox, zoomViewBox } from '@/lib/floorPlan/viewport';
 
@@ -20,6 +28,7 @@ export function usePlanViewport(widthMeters: number, heightMeters: number, enabl
   const [viewBox, setViewBox] = useState<ViewBox>(bounds);
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
   const panningId = useRef<number | null>(null);
+  const dragged = useRef(false);
   const pinchDist = useRef<number | null>(null);
 
   // Refit whenever the plan's dimensions change (e.g. the document loads).
@@ -57,7 +66,13 @@ export function usePlanViewport(widthMeters: number, heightMeters: number, enabl
   }, [bounds, enabled]);
 
   const onPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointers.current.size === 0) dragged.current = false;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()];
+      pinchDist.current = Math.hypot(a.x - b.x, a.y - b.y);
+      for (const id of pointers.current.keys()) stageRef.current?.setPointerCapture?.(id);
+    }
     const onTable = (e.target as Element).closest('[data-table-id]');
     if (!onTable && pointers.current.size === 1) {
       panningId.current = e.pointerId;
@@ -78,26 +93,27 @@ export function usePlanViewport(widthMeters: number, heightMeters: number, enabl
       }
       const pts = [...pointers.current.values()];
       if (pts.length >= 2) {
+        dragged.current = true;
         panningId.current = null;
         const [a, b] = pts;
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         if (pinchDist.current && dist > 0) {
-          const focus = screenToPlanCm((a.x + b.x) / 2, (a.y + b.y) / 2, viewBox, rect);
-          setViewBox((vb) => zoomViewBox(vb, dist / pinchDist.current!, focus, bounds));
+          const factor = dist / pinchDist.current;
+          setViewBox((vb) =>
+            zoomViewBox(vb, factor, screenToPlanCm((a.x + b.x) / 2, (a.y + b.y) / 2, vb, rect), bounds),
+          );
         }
         pinchDist.current = dist;
       } else if (panningId.current === e.pointerId) {
-        setViewBox((vb) =>
-          panViewBox(
-            vb,
-            ((e.clientX - prev.x) * vb.w) / rect.width,
-            ((e.clientY - prev.y) * vb.h) / rect.height,
-            bounds,
-          ),
-        );
+        if (Math.hypot(e.clientX - prev.x, e.clientY - prev.y) > 2) dragged.current = true;
+        setViewBox((vb) => {
+          const before = screenToPlanCm(prev.x, prev.y, vb, rect);
+          const after = screenToPlanCm(e.clientX, e.clientY, vb, rect);
+          return panViewBox(vb, after.x - before.x, after.y - before.y, bounds);
+        });
       }
     },
-    [bounds, viewBox],
+    [bounds],
   );
 
   const endPointer = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
@@ -110,6 +126,13 @@ export function usePlanViewport(widthMeters: number, heightMeters: number, enabl
     }
   }, []);
 
+  const onClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!dragged.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragged.current = false;
+  }, []);
+
   return {
     stageRef,
     viewBox,
@@ -117,6 +140,12 @@ export function usePlanViewport(widthMeters: number, heightMeters: number, enabl
     zoomIn,
     zoomOut,
     isZoomed: isZoomedVb(viewBox, bounds),
-    stageHandlers: { onPointerDown, onPointerMove, onPointerUp: endPointer, onPointerCancel: endPointer },
+    stageHandlers: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp: endPointer,
+      onPointerCancel: endPointer,
+      onClickCapture,
+    },
   };
 }

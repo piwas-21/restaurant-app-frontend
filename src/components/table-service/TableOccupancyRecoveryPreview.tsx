@@ -90,6 +90,11 @@ export default function TableOccupancyRecoveryPreview({
           t={t}
           money={money}
         />
+        <div className={styles.actions}>
+          <StaffButton onClick={() => onReasonChange(t('staff_table_reuse.guests_left'))} disabled={isWorking}>
+            {t('staff_table_reuse.guests_left')}
+          </StaffButton>
+        </div>
         <FormField label={t('accountPayments.recovery.reason')}>
           <textarea
             value={reason}

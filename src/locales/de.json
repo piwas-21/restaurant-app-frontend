@@ -2733,7 +2733,6 @@
   "cashier.tables.close_confirm_message": "Servicebesuch für Tisch {{table}} schließen? Der Server prüft, ob alle Runden beglichen und abgeschlossen sind.",
   "cashier.tables.close_confirm_title": "Tischbesuch schließen",
   "cashier.tables.close_failed": "Der Tischbesuch konnte nicht geschlossen werden. Prüfen Sie die aktuelle Rechnung.",
-  "cashier.tables.close_not_ready": "Der Besuch kann erst geschlossen werden, wenn alle Runden abgeschlossen und der Betrag null ist.",
   "cashier.tables.close_unknown": "Das Ergebnis zum Schließen ist unbekannt. Starten Sie keinen neuen Besuch, bevor Sie diesen Vorgang geprüft haben.",
   "cashier.tables.closed_table": "Dieser Tisch ist geschlossen. Öffnen Sie ihn in den Tischeinstellungen, bevor Sie einen Besuch starten.",
   "cashier.tables.invalid_table": "Geben Sie eine gültige Tischnummer ein.",
@@ -2993,10 +2992,6 @@
   "server.tasks.session_mismatch": "Diese Aufgabe gehört zu einem anderen Tischbesuch. Aktualisieren Sie die Aufgabenliste, bevor Sie fortfahren.",
   "server.bill.title": "Rechnung und Besuch",
   "server.bill.operation_failed": "Die Rechnungsaktion konnte nicht abgeschlossen werden. Aktualisieren und erneut versuchen.",
-  "server.bill.close_blocked_handoff": "Die Kassenanfrage vor dem Schließen abschließen oder stornieren.",
-  "server.bill.close_blocked_legacy": "Nicht zugeordnete Tischbestellungen müssen zuerst von einer Leitung geklärt werden.",
-  "server.bill.close_blocked_balance": "Den Restbetrag kassieren oder vor dem Schließen an die Kasse senden.",
-  "server.bill.close_blocked_rounds": "Vor dem Schließen müssen alle Runden abgeschlossen oder storniert sein.",
   "server.bill.close_blocked_kitchen_work": "Bestätigen Sie die Küchenarbeit, bevor Sie diesen Besuch schließen.",
   "server.bill.close_blocked_kitchen_correction": "Bestätigen Sie die Küchenkorrektur, bevor Sie diesen Besuch schließen.",
   "server.bill.handoff_pending": "Kassenzahlung über {{amount}} angefordert.",
@@ -4068,7 +4063,6 @@
   "cashier.tables.released_status": "Tisch freigegeben · Besuch noch zahlbar",
   "cashier.tables.release_table": "Tisch freigeben",
   "cashier.tables.release_confirm_title": "Diesen Tisch freigeben?",
-  "cashier.tables.release_confirm_message": "{{table}} für eine neue Gruppe freigeben. Die bisherigen Bestellungen und der offene Betrag bleiben diesem Besuch zugeordnet.",
   "cashier.tables.release_confirm_preserves": "Bestellungen und Zahlungen bleiben erhalten. Ausstehende Arbeit wird weder an die Küche noch an Drucker gesendet. Öffnen Sie den Besuch unter Freigegebene Besuche, um die Zahlung einzuziehen.",
   "cashier.tables.release_failed": "Der Tisch konnte nicht freigegeben werden. Aktualisieren Sie den Besuch und versuchen Sie es erneut.",
   "cashier.tables.payment_flow": "Zahlungsart",
@@ -4161,5 +4155,23 @@
   "customer_preview_step_count": "Schritt {{current}} von {{total}}",
   "customer_preview_read_only": "Nur Vorschau",
   "customer_preview_bundle_caption": "Menübestellvorschau",
-  "customer_preview_item_caption": "Artikelbestellvorschau"
+  "customer_preview_item_caption": "Artikelbestellvorschau",
+  "tip_preferences": {
+    "title": "Trinkgeld",
+    "description": "Wählen Sie die Trinkgeldtasten für Gäste und Personal.",
+    "display": "Trinkgeld anzeigen als",
+    "percentage": "Prozentsätze",
+    "fixed": "Feste Beträge",
+    "amount": "Betrag",
+    "values_hint": "Nicht verwendete Felder leer lassen. Bis zu sechs verschiedene positive Werte. Kein Trinkgeld und Eigener Betrag bleiben verfügbar.",
+    "preview": "Vorschau",
+    "saved": "Trinkgeldeinstellungen gespeichert.",
+    "save_failed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+    "currency_required": "Legen Sie zuerst die Währung in den allgemeinen Einstellungen fest."
+  },
+  "staff_table_reuse": {
+    "confirm": "Die Gäste sind gegangen und Tisch {{table}} ist gereinigt und für die nächsten Gäste bereit.",
+    "balance": "Restbetrag des vorherigen Besuchs: {{amount}}.",
+    "guests_left": "Gäste sind gegangen"
+  }
 }

@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePaymentReviewFocus } from '@/hooks/accountPayments/usePaymentReviewFocus';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { formatAccountPaymentMinor, parseAccountContributionMinor } from '@/lib/accountPaymentMoney';
-import { canCollectReviewedCash, readAccountCashEvidence } from '@/lib/accountCashEvidence';
+import { canCollectReviewedCash, initialAccountCashReceived, readAccountCashEvidence } from '@/lib/accountCashEvidence';
 import {
   accountCashCollectionMatchesIntent,
   type AccountCashCollectionIntent,
@@ -107,7 +108,8 @@ export default function AccountPaymentReview({
   onCheck,
 }: Props) {
   const { t, i18n } = useTranslation();
-  const [received, setReceived] = useState('');
+  const panelRef = usePaymentReviewFocus(operation.operationId, operation.state);
+  const [received, setReceived] = useState(() => initialAccountCashReceived(operation));
   const [collected, setCollected] = useState(false);
   const [notCollected, setNotCollected] = useState(false);
   const quoted = operation.state === 'Quoted';
@@ -147,7 +149,7 @@ export default function AccountPaymentReview({
   const modeLabel = t(modeKeys[operation.mode]);
 
   return (
-    <section className={styles.review} aria-label={t('accountPayments.review')}>
+    <section ref={panelRef} tabIndex={-1} className={styles.review} aria-label={t('accountPayments.review')}>
       <h4>{money ?? t('cashier.tables.currency_unknown')}</h4>
       <StatusBadge tone={operation.state === 'Captured' ? 'success' : 'neutral'}>
         {t(`accountPayments.state.${operation.state}`)}
@@ -169,8 +171,8 @@ export default function AccountPaymentReview({
           <p className={styles.note}>{t('cashier.tables.tip_food_refund_notice')}</p>
         </div>
       )}
-      <div>
-        <h5>{t('accountPayments.frozen_scope')}</h5>
+      <details>
+        <summary>{t('accountPayments.frozen_scope')}</summary>
         {allocationScope.complete ? (
           <ul aria-label={t('accountPayments.frozen_scope')}>
             {allocationScope.lines.map((line, index) => (
@@ -194,7 +196,7 @@ export default function AccountPaymentReview({
             {t('accountPayments.scope_unavailable')}
           </p>
         )}
-      </div>
+      </details>
       <p>
         {operation.paymentMethod === 'Cash' ? t('cashier.table_bill.method_cash') : t('payment_card_at_restaurant')}
       </p>

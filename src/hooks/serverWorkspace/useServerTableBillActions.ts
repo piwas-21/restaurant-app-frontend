@@ -19,6 +19,7 @@ interface ServerTableBillActions {
   readonly requestHandoff: () => Promise<void>;
   readonly cancelHandoff: () => Promise<void>;
   readonly closeSession: () => Promise<void>;
+  readonly releaseTable: () => Promise<void>;
   readonly reconcilePendingOperation: () => Promise<void>;
   readonly refresh: () => Promise<void>;
 }
@@ -104,6 +105,12 @@ export function useServerTableBillActions(
     await refreshWorkspace();
   }, [refreshWorkspace, shared]);
 
+  const releaseTable = useCallback(async () => {
+    const result = await shared.releaseTable();
+    setMutationSession(result);
+    await refreshWorkspace();
+  }, [refreshWorkspace, shared]);
+
   return {
     session,
     isLoading: shared.isLoading,
@@ -113,6 +120,7 @@ export function useServerTableBillActions(
     requestHandoff: () => runHandoff('request'),
     cancelHandoff: () => runHandoff('cancel'),
     closeSession,
+    releaseTable,
     reconcilePendingOperation: shared.reconcilePendingOperation,
     refresh,
   };

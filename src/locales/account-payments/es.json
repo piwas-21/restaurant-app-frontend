@@ -31,7 +31,6 @@
     "unit_range": "Unidades {{first}}–{{last}}",
     "scope_unavailable": "Los artículos de origen fijados para esta contribución no están disponibles o no coinciden con el cargo. El cobro está desactivado; actualiza la cuenta o comprueba el resultado de la operación.",
     "expired": "Esta revisión o reserva ha caducado. Comprueba el resultado y libérala solo si no se recibió dinero.",
-    "reserve": "Confirmar la contribución revisada",
     "record_cash_received": "Registrar el efectivo recibido",
     "record_terminal_payment": "Registrar el pago en el terminal",
     "no_money_collected": "Confirmo que no se recibió dinero por esta contribución.",

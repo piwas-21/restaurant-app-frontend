@@ -14,6 +14,7 @@ import { useServerTableBillActions } from '@/hooks/serverWorkspace/useServerTabl
 import { useServerAccountCollectionCapability } from '@/hooks/serverWorkspace/useServerAccountCollectionCapability';
 import type { TableServiceSessionDto } from '@/types/order';
 import ServerAccountPaymentCollectionHost from './ServerAccountPaymentCollectionHost';
+import FreeTableConfirmationModal from '@/components/table-service/FreeTableConfirmationModal';
 import styles from './ServerTableBillWorkspace.module.css';
 
 interface ServerTableBillWorkspaceProps {
@@ -27,14 +28,6 @@ function safeError(error: string | null, t: (key: string) => string): string | n
   return error.startsWith('server.') || error.startsWith('cashier.') ? t(error) : error;
 }
 
-function closeBlocker(session: TableServiceSessionDto, t: (key: string) => string): string | null {
-  if (session.hasPendingPaymentHandoff) return t('server.bill.close_blocked_handoff');
-  if (session.hasUnassignedActiveOrders || session.bill.isAmbiguous) return t('server.bill.close_blocked_legacy');
-  if (session.bill.remaining > 0) return t('server.bill.close_blocked_balance');
-  if (!session.canClose && session.status === 'Open') return t('server.bill.close_blocked_rounds');
-  return null;
-}
-
 export default function ServerTableBillWorkspace({
   session: initialSession,
   actionsBlocked,
@@ -45,10 +38,10 @@ export default function ServerTableBillWorkspace({
   const actions = useServerTableBillActions(initialSession, refreshWorkspace);
   const session = actions.session ?? initialSession;
   const canStartCollection = useServerAccountCollectionCapability(session);
+  const [showRelease, setShowRelease] = useState(false);
   const [showClose, setShowClose] = useState(false);
   const [printNotice, setPrintNotice] = useState(false);
   const writesLocked = actionsBlocked || actions.isStale || actions.isMutating;
-  const blocker = closeBlocker(session, t);
   const error = safeError(actions.error, t);
   const collectionParams = new URLSearchParams({ serviceSessionId: session.serviceSessionId });
   if (session.tableId) collectionParams.set('tableId', session.tableId);
@@ -85,7 +78,28 @@ export default function ServerTableBillWorkspace({
       )}
       {printNotice && <OperationResultNotice state="saved" message={t('server.bill.print_dialog_opened')} />}
 
+      <FreeTableConfirmationModal
+        session={session}
+        isOpen={showRelease}
+        isPending={actions.isMutating}
+        onClose={() => setShowRelease(false)}
+        onConfirm={() => {
+          void actions
+            .releaseTable()
+            .then(() => setShowRelease(false))
+            .catch(() => undefined);
+        }}
+      />
       <div className={styles.actions}>
+        {session.status === 'Open' && !session.isTableReleased && (
+          <StaffButton
+            variant="secondary"
+            onClick={() => setShowRelease(true)}
+            disabled={writesLocked || !session.canReleaseTable}
+          >
+            {t('cashier.tables.release_table')}
+          </StaffButton>
+        )}
         <StaffButton onClick={() => void actions.refresh().catch(() => undefined)} disabled={actions.isMutating}>
           <RefreshCw size={17} aria-hidden="true" />
           {t('refresh')}
@@ -123,21 +137,12 @@ export default function ServerTableBillWorkspace({
           <Printer size={17} aria-hidden="true" />
           {t('cashier.tables.print_bill')}
         </StaffButton>
-        <StaffButton
-          variant="danger"
-          onClick={() => setShowClose(true)}
-          disabled={writesLocked || !session.canClose}
-          aria-describedby={blocker ? 'server-table-close-blocker' : undefined}
-        >
-          {t('server.bill.close_visit')}
-        </StaffButton>
+        {session.canClose && (
+          <StaffButton variant="secondary" onClick={() => setShowClose(true)} disabled={writesLocked}>
+            {t('server.bill.close_visit')}
+          </StaffButton>
+        )}
       </div>
-
-      {blocker && (
-        <p id="server-table-close-blocker" className={styles.blocker}>
-          {blocker}
-        </p>
-      )}
 
       <ServerAccountPaymentCollectionHost
         session={session}

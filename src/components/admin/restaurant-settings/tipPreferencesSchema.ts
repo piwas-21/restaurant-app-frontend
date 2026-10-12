@@ -15,13 +15,10 @@ export type TipPreferencesForm = z.infer<typeof fields>;
 export function parseTipPreferenceValues(form: TipPreferencesForm, locale: string) {
   return form.inputs
     .filter((input) => input.trim() !== '')
-    .map((input) =>
-      form.mode === 'fixed'
-        ? parseCurrencyAmountMinor(input, form.currency ?? '', locale)
-        : /^\d+$/.test(input)
-          ? Number(input)
-          : null,
-    );
+    .map((input) => {
+      if (form.mode === 'fixed') return parseCurrencyAmountMinor(input, form.currency ?? '', locale);
+      return /^\d+$/.test(input) ? Number(input) : null;
+    });
 }
 
 export function tipPreferencesSchema(locale: string) {

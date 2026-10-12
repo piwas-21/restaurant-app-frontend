@@ -72,12 +72,12 @@ export default function TipSelector({
   const fixed = configured?.mode === 'fixed';
   const presetOptions = useMemo(() => {
     if (!presetsReady) return [];
-    const values = fixed
-      ? configured?.currency === currency
-        ? configured.values
-        : []
-      : (configured?.values ?? [10, 15, 20]);
-    return values.map((value) => ({ option: value, amount: fixed ? value : percentageTipMinor(subtotalMinor, value) }));
+    const values = configured?.values ?? [10, 15, 20];
+    const availablePresets = fixed && configured?.currency !== currency ? [] : values;
+    return availablePresets.map((value) => ({
+      option: value,
+      amount: fixed ? value : percentageTipMinor(subtotalMinor, value),
+    }));
   }, [configured, currency, fixed, presetsReady, subtotalMinor]);
   const formatPrice = (minor: number) => formatCurrency(minor / 100, locale, currency);
 
@@ -153,7 +153,7 @@ export default function TipSelector({
         </div>
         <span className={styles.optionalBadge}>{t('tip_optional', 'Optional')}</span>
       </div>
-      {preferencesLoading && <p role="status">{t('loading')}</p>}
+      {preferencesLoading && <output aria-live="polite">{t('loading')}</output>}
       {preferencesUnavailable && (
         <div role="alert">
           <p>{t('tip_preferences.load_failed')}</p>

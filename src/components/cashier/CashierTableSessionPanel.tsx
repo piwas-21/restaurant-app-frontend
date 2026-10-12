@@ -98,6 +98,7 @@ export default function CashierTableSessionPanel({
       setReleaseError(false);
       setShowReleaseConfirm(false);
     } catch (_error) {
+      // The parent hook supplies the API reason; show its message or the localized fallback in the modal.
       setReleaseError(true);
     }
   };

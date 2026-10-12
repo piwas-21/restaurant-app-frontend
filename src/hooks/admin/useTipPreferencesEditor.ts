@@ -81,6 +81,7 @@ export function useTipPreferencesEditor() {
       await reader.refetch();
       setMessage(t('tip_preferences.saved'));
     } catch (_error: unknown) {
+      // Show a localized failure; raw transport errors can contain request details.
       setMessage(t('tip_preferences.save_failed'));
     }
   });

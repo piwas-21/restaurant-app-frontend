@@ -58,6 +58,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const homeHref = publicHomeHref(pathname, searchParams);
   const localizedHref = (href: string) => tenantLocaleHref(pathname, href);
   const { t } = useTranslation();
+  const openNavigationLabel = t(isAdminPage ? 'user_menu.aria_label' : 'open_menu');
   const { info: restaurantInfo } = useRestaurantInfo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminSidebarOpen, setAdminSidebarOpen] = useState(false);
@@ -160,6 +161,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
             >
               <Link
                 href={homeHref}
+                className={navStyles.brandLink}
                 style={{ textDecoration: 'none', color: 'var(--primary-color)', display: 'flex', alignItems: 'center' }}
                 onClick={closeMobileMenu}
               >
@@ -180,16 +182,14 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                   priority
                 />
               </Link>
-              {!isAdminPage && (
-                <button
-                  className={navStyles.hamburgerMenu}
-                  onClick={toggleMobileMenu}
-                  aria-label={isClient ? (mobileMenuOpen ? t('close_menu') : t('open_menu')) : 'Open menu'}
-                  aria-expanded={mobileMenuOpen}
-                >
-                  {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                </button>
-              )}
+              <button
+                className={navStyles.hamburgerMenu}
+                onClick={toggleMobileMenu}
+                aria-label={mobileMenuOpen ? t('close_menu') : openNavigationLabel}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
               {/* Mobile menu backdrop */}
               <div
                 className={`${navStyles.mobileMenuBackdrop} ${mobileMenuOpen ? navStyles.visible : ''}`}

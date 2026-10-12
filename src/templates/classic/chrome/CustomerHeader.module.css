@@ -1,5 +1,5 @@
-/* Tablet drawer behavior belongs only to the public customer header. The shared Header.module.css
-   is also used by admin chrome, whose desktop navigation remains visible above 768px. */
+/* Public customer chrome shares the 1280px compact-navigation breakpoint.
+   These scoped overrides retain the customer drawer styling. */
 @media (min-width: 769px) and (max-width: 1280px) {
   .publicHeader .navLinksContainer {
     display: none !important;

@@ -3,6 +3,10 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { CATEGORY_ID } from './public-discovery-fixture.mjs';
 import {
+  assertAdminNavigationAtWidth,
+  assertAdminSettingsFitAtWidth,
+} from './public-discovery-admin-layout-assertions.mjs';
+import {
   assertCategoryRailCanScroll,
   assertMenuFitsViewport,
   assertPublicPageFitsViewport,
@@ -145,15 +149,6 @@ async function assertPublicLanguageDropdownAt1281(page, origin, locale) {
   }, languageName);
   await panel.waitFor({ state: 'attached' });
   await assertPanelBounds(false);
-}
-
-async function assertAdminNavigationAtWidth(page, menuLink, width) {
-  await page.setViewportSize({ width, height: 768 });
-  assert.equal(
-    await menuLink.isVisible(),
-    true,
-    `Admin desktop navigation remains visible at ${width}px without a drawer toggle`,
-  );
 }
 
 async function openLocaleMenuLink(page, locale) {
@@ -557,13 +552,22 @@ export async function browserContract(origin, { root, template, indexing, apiOri
     await adminPage.route('**/api/Auth/refresh-token', (route) => route.fulfill({ status: 503, body: '' }));
     await adminPage.goto(`${origin}/fr/admin/dashboard`, { waitUntil: 'networkidle' });
     const adminMenuLink = adminPage.locator('header nav a[href="/fr/menu"]');
-    await adminMenuLink.waitFor({ state: 'visible' });
+    await adminPage.locator('header button[class*="hamburgerMenu"]').waitFor({ state: 'visible' });
     assert.equal(
       await adminPage.locator('header').getByRole('button', { name: 'Ouvrir le menu', exact: true }).count(),
       0,
     );
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 768);
     await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1024);
     await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1280);
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1281);
+    await assertAdminNavigationAtWidth(adminPage, adminMenuLink, 1366);
+    await adminPage.goto(`${origin}/fr/admin/restaurant-settings?tab=tips`, { waitUntil: 'networkidle' });
+    await assertAdminSettingsFitAtWidth(adminPage, 768);
+    await assertAdminSettingsFitAtWidth(adminPage, 1024);
+    await assertAdminSettingsFitAtWidth(adminPage, 1280);
+    await assertAdminSettingsFitAtWidth(adminPage, 1281);
+    await assertAdminSettingsFitAtWidth(adminPage, 1366);
     await adminContext.close();
   } finally {
     await browser.close();

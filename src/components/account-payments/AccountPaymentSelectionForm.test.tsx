@@ -2,6 +2,17 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AccountPaymentSelectionForm from './AccountPaymentSelectionForm';
 import type { AccountPaymentAccount } from '@/types/accountPaymentAccount';
 import type { TableServiceSessionDto } from '@/types/order';
+import type { TipPreferences } from '@/types/tipPreferences';
+
+let mockTipPreferences: TipPreferences = { mode: 'percentage', values: [10, 15, 20], currency: null };
+jest.mock('@/hooks/useRestaurantInfo', () => ({
+  useRestaurantInfo: () => ({
+    info: { currency: 'EUR', tipPreferences: mockTipPreferences },
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(async () => undefined),
+  }),
+}));
 
 const translate = (key: string, values?: Record<string, unknown>) =>
   values
@@ -46,6 +57,7 @@ const renderForm = (paymentAccount = account) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockTipPreferences = { mode: 'percentage', values: [10, 15, 20], currency: null };
 });
 
 it('reviews only the available amount and never includes money reserved by another payer', async () => {
@@ -257,5 +269,22 @@ it('shows the exact 0.20 remainder and fills one guest amount to cover the avail
   fireEvent.click(screen.getByRole('button', { name: 'accountPayments.create_plan' }));
   await waitFor(() =>
     expect(onPlan).toHaveBeenCalledWith(expect.objectContaining({ customAmountsMinor: [1460, 170000] })),
+  );
+});
+
+it('uses tenant fixed EUR choices as a separate exact tip in the staff quote payload', async () => {
+  mockTipPreferences = { mode: 'fixed', values: [100, 200, 300, 400], currency: 'EUR' };
+  renderForm({ ...account, availableMinor: 1000, outstandingMinor: 1000 });
+  fireEvent.click(screen.getByText('accountPayments.add_optional_tip'));
+  fireEvent.click(screen.getByRole('button', { name: '€2.00' }));
+  fireEvent.click(screen.getByRole('button', { name: 'accountPayments.review' }));
+  await waitFor(() =>
+    expect(onQuote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'Full',
+        tipMinor: 200,
+        paymentMethod: 'Cash',
+      }),
+    ),
   );
 });

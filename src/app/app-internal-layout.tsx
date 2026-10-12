@@ -180,16 +180,14 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                   priority
                 />
               </Link>
-              {!isAdminPage && (
-                <button
-                  className={navStyles.hamburgerMenu}
-                  onClick={toggleMobileMenu}
-                  aria-label={isClient ? (mobileMenuOpen ? t('close_menu') : t('open_menu')) : 'Open menu'}
-                  aria-expanded={mobileMenuOpen}
-                >
-                  {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                </button>
-              )}
+              <button
+                className={navStyles.hamburgerMenu}
+                onClick={toggleMobileMenu}
+                aria-label={mobileMenuOpen ? t('close_menu') : t(isAdminPage ? 'user_menu.aria_label' : 'open_menu')}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
               {/* Mobile menu backdrop */}
               <div
                 className={`${navStyles.mobileMenuBackdrop} ${mobileMenuOpen ? navStyles.visible : ''}`}

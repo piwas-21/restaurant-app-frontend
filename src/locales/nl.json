@@ -4165,6 +4165,7 @@
     "amount": "Bedrag",
     "values_hint": "Laat ongebruikte velden leeg. Maximaal zes verschillende positieve waarden. Geen fooi en Eigen bedrag blijven beschikbaar.",
     "preview": "Voorbeeld",
+    "load_failed": "De fooiopties konden niet worden geladen. Probeer opnieuw, kies geen fooi of voer een bedrag in.",
     "saved": "Fooi-instellingen opgeslagen.",
     "save_failed": "Opslaan mislukt. Probeer opnieuw.",
     "currency_required": "Stel eerst de valuta in bij Algemene instellingen."

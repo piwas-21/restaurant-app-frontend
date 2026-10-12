@@ -4165,6 +4165,7 @@
     "amount": "Betrag",
     "values_hint": "Nicht verwendete Felder leer lassen. Bis zu sechs verschiedene positive Werte. Kein Trinkgeld und Eigener Betrag bleiben verfügbar.",
     "preview": "Vorschau",
+    "load_failed": "Die Trinkgeldoptionen konnten nicht geladen werden. Erneut versuchen, kein Trinkgeld wählen oder einen Betrag eingeben.",
     "saved": "Trinkgeldeinstellungen gespeichert.",
     "save_failed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
     "currency_required": "Legen Sie zuerst die Währung in den allgemeinen Einstellungen fest."

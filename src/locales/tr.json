@@ -4165,6 +4165,7 @@
     "amount": "Tutar",
     "values_hint": "Kullanılmayan alanları boş bırakın. En fazla altı farklı pozitif değer. Bahşiş yok ve Özel tutar her zaman kullanılabilir.",
     "preview": "Önizleme",
+    "load_failed": "Bahşiş seçenekleri yüklenemedi. Yeniden deneyin, bahşiş yok seçin veya bir tutar girin.",
     "saved": "Bahşiş ayarları kaydedildi.",
     "save_failed": "Kaydedilemedi. Tekrar deneyin.",
     "currency_required": "Önce Genel ayarlarda restoranın para birimini belirleyin."

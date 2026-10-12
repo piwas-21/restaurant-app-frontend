@@ -64,17 +64,21 @@ export default function TipSelector({
   const validityCallbackRef = useRef(onValidityChange);
   const subtotalMinor = Number.isFinite(subtotal) ? Math.max(0, Math.round(subtotal * 100)) : 0;
   const selectedTipMinor = Number.isFinite(selectedTipAmount) ? Math.max(0, Math.round(selectedTipAmount * 100)) : 0;
-  const { info } = useRestaurantInfo();
+  const { info, isLoading, error: preferenceError, refetch } = useRestaurantInfo();
+  const presetsReady = preferences !== undefined || (info != null && !preferenceError);
+  const preferencesLoading = preferences === undefined && isLoading;
+  const preferencesUnavailable = preferences === undefined && !isLoading && (!info || preferenceError);
   const configured = preferences ?? info?.tipPreferences;
   const fixed = configured?.mode === 'fixed';
   const presetOptions = useMemo(() => {
+    if (!presetsReady) return [];
     const values = fixed
       ? configured?.currency === currency
         ? configured.values
         : []
       : (configured?.values ?? [10, 15, 20]);
     return values.map((value) => ({ option: value, amount: fixed ? value : percentageTipMinor(subtotalMinor, value) }));
-  }, [configured, currency, fixed, subtotalMinor]);
+  }, [configured, currency, fixed, presetsReady, subtotalMinor]);
   const formatPrice = (minor: number) => formatCurrency(minor / 100, locale, currency);
 
   useEffect(() => {
@@ -149,6 +153,15 @@ export default function TipSelector({
         </div>
         <span className={styles.optionalBadge}>{t('tip_optional', 'Optional')}</span>
       </div>
+      {preferencesLoading && <p role="status">{t('loading')}</p>}
+      {preferencesUnavailable && (
+        <div role="alert">
+          <p>{t('tip_preferences.load_failed')}</p>
+          <button type="button" className={styles.tipButton} disabled={disabled} onClick={() => void refetch()}>
+            {t('retry')}
+          </button>
+        </div>
+      )}
       <div className={styles.tipOptions}>
         {[
           { option: 'none' as const, label: t('no_tip', 'No Tip'), amount: 0 },

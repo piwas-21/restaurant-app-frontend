@@ -4178,6 +4178,7 @@
     "amount": "Importo",
     "values_hint": "Lascia vuoti i campi inutilizzati. Fino a sei valori positivi distinti. Nessuna mancia e Importo libero restano disponibili.",
     "preview": "Anteprima",
+    "load_failed": "Impossibile caricare le opzioni di mancia. Riprova, scegli nessuna mancia o inserisci un importo.",
     "saved": "Impostazioni delle mance salvate.",
     "save_failed": "Salvataggio non riuscito. Riprova.",
     "currency_required": "Imposta prima la valuta nelle impostazioni generali."

@@ -4178,6 +4178,7 @@
     "amount": "Montant",
     "values_hint": "Laissez les champs inutilisés vides. Jusqu’à six valeurs positives distinctes. Sans pourboire et Montant libre restent disponibles.",
     "preview": "Aperçu",
+    "load_failed": "Les choix de pourboire n’ont pas pu être chargés. Réessayez, choisissez sans pourboire ou saisissez un montant.",
     "saved": "Paramètres de pourboire enregistrés.",
     "save_failed": "Impossible d’enregistrer. Réessayez.",
     "currency_required": "Définissez d’abord la devise dans les paramètres généraux."

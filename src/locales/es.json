@@ -4178,6 +4178,7 @@
     "amount": "Importe",
     "values_hint": "Deja vacíos los campos no utilizados. Hasta seis valores positivos distintos. Sin propina e Importe personalizado siempre disponibles.",
     "preview": "Vista previa",
+    "load_failed": "No se pudieron cargar las opciones de propina. Reintenta, elige sin propina o introduce un importe.",
     "saved": "Configuración de propinas guardada.",
     "save_failed": "No se pudo guardar. Inténtalo de nuevo.",
     "currency_required": "Configura primero la moneda en los ajustes generales."

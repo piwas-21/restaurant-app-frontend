@@ -4165,6 +4165,7 @@
     "amount": "Preset",
     "values_hint": "Leave unused presets blank. Use up to six distinct positive values. No tip and Custom amount are always available.",
     "preview": "Preview",
+    "load_failed": "Tip choices could not be loaded. Retry, choose no tip, or enter an amount.",
     "saved": "Tip settings saved.",
     "save_failed": "Could not save tip settings. Try again.",
     "currency_required": "Set the restaurant currency in General settings first."

@@ -4171,6 +4171,7 @@
     "currency_required": "Set the restaurant currency in General settings first."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Table freed. The floor view could not be refreshed. Use Refresh to update it.",
     "confirm": "The guests have left and table {{table}} is cleaned and ready for the next guests.",
     "balance": "Remaining on the previous visit: {{amount}}.",
     "guests_left": "Guests have left"

@@ -4184,6 +4184,7 @@
     "currency_required": "Configura primero la moneda en los ajustes generales."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Mesa liberada. No se pudo actualizar el plano. Pulsa Actualizar para ponerlo al día.",
     "confirm": "Los clientes se han ido y la mesa {{table}} está limpia y lista para los siguientes.",
     "balance": "Saldo de la visita anterior: {{amount}}.",
     "guests_left": "Los clientes se han ido"

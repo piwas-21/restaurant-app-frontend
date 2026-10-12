@@ -4171,6 +4171,7 @@
     "currency_required": "Legen Sie zuerst die Währung in den allgemeinen Einstellungen fest."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Tisch freigegeben. Der Raumplan konnte nicht aktualisiert werden. Bitte Aktualisieren wählen.",
     "confirm": "Die Gäste sind gegangen und Tisch {{table}} ist gereinigt und für die nächsten Gäste bereit.",
     "balance": "Restbetrag des vorherigen Besuchs: {{amount}}.",
     "guests_left": "Gäste sind gegangen"

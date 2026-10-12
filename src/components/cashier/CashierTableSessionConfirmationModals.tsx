@@ -14,6 +14,7 @@ interface Props {
   readonly isMutating: boolean;
   readonly showCloseConfirm: boolean;
   readonly showReleaseConfirm: boolean;
+  readonly releaseError?: string | null;
   readonly onCloseConfirmChange: (open: boolean) => void;
   readonly onReleaseConfirmChange: (open: boolean) => void;
   readonly onConfirmClose: () => void;
@@ -26,6 +27,7 @@ export default function CashierTableSessionConfirmationModals({
   isMutating,
   showCloseConfirm,
   showReleaseConfirm,
+  releaseError,
   onCloseConfirmChange,
   onReleaseConfirmChange,
   onConfirmClose,
@@ -62,6 +64,7 @@ export default function CashierTableSessionConfirmationModals({
       <FreeTableConfirmationModal
         session={session}
         isOpen={showReleaseConfirm}
+        error={releaseError}
         isPending={isMutating}
         onClose={() => onReleaseConfirmChange(false)}
         onConfirm={onConfirmRelease}

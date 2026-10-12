@@ -13,6 +13,9 @@ export default function TipPreferencesTab() {
   if (editor.reader.isLoading && !editor.reader.info) return <output>{t('loading')}</output>;
   if (editor.reader.error || !editor.reader.info)
     return <StaffButton onClick={() => void editor.reader.refetch()}>{t('retry')}</StaffButton>;
+  const fixedFormatter = editor.currency
+    ? new Intl.NumberFormat(i18n.language || 'en', { style: 'currency', currency: editor.currency })
+    : null;
   return (
     <form
       className={styles.form}
@@ -63,14 +66,7 @@ export default function TipPreferencesTab() {
       <div className={styles.preview} aria-label={t('tip_preferences.preview')}>
         <span>{t('no_tip')}</span>
         {editor.preferences.values.map((value) => (
-          <span key={value}>
-            {editor.mode === 'fixed'
-              ? new Intl.NumberFormat(i18n.language || 'en', {
-                  style: 'currency',
-                  currency: editor.currency ?? 'EUR',
-                }).format(value / 100)
-              : `${value}%`}
-          </span>
+          <span key={value}>{editor.mode === 'fixed' ? fixedFormatter?.format(value / 100) : `${value}%`}</span>
         ))}
         <span>{t('custom_tip')}</span>
       </div>

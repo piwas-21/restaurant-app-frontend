@@ -64,6 +64,11 @@ export default function CashierTableSessionPanel({
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [releaseError, setReleaseError] = useState(false);
+  const changeReleaseConfirmation = (open: boolean) => {
+    setReleaseError(false);
+    setShowReleaseConfirm(open);
+  };
   const tableDisplay = sessionTableDisplay(session, t);
   const operationLocked = isMutating || pendingOperation !== null;
   const writesLocked = operationLocked || isStale || recoveryOperationPending;
@@ -87,11 +92,13 @@ export default function CashierTableSessionPanel({
   };
 
   const confirmRelease = async () => {
+    setReleaseError(false);
     try {
       await onReleaseTable();
+      setReleaseError(false);
       setShowReleaseConfirm(false);
     } catch (_error) {
-      // Keep the confirmation open so staff can review the refusal and try after resolving it.
+      setReleaseError(true);
     }
   };
 
@@ -177,7 +184,7 @@ export default function CashierTableSessionPanel({
         legacyConflict={legacyConflict}
         writesLocked={writesLocked}
         onShowCloseConfirm={() => setShowCloseConfirm(true)}
-        onShowReleaseConfirm={() => setShowReleaseConfirm(true)}
+        onShowReleaseConfirm={() => changeReleaseConfirmation(true)}
       />
       {recoveryTableId && onRecoveryComplete && (
         <TableOccupancyRecoveryAction
@@ -200,8 +207,9 @@ export default function CashierTableSessionPanel({
         isMutating={isMutating || recoveryOperationPending}
         showCloseConfirm={showCloseConfirm}
         showReleaseConfirm={showReleaseConfirm}
+        releaseError={releaseError ? (message ?? t('cashier.tables.release_failed')) : null}
         onCloseConfirmChange={setShowCloseConfirm}
-        onReleaseConfirmChange={setShowReleaseConfirm}
+        onReleaseConfirmChange={changeReleaseConfirmation}
         onConfirmClose={() => void confirmClose()}
         onConfirmRelease={() => void confirmRelease()}
       />

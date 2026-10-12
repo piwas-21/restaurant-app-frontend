@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { TableServiceSessionDto } from '@/types/order';
@@ -327,4 +327,18 @@ describe('CashierTableSessionPanel', () => {
     expect(await screen.findByTestId('recovery-action')).toHaveTextContent('table-stable-7:session-1');
     expect(screen.queryByRole('heading', { name: 'cashier.tables.payment_title' })).not.toBeInTheDocument();
   });
+});
+
+it('shows a failed release inside the confirmation and clears it after a successful retry', async () => {
+  const release = jest.fn().mockRejectedValueOnce(new Error('network failed')).mockResolvedValueOnce(undefined);
+  renderPanel({ ...session, hasUnassignedActiveOrders: false, canReleaseTable: true }, { onReleaseTable: release });
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('cashier.tables.release_failed'),
+  );
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.queryByText('cashier.tables.release_failed')).not.toBeInTheDocument();
+  expect(release).toHaveBeenCalledTimes(2);
 });

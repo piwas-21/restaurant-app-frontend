@@ -4184,6 +4184,7 @@
     "currency_required": "Définissez d’abord la devise dans les paramètres généraux."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Table libérée. Le plan de salle n’a pas pu être actualisé. Utilisez Actualiser pour le mettre à jour.",
     "confirm": "Les clients sont partis et la table {{table}} est nettoyée et prête pour les suivants.",
     "balance": "Solde de la visite précédente : {{amount}}.",
     "guests_left": "Les clients sont partis"

@@ -3,14 +3,20 @@ import TipPreferencesTab from './TipPreferencesTab';
 import { updateTipPreferences } from '@/services/tipPreferencesService';
 
 const mockRefetch = jest.fn(async () => undefined);
-const mockInfo = { currency: 'EUR', tipPreferences: { mode: 'percentage', values: [10, 15, 20], currency: null } };
+const mockInfo = {
+  currency: 'EUR' as string | null,
+  tipPreferences: { mode: 'percentage', values: [10, 15, 20], currency: null },
+};
 jest.mock('@/hooks/useRestaurantInfo', () => ({
   useRestaurantInfo: () => ({ info: mockInfo, isLoading: false, error: null, refetch: mockRefetch }),
 }));
 jest.mock('@/services/tipPreferencesService', () => ({ updateTipPreferences: jest.fn() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'fr' } }) }));
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockInfo.currency = 'EUR';
+});
 
 it('saves admin-selected EUR 1/2/3/4 as exact minor units and refreshes the public preference cache', async () => {
   jest.mocked(updateTipPreferences).mockResolvedValue({
@@ -54,4 +60,13 @@ it('accepts an optional sixth preset while intermediate preset fields stay empty
       currency: 'EUR',
     }),
   );
+});
+
+it('requires the configured restaurant currency before saving or previewing fixed tips', () => {
+  mockInfo.currency = null;
+  render(<TipPreferencesTab />);
+  fireEvent.click(screen.getByRole('radio', { name: 'tip_preferences.fixed' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('tip_preferences.currency_required');
+  expect(screen.getByRole('button', { name: 'save' })).toBeDisabled();
+  expect(screen.getByLabelText('tip_preferences.preview')).not.toHaveTextContent('€');
 });

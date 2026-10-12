@@ -4171,6 +4171,7 @@
     "currency_required": "Stel eerst de valuta in bij Algemene instellingen."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Tafel vrijgegeven. De zaalweergave kon niet worden vernieuwd. Kies Vernieuwen om deze bij te werken.",
     "confirm": "De gasten zijn vertrokken en tafel {{table}} is schoongemaakt en klaar voor nieuwe gasten.",
     "balance": "Resterend op het vorige bezoek: {{amount}}.",
     "guests_left": "Gasten zijn vertrokken"

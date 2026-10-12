@@ -25,7 +25,9 @@ interface ServerTableBillWorkspaceProps {
 
 function safeError(error: string | null, t: (key: string) => string): string | null {
   if (!error) return null;
-  return error.startsWith('server.') || error.startsWith('cashier.') ? t(error) : error;
+  return error.startsWith('server.') || error.startsWith('cashier.') || error.startsWith('staff_table_reuse.')
+    ? t(error)
+    : error;
 }
 
 export default function ServerTableBillWorkspace({
@@ -62,7 +64,7 @@ export default function ServerTableBillWorkspace({
         {t('server.bill.title')}
       </h2>
 
-      {releaseError && !showRelease && <p role="alert">{t('cashier.tables.release_failed')}</p>}
+      {releaseError && !showRelease && !error && <p role="alert">{t('cashier.tables.release_failed')}</p>}
       {error && (
         <div className={styles.error} role="alert">
           {error}
@@ -84,7 +86,7 @@ export default function ServerTableBillWorkspace({
         session={session}
         isOpen={showRelease}
         isPending={actions.isMutating}
-        error={releaseError ? t('cashier.tables.release_failed') : error}
+        error={releaseError ? (error ?? t('cashier.tables.release_failed')) : null}
         onClose={() => setShowRelease(false)}
         onConfirm={() => {
           setReleaseError(false);

@@ -4171,6 +4171,7 @@
     "currency_required": "Önce Genel ayarlarda restoranın para birimini belirleyin."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Masa boşaltıldı. Salon görünümü yenilenemedi. Güncellemek için Yenile’yi seçin.",
     "confirm": "Misafirler ayrıldı; {{table}} masası temiz ve yeni misafirlere hazır.",
     "balance": "Önceki ziyaretin kalan tutarı: {{amount}}.",
     "guests_left": "Misafirler ayrıldı"

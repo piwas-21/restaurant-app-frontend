@@ -4184,6 +4184,7 @@
     "currency_required": "Imposta prima la valuta nelle impostazioni generali."
   },
   "staff_table_reuse": {
+    "refresh_failed": "Tavolo liberato. Impossibile aggiornare la pianta. Premi Aggiorna per aggiornarla.",
     "confirm": "I clienti sono andati via e il tavolo {{table}} è pulito e pronto per i prossimi ospiti.",
     "balance": "Saldo della visita precedente: {{amount}}.",
     "guests_left": "I clienti sono andati via"

@@ -4158,6 +4158,7 @@
     "currency_required": "请先在常规设置中设置餐厅货币。"
   },
   "staff_table_reuse": {
+    "refresh_failed": "餐桌已释放。无法刷新餐厅平面图，请点击刷新以更新。",
     "confirm": "客人已离开，{{table}}号桌已清洁，可接待下一批客人。",
     "balance": "上次用餐的剩余金额：{{amount}}。",
     "guests_left": "客人已离开"

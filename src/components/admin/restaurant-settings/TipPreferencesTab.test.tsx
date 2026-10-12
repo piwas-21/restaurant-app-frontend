@@ -40,3 +40,18 @@ it('blocks duplicates and accepts a decimal-comma fixed amount', () => {
   expect(screen.getByRole('button', { name: 'save' })).toBeEnabled();
   expect(screen.getByLabelText('tip_preferences.preview')).toHaveTextContent('1,25');
 });
+
+it('accepts an optional sixth preset while intermediate preset fields stay empty', async () => {
+  render(<TipPreferencesTab />);
+  fireEvent.click(screen.getByRole('radio', { name: 'tip_preferences.fixed' }));
+  fireEvent.change(screen.getAllByRole('textbox')[5], { target: { value: '6' } });
+  expect(screen.getByRole('button', { name: 'save' })).toBeEnabled();
+  fireEvent.click(screen.getByRole('button', { name: 'save' }));
+  await waitFor(() =>
+    expect(updateTipPreferences).toHaveBeenCalledWith({
+      mode: 'fixed',
+      values: [100, 200, 300, 400, 600],
+      currency: 'EUR',
+    }),
+  );
+});

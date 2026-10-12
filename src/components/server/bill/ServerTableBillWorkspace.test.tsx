@@ -226,3 +226,31 @@ it('frees an unpaid table without forcing financial or kitchen closure', async (
   expect(releaseTable).toHaveBeenCalledTimes(1);
   expect(closeSession).not.toHaveBeenCalled();
 });
+
+it('keeps a release failure visible inside the confirmation without closing the visit', async () => {
+  const releasable = { ...session, canReleaseTable: true };
+  releaseTable.mockRejectedValueOnce(new Error('release failed'));
+  mockState(releasable);
+  render(<ServerTableBillWorkspace session={releasable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('cashier.tables.release_failed'),
+  );
+  expect(closeSession).not.toHaveBeenCalled();
+});
+
+it('clears a previous release error when retrying successfully in the same confirmation', async () => {
+  const releasable = { ...session, canReleaseTable: true };
+  releaseTable.mockRejectedValueOnce(new Error('release failed')).mockResolvedValueOnce(undefined);
+  mockState(releasable);
+  render(<ServerTableBillWorkspace session={releasable} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.release_table' }));
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() =>
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('cashier.tables.release_failed'),
+  );
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cashier.tables.release_table' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.queryByText('cashier.tables.release_failed')).not.toBeInTheDocument();
+});

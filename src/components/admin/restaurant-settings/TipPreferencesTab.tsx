@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useTipPreferencesEditor } from '@/hooks/admin/useTipPreferencesEditor';
+import { MAX_TIP_PRESETS } from './tipPreferencesSchema';
 import styles from './TipPreferencesTab.module.css';
 
 export default function TipPreferencesTab() {
@@ -38,7 +39,7 @@ export default function TipPreferencesTab() {
       </fieldset>
       {editor.mode === 'fixed' && !editor.currency && <p role="alert">{t('tip_preferences.currency_required')}</p>}
       <div className={styles.values}>
-        {Array.from({ length: 6 }, (_, index) => (
+        {Array.from({ length: MAX_TIP_PRESETS }, (_, index) => (
           <FormField
             key={index}
             label={`${t('tip_preferences.amount')} ${index + 1} · ${editor.mode === 'fixed' ? (editor.currency ?? '') : '%'}`}

@@ -40,6 +40,7 @@ export default function ServerTableBillWorkspace({
   const canStartCollection = useServerAccountCollectionCapability(session);
   const [showRelease, setShowRelease] = useState(false);
   const [showClose, setShowClose] = useState(false);
+  const [releaseError, setReleaseError] = useState(false);
   const [printNotice, setPrintNotice] = useState(false);
   const writesLocked = actionsBlocked || actions.isStale || actions.isMutating;
   const error = safeError(actions.error, t);
@@ -61,6 +62,7 @@ export default function ServerTableBillWorkspace({
         {t('server.bill.title')}
       </h2>
 
+      {releaseError && !showRelease && <p role="alert">{t('cashier.tables.release_failed')}</p>}
       {error && (
         <div className={styles.error} role="alert">
           {error}
@@ -82,19 +84,27 @@ export default function ServerTableBillWorkspace({
         session={session}
         isOpen={showRelease}
         isPending={actions.isMutating}
+        error={releaseError ? t('cashier.tables.release_failed') : error}
         onClose={() => setShowRelease(false)}
         onConfirm={() => {
+          setReleaseError(false);
           void actions
             .releaseTable()
-            .then(() => setShowRelease(false))
-            .catch(() => undefined);
+            .then(() => {
+              setReleaseError(false);
+              setShowRelease(false);
+            })
+            .catch(() => setReleaseError(true));
         }}
       />
       <div className={styles.actions}>
         {session.status === 'Open' && !session.isTableReleased && (
           <StaffButton
             variant="secondary"
-            onClick={() => setShowRelease(true)}
+            onClick={() => {
+              setReleaseError(false);
+              setShowRelease(true);
+            }}
             disabled={writesLocked || !session.canReleaseTable}
           >
             {t('cashier.tables.release_table')}

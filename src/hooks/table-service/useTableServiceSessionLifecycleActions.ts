@@ -156,7 +156,7 @@ export function useTableServiceSessionLifecycleActions({
   const executeRelease = useCallback(
     () =>
       executeLifecycleAction(
-        (id, expectedVersion) => releaseTableServiceSession(id, { expectedVersion }),
+        (id, expectedVersion) => releaseTableServiceSession(id, { expectedVersion, markReady: true }),
         'cashier.tables.release_failed',
       ),
     [executeLifecycleAction],

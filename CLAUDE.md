@@ -209,7 +209,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 ## §7 — Quality gates (all blocking; source of truth `.github/workflows/ci.yml` + `.pre-commit-config.yaml`)
 
-- **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`).
+- **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`). On a busy shared machine, `JEST_MAX_WORKERS=2 git push` caps test concurrency without changing the test set or timeouts.
 - **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy **filesystem** scan (misconfig + secrets, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's deduplicated page-plus-inherited-layout gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); **provider-hostname URLs** (`provider_host_urls` job: `scripts/check-provider-host-urls.mjs`, hard zero — no file in the tree may offer an `https://` URL on a Netcup box's reverse-DNS name, whose zone we do not control, so it can never serve TLS; #559); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
 - **Weekly** `security-audit.yml` (cron): deep full-tree scans (npm audit + OSV `-r`, retire.js pinned DB, Trivy fs, license drift) — reporting, not a merge blocker; suppress via `.retireignore.json` with justification.
 - **New-dev setup**: `bash scripts/setup_hooks.sh` · `bash scripts/dev-secrets.sh` · `bash scripts/dev-up.sh`.
@@ -264,6 +264,25 @@ main                    ← production RELEASES ONLY; updated solely via a devel
 - **Releases:** open a PR **`develop` → `main`**. Merging it is the release — a merge to `main` auto-builds + deploys to prod. A merge to `develop` publishes the `:staging` image (staging tracks develop).
 - One issue = one branch. Delete branch after merge (`gh pr merge --delete-branch`).
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`, `test/`.
+
+### Preserve release ancestry under strict branch checks
+
+The `main-develop` ruleset requires the PR branch to include its target branch's latest commit.
+A production release creates a merge commit on `main`; identical file trees do not bring that
+commit back to `develop`. A later `develop` → `main` release can therefore be `BEHIND` even
+when its only runtime changes are the intended feature.
+
+After a release, or before promoting a branch that lacks current production ancestry, create a
+`chore/` branch from `develop` in an isolated worktree and merge `origin/main` into it. Review the
+parents and file diff, then open the branch's PR to `develop` through the normal push review and
+CI gates. Merge with the workspace's `scripts/pr-merge-gate.sh`; its backmerge detection retains
+a **merge commit** so production ancestry survives. A squash would discard that relationship.
+Then re-check the release diff and all required gates before merging the `develop` → `main` PR.
+
+Keep the shared clones untouched. Never push directly to `develop` or `main`, weaken branch
+protection, or use `gh pr update-branch` to skip the local review gate. If Sonar reports an
+unanalysed PR scope (`NONE` or no populated conditions), obtain a real analysis before merging;
+an empty issue response alone does not satisfy the gate.
 
 ### Commit messages
 

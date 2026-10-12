@@ -2,6 +2,25 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { useCallback, useState } from 'react';
 import TipSelector from './TipSelector';
 
+const mockRefetch = jest.fn(async () => undefined);
+let mockLoading = false;
+let mockPreferenceError: Error | null = null;
+let mockHasInfo = true;
+jest.mock('@/hooks/useRestaurantInfo', () => ({
+  useRestaurantInfo: () => ({
+    info: mockHasInfo ? { currency: 'CHF' } : null,
+    isLoading: mockLoading,
+    error: mockPreferenceError,
+    refetch: mockRefetch,
+  }),
+}));
+beforeEach(() => {
+  mockLoading = false;
+  mockPreferenceError = null;
+  mockHasInfo = true;
+  mockRefetch.mockClear();
+});
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
@@ -123,4 +142,79 @@ it('does not report validity again for a render that keeps invalid state and cal
   rerender(<TipSelector {...props} />);
 
   expect(onValidityChange).toHaveBeenCalledTimes(1);
+});
+
+it('records fixed EUR presets without percentage calculation or rounding', () => {
+  const change = jest.fn();
+  render(
+    <TipSelector
+      subtotal={73.45}
+      selectedTipAmount={0}
+      onTipChange={change}
+      currency="EUR"
+      locale="fr"
+      preferences={{ mode: 'fixed', values: [100, 200, 300, 400], currency: 'EUR' }}
+    />,
+  );
+  expect(screen.queryByRole('button', { name: /10%/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /2,00/ }));
+  expect(change).toHaveBeenLastCalledWith(2);
+  fireEvent.click(screen.getByRole('button', { name: 'No Tip' }));
+  expect(change).toHaveBeenLastCalledWith(0);
+  expect(screen.getByRole('textbox', { name: 'Enter custom tip amount' })).toBeInTheDocument();
+});
+
+it('never offers fixed EUR presets on an older CHF account', () => {
+  render(
+    <TipSelector
+      subtotal={50}
+      selectedTipAmount={0}
+      onTipChange={jest.fn()}
+      currency="CHF"
+      locale="en"
+      preferences={{ mode: 'fixed', values: [100, 200, 300, 400], currency: 'EUR' }}
+    />,
+  );
+  expect(screen.getAllByRole('button')).toHaveLength(1);
+  expect(screen.getByRole('button', { name: 'No Tip' })).toBeInTheDocument();
+});
+
+it('uses configured percentages rather than the platform defaults', () => {
+  const change = jest.fn();
+  render(
+    <TipSelector
+      subtotal={100}
+      selectedTipAmount={0}
+      onTipChange={change}
+      currency="EUR"
+      locale="en"
+      preferences={{ mode: 'percentage', values: [5, 8], currency: null }}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: /8%/ }));
+  expect(change).toHaveBeenLastCalledWith(8);
+  expect(screen.queryByRole('button', { name: /15%/ })).not.toBeInTheDocument();
+});
+
+it('does not show percentage defaults while tenant preferences are still loading', () => {
+  mockLoading = true;
+  mockHasInfo = false;
+  render(<TipSelector subtotal={15} selectedTipAmount={0} onTipChange={jest.fn()} currency="EUR" locale="en" />);
+  expect(screen.getByRole('status')).toHaveTextContent('loading');
+  expect(screen.queryByRole('button', { name: /10%/ })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'No Tip' })).toBeEnabled();
+  expect(screen.getByLabelText('Enter custom tip amount')).toBeEnabled();
+});
+
+it('shows a retry when preferences fail while leaving an exact custom tip available', () => {
+  mockHasInfo = false;
+  mockPreferenceError = new Error('network unavailable');
+  const change = jest.fn();
+  render(<TipSelector subtotal={15} selectedTipAmount={0} onTipChange={change} currency="EUR" locale="en" />);
+  expect(screen.getByRole('alert')).toHaveTextContent('tip_preferences.load_failed');
+  expect(screen.queryByRole('button', { name: /10%/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'retry' }));
+  expect(mockRefetch).toHaveBeenCalledTimes(1);
+  fireEvent.change(screen.getByLabelText('Enter custom tip amount'), { target: { value: '2' } });
+  expect(change).toHaveBeenLastCalledWith(2);
 });

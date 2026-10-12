@@ -25,6 +25,7 @@ interface SheetFooterProps {
    */
   confirmLabel?: string;
   onConfirm?: () => void;
+  allowEarlyAdd?: boolean;
 }
 
 /**
@@ -47,6 +48,7 @@ export default function SheetFooter({
   blockedMessage,
   confirmLabel,
   onConfirm,
+  allowEarlyAdd = false,
 }: Readonly<SheetFooterProps>) {
   const { t } = useTranslation();
 
@@ -79,10 +81,20 @@ export default function SheetFooter({
             <span className={styles.totalLabel}>{t('total')}</span>
             {amount}
           </p>
-          <button type="button" className={styles.primary} onClick={onContinue}>
+          <button type="button" className={allowEarlyAdd ? styles.secondary : styles.primary} onClick={onContinue}>
             {continueLabel}
           </button>
         </div>
+        {allowEarlyAdd && !confirmLabel && (
+          <button
+            type="button"
+            className={`${styles.primary} ${styles.earlyAdd}`}
+            onClick={onAdd}
+            disabled={isSubmitting}
+          >
+            {t('customer_cta_add_to_basket')} • {amount}
+          </button>
+        )}
         {announcement}
       </div>
     );

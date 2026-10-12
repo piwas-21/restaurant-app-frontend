@@ -171,6 +171,7 @@ export default function FloorPlanGuestMap({
             }}
             onPointerUp={viewport.stageHandlers.onPointerUp}
             onPointerCancel={viewport.stageHandlers.onPointerCancel}
+            onClickCapture={viewport.stageHandlers.onClickCapture}
             onPointerLeave={hover.onStagePointerLeave}
           >
             <FloorPlanScene

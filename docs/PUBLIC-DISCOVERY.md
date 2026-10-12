@@ -26,6 +26,12 @@ does not remount cart, checkout, session or authentication state. All tenant UI 
 physical `/{locale}/...` route. Middleware overwrites its internal locale header from a supported
 path, so request headers cannot spoof it. Arabic has `dir="rtl"` in the initial response.
 
+The production-output browser contract also checks shared admin navigation: at 768px, 1024px and
+1280px, the User menu drawer opens and closes while keeping language, theme and logout reachable.
+At 1281px and 1366px, those controls remain available in the desktop row. Restaurant settings and
+the Tips tab fit the page at 768px, 1024px, 1280px, 1281px and 1366px, with the narrow tab strip scrolling inside
+its own bounds. Public customer navigation keeps its separate template breakpoint checks.
+
 Locale priority is explicit URL, the versioned essential preference cookie `tenant_locale_v1`,
 weighted `Accept-Language`, then the tenant public default. The detector-managed legacy
 `i18nextLng` value is not treated as a manual choice because an earlier tenant default may have

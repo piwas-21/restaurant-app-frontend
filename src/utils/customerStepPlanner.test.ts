@@ -579,3 +579,50 @@ describe('customer step planner', () => {
     expect(deselectedSteps.map((step) => step.kind)).toEqual(['section']);
   });
 });
+
+it('compacts six legacy side screens without losing any required association or authored label', () => {
+  const sides = Array.from({ length: 6 }, (_, index) => ({
+    id: `side-${index}`,
+    sideItemProductId: `product-${index}`,
+    sideItemProductName: `Side ${index}`,
+    sideItemBasePrice: index + 1,
+    sideItemProductType: 'sideItem' as const,
+    isRequired: index === 5,
+    displayOrder: index,
+  }));
+  const dish = sectionItem('dish', 'kebab', { isDefault: true, suggestedSideItems: sides });
+  const dishes = section('dishes', 'Plat', 0, [dish], true);
+  const manifest: CustomerStepManifest = {
+    schemaVersion: 1,
+    revision: 4,
+    steps: [
+      { kind: 'BundleSection', targetId: 'dishes', compositionRole: 'RequiredChoice', presentationOrder: 0 },
+      ...sides.map((side, index): CustomerStepDescriptor => ({
+        kind: 'BundleComponentSide',
+        sectionId: 'dishes',
+        sectionItemId: 'dish',
+        productId: 'kebab',
+        scopeId: side.id,
+        compositionRole: 'Side',
+        presentationOrder: index + 1,
+      })),
+    ],
+  };
+  const selected = [{ sectionId: 'dishes', itemId: 'kebab', menuSectionItemId: 'dish', quantity: 1 }];
+  const steps = buildMixedBundleSteps([dishes], manifest, selected);
+  const sideSteps = steps.filter((step) => step.kind === 'sides');
+  expect(sideSteps).toHaveLength(1);
+  expect(sideSteps[0].sideItemIds).toEqual(sides.map((side) => side.id));
+  expect(sideSteps[0].requiredSideItemIds).toEqual(['side-5']);
+  expect(sideSteps[0].isRequired).toBe(true);
+  expect(
+    stepBlocker(sideSteps[0], { selectedVariationId: null, selectedIngredients: [], selectedOptions: selected }),
+  ).not.toBeNull();
+  const labelled: CustomerStepManifest = {
+    ...manifest,
+    steps: manifest.steps.map((step, index) =>
+      index === 2 ? { ...step, presentationLabel: 'Choose a special side' } : step,
+    ),
+  };
+  expect(buildMixedBundleSteps([dishes], labelled, selected).filter((step) => step.kind === 'sides')).toHaveLength(2);
+});

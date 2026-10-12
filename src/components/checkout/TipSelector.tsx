@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { parseCurrencyAmountMinor } from '@/lib/accountPaymentMoney';
 import { TENANT_CURRENCY, TENANT_LOCALE, formatCurrency } from '@/utils/currency';
+import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import type { TipPreferences } from '@/types/tipPreferences';
 import defaultStyles from './TipSelector.module.css';
 
 interface TipSelectorProps {
+  readonly preferences?: TipPreferences;
   readonly subtotal: number;
   readonly selectedTipAmount: number;
   readonly onTipChange: (amount: number) => void;
@@ -21,7 +24,7 @@ interface TipSelectorProps {
   readonly styles?: Readonly<Record<string, string>>;
 }
 
-type TipOption = 'none' | 10 | 15 | 20 | 'custom';
+type TipOption = 'none' | number | 'custom';
 
 function roundTipMinor(amountMinor: number): number {
   const centsPart = amountMinor % 100;
@@ -42,6 +45,7 @@ function formatCustomTipMinor(amountMinor: number, locale: string): string {
 }
 
 export default function TipSelector({
+  preferences,
   subtotal,
   selectedTipAmount,
   onTipChange,
@@ -60,9 +64,21 @@ export default function TipSelector({
   const validityCallbackRef = useRef(onValidityChange);
   const subtotalMinor = Number.isFinite(subtotal) ? Math.max(0, Math.round(subtotal * 100)) : 0;
   const selectedTipMinor = Number.isFinite(selectedTipAmount) ? Math.max(0, Math.round(selectedTipAmount * 100)) : 0;
-  const tip10 = percentageTipMinor(subtotalMinor, 10);
-  const tip15 = percentageTipMinor(subtotalMinor, 15);
-  const tip20 = percentageTipMinor(subtotalMinor, 20);
+  const { info, isLoading, error: preferenceError, refetch } = useRestaurantInfo();
+  const presetsReady = preferences !== undefined || (info != null && !preferenceError);
+  const preferencesLoading = preferences === undefined && isLoading;
+  const preferencesUnavailable = preferences === undefined && !isLoading && (!info || preferenceError);
+  const configured = preferences ?? info?.tipPreferences;
+  const fixed = configured?.mode === 'fixed';
+  const presetOptions = useMemo(() => {
+    if (!presetsReady) return [];
+    const values = configured?.values ?? [10, 15, 20];
+    const availablePresets = fixed && configured?.currency !== currency ? [] : values;
+    return availablePresets.map((value) => ({
+      option: value,
+      amount: fixed ? value : percentageTipMinor(subtotalMinor, value),
+    }));
+  }, [configured, currency, fixed, presetsReady, subtotalMinor]);
   const formatPrice = (minor: number) => formatCurrency(minor / 100, locale, currency);
 
   useEffect(() => {
@@ -78,14 +94,8 @@ export default function TipSelector({
     if (selectedTipMinor === 0) {
       setSelectedOption('none');
       setCustomAmount('');
-    } else if (selectedTipMinor === tip10) {
-      setSelectedOption(10);
-      setCustomAmount(formatCustomTipMinor(selectedTipMinor, locale));
-    } else if (selectedTipMinor === tip15) {
-      setSelectedOption(15);
-      setCustomAmount(formatCustomTipMinor(selectedTipMinor, locale));
-    } else if (selectedTipMinor === tip20) {
-      setSelectedOption(20);
+    } else if (presetOptions.some((option) => option.amount === selectedTipMinor)) {
+      setSelectedOption(presetOptions.find((option) => option.amount === selectedTipMinor)?.option ?? 'custom');
       setCustomAmount(formatCustomTipMinor(selectedTipMinor, locale));
     } else {
       setSelectedOption('custom');
@@ -97,7 +107,7 @@ export default function TipSelector({
         }).format(selectedTipMinor / 100),
       );
     }
-  }, [customAmountInvalid, locale, selectedTipMinor, tip10, tip15, tip20]);
+  }, [customAmountInvalid, locale, selectedTipMinor, presetOptions]);
 
   const handleOptionClick = (option: TipOption) => {
     if (disabled) return;
@@ -110,7 +120,7 @@ export default function TipSelector({
       setCustomAmount(selectedTipMinor === 0 ? '' : formatCustomTipMinor(selectedTipMinor, locale));
       setCustomAmountInvalid(false);
     } else {
-      const amount = percentageTipMinor(subtotalMinor, option);
+      const amount = presetOptions.find((preset) => preset.option === option)?.amount ?? 0;
       onTipChange(amount / 100);
       setCustomAmount(formatCustomTipMinor(amount, locale));
       setCustomAmountInvalid(false);
@@ -143,24 +153,34 @@ export default function TipSelector({
         </div>
         <span className={styles.optionalBadge}>{t('tip_optional', 'Optional')}</span>
       </div>
+      {preferencesLoading && <output aria-live="polite">{t('loading')}</output>}
+      {preferencesUnavailable && (
+        <div role="alert">
+          <p>{t('tip_preferences.load_failed')}</p>
+          <button type="button" className={styles.tipButton} disabled={disabled} onClick={() => void refetch()}>
+            {t('retry')}
+          </button>
+        </div>
+      )}
       <div className={styles.tipOptions}>
         {[
           { option: 'none' as const, label: t('no_tip', 'No Tip'), amount: 0 },
-          { option: 10 as const, label: '10%', amount: tip10 },
-          { option: 15 as const, label: '15%', amount: tip15 },
-          { option: 20 as const, label: '20%', amount: tip20 },
+          ...presetOptions.map((preset) => ({
+            ...preset,
+            label: fixed ? formatPrice(preset.amount) : `${preset.option}%`,
+          })),
         ].map(({ option, label, amount }) => (
           <button
             key={option}
             type="button"
             className={`${styles.tipButton} ${selectedOption === option ? styles.selected : ''}`}
             onClick={() => handleOptionClick(option)}
-            aria-label={option === 'none' ? label : `${label} ${formatPrice(amount)}`}
+            aria-label={option === 'none' || fixed ? label : `${label} ${formatPrice(amount)}`}
             aria-pressed={selectedOption === option}
             disabled={disabled}
           >
             <span className={option === 'none' ? styles.tipLabel : styles.tipPercentage}>{label}</span>
-            {option !== 'none' && <span className={styles.tipAmount}>{formatPrice(amount)}</span>}
+            {option !== 'none' && !fixed && <span className={styles.tipAmount}>{formatPrice(amount)}</span>}
           </button>
         ))}
       </div>

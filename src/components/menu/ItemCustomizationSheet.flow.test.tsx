@@ -218,11 +218,19 @@ describe('the flow is CONDITIONAL — a simple item must not pay for the complex
     // blocks below it in the same scroll is not rendered at all.
     expect(screen.getByRole('radio', { name: /Large/ })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /Onion/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
   });
 });
 
 describe('the required-step gate', () => {
+  it('early Add jumps to an unanswered required sauce and never commits an invalid item', async () => {
+    await openSheet(GATED);
+    fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
+    expect(mockAddItem).not.toHaveBeenCalled();
+    expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
+  });
+
   /**
    * Continue is never disabled — a disabled control explains nothing (#208) — so the refusal has to
    * SAY something. Nothing on arrival, a reason once the guest presses it.

@@ -19,6 +19,7 @@ interface ServerTableBillActions {
   readonly requestHandoff: () => Promise<void>;
   readonly cancelHandoff: () => Promise<void>;
   readonly closeSession: () => Promise<void>;
+  readonly releaseTable: () => Promise<void>;
   readonly reconcilePendingOperation: () => Promise<void>;
   readonly refresh: () => Promise<void>;
 }
@@ -42,6 +43,7 @@ export function useServerTableBillActions(
   const isSessionMutating = shared.isMutating;
   const [mutationSession, setMutationSession] = useState<TableServiceSessionDto | null>(null);
   const [handoffMutating, setHandoffMutating] = useState(false);
+  const [releaseRefreshError, setReleaseRefreshError] = useState<string | null>(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const requestOperationRef = useRef<string | null>(null);
   const cancelOperationRef = useRef<string | null>(null);
@@ -52,6 +54,7 @@ export function useServerTableBillActions(
 
   useEffect(() => {
     setMutationSession(null);
+    setReleaseRefreshError(null);
     setHandoffError(null);
     requestOperationRef.current = null;
     cancelOperationRef.current = null;
@@ -65,6 +68,7 @@ export function useServerTableBillActions(
 
   const refresh = useCallback(async () => {
     await Promise.all([shared.refresh(), refreshWorkspace()]);
+    setReleaseRefreshError(null);
   }, [refreshWorkspace, shared]);
 
   const runHandoff = useCallback(
@@ -104,15 +108,28 @@ export function useServerTableBillActions(
     await refreshWorkspace();
   }, [refreshWorkspace, shared]);
 
+  const releaseTable = useCallback(async () => {
+    setHandoffError(null);
+    setReleaseRefreshError(null);
+    const result = await shared.releaseTable();
+    setMutationSession(result);
+    try {
+      await refreshWorkspace();
+    } catch (_error: unknown) {
+      setReleaseRefreshError('staff_table_reuse.refresh_failed');
+    }
+  }, [refreshWorkspace, shared]);
+
   return {
     session,
     isLoading: shared.isLoading,
     isMutating: shared.isMutating || handoffMutating,
     isStale: shared.isStale,
-    error: handoffError ?? shared.error,
+    error: handoffError ?? shared.error ?? releaseRefreshError,
     requestHandoff: () => runHandoff('request'),
     cancelHandoff: () => runHandoff('cancel'),
     closeSession,
+    releaseTable,
     reconcilePendingOperation: shared.reconcilePendingOperation,
     refresh,
   };

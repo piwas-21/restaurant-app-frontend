@@ -31,7 +31,6 @@
     "unit_range": "Adetler {{first}}–{{last}}",
     "scope_unavailable": "Bu katkının sabitlenmiş kaynak ürünleri kullanılamıyor veya tahsisatla eşleşmiyor. Tahsilat devre dışı; hesabı yenileyin ya da işlem sonucunu kontrol edin.",
     "expired": "Bu inceleme veya rezervasyonun süresi doldu. Sonucu kontrol edin; yalnızca para alınmadıysa serbest bırakın.",
-    "reserve": "İncelenen katkıyı onayla",
     "record_cash_received": "Alınan nakdi kaydet",
     "record_terminal_payment": "Terminal ödemesini kaydet",
     "no_money_collected": "Bu katkı için hiç para alınmadığını onaylıyorum.",

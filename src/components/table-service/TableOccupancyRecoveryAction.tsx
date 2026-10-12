@@ -144,7 +144,7 @@ function RecoveryPanel({
   const dateLocale = text.language || 'en';
   if (recovery.stage === 'idle' && !enabled) return null;
   return (
-    <section className={styles.panel} aria-label={t('accountPayments.recovery.title')}>
+    <section id="table-occupancy-recovery" className={styles.panel} aria-label={t('accountPayments.recovery.title')}>
       <h2>{t('accountPayments.recovery.title')}</h2>
       <p>{t('accountPayments.recovery.intro')}</p>
       {(!enabled || disabled) && recovery.stage !== 'idle' && <p>{t('accountPayments.recovery.disabled_recovery')}</p>}

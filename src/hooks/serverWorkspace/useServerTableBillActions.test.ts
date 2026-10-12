@@ -102,3 +102,22 @@ describe('useServerTableBillActions', () => {
     expect(result.current.error).toBe('server.bill.operation_failed');
   });
 });
+
+it('retains a committed release when only the floor refresh fails and clears that notice after refresh', async () => {
+  const released = { ...session('session-1', 2), isTableReleased: true };
+  const shared = sharedState(session('session-1', 1));
+  const release = jest.fn(async () => released);
+  mockedSharedHook.mockReturnValue({ ...shared, releaseTable: release });
+  const refreshWorkspace = jest.fn().mockRejectedValueOnce(new Error('floor unavailable')).mockResolvedValue(undefined);
+  const { result } = renderHook(() => useServerTableBillActions(session('session-1', 1), refreshWorkspace));
+  await act(async () => {
+    await expect(result.current.releaseTable()).resolves.toBeUndefined();
+  });
+  expect(result.current.session?.isTableReleased).toBe(true);
+  expect(result.current.error).toBe('staff_table_reuse.refresh_failed');
+  await act(async () => {
+    await result.current.refresh();
+  });
+  expect(result.current.error).toBeNull();
+  expect(release).toHaveBeenCalledTimes(1);
+});

@@ -13,6 +13,7 @@ import { formatTableMoney } from '@/lib/cashierTableSession';
 import { sessionStatusLabel, sessionTableDisplay } from '@/lib/cashierTableLabels';
 import CashierTableSessionBill from './CashierTableSessionBill';
 import TableAccountPresentation from '@/components/table-service/TableAccountPresentation';
+import { getErrorMessage } from '@/utils/apiClient';
 import styles from './CashierTableSession.module.css';
 import CashierTableSessionConfirmationModals from './CashierTableSessionConfirmationModals';
 import CashierTableSessionActions from './CashierTableSessionActions';
@@ -64,6 +65,11 @@ export default function CashierTableSessionPanel({
   const { t, i18n } = useTranslation();
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
+  const [releaseError, setReleaseError] = useState<string | null>(null);
+  const changeReleaseConfirmation = (open: boolean) => {
+    setReleaseError(null);
+    setShowReleaseConfirm(open);
+  };
   const tableDisplay = sessionTableDisplay(session, t);
   const operationLocked = isMutating || pendingOperation !== null;
   const writesLocked = operationLocked || isStale || recoveryOperationPending;
@@ -87,11 +93,13 @@ export default function CashierTableSessionPanel({
   };
 
   const confirmRelease = async () => {
+    setReleaseError(null);
     try {
       await onReleaseTable();
+      setReleaseError(null);
       setShowReleaseConfirm(false);
-    } catch (_error) {
-      // Keep the confirmation open so staff can review the refusal and try after resolving it.
+    } catch (reason: unknown) {
+      setReleaseError(displayCashierTableError(getErrorMessage(reason), t) ?? t('cashier.tables.release_failed'));
     }
   };
 
@@ -177,7 +185,7 @@ export default function CashierTableSessionPanel({
         legacyConflict={legacyConflict}
         writesLocked={writesLocked}
         onShowCloseConfirm={() => setShowCloseConfirm(true)}
-        onShowReleaseConfirm={() => setShowReleaseConfirm(true)}
+        onShowReleaseConfirm={() => changeReleaseConfirmation(true)}
       />
       {recoveryTableId && onRecoveryComplete && (
         <TableOccupancyRecoveryAction
@@ -200,8 +208,9 @@ export default function CashierTableSessionPanel({
         isMutating={isMutating || recoveryOperationPending}
         showCloseConfirm={showCloseConfirm}
         showReleaseConfirm={showReleaseConfirm}
+        releaseError={releaseError}
         onCloseConfirmChange={setShowCloseConfirm}
-        onReleaseConfirmChange={setShowReleaseConfirm}
+        onReleaseConfirmChange={changeReleaseConfirmation}
         onConfirmClose={() => void confirmClose()}
         onConfirmRelease={() => void confirmRelease()}
       />

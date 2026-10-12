@@ -376,16 +376,25 @@ function appendBundleSides(
   item: MenuSectionItem,
   order: number,
 ): number {
-  const sides = item.suggestedSideItems ?? [];
-  for (const side of sides)
-    appendBundleStep(
-      steps,
-      sectionId,
-      item,
-      'BundleComponentSide',
-      side.id,
-      side.sideItemProductType === 'beverage' ? 'Drink' : 'Side',
-      order++,
-    );
+  const grouped = new Map<string, NonNullable<MenuSectionItem['suggestedSideItems']>>();
+  for (const side of item.suggestedSideItems ?? []) {
+    const category = side.sideItemProductType === 'beverage' ? 'Drink' : 'Side';
+    const rows = grouped.get(category) ?? [];
+    rows.push(side);
+    grouped.set(category, rows);
+  }
+  for (const [category, sides] of grouped) {
+    for (const side of sides)
+      appendBundleStep(
+        steps,
+        sectionId,
+        item,
+        'BundleComponentSide',
+        side.id,
+        category === 'Drink' ? 'Drink' : 'Side',
+        order,
+      );
+    order++;
+  }
   return order;
 }

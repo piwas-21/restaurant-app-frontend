@@ -2733,7 +2733,6 @@
   "cashier.tables.close_confirm_message": "Servicesessie voor tafel {{table}} sluiten? De server controleert of alle rondes betaald en afgerond zijn.",
   "cashier.tables.close_confirm_title": "Tafelbezoek sluiten",
   "cashier.tables.close_failed": "Het tafelbezoek kon niet worden gesloten. Controleer de huidige rekening.",
-  "cashier.tables.close_not_ready": "Het bezoek kan pas worden gesloten als alle rondes zijn afgerond en het saldo nul is.",
   "cashier.tables.close_unknown": "Het sluitresultaat is onbekend. Start geen nieuw bezoek voordat je deze bewerking hebt gecontroleerd.",
   "cashier.tables.closed_table": "Deze tafel is gesloten. Open haar in de tafelinstellingen voordat je een bezoek start.",
   "cashier.tables.invalid_table": "Voer een geldig tafelnummer in.",
@@ -2993,10 +2992,6 @@
   "server.tasks.session_mismatch": "Deze taak hoort bij een ander tafelbezoek. Vernieuw de takenlijst voordat je doorgaat.",
   "server.bill.title": "Rekening en bezoek",
   "server.bill.operation_failed": "De rekeningactie kon niet worden voltooid. Vernieuw en probeer opnieuw.",
-  "server.bill.close_blocked_handoff": "Rond het kassaverzoek af of annuleer het voordat u dit bezoek sluit.",
-  "server.bill.close_blocked_legacy": "Een beheerder moet niet-toegewezen tafelbestellingen eerst oplossen.",
-  "server.bill.close_blocked_balance": "Incasseer het restbedrag of stuur het naar de kassa voordat u sluit.",
-  "server.bill.close_blocked_rounds": "Alle rondes moeten voltooid of geannuleerd zijn voordat u sluit.",
   "server.bill.close_blocked_kitchen_work": "Bevestig het keukenwerk voordat u dit bezoek sluit.",
   "server.bill.close_blocked_kitchen_correction": "Bevestig de keukencorrectie voordat u dit bezoek sluit.",
   "server.bill.handoff_pending": "Kassa-incasso aangevraagd voor {{amount}}.",
@@ -4068,7 +4063,6 @@
   "cashier.tables.released_status": "Tafel vrijgegeven · bezoek nog betaalbaar",
   "cashier.tables.release_table": "Tafel vrijgeven",
   "cashier.tables.release_confirm_title": "Deze tafel vrijgeven?",
-  "cashier.tables.release_confirm_message": "Geef {{table}} vrij voor een nieuw gezelschap. De bestaande bestellingen en het saldo blijven bij dit bezoek horen.",
   "cashier.tables.release_confirm_preserves": "Bestellingen en betalingen blijven bewaard. Werk in behandeling wordt niet naar de keuken of printers gestuurd. Open dit bezoek via Vrijgegeven bezoeken om de betaling te innen.",
   "cashier.tables.release_failed": "De tafel kon niet worden vrijgegeven. Vernieuw het bezoek en probeer het opnieuw.",
   "cashier.tables.payment_flow": "Betaalwijze",
@@ -4161,5 +4155,25 @@
   "customer_preview_step_count": "Stap {{current}} van {{total}}",
   "customer_preview_read_only": "Alleen voorbeeld",
   "customer_preview_bundle_caption": "Menu-bestelvoorbeeld",
-  "customer_preview_item_caption": "Artikelbestelvoorbeeld"
+  "customer_preview_item_caption": "Artikelbestelvoorbeeld",
+  "tip_preferences": {
+    "title": "Fooien",
+    "description": "Kies de fooiknoppen voor gasten en personeel.",
+    "display": "Fooien weergeven als",
+    "percentage": "Procentuele bedragen",
+    "fixed": "Vaste bedragen",
+    "amount": "Bedrag",
+    "values_hint": "Laat ongebruikte velden leeg. Maximaal zes verschillende positieve waarden. Geen fooi en Eigen bedrag blijven beschikbaar.",
+    "preview": "Voorbeeld",
+    "load_failed": "De fooiopties konden niet worden geladen. Probeer opnieuw, kies geen fooi of voer een bedrag in.",
+    "saved": "Fooi-instellingen opgeslagen.",
+    "save_failed": "Opslaan mislukt. Probeer opnieuw.",
+    "currency_required": "Stel eerst de valuta in bij Algemene instellingen."
+  },
+  "staff_table_reuse": {
+    "refresh_failed": "Tafel vrijgegeven. De zaalweergave kon niet worden vernieuwd. Kies Vernieuwen om deze bij te werken.",
+    "confirm": "De gasten zijn vertrokken en tafel {{table}} is schoongemaakt en klaar voor nieuwe gasten.",
+    "balance": "Resterend op het vorige bezoek: {{amount}}.",
+    "guests_left": "Gasten zijn vertrokken"
+  }
 }

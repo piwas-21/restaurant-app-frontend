@@ -41,6 +41,7 @@ function ZoneMap({ document, states, formatTableLabel, onSelectTable }: Readonly
         onPointerMove={viewport.stageHandlers.onPointerMove}
         onPointerUp={viewport.stageHandlers.onPointerUp}
         onPointerCancel={viewport.stageHandlers.onPointerCancel}
+        onClickCapture={viewport.stageHandlers.onClickCapture}
       >
         <FloorPlanScene
           document={document}

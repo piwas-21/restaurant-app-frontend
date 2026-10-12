@@ -1,5 +1,9 @@
 /* src/app/styles/Header.module.css */
 
+.brandLink {
+  min-width: 0;
+}
+
 .navLinksContainer {
   display: flex; /* Default for desktop: links in a row */
   gap: 1rem;
@@ -75,8 +79,8 @@
   opacity: 1;
 }
 
-/* Mobile navigation belongs to the shared chrome below the public tablet breakpoint. */
-@media (max-width: 768px) {
+/* Shared navigation stays compact through small PC widths so translated links fit. */
+@media (max-width: 1280px) {
   /* Adjust cart badge position for mobile menu */
   .cartBadge {
     position: relative;
@@ -292,7 +296,7 @@
 }
 
 /* Desktop shared chrome styles. Public customer chrome applies its own scoped tablet override. */
-@media (min-width: 1025px) {
+@media (min-width: 1281px) {
   .navLinksContainer {
     display: flex !important;
     flex-direction: row !important;

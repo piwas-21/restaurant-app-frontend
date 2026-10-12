@@ -4,6 +4,7 @@ import { activeCustomizationGroups } from './explicitCustomization';
 import { isSauce, toSauceGroupRule } from './sauceGroup';
 import type { CustomizationStep } from './customizationSteps';
 import { STEP_TITLES, type CustomerScreen, type DynamicCustomerScreen } from './customerStepPlanner.shared';
+import { compactBundleSideScreens } from './compactBundleSideScreens';
 import { resolveBundleOptionSelections } from './bundleOptionResolution';
 
 export interface SelectedBundleComponent {
@@ -40,7 +41,9 @@ function projectSelectedComponent(
   selectedComponent: SelectedBundleComponent,
   bySection: ReadonlyMap<string, CustomerScreen>,
 ): DynamicCustomerScreen[] {
-  const matching = screens.filter((screen) => isComponentScreenFor(screen, selectedComponent));
+  const matching = compactBundleSideScreens(
+    screens.filter((screen) => isComponentScreenFor(screen, selectedComponent)),
+  );
   const ownerId = bySection.get(selectedComponent.section.id)?.id;
   const steps = matching.flatMap((screen) => {
     const step = projectComponentScreen(screen, selectedComponent.item, ownerId);
@@ -196,7 +199,7 @@ function projectComponentSides(
   return {
     ...base,
     kind: 'sides',
-    titleKey: STEP_TITLES.BundleComponentSide,
+    titleKey: base.compositionRole === 'Drink' ? 'step_drinks' : STEP_TITLES.BundleComponentSide,
     sideItemIds: sides.map((side) => side.id),
     requiredSideItemIds: sides.filter((side) => side.isRequired).map((side) => side.id),
     isRequired: sides.some((side) => side.isRequired),

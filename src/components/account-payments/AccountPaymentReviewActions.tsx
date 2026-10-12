@@ -71,8 +71,8 @@ function PaymentWriteActions(props: WriteActionProps) {
   return (
     <>
       {props.quoted && !props.unknownWrite && (
-        <StaffButton variant="primary" disabled={!props.canReserve} onClick={() => void props.onReserve()}>
-          {t('accountPayments.reserve')}
+        <StaffButton onClick={() => void props.onReserve()} disabled={!props.canReserve}>
+          {t('continue')}
         </StaffButton>
       )}
       {props.reserved && !props.unknownWrite && (

@@ -114,6 +114,8 @@ describe('native kitchen work cards', () => {
       '2026-10-14',
       '2026-10-15',
     ]);
+    expect(within(cards[0]).getByText('Oct 14, 2026')).toBeInTheDocument();
+    expect(within(cards[1]).getByText('Oct 15, 2026')).toBeInTheDocument();
   });
 
   it('requires an explicit acknowledgement and never labels a manual completion as printed', () => {

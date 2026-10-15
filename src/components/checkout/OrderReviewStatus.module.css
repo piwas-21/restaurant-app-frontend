@@ -82,11 +82,11 @@
   letter-spacing: -0.04em;
   line-height: 1;
 }
-.overdue {
-  color: var(--feedback-warning-text) !important;
+.panel .overdue {
+  color: var(--feedback-warning-text);
   display: block;
   font-weight: 650;
-  margin-top: 0.75rem !important;
+  margin-top: 0.75rem;
 }
 .approved {
   background: var(--feedback-success-xlight);

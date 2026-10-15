@@ -7,6 +7,7 @@ import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { useCashierOrderSelection } from '@/hooks/cashier/useCashierOrderSelection';
 import CashierHistoryFilters from './CashierHistoryFilters';
 import CashierReadOnlyDestination from './CashierReadOnlyDestination';
+import CashierPriorDayReview from './CashierPriorDayReview';
 
 export default function CashierHistoryWorkspace() {
   const { t } = useTranslation();
@@ -65,7 +66,23 @@ export default function CashierHistoryWorkspace() {
       statusFilter={filters.statusFilter}
       paymentStatusFilter={filters.paymentStatusFilter}
       orderTypeFilter={filters.orderTypeFilter}
-      additionalFilters={<CashierHistoryFilters filters={filters} />}
+      additionalFilters={
+        <>
+          <CashierHistoryFilters filters={filters} />
+          {filters.range === 'today' && (
+            <CashierPriorDayReview
+              orders={queue.priorDayUnresolvedOrders}
+              dismissingOrderId={queue.dismissingOrderId}
+              error={queue.dismissError ?? queue.priorDayError}
+              hasMore={queue.hasMorePriorDayOrders}
+              isLoadingMore={queue.isLoadingPriorDayPage}
+              onReview={route.navigateWithOrder}
+              onDismiss={queue.dismissPriorDayOrder}
+              onLoadMore={queue.loadMorePriorDayOrders}
+            />
+          )}
+        </>
+      }
       onSelectOrder={route.navigateWithOrder}
       onCollect={route.navigateToCollection}
       onOrderChanged={() => refreshQuietly(queue.refreshOrders)}

@@ -10,6 +10,7 @@ import { useCheckoutReview } from './useCheckoutReview';
 
 let mockOrderType: string = OrderType.Takeaway;
 let mockPaymentMethod: string = PaymentMethod.Cash;
+let mockCheckoutAvailability = { state: 'available', canSubmit: true, isRefreshing: false, refresh: jest.fn() };
 const mockCreateOrderFromBasket = jest.fn();
 const mockPayOnline = jest.fn();
 const mockCreateTableGuestRound = jest.fn();
@@ -72,6 +73,9 @@ jest.mock('@/hooks/orderTypes/useConfirmationFlowConfig', () => ({
 }));
 jest.mock('@/services/orderTypeConfigurationService', () => ({ resolvePublicConfirmationFlow: jest.fn() }));
 jest.mock('./useCheckoutReviewPageView', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('./useCheckoutOrderAvailability', () => ({
+  useCheckoutOrderAvailability: () => mockCheckoutAvailability,
+}));
 jest.mock('./useEffectiveCheckoutPaymentMethod', () => ({
   __esModule: true,
   default: () => ({
@@ -106,6 +110,7 @@ function renderReview(
 describe('useCheckoutReview with an unresolved guest round', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckoutAvailability = { state: 'available', canSubmit: true, isRefreshing: false, refresh: jest.fn() };
   });
 
   it.each([
@@ -147,5 +152,20 @@ describe('useCheckoutReview with an unresolved guest round', () => {
 
     expect(mockCreateOrderFromBasket).toHaveBeenCalledTimes(1);
     expect(mockCreateTableGuestRound).not.toHaveBeenCalled();
+  });
+
+  it('does not submit an ordinary order while current channel availability is unverified', async () => {
+    mockCheckoutAvailability = { state: 'unknown', canSubmit: false, isRefreshing: false, refresh: jest.fn() };
+    const { result } = renderReview(OrderType.Takeaway, PaymentMethod.Cash, {
+      phase: 'notJoined',
+      hasPendingRound: false,
+      hasAcknowledgement: false,
+    });
+
+    await act(async () => result.current.handlePlaceOrder());
+
+    expect(mockBuildOrderCommand).not.toHaveBeenCalled();
+    expect(mockCreateOrderFromBasket).not.toHaveBeenCalled();
+    expect(mockPayOnline).not.toHaveBeenCalled();
   });
 });

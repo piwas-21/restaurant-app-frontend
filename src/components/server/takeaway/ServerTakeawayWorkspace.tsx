@@ -19,6 +19,7 @@ import ServerTakeawayTicket from './ServerTakeawayTicket';
 import styles from './ServerTakeawayWorkspace.module.css';
 import ServerTasksBadge from '@/components/server/tasks/ServerTasksBadge';
 import { serverOrderNavItem } from '@/components/server/serverWorkspaceOrderNav';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 function messageFor(error: string | null, translate: (key: string) => string): string | null {
   if (!error) return null;
@@ -96,12 +97,12 @@ export default function ServerTakeawayWorkspace() {
             <StatusBadge tone="success">{t('staff.operation_committed')}</StatusBadge>
             <p>
               {t('server.takeaway.sent_message', {
-                orderNumber: takeaway.createdOrder.orderNumber ?? takeaway.createdOrder.id,
+                orderNumber: getOrderDisplayNumber(takeaway.createdOrder),
               })}
             </p>
             <p>
               <strong>{t('server.takeaway.order_number')}:</strong>{' '}
-              <span dir="auto">{takeaway.createdOrder.orderNumber ?? takeaway.createdOrder.id}</span>
+              <span dir="auto">{getOrderDisplayNumber(takeaway.createdOrder)}</span>
             </p>
             <div className={styles.successActions}>
               {canCollectPayment && (

@@ -1,10 +1,9 @@
 'use client';
 
 // The guest confirmation screen's live watch (order confirmation flows, plan S3): polls the
-// anonymous guest-status endpoint while the order is still awaiting the restaurant's decision,
-// stops the moment it is decided (Confirmed/Cancelled/Completed) or the tab is hidden, and
-// reports the phase the acknowledgement header renders. Its dedicated rate bucket supports this
-// responsive cadence without competing with a diner's payment-settlement return.
+// anonymous guest-status endpoint while the order awaits a decision and through active preparation,
+// pauses endpoint calls while the tab is hidden, then stops at Ready or a terminal state. Its
+// dedicated rate bucket supports this responsive cadence without competing with payment returns.
 import { useEffect, useRef, useState } from 'react';
 import { getGuestOrderStatus } from '@/services/order/orderQueries';
 import type { GuestOrderStatusDto } from '@/types/order';
@@ -80,8 +79,8 @@ export function useGuestOrderWatch(orderId: string | null, token: string | null)
         }
         await load();
         if (cancelled) return;
-        // The caller re-schedules only while the watch is still meaningful; the effect below
-        // stops this loop once the order is decided.
+        // The caller re-schedules while awaiting a decision or preparing; the effect below stops
+        // after Ready, a terminal status, or an unavailable token.
         schedule();
       }, POLL_INTERVAL_MS);
     };
@@ -93,9 +92,12 @@ export function useGuestOrderWatch(orderId: string | null, token: string | null)
     };
   }, [orderId, token]);
 
-  // Stop once the restaurant decides. The direct flow's legacy PendingApproval still waits on the
-  // customer; acknowledge flow never does and therefore keeps watching that older state.
-  const shouldPoll = phase === 'reviewing' || phase === 'loading';
+  // Keep the customer countdown current while the kitchen works; Ready and terminal states need no
+  // more polling. A legacy direct-flow PendingApproval still waits on the customer.
+  const shouldPoll =
+    phase === 'reviewing' ||
+    phase === 'loading' ||
+    (phase !== 'unavailable' && (status?.status === 'Confirmed' || status?.status === 'Preparing'));
   useEffect(() => {
     if (!shouldPoll && timerRef.current) {
       clearTimeout(timerRef.current);

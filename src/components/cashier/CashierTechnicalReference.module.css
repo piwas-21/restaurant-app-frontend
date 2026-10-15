@@ -1,0 +1,15 @@
+.details {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.details summary {
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding-block: 0.55rem;
+}
+
+.details code {
+  display: block;
+  overflow-wrap: anywhere;
+}

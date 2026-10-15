@@ -14,6 +14,8 @@ export interface CashierHistoryQuery {
   readonly tenantDay?: string;
   readonly tenantStartDay?: string;
   readonly tenantEndDay?: string;
+  /** The single current business day uses the archive endpoint and exposes prior-day reminders. */
+  readonly archiveBusinessDate?: string;
 }
 
 export interface CashierHistoryFilters {

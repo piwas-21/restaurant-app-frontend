@@ -7,6 +7,7 @@ export type TableBillRoundSettlementState = 'EligibleDebt' | 'Settled' | 'Credit
 export interface OrderPermittedActionDto {
   action: string;
   allowed: boolean;
+  targetStatus?: string | null;
   reasonCode?: string | null;
   requiresReason: boolean;
 }

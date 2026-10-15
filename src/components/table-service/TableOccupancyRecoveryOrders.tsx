@@ -4,6 +4,7 @@ import { paymentStatusLabel } from '@/lib/paymentStatus';
 import { recoveryDispositionTranslationKey } from '@/lib/tableOccupancyRecoveryLabels';
 import type { TableOccupancyRecoveryOrder } from '@/types/tableOccupancyRecovery';
 import styles from './TableReadinessAction.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface Props {
   readonly orders: readonly TableOccupancyRecoveryOrder[];
@@ -18,7 +19,7 @@ export default function TableOccupancyRecoveryOrders({ orders, currency, locale,
     <ul className={styles.recoveryOrders}>
       {orders.map((order) => (
         <li key={order.orderId} className={styles.recoveryOrder}>
-          <strong>{order.orderNumber}</strong>
+          <strong>{getOrderDisplayNumber(order)}</strong>
           <span>{t(recoveryDispositionTranslationKey(order.disposition))}</span>
           <span>
             {t('accountPayments.recovery.original_state', {

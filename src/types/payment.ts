@@ -34,6 +34,8 @@ export interface CheckoutSessionDto {
  */
 export interface CheckoutSettlementDto {
   orderNumber: string;
+  dailyOrderNumber?: number;
+  businessDate?: string;
   /** The ORDER's aggregate payment state, not the tender's. Enum NAME, e.g. `Completed`. */
   paymentStatus: string;
   /** Enum NAME, e.g. `Confirmed` / `Cancelled`. */

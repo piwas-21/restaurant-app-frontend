@@ -7,6 +7,7 @@ import { OrderType } from '@/types/order';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
 import { useTableGuestDineInAvailability } from '@/hooks/checkout/useTableGuestDineInAvailability';
+import GuestOrderingUnavailable from './GuestOrderingUnavailable';
 
 const ICON_BY_TYPE: Record<OrderType, React.ReactNode> = {
   [OrderType.DineIn]: <Utensils size={18} />,
@@ -50,6 +51,8 @@ interface OrderTypeToggleShellProps {
   blockerHintId?: string;
   /** Prevents changing order channels while checkout is resolving prerequisites. */
   disabled?: boolean;
+  /** Nested editors reuse the page's current availability read instead of invalidating their host. */
+  refreshAvailabilityOnMount?: boolean;
 }
 
 /**
@@ -69,11 +72,12 @@ export default function OrderTypeToggleShell({
   focusSignal = 0,
   blockerHintId,
   disabled = false,
+  refreshAvailabilityOnMount = true,
 }: Readonly<OrderTypeToggleShellProps>) {
   const { t } = useTranslation();
   const { state } = useOrderType();
-  const { enabled, loading } = useEnabledOrderTypes();
-  const tableGuest = useTableGuestDineInAvailability();
+  const { enabled, loading, confirmed, refresh } = useEnabledOrderTypes({ refreshOnMount: refreshAvailabilityOnMount });
+  const tableGuest = useTableGuestDineInAvailability({ refreshOnMount: refreshAvailabilityOnMount });
   const visibleTypes = tableGuest.active ? enabled.filter((type) => type === OrderType.DineIn) : enabled;
   const groupRef = useRef<HTMLFieldSetElement>(null);
   /** The last signal this actually SERVICED — not the last it was told about. See below. */
@@ -117,11 +121,19 @@ export default function OrderTypeToggleShell({
     );
   }
 
-  if (loading || visibleTypes.length === 0) {
+  if (loading) {
     // While the admin-enabled list is in flight, render a spacer-shaped skeleton
     // so the panel doesn't visibly jump when the buttons arrive. Empty fallback
     // is also OK if every type is disabled.
     return <div className={styles.skeleton} aria-hidden="true" />;
+  }
+
+  if (!confirmed) {
+    return <GuestOrderingUnavailable onRetry={() => void refresh()} reason="unknown" />;
+  }
+
+  if (visibleTypes.length === 0) {
+    return <GuestOrderingUnavailable onRetry={() => void refresh()} reason="closed" />;
   }
 
   return (

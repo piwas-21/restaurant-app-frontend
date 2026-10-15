@@ -31,9 +31,9 @@ function getBlockerMessageKey(
  * The active table visit is bound to Dine-In. Unlike ordinary browsing, it must not fall back to
  * another order type when the public enabled-type read is pending, empty, or unavailable.
  */
-export function useTableGuestDineInAvailability() {
+export function useTableGuestDineInAvailability({ refreshOnMount = true }: { refreshOnMount?: boolean } = {}) {
   const visit = useTableGuestVisit();
-  const { enabled, loading, confirmed, refresh } = useEnabledOrderTypes();
+  const { enabled, loading, confirmed, refresh } = useEnabledOrderTypes({ refreshOnMount });
   const hasStoredState = hasStoredTableGuestState();
   const visitBound = visit.phase === 'active' || (hasStoredState && visit.phase !== 'notJoined');
   const active = visit.phase === 'active';

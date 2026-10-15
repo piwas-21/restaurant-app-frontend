@@ -26,6 +26,7 @@ import { resolvePublicConfirmationFlow } from '@/services/orderTypeConfiguration
 import useTableGuestCheckout from './useTableGuestCheckout';
 import useCheckoutReviewPageView from './useCheckoutReviewPageView';
 import useEffectiveCheckoutPaymentMethod from './useEffectiveCheckoutPaymentMethod';
+import { useCheckoutOrderAvailability } from './useCheckoutOrderAvailability';
 
 export function useCheckoutReview() {
   const { t } = useTranslation();
@@ -33,6 +34,7 @@ export function useCheckoutReview() {
   const { state: checkoutState, clearCheckout, setTipAmount } = useCheckout();
   const { clearOrderType } = useOrderType();
   const { state: cartState, clearCart } = useCart();
+  const orderAvailability = useCheckoutOrderAvailability(checkoutState.orderType);
   // Order-type follow-up modals, hosted so the "Edit" buttons re-open the
   // order-type/contact editor IN PLACE instead of bouncing to /menu.
   const orderTypeFollowUp = useOrderTypeFollowUp();
@@ -66,6 +68,7 @@ export function useCheckoutReview() {
   const handlePlaceOrder = async () => {
     if (tableGuestCheckout.hasPendingRound || tableGuestCheckout.isTableGuestRound) return;
     if (tableGuestCheckout.isTableVisitLoading || tableGuestCheckout.isTableVisitBlocked) return;
+    if (!orderAvailability.canSubmit) return;
 
     setIsSubmitting(true);
     setSubmitError('');
@@ -120,6 +123,7 @@ export function useCheckoutReview() {
       confirmation.setConfirmedOrder({
         id: createdOrder.id,
         orderNumber: createdOrder.orderNumber,
+        dailyOrderNumber: createdOrder.dailyOrderNumber,
         customerEmail: checkoutState.customerInfo?.email || '',
         paymentMethod: effectivePaymentMethod,
         guestStatusToken: createdOrder.guestStatusToken,
@@ -189,5 +193,6 @@ export function useCheckoutReview() {
     formatPrice,
     formatTotal,
     isLoading: tableGuestCheckout.isLoading,
+    orderAvailability,
   };
 }

@@ -204,6 +204,25 @@ describe('useCashierOrders — refreshOrders reports its outcome', () => {
 });
 
 describe('useCashierOrders — snapshot availability and races', () => {
+  it('waits for a server tenant day before loading the active queue', async () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useCashierOrders({ tenantDay: '2026-10-15', page: 1, pageSize: 50 }, undefined, enabled),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(mockGetCashierOrderGroups).not.toHaveBeenCalled();
+    expect(result.current.queueState).toBe('unavailable');
+    rerender({ enabled: true });
+
+    await waitFor(() => expect(mockGetCashierOrderGroups).toHaveBeenCalledTimes(1));
+    expect(mockGetCashierOrderGroups).toHaveBeenCalledWith({
+      tenantDay: '2026-10-15',
+      page: 1,
+      pageSize: 50,
+      scope: 'Operational',
+    });
+  });
+
   it('reports unavailable when the first snapshot fails', async () => {
     mockGetCashierOrderGroups.mockRejectedValueOnce(new ApiError(503, 'Till unavailable'));
     const { result } = renderHook(() => useCashierOrders());

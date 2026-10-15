@@ -9,6 +9,7 @@ import { formatTableMoney } from '@/lib/cashierTableSession';
 import TableAccountTotals from './TableAccountTotals';
 import panelStyles from './TableAccountItemsPanel.module.css';
 import styles from './TableAccountWorkspace.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 type RefundLabel = 'refunded' | 'partially_refunded';
 
@@ -82,7 +83,9 @@ export default function TableAccountItemsPanel({ session }: Readonly<{ session: 
                     {item.variationName ? ` — ${item.variationName}` : ''}
                   </strong>
                   <span className={styles.orderRef} dir="auto">
-                    {t('cashier.tables.account_order', { order: entry.orderNumber })}
+                    {t('cashier.tables.account_order', {
+                      order: getOrderDisplayNumber(ordersById.get(entry.orderId) ?? { orderNumber: entry.orderNumber }),
+                    })}
                   </span>
                   {refundLabel && (
                     <StatusBadge tone="danger">{t(`cashier.tables.account_order_${refundLabel}`)}</StatusBadge>

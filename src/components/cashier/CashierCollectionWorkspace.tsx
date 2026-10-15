@@ -15,6 +15,7 @@ import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { channelProviderName } from '@/lib/externalOrder';
 import styles from './CashierCollection.module.css';
 import CashierStatusBadges from './CashierStatusBadges';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 function messageFor(error: string | null, t: (key: string) => string): string | null {
   if (!error) return null;
@@ -123,7 +124,7 @@ export default function CashierCollectionWorkspace() {
               <div className={styles.orderIdentity}>
                 <p className={styles.eyebrow}>{t('cashier.collection.order')}</p>
                 <h1 id="cashier-collection-title" dir="auto">
-                  {collection.order.orderNumber}
+                  {getOrderDisplayNumber(collection.order)}
                 </h1>
               </div>
               <CashierStatusBadges order={collection.order} />

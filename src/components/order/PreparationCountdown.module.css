@@ -1,0 +1,19 @@
+.countdown {
+  align-items: center;
+  background: var(--feedback-info-xlight);
+  border: 1px solid var(--feedback-info);
+  border-radius: 0.5rem;
+  color: var(--feedback-info-text);
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: 700;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+}
+
+.countdown time {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-weight: 500;
+}

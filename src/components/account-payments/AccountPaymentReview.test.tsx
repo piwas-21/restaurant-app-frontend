@@ -227,6 +227,31 @@ it('shows the frozen order, line, and one-based unit range without unrelated bil
   expect(screen.getByText('accountPayments.mode_amount')).toBeInTheDocument();
 });
 
+it('uses the daily number and business date for frozen account-order references', () => {
+  const identifiedSession = {
+    ...session,
+    bill: {
+      ...session.bill,
+      accountItems: session.bill.accountItems?.map((item) => ({
+        ...item,
+        dailyOrderNumber: 17,
+        businessDate: '2026-10-15',
+      })),
+      orders: session.bill.orders.map((order) => ({
+        ...order,
+        dailyOrderNumber: 17,
+        businessDate: '2026-10-15',
+      })),
+    },
+  } as TableServiceSessionDto;
+  renderReview({ session: identifiedSession });
+
+  const scope = screen.getByRole('list', { name: 'accountPayments.frozen_scope' });
+  expect(scope).toHaveTextContent('17');
+  expect(scope).toHaveTextContent('2026-10-15');
+  expect(scope).not.toHaveTextContent('T-017');
+});
+
 it('shows the exact partial amount assigned to a custom contribution line', () => {
   const partial = {
     ...operation,

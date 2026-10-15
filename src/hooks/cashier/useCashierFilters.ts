@@ -25,7 +25,7 @@ export interface CashierOrdersQuery {
   orderType?: string;
   marketplaceOnly?: boolean;
   tableNumber?: number;
-  /** Kept for the API contract; operational reads do not use date bounds. */
+  /** The active queue can be narrowed to the server's current tenant business day. */
   tenantDay?: string;
   startDate?: Date;
   endDate?: Date;

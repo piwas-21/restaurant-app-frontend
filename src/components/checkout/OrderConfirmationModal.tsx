@@ -10,11 +10,13 @@ import BaseModal from '@/components/design-system/BaseModal';
 import OrderReviewStatus from './OrderReviewStatus';
 import styles from './OrderConfirmationModal.module.css';
 import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderConfirmationModalProps {
   isOpen: boolean;
   orderId: string;
   orderNumber: string;
+  dailyOrderNumber?: number;
   customerEmail: string;
   paymentMethod: PaymentMethod;
   guestStatusToken?: string;
@@ -39,6 +41,7 @@ export default function OrderConfirmationModal({
   isOpen,
   orderId,
   orderNumber,
+  dailyOrderNumber,
   customerEmail,
   paymentMethod,
   guestStatusToken,
@@ -60,8 +63,17 @@ export default function OrderConfirmationModal({
     statusContent = (
       <OrderReviewStatus
         confirmationFlow={guestWatch.status.confirmationFlow}
+        orderNumber={getOrderDisplayNumber({
+          dailyOrderNumber: guestWatch.status.dailyOrderNumber,
+          orderNumber,
+        })}
+        dailyOrderNumber={guestWatch.status.dailyOrderNumber}
         status={guestWatch.status.status}
         estimatedDeliveryTime={guestWatch.status.estimatedDeliveryTime}
+        expectedReadyAt={guestWatch.status.expectedReadyAt}
+        effectivePreparationMinutes={guestWatch.status.effectivePreparationMinutes}
+        businessTimeZoneId={guestWatch.status.businessTimeZoneId}
+        orderType={guestWatch.status.type}
         reviewWindowMinutes={guestWatch.status.reviewWindowMinutes}
         reviewDeadlineUtc={guestWatch.status.reviewDeadlineUtc}
       />
@@ -113,7 +125,7 @@ export default function OrderConfirmationModal({
 
       <div className={styles.orderNumberCard}>
         <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
-        <span className={styles.orderNumberValue}>{orderNumber}</span>
+        <span className={styles.orderNumberValue}>{getOrderDisplayNumber({ dailyOrderNumber, orderNumber })}</span>
       </div>
 
       {customerEmail && (

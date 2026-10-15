@@ -107,6 +107,57 @@ describe('OrderReviewStatus', () => {
     expect(screen.queryByText('We have received your order')).not.toBeInTheDocument();
   });
 
+  it('shows Ready without stale preparation copy, countdown, or legacy ETA', () => {
+    render(
+      <OrderReviewStatus
+        confirmationFlow="acknowledge"
+        status="Ready"
+        estimatedDeliveryTime="2026-09-20T12:30:00Z"
+        expectedReadyAt="2026-09-20T12:30:00Z"
+        effectivePreparationMinutes={15}
+        orderType="Takeaway"
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Ready' })).toBeInTheDocument();
+    expect(screen.queryByText(/preparing your order now/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/expected ready time/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/awaiting restaurant update/i)).not.toBeInTheDocument();
+  });
+
+  it('hides preparation timing when the order is completed', () => {
+    render(
+      <OrderReviewStatus
+        confirmationFlow="acknowledge"
+        status="Completed"
+        estimatedDeliveryTime="2026-09-20T12:30:00Z"
+        expectedReadyAt="2026-09-20T12:30:00Z"
+        effectivePreparationMinutes={15}
+        orderType="Takeaway"
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Completed' })).toBeInTheDocument();
+    expect(screen.queryByText(/preparing your order now/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/expected ready time/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/awaiting restaurant update/i)).not.toBeInTheDocument();
+  });
+
+  it('shows a delivered terminal status without legacy preparation time', () => {
+    render(
+      <OrderReviewStatus
+        confirmationFlow="acknowledge"
+        status="Delivered"
+        estimatedDeliveryTime="2026-09-20T12:30:00Z"
+        orderType="Takeaway"
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Delivered' })).toBeInTheDocument();
+    expect(screen.queryByText(/expected ready time/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/preparing your order now/i)).not.toBeInTheDocument();
+  });
+
   it('keeps an older PendingApproval row restaurant-owned in the acknowledge flow', () => {
     render(
       <OrderReviewStatus

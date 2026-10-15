@@ -6,6 +6,7 @@
 // to the workspace's review-flow decision queue. The hook itself never owns focus or UI.
 import { useEffect, useRef } from 'react';
 import type { OrderDto } from '@/types/order';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 const MAX_SEEN_ORDER_IDS = 1000;
 
@@ -58,7 +59,7 @@ export function useCashierNewOrderAlerts({
     unseen
       .filter((order) => order.status === 'Pending')
       .forEach((order) => {
-        notifyNewOrder(order.orderNumber || order.id, order.customerName || '');
+        notifyNewOrder(getOrderDisplayNumber(order) || order.id, order.customerName || '');
         onPendingOrder?.(order);
       });
     // notifyNewOrder is a useCallback in useNotification; re-announcing on its identity change

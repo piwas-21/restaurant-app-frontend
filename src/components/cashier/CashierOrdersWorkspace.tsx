@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useCashierOrders } from '@/hooks/useCashierOrders';
@@ -9,7 +9,8 @@ import { useNotification } from '@/hooks/useNotification';
 import { useCashierFilters } from '@/hooks/cashier/useCashierFilters';
 import { useCashierOrderRoute } from '@/hooks/cashier/useCashierOrderRoute';
 import { useCashierOrderSelection } from '@/hooks/cashier/useCashierOrderSelection';
-import { useCashierTenantTimeZone } from '@/hooks/cashier/useCashierTenantTimeZone';
+import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
+import { useCashierHistoryOrders } from '@/hooks/cashier/useCashierHistoryOrders';
 import { useCashierNewOrderAlerts } from '@/hooks/cashier/useCashierNewOrderAlerts';
 import { useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
 import { approveOrder, rejectOrder } from '@/services/cashierService';
@@ -17,13 +18,37 @@ import type { OrderDto } from '@/types/order';
 import { shouldQueuePendingReview } from './cashierOrderReviewQueue';
 import CashierReadOnlyDestination from './CashierReadOnlyDestination';
 import MarketplacePendingInbox from '@/components/order/MarketplacePendingInbox';
+import CashierPriorDayReview from './CashierPriorDayReview';
+import { filterCashierGroupsToBusinessDate, filterOrdersToBusinessDate } from '@/utils/orderBusinessDate';
 
 const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr: false });
 
 export default function CashierOrdersWorkspace() {
   const { t } = useTranslation();
   const filters = useCashierFilters();
-  const queue = useCashierOrders(filters.query, filters.setPage);
+  const tenantContext = useCashierTenantTimeZoneState();
+  const queueQuery = tenantContext.date ? { ...filters.query, tenantDay: tenantContext.date } : filters.query;
+  const queue = useCashierOrders(queueQuery, filters.setPage, Boolean(tenantContext.date));
+  const visibleOrders = useMemo(
+    () => filterOrdersToBusinessDate(queue.orders, tenantContext.date, tenantContext.timeZone),
+    [queue.orders, tenantContext.date, tenantContext.timeZone],
+  );
+  const visibleGroups = useMemo(
+    () => filterCashierGroupsToBusinessDate(queue.groups, tenantContext.date, tenantContext.timeZone),
+    [queue.groups, tenantContext.date, tenantContext.timeZone],
+  );
+  const priorDayQueue = useCashierHistoryOrders(
+    {
+      scope: 'All',
+      page: 1,
+      pageSize: 50,
+      archiveBusinessDate: tenantContext.date,
+    },
+    {
+      enabled: Boolean(tenantContext.date),
+      blockedState: tenantContext.isLoading ? 'loading' : 'unavailable',
+    },
+  );
   const { notifyNewOrder } = useNotification();
   const { enqueueSnackbar } = useSnackbar();
   const { isLoading: flowsLoading, flowByType } = useConfirmationFlowConfig();
@@ -81,7 +106,7 @@ export default function CashierOrdersWorkspace() {
     dismissActiveReview();
     void queue.refreshOrders();
   }, [dismissActiveReview, queue]);
-  const approveActiveReview = useCallback(async (orderId: string, preparationMinutes: number) => {
+  const approveActiveReview = useCallback(async (orderId: string, preparationMinutes: number | null) => {
     await approveOrder(orderId, preparationMinutes);
   }, []);
   const rejectActiveReview = useCallback(async (orderId: string, reason: string) => {
@@ -89,7 +114,11 @@ export default function CashierOrdersWorkspace() {
   }, []);
   const route = useCashierOrderRoute();
   const selection = useCashierOrderSelection(queue.orders, route.selectedOrderId);
-  const timeZone = useCashierTenantTimeZone();
+  const refreshAllOrders = () => {
+    tenantContext.refresh();
+    void queue.refreshOrders();
+    if (tenantContext.date) void priorDayQueue.refreshOrders();
+  };
   const showMarketplaceInbox = useCallback(() => {
     filters.setSearchQuery('');
     filters.submitSearch();
@@ -108,13 +137,21 @@ export default function CashierOrdersWorkspace() {
       <CashierReadOnlyDestination
         destination="orders"
         description={t('cashier.workspace.orders_description')}
-        timeZone={timeZone}
-        orders={queue.orders}
-        groups={queue.groups}
+        timeZone={tenantContext.timeZone}
+        orders={visibleOrders}
+        groups={visibleGroups}
         pagination={queue.pagination}
-        queueState={queue.queueState}
-        isLoading={queue.isLoading}
-        error={queue.error}
+        queueState={
+          tenantContext.isLoading && !tenantContext.date
+            ? 'loading'
+            : tenantContext.hasError
+              ? tenantContext.date
+                ? 'stale'
+                : 'unavailable'
+              : queue.queueState
+        }
+        isLoading={queue.isLoading || (tenantContext.isLoading && !tenantContext.date)}
+        error={tenantContext.hasError ? t('cashier.workspace.tenant_day_unavailable') : queue.error}
         isConnected={queue.isConnected}
         selectedOrderId={route.selectedOrderId}
         selectedOrder={selection.order}
@@ -122,18 +159,34 @@ export default function CashierOrdersWorkspace() {
         selectedOrderRefreshing={selection.isRefreshing}
         selectedOrderError={selection.error}
         onRefreshSelectedOrder={selection.refresh}
-        onOrderChanged={() => void queue.refreshOrders()}
+        onOrderChanged={refreshAllOrders}
         searchQuery={filters.searchQuery}
         statusFilter={filters.statusFilter}
         paymentStatusFilter={filters.paymentStatusFilter}
         orderTypeFilter={filters.orderTypeFilter}
         marketplaceOnlyFilter={filters.marketplaceOnlyFilter}
         additionalFilters={
-          <MarketplacePendingInbox
-            active={filters.marketplaceOnlyFilter && filters.statusFilter === 'PendingApproval'}
-            onSelect={showMarketplaceInbox}
-            onClear={clearMarketplaceInbox}
-          />
+          <>
+            {(priorDayQueue.priorDayUnresolvedOrders.totalCount > 0 ||
+              priorDayQueue.error ||
+              priorDayQueue.priorDayError) && (
+              <CashierPriorDayReview
+                orders={priorDayQueue.priorDayUnresolvedOrders}
+                dismissingOrderId={priorDayQueue.dismissingOrderId}
+                error={priorDayQueue.dismissError ?? priorDayQueue.priorDayError ?? priorDayQueue.error}
+                hasMore={priorDayQueue.hasMorePriorDayOrders}
+                isLoadingMore={priorDayQueue.isLoadingPriorDayPage}
+                onReview={route.navigateWithOrder}
+                onDismiss={priorDayQueue.dismissPriorDayOrder}
+                onLoadMore={priorDayQueue.loadMorePriorDayOrders}
+              />
+            )}
+            <MarketplacePendingInbox
+              active={filters.marketplaceOnlyFilter && filters.statusFilter === 'PendingApproval'}
+              onSelect={showMarketplaceInbox}
+              onClear={clearMarketplaceInbox}
+            />
+          </>
         }
         onSelectOrder={route.navigateWithOrder}
         onCollect={(orderId, serviceSessionId) => {
@@ -152,7 +205,7 @@ export default function CashierOrdersWorkspace() {
         onMarketplaceOnlyFilterChange={filters.setMarketplaceOnlyFilter}
         onPageChange={filters.setPage}
         onPageSizeChange={filters.setPageSize}
-        onRetry={() => void queue.refreshOrders()}
+        onRetry={refreshAllOrders}
       />
       <CashierConfirmModal
         order={activeReview}

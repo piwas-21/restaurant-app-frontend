@@ -7,6 +7,7 @@ import type { AccountPaymentState } from '@/types/accountPayments';
 import type { GuestAccountPaymentOperation, GuestPaymentReceipt } from '@/types/guestAccountPayments';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import styles from './GuestAccountPayment.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 const PAYMENT_STATE_LABEL_KEYS: Readonly<Record<AccountPaymentState, string>> = {
   Quoted: 'table_guest_payment_Quoted',
@@ -218,9 +219,8 @@ function AllocationReview({
               (entry) => entry.orderId === allocation.orderId && entry.item.itemId === allocation.orderItemId,
             )
           : null;
-        const orderNumber =
-          tableAccount?.orders.find((entry) => entry.orderId === allocation.orderId)?.orderNumber ??
-          t('table_guest_payment_unknown_order');
+        const order = tableAccount?.orders.find((entry) => entry.orderId === allocation.orderId);
+        const orderNumber = order ? getOrderDisplayNumber(order) : t('table_guest_payment_unknown_order');
         const item = line?.item.productName ?? t('table_guest_payment_order_item', { orderNumber });
         const description = allocation.orderItemId
           ? t('table_guest_payment_review_item', { item, orderNumber, count: allocation.unitCount })

@@ -1,6 +1,8 @@
 import { apiClient } from '@/utils/apiClient';
 import {
   getCashierOrders,
+  getCashierDailyArchive,
+  dismissPriorDayOrderReview,
   getCashierOrderGroups,
   getCashierTenantContext,
   getCashierTenantDay,
@@ -117,9 +119,8 @@ describe('getCashierOrders — operational scope contract', () => {
 
     const [endpoint] = mockGet.mock.calls.at(-1) as [string];
     expect(endpoint).toBe(
-      '/api/orders?scope=Operational&orderType=DineIn&marketplaceOnly=true&search=12&tableNumber=12&page=2&pageSize=20&modifiedSince=2026-03-08T10%3A00%3A00.000Z',
+      '/api/orders?scope=Operational&orderType=DineIn&marketplaceOnly=true&search=12&tableNumber=12&page=2&pageSize=20&modifiedSince=2026-03-08T10%3A00%3A00.000Z&tenantDay=2026-03-08',
     );
-    expect(endpoint).not.toContain('tenantDay');
     expect(endpoint).not.toContain('startDate');
     expect(endpoint).not.toContain('endDate');
   });
@@ -156,13 +157,53 @@ describe('getCashierOrderGroups — authoritative group pagination contract', ()
         paymentStatus: 'Pending',
         search: 'table 7',
         tableNumber: 7,
+        tenantDay: '2026-10-15',
         page: 2,
         pageSize: 25,
       }),
     ).resolves.toEqual(result);
 
     expect(mockGet).toHaveBeenCalledWith(
-      '/api/orders/cashier-groups?scope=Operational&status=Pending&paymentStatus=Pending&search=table+7&tableNumber=7&page=2&pageSize=25',
+      '/api/orders/cashier-groups?scope=Operational&status=Pending&paymentStatus=Pending&search=table+7&tableNumber=7&page=2&pageSize=25&tenantDay=2026-10-15',
+      { requireAuth: true },
+    );
+  });
+});
+
+describe('cashier daily archive service', () => {
+  it('serializes current-day filters and both independent page requests', async () => {
+    const mockGet = apiClient.get as jest.Mock;
+    const archive = {
+      businessDate: '2026-10-15',
+      orders: { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 },
+      priorDayUnresolvedOrders: { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 },
+    };
+    mockGet.mockResolvedValueOnce({ data: archive, success: true });
+
+    await expect(
+      getCashierDailyArchive({
+        businessDate: '2026-10-15',
+        search: '42',
+        status: 'Completed',
+        page: 2,
+        pageSize: 25,
+        priorDayUnresolvedPage: 1,
+        priorDayUnresolvedPageSize: 50,
+      }),
+    ).resolves.toEqual(archive);
+    expect(mockGet).toHaveBeenCalledWith(
+      '/api/orders/cashier/archive?businessDate=2026-10-15&search=42&status=Completed&page=2&pageSize=25&priorDayUnresolvedPage=1&priorDayUnresolvedPageSize=50',
+      { requireAuth: true },
+    );
+  });
+
+  it('persists the prior-day dismissal using the idempotent order action', async () => {
+    mockPost.mockResolvedValueOnce({ success: true });
+
+    await expect(dismissPriorDayOrderReview('order/123')).resolves.toBeUndefined();
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/orders/order%2F123/prior-day-review/dismiss',
+      {},
       { requireAuth: true },
     );
   });
@@ -216,9 +257,17 @@ describe('cashierService order confirmation actions', () => {
 
     expect(mockPost).toHaveBeenCalledWith(
       '/api/orders/order-1/approve',
-      { preparationMinutes: minutes, notes: undefined },
+      { preparationMinutes: minutes },
       { requireAuth: true },
     );
+  });
+
+  it('omits an unknown preparation value so the backend can resolve saved snapshots', async () => {
+    mockPost.mockResolvedValueOnce({ data: { id: 'order-1' }, success: true });
+
+    await approveOrder('order-1', null);
+
+    expect(mockPost).toHaveBeenCalledWith('/api/orders/order-1/approve', {}, { requireAuth: true });
   });
 
   it('uses the existing cancellation endpoint and preserves the required reason', async () => {

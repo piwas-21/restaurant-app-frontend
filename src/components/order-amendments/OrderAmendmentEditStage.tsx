@@ -15,6 +15,7 @@ import OrderAmendmentCatalogComposer from './OrderAmendmentCatalogComposer';
 import OrderAmendmentSourceLine, { type SourceLineAction } from './OrderAmendmentSourceLine';
 import type { UnitRange } from './orderAmendmentViewTypes';
 import styles from './OrderAmendmentEditStage.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderAmendmentEditStageProps {
   readonly order: OrderDto;
@@ -112,7 +113,7 @@ export default function OrderAmendmentEditStage({
       <section className={styles.stageSection} aria-labelledby="amendment-source-title">
         <div className={styles.sectionHeader}>
           <h3 id="amendment-source-title">{t('orderAmendments.original_order', 'Original order')}</h3>
-          <span>{order.orderNumber}</span>
+          <span>{getOrderDisplayNumber(order)}</span>
         </div>
         <div className={styles.orderState}>
           <span>{t('orderAmendments.service_state', 'Service')}</span>

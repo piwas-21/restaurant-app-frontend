@@ -1,5 +1,7 @@
 'use client';
 
+import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
+import { tableSessionAddRoundPath } from '@/lib/cashierTableSession';
 import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
@@ -12,12 +14,15 @@ export function useCashierTableWorkspaceActions(
   route: ReturnType<typeof useCashierTableRoute>,
   setRecoveredSession: Dispatch<SetStateAction<TableServiceSessionDto | null>>,
 ) {
+  const router = useTenantLocaleRouter();
   const openSession = useCallback(async () => {
     if (!selectedEntry) return;
     const opened = await tables.openSession(selectedEntry.table.tableNumber);
     setRecoveredSession(null);
-    route.navigateToSession(opened.serviceSessionId);
-  }, [route, selectedEntry, setRecoveredSession, tables]);
+    const href = tableSessionAddRoundPath(opened);
+    if (href) router.push(href);
+    else route.navigateToSession(opened.serviceSessionId);
+  }, [route, router, selectedEntry, setRecoveredSession, tables]);
 
   const resolveLegacyOrders = useCallback(async () => {
     if (!selectedEntry?.table.id) return;

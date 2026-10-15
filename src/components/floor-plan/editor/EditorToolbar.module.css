@@ -71,7 +71,7 @@
   gap: 5px;
   padding: 4px 9px;
   font-size: 0.8rem;
-  color: var(--feedback-warning-dark);
+  color: var(--feedback-warning-text);
   background: var(--feedback-warning-xlight);
   border-radius: 999px;
 }

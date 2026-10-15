@@ -1,5 +1,6 @@
 'use client';
 
+import { useAddServerTableOrder } from '@/hooks/serverWorkspace/useAddServerTableOrder';
 import { useState } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ export default function ServerTableWorkspace({
   requestedOrderId,
 }: ServerTableWorkspaceProps) {
   const { t } = useTranslation();
+  const addOrder = useAddServerTableOrder(tableId, state.startTable);
   const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
   const { orderAmendmentsV1, tableGuestVisitsV1, tableVisitReadinessV1 } = useTenantFeatures();
   const table = state.table;
@@ -48,7 +50,6 @@ export default function ServerTableWorkspace({
   const roundHref = session
     ? `/server/tables/${encodeURIComponent(tableId)}/order?serviceSessionId=${encodeURIComponent(session.serviceSessionId)}`
     : null;
-
   return (
     <StaffWorkspaceShell
       navItems={[
@@ -77,7 +78,6 @@ export default function ServerTableWorkspace({
             {t('cashier.tables.back')}
           </Link>
         </header>
-
         {state.isStale && (
           <output className={styles.staleNotice} aria-live="polite">
             {t('server.status_stale')} · {t('server.last_confirmed')}
@@ -206,10 +206,10 @@ export default function ServerTableWorkspace({
                 <button
                   type="button"
                   className={styles.primaryAction}
-                  onClick={() => void state.startTable().catch(() => undefined)}
-                  disabled={!state.canStartTable || recoveryOperationPending}
+                  onClick={() => void addOrder()}
+                  disabled={!state.canStartTable || taskContextBlocked || recoveryOperationPending}
                 >
-                  {state.isStarting ? t('cashier.tables.opening') : t('server.open_table')}
+                  {state.isStarting ? t('cashier.tables.opening') : t('staff.add_order')}
                 </button>
               )}
               {roundHref &&

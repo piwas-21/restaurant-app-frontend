@@ -185,7 +185,7 @@
 
   /* Feedback — danger (destructive actions; separate hue family from error, kept as-is) */
   --feedback-danger: #dc3545;
-  --feedback-danger-dark: #c82333;
+  --feedback-danger-dark: #b21e2d;
   --feedback-danger-light: #f5c6cb;
   --feedback-danger-xlight: #f8d7da;
 
@@ -202,7 +202,7 @@
   /* Feedback — info */
   --feedback-info: #28c2d9;
   --feedback-info-light: #66bcc9;
-  --feedback-info-xlight: #8ae0ee;
+  --feedback-info-xlight: #e2f5f8;
   --feedback-info-dark: #156a77;
   --feedback-info-text: #0f5964;
 
@@ -459,6 +459,9 @@ html[data-theme='dark'] {
 
   --border-default: #444444;
 
+  /* Feedback surfaces and their text must switch themes together. */
+  --feedback-success-light: #244b2b;
+  --feedback-success-xlight: #18321e;
   --feedback-success: #81c784;
   --feedback-success-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a) */
   --feedback-success-text: #81c784; /* 6.5:1 on the success tint over the dark card surface */
@@ -470,11 +473,17 @@ html[data-theme='dark'] {
   --feedback-error-text: #ff8a80;
 
   /* 7.1:1 on --surface-secondary — the undarkened amber is the readable one here. */
-  --feedback-warning-text: #ffa500;
+  --feedback-warning-light: #614117;
+  --feedback-warning-xlight: #362810;
+  --feedback-warning-text: #ffc266;
+
+  --feedback-info-light: #245561;
+  --feedback-info-xlight: #14343c;
+  --feedback-info-text: #8ae0ee;
 
   --feedback-danger-dark: #ff6b6b;
   --feedback-danger-light: #ee5a6f;
-  --feedback-danger-xlight: #ffe0e6;
+  --feedback-danger-xlight: #3a1f25;
 
   /* Light thumb on the dark canvas — the same relationship to its surface as the light values. */
   --scrollbar-thumb: #4a4a4a;

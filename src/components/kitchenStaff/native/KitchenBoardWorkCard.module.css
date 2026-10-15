@@ -64,7 +64,7 @@
 }
 
 .completed {
-  color: var(--feedback-success-dark);
+  color: var(--feedback-success-text);
   font-weight: 700;
 }
 

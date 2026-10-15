@@ -2,6 +2,7 @@
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useGuestClosureReason } from '@/hooks/order/useGuestClosureReason';
 import styles from './GuestOrderingUnavailable.module.css';
 
 interface GuestOrderingUnavailableProps {
@@ -18,12 +19,15 @@ export default function GuestOrderingUnavailable({
   reason,
 }: GuestOrderingUnavailableProps) {
   const { t } = useTranslation();
+  const outsideHours = useGuestClosureReason(reason);
   let availabilityMessage = t(
     'order_type_unavailable',
     'This order type is unavailable right now. Choose another option or retry.',
   );
   if (reason === 'closed') {
-    availabilityMessage = t('order_type_closed_now', 'Ordering is unavailable right now. Please try again later.');
+    availabilityMessage = outsideHours
+      ? t('order_type_outside_opening_hours')
+      : t('order_type_closed_now', 'Ordering is unavailable right now. Please try again later.');
   } else if (reason === 'unknown') {
     availabilityMessage = t(
       'order_type_availability_failed',

@@ -81,7 +81,7 @@ it('offers prominent Quick Ready only with a fresh, server-permitted preparing o
   render(<CashierTicketActions order={order} isOrderSnapshotFresh onOrderChanged={onOrderChanged} />);
 
   fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.mark_ready' }));
-  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Ready'));
+  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Ready', order.version));
   expect(onOrderChanged).toHaveBeenCalled();
 });
 
@@ -95,11 +95,10 @@ it('shows permitted native status choices and applies the selected status', asyn
     ],
   } as OrderDto;
   render(<CashierTicketActions order={order} isOrderSnapshotFresh />);
-  const status = screen.getByRole('combobox', { name: 'cashier.workspace.status_control' });
-  fireEvent.change(status, { target: { value: 'Preparing' } });
-  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.update_status' }));
+  expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.set_status' }));
 
-  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Preparing'));
+  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Preparing', order.version));
 });
 
 it('keeps an approval-required handoff out of the direct status control', () => {
@@ -113,7 +112,7 @@ it('keeps an approval-required handoff out of the direct status control', () => 
   render(<CashierTicketActions order={order} isOrderSnapshotFresh />);
 
   expect(screen.getByRole('button', { name: 'cashier.approve_order_action' })).toBeInTheDocument();
-  expect(screen.queryByRole('combobox', { name: 'cashier.workspace.status_control' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
 });
 
 it('withholds Quick Ready when the order snapshot is stale or the backend has not permitted it', () => {

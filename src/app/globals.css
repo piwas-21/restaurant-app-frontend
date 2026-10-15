@@ -832,7 +832,7 @@ select:focus {
 .alert-success {
   background-color: var(--success-color-xlight);
   border-inline-start-color: var(--success-color);
-  color: var(--success-color-dark);
+  color: var(--feedback-success-text);
 }
 
 .alert-error {
@@ -844,13 +844,13 @@ select:focus {
 .alert-warning {
   background-color: var(--warning-color-xlight);
   border-inline-start-color: var(--warning-color);
-  color: var(--warning-color-dark);
+  color: var(--feedback-warning-text);
 }
 
 .alert-info {
   background-color: var(--info-color-xlight);
   border-inline-start-color: var(--info-color);
-  color: var(--info-color-dark);
+  color: var(--feedback-info-text);
 }
 
 .alert strong {

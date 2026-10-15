@@ -259,9 +259,12 @@ describe('what the retired chip styling actually measured', () => {
    * rendered at 13.63:1 against the dark card, a near-white lozenge. Invisible to any check that
    * reads one token, and why the colour rules were deleted rather than given dark overrides.
    */
-  it('records that the chip fills had no dark value at all', () => {
+  it('keeps the old light-chip contrast control and verifies the shared green tint now adapts', () => {
     expect(light['--feedback-success-xlight']).toBeDefined();
-    expect(dark['--feedback-success-xlight']).toBeUndefined();
+    expect(dark['--feedback-success-xlight']).toBeDefined();
+    expect(contrast(dark['--feedback-success-text'], dark['--feedback-success-xlight'])).toBeGreaterThanOrEqual(
+      AA_TEXT,
+    );
     expect(dark['--color-gold-100']).toBeUndefined();
 
     expect(contrast(light['--feedback-success-xlight'], dark['--surface-card'])).toBeGreaterThan(10);

@@ -72,6 +72,18 @@ describe('native kitchen work cards', () => {
     expect(screen.queryByRole('button', { name: 'nativeKitchenBoard.acknowledgeCorrection' })).not.toBeInTheDocument();
   });
 
+  it('uses the short daily number when identifying a correction', () => {
+    render(
+      <KitchenBoardCorrectionCard
+        correction={{ ...correction, dailyOrderNumber: 17, businessDate: '2026-10-08' }}
+        disabled={false}
+        onComplete={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Correction 17' })).toBeInTheDocument();
+  });
+
   it('requires an explicit acknowledgement and never labels a manual completion as printed', () => {
     const onComplete = jest.fn();
     render(

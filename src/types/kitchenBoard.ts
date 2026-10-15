@@ -59,6 +59,8 @@ export interface KitchenBoardCorrection {
   readonly workItemId: string;
   readonly orderId: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string;
   readonly status: string;
   readonly tableId: string | null;
   readonly tableLabel: string | null;

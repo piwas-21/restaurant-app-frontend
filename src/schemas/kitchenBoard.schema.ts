@@ -33,6 +33,8 @@ const changeSchema: z.ZodType<KitchenBoardChange> = z.object({
 const orderSchema = z.object({
   orderId: z.string(),
   orderNumber: z.string(),
+  dailyOrderNumber: z.number().int().positive().optional(),
+  businessDate: z.string().optional(),
   type: z.string(),
   status: z.string(),
   tableId: z.string().nullable(),
@@ -52,6 +54,8 @@ const correctionSchema = z.object({
   workItemId: z.string(),
   orderId: z.string(),
   orderNumber: z.string(),
+  dailyOrderNumber: z.number().int().positive().optional(),
+  businessDate: z.string().optional(),
   status: z.string(),
   tableId: z.string().nullable(),
   tableLabel: z.string().nullable(),

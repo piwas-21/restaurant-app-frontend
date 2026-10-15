@@ -114,6 +114,7 @@ interface ApiEnvelope<T> {
 interface CreatedOrder {
   id: string;
   orderNumber: string;
+  dailyOrderNumber?: number | null;
 }
 
 interface TableReadinessOutcome {
@@ -277,13 +278,18 @@ for (const { name, viewport } of VIEWPORTS) {
           await server.page.getByRole('button', { name: 'Send to kitchen' }).click();
         },
       );
-      await server.page.getByText(`Round ${created.orderNumber} was created.`).waitFor();
+      const displayOrderNumber =
+        created.dailyOrderNumber == null ? created.orderNumber : String(created.dailyOrderNumber);
+      if (created.dailyOrderNumber != null) expect(created.dailyOrderNumber).toBeGreaterThan(0);
+      await expect(server.page.getByText(`Round ${displayOrderNumber} was created.`, { exact: true })).toBeVisible();
       await expectNoA11yViolations(server.page);
 
       await kitchen.page.goto('/en/kitchen-staff');
       await kitchen.page.getByRole('tab', { name: 'Kitchen work', exact: true }).waitFor();
-      const kitchenOrder = kitchen.page.getByRole('article').filter({ hasText: created.orderNumber });
-      await kitchenOrder.waitFor({ timeout: 20_000 });
+      const kitchenOrder = kitchen.page.locator(`[aria-labelledby="kitchen-order-${created.id}"]`);
+      await expect(
+        kitchenOrder.getByRole('heading', { level: 3, name: `Order ${displayOrderNumber}`, exact: true }),
+      ).toBeVisible({ timeout: 20_000 });
       await expect(kitchenOrder).toContainText('No printer configured');
       await expectNoA11yViolations(kitchen.page);
 
@@ -332,7 +338,7 @@ for (const { name, viewport } of VIEWPORTS) {
       await task.waitFor({ timeout: 20_000 });
       await expectNoA11yViolations(server.page);
       await expect(task).toHaveAttribute('data-bucket', 'Exception');
-      const deliver = task.getByRole('button', { name: `Deliver ${created.orderNumber}` });
+      const deliver = task.getByRole('button', { name: `Deliver ${displayOrderNumber}` });
       await expect(deliver).toBeEnabled();
       await deliver.click();
       await server.page.getByText('Task updated.').waitFor();

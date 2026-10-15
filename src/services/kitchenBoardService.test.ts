@@ -45,6 +45,72 @@ describe('kitchenBoardService', () => {
     );
   });
 
+  it('preserves daily order identity in the order and correction work streams', async () => {
+    mockApiClient.get.mockResolvedValue({
+      success: true,
+      data: {
+        ...feed,
+        orders: {
+          ...page,
+          items: [
+            {
+              orderId: 'order-a',
+              orderNumber: '202610150004',
+              dailyOrderNumber: 4,
+              businessDate: '2026-10-15',
+              type: 'DineIn',
+              status: 'Confirmed',
+              tableId: null,
+              tableLabel: null,
+              tableNumber: null,
+              serviceSessionId: null,
+              createdAt: '2026-10-15T10:00:00Z',
+              version: 1,
+              isCompleted: false,
+              completedAt: null,
+              canComplete: false,
+              requiredKitchenRoutes: [],
+              items: [],
+            },
+          ],
+        },
+        corrections: {
+          ...page,
+          items: [
+            {
+              workItemId: 'correction-a',
+              orderId: 'order-a',
+              orderNumber: '202610150004',
+              dailyOrderNumber: 4,
+              businessDate: '2026-10-15',
+              status: 'Confirmed',
+              tableId: null,
+              tableLabel: null,
+              tableNumber: null,
+              serviceSessionId: null,
+              amendmentId: null,
+              accountRevision: null,
+              orderVersion: 1,
+              target: null,
+              summary: '',
+              withdrawn: false,
+              isCompleted: false,
+              canComplete: true,
+              routeStatus: null,
+              createdAt: '2026-10-15T10:00:00Z',
+              changes: [],
+            },
+          ],
+        },
+      },
+    });
+
+    const result = await getKitchenBoardWork();
+
+    expect(result.orders.items[0]).toMatchObject({ dailyOrderNumber: 4, businessDate: '2026-10-15' });
+    expect(result.corrections.items[0]).toMatchObject({ dailyOrderNumber: 4, businessDate: '2026-10-15' });
+  });
+
   it('rejects an invalid feed instead of presenting a partial work queue', async () => {
     mockApiClient.get.mockResolvedValue({
       success: true,

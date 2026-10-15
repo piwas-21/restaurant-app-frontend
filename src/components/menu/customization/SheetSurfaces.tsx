@@ -218,7 +218,6 @@ function StepFooterBar({
   return (
     <SheetFooter
       total={flow.total}
-      allowEarlyAdd
       isLast={flow.isLast}
       isSubmitting={isSubmitting}
       quantity={quantity}

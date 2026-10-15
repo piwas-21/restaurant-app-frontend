@@ -218,14 +218,17 @@ describe('the flow is CONDITIONAL — a simple item must not pay for the complex
     // blocks below it in the same scroll is not rendered at all.
     expect(screen.getByRole('radio', { name: /Large/ })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /Onion/ })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
   });
 });
 
 describe('the required-step gate', () => {
-  it('early Add jumps to an unanswered required sauce and never commits an invalid item', async () => {
+  it('offers only Next before review and cannot commit an unanswered required sauce', async () => {
     await openSheet(GATED);
-    fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
+    advance(); // variations -> ingredients
+    advance(); // ingredients -> sauces
+    advance(); // required sauce keeps the guest here
     expect(mockAddItem).not.toHaveBeenCalled();
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('step_blocked_sauces');
@@ -283,20 +286,29 @@ describe('walking the flow', () => {
 
   it('reaches each decision in turn and ends on the review', async () => {
     await openSheet(COMPLEX);
+    const nextButton = screen.getByRole('button', { name: /^customer_cta_next_step:/ });
+    expect(nextButton).toHaveClass('primary');
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
 
     advance();
     expect(screen.getByRole('checkbox', { name: /Onion/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
 
     // Sauces are their own step now. In the layout this replaces they were a collapsed disclosure
     // at the bottom of the ingredient block, which is precisely how a guest missed them.
     advance();
     expect(screen.getByRole('checkbox', { name: /Garlic sauce/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
 
     advance();
     expect(screen.getByRole('button', { name: /add_ingredient/ })).toBeInTheDocument(); // the drinks side group
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
 
     advance();
-    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /customer_cta_add_to_basket/ })).toHaveClass('primary');
+    expect(mockAddItem).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /customer_cta_add_to_basket/ }));
+    await waitFor(() => expect(mockAddItem).toHaveBeenCalledTimes(1));
   });
 
   /**

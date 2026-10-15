@@ -223,10 +223,12 @@ describe('bundle customization uses one shared mixed flow', () => {
 
   it('does not add a partial bundle while the guest is still on a customization screen', async () => {
     await openSheet();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'customer_cta_customize_item' }));
     await waitFor(() => expect(screen.getByText('customize_ingredients')).toBeInTheDocument());
 
     expect(screen.getByRole('button', { name: 'customer_cta_next_step' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /customer_cta_add_to_basket/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     expect(mockAddItem).not.toHaveBeenCalled();
   });

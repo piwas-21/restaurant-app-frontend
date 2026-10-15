@@ -5,12 +5,10 @@ import CashierConfirmModal from './CashierConfirmModal';
 const labels: Record<string, string> = {
   'cashier.approve_order_title': 'Approve order',
   'cashier.approve_order_action': 'Approve order',
-  'cashier.approve_with_preparation': 'Approve with estimated {{minutes}} min',
   'cashier.approve_preset_minutes': '{{minutes}} min',
   'cashier.confirm_preset_minutes': '{{minutes}} min',
   'cashier.confirm_order_title': 'Confirm order',
   'cashier.confirm_order_action': 'Confirm order',
-  'cashier.confirm_with_estimated_preparation': 'Confirm with estimated {{minutes}} min',
   'cashier.choose_preparation_time': 'Choose the preparation time',
   'cashier.confirm_now': 'Confirm now',
   'cashier.confirm_with_preparation': 'Confirm with preparation time',
@@ -115,41 +113,43 @@ describe('CashierConfirmModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('approves with the saved preparation estimate and pins the decision beside long details', async () => {
+  it('shows the saved estimate only as information and requires an entered preparation time', async () => {
     const estimatedOrder = { ...order, effectivePreparationMinutes: 18 } as OrderDto;
     const { onConfirm } = setup('acknowledge', estimatedOrder);
-    const approve = screen.getByRole('button', { name: 'Approve with estimated 18 min' });
-    const dialog = screen.getByRole('dialog');
-    const footer = dialog.children.item(2);
-    const body = dialog.children.item(1);
-
     expect(screen.getByText('Preparation estimate: 18 min')).toBeInTheDocument();
-    expect(footer).toContainElement(approve);
-    expect(body).not.toContainElement(approve);
-
+    expect(screen.queryByRole('button', { name: /Approve with estimated/ })).not.toBeInTheDocument();
+    const approve = screen.getByRole('button', { name: 'Approve order' });
     fireEvent.click(approve);
-    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 18));
+    expect(await screen.findByText('Enter 1 to 600 minutes')).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Custom minutes' }), { target: { value: '22' } });
+    fireEvent.click(approve);
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 22));
   });
 
-  it('lets the backend resolve preparation when no estimate is known', async () => {
+  it('requires a selected preparation time when no estimate is known', async () => {
     const unknownOrder = { ...order, effectivePreparationMinutes: null } as OrderDto;
     const { onConfirm } = setup('acknowledge', unknownOrder);
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Approve order' })[1]);
-
-    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', null));
+    fireEvent.click(screen.getByRole('button', { name: 'Approve order' }));
+    expect(await screen.findByText('Enter 1 to 600 minutes')).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '30 min' }));
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 30));
   });
 
-  it('preserves an explicit zero-minute override', async () => {
+  it('does not offer a zero-minute estimate as an approval shortcut', async () => {
     const zeroEstimateOrder = { ...order, effectivePreparationMinutes: 0 } as OrderDto;
     const { onConfirm } = setup('acknowledge', zeroEstimateOrder);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Approve with estimated 0 min' }));
-
-    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 0));
+    expect(screen.getByText('Preparation estimate: 0 min')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Approve with estimated/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '15 min' }));
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 15));
   });
 
-  it('keeps approval and rejection reachable when a long ticket fills the scroll body', () => {
+  it('keeps one custom approval and the original reject button below the preparation controls', () => {
     const longOrder = {
       ...order,
       effectivePreparationMinutes: 18,
@@ -162,29 +162,30 @@ describe('CashierConfirmModal', () => {
       })),
     } as unknown as OrderDto;
     setup('acknowledge', longOrder);
-    const dialog = screen.getByRole('dialog');
-
     expect(screen.getByText('Soup 34')).toBeInTheDocument();
-    expect(dialog.children.item(2)).toContainElement(
-      screen.getByRole('button', { name: 'Approve with estimated 18 min' }),
-    );
-    expect(dialog.children.item(2)).toContainElement(screen.getByRole('button', { name: 'Reject order' }));
+    const approve = screen.getByRole('button', { name: 'Approve order' });
+    const reject = screen.getByRole('button', { name: 'Reject order' });
+    expect(approve.parentElement).toHaveClass('body');
+    expect(reject.parentElement).toHaveClass('body');
+    expect(reject).toHaveClass('actionButton', 'dangerAction');
+    expect(approve.compareDocumentPosition(reject) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('uses saved preparation instead of an implicit immediate estimate in direct flow', async () => {
+  it('requires custom preparation in direct flow rather than using the saved estimate', async () => {
     const estimatedOrder = { ...order, effectivePreparationMinutes: 18 } as OrderDto;
     const { onConfirm } = setup('direct', estimatedOrder);
-    expect(screen.getByRole('button', { name: 'Confirm with estimated 18 min' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Confirm with estimated/ })).not.toBeInTheDocument();
     expect(screen.getByText('Preparation estimate: 18 min')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm with estimated 18 min' }));
-    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 18));
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Custom minutes' }), { target: { value: '25' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 25));
   });
 
-  it('uses a plain confirm action when no preparation snapshot is known and keeps presets', async () => {
+  it('keeps presets in direct flow without a preparation-free confirm shortcut', async () => {
     const { onConfirm } = setup('direct');
     expect(screen.getByRole('heading', { name: 'Confirm order' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Confirm order' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm order' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '30 min' }));
     await waitFor(() => expect(onConfirm).toHaveBeenCalledWith('order-id', 30));

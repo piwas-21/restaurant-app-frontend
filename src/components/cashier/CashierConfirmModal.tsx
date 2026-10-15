@@ -39,12 +39,18 @@ export default function CashierConfirmModal({
     typeof order?.effectivePreparationMinutes === 'number' && order.effectivePreparationMinutes >= 0
       ? order.effectivePreparationMinutes
       : null;
-  const primaryActionLabel =
-    defaultPreparationMinutes !== null
-      ? t(isReviewFlow ? 'cashier.approve_with_preparation' : 'cashier.confirm_with_estimated_preparation', {
-          minutes: defaultPreparationMinutes,
-        })
-      : t(isReviewFlow ? 'cashier.approve_order_action' : 'cashier.confirm_order_action');
+  let primaryActionLabel: string;
+  if (isReviewFlow) {
+    primaryActionLabel =
+      defaultPreparationMinutes === null
+        ? t('cashier.approve_order_action')
+        : t('cashier.approve_with_preparation', { minutes: defaultPreparationMinutes });
+  } else {
+    primaryActionLabel =
+      defaultPreparationMinutes === null
+        ? t('cashier.confirm_order_action')
+        : t('cashier.confirm_with_estimated_preparation', { minutes: defaultPreparationMinutes });
+  }
 
   useEffect(() => {
     if (isOpen) return;

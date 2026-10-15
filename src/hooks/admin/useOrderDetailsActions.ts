@@ -59,11 +59,12 @@ export function useOrderDetailsActions(
       setIsConfirming(true);
       apiError.clear();
 
-      const preparationOverride = withDelay
-        ? { estimatedPreparationMinutes: delayMinutes }
-        : typeof order.effectivePreparationMinutes === 'number'
-          ? { estimatedPreparationMinutes: order.effectivePreparationMinutes }
-          : {};
+      const preparationOverride: { estimatedPreparationMinutes?: number } = {};
+      if (withDelay) {
+        preparationOverride.estimatedPreparationMinutes = delayMinutes;
+      } else if (typeof order.effectivePreparationMinutes === 'number') {
+        preparationOverride.estimatedPreparationMinutes = order.effectivePreparationMinutes;
+      }
 
       const updatedOrder = await updateOrderStatus(order.id, {
         newStatus: withDelay ? 'PendingApproval' : 'Confirmed',

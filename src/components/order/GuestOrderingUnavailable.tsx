@@ -18,23 +18,24 @@ export default function GuestOrderingUnavailable({
   reason,
 }: GuestOrderingUnavailableProps) {
   const { t } = useTranslation();
+  let availabilityMessage = t(
+    'order_type_unavailable',
+    'This order type is unavailable right now. Choose another option or retry.',
+  );
+  if (reason === 'closed') {
+    availabilityMessage = t('order_type_closed_now', 'Ordering is unavailable right now. Please try again later.');
+  } else if (reason === 'unknown') {
+    availabilityMessage = t(
+      'order_type_availability_failed',
+      'We could not check ordering availability. Please retry before ordering.',
+    );
+  }
+
   return (
     <section className={styles.notice} role="status" aria-live="polite">
       <AlertCircle size={20} aria-hidden="true" />
       <div>
-        <p>
-          {reason === 'closed'
-            ? t('order_type_closed_now', 'Ordering is unavailable right now. Please try again later.')
-            : reason === 'unknown'
-              ? t(
-                  'order_type_availability_failed',
-                  'We could not check ordering availability. Please retry before ordering.',
-                )
-              : t(
-                  'order_type_unavailable',
-                  'This order type is unavailable right now. Choose another option or retry.',
-                )}
-        </p>
+        <p>{availabilityMessage}</p>
         <button type="button" onClick={onRetry} disabled={isRefreshing}>
           <RefreshCw size={16} aria-hidden="true" />
           {t('retry', 'Retry')}

@@ -132,6 +132,13 @@ export default function CashierOrdersWorkspace() {
     filters.setStatusFilter('all');
   }, [filters]);
 
+  let queueState = queue.queueState;
+  if (tenantContext.isLoading && !tenantContext.date) {
+    queueState = 'loading';
+  } else if (tenantContext.hasError) {
+    queueState = tenantContext.date ? 'stale' : 'unavailable';
+  }
+
   return (
     <>
       <CashierReadOnlyDestination
@@ -141,15 +148,7 @@ export default function CashierOrdersWorkspace() {
         orders={visibleOrders}
         groups={visibleGroups}
         pagination={queue.pagination}
-        queueState={
-          tenantContext.isLoading && !tenantContext.date
-            ? 'loading'
-            : tenantContext.hasError
-              ? tenantContext.date
-                ? 'stale'
-                : 'unavailable'
-              : queue.queueState
-        }
+        queueState={queueState}
         isLoading={queue.isLoading || (tenantContext.isLoading && !tenantContext.date)}
         error={tenantContext.hasError ? t('cashier.workspace.tenant_day_unavailable') : queue.error}
         isConnected={queue.isConnected}

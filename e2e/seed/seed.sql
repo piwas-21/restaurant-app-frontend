@@ -9,6 +9,9 @@
 -- product_categories, product_descriptions, orders; working_hours is UPDATEd, not inserted.
 -- Run AFTER `dotnet ef database update`.
 
+-- Reuse one fixture timezone value for tenant-local business-day boundaries.
+\set e2e_tenant_timezone Europe/Zurich
+
 BEGIN;
 
 -- Staff table settlement requires one authoritative tenant currency.
@@ -353,7 +356,7 @@ INSERT INTO orders (
     'Pending',
     'Takeaway',
     'E2E Kitchen Routing',
-    ((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Zurich')::date + TIME '23:59:00') AT TIME ZONE 'Europe/Zurich',
+    ((CURRENT_TIMESTAMP AT TIME ZONE :'e2e_tenant_timezone')::date + TIME '23:59:00') AT TIME ZONE :'e2e_tenant_timezone',
     20.00, 0, 0, 0, 0, 0,
     20.00, 0, 20.00,
     0, 0, 0, 0,
@@ -379,7 +382,7 @@ INSERT INTO orders (
     'Completed',
     'Takeaway',
     'E2E Prior Day',
-    (((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Zurich')::date - 1 + TIME '23:59:00') AT TIME ZONE 'Europe/Zurich'),
+    (((CURRENT_TIMESTAMP AT TIME ZONE :'e2e_tenant_timezone')::date - 1 + TIME '23:59:00') AT TIME ZONE :'e2e_tenant_timezone'),
     20.00, 0, 0, 0, 0, 0,
     20.00, 20.00, 0,
     0, 0, 0, 0,

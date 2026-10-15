@@ -8,15 +8,18 @@ export type CheckoutOrderAvailabilityState = 'loading' | 'unknown' | 'closed' | 
 export function useCheckoutOrderAvailability(orderType: OrderType | null) {
   const availability = useEnabledOrderTypes();
   const selectedTypeAvailable = orderType !== null && availability.enabled.includes(orderType);
-  const state: CheckoutOrderAvailabilityState = availability.loading
-    ? 'loading'
-    : !availability.confirmed
-      ? 'unknown'
-      : availability.enabled.length === 0
-        ? 'closed'
-        : selectedTypeAvailable
-          ? 'available'
-          : 'type-unavailable';
+  let state: CheckoutOrderAvailabilityState;
+  if (availability.loading) {
+    state = 'loading';
+  } else if (!availability.confirmed) {
+    state = 'unknown';
+  } else if (availability.enabled.length === 0) {
+    state = 'closed';
+  } else if (selectedTypeAvailable) {
+    state = 'available';
+  } else {
+    state = 'type-unavailable';
+  }
 
   return {
     state,

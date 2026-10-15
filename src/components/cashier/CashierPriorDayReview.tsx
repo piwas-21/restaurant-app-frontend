@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { OrderDto, PagedResult } from '@/types/order';
+import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import styles from './CashierPriorDayReview.module.css';
 
@@ -42,7 +43,7 @@ export default function CashierPriorDayReview({
             <li key={order.id}>
               <strong dir="auto">{getOrderDisplayNumber(order)}</strong>
               {order.businessDate && <span>{order.businessDate}</span>}
-              <span>{t(`order_status_${order.status.toLowerCase()}`, order.status)}</span>
+              <OrderStatusBadge status={order.status} />
               <div className={styles.actions}>
                 <button type="button" onClick={() => onReview(order.id)}>
                   {t('cashier.workspace.prior_day_review')}

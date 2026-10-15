@@ -49,6 +49,7 @@ it('shows the short number with its business date and exposes independent page l
 
   expect(screen.getByText('8')).toBeInTheDocument();
   expect(screen.getByText('2026-10-14')).toBeInTheDocument();
+  expect(screen.getByText('order_status_preparing')).toBeInTheDocument();
   expect(screen.queryByText('full-reference')).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.prior_day_review' }));
   expect(onReview).toHaveBeenCalledWith('older-order');
@@ -56,6 +57,25 @@ it('shows the short number with its business date and exposes independent page l
   expect(onDismiss).toHaveBeenCalledWith('older-order');
   fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.prior_day_load_more' }));
   expect(onLoadMore).toHaveBeenCalledTimes(1);
+});
+
+it('translates compound server statuses in the prior-day reminder', () => {
+  render(
+    <CashierPriorDayReview
+      orders={result([{ ...order, status: 'PendingApproval' } as OrderDto])}
+      dismissingOrderId={null}
+      error={null}
+      hasMore={false}
+      isLoadingMore={false}
+      onReview={() => undefined}
+      onDismiss={async () => undefined}
+      onLoadMore={async () => undefined}
+    />,
+  );
+
+  fireEvent.click(screen.getByText('cashier.workspace.prior_day_title'));
+  expect(screen.getByText('order_status_pending_approval')).toBeInTheDocument();
+  expect(screen.queryByText('PendingApproval')).not.toBeInTheDocument();
 });
 
 it('shows an archive read error even when no prior orders were returned', () => {

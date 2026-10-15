@@ -28,7 +28,7 @@ const labels: Record<string, string> = {
   'cashier.workspace.notes': 'Notes',
   'cashier.workspace.delivery_address': 'Delivery address',
   'cashier.workspace.technical_reference': 'Technical reference',
-  'cashier.workspace.preparation_estimate': 'Preparation estimate: {{minutes}} min',
+  'orders.preparation_estimate': 'Preparation estimate: {{minutes}} min',
   order_number: 'Order number',
   type: 'Type',
   customer: 'Customer',

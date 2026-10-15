@@ -46,7 +46,7 @@ export default function CashierApprovalOrderDetails({ order, preparationMinutes 
       </section>
       {preparationMinutes !== null && (
         <p className={styles.preparationEstimate}>
-          {t('cashier.workspace.preparation_estimate', { minutes: preparationMinutes })}
+          {t('orders.preparation_estimate', { minutes: preparationMinutes })}
         </p>
       )}
       <section className={styles.orderDetail} aria-labelledby="cashier-approval-customer-details">

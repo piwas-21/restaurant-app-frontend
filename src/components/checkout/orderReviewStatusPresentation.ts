@@ -12,6 +12,12 @@ export function isApprovedOrderStatus(status: string): boolean {
 
 export function approvedStatusCopy(status: string): ApprovedStatusCopy {
   switch (status) {
+    case 'Preparing':
+      return {
+        titleKey: 'checkout.review_approved_title',
+        titleFallback: 'Your order is approved',
+        statusKey: 'order_status_preparing',
+      };
     case 'Ready':
       return { titleKey: 'order_status_ready', titleFallback: 'Ready', statusKey: 'order_status_ready' };
     case 'Completed':

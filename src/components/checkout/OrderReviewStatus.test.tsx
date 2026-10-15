@@ -107,6 +107,14 @@ describe('OrderReviewStatus', () => {
     expect(screen.queryByText('We have received your order')).not.toBeInTheDocument();
   });
 
+  it('shows the Preparing status when the restaurant has started preparation', () => {
+    render(<OrderReviewStatus confirmationFlow="acknowledge" status="Preparing" />);
+
+    expect(screen.getByRole('heading', { name: 'Your order is approved' })).toBeInTheDocument();
+    expect(screen.getByText('order_status_preparing')).toBeInTheDocument();
+    expect(screen.queryByText('order_status_confirmed')).not.toBeInTheDocument();
+  });
+
   it('shows Ready without stale preparation copy, countdown, or legacy ETA', () => {
     render(
       <OrderReviewStatus

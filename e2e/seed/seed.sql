@@ -9,10 +9,15 @@
 -- product_categories, product_descriptions, orders; working_hours is UPDATEd, not inserted.
 -- Run AFTER `dotnet ef database update`.
 
--- Reuse one fixture timezone value for tenant-local business-day boundaries.
-\set e2e_tenant_timezone Europe/Zurich
-
 BEGIN;
+
+-- Keep tenant-local fixture time settings in one temporary row for both day-boundary orders.
+CREATE TEMP TABLE e2e_seed_time_constants (
+    tenant_time_zone text NOT NULL,
+    end_of_day time NOT NULL
+) ON COMMIT DROP;
+INSERT INTO e2e_seed_time_constants (tenant_time_zone, end_of_day)
+VALUES ('Europe/Zurich', TIME '23:59:00');
 
 -- Staff table settlement requires one authoritative tenant currency.
 UPDATE "RestaurantInfo" SET currency = 'CHF' WHERE currency IS NULL;
@@ -356,7 +361,8 @@ INSERT INTO orders (
     'Pending',
     'Takeaway',
     'E2E Kitchen Routing',
-    ((CURRENT_TIMESTAMP AT TIME ZONE :'e2e_tenant_timezone')::date + TIME '23:59:00') AT TIME ZONE :'e2e_tenant_timezone',
+    (SELECT ((CURRENT_TIMESTAMP AT TIME ZONE tenant_time_zone)::date + end_of_day) AT TIME ZONE tenant_time_zone
+     FROM e2e_seed_time_constants),
     20.00, 0, 0, 0, 0, 0,
     20.00, 0, 20.00,
     0, 0, 0, 0,
@@ -382,7 +388,8 @@ INSERT INTO orders (
     'Completed',
     'Takeaway',
     'E2E Prior Day',
-    (((CURRENT_TIMESTAMP AT TIME ZONE :'e2e_tenant_timezone')::date - 1 + TIME '23:59:00') AT TIME ZONE :'e2e_tenant_timezone'),
+    (SELECT (((CURRENT_TIMESTAMP AT TIME ZONE tenant_time_zone)::date - 1 + end_of_day) AT TIME ZONE tenant_time_zone)
+     FROM e2e_seed_time_constants),
     20.00, 0, 0, 0, 0, 0,
     20.00, 20.00, 0,
     0, 0, 0, 0,

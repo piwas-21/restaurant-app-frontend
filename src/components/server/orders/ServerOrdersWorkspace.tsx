@@ -14,6 +14,7 @@ import { OrderType, type OrderDto } from '@/types/order';
 import type { PagedResult } from '@/types/order/common';
 import { getErrorMessage } from '@/utils/apiClient';
 import styles from './ServerOrdersWorkspace.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 type TypeFilter = OrderType | 'All';
 const PAGE_SIZE = 50;
@@ -182,7 +183,7 @@ export default function ServerOrdersWorkspace() {
             {result?.items.map((order) => (
               <article key={order.id} className={styles.orderRow}>
                 <div className={styles.orderIdentity}>
-                  <strong dir="auto">{order.orderNumber}</strong>
+                  <strong dir="auto">{getOrderDisplayNumber(order)}</strong>
                   <span>{typeLabel(order.type as TypeFilter, t)}</span>
                   {order.tableLabel && (
                     <span dir="auto">

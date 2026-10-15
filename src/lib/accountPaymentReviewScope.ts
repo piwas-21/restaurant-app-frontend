@@ -1,8 +1,10 @@
 import type { AccountPaymentOperation } from '@/types/accountPayments';
 import type { TableServiceSessionDto } from '@/types/order';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 export interface FrozenAllocationLine {
   readonly orderNumber: string;
+  readonly businessDate: string | null;
   readonly itemName: string | null;
   readonly startOrdinal: number;
   readonly endOrdinal: number;
@@ -11,6 +13,11 @@ export interface FrozenAllocationLine {
 
 type PaymentAllocation = AccountPaymentOperation['allocations'][number];
 type SourceAccountItem = NonNullable<TableServiceSessionDto['bill']['accountItems']>[number];
+interface OrderIdentity {
+  readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string | null;
+}
 
 function nonBlank(value: unknown): string | null {
   if (typeof value !== 'string') return null;
@@ -40,12 +47,13 @@ function allocationEndOrdinal(allocation: PaymentAllocation): number | null {
 function sharedChargeLine(
   allocation: PaymentAllocation,
   endOrdinal: number,
-  orders: Map<string, string>,
+  orders: Map<string, OrderIdentity>,
 ): FrozenAllocationLine | null {
-  const orderNumber = nonBlank(orders.get(allocation.orderId));
-  return orderNumber
+  const identity = orders.get(allocation.orderId);
+  return identity
     ? {
-        orderNumber,
+        orderNumber: getOrderDisplayNumber(identity),
+        businessDate: identity.businessDate ?? null,
         itemName: null,
         startOrdinal: allocation.startOrdinal,
         endOrdinal,
@@ -78,7 +86,11 @@ function sourceItemLine(
 
   const variation = nonBlank(snapshot.variationName);
   return {
-    orderNumber,
+    orderNumber: getOrderDisplayNumber({
+      orderNumber,
+      dailyOrderNumber: source.dailyOrderNumber,
+    }),
+    businessDate: source.businessDate ?? null,
     itemName: variation ? `${itemName} · ${variation}` : itemName,
     startOrdinal: allocation.startOrdinal,
     endOrdinal,
@@ -89,7 +101,7 @@ function sourceItemLine(
 function frozenAllocationLine(
   allocation: PaymentAllocation,
   items: Map<string, SourceAccountItem>,
-  orders: Map<string, string>,
+  orders: Map<string, OrderIdentity>,
 ): FrozenAllocationLine | null {
   const endOrdinal = allocationEndOrdinal(allocation);
   if (endOrdinal === null) return null;
@@ -104,7 +116,16 @@ export function mapFrozenAccountPaymentAllocations(
   const items = new Map(
     (session.bill.accountItems ?? []).map((entry) => [`${entry.orderId}:${entry.orderItemId}`, entry]),
   );
-  const orders = new Map(session.bill.orders.map((order) => [order.id, order.orderNumber]));
+  const orders = new Map(
+    session.bill.orders.map((order) => [
+      order.id,
+      {
+        orderNumber: order.orderNumber,
+        dailyOrderNumber: order.dailyOrderNumber,
+        businessDate: order.businessDate,
+      },
+    ]),
+  );
   const mapped = operation.allocations.map((allocation) => frozenAllocationLine(allocation, items, orders));
   const lines = mapped.filter((line): line is FrozenAllocationLine => line !== null);
   const totalMinor = lines.reduce((total, line) => total + BigInt(line.amountMinor), BigInt(0));

@@ -7,6 +7,11 @@ import type { ApiResponse } from './common';
  */
 export interface GuestOrderStatusDto {
   orderNumber: string;
+  dailyOrderNumber?: number;
+  businessDate?: string;
+  effectivePreparationMinutes?: number | null;
+  expectedReadyAt?: string | null;
+  businessTimeZoneId?: string | null;
   type: string;
   status: string;
   estimatedDeliveryTime?: string | null;

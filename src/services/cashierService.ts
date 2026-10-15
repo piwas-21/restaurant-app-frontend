@@ -11,6 +11,9 @@ import {
   OrderDto,
   OrderDtoPagedResultApiResponse,
   OrderDtoApiResponse,
+  CashierDailyArchiveDto,
+  CashierDailyArchiveQuery,
+  ApiResponse,
   OrderPaymentDto,
   OrderPaymentDtoApiResponse,
   PagedResult,
@@ -75,6 +78,30 @@ export async function getCashierOrders(filters?: CashierOrdersFilters): Promise<
   return response.data;
 }
 
+/** Read one cashier archive page and the independently paged prior-day unresolved queue. */
+export async function getCashierDailyArchive(query: CashierDailyArchiveQuery = {}): Promise<CashierDailyArchiveDto> {
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') params.set(key, String(value));
+  });
+  const response = await apiClient.get<ApiResponse<CashierDailyArchiveDto>>(
+    `/api/orders/cashier/archive?${params.toString()}`,
+    { requireAuth: true },
+  );
+  if (!response.data) throw new Error('Failed to fetch cashier archive');
+  return response.data;
+}
+
+/** Persist the cashier's decision to stop reminding about one older unresolved order. */
+export async function dismissPriorDayOrderReview(orderId: string): Promise<void> {
+  const response = await apiClient.post<ApiResponse<unknown>>(
+    `/api/orders/${encodeURIComponent(orderId)}/prior-day-review/dismiss`,
+    {},
+    { requireAuth: true },
+  );
+  if (!response.success) throwServerRefusal(response);
+}
+
 /** Read the order-group-paged operational cashier queue. Every returned group retains all orders. */
 export async function getCashierOrderGroups(
   filters?: CashierOrdersFilters,
@@ -126,11 +153,11 @@ function appendCashierOrderFilters(
 }
 
 function appendCashierDateFilters(params: URLSearchParams, filters: CashierOrdersFilters, scope: string): void {
-  // Operational has no date bounds by contract. Keep date parameters only for callers
-  // that explicitly request the generic All scope; tenant day fields are date-only and backend-owned.
+  // Operational can be narrowed to the current tenant business day while retaining active-order
+  // semantics. Instant bounds and multi-day windows remain exclusive to the generic All scope.
+  if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
   if (scope === 'Operational') return;
 
-  if (filters.tenantDay) params.append('tenantDay', filters.tenantDay);
   if (filters.tenantStartDay) params.append('tenantStartDay', filters.tenantStartDay);
   if (filters.tenantEndDay) params.append('tenantEndDay', filters.tenantEndDay);
   if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
@@ -281,12 +308,16 @@ export async function cancelOrder(orderId: string, reason?: string): Promise<Ord
  * long-preparation branch keeps the EXISTING customer-approval sub-flow (`PendingApproval`), so a long prep still
  * asks the customer to approve the wait via the M10 links.
  */
-export async function approveOrder(orderId: string, preparationMinutes: number, notes?: string): Promise<OrderDto> {
+export async function approveOrder(
+  orderId: string,
+  preparationMinutes: number | null,
+  notes?: string,
+): Promise<OrderDto> {
   // The backend owns the long-delay threshold and promotes this request to PendingApproval
   // when customer consent is required. The client must never duplicate that workflow rule.
   const response = await apiClient.post<OrderDtoApiResponse>(
     `/api/orders/${orderId}/approve`,
-    { preparationMinutes, notes },
+    { ...(preparationMinutes === null ? {} : { preparationMinutes }), ...(notes === undefined ? {} : { notes }) },
     { requireAuth: true },
   );
 

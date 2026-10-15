@@ -11,10 +11,12 @@ import { useState, useEffect } from 'react';
 import type { PaymentMethod } from '@/types/order';
 import type { ConfirmationFlow } from '@/services/orderTypeConfigurationService';
 import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 export interface ConfirmedOrder {
   id: string;
   orderNumber: string;
+  dailyOrderNumber?: number;
   customerEmail: string;
   paymentMethod: PaymentMethod;
   /**
@@ -50,7 +52,7 @@ export function useOrderConfirmationModal() {
     if (isLoggedIn || confirmedOrder.guestStatusToken) {
       const token = confirmedOrder.guestStatusToken ? `#t=${encodeURIComponent(confirmedOrder.guestStatusToken)}` : '';
       router.push(
-        `/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${confirmedOrder.orderNumber}${token}`,
+        `/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${getOrderDisplayNumber(confirmedOrder)}${token}`,
       );
     } else {
       router.push('/menu');

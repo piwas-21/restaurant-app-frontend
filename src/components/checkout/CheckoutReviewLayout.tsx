@@ -15,6 +15,7 @@ import PaymentMethodSelector from '@/components/checkout/PaymentMethodSelector';
 import CheckoutReviewTipSelector from '@/components/checkout/CheckoutReviewTipSelector';
 import OrderSummaryCard from '@/components/checkout/OrderSummaryCard';
 import OrderConfirmationModal from '@/components/checkout/OrderConfirmationModal';
+import CheckoutOrderAvailabilityGate from './CheckoutOrderAvailabilityGate';
 
 // The order-type/contact edit modals are only needed after an "Edit" click, so keep them out of the
 // review page's initial First Load JS (loaded on demand).
@@ -41,9 +42,7 @@ function TableGuestRoundLoading() {
   );
 }
 
-/** Per-template CSS-module bundle for the review composition. Each template
- *  supplies modules with the SAME class-name keys, so the shared DOM below is
- *  styled by whichever template is active. */
+/** Per-template CSS-module bundle; templates supply matching class keys for the shared markup. */
 export interface CheckoutReviewStyles {
   /** Page chrome: container/content/header/grid/columns + the special-instructions section. */
   page: CssModule;
@@ -99,6 +98,7 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
     formatPrice,
     formatTotal,
     isLoading,
+    orderAvailability,
   } = useCheckoutReview();
 
   if (isLoading) {
@@ -119,6 +119,7 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
         isOpen={showConfirmationModal}
         orderId={confirmedOrder.id}
         orderNumber={confirmedOrder.orderNumber}
+        dailyOrderNumber={confirmedOrder.dailyOrderNumber}
         customerEmail={confirmedOrder.customerEmail || ''}
         paymentMethod={confirmedOrder.paymentMethod}
         guestStatusToken={confirmedOrder.guestStatusToken}
@@ -145,11 +146,20 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
     return <TableGuestRoundReviewContainer formatPrice={formatPrice} />;
   }
 
+  if (orderAvailability.state !== 'available') {
+    return (
+      <CheckoutOrderAvailabilityGate
+        availability={orderAvailability}
+        orderTypeFollowUp={orderTypeFollowUp}
+        styles={styles}
+      />
+    );
+  }
+
   return (
     <>
       <main className={styles.container}>
         <div className={styles.content}>
-          {/* Header */}
           <div className={styles.header}>
             <h1 className={styles.title}>{t('review_order', 'Review Your Order')}</h1>
             <p className={styles.subtitle}>
@@ -158,16 +168,9 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
           </div>
 
           <div className={styles.gridLayout}>
-            {/* Left Column - Order Details */}
             <div className={styles.leftColumn}>
-              {/* "Edit Order Details" changes the order type (+ its table/address detail); "Edit
-                  Customer Information" edits name/email/phone only — two distinct editors so the
-                  Order Details edit no longer opens the contact modal. Both edit in place (the
-                  follow-up modals mirror into CheckoutContext, so these sections update live). */}
-              {/* Non-null for the same reason as customerInfo below — and `!`, not a fallback:
-                  this used to read `|| 'Takeaway'`, which silently INVENTED a channel on the very
-                  page that computes tax from it (gap G10). If the guard ever regresses, a crash
-                  is the honest outcome; quietly billing someone as takeaway is not. */}
+              {/* Order/contact edits stay separate and mirror changes into CheckoutContext. */}
+              {/* Checkout guards validate both fields before rendering the review form. */}
               <OrderTypeSection
                 orderType={checkoutState.orderType!}
                 tableNumber={checkoutState.tableNumber}
@@ -176,7 +179,6 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
                 styles={bundle.orderType}
               />
 
-              {/* Non-null: the prereq guard redirects away when customerInfo is absent. */}
               <CustomerInfoSection
                 customerInfo={checkoutState.customerInfo!}
                 onEdit={orderTypeFollowUp.editContact}
@@ -240,8 +242,7 @@ function CheckoutReviewContent({ styles: bundle }: { readonly styles: CheckoutRe
         </div>
       </main>
 
-      {/* Edit-in-place: the "Edit" buttons open these to change order type / table / address /
-          contact info without leaving the review page. */}
+      {/* Edit buttons update order/contact information without leaving the review page. */}
       <OrderFlowModals followUp={orderTypeFollowUp} />
     </>
   );

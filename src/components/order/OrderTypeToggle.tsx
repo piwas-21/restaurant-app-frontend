@@ -18,6 +18,8 @@ interface OrderTypeToggleProps {
   blockerHintId?: string;
   /** Locks the selected channel while checkout resolves profile/address prerequisites. */
   disabled?: boolean;
+  /** Nested editors reuse the page's availability read so they do not unmount their host. */
+  refreshAvailabilityOnMount?: boolean;
 }
 
 /**
@@ -28,7 +30,13 @@ interface OrderTypeToggleProps {
  */
 // Memoized so the `useCallback`-stabilised `onPick` from CartContents (PR #74
 // review) actually prevents this child from re-rendering on parent re-renders.
-function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId, disabled }: Readonly<OrderTypeToggleProps>) {
+function OrderTypeToggleImpl({
+  onPick,
+  focusSignal,
+  blockerHintId,
+  disabled,
+  refreshAvailabilityOnMount,
+}: Readonly<OrderTypeToggleProps>) {
   return (
     <OrderTypeToggleShell
       onPick={onPick}
@@ -36,6 +44,7 @@ function OrderTypeToggleImpl({ onPick, focusSignal, blockerHintId, disabled }: R
       focusSignal={focusSignal}
       blockerHintId={blockerHintId}
       disabled={disabled}
+      refreshAvailabilityOnMount={refreshAvailabilityOnMount}
     />
   );
 }

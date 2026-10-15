@@ -16,6 +16,7 @@ import {
   type TableOrderSettlementState,
 } from '@/lib/cashierTableSession';
 import styles from './TableServiceSessionBill.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface TableServiceSessionBillProps {
   readonly session: TableServiceSessionDto;
@@ -101,7 +102,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
             <article key={order.id} className={styles.round}>
               <header className={styles.roundHeader}>
                 <div className={styles.roundIdentity}>
-                  <strong dir="auto">{order.orderNumber}</strong>
+                  <strong dir="auto">{getOrderDisplayNumber(order)}</strong>
                   <span className={styles.roundTime}>{orderTime}</span>
                   <SettlementBadge round={round} t={t} />
                 </div>

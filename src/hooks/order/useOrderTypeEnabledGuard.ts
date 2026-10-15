@@ -22,22 +22,30 @@ import { hasStoredTableGuestState } from '@/services/tableGuestVisitStorage';
  * type on offer there is no decision to make, so it is selected for them.
  *
  * @remarks
- * Deliberately does NOT run while `loading`: the hook starts at `enabled: []`, and acting on that
- * would clear every guest's choice on every page load. It is also deliberately permissive on
- * failure — `useEnabledOrderTypes` falls back to all three types, so an outage never strips a
- * valid choice.
+ * Deliberately does NOT run while `loading`: acting on the temporary empty snapshot would clear a
+ * guest's persisted choice during revalidation. Only a confirmed successful empty response clears
+ * the choice; an unverified read keeps it for recovery while the picker and checkout stay blocked.
  */
 export function useOrderTypeEnabledGuard(): void {
   const { state, setOrderType, clearOrderType } = useOrderType();
-  const { enabled, loading } = useEnabledOrderTypes();
+  const { enabled, loading, confirmed } = useEnabledOrderTypes();
 
   useEffect(() => {
-    if (loading || enabled.length === 0) return;
+    if (loading) return;
 
     // A stored table visit (or unresolved round descriptor) owns its channel. Do not clear the
     // pinned Dine-In choice just because the restaurant is temporarily closed; the visit surface
     // will hold new rounds and restore Dine-In when the public availability read permits it.
     if (hasStoredTableGuestState()) return;
+
+    // A successful empty response means no public order type is currently available. Clear the
+    // persisted choice so a deep link to checkout cannot keep submitting the previously selected
+    // channel. A failed read is distinguished by `confirmed: false`; keep the choice but do not
+    // expose a checkout affordance until availability is verified.
+    if (enabled.length === 0) {
+      if (confirmed && state.orderType !== null) clearOrderType();
+      return;
+    }
 
     // G4 — the stored choice is no longer offered.
     if (state.orderType !== null && !enabled.includes(state.orderType)) {
@@ -49,5 +57,5 @@ export function useOrderTypeEnabledGuard(): void {
     if (state.orderType === null && enabled.length === 1) {
       setOrderType(enabled[0]);
     }
-  }, [enabled, loading, state.orderType, setOrderType, clearOrderType]);
+  }, [enabled, loading, confirmed, state.orderType, setOrderType, clearOrderType]);
 }

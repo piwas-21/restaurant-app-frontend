@@ -11,6 +11,14 @@
 
 BEGIN;
 
+-- Keep tenant-local fixture time settings in one temporary row for both day-boundary orders.
+CREATE TEMP TABLE e2e_seed_time_constants (
+    tenant_time_zone text NOT NULL,
+    end_of_day time NOT NULL
+) ON COMMIT DROP;
+INSERT INTO e2e_seed_time_constants (tenant_time_zone, end_of_day)
+VALUES ('Europe/Zurich', TIME '23:59:00');
+
 -- Staff table settlement requires one authoritative tenant currency.
 UPDATE "RestaurantInfo" SET currency = 'CHF' WHERE currency IS NULL;
 
@@ -285,6 +293,7 @@ FROM working_hours wh;
 -- fails as a silently orphaned row, not an error. (`\set` is a client-side psql command; this file
 -- is only ever run as `psql -f`, which is how CI and e2e/README.md invoke it.)
 \set order_id '00000000-0000-0000-0000-0000000000f0'
+\set prior_day_order_id '00000000-0000-0000-0000-0000000000f9'
 \set combo_item_id '00000000-0000-0000-0000-0000000000e1'
 
 -- 7) MIXED-KITCHEN BUNDLE ORDER — fixture for e2e/tests/cashier/kitchen-ticket-routing.e2e.ts.
@@ -327,15 +336,9 @@ INSERT INTO "Products" (
      8.00, 92, NULL, '[]'::jsonb, '[]'::jsonb, FALSE, TRUE, FALSE, FALSE, FALSE, 2, 5, 5, 'e2e-seed')
 ON CONFLICT (id) DO NOTHING;
 
--- Takeaway so the order does not depend on working hours or a table.
---
--- Dated a day AHEAD deliberately. The cashier list is OrderDate-descending with a default page size
--- of 10, and the rest of the suite creates orders while this one waits, so a "now"-dated fixture
--- would drift off page 1 as the suite grows. Future-dating pins it to the top forever. The spec
--- switches OFF the dashboard's "today only" window, which is what makes that safe — and also what
--- keeps this out of the timezone business: that window is computed in the BROWSER's local zone
--- while this timestamp is written in the DB session's, so any "today at 23:00" anchor here is only
--- ever correct when both happen to be UTC.
+-- Takeaway so the order does not depend on working hours or a table. Anchor it at the end of the
+-- current tenant-local date: that keeps it near the top of today's cashier queue without putting
+-- it outside the business-day boundary the queue is meant to enforce.
 --
 -- No focus column here, and do not re-add one: backend 20260728222102_ExtractOrderFocusOwnedType
 -- DROPPED is_focus_order. "Focused" is now "focused_at IS NOT NULL", so this fixture's unfocused
@@ -358,9 +361,37 @@ INSERT INTO orders (
     'Pending',
     'Takeaway',
     'E2E Kitchen Routing',
-    NOW() + INTERVAL '1 day',
+    (SELECT ((CURRENT_TIMESTAMP AT TIME ZONE tenant_time_zone)::date + end_of_day) AT TIME ZONE tenant_time_zone
+     FROM e2e_seed_time_constants),
     20.00, 0, 0, 0, 0, 0,
     20.00, 0, 20.00,
+    0, 0, 0, 0,
+    FALSE, 0,
+    FALSE, 'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
+-- A Confirmed, fully-paid historical order remains operationally eligible by status, so its
+-- absence from today's active queue proves the business-day filter. It may appear in the separate
+-- prior-day review reminder and remains available through History.
+INSERT INTO orders (
+    id, order_number, status, payment_status, type,
+    customer_name, order_date,
+    sub_total, tax, delivery_fee, discount, discount_percentage, tip,
+    total, total_paid, remaining_amount,
+    customer_discount_amount, fidelity_points_discount, fidelity_points_earned, fidelity_points_redeemed,
+    has_user_limit_discount, user_limit_amount,
+    is_deleted, created_by
+) VALUES (
+    :'prior_day_order_id',
+    'E2E-PRIOR-DAY-001',
+    'Confirmed',
+    'Completed',
+    'Takeaway',
+    'E2E Prior Day',
+    (SELECT (((CURRENT_TIMESTAMP AT TIME ZONE tenant_time_zone)::date - 1 + end_of_day) AT TIME ZONE tenant_time_zone)
+     FROM e2e_seed_time_constants),
+    20.00, 0, 0, 0, 0, 0,
+    20.00, 20.00, 0,
     0, 0, 0, 0,
     FALSE, 0,
     FALSE, 'e2e-seed'

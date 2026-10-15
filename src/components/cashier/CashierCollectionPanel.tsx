@@ -13,6 +13,7 @@ import CashierCollectionPaymentHistory from './CashierCollectionPaymentHistory';
 import CashierCollectionSuccess from './CashierCollectionSuccess';
 import CashierPendingPaymentNotice from './CashierPendingPaymentNotice';
 import styles from './CashierCollection.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface CashierCollectionPanelProps {
   readonly order: OrderDto;
@@ -71,9 +72,9 @@ export default function CashierCollectionPanel({
         <div className={styles.orderIdentity}>
           <p className={styles.eyebrow}>{t('cashier.collection.order')}</p>
           <h1 id="cashier-collection-title" dir="auto">
-            {order.orderNumber}
+            {getOrderDisplayNumber(order)}
           </h1>
-          <p>{t('cashier.collection.description', { order: order.orderNumber })}</p>
+          <p>{t('cashier.collection.description', { order: getOrderDisplayNumber(order) })}</p>
         </div>
         <CashierStatusBadges order={order} />
       </header>

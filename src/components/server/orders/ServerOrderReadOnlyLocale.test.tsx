@@ -90,7 +90,7 @@ describe('flag-off server order read-only locale', () => {
     expect(
       await screen.findByText('Les modifications de commande ne sont pas activées pour ce restaurant.'),
     ).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: 'A-001' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '#A-001' })).toBeInTheDocument();
     expect(instance.getResource('fr', 'translation', 'orderAmendments.feature_disabled')).toBe(
       'Les modifications de commande ne sont pas activées pour ce restaurant.',
     );

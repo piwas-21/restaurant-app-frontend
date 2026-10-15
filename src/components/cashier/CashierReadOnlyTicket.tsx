@@ -10,7 +10,10 @@ import { orderCurrency, formatOrderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderDto } from '@/types/order';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import PreparationCountdown from '@/components/order/PreparationCountdown';
 import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
+import technicalReferenceStyles from './CashierTechnicalReference.module.css';
 import CashierStatusBadges from './CashierStatusBadges';
 import viewStyles from './CashierWorkspaceView.module.css';
 import styles from './CashierWorkspaceTicket.module.css';
@@ -134,12 +137,28 @@ export default function CashierReadOnlyTicket({
         <div>
           <p className={styles.eyebrow}>{t('cashier.workspace.order_details')}</p>
           <h2 id="cashier-ticket-title" ref={headingRef} tabIndex={-1} dir="auto">
-            {order.orderNumber}
+            {getOrderDisplayNumber(order)}
           </h2>
           <time dateTime={order.orderDate}>{formatDate(order.orderDate, i18n.language, timeZone, t)}</time>
+          <PreparationCountdown
+            status={order.status}
+            expectedReadyAt={order.expectedReadyAt}
+            effectivePreparationMinutes={order.effectivePreparationMinutes}
+            timeZone={order.businessTimeZoneId ?? timeZone}
+          />
         </div>
         <CashierStatusBadges order={order} />
       </header>
+
+      <details className={technicalReferenceStyles.details}>
+        <summary>{t('cashier.workspace.technical_reference')}</summary>
+        <p>
+          {t('order_number')}: <code>{order.orderNumber}</code>
+        </p>
+        <p>
+          {t('cashier.workspace.technical_reference')}: <code>{order.id}</code>
+        </p>
+      </details>
 
       <MarketplaceOrderSource source={order.externalOrder} />
       <dl className={styles.ticketMeta}>

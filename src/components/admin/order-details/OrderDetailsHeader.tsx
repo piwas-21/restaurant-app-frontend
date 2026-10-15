@@ -6,6 +6,7 @@ import { OrderDto } from '@/types/order';
 import { getStatusBadgeClasses, getFocusBadgeClass } from '@/utils/orderStatusStyles';
 import styles from '../OrderDetailsModal.module.css';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderDetailsHeaderProps {
   order: OrderDto;
@@ -40,7 +41,7 @@ export default function OrderDetailsHeader({
       <div className={styles.headerLeft}>
         <h2 className={styles.title}>{t('order_details', 'Order Details')}</h2>
         <div className={styles.orderMeta}>
-          <span className={styles.orderNumber}>#{order.orderNumber}</span>
+          <span className={styles.orderNumber}>#{getOrderDisplayNumber(order)}</span>
           <span className={getStatusBadgeClasses(order.status)}>
             {order.status ? t(`order_status_${order.status.toLowerCase()}`, order.status) : 'N/A'}
           </span>

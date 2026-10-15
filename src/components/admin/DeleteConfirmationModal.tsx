@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
 import { AlertTriangle } from 'lucide-react';
 import styles from './DeleteConfirmationModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface DeleteConfirmationModalProps {
   order: OrderDto;
@@ -82,7 +83,7 @@ export default function DeleteConfirmationModal({ order, onClose, onConfirm }: D
         <div className={styles.orderInfo}>
           <div className={styles.infoRow}>
             <span className={styles.label}>{t('order_number', 'Order Number')}:</span>
-            <span className={styles.value}>{order.orderNumber}</span>
+            <span className={styles.value}>{getOrderDisplayNumber(order)}</span>
           </div>
           <div className={styles.infoRow}>
             <span className={styles.label}>{t('customer_name', 'Customer')}:</span>

@@ -166,6 +166,7 @@ export function useCashierHistoryFilters(): CashierHistoryFilters {
       ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
       ...(paymentStatusFilter !== 'all' ? { paymentStatus: paymentStatusFilter } : {}),
       ...(orderTypeFilter !== 'all' ? { orderType: orderTypeFilter } : {}),
+      ...(range === 'today' && tenantDay ? { archiveBusinessDate: tenantDay } : {}),
       ...dateWindow,
     };
   }, [fromDay, orderTypeFilter, page, paymentStatusFilter, range, statusFilter, submittedSearch, tenantDay, toDay]);

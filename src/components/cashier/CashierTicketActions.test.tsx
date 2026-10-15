@@ -1,10 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CashierTicketActions from './CashierTicketActions';
+import type { OrderDto } from '@/types/order';
 import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
 import { getOrderAmendmentEligibility } from '@/services/orderAmendmentEligibilityService';
+import { updateOrderStatus } from '@/services/cashierService';
 
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('next/dynamic', () => () => () => null);
@@ -13,6 +15,10 @@ jest.mock('./order-details/OrderDetailsNotesSection', () => ({ __esModule: true,
 jest.mock('@/utils/pdfExportUtils', () => ({ exportKitchenItemsToPDF: jest.fn(), exportOrderToPDF: jest.fn() }));
 jest.mock('@/services/orderAmendmentsService', () => ({ getOrderAmendmentHistory: jest.fn() }));
 jest.mock('@/services/orderAmendmentEligibilityService', () => ({ getOrderAmendmentEligibility: jest.fn() }));
+jest.mock('@/services/cashierService', () => ({
+  ...jest.requireActual('@/services/cashierService'),
+  updateOrderStatus: jest.fn(),
+}));
 jest.mock('@/hooks/accountPayments/useAccountPaymentActor', () => ({
   useAccountPaymentActor: () => ({
     actorId: '00000000-0000-4000-8000-000000000002',
@@ -28,6 +34,7 @@ jest.mock('@/hooks/orderTypes/useConfirmationFlowConfig', () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   (getOrderAmendmentHistory as jest.Mock).mockResolvedValue([]);
+  jest.mocked(updateOrderStatus).mockResolvedValue({} as never);
 });
 
 it('withholds ordinary approval and printing for a held Uber order, retaining notes and focus', () => {
@@ -60,6 +67,63 @@ it('keeps ordinary approval and print controls available', () => {
   expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.print_bill' }));
   expect(exportOrderToPDF).toHaveBeenCalledWith(order, expect.any(Function));
+});
+
+it('offers prominent Quick Ready only with a fresh, server-permitted preparing order and refreshes after success', async () => {
+  const order = {
+    ...marketplaceOrder(),
+    type: 'Takeaway',
+    externalOrder: null,
+    status: 'Preparing',
+    permittedActions: [{ action: 'MarkReady', allowed: true, requiresReason: false }],
+  };
+  const onOrderChanged = jest.fn();
+  render(<CashierTicketActions order={order} isOrderSnapshotFresh onOrderChanged={onOrderChanged} />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.mark_ready' }));
+  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Ready'));
+  expect(onOrderChanged).toHaveBeenCalled();
+});
+
+it('shows permitted native status choices and applies the selected status', async () => {
+  const order = {
+    ...marketplaceOrder(),
+    status: 'Confirmed',
+    permittedActions: [
+      { action: 'StartPreparing', targetStatus: 'Preparing', allowed: true, requiresReason: false },
+      { action: 'MarkReady', targetStatus: 'Ready', allowed: true, requiresReason: false },
+    ],
+  } as OrderDto;
+  render(<CashierTicketActions order={order} isOrderSnapshotFresh />);
+  const status = screen.getByRole('combobox', { name: 'cashier.workspace.status_control' });
+  fireEvent.change(status, { target: { value: 'Preparing' } });
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.update_status' }));
+
+  await waitFor(() => expect(updateOrderStatus).toHaveBeenCalledWith(order.id, 'Preparing'));
+});
+
+it('keeps an approval-required handoff out of the direct status control', () => {
+  const order = {
+    ...marketplaceOrder(),
+    type: 'Takeaway',
+    externalOrder: null,
+    status: 'Pending',
+    permittedActions: [{ action: 'Accept', targetStatus: 'Confirmed', allowed: true, requiresReason: false }],
+  } as OrderDto;
+  render(<CashierTicketActions order={order} isOrderSnapshotFresh />);
+
+  expect(screen.getByRole('button', { name: 'cashier.approve_order_action' })).toBeInTheDocument();
+  expect(screen.queryByRole('combobox', { name: 'cashier.workspace.status_control' })).not.toBeInTheDocument();
+});
+
+it('withholds Quick Ready when the order snapshot is stale or the backend has not permitted it', () => {
+  const order: OrderDto = { ...marketplaceOrder(), status: 'Preparing', permittedActions: [] };
+  const { rerender } = render(<CashierTicketActions order={order} isOrderSnapshotFresh />);
+  expect(screen.queryByRole('button', { name: 'cashier.workspace.mark_ready' })).not.toBeInTheDocument();
+
+  order.permittedActions = [{ action: 'MarkReady', allowed: true, requiresReason: false }];
+  rerender(<CashierTicketActions order={order} isOrderSnapshotFresh={false} />);
+  expect(screen.queryByRole('button', { name: 'cashier.workspace.mark_ready' })).not.toBeInTheDocument();
 });
 
 it('shows amendment controls and history with the tenant flag and current server eligibility', async () => {

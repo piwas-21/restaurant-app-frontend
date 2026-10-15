@@ -117,14 +117,15 @@ export const TENANT_PUBLIC_INDEXING_ENABLED = process.env.NEXT_PUBLIC_PUBLIC_IND
  * How long an open cashier page may retain the tenant day before asking the server again. The
  * venue clock, not the counter device, owns a business-day boundary. This is build configuration
  * so a tenant with a custom cutover can choose its operational staleness budget without a code
- * change (POS #545).
+ * change (POS #545). By default, active cashier pages recheck every ten minutes and on tab return.
  */
 const rawCashierTenantDayRefreshMs = (process.env.NEXT_PUBLIC_CASHIER_TENANT_DAY_REFRESH_MS ?? '').trim();
 const configuredCashierTenantDayRefreshMs = Number(rawCashierTenantDayRefreshMs);
+const DEFAULT_CASHIER_TENANT_DAY_REFRESH_MS = 10 * 60 * 1000;
 export const CASHIER_TENANT_DAY_REFRESH_MS =
   Number.isSafeInteger(configuredCashierTenantDayRefreshMs) && configuredCashierTenantDayRefreshMs > 0
     ? configuredCashierTenantDayRefreshMs
-    : undefined;
+    : DEFAULT_CASHIER_TENANT_DAY_REFRESH_MS;
 
 /** Page size used by the legacy waiter-order compatibility read. */
 export const SERVER_ORDER_PAGE_SIZE = positiveIntegerConfig(process.env.NEXT_PUBLIC_SERVER_ORDER_PAGE_SIZE, 100);

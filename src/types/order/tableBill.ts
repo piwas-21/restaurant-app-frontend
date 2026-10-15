@@ -7,6 +7,8 @@ import type { TableBillRoundDto } from './tableBillRound';
 export interface TableBillAccountItemDto {
   orderId: string;
   orderNumber: string;
+  dailyOrderNumber?: number;
+  businessDate?: string;
   orderItemId: string;
   itemSnapshot: OrderItemDto;
   /** Number of stable unit identities represented by this line; ordinals are derived as 1..unitCount. */
@@ -18,6 +20,8 @@ export interface TableAccountActivityDto {
   id: string;
   orderId: string;
   orderNumber: string;
+  dailyOrderNumber?: number;
+  businessDate?: string;
   /** Backend currently emits OrderPlaced or StatusChanged. */
   kind: string;
   status: string;

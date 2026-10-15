@@ -10,6 +10,7 @@ import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import { canCreateGuestEqualSharePlan } from '@/lib/guestAccountPaymentRules';
 import FormField from '@/components/design-system/FormField';
 import styles from './GuestAccountPayment.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 export function AllocationChoices({
   account,
@@ -61,9 +62,8 @@ function AllocationChoice({
   const line = tableAccount?.items.find(
     (value) => value.orderId === allocation.orderId && value.item.itemId === allocation.orderItemId,
   );
-  const orderNumber =
-    tableAccount?.orders.find((value) => value.orderId === allocation.orderId)?.orderNumber ??
-    t('table_guest_payment_unknown_order');
+  const order = tableAccount?.orders.find((value) => value.orderId === allocation.orderId);
+  const orderNumber = order ? getOrderDisplayNumber(order) : t('table_guest_payment_unknown_order');
   const name = line?.item.productName ?? t('table_guest_payment_order_item', { orderNumber });
   const perUnit = formatAccountPaymentMinor(allocation.minorPerUnit, account.currency, language);
   return (

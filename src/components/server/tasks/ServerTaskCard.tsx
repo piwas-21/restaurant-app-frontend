@@ -10,6 +10,7 @@ import type { ServerServiceTask } from '@/types/serverTasks';
 import { taskIsDeliverable } from '@/hooks/serverWorkspace/useServerTasks';
 import { serverTaskReasonCopy } from './serverTaskErrorMessages';
 import styles from './ServerTaskCard.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface ServerTaskCardProps {
   readonly task: ServerServiceTask;
@@ -85,7 +86,7 @@ export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCa
     <article className={styles.card} data-bucket={task.bucket} data-testid={`server-task-${task.orderId}`}>
       <header className={styles.header}>
         <div className={styles.identity}>
-          <strong dir="auto">{task.orderNumber}</strong>
+          <strong dir="auto">{getOrderDisplayNumber(task)}</strong>
           <span>{orderTypeCopy(task.orderType, t)}</span>
         </div>
         <StatusBadge tone={bucketTone(task.bucket)} ariaLabel={task.bucket}>
@@ -131,7 +132,7 @@ export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCa
           title={reason ?? undefined}
           aria-label={
             deliverable
-              ? t('server.tasks.deliver_order', 'Deliver {{order}}', { order: task.orderNumber })
+              ? t('server.tasks.deliver_order', 'Deliver {{order}}', { order: getOrderDisplayNumber(task) })
               : (reason ?? t('server.tasks.delivery_disabled', 'Delivery unavailable'))
           }
         >

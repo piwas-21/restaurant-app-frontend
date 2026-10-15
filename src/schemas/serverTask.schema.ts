@@ -23,6 +23,8 @@ const taskActionSchema = z.object({
 export const serverServiceTaskSchema = z.object({
   orderId: z.string(),
   orderNumber: z.string(),
+  dailyOrderNumber: z.number().int().positive().optional(),
+  businessDate: z.string().optional(),
   orderType: z.string(),
   status: z.string(),
   bucket: z.enum(['Ready', 'Overdue', 'Exception']),

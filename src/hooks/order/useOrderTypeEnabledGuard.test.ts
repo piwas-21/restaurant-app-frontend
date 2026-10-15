@@ -18,9 +18,9 @@ jest.mock('@/services/tableGuestVisitStorage', () => ({
   hasStoredTableGuestState: () => mockHasStoredGuestState,
 }));
 
-const arrange = (orderType: OrderType | null, enabled: OrderType[], loading = false) => {
+const arrange = (orderType: OrderType | null, enabled: OrderType[], loading = false, confirmed = true) => {
   mockUseOrderType.mockReturnValue({ state: { orderType }, setOrderType, clearOrderType });
-  mockUseEnabled.mockReturnValue({ enabled, loading });
+  mockUseEnabled.mockReturnValue({ enabled, loading, confirmed });
   renderHook(() => useOrderTypeEnabledGuard());
 };
 
@@ -83,8 +83,15 @@ describe('useOrderTypeEnabledGuard', () => {
     expect(setOrderType).not.toHaveBeenCalled();
   });
 
-  it('does nothing when the enabled list resolves empty', () => {
+  it('clears a stored channel when the successful availability list resolves empty', () => {
     arrange(OrderType.Delivery, []);
+
+    expect(clearOrderType).toHaveBeenCalledTimes(1);
+    expect(setOrderType).not.toHaveBeenCalled();
+  });
+
+  it('does not clear an existing channel when availability cannot be read', () => {
+    arrange(OrderType.Delivery, [], false, false);
 
     expect(clearOrderType).not.toHaveBeenCalled();
     expect(setOrderType).not.toHaveBeenCalled();

@@ -18,6 +18,7 @@ import { formatAmendmentMinorAmount, orderItemTitle } from './orderAmendmentPres
 import { matchedPreparationInstructions } from './proposedPreparationInstructions';
 import instructionStyles from './ProposedPreparationInstruction.module.css';
 import styles from './OrderAmendmentModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderAmendmentReviewStageProps {
   readonly quote: OrderAmendmentQuote;
@@ -54,6 +55,7 @@ export default function OrderAmendmentReviewStage({
 }: Readonly<OrderAmendmentReviewStageProps>) {
   const { t, i18n } = useTranslation();
   const financial = quote.financialPreview;
+  const sourceOrderNumber = getOrderDisplayNumber(quote.sourceOrder);
   const expires = new Date(quote.expiresAt);
   const expiresLabel = Number.isNaN(expires.getTime())
     ? quote.expiresAt
@@ -65,7 +67,7 @@ export default function OrderAmendmentReviewStage({
       <section className={styles.reviewSection} aria-labelledby="amendment-review-source">
         <div className={styles.sectionHeader}>
           <h3 id="amendment-review-source">{t('orderAmendments.original_order', 'Original order')}</h3>
-          <span>{quote.sourceOrder.orderNumber}</span>
+          <span>{sourceOrderNumber}</span>
         </div>
         <div className={styles.orderState}>
           <span>{t('orderAmendments.service_state', 'Service')}</span>
@@ -136,7 +138,7 @@ export default function OrderAmendmentReviewStage({
           <h3 id="amendment-review-supplement">{t('orderAmendments.supplement_order', 'Fresh supplement')}</h3>
           <span>
             {quote.supplementOrder
-              ? quote.supplementOrder.orderNumber.trim() ||
+              ? getOrderDisplayNumber(quote.supplementOrder) ||
                 t('orderAmendments.order_number_assigned_when_saved', 'Assigned when saved')
               : t('orderAmendments.no_supplement', 'No new supplement')}
           </span>

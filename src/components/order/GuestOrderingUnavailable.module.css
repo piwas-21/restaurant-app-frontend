@@ -1,0 +1,45 @@
+.notice {
+  align-items: flex-start;
+  background: var(--feedback-warning-xlight);
+  border: 1px solid var(--feedback-warning);
+  border-radius: 0.65rem;
+  color: var(--text-primary);
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.85rem;
+}
+
+.notice > svg {
+  color: var(--feedback-warning-text);
+  flex: 0 0 auto;
+  margin-block-start: 0.1rem;
+}
+
+.notice p {
+  margin: 0 0 0.65rem;
+}
+
+.notice button {
+  align-items: center;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 0.4rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 650;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.notice button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.notice button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}

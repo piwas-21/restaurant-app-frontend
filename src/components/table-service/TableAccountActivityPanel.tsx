@@ -6,6 +6,7 @@ import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderStatus, TableServiceSessionDto } from '@/types/order';
 import styles from './TableAccountWorkspace.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface ActivityEvent {
   readonly id: string;
@@ -40,7 +41,7 @@ function projectedActivityEvents(session: TableServiceSessionDto): ActivityEvent
       id: event.id,
       at: event.occurredAt,
       kind: event.kind === 'OrderPlaced' ? 'order' : 'status',
-      orderNumber: event.orderNumber,
+      orderNumber: getOrderDisplayNumber(event),
       ...(event.kind === 'StatusChanged' && KNOWN_STATUSES.has(event.status)
         ? { status: event.status as OrderStatus }
         : {}),
@@ -57,13 +58,18 @@ function legacyActivityEvents(session: TableServiceSessionDto): ActivityEvent[] 
   for (const order of session.bill.orders) {
     const orderTime = order.orderDate || order.createdAt;
     if (orderTime)
-      events.push({ id: `order-${order.id}`, at: orderTime, kind: 'order', orderNumber: order.orderNumber });
+      events.push({
+        id: `order-${order.id}`,
+        at: orderTime,
+        kind: 'order',
+        orderNumber: getOrderDisplayNumber(order),
+      });
     for (const change of order.statusHistory ?? []) {
       events.push({
         id: `status-${change.id}`,
         at: change.changedAt,
         kind: 'status',
-        orderNumber: order.orderNumber,
+        orderNumber: getOrderDisplayNumber(order),
         status: change.status,
       });
     }

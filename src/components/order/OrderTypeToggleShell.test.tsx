@@ -8,7 +8,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 let mockOrderTypeState: { orderType: OrderType | undefined };
-let mockEnabledState: { enabled: OrderType[]; loading: boolean };
+let mockEnabledState: { enabled: OrderType[]; loading: boolean; confirmed: boolean };
 let mockTableGuestState: {
   visitBound: boolean;
   active: boolean;
@@ -38,7 +38,11 @@ const styles = {
 describe('OrderTypeToggleShell', () => {
   beforeEach(() => {
     mockOrderTypeState = { orderType: OrderType.DineIn };
-    mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery], loading: false };
+    mockEnabledState = {
+      enabled: [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery],
+      loading: false,
+      confirmed: true,
+    };
     mockTableGuestState = { visitBound: false, active: false, blocked: false };
   });
 
@@ -56,7 +60,7 @@ describe('OrderTypeToggleShell', () => {
   });
 
   it('renders only the admin-enabled subset', () => {
-    mockEnabledState = { enabled: [OrderType.Takeaway], loading: false };
+    mockEnabledState = { enabled: [OrderType.Takeaway], loading: false, confirmed: true };
     render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
     expect(screen.queryByRole('button', { name: /Dine In/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Takeaway/ })).toBeInTheDocument();
@@ -86,7 +90,7 @@ describe('OrderTypeToggleShell', () => {
   });
 
   it('renders a spacer skeleton (no group) while the enabled list is loading', () => {
-    mockEnabledState = { enabled: [], loading: true };
+    mockEnabledState = { enabled: [], loading: true, confirmed: false };
     const { container } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
     expect(container.querySelector('.skeleton')).toBeInTheDocument();
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
@@ -97,6 +101,34 @@ describe('OrderTypeToggleShell', () => {
     render(<OrderTypeToggleShell onPick={onPick} styles={styles} />);
     fireEvent.click(screen.getByRole('button', { name: /Takeaway/ }));
     expect(onPick).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  it('shows a closed notice and offers no contact-form trigger when availability is confirmed empty', () => {
+    const onPick = jest.fn();
+    mockEnabledState = { enabled: [], loading: false, confirmed: true };
+    render(<OrderTypeToggleShell onPick={onPick} styles={styles} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Ordering is unavailable right now');
+    expect(screen.getByRole('button', { name: /Retry/ })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Order type' })).not.toBeInTheDocument();
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
+  it('shows an availability-check error after a failed read instead of offering order types', () => {
+    mockEnabledState = { enabled: [], loading: false, confirmed: false };
+    render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('We could not check ordering availability');
+    expect(screen.queryByRole('group', { name: 'Order type' })).not.toBeInTheDocument();
+  });
+
+  it('hides a previously available channel after its refresh fails', () => {
+    mockEnabledState = { enabled: [OrderType.Takeaway], loading: false, confirmed: false };
+    render(<OrderTypeToggleShell onPick={() => {}} styles={styles} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('We could not check ordering availability');
+    expect(screen.queryByRole('button', { name: /Takeaway/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Order type' })).not.toBeInTheDocument();
   });
 
   describe('focusSignal', () => {
@@ -132,11 +164,11 @@ describe('OrderTypeToggleShell', () => {
      * click this feature exists to remove, until they clicked a second time.
      */
     it('services a refusal that arrived while the enabled list was still loading', () => {
-      mockEnabledState = { enabled: [], loading: true };
+      mockEnabledState = { enabled: [], loading: true, confirmed: false };
       const { rerender } = render(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
       expect(screen.queryByRole('group')).not.toBeInTheDocument();
 
-      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false };
+      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false, confirmed: true };
       rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
       expect(screen.getByRole('button', { name: /Dine In/ })).toHaveFocus();
     });
@@ -148,7 +180,7 @@ describe('OrderTypeToggleShell', () => {
       // Delivery leaves the admin-enabled list — a real re-render of this effect's new deps, with
       // the focused button (Takeaway) still present so the assertion is about focus and not
       // about the element having been unmounted underneath it.
-      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false };
+      mockEnabledState = { enabled: [OrderType.DineIn, OrderType.Takeaway], loading: false, confirmed: true };
       rerender(<OrderTypeToggleShell onPick={() => {}} styles={styles} focusSignal={1} />);
       expect(screen.getByRole('button', { name: /Takeaway/ })).toHaveFocus();
     });

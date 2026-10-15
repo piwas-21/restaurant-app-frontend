@@ -126,7 +126,7 @@ describe('ServerOrderDetailWorkspace', () => {
         <ServerOrderDetailWorkspace orderId="order-1" />
       </TenantFeaturesProvider>,
     );
-    expect(await screen.findByRole('heading', { name: 'A-001' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '#A-001' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Amend order-1' })).toBeInTheDocument();
     await waitFor(() => expect(mockGetHistory).toHaveBeenCalledWith('order-1'));
 
@@ -143,12 +143,12 @@ describe('ServerOrderDetailWorkspace', () => {
       </TenantFeaturesProvider>,
     );
 
-    expect(screen.queryByRole('heading', { name: 'A-001' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '#A-001' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Amend order-1' })).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Loading orders…');
 
     await act(async () => resolveNext(order('order-2', 'A-002')));
-    expect(await screen.findByRole('heading', { name: 'A-002' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '#A-002' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Amend order-2' })).toBeInTheDocument();
   });
 
@@ -162,7 +162,7 @@ describe('ServerOrderDetailWorkspace', () => {
     );
 
     expect(screen.getByText('Order amendments are not enabled for this restaurant.')).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: 'A-003' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '#A-003' })).toBeInTheDocument();
     await waitFor(() => expect(mockGetOrder).toHaveBeenCalledWith('order-3'));
     expect(mockGetHistory).not.toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe('ServerOrderDetailWorkspace', () => {
         <ServerOrderDetailWorkspace orderId="order-4" />
       </TenantFeaturesProvider>,
     );
-    expect(await screen.findByRole('heading', { name: 'A-004' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '#A-004' })).toBeInTheDocument();
 
     let resolveRefresh!: (value: OrderDto) => void;
     mockGetOrder.mockImplementationOnce(
@@ -189,7 +189,7 @@ describe('ServerOrderDetailWorkspace', () => {
     const dialog = screen.getByRole('dialog', { name: 'Amendment' });
     expect(dialog).toBeInTheDocument();
     expect(within(dialog).getByRole('status')).toHaveTextContent('Amendment committed');
-    expect(screen.getByRole('heading', { name: 'A-004' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '#A-004' })).toBeInTheDocument();
     expect(screen.getByText('Loading orders…')).toBeInTheDocument();
 
     await act(async () => resolveRefresh(order('order-4', 'A-004')));

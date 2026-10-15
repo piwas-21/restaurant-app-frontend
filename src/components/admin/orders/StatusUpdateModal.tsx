@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { X, CheckCircle, Loader2 } from 'lucide-react';
 import { useOrderHelpers } from '@/hooks/useOrderHelpers';
 import styles from './StatusUpdateModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface StatusUpdateModalProps {
   order: OrderDto;
@@ -38,7 +39,7 @@ export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ order, onC
         </div>
         <div className={styles.modalBody}>
           <p className={styles.orderInfo}>
-            {t('order', 'Order')} #{order.orderNumber}
+            {t('order', 'Order')} #{getOrderDisplayNumber(order)}
           </p>
           <div className={styles.formGroup}>
             <label htmlFor="status">{t('new_status', 'New Status')}:</label>

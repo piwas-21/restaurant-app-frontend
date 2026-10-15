@@ -37,10 +37,12 @@ describe('useGuestOrderWatch', () => {
     expect(result.current.status).toEqual(pending);
   });
 
-  it('polls every five seconds while pending and stops after approval', async () => {
+  it('polls through confirmed and preparing, then stops when the order is Ready', async () => {
     getStatus
       .mockResolvedValueOnce(pending)
-      .mockResolvedValueOnce({ ...pending, status: 'Confirmed', estimatedDeliveryTime: '2026-09-20T12:30:00Z' });
+      .mockResolvedValueOnce({ ...pending, status: 'Confirmed', expectedReadyAt: '2026-09-20T12:30:00Z' })
+      .mockResolvedValueOnce({ ...pending, status: 'Preparing', expectedReadyAt: '2026-09-20T12:30:00Z' })
+      .mockResolvedValueOnce({ ...pending, status: 'Ready', expectedReadyAt: '2026-09-20T12:30:00Z' });
     const { result } = renderHook(() => useGuestOrderWatch('order-id', 'read-token'));
     await waitFor(() => expect(result.current.phase).toBe('reviewing'));
 
@@ -49,10 +51,36 @@ describe('useGuestOrderWatch', () => {
       await Promise.resolve();
     });
     await waitFor(() => expect(result.current.phase).toBe('approved'));
+    expect(result.current.status?.status).toBe('Confirmed');
 
-    act(() => {
-      jest.advanceTimersByTime(15_000);
+    await act(async () => {
+      jest.advanceTimersByTime(5_000);
+      await Promise.resolve();
     });
+    await waitFor(() => expect(result.current.status?.status).toBe('Preparing'));
+
+    await act(async () => {
+      jest.advanceTimersByTime(5_000);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(result.current.status?.status).toBe('Ready'));
+
+    act(() => jest.advanceTimersByTime(15_000));
+    expect(getStatus).toHaveBeenCalledTimes(4);
+  });
+
+  it('stops polling when a previously confirmed order status token becomes unavailable', async () => {
+    getStatus.mockResolvedValueOnce({ ...pending, status: 'Confirmed' }).mockRejectedValueOnce(new ApiError(404, ''));
+    const { result } = renderHook(() => useGuestOrderWatch('order-id', 'read-token'));
+    await waitFor(() => expect(result.current.phase).toBe('approved'));
+
+    await act(async () => {
+      jest.advanceTimersByTime(5_000);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(result.current.phase).toBe('unavailable'));
+
+    act(() => jest.advanceTimersByTime(15_000));
     expect(getStatus).toHaveBeenCalledTimes(2);
   });
 

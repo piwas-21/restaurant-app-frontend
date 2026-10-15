@@ -16,6 +16,7 @@ import CashierAccountPaymentCollectionHost from './CashierAccountPaymentCollecti
 import CashierTableSessionPaymentCollection from './CashierTableSessionPaymentCollection';
 import CashierPendingPaymentNotice from './CashierPendingPaymentNotice';
 import styles from './CashierCollection.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface Props {
   readonly serviceSessionId: string;
@@ -115,9 +116,8 @@ export default function CashierSessionCollectionRoute({
     orderId,
     returnTo,
   );
-  const originatingOrderNumber = session?.bill.orders.find(
-    (order) => order.id.toLowerCase() === orderId?.toLowerCase(),
-  )?.orderNumber;
+  const originatingOrder = session?.bill.orders.find((order) => order.id.toLowerCase() === orderId?.toLowerCase());
+  const originatingOrderNumber = originatingOrder ? getOrderDisplayNumber(originatingOrder) : undefined;
 
   useEffect(() => {
     onNavigationLockChange?.(navigationLocked);

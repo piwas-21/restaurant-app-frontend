@@ -32,6 +32,7 @@ import ConfirmationSuccessHeader from '@/app/checkout/confirmation/ConfirmationS
 import CheckoutReturnView from '@/components/checkout/CheckoutReturnView';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import OrderReviewStatus, { isApprovedOrderStatus } from '@/components/checkout/OrderReviewStatus';
 import GuestOrderLiveView from '@/components/checkout/GuestOrderLiveView';
 import { useGuestOrderWatch } from '@/hooks/checkout/useGuestOrderWatch';
@@ -212,14 +213,27 @@ function ConfirmationContent() {
     <main className={styles.container}>
       <div className={styles.content}>
         {confirmationConfig?.flow !== 'acknowledge' && (
-          <ConfirmationSuccessHeader orderNumber={orderNumber || order.orderNumber} />
+          <ConfirmationSuccessHeader
+            orderNumber={getOrderDisplayNumber({
+              dailyOrderNumber: liveStatus?.dailyOrderNumber ?? order.dailyOrderNumber,
+              orderNumber: orderNumber || order.orderNumber,
+            })}
+          />
         )}
 
         <OrderReviewStatus
           confirmationFlow={confirmationConfig?.flow ?? 'direct'}
-          orderNumber={orderNumber || order.orderNumber}
+          orderNumber={getOrderDisplayNumber({
+            dailyOrderNumber: liveStatus?.dailyOrderNumber ?? order.dailyOrderNumber,
+            orderNumber: orderNumber || order.orderNumber,
+          })}
+          dailyOrderNumber={liveStatus?.dailyOrderNumber ?? order.dailyOrderNumber}
           status={effectiveStatus}
           estimatedDeliveryTime={liveStatus?.estimatedDeliveryTime ?? order.estimatedDeliveryTime}
+          expectedReadyAt={liveStatus?.expectedReadyAt ?? order.expectedReadyAt}
+          effectivePreparationMinutes={liveStatus?.effectivePreparationMinutes ?? order.effectivePreparationMinutes}
+          businessTimeZoneId={liveStatus?.businessTimeZoneId ?? order.businessTimeZoneId}
+          orderType={order.type}
           reviewWindowMinutes={confirmationConfig?.reviewWindowMinutes ?? 2}
           reviewDeadlineUtc={liveStatus?.reviewDeadlineUtc}
           total={order.total}
@@ -228,15 +242,18 @@ function ConfirmationContent() {
 
         {/* The legacy generic estimate remains direct-flow only. Acknowledge flow shows the
             cashier's actual promised time in OrderReviewStatus after approval. */}
-        {confirmationConfig?.flow !== 'acknowledge' && isApprovedOrderStatus(effectiveStatus) && (
-          <div className={styles.estimatedTime}>
-            <Clock size={32} className={styles.clockIcon} />
-            <div className={styles.timeInfo}>
-              <h2>{t('estimated_preparation_time', 'Estimated Preparation Time')}</h2>
-              <p className={styles.timeValue}>{getEstimatedTime(order.type)}</p>
+        {confirmationConfig?.flow !== 'acknowledge' &&
+          isApprovedOrderStatus(effectiveStatus) &&
+          !order.expectedReadyAt &&
+          typeof order.effectivePreparationMinutes !== 'number' && (
+            <div className={styles.estimatedTime}>
+              <Clock size={32} className={styles.clockIcon} />
+              <div className={styles.timeInfo}>
+                <h2>{t('estimated_preparation_time', 'Estimated Preparation Time')}</h2>
+                <p className={styles.timeValue}>{getEstimatedTime(order.type)}</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         <div className={styles.gridLayout}>
           {/* Left Column - Order Details */}

@@ -4,13 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Utensils, Loader2, Users, AlertCircle, Coffee, X } from 'lucide-react';
 import styles from './TableSelector.module.css';
-
-interface TableOccupant {
-  customerName?: string;
-  orderNumber?: string;
-  orderDate: string;
-  isLoggedInUser: boolean;
-}
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import type { TableOccupant } from './tableSelectorTypes';
 
 interface Table {
   id: string;
@@ -193,7 +188,6 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
         </div>
       </div>
 
-      {/* Share Table Confirmation Modal */}
       {showShareModal && tableToShare && (
         <div className={styles.modalOverlay} onClick={cancelShareTable}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -221,7 +215,9 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
                   {tableToShare.occupants.map((occupant, index) => (
                     <li key={index} className={styles.occupantItem}>
                       <span className={styles.occupantName}>{occupant.customerName || t('guest', 'Guest')}</span>
-                      {occupant.orderNumber && <span className={styles.orderNumber}>#{occupant.orderNumber}</span>}
+                      {occupant.orderNumber && (
+                        <span className={styles.orderNumber}>#{getOrderDisplayNumber(occupant)}</span>
+                      )}
                     </li>
                   ))}
                 </ul>

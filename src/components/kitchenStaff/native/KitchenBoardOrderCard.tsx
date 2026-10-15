@@ -6,6 +6,7 @@ import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/St
 import KitchenBoardItemTree from './KitchenBoardItemTree';
 import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardWorkCard.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 function statusTone(status: string): StatusBadgeTone {
   if (status === 'Ready' || status === 'Delivered' || status === 'Completed') return 'success';
@@ -37,7 +38,7 @@ export default function KitchenBoardOrderCard({
       <header className={styles.header}>
         <div>
           <h3 id={`kitchen-order-${order.orderId}`} className={styles.title}>
-            {t('nativeKitchenBoard.orderNumber', { number: order.orderNumber })}
+            {t('nativeKitchenBoard.orderNumber', { number: getOrderDisplayNumber(order) })}
           </h3>
           <p className={styles.meta}>
             {location && <span>{location}</span>}

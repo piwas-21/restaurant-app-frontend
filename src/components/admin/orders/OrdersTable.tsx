@@ -6,6 +6,7 @@ import { useOrderHelpers } from '@/hooks/useOrderHelpers';
 import { getStatusBadgeClasses, getPaymentBadgeClasses } from '@/utils/orderStatusStyles';
 import styles from './OrdersTable.module.css';
 import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrdersTableProps {
   orders: OrderDto[];
@@ -68,7 +69,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               <td>
                 <div className={styles.orderNumberCell}>
                   {order.isFocusOrder && <Star size={14} className={styles.focusIcon} />}
-                  <span className={styles.orderNumber}>{order.orderNumber}</span>
+                  <span className={styles.orderNumber}>{getOrderDisplayNumber(order)}</span>
                 </div>
               </td>
               <td>

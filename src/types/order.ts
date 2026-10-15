@@ -12,6 +12,7 @@ export * from './order/dtos';
 export * from './order/orderDto';
 export * from './order/externalOrder';
 export * from './order/guestOrderStatusDto';
+export * from './order/cashierDailyArchiveDto';
 export * from './order/commands';
 export * from './order/zReport';
 export * from './order/tableBill';

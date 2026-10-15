@@ -8,31 +8,31 @@ import { CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '@/utils/currency';
 import StatusBadge from '@/components/design-system/StatusBadge';
+import PreparationCountdown from '@/components/order/PreparationCountdown';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import { DEFAULT_REVIEW_WINDOW_MINUTES, type ConfirmationFlow } from '@/services/orderTypeConfigurationService';
 import styles from './OrderReviewStatus.module.css';
+import {
+  approvedStatusCopy,
+  isApprovedOrderStatus,
+  legacyTimeForActivePreparation,
+} from './orderReviewStatusPresentation';
+export { isApprovedOrderStatus };
 
 interface OrderReviewStatusProps {
   readonly confirmationFlow: ConfirmationFlow;
   readonly orderNumber?: string;
+  readonly dailyOrderNumber?: number;
   readonly status: string;
   readonly estimatedDeliveryTime?: string | null;
+  readonly expectedReadyAt?: string | null;
+  readonly effectivePreparationMinutes?: number | null;
+  readonly businessTimeZoneId?: string | null;
+  readonly orderType?: string;
   readonly reviewWindowMinutes?: number;
   readonly reviewDeadlineUtc?: string | null;
   readonly total?: number;
   readonly currency?: string;
-}
-
-const approvedStatuses = new Set(['Confirmed', 'Preparing', 'Ready', 'Completed']);
-
-export function isApprovedOrderStatus(status: string): boolean {
-  return approvedStatuses.has(status);
-}
-
-function readyTime(value: string | null | undefined, locale: string): string | null {
-  if (!value) return null;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
 function secondsUntil(value: string | null | undefined): number | null {
@@ -50,8 +50,13 @@ function countdownLabel(seconds: number): string {
 export default function OrderReviewStatus({
   confirmationFlow,
   orderNumber,
+  dailyOrderNumber,
   status,
   estimatedDeliveryTime,
+  expectedReadyAt,
+  effectivePreparationMinutes,
+  businessTimeZoneId,
+  orderType,
   reviewWindowMinutes = DEFAULT_REVIEW_WINDOW_MINUTES,
   reviewDeadlineUtc,
   total,
@@ -68,9 +73,10 @@ export default function OrderReviewStatus({
     return () => window.clearInterval(timer);
   }, [reviewDeadlineUtc]);
 
-  const orderLine = orderNumber ? (
+  const displayOrderNumber = getOrderDisplayNumber({ dailyOrderNumber, orderNumber });
+  const orderLine = displayOrderNumber ? (
     <p className={styles.orderNumber}>
-      {t('order_number')}: <strong>{orderNumber}</strong>
+      {t('order_number')}: <strong>{displayOrderNumber}</strong>
     </p>
   ) : null;
   const totalLine =
@@ -98,21 +104,41 @@ export default function OrderReviewStatus({
   }
 
   if (isApprovedOrderStatus(status)) {
-    const time = readyTime(estimatedDeliveryTime, i18n.language);
+    const isReady = status === 'Ready';
+    const isCompleted = status === 'Completed';
+    const isResolved = isReady || isCompleted || status === 'Delivered';
+    const copy = approvedStatusCopy(status);
+    const legacyReadyTime = legacyTimeForActivePreparation(
+      status,
+      expectedReadyAt,
+      estimatedDeliveryTime,
+      orderType,
+      i18n.language,
+    );
     return (
       <section className={`${styles.panel} ${styles.approved}`} aria-live="polite">
         <CheckCircle2 aria-hidden="true" />
         <div>
           <div className={styles.headingRow}>
-            <h2>{t('checkout.review_approved_title', 'Your order is approved')}</h2>
-            <StatusBadge tone="success">{t('order_status_confirmed')}</StatusBadge>
+            <h2>{t(copy.titleKey, copy.titleFallback)}</h2>
+            <StatusBadge tone="success">{t(copy.statusKey)}</StatusBadge>
           </div>
           {orderLine}
-          <p>
-            {time
-              ? t('checkout.review_approved_ready_time', 'Expected ready time: {{time}}', { time })
-              : t('checkout.review_approved_body', 'The restaurant is preparing your order now.')}
-          </p>
+          {!isResolved && (
+            <>
+              <p>
+                {legacyReadyTime
+                  ? t('checkout.review_approved_ready_time', 'Expected ready time: {{time}}', { time: legacyReadyTime })
+                  : t('checkout.review_approved_body', 'The restaurant is preparing your order now.')}
+              </p>
+              <PreparationCountdown
+                status={status}
+                expectedReadyAt={expectedReadyAt}
+                effectivePreparationMinutes={effectivePreparationMinutes}
+                timeZone={businessTimeZoneId}
+              />
+            </>
+          )}
           {totalLine}
         </div>
       </section>

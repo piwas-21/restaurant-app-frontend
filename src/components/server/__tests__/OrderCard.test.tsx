@@ -49,6 +49,20 @@ describe('the primary next action comes from the shared transition table', () =>
     expect(screen.getByText('Table T-QA')).toBeInTheDocument();
   });
 
+  it('shows the business date beside tenant-zone time on the server card', () => {
+    render(
+      <OrderCard
+        order={{
+          ...buildOrder({ dailyOrderNumber: 1, businessDate: '2026-10-15', businessTimeZoneId: 'Europe/Zurich' }),
+        }}
+        onStatusChange={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Oct 15, 2026', { selector: 'time' })).toHaveAttribute('datetime', '2026-10-15');
+    expect(screen.getByText(/🕐\s*\d{1,2}:\d{2}/)).toBeInTheDocument();
+  });
+
   it.each([
     ['Pending', OrderType.DineIn, 'Confirm Order', 'Confirmed'],
     ['Confirmed', OrderType.DineIn, 'Start Preparing', 'Preparing'],

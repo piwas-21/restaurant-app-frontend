@@ -9,6 +9,7 @@ import { accountAllocationKey } from '@/lib/accountPaymentSelection';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
 import { canCreateGuestEqualSharePlan } from '@/lib/guestAccountPaymentRules';
 import FormField from '@/components/design-system/FormField';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import styles from './GuestAccountPayment.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
@@ -71,7 +72,8 @@ function AllocationChoice({
       <div className={styles.choiceBody}>
         <strong>{name}</strong>
         <span className={styles.choiceMeta}>
-          {orderNumber} · {t('table_guest_payment_quantity', { count: allocation.unitCount })}
+          {orderNumber} <BusinessDateLabel businessDate={order?.businessDate} /> ·{' '}
+          {t('table_guest_payment_quantity', { count: allocation.unitCount })}
         </span>
         {perUnit && <span className={styles.choiceMeta}>{perUnit}</span>}
       </div>

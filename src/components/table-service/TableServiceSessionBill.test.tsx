@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import TableServiceSessionBill from './TableServiceSessionBill';
 
@@ -50,4 +50,90 @@ it('prints split flow, guest allocations, and gratuity as separate bill details'
   expect(tipLabel).toBeInTheDocument();
   expect(tipLabel.nextElementSibling?.textContent).toMatch(/EUR\s3\.50/);
   expect(screen.getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
+});
+
+it('disambiguates repeated daily order numbers by business date and uses the tenant timezone', () => {
+  const order = {
+    id: 'order-1',
+    orderNumber: 'full-order-reference-1',
+    dailyOrderNumber: 1,
+    businessDate: '2026-10-14',
+    businessTimeZoneId: 'Europe/Zurich',
+    orderDate: '2026-10-14T12:30:00.000Z',
+    status: 'Confirmed',
+    paymentStatus: 'Pending',
+    remainingAmount: 10,
+    total: 10,
+    currency: 'EUR',
+    payments: [],
+    items: [],
+  };
+  const nextDayOrder = {
+    ...order,
+    id: 'order-2',
+    orderNumber: 'full-order-reference-2',
+    businessDate: '2026-10-15',
+    orderDate: '2026-10-15T12:45:00.000Z',
+  };
+  const crossDateSession = {
+    ...session,
+    bill: {
+      ...session.bill,
+      orders: [order, nextDayOrder],
+    },
+  } as unknown as TableServiceSessionDto;
+
+  render(<TableServiceSessionBill session={crossDateSession} />);
+
+  const rounds = screen.getAllByRole('article');
+  expect(rounds).toHaveLength(2);
+  expect(rounds[0]).toHaveTextContent('1');
+  expect(within(rounds[0]).getByText('Oct 14, 2026')).toBeInTheDocument();
+  expect(within(rounds[0]).getByText('02:30 PM')).toBeInTheDocument();
+  expect(rounds[1]).toHaveTextContent('1');
+  expect(within(rounds[1]).getByText('Oct 15, 2026')).toBeInTheDocument();
+  expect(within(rounds[1]).getByText('02:45 PM')).toBeInTheDocument();
+});
+
+it('disambiguates repeated daily order numbers by business date and formats time in the tenant zone', () => {
+  const order = {
+    id: 'order-1',
+    orderNumber: 'full-order-reference-1',
+    dailyOrderNumber: 1,
+    businessDate: '2026-10-14',
+    businessTimeZoneId: 'Europe/Zurich',
+    orderDate: '2026-10-14T12:30:00.000Z',
+    status: 'Confirmed',
+    paymentStatus: 'Pending',
+    remainingAmount: 10,
+    total: 10,
+    currency: 'EUR',
+    payments: [],
+    items: [],
+  };
+  const nextDayOrder = {
+    ...order,
+    id: 'order-2',
+    orderNumber: 'full-order-reference-2',
+    businessDate: '2026-10-15',
+    orderDate: '2026-10-15T12:45:00.000Z',
+  };
+  const crossDateSession = {
+    ...session,
+    bill: {
+      ...session.bill,
+      orders: [order, nextDayOrder],
+    },
+  } as unknown as TableServiceSessionDto;
+
+  render(<TableServiceSessionBill session={crossDateSession} />);
+
+  const rounds = screen.getAllByRole('article');
+  expect(rounds).toHaveLength(2);
+  expect(rounds[0]).toHaveTextContent('1');
+  expect(within(rounds[0]).getByText('Oct 14, 2026')).toBeInTheDocument();
+  expect(within(rounds[0]).getByText('02:30 PM')).toBeInTheDocument();
+  expect(rounds[1]).toHaveTextContent('1');
+  expect(within(rounds[1]).getByText('Oct 15, 2026')).toBeInTheDocument();
+  expect(within(rounds[1]).getByText('02:45 PM')).toBeInTheDocument();
 });

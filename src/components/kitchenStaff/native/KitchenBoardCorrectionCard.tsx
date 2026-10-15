@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import StaffButton from '@/components/design-system/StaffButton';
 import { orderStatusLabel } from '@/lib/orderStatus';
 import type { KitchenBoardChange, KitchenBoardCorrection } from '@/types/kitchenBoard';
@@ -68,6 +69,7 @@ export default function KitchenBoardCorrectionCard({
           <p className={styles.meta}>
             {location && <span>{location}</span>}
             <span>{orderStatusLabel(correction.status, t)}</span>
+            <BusinessDateLabel businessDate={correction.businessDate} />
           </p>
         </div>
         <StatusBadge tone={badgeTone}>{badgeLabel}</StatusBadge>

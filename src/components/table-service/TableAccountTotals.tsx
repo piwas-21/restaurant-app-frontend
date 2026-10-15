@@ -5,6 +5,7 @@ import type { OrderDto, TableServiceSessionDto } from '@/types/order';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import styles from './TableAccountTotals.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 
 function AccountAmount({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
@@ -45,6 +46,7 @@ export default function TableAccountTotals({ session }: Readonly<{ session: Tabl
         <details className={styles.accountOrderTotals} key={order.id}>
           <summary>
             <span>{t('cashier.tables.account_order', { order: getOrderDisplayNumber(order) })}</span>
+            <BusinessDateLabel businessDate={order.businessDate} />
             <strong>{money(order.total)}</strong>
           </summary>
           <dl className={styles.accountTotalsGrid}>

@@ -1,5 +1,5 @@
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { getServerAmendmentOrders } from '@/services/server/orders';
 import type { OrderDto } from '@/types/order';
@@ -41,6 +41,12 @@ const nativeOrders = (['DineIn', 'Takeaway', 'Delivery'] as const).map(
       items: [],
     }) as unknown as OrderDto,
 );
+
+const repeatedDailyNumbers = nativeOrders.map((order, index) => ({
+  ...order,
+  dailyOrderNumber: index < 2 ? 1 : index + 1,
+  businessDate: index === 0 ? '2026-10-14' : '2026-10-15',
+}));
 
 function paged(items = nativeOrders): PagedResult<OrderDto> {
   return {
@@ -88,5 +94,24 @@ describe('ServerOrdersWorkspace', () => {
     const reviewLinks = screen.getAllByRole('link', { name: 'Review order' });
     expect(reviewLinks).toHaveLength(3);
     expect(reviewLinks[0]).toHaveAttribute('href', '/server/orders/order-1');
+  });
+
+  it('distinguishes repeated daily order numbers across business dates', async () => {
+    mockGetOrders.mockResolvedValue(paged(repeatedDailyNumbers));
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+        <ServerOrdersWorkspace />
+      </TenantFeaturesProvider>,
+    );
+
+    const rows = await screen.findAllByRole('article');
+    expect(rows.slice(0, 2).map((row) => within(row).getByText('1', { selector: 'strong' }).textContent)).toEqual([
+      '1',
+      '1',
+    ]);
+    expect(rows.slice(0, 2).map((row) => within(row).getByRole('time').getAttribute('datetime'))).toEqual([
+      '2026-10-14',
+      '2026-10-15',
+    ]);
   });
 });

@@ -11,6 +11,8 @@ import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
+import { formatBusinessTime } from '@/lib/formatBusinessDate';
 import PreparationCountdown from '@/components/order/PreparationCountdown';
 import styles from './OrderCard.module.css';
 import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
@@ -57,6 +59,9 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
     // clock one component over, on the same screen (#610).
     return date.toLocaleTimeString(i18n.language || 'en', { hour: '2-digit', minute: '2-digit' });
   };
+  const orderTime = order.businessDate
+    ? formatBusinessTime(order.orderDate, i18n.language, order.businessTimeZoneId)
+    : formatTime(order.orderDate);
 
   const nextStatus = order.externalOrder ? null : primaryNextStatus(order);
   const nextAction = nextStatus ? NEXT_ACTION[nextStatus] : undefined;
@@ -78,7 +83,8 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
 
       <MarketplaceOrderSource source={order.externalOrder} />
       <div className={styles.meta}>
-        <span className={styles.time}>🕐 {formatTime(order.orderDate)}</span>
+        {orderTime && <span className={styles.time}>🕐 {orderTime}</span>}
+        <BusinessDateLabel businessDate={order.businessDate} />
         {order.customerName && <span className={styles.customer}>👤 {order.customerName}</span>}
       </div>
 

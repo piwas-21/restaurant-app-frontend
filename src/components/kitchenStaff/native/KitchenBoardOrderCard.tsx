@@ -3,6 +3,7 @@ import { orderStatusLabel } from '@/lib/orderStatus';
 import type { KitchenBoardOrder } from '@/types/kitchenBoard';
 import StaffButton from '@/components/design-system/StaffButton';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import KitchenBoardItemTree from './KitchenBoardItemTree';
 import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardWorkCard.module.css';
@@ -43,6 +44,7 @@ export default function KitchenBoardOrderCard({
           <p className={styles.meta}>
             {location && <span>{location}</span>}
             <span>{t(kitchenBoardLabelKey('orderType', order.type) ?? order.type, { defaultValue: order.type })}</span>
+            <BusinessDateLabel businessDate={order.businessDate} />
           </p>
         </div>
         <StatusBadge tone={statusTone(order.status)}>{orderStatusLabel(order.status, t)}</StatusBadge>

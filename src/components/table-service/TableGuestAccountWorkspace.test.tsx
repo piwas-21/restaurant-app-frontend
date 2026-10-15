@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import i18n from '../../i18n';
 import { tableGuestVisitService } from '@/services/tableGuestVisitService';
+import { getTenantToday } from '@/services/tenantTimeService';
 import { getPublicTableGuestFeature } from '@/services/publicTableGuestFeatureService';
 import { loadTableGuestLocale } from '@/services/tableGuestLocaleService';
 import baseEnglish from '@/locales/en.json';
@@ -32,6 +33,7 @@ jest.mock('@/services/tableGuestVisitService', () => ({
     createTableGuestRound: jest.fn(),
   },
 }));
+jest.mock('@/services/tenantTimeService', () => ({ getTenantToday: jest.fn() }));
 jest.mock('@/services/tableGuestLocaleService', () => ({ loadTableGuestLocale: jest.fn() }));
 jest.mock('@/services/publicTableGuestFeatureService', () => ({ getPublicTableGuestFeature: jest.fn() }));
 
@@ -46,6 +48,7 @@ describe('TableGuestAccountWorkspace', () => {
     mockReplace.mockClear();
     mockClearOrderType.mockClear();
     mockClearTableContext.mockClear();
+    jest.mocked(getTenantToday).mockResolvedValue({ date: '2026-10-15', timeZone: 'Europe/Zurich' });
     i18n.removeResourceBundle('en', 'translation');
     i18n.addResourceBundle('en', 'translation', baseEnglish);
     jest.mocked(loadTableGuestLocale).mockImplementation(async (instance, language) => {
@@ -107,7 +110,39 @@ describe('TableGuestAccountWorkspace', () => {
     expect(screen.getAllByText(/31\.40/)).toHaveLength(2);
     const batch = screen.getByText('Kitchen batch A-100').closest('details');
     expect(batch).not.toHaveAttribute('open');
+    expect(batch?.querySelector('time')).toHaveAttribute('datetime', '2026-10-03T12:00:00Z');
     expect(screen.queryByRole('button', { name: /pay/i })).not.toBeInTheDocument();
+  });
+
+  it('uses the tenant date and timezone for a daily-number kitchen batch', async () => {
+    const visit = createTableGuestVisitIdentity();
+    sessionStorage.setItem('rumi_table_guest_visit_v1', JSON.stringify(visit));
+    jest.mocked(tableGuestVisitService.getTableGuestAccount).mockResolvedValue(
+      createTableGuestAccount({
+        orders: [
+          {
+            orderId: 'order-1',
+            orderNumber: 'legacy-full-id',
+            dailyOrderNumber: 1,
+            businessDate: '2026-10-03',
+            status: 'Preparing',
+            paymentStatus: 'Pending',
+            orderDate: '2026-10-03T12:00:00Z',
+            total: 10,
+            totalPaid: 0,
+            remainingAmount: 10,
+          },
+        ],
+      }),
+    );
+
+    renderWorkspace({ tableGuestVisitsV1: true });
+
+    const batchTitle = await screen.findByText('Kitchen batch 1');
+    const batch = batchTitle.closest('details');
+    await waitFor(() => expect(getTenantToday).toHaveBeenCalled());
+    expect(batch?.querySelector('time[datetime="2026-10-03"]')).toHaveTextContent('Oct 3, 2026');
+    expect(batch?.querySelector('time[datetime="2026-10-03T12:00:00Z"]')).toHaveTextContent(/02:00/);
   });
 
   it('requires explicit safe departure before clearing an ended visit', async () => {

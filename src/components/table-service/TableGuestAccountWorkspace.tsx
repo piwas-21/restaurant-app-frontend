@@ -16,6 +16,7 @@ import TableGuestVisitMessage from './TableGuestVisitMessage';
 import GuestAccountPaymentHost from './GuestAccountPaymentHost';
 import styles from './TableGuestAccount.module.css';
 import { reportTableGuestFailure } from '@/lib/tableGuestFailureDiagnostics';
+import { getTenantToday } from '@/services/tenantTimeService';
 
 export default function TableGuestAccountWorkspace() {
   const { t, i18n } = useTranslation();
@@ -37,6 +38,7 @@ export default function TableGuestAccountWorkspace() {
     leaveAfterSafeDeparture,
   } = useTableGuestVisit();
   const [account, setAccount] = useState<Awaited<ReturnType<typeof getAccount>> | null>(null);
+  const [businessTimeZone, setBusinessTimeZone] = useState<string>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [confirmedDeparture, setConfirmedDeparture] = useState(false);
@@ -63,6 +65,18 @@ export default function TableGuestAccountWorkspace() {
     if (phase !== 'active') return;
     void refresh();
   }, [phase, visit?.serviceSessionId, refresh]);
+
+  const hasDatedOrder = account?.orders.some((order) => order.businessDate) ?? false;
+  useEffect(() => {
+    if (!hasDatedOrder) return;
+    let active = true;
+    void getTenantToday().then((context) => {
+      if (active) setBusinessTimeZone(context?.timeZone || undefined);
+    });
+    return () => {
+      active = false;
+    };
+  }, [hasDatedOrder]);
 
   const handleSafeDeparture = () => {
     if (!confirmedDeparture || pendingRoundUnresolved || !leaveAfterSafeDeparture()) return;
@@ -176,6 +190,7 @@ export default function TableGuestAccountWorkspace() {
                       order={order}
                       account={account}
                       formatPrice={formatPrice}
+                      businessTimeZone={businessTimeZone}
                     />
                   ))}
                 </div>

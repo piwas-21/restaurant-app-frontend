@@ -39,9 +39,16 @@ const baseTask: ServerServiceTask = {
 
 describe('ServerTaskCard', () => {
   it('shows server-computed age and keeps the dine-in context deep link', () => {
-    render(<ServerTaskCard task={baseTask} isBusy={false} onDeliver={jest.fn()} />);
+    render(
+      <ServerTaskCard
+        task={{ ...baseTask, dailyOrderNumber: 1, businessDate: '2026-10-15' }}
+        isBusy={false}
+        onDeliver={jest.fn()}
+      />,
+    );
 
     expect(screen.getByText('1 h')).toBeInTheDocument();
+    expect(screen.getByRole('time')).toHaveAttribute('datetime', '2026-10-15');
     expect(screen.getByRole('link', { name: 'Open Table 1' })).toHaveAttribute(
       'href',
       '/server/tables/table-1?serviceSessionId=session-1&orderId=order-1',

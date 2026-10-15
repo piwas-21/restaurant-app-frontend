@@ -6,6 +6,7 @@ import type { KitchenBoardChange, KitchenBoardCorrection } from '@/types/kitchen
 import KitchenBoardItemTree from './KitchenBoardItemTree';
 import { kitchenBoardLabelKey } from './kitchenBoardLabelKeys';
 import styles from './KitchenBoardWorkCard.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 function ChangeCard({ change }: Readonly<{ change: KitchenBoardChange }>) {
   const { t } = useTranslation();
@@ -62,7 +63,7 @@ export default function KitchenBoardCorrectionCard({
       <header className={styles.header}>
         <div>
           <h3 id={`kitchen-correction-${correction.workItemId}`} className={styles.title}>
-            {t('nativeKitchenBoard.correctionFor', { number: correction.orderNumber })}
+            {t('nativeKitchenBoard.correctionFor', { number: getOrderDisplayNumber(correction) })}
           </h3>
           <p className={styles.meta}>
             {location && <span>{location}</span>}

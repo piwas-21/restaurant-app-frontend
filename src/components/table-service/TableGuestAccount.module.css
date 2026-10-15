@@ -80,6 +80,13 @@
   font-size: 0.8rem;
 }
 
+.batchTimestamp {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
 .items,
 .sideItems,
 .customizations {

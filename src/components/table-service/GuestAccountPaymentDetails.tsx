@@ -6,6 +6,7 @@ import type { TableGuestAccountDto } from '@/types/tableGuestVisit';
 import type { AccountPaymentState } from '@/types/accountPayments';
 import type { GuestAccountPaymentOperation, GuestPaymentReceipt } from '@/types/guestAccountPayments';
 import { formatAccountPaymentMinor } from '@/lib/accountPaymentMoney';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import styles from './GuestAccountPayment.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
@@ -227,7 +228,7 @@ function AllocationReview({
           : t('table_guest_payment_account_balance');
         return (
           <li key={`${allocation.orderId}:${allocation.orderItemId ?? 'account'}:${allocation.startOrdinal}:${index}`}>
-            {description}
+            {description} <BusinessDateLabel businessDate={order?.businessDate} />
           </li>
         );
       })}

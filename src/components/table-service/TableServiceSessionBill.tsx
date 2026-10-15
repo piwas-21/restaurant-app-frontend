@@ -6,6 +6,7 @@ import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import type { OrderDto, TableBillRoundDto, TableServiceSessionDto } from '@/types/order';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
+import { formatBusinessTime } from '@/lib/formatBusinessDate';
 import {
   formatTableMoney,
   tableOrderSettlementState,
@@ -17,6 +18,7 @@ import {
 } from '@/lib/cashierTableSession';
 import styles from './TableServiceSessionBill.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 
 interface TableServiceSessionBillProps {
   readonly session: TableServiceSessionDto;
@@ -91,19 +93,16 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
         {rounds.length === 0 && <p className={styles.muted}>{t('cashier.tables.no_rounds')}</p>}
         {rounds.map((round) => {
           const { order } = round;
-          const orderTime = formatCashierDateTime(
-            order.orderDate,
-            locale,
-            timeZone,
-            'short',
-            t('cashier.tables.unknown_time'),
-          );
+          const orderTime = order.businessDate
+            ? formatBusinessTime(order.orderDate, locale, timeZone ?? order.businessTimeZoneId)
+            : formatCashierDateTime(order.orderDate, locale, timeZone, 'short', t('cashier.tables.unknown_time'));
           return (
             <article key={order.id} className={styles.round}>
               <header className={styles.roundHeader}>
                 <div className={styles.roundIdentity}>
                   <strong dir="auto">{getOrderDisplayNumber(order)}</strong>
-                  <span className={styles.roundTime}>{orderTime}</span>
+                  <BusinessDateLabel businessDate={order.businessDate} />
+                  {orderTime && <span className={styles.roundTime}>{orderTime}</span>}
                   <SettlementBadge round={round} t={t} />
                 </div>
                 <strong className={styles.lineTotal}>{money(order.total)}</strong>

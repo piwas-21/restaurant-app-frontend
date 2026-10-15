@@ -81,4 +81,12 @@ describe('TableDetailsModal — bundle components', () => {
     expect(screen.getByText(/Mezze Combo/)).toBeInTheDocument();
     expect(screen.queryByText(/Mezze Selection/)).not.toBeInTheDocument();
   });
+
+  it('shows a business date beside the short number in active table order details', () => {
+    const order = { ...singleKitchenBundleOrder(), dailyOrderNumber: 1, businessDate: '2026-10-15' } as OrderDto;
+    renderModal([order]);
+
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('Oct 15, 2026', { selector: 'time' })).toHaveAttribute('datetime', '2026-10-15');
+  });
 });

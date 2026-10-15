@@ -30,6 +30,8 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
+import { formatBusinessTime } from '@/lib/formatBusinessDate';
 import PreparationCountdown from '@/components/order/PreparationCountdown';
 import styles from '@/app/styles/OrdersPage.module.css';
 
@@ -42,7 +44,7 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({ order, isExpanded, onToggleExpand, isReordering, onReorder }: OrderCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   const getOrderTypeIcon = (type: string) => {
@@ -71,6 +73,10 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
     }
   };
 
+  const orderTime = order.businessDate
+    ? formatBusinessTime(order.orderDate, i18n.language, order.businessTimeZoneId)
+    : formatDate(order.orderDate);
+
   return (
     <div className={styles.orderCard}>
       <div className={styles.orderHeader}>
@@ -85,10 +91,13 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
               {getOrderTypeIcon(order.type)}
               {getOrderTypeLabel(order.type)}
             </span>
-            <span className={styles.orderDate}>
-              <Clock size={16} />
-              {formatDate(order.orderDate)}
-            </span>
+            {orderTime && (
+              <span className={styles.orderDate}>
+                <Clock size={16} />
+                {orderTime}
+              </span>
+            )}
+            <BusinessDateLabel businessDate={order.businessDate} />
           </div>
         </div>
         <div className={styles.orderActions}>

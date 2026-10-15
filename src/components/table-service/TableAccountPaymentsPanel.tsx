@@ -5,6 +5,7 @@ import { PaymentRows } from '@/components/cashier/CashierReadOnlyTicketSections'
 import type { TableServiceSessionDto } from '@/types/order';
 import styles from './TableAccountWorkspace.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 
 export default function TableAccountPaymentsPanel({ session }: Readonly<{ session: TableServiceSessionDto }>) {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export default function TableAccountPaymentsPanel({ session }: Readonly<{ sessio
       {ordersWithPayments.map((order) => (
         <section key={order.id} className={styles.paymentOrder} aria-label={getOrderDisplayNumber(order)}>
           <h4 dir="auto">{getOrderDisplayNumber(order)}</h4>
+          <BusinessDateLabel businessDate={order.businessDate} />
           <PaymentRows payments={order.payments ?? []} currency={session.currency} t={t} showRefundedAmounts />
         </section>
       ))}

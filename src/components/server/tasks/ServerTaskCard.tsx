@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import { formatCurrency } from '@/utils/currency';
 import type { ServerServiceTask } from '@/types/serverTasks';
 import { taskIsDeliverable } from '@/hooks/serverWorkspace/useServerTasks';
@@ -88,6 +89,7 @@ export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCa
         <div className={styles.identity}>
           <strong dir="auto">{getOrderDisplayNumber(task)}</strong>
           <span>{orderTypeCopy(task.orderType, t)}</span>
+          <BusinessDateLabel businessDate={task.businessDate} />
         </div>
         <StatusBadge tone={bucketTone(task.bucket)} ariaLabel={task.bucket}>
           {t(...BUCKET_COPY[task.bucket])}

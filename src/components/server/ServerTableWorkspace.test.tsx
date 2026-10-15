@@ -167,6 +167,17 @@ describe('ServerTableWorkspace', () => {
     );
   });
 
+  it('opens a fresh order after recovery when the URL still references the released visit', async () => {
+    const current = state();
+    render(<ServerTableWorkspace tableId="table-1" requestedSessionId="released-visit" state={current} />);
+    const addOrder = screen.getByRole('button', { name: 'Add order' });
+    expect(addOrder).toBeEnabled();
+    fireEvent.click(addOrder);
+    await waitFor(() =>
+      expect(mockRouter.push).toHaveBeenCalledWith('/en/server/tables/table-1/order?serviceSessionId=session-1'),
+    );
+  });
+
   it('renders the explicit bill and routes Add round with stable table and session identities', () => {
     render(
       <ServerTableWorkspace

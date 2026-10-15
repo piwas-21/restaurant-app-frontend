@@ -207,7 +207,7 @@ export default function ServerTableWorkspace({
                   type="button"
                   className={styles.primaryAction}
                   onClick={() => void addOrder()}
-                  disabled={!state.canStartTable || taskContextBlocked || recoveryOperationPending}
+                  disabled={!state.canStartTable || recoveryOperationPending}
                 >
                   {state.isStarting ? t('cashier.tables.opening') : t('staff.add_order')}
                 </button>

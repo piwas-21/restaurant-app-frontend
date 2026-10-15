@@ -41,7 +41,7 @@ export default function EditOrderTypeModal({ isOpen, onClose, onPick }: Readonly
         </button>
       }
     >
-      <OrderTypeToggle onPick={onPick} />
+      <OrderTypeToggle onPick={onPick} refreshAvailabilityOnMount={false} />
     </BaseModal>
   );
 }

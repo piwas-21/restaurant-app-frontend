@@ -8,6 +8,7 @@ import { orderBelongsToTable } from '@/utils/orderTableLabel';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './TableDetailsModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface TableDetailsModalProps {
   table: ServerTableDto;
@@ -250,7 +251,7 @@ export default function TableDetailsModal({
                 {activeOrders.map((order) => (
                   <div key={order.id} className={styles.orderItem}>
                     <div className={styles.orderHeader}>
-                      <span className={styles.orderNumber}>#{order.orderNumber}</span>
+                      <span className={styles.orderNumber}>#{getOrderDisplayNumber(order)}</span>
                       <span className={styles.orderStatus}>{order.status}</span>
                     </div>
                     <div className={styles.orderItems}>

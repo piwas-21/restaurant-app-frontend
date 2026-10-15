@@ -3,6 +3,7 @@ import { OrderDto } from '@/types/order';
 import { useTranslation } from 'react-i18next';
 import { X, Star, Loader2 } from 'lucide-react';
 import styles from './FocusOrderModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface FocusOrderModalProps {
   order: OrderDto;
@@ -44,7 +45,7 @@ export const FocusOrderModal: React.FC<FocusOrderModalProps> = ({ order, onClose
         </div>
         <div className={styles.modalBody}>
           <p className={styles.orderInfo}>
-            {t('order', 'Order')} #{order.orderNumber}
+            {t('order', 'Order')} #{getOrderDisplayNumber(order)}
           </p>
           {!order.isFocusOrder && (
             <>

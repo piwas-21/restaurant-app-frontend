@@ -19,6 +19,7 @@ import type { OrderDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverOrderVisitHref } from './serverOrderRoute';
 import styles from './ServerOrderDetailWorkspace.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface ServerOrderDetailWorkspaceProps {
   readonly orderId: string;
@@ -131,7 +132,11 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
               <p>
                 {t('serverOrders.title', 'Orders')} · {visibleOrder ? typeCopy(visibleOrder.type, t) : ''}
               </p>
-              <h1>{visibleOrder?.orderNumber ?? t('serverOrders.order_detail', 'Order details')}</h1>
+              <h1>
+                {visibleOrder
+                  ? `#${getOrderDisplayNumber(visibleOrder)}`
+                  : t('serverOrders.order_detail', 'Order details')}
+              </h1>
             </div>
             <Link className={styles.control} href="/server/orders">
               {t('serverOrders.back_to_orders', 'Back to orders')}
@@ -172,7 +177,7 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
                 </div>
                 <div>
                   <dt>{t('serverOrders.order_number', 'Order number')}</dt>
-                  <dd>{visibleOrder.orderNumber}</dd>
+                  <dd>{getOrderDisplayNumber(visibleOrder)}</dd>
                 </div>
                 <div>
                   <dt>{t('serverOrders.order_version', 'Current version')}</dt>

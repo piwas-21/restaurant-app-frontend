@@ -59,12 +59,17 @@ export function useOrderDetailsActions(
       setIsConfirming(true);
       apiError.clear();
 
-      const prepMinutes = withDelay ? delayMinutes : 15; // Default 15 mins if no delay specified
+      const preparationOverride: { estimatedPreparationMinutes?: number } = {};
+      if (withDelay) {
+        preparationOverride.estimatedPreparationMinutes = delayMinutes;
+      } else if (typeof order.effectivePreparationMinutes === 'number') {
+        preparationOverride.estimatedPreparationMinutes = order.effectivePreparationMinutes;
+      }
 
       const updatedOrder = await updateOrderStatus(order.id, {
         newStatus: withDelay ? 'PendingApproval' : 'Confirmed',
-        estimatedPreparationMinutes: prepMinutes,
-        notes: withDelay ? `Confirmed with ${prepMinutes} min delay` : 'Order confirmed',
+        ...preparationOverride,
+        notes: withDelay ? `Confirmed with ${delayMinutes} min delay` : 'Order confirmed',
       });
 
       if (onOrderUpdated) {

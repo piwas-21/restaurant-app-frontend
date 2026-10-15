@@ -25,6 +25,7 @@ const POLLING_INTERVAL_MS = 5000;
 export function useCashierOrders(
   query: CashierOrdersQuery = DEFAULT_QUEUE_QUERY,
   onPageChange?: (page: number) => void,
+  enabled = true,
 ): UseCashierOrdersReturn {
   const queryRef = useRef<CashierOrdersQuery>(query);
   queryRef.current = query;
@@ -47,17 +48,12 @@ export function useCashierOrders(
   const { groups, orders, replaceGroups, updateOrders } = useCashierOrderGroupState(dataRevisionRef);
 
   const refreshOrders = useCallback(async (): Promise<boolean> => {
-    if (!isMountedRef.current) return false;
+    if (!isMountedRef.current || !enabled) return false;
     const requestId = ++latestRequestRef.current;
     const revisionAtRequest = dataRevisionRef.current;
     try {
       setError(null);
-      const {
-        tenantDay: _tenantDay,
-        startDate: _startDate,
-        endDate: _endDate,
-        ...queryWithoutDates
-      } = queryRef.current;
+      const { startDate: _startDate, endDate: _endDate, ...queryWithoutDates } = queryRef.current;
       const result = await getCashierOrderGroups({ ...queryWithoutDates, scope: 'Operational' });
       if (!isMountedRef.current || requestId !== latestRequestRef.current) return false;
       if (hasSnapshotRef.current && revisionAtRequest !== dataRevisionRef.current) {
@@ -88,14 +84,20 @@ export function useCashierOrders(
       console.error('Error fetching orders:', error_);
       return false;
     }
-  }, [onPageChange, replaceGroups]);
+  }, [enabled, onPageChange, replaceGroups]);
   const stream = useCashierOrdersStream({
     onOrderUpdate: () => void refreshOrders(),
     onReconnectRequested: () => void refreshOrders(),
   });
   useEffect(() => {
     isMountedRef.current = true;
-    void refreshOrders();
+    if (!enabled) {
+      setIsLoading(false);
+      setQueueState('unavailable');
+      return () => {
+        isMountedRef.current = false;
+      };
+    }
     const startTimeout = setTimeout(() => {
       if (!isMountedRef.current || primaryPollingIntervalRef.current) return;
       primaryPollingIntervalRef.current = setInterval(() => {
@@ -112,17 +114,17 @@ export function useCashierOrders(
         primaryPollingIntervalRef.current = null;
       }
     };
-  }, [refreshOrders]);
+  }, [enabled, refreshOrders]);
   const fetchKey = JSON.stringify(query);
-  const isFirstFetchEffectRef = useRef(true);
   useEffect(() => {
-    if (isFirstFetchEffectRef.current) {
-      isFirstFetchEffectRef.current = false;
+    if (!enabled) {
+      setIsLoading(false);
+      setQueueState('unavailable');
       return;
     }
     setIsLoading(true);
     void refreshOrders();
-  }, [fetchKey, refreshOrders]);
+  }, [enabled, fetchKey, refreshOrders]);
 
   const applyMutation = useCashierOrderMutation(updateOrders, setError);
 

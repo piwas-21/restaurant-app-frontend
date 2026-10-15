@@ -27,6 +27,8 @@ export interface ServerTaskRoutingState {
 export interface ServerServiceTask {
   orderId: string;
   orderNumber: string;
+  dailyOrderNumber?: number;
+  businessDate?: string;
   orderType: string;
   status: string;
   bucket: ServerTaskBucketLabel;

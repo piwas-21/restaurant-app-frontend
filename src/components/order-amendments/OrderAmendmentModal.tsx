@@ -12,6 +12,7 @@ import OrderAmendmentEditStage from './OrderAmendmentEditStage';
 import OrderAmendmentModalFooter from './OrderAmendmentModalFooter';
 import OrderAmendmentReviewStage from './OrderAmendmentReviewStage';
 import styles from './OrderAmendmentModal.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 const EMPTY_DRAFT: OrderAmendmentDraft = {
   additions: [],
@@ -76,7 +77,7 @@ export default function OrderAmendmentModal({
       title={
         recoveryOnly
           ? t('orderAmendments.check_operation', 'Check the original operation')
-          : t('orderAmendments.title', 'Amend order {{order}}', { order: order.orderNumber })
+          : t('orderAmendments.title', 'Amend order {{order}}', { order: getOrderDisplayNumber(order) })
       }
       size="lg"
       presentation="responsive-sheet"

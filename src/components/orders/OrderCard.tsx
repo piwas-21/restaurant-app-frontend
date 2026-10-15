@@ -29,6 +29,8 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 // 'info' from the module.
 import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import PreparationCountdown from '@/components/order/PreparationCountdown';
 import styles from '@/app/styles/OrdersPage.module.css';
 
 interface OrderCardProps {
@@ -76,7 +78,7 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
           <div className={styles.orderNumber}>
             <Receipt size={20} />
             <span className={styles.orderNumberLabel}>{t('order', 'Order')} #</span>
-            <span className={styles.orderNumberValue}>{order.orderNumber}</span>
+            <span className={styles.orderNumberValue}>{getOrderDisplayNumber(order)}</span>
           </div>
           <div className={styles.orderMeta}>
             <span className={styles.orderType}>
@@ -102,6 +104,13 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
           </button>
         </div>
       </div>
+
+      <PreparationCountdown
+        status={order.status}
+        expectedReadyAt={order.expectedReadyAt}
+        effectivePreparationMinutes={order.effectivePreparationMinutes}
+        timeZone={order.businessTimeZoneId}
+      />
 
       <div className={styles.orderSummary}>
         <div className={styles.summaryItem}>
@@ -225,7 +234,11 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
 
           <div className={styles.detailActions}>
             <button
-              onClick={() => router.push(`/checkout/confirmation?orderId=${order.id}&orderNumber=${order.orderNumber}`)}
+              onClick={() =>
+                router.push(
+                  `/checkout/confirmation?orderId=${encodeURIComponent(order.id)}&orderNumber=${encodeURIComponent(getOrderDisplayNumber(order))}`,
+                )
+              }
               className={styles.viewDetailsButton}
             >
               <Receipt size={18} />

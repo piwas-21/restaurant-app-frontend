@@ -5,12 +5,14 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
 import { OrderType } from '@/types/order';
 import type { OrderDto } from '@/types/order';
-import { approveOrder, rejectOrder, toggleFocusOrder } from '@/services/cashierService';
+import { approveOrder, rejectOrder, toggleFocusOrder, updateOrderStatus } from '@/services/cashierService';
 import { flowLookup, useConfirmationFlowConfig } from '@/hooks/orderTypes/useConfirmationFlowConfig';
 import { exportKitchenItemsToPDF, exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { getErrorMessage } from '@/utils/apiClient';
+import { orderStatusLabel } from '@/lib/orderStatus';
 import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import OrderAmendmentEntryButton from '@/components/order-amendments/OrderAmendmentEntryButton';
@@ -18,7 +20,6 @@ import OrderAmendmentHistorySection from '@/components/order-amendments/OrderAme
 import styles from './CashierTicketActions.module.css';
 
 const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
-
 const ChannelOrderDecision = dynamic(() => import('@/components/order/ChannelOrderDecision'), { ssr: false });
 
 // Approval/rejection is opened on demand. Its Zod schemas and modal UI do not belong in the
@@ -49,6 +50,8 @@ export default function CashierTicketActions({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusBusy, setFocusBusy] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [historyRefresh, setHistoryRefresh] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -74,22 +77,91 @@ export default function CashierTicketActions({
       setFocusBusy(false);
     }
   };
-
-  // The pending hand-off gate (order confirmation flows): a pending takeaway/delivery order is
-  // waiting on THIS cashier — approve/confirm is the one emphasized action (plan §5.2), ahead of
-  // print/notes. Dine-in auto-confirms at creation and never reaches this branch.
+  // Pending takeaway/delivery approval is emphasized before print/notes; dine-in confirms at creation.
   const confirmationFlow = flowForOrder(order.type)?.flow ?? 'direct';
   const isPendingHandoff =
     !order.externalOrder &&
     (order.status === 'Pending' || (order.status === 'PendingApproval' && confirmationFlow === 'acknowledge')) &&
     (order.type === OrderType.Takeaway || order.type === OrderType.Delivery);
+  const permittedStatusTargets = isOrderSnapshotFresh
+    ? Array.from(
+        new Set(
+          (order.permittedActions ?? [])
+            .filter((action) => action.allowed && !(isPendingHandoff && action.action === 'Accept'))
+            .map((action) => action.targetStatus ?? (action.action === 'MarkReady' ? 'Ready' : null))
+            .filter((status): status is string => Boolean(status)),
+        ),
+      )
+    : [];
+  const mayMarkReady =
+    isOrderSnapshotFresh &&
+    order.permittedActions?.some(
+      (action) => action.action === 'MarkReady' && action.allowed && (action.targetStatus ?? 'Ready') === 'Ready',
+    ) === true;
 
+  const effectiveSelectedStatus = permittedStatusTargets.includes(selectedStatus)
+    ? selectedStatus
+    : (permittedStatusTargets[0] ?? '');
+
+  const changeStatus = async (targetStatus: string) => {
+    if (!isOrderSnapshotFresh || !permittedStatusTargets.includes(targetStatus) || statusBusy) return;
+    setStatusBusy(true);
+    setActionError(null);
+    try {
+      await updateOrderStatus(order.id, targetStatus);
+      notifyOrderChanged();
+    } catch (error) {
+      setActionError(getErrorMessage(error) ?? t('cashier.workspace.mark_ready_failed'));
+    } finally {
+      setStatusBusy(false);
+    }
+  };
+
+  const markReady = async () => {
+    await changeStatus('Ready');
+  };
   return (
     <section className={styles.actions} aria-label={t('cashier.workspace.actions_label')}>
       <ChannelOrderDecision order={order} isSnapshotFresh={isOrderSnapshotFresh} onOrderChanged={onOrderChanged} />
       <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
         <OrderAmendmentEntryButton order={order} operatorRole="Cashier" onCommitted={notifyOrderChanged} />
+        {mayMarkReady && (
+          <button
+            type="button"
+            className={`${styles.actionButton} ${styles.primaryAction}`}
+            onClick={() => void markReady()}
+            disabled={statusBusy}
+          >
+            <CheckCircle size={17} aria-hidden="true" />
+            {t('cashier.workspace.mark_ready')}
+          </button>
+        )}
+        {permittedStatusTargets.length > 0 && (
+          <div className={styles.statusControl}>
+            <FormField label={t('cashier.workspace.status_control')}>
+              <select
+                value={effectiveSelectedStatus}
+                onChange={(event) => setSelectedStatus(event.target.value)}
+                disabled={statusBusy}
+              >
+                {permittedStatusTargets.map((status) => (
+                  <option key={status} value={status}>
+                    {orderStatusLabel(status, t)}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={() => void changeStatus(effectiveSelectedStatus)}
+              disabled={statusBusy || !permittedStatusTargets.includes(effectiveSelectedStatus)}
+            >
+              {t('cashier.workspace.update_status')}
+            </button>
+          </div>
+        )}
         {isPendingHandoff && (
           <button
             type="button"

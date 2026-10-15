@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { PaymentRows } from '@/components/cashier/CashierReadOnlyTicketSections';
 import type { TableServiceSessionDto } from '@/types/order';
 import styles from './TableAccountWorkspace.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 export default function TableAccountPaymentsPanel({ session }: Readonly<{ session: TableServiceSessionDto }>) {
   const { t } = useTranslation();
@@ -18,8 +19,8 @@ export default function TableAccountPaymentsPanel({ session }: Readonly<{ sessio
     <div className={styles.paymentHistory}>
       <p className={styles.note}>{t('cashier.tables.account_payment_allocation_unavailable')}</p>
       {ordersWithPayments.map((order) => (
-        <section key={order.id} className={styles.paymentOrder} aria-label={order.orderNumber}>
-          <h4 dir="auto">{order.orderNumber}</h4>
+        <section key={order.id} className={styles.paymentOrder} aria-label={getOrderDisplayNumber(order)}>
+          <h4 dir="auto">{getOrderDisplayNumber(order)}</h4>
           <PaymentRows payments={order.payments ?? []} currency={session.currency} t={t} showRefundedAmounts />
         </section>
       ))}

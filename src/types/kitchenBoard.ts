@@ -30,6 +30,8 @@ export interface KitchenBoardRoute {
 export interface KitchenBoardOrder {
   readonly orderId: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string;
   readonly type: string;
   readonly status: string;
   readonly tableId: string | null;

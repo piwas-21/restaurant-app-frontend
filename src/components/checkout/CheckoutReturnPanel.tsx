@@ -8,6 +8,7 @@ import type { CheckoutReturn } from '@/hooks/checkout/useCheckoutReturn';
 import styles from '@/app/styles/ConfirmationPage.module.css';
 import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 /**
  * What the diner sees on the way back from Stripe (SOFRA-PAYMENTS-PLAN §5 S9).
@@ -29,6 +30,7 @@ export default function CheckoutReturnPanel({
   const { t } = useTranslation();
   const { push } = useTenantLocaleRouter();
   const { pushMenu } = useTenantPublicNavigation();
+  const displayOrderNumber = settlement ? getOrderDisplayNumber(settlement) : '';
 
   const backToMenu = (
     <button type="button" onClick={pushMenu} className={styles.menuButton}>
@@ -52,7 +54,7 @@ export default function CheckoutReturnPanel({
     return (
       <main className={styles.container}>
         <div className={styles.content}>
-          <ConfirmationSuccessHeader orderNumber={settlement.orderNumber}>
+          <ConfirmationSuccessHeader orderNumber={displayOrderNumber}>
             {/* Same route without `sessionId`, which is what makes it the ordinary confirmation
                 view rather than this panel. Carrying orderNumber means a guest — who cannot read
                 the auth-gated order endpoint — still lands on the existing graceful fallback
@@ -61,7 +63,7 @@ export default function CheckoutReturnPanel({
               type="button"
               onClick={() =>
                 push(
-                  `/checkout/confirmation?orderId=${encodeURIComponent(orderId ?? '')}&orderNumber=${encodeURIComponent(settlement.orderNumber)}`,
+                  `/checkout/confirmation?orderId=${encodeURIComponent(orderId ?? '')}&orderNumber=${encodeURIComponent(displayOrderNumber)}`,
                 )
               }
               className={styles.menuButton}
@@ -116,7 +118,7 @@ export default function CheckoutReturnPanel({
         </p>
         {settlement && (
           <p className={styles.orderNumberValue}>
-            {t('order_number', 'Order Number')}: {settlement.orderNumber}
+            {t('order_number', 'Order Number')}: {displayOrderNumber}
           </p>
         )}
         {backToMenu}

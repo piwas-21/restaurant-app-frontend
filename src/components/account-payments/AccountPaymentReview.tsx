@@ -178,6 +178,7 @@ export default function AccountPaymentReview({
             {allocationScope.lines.map((line, index) => (
               <li key={`${line.orderNumber}:${line.startOrdinal}:${index}`}>
                 <strong dir="auto">{line.orderNumber}</strong>
+                {line.businessDate && <time dateTime={line.businessDate}>{line.businessDate}</time>}
                 {line.itemName ? (
                   <span dir="auto"> · {line.itemName}</span>
                 ) : (

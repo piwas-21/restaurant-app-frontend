@@ -6,6 +6,7 @@ import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
 import styles from './CashierWorkspaceList.module.css';
@@ -80,11 +81,11 @@ export default function CashierReadOnlyOrderList({
               aria-describedby={`cashier-order-${order.id}-description`}
             >
               <span id={`cashier-order-${order.id}-description`} className="sr-only">
-                {t('cashier.workspace.open_order', { order: order.orderNumber })}
+                {t('cashier.workspace.open_order', { order: getOrderDisplayNumber(order) })}
               </span>
               <span className={styles.orderRowTop}>
                 <span className={styles.orderNumber} dir="auto">
-                  {order.orderNumber}
+                  {getOrderDisplayNumber(order)}
                 </span>
                 <OrderStatusBadge status={order.status} />
               </span>

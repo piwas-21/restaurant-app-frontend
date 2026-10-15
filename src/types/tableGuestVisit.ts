@@ -14,6 +14,8 @@ export interface TableGuestAdmissionCodeDto {
 export interface TableGuestOrderDto {
   readonly orderId: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string;
   readonly status: string;
   readonly paymentStatus: string;
   readonly orderDate: string;
@@ -43,6 +45,8 @@ export interface TableGuestItemDto {
 export interface TableGuestAccountLineDto {
   readonly orderId: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string;
   readonly unitCount: number;
   readonly item: TableGuestItemDto;
 }

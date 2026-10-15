@@ -208,9 +208,13 @@ beforeEach(() => {
     clearSelection: jest.fn(),
   });
   jest.mocked(useCashierTableSession).mockReturnValue(sessionState(makeSession(firstVisit), false));
-  jest
-    .mocked(useCashierTenantTimeZoneState)
-    .mockReturnValue({ timeZone: 'Europe/Zurich', isLoading: false, hasError: false });
+  jest.mocked(useCashierTenantTimeZoneState).mockReturnValue({
+    date: '2026-10-15',
+    timeZone: 'Europe/Zurich',
+    isLoading: false,
+    hasError: false,
+    refresh: jest.fn(),
+  });
 });
 
 it('keeps an already loaded same-visit panel mounted and locked during session refresh', () => {

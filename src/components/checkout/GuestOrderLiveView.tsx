@@ -7,6 +7,7 @@ import { AlertCircle, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { GuestOrderStatusDto } from '@/types/order';
 import { useTenantPublicNavigation } from '@/hooks/useTenantPublicNavigation';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import OrderReviewStatus from './OrderReviewStatus';
 import styles from '@/app/styles/ConfirmationPage.module.css';
 
@@ -40,9 +41,17 @@ export default function GuestOrderLiveView({ orderNumber, status, unavailable }:
       <div className={styles.content}>
         <OrderReviewStatus
           confirmationFlow={status.confirmationFlow}
-          orderNumber={orderNumber || status.orderNumber}
+          orderNumber={getOrderDisplayNumber({
+            dailyOrderNumber: status.dailyOrderNumber,
+            orderNumber: orderNumber || status.orderNumber,
+          })}
+          dailyOrderNumber={status.dailyOrderNumber}
           status={status.status}
           estimatedDeliveryTime={status.estimatedDeliveryTime}
+          expectedReadyAt={status.expectedReadyAt}
+          effectivePreparationMinutes={status.effectivePreparationMinutes}
+          businessTimeZoneId={status.businessTimeZoneId}
+          orderType={status.type}
           reviewWindowMinutes={status.reviewWindowMinutes}
           reviewDeadlineUtc={status.reviewDeadlineUtc}
         />

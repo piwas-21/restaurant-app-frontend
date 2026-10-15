@@ -1,3 +1,5 @@
+import { type Page } from '@playwright/test';
+import { apiBaseUrl } from '../../helpers/config';
 import { test, expect } from '../../fixtures/cashierUser';
 
 /**
@@ -11,15 +13,58 @@ import { test, expect } from '../../fixtures/cashierUser';
  * Asserts:
  *   1. `/en/cashier/orders` renders the Orders destination (h1) — the nav link's landing target.
  *   2. The public footer is NOT rendered on workspace routes (plan §5.2: no public chrome in POS).
- *   3. The seeded operational order is listed and selecting it opens its ticket (selection survives).
- *   4. The workspace nav offers the shipped destinations only (Orders, History, Tables — no
+ *   3. The exact seeded current-day order is listed and selecting it opens its ticket.
+ *   4. A queue-eligible prior-day fixture is absent from today's active queue.
+ *   5. The workspace nav offers the shipped destinations only (Orders, History, Tables — no
  *      "New sale" assertion here; its presence is pinned by the new-sale spec).
  *
  * a11y: the legacy `/cashier` landing scan is owned by `order-flow.e2e.ts`; this spec covers the
  * shell the redesign actually ships.
  */
 
-const ORDER_NUMBER = 'E2E-KITCHEN-001';
+const CURRENT_DAY_ORDER_ID = '00000000-0000-0000-0000-0000000000f0';
+const PRIOR_DAY_ORDER_ID = '00000000-0000-0000-0000-0000000000f9';
+
+interface SeededOrderIdentity {
+  readonly id: string;
+  readonly displayNumber: string;
+  readonly customerName: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+async function loadSeededOrderIdentity(page: Page, orderId: string, accessToken: string): Promise<SeededOrderIdentity> {
+  const response = await page.request.get(`${apiBaseUrl()}/api/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  expect(response.ok(), `seeded order ${orderId} should be readable by the cashier`).toBe(true);
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !isRecord(payload.data)) {
+    throw new Error(`Order API returned no data for seeded order ${orderId}`);
+  }
+
+  const order = payload.data;
+  if (
+    typeof order.id !== 'string' ||
+    order.id.toLowerCase() !== orderId.toLowerCase() ||
+    typeof order.orderNumber !== 'string' ||
+    typeof order.customerName !== 'string'
+  ) {
+    throw new Error(`Order API returned an unexpected identity for seeded order ${orderId}`);
+  }
+
+  const dailyNumber = order.dailyOrderNumber;
+  const displayNumber =
+    typeof dailyNumber === 'number' && Number.isSafeInteger(dailyNumber) && dailyNumber > 0
+      ? String(dailyNumber)
+      : order.orderNumber.trim();
+  if (!displayNumber) throw new Error(`Seeded order ${orderId} has no display number`);
+
+  return { id: order.id, displayNumber, customerName: order.customerName };
+}
 
 test('the cashier lands on a working Orders workspace', async ({ cashierUser, browser }) => {
   const context = await browser.newContext({ storageState: cashierUser.storageStatePath });
@@ -28,6 +73,11 @@ test('the cashier lands on a working Orders workspace', async ({ cashierUser, br
   try {
     await page.goto('/en/cashier/orders');
     await expect(page).toHaveURL(/\/en\/cashier\/orders/, { timeout: 15_000 });
+
+    const currentDayOrder = await loadSeededOrderIdentity(page, CURRENT_DAY_ORDER_ID, cashierUser.accessToken);
+    const priorDayOrder = await loadSeededOrderIdentity(page, PRIOR_DAY_ORDER_ID, cashierUser.accessToken);
+    expect(currentDayOrder.customerName).toBe('E2E Kitchen Routing');
+    expect(priorDayOrder.customerName).toBe('E2E Prior Day');
 
     // The destination heading proves the workspace shell rendered, not the legacy page.
     await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeVisible({ timeout: 15_000 });
@@ -41,14 +91,26 @@ test('the cashier lands on a working Orders workspace', async ({ cashierUser, br
     }));
     expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight + 2);
 
-    // The seeded kitchen-routing order is Pending, so it is active work: it must be listed by the
-    // operational queue and open its ticket when selected.
-    await expect(page.getByText(ORDER_NUMBER, { exact: true }).first()).toBeVisible({ timeout: 15_000 });
-    await page.getByText(ORDER_NUMBER, { exact: true }).first().click();
-    await expect(page).toHaveURL(/order=/, { timeout: 10_000 });
-    await expect(page.getByRole('heading', { level: 2, name: new RegExp(ORDER_NUMBER) })).toBeVisible({
-      timeout: 10_000,
-    });
+    // The seeded kitchen-routing order is Pending, so it is active work. Resolve its display
+    // number from the exact seeded UUID so this assertion covers both legacy and daily numbers.
+    const activeOrderList = page
+      .getByRole('region', { name: 'Order queue' })
+      .getByRole('list', { name: 'Orders' })
+      .first();
+    const currentOrderNumber = activeOrderList.getByText(currentDayOrder.displayNumber, { exact: true });
+    await expect(currentOrderNumber).toBeVisible({ timeout: 15_000 });
+
+    // The Confirmed previous-day fixture is otherwise queue-eligible, but must stay outside today's
+    // active list. It may appear in the separate prior-day review reminder.
+    await expect(activeOrderList.getByText(priorDayOrder.customerName, { exact: true })).toHaveCount(0);
+
+    await currentOrderNumber.click();
+    await expect(page).toHaveURL(new RegExp(`order=${currentDayOrder.id}`), { timeout: 10_000 });
+    await expect(page.getByRole('heading', { level: 2, name: currentDayOrder.displayNumber, exact: true })).toBeVisible(
+      {
+        timeout: 10_000,
+      },
+    );
   } finally {
     await context.close();
   }

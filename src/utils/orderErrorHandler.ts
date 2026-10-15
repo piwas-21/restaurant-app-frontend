@@ -15,6 +15,10 @@ import { ApiError, getErrorMessage } from '@/utils/apiClient';
  * @returns Translated error message
  */
 export function getTranslatedOrderError(error: unknown, t: TFunction): string {
+  if (error instanceof ApiError && error.errorCode === 'OrderTypeNotAvailable') {
+    return t('order_type_not_available_now', 'This order type is unavailable right now. Please try again later.');
+  }
+
   // The SERVER's message, or null when it authored none. This function already ends in its own
   // translated generic, so the null case needs no new fallback — it just skips the pattern match.
   const rawMessage = getErrorMessage(error);

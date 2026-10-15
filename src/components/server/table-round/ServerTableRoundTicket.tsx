@@ -14,6 +14,7 @@ import styles from './ServerTableRoundTicket.module.css';
 import StaffCustomerSummary from '@/components/staff/StaffCustomerSummary';
 import StaffCustomerModal from '@/components/staff/StaffCustomerModal';
 import type { StaffCustomerSelection } from '@/types/staffCustomer';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface Props {
   readonly items: readonly OrderItem[];
@@ -99,7 +100,7 @@ export default function ServerTableRoundTicket({
       {createdOrder && (
         <section className={styles.created} aria-live="polite">
           <StatusBadge tone="success">{t('server.round.created')}</StatusBadge>
-          <p>{t('server.round.created_message', { orderNumber: createdOrder.orderNumber })}</p>
+          <p>{t('server.round.created_message', { orderNumber: getOrderDisplayNumber(createdOrder) })}</p>
           <RoutingStates states={createdOrder.routingStates ?? []} />
         </section>
       )}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { OrderDto, TableServiceSessionDto } from '@/types/order';
 import { formatTableMoney } from '@/lib/cashierTableSession';
 import styles from './TableAccountTotals.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 function AccountAmount({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
@@ -43,7 +44,7 @@ export default function TableAccountTotals({ session }: Readonly<{ session: Tabl
       {session.bill.orders.map((order) => (
         <details className={styles.accountOrderTotals} key={order.id}>
           <summary>
-            <span>{t('cashier.tables.account_order', { order: order.orderNumber })}</span>
+            <span>{t('cashier.tables.account_order', { order: getOrderDisplayNumber(order) })}</span>
             <strong>{money(order.total)}</strong>
           </summary>
           <dl className={styles.accountTotalsGrid}>

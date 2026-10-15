@@ -10,6 +10,7 @@ import { formatAmendmentMinorAmount } from './orderAmendmentPresentation';
 import AmendmentResolutionEntry from './AmendmentResolutionEntry';
 import AmendmentResolutionLoyalty from './AmendmentResolutionLoyalty';
 import styles from './OrderAmendmentHistorySection.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderAmendmentHistoryRecordProps {
   readonly record: OrderAmendmentHistory;
@@ -111,7 +112,7 @@ export default function OrderAmendmentHistoryRecord({ record, language }: Readon
         >
           <h4>
             {t('orderAmendments.history_supplement', { defaultValue: 'Linked supplement order' })} ·{' '}
-            {record.supplementOrder.orderNumber}
+            {getOrderDisplayNumber(record.supplementOrder)}
           </h4>
           <ul className={styles.supplementItems}>
             {record.supplementOrder.items.map((item) => (

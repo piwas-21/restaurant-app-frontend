@@ -3,6 +3,8 @@ export type TableOccupancyRecoveryDisposition = 'CancelledUnsent' | 'ArchivedLeg
 export interface TableOccupancyRecoveryOrder {
   readonly orderId: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber?: number;
+  readonly businessDate?: string;
   readonly disposition: TableOccupancyRecoveryDisposition;
   readonly originalStatus: string;
   readonly originalPaymentStatus: string;

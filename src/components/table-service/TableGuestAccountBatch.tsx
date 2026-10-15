@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { TableGuestAccountDto, TableGuestOrderDto } from '@/types/tableGuestVisit';
 import TableGuestAccountLine from './TableGuestAccountLine';
 import styles from './TableGuestAccount.module.css';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface TableGuestAccountBatchProps {
   readonly order: TableGuestOrderDto;
@@ -20,7 +21,7 @@ export default function TableGuestAccountBatch({ order, account, formatPrice }: 
     <details className={styles.batch}>
       <summary className={styles.batchSummary}>
         <span>
-          <strong>{t('table_guest_kitchen_batch', { number: order.orderNumber })}</strong>
+          <strong>{t('table_guest_kitchen_batch', { number: getOrderDisplayNumber(order) })}</strong>
           {Number.isFinite(orderDate.getTime()) && (
             <time dateTime={order.orderDate}>{orderDate.toLocaleString(i18n.language)}</time>
           )}

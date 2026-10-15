@@ -10,6 +10,8 @@ import { OrderDto, OrderStatus, OrderType } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
+import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import PreparationCountdown from '@/components/order/PreparationCountdown';
 import styles from './OrderCard.module.css';
 import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
 
@@ -64,7 +66,7 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
     <div className={`${styles.card} ${styles[orderStatusMeta(order.status)?.className ?? ''] ?? ''}`}>
       <div className={styles.header}>
         <div className={styles.orderInfo}>
-          <span className={styles.orderNumber}>#{order.orderNumber}</span>
+          <span className={styles.orderNumber}>#{getOrderDisplayNumber(order)}</span>
           {tableLabel && (
             <span className={styles.tableNumber}>
               {t('server.table', 'Table')} {tableLabel}
@@ -79,6 +81,13 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
         <span className={styles.time}>🕐 {formatTime(order.orderDate)}</span>
         {order.customerName && <span className={styles.customer}>👤 {order.customerName}</span>}
       </div>
+
+      <PreparationCountdown
+        status={order.status}
+        expectedReadyAt={order.expectedReadyAt}
+        effectivePreparationMinutes={order.effectivePreparationMinutes}
+        timeZone={order.businessTimeZoneId}
+      />
 
       <div className={styles.items}>
         {order.items.map((item, index) => (

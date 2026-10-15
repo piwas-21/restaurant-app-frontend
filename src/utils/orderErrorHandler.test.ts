@@ -98,6 +98,12 @@ describe('getTranslatedOrderError', () => {
     expect(getTranslatedOrderError(error, t)).toBe('Order type cleared');
   });
 
+  it('localizes the authoritative unavailable-order-type refusal by error code', () => {
+    const error = new ApiError(400, 'Takeaway is currently closed', undefined, 'OrderTypeNotAvailable');
+
+    expect(getTranslatedOrderError(error, t)).toBe('T:order_type_not_available_now');
+  });
+
   // The other five deleted patterns belonged to basket, cashier and payment endpoints this catch
   // cannot see. If one ever does reach here, it should show the server's words, not a key invented
   // for a failure mode that was never on this path.

@@ -2,6 +2,8 @@
 export interface TableOccupantDto {
   customerName?: string | null;
   orderNumber?: string | null;
+  dailyOrderNumber?: number | null;
+  businessDate?: string | null;
   orderDate: string;
   isLoggedInUser: boolean;
 }

@@ -17,6 +17,7 @@ import {
 } from './dtos';
 import type { OrderPermittedActionDto } from './tableBillRound';
 import type { OrderRoutingStateDto } from './orderRouting';
+import type { OrderOperationalFields } from './orderOperationalFields';
 
 /**
  * Create order command (request)
@@ -70,10 +71,8 @@ export type CreateOrderFromBasketCommand = Omit<
   | 'userLimitAmount'
 >;
 
-/**
- * Complete order data (response)
- */
-export interface OrderDto {
+/** Complete order data response. */
+export interface OrderDto extends OrderOperationalFields {
   id: string;
   orderNumber: string;
   userId?: string;

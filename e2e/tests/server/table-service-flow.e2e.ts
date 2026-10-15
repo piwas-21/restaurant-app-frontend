@@ -255,19 +255,19 @@ for (const { name, viewport } of VIEWPORTS) {
       expect(readiness).toMatchObject({ tableId: table.tableId, readinessState: 'ReadyForGuests' });
       expect(readiness.operationId).toMatch(/^[0-9a-f-]{36}$/i);
       expect(readiness.readinessVersion).toBeGreaterThan(0);
-      await expect(server.page.getByRole('button', { name: /Open Table/ })).toBeEnabled();
+      await expect(server.page.getByRole('button', { name: 'Add order', exact: true })).toBeEnabled();
 
       const opened = await requireResponseData<OpenedSession>(
         server.page,
         /^\/api\/table-service-sessions$/,
         async () => {
-          await server.page.getByRole('button', { name: 'Open Table' }).click();
+          await server.page.getByRole('button', { name: 'Add order', exact: true }).click();
         },
       );
       expect(opened.status).toBe('Open');
-      const addRound = server.page.getByRole('link', { name: 'Add round' });
-      await addRound.waitFor();
-      await addRound.click();
+      await expect(server.page).toHaveURL(
+        new RegExp(`/server/tables/${table.tableId}/order\\?serviceSessionId=${opened.serviceSessionId}$`),
+      );
 
       await server.page.getByRole('button', { name: `Add ${PRODUCT}`, exact: true }).click();
       await server.page.getByRole('region', { name: 'Next round' }).getByText(PRODUCT, { exact: true }).waitFor();
@@ -474,7 +474,7 @@ for (const { name, viewport } of VIEWPORTS) {
       );
       expect(nextReadiness).toMatchObject({ tableId: table.tableId, readinessState: 'ReadyForGuests' });
       expect(nextReadiness.readinessVersion).toBeGreaterThan(readiness.readinessVersion);
-      await expect(server.page.getByRole('button', { name: 'Open Table' })).toBeEnabled();
+      await expect(server.page.getByRole('button', { name: 'Add order', exact: true })).toBeEnabled();
       await expectNoA11yViolations(server.page);
     } finally {
       await Promise.allSettled(contexts.map((context) => context.close()));

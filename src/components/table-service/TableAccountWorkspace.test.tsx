@@ -126,6 +126,50 @@ describe('TableAccountWorkspace', () => {
     expect(screen.getByRole('tab', { name: 'cashier.tables.account_items' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('distinguishes repeated daily numbers across order items, totals, and payments', () => {
+    const firstOrder = {
+      ...session.bill.orders[0],
+      dailyOrderNumber: 1,
+      businessDate: '2026-10-14',
+    };
+    const secondOrder = {
+      ...firstOrder,
+      id: 'order-2',
+      orderNumber: 'A-002',
+      businessDate: '2026-10-15',
+      payments: [{ id: 'payment-2', paymentMethod: 'Cash', amount: 5, status: 'Completed' }],
+    };
+    const [accountItem] = session.bill.accountItems ?? [];
+    if (!accountItem) throw new Error('The table account fixture needs an account item.');
+    const firstItem = { ...accountItem, businessDate: '2026-10-14' };
+    const secondItem = {
+      ...firstItem,
+      orderId: 'order-2',
+      orderNumber: 'A-002',
+      orderItemId: 'item-2',
+      businessDate: '2026-10-15',
+    };
+    const crossDateSession = {
+      ...session,
+      bill: {
+        ...session.bill,
+        orders: [firstOrder, secondOrder],
+        accountItems: [firstItem, secondItem],
+      },
+    } as unknown as TableServiceSessionDto;
+
+    render(<TableAccountWorkspace session={crossDateSession} />);
+    expect(screen.getAllByRole('time').map((time) => time.getAttribute('datetime'))).toEqual(
+      expect.arrayContaining(['2026-10-14', '2026-10-15']),
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: 'cashier.tables.account_payments' }));
+    expect(screen.getAllByRole('time').map((time) => time.getAttribute('datetime'))).toEqual([
+      '2026-10-14',
+      '2026-10-15',
+    ]);
+  });
+
   it('uses eligible outstanding when refunded rounds remain in the raw bill balance', () => {
     render(<TableAccountWorkspace session={mixedRefundSession} />);
 

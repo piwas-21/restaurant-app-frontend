@@ -9,6 +9,7 @@ import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './TableDetailsModal.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 
 interface TableDetailsModalProps {
   table: ServerTableDto;
@@ -253,6 +254,7 @@ export default function TableDetailsModal({
                     <div className={styles.orderHeader}>
                       <span className={styles.orderNumber}>#{getOrderDisplayNumber(order)}</span>
                       <span className={styles.orderStatus}>{order.status}</span>
+                      <BusinessDateLabel businessDate={order.businessDate} />
                     </div>
                     <div className={styles.orderItems}>
                       {/* `order.items` is root-only since backend #237: the components of a combo

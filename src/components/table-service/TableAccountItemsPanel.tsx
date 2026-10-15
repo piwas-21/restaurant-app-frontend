@@ -10,6 +10,7 @@ import TableAccountTotals from './TableAccountTotals';
 import panelStyles from './TableAccountItemsPanel.module.css';
 import styles from './TableAccountWorkspace.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 
 type RefundLabel = 'refunded' | 'partially_refunded';
 
@@ -87,6 +88,7 @@ export default function TableAccountItemsPanel({ session }: Readonly<{ session: 
                       order: getOrderDisplayNumber(ordersById.get(entry.orderId) ?? { orderNumber: entry.orderNumber }),
                     })}
                   </span>
+                  <BusinessDateLabel businessDate={ordersById.get(entry.orderId)?.businessDate ?? entry.businessDate} />
                   {refundLabel && (
                     <StatusBadge tone="danger">{t(`cashier.tables.account_order_${refundLabel}`)}</StatusBadge>
                   )}

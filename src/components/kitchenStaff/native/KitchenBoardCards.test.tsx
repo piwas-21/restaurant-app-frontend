@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { KitchenBoardCorrection, KitchenBoardOrder } from '@/types/kitchenBoard';
 import KitchenBoardCorrectionCard from './KitchenBoardCorrectionCard';
 import KitchenBoardOrderCard from './KitchenBoardOrderCard';
@@ -18,6 +18,7 @@ jest.mock('react-i18next', () => ({
         'nativeKitchenBoard.route.Skipped': 'Skipped',
       };
       if (routeLabels[key]) return routeLabels[key];
+      if (key === 'nativeKitchenBoard.orderNumber') return `Order ${options?.number ?? ''}`;
       if (key === 'nativeKitchenBoard.correctionFor') return `Correction ${options?.number ?? ''}`;
       if (key === 'nativeKitchenBoard.routeStatus') return `${options?.target}: ${options?.status}`;
       return options?.defaultValue ?? key;
@@ -81,7 +82,40 @@ describe('native kitchen work cards', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', { name: 'Correction 17' })).toBeInTheDocument();
+    const card = screen.getByRole('article');
+    expect(within(card).getByRole('heading', { name: 'Correction 17' })).toBeInTheDocument();
+    expect(within(card).getByRole('time')).toHaveAttribute('datetime', '2026-10-08');
+  });
+
+  it('distinguishes identical daily order numbers from different business dates', () => {
+    render(
+      <>
+        <KitchenBoardOrderCard
+          order={{ ...order, orderId: 'order-yesterday', dailyOrderNumber: 1, businessDate: '2026-10-14' }}
+          disabled={false}
+          onPreparing={jest.fn()}
+          onReady={jest.fn()}
+          onComplete={jest.fn()}
+        />
+        <KitchenBoardOrderCard
+          order={{ ...order, orderId: 'order-today', dailyOrderNumber: 1, businessDate: '2026-10-15' }}
+          disabled={false}
+          onPreparing={jest.fn()}
+          onReady={jest.fn()}
+          onComplete={jest.fn()}
+        />
+      </>,
+    );
+
+    const cards = screen.getAllByRole('article');
+    expect(cards).toHaveLength(2);
+    expect(cards.map((card) => within(card).getByRole('heading').textContent)).toEqual(['Order 1', 'Order 1']);
+    expect(cards.map((card) => within(card).getByRole('time').getAttribute('datetime'))).toEqual([
+      '2026-10-14',
+      '2026-10-15',
+    ]);
+    expect(within(cards[0]).getByText('Oct 14, 2026')).toBeInTheDocument();
+    expect(within(cards[1]).getByText('Oct 15, 2026')).toBeInTheDocument();
   });
 
   it('requires an explicit acknowledgement and never labels a manual completion as printed', () => {

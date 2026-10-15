@@ -1,5 +1,5 @@
 import React from 'react';
-import { OrderDto } from '@/types/order';
+import type { OrderDto } from '@/types/order';
 import { useTranslation } from 'react-i18next';
 import { Eye, RefreshCw, Star, Trash2 } from 'lucide-react';
 import { useOrderHelpers } from '@/hooks/useOrderHelpers';
@@ -7,6 +7,8 @@ import { getStatusBadgeClasses, getPaymentBadgeClasses } from '@/utils/orderStat
 import styles from './OrdersTable.module.css';
 import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
+import { formatBusinessTime } from '@/lib/formatBusinessDate';
 
 interface OrdersTableProps {
   orders: OrderDto[];
@@ -29,7 +31,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onToggleFocus,
   onDeleteOrder,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel, getPaymentStatusLabel } =
     useOrderHelpers();
 
@@ -94,7 +96,9 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 </span>
               </td>
               <td className={styles.totalCell}>{formatPrice(order.total)}</td>
-              <td className={styles.dateCell}>{formatDate(order.orderDate)}</td>
+              <td className={styles.dateCell}>
+                <OrderDateCell order={order} locale={i18n.language || 'en'} formatDate={formatDate} />
+              </td>
               <td>
                 <div className={styles.actionsCell}>
                   <button
@@ -134,3 +138,19 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
     </div>
   );
 };
+
+function OrderDateCell({
+  order,
+  locale,
+  formatDate,
+}: Readonly<{ order: OrderDto; locale: string; formatDate: (value: string) => string }>) {
+  if (!order.businessDate) return <>{formatDate(order.orderDate)}</>;
+
+  const time = formatBusinessTime(order.orderDate, locale, order.businessTimeZoneId);
+  return (
+    <span className={styles.businessDateTime}>
+      <BusinessDateLabel businessDate={order.businessDate} />
+      {time && <span>{time}</span>}
+    </span>
+  );
+}

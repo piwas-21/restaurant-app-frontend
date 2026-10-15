@@ -192,6 +192,12 @@
   font-size: 0.813rem;
 }
 
+.businessDateTime {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
 @media (prefers-color-scheme: dark) {
   .dateCell {
     color: var(--text-color);

@@ -1,11 +1,99 @@
 import { render, screen } from '@testing-library/react';
-import { PaymentHoldNotice, PaymentReceipt, PaymentStatus } from './GuestAccountPaymentDetails';
+import type { GuestAccountPaymentOperation } from '@/types/guestAccountPayments';
+import type { TableGuestAccountDto } from '@/types/tableGuestVisit';
+import { PaymentHoldNotice, PaymentOperationReview, PaymentReceipt, PaymentStatus } from './GuestAccountPaymentDetails';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
 }));
 
 describe('guest account payment status', () => {
+  it('keeps a repeated daily number tied to its business date in payment review', () => {
+    const tableAccount: TableGuestAccountDto = {
+      serviceSessionId: 'visit-1',
+      accountRevision: 2,
+      subTotal: 10,
+      tax: 0,
+      discount: 0,
+      tip: 0,
+      total: 10,
+      totalPaid: 0,
+      remaining: 10,
+      credit: 0,
+      orders: [
+        {
+          orderId: 'order-1',
+          orderNumber: 'legacy-order-id',
+          dailyOrderNumber: 1,
+          businessDate: '2026-10-14',
+          status: 'Preparing',
+          paymentStatus: 'Pending',
+          orderDate: '2026-10-14T12:00:00Z',
+          total: 10,
+          totalPaid: 0,
+          remainingAmount: 10,
+        },
+      ],
+      items: [
+        {
+          orderId: 'order-1',
+          orderNumber: 'legacy-order-id',
+          dailyOrderNumber: 1,
+          businessDate: '2026-10-14',
+          unitCount: 1,
+          item: {
+            itemId: 'item-1',
+            productName: 'Soup',
+            quantity: 1,
+            unitPrice: 10,
+            itemTotal: 10,
+            ingredientCustomizations: [],
+            sideItems: [],
+          },
+        },
+      ],
+    };
+    const operation: GuestAccountPaymentOperation = {
+      serviceSessionId: 'visit-1',
+      operationId: 'operation-1',
+      state: 'Quoted',
+      version: 1,
+      expectedAccountRevision: 2,
+      mode: 'Items',
+      paymentMethod: 'OnlinePayment',
+      amountMinor: 1000,
+      currency: 'CHF',
+      quoteExpiresAt: '2026-10-14T12:05:00Z',
+      reservedAt: null,
+      reservationExpiresAt: null,
+      equalSharePlanId: null,
+      equalShareOrdinal: null,
+      allocations: [
+        {
+          orderId: 'order-1',
+          orderItemId: 'item-1',
+          startOrdinal: 1,
+          unitCount: 1,
+          minorPerUnit: 1000,
+          amountMinor: 1000,
+        },
+      ],
+    };
+
+    render(
+      <PaymentOperationReview
+        operation={operation}
+        tableAccount={tableAccount}
+        canContinue
+        isWorking={false}
+        onContinue={async () => true}
+        onRelease={async () => true}
+      />,
+    );
+
+    expect(screen.getByText('Oct 14, 2026', { selector: 'time' })).toHaveAttribute('datetime', '2026-10-14');
+  });
+
   it('labels a captured checkout as reconciliation required when the server marks it uncertain', () => {
     render(
       <PaymentStatus

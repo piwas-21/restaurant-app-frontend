@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
 import StaffWorkspaceShell from '@/components/design-system/StaffWorkspaceShell';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
+import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useServerOrderTranslations } from '@/hooks/useServerOrderTranslations';
@@ -184,6 +185,7 @@ export default function ServerOrdersWorkspace() {
               <article key={order.id} className={styles.orderRow}>
                 <div className={styles.orderIdentity}>
                   <strong dir="auto">{getOrderDisplayNumber(order)}</strong>
+                  <BusinessDateLabel businessDate={order.businessDate} />
                   <span>{typeLabel(order.type as TypeFilter, t)}</span>
                   {order.tableLabel && (
                     <span dir="auto">

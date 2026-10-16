@@ -42,7 +42,7 @@ export default function OrderAmendmentHistoryBody({
   useEffect(() => {
     if (!orderAmendmentsV1 || !translations.ready) return;
     let active = true;
-    void getOrderAmendmentHistory(orderId, includeGroup)
+    void (includeGroup ? getOrderAmendmentHistory(orderId, true) : getOrderAmendmentHistory(orderId))
       .then((records) => {
         if (active) {
           setView({

@@ -37,7 +37,7 @@ export default function BillChargeFields({
     reader.configuration?.rules.filter(
       (rule) =>
         rule.enabled &&
-        rule.orderTypes.some((value) => value === orderType) &&
+        (rule.orderTypes as readonly string[]).includes(orderType) &&
         (role?.toLowerCase() === 'admin' || rule.roles.some((r) => r.toLowerCase() === role?.toLowerCase())) &&
         !existingKeys.includes(rule.key),
     ) ?? [];

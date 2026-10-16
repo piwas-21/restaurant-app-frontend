@@ -37,3 +37,15 @@ it('refuses duplicate keys through form submission and saves the schema-validate
     rules: [expect.objectContaining({ key: 'service_fee', label: 'Service fee', defaultAmount: 5 })],
   });
 });
+
+it('preserves editor row identity when a key changes or an earlier field is removed', async () => {
+  const view = renderHook(() => useBillChargeEditor());
+  await waitFor(() => expect(view.result.current.valid).toBe(true));
+  const originalIds = [...view.result.current.rowIds];
+  act(() => view.result.current.changeRule(1, { ...view.result.current.rules[1], key: 'custom_fee' }));
+  expect(view.result.current.rowIds).toEqual(originalIds);
+  act(() => view.result.current.removeRule(0));
+  expect(view.result.current.rules[0].key).toBe('custom_fee');
+  expect(view.result.current.rowIds).toEqual([originalIds[1]]);
+  await waitFor(() => expect(view.result.current.valid).toBe(true));
+});

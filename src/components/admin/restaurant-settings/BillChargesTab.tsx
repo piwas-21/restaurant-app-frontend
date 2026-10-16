@@ -23,33 +23,26 @@ export default function BillChargesTab() {
       <p>{t('billCharges.description')}</p>
       {editor.rules.map((rule, index) => (
         <BillChargeRuleEditor
-          key={index}
+          key={editor.rowIds[index]}
           rule={rule}
           currency={editor.reader.configuration?.currency ?? ''}
           disabled={editor.busy}
-          onRemove={
-            ['service_fee', 'delivery_fee'].includes(rule.key)
-              ? undefined
-              : () => editor.setRules((values) => values.filter((_, i) => i !== index))
-          }
-          onChange={(next) => editor.setRules((values) => values.map((value, i) => (i === index ? next : value)))}
+          onRemove={['service_fee', 'delivery_fee'].includes(rule.key) ? undefined : () => editor.removeRule(index)}
+          onChange={(next) => editor.changeRule(index, next)}
         />
       ))}
       <StaffButton
         disabled={editor.busy || editor.rules.length >= MAX_BILL_CHARGE_FIELDS}
         onClick={() =>
-          editor.setRules((values) => [
-            ...values,
-            {
-              key: `charge_${values.length + 1}`,
-              label: t('billCharges.custom'),
-              enabled: false,
-              defaultAmount: 0,
-              allowCustomAmount: true,
-              orderTypes: ['DineIn', 'Takeaway', 'Delivery'],
-              roles: ['Cashier', 'Server'],
-            },
-          ])
+          editor.addRule({
+            key: `charge_${editor.rules.length + 1}`,
+            label: t('billCharges.custom'),
+            enabled: false,
+            defaultAmount: 0,
+            allowCustomAmount: true,
+            orderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+            roles: ['Cashier', 'Server'],
+          })
         }
       >
         {t('billCharges.addField')}

@@ -67,29 +67,33 @@ export default function BillChargeRuleEditor({
       />
       <fieldset className={styles.options}>
         <legend>{t('order_types')}</legend>
-        {[
-          ['DineIn', 'order_type_dine_in'],
-          ['Takeaway', 'takeaway'],
-          ['Delivery', 'delivery'],
-        ].map(([value, key]) => (
+        {(
+          [
+            ['DineIn', 'order_type_dine_in'],
+            ['Takeaway', 'takeaway'],
+            ['Delivery', 'delivery'],
+          ] as const
+        ).map(([value, key]) => (
           <CheckboxField
             key={value}
             label={t(key)}
-            checked={rule.orderTypes.some((item) => item === value)}
+            checked={rule.orderTypes.includes(value)}
             onChange={(checked) => toggle('orderTypes', value, checked)}
           />
         ))}
       </fieldset>
       <fieldset className={styles.options}>
         <legend>{t('billCharges.staff')}</legend>
-        {[
-          ['Cashier', 'cashier'],
-          ['Server', 'server'],
-        ].map(([value, key]) => (
+        {(
+          [
+            ['Cashier', 'cashier'],
+            ['Server', 'server'],
+          ] as const
+        ).map(([value, key]) => (
           <CheckboxField
             key={value}
             label={t(key)}
-            checked={rule.roles.some((item) => item === value)}
+            checked={rule.roles.includes(value)}
             onChange={(checked) => toggle('roles', value, checked)}
           />
         ))}

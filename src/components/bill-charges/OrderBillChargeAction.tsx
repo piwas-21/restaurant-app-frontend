@@ -23,16 +23,15 @@ export default function OrderBillChargeAction(
   useEffect(() => {
     try {
       setHasPending(!!actor && sessionStorage.getItem(`staff.bill-charge:${actor}:${props.order.id}`) !== null);
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       // Pending discovery is advisory; the editor owns the visible storage error and write lock.
-      void error;
       setHasPending(false);
     }
   }, [actor, props.order.id, props.order.version]);
   const available = reader.configuration?.rules.some(
     (rule) =>
       rule.enabled &&
-      rule.orderTypes.some((value) => value === props.order.type) &&
+      (rule.orderTypes as readonly string[]).includes(props.order.type) &&
       (role === 'admin' || rule.roles.some((value) => value.toLowerCase() === role)) &&
       !props.order.billCharges?.some((charge) => charge.key === rule.key),
   );

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, type SetStateAction } from 'react';
 import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
-import { useForm, useWatch } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { billChargeSettingsSchema, type BillChargeSettingsForm } from '@/schemas/billCharge.schema';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,10 @@ export function useBillChargeEditor() {
     mode: 'onChange',
   });
   const rules = useWatch({ control, name: 'rules' });
-  const setRules = (next: SetStateAction<BillChargeRule[]>) =>
-    setValue('rules', typeof next === 'function' ? next(rules) : next, { shouldValidate: true, shouldDirty: true });
+  const { fields, append: addRule, remove: removeRule, replace } = useFieldArray({ control, name: 'rules' });
+  const setRules = (next: SetStateAction<BillChargeRule[]>) => replace(typeof next === 'function' ? next(rules) : next);
+  const changeRule = (index: number, rule: BillChargeRule) =>
+    setValue(`rules.${index}`, rule, { shouldValidate: true, shouldDirty: true });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   useEffect(() => {
@@ -57,5 +59,17 @@ export function useBillChargeEditor() {
       setBusy(false);
     }
   });
-  return { reader, rules, setRules, busy, message, valid, save };
+  return {
+    reader,
+    rules,
+    rowIds: fields.map((field) => field.id),
+    setRules,
+    changeRule,
+    addRule,
+    removeRule,
+    busy,
+    message,
+    valid,
+    save,
+  };
 }

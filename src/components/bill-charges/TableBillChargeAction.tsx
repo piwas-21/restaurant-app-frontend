@@ -32,9 +32,8 @@ export default function TableBillChargeAction({
       pendingOrderId =
         orders.find((value) => sessionStorage.getItem(`staff.bill-charge:${auth.user?.userId}:${value.id}`))?.id ??
         null;
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       // Pending discovery is advisory; the editor owns the visible storage error and write lock.
-      void error;
       /* The action owns storage error handling. */
     }
   }
@@ -42,7 +41,7 @@ export default function TableBillChargeAction({
     (rule) =>
       rule.enabled &&
       (role === 'admin' || rule.roles.some((value) => value.toLowerCase() === role)) &&
-      eligible.some((order) => rule.orderTypes.some((value) => value === order.type)),
+      eligible.some((order) => (rule.orderTypes as readonly string[]).includes(order.type)),
   );
   const order =
     orders.find((value) => value.id === pendingOrderId) ??

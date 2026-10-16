@@ -11,7 +11,7 @@ export default function BillChargeConfigurationNotice({
   const { t } = useTranslation();
   if (reader.failed)
     return (
-      <div role="status">
+      <output>
         <p>{reader.message ?? t('billCharges.loadFailed')}</p>
         <StaffButton
           disabled={reader.loading}
@@ -20,7 +20,7 @@ export default function BillChargeConfigurationNotice({
         >
           {t('retry')}
         </StaffButton>
-      </div>
+      </output>
     );
   if (!reader.configuration)
     return (

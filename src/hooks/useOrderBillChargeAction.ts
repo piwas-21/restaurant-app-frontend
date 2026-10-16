@@ -46,9 +46,8 @@ export function useOrderBillChargeAction(
       setPending(stored);
       setValues(stored?.charges ?? []);
       setStorageBlocked(false);
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       // Browser storage failures use the dedicated recovery message and keep financial actions locked.
-      void error;
       setStorageBlocked(true);
     }
     setHydrated(true);
@@ -71,9 +70,8 @@ export function useOrderBillChargeAction(
     }
     try {
       sessionStorage.setItem(key, JSON.stringify(request));
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       // Browser storage failures use the dedicated recovery message and keep financial actions locked.
-      void error;
       setStorageBlocked(true);
       return;
     }
@@ -94,9 +92,8 @@ export function useOrderBillChargeAction(
         try {
           sessionStorage.removeItem(key);
           setPending(null);
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
           // Browser storage failures use the dedicated recovery message and keep financial actions locked.
-          void error;
           setStorageBlocked(true);
         }
         await onUpdated();

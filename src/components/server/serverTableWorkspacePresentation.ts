@@ -1,14 +1,7 @@
 import type { TFunction } from 'i18next';
-import type { StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import type { ServerTableBlocker, ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
 
-export function statusTone(state: string): StatusBadgeTone {
-  if (state === 'Ready') return 'success';
-  if (state === 'Reserved') return 'warning';
-  if (state === 'Ambiguous' || state === 'Inactive') return 'danger';
-  if (state === 'Open') return 'info';
-  return 'neutral';
-}
+export { staffTableStatusTone as statusTone } from '@/lib/staffTableStatus';
 
 export function blockerCopy(blocker: ServerTableBlocker, t: TFunction): string | null {
   switch (blocker) {

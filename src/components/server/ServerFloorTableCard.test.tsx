@@ -57,28 +57,8 @@ const table = (overrides: Partial<ServerFloorTable> = {}): ServerFloorTable => (
   ...overrides,
 });
 
-describe('ServerFloorTableCard actions', () => {
-  it('routes explicit reset readiness without exposing a new visit start', () => {
-    render(
-      <ServerFloorTableCard
-        table={table({
-          state: 'NeedsReset',
-          readinessState: 'NeedsReset',
-          readinessVersion: 7,
-          session: null,
-          permittedActions: ['MarkTableReady'],
-        })}
-      />,
-    );
-    expect(screen.getByRole('link', { name: 'Ready for next guests' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a',
-    );
-    expect(screen.queryByRole('link', { name: 'Start visit' })).not.toBeInTheDocument();
-    expect(screen.getByText('Needs reset')).toBeInTheDocument();
-  });
-
-  it('opens an available table directly into ordering from the shared primary action', () => {
+describe('ServerFloorTableCard', () => {
+  it('opens an available table directly into ordering', () => {
     const onSelect = jest.fn();
     render(
       <ServerFloorTableCard
@@ -86,12 +66,10 @@ describe('ServerFloorTableCard actions', () => {
         onSelect={onSelect}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /Add order/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Table 11a: Add order' }));
     expect(onSelect).toHaveBeenCalledWith('table/11a');
-    expect(screen.queryByRole('link', { name: 'Start visit' })).not.toBeInTheDocument();
   });
-
-  it('names each table in its ordering target for assistive technology', () => {
+  it('names each table in its ordering target', () => {
     render(
       <>
         <ServerFloorTableCard
@@ -102,12 +80,10 @@ describe('ServerFloorTableCard actions', () => {
         />
       </>,
     );
-    const targets = screen.getAllByRole('button', { name: /Add order/ });
-    expect(targets[0].getAttribute('aria-label')).toContain('7');
-    expect(targets[1].getAttribute('aria-label')).toContain('8');
+    expect(screen.getByRole('button', { name: 'Table 7: Add order' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Table 8: Add order' })).toBeEnabled();
   });
-
-  it('blocks available-table ordering while the floor snapshot is stale', () => {
+  it('blocks available ordering while stale', () => {
     const onSelect = jest.fn();
     render(
       <ServerFloorTableCard
@@ -120,100 +96,41 @@ describe('ServerFloorTableCard actions', () => {
     expect(onSelect).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: /Add order/ })).toBeDisabled();
   });
-
-  it('routes advertised actions to existing guarded table, bill, and task pages', () => {
-    render(
-      <ServerFloorTableCard
-        table={table({
-          permittedActions: [
-            'AddRound',
-            'ViewBill',
-            'OpenTasks',
-            'CollectPayment',
-            'RequestPaymentHandoff',
-            'CloseVisit',
-            'ReviewLegacy',
-          ],
-        })}
-      />,
-    );
-
-    const card = screen.getByRole('article');
-    const actions = card;
-    expect(within(actions).getByRole('link', { name: 'Add round' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a/order?serviceSessionId=session-1',
-    );
-    expect(within(actions).getByRole('link', { name: 'View account' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a#server-table-bill-actions',
-    );
-    expect(within(actions).getByRole('link', { name: 'Service tasks' })).toHaveAttribute('href', '/server/tasks');
-    expect(within(actions).getByRole('link', { name: 'Review payment' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a#server-table-bill-actions',
-    );
-    expect(within(actions).getByRole('link', { name: 'Review cashier handoff' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a#server-table-bill-actions',
-    );
-    expect(within(actions).getByRole('link', { name: 'Review visit closure' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a#server-table-bill-actions',
-    );
-    expect(within(actions).getByRole('link', { name: 'Review legacy orders' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a',
-    );
-    expect(within(card).queryByRole('button')).not.toBeInTheDocument();
-  });
-
-  it('offers cashier handoff without exposing collection to a Server capability', () => {
-    render(<ServerFloorTableCard table={table({ permittedActions: ['RequestPaymentHandoff'] })} />);
-
-    expect(screen.getByRole('link', { name: 'Review cashier handoff' })).toHaveAttribute(
-      'href',
-      '/server/tables/table%2F11a#server-table-bill-actions',
-    );
-    expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
-  });
-
-  it('hides permission links from stale floor data and keeps the safe details route', () => {
+  it.each(['Open', 'NeedsReset', 'Reserved', 'Ambiguous'] as const)(
+    'keeps %s actions in table details with one primary destination',
+    (state) => {
+      render(
+        <ServerFloorTableCard
+          table={table({
+            state,
+            permittedActions: ['AddRound', 'ViewBill', 'OpenTasks', 'CollectPayment', 'CloseVisit', 'MarkTableReady'],
+          })}
+        />,
+      );
+      const card = screen.getByRole('article');
+      expect(within(card).getAllByRole('link')).toHaveLength(1);
+      expect(within(card).getByRole('link', { name: 'Table 11a: Open table details' })).toHaveAttribute(
+        'href',
+        '/server/tables/table%2F11a',
+      );
+      expect(within(card).queryByRole('button')).not.toBeInTheDocument();
+    },
+  );
+  it('keeps the details route available while stale without exposing mutation links', () => {
     render(<ServerFloorTableCard table={table({ permittedActions: ['CollectPayment', 'CloseVisit'] })} isStale />);
-
     expect(screen.getByRole('link', { name: /Open table details/ })).toHaveAttribute(
       'href',
       '/server/tables/table%2F11a',
     );
-    const staleNotice = within(screen.getByRole('article')).getByText(
-      'Table actions may be out of date. Open table details to check current options.',
-    );
-    expect(staleNotice.closest('output')).toHaveAttribute('aria-live', 'polite');
-    expect(screen.queryByRole('list', { name: 'Table actions' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
   });
-
-  it('explains unsupported capability routes without rendering their backend token', () => {
-    render(<ServerFloorTableCard table={table({ permittedActions: ['FutureAction'] })} />);
-
-    const unsupportedNotice = within(screen.getByRole('article')).getByText(
-      /This action has no supported link from the floor in this version\./,
-    );
-    expect(unsupportedNotice.closest('output')).toHaveAttribute('aria-live', 'polite');
-    expect(screen.queryByText('FutureAction')).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'FutureAction' })).not.toBeInTheDocument();
-  });
-
-  it('fails closed when the backend adds an unknown table state', () => {
+  it('fails closed for an unknown table state', () => {
     render(
       <ServerFloorTableCard
         table={table({ state: 'FutureState' as ServerFloorTable['state'], permittedActions: ['CloseVisit'] })}
       />,
     );
-
     expect(screen.getByRole('button', { name: /Table details unavailable/ })).toBeDisabled();
-    expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Close visit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

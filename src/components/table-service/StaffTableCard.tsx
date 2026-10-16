@@ -14,7 +14,6 @@ interface Props {
   readonly href?: string;
   readonly onSelect?: () => void;
   readonly children?: ReactNode;
-  readonly actions?: ReactNode;
 }
 
 /** Shared touch target and visual hierarchy; each role supplies its authoritative state/actions. */
@@ -29,7 +28,6 @@ export default function StaffTableCard({
   href,
   onSelect,
   children,
-  actions,
 }: Props) {
   const content = (
     <>
@@ -61,7 +59,6 @@ export default function StaffTableCard({
           {content}
         </button>
       )}
-      {actions && <div className={styles.actions}>{actions}</div>}
     </article>
   );
 }

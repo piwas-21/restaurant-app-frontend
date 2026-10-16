@@ -175,7 +175,7 @@ describe('ServerFloorWorkspace', () => {
 
     expect(screen.getByRole('link', { name: /Open table details/ })).toHaveAttribute('href', '/server/tables/table-1');
     expect(screen.getByText('CHF 20.00')).toBeInTheDocument();
-    expect(screen.getByText('Add round')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Add round' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Everywhere' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('list', { name: 'Table state legend' })).toBeInTheDocument();
   });
@@ -301,29 +301,23 @@ describe('ServerFloorWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
 
     expect(screen.getByText('CHF 18.50')).toBeInTheDocument();
-    expect(screen.getByText('Review legacy orders')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Open table details/ })).toBeInTheDocument();
   });
 
-  it('keeps stale floor capabilities from becoming action links', () => {
+  it('retains a single guarded details destination with stale floor data', () => {
     mockUseFloor.mockReturnValue({
-      snapshot: {
-        ...snapshot,
-        tables: [{ ...snapshot.tables[0], permittedActions: ['CollectPayment', 'CloseVisit'] }],
-      },
+      snapshot,
       isLoading: false,
       isStale: true,
-      error: 'floor_plan_load_error',
-      connectionState: 'stale',
+      error: null,
+      connectionState: 'offline',
       refresh: jest.fn(async () => undefined),
     });
-
     render(<ServerFloorWorkspace />);
-    fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
-
-    expect(screen.getByText(/Table actions may be out of date/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Open table details/ })).toHaveAttribute('href', '/server/tables/table-1');
+    fireEvent.click(screen.getByRole('button', { name: 'List' }));
     expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add order/ })).toBeDisabled();
+    expect(screen.getByRole('link', { name: /Open table details/ })).toBeInTheDocument();
   });
 
   it('announces an empty spatial zone instead of rendering a blank canvas', () => {

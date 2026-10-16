@@ -9,14 +9,7 @@ import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { sessionTableDisplay, tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableList.module.css';
-
-type BadgeTone = 'success' | 'warning' | 'neutral';
-
-function tone(status: CashierTableEntry['status']): BadgeTone {
-  if (status === 'occupied' || status === 'legacy' || status === 'reserved' || status === 'conflict') return 'warning';
-  if (status === 'available') return 'success';
-  return 'neutral';
-}
+import { staffTableStatusTone } from '@/lib/staffTableStatus';
 
 interface CashierTableListProps {
   readonly entries: readonly CashierTableEntry[];
@@ -68,7 +61,7 @@ export default function CashierTableList({
             <StaffTableCard
               label={displayName}
               status={tableStatusLabel(status, t)}
-              tone={tone(status)}
+              tone={staffTableStatusTone(status)}
               selected={selected}
               accessibleLabel={accessibleLabel}
               actionLabel={status === 'available' ? t('staff.add_order') : t('server.open_table')}

@@ -80,7 +80,7 @@ export default function CashierWorkspaceShell({
   const { theme } = useTheme();
   const { info } = useRestaurantInfo();
   const operationalCount = useCashierOperationalCount();
-  const showOpenCount = operationalCount.count !== undefined;
+  const showTodayCount = operationalCount.count !== undefined;
 
   return (
     <div className={styles.workspace}>
@@ -128,10 +128,10 @@ export default function CashierWorkspaceShell({
                 }}
               >
                 <span>{t(route.labelKey)}</span>
-                {route.destination === 'orders' && showOpenCount && operationalCount.count > 0 && (
+                {route.destination === 'orders' && showTodayCount && operationalCount.count > 0 && (
                   <span
                     className={styles.attentionBadge}
-                    aria-label={t('cashier.workspace.open_count', { count: operationalCount.count })}
+                    aria-label={t('cashier.workspace.today_count', { count: operationalCount.count })}
                     aria-live="polite"
                     role="status"
                   >

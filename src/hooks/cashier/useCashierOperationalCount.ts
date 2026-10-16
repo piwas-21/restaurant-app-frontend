@@ -13,10 +13,10 @@ const OPERATIONAL_COUNT_QUERY = {
 };
 
 const STATUS_MESSAGE_KEYS: Record<CashierQueueState, string> = {
-  loading: 'cashier.workspace.open_count_loading',
-  ready: 'cashier.workspace.open_count_current',
-  stale: 'cashier.workspace.open_count_stale',
-  unavailable: 'cashier.workspace.open_count_unavailable',
+  loading: 'cashier.workspace.today_count_loading',
+  ready: 'cashier.workspace.today_count_current',
+  stale: 'cashier.workspace.today_count_stale',
+  unavailable: 'cashier.workspace.today_count_unavailable',
 };
 
 export interface CashierOperationalCount {
@@ -59,7 +59,7 @@ export function useCashierOperationalCount(): CashierOperationalCount {
       return true;
     } catch (reason: unknown) {
       if (requestId !== requestRef.current) return false;
-      setError(getErrorMessage(reason) ?? 'cashier.workspace.open_count_unavailable');
+      setError(getErrorMessage(reason) ?? 'cashier.workspace.today_count_unavailable');
       setState(countRef.current === undefined ? 'unavailable' : 'stale');
       setIsLoading(false);
       return false;

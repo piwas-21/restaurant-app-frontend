@@ -41,7 +41,7 @@ describe('useCashierOperationalCount', () => {
 
     expect(result.current.count).toBe(4);
     expect(result.current.state).toBe('stale');
-    expect(result.current.statusMessageKey).toBe('cashier.workspace.open_count_stale');
+    expect(result.current.statusMessageKey).toBe('cashier.workspace.today_count_stale');
   });
 
   it('exposes an unavailable status without inventing an initial count', async () => {
@@ -50,6 +50,6 @@ describe('useCashierOperationalCount', () => {
 
     await waitFor(() => expect(result.current.state).toBe('unavailable'));
     expect(result.current.count).toBeUndefined();
-    expect(result.current.statusMessageKey).toBe('cashier.workspace.open_count_unavailable');
+    expect(result.current.statusMessageKey).toBe('cashier.workspace.today_count_unavailable');
   });
 });

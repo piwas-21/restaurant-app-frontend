@@ -1,4 +1,5 @@
 import { expect, type Browser, type Page } from '@playwright/test';
+import { joinGuestByQr } from '../p11/helpers/guestQrJoin';
 import type { P11StaffUser } from '../p11/staffUsers';
 import type { TableAccountP11Fixture } from '../seed/tableAccountP11';
 
@@ -39,20 +40,14 @@ export async function openTableVisit(page: Page, table: TableAccountP11Fixture) 
     () => page.getByRole('button', { name: 'Open Table', exact: true }).click(),
   );
   expect(session.status).toBe('Open');
-  const panel = page.getByRole('region', { name: 'Guest visit code' });
-  await panel.getByRole('button', { name: 'Generate new visit code', exact: true }).click();
-  const code = await panel.locator('code').innerText();
-  expect(code).toMatch(/^[A-Z0-9]{10}$/);
-  return { sessionId: session.serviceSessionId, code };
+  return { sessionId: session.serviceSessionId };
 }
 
-export async function joinVisit(page: Page, table: TableAccountP11Fixture, code: string) {
-  await page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-  await page.getByLabel('Table visit code').fill(code);
-  await page.getByRole('button', { name: 'Join table', exact: true }).click();
-  await expect(page).toHaveURL(/\/en\/menu$/);
+export async function joinVisit(page: Page, table: TableAccountP11Fixture, sessionId: string) {
+  const participantToken = await joinGuestByQr(page, table, sessionId);
   await page.goto('/en/table-account');
   await expect(page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();
+  return participantToken;
 }
 
 export async function addThreeUnitRound(page: Page, tableId: string, sessionId: string) {

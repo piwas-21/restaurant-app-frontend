@@ -1,3 +1,4 @@
+import { joinGuestByQr, expectOldGuestDenied } from '../helpers/guestQrJoin';
 import {
   expect,
   request,
@@ -122,14 +123,6 @@ async function expectChfAmount(scope: Locator, label: string, amount: string): P
     .replace(/\s+/g, ' ')
     .trim();
   expect(rendered).toMatch(chfAmountPattern(amount));
-}
-
-async function admissionCode(page: Page): Promise<string> {
-  const panel = page.getByRole('region', { name: 'Guest visit code' });
-  await panel.getByRole('button', { name: 'Generate new visit code', exact: true }).click();
-  const code = await panel.locator('code').innerText();
-  if (!/^[A-Z0-9]{10}$/.test(code)) throw new Error('P11 received an invalid guest admission-code shape.');
-  return code;
 }
 
 async function markTableReady(page: Page, tableId: string): Promise<void> {
@@ -259,12 +252,7 @@ p11Test(
         server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
       );
       expect(firstSession.status).toBe('Open');
-      const oldVisitCode = await admissionCode(server.page);
-      await firstGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(firstGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await firstGuest.page.getByLabel('Table visit code').fill(oldVisitCode);
-      await firstGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(firstGuest.page).toHaveURL(/\/en\/menu$/);
+      const firstParticipantToken = await joinGuestByQr(firstGuest.page, table, firstSession.serviceSessionId);
 
       await firstGuest.page.goto('/en/table-account');
       await expect(firstGuest.page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();
@@ -278,7 +266,7 @@ p11Test(
       expect(closedSession.status).toBe('Closed');
       await firstGuest.page.getByRole('button', { name: 'Refresh account', exact: true }).click();
       // Closed-account reads use the public non-enumerating unavailable response (404).
-      // The new visit's admission-code check below separately proves the old code is rejected.
+      // The next visit also refuses this old participant credential against its live account endpoint.
       await expect(firstGuest.page.getByRole('heading', { name: 'Table account unavailable' })).toBeVisible();
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
@@ -289,22 +277,11 @@ p11Test(
       );
       expect(secondSession.status).toBe('Open');
       expect(secondSession.serviceSessionId).not.toBe(firstSession.serviceSessionId);
-      const currentVisitCode = await admissionCode(server.page);
 
       const currentGuest = await openGuestContext(browser, baseURL);
       contexts.push(currentGuest.context);
-      await currentGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(currentGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await currentGuest.page.getByLabel('Table visit code').fill(oldVisitCode);
-      await currentGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      const firstStaleVisitError = currentGuest.page
-        .getByRole('alert')
-        .filter({ hasText: 'We could not join this visit' });
-      await expect(firstStaleVisitError).toHaveCount(1);
-      await expect(firstStaleVisitError).toContainText('We could not join this visit');
-      await currentGuest.page.getByLabel('Table visit code').fill(currentVisitCode);
-      await currentGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(currentGuest.page).toHaveURL(/\/en\/menu$/);
+      const currentParticipantToken = await joinGuestByQr(currentGuest.page, table, secondSession.serviceSessionId);
+      await expectOldGuestDenied(currentGuest.page, secondSession.serviceSessionId, firstParticipantToken);
 
       const basketResponse = currentGuest.page.waitForResponse(
         (response) =>
@@ -488,22 +465,11 @@ p11Test(
       expect(thirdSession.status).toBe('Open');
       expect(thirdSession.serviceSessionId.toLowerCase()).not.toBe(secondSession.serviceSessionId.toLowerCase());
       expect(thirdSession.serviceSessionId.toLowerCase()).not.toBe(firstSession.serviceSessionId.toLowerCase());
-      const thirdVisitCode = await admissionCode(server.page);
 
       const thirdGuest = await openGuestContext(browser, baseURL);
       contexts.push(thirdGuest.context);
-      await thirdGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(thirdGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await thirdGuest.page.getByLabel('Table visit code').fill(currentVisitCode);
-      await thirdGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      const secondStaleVisitError = thirdGuest.page
-        .getByRole('alert')
-        .filter({ hasText: 'We could not join this visit' });
-      await expect(secondStaleVisitError).toHaveCount(1);
-      await expect(secondStaleVisitError).toContainText('We could not join this visit');
-      await thirdGuest.page.getByLabel('Table visit code').fill(thirdVisitCode);
-      await thirdGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(thirdGuest.page).toHaveURL(/\/en\/menu$/);
+      await joinGuestByQr(thirdGuest.page, table, thirdSession.serviceSessionId);
+      await expectOldGuestDenied(thirdGuest.page, thirdSession.serviceSessionId, currentParticipantToken);
 
       await thirdGuest.page.goto('/en/table-account');
       await expect(thirdGuest.page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();

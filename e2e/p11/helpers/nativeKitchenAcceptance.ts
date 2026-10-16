@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { joinGuestByQr } from './guestQrJoin';
 import { openMenuBasket, proceedViaSidebarExpectingNavigation } from '../../helpers/menuBasket';
 import type { TableAccountP11Fixture } from '../../seed/tableAccountP11';
 import type {
@@ -211,13 +212,8 @@ export async function addGuestBasketRound(
   api: APIRequestContext,
   table: TableAccountP11Fixture,
   serviceSessionId: string,
-  admissionCode: string,
 ): Promise<CreatedGuestRound> {
-  await guestPage.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-  await expect(guestPage.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-  await guestPage.getByLabel('Table visit code').fill(admissionCode);
-  await guestPage.getByRole('button', { name: 'Join table', exact: true }).click();
-  await expect(guestPage).toHaveURL(/\/en\/menu$/);
+  await joinGuestByQr(guestPage, table, serviceSessionId);
 
   const basketResponse = guestPage.waitForResponse(
     (response) =>

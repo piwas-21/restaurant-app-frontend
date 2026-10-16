@@ -183,7 +183,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
   // `view details for <dish>`, not an anchored `details`: the control's accessible name now carries
   // the DISH. Every card offers one, so a screen-reader user listing the page's buttons used to get
   // N identical "Details" entries where the add control beside it already said which dish it added.
-  const detailsButton = grid(page).getByRole('button', { name: /^view details for e2e test product$/i });
+  const detailsButton = grid(page).getByTestId('menu-card').getByRole('button', { name: /^view details for e2e test product$/i });
   await expect(detailsButton).toBeVisible({ timeout: 15_000 });
 
   // Capture any basket write the moment it's INITIATED (request event, not response), so a

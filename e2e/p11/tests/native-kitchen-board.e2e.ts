@@ -1,3 +1,4 @@
+import { joinGuestByQr, expectOldGuestDenied, readGuestParticipantToken } from '../helpers/guestQrJoin';
 import {
   expect,
   request,
@@ -121,14 +122,6 @@ async function markTableReady(page: Page, tableId: string): Promise<void> {
   const response = await responsePromise;
   if (!response.ok()) throw new Error(`P11 table readiness was refused with HTTP ${response.status()}.`);
   await page.reload();
-}
-
-async function admissionCode(page: Page): Promise<string> {
-  const panel = page.getByRole('region', { name: 'Guest visit code' });
-  await panel.getByRole('button', { name: 'Generate new visit code', exact: true }).click();
-  const code = await panel.locator('code').innerText();
-  if (!/^[A-Z0-9]{10}$/.test(code)) throw new Error('P11 received an invalid guest admission-code shape.');
-  return code;
 }
 
 async function addRound(
@@ -379,7 +372,6 @@ p11Test(
         server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
       );
       expect(session.status).toBe('Open');
-      const oldVisitCode = await admissionCode(server.page);
 
       const firstRound = await addRound(server.page, table, session.serviceSessionId, 2);
       orderIds.push(firstRound.id);
@@ -478,8 +470,9 @@ p11Test(
 
       guest = await openGuestContext(browser, baseURL);
       contexts.push(guest.context);
-      const secondRound = await addGuestBasketRound(guest.page, api, table, session.serviceSessionId, oldVisitCode);
+      const secondRound = await addGuestBasketRound(guest.page, api, table, session.serviceSessionId);
       orderIds.push(secondRound.id);
+      const oldParticipantToken = await readGuestParticipantToken(guest.page);
       await refreshBoard(board);
       await expect(orderCard(board, secondRound)).toBeVisible();
       snapshot = await readNativeKitchenSnapshot(api);
@@ -599,19 +592,11 @@ p11Test(
       );
       expect(nextSession.status).toBe('Open');
       expect(nextSession.serviceSessionId.toLowerCase()).not.toBe(session.serviceSessionId.toLowerCase());
-      const nextCode = await admissionCode(server.page);
 
       const nextGuest = await openGuestContext(browser, baseURL);
       contexts.push(nextGuest.context);
-      await nextGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(nextGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await nextGuest.page.getByLabel('Table visit code').fill(oldVisitCode);
-      await nextGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      const staleCodeAlert = nextGuest.page.getByRole('alert').filter({ hasText: 'We could not join this visit' });
-      await expect(staleCodeAlert).toHaveCount(1);
-      await nextGuest.page.getByLabel('Table visit code').fill(nextCode);
-      await nextGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(nextGuest.page).toHaveURL(/\/en\/menu$/);
+      await joinGuestByQr(nextGuest.page, table, nextSession.serviceSessionId);
+      await expectOldGuestDenied(nextGuest.page, nextSession.serviceSessionId, oldParticipantToken);
       await nextGuest.page.goto('/en/table-account');
       await expect(nextGuest.page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();
       await expect(nextGuest.page.locator('dl[aria-label="Table account totals"]')).toContainText('CHF 0.00');

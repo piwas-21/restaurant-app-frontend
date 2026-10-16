@@ -55,7 +55,10 @@ export default function CashierMoreMenu() {
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label={t('cashier.workspace.more')}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => {
+          setPanel(null);
+          setIsOpen((current) => !current);
+        }}
       >
         <Ellipsis size={20} aria-hidden="true" />
         <span>{t('cashier.workspace.more')}</span>

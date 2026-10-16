@@ -1,12 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { OrderType, type OrderDto } from '@/types/order';
-import type { CustomizationResult, ProductCustomizationDetail } from '@/components/catalog/productCustomizationTypes';
-import type { Product } from '@/services/serverService';
-import { getProductById } from '@/services/menuService';
-import { addCustomizedItem, type OrderItem } from '@/components/catalog/orderItems';
-import { decideProductTap } from '@/components/catalog/productTap';
-import { getErrorMessage } from '@/utils/apiClient';
+import type { OrderDto } from '@/types/order';
+import { useServerTakeawayProduct } from './useServerTakeawayProduct';
+import type { OrderItem } from '@/components/catalog/orderItems';
 import {
   clearServerTakeawayDraft,
   persistServerTakeawayDraft,
@@ -17,13 +13,12 @@ import { useServerTakeawayCatalog } from './useServerTakeawayCatalog';
 import type { StaffCustomerSelection } from '@/types/staffCustomer';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import { useServerTakeawayTicketLines } from './useServerTakeawayTicketLines';
-type ReviewPhase = 'idle' | 'reviewing';
-type OperationState = 'idle' | 'committed' | 'failed';
-const EMPTY_ITEMS: OrderItem[] = [];
+import { EMPTY_ITEMS, type ReviewPhase, type OperationState } from './serverTakeawayState';
 export function useServerTakeaway() {
   const catalog = useServerTakeawayCatalog();
   const loyaltyEnabled = useModuleEnabled('loyalty');
   const [items, setItems] = useState<OrderItem[]>(EMPTY_ITEMS);
+  const [billCharges, setBillCharges] = useState<import('@/types/billCharge').BillChargeInput[]>([]);
   const [notes, setNotes] = useState('');
   const [customer, setCustomer] = useState<StaffCustomerSelection | undefined>();
   const [clientOperationId, setClientOperationId] = useState<string | undefined>();
@@ -35,13 +30,12 @@ export function useServerTakeaway() {
   const [quote, setQuote] = useState<OrderDto | null>(null);
   const [createdOrder, setCreatedOrder] = useState<OrderDto | null>(null);
   const [lastOperationId, setLastOperationId] = useState<string | undefined>();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [tapPendingId, setTapPendingId] = useState<string | null>(null);
   useEffect(() => {
     const stored = readServerTakeawayDraft();
     if (stored) {
       setItems(stored.items);
       setNotes(stored.notes ?? '');
+      setBillCharges(stored.billCharges ?? []);
       setCustomer(stored.customer);
       setClientOperationId(stored.clientOperationId);
       setDraftRecovered(true);
@@ -54,70 +48,48 @@ export function useServerTakeaway() {
       clearServerTakeawayDraft();
       return;
     }
-    persistServerTakeawayDraft({ items, notes, customer, clientOperationId });
-  }, [clientOperationId, customer, hydrated, items, notes]);
-  const mutate = useCallback((change: (current: OrderItem[]) => OrderItem[]) => {
-    setItems(change);
+    persistServerTakeawayDraft({ items, notes, billCharges, customer, clientOperationId });
+  }, [billCharges, clientOperationId, customer, hydrated, items, notes]);
+  const invalidate = useCallback(() => {
     setClientOperationId(undefined);
     setQuote(null);
     setCreatedOrder(null);
     setOperationState('idle');
     setError(null);
   }, []);
+  const mutate = useCallback(
+    (change: (current: OrderItem[]) => OrderItem[]) => {
+      setItems(change);
+      invalidate();
+    },
+    [invalidate],
+  );
   const ticketLines = useServerTakeawayTicketLines(items, mutate);
-  const updateNotes = useCallback((value: string) => {
-    setNotes(value);
-    setClientOperationId(undefined);
-    setQuote(null);
-    setCreatedOrder(null);
-    setOperationState('idle');
-    setError(null);
-  }, []);
-  const updateCustomer = useCallback((value: StaffCustomerSelection | undefined) => {
-    setCustomer(value);
-    setClientOperationId(undefined);
-    setQuote(null);
-    setCreatedOrder(null);
-    setOperationState('idle');
-    setError(null);
-  }, []);
-  const tapProduct = useCallback(
-    async (product: Product) => {
-      if (tapPendingId !== null || phase !== 'idle') return;
-      setTapPendingId(product.id);
-      setError(null);
-      try {
-        const response = (await getProductById(product.id, undefined, OrderType.Takeaway)) as {
-          success?: boolean;
-          data?: ProductCustomizationDetail;
-        };
-        if (!response.success || !response.data || response.data.availability?.canOrder === false) {
-          setError('server.takeaway.product_unavailable');
-          return;
-        }
-        const decision = decideProductTap(response.data);
-        if (decision.kind === 'sheet') setSelectedProduct(product);
-        else mutate((current) => addCustomizedItem(current, product, decision.result));
-      } catch (error: unknown) {
-        setError(getErrorMessage(error) ?? 'server.takeaway.product_unavailable');
-      } finally {
-        setTapPendingId(null);
-      }
+  const updateNotes = useCallback(
+    (value: string) => {
+      setNotes(value);
+      invalidate();
     },
-    [mutate, phase, tapPendingId],
+    [invalidate],
   );
-  const confirmCustomization = useCallback(
-    (result: CustomizationResult) => {
-      const product = selectedProduct;
-      if (!product) return;
-      setSelectedProduct(null);
-      mutate((current) => addCustomizedItem(current, product, result));
+  const updateBillCharges = (values: import('@/types/billCharge').BillChargeInput[]) => {
+    if (phase !== 'idle') return;
+    setBillCharges(values);
+    invalidate();
+  };
+  const updateCustomer = useCallback(
+    (value: StaffCustomerSelection | undefined) => {
+      setCustomer(value);
+      invalidate();
     },
-    [mutate, selectedProduct],
+    [invalidate],
   );
+  const { selectedProduct, tapPendingId, tapProduct, confirmCustomization, closeCustomization } =
+    useServerTakeawayProduct(phase, mutate, setError);
   const discardDraft = useCallback(() => {
     setItems([]);
     setNotes('');
+    setBillCharges([]);
     setCustomer(undefined);
     setClientOperationId(undefined);
     setQuote(null);
@@ -136,10 +108,11 @@ export function useServerTakeaway() {
     const operationId = clientOperationId ?? crypto.randomUUID();
     setClientOperationId(operationId);
     setLastOperationId(operationId);
-    persistServerTakeawayDraft({ items, notes, customer, clientOperationId: operationId });
+    persistServerTakeawayDraft({ items, notes, billCharges, customer, clientOperationId: operationId });
     const outcome = await reviewServerTakeaway({
       items,
       notes,
+      billCharges,
       customer,
       loyaltyEnabled,
       storedOperationId: operationId,
@@ -152,6 +125,7 @@ export function useServerTakeaway() {
       setOperationState('committed');
       setItems([]);
       setNotes('');
+      setBillCharges([]);
       setCustomer(undefined);
       setQuote(null);
       setClientOperationId(undefined);
@@ -162,14 +136,18 @@ export function useServerTakeaway() {
       setError(outcome.error ?? 'server.takeaway.review_failed');
     }
     setPhase('idle');
-  }, [clientOperationId, customer, items, loyaltyEnabled, notes, phase]);
-  const ticketTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  }, [billCharges, clientOperationId, customer, items, loyaltyEnabled, notes, phase]);
+  const ticketTotal =
+    items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) +
+    billCharges.reduce((sum, charge) => sum + charge.amount, 0);
   return {
     ...catalog,
     catalogError: catalog.error,
     items,
     notes,
     customer,
+    billCharges,
+    setBillCharges: updateBillCharges,
     setNotes: updateNotes,
     setCustomer: updateCustomer,
     ticketTotal,
@@ -184,7 +162,7 @@ export function useServerTakeaway() {
     tapPendingId,
     tapProduct,
     confirmCustomization,
-    closeCustomization: () => setSelectedProduct(null),
+    closeCustomization,
     ...ticketLines,
     review,
     discardDraft,

@@ -1550,8 +1550,6 @@
   "selected_tables_not_available": "La(s) mesa(s) seleccionada(s) {{tables}} ya no están disponibles para este horario. Por favor, seleccione otras mesas u otro horario.",
   "select_notification_sound": "Seleccionar sonido de notificación",
   "repeat_until_mouse_moves": "Repetir hasta que el ratón se mueva",
-  "repeat_sound_desc": "Sigue sonando hasta que regreses al escritorio",
-  "click_to_select_or_test": "Haz clic en un sonido para seleccionar, o pruébalo antes de elegir",
   "sound": "Sonido",
   "diagnostics": "Diagnósticos",
   "environment": "Entorno",
@@ -3532,12 +3530,8 @@
     "review_confirmation": "He revisado todos los artículos y las instrucciones de alergias y preparación.",
     "review_description": "Confirma después de revisar los detalles del pedido y antes de enviar tu decisión.",
     "kitchen_title": "Pedidos de Uber Eats aceptados",
-    "kitchen_description": "Aquí solo aparecen los pedidos que Uber Eats ha aceptado y liberado a cocina.",
-    "refresh": "Actualizar",
-    "kitchen_filter": "Filtrar los pedidos aceptados por estado de preparación",
     "kitchen_stale": "La lista de pedidos de cocina puede estar desactualizada.",
     "retry": "Reintentar",
-    "kitchen_empty": "No hay pedidos de marketplace aceptados pendientes de preparación.",
     "kitchen_filter_empty": "No hay pedidos con este estado de preparación.",
     "kitchen_error": "No se pudieron cargar los pedidos de marketplace.",
     "status": {
@@ -4010,8 +4004,6 @@
   "points_transaction_clawback": "Puntos ganados revertidos",
   "points_transaction_restored": "Puntos canjeados restaurados",
   "points_transaction_unknown": "Ajuste de puntos",
-  "nativeKitchenBoard.title": "Trabajo de cocina",
-  "nativeKitchenBoard.description": "Prepara pedidos y confirma el trabajo de cocina cuando haya terminado.",
   "nativeKitchenBoard.workspace": "Espacios de cocina",
   "nativeKitchenBoard.nativeTab": "Trabajo de cocina",
   "nativeKitchenBoard.marketplaceTab": "Pedidos de plataformas",
@@ -4189,5 +4181,47 @@
   "staff_cancel_reason": "Motivo (opcional)",
   "staff_cancel_reason_too_long": "El motivo debe tener como máximo {{max}} caracteres.",
   "staff_table_search": "Buscar mesas",
-  "staff_order_updated": "Actualizado"
+  "staff_order_updated": "Actualizado",
+  "staffSound": {
+    "chime": "Campanilla",
+    "bell": "Campana",
+    "ping": "Bip",
+    "alert": "Alerta",
+    "melody": "Melodía",
+    "test": "Probar",
+    "testNamed": "Probar {{sound}}",
+    "repeatHint": "Se repite hasta que toques la pantalla, pulses una tecla o muevas el ratón."
+  },
+  "kitchenView": {
+    "active": "Activos",
+    "completed": "Completados",
+    "work": "Trabajo de cocina",
+    "enableAudio": "Activar sonidos de notificación"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Un pago de esta mesa sigue esperando un resultado confirmado. Abre la cuenta y comprueba el pago pendiente. No vuelvas a cobrarlo. Las modificaciones estarán disponibles cuando se confirme el resultado.",
+    "correctionPending": "Una corrección anterior requiere comprobar un pago o reembolso. Abre el historial de modificaciones y termina esa corrección antes de iniciar otra.",
+    "refundReview": "Un responsable debe cotejar los reembolsos con el pago o el recibo del terminal. Las modificaciones siguen bloqueadas hasta que coincidan los datos."
+  },
+  "billCharges": {
+    "title": "Cargos de la cuenta",
+    "description": "Activa solo los cargos que usa el restaurante. El personal decide si los añade; solo los importes positivos aparecen en la cuenta. Los cargos existentes conservan su nombre e importe.",
+    "enabled": "Habilitado",
+    "key": "Clave del campo",
+    "label": "Nombre en la cuenta",
+    "defaultAmount": "Importe fijo o sugerido",
+    "allowCustom": "El personal puede introducir un importe personalizado",
+    "staff": "Disponible para el personal",
+    "serviceFee": "Cargo de servicio",
+    "deliveryFee": "Cargo de entrega",
+    "custom": "Cargo personalizado",
+    "addField": "Añadir campo",
+    "saved": "Configuración de cargos guardada.",
+    "add": "Añadir a la cuenta",
+    "checkSave": "Comprobar y guardar los mismos cargos",
+    "order": "Añadir cargo al pedido",
+    "loadFailed": "No se pudo cargar la configuración. Actualiza e inténtalo de nuevo.",
+    "saveFailed": "No se pudieron confirmar los cargos. Actualiza la cuenta y comprueba los cargos existentes y los pagos pendientes antes de reintentar.",
+    "unavailable": "Este cargo seleccionado ya no está disponible. Quítalo antes de enviar el pedido."
+  }
 }

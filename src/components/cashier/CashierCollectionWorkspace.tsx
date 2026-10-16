@@ -7,6 +7,7 @@ import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
+import OrderBillChargeAction from '@/components/bill-charges/OrderBillChargeAction';
 import CashierCollectionPanel from './CashierCollectionPanel';
 import CashierSessionCollectionRoute from './CashierSessionCollectionRoute';
 import { useCashierCollection } from '@/hooks/cashier/useCashierCollection';
@@ -34,6 +35,7 @@ function collectionQueueState(isLoading: boolean, hasOrder: boolean, hasSelected
 export default function CashierCollectionWorkspace() {
   const { t } = useTranslation();
   const route = useCashierOrderRoute();
+  const [chargeBusy, setChargeBusy] = useState(false);
   const [sessionPaymentLocked, setSessionPaymentLocked] = useState(false);
   const collection = useCashierCollection(route.selectedSessionId ? null : route.selectedOrderId);
   const linkedSessionId = route.selectedSessionId || collection.order?.serviceSessionId || null;
@@ -42,7 +44,7 @@ export default function CashierCollectionWorkspace() {
     (pendingStatus !== undefined && pendingStatus !== 'Refused') || collection.recoveryError !== null;
   const paymentBusy = collection.isMutating || collection.isCheckingPayment;
   const isPending = paymentBusy || collection.recoveryError !== null;
-  const navigationDisabled = isPending || pendingBlocksNavigation || sessionPaymentLocked;
+  const navigationDisabled = chargeBusy || isPending || pendingBlocksNavigation || sessionPaymentLocked;
   const queueState = collectionQueueState(
     collection.isLoading && !route.selectedSessionId,
     Boolean(collection.order || route.selectedSessionId),
@@ -103,6 +105,15 @@ export default function CashierCollectionWorkspace() {
           onNavigationLockChange={setSessionPaymentLocked}
         />
       )}
+      {!linkedSessionId && collection.order && (
+        <OrderBillChargeAction
+          key={collection.order.id}
+          order={collection.order}
+          disabled={navigationDisabled}
+          onBusyChange={setChargeBusy}
+          onUpdated={collection.refresh}
+        />
+      )}
       {!linkedSessionId &&
         !collection.isLoading &&
         collection.order &&
@@ -146,7 +157,7 @@ export default function CashierCollectionWorkspace() {
       {!linkedSessionId && canShowCollection && collection.order && (
         <CashierCollectionPanel
           order={collection.order}
-          isPending={isPending}
+          isPending={isPending || chargeBusy}
           isBusy={paymentBusy}
           isCheckingPayment={collection.isCheckingPayment}
           pendingPayment={collection.pendingPayment}

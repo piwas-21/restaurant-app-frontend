@@ -1,5 +1,8 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { useKitchenBoardView } from '@/hooks/kitchenBoard/useKitchenBoardView';
+import KitchenBoardTools from './KitchenBoardTools';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useKitchenBoardWork } from '@/hooks/kitchenBoard/useKitchenBoardWork';
@@ -7,24 +10,15 @@ import KitchenBoardCorrectionCard from './KitchenBoardCorrectionCard';
 import KitchenBoardOrderCard from './KitchenBoardOrderCard';
 import styles from './KitchenBoardNative.module.css';
 
-export default function KitchenBoardNative() {
+export default function KitchenBoardNative({ navigation }: Readonly<{ navigation?: ReactNode }>) {
   const { t } = useTranslation();
   const { state, refresh, setOrderStatus, completeInitialOrder, completeCorrection } = useKitchenBoardWork(true);
+  const view = useKitchenBoardView(state.orders, state.corrections, state.loaded);
   const actionsDisabled = state.isLoading || state.loadFailed || state.isStale || state.busyActionKey !== null;
 
   return (
-    <section className={styles.board} aria-labelledby="native-kitchen-title" aria-busy={state.isLoading}>
-      <header className={styles.header}>
-        <div>
-          <h1 id="native-kitchen-title" className={styles.title}>
-            {t('nativeKitchenBoard.title')}
-          </h1>
-          <p className={styles.description}>{t('nativeKitchenBoard.description')}</p>
-        </div>
-        <StaffButton disabled={state.isLoading} onClick={() => void refresh()}>
-          {t('nativeKitchenBoard.refresh')}
-        </StaffButton>
-      </header>
+    <section className={styles.board} aria-label={t('nativeKitchenBoard.workspace')} aria-busy={state.isLoading}>
+      <KitchenBoardTools view={view} navigation={navigation} loading={state.isLoading} refresh={() => void refresh()} />
 
       {state.isStale && (
         <div className={styles.notice} role="alert">
@@ -51,17 +45,17 @@ export default function KitchenBoardNative() {
 
       {state.loaded && (
         <>
-          {state.orders.length === 0 && state.corrections.length === 0 ? (
+          {view.visibleOrders.length === 0 && view.visibleCorrections.length === 0 ? (
             <p className={styles.empty}>{t('nativeKitchenBoard.empty')}</p>
           ) : (
             <div className={styles.lists}>
-              {state.orders.length > 0 && (
+              {view.visibleOrders.length > 0 && (
                 <section className={styles.group} aria-labelledby="native-kitchen-orders">
                   <h2 id="native-kitchen-orders" className={styles.groupTitle}>
                     {t('nativeKitchenBoard.orders')}
                   </h2>
                   <div className={styles.cards}>
-                    {state.orders.map((order) => (
+                    {view.visibleOrders.map((order) => (
                       <KitchenBoardOrderCard
                         key={order.orderId}
                         order={order}
@@ -74,13 +68,13 @@ export default function KitchenBoardNative() {
                   </div>
                 </section>
               )}
-              {state.corrections.length > 0 && (
+              {view.visibleCorrections.length > 0 && (
                 <section className={styles.group} aria-labelledby="native-kitchen-corrections">
                   <h2 id="native-kitchen-corrections" className={styles.groupTitle}>
                     {t('nativeKitchenBoard.corrections')}
                   </h2>
                   <div className={styles.cards}>
-                    {state.corrections.map((correction) => (
+                    {view.visibleCorrections.map((correction) => (
                       <KitchenBoardCorrectionCard
                         key={correction.workItemId}
                         correction={correction}

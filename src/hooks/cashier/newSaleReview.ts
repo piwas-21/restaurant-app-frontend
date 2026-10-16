@@ -34,6 +34,7 @@ export async function reviewCounterSale(input: {
   channel: OrderType;
   lines: readonly CashierNewSaleDraftLine[];
   notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   tableNumber: string;
   tableId?: string;
   serviceSessionId?: string;
@@ -73,6 +74,7 @@ export async function reviewCounterSale(input: {
     channel: input.channel,
     lines: input.lines,
     notes: input.notes,
+    billCharges: input.billCharges,
     tableNumber: target?.tableNumber,
     tableId: target?.tableId,
     serviceSessionId: target?.serviceSessionId,

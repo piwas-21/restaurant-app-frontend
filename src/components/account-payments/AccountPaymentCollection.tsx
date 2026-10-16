@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import TableBillChargeAction from '@/components/bill-charges/TableBillChargeAction';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useAccountPaymentAccount } from '@/hooks/useAccountPaymentAccount';
 import { useAccountPaymentOperation } from '@/hooks/useAccountPaymentOperation';
@@ -33,6 +34,7 @@ export default function AccountPaymentCollection({
   onUpdated,
   onNavigationLockChange,
 }: Props) {
+  const [chargeBusy, setChargeBusy] = useState(false);
   const { t, i18n } = useTranslation();
   const reader = useAccountPaymentAccount(session.serviceSessionId, enabled);
   const refreshAccount = reader.refresh;
@@ -54,11 +56,12 @@ export default function AccountPaymentCollection({
   );
   const checkPayment = payment.check;
   useEffect(() => {
-    onNavigationLockChange?.(payment.busy || payment.pending !== null);
+    onNavigationLockChange?.(chargeBusy || payment.busy || payment.pending !== null);
     return () => onNavigationLockChange?.(false);
-  }, [onNavigationLockChange, payment.busy, payment.pending]);
+  }, [chargeBusy, onNavigationLockChange, payment.busy, payment.pending]);
   const writesLocked =
     disabled ||
+    chargeBusy ||
     reader.stale ||
     reader.loading ||
     payment.busy ||
@@ -93,6 +96,12 @@ export default function AccountPaymentCollection({
   return (
     <section className={styles.collection} aria-label={t('accountPayments.contribution')}>
       <h3>{t('accountPayments.contribution')}</h3>
+      <TableBillChargeAction
+        orders={session.bill.orders}
+        disabled={writesLocked || payment.pending !== null}
+        onUpdated={refresh}
+        onBusyChange={setChargeBusy}
+      />
       {!enabled && <p className={styles.warning}>{t('accountPayments.disabled_recovery')}</p>}
       {reader.loading && <output aria-live="polite">{t('accountPayments.loading')}</output>}
       {reader.error && (

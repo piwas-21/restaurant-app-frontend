@@ -119,7 +119,7 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
       <div className={styles.footer}>
         <div className={styles.total}>
           <span className={styles.totalLabel}>{t('server.total', 'Total')}</span>
-          <span className={styles.totalAmount}>{formatOrderCurrency(order.total, order)}</span>
+          <span className={styles.totalAmount}>{formatOrderCurrency(order.payableTotal ?? order.total, order)}</span>
         </div>
 
         {nextStatus && nextAction && (

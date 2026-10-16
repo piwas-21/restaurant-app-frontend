@@ -10,6 +10,7 @@ export interface ScopedDraftState {
   readonly storageBlocked: boolean;
   readonly items: OrderItem[];
   readonly notes: string;
+  readonly billCharges?: import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly operationId?: string;
   readonly quote: OrderDto | null;

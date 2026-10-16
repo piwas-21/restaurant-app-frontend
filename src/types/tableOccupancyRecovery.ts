@@ -9,6 +9,7 @@ export interface TableOccupancyRecoveryOrder {
   readonly originalStatus: string;
   readonly originalPaymentStatus: string;
   readonly originalTotal: number;
+  readonly originalBillChargeAmount?: number;
   readonly originalBillingCreditAmount: number;
   readonly originalTotalPaid: number;
   readonly originalRemainingAmount: number;

@@ -3,6 +3,7 @@
  * Extracted from types/order.ts (Sprint 4/6 type-file split by domain).
  */
 
+import type { OrderBillingFields } from '@/types/billCharge';
 import type { ExternalOrderDto } from './externalOrder';
 import { OrderType } from './enums';
 import { ApiResponse, PagedResult } from './common';
@@ -72,7 +73,7 @@ export type CreateOrderFromBasketCommand = Omit<
 >;
 
 /** Complete order data response. */
-export interface OrderDto extends OrderOperationalFields {
+export interface OrderDto extends OrderOperationalFields, OrderBillingFields {
   id: string;
   orderNumber: string;
   userId?: string;

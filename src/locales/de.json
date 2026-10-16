@@ -1546,8 +1546,6 @@
   "selected_tables_not_available": "Die ausgewählten Tische {{tables}} sind für dieses Zeitfenster nicht mehr verfügbar. Bitte wählen Sie andere Tische oder eine andere Uhrzeit.",
   "select_notification_sound": "Benachrichtigungston auswählen",
   "repeat_until_mouse_moves": "Wiederholen, bis die Maus bewegt wird",
-  "repeat_sound_desc": "Spielt so lange ab, bis Sie zum Platz zurückkehren",
-  "click_to_select_or_test": "Klicken Sie auf einen Ton zum Auswählen oder Testen",
   "sound": "Ton",
   "diagnostics": "Diagnose",
   "environment": "Umgebung",
@@ -3523,12 +3521,8 @@
     "review_confirmation": "Ich habe alle Artikel sowie sämtliche Allergie- und Zubereitungshinweise geprüft.",
     "review_description": "Bestätigen Sie dies, nachdem Sie die Bestelldetails vor Ihrer Entscheidung geprüft haben.",
     "kitchen_title": "Angenommene Uber-Eats-Bestellungen",
-    "kitchen_description": "Hier erscheinen nur Bestellungen, die Uber Eats angenommen und an die Küche freigegeben hat.",
-    "refresh": "Aktualisieren",
-    "kitchen_filter": "Angenommene Bestellungen nach Zubereitungsstatus filtern",
     "kitchen_stale": "Die Küchenbestellliste ist möglicherweise nicht aktuell.",
     "retry": "Erneut versuchen",
-    "kitchen_empty": "Keine angenommenen Marktplatzbestellungen für die Küche vorhanden.",
     "kitchen_filter_empty": "Keine Bestellungen mit diesem Zubereitungsstatus.",
     "kitchen_error": "Marktplatzbestellungen konnten nicht geladen werden.",
     "status": {
@@ -3997,8 +3991,6 @@
   "points_transaction_clawback": "Gesammelte Punkte zurückgebucht",
   "points_transaction_restored": "Eingelöste Punkte wiederhergestellt",
   "points_transaction_unknown": "Punktekorrektur",
-  "nativeKitchenBoard.title": "Küchenaufgaben",
-  "nativeKitchenBoard.description": "Bereiten Sie Bestellungen zu und bestätigen Sie Küchenarbeiten nach Abschluss.",
   "nativeKitchenBoard.workspace": "Küchenbereiche",
   "nativeKitchenBoard.nativeTab": "Küchenaufgaben",
   "nativeKitchenBoard.marketplaceTab": "Marktplatzbestellungen",
@@ -4176,5 +4168,47 @@
   "staff_cancel_reason": "Grund (optional)",
   "staff_cancel_reason_too_long": "Der Grund darf höchstens {{max}} Zeichen enthalten.",
   "staff_table_search": "Tische suchen",
-  "staff_order_updated": "Aktualisiert"
+  "staff_order_updated": "Aktualisiert",
+  "staffSound": {
+    "chime": "Klang",
+    "bell": "Glocke",
+    "ping": "Signalton",
+    "alert": "Alarm",
+    "melody": "Melodie",
+    "test": "Testen",
+    "testNamed": "{{sound}} testen",
+    "repeatHint": "Wiederholt sich, bis Sie den Bildschirm berühren, eine Taste drücken oder die Maus bewegen."
+  },
+  "kitchenView": {
+    "active": "Aktiv",
+    "completed": "Abgeschlossen",
+    "work": "Küchenaufgaben",
+    "enableAudio": "Benachrichtigungstöne aktivieren"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Für diesen Tisch wartet eine Zahlung noch auf ein bestätigtes Ergebnis. Öffnen Sie die Tischrechnung und prüfen Sie die ausstehende Zahlung. Kassieren Sie nicht erneut. Änderungen werden nach der Bestätigung freigegeben.",
+    "correctionPending": "Eine frühere Bestellkorrektur erfordert noch eine Zahlungs- oder Erstattungsprüfung. Öffnen Sie den Änderungsverlauf und schließen Sie diese Korrektur zuerst ab.",
+    "refundReview": "Eine verantwortliche Person muss die Erstattungen mit der Zahlung oder dem Terminalbeleg abgleichen. Änderungen bleiben gesperrt, bis die Daten übereinstimmen."
+  },
+  "billCharges": {
+    "title": "Rechnungsgebühren",
+    "description": "Aktivieren Sie nur benötigte Gebühren. Das Personal wählt sie bei Bedarf aus. Nur positive Beträge erscheinen auf der Rechnung. Bestehende Gebühren behalten Bezeichnung und Betrag.",
+    "enabled": "Aktiviert",
+    "key": "Feldschlüssel",
+    "label": "Bezeichnung auf der Rechnung",
+    "defaultAmount": "Fester oder vorgeschlagener Betrag",
+    "allowCustom": "Personal darf einen eigenen Betrag eingeben",
+    "staff": "Verfügbar für Mitarbeitende",
+    "serviceFee": "Servicegebühr",
+    "deliveryFee": "Liefergebühr",
+    "custom": "Eigene Gebühr",
+    "addField": "Feld hinzufügen",
+    "saved": "Gebühreneinstellungen gespeichert.",
+    "add": "Zur Rechnung hinzufügen",
+    "checkSave": "Dieselben Gebühren prüfen und speichern",
+    "order": "Gebühr zu Bestellung hinzufügen",
+    "loadFailed": "Gebühreneinstellungen konnten nicht geladen werden. Aktualisieren Sie die Ansicht.",
+    "saveFailed": "Die Gebühren konnten nicht bestätigt werden. Aktualisieren Sie die Rechnung und prüfen Sie bestehende Gebühren und ausstehende Zahlungen vor einem erneuten Versuch.",
+    "unavailable": "Diese ausgewählte Gebühr ist nicht mehr verfügbar. Entfernen Sie sie vor der Bestellung."
+  }
 }

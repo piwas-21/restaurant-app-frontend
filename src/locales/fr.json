@@ -1550,8 +1550,6 @@
   "selected_tables_not_available": "La ou les tables sélectionnées {{tables}} ne sont plus disponibles pour ce créneau horaire. Veuillez choisir d’autres tables ou un autre horaire.",
   "select_notification_sound": "Sélectionner le son de notification",
   "repeat_until_mouse_moves": "Répéter jusqu'au mouvement de la souris",
-  "repeat_sound_desc": "Continue de jouer jusqu'à votre retour au bureau",
-  "click_to_select_or_test": "Cliquez sur un son pour le sélectionner, ou testez avant de choisir",
   "sound": "Son",
   "diagnostics": "Diagnostics",
   "environment": "Environnement",
@@ -3532,12 +3530,8 @@
     "review_confirmation": "J’ai vérifié chaque article ainsi que toutes les consignes d’allergie et de préparation.",
     "review_description": "Confirmez après avoir vérifié les détails avant d’envoyer votre décision.",
     "kitchen_title": "Commandes Uber Eats acceptées",
-    "kitchen_description": "Seules les commandes acceptées par Uber Eats et transmises à la cuisine apparaissent ici.",
-    "refresh": "Actualiser",
-    "kitchen_filter": "Filtrer les commandes acceptées par état de préparation",
     "kitchen_stale": "La liste des commandes de cuisine peut être obsolète.",
     "retry": "Réessayer",
-    "kitchen_empty": "Aucune commande marketplace acceptée n’attend la cuisine.",
     "kitchen_filter_empty": "Aucune commande ne correspond à cet état de préparation.",
     "kitchen_error": "Impossible de charger les commandes marketplace.",
     "status": {
@@ -4010,8 +4004,6 @@
   "points_transaction_clawback": "Points gagnés retirés",
   "points_transaction_restored": "Points utilisés rétablis",
   "points_transaction_unknown": "Ajustement de points",
-  "nativeKitchenBoard.title": "Travail en cuisine",
-  "nativeKitchenBoard.description": "Préparez les commandes et confirmez le travail en cuisine une fois terminé.",
   "nativeKitchenBoard.workspace": "Espaces de cuisine",
   "nativeKitchenBoard.nativeTab": "Travail en cuisine",
   "nativeKitchenBoard.marketplaceTab": "Commandes des plateformes",
@@ -4189,5 +4181,47 @@
   "staff_cancel_reason": "Motif (facultatif)",
   "staff_cancel_reason_too_long": "Limitez le motif à {{max}} caractères.",
   "staff_table_search": "Rechercher une table",
-  "staff_order_updated": "Modifiée"
+  "staff_order_updated": "Modifiée",
+  "staffSound": {
+    "chime": "Carillon",
+    "bell": "Cloche",
+    "ping": "Bip",
+    "alert": "Alerte",
+    "melody": "Mélodie",
+    "test": "Tester",
+    "testNamed": "Tester {{sound}}",
+    "repeatHint": "Répète jusqu’à un toucher de l’écran, une touche ou un mouvement de souris."
+  },
+  "kitchenView": {
+    "active": "En cours",
+    "completed": "Terminées",
+    "work": "Travail en cuisine",
+    "enableAudio": "Activer les sons de notification"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Un paiement de cette table attend encore un résultat confirmé. Ouvrez l’addition et vérifiez le paiement en attente. Ne l’encaissez pas une seconde fois. Les modifications seront disponibles après confirmation.",
+    "correctionPending": "Une correction précédente nécessite encore une vérification du paiement ou du remboursement. Ouvrez l’historique des modifications et terminez cette correction avant d’en commencer une autre.",
+    "refundReview": "Un responsable doit comparer les remboursements avec le paiement ou le reçu du terminal. Les modifications restent indisponibles tant que les enregistrements ne concordent pas."
+  },
+  "billCharges": {
+    "title": "Frais sur l’addition",
+    "description": "Activez uniquement les frais utilisés par votre restaurant. Le personnel choisit de les ajouter ; seuls les montants positifs figurent sur l’addition. Les frais existants conservent leur libellé et leur montant.",
+    "enabled": "Activé",
+    "key": "Clé du champ",
+    "label": "Libellé sur l’addition",
+    "defaultAmount": "Montant fixe ou suggéré",
+    "allowCustom": "Le personnel peut saisir un montant personnalisé",
+    "staff": "Disponible pour le personnel",
+    "serviceFee": "Frais de service",
+    "deliveryFee": "Frais de livraison",
+    "custom": "Frais personnalisés",
+    "addField": "Ajouter un champ",
+    "saved": "Paramètres des frais enregistrés.",
+    "add": "Ajouter à l’addition",
+    "checkSave": "Vérifier et enregistrer les mêmes frais",
+    "order": "Ajouter les frais à la commande",
+    "loadFailed": "Impossible de charger les paramètres des frais. Actualisez puis réessayez.",
+    "saveFailed": "Les frais n’ont pas pu être confirmés. Actualisez l’addition et vérifiez les frais existants et les paiements en attente avant de réessayer.",
+    "unavailable": "Ces frais sélectionnés ne sont plus disponibles. Retirez-les avant de valider la commande."
+  }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import BillChargeFields from '@/components/bill-charges/BillChargeFields';
 import { useTranslation } from 'react-i18next';
 import ProductCustomization from '@/components/catalog/ProductCustomization';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
@@ -95,6 +96,14 @@ export default function CashierNewSaleWorkspace() {
             customer={customerSelectionFromContact(sale.contact)}
             phase={sale.phase}
             notes={sale.notes}
+            chargeFields={
+              <BillChargeFields
+                orderType={sale.channel ?? 'Takeaway'}
+                values={sale.billCharges ?? []}
+                disabled={sale.phase !== 'idle'}
+                onChange={sale.setBillCharges}
+              />
+            }
             onNotesChange={sale.setNotes}
             onSetQuantity={sale.setLineQuantity}
             onRemove={sale.removeLine}

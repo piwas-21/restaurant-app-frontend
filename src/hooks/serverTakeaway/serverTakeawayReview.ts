@@ -16,6 +16,7 @@ export interface ServerTakeawayReviewOutcome {
 export async function reviewServerTakeaway(input: {
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly loyaltyEnabled?: boolean;
   readonly storedOperationId?: string;

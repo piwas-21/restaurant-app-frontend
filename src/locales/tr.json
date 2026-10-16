@@ -1548,8 +1548,6 @@
   "selected_tables_not_available": "Seçilen masa(s) {{tables}} bu zaman diliminde artık mevcut değil. Lütfen farklı masa veya zaman seçin.",
   "select_notification_sound": "Bildirim Sesini Seç",
   "repeat_until_mouse_moves": "Fare hareket edene kadar tekrarla",
-  "repeat_sound_desc": "Masaya dönene kadar çalmaya devam eder",
-  "click_to_select_or_test": "Seçmek için bir sese tıklayın veya seçmeden önce test edin",
   "sound": "Ses",
   "diagnostics": "Tanılama",
   "environment": "Ortam",
@@ -3523,12 +3521,8 @@
     "review_confirmation": "Tüm ürünleri ve alerji ile hazırlama talimatlarını kontrol ettim.",
     "review_description": "Kararınızı göndermeden önce sipariş ayrıntılarını kontrol ettiğinizi onaylayın.",
     "kitchen_title": "Kabul edilen Uber Eats siparişleri",
-    "kitchen_description": "Burada yalnızca Uber Eats tarafından kabul edilip mutfağa iletilen siparişler görünür.",
-    "refresh": "Yenile",
-    "kitchen_filter": "Kabul edilen siparişleri hazırlık durumuna göre filtrele",
     "kitchen_stale": "Mutfak sipariş listesi güncel olmayabilir.",
     "retry": "Tekrar dene",
-    "kitchen_empty": "Mutfak işlemi bekleyen kabul edilmiş pazaryeri siparişi yok.",
     "kitchen_filter_empty": "Bu hazırlık durumunda sipariş yok.",
     "kitchen_error": "Pazaryeri siparişleri yüklenemedi.",
     "status": {
@@ -3997,8 +3991,6 @@
   "points_transaction_clawback": "Kazanılan puanlar geri alındı",
   "points_transaction_restored": "Kullanılan puanlar geri yüklendi",
   "points_transaction_unknown": "Puan düzeltmesi",
-  "nativeKitchenBoard.title": "Mutfak işleri",
-  "nativeKitchenBoard.description": "Siparişleri hazırlayın ve tamamlanan mutfak işlerini onaylayın.",
   "nativeKitchenBoard.workspace": "Mutfak çalışma alanları",
   "nativeKitchenBoard.nativeTab": "Mutfak işleri",
   "nativeKitchenBoard.marketplaceTab": "Pazaryeri siparişleri",
@@ -4176,5 +4168,47 @@
   "staff_cancel_reason": "Neden (isteğe bağlı)",
   "staff_cancel_reason_too_long": "Neden en fazla {{max}} karakter olmalıdır.",
   "staff_table_search": "Masa ara",
-  "staff_order_updated": "Güncellendi"
+  "staff_order_updated": "Güncellendi",
+  "staffSound": {
+    "chime": "Çan sesi",
+    "bell": "Zil",
+    "ping": "Bip",
+    "alert": "Uyarı",
+    "melody": "Melodi",
+    "test": "Dene",
+    "testNamed": "{{sound}} sesini dene",
+    "repeatHint": "Ekrana dokunana, bir tuşa basana veya fareyi hareket ettirene kadar tekrarlar."
+  },
+  "kitchenView": {
+    "active": "Aktif",
+    "completed": "Tamamlanan",
+    "work": "Mutfak işleri",
+    "enableAudio": "Bildirim seslerini etkinleştir"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Bu masanın bir ödemesi hâlâ onaylanmış sonuç bekliyor. Masa hesabını açıp bekleyen ödemeyi kontrol edin. Ödemeyi tekrar almayın. Sonuç onaylanınca sipariş değişiklikleri açılır.",
+    "correctionPending": "Önceki bir sipariş düzeltmesi için ödeme veya iade kontrolü gerekiyor. Değişiklik geçmişini açıp yeni bir değişiklikten önce bu düzeltmeyi tamamlayın.",
+    "refundReview": "Bir yetkilinin iade kayıtlarını ödeme veya terminal fişiyle karşılaştırması gerekiyor. Kayıtlar uyuşana kadar sipariş değiştirilemez."
+  },
+  "billCharges": {
+    "title": "Hesap ek ücretleri",
+    "description": "Yalnızca restoranınızın kullandığı ücretleri etkinleştirin. Personel gerektiğinde ekler; yalnızca sıfırdan büyük tutarlar hesapta görünür. Mevcut ücretlerin kayıtlı adı ve tutarı korunur.",
+    "enabled": "Etkin",
+    "key": "Alan anahtarı",
+    "label": "Hesapta görünen ad",
+    "defaultAmount": "Sabit veya önerilen tutar",
+    "allowCustom": "Personel özel tutar girebilir",
+    "staff": "Kullanabilecek personel",
+    "serviceFee": "Servis ücreti",
+    "deliveryFee": "Teslimat ücreti",
+    "custom": "Özel ücret",
+    "addField": "Alan ekle",
+    "saved": "Ek ücret ayarları kaydedildi.",
+    "add": "Hesaba ekle",
+    "checkSave": "Aynı ücretleri kontrol et ve kaydet",
+    "order": "Ücret eklenecek sipariş",
+    "loadFailed": "Ücret ayarları yüklenemedi. Yenileyip tekrar deneyin.",
+    "saveFailed": "Ücretler doğrulanamadı. Tekrar denemeden önce hesabı yenileyip mevcut ücretleri ve bekleyen ödemeleri kontrol edin.",
+    "unavailable": "Seçili ücret artık kullanılamıyor. Siparişi göndermeden önce kaldırın."
+  }
 }

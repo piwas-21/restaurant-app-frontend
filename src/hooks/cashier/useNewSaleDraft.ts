@@ -21,18 +21,8 @@ import { useNewSaleEntry } from './useNewSaleEntry';
  * stored create operation key and the quoted price — the next review quotes the new ticket
  * and creates it under a fresh key, never replaying a changed payload under an old one.
  */
-export interface NewSaleDraftState {
-  channel: OrderType | null;
-  lines: CashierNewSaleDraftLine[];
-  notes: string;
-  tableNumber: string;
-  tableId?: string;
-  serviceSessionId?: string;
-  contact?: CashierNewSaleContact;
-  clientOperationId?: string;
-}
-
-export const EMPTY_NEW_SALE_STATE: NewSaleDraftState = { channel: null, lines: [], notes: '', tableNumber: '' };
+import { EMPTY_NEW_SALE_STATE, type NewSaleDraftState } from './newSaleDraftState';
+export type { NewSaleDraftState } from './newSaleDraftState';
 
 export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: boolean) {
   const [state, setState] = useState<NewSaleDraftState>(EMPTY_NEW_SALE_STATE);
@@ -48,6 +38,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
         channel: stored.channel,
         lines: stored.lines,
         notes: stored.notes ?? '',
+        billCharges: stored.billCharges,
         tableNumber: stored.tableLabel ?? (stored.tableNumber ? String(stored.tableNumber) : ''),
         tableId: stored.tableId,
         serviceSessionId: stored.serviceSessionId,
@@ -83,6 +74,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
       channel,
       lines: state.lines,
       notes: state.notes,
+      billCharges: state.billCharges,
       tableNumber: state.channel === OrderType.DineIn ? (tableNumber ?? undefined) : undefined,
       tableLabel: state.channel === OrderType.DineIn ? state.tableNumber.trim() || undefined : undefined,
       tableId: state.channel === OrderType.DineIn ? state.tableId : undefined,
@@ -118,6 +110,7 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
       mutate((current) => ({
         ...current,
         channel,
+        billCharges: [],
         ...(channel === OrderType.DineIn ? {} : { tableId: undefined, serviceSessionId: undefined }),
       }));
     },
@@ -185,6 +178,8 @@ export function useNewSaleDraft(enabled: readonly OrderType[], channelsLoading: 
     hydrated,
     lastRemoved,
     setChannel,
+    setBillCharges: (billCharges: import('@/types/billCharge').BillChargeInput[]) =>
+      mutate((current) => ({ ...current, billCharges })),
     setNotes,
     setTableNumber,
     setContact,

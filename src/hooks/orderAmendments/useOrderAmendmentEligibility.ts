@@ -18,7 +18,7 @@ const blockers: Record<NonNullable<OrderAmendmentEligibility['reasonCode']>, str
   financialResolutionPending: 'orderAmendments.resolution_pending',
   paymentScopeHeld: 'orderAmendments.resolution_payment_held',
   refundReconciliationRequired: 'orderAmendments.order_refund_activity',
-  financialReconciliationRequired: 'orderAmendments.resolution_context_failed',
+  financialReconciliationRequired: 'amendmentHelp.refundReview',
 };
 
 export function useOrderAmendmentEligibility(order: OrderDto, actorId: string | undefined, enabled: boolean) {

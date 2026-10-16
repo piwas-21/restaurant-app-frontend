@@ -12,6 +12,7 @@ import { readPendingAmendmentCommit, type PendingAmendmentRead } from '@/hooks/o
 import { useOrderAmendmentTranslations } from '@/hooks/orderAmendments/useOrderAmendmentTranslations';
 import type { OrderDto } from '@/types/order';
 import styles from './OrderAmendmentEntryButton.module.css';
+import AmendmentUnavailableButton from './AmendmentUnavailableButton';
 
 const OrderAmendmentModal = dynamic(() => import('./OrderAmendmentModal'));
 
@@ -61,7 +62,12 @@ function canRetryAmendmentEligibility(
   actor: AccountPaymentActor,
   reason: string | null,
 ): boolean {
-  return enabled && !localReason && actor.status !== 'checking' && reason !== 'orderAmendments.resolution_checking';
+  return (
+    enabled &&
+    !localReason &&
+    actor.status !== 'checking' &&
+    (reason === 'orderAmendments.resolution_context_failed' || reason === 'orderAmendments.order_changed_refresh')
+  );
 }
 
 function RecoveryActorState({ actor }: Readonly<{ actor: AccountPaymentActor }>) {
@@ -128,7 +134,12 @@ function entryButtonContent(props: Readonly<EntryButtonContentProps>): ReactNode
   if (!props.canRecover && !unavailableKey) return null;
   return (
     <>
-      {unavailableKey && <p className={styles.unavailable}>{props.t(unavailableKey)}</p>}
+      {unavailableKey &&
+        (props.enabled && !props.canRecover ? (
+          <AmendmentUnavailableButton reason={unavailableKey} />
+        ) : (
+          <p className={styles.unavailable}>{props.t(unavailableKey)}</p>
+        ))}
       {canRetryEligibility && !props.canRecover && (
         <button type="button" className={styles.action} onClick={props.onRetry}>
           {props.t('retry')}

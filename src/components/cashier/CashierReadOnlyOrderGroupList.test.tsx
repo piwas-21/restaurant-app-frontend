@@ -154,3 +154,33 @@ it('marks an update without new items while preserving the first order row', () 
   expect(screen.getByText('FIRST')).toBeInTheDocument();
   expect(screen.getAllByRole('button')).toHaveLength(1);
 });
+
+it.each(['OutForDelivery', 'Delivered'])(
+  'shows a later delivery round as %s after the original completes',
+  (status) => {
+    render(
+      <CashierReadOnlyOrderGroupList
+        groups={[
+          {
+            groupKey: 'order:original',
+            serviceSessionId: null,
+            tableNumber: null,
+            releasedAt: null,
+            isArchivedFromTable: false,
+            orders: [
+              { ...order('original', 'FIRST'), type: 'Delivery', status: 'Completed' },
+              { ...order('later', 'LATER'), type: 'Delivery', status },
+            ],
+          },
+        ]}
+        selectedOrderId={null}
+        onSelectOrder={jest.fn()}
+      />,
+    );
+    expect(
+      screen.getByText(status === 'OutForDelivery' ? 'order_status_in_transit' : 'order_status_delivered'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('order_status_completed')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  },
+);

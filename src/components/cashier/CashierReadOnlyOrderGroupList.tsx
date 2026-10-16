@@ -5,6 +5,16 @@ import type { CashierOrderGroupDto } from '@/types/cashier';
 import CashierReadOnlyOrderList from './CashierReadOnlyOrderList';
 import styles from './CashierWorkspaceList.module.css';
 
+const activeStatusPriority = [
+  'PendingApproval',
+  'Pending',
+  'Confirmed',
+  'Preparing',
+  'Ready',
+  'OutForDelivery',
+  'Delivered',
+];
+
 interface CashierReadOnlyOrderGroupListProps {
   readonly groups: readonly CashierOrderGroupDto[];
   readonly selectedOrderId: string | null;
@@ -47,9 +57,7 @@ export default function CashierReadOnlyOrderGroupList({
         const summary = {
           ...first,
           status:
-            group.orders.find((order) => ['Pending', 'PendingApproval'].includes(order.status))?.status ??
-            liveOrders.find((order) => ['Preparing', 'Confirmed', 'Ready'].includes(order.status))?.status ??
-            first.status,
+            activeStatusPriority.find((status) => liveOrders.some((order) => order.status === status)) ?? first.status,
           remainingAmount: due,
           paymentStatus: group.orders.length > 1 ? paymentStatus : first.paymentStatus,
         };

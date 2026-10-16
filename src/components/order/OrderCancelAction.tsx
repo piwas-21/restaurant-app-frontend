@@ -43,8 +43,8 @@ export default function OrderCancelAction({ order, disabled = false, onChanged }
       setOpen(false);
       setReason('');
       onChanged();
-    } catch (failure: unknown) {
-      setError(getErrorMessage(failure) ?? t('error_unexpected'));
+    } catch (error_: unknown) {
+      setError(getErrorMessage(error_) ?? t('error_unexpected'));
     } finally {
       inFlight.current = false;
       setBusy(false);

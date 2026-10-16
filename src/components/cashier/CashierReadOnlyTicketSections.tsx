@@ -171,8 +171,9 @@ export function TicketMoneySummary({
   readonly due: number;
   readonly t: TFunction;
 }) {
-  const label =
-    due > 0 ? 'cashier.workspace.amount_due' : due < 0 ? 'cashier.workspace.credit' : 'cashier.workspace.settled';
+  let label = 'cashier.workspace.settled';
+  if (due > 0) label = 'cashier.workspace.amount_due';
+  else if (due < 0) label = 'cashier.workspace.credit';
   return (
     <div className={styles.moneyRows}>
       <div>

@@ -15,6 +15,14 @@ const activeStatusPriority = [
   'Delivered',
 ];
 
+function groupPaymentStatus(originalStatus: string, liveOrderCount: number, due: number, paid: number): string {
+  if (liveOrderCount === 0) return originalStatus;
+  if (due < 0) return 'Overpaid';
+  if (due === 0) return 'Completed';
+  if (paid > 0) return 'PartiallyPaid';
+  return 'Pending';
+}
+
 interface CashierReadOnlyOrderGroupListProps {
   readonly groups: readonly CashierOrderGroupDto[];
   readonly selectedOrderId: string | null;
@@ -44,16 +52,7 @@ export default function CashierReadOnlyOrderGroupList({
           0,
         );
         const paid = liveOrders.reduce((sum, order) => sum + order.totalPaid, 0);
-        const paymentStatus =
-          liveOrders.length === 0
-            ? first.paymentStatus
-            : due < 0
-              ? 'Overpaid'
-              : due === 0
-                ? 'Completed'
-                : paid > 0
-                  ? 'PartiallyPaid'
-                  : 'Pending';
+        const paymentStatus = groupPaymentStatus(first.paymentStatus, liveOrders.length, due, paid);
         const summary = {
           ...first,
           status:

@@ -4,7 +4,7 @@
 > are **one renderer**. This is the map of that code: what lives where, the rules
 > that are load-bearing, and the traps that have already cost time.
 >
-> The *why* — evidence, owner decisions, the design in full — was the workspace
+> The _why_ — evidence, owner decisions, the design in full — was the workspace
 > FLOOR-PLAN-REVAMP plan, complete and deleted; it lives in git history, and the
 > `FLOOR-PLAN-REVAMP §x` tags throughout the code point into it.
 > This file is for someone about to change the code.
@@ -38,11 +38,11 @@ geometry (`transform` / `d` / `x` / `y`) is identical. Interactivity adds
 
 ## 2. Units — the one thing to get right
 
-| Layer | Unit | Why |
-|---|---|---|
-| Storage / DTOs | **metres**, `decimal(6,2)` | Real-world dimensions; a 1.2 m table is a 1.2 m table |
-| SVG user space | **centimetres** | A 12 × 8 m room is `viewBox="0 0 1200 800"` — integers everywhere, natural stroke widths, no sub-unit rounding fuzz |
-| Screen | `width:100%` + `preserveAspectRatio="xMidYMid meet"` | The plan can never be squashed, cropped or letterboxed by a breakpoint |
+| Layer          | Unit                                                 | Why                                                                                                                 |
+| -------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Storage / DTOs | **metres**, `decimal(6,2)`                           | Real-world dimensions; a 1.2 m table is a 1.2 m table                                                               |
+| SVG user space | **centimetres**                                      | A 12 × 8 m room is `viewBox="0 0 1200 800"` — integers everywhere, natural stroke widths, no sub-unit rounding fuzz |
+| Screen         | `width:100%` + `preserveAspectRatio="xMidYMid meet"` | The plan can never be squashed, cropped or letterboxed by a breakpoint                                              |
 
 Every conversion goes through `lib/floorPlan/geometry.ts` (`metresToCm`,
 `screenToPlanMetres`, `computeViewBox`, `pointInRect`, `obbOverlap`). A table's
@@ -52,19 +52,19 @@ Every conversion goes through `lib/floorPlan/geometry.ts` (`metresToCm`,
 
 ### `src/lib/floorPlan/` — pure, unit-tested, no React
 
-| Module | Owns |
-|---|---|
-| `geometry` | Units, viewBox, screen↔plan projection, oriented-box hit test + overlap |
-| `movable` | **One geometry vocabulary** for tables *and* items — the reason a drag, a nudge, a grip and the inspector are each written once |
-| `document` | Immutable document ops (every one returns a NEW document, sharing untouched arrays) |
-| `history` | Generic undo/redo stack |
-| `snapping` · `align` · `handles` · `editorGestures` | Grid + alignment snap, align/distribute, grip anchors, gesture resolution |
-| `selection` · `editorGeometry` | Marquee maths, overlap detection, plan clamping |
-| `symbols` + `symbolPrims` / `symbolsStructure` / `symbolsDecor` | The drawn-symbol registry, as data |
-| `palette` | What the rail offers and at what size — **derived** from the symbol boxes |
-| `itemPlacement` · `localIds` | How a placed object is born; client-minted ids |
-| `walls` · `wallDrafting` · `wallEditing` · `wallOpenings` · `wallHitTest` | Segments, drawing a chain, reshaping it, doors/windows, picking one |
-| `wayfinding` · `floorStyles` · `zones` · `editorTools` · `editorKeyActions` | Zone/label/entrance vocabulary, floor finishes, zone resolution, tool modes, what each key does |
+| Module                                                                      | Owns                                                                                                                            |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `geometry`                                                                  | Units, viewBox, screen↔plan projection, oriented-box hit test + overlap                                                         |
+| `movable`                                                                   | **One geometry vocabulary** for tables _and_ items — the reason a drag, a nudge, a grip and the inspector are each written once |
+| `document`                                                                  | Immutable document ops (every one returns a NEW document, sharing untouched arrays)                                             |
+| `history`                                                                   | Generic undo/redo stack                                                                                                         |
+| `snapping` · `align` · `handles` · `editorGestures`                         | Grid + alignment snap, align/distribute, grip anchors, gesture resolution                                                       |
+| `selection` · `editorGeometry`                                              | Marquee maths, overlap detection, plan clamping                                                                                 |
+| `symbols` + `symbolPrims` / `symbolsStructure` / `symbolsDecor`             | The drawn-symbol registry, as data                                                                                              |
+| `palette`                                                                   | What the rail offers and at what size — **derived** from the symbol boxes                                                       |
+| `itemPlacement` · `localIds`                                                | How a placed object is born; client-minted ids                                                                                  |
+| `walls` · `wallDrafting` · `wallEditing` · `wallOpenings` · `wallHitTest`   | Segments, drawing a chain, reshaping it, doors/windows, picking one                                                             |
+| `wayfinding` · `floorStyles` · `zones` · `editorTools` · `editorKeyActions` | Zone/label/entrance vocabulary, floor finishes, zone resolution, tool modes, what each key does                                 |
 
 ### `src/hooks/floorPlan/` — event layers only
 
@@ -74,7 +74,7 @@ pointer chain (see §4). Everything else is one concern per hook.
 ### `src/components/floor-plan/` — the renderer
 
 `FloorPlanScene` + one file per layer, `WayfindingShapes` (shared by two layers
-*and* the palette preview), `guest/`, `editor/`.
+_and_ the palette preview), `guest/`, `editor/`.
 
 ## 4. The pointer chain — read most-specific first
 
@@ -84,10 +84,10 @@ it to the next:
 1. **wall draft** — while the Wall tool is active, every press places a vertex
 2. **palette placement** — while a palette entry is armed, a press places it
 3. **wall vertices** — a corner or midpoint grip on the selected wall reshapes it
-   *(above the objects, because the grips are drawn on top of them)*
+   _(above the objects, because the grips are drawn on top of them)_
 4. **object gestures** — move / rotate / resize a table or item
 5. **wall pick** — a press on bare wall selects it
-   *(below the objects, so a table against a wall still wins its own press)*
+   _(below the objects, so a table against a wall still wins its own press)_
 6. **marquee** — a sweep across bare plan rubber-bands a selection
 7. **viewport** — anything left over pans, pinches or zooms
 
@@ -101,11 +101,12 @@ the bug the Wall tool's `panning` ref exists to prevent.
 History entry is pushed on pointer-up. An undo therefore reverses the whole
 drag, not its last frame. A gesture that ends where it started pushes nothing.
 
-**Two selections, kept apart.** `selectedIds` is the *movable* selection (tables
-+ items, which share one geometry vocabulary and can be multi-selected);
-`selectedWallId` is a single wall, a polyline with a different panel and no
-footprint. Picking either clears the other — the inspector is never ambiguous
-about what an edit acts on.
+**Two selections, kept apart.** `selectedIds` is the _movable_ selection (tables
+
+- items, which share one geometry vocabulary and can be multi-selected);
+  `selectedWallId` is a single wall, a polyline with a different panel and no
+  footprint. Picking either clears the other — the inspector is never ambiguous
+  about what an edit acts on.
 
 **Openings are pinned to a wall segment by index**, and every reshape renumbers
 the segments under them. Getting this wrong throws nothing — it silently slides
@@ -119,7 +120,7 @@ module held highest in the coverage gate:
 
 **Every pointer gesture has a no-drag equivalent** (SC 2.5.7). Placement is
 click-then-click; rotation and size are inspector fields; corners are picked and
-typed; the palette places immediately for a pointer-*less* activation, because a
+typed; the palette places immediately for a pointer-_less_ activation, because a
 keyboard user has no way to click the canvas afterwards.
 
 **Client-minted ids are stripped on save.** Every `Id` on the document DTOs is a
@@ -129,7 +130,7 @@ object**. `floorPlanService.toWirePayload` strips them through the single
 level so a new local-id collection cannot be forgotten.
 
 **A footprint is never written twice.** Each symbol is authored in its own
-centimetre box, and the palette's default size is *derived* from it. The
+centimetre box, and the palette's default size is _derived_ from it. The
 wayfinding kinds are the one exception, and only because they have no authored
 box at all.
 
@@ -161,14 +162,26 @@ document PUT only touches geometry. Those ops end in a reload, so each one
 
 ## 8. Tests
 
-| Kind | Where | Pins |
-|---|---|---|
-| Unit | `lib/floorPlan/*.test.ts` | All the maths — snapping, gestures, wall reshaping, zones |
-| Component | `components/floor-plan/**/*.test.tsx` | Rendered geometry, roles, accessible names |
-| **Mirroring** | `FloorPlanScene.mirroring.test.tsx` | Guest and admin emit identical geometry |
-| Visual | `e2e/screenshots/` | Per-template full-page baselines (linux-only) |
-| E2E | `e2e/tests/public/reservations-floor-plan.e2e.ts` | Booking through the map, the List alternative, keyboard operation, axe |
+| Kind          | Where                                             | Pins                                                                   |
+| ------------- | ------------------------------------------------- | ---------------------------------------------------------------------- |
+| Unit          | `lib/floorPlan/*.test.ts`                         | All the maths — snapping, gestures, wall reshaping, zones              |
+| Component     | `components/floor-plan/**/*.test.tsx`             | Rendered geometry, roles, accessible names                             |
+| **Mirroring** | `FloorPlanScene.mirroring.test.tsx`               | Guest and admin emit identical geometry                                |
+| Visual        | `e2e/screenshots/`                                | Per-template full-page baselines (linux-only)                          |
+| E2E           | `e2e/tests/public/reservations-floor-plan.e2e.ts` | Booking through the map, the List alternative, keyboard operation, axe |
 
 `FloorPlanGuestMap.test.tsx` also pins **the accessible names the e2e queries
 by**, so a rename fails fast in jest instead of timing out in Playwright twenty
 minutes later.
+
+## Staff table workspaces
+
+Cashier and Server share `components/table-service/StaffTableTools.tsx`: a collapsed tools
+control at the start edge of the map/list, with view, search and refresh controls. Server
+also supplies its authoritative zones. The workspace has no separate table title or toolbar.
+Controls lock during table mutations, and Escape closes the flyout and returns focus.
+
+Cashier map search keeps the complete authoritative entry set for state and balance, then
+filters the displayed geometry. Missing search matches must never render occupied tables
+as available. The list filters the same labels. Visit identity and the original table label
+remain unchanged by search or view selection.

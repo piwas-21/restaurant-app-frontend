@@ -1,3 +1,7 @@
+import { expectVisitCloseBlocked } from '../helpers/expectVisitCloseBlocked';
+import { readNativeKitchenSnapshot, resolveUnpaidAmendmentCredit } from '../helpers/nativeKitchenAcceptance';
+import { openStaffVisit } from '../helpers/openStaffVisit';
+import { joinGuestByQr, expectOldGuestDenied } from '../helpers/guestQrJoin';
 import {
   expect,
   request,
@@ -124,14 +128,6 @@ async function expectChfAmount(scope: Locator, label: string, amount: string): P
   expect(rendered).toMatch(chfAmountPattern(amount));
 }
 
-async function admissionCode(page: Page): Promise<string> {
-  const panel = page.getByRole('region', { name: 'Guest visit code' });
-  await panel.getByRole('button', { name: 'Generate new visit code', exact: true }).click();
-  const code = await panel.locator('code').innerText();
-  if (!/^[A-Z0-9]{10}$/.test(code)) throw new Error('P11 received an invalid guest admission-code shape.');
-  return code;
-}
-
 async function markTableReady(page: Page, tableId: string): Promise<void> {
   const readinessResponse = page.waitForResponse(
     (response) =>
@@ -149,6 +145,7 @@ async function resolveServiceSessionOrders(
   tableNumber: string,
   serviceSessionId: string,
   expectedOrderCount: number,
+  amendment: CommittedAmendment,
 ): Promise<void> {
   const api: APIRequestContext = await request.newContext({
     baseURL: apiOrigin,
@@ -156,6 +153,33 @@ async function resolveServiceSessionOrders(
   });
 
   try {
+    await resolveUnpaidAmendmentCredit(api, amendment.sourceOrderId, amendment.amendmentId, 1_500);
+    const work = await readNativeKitchenSnapshot(api);
+    const corrections = work.corrections.filter(
+      (item) =>
+        item.orderId.toLowerCase() === amendment.sourceOrderId.toLowerCase() &&
+        item.amendmentId?.toLowerCase() === amendment.amendmentId.toLowerCase(),
+    );
+    expect(corrections).toHaveLength(1);
+    const correction = corrections[0];
+    expect(correction).toMatchObject({ canComplete: true, isCompleted: false, withdrawn: false });
+    expect(correction.orderVersion).toBeGreaterThan(0);
+    expect(correction.accountRevision).toBeGreaterThan(0);
+    const acknowledgement = await api.post(
+      `/api/staff/kitchen-board/orders/${correction.orderId}/work-items/${correction.workItemId}/complete`,
+      {
+        data: {
+          kind: 'AmendmentCorrection',
+          expectedOrderVersion: correction.orderVersion,
+          expectedAccountRevision: correction.accountRevision,
+        },
+      },
+    );
+    expect(acknowledgement.status()).toBe(200);
+    expect(await acknowledgement.json()).toMatchObject({
+      success: true,
+      data: { workItemId: correction.workItemId, kind: 'AmendmentCorrection', isCompleted: true },
+    });
     const response = await api.get('/api/orders', {
       params: { tableNumber, page: 1, pageSize: 100 },
     });
@@ -179,6 +203,26 @@ async function resolveServiceSessionOrders(
       const remainingStatuses = statusesToComplete(order.status);
       let currentVersion = order.version;
       for (const newStatus of remainingStatuses) {
+        if (newStatus === 'Completed') {
+          const snapshot = await readNativeKitchenSnapshot(api);
+          const initial = snapshot.orders.find((item) => item.orderId.toLowerCase() === order.id.toLowerCase());
+          expect(initial).toMatchObject({ status: 'Ready', canComplete: true, isCompleted: false });
+          expect(initial?.version).toBe(currentVersion);
+          const acknowledgement = await api.post(
+            `/api/staff/kitchen-board/orders/${order.id}/work-items/${order.id}/complete`,
+            { data: { kind: 'InitialOrder', expectedOrderVersion: currentVersion, expectedAccountRevision: null } },
+          );
+          expect(acknowledgement.status()).toBe(200);
+          expect(await acknowledgement.json()).toMatchObject({
+            success: true,
+            data: {
+              workItemId: order.id,
+              kind: 'InitialOrder',
+              acknowledgedOrderVersion: currentVersion,
+              isCompleted: true,
+            },
+          });
+        }
         const update = await api.put(`/api/orders/${encodeURIComponent(order.id)}/status`, {
           data: { newStatus, expectedVersion: currentVersion },
         });
@@ -255,16 +299,9 @@ p11Test(
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
       await markTableReady(server.page, table.tableId);
-      const firstSession = await requirePostData<OpenSession>(server.page, /^\/api\/table-service-sessions$/, () =>
-        server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
-      );
+      const firstSession = await openStaffVisit(server.page, table.tableId);
       expect(firstSession.status).toBe('Open');
-      const oldVisitCode = await admissionCode(server.page);
-      await firstGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(firstGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await firstGuest.page.getByLabel('Table visit code').fill(oldVisitCode);
-      await firstGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(firstGuest.page).toHaveURL(/\/en\/menu$/);
+      const firstParticipantToken = await joinGuestByQr(firstGuest.page, table, firstSession.serviceSessionId);
 
       await firstGuest.page.goto('/en/table-account');
       await expect(firstGuest.page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();
@@ -278,33 +315,20 @@ p11Test(
       expect(closedSession.status).toBe('Closed');
       await firstGuest.page.getByRole('button', { name: 'Refresh account', exact: true }).click();
       // Closed-account reads use the public non-enumerating unavailable response (404).
-      // The new visit's admission-code check below separately proves the old code is rejected.
+      // The next visit also refuses this old participant credential against its live account endpoint.
       await expect(firstGuest.page.getByRole('heading', { name: 'Table account unavailable' })).toBeVisible();
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
       await markTableReady(server.page, table.tableId);
 
-      const secondSession = await requirePostData<OpenSession>(server.page, /^\/api\/table-service-sessions$/, () =>
-        server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
-      );
+      const secondSession = await openStaffVisit(server.page, table.tableId);
       expect(secondSession.status).toBe('Open');
       expect(secondSession.serviceSessionId).not.toBe(firstSession.serviceSessionId);
-      const currentVisitCode = await admissionCode(server.page);
 
       const currentGuest = await openGuestContext(browser, baseURL);
       contexts.push(currentGuest.context);
-      await currentGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(currentGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await currentGuest.page.getByLabel('Table visit code').fill(oldVisitCode);
-      await currentGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      const firstStaleVisitError = currentGuest.page
-        .getByRole('alert')
-        .filter({ hasText: 'We could not join this visit' });
-      await expect(firstStaleVisitError).toHaveCount(1);
-      await expect(firstStaleVisitError).toContainText('We could not join this visit');
-      await currentGuest.page.getByLabel('Table visit code').fill(currentVisitCode);
-      await currentGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(currentGuest.page).toHaveURL(/\/en\/menu$/);
+      const currentParticipantToken = await joinGuestByQr(currentGuest.page, table, secondSession.serviceSessionId);
+      await expectOldGuestDenied(currentGuest.page, secondSession.serviceSessionId, firstParticipantToken);
 
       const basketResponse = currentGuest.page.waitForResponse(
         (response) =>
@@ -406,6 +430,7 @@ p11Test(
       const cashier = await openStaffContext(browser, baseURL, p11Cashier);
       contexts.push(cashier.context);
       await cashier.page.goto(`/en/cashier/tables?session=${encodeURIComponent(secondSession.serviceSessionId)}`);
+      await cashier.page.getByRole('link', { name: 'Collect payment', exact: true }).click();
       const collection = cashier.page.getByRole('region', { name: 'Collect a contribution' });
       await expect(collection).toBeVisible();
       const reserveResponsePromise = cashier.page.waitForResponse(
@@ -447,25 +472,21 @@ p11Test(
       await expectChfAmount(receipt, 'Change', '0.00');
 
       await cashier.page.reload();
+      await cashier.page.getByRole('link', { name: 'Back to tables', exact: true }).click();
       const accountBalance = cashier.page.locator('dl[aria-label="Account balance"]');
       await expectChfAmount(accountBalance, 'Bill total', '60.00');
       await expectChfAmount(accountBalance, 'Captured', '60.00');
       await expectChfAmount(accountBalance, 'Outstanding', '0.00');
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
-      const closeVisit = server.page.getByRole('button', { name: 'Close visit', exact: true });
-      await expect(closeVisit).toBeDisabled();
-      await expect(
-        server.page.getByText('Every round must be completed or cancelled before closing.', {
-          exact: true,
-        }),
-      ).toBeVisible();
+      await expectVisitCloseBlocked(server.page, apiOrigin, p11Server.accessToken, secondSession.serviceSessionId);
       await resolveServiceSessionOrders(
         apiOrigin,
         p11Admin.accessToken,
         table.tableNumber,
         secondSession.serviceSessionId,
         EXPECTED_SERVER_ROUNDS + 1,
+        committed,
       );
       await server.page.reload();
       await expect(server.page.getByRole('button', { name: 'Close visit', exact: true })).toBeEnabled();
@@ -482,28 +503,15 @@ p11Test(
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
       await markTableReady(server.page, table.tableId);
-      const thirdSession = await requirePostData<OpenSession>(server.page, /^\/api\/table-service-sessions$/, () =>
-        server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
-      );
+      const thirdSession = await openStaffVisit(server.page, table.tableId);
       expect(thirdSession.status).toBe('Open');
       expect(thirdSession.serviceSessionId.toLowerCase()).not.toBe(secondSession.serviceSessionId.toLowerCase());
       expect(thirdSession.serviceSessionId.toLowerCase()).not.toBe(firstSession.serviceSessionId.toLowerCase());
-      const thirdVisitCode = await admissionCode(server.page);
 
       const thirdGuest = await openGuestContext(browser, baseURL);
       contexts.push(thirdGuest.context);
-      await thirdGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-      await expect(thirdGuest.page.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-      await thirdGuest.page.getByLabel('Table visit code').fill(currentVisitCode);
-      await thirdGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      const secondStaleVisitError = thirdGuest.page
-        .getByRole('alert')
-        .filter({ hasText: 'We could not join this visit' });
-      await expect(secondStaleVisitError).toHaveCount(1);
-      await expect(secondStaleVisitError).toContainText('We could not join this visit');
-      await thirdGuest.page.getByLabel('Table visit code').fill(thirdVisitCode);
-      await thirdGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-      await expect(thirdGuest.page).toHaveURL(/\/en\/menu$/);
+      await joinGuestByQr(thirdGuest.page, table, thirdSession.serviceSessionId);
+      await expectOldGuestDenied(thirdGuest.page, thirdSession.serviceSessionId, currentParticipantToken);
 
       await thirdGuest.page.goto('/en/table-account');
       await expect(thirdGuest.page.getByRole('heading', { name: 'Table account', exact: true })).toBeVisible();

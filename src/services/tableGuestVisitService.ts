@@ -10,10 +10,9 @@ interface ApiResponse<T> {
   readonly errorCode?: string;
 }
 
-export async function joinTableGuestVisit(qrCodeData: string, admissionCode: string): Promise<TableGuestVisitIdentity> {
+export async function joinTableGuestVisit(qrCodeData: string): Promise<TableGuestVisitIdentity> {
   const response = await apiClient.post<ApiResponse<TableGuestVisitIdentity>>('/api/table-guest-visits/join', {
     qrCodeData,
-    admissionCode,
   });
   if (!response.success || !response.data) throwServerRefusal(response);
   return response.data;

@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import TableServiceSessionBill from './TableServiceSessionBill';
+import { makeOrder, makeOrderItem } from '@/utils/__fixtures__/bundleOrderFixture';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -50,6 +51,33 @@ it('prints split flow, guest allocations, and gratuity as separate bill details'
   expect(tipLabel).toBeInTheDocument();
   expect(tipLabel.nextElementSibling?.textContent).toMatch(/EUR\s3\.50/);
   expect(screen.getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
+});
+
+it('omits instructions at every depth from the combined bill while retaining items and charges', () => {
+  const order = makeOrder([
+    makeOrderItem({
+      id: 'meal',
+      productName: 'Meal',
+      itemTotal: 20,
+      specialInstructions: 'Root instruction',
+      sideItems: [
+        makeOrderItem({
+          id: 'side',
+          productName: 'Side',
+          specialInstructions: 'Child instruction',
+          sideItems: [makeOrderItem({ id: 'sauce', productName: 'Sauce', specialInstructions: 'Nested instruction' })],
+        }),
+      ],
+    }),
+  ]);
+  render(<TableServiceSessionBill session={{ ...session, bill: { ...session.bill, orders: [order] } }} />);
+  expect(screen.getByText('Meal')).toBeInTheDocument();
+  expect(screen.getByText('Side')).toBeInTheDocument();
+  expect(screen.getByText('Sauce')).toBeInTheDocument();
+  expect(screen.queryByText('Root instruction')).not.toBeInTheDocument();
+  expect(screen.queryByText('Child instruction')).not.toBeInTheDocument();
+  expect(screen.queryByText('Nested instruction')).not.toBeInTheDocument();
+  expect(screen.getAllByText(/EUR\s20\.00/)).toHaveLength(2);
 });
 
 it('disambiguates repeated daily order numbers by business date and uses the tenant timezone', () => {

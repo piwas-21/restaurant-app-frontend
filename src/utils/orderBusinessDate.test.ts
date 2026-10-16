@@ -11,7 +11,7 @@ function order(id: string, date: string, businessDate?: string): OrderDto {
   } as OrderDto;
 }
 
-it('keeps only the active business-day round in visible groups without mutating canonical group data', () => {
+it('keeps the complete visit when any round matches the business day without mutating canonical group data', () => {
   const group: CashierOrderGroupDto = {
     groupKey: 'visit:session-1',
     serviceSessionId: 'session-1',
@@ -26,7 +26,7 @@ it('keeps only the active business-day round in visible groups without mutating 
 
   const visible = filterCashierGroupsToBusinessDate([group], '2026-10-15', 'Europe/Amsterdam');
 
-  expect(visible[0].orders.map(({ id }) => id)).toEqual(['today']);
+  expect(visible[0].orders.map(({ id }) => id)).toEqual(['previous', 'today']);
   expect(group.orders).toHaveLength(2);
   expect(filterOrdersToBusinessDate(group.orders, '2026-10-15', 'Europe/Amsterdam')).toEqual([group.orders[1]]);
 });

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useTableContext } from '@/contexts/TableContext';
 import { useTableGuestFeature } from '@/contexts/TableGuestFeatureContext';
 import { useTableGuestVisit } from '@/contexts/TableGuestVisitContext';
-import TableGuestAdmissionForm from '@/components/table-service/TableGuestAdmissionForm';
+import TableGuestQrJoin from '@/components/table-service/TableGuestQrJoin';
 import ScanFeatureUnavailable from './ScanFeatureUnavailable';
 import styles from './ScanPage.module.css';
 
@@ -25,7 +25,7 @@ export default function ScanGuestVisitExperience({ qr }: Readonly<{ qr: ScanGues
   const { tableGuestVisitsV1, tableGuestFeatureStatus, retryTableGuestFeature } = useTableGuestFeature();
   const { phase, visit, pendingRound, pendingRoundStatus, getAccount } = useTableGuestVisit();
   const { tableContext, setTableContext } = useTableContext();
-  const requiresAdmission = tableGuestVisitsV1 && tableGuestFeatureStatus === 'ready' && phase === 'notJoined';
+  const requiresJoin = tableGuestVisitsV1 && tableGuestFeatureStatus === 'ready' && phase === 'notJoined';
   const canResumeCandidate =
     tableGuestVisitsV1 &&
     tableGuestFeatureStatus === 'ready' &&
@@ -38,14 +38,14 @@ export default function ScanGuestVisitExperience({ qr }: Readonly<{ qr: ScanGues
   const [verifiedResumeKey, setVerifiedResumeKey] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!requiresAdmission) return;
+    if (!requiresJoin) return;
     setTableContext({
       tableId: qr.table.tableId,
       tableNumber: qr.table.tableNumber,
       qrScanned: true,
       isOutdoor: qr.table.isOutdoor,
     });
-  }, [qr, requiresAdmission, setTableContext]);
+  }, [qr, requiresJoin, setTableContext]);
 
   useEffect(() => {
     if (!resumeKey || !visit) return;
@@ -101,11 +101,11 @@ export default function ScanGuestVisitExperience({ qr }: Readonly<{ qr: ScanGues
     );
   }
 
-  if (!requiresAdmission) return <ScanFeatureUnavailable onRetry={retryTableGuestFeature} />;
+  if (!requiresJoin) return <ScanFeatureUnavailable onRetry={retryTableGuestFeature} />;
 
   return (
     <main className={styles.page}>
-      <TableGuestAdmissionForm qrCodeData={qr.code} tableId={qr.table.tableId} tableLabel={qr.table.tableNumber} />
+      <TableGuestQrJoin qrCodeData={qr.code} tableId={qr.table.tableId} tableLabel={qr.table.tableNumber} />
     </main>
   );
 }

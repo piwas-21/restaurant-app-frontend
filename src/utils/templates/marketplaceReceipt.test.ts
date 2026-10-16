@@ -15,8 +15,13 @@ it.each(['simple', 'all'])(
     expect(html).not.toContain('CHF');
     expect(html).toContain('5.00');
     expect(html).not.toContain('11.47');
-    expect(html).toContain('ALLERGY: no peanuts &lt;script&gt;unsafe()&lt;/script&gt;');
-    expect(html).toContain('no food, no courier &amp; keep instructions');
+    if (kind === 'simple') {
+      expect(html).not.toContain('ALLERGY: no peanuts');
+      expect(html).not.toContain('no food, no courier');
+    } else {
+      expect(html).toContain('ALLERGY: no peanuts &lt;script&gt;unsafe()&lt;/script&gt;');
+      expect(html).toContain('no food, no courier &amp; keep instructions');
+    }
     expect(html).toContain('9116D &lt;img onerror=&quot;bad&quot;&gt;');
     expect(html).not.toContain('<script>');
     expect(html).not.toContain('<img');

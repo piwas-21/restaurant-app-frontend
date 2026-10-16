@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { joinGuestByQr, expectOldGuestDenied } from '../../p11/helpers/guestQrJoin';
 import { expect, request, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
 import { apiBaseUrl } from '../../helpers/config';
@@ -124,7 +125,7 @@ test('mixed tender refunds resolve the kitchen correction before closing and res
 
     const guest = await openVisitContext(browser, baseURL);
     contexts.push(guest.context);
-    await joinVisit(guest.page, table, visit.code);
+    const priorParticipantToken = await joinVisit(guest.page, table, visit.sessionId);
     await expectNoA11yViolations(guest.page);
     let onlineAllocations: readonly AccountPaymentAllocation[] = [];
     const online = await completeContribution(guest.page, 'Amount', 501, {
@@ -340,18 +341,10 @@ test('mixed tender refunds resolve the kitchen correction before closing and res
 
     const nextVisit = await openTableVisit(server.page, table);
     expect(nextVisit.sessionId.toLowerCase()).not.toBe(visit.sessionId.toLowerCase());
-    expect(nextVisit.code).not.toBe(visit.code);
     const nextGuest = await openVisitContext(browser, baseURL);
     contexts.push(nextGuest.context);
-    await nextGuest.page.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-    await expect(nextGuest.page.getByRole('heading', { name: 'Join this table visit', exact: true })).toBeVisible();
-    const codeInput = nextGuest.page.getByLabel('Table visit code', { exact: true });
-    await codeInput.fill(visit.code);
-    await nextGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-    await expect(nextGuest.page.getByRole('alert').filter({ hasText: 'We could not join this visit' })).toBeVisible();
-    await codeInput.fill(nextVisit.code);
-    await nextGuest.page.getByRole('button', { name: 'Join table', exact: true }).click();
-    await expect(nextGuest.page).toHaveURL(/\/en\/menu$/);
+    await joinGuestByQr(nextGuest.page, table, nextVisit.sessionId);
+    await expectOldGuestDenied(nextGuest.page, nextVisit.sessionId, priorParticipantToken);
 
     const guestAccountPath = `/api/table-guest-visits/${encodeURIComponent(nextVisit.sessionId)}/account-payments`;
     const guestAccountResponse = nextGuest.page.waitForResponse(

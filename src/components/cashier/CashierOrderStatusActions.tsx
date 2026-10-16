@@ -25,6 +25,7 @@ export default function CashierOrderStatusActions({ order, isFresh, approvalRequ
         (action) =>
           action.allowed &&
           !action.requiresReason &&
+          action.action !== 'CancelOrder' &&
           !(approvalRequired && action.action === 'Accept') &&
           (action.targetStatus || action.action === 'MarkReady'),
       )

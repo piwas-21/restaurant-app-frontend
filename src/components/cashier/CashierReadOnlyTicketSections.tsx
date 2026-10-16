@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
-import type { OrderItemDto, OrderPaymentDto } from '@/types/order';
+import type { OrderDto, OrderItemDto, OrderPaymentDto } from '@/types/order';
 import ReceiptItemDetails from '@/components/order/ReceiptItemDetails';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import styles from './CashierWorkspaceTicket.module.css';
@@ -159,5 +159,35 @@ export function PaymentRows({
         </li>
       ))}
     </ul>
+  );
+}
+
+export function TicketMoneySummary({
+  order,
+  due,
+  t,
+}: {
+  readonly order: OrderDto;
+  readonly due: number;
+  readonly t: TFunction;
+}) {
+  let label = 'cashier.workspace.settled';
+  if (due > 0) label = 'cashier.workspace.amount_due';
+  else if (due < 0) label = 'cashier.workspace.credit';
+  return (
+    <div className={styles.moneyRows}>
+      <div>
+        <span>{t('cashier.workspace.order_total')}</span>
+        <strong>{formatOrderCurrency(order.total, order)}</strong>
+      </div>
+      <div>
+        <span>{t('cashier.workspace.total_paid')}</span>
+        <strong>{formatOrderCurrency(order.totalPaid, order)}</strong>
+      </div>
+      <div className={styles.moneyTotal}>
+        <span>{t(label)}</span>
+        <strong>{formatOrderCurrency(Math.abs(due), order)}</strong>
+      </div>
+    </div>
   );
 }

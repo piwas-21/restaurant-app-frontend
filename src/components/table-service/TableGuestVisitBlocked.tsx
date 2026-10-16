@@ -10,7 +10,7 @@ export default function TableGuestVisitBlocked({ phase }: Readonly<{ phase: Tabl
   const storageUnavailable = phase === 'storageUnavailable';
   const visitUnavailable = phase === 'unavailable';
   let titleKey = 'table_guest_ended_title';
-  let detailKey = 'table_guest_ended_detail';
+  let detailKey = 'table_guest_qr_ended_detail';
   if (storageUnavailable) {
     titleKey = 'table_guest_unavailable_title';
     detailKey = 'table_guest_storage_help';

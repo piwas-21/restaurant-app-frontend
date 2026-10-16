@@ -167,6 +167,7 @@ afterEach(() => {
 describe('ServerFloorWorkspace', () => {
   it('exposes an accessible spatial map and authoritative selected table card', () => {
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
 
     expect(screen.getByTestId('server-floor-workspace')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Main room' })).toBeInTheDocument();
@@ -176,8 +177,8 @@ describe('ServerFloorWorkspace', () => {
     expect(screen.getByRole('link', { name: /Open table details/ })).toHaveAttribute('href', '/server/tables/table-1');
     expect(screen.getByText('CHF 20.00')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Add round' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Everywhere' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('list', { name: 'Table state legend' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Floor plan' })).toHaveValue('');
+    expect(screen.queryByRole('list', { name: 'Table state legend' })).not.toBeInTheDocument();
   });
 
   it('defaults narrow screens to the accessible list and routes its table action', async () => {
@@ -192,6 +193,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'List' })).toHaveAttribute('aria-pressed', 'true'));
     expect(screen.queryByRole('region', { name: 'Main room' })).not.toBeInTheDocument();
     const tableLink = screen.getAllByRole('link', { name: /Open table details/ })[0];
@@ -203,6 +205,7 @@ describe('ServerFloorWorkspace', () => {
 
   it('switches to a complete list and filters by zone without losing route identities', () => {
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     expect(screen.queryByRole('heading', { name: 'Staff workspace' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
     expect(screen.getAllByRole('link', { name: /Open table details/ })[0]).toHaveAttribute(
@@ -211,17 +214,18 @@ describe('ServerFloorWorkspace', () => {
     );
     expect(screen.getByRole('button', { name: /Add order/ })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Terrace' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Floor plan' }), { target: { value: 'zone-2' } });
     expect(screen.queryByRole('link', { name: /Open table details/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Add order/ })).toBeEnabled();
   });
 
   it('clears a selected table when its zone is no longer visible', () => {
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
     expect(screen.getByText('CHF 20.00')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Terrace' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Floor plan' }), { target: { value: 'zone-2' } });
 
     expect(screen.queryByText('CHF 20.00')).not.toBeInTheDocument();
   });
@@ -237,6 +241,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(within(screen.getByRole('alert')).getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
@@ -256,6 +261,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     const { rerender } = render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
 
     expect(JSON.parse(window.sessionStorage.getItem(SERVER_FLOOR_VIEW_STORAGE_KEY) ?? '{}')).toMatchObject({
       zoneId: 'zone-2',
@@ -271,9 +277,7 @@ describe('ServerFloorWorkspace', () => {
     });
     rerender(<ServerFloorWorkspace />);
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Terrace' })).toHaveAttribute('aria-pressed', 'true'),
-    );
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Floor plan' })).toHaveValue('zone-2'));
   });
 
   it('keeps legacy outstanding balance visible while flagging the table for review', () => {
@@ -298,6 +302,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
 
     expect(screen.getByText('CHF 18.50')).toBeInTheDocument();
@@ -314,6 +319,7 @@ describe('ServerFloorWorkspace', () => {
       refresh: jest.fn(async () => undefined),
     });
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
     expect(screen.queryByRole('link', { name: 'Review payment' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Add order/ })).toBeDisabled();
@@ -331,7 +337,8 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
-    fireEvent.click(screen.getByRole('button', { name: 'Main room' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Floor plan' }), { target: { value: 'zone-1' } });
 
     expect(screen.getByText('No tables in this area right now.')).toBeInTheDocument();
     expect(screen.queryByLabelText('Restaurant floor plan')).not.toBeInTheDocument();
@@ -348,6 +355,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
 
     expect(screen.getByRole('region', { name: 'Main room' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Terrace' })).toBeInTheDocument();
@@ -367,6 +375,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
 
     expect(screen.getByRole('button', { name: /Table details unavailable/ })).toBeDisabled();
@@ -375,6 +384,7 @@ describe('ServerFloorWorkspace', () => {
 
   it('clears a selected table when a refresh changes its state to an unknown value', async () => {
     const { rerender } = render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: /Table 1/ }));
     expect(screen.getByText('CHF 20.00')).toBeInTheDocument();
 
@@ -409,15 +419,17 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
 
     const readyCard = screen.getAllByRole('article')[0];
     expect(within(readyCard).getByText('Ready')).toBeInTheDocument();
-    expect(screen.getByRole('list', { name: 'Table state legend' })).toHaveTextContent('Ready');
+    expect(screen.queryByRole('list', { name: 'Table state legend' })).not.toBeInTheDocument();
   });
 
   it('searches the authoritative table snapshot across zones', () => {
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search tables' }), { target: { value: '2' } });
 
@@ -427,6 +439,7 @@ describe('ServerFloorWorkspace', () => {
 
   it('announces when a map search has no matching tables', () => {
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search tables' }), { target: { value: 'missing' } });
 
     expect(screen.getByText('No tables match your search.')).toBeInTheDocument();
@@ -452,6 +465,7 @@ describe('ServerFloorWorkspace', () => {
     });
 
     render(<ServerFloorWorkspace />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table tools' }));
     fireEvent.click(screen.getByRole('button', { name: 'List' }));
 
     expect(screen.getAllByRole('article')).toHaveLength(120);

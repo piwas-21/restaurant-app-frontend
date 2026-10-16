@@ -1,4 +1,5 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { joinGuestByQr } from './guestQrJoin';
 import { openMenuBasket, proceedViaSidebarExpectingNavigation } from '../../helpers/menuBasket';
 import type { TableAccountP11Fixture } from '../../seed/tableAccountP11';
 import type {
@@ -44,6 +45,7 @@ export interface NativeKitchenSnapshot {
 export interface CreatedGuestRound {
   readonly id: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber: number;
   readonly serviceSessionId: string;
 }
 
@@ -51,6 +53,7 @@ export interface CreatedGuestRound {
 export async function cancelFullyCreditedUnpaidOrder(api: APIRequestContext, orderId: string): Promise<void> {
   const order = await responseData<{
     readonly id: string;
+    readonly dailyOrderNumber: number;
     readonly version: number;
     readonly status: string;
     readonly total: number;
@@ -155,9 +158,10 @@ export async function acknowledgeCorrectionWork(page: Page, correction: KitchenB
     throw new Error('P11 correction acknowledgement requires the exact visible work revision and order version.');
   }
 
+  expect(correction.dailyOrderNumber).toBeGreaterThan(0);
   const card = page.locator(`article[aria-labelledby="kitchen-correction-${correction.workItemId}"]`);
   await expect(
-    card.getByRole('heading', { name: `Correction for order ${correction.orderNumber}`, exact: true }),
+    card.getByRole('heading', { name: `Correction for order ${correction.dailyOrderNumber}`, exact: true }),
   ).toBeVisible();
   const button = card.getByRole('button', { name: 'Acknowledge correction', exact: true });
   await expect(button).toBeEnabled();
@@ -211,13 +215,8 @@ export async function addGuestBasketRound(
   api: APIRequestContext,
   table: TableAccountP11Fixture,
   serviceSessionId: string,
-  admissionCode: string,
 ): Promise<CreatedGuestRound> {
-  await guestPage.goto(`/en/scan?qr=${encodeURIComponent(table.qrCodeData)}`);
-  await expect(guestPage.getByRole('heading', { name: 'Join this table visit' })).toBeVisible();
-  await guestPage.getByLabel('Table visit code').fill(admissionCode);
-  await guestPage.getByRole('button', { name: 'Join table', exact: true }).click();
-  await expect(guestPage).toHaveURL(/\/en\/menu$/);
+  await joinGuestByQr(guestPage, table, serviceSessionId);
 
   const basketResponse = guestPage.waitForResponse(
     (response) =>
@@ -259,6 +258,7 @@ export async function addGuestBasketRound(
   const orderResponse = await api.get(`/api/orders/${encodeURIComponent(guestOrder.orderId)}`);
   const order = await responseData<{
     readonly id: string;
+    readonly dailyOrderNumber: number;
     readonly version: number;
     readonly status: string;
     readonly isKitchenReleased: boolean;
@@ -271,13 +271,16 @@ export async function addGuestBasketRound(
     order.serviceSessionId?.toLowerCase() !== serviceSessionId.toLowerCase() ||
     order.status !== 'Confirmed' ||
     !order.isKitchenReleased ||
-    order.version < 1
+    order.version < 1 ||
+    !Number.isInteger(order.dailyOrderNumber) ||
+    order.dailyOrderNumber <= 0
   ) {
     throw new Error('P11 guest order was not confirmed and released to the active visit kitchen.');
   }
   return {
     id: order.id,
     orderNumber: guestOrder.orderNumber,
+    dailyOrderNumber: order.dailyOrderNumber,
     serviceSessionId,
   };
 }

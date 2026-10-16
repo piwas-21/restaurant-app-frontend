@@ -5,7 +5,7 @@ import CashierWorkspaceShell from './CashierWorkspaceShell';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, options?: { count?: number }) =>
-      options?.count === undefined ? key : `${options.count} open orders`,
+      key === 'cashier.workspace.today_count' && options?.count !== undefined ? `${options.count} orders today` : key,
   }),
 }));
 jest.mock('next/navigation', () => ({
@@ -36,7 +36,7 @@ jest.mock('@/hooks/cashier/useCashierOperationalCount', () => ({
     state: 'ready',
     isLoading: false,
     error: null,
-    statusMessageKey: 'cashier.workspace.open_count_current',
+    statusMessageKey: 'cashier.workspace.today_count_current',
     refreshCount: jest.fn(),
   }),
 }));
@@ -51,7 +51,7 @@ describe('CashierWorkspaceShell', () => {
 
     expect(screen.getByRole('link', { name: /cashier\.workspace\.orders/ })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: /cashier\.workspace\.history/ })).not.toHaveAttribute('aria-current');
-    expect(screen.getByLabelText('2 open orders')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 orders today')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /cashier\.workspace\.tables/ })).not.toHaveAttribute('aria-current');
   });
 
@@ -62,7 +62,7 @@ describe('CashierWorkspaceShell', () => {
       </CashierWorkspaceShell>,
     );
 
-    expect(screen.getByLabelText('2 open orders')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 orders today')).toBeInTheDocument();
     expect(screen.getByText('cashier.workspace.health_connecting')).toBeInTheDocument();
   });
 });

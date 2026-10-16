@@ -4,6 +4,7 @@ import type { ApiResponse, OrderDto, PagedResult } from './order';
 /** One complete cashier queue group: an open table visit or one standalone order. */
 export interface CashierOrderGroupDto {
   groupKey: string;
+  hasUpdates?: boolean;
   serviceSessionId: string | null;
   tableNumber: number | null;
   releasedAt: string | null;

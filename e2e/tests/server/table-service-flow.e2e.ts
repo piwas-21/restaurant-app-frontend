@@ -240,7 +240,9 @@ for (const { name, viewport } of VIEWPORTS) {
       }));
       expect(floorViewport.scrollHeight).toBeLessThanOrEqual(floorViewport.clientHeight + 2);
       await expectNoA11yViolations(server.page);
+      await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       await server.page.getByRole('button', { name: 'List', exact: true }).click();
+      await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       const floorCard = server.page.locator('article').filter({ hasText: table.tableNumber });
       await floorCard.getByRole('link', { name: /Open Table/i }).click();
       await server.page.getByRole('heading', { level: 1, name: table.tableNumber }).waitFor();
@@ -344,7 +346,9 @@ for (const { name, viewport } of VIEWPORTS) {
       await server.page.getByText('Task updated.').waitFor();
 
       await cashier.page.goto('/en/cashier/tables');
+      await cashier.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       await cashier.page.getByRole('button', { name: 'List' }).click();
+      await cashier.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       await cashier.page.getByRole('button', { name: new RegExp(`Open table .*${table.tableNumber}`) }).click();
       await cashier.page.getByRole('heading', { level: 2, name: table.tableNumber }).waitFor();
       await expect(cashier.page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -461,7 +465,9 @@ for (const { name, viewport } of VIEWPORTS) {
       const closedTableId = table.tableId;
       const physicalTableAfterClose = floorAfterClose.tables.find((entry) => entry.tableId === closedTableId);
       expect(physicalTableAfterClose).toMatchObject({ state: 'NeedsReset', readinessState: 'NeedsReset' });
+      await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       await server.page.getByRole('button', { name: 'List', exact: true }).click();
+      await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       const nextVisitCard = server.page.locator('article').filter({ hasText: table.tableNumber });
       await nextVisitCard.getByRole('link', { name: /Open Table/i }).click();
       await server.page.getByRole('heading', { level: 1, name: table.tableNumber }).waitFor();

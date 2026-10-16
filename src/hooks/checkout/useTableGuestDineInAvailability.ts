@@ -8,7 +8,7 @@ import { useEnabledOrderTypes } from './useEnabledOrderTypes';
 
 type AvailabilityBlockerMessageKey =
   | 'table_guest_dine_in_unavailable'
-  | 'table_guest_ended_detail'
+  | 'table_guest_qr_ended_detail'
   | 'table_guest_storage_help'
   | 'table_guest_unavailable_detail'
   | 'loading';
@@ -21,7 +21,7 @@ function getBlockerMessageKey(
 ): AvailabilityBlockerMessageKey | null {
   if (!visitBound) return null;
   if (active) return dineInAvailable ? null : 'table_guest_dine_in_unavailable';
-  if (phase === 'ended') return 'table_guest_ended_detail';
+  if (phase === 'ended') return 'table_guest_qr_ended_detail';
   if (phase === 'storageUnavailable') return 'table_guest_storage_help';
   if (phase === 'unavailable') return 'table_guest_unavailable_detail';
   return 'loading';

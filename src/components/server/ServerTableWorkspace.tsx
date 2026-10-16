@@ -17,7 +17,6 @@ import ServerTasksBadge from './tasks/ServerTasksBadge';
 import ServerTableBillWorkspace from './bill/ServerTableBillWorkspace';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 import TableReadinessAction from '@/components/table-service/TableReadinessAction';
-import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 import TableOccupancyRecoveryAction from '@/components/table-service/TableOccupancyRecoveryAction';
 
 interface ServerTableWorkspaceProps {
@@ -36,7 +35,7 @@ export default function ServerTableWorkspace({
   const { t } = useTranslation();
   const addOrder = useAddServerTableOrder(tableId, state.startTable);
   const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
-  const { orderAmendmentsV1, tableGuestVisitsV1, tableVisitReadinessV1 } = useTenantFeatures();
+  const { orderAmendmentsV1, tableVisitReadinessV1 } = useTenantFeatures();
   const table = state.table;
   const session = state.session;
   const label = tableLabel(table, tableId, t);
@@ -222,12 +221,6 @@ export default function ServerTableWorkspace({
                     {t('cashier.tables.add_round')}
                   </button>
                 ))}
-              {session?.status === 'Open' && tableGuestVisitsV1 && (
-                <TableGuestAdmissionCodeSlot
-                  serviceSessionId={session.serviceSessionId}
-                  disabled={state.isStale || taskContextBlocked || recoveryOperationPending}
-                />
-              )}
             </div>
             {session && (
               <ServerTableBillWorkspace

@@ -7,6 +7,7 @@ import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
 import MarketplaceOrderQueueSource from '@/components/order/MarketplaceOrderQueueSource';
 import styles from './CashierWorkspaceList.module.css';
@@ -89,7 +90,11 @@ export default function CashierReadOnlyOrderList({
                 <span className={styles.orderNumber} dir="auto">
                   {getOrderDisplayNumber(order)}
                 </span>
-                {updated && <span className={styles.updatedBadge}>{t('staff_order_updated')}</span>}
+                {updated && (
+                  <StatusBadge tone="info" size="sm">
+                    {t('staff_order_updated')}
+                  </StatusBadge>
+                )}
                 <OrderStatusBadge status={order.status} />
               </span>
               {order.externalOrder && <MarketplaceOrderQueueSource order={order} />}

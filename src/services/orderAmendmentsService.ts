@@ -53,9 +53,12 @@ export async function commitOrderAmendment(
   return normalizeAmendmentCommit(requireData(response));
 }
 
-export async function getOrderAmendmentHistory(orderId: string): Promise<OrderAmendmentHistory[]> {
+export async function getOrderAmendmentHistory(
+  orderId: string,
+  includeGroup = false,
+): Promise<OrderAmendmentHistory[]> {
   const response = await apiClient.get<OrderAmendmentHistoryApiResponse>(
-    `${ORDER_AMENDMENTS_PATH}/${encodeURIComponent(orderId)}/amendments`,
+    `${ORDER_AMENDMENTS_PATH}/${encodeURIComponent(orderId)}/amendments${includeGroup ? '?includeGroup=true' : ''}`,
     { requireAuth: true },
   );
   return normalizeAmendmentHistory(requireData(response));

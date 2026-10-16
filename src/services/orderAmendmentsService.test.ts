@@ -224,3 +224,9 @@ describe('orderAmendmentsService', () => {
     expect(mockGet).toHaveBeenCalledWith('/api/staff/orders/order-1/amendments', { requireAuth: true });
   });
 });
+
+it('requests group history through one server-resolved aggregate endpoint', async () => {
+  mockGet.mockResolvedValue({ success: true, data: [] });
+  await expect(getOrderAmendmentHistory('order-1', true)).resolves.toEqual([]);
+  expect(mockGet).toHaveBeenCalledWith('/api/staff/orders/order-1/amendments?includeGroup=true', { requireAuth: true });
+});

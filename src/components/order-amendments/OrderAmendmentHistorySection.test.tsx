@@ -143,3 +143,18 @@ it.each([false, true])(
       );
   },
 );
+
+it('loads a complete group history with one request regardless of round count', async () => {
+  mockGetHistory.mockResolvedValue([committed]);
+  render(
+    <TenantFeaturesProvider features={{ orderAmendmentsV1: true }}>
+      <OrderAmendmentHistorySection
+        orderId="original"
+        refreshKey={1}
+        relatedOrders={Array.from({ length: 55 }, (_, index) => ({ ...supplementOrder, id: `round-${index}` }))}
+      />
+    </TenantFeaturesProvider>,
+  );
+  await waitFor(() => expect(mockGetHistory).toHaveBeenCalledWith('original', true));
+  expect(mockGetHistory).toHaveBeenCalledTimes(1);
+});

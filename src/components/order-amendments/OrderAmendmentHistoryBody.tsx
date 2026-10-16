@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
@@ -34,19 +34,16 @@ export default function OrderAmendmentHistoryBody({
   const { t, i18n } = useTranslation();
   const { orderAmendmentsV1 } = useTenantFeatures();
   const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || (relatedOrders?.length ?? 0) > 1);
-  const orderIds = useMemo(
-    () => [...new Set([orderId, ...(relatedOrders ?? []).map((order) => order.id)])],
-    [orderId, relatedOrders],
-  );
-  const requestKey = `${orderIds.join(',')}:${refreshKey}`;
+  const includeGroup = (relatedOrders?.length ?? 0) > 1;
+  const groupRevision = (relatedOrders ?? []).map((order) => `${order.id}:${order.version}`).join(',');
+  const requestKey = `${orderId}:${includeGroup}:${groupRevision}:${refreshKey}`;
   const [view, setView] = useState<HistoryView | null>(null);
 
   useEffect(() => {
     if (!orderAmendmentsV1 || !translations.ready) return;
     let active = true;
-    void Promise.all(orderIds.map((id) => getOrderAmendmentHistory(id)))
-      .then((histories) => {
-        const records = histories.flat();
+    void getOrderAmendmentHistory(orderId, includeGroup)
+      .then((records) => {
         if (active) {
           setView({
             key: requestKey,
@@ -61,7 +58,7 @@ export default function OrderAmendmentHistoryBody({
     return () => {
       active = false;
     };
-  }, [orderAmendmentsV1, orderIds, requestKey, translations.ready]);
+  }, [orderAmendmentsV1, orderId, includeGroup, requestKey, translations.ready]);
 
   if (!orderAmendmentsV1 && (relatedOrders?.length ?? 0) <= 1) return null;
   const current = view?.key === requestKey ? view : null;

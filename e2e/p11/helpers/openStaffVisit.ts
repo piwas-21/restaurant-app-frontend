@@ -14,7 +14,7 @@ export async function openStaffVisit(page: Page, tableId: string) {
   };
   expect(body.success).toBe(true);
   expect(body.data.status).toBe('Open');
-  await expect(page).toHaveURL(new RegExp(`/server/tables/${tableId}/order\\?`));
+  await expect(page).toHaveURL(new RegExp(String.raw`/server/tables/${tableId}/order\?`));
   await page.goto(`/en/server/tables/${encodeURIComponent(tableId)}`);
   return body.data;
 }

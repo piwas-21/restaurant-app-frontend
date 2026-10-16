@@ -29,7 +29,6 @@ interface CashierReadOnlyOrderGroupListProps {
   readonly timeZone?: string;
   readonly onSelectOrder: (orderId: string) => void;
   readonly onOrderRowRef?: (orderId: string, node: HTMLButtonElement | null) => void;
-  readonly onCollectSession?: (serviceSessionId: string) => void;
 }
 
 export default function CashierReadOnlyOrderGroupList({

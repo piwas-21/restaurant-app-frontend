@@ -161,9 +161,6 @@ export default function CashierOrdersWorkspace() {
           if (serviceSessionId) route.navigateToSessionCollection(serviceSessionId, orderId, undefined, 'orders');
           else route.navigateToCollection(orderId);
         }}
-        onCollectSession={(serviceSessionId) =>
-          route.navigateToSessionCollection(serviceSessionId, undefined, undefined, 'orders')
-        }
         onBack={route.clearOrder}
         onSearchChange={filters.setSearchQuery}
         onSearchSubmit={filters.submitSearch}

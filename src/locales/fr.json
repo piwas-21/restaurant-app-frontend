@@ -4206,7 +4206,7 @@
   },
   "billCharges": {
     "title": "Frais sur l’addition",
-    "description": "Activez uniquement les frais utilisés par votre restaurant. Le personnel choisit de les ajouter ; seuls les montants positifs figurent sur l’addition. Les frais existants conservent leur libellé et leur montant.",
+    "description": "Activez uniquement les frais utilisés par votre restaurant. Le personnel choisit de les ajouter ; seuls les montants positifs figurent sur l’addition. Les frais existants conservent leur libellé et leur montant. Si vous utilisez l’application d’impression caisse, installez la version 1.0.37 ou ultérieure avant d’activer les frais.",
     "enabled": "Activé",
     "key": "Clé du champ",
     "label": "Libellé sur l’addition",

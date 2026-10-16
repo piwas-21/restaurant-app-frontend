@@ -4193,7 +4193,7 @@
   },
   "billCharges": {
     "title": "Kosten op de rekening",
-    "description": "Schakel alleen benodigde kosten in. Medewerkers kiezen of ze deze toevoegen. Alleen positieve bedragen verschijnen op de rekening. Bestaande kosten behouden hun opgeslagen naam en bedrag.",
+    "description": "Schakel alleen benodigde kosten in. Medewerkers kiezen of ze deze toevoegen. Alleen positieve bedragen verschijnen op de rekening. Bestaande kosten behouden hun opgeslagen naam en bedrag. Gebruik je de kassaprinter-app, installeer dan versie 1.0.37 of hoger voordat je toeslagen inschakelt.",
     "enabled": "Ingeschakeld",
     "key": "Veldsleutel",
     "label": "Naam op rekening",

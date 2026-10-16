@@ -4193,7 +4193,7 @@
   },
   "billCharges": {
     "title": "Rechnungsgebühren",
-    "description": "Aktivieren Sie nur benötigte Gebühren. Das Personal wählt sie bei Bedarf aus. Nur positive Beträge erscheinen auf der Rechnung. Bestehende Gebühren behalten Bezeichnung und Betrag.",
+    "description": "Aktivieren Sie nur benötigte Gebühren. Das Personal wählt sie bei Bedarf aus. Nur positive Beträge erscheinen auf der Rechnung. Bestehende Gebühren behalten Bezeichnung und Betrag. Bei Nutzung der Kassendrucker-App vor dem Aktivieren der Gebühren Version 1.0.37 oder neuer installieren.",
     "enabled": "Aktiviert",
     "key": "Feldschlüssel",
     "label": "Bezeichnung auf der Rechnung",

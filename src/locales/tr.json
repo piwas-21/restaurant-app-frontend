@@ -4193,7 +4193,7 @@
   },
   "billCharges": {
     "title": "Hesap ek ücretleri",
-    "description": "Yalnızca restoranınızın kullandığı ücretleri etkinleştirin. Personel gerektiğinde ekler; yalnızca sıfırdan büyük tutarlar hesapta görünür. Mevcut ücretlerin kayıtlı adı ve tutarı korunur.",
+    "description": "Yalnızca restoranınızın kullandığı ücretleri etkinleştirin. Personel gerektiğinde ekler; yalnızca sıfırdan büyük tutarlar hesapta görünür. Mevcut ücretlerin kayıtlı adı ve tutarı korunur. Kasa yazıcı uygulamasını kullanıyorsanız ücretleri etkinleştirmeden önce 1.0.37 veya sonraki sürümü yükleyin.",
     "enabled": "Etkin",
     "key": "Alan anahtarı",
     "label": "Hesapta görünen ad",

@@ -4206,7 +4206,7 @@
   },
   "billCharges": {
     "title": "Supplementi sul conto",
-    "description": "Attiva solo i supplementi utilizzati dal ristorante. Il personale sceglie se aggiungerli; solo gli importi positivi compaiono sul conto. I supplementi esistenti mantengono nome e importo.",
+    "description": "Attiva solo i supplementi utilizzati dal ristorante. Il personale sceglie se aggiungerli; solo gli importi positivi compaiono sul conto. I supplementi esistenti mantengono nome e importo. Se usi l’app della stampante di cassa, installa la versione 1.0.37 o successiva prima di attivare gli addebiti.",
     "enabled": "Attivo",
     "key": "Chiave del campo",
     "label": "Nome sul conto",

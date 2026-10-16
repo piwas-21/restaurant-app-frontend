@@ -4206,7 +4206,7 @@
   },
   "billCharges": {
     "title": "Cargos de la cuenta",
-    "description": "Activa solo los cargos que usa el restaurante. El personal decide si los añade; solo los importes positivos aparecen en la cuenta. Los cargos existentes conservan su nombre e importe.",
+    "description": "Activa solo los cargos que usa el restaurante. El personal decide si los añade; solo los importes positivos aparecen en la cuenta. Los cargos existentes conservan su nombre e importe. Si usas la aplicación de impresora de caja, instala la versión 1.0.37 o posterior antes de activar los cargos.",
     "enabled": "Habilitado",
     "key": "Clave del campo",
     "label": "Nombre en la cuenta",

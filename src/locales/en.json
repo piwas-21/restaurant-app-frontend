@@ -4193,7 +4193,7 @@
   },
   "billCharges": {
     "title": "Bill charges",
-    "description": "Enable only the charges your restaurant uses. Staff choose whether to add them; only positive amounts appear on the bill. Existing charges keep their saved label and amount.",
+    "description": "Enable only the charges your restaurant uses. Staff choose whether to add them; only positive amounts appear on the bill. Existing charges keep their saved label and amount. If you use the cashier printer app, install version 1.0.37 or later before enabling charges.",
     "enabled": "Enabled",
     "key": "Field key",
     "label": "Bill label",

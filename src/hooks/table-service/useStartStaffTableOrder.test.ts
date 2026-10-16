@@ -32,7 +32,7 @@ it.each(['server', 'cashier'] as const)(
     });
     const href = mockPush.mock.calls[0][0] as string;
     expect(href).toContain(role === 'server' ? '/server/tables/table%2F7/order?' : '/cashier/new?');
-    expect(new URL(href, 'https://example.test').searchParams.get('serviceSessionId')).toBe('visit/1');
+    expect(new URLSearchParams(href.slice(href.indexOf('?') + 1)).get('serviceSessionId')).toBe('visit/1');
     expect(result.current.isStarting).toBe(false);
   },
 );

@@ -20,6 +20,10 @@ const pendingSchema = z.object({
 });
 type Pending = z.infer<typeof pendingSchema>;
 
+function reportStorageFailure(phase: 'read' | 'write' | 'clear', error: unknown) {
+  console.warn(`Bill-charge recovery storage could not ${phase}`, error instanceof Error ? error.name : typeof error);
+}
+
 export function useOrderBillChargeAction(
   order: OrderDto,
   disabled: boolean,
@@ -46,8 +50,9 @@ export function useOrderBillChargeAction(
       setPending(stored);
       setValues(stored?.charges ?? []);
       setStorageBlocked(false);
-    } catch (_error: unknown) {
+    } catch (error: unknown) {
       // Browser storage failures use the dedicated recovery message and keep financial actions locked.
+      reportStorageFailure('read', error);
       setStorageBlocked(true);
     }
     setHydrated(true);
@@ -70,8 +75,9 @@ export function useOrderBillChargeAction(
     }
     try {
       sessionStorage.setItem(key, JSON.stringify(request));
-    } catch (_error: unknown) {
+    } catch (error: unknown) {
       // Browser storage failures use the dedicated recovery message and keep financial actions locked.
+      reportStorageFailure('write', error);
       setStorageBlocked(true);
       return;
     }
@@ -92,8 +98,9 @@ export function useOrderBillChargeAction(
         try {
           sessionStorage.removeItem(key);
           setPending(null);
-        } catch (_error: unknown) {
+        } catch (error: unknown) {
           // Browser storage failures use the dedicated recovery message and keep financial actions locked.
+          reportStorageFailure('clear', error);
           setStorageBlocked(true);
         }
         await onUpdated();

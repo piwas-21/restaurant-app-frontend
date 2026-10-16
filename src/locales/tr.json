@@ -4183,5 +4183,9 @@
   "staff.add_order": "Sipariş ekle",
   "staff.table_add_order_hint": "Bu masa için ürünleri seçin. Masa oturumu otomatik başlar.",
   "order_type_outside_opening_hours": "Restoran şu anda çalışma saatleri dışında olduğu için sipariş verilemiyor. Lütfen çalışma saatleri içinde sipariş verin.",
-  "cashier.workspace.set_status": "{{status}} olarak işaretle"
+  "cashier.workspace.set_status": "{{status}} olarak işaretle",
+  "staff_table_tools": "Masa araçları",
+  "staff_cancel_confirm": "Bu sipariş iptal edilsin mi? Geçmişi korunacak.",
+  "staff_cancel_reason": "Neden (isteğe bağlı)",
+  "staff_table_search": "Masa ara"
 }

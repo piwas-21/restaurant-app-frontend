@@ -211,6 +211,10 @@ export default function CashierReadOnlyDestination({
           <section className={styles.ticketPane} aria-label={t('cashier.workspace.order_details')}>
             <CashierReadOnlyTicket
               order={selectedOrder}
+              historyOrders={
+                groups?.find((group) => group.orders.some((order) => order.id === selectedOrderId))?.orders
+              }
+              onSelectHistoryOrder={onSelectOrder}
               isLoading={selectedOrderLoading}
               isRefreshing={selectedOrderRefreshing}
               error={selectedOrderError}

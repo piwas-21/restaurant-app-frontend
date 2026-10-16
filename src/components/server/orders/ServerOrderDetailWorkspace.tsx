@@ -20,6 +20,7 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { serverOrderVisitHref } from './serverOrderRoute';
 import styles from './ServerOrderDetailWorkspace.module.css';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import OrderCancelAction from '@/components/order/OrderCancelAction';
 
 interface ServerOrderDetailWorkspaceProps {
   readonly orderId: string;
@@ -209,6 +210,7 @@ export default function ServerOrderDetailWorkspace({ orderId }: Readonly<ServerO
               refreshKey={reloadKey}
               onResolutionChanged={refreshOrder}
             />
+            <OrderCancelAction order={visibleOrder} disabled={isLoading || Boolean(error)} onChanged={refreshOrder} />
             <section className={styles.action} aria-label={t('orderAmendments.actions', 'Order actions')}>
               <OrderAmendmentEntryButton
                 order={visibleOrder}

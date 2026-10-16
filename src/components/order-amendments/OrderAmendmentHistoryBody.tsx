@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { useOrderAmendmentTranslations } from '@/hooks/orderAmendments/useOrderAmendmentTranslations';
+import type { OrderDto } from '@/types/order';
+import OrderRoundHistoryRecord from './OrderRoundHistoryRecord';
 import type { OrderAmendmentHistory } from '@/types/orderAmendment';
 import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
 import OrderAmendmentHistoryRecord from './OrderAmendmentHistoryRecord';
@@ -12,6 +14,8 @@ import styles from './OrderAmendmentHistorySection.module.css';
 
 interface OrderAmendmentHistorySectionProps {
   readonly orderId: string;
+  readonly relatedOrders?: readonly OrderDto[];
+  readonly onSelectOrder?: (orderId: string) => void;
   readonly refreshKey: string | number;
 }
 
@@ -24,18 +28,25 @@ interface HistoryView {
 export default function OrderAmendmentHistoryBody({
   orderId,
   refreshKey,
+  relatedOrders,
+  onSelectOrder,
 }: Readonly<OrderAmendmentHistorySectionProps>) {
   const { t, i18n } = useTranslation();
   const { orderAmendmentsV1 } = useTenantFeatures();
-  const translations = useOrderAmendmentTranslations(orderAmendmentsV1);
-  const requestKey = `${orderId}:${refreshKey}`;
+  const translations = useOrderAmendmentTranslations(orderAmendmentsV1 || (relatedOrders?.length ?? 0) > 1);
+  const orderIds = useMemo(
+    () => [...new Set([orderId, ...(relatedOrders ?? []).map((order) => order.id)])],
+    [orderId, relatedOrders],
+  );
+  const requestKey = `${orderIds.join(',')}:${refreshKey}`;
   const [view, setView] = useState<HistoryView | null>(null);
 
   useEffect(() => {
     if (!orderAmendmentsV1 || !translations.ready) return;
     let active = true;
-    void getOrderAmendmentHistory(orderId)
-      .then((records) => {
+    void Promise.all(orderIds.map((id) => getOrderAmendmentHistory(id)))
+      .then((histories) => {
+        const records = histories.flat();
         if (active) {
           setView({
             key: requestKey,
@@ -50,28 +61,27 @@ export default function OrderAmendmentHistoryBody({
     return () => {
       active = false;
     };
-  }, [orderAmendmentsV1, orderId, requestKey, translations.ready]);
+  }, [orderAmendmentsV1, orderIds, requestKey, translations.ready]);
 
-  if (!orderAmendmentsV1) return null;
-  if (!translations.ready) {
-    return (
-      <section className={styles.section}>
-        <output className={styles.state} aria-live="polite" aria-atomic="true">
-          {translations.failed
-            ? t('error_unexpected', 'Amendment history language could not be loaded. Please try again.')
-            : t('common.loading', 'Loading…')}
-        </output>
-        {translations.failed && (
-          <button type="button" className={styles.retry} onClick={translations.retry}>
-            {t('retry', 'Retry')}
-          </button>
-        )}
-      </section>
-    );
-  }
+  if (!orderAmendmentsV1 && (relatedOrders?.length ?? 0) <= 1) return null;
   const current = view?.key === requestKey ? view : null;
+  const supplementIds = new Set(current?.records.map((record) => record.supplementOrderId).filter(Boolean));
+  const rounds = (relatedOrders ?? []).slice(1).filter((order) => !supplementIds.has(order.id));
   let historyContent: ReactNode;
-  if (!current) {
+  if (!orderAmendmentsV1) {
+    historyContent = null;
+  } else if (!translations.ready) {
+    historyContent = translations.failed ? (
+      <div role="alert" className={styles.error}>
+        <p>{t('error_unexpected')}</p>
+        <button type="button" className={styles.retry} onClick={translations.retry}>
+          {t('retry', 'Retry')}
+        </button>
+      </div>
+    ) : (
+      <output className={styles.state}>{t('loading', 'Loading…')}</output>
+    );
+  } else if (!current) {
     historyContent = (
       <output className={styles.state} aria-live="polite" aria-atomic="true">
         {t('orderAmendments.history_loading', 'Loading amendment history…')}
@@ -83,7 +93,7 @@ export default function OrderAmendmentHistoryBody({
         {t('orderAmendments.history_unavailable', 'Amendment history could not be loaded.')}
       </p>
     );
-  } else if (current.records.length === 0) {
+  } else if (current.records.length === 0 && rounds.length === 0) {
     historyContent = (
       <p className={styles.state} role="note">
         {t('orderAmendments.history_empty', 'No committed amendments are recorded for this order.')}
@@ -93,7 +103,12 @@ export default function OrderAmendmentHistoryBody({
     historyContent = (
       <ol className={styles.records}>
         {current.records.map((record) => (
-          <OrderAmendmentHistoryRecord key={record.amendmentId} record={record} language={i18n.language} />
+          <OrderAmendmentHistoryRecord
+            key={record.amendmentId}
+            record={record}
+            language={i18n.language}
+            onSelectOrder={onSelectOrder}
+          />
         ))}
       </ol>
     );
@@ -103,9 +118,18 @@ export default function OrderAmendmentHistoryBody({
       <details className={styles.details}>
         <summary className={styles.summary}>
           <span>{t('orderAmendments.history_title', 'Amendment history')}</span>
-          {current && !current.error && <span className={styles.count}>{current.records.length}</span>}
+          {current && !current.error && <span className={styles.count}>{current.records.length + rounds.length}</span>}
         </summary>
-        <div className={styles.content}>{historyContent}</div>
+        <div className={styles.content}>
+          {rounds.length > 0 && (
+            <ol className={styles.records}>
+              {rounds.map((order) => (
+                <OrderRoundHistoryRecord key={order.id} order={order} onSelectOrder={onSelectOrder} />
+              ))}
+            </ol>
+          )}
+          {historyContent}
+        </div>
       </details>
     </section>
   );

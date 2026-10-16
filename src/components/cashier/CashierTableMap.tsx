@@ -14,6 +14,7 @@ import styles from './CashierTableMap.module.css';
 
 interface CashierTableMapProps {
   readonly entries: readonly CashierTableEntry[];
+  readonly searchQuery?: string;
   readonly selectedTableNumber: string | null;
   readonly onSelectTable: (tableNumber: string, serviceSessionId?: string) => void;
   readonly disabled?: boolean;
@@ -30,6 +31,7 @@ function mapState(entry: CashierTableEntry, selected: boolean): TableRenderState
 
 export default function CashierTableMap({
   entries,
+  searchQuery = '',
   selectedTableNumber,
   onSelectTable,
   disabled = false,
@@ -47,8 +49,21 @@ export default function CashierTableMap({
     [entryByExactLabel, entryById],
   );
   const activePlan = useMemo(
-    () => (document ? { ...document, tables: document.tables.filter((table) => table.isActive) } : null),
-    [document],
+    () =>
+      document
+        ? {
+            ...document,
+            tables: document.tables.filter(
+              (table) =>
+                table.isActive &&
+                (!searchQuery.trim() ||
+                  (entryForGeometry(table)?.table.tableNumber ?? table.tableNumber)
+                    .toLowerCase()
+                    .includes(searchQuery.trim().toLowerCase())),
+            ),
+          }
+        : null,
+    [document, searchQuery, entryForGeometry],
   );
   const states = useMemo(() => {
     const next: Record<string, TableRenderState> = {};

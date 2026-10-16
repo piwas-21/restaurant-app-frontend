@@ -9,17 +9,16 @@ jest.mock('@/utils/apiClient', () => {
 describe('tableGuestVisitService', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('joins with the QR payload and admission code without putting identity in the URL', async () => {
+  it('joins with the QR payload alone without putting identity in the URL', async () => {
     jest.mocked(apiClient.post).mockResolvedValue({
       success: true,
       data: { serviceSessionId: 'visit-id', participantToken: 'secret-token', expiresAt: '2030-01-01T00:00:00Z' },
     });
 
-    await tableGuestVisitService.joinTableGuestVisit('qr-data', 'GH23456789');
+    await tableGuestVisitService.joinTableGuestVisit('qr-data');
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/table-guest-visits/join', {
       qrCodeData: 'qr-data',
-      admissionCode: 'GH23456789',
     });
     expect(window.location.href).not.toContain('secret-token');
   });

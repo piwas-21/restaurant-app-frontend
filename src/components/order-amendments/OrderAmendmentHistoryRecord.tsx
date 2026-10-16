@@ -1,5 +1,6 @@
 'use client';
 
+import StaffButton from '@/components/design-system/StaffButton';
 import { useTranslation } from 'react-i18next';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
@@ -14,6 +15,7 @@ import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface OrderAmendmentHistoryRecordProps {
   readonly record: OrderAmendmentHistory;
+  readonly onSelectOrder?: (orderId: string) => void;
   readonly language: string;
 }
 
@@ -62,7 +64,11 @@ function amount(value: number, currency: string | null | undefined, language: st
   return formatAmendmentMinorAmount(value, currency, language) ?? unavailable;
 }
 
-export default function OrderAmendmentHistoryRecord({ record, language }: Readonly<OrderAmendmentHistoryRecordProps>) {
+export default function OrderAmendmentHistoryRecord({
+  record,
+  language,
+  onSelectOrder,
+}: Readonly<OrderAmendmentHistoryRecordProps>) {
   const { t } = useTranslation();
   const recordedAt = record.committedAt ?? record.createdAt;
   const role = roleLabel(record.actorRole, t);
@@ -129,6 +135,17 @@ export default function OrderAmendmentHistoryRecord({ record, language }: Readon
             {formatOrderCurrency(record.supplementOrder.total, record.supplementOrder)}
           </p>
         </section>
+      )}
+      {record.supplementOrderId && onSelectOrder && (
+        <StaffButton
+          onClick={() => {
+            if (record.supplementOrderId) onSelectOrder(record.supplementOrderId);
+          }}
+        >
+          {t('cashier.workspace.open_order', {
+            order: record.supplementOrder ? getOrderDisplayNumber(record.supplementOrder) : '',
+          })}
+        </StaffButton>
       )}
       {record.supplementOrderId && !record.supplementOrder && (
         <p className={styles.linkedOrder}>

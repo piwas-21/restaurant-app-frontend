@@ -6,13 +6,13 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CreditCard, FileText, MapPin, RefreshCw, ShoppingBag, User } from 'lucide-react';
 import MarketplaceOrderSource from '@/components/order/MarketplaceOrderSource';
-import { orderCurrency, formatOrderCurrency } from '@/lib/cashierMoney';
+import { orderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import type { OrderDto } from '@/types/order';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import PreparationCountdown from '@/components/order/PreparationCountdown';
-import { PaymentRows, TicketItems } from './CashierReadOnlyTicketSections';
+import { PaymentRows, TicketItems, TicketMoneySummary } from './CashierReadOnlyTicketSections';
 import technicalReferenceStyles from './CashierTechnicalReference.module.css';
 import CashierStatusBadges from './CashierStatusBadges';
 import viewStyles from './CashierWorkspaceView.module.css';
@@ -24,6 +24,8 @@ const CashierTicketActions = dynamic(() => import('./CashierTicketActions'));
 
 interface CashierReadOnlyTicketProps {
   readonly order: OrderDto | null;
+  readonly historyOrders?: readonly OrderDto[];
+  readonly onSelectHistoryOrder?: (orderId: string) => void;
   readonly isLoading?: boolean;
   readonly isRefreshing?: boolean;
   readonly error?: string | null;
@@ -54,14 +56,10 @@ function channelLabel(type: string, t: TFunction): string {
   return t('cashier.workspace.channel_unknown');
 }
 
-function dueLabel(due: number, t: (key: string) => string): string {
-  if (due > 0) return t('cashier.workspace.amount_due');
-  if (due < 0) return t('cashier.workspace.credit');
-  return t('cashier.workspace.settled');
-}
-
 export default function CashierReadOnlyTicket({
   order,
+  historyOrders,
+  onSelectHistoryOrder,
   isLoading = false,
   isRefreshing = false,
   error,
@@ -210,33 +208,27 @@ export default function CashierReadOnlyTicket({
         </section>
       )}
 
-      <CashierTicketActions order={order} onOrderChanged={onOrderChanged} isOrderSnapshotFresh={isSnapshotFresh} />
+      <CashierTicketActions
+        order={order}
+        onOrderChanged={onOrderChanged}
+        isOrderSnapshotFresh={isSnapshotFresh}
+        historyOrders={historyOrders}
+        onSelectHistoryOrder={onSelectHistoryOrder}
+      />
       <section className={styles.ticketSection} aria-labelledby="cashier-ticket-payment">
         <h3 id="cashier-ticket-payment">
           <CreditCard size={18} aria-hidden="true" />
           {t('cashier.workspace.payment')}
         </h3>
-        <div className={styles.moneyRows}>
-          <div>
-            <span>{t('cashier.workspace.order_total')}</span>
-            <strong>{formatOrderCurrency(order.total, order)}</strong>
-          </div>
-          <div>
-            <span>{t('cashier.workspace.total_paid')}</span>
-            <strong>{formatOrderCurrency(order.totalPaid, order)}</strong>
-          </div>
-          <div className={styles.moneyTotal}>
-            <span>{dueLabel(due, t)}</span>
-            <strong>{formatOrderCurrency(Math.abs(due), order)}</strong>
-          </div>
-        </div>
+        <TicketMoneySummary order={order} due={due} t={t} />
         <PaymentRows payments={order.payments ?? []} currency={orderCurrency(order)} t={t} />
-        {onCollect && canCollectPayment(order) && (
-          <button type="button" className={styles.collectButton} onClick={() => onCollect(order.id)}>
-            <CreditCard size={18} aria-hidden="true" />
-            {t('cashier.collection.title')}
-          </button>
-        )}
+        {onCollect &&
+          (canCollectPayment(order) || (order.serviceSessionId && historyOrders?.some(canCollectPayment))) && (
+            <button type="button" className={styles.collectButton} onClick={() => onCollect(order.id)}>
+              <CreditCard size={18} aria-hidden="true" />
+              {t('cashier.collection.title')}
+            </button>
+          )}
       </section>
     </article>
   );

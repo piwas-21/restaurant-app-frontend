@@ -16,6 +16,7 @@ import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import OrderAmendmentEntryButton from '@/components/order-amendments/OrderAmendmentEntryButton';
 import OrderAmendmentHistorySection from '@/components/order-amendments/OrderAmendmentHistorySection';
+import OrderCancelAction from '@/components/order/OrderCancelAction';
 import styles from './CashierTicketActions.module.css';
 
 const ChannelOrderPreparation = dynamic(() => import('@/components/order/ChannelOrderPreparation'), { ssr: false });
@@ -27,6 +28,8 @@ const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr
 
 interface CashierTicketActionsProps {
   readonly order: OrderDto;
+  readonly historyOrders?: readonly OrderDto[];
+  readonly onSelectHistoryOrder?: (orderId: string) => void;
   readonly isOrderSnapshotFresh?: boolean;
   /** Notifies the host that the order changed (focus flip), so it can refresh its data. */
   readonly onOrderChanged?: () => void;
@@ -39,6 +42,8 @@ interface CashierTicketActionsProps {
  */
 export default function CashierTicketActions({
   order,
+  historyOrders,
+  onSelectHistoryOrder,
   isOrderSnapshotFresh = true,
   onOrderChanged,
 }: CashierTicketActionsProps) {
@@ -85,6 +90,7 @@ export default function CashierTicketActions({
       <ChannelOrderDecision order={order} isSnapshotFresh={isOrderSnapshotFresh} onOrderChanged={onOrderChanged} />
       <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />
       <div className={styles.row}>
+        <OrderCancelAction order={order} disabled={!isOrderSnapshotFresh} onChanged={notifyOrderChanged} />
         <OrderAmendmentEntryButton order={order} operatorRole="Cashier" onCommitted={notifyOrderChanged} />
         <CashierOrderStatusActions
           order={order}
@@ -171,6 +177,8 @@ export default function CashierTicketActions({
       />
       <OrderAmendmentHistorySection
         orderId={order.id}
+        relatedOrders={historyOrders}
+        onSelectOrder={onSelectHistoryOrder}
         refreshKey={`${order.version}:${historyRefresh}`}
         onResolutionChanged={notifyOrderChanged}
       />

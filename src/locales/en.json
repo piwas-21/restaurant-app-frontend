@@ -4183,5 +4183,9 @@
   "staff.add_order": "Add order",
   "staff.table_add_order_hint": "Choose items for this table. The visit starts automatically.",
   "order_type_outside_opening_hours": "The restaurant is currently outside its opening hours, so ordering is unavailable. Please order during opening hours.",
-  "cashier.workspace.set_status": "Mark as {{status}}"
+  "cashier.workspace.set_status": "Mark as {{status}}",
+  "staff_table_tools": "Table tools",
+  "staff_cancel_confirm": "Cancel this order? Its history will be kept.",
+  "staff_cancel_reason": "Reason (optional)",
+  "staff_table_search": "Search tables"
 }

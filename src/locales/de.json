@@ -4183,5 +4183,9 @@
   "staff.add_order": "Bestellung hinzufügen",
   "staff.table_add_order_hint": "Wählen Sie Artikel für diesen Tisch. Der Besuch beginnt automatisch.",
   "order_type_outside_opening_hours": "Das Restaurant ist derzeit außerhalb seiner Öffnungszeiten geschlossen. Bitte bestellen Sie während der Öffnungszeiten.",
-  "cashier.workspace.set_status": "Als {{status}} markieren"
+  "cashier.workspace.set_status": "Als {{status}} markieren",
+  "staff_table_tools": "Tischwerkzeuge",
+  "staff_cancel_confirm": "Diese Bestellung stornieren? Der Verlauf bleibt erhalten.",
+  "staff_cancel_reason": "Grund (optional)",
+  "staff_table_search": "Tische suchen"
 }

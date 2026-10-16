@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { TenantFeaturesProvider } from '@/contexts/TenantFeaturesContext';
 import { getOrderAmendmentHistory } from '@/services/orderAmendmentsService';
 import type { OrderDto, OrderItemDto } from '@/types/order';
@@ -112,3 +112,34 @@ describe('OrderAmendmentHistorySection', () => {
     expect(mockGetHistory).not.toHaveBeenCalled();
   });
 });
+
+const visitOrders = [
+  { ...supplementOrder, id: 'original', orderNumber: 'FIRST', status: 'Completed' },
+  { ...supplementOrder, id: 'later-round', orderNumber: 'LATER', status: 'Pending', customerName: 'Second guest' },
+];
+
+it.each([false, true])(
+  'keeps later round links accessible when amendments enabled=%s and history fails',
+  async (enabled) => {
+    mockGetHistory.mockRejectedValue(new Error('history unavailable'));
+    const select = jest.fn();
+    render(
+      <TenantFeaturesProvider features={{ orderAmendmentsV1: enabled }}>
+        <OrderAmendmentHistorySection
+          orderId="original"
+          refreshKey={1}
+          relatedOrders={visitOrders}
+          onSelectOrder={select}
+        />
+      </TenantFeaturesProvider>,
+    );
+    fireEvent.click(await screen.findByText('Amendment history'));
+    expect(await screen.findByText(/Second guest/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.open_order' }));
+    expect(select).toHaveBeenCalledWith('later-round');
+    if (enabled)
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent('Amendment history could not be loaded.'),
+      );
+  },
+);

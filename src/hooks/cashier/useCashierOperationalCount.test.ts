@@ -1,10 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { getCashierOrders } from '@/services/cashierService';
+import { getCashierOrderGroups } from '@/services/cashierService';
 import { useCashierOperationalCount } from './useCashierOperationalCount';
 
-jest.mock('@/services/cashierService', () => ({ getCashierOrders: jest.fn() }));
+jest.mock('@/services/cashierService', () => ({
+  getCashierOrderGroups: jest.fn(),
+  getCashierTenantContext: jest.fn().mockResolvedValue({ date: '2026-10-16', timeZone: 'Europe/Paris' }),
+}));
 
-const mockGetCashierOrders = jest.mocked(getCashierOrders);
+const mockGetCashierOrders = jest.mocked(getCashierOrderGroups);
 const page = (totalCount: number) => ({
   items: [],
   totalCount,
@@ -23,7 +26,7 @@ describe('useCashierOperationalCount', () => {
     const { result } = renderHook(() => useCashierOperationalCount());
 
     await waitFor(() => expect(result.current.count).toBe(17));
-    expect(mockGetCashierOrders).toHaveBeenCalledWith({ scope: 'Operational', page: 1, pageSize: 1 });
+    expect(mockGetCashierOrders).toHaveBeenCalledWith({ scope: 'All', page: 1, pageSize: 1, tenantDay: '2026-10-16' });
     expect(result.current.state).toBe('ready');
   });
 

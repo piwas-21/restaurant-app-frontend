@@ -4209,5 +4209,9 @@
   "staff.add_order": "Добавить заказ",
   "staff.table_add_order_hint": "Выберите блюда для этого стола. Визит начнётся автоматически.",
   "order_type_outside_opening_hours": "Сейчас ресторан закрыт. Оформить заказ можно в часы работы.",
-  "cashier.workspace.set_status": "Установить статус «{{status}}»"
+  "cashier.workspace.set_status": "Установить статус «{{status}}»",
+  "staff_table_tools": "Инструменты столов",
+  "staff_cancel_confirm": "Отменить этот заказ? Его история сохранится.",
+  "staff_cancel_reason": "Причина (необязательно)",
+  "staff_table_search": "Поиск столов"
 }

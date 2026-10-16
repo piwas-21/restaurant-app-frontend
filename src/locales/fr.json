@@ -4196,5 +4196,9 @@
   "staff.add_order": "Ajouter une commande",
   "staff.table_add_order_hint": "Choisissez les articles pour cette table. La visite démarre automatiquement.",
   "order_type_outside_opening_hours": "Le restaurant est actuellement fermé. Les commandes sont disponibles pendant les horaires d’ouverture.",
-  "cashier.workspace.set_status": "Passer à {{status}}"
+  "cashier.workspace.set_status": "Passer à {{status}}",
+  "staff_table_tools": "Outils des tables",
+  "staff_cancel_confirm": "Annuler cette commande ? Son historique sera conservé.",
+  "staff_cancel_reason": "Motif (facultatif)",
+  "staff_table_search": "Rechercher une table"
 }

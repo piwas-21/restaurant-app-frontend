@@ -4183,5 +4183,9 @@
   "staff.add_order": "Bestelling toevoegen",
   "staff.table_add_order_hint": "Kies artikelen voor deze tafel. Het bezoek start automatisch.",
   "order_type_outside_opening_hours": "Het restaurant is nu gesloten. Bestellen kan tijdens de openingstijden.",
-  "cashier.workspace.set_status": "Markeren als {{status}}"
+  "cashier.workspace.set_status": "Markeren als {{status}}",
+  "staff_table_tools": "Tafelopties",
+  "staff_cancel_confirm": "Deze bestelling annuleren? De geschiedenis blijft bewaard.",
+  "staff_cancel_reason": "Reden (optioneel)",
+  "staff_table_search": "Tafels zoeken"
 }

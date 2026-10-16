@@ -4170,5 +4170,9 @@
   "staff.add_order": "添加订单",
   "staff.table_add_order_hint": "为此餐桌选择菜品，用餐记录将自动开始。",
   "order_type_outside_opening_hours": "餐厅目前处于非营业时间，暂时无法下单。请在营业时间内下单。",
-  "cashier.workspace.set_status": "标记为{{status}}"
+  "cashier.workspace.set_status": "标记为{{status}}",
+  "staff_table_tools": "餐桌工具",
+  "staff_cancel_confirm": "取消此订单？历史记录将保留。",
+  "staff_cancel_reason": "原因（可选）",
+  "staff_table_search": "搜索餐桌"
 }

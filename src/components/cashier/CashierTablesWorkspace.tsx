@@ -21,7 +21,7 @@ import {
 } from '@/lib/cashierTableWorkspace';
 import type { TableServiceSessionDto } from '@/types/order';
 import { useCashierTableWorkspaceActions } from './useCashierTableWorkspaceActions';
-import CashierTableViewControls from './CashierTableViewControls';
+import StaffTableTools from '@/components/table-service/StaffTableTools';
 import styles from './CashierTablesWorkspace.module.css';
 import { useStaffNavigationLock } from '@/hooks/table-service/useStaffNavigationLock';
 import { useStartStaffTableOrder } from '@/hooks/table-service/useStartStaffTableOrder';
@@ -43,6 +43,7 @@ export default function CashierTablesWorkspace() {
   const selectedSession =
     sessionId && session.session?.serviceSessionId.toLowerCase() === sessionId.toLowerCase() ? session.session : null;
   const { timeZone, isLoading: timeZoneLoading, hasError: timeZoneHasError } = useCashierTenantTimeZoneState();
+  const [searchQuery, setSearchQuery] = useState('');
   const [view, setView] = useState<'map' | 'list'>('map');
   const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
   let selectedTableNumber: string | null = sessionId ? null : route.selectedTableNumber;
@@ -95,22 +96,16 @@ export default function CashierTablesWorkspace() {
   }, [session, sessionId, tables]);
   return (
     <CashierWorkspaceShell activeDestination="tables" queueState={queueState} navigationDisabled={navigationDisabled}>
-      <section className={styles.destination} aria-labelledby="cashier-tables-title">
-        <header className={styles.header}>
-          <div>
-            <h1 id="cashier-tables-title" className={styles.title}>
-              {t('cashier.workspace.tables')}
-            </h1>
-            <p className={styles.description}>{t('cashier.workspace.tables_description')}</p>
-          </div>
-          <CashierTableViewControls
-            view={view}
-            disabled={navigationDisabled}
-            isLoading={tables.isLoading}
-            onViewChange={setView}
-            onRefresh={refresh}
-          />
-        </header>
+      <section className={styles.destination} aria-label={t('cashier.workspace.tables')}>
+        <StaffTableTools
+          view={view}
+          onViewChange={setView}
+          onRefresh={refresh}
+          disabled={navigationDisabled}
+          isLoading={tables.isLoading}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
         {ordering.error && (
           <div className={styles.alert} role="alert">
             {t(ordering.error, ordering.error)}
@@ -144,6 +139,7 @@ export default function CashierTablesWorkspace() {
               {view === 'map' ? (
                 <CashierTableMap
                   entries={tables.entries}
+                  searchQuery={searchQuery}
                   selectedTableNumber={selectedTableNumber ?? null}
                   onSelectTable={selectTable}
                   disabled={navigationDisabled}
@@ -151,7 +147,9 @@ export default function CashierTablesWorkspace() {
               ) : (
                 <div className={styles.listScroll}>
                   <CashierTableList
-                    entries={tables.entries}
+                    entries={tables.entries.filter((entry) =>
+                      entry.table.tableNumber.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+                    )}
                     selectedTableNumber={selectedTableNumber ?? null}
                     timeZone={timeZone}
                     onSelectTable={selectTable}

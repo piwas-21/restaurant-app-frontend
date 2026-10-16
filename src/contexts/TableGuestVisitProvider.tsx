@@ -88,7 +88,7 @@ export function TableGuestVisitProvider({ children }: Readonly<{ children: React
   }, [markVisitUnavailable, storedState]);
 
   const joinVisit = useCallback(
-    async (qrCodeData: string, admissionCode: string, tableId: string) => {
+    async (qrCodeData: string, tableId: string) => {
       if (!isHydrated || tableGuestFeatureStatus !== 'ready' || !tableGuestVisitsV1) {
         throw new Error('Table visit joining is unavailable.');
       }
@@ -97,9 +97,9 @@ export function TableGuestVisitProvider({ children }: Readonly<{ children: React
       }
       const validatedTableId = tableId.trim();
       if (!validatedTableId) throw new Error('A validated table is required to join.');
-      const identity = await tableGuestVisitService.joinTableGuestVisit(qrCodeData, admissionCode);
+      const identity = await tableGuestVisitService.joinTableGuestVisit(qrCodeData);
       if (!isUnexpiredIdentity(identity))
-        throw new Error('This table visit has expired. Ask staff to create a new code.');
+        throw new Error('This table visit has expired. Scan the table QR code again.');
       const boundIdentity = { ...identity, tableId: validatedTableId };
       if (!writeTableGuestVisit(boundIdentity)) {
         setStoredState({ kind: 'storageUnavailable' });

@@ -4196,5 +4196,9 @@
   "staff.add_order": "Añadir pedido",
   "staff.table_add_order_hint": "Elige los artículos para esta mesa. La visita comienza automáticamente.",
   "order_type_outside_opening_hours": "El restaurante está cerrado en este momento. Puedes hacer pedidos durante el horario de apertura.",
-  "cashier.workspace.set_status": "Marcar como {{status}}"
+  "cashier.workspace.set_status": "Marcar como {{status}}",
+  "staff_table_tools": "Herramientas de mesas",
+  "staff_cancel_confirm": "¿Cancelar este pedido? Se conservará su historial.",
+  "staff_cancel_reason": "Motivo (opcional)",
+  "staff_table_search": "Buscar mesas"
 }

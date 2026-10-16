@@ -4235,5 +4235,9 @@
   "staff.add_order": "إضافة طلب",
   "staff.table_add_order_hint": "اختر الأصناف لهذه الطاولة. تبدأ الزيارة تلقائياً.",
   "order_type_outside_opening_hours": "المطعم مغلق حالياً خارج ساعات العمل، لذلك لا يمكن تقديم طلب. يرجى الطلب خلال ساعات العمل.",
-  "cashier.workspace.set_status": "تعيين الحالة إلى {{status}}"
+  "cashier.workspace.set_status": "تعيين الحالة إلى {{status}}",
+  "staff_table_tools": "أدوات الطاولات",
+  "staff_cancel_confirm": "هل تريد إلغاء هذا الطلب؟ سيتم الاحتفاظ بسجله.",
+  "staff_cancel_reason": "السبب (اختياري)",
+  "staff_table_search": "البحث عن طاولات"
 }

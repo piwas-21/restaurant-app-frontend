@@ -33,12 +33,7 @@ export function filterCashierGroupsToBusinessDate(
   timeZone?: string,
 ): CashierOrderGroupDto[] {
   if (!businessDate) return [...groups];
-  return groups
-    .map((group) => ({
-      ...group,
-      orders: group.orders.filter((order) => orderBusinessDate(order, timeZone) === businessDate),
-    }))
-    .filter((group) => group.orders.length > 0);
+  return groups.filter((group) => group.orders.some((order) => orderBusinessDate(order, timeZone) === businessDate));
 }
 
 export function filterOrdersToBusinessDate(

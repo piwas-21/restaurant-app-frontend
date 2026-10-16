@@ -4,7 +4,7 @@ import i18n from '../../i18n';
 import { TableGuestFeatureProvider } from '@/contexts/TableGuestFeatureContext';
 import { TableGuestVisitProvider } from '@/contexts/TableGuestVisitProvider';
 import { tableGuestVisitService } from '@/services/tableGuestVisitService';
-import TableGuestAdmissionForm from './TableGuestAdmissionForm';
+import TableGuestQrJoin from './TableGuestQrJoin';
 
 jest.mock('@/services/tableGuestVisitService', () => ({
   isExpiredVisitError: jest.fn(() => false),
@@ -16,7 +16,7 @@ jest.mock('@/services/tableGuestVisitService', () => ({
   },
 }));
 
-describe('TableGuestAdmissionForm', () => {
+describe('TableGuestQrJoin', () => {
   beforeEach(() => {
     sessionStorage.clear();
     jest.clearAllMocks();
@@ -32,17 +32,14 @@ describe('TableGuestAdmissionForm', () => {
       <I18nextProvider i18n={i18n}>
         <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
           <TableGuestVisitProvider>
-            <TableGuestAdmissionForm qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
+            <TableGuestQrJoin qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
           </TableGuestVisitProvider>
         </TableGuestFeatureProvider>
       </I18nextProvider>,
     );
 
-    fireEvent.change(await screen.findByLabelText('Table visit code'), { target: { value: 'gh23456789' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
-
     await waitFor(() => expect(sessionStorage.getItem('rumi_table_guest_visit_v1')).toContain('table-id'));
-    expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledWith('qr-payload', 'GH23456789');
+    expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledWith('qr-payload');
     expect(window.location.href).not.toContain('visit-id');
     expect(window.location.href).not.toContain('a'.repeat(40));
     expect(JSON.parse(sessionStorage.getItem('rumi_table_guest_visit_v1') ?? '{}')).toMatchObject({
@@ -51,29 +48,28 @@ describe('TableGuestAdmissionForm', () => {
     });
   });
 
-  it('accepts the new six-character code with spacing and submits its normalized value', async () => {
-    jest.mocked(tableGuestVisitService.joinTableGuestVisit).mockResolvedValue({
-      serviceSessionId: 'visit-id',
-      participantToken: 'b'.repeat(40),
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
-    });
+  it('retries a failed QR-only join without any code field', async () => {
+    jest
+      .mocked(tableGuestVisitService.joinTableGuestVisit)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({
+        serviceSessionId: 'visit-id',
+        participantToken: 'b'.repeat(40),
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      });
     render(
       <I18nextProvider i18n={i18n}>
         <TableGuestFeatureProvider features={{ tableGuestVisitsV1: true }}>
           <TableGuestVisitProvider>
-            <TableGuestAdmissionForm qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
+            <TableGuestQrJoin qrCodeData="qr-payload" tableId="table-id" tableLabel="8" />
           </TableGuestVisitProvider>
         </TableGuestFeatureProvider>
       </I18nextProvider>,
     );
 
-    const input = await screen.findByLabelText('Table visit code');
-    fireEvent.change(input, { target: { value: 'gh2 345' } });
-    expect(screen.getByRole('button', { name: 'Join table' })).toBeEnabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
-
-    await waitFor(() =>
-      expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledWith('qr-payload', 'GH2345'),
-    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalledTimes(2));
+    expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenLastCalledWith('qr-payload');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

@@ -4188,7 +4188,8 @@
   "amendmentHelp": {
     "paymentHeld": "Für diesen Tisch wartet eine Zahlung noch auf ein bestätigtes Ergebnis. Öffnen Sie die Tischrechnung und prüfen Sie die ausstehende Zahlung. Kassieren Sie nicht erneut. Änderungen werden nach der Bestätigung freigegeben.",
     "correctionPending": "Eine frühere Bestellkorrektur erfordert noch eine Zahlungs- oder Erstattungsprüfung. Öffnen Sie den Änderungsverlauf und schließen Sie diese Korrektur zuerst ab.",
-    "refundReview": "Eine verantwortliche Person muss die Erstattungen mit der Zahlung oder dem Terminalbeleg abgleichen. Änderungen bleiben gesperrt, bis die Daten übereinstimmen."
+    "refundReview": "Eine verantwortliche Person muss die Erstattungen mit der Zahlung oder dem Terminalbeleg abgleichen. Änderungen bleiben gesperrt, bis die Daten übereinstimmen.",
+    "balanceReview": "Rechnungsstand und eine frühere Korrektur stimmen nicht überein. Eine verantwortliche Person muss Änderungsverlauf, Rechnung und Zahlungs- oder Erstattungsbelege prüfen. Sind alle Einträge bestätigt, den Support mit der Bestellnummer kontaktieren. Aktualisieren allein hebt die Sperre nicht auf."
   },
   "billCharges": {
     "title": "Rechnungsgebühren",

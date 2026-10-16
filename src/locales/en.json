@@ -4188,7 +4188,8 @@
   "amendmentHelp": {
     "paymentHeld": "A payment for this table is still waiting for a confirmed result. Open the table bill and check the pending payment. Do not take the payment again. Amendments unlock once the result is confirmed.",
     "correctionPending": "A previous order correction still needs a payment or refund check. Open amendment history and finish that correction before starting another.",
-    "refundReview": "The refund records need a manager to check them against the payment or terminal receipt. Amendments stay unavailable until the records agree."
+    "refundReview": "The refund records need a manager to check them against the payment or terminal receipt. Amendments stay unavailable until the records agree.",
+    "balanceReview": "The bill balance and a previous correction do not agree. Ask a manager to check amendment history against the bill and payment or refund receipts. If all entries are confirmed, contact support with the order number. Refreshing alone cannot clear this block."
   },
   "billCharges": {
     "title": "Bill charges",

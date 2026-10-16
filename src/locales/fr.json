@@ -4201,7 +4201,8 @@
   "amendmentHelp": {
     "paymentHeld": "Un paiement de cette table attend encore un résultat confirmé. Ouvrez l’addition et vérifiez le paiement en attente. Ne l’encaissez pas une seconde fois. Les modifications seront disponibles après confirmation.",
     "correctionPending": "Une correction précédente nécessite encore une vérification du paiement ou du remboursement. Ouvrez l’historique des modifications et terminez cette correction avant d’en commencer une autre.",
-    "refundReview": "Un responsable doit comparer les remboursements avec le paiement ou le reçu du terminal. Les modifications restent indisponibles tant que les enregistrements ne concordent pas."
+    "refundReview": "Un responsable doit comparer les remboursements avec le paiement ou le reçu du terminal. Les modifications restent indisponibles tant que les enregistrements ne concordent pas.",
+    "balanceReview": "Le solde et une correction précédente ne correspondent pas. Demandez au responsable de comparer l’historique des modifications, la facture et les justificatifs de paiement ou remboursement. Si tout est confirmé, contactez l’assistance avec le numéro de commande. Actualiser ne suffit pas."
   },
   "billCharges": {
     "title": "Frais sur l’addition",

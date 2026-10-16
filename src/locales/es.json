@@ -4201,7 +4201,8 @@
   "amendmentHelp": {
     "paymentHeld": "Un pago de esta mesa sigue esperando un resultado confirmado. Abre la cuenta y comprueba el pago pendiente. No vuelvas a cobrarlo. Las modificaciones estarán disponibles cuando se confirme el resultado.",
     "correctionPending": "Una corrección anterior requiere comprobar un pago o reembolso. Abre el historial de modificaciones y termina esa corrección antes de iniciar otra.",
-    "refundReview": "Un responsable debe cotejar los reembolsos con el pago o el recibo del terminal. Las modificaciones siguen bloqueadas hasta que coincidan los datos."
+    "refundReview": "Un responsable debe cotejar los reembolsos con el pago o el recibo del terminal. Las modificaciones siguen bloqueadas hasta que coincidan los datos.",
+    "balanceReview": "El saldo y una corrección anterior no coinciden. Pide a un responsable que compare el historial de cambios con la cuenta y los recibos de pago o reembolso. Si todo está confirmado, contacta con soporte e indica el número de pedido. Actualizar no elimina este bloqueo."
   },
   "billCharges": {
     "title": "Cargos de la cuenta",

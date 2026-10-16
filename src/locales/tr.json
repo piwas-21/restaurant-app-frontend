@@ -4188,7 +4188,8 @@
   "amendmentHelp": {
     "paymentHeld": "Bu masanın bir ödemesi hâlâ onaylanmış sonuç bekliyor. Masa hesabını açıp bekleyen ödemeyi kontrol edin. Ödemeyi tekrar almayın. Sonuç onaylanınca sipariş değişiklikleri açılır.",
     "correctionPending": "Önceki bir sipariş düzeltmesi için ödeme veya iade kontrolü gerekiyor. Değişiklik geçmişini açıp yeni bir değişiklikten önce bu düzeltmeyi tamamlayın.",
-    "refundReview": "Bir yetkilinin iade kayıtlarını ödeme veya terminal fişiyle karşılaştırması gerekiyor. Kayıtlar uyuşana kadar sipariş değiştirilemez."
+    "refundReview": "Bir yetkilinin iade kayıtlarını ödeme veya terminal fişiyle karşılaştırması gerekiyor. Kayıtlar uyuşana kadar sipariş değiştirilemez.",
+    "balanceReview": "Hesap bakiyesi ile önceki bir düzeltme uyuşmuyor. Bir yönetici değişiklik geçmişini hesap ve ödeme veya iade makbuzlarıyla karşılaştırmalı. Tüm kayıtlar onaylıysa sipariş numarasıyla desteğe başvurun. Yenilemek tek başına bu engeli kaldırmaz."
   },
   "billCharges": {
     "title": "Hesap ek ücretleri",

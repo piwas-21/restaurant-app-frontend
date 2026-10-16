@@ -4188,7 +4188,8 @@
   "amendmentHelp": {
     "paymentHeld": "Een betaling voor deze tafel wacht nog op een bevestigd resultaat. Open de tafelrekening en controleer de openstaande betaling. Neem de betaling niet opnieuw aan. Wijzigingen komen beschikbaar zodra het resultaat is bevestigd.",
     "correctionPending": "Een eerdere bestelwijziging vereist nog controle van een betaling of terugbetaling. Open de wijzigingsgeschiedenis en rond die wijziging eerst af.",
-    "refundReview": "Een manager moet de terugbetalingen vergelijken met de betaling of de terminalbon. Wijzigingen blijven geblokkeerd totdat de gegevens overeenkomen."
+    "refundReview": "Een manager moet de terugbetalingen vergelijken met de betaling of de terminalbon. Wijzigingen blijven geblokkeerd totdat de gegevens overeenkomen.",
+    "balanceReview": "Het rekeningsaldo en een eerdere correctie komen niet overeen. Laat een manager de wijzigingsgeschiedenis vergelijken met de rekening en betaal- of terugbetalingsbewijzen. Is alles bevestigd, neem dan contact op met support met het bestelnummer. Vernieuwen alleen heft de blokkade niet op."
   },
   "billCharges": {
     "title": "Kosten op de rekening",

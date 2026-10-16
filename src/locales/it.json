@@ -4201,7 +4201,8 @@
   "amendmentHelp": {
     "paymentHeld": "Un pagamento di questo tavolo attende ancora un risultato confermato. Apri il conto e controlla il pagamento in sospeso. Non incassarlo di nuovo. Le modifiche saranno disponibili dopo la conferma.",
     "correctionPending": "Una correzione precedente richiede ancora un controllo del pagamento o del rimborso. Apri la cronologia delle modifiche e completa prima quella correzione.",
-    "refundReview": "Un responsabile deve confrontare i rimborsi con il pagamento o la ricevuta del terminale. Le modifiche restano bloccate finché i dati non coincidono."
+    "refundReview": "Un responsabile deve confrontare i rimborsi con il pagamento o la ricevuta del terminale. Le modifiche restano bloccate finché i dati non coincidono.",
+    "balanceReview": "Il saldo e una correzione precedente non coincidono. Chiedi a un responsabile di confrontare lo storico delle modifiche con il conto e le ricevute di pagamento o rimborso. Se tutto è confermato, contatta l’assistenza con il numero d’ordine. Aggiornare da solo non rimuove il blocco."
   },
   "billCharges": {
     "title": "Supplementi sul conto",

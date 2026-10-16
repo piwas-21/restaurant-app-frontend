@@ -1,3 +1,4 @@
+import { openStaffVisit } from '../helpers/openStaffVisit';
 import { joinGuestByQr, expectOldGuestDenied, readGuestParticipantToken } from '../helpers/guestQrJoin';
 import {
   expect,
@@ -52,6 +53,7 @@ interface OpenSession {
 interface CreatedRound {
   readonly id: string;
   readonly orderNumber: string;
+  readonly dailyOrderNumber: number;
   readonly serviceSessionId: string;
 }
 
@@ -147,6 +149,7 @@ async function addRound(
     () => page.getByRole('button', { name: 'Send to kitchen', exact: true }).click(),
   );
   expect(round.serviceSessionId.toLowerCase()).toBe(sessionId.toLowerCase());
+  expect(round.dailyOrderNumber).toBeGreaterThan(0);
   expect(round.status).toBe('Confirmed');
   expect(round.isKitchenReleased).toBe(true);
   return round;
@@ -155,13 +158,13 @@ async function addRound(
 function orderCard(board: Page, order: CreatedRound): Locator {
   return board
     .getByRole('article')
-    .filter({ has: board.getByRole('heading', { name: `Order ${order.orderNumber}`, exact: true }) });
+    .filter({ has: board.getByRole('heading', { name: `Order ${order.dailyOrderNumber}`, exact: true }) });
 }
 
-function correctionCard(board: Page, orderNumber: string): Locator {
+function correctionCard(board: Page, dailyOrderNumber: number): Locator {
   return board
     .getByRole('article')
-    .filter({ has: board.getByRole('heading', { name: `Correction for order ${orderNumber}`, exact: true }) });
+    .filter({ has: board.getByRole('heading', { name: `Correction for order ${dailyOrderNumber}`, exact: true }) });
 }
 
 async function refreshBoard(board: Page): Promise<void> {
@@ -368,9 +371,7 @@ p11Test(
 
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
       await markTableReady(server.page, table.tableId);
-      const session = await requirePostData<OpenSession>(server.page, /^\/api\/table-service-sessions$/, () =>
-        server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
-      );
+      const session = await openStaffVisit(server.page, table.tableId);
       expect(session.status).toBe('Open');
 
       const firstRound = await addRound(server.page, table, session.serviceSessionId, 2);
@@ -422,7 +423,7 @@ p11Test(
       expect(partialCorrection?.orderVersion).toBeGreaterThan(0);
       expect(partialCorrection?.changes).toHaveLength(1);
       expect(partialCorrection?.changes[0]?.kind).toBe('Void');
-      await expect(correctionCard(board, firstRound.orderNumber)).toBeVisible();
+      await expect(correctionCard(board, firstRound.dailyOrderNumber)).toBeVisible();
       await expectHandoverReason(
         server.page,
         api,
@@ -431,7 +432,7 @@ p11Test(
         CORRECTION_HANDOVER_BLOCK,
       );
 
-      const partialCard = correctionCard(board, firstRound.orderNumber);
+      const partialCard = correctionCard(board, firstRound.dailyOrderNumber);
       const acknowledgeCorrection = partialCard.getByRole('button', { name: 'Acknowledge correction', exact: true });
       await expect(acknowledgeCorrection).toBeVisible();
       await expect(acknowledgeCorrection).toBeEnabled();
@@ -466,7 +467,7 @@ p11Test(
       });
       expect(fullVoidCorrection?.changes).toHaveLength(1);
       expect(fullVoidCorrection?.changes[0]?.kind).toBe('Void');
-      await expect(correctionCard(board, firstRound.orderNumber)).toBeVisible();
+      await expect(correctionCard(board, firstRound.dailyOrderNumber)).toBeVisible();
 
       guest = await openGuestContext(browser, baseURL);
       contexts.push(guest.context);
@@ -489,6 +490,7 @@ p11Test(
       await deliverTask(server.page, secondRound);
 
       await cashier.page.goto(`/en/cashier/tables?session=${encodeURIComponent(session.serviceSessionId)}`);
+      await cashier.page.getByRole('link', { name: 'Collect payment', exact: true }).click();
       const collection = cashier.page.getByRole('region', { name: 'Collect a contribution' });
       await expect(collection).toBeVisible();
       const reserveResponsePromise = cashier.page.waitForResponse(
@@ -556,7 +558,7 @@ p11Test(
       const correctionCloseAlert = server.page.getByRole('alert').filter({ hasText: CORRECTION_CLOSE_BLOCK });
       await expect(correctionCloseAlert).toHaveText(CORRECTION_CLOSE_BLOCK);
 
-      const fullVoidCard = correctionCard(board, firstRound.orderNumber);
+      const fullVoidCard = correctionCard(board, firstRound.dailyOrderNumber);
       await expect(fullVoidCard.getByRole('button', { name: 'Acknowledge correction', exact: true })).toBeVisible();
       if (!fullVoidCorrection?.accountRevision) throw new Error('P11 terminal correction revision was not returned.');
       await acknowledgeCorrectionWork(board, fullVoidCorrection);
@@ -587,9 +589,7 @@ p11Test(
       await assertPrivateDeviceAndCompletionEvidence(orderIds, expectedCompletions);
       await server.page.goto(`/en/server/tables/${encodeURIComponent(table.tableId)}`);
       await markTableReady(server.page, table.tableId);
-      const nextSession = await requirePostData<OpenSession>(server.page, /^\/api\/table-service-sessions$/, () =>
-        server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
-      );
+      const nextSession = await openStaffVisit(server.page, table.tableId);
       expect(nextSession.status).toBe('Open');
       expect(nextSession.serviceSessionId.toLowerCase()).not.toBe(session.serviceSessionId.toLowerCase());
 

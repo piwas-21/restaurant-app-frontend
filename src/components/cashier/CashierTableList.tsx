@@ -2,19 +2,14 @@
 
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
+import StaffTableCard from '@/components/table-service/StaffTableCard';
+import gridStyles from '@/components/table-service/StaffTableCard.module.css';
 import type { CashierTableEntry } from '@/hooks/cashier/useCashierTables';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
 import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
 import { sessionTableDisplay, tableStatusLabel } from '@/lib/cashierTableLabels';
 import styles from './CashierTableList.module.css';
-
-type BadgeTone = 'success' | 'warning' | 'neutral';
-
-function tone(status: CashierTableEntry['status']): BadgeTone {
-  if (status === 'occupied' || status === 'legacy' || status === 'reserved' || status === 'conflict') return 'warning';
-  if (status === 'available') return 'success';
-  return 'neutral';
-}
+import { staffTableStatusTone } from '@/lib/staffTableStatus';
 
 interface CashierTableListProps {
   readonly entries: readonly CashierTableEntry[];
@@ -35,7 +30,7 @@ export default function CashierTableList({
   if (entries.length === 0) return <p className={styles.empty}>{t('cashier.tables.no_tables')}</p>;
 
   return (
-    <ul className={styles.list} aria-label={t('cashier.tables.list_label')}>
+    <ul className={gridStyles.grid} aria-label={t('cashier.tables.list_label')}>
       {entries.map((entry) => {
         const { table, session, status } = entry;
         const number = table.tableNumber;
@@ -63,20 +58,16 @@ export default function CashierTableList({
           : null;
         return (
           <li key={table.id} className={styles.item}>
-            <button
-              type="button"
-              className={styles.card}
-              aria-pressed={selected}
-              aria-label={accessibleLabel}
-              onClick={() => onSelectTable(number, session?.serviceSessionId)}
+            <StaffTableCard
+              label={displayName}
+              status={tableStatusLabel(status, t)}
+              tone={staffTableStatusTone(status)}
+              selected={selected}
+              accessibleLabel={accessibleLabel}
+              actionLabel={status === 'available' ? t('staff.add_order') : t('server.open_table')}
+              onSelect={() => onSelectTable(number, session?.serviceSessionId)}
               disabled={disabled}
             >
-              <span className={styles.header}>
-                <span className={styles.number} dir="auto">
-                  {displayName}
-                </span>
-                <StatusBadge tone={tone(status)}>{tableStatusLabel(status, t)}</StatusBadge>
-              </span>
               <span className={styles.meta}>
                 <span>{t('cashier.tables.capacity', { count: table.maxGuests })}</span>
                 {session && (
@@ -112,7 +103,7 @@ export default function CashierTableList({
                 <span>{t('cashier.tables.outstanding')}</span>
                 <strong>{balance}</strong>
               </span>
-            </button>
+            </StaffTableCard>
           </li>
         );
       })}

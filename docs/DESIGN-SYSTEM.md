@@ -4,6 +4,15 @@
 
 ---
 
+## Staff table cards
+
+Cashier and Server table lists share `components/table-service/StaffTableCard.tsx` and its
+responsive grid. Each role adapts its authoritative table/session response into the same status,
+capacity, balance and primary-action hierarchy. Available-table selection uses
+`useStartStaffTableOrder` to open a visit through the API before entering its composer, with
+concurrent starts blocked. Keep role permissions and payment/recovery guards in the adapters.
+Archived prior-day warnings and released-visit review panels are not part of the staff workspace.
+
 ## 1. Token Architecture
 
 Feedback notices use `--feedback-*-xlight` backgrounds with `--text-primary` or the matching

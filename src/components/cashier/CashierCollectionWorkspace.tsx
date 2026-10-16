@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useStaffNavigationLock } from '@/hooks/table-service/useStaffNavigationLock';
+
+import { useCallback, useState } from 'react';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
@@ -58,17 +60,7 @@ export default function CashierCollectionWorkspace() {
 
   // App-router has no beforePopState equivalent. Restore the guarded URL before Next can consume
   // a browser Back/Forward event; the submitted operation remains in sessionStorage meanwhile.
-  useEffect(() => {
-    if (!navigationDisabled || typeof window === 'undefined') return;
-    const guardedUrl = window.location.href;
-    const preventPopState = (event: PopStateEvent) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      window.history.pushState(window.history.state, '', guardedUrl);
-    };
-    window.addEventListener('popstate', preventPopState, true);
-    return () => window.removeEventListener('popstate', preventPopState, true);
-  }, [navigationDisabled]);
+  useStaffNavigationLock(navigationDisabled);
 
   const hasOutcome = Boolean(
     collection.order && collection.outcomeOrderId?.toLowerCase() === collection.order.id.toLowerCase(),

@@ -3,11 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TableServiceSessionDto } from '@/types/order';
 import { getCashierTables } from '@/services/server/tables';
-import {
-  getActiveTableServiceSessions,
-  getReleasedTableServiceSessions,
-  openTableServiceSession,
-} from '@/services/tableServiceSessionService';
+import { getActiveTableServiceSessions, openTableServiceSession } from '@/services/tableServiceSessionService';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
 import { getErrorMessage } from '@/utils/apiClient';
 import { tableNumberKey } from '@/lib/cashierTableSession';
@@ -20,7 +16,6 @@ export { hasLegacyTableOrders } from '@/lib/cashierTableEntries';
 
 export interface CashierTablesState {
   readonly entries: readonly CashierTableEntry[];
-  readonly releasedSessions: readonly TableServiceSessionDto[];
   readonly queueState: 'loading' | 'ready' | 'stale' | 'unavailable';
   readonly isLoading: boolean;
   readonly isMutating: boolean;
@@ -42,7 +37,6 @@ async function openResolvedTableSession(tableId: string, tableNumber: string): P
 export function useCashierTables(): CashierTablesState {
   const { tableVisitReadinessV1 = false } = useTenantFeatures();
   const [entries, setEntries] = useState<CashierTableEntry[]>([]);
-  const [releasedSessions, setReleasedSessions] = useState<TableServiceSessionDto[]>([]);
   const [queueState, setQueueState] = useState<CashierTablesState['queueState']>('loading');
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
@@ -71,15 +65,10 @@ export function useCashierTables(): CashierTablesState {
       setIsLoading(true);
       setError(null);
       try {
-        const [tables, sessions, released] = await Promise.all([
-          getCashierTables(),
-          getActiveTableServiceSessions(),
-          getReleasedTableServiceSessions(),
-        ]);
+        const [tables, sessions] = await Promise.all([getCashierTables(), getActiveTableServiceSessions()]);
         if (!mountedRef.current || requestId !== requestRef.current) return;
         const merged = mergeCashierTableEntries(tables, sessions, tableVisitReadinessV1);
         setEntries(merged);
-        setReleasedSessions(released);
         hasEntriesRef.current = merged.length > 0;
         setQueueState('ready');
       } catch (reason: unknown) {
@@ -166,7 +155,6 @@ export function useCashierTables(): CashierTablesState {
 
   return {
     entries,
-    releasedSessions,
     queueState,
     isLoading,
     isMutating,

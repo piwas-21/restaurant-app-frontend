@@ -19,6 +19,13 @@ export default function TableGuestQrJoin({ qrCodeData, tableId, tableLabel }: Ta
   const [error, setError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
 
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const attempted = useRef(false);
   const handleJoin = async () => {
     setIsJoining(true);
@@ -26,6 +33,7 @@ export default function TableGuestQrJoin({ qrCodeData, tableId, tableLabel }: Ta
     try {
       await joinVisit(qrCodeData, tableId);
     } catch (joinError) {
+      if (!mounted.current) return;
       reportTableGuestFailure('join visit', joinError);
       setError(t('table_guest_qr_join_failed'));
       setIsJoining(false);

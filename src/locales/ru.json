@@ -4213,6 +4213,7 @@
   "staff_table_tools": "Инструменты столов",
   "staff_cancel_confirm": "Отменить этот заказ? Его история сохранится.",
   "staff_cancel_reason": "Причина (необязательно)",
+  "staff_cancel_reason_too_long": "Причина должна содержать не более {{max}} символов.",
   "staff_table_search": "Поиск столов",
   "staff_order_updated": "Обновлён"
 }

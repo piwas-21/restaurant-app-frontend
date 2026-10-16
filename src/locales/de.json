@@ -4187,6 +4187,7 @@
   "staff_table_tools": "Tischwerkzeuge",
   "staff_cancel_confirm": "Diese Bestellung stornieren? Der Verlauf bleibt erhalten.",
   "staff_cancel_reason": "Grund (optional)",
+  "staff_cancel_reason_too_long": "Der Grund darf höchstens {{max}} Zeichen enthalten.",
   "staff_table_search": "Tische suchen",
   "staff_order_updated": "Aktualisiert"
 }

@@ -4200,6 +4200,7 @@
   "staff_table_tools": "Outils des tables",
   "staff_cancel_confirm": "Annuler cette commande ? Son historique sera conservé.",
   "staff_cancel_reason": "Motif (facultatif)",
+  "staff_cancel_reason_too_long": "Limitez le motif à {{max}} caractères.",
   "staff_table_search": "Rechercher une table",
   "staff_order_updated": "Modifiée"
 }

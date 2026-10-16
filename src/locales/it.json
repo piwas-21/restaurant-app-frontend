@@ -4200,6 +4200,7 @@
   "staff_table_tools": "Strumenti tavoli",
   "staff_cancel_confirm": "Annullare questo ordine? La cronologia sarà conservata.",
   "staff_cancel_reason": "Motivo (facoltativo)",
+  "staff_cancel_reason_too_long": "Il motivo deve contenere al massimo {{max}} caratteri.",
   "staff_table_search": "Cerca tavoli",
   "staff_order_updated": "Aggiornato"
 }

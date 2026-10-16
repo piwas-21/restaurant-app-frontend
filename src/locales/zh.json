@@ -4174,6 +4174,7 @@
   "staff_table_tools": "餐桌工具",
   "staff_cancel_confirm": "取消此订单？历史记录将保留。",
   "staff_cancel_reason": "原因（可选）",
+  "staff_cancel_reason_too_long": "原因不能超过 {{max}} 个字符。",
   "staff_table_search": "搜索餐桌",
   "staff_order_updated": "已更新"
 }

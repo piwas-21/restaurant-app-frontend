@@ -4187,6 +4187,7 @@
   "staff_table_tools": "Masa araçları",
   "staff_cancel_confirm": "Bu sipariş iptal edilsin mi? Geçmişi korunacak.",
   "staff_cancel_reason": "Neden (isteğe bağlı)",
+  "staff_cancel_reason_too_long": "Neden en fazla {{max}} karakter olmalıdır.",
   "staff_table_search": "Masa ara",
   "staff_order_updated": "Güncellendi"
 }

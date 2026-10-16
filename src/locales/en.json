@@ -4187,6 +4187,7 @@
   "staff_table_tools": "Table tools",
   "staff_cancel_confirm": "Cancel this order? Its history will be kept.",
   "staff_cancel_reason": "Reason (optional)",
+  "staff_cancel_reason_too_long": "Keep the reason to {{max}} characters or fewer.",
   "staff_table_search": "Search tables",
   "staff_order_updated": "Updated"
 }

@@ -4239,6 +4239,7 @@
   "staff_table_tools": "أدوات الطاولات",
   "staff_cancel_confirm": "هل تريد إلغاء هذا الطلب؟ سيتم الاحتفاظ بسجله.",
   "staff_cancel_reason": "السبب (اختياري)",
+  "staff_cancel_reason_too_long": "يجب ألا يتجاوز السبب {{max}} حرفًا.",
   "staff_table_search": "البحث عن طاولات",
   "staff_order_updated": "تم التحديث"
 }

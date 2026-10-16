@@ -50,3 +50,12 @@ it('requires a fresh snapshot and an allowed server capability', () => {
   view.rerender(<OrderCancelAction order={{ ...order, permittedActions: [] }} onChanged={jest.fn()} />);
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
 });
+
+it('validates oversized input before sending a cancellation', async () => {
+  render(<OrderCancelAction order={order} onChanged={jest.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cancel_order' }));
+  fireEvent.change(screen.getByLabelText('staff_cancel_reason'), { target: { value: 'x'.repeat(501) } });
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'cancel_order' }));
+  expect(await screen.findByText('staff_cancel_reason_too_long')).toBeInTheDocument();
+  expect(cancelOrder).not.toHaveBeenCalled();
+});

@@ -87,7 +87,7 @@
 }
 
 .successMessage {
-  color: var(--success-color-dark);
+  color: var(--feedback-success-text);
   font-size: 0.875rem;
   margin-bottom: 1rem;
   background-color: var(--success-color-xlight);

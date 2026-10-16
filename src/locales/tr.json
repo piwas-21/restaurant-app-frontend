@@ -2750,7 +2750,6 @@
   "cashier.tables.no_session": "Bu masa için açık servis ziyareti yok.",
   "cashier.tables.no_tables": "Yapılandırılmış masa yok.",
   "cashier.tables.open_failed": "Masa ziyareti açılamadı.",
-  "cashier.tables.open_session": "Masa ziyareti aç",
   "cashier.tables.opened": "Açılış {{time}}",
   "cashier.tables.opening": "Açılıyor…",
   "cashier.tables.operation_checking": "İşlem kontrol ediliyor…",
@@ -2838,8 +2837,6 @@
   "order_type_unavailable": "Bu sipariş türü şu anda kullanılamıyor. Başka bir seçenek belirleyin veya tekrar deneyin.",
   "change_order_type": "Sipariş türünü değiştir",
   "order_type_not_available_now": "Bu sipariş türü şu anda kullanılamıyor. Çalışma saatlerini kontrol edip tekrar deneyin.",
-  "cashier.workspace.status_control": "Sipariş durumunu değiştir",
-  "cashier.workspace.update_status": "Durumu güncelle",
   "cashier.workspace.prior_day_loading": "Daha fazla sipariş yükleniyor…",
   "cashier.workspace.prior_day_load_more": "Önceki günlerden daha fazla sipariş yükle",
   "cashier.workspace.not_authorized": "Kasa çalışma alanına erişiminiz yok.",
@@ -4198,5 +4195,9 @@
     "confirm": "Misafirler ayrıldı; {{table}} masası temiz ve yeni misafirlere hazır.",
     "balance": "Önceki ziyaretin kalan tutarı: {{amount}}.",
     "guests_left": "Misafirler ayrıldı"
-  }
+  },
+  "staff.add_order": "Sipariş ekle",
+  "staff.table_add_order_hint": "Bu masa için ürünleri seçin. Masa oturumu otomatik başlar.",
+  "order_type_outside_opening_hours": "Restoran şu anda çalışma saatleri dışında olduğu için sipariş verilemiyor. Lütfen çalışma saatleri içinde sipariş verin.",
+  "cashier.workspace.set_status": "{{status}} olarak işaretle"
 }

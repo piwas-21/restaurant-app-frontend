@@ -2750,7 +2750,6 @@
   "cashier.tables.no_session": "No service visit is open for this table.",
   "cashier.tables.no_tables": "No tables are configured.",
   "cashier.tables.open_failed": "The table visit could not be opened.",
-  "cashier.tables.open_session": "Open table visit",
   "cashier.tables.opened": "Opened {{time}}",
   "cashier.tables.opening": "Opening…",
   "cashier.tables.operation_checking": "Checking the operation…",
@@ -2838,8 +2837,6 @@
   "order_type_unavailable": "This order type is unavailable right now. Choose another option or retry.",
   "change_order_type": "Change order type",
   "order_type_not_available_now": "This order type is not available right now. Check current opening hours and try again.",
-  "cashier.workspace.status_control": "Change order status",
-  "cashier.workspace.update_status": "Update status",
   "cashier.workspace.prior_day_loading": "Loading more orders…",
   "cashier.workspace.prior_day_load_more": "Load more prior-day orders",
   "cashier.workspace.not_authorized": "You do not have access to the cashier workspace.",
@@ -4198,5 +4195,9 @@
     "confirm": "The guests have left and table {{table}} is cleaned and ready for the next guests.",
     "balance": "Remaining on the previous visit: {{amount}}.",
     "guests_left": "Guests have left"
-  }
+  },
+  "staff.add_order": "Add order",
+  "staff.table_add_order_hint": "Choose items for this table. The visit starts automatically.",
+  "order_type_outside_opening_hours": "The restaurant is currently outside its opening hours, so ordering is unavailable. Please order during opening hours.",
+  "cashier.workspace.set_status": "Mark as {{status}}"
 }

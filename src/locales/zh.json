@@ -2747,7 +2747,6 @@
   "cashier.tables.no_session": "此桌没有打开的服务会话。",
   "cashier.tables.no_tables": "未配置餐桌。",
   "cashier.tables.open_failed": "无法打开桌台会话。",
-  "cashier.tables.open_session": "打开桌台会话",
   "cashier.tables.opened": "打开时间 {{time}}",
   "cashier.tables.opening": "正在打开…",
   "cashier.tables.operation_checking": "正在检查操作…",
@@ -2831,8 +2830,6 @@
   "order_type_unavailable": "此订单类型目前不可用。请选择其他选项或重试。",
   "change_order_type": "更改订单类型",
   "order_type_not_available_now": "此订单类型目前不可用。请查看营业时间后重试。",
-  "cashier.workspace.status_control": "更改订单状态",
-  "cashier.workspace.update_status": "更新状态",
   "cashier.workspace.prior_day_loading": "正在加载更多订单…",
   "cashier.workspace.prior_day_load_more": "加载更多之前日期的订单",
   "cashier.workspace.not_authorized": "您无权访问收银工作区。",
@@ -4185,5 +4182,9 @@
     "confirm": "客人已离开，{{table}}号桌已清洁，可接待下一批客人。",
     "balance": "上次用餐的剩余金额：{{amount}}。",
     "guests_left": "客人已离开"
-  }
+  },
+  "staff.add_order": "添加订单",
+  "staff.table_add_order_hint": "为此餐桌选择菜品，用餐记录将自动开始。",
+  "order_type_outside_opening_hours": "餐厅目前处于非营业时间，暂时无法下单。请在营业时间内下单。",
+  "cashier.workspace.set_status": "标记为{{status}}"
 }

@@ -104,7 +104,7 @@ export const ORDER_STATUSES: readonly OrderStatus[] = Object.keys(ORDER_STATUS_M
 export const ORDER_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
   Pending: ['Confirmed', 'PendingApproval', 'Cancelled'],
   PendingApproval: ['Confirmed', 'Cancelled'],
-  Confirmed: ['Preparing', 'Cancelled'],
+  Confirmed: ['Preparing', 'Ready', 'Cancelled'],
   Preparing: ['Ready', 'Cancelled'],
   Ready: ['OutForDelivery', 'Completed', 'Cancelled'],
   OutForDelivery: ['Completed', 'Cancelled'],

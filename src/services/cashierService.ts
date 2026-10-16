@@ -182,10 +182,10 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
 /**
  * Update order status
  */
-export async function updateOrderStatus(orderId: string, status: string): Promise<OrderDto> {
+export async function updateOrderStatus(orderId: string, status: string, expectedVersion?: number): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
-    { orderId, newStatus: status },
+    { orderId, newStatus: status, expectedVersion },
     { requireAuth: true },
   );
 

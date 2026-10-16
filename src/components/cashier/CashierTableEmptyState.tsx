@@ -46,7 +46,7 @@ export default function CashierTableEmptyState({
   } else if (entry.status === 'reserved') {
     message = t('cashier.tables.reserved_table');
   } else if (canOpen) {
-    message = t('cashier.tables.no_session');
+    message = t('staff.table_add_order_hint');
   }
   return (
     <section className={styles.session} aria-labelledby="cashier-table-empty-title">
@@ -66,7 +66,7 @@ export default function CashierTableEmptyState({
       <p>{message}</p>
       {canOpen && (
         <StaffButton variant="primary" onClick={onOpenSession} disabled={tableActionLocked}>
-          {isOpening ? t('cashier.tables.opening') : t('cashier.tables.open_session')}
+          {isOpening ? t('cashier.tables.opening') : t('staff.add_order')}
         </StaffButton>
       )}
       {(entry.status === 'legacy' || entry.status === 'conflict') && (

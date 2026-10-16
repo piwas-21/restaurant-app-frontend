@@ -353,7 +353,7 @@
 
 .usageWarning {
   background: var(--warning-color-xlight, #fef3c7);
-  color: var(--warning-color-dark, #d97706);
+  color: var(--feedback-warning-text);
   font-weight: 600;
 }
 

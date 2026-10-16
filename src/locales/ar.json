@@ -2762,7 +2762,6 @@
   "cashier.tables.no_session": "لا توجد زيارة خدمة مفتوحة لهذه الطاولة.",
   "cashier.tables.no_tables": "لا توجد طاولات مُهيأة.",
   "cashier.tables.open_failed": "تعذر فتح زيارة الطاولة.",
-  "cashier.tables.open_session": "فتح زيارة الطاولة",
   "cashier.tables.opened": "فُتحت {{time}}",
   "cashier.tables.opening": "جارٍ الفتح…",
   "cashier.tables.operation_checking": "جارٍ التحقق من العملية…",
@@ -2866,8 +2865,6 @@
   "order_type_unavailable": "نوع الطلب هذا غير متاح حاليًا. اختر خيارًا آخر أو أعد المحاولة.",
   "change_order_type": "تغيير نوع الطلب",
   "order_type_not_available_now": "نوع الطلب هذا غير متاح حاليًا. تحقّق من ساعات العمل وحاول مرة أخرى.",
-  "cashier.workspace.status_control": "تغيير حالة الطلب",
-  "cashier.workspace.update_status": "تحديث الحالة",
   "cashier.workspace.prior_day_loading": "جارٍ تحميل المزيد من الطلبات…",
   "cashier.workspace.prior_day_load_more": "تحميل المزيد من طلبات الأيام السابقة",
   "cashier.workspace.not_authorized": "ليست لديك صلاحية الوصول إلى مساحة عمل الكاشير.",
@@ -4250,5 +4247,9 @@
     "confirm": "غادر الضيوف والطاولة {{table}} نظيفة وجاهزة للضيوف القادمين.",
     "balance": "المتبقي من الزيارة السابقة: {{amount}}.",
     "guests_left": "غادر الضيوف"
-  }
+  },
+  "staff.add_order": "إضافة طلب",
+  "staff.table_add_order_hint": "اختر الأصناف لهذه الطاولة. تبدأ الزيارة تلقائياً.",
+  "order_type_outside_opening_hours": "المطعم مغلق حالياً خارج ساعات العمل، لذلك لا يمكن تقديم طلب. يرجى الطلب خلال ساعات العمل.",
+  "cashier.workspace.set_status": "تعيين الحالة إلى {{status}}"
 }

@@ -2750,7 +2750,6 @@
   "cashier.tables.no_session": "Er is geen servicebezoek geopend voor deze tafel.",
   "cashier.tables.no_tables": "Geen tafels geconfigureerd.",
   "cashier.tables.open_failed": "Het tafelbezoek kon niet worden geopend.",
-  "cashier.tables.open_session": "Tafelbezoek openen",
   "cashier.tables.opened": "Geopend {{time}}",
   "cashier.tables.opening": "Openen…",
   "cashier.tables.operation_checking": "Bewerking controleren…",
@@ -2838,8 +2837,6 @@
   "order_type_unavailable": "Dit type bestelling is nu niet beschikbaar. Kies een andere optie of probeer het opnieuw.",
   "change_order_type": "Wijzig besteltype",
   "order_type_not_available_now": "Dit besteltype is momenteel niet beschikbaar. Controleer de openingstijden en probeer opnieuw.",
-  "cashier.workspace.status_control": "Bestelstatus wijzigen",
-  "cashier.workspace.update_status": "Status bijwerken",
   "cashier.workspace.prior_day_loading": "Meer bestellingen laden…",
   "cashier.workspace.prior_day_load_more": "Meer bestellingen van eerdere dagen laden",
   "cashier.workspace.not_authorized": "U heeft geen toegang tot de kassawerkruimte.",
@@ -4198,5 +4195,9 @@
     "confirm": "De gasten zijn vertrokken en tafel {{table}} is schoongemaakt en klaar voor nieuwe gasten.",
     "balance": "Resterend op het vorige bezoek: {{amount}}.",
     "guests_left": "Gasten zijn vertrokken"
-  }
+  },
+  "staff.add_order": "Bestelling toevoegen",
+  "staff.table_add_order_hint": "Kies artikelen voor deze tafel. Het bezoek start automatisch.",
+  "order_type_outside_opening_hours": "Het restaurant is nu gesloten. Bestellen kan tijdens de openingstijden.",
+  "cashier.workspace.set_status": "Markeren als {{status}}"
 }

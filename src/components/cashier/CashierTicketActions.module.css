@@ -10,16 +10,6 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-.statusControl {
-  align-items: end;
-  display: flex;
-  flex: 1 1 20rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.statusControl > div {
-  flex: 1 1 10rem;
-}
 .actionButton {
   align-items: center;
   background: var(--surface-primary);

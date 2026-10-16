@@ -142,13 +142,13 @@
 
 .orderStatusActive {
   background-color: var(--warning-color-xlight);
-  color: var(--warning-color-dark);
+  color: var(--feedback-warning-text);
   border: 1px solid var(--warning-color-light);
 }
 
 .orderStatusAllServed {
   background-color: var(--success-color-xlight);
-  color: var(--success-color-dark);
+  color: var(--feedback-success-text);
   border: 1px solid var(--success-color-light);
 }
 
@@ -216,19 +216,19 @@
 
 .statusInKitchen {
   background-color: var(--info-color-xlight);
-  color: var(--info-color-dark);
+  color: var(--feedback-info-text);
   border: 1px solid var(--info-color-light);
 }
 
 .statusReadyForPickup {
   background-color: var(--warning-color-xlight);
-  color: var(--warning-color-dark);
+  color: var(--feedback-warning-text);
   border: 1px solid var(--warning-color-light);
 }
 
 .statusServedToTable {
   background-color: var(--success-color-xlight);
-  color: var(--success-color-dark);
+  color: var(--feedback-success-text);
   border: 1px solid var(--success-color-light);
 }
 

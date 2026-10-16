@@ -322,8 +322,10 @@ describe('AdminPriceEditor colour pairs', () => {
     expect(contrast(light['--feedback-success'], light['--surface-secondary-light'])).toBeLessThan(AA_TEXT);
     expect(contrast(light['--feedback-success'], light['--feedback-success-xlight'])).toBeLessThan(AA_TEXT);
 
-    // Neither fill is redeclared for dark — that is what makes the dark reading the worst one.
-    expect(dark['--feedback-success-xlight']).toBeUndefined();
+    // The shared tint now adapts, while the old dark fill remains unsafe for the surcharge.
+    expect(contrast(dark['--feedback-success-text'], dark['--feedback-success-xlight'])).toBeGreaterThanOrEqual(
+      AA_TEXT,
+    );
     expect(dark['--feedback-success-dark']).toBeUndefined();
     expect(contrast(dark['--feedback-success'], light['--feedback-success-dark'])).toBeLessThan(AA_TEXT);
   });

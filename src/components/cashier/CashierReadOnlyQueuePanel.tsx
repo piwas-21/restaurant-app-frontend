@@ -47,7 +47,6 @@ interface CashierReadOnlyQueuePanelProps {
   readonly onMarketplaceOnlyFilterChange?: (value: boolean) => void;
   readonly onPageChange: (page: number) => void;
   readonly onPageSizeChange?: (pageSize: number) => void;
-  readonly onCollectSession?: (serviceSessionId: string) => void;
   readonly onRetry?: () => void;
 }
 
@@ -77,7 +76,6 @@ export default function CashierReadOnlyQueuePanel({
   onMarketplaceOnlyFilterChange,
   onPageChange,
   onPageSizeChange,
-  onCollectSession,
   onRetry,
 }: CashierReadOnlyQueuePanelProps) {
   const { t } = useTranslation();
@@ -225,7 +223,6 @@ export default function CashierReadOnlyQueuePanel({
             timeZone={timeZone}
             onSelectOrder={onSelectOrder}
             onOrderRowRef={onOrderRowRef}
-            onCollectSession={onCollectSession}
           />
         )}
         {!showGroups && orders.length > 0 && (

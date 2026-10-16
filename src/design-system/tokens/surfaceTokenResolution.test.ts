@@ -251,3 +251,48 @@ describe('no interactive surface collapses into its own parent', () => {
     expect(body.replace(/\/\*[\s\S]*?\*\//g, '')).toContain(`var(${token})`);
   });
 });
+
+/** Feedback fills inherit across templates, so resolve the full CSS token cascade. */
+describe('feedback surface contrast in every template and theme', () => {
+  const resolved = {
+    'classic light': THEMES['classic light'],
+    'classic dark': { ...THEMES['classic light'], ...THEMES['classic dark'] },
+    'craft light': { ...THEMES['classic light'], ...THEMES['craft light'] },
+    'craft dark': {
+      ...THEMES['classic light'],
+      ...THEMES['craft light'],
+      ...THEMES['classic dark'],
+      ...THEMES['craft dark'],
+    },
+  };
+  const pairs = [
+    ['--text-primary', '--feedback-warning-xlight'],
+    ['--text-primary', '--feedback-info-xlight'],
+    ['--text-primary', '--feedback-success-xlight'],
+    ['--text-primary', '--feedback-danger-xlight'],
+    ['--feedback-warning-text', '--feedback-warning-xlight'],
+    ['--feedback-info-text', '--feedback-info-xlight'],
+    ['--feedback-success-text', '--feedback-success-xlight'],
+    ['--feedback-danger-dark', '--feedback-danger-xlight'],
+    ['--text-on-accent', '--feedback-info-dark'],
+  ];
+  for (const [name, tokens] of Object.entries(resolved)) {
+    for (const [text, surface] of pairs) {
+      it(`${name}: ${text} on ${surface} clears normal-text AA`, () => {
+        expect(tokens[text]).toMatch(/^#[a-f0-9]{6}$/i);
+        expect(tokens[surface]).toMatch(/^#[a-f0-9]{6}$/i);
+        expect(contrast(tokens[text], tokens[surface])).toBeGreaterThanOrEqual(AA);
+      });
+    }
+  }
+});
+
+// Fill tokens stay dark under white ink; feedback copy must follow its theme-aware text token.
+it('no stylesheet uses feedback solid-fill dark tokens as text colors', () => {
+  const offenders = stylesheets(SRC).filter((file) =>
+    /(?<![-\w])color:\s*var\(--(?:feedback-(?:success|warning|info)-dark|(?:success|warning|info)-color-dark)(?:,|\))/.test(
+      readFileSync(file, 'utf8'),
+    ),
+  );
+  expect(offenders).toEqual([]);
+});

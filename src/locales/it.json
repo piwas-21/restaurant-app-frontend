@@ -2753,7 +2753,6 @@
   "cashier.tables.no_session": "Nessuna visita di servizio aperta per questo tavolo.",
   "cashier.tables.no_tables": "Nessun tavolo configurato.",
   "cashier.tables.open_failed": "Impossibile aprire la visita del tavolo.",
-  "cashier.tables.open_session": "Apri visita del tavolo",
   "cashier.tables.opened": "Aperta {{time}}",
   "cashier.tables.opening": "Apertura…",
   "cashier.tables.operation_checking": "Verifica operazione…",
@@ -2845,8 +2844,6 @@
   "order_type_unavailable": "Questo tipo di ordine non è disponibile al momento. Scegli un'altra opzione o riprova.",
   "change_order_type": "Cambia tipo di ordine",
   "order_type_not_available_now": "Questo tipo di ordine non è disponibile al momento. Controlla gli orari e riprova.",
-  "cashier.workspace.status_control": "Modifica lo stato dell’ordine",
-  "cashier.workspace.update_status": "Aggiorna stato",
   "cashier.workspace.prior_day_loading": "Caricamento di altri ordini…",
   "cashier.workspace.prior_day_load_more": "Carica altri ordini dei giorni precedenti",
   "cashier.workspace.not_authorized": "Non hai accesso all'area di lavoro cassa.",
@@ -4211,5 +4208,9 @@
     "confirm": "I clienti sono andati via e il tavolo {{table}} è pulito e pronto per i prossimi ospiti.",
     "balance": "Saldo della visita precedente: {{amount}}.",
     "guests_left": "I clienti sono andati via"
-  }
+  },
+  "staff.add_order": "Aggiungi ordine",
+  "staff.table_add_order_hint": "Scegli gli articoli per questo tavolo. La visita inizia automaticamente.",
+  "order_type_outside_opening_hours": "Il ristorante è attualmente chiuso. Puoi ordinare durante gli orari di apertura.",
+  "cashier.workspace.set_status": "Segna come {{status}}"
 }

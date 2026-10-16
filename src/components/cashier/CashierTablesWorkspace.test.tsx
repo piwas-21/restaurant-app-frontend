@@ -7,6 +7,8 @@ import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
 import { useCashierTenantTimeZoneState } from '@/hooks/cashier/useCashierTenantTimeZone';
 import CashierTablesWorkspace from './CashierTablesWorkspace';
 
+jest.mock('@/hooks/useTenantLocaleRouter', () => ({ useTenantLocaleRouter: () => ({ push: jest.fn() }) }));
+
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/hooks/cashier/useCashierTables', () => ({ useCashierTables: jest.fn() }));
 jest.mock('@/hooks/cashier/useCashierTableRoute', () => ({ useCashierTableRoute: jest.fn() }));
@@ -313,7 +315,7 @@ it('returns from a released visit to the refreshed empty table and keeps the vis
 
   expect(navigateToTable).toHaveBeenCalledWith('7');
   expect(tableState.openSession).not.toHaveBeenCalled();
-  expect(screen.getByRole('heading', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /cashier.tables.released_visits/ })).toBeInTheDocument();
 
   jest.mocked(useCashierTableRoute).mockReturnValue({
     selectedSessionId: null,
@@ -326,7 +328,10 @@ it('returns from a released visit to the refreshed empty table and keeps the vis
 
   expect(screen.getByTestId('cashier-empty-state')).toHaveAttribute('data-status', 'available');
   expect(screen.queryByTestId('cashier-session-panel')).not.toBeInTheDocument();
-  expect(screen.getByRole('heading', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /cashier.tables.released_visits/ })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /cashier.tables.released_due/ })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /cashier.tables.released_visits/ }));
+  expect(screen.getByRole('dialog', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /cashier.tables.released_due/ })).toBeEnabled();
   expect(tableState.openSession).not.toHaveBeenCalled();
 });

@@ -6,6 +6,12 @@
 
 ## 1. Token Architecture
 
+Feedback notices use `--feedback-*-xlight` backgrounds with `--text-primary` or the matching
+`--feedback-*-text` foreground. Both sides must resolve together in light and dark mode; do not
+combine a light-only tint with inherited dark-mode text. The feedback contrast cases in
+`src/design-system/tokens/surfaceTokenResolution.test.ts` enforce WCAG AA (4.5:1) for classic
+and craft in both themes. Confirmation-panel body text inherits its panel foreground.
+
 All design tokens live in `src/design-system/tokens/` as CSS variable files. Since S15 T2 (ADR-006) the entrypoint is the active template's `tokens.css` (`src/templates/classic/tokens.css` re-exports this layer; the root layout imports `@active-template/tokens.css` immediately before `globals.css`, preserving the pre-T2 CSS order — see [TEMPLATES.md](TEMPLATES.md)). `globals.css` keeps the legacy-name aliases.
 
 ```

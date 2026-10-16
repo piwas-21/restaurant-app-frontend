@@ -1,4 +1,5 @@
 .panel {
+  color: var(--text-primary);
   background: var(--feedback-warning-xlight);
   border: 1px solid var(--feedback-warning);
   border-radius: 0.65rem;

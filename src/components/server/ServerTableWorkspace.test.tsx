@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { TableServiceSessionDto } from '@/types/order';
 import type { ServerFloorTable } from '@/types/serverWorkspace';
 import type { ServerTableSessionState } from '@/hooks/serverWorkspace/useServerTableSession';
@@ -37,7 +37,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
       const labels: Record<string, string> = {
-        'server.open_table': 'Open Table',
+        'staff.add_order': 'Add order',
         'cashier.tables.resolve_legacy_orders': 'Resolve legacy orders',
         'cashier.tables.legacy_repairing': 'Resolving legacy orders…',
         'cashier.tables.legacy_repair_success': 'Legacy orders are now attached to the table visit.',
@@ -152,16 +152,30 @@ describe('ServerTableWorkspace', () => {
     expect(current.repairLegacyOrders).toHaveBeenCalledTimes(1);
   });
 
-  it('offers a 48px start action for an available table and leaves payment/close absent', () => {
+  it('starts a visit and opens ordering with one action for an available table', async () => {
     const current = state();
     render(<ServerTableWorkspace tableId="table-1" state={current} />);
 
-    const start = screen.getByRole('button', { name: 'Open Table' });
+    const start = screen.getByRole('button', { name: 'Add order' });
     expect(start).toBeEnabled();
     expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /payment|collect/i })).not.toBeInTheDocument();
     fireEvent.click(start);
     expect(current.startTable).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(mockRouter.push).toHaveBeenCalledWith('/en/server/tables/table-1/order?serviceSessionId=session-1'),
+    );
+  });
+
+  it('opens a fresh order after recovery when the URL still references the released visit', async () => {
+    const current = state();
+    render(<ServerTableWorkspace tableId="table-1" requestedSessionId="released-visit" state={current} />);
+    const addOrder = screen.getByRole('button', { name: 'Add order' });
+    expect(addOrder).toBeEnabled();
+    fireEvent.click(addOrder);
+    await waitFor(() =>
+      expect(mockRouter.push).toHaveBeenCalledWith('/en/server/tables/table-1/order?serviceSessionId=session-1'),
+    );
   });
 
   it('renders the explicit bill and routes Add round with stable table and session identities', () => {
@@ -266,7 +280,7 @@ describe('ServerTableWorkspace', () => {
         })}
       />,
     );
-    expect(screen.queryByRole('button', { name: 'Open Table' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add order' })).not.toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('This table has an active reservation.');
     expect(screen.getByText('Mina Kaya')).toBeInTheDocument();
     expect(screen.getByText(/19:00/)).toBeInTheDocument();
@@ -277,7 +291,7 @@ describe('ServerTableWorkspace', () => {
         state={state({ blocker: 'stale', isStale: true, canStartTable: false })}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Open Table' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Add order' })).toBeDisabled();
     expect(screen.getByText(/Stale data/)).toBeInTheDocument();
   });
 

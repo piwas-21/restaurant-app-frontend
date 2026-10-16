@@ -56,7 +56,7 @@
 }
 
 .success {
-  color: var(--feedback-success-dark);
+  color: var(--feedback-success-text);
   background: var(--feedback-success-xlight);
 }
 

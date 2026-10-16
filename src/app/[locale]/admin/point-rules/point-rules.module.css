@@ -240,7 +240,7 @@
 
 .statusActive {
   background-color: var(--success-color-xlight, #d1fae5);
-  color: var(--success-color-dark, #065f46);
+  color: var(--feedback-success-text);
 }
 
 .statusInactive {
@@ -277,7 +277,7 @@
 
 .editButton {
   background-color: var(--info-color-xlight, #dbeafe);
-  color: var(--info-color-dark, #1e40af);
+  color: var(--feedback-info-text);
 }
 
 .editButton:hover {

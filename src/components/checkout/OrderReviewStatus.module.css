@@ -1,4 +1,5 @@
 .panel {
+  color: var(--text-primary);
   align-items: flex-start;
   border: 1px solid var(--border-default);
   border-radius: 12px;
@@ -16,7 +17,7 @@
   margin: 0 0 0.35rem;
 }
 .panel p {
-  color: var(--text-secondary);
+  color: inherit;
   margin: 0;
 }
 .headingRow {
@@ -34,7 +35,7 @@
   border-color: var(--feedback-info);
 }
 .reviewing > svg {
-  color: var(--feedback-info-dark);
+  color: var(--feedback-info-text);
 }
 .reviewBody {
   flex: 1 1 auto;
@@ -74,25 +75,25 @@
   font-weight: 650;
 }
 .countdown {
-  color: var(--feedback-info-dark);
+  color: var(--feedback-info-text);
   font-size: clamp(1.8rem, 7vw, 2.75rem);
   font-variant-numeric: tabular-nums;
   font-weight: 750;
   letter-spacing: -0.04em;
   line-height: 1;
 }
-.overdue {
-  color: var(--feedback-warning-dark) !important;
+.panel .overdue {
+  color: var(--feedback-warning-text);
   display: block;
   font-weight: 650;
-  margin-top: 0.75rem !important;
+  margin-top: 0.75rem;
 }
 .approved {
   background: var(--feedback-success-xlight);
   border-color: var(--feedback-success);
 }
 .approved > svg {
-  color: var(--feedback-success-dark);
+  color: var(--feedback-success-text);
 }
 .cancelled {
   background: var(--feedback-danger-xlight);

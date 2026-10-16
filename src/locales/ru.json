@@ -2756,7 +2756,6 @@
   "cashier.tables.no_session": "Для этого стола нет открытого сервисного визита.",
   "cashier.tables.no_tables": "Столы не настроены.",
   "cashier.tables.open_failed": "Не удалось открыть визит стола.",
-  "cashier.tables.open_session": "Открыть визит стола",
   "cashier.tables.opened": "Открыт {{time}}",
   "cashier.tables.opening": "Открытие…",
   "cashier.tables.operation_checking": "Проверка операции…",
@@ -2852,8 +2851,6 @@
   "order_type_unavailable": "Этот тип заказа сейчас недоступен. Выберите другой вариант или повторите попытку.",
   "change_order_type": "Изменить тип заказа",
   "order_type_not_available_now": "Этот тип заказа сейчас недоступен. Проверьте часы работы и попробуйте снова.",
-  "cashier.workspace.status_control": "Изменить статус заказа",
-  "cashier.workspace.update_status": "Обновить статус",
   "cashier.workspace.prior_day_loading": "Загружаем другие заказы…",
   "cashier.workspace.prior_day_load_more": "Загрузить больше заказов за прошлые дни",
   "cashier.workspace.not_authorized": "У вас нет доступа к рабочей области кассира.",
@@ -4224,5 +4221,9 @@
     "confirm": "Гости ушли, стол {{table}} убран и готов для следующих гостей.",
     "balance": "Остаток по предыдущему визиту: {{amount}}.",
     "guests_left": "Гости ушли"
-  }
+  },
+  "staff.add_order": "Добавить заказ",
+  "staff.table_add_order_hint": "Выберите блюда для этого стола. Визит начнётся автоматически.",
+  "order_type_outside_opening_hours": "Сейчас ресторан закрыт. Оформить заказ можно в часы работы.",
+  "cashier.workspace.set_status": "Установить статус «{{status}}»"
 }

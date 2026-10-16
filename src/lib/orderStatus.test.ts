@@ -112,7 +112,7 @@ describe('nextOrderStatuses', () => {
   it.each([
     ['Pending', ['Confirmed', 'PendingApproval', 'Cancelled']],
     ['PendingApproval', ['Confirmed', 'Cancelled']],
-    ['Confirmed', ['Preparing', 'Cancelled']],
+    ['Confirmed', ['Preparing', 'Ready', 'Cancelled']],
     ['Preparing', ['Ready', 'Cancelled']],
     ['Ready', ['OutForDelivery', 'Completed', 'Cancelled']],
     ['OutForDelivery', ['Completed', 'Cancelled']],

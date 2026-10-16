@@ -2750,7 +2750,6 @@
   "cashier.tables.no_session": "Für diesen Tisch ist kein Servicebesuch geöffnet.",
   "cashier.tables.no_tables": "Keine Tische konfiguriert.",
   "cashier.tables.open_failed": "Der Tischbesuch konnte nicht geöffnet werden.",
-  "cashier.tables.open_session": "Tischbesuch öffnen",
   "cashier.tables.opened": "Geöffnet {{time}}",
   "cashier.tables.opening": "Wird geöffnet…",
   "cashier.tables.operation_checking": "Vorgang wird geprüft…",
@@ -2838,8 +2837,6 @@
   "order_type_unavailable": "Diese Bestellart ist derzeit nicht verfügbar. Wählen Sie eine andere Option oder versuchen Sie es erneut.",
   "change_order_type": "Bestellart ändern",
   "order_type_not_available_now": "Diese Bestellart ist derzeit nicht verfügbar. Prüfen Sie die Öffnungszeiten und versuchen Sie es erneut.",
-  "cashier.workspace.status_control": "Bestellstatus ändern",
-  "cashier.workspace.update_status": "Status aktualisieren",
   "cashier.workspace.prior_day_loading": "Weitere Bestellungen werden geladen…",
   "cashier.workspace.prior_day_load_more": "Weitere Bestellungen aus früheren Tagen laden",
   "cashier.workspace.not_authorized": "Sie haben keinen Zugriff auf den Kassenarbeitsbereich.",
@@ -4198,5 +4195,9 @@
     "confirm": "Die Gäste sind gegangen und Tisch {{table}} ist gereinigt und für die nächsten Gäste bereit.",
     "balance": "Restbetrag des vorherigen Besuchs: {{amount}}.",
     "guests_left": "Gäste sind gegangen"
-  }
+  },
+  "staff.add_order": "Bestellung hinzufügen",
+  "staff.table_add_order_hint": "Wählen Sie Artikel für diesen Tisch. Der Besuch beginnt automatisch.",
+  "order_type_outside_opening_hours": "Das Restaurant ist derzeit außerhalb seiner Öffnungszeiten geschlossen. Bitte bestellen Sie während der Öffnungszeiten.",
+  "cashier.workspace.set_status": "Als {{status}} markieren"
 }

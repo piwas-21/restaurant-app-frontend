@@ -19,13 +19,13 @@
 }
 
 .status[data-state='configured'] {
-  color: var(--feedback-success-dark);
+  color: var(--feedback-success-text);
 }
 
 /* Not an error colour. The restaurant has done nothing wrong and nothing is broken —
    Stripe is checking them, which is a wait, not a fault. */
 .status[data-state='awaitingVerification'] {
-  color: var(--feedback-info-dark);
+  color: var(--feedback-info-text);
 }
 
 .hint {

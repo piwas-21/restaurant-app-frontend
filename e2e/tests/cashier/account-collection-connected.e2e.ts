@@ -159,11 +159,11 @@ async function createVisitWithOrder(page: Page): Promise<{ tableId: string; tabl
   const opened = await postData<{ serviceSessionId: string; status: string }>(
     page,
     /^\/api\/table-service-sessions$/i,
-    () => page.getByRole('button', { name: 'Open Table', exact: true }).click(),
+    () => page.getByRole('button', { name: 'Add order', exact: true }).click(),
   );
   expect(opened.data.status).toBe('Open');
-  await page.goto(
-    `/en/server/tables/${encodeURIComponent(table.tableId)}/order?serviceSessionId=${encodeURIComponent(opened.data.serviceSessionId)}`,
+  await expect(page).toHaveURL(
+    new RegExp(`/server/tables/${table.tableId}/order\\?serviceSessionId=${opened.data.serviceSessionId}$`),
   );
   await page.getByRole('button', { name: `Add ${PRODUCT}`, exact: true }).click();
   const round = await postData<{ id: string; serviceSessionId: string; total: number }>(
@@ -990,7 +990,7 @@ test('server recovery releases occupancy, readiness resets it, and the old visit
     const opened = await postData<{ readonly serviceSessionId: string; readonly status: string }>(
       server.page,
       /^\/api\/table-service-sessions$/i,
-      () => server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
+      () => server.page.getByRole('button', { name: 'Add order', exact: true }).click(),
     );
     expect(opened.data).toMatchObject({ status: 'Open' });
     expect(opened.data.serviceSessionId).not.toBe(visit.visit.serviceSessionId);
@@ -1043,8 +1043,12 @@ test('server-issued six-character visit code joins through the public scanned-ta
       const opened = await postData<{ serviceSessionId: string; status: string }>(
         server.page,
         /^\/api\/table-service-sessions$/i,
-        () => server.page.getByRole('button', { name: 'Open Table', exact: true }).click(),
+        () => server.page.getByRole('button', { name: 'Add order', exact: true }).click(),
       );
+      await expect(server.page).toHaveURL(
+        new RegExp(`/server/tables/${table.tableId}/order\\?serviceSessionId=${opened.data.serviceSessionId}$`),
+      );
+      await server.page.getByRole('link', { name: 'Back to tables', exact: true }).click();
       const codePanel = server.page.getByRole('region', { name: 'Guest visit code', exact: true });
       const codeResponse = await postData<{ admissionCode: string }>(
         server.page,

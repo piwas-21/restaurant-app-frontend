@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import BaseModal from '@/components/design-system/BaseModal';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import { formatTableMoney, tableSessionEligibleOutstanding } from '@/lib/cashierTableSession';
@@ -14,27 +16,39 @@ interface Props {
 
 export default function CashierReleasedTableVisits({ sessions, disabled, onSelect }: Props) {
   const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
   if (sessions.length === 0) return null;
 
   return (
-    <section className={styles.section} aria-labelledby="released-table-visits-title">
-      <h2 id="released-table-visits-title">{t('cashier.tables.released_visits')}</h2>
-      <p>{t('cashier.tables.released_visits_detail')}</p>
-      <ul className={styles.list}>
-        {sessions.map((session) => {
-          const table = session.tableLabel || session.tableNumber?.toString() || t('cashier.tables.table');
-          const due =
-            formatTableMoney(tableSessionEligibleOutstanding(session), session) ?? t('cashier.tables.currency_unknown');
-          return (
-            <li key={session.serviceSessionId}>
-              <StaffButton disabled={disabled} onClick={() => onSelect(session.serviceSessionId)}>
-                <span>{table}</span>
-                <span>{t('cashier.tables.released_due', { amount: due })}</span>
-              </StaffButton>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <>
+      <StaffButton disabled={disabled} onClick={() => setIsOpen(true)} aria-haspopup="dialog">
+        {t('cashier.tables.released_visits')} ({sessions.length})
+      </StaffButton>
+      <BaseModal isOpen={isOpen} onClose={() => setIsOpen(false)} title={t('cashier.tables.released_visits')}>
+        <p>{t('cashier.tables.released_visits_detail')}</p>
+        <ul className={styles.list}>
+          {sessions.map((session) => {
+            const table = session.tableLabel || session.tableNumber?.toString() || t('cashier.tables.table');
+            const due =
+              formatTableMoney(tableSessionEligibleOutstanding(session), session) ??
+              t('cashier.tables.currency_unknown');
+            return (
+              <li key={session.serviceSessionId}>
+                <StaffButton
+                  disabled={disabled}
+                  onClick={() => {
+                    setIsOpen(false);
+                    onSelect(session.serviceSessionId);
+                  }}
+                >
+                  <span>{table}</span>
+                  <span>{t('cashier.tables.released_due', { amount: due })}</span>
+                </StaffButton>
+              </li>
+            );
+          })}
+        </ul>
+      </BaseModal>
+    </>
   );
 }

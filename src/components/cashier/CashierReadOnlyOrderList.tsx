@@ -13,6 +13,7 @@ import styles from './CashierWorkspaceList.module.css';
 
 interface CashierReadOnlyOrderListProps {
   readonly orders: readonly OrderDto[];
+  readonly updated?: boolean;
   readonly selectedOrderId: string | null;
   readonly timeZone?: string;
   readonly onSelectOrder: (orderId: string) => void;
@@ -57,6 +58,7 @@ function amountPresentation(
 
 export default function CashierReadOnlyOrderList({
   orders,
+  updated = false,
   selectedOrderId,
   timeZone,
   onSelectOrder,
@@ -87,6 +89,7 @@ export default function CashierReadOnlyOrderList({
                 <span className={styles.orderNumber} dir="auto">
                   {getOrderDisplayNumber(order)}
                 </span>
+                {updated && <span className={styles.updatedBadge}>{t('staff_order_updated')}</span>}
                 <OrderStatusBadge status={order.status} />
               </span>
               {order.externalOrder && <MarketplaceOrderQueueSource order={order} />}

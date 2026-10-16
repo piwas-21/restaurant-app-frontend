@@ -4187,5 +4187,6 @@
   "staff_table_tools": "Tafelopties",
   "staff_cancel_confirm": "Deze bestelling annuleren? De geschiedenis blijft bewaard.",
   "staff_cancel_reason": "Reden (optioneel)",
-  "staff_table_search": "Tafels zoeken"
+  "staff_table_search": "Tafels zoeken",
+  "staff_order_updated": "Bijgewerkt"
 }

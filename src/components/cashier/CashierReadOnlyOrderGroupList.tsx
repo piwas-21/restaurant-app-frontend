@@ -60,6 +60,7 @@ export default function CashierReadOnlyOrderGroupList({
             )}
             <CashierReadOnlyOrderList
               orders={[summary]}
+              updated={group.hasUpdates || group.orders.length > 1}
               selectedOrderId={selected ? first.id : null}
               timeZone={timeZone}
               onSelectOrder={onSelectOrder}

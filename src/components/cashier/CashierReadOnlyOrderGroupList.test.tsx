@@ -45,6 +45,7 @@ describe('CashierReadOnlyOrderGroupList', () => {
     render(<CashierReadOnlyOrderGroupList groups={[group]} selectedOrderId={null} onSelectOrder={onSelectOrder} />);
 
     expect(screen.getByText('O-101')).toBeInTheDocument();
+    expect(screen.getByText('staff_order_updated')).toBeInTheDocument();
     expect(screen.queryByText('O-102')).not.toBeInTheDocument();
     expect(screen.getAllByRole('button')).toHaveLength(1);
     fireEvent.click(screen.getByRole('button'));
@@ -129,4 +130,27 @@ it('labels a consolidated credit as overpaid', () => {
     />,
   );
   expect(screen.getByText('payment_status_overpaid')).toBeInTheDocument();
+});
+
+it('marks an update without new items while preserving the first order row', () => {
+  render(
+    <CashierReadOnlyOrderGroupList
+      groups={[
+        {
+          groupKey: 'order:original',
+          serviceSessionId: null,
+          tableNumber: null,
+          releasedAt: null,
+          isArchivedFromTable: false,
+          hasUpdates: true,
+          orders: [order('original', 'FIRST')],
+        },
+      ]}
+      selectedOrderId={null}
+      onSelectOrder={jest.fn()}
+    />,
+  );
+  expect(screen.getByText('staff_order_updated')).toBeInTheDocument();
+  expect(screen.getByText('FIRST')).toBeInTheDocument();
+  expect(screen.getAllByRole('button')).toHaveLength(1);
 });

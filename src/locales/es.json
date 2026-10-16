@@ -4200,5 +4200,6 @@
   "staff_table_tools": "Herramientas de mesas",
   "staff_cancel_confirm": "¿Cancelar este pedido? Se conservará su historial.",
   "staff_cancel_reason": "Motivo (opcional)",
-  "staff_table_search": "Buscar mesas"
+  "staff_table_search": "Buscar mesas",
+  "staff_order_updated": "Actualizado"
 }

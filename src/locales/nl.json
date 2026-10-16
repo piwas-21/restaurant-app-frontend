@@ -4211,6 +4211,7 @@
     "loadFailed": "Kosteninstellingen konden niet worden geladen. Vernieuw en probeer opnieuw.",
     "saveFailed": "De kosten konden niet worden bevestigd. Vernieuw de rekening en controleer bestaande kosten en openstaande betalingen voordat u opnieuw probeert.",
     "unavailable": "Deze geselecteerde kosten zijn niet meer beschikbaar. Verwijder ze voordat u bestelt.",
-    "invalidSettings": "Gebruik per veld een unieke sleutel in kleine letters, een rekeninglabel, een geldig bedrag en minstens één besteltype en personeelsrol."
+    "invalidSettings": "Gebruik per veld een unieke sleutel in kleine letters, een rekeninglabel, een geldig bedrag en minstens één besteltype en personeelsrol.",
+    "invalidAmount": "Voer een bedrag van 0 tot {{max}} in."
   }
 }

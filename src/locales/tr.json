@@ -4211,6 +4211,7 @@
     "loadFailed": "Ücret ayarları yüklenemedi. Yenileyip tekrar deneyin.",
     "saveFailed": "Ücretler doğrulanamadı. Tekrar denemeden önce hesabı yenileyip mevcut ücretleri ve bekleyen ödemeleri kontrol edin.",
     "unavailable": "Seçili ücret artık kullanılamıyor. Siparişi göndermeden önce kaldırın.",
-    "invalidSettings": "Her alan için benzersiz küçük harfli bir anahtar, hesap etiketi, geçerli tutar ve en az bir sipariş türü ile personel rolü seçin."
+    "invalidSettings": "Her alan için benzersiz küçük harfli bir anahtar, hesap etiketi, geçerli tutar ve en az bir sipariş türü ile personel rolü seçin.",
+    "invalidAmount": "0 ile {{max}} arasında bir tutar girin."
   }
 }

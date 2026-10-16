@@ -38,3 +38,31 @@ it('lets staff remove a persisted selection after its configured field is disabl
   fireEvent.click(screen.getByRole('button', { name: 'remove' }));
   expect(change).toHaveBeenCalledWith([]);
 });
+
+it('validates staff-entered amounts before changing the persisted charge selection', () => {
+  Object.assign(mockReader, {
+    loading: false,
+    configuration: {
+      currency: 'CHF',
+      rules: [
+        {
+          key: 'service_fee',
+          label: 'Service fee',
+          enabled: true,
+          defaultAmount: 5,
+          allowCustomAmount: true,
+          orderTypes: ['Takeaway'],
+          roles: ['Cashier'],
+        },
+      ],
+    },
+  });
+  render(<BillChargeFields orderType="Takeaway" values={[{ key: 'service_fee', amount: 5 }]} onChange={change} />);
+  const input = screen.getByRole('spinbutton', { name: 'Service fee (CHF)' });
+  fireEvent.change(input, { target: { value: '-2' } });
+  expect(change).not.toHaveBeenCalled();
+  expect(input).toHaveAttribute('aria-invalid', 'true');
+  expect(screen.getByRole('alert')).toHaveTextContent('billCharges.invalidAmount');
+  fireEvent.change(input, { target: { value: '7' } });
+  expect(change).toHaveBeenCalledWith([{ key: 'service_fee', amount: 7 }]);
+});

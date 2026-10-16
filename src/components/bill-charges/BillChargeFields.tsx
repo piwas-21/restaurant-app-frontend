@@ -1,6 +1,8 @@
 'use client';
 
 import { MAX_BILL_CHARGE_AMOUNT, BILL_CHARGE_AMOUNT_STEP } from '@/lib/billChargeLimits';
+import { useState } from 'react';
+import { billChargeInputSchema } from '@/schemas/billCharge.schema';
 import { useTranslation } from 'react-i18next';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
@@ -29,6 +31,7 @@ export default function BillChargeFields({
   const auth = useOptionalAuth();
   const role = auth?.user?.role;
   const reader = useBillChargeConfiguration();
+  const [invalidKey, setInvalidKey] = useState<string | null>(null);
   if (!reader.configuration) return <BillChargeConfigurationNotice reader={reader} />;
   const rules =
     reader.configuration?.rules.filter(
@@ -40,8 +43,15 @@ export default function BillChargeFields({
     ) ?? [];
   const unavailable = values.filter((value) => !rules.some((rule) => rule.key === value.key));
   if (!rules.length && !values.length) return <BillChargeConfigurationNotice reader={reader} />;
-  const change = (key: string, amount: number | null) =>
-    onChange([...values.filter((value) => value.key !== key), ...(amount === null ? [] : [{ key, amount }])]);
+  const change = (key: string, amount: number | null) => {
+    const parsed = amount === null ? null : billChargeInputSchema.safeParse({ key, amount });
+    if (parsed && !parsed.success) {
+      setInvalidKey(key);
+      return;
+    }
+    setInvalidKey(null);
+    onChange([...values.filter((value) => value.key !== key), ...(parsed?.success ? [parsed.data] : [])]);
+  };
   return (
     <fieldset className={styles.fields} disabled={disabled}>
       <legend>{t('billCharges.title')}</legend>
@@ -66,7 +76,12 @@ export default function BillChargeFields({
               onChange={(checked) => change(rule.key, checked ? rule.defaultAmount : null)}
             />
             {value && (
-              <FormField label={`${rule.label} (${reader.configuration?.currency ?? ''})`}>
+              <FormField
+                label={`${rule.label} (${reader.configuration?.currency ?? ''})`}
+                error={
+                  invalidKey === rule.key ? t('billCharges.invalidAmount', { max: MAX_BILL_CHARGE_AMOUNT }) : undefined
+                }
+              >
                 <input
                   type="number"
                   min="0"

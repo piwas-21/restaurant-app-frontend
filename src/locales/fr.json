@@ -4224,6 +4224,7 @@
     "loadFailed": "Impossible de charger les paramètres des frais. Actualisez puis réessayez.",
     "saveFailed": "Les frais n’ont pas pu être confirmés. Actualisez l’addition et vérifiez les frais existants et les paiements en attente avant de réessayer.",
     "unavailable": "Ces frais sélectionnés ne sont plus disponibles. Retirez-les avant de valider la commande.",
-    "invalidSettings": "Utilisez des clés uniques en minuscules, un libellé, un montant valide et au moins un type de commande et un rôle par champ."
+    "invalidSettings": "Utilisez des clés uniques en minuscules, un libellé, un montant valide et au moins un type de commande et un rôle par champ.",
+    "invalidAmount": "Saisissez un montant entre 0 et {{max}}."
   }
 }

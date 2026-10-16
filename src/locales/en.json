@@ -4211,6 +4211,7 @@
     "loadFailed": "Charge settings could not be loaded. Refresh and try again.",
     "saveFailed": "The charges could not be confirmed. Refresh the bill and check existing charges and pending payments before retrying.",
     "unavailable": "This selected charge is no longer available. Remove it before placing the order.",
-    "invalidSettings": "Use unique lowercase field keys, a bill label, a valid amount, and at least one order type and staff role for each field."
+    "invalidSettings": "Use unique lowercase field keys, a bill label, a valid amount, and at least one order type and staff role for each field.",
+    "invalidAmount": "Enter an amount from 0 to {{max}}."
   }
 }

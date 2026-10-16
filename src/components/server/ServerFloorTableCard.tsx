@@ -2,15 +2,10 @@
 
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
-import TableServiceStrip from '@/components/design-system/TableServiceStrip';
-import StatusBadge, { type StatusBadgeTone } from '@/components/design-system/StatusBadge';
-import type { TableServiceState } from '@/lib/operationalStatus';
+import type { StatusBadgeTone } from '@/components/design-system/StatusBadge';
+import StaffTableCard from '@/components/table-service/StaffTableCard';
 import { formatCurrency } from '@/utils/currency';
-import {
-  isKnownServerFloorTableState,
-  type KnownServerFloorTableState,
-  type ServerFloorTable,
-} from '@/types/serverWorkspace';
+import { isKnownServerFloorTableState, type ServerFloorTable } from '@/types/serverWorkspace';
 import styles from './ServerFloorTableCard.module.css';
 
 interface ServerFloorTableCardProps {
@@ -43,7 +38,6 @@ interface ActionLink {
 
 const ACTION_COPY: Readonly<Record<string, ActionCopy>> = {
   MarkTableReady: { key: 'server.floor.ready_action', fallback: 'Ready for next guests', destination: 'table' },
-  StartTable: { key: 'server.floor.start_visit', fallback: 'Start visit', destination: 'table' },
   AddRound: { key: 'cashier.tables.add_round', fallback: 'Add round', destination: 'table' },
   ViewBill: { key: 'server.floor.view_bill', fallback: 'View account', destination: 'bill' },
   OpenTasks: { key: 'server.tasks.title', fallback: 'Service tasks', destination: 'tasks' },
@@ -101,139 +95,98 @@ function statusCopy(state: string): StatusCopy {
   }
 }
 
-function serviceState(state: KnownServerFloorTableState): TableServiceState | null {
-  switch (state) {
-    case 'Available':
-      return 'available';
-    case 'Open':
-      return 'occupied';
-    case 'Ready':
-      return 'ready';
-    case 'Reserved':
-      return 'reserved';
-    case 'Inactive':
-      return 'closed';
-    default:
-      return null;
-  }
-}
-
 export default function ServerFloorTableCard({
   table,
   selected = false,
   isStale = false,
   onSelect,
 }: Readonly<ServerFloorTableCardProps>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const status = statusCopy(table.state);
-  const knownTableState = isKnownServerFloorTableState(table.state) ? table.state : null;
-  const stripState = knownTableState ? serviceState(knownTableState) : null;
+  const known = isKnownServerFloorTableState(table.state);
   const session = table.session;
   const balance = session?.remaining ?? table.legacy?.outstanding;
   const route = `/server/tables/${encodeURIComponent(table.tableId)}`;
-  const actions = knownTableState ? actionLinks(table.permittedActions, table.tableId) : null;
-
+  const canStart = table.state === 'Available' && table.permittedActions.includes('StartTable');
+  const actions = known
+    ? actionLinks(
+        table.permittedActions.filter((action) => action !== 'StartTable'),
+        table.tableId,
+      )
+    : null;
   return (
-    <article className={styles.tableCard} data-selected={selected} data-state={table.state}>
-      {stripState ? (
-        <TableServiceStrip
-          tableLabel={table.tableLabel}
-          state={stripState}
-          elapsedMinutes={session?.ageMinutes}
-          trailing={
-            <Link className={styles.tableLink} href={route} onClick={() => onSelect?.(table.tableId)}>
-              {t('server.open_table', 'Open table details')}
-            </Link>
-          }
-        />
-      ) : (
-        <div className={styles.tableCardHeader}>
-          <span className={styles.tableHeading} dir="auto">
-            {t('server.table', 'Table')} {table.tableLabel}
-          </span>
-          <StatusBadge tone={status.tone} ariaLabel={t(status.key, status.fallback)}>
-            {t(status.key, status.fallback)}
-          </StatusBadge>
-        </div>
+    <StaffTableCard
+      label={t('cashier.tables.table_number', 'Table {{table}}', { table: table.tableLabel })}
+      status={table.state === 'Available' ? t('server.status_available') : t(status.key, status.fallback)}
+      tone={table.state === 'Available' ? 'success' : status.tone}
+      accessibleLabel={`${t('cashier.tables.table_number', 'Table {{table}}', { table: table.tableLabel })}: ${canStart ? t('staff.add_order', 'Add order') : known ? t('server.open_table', 'Open table details') : t('unavailable', 'Table details unavailable')}`}
+      selected={selected}
+      disabled={!known || (canStart && isStale)}
+      href={canStart ? undefined : route}
+      onSelect={() => onSelect?.(table.tableId)}
+      actionLabel={
+        canStart
+          ? t('staff.add_order', 'Add order')
+          : known
+            ? t('server.open_table', 'Open table details')
+            : t('unavailable', 'Table details unavailable')
+      }
+      actions={
+        known &&
+        table.permittedActions.length > 0 &&
+        (isStale ? (
+          <output className={styles.actionNotice} aria-live="polite">
+            {t(
+              'server.floor.actions_stale',
+              'Table actions may be out of date. Open table details to check current options.',
+            )}
+          </output>
+        ) : (
+          <>
+            {actions?.links.map((action) => (
+              <Link
+                key={action.action}
+                className={styles.actionLink}
+                href={
+                  action.action === 'AddRound' && session
+                    ? `${route}/order?serviceSessionId=${encodeURIComponent(session.serviceSessionId)}`
+                    : action.href
+                }
+              >
+                {t(action.key, action.fallback)}
+              </Link>
+            ))}
+            {actions && actions.unsupportedCount > 0 && (
+              <output className={styles.actionNotice} aria-live="polite">
+                {t(
+                  'server.floor.action_unsupported',
+                  'This action has no supported link from the floor in this version. Open table details to check current options.',
+                )}
+              </output>
+            )}
+          </>
+        ))
+      }
+    >
+      <span>{t('seats_count', '{{count}} seats', { count: table.maxGuests })}</span>
+      {(session || table.legacy) && (
+        <span>
+          {t('cashier.remaining')}:{' '}
+          <span>{formatCurrency(balance ?? 0, i18n.language || 'en', session?.currency ?? undefined)}</span>
+        </span>
       )}
-
-      {knownTableState && stripState === null && (
-        <div className={styles.tableCardHeader}>
-          <Link className={styles.tableLink} href={route} onClick={() => onSelect?.(table.tableId)}>
-            {t('server.open_table', 'Open table details')}
-          </Link>
-        </div>
+      {table.activeRoundCount > 0 && (
+        <span>
+          {t('cashier.tables.rounds', { count: table.activeRoundCount })}
+          {table.readyRoundCount > 0 && <> · {t('server.status_ready')}</>}
+        </span>
       )}
-
-      {!knownTableState && (
-        <div className={styles.tableCardHeader}>
-          <span className={styles.tableLink} aria-disabled="true">
-            {t('unavailable', 'Table details unavailable')}
-          </span>
-        </div>
-      )}
-
-      <dl className={styles.tableMetrics}>
-        <div>
-          <dt>{t('server.capacity', 'Capacity')}</dt>
-          <dd>{t('seats_count', '{{count}} seats', { count: table.maxGuests })}</dd>
-        </div>
-        {(session || table.legacy) && (
-          <div>
-            <dt>{t('cashier.remaining', 'Remaining')}</dt>
-            <dd>{formatCurrency(balance ?? 0, undefined, session?.currency ?? undefined)}</dd>
-          </div>
-        )}
-        {table.activeRoundCount > 0 && (
-          <div>
-            <dt>{t('cashier.tables.rounds_other', '{{count}} rounds', { count: table.activeRoundCount })}</dt>
-            <dd>{table.readyRoundCount > 0 ? t('server.status_ready', 'Ready') : t('active', 'Active')}</dd>
-          </div>
-        )}
-      </dl>
-
       {table.reservation && (
-        <p className={styles.reservation}>
-          <strong>{t('server.upcoming_reservation', 'Upcoming Reservation')}:</strong>{' '}
-          <span dir="auto">{table.reservation.customerName}</span> · {table.reservation.startTime}
-        </p>
+        <span>
+          {t('server.upcoming_reservation')}: <span dir="auto">{table.reservation.customerName}</span> ·{' '}
+          {table.reservation.startTime}
+        </span>
       )}
-
-      {knownTableState && table.permittedActions.length > 0 && (
-        <div className={styles.capabilitySummary}>
-          <strong>{t('server.capabilities', 'Table actions')}</strong>
-          {isStale ? (
-            <output className={styles.actionNotice} aria-live="polite">
-              {t(
-                'server.floor.actions_stale',
-                'Table actions may be out of date. Open table details to check current options.',
-              )}
-            </output>
-          ) : (
-            <>
-              {actions && actions.links.length > 0 && (
-                <ul className={styles.actionList} aria-label={t('server.capabilities', 'Table actions')}>
-                  {actions.links.map((action) => (
-                    <li key={action.action}>
-                      <Link className={styles.actionLink} href={action.href}>
-                        {t(action.key, action.fallback)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {actions && actions.unsupportedCount > 0 && (
-                <output className={styles.actionNotice} aria-live="polite">
-                  {t(
-                    'server.floor.action_unsupported',
-                    'This action has no supported link from the floor in this version. Open table details to check current options.',
-                  )}
-                </output>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </article>
+    </StaffTableCard>
   );
 }

@@ -1,11 +1,14 @@
 import type { ComponentProps } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { ServerFloorTable } from '@/types/serverWorkspace';
 import ServerFloorTableCard from './ServerFloorTableCard';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, fallback?: string) => fallback ?? key,
+    t: (key: string, fallback?: string | Record<string, unknown>, options?: Record<string, unknown>) =>
+      typeof fallback === 'string'
+        ? fallback.replace(/\{\{(\w+)\}\}/g, (_, name) => String(options?.[name] ?? name))
+        : key,
     i18n: { language: 'en' },
   }),
 }));
@@ -75,13 +78,47 @@ describe('ServerFloorTableCard actions', () => {
     expect(screen.getByText('Needs reset')).toBeInTheDocument();
   });
 
-  it('distinguishes starting a visit from opening table details', () => {
+  it('opens an available table directly into ordering from the shared primary action', () => {
+    const onSelect = jest.fn();
     render(
-      <ServerFloorTableCard table={table({ state: 'Available', session: null, permittedActions: ['StartTable'] })} />,
+      <ServerFloorTableCard
+        table={table({ state: 'Available', session: null, permittedActions: ['StartTable'] })}
+        onSelect={onSelect}
+      />,
     );
+    fireEvent.click(screen.getByRole('button', { name: /Add order/ }));
+    expect(onSelect).toHaveBeenCalledWith('table/11a');
+    expect(screen.queryByRole('link', { name: 'Start visit' })).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByRole('link', { name: /Open table/i })).toHaveAttribute('href', '/server/tables/table%2F11a');
-    expect(screen.getByRole('link', { name: 'Start visit' })).toHaveAttribute('href', '/server/tables/table%2F11a');
+  it('names each table in its ordering target for assistive technology', () => {
+    render(
+      <>
+        <ServerFloorTableCard
+          table={table({ tableLabel: '7', state: 'Available', session: null, permittedActions: ['StartTable'] })}
+        />
+        <ServerFloorTableCard
+          table={table({ tableLabel: '8', state: 'Available', session: null, permittedActions: ['StartTable'] })}
+        />
+      </>,
+    );
+    const targets = screen.getAllByRole('button', { name: /Add order/ });
+    expect(targets[0].getAttribute('aria-label')).toContain('7');
+    expect(targets[1].getAttribute('aria-label')).toContain('8');
+  });
+
+  it('blocks available-table ordering while the floor snapshot is stale', () => {
+    const onSelect = jest.fn();
+    render(
+      <ServerFloorTableCard
+        table={table({ state: 'Available', session: null, permittedActions: ['StartTable'] })}
+        onSelect={onSelect}
+        isStale
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Add order/ }));
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /Add order/ })).toBeDisabled();
   });
 
   it('routes advertised actions to existing guarded table, bill, and task pages', () => {
@@ -102,10 +139,10 @@ describe('ServerFloorTableCard actions', () => {
     );
 
     const card = screen.getByRole('article');
-    const actions = within(card).getByRole('list', { name: 'Table actions' });
+    const actions = card;
     expect(within(actions).getByRole('link', { name: 'Add round' })).toHaveAttribute(
       'href',
-      '/server/tables/table%2F11a',
+      '/server/tables/table%2F11a/order?serviceSessionId=session-1',
     );
     expect(within(actions).getByRole('link', { name: 'View account' })).toHaveAttribute(
       'href',
@@ -144,7 +181,7 @@ describe('ServerFloorTableCard actions', () => {
   it('hides permission links from stale floor data and keeps the safe details route', () => {
     render(<ServerFloorTableCard table={table({ permittedActions: ['CollectPayment', 'CloseVisit'] })} isStale />);
 
-    expect(screen.getByRole('link', { name: 'Open table details' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Open table details/ })).toHaveAttribute(
       'href',
       '/server/tables/table%2F11a',
     );
@@ -175,7 +212,7 @@ describe('ServerFloorTableCard actions', () => {
       />,
     );
 
-    expect(screen.getByText('Table details unavailable')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: /Table details unavailable/ })).toBeDisabled();
     expect(screen.queryByRole('link', { name: 'Review visit closure' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Close visit' })).not.toBeInTheDocument();
   });

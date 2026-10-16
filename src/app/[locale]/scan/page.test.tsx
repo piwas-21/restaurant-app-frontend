@@ -45,6 +45,7 @@ describe('ScanPage with table visits enabled', () => {
     mockQrCode = 'validated-qr-payload';
     sessionStorage.clear();
     jest.clearAllMocks();
+    jest.spyOn(tableGuestVisitService, 'joinTableGuestVisit').mockImplementation(() => new Promise(() => undefined));
     window.history.replaceState({}, '', '/en/scan?qr=validated-qr-payload');
     jest.mocked(getPublicTableGuestFeature).mockReset();
     jest
@@ -149,10 +150,11 @@ describe('ScanPage with table visits enabled', () => {
     return serializedVisit;
   }
 
-  it('validates the QR first, then requires the admission code instead of routing straight to the menu', async () => {
+  it('validates the QR first and joins without asking for a code', async () => {
     renderWithEnabledVisit();
 
-    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    await waitFor(() => expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalled());
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/Tables/validate-qr/validated-qr-payload'));
     expect(mockPushMenu).not.toHaveBeenCalled();
   });
@@ -171,9 +173,6 @@ describe('ScanPage with table visits enabled', () => {
 
     renderWithEnabledVisit();
 
-    fireEvent.change(await screen.findByLabelText('Table visit code'), { target: { value: 'gh23456789' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Join table' }));
-
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/en/menu'));
     const storedVisit = JSON.parse(sessionStorage.getItem('rumi_table_guest_visit_v1') ?? '{}') as {
       tableId?: string;
@@ -181,7 +180,7 @@ describe('ScanPage with table visits enabled', () => {
     };
     expect(storedVisit).toMatchObject({ serviceSessionId: 'session-1', tableId: 'table-id' });
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(join).toHaveBeenCalledWith('validated-qr-payload', 'GH23456789');
+    expect(join).toHaveBeenCalledWith('validated-qr-payload');
     expect(accountRead).toHaveBeenCalledWith(
       expect.objectContaining({
         serviceSessionId: 'session-1',
@@ -356,7 +355,8 @@ describe('ScanPage with table visits enabled', () => {
       .mockResolvedValueOnce({ ok: false, json: async () => ({ success: false }) } as Response);
     const view = render(enabledVisitTree());
 
-    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    await waitFor(() => expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalled());
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     mockQrCode = 'invalid-qr-payload';
     view.rerender(enabledVisitTree());
 
@@ -437,7 +437,7 @@ describe('ScanPage with table visits enabled', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
     await waitFor(() => expect(getPublicTableGuestFeature).toHaveBeenCalledTimes(2));
-    expect(screen.getByText(/Ask staff to confirm/)).toBeInTheDocument();
+    expect(await screen.findByText(/Ask staff to confirm/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
     await new Promise((resolve) => window.setTimeout(resolve, 1100));
     expect(mockPushMenu).not.toHaveBeenCalled();
@@ -486,16 +486,15 @@ describe('ScanPage with table visits enabled', () => {
 
     renderWithPublicFeature();
 
-    expect(
-      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Ask staff to confirm the table QR code.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
     await new Promise((resolve) => window.setTimeout(resolve, 1100));
     expect(mockPushMenu).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Retry status check' }));
-    expect(await screen.findByLabelText('Table visit code')).toBeInTheDocument();
+    await waitFor(() => expect(tableGuestVisitService.joinTableGuestVisit).toHaveBeenCalled());
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(mockPushMenu).not.toHaveBeenCalled();
   });
 
@@ -508,9 +507,7 @@ describe('ScanPage with table visits enabled', () => {
 
     renderWithPublicFeature();
 
-    expect(
-      await screen.findByText('Ask staff to confirm the table QR code and current visit code.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Ask staff to confirm the table QR code.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry status check' })).toBeInTheDocument();
     expect(mockPushMenu).not.toHaveBeenCalled();

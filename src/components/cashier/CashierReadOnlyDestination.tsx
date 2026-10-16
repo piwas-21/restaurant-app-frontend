@@ -44,7 +44,6 @@ interface CashierReadOnlyDestinationProps {
   readonly additionalFilters?: ReactNode;
   readonly onSelectOrder: (orderId: string) => void;
   readonly onCollect?: (orderId: string, serviceSessionId?: string) => void;
-  readonly onCollectSession?: (serviceSessionId: string) => void;
   readonly onOrderChanged?: () => void;
   readonly onBack: () => void;
   readonly onSearchChange: (value: string) => void;
@@ -83,7 +82,6 @@ export default function CashierReadOnlyDestination({
   additionalFilters,
   onSelectOrder,
   onCollect,
-  onCollectSession,
   onOrderChanged,
   onBack,
   onSearchChange,
@@ -205,12 +203,15 @@ export default function CashierReadOnlyDestination({
             onMarketplaceOnlyFilterChange={onMarketplaceOnlyFilterChange}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
-            onCollectSession={onCollectSession}
             onRetry={onRetry}
           />
           <section className={styles.ticketPane} aria-label={t('cashier.workspace.order_details')}>
             <CashierReadOnlyTicket
               order={selectedOrder}
+              historyOrders={
+                groups?.find((group) => group.orders.some((order) => order.id === selectedOrderId))?.orders
+              }
+              onSelectHistoryOrder={onSelectOrder}
               isLoading={selectedOrderLoading}
               isRefreshing={selectedOrderRefreshing}
               error={selectedOrderError}

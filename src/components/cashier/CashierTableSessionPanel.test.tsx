@@ -127,11 +127,11 @@ describe('CashierTableSessionPanel', () => {
     jest.mocked(loadAccountPaymentLocale).mockClear();
   });
 
-  it('shows guest-code issuance for an open visit when the tenant feature is enabled', async () => {
+  it('does not show guest-code issuance when guest visits are enabled', async () => {
     renderPanel({ ...session, hasUnassignedActiveOrders: false }, {}, { tableGuestVisitsV1: true });
 
-    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
+    expect(screen.queryByText('table_guest_staff_code_title')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'table_guest_staff_code_action' })).not.toBeInTheDocument();
   });
 
   it('confirms freeing a table while keeping its visit payable', async () => {

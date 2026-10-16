@@ -129,11 +129,11 @@ const DYNAMIC_PREFIXES = [
   'ingredient_translations_unsaved_',
   // The cashier workspace plural families are called as t('<base>', { count }) and i18next appends
   // the CLDR category itself, so only the base exists at the callsite. Family-scoped prefixes:
-  //   cashier.workspace.open_count   — CashierWorkspaceShell.tsx open-orders attention badge
+  //   cashier.workspace.today_count   — CashierWorkspaceShell.tsx today-orders attention badge
   //   cashier.tables.capacity        — CashierTableList.tsx seat count
   //   cashier.tables.rounds          — CashierTableList.tsx ordering-round count
   //   cashier.tables.legacy_orders   — CashierTableList.tsx out-of-session order count
-  'cashier.workspace.open_count_',
+  'cashier.workspace.today_count_',
   'cashier.tables.capacity_',
   'cashier.tables.rounds_',
   'cashier.tables.legacy_orders_',

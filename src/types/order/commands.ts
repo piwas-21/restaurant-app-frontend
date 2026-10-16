@@ -23,7 +23,8 @@ export interface UpdateOrderStatusCommand {
  * Cancel order command
  */
 export interface CancelOrderCommand {
-  cancellationReason: string;
+  cancellationReason?: string;
+  expectedVersion?: number;
 }
 
 /**

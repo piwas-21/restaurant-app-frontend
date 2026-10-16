@@ -315,14 +315,12 @@ interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  titleIcon?: React.ReactNode;
-  variant?: 'default' | 'danger' | 'success' | 'info';
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'; // 400/500/600/900/100%
+  size?: 'sm' | 'md' | 'lg';
+  presentation?: 'modal' | 'responsive-sheet';
   footer?: React.ReactNode;
-  closeOnBackdropClick?: boolean; // default: true
-  closeOnEscape?: boolean; // default: true
-  showCloseButton?: boolean; // default: true
-  id?: string;
+  disableBackdropClose?: boolean;
+  disableEscapeClose?: boolean;
+  isPending?: boolean;
   className?: string;
   children: React.ReactNode;
 }

@@ -216,7 +216,7 @@ describe('ServerTableWorkspace', () => {
     expect(screen.queryByText(/\{\{count\}\}/)).not.toBeInTheDocument();
   });
 
-  it('shows guest-code issuance only for an open visit with the tenant feature enabled', async () => {
+  it('does not show guest-code issuance when guest visits are enabled', async () => {
     const props = {
       tableId: 'table-1',
       state: state({ table: table({ state: 'Open' }), session, canStartTable: false }),
@@ -232,8 +232,8 @@ describe('ServerTableWorkspace', () => {
       </TenantFeaturesProvider>,
     );
 
-    expect(await screen.findByText('table_guest_staff_code_title')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'table_guest_staff_code_action' })).toBeEnabled();
+    expect(screen.queryByText('table_guest_staff_code_title')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'table_guest_staff_code_action' })).not.toBeInTheDocument();
   });
 
   it('blocks table actions when a task deep link points at an older service session', () => {

@@ -9,7 +9,6 @@ import { tableSessionActions, tableSessionAddRoundPath } from '@/lib/cashierTabl
 import buttonStyles from '@/components/design-system/StaffButton.module.css';
 import styles from './CashierTableSession.module.css';
 import { CASHIER_COLLECTION_PATH } from '@/lib/cashierWorkspace';
-import TableGuestAdmissionCodeSlot from '@/components/table-service/TableGuestAdmissionCodeSlot';
 
 interface Props {
   readonly session: TableServiceSessionDto;
@@ -46,9 +45,6 @@ export default function CashierTableSessionActions({
           <Link className={`btn btn-primary ${buttonStyles.touch}`} href={collectionHref}>
             {t('server.bill.collect')}
           </Link>
-        )}
-        {session.status === 'Open' && !session.isTableReleased && (
-          <TableGuestAdmissionCodeSlot serviceSessionId={session.serviceSessionId} disabled={writesLocked} />
         )}
         {releaseAllowed && (
           <StaffButton variant="secondary" onClick={onShowReleaseConfirm} disabled={writesLocked}>

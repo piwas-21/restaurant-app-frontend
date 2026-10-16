@@ -29,7 +29,7 @@ describe('useTableGuestDineInAvailability blocker copy', () => {
   });
 
   it.each([
-    ['ended', 'table_guest_ended_detail'],
+    ['ended', 'table_guest_qr_ended_detail'],
     ['storageUnavailable', 'table_guest_storage_help'],
     ['unavailable', 'table_guest_unavailable_detail'],
     ['loading', 'loading'],

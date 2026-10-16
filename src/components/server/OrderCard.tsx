@@ -15,6 +15,7 @@ import BusinessDateLabel from '@/components/design-system/BusinessDateLabel';
 import { formatBusinessTime } from '@/lib/formatBusinessDate';
 import PreparationCountdown from '@/components/order/PreparationCountdown';
 import styles from './OrderCard.module.css';
+import OrderCancelAction from '@/components/order/OrderCancelAction';
 import ChannelOrderPreparation from '@/components/order/ChannelOrderPreparation';
 
 type OrderCardProps = {
@@ -131,6 +132,7 @@ export default function OrderCard({ order, onStatusChange, onOrderChanged, isLoa
           </button>
         )}
       </div>
+      {onOrderChanged && <OrderCancelAction order={order} disabled={isLoading} onChanged={onOrderChanged} />}
       {order.externalOrder && <ChannelOrderPreparation order={order} onOrderChanged={onOrderChanged} />}
     </div>
   );

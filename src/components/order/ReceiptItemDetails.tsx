@@ -35,7 +35,7 @@ export default function ReceiptItemDetails({
                 {quantityScopeSuffix(child, item.quantity, translate)}
               </span>
             )}
-            <ReceiptItemDetails item={child} />
+            <ReceiptItemDetails item={child} hideInstructions={hideInstructions} />
           </li>
         ))}
       </ul>

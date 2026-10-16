@@ -2,12 +2,14 @@
   background: var(--surface-secondary);
 }
 .workspace {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3, 0.75rem);
   block-size: 100%;
   min-block-size: 0;
   padding: var(--space-4, 1rem);
+  padding-inline-start: 4rem;
   overflow: hidden;
 }
 
@@ -15,81 +17,6 @@
   flex: 1;
   min-block-size: 0;
 }
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3, 0.75rem);
-  justify-content: space-between;
-  flex-wrap: wrap;
-  padding-block: var(--space-2, 0.5rem);
-  border-block: 1px solid var(--border-default);
-}
-
-.viewToggle,
-.zoneList,
-.toolbarActions,
-.legend {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2, 0.5rem);
-  flex-wrap: wrap;
-}
-
-.viewToggle,
-.zoneList {
-  min-inline-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.legend {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-}
-
-.legend li {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1, 0.25rem);
-}
-
-.legendSwatch {
-  inline-size: 0.75rem;
-  block-size: 0.75rem;
-  border: 1px solid var(--border-default);
-  border-radius: 50%;
-  background: var(--surface-primary);
-}
-
-.legendSwatch[data-state='occupied'] {
-  background: var(--feedback-warning-xlight);
-  border-color: var(--feedback-warning-text);
-}
-
-.legendSwatch[data-state='ready'] {
-  background: var(--feedback-success-xlight);
-  border-color: var(--feedback-success);
-}
-
-.legendSwatch[data-state='reserved'] {
-  background: var(--feedback-warning-xlight);
-  border-color: var(--feedback-warning);
-}
-
-.legendSwatch[data-state='review'] {
-  background: var(--feedback-danger-xlight);
-  border-color: var(--feedback-danger);
-}
-
-.legendSwatch[data-state='unavailable'] {
-  background: var(--surface-secondary);
-  border-color: var(--text-secondary);
-}
-
 .control,
 .retry {
   display: inline-flex;
@@ -140,6 +67,7 @@
 @media (max-width: 64rem) {
   .workspace {
     padding: var(--space-3, 0.75rem);
+    padding-inline-start: 4rem;
   }
 
   .detailPanel {
@@ -152,6 +80,7 @@
   place-items: center;
   min-block-size: 12rem;
   padding: var(--space-4, 1rem);
+  padding-inline-start: 4rem;
   color: var(--text-secondary);
   text-align: center;
   border: 1px solid var(--border-default);

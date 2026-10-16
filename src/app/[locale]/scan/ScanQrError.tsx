@@ -22,7 +22,7 @@ export default function ScanQrError({
             {t('go_to_menu')}
           </button>
         ) : (
-          <p>{t('table_guest_ask_staff', 'Ask staff to confirm the table QR code and current visit code.')}</p>
+          <p>{t('table_guest_qr_ask_staff', 'Ask staff to confirm the table QR code.')}</p>
         )}
       </section>
     </main>

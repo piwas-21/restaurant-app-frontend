@@ -38,7 +38,7 @@ jest.mock('@/hooks/cashier/useCashierOperationalCount', () => ({
     state: 'ready',
     isLoading: false,
     error: null,
-    statusMessageKey: 'cashier.workspace.open_count_current',
+    statusMessageKey: 'cashier.workspace.today_count_current',
     refreshCount: jest.fn(),
   }),
 }));

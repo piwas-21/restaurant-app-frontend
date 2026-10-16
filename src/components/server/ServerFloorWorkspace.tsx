@@ -17,7 +17,7 @@ import { isKnownServerFloorTableState } from '@/types/serverWorkspace';
 import ServerFloorTableCard from './ServerFloorTableCard';
 import ServerFloorMapPanel from './ServerFloorMapPanel';
 import { geometryFor, renderState, tableLabel } from './serverFloorPresentation';
-import ServerFloorWorkspaceToolbar from './ServerFloorWorkspaceToolbar';
+import StaffTableTools from '@/components/table-service/StaffTableTools';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 import styles from './ServerFloorWorkspace.module.css';
@@ -163,14 +163,14 @@ export default function ServerFloorWorkspace() {
           </output>
         )}
 
-        <ServerFloorWorkspaceToolbar
+        <StaffTableTools
           view={effectiveView}
           zoneId={resolvedZoneId}
           zones={zones}
-          connectionState={floor.connectionState}
-          lastConfirmed={floor.snapshot?.serverTime}
           searchQuery={searchQuery}
-          onRetry={() => void floor.refresh()}
+          onRefresh={() => void floor.refresh()}
+          disabled={ordering.isStarting}
+          isLoading={floor.isLoading}
           onViewChange={setView}
           onZoneChange={setZoneId}
           onSearchChange={setSearchQuery}

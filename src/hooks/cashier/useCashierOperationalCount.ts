@@ -1,21 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getCashierOrders } from '@/services/cashierService';
+import { getCashierOrderGroups, getCashierTenantContext } from '@/services/cashierService';
 import type { CashierQueueState } from '@/types/cashier';
+import { CASHIER_TENANT_DAY_REFRESH_MS } from '@/lib/config';
 import { getErrorMessage } from '@/utils/apiClient';
 
 const OPERATIONAL_COUNT_QUERY = {
-  scope: 'Operational' as const,
+  scope: 'All' as const,
   page: 1,
   pageSize: 1,
 };
 
 const STATUS_MESSAGE_KEYS: Record<CashierQueueState, string> = {
-  loading: 'cashier.workspace.open_count_loading',
-  ready: 'cashier.workspace.open_count_current',
-  stale: 'cashier.workspace.open_count_stale',
-  unavailable: 'cashier.workspace.open_count_unavailable',
+  loading: 'cashier.workspace.today_count_loading',
+  ready: 'cashier.workspace.today_count_current',
+  stale: 'cashier.workspace.today_count_stale',
+  unavailable: 'cashier.workspace.today_count_unavailable',
 };
 
 export interface CashierOperationalCount {
@@ -28,7 +29,7 @@ export interface CashierOperationalCount {
 }
 
 /**
- * Reads the unfiltered operational total for the workspace badge. It intentionally asks for one
+ * Reads today's server-scoped order total for the workspace badge. It intentionally asks for one
  * row: totalCount is the server-owned count, while the workspace's filtered queue owns its rows.
  */
 export function useCashierOperationalCount(): CashierOperationalCount {
@@ -43,7 +44,9 @@ export function useCashierOperationalCount(): CashierOperationalCount {
     const requestId = ++requestRef.current;
     setIsLoading(true);
     try {
-      const response = await getCashierOrders(OPERATIONAL_COUNT_QUERY);
+      const tenant = await getCashierTenantContext();
+      if (!tenant?.date) throw new Error('Tenant business day is unavailable');
+      const response = await getCashierOrderGroups({ ...OPERATIONAL_COUNT_QUERY, tenantDay: tenant.date });
       if (requestId !== requestRef.current) return false;
       if (!Number.isSafeInteger(response.totalCount) || response.totalCount < 0) {
         throw new Error('Invalid operational order count');
@@ -56,7 +59,7 @@ export function useCashierOperationalCount(): CashierOperationalCount {
       return true;
     } catch (reason: unknown) {
       if (requestId !== requestRef.current) return false;
-      setError(getErrorMessage(reason) ?? 'cashier.workspace.open_count_unavailable');
+      setError(getErrorMessage(reason) ?? 'cashier.workspace.today_count_unavailable');
       setState(countRef.current === undefined ? 'unavailable' : 'stale');
       setIsLoading(false);
       return false;
@@ -69,8 +72,10 @@ export function useCashierOperationalCount(): CashierOperationalCount {
       if (document.visibilityState === 'visible') void refreshCount();
     };
     document.addEventListener('visibilitychange', onVisible);
+    const timer = window.setInterval(() => void refreshCount(), CASHIER_TENANT_DAY_REFRESH_MS);
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(timer);
       requestRef.current += 1;
     };
   }, [refreshCount]);

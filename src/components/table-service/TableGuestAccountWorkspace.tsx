@@ -110,7 +110,7 @@ export default function TableGuestAccountWorkspace() {
     content = (
       <TableGuestVisitMessage
         title={t('table_guest_ended_title')}
-        detail={t('table_guest_ended_detail')}
+        detail={t('table_guest_qr_ended_detail')}
         confirmedDeparture={confirmedDeparture}
         onConfirmDeparture={setConfirmedDeparture}
         onLeave={handleSafeDeparture}
@@ -133,7 +133,7 @@ export default function TableGuestAccountWorkspace() {
     const detail =
       featureStatus === 'unavailable'
         ? t('table_guest_unavailable_detail', t('unavailable', 'Unavailable'))
-        : t('table_guest_not_joined_detail');
+        : t('table_guest_qr_not_joined_detail');
     content = (
       <TableGuestVisitMessage
         title={t('table_guest_unavailable_title', t('unavailable', 'Unavailable'))}

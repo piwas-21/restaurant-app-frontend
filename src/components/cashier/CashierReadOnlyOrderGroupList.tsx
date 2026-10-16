@@ -5,13 +5,30 @@ import type { CashierOrderGroupDto } from '@/types/cashier';
 import CashierReadOnlyOrderList from './CashierReadOnlyOrderList';
 import styles from './CashierWorkspaceList.module.css';
 
+const activeStatusPriority = [
+  'PendingApproval',
+  'Pending',
+  'Confirmed',
+  'Preparing',
+  'Ready',
+  'OutForDelivery',
+  'Delivered',
+];
+
+function groupPaymentStatus(originalStatus: string, liveOrderCount: number, due: number, paid: number): string {
+  if (liveOrderCount === 0) return originalStatus;
+  if (due < 0) return 'Overpaid';
+  if (due === 0) return 'Completed';
+  if (paid > 0) return 'PartiallyPaid';
+  return 'Pending';
+}
+
 interface CashierReadOnlyOrderGroupListProps {
   readonly groups: readonly CashierOrderGroupDto[];
   readonly selectedOrderId: string | null;
   readonly timeZone?: string;
   readonly onSelectOrder: (orderId: string) => void;
   readonly onOrderRowRef?: (orderId: string, node: HTMLButtonElement | null) => void;
-  readonly onCollectSession?: (serviceSessionId: string) => void;
 }
 
 export default function CashierReadOnlyOrderGroupList({
@@ -20,84 +37,41 @@ export default function CashierReadOnlyOrderGroupList({
   timeZone,
   onSelectOrder,
   onOrderRowRef,
-  onCollectSession,
 }: CashierReadOnlyOrderGroupListProps) {
   const { t } = useTranslation();
-
   return (
     <ul className={styles.groupList} aria-label={t('cashier.workspace.order_list')}>
       {groups.map((group) => {
-        const sessionId = group.serviceSessionId;
-        if (!sessionId) {
-          return (
-            <li key={group.groupKey} className={styles.groupListItem}>
-              {group.isArchivedFromTable && (
-                <p className={styles.archivedOrderNotice}>
-                  <span className={styles.visitStateBadge}>{t('cashier.workspace.prior_table_order')}</span>
-                </p>
-              )}
-              <CashierReadOnlyOrderList
-                orders={group.orders}
-                selectedOrderId={selectedOrderId}
-                timeZone={timeZone}
-                onSelectOrder={onSelectOrder}
-                onOrderRowRef={onOrderRowRef}
-              />
-            </li>
-          );
-        }
-
-        const firstOrder = group.orders[0];
-        const tableLabel =
-          firstOrder?.tableLabel?.trim() ||
-          (group.tableNumber !== null
-            ? t('cashier.workspace.table_value', { table: group.tableNumber })
-            : t('cashier.workspace.visit'));
-        const pendingCount = group.orders.filter(
-          (order) => order.status === 'Pending' || order.status === 'PendingApproval',
-        ).length;
-        const balanceCount = group.orders.filter((order) => {
-          const due = typeof order.remainingAmount === 'number' ? order.remainingAmount : order.total - order.totalPaid;
-          return due > 0;
-        }).length;
-
+        const first = group.orders[0];
+        if (!first) return null;
+        const selected = group.orders.some((order) => order.id.toLowerCase() === selectedOrderId?.toLowerCase());
+        const liveOrders = group.orders.filter((order) => !['Cancelled', 'Refunded'].includes(order.status));
+        const due = liveOrders.reduce(
+          (sum, order) => sum + (order.remainingAmount ?? order.total - order.totalPaid),
+          0,
+        );
+        const paid = liveOrders.reduce((sum, order) => sum + order.totalPaid, 0);
+        const paymentStatus = groupPaymentStatus(first.paymentStatus, liveOrders.length, due, paid);
+        const summary = {
+          ...first,
+          status:
+            activeStatusPriority.find((status) => liveOrders.some((order) => order.status === status)) ?? first.status,
+          remainingAmount: due,
+          paymentStatus: group.orders.length > 1 ? paymentStatus : first.paymentStatus,
+        };
         return (
           <li key={group.groupKey} className={styles.groupListItem}>
-            <article className={styles.visitGroup} aria-labelledby={`visit-${group.groupKey}`}>
-              <header className={styles.visitGroupHeader}>
-                <div className={styles.visitGroupHeading}>
-                  <div className={styles.visitGroupTitleRow}>
-                    <h2 id={`visit-${group.groupKey}`} className={styles.visitGroupTitle} dir="auto">
-                      {tableLabel}
-                    </h2>
-                    {group.releasedAt && (
-                      <span className={styles.visitStateBadge}>{t('cashier.workspace.released_visit')}</span>
-                    )}
-                  </div>
-                  <p className={styles.visitGroupSummary}>
-                    <span>{t('cashier.workspace.group_rounds', { count: group.orders.length })}</span>
-                    <span>{t('cashier.workspace.group_pending', { count: pendingCount })}</span>
-                    <span>{t('cashier.workspace.group_with_balance', { count: balanceCount })}</span>
-                  </p>
-                </div>
-                {onCollectSession && (
-                  <button
-                    type="button"
-                    className={styles.visitCollectButton}
-                    onClick={() => onCollectSession(sessionId)}
-                  >
-                    {t('cashier.workspace.collect_for_visit')}
-                  </button>
-                )}
-              </header>
-              <CashierReadOnlyOrderList
-                orders={group.orders}
-                selectedOrderId={selectedOrderId}
-                timeZone={timeZone}
-                onSelectOrder={onSelectOrder}
-                onOrderRowRef={onOrderRowRef}
-              />
-            </article>
+            {group.isArchivedFromTable && (
+              <p className={styles.archivedOrderNotice}>{t('cashier.workspace.prior_table_order')}</p>
+            )}
+            <CashierReadOnlyOrderList
+              orders={[summary]}
+              updated={group.hasUpdates || group.orders.length > 1}
+              selectedOrderId={selected ? first.id : null}
+              timeZone={timeZone}
+              onSelectOrder={onSelectOrder}
+              onOrderRowRef={(_, node) => group.orders.forEach((order) => onOrderRowRef?.(order.id, node))}
+            />
           </li>
         );
       })}

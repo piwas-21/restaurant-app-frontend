@@ -121,7 +121,7 @@ test('four phones settle one table through items, amount and equal shares, then 
     for (const [choice, amountMinor] of choices) {
       const guest = await openVisitContext(browser, baseURL);
       contexts.push(guest.context);
-      await joinVisit(guest.page, table, visit.code);
+      await joinVisit(guest.page, table, visit.sessionId);
       const guestParticipantToken =
         choice === 'Items' ? await readGuestParticipantToken(guest.page, visit.sessionId) : null;
       if (choice === 'Items') await expectNoA11yViolations(guest.page);

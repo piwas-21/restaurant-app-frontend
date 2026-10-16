@@ -6,11 +6,6 @@ export interface TableGuestVisitIdentity {
   readonly tableId?: string;
 }
 
-export interface TableGuestAdmissionCodeDto {
-  readonly admissionCode: string;
-  readonly expiresAt: string;
-}
-
 export interface TableGuestOrderDto {
   readonly orderId: string;
   readonly orderNumber: string;

@@ -57,7 +57,9 @@ async function selectServerTable(page: Page, tableId: string, tableNumber: strin
   }
   const floorTable = floorBody.data.tables.find((table) => table.tableId.toLowerCase() === tableId.toLowerCase());
   if (!floorTable) throw new Error(`The authenticated Server floor did not include generated table ${tableNumber}.`);
+  await page.getByRole('button', { name: 'Table tools', exact: true }).click();
   await page.getByRole('button', { name: 'List', exact: true }).click();
+  await page.getByRole('button', { name: 'Table tools', exact: true }).click();
   const floorCard = page.locator('article').filter({ hasText: tableNumber });
   await floorCard.getByRole('link', { name: /Open Table/i }).click();
   await expect(page.getByRole('heading', { level: 1, name: tableNumber, exact: true })).toBeVisible();
@@ -1003,7 +1005,7 @@ test('server recovery releases occupancy, readiness resets it, and the old visit
   }
 });
 
-test('server-issued six-character visit code joins through the public scanned-table form @connected-account-collection', async ({
+test('scanned table QR joins directly without a staff-issued code @connected-account-collection', async ({
   browser,
   baseURL,
   accountServerUser,
@@ -1049,25 +1051,14 @@ test('server-issued six-character visit code joins through the public scanned-ta
         new RegExp(`/server/tables/${table.tableId}/order\\?serviceSessionId=${opened.data.serviceSessionId}$`),
       );
       await server.page.getByRole('link', { name: 'Back to tables', exact: true }).click();
-      const codePanel = server.page.getByRole('region', { name: 'Guest visit code', exact: true });
-      const codeResponse = await postData<{ admissionCode: string }>(
-        server.page,
-        /^\/api\/table-guest-visits\/[^/]+\/admission-code$/i,
-        () => codePanel.getByRole('button', { name: 'Generate new visit code', exact: true }).click(),
-      );
-      const code = codeResponse.data.admissionCode;
-      expect(code).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
-
       const guestContext = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 } });
       contexts.push(guestContext);
       const guest = await guestContext.newPage();
       const joined = postData<{ serviceSessionId: string }>(guest, /^\/api\/table-guest-visits\/join$/i, async () => {
         await guest.goto(`/en/scan?qr=${encodeURIComponent(qrBody.data!.qrCodeData)}`);
-        await expect(guest.getByLabel('Table visit code')).toBeVisible();
-        await guest.getByLabel('Table visit code').fill(code.slice(0, 3) + ' ' + code.slice(3));
-        await guest.getByRole('button', { name: 'Join table', exact: true }).click();
       });
       const join = await joined;
+      expect(join.response.request().postDataJSON()).toEqual({ qrCodeData: qrBody.data!.qrCodeData });
       expect(join.data.serviceSessionId.toLowerCase()).toBe(opened.data.serviceSessionId.toLowerCase());
       await expect(guest).toHaveURL(/\/en\/menu$/);
     } finally {

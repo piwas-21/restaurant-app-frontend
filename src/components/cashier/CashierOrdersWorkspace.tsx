@@ -150,13 +150,11 @@ export default function CashierOrdersWorkspace() {
         orderTypeFilter={filters.orderTypeFilter}
         marketplaceOnlyFilter={filters.marketplaceOnlyFilter}
         additionalFilters={
-          <>
-            <MarketplacePendingInbox
-              active={filters.marketplaceOnlyFilter && filters.statusFilter === 'PendingApproval'}
-              onSelect={showMarketplaceInbox}
-              onClear={clearMarketplaceInbox}
-            />
-          </>
+          <MarketplacePendingInbox
+            active={filters.marketplaceOnlyFilter && filters.statusFilter === 'PendingApproval'}
+            onSelect={showMarketplaceInbox}
+            onClear={clearMarketplaceInbox}
+          />
         }
         onSelectOrder={route.navigateWithOrder}
         onCollect={(orderId, serviceSessionId) => {

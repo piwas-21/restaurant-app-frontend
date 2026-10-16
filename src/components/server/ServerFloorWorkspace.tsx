@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from '@/components/TenantLink';
 
 import { useTenantLocaleRouter as useRouter } from '@/hooks/useTenantLocaleRouter';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +21,9 @@ import ServerFloorWorkspaceToolbar from './ServerFloorWorkspaceToolbar';
 import ServerTasksBadge from './tasks/ServerTasksBadge';
 import { serverOrderNavItem } from './serverWorkspaceOrderNav';
 import styles from './ServerFloorWorkspace.module.css';
+import gridStyles from '@/components/table-service/StaffTableCard.module.css';
+import { useStartStaffTableOrder } from '@/hooks/table-service/useStartStaffTableOrder';
+import { openTableServiceSession } from '@/services/tableServiceSessionService';
 
 const EMPTY_TABLES: ServerFloorTable[] = [];
 const EMPTY_ZONES: FloorPlanDocument[] = [];
@@ -31,6 +33,7 @@ export default function ServerFloorWorkspace() {
   const { orderAmendmentsV1 } = useTenantFeatures();
   const router = useRouter();
   const floor = useServerFloorSnapshot();
+  const ordering = useStartStaffTableOrder('server', (tableId) => openTableServiceSession({ tableId }));
   const viewState = useServerFloorViewState();
   const { view, zoneId, scrollTop, hydrated, hasStoredPreference, setView, setZoneId, setScrollTop } = viewState;
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
@@ -109,10 +112,15 @@ export default function ServerFloorWorkspace() {
     (tableId: string) => {
       const table = tables.find((candidate) => candidate.tableId === tableId);
       if (!table || !isKnownServerFloorTableState(table.state)) return;
+      if (ordering.isStarting) return;
+      if (table.state === 'Available' && table.permittedActions.includes('StartTable') && !floor.isStale) {
+        void ordering.startOrder(tableId);
+        return;
+      }
       setSelectedTableId(tableId);
       if (isNarrow) router.push(`/server/tables/${encodeURIComponent(tableId)}`);
     },
-    [isNarrow, router, tables],
+    [floor.isStale, isNarrow, ordering, router, tables],
   );
   const tableById = useMemo(() => new Map(tables.map((table) => [table.tableId, table])), [tables]);
   const formatTableLabel = useCallback(
@@ -144,16 +152,11 @@ export default function ServerFloorWorkspace() {
       className={styles.shell}
     >
       <div className={styles.workspace} data-testid="server-floor-workspace">
-        <header className={styles.heading}>
-          <div>
-            <h1>{t('staff.workspace', 'Staff workspace')}</h1>
-            <p>{t('server.all_active_orders', 'All Active Orders')}</p>
+        {ordering.error && (
+          <div className={styles.statePanel} role="alert">
+            {t(ordering.error, ordering.error)}
           </div>
-          <Link className={styles.control} href="/server/takeaway">
-            {t('server.takeaway.link')}
-          </Link>
-        </header>
-
+        )}
         {floor.isStale && (
           <output className={styles.staleNotice} aria-live="polite" aria-atomic="true">
             {t('server.status_stale', 'Stale data')} · {t('server.last_confirmed', 'Last confirmed')}
@@ -199,7 +202,7 @@ export default function ServerFloorWorkspace() {
             documents={mapDocuments}
             states={states}
             selectedTable={selectedTableForView}
-            isStale={floor.isStale}
+            isStale={floor.isStale || ordering.isStarting}
             formatTableLabel={formatTableLabel}
             onSelectTable={selectTable}
           />
@@ -207,7 +210,7 @@ export default function ServerFloorWorkspace() {
 
         {floor.snapshot && tables.length > 0 && effectiveView === 'list' && (
           <section ref={listRef} className={styles.listPanel} aria-label={t('list', 'List')}>
-            <div className={styles.tableList}>
+            <div className={gridStyles.grid}>
               {visibleTables.length === 0 ? (
                 <p className={styles.empty}>
                   {normalizedSearchQuery
@@ -220,7 +223,7 @@ export default function ServerFloorWorkspace() {
                     key={table.tableId}
                     table={table}
                     selected={table.tableId === selectedTableId}
-                    isStale={floor.isStale}
+                    isStale={floor.isStale || ordering.isStarting}
                     onSelect={selectTable}
                   />
                 ))

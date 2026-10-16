@@ -187,7 +187,7 @@ function sessionState(
 
 const tableState: ReturnType<typeof useCashierTables> = {
   entries: [],
-  releasedSessions: [],
+
   queueState: 'ready',
   isLoading: false,
   isMutating: false,
@@ -283,13 +283,12 @@ it('does not expose a prior table readiness action while a different visit is un
   expect(screen.getByText('cashier.tables.session_loading')).toBeInTheDocument();
 });
 
-it('returns from a released visit to the refreshed empty table and keeps the visit in history', () => {
+it('returns from a released visit to the refreshed empty table without a released-visits section', () => {
   const releasedVisit = makeReleasedSession(firstVisit);
   const navigateToTable = jest.fn();
   jest.mocked(useCashierTables).mockReturnValue({
     ...tableState,
     entries: [staleNeedsResetEntry],
-    releasedSessions: [releasedVisit],
   });
   jest.mocked(useCashierTableRoute).mockReturnValue({
     selectedSessionId: firstVisit,
@@ -308,14 +307,13 @@ it('returns from a released visit to the refreshed empty table and keeps the vis
   jest.mocked(useCashierTables).mockReturnValue({
     ...tableState,
     entries: [readyEntry],
-    releasedSessions: [releasedVisit],
   });
   view.rerender(<CashierTablesWorkspace />);
   fireEvent.click(screen.getByTestId('confirm-ready-refresh'));
 
   expect(navigateToTable).toHaveBeenCalledWith('7');
   expect(tableState.openSession).not.toHaveBeenCalled();
-  expect(screen.getByRole('button', { name: /cashier.tables.released_visits/ })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /cashier.tables.released_visits/ })).not.toBeInTheDocument();
 
   jest.mocked(useCashierTableRoute).mockReturnValue({
     selectedSessionId: null,
@@ -328,11 +326,8 @@ it('returns from a released visit to the refreshed empty table and keeps the vis
 
   expect(screen.getByTestId('cashier-empty-state')).toHaveAttribute('data-status', 'available');
   expect(screen.queryByTestId('cashier-session-panel')).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /cashier.tables.released_visits/ })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /cashier.tables.released_visits/ })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /cashier.tables.released_due/ })).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /cashier.tables.released_visits/ }));
-  expect(screen.getByRole('dialog', { name: 'cashier.tables.released_visits' })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /cashier.tables.released_due/ })).toBeEnabled();
   expect(tableState.openSession).not.toHaveBeenCalled();
 });
 

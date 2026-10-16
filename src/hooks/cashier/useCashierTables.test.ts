@@ -85,7 +85,7 @@ beforeEach(() => {
 });
 
 describe('useCashierTables', () => {
-  it('keeps released visits outside table occupancy while making them available for cashier review', async () => {
+  it('keeps released visits outside occupancy without fetching the hidden review queue', async () => {
     const released = { ...session('released-1', 7), isTableReleased: true };
     mockedReleasedSessions.mockResolvedValue([released]);
     mockedSessions.mockResolvedValueOnce([]);
@@ -95,7 +95,7 @@ describe('useCashierTables', () => {
     const { result } = renderHook(() => useCashierTables());
     await waitFor(() => expect(result.current.queueState).toBe('ready'));
 
-    expect(result.current.releasedSessions).toEqual([released]);
+    expect(mockedReleasedSessions).not.toHaveBeenCalled();
     expect(result.current.entries.find((entry) => entry.table.tableNumber === '7')?.status).toBe('available');
   });
 

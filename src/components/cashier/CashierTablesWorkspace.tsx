@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useTranslation } from 'react-i18next';
 import CashierWorkspaceShell from './CashierWorkspaceShell';
@@ -9,7 +9,6 @@ import CashierTableList from './CashierTableList';
 import TableReadinessAction from '@/components/table-service/TableReadinessAction';
 import CashierTableEmptyState from './CashierTableEmptyState';
 import CashierTableSessionPanel from './CashierTableSessionPanel';
-import CashierReleasedTableVisits from './CashierReleasedTableVisits';
 import { useCashierTables } from '@/hooks/cashier/useCashierTables';
 import { useCashierTableRoute } from '@/hooks/cashier/useCashierTableRoute';
 import { useCashierTableSession } from '@/hooks/cashier/useCashierTableSession';
@@ -24,15 +23,16 @@ import type { TableServiceSessionDto } from '@/types/order';
 import { useCashierTableWorkspaceActions } from './useCashierTableWorkspaceActions';
 import CashierTableViewControls from './CashierTableViewControls';
 import styles from './CashierTablesWorkspace.module.css';
+import { useStaffNavigationLock } from '@/hooks/table-service/useStaffNavigationLock';
+import { useStartStaffTableOrder } from '@/hooks/table-service/useStartStaffTableOrder';
 import { useTenantFeatures } from '@/contexts/TenantFeaturesContext';
-
-type TableView = 'map' | 'list';
 
 export default function CashierTablesWorkspace() {
   const { t } = useTranslation();
   const { tableVisitReadinessV1 } = useTenantFeatures();
   const tables = useCashierTables();
   const route = useCashierTableRoute();
+  const ordering = useStartStaffTableOrder('cashier', tables.openSession);
   const selectedFromList = useMemo(
     () => findSelectedCashierTableEntry(tables.entries, route.selectedSessionId, route.selectedTableNumber),
     [route.selectedSessionId, route.selectedTableNumber, tables.entries],
@@ -43,14 +43,18 @@ export default function CashierTablesWorkspace() {
   const selectedSession =
     sessionId && session.session?.serviceSessionId.toLowerCase() === sessionId.toLowerCase() ? session.session : null;
   const { timeZone, isLoading: timeZoneLoading, hasError: timeZoneHasError } = useCashierTenantTimeZoneState();
-  const [view, setView] = useState<TableView>('map');
+  const [view, setView] = useState<'map' | 'list'>('map');
   const [recoveryOperationPending, setRecoveryOperationPending] = useState(false);
   let selectedTableNumber: string | null = sessionId ? null : route.selectedTableNumber;
   if (selectedFromList?.table.tableNumber != null) selectedTableNumber = selectedFromList.table.tableNumber;
   if (selectedSession?.tableNumber != null) selectedTableNumber = String(selectedSession.tableNumber);
   const hasSelection = Boolean(route.selectedSessionId || route.selectedTableNumber);
   const navigationDisabled =
-    tables.isMutating || session.isMutating || session.pendingOperation !== null || recoveryOperationPending;
+    ordering.isStarting ||
+    tables.isMutating ||
+    session.isMutating ||
+    session.pendingOperation !== null ||
+    recoveryOperationPending;
   const queueState = cashierTableQueueState(
     tables.queueState,
     sessionId,
@@ -76,19 +80,15 @@ export default function CashierTablesWorkspace() {
     await tables.refresh();
   }, [route, tables]);
 
-  useEffect(() => {
-    if (!navigationDisabled || typeof window === 'undefined') return;
-    const guardedUrl = window.location.href;
-    const preventPopState = (event: PopStateEvent) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      window.history.pushState(window.history.state, '', guardedUrl);
-    };
-    window.addEventListener('popstate', preventPopState, true);
-    return () => window.removeEventListener('popstate', preventPopState, true);
-  }, [navigationDisabled]);
+  useStaffNavigationLock(navigationDisabled);
 
-  const selectTable = route.navigateToTable;
+  const selectTable = (number: string, visitId?: string) => {
+    if (navigationDisabled) return;
+    const entry = tables.entries.find((candidate) => candidate.table.tableNumber === number);
+    if (entry?.status === 'available' && !visitId && tables.queueState === 'ready') {
+      void ordering.startOrder(number);
+    } else route.navigateToTable(number, visitId);
+  };
   const refresh = useCallback(() => {
     void tables.refresh();
     if (sessionId) void session.refresh();
@@ -111,6 +111,11 @@ export default function CashierTablesWorkspace() {
             onRefresh={refresh}
           />
         </header>
+        {ordering.error && (
+          <div className={styles.alert} role="alert">
+            {t(ordering.error, ordering.error)}
+          </div>
+        )}
         {tables.error && (
           <div className={styles.alert} role="alert">
             {tables.error.startsWith('cashier.') ? t(tables.error) : tables.error}
@@ -121,11 +126,6 @@ export default function CashierTablesWorkspace() {
             {t('cashier.tables.legacy_repair_success')}
           </div>
         )}
-        <CashierReleasedTableVisits
-          sessions={tables.releasedSessions}
-          disabled={navigationDisabled}
-          onSelect={(releasedSessionId) => route.navigateToSession(releasedSessionId)}
-        />
         {timeZoneLoading && <output className={styles.state}>{t('cashier.tables.time_zone_loading')}</output>}
         {timeZoneHasError && (
           <div className={styles.alert} role="alert">

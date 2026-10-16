@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
 import type { OrderDto } from '@/types/order';
+import BillChargeConfigurationNotice from './BillChargeConfigurationNotice';
 import OrderBillChargeEditor from './OrderBillChargeEditor';
 import OrderBillCharges from './OrderBillCharges';
 
@@ -35,6 +36,12 @@ export default function OrderBillChargeAction(
       (role === 'admin' || rule.roles.some((value) => value.toLowerCase() === role)) &&
       !props.order.billCharges?.some((charge) => charge.key === rule.key),
   );
-  if (!available && !hasPending) return <OrderBillCharges charges={props.order.billCharges} />;
+  if (!available && !hasPending)
+    return (
+      <>
+        <BillChargeConfigurationNotice reader={reader} />
+        <OrderBillCharges charges={props.order.billCharges} />
+      </>
+    );
   return <OrderBillChargeEditor {...props} />;
 }

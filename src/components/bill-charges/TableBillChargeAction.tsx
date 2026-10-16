@@ -6,6 +6,7 @@ import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
 import FormField from '@/components/design-system/FormField';
 import type { OrderDto } from '@/types/order';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
+import BillChargeConfigurationNotice from './BillChargeConfigurationNotice';
 import OrderBillChargeAction from './OrderBillChargeAction';
 
 export default function TableBillChargeAction({
@@ -47,7 +48,9 @@ export default function TableBillChargeAction({
     orders.find((value) => value.id === pendingOrderId) ??
     eligible.find((value) => value.id === selected) ??
     eligible[0];
-  if (!order || (!available && !pendingOrderId && !eligible.some((value) => value.billCharges?.length))) return null;
+  if (!order) return null;
+  if (!available && !pendingOrderId && !eligible.some((value) => value.billCharges?.length))
+    return <BillChargeConfigurationNotice reader={reader} />;
   return (
     <div>
       {eligible.length > 1 && !pendingOrderId && (

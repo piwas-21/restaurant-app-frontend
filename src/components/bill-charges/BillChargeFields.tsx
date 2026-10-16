@@ -4,6 +4,7 @@ import { MAX_BILL_CHARGE_AMOUNT, BILL_CHARGE_AMOUNT_STEP } from '@/lib/billCharg
 import { useTranslation } from 'react-i18next';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
+import BillChargeConfigurationNotice from './BillChargeConfigurationNotice';
 import FormField from '@/components/design-system/FormField';
 import CheckboxField from '@/components/design-system/CheckboxField';
 import type { BillChargeInput } from '@/types/billCharge';
@@ -28,6 +29,7 @@ export default function BillChargeFields({
   const auth = useOptionalAuth();
   const role = auth?.user?.role;
   const reader = useBillChargeConfiguration();
+  if (!reader.configuration) return <BillChargeConfigurationNotice reader={reader} />;
   const rules =
     reader.configuration?.rules.filter(
       (rule) =>
@@ -37,13 +39,13 @@ export default function BillChargeFields({
         !existingKeys.includes(rule.key),
     ) ?? [];
   const unavailable = values.filter((value) => !rules.some((rule) => rule.key === value.key));
-  if (!rules.length && !values.length) return null;
+  if (!rules.length && !values.length) return <BillChargeConfigurationNotice reader={reader} />;
   const change = (key: string, amount: number | null) =>
     onChange([...values.filter((value) => value.key !== key), ...(amount === null ? [] : [{ key, amount }])]);
   return (
     <fieldset className={styles.fields} disabled={disabled}>
       <legend>{t('billCharges.title')}</legend>
-      {reader.failed && <p role="alert">{reader.message ?? t('billCharges.loadFailed')}</p>}
+      <BillChargeConfigurationNotice reader={reader} />
       {unavailable.map((value) => (
         <div key={value.key}>
           <p>

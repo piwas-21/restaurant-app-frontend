@@ -3,21 +3,14 @@ import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import { useBillChargeEditor } from '@/hooks/admin/useBillChargeEditor';
 import StaffButton from '@/components/design-system/StaffButton';
+import BillChargeConfigurationNotice from '@/components/bill-charges/BillChargeConfigurationNotice';
 import BillChargeRuleEditor from './BillChargeRuleEditor';
 import styles from '@/components/bill-charges/BillCharges.module.css';
 
 export default function BillChargesTab() {
   const { t } = useTranslation();
   const editor = useBillChargeEditor();
-  if (!editor.reader.configuration)
-    return (
-      <div>
-        {editor.reader.message && <p role="alert">{editor.reader.message}</p>}
-        <StaffButton onClick={() => void editor.reader.refresh()}>
-          {t(editor.reader.failed ? 'retry' : 'loading')}
-        </StaffButton>
-      </div>
-    );
+  if (!editor.reader.configuration) return <BillChargeConfigurationNotice reader={editor.reader} />;
   return (
     <form
       className={styles.form}

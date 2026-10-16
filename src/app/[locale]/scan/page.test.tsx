@@ -437,7 +437,7 @@ describe('ScanPage with table visits enabled', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Retry/ }));
     await waitFor(() => expect(getPublicTableGuestFeature).toHaveBeenCalledTimes(2));
-    expect(screen.getByText(/Ask staff to confirm/)).toBeInTheDocument();
+    expect(await screen.findByText(/Ask staff to confirm/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Go to Menu' })).not.toBeInTheDocument();
     await new Promise((resolve) => window.setTimeout(resolve, 1100));
     expect(mockPushMenu).not.toHaveBeenCalled();

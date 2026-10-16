@@ -90,7 +90,7 @@ export function useOrderBillChargeAction(
     } catch (error: unknown) {
       setMessage(getErrorMessage(error));
       setFailed(true);
-      if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+      if (error instanceof ApiError && [400, 409, 422].includes(error.status)) {
         try {
           sessionStorage.removeItem(key);
           setPending(null);

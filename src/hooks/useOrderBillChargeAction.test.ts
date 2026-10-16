@@ -42,3 +42,17 @@ it('clears a definite stale-version refusal so staff can edit and use a fresh qu
   expect(refresh).toHaveBeenCalled();
   expect(lock).toHaveBeenLastCalledWith(false);
 });
+
+it.each([401, 403, 404])('retains the original operation when recovery loses access (%s)', async (status) => {
+  add.mockRejectedValueOnce(new TypeError('lost response'));
+  const first = renderHook(() => useOrderBillChargeAction(order, false, refresh, lock));
+  await waitFor(() => expect(first.result.current.hydrated).toBe(true));
+  act(() => first.result.current.setValues([{ key: 'service_fee', amount: 5 }]));
+  await act(() => first.result.current.save());
+  const original = first.result.current.pending;
+  add.mockRejectedValueOnce(new ApiError(status, 'access unavailable'));
+  await act(() => first.result.current.save());
+  expect(first.result.current.pending).toEqual(original);
+  expect(lock).toHaveBeenLastCalledWith(true);
+  expect(sessionStorage.getItem(`staff.bill-charge:staff-a:${order.id}`)).not.toBeNull();
+});

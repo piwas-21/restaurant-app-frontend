@@ -1,5 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type SetStateAction } from 'react';
+import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { billChargeSettingsSchema, type BillChargeSettingsForm } from '@/schemas/billCharge.schema';
 import { useTranslation } from 'react-i18next';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
 import { getErrorMessage } from '@/utils/apiClient';
@@ -9,7 +13,14 @@ import type { BillChargeRule } from '@/types/billCharge';
 export function useBillChargeEditor() {
   const { t } = useTranslation();
   const reader = useBillChargeConfiguration();
-  const [rules, setRules] = useState<BillChargeRule[]>([]);
+  const { control, reset, setValue, handleSubmit, formState } = useForm<BillChargeSettingsForm>({
+    resolver: zodResolver(billChargeSettingsSchema),
+    defaultValues: { rules: [] },
+    mode: 'onChange',
+  });
+  const rules = useWatch({ control, name: 'rules' });
+  const setRules = (next: SetStateAction<BillChargeRule[]>) =>
+    setValue('rules', typeof next === 'function' ? next(rules) : next, { shouldValidate: true, shouldDirty: true });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   useEffect(() => {
@@ -19,7 +30,7 @@ export function useBillChargeEditor() {
       ['service_fee', t('billCharges.serviceFee')],
       ['delivery_fee', t('billCharges.deliveryFee')],
     ]) {
-      if (!saved.some((rule) => rule.key === key))
+      if (saved.length < MAX_BILL_CHARGE_FIELDS && !saved.some((rule) => rule.key === key))
         saved.push({
           key,
           label,
@@ -30,33 +41,21 @@ export function useBillChargeEditor() {
           roles: ['Cashier', 'Server'],
         });
     }
-    setRules(saved);
-  }, [reader.configuration, t]);
-  const valid =
-    rules.length <= 12 &&
-    new Set(rules.map((rule) => rule.key)).size === rules.length &&
-    rules.every(
-      (rule) =>
-        /^[a-z][a-z0-9_]{0,39}$/.test(rule.key) &&
-        rule.label.trim().length > 0 &&
-        Number.isFinite(rule.defaultAmount) &&
-        rule.defaultAmount >= 0 &&
-        rule.defaultAmount <= 10000 &&
-        rule.orderTypes.length > 0 &&
-        rule.roles.length > 0,
-    );
-  const save = async () => {
-    if (!reader.configuration || !valid || busy) return;
+    reset({ rules: saved });
+  }, [reader.configuration, reset, t]);
+  const valid = formState.isValid;
+  const save = handleSubmit(async (data) => {
+    if (!reader.configuration || busy) return;
     setBusy(true);
     setMessage(null);
     try {
-      reader.setConfiguration(await saveBillCharges({ currency: reader.configuration.currency, rules }));
+      reader.setConfiguration(await saveBillCharges({ currency: reader.configuration.currency, rules: data.rules }));
       setMessage('billCharges.saved');
     } catch (error: unknown) {
       setMessage(getErrorMessage(error) ?? 'billCharges.saveFailed');
     } finally {
       setBusy(false);
     }
-  };
+  });
   return { reader, rules, setRules, busy, message, valid, save };
 }

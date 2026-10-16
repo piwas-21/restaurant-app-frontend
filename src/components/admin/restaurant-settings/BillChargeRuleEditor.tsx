@@ -1,4 +1,10 @@
 'use client';
+import {
+  MAX_BILL_CHARGE_AMOUNT,
+  BILL_CHARGE_AMOUNT_STEP,
+  BILL_CHARGE_KEY_MAX_LENGTH,
+  BILL_CHARGE_LABEL_MAX_LENGTH,
+} from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import FormField from '@/components/design-system/FormField';
@@ -17,7 +23,7 @@ export default function BillChargeRuleEditor({
   currency: string;
   onChange: (rule: BillChargeRule) => void;
   disabled: boolean;
-  onRemove: () => void;
+  onRemove?: () => void;
 }>) {
   const { t } = useTranslation();
   const toggle = (field: 'roles' | 'orderTypes', value: string, checked: boolean) =>
@@ -31,17 +37,25 @@ export default function BillChargeRuleEditor({
         onChange={(enabled) => onChange({ ...rule, enabled })}
       />
       <FormField label={t('billCharges.key')}>
-        <input value={rule.key} maxLength={40} onChange={(e) => onChange({ ...rule, key: e.target.value })} />
+        <input
+          value={rule.key}
+          maxLength={BILL_CHARGE_KEY_MAX_LENGTH}
+          onChange={(e) => onChange({ ...rule, key: e.target.value })}
+        />
       </FormField>
       <FormField label={t('billCharges.label')}>
-        <input value={rule.label} maxLength={60} onChange={(e) => onChange({ ...rule, label: e.target.value })} />
+        <input
+          value={rule.label}
+          maxLength={BILL_CHARGE_LABEL_MAX_LENGTH}
+          onChange={(e) => onChange({ ...rule, label: e.target.value })}
+        />
       </FormField>
       <FormField label={`${t('billCharges.defaultAmount')} (${currency})`}>
         <input
           type="number"
           min="0"
-          max="10000"
-          step="0.01"
+          max={MAX_BILL_CHARGE_AMOUNT}
+          step={BILL_CHARGE_AMOUNT_STEP}
           value={rule.defaultAmount}
           onChange={(e) => onChange({ ...rule, defaultAmount: Number(e.target.value) })}
         />
@@ -61,7 +75,7 @@ export default function BillChargeRuleEditor({
           <CheckboxField
             key={value}
             label={t(key)}
-            checked={rule.orderTypes.includes(value)}
+            checked={rule.orderTypes.some((item) => item === value)}
             onChange={(checked) => toggle('orderTypes', value, checked)}
           />
         ))}
@@ -75,12 +89,12 @@ export default function BillChargeRuleEditor({
           <CheckboxField
             key={value}
             label={t(key)}
-            checked={rule.roles.includes(value)}
+            checked={rule.roles.some((item) => item === value)}
             onChange={(checked) => toggle('roles', value, checked)}
           />
         ))}
       </fieldset>
-      <StaffButton onClick={onRemove}>{t('remove')}</StaffButton>
+      {onRemove && <StaffButton onClick={onRemove}>{t('remove')}</StaffButton>}
     </fieldset>
   );
 }

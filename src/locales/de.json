@@ -4210,6 +4210,7 @@
     "order": "Gebühr zu Bestellung hinzufügen",
     "loadFailed": "Gebühreneinstellungen konnten nicht geladen werden. Aktualisieren Sie die Ansicht.",
     "saveFailed": "Die Gebühren konnten nicht bestätigt werden. Aktualisieren Sie die Rechnung und prüfen Sie bestehende Gebühren und ausstehende Zahlungen vor einem erneuten Versuch.",
-    "unavailable": "Diese ausgewählte Gebühr ist nicht mehr verfügbar. Entfernen Sie sie vor der Bestellung."
+    "unavailable": "Diese ausgewählte Gebühr ist nicht mehr verfügbar. Entfernen Sie sie vor der Bestellung.",
+    "invalidSettings": "Jedes Feld benötigt einen eindeutigen Schlüssel in Kleinbuchstaben, eine Bezeichnung, einen gültigen Betrag sowie mindestens eine Bestellart und eine Personalrolle."
   }
 }

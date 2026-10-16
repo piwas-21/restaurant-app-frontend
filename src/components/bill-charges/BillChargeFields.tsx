@@ -1,5 +1,6 @@
 'use client';
 
+import { MAX_BILL_CHARGE_AMOUNT, BILL_CHARGE_AMOUNT_STEP } from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
@@ -31,7 +32,7 @@ export default function BillChargeFields({
     reader.configuration?.rules.filter(
       (rule) =>
         rule.enabled &&
-        rule.orderTypes.includes(orderType) &&
+        rule.orderTypes.some((value) => value === orderType) &&
         (role?.toLowerCase() === 'admin' || rule.roles.some((r) => r.toLowerCase() === role?.toLowerCase())) &&
         !existingKeys.includes(rule.key),
     ) ?? [];
@@ -67,8 +68,8 @@ export default function BillChargeFields({
                 <input
                   type="number"
                   min="0"
-                  max="10000"
-                  step="0.01"
+                  max={MAX_BILL_CHARGE_AMOUNT}
+                  step={BILL_CHARGE_AMOUNT_STEP}
                   inputMode="decimal"
                   value={value.amount}
                   readOnly={!rule.allowCustomAmount}

@@ -1,12 +1,6 @@
-export interface BillChargeRule {
-  readonly key: string;
-  readonly label: string;
-  readonly enabled: boolean;
-  readonly defaultAmount: number;
-  readonly allowCustomAmount: boolean;
-  readonly orderTypes: readonly string[];
-  readonly roles: readonly string[];
-}
+import type { BillChargeRuleValues } from '@/schemas/billCharge.schema';
+
+export type BillChargeRule = BillChargeRuleValues;
 export interface BillChargeConfiguration {
   readonly currency: string | null;
   readonly rules: readonly BillChargeRule[];

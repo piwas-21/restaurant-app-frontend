@@ -1,4 +1,5 @@
 'use client';
+import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import { useBillChargeEditor } from '@/hooks/admin/useBillChargeEditor';
 import StaffButton from '@/components/design-system/StaffButton';
@@ -33,12 +34,16 @@ export default function BillChargesTab() {
           rule={rule}
           currency={editor.reader.configuration?.currency ?? ''}
           disabled={editor.busy}
-          onRemove={() => editor.setRules((values) => values.filter((_, i) => i !== index))}
+          onRemove={
+            ['service_fee', 'delivery_fee'].includes(rule.key)
+              ? undefined
+              : () => editor.setRules((values) => values.filter((_, i) => i !== index))
+          }
           onChange={(next) => editor.setRules((values) => values.map((value, i) => (i === index ? next : value)))}
         />
       ))}
       <StaffButton
-        disabled={editor.busy || editor.rules.length >= 12}
+        disabled={editor.busy || editor.rules.length >= MAX_BILL_CHARGE_FIELDS}
         onClick={() =>
           editor.setRules((values) => [
             ...values,
@@ -56,6 +61,7 @@ export default function BillChargesTab() {
       >
         {t('billCharges.addField')}
       </StaffButton>
+      {!editor.valid && <p role="alert">{t('billCharges.invalidSettings')}</p>}
       {editor.message && <output aria-live="polite">{t(editor.message)}</output>}
       <StaffButton type="submit" variant="primary" disabled={editor.busy || !editor.valid}>
         {t('save')}

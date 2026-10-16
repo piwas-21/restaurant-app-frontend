@@ -41,7 +41,7 @@ export default function TableBillChargeAction({
     (rule) =>
       rule.enabled &&
       (role === 'admin' || rule.roles.some((value) => value.toLowerCase() === role)) &&
-      eligible.some((order) => rule.orderTypes.includes(order.type)),
+      eligible.some((order) => rule.orderTypes.some((value) => value === order.type)),
   );
   const order =
     orders.find((value) => value.id === pendingOrderId) ??

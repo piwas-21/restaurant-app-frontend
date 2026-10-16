@@ -44,6 +44,7 @@
   inset-inline-start: 0;
   top: calc(100% + 0.5rem);
   inline-size: min(21rem, 85vw);
+  max-inline-size: none;
   padding: 1rem;
   display: grid;
   gap: 1rem;

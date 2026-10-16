@@ -4223,6 +4223,7 @@
     "order": "Añadir cargo al pedido",
     "loadFailed": "No se pudo cargar la configuración. Actualiza e inténtalo de nuevo.",
     "saveFailed": "No se pudieron confirmar los cargos. Actualiza la cuenta y comprueba los cargos existentes y los pagos pendientes antes de reintentar.",
-    "unavailable": "Este cargo seleccionado ya no está disponible. Quítalo antes de enviar el pedido."
+    "unavailable": "Este cargo seleccionado ya no está disponible. Quítalo antes de enviar el pedido.",
+    "invalidSettings": "Cada campo necesita una clave única en minúsculas, una etiqueta, un importe válido y al menos un tipo de pedido y un rol del personal."
   }
 }

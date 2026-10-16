@@ -4223,6 +4223,7 @@
     "order": "Aggiungi il supplemento all’ordine",
     "loadFailed": "Impossibile caricare le impostazioni. Aggiorna e riprova.",
     "saveFailed": "Impossibile confermare i supplementi. Aggiorna il conto e controlla i supplementi esistenti e i pagamenti in sospeso prima di riprovare.",
-    "unavailable": "Questo supplemento selezionato non è più disponibile. Rimuovilo prima di inviare l’ordine."
+    "unavailable": "Questo supplemento selezionato non è più disponibile. Rimuovilo prima di inviare l’ordine.",
+    "invalidSettings": "Ogni campo richiede una chiave univoca in minuscolo, un’etichetta, un importo valido e almeno un tipo di ordine e un ruolo del personale."
   }
 }

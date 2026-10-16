@@ -1,19 +1,8 @@
 import type { BillChargeInput } from '@/types/billCharge';
+import { billChargeInputSchema } from '@/schemas/billCharge.schema';
+import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
+
 export function readBillChargeInputs(value: unknown): BillChargeInput[] | undefined {
   if (value === undefined) return undefined;
-  if (!Array.isArray(value) || value.length > 12) throw new Error('Invalid bill charge draft');
-  return value.map((row: unknown) => {
-    if (typeof row !== 'object' || row === null) throw new Error('Invalid bill charge');
-    const input = row as Record<string, unknown>;
-    if (
-      typeof input.key !== 'string' ||
-      !/^[a-z][a-z0-9_]{0,39}$/.test(input.key) ||
-      typeof input.amount !== 'number' ||
-      !Number.isFinite(input.amount) ||
-      input.amount < 0 ||
-      input.amount > 10000
-    )
-      throw new Error('Invalid bill charge');
-    return { key: input.key, amount: input.amount };
-  });
+  return billChargeInputSchema.array().max(MAX_BILL_CHARGE_FIELDS).parse(value);
 }

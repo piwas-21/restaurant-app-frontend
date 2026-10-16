@@ -31,7 +31,7 @@ export default function OrderBillChargeAction(
   const available = reader.configuration?.rules.some(
     (rule) =>
       rule.enabled &&
-      rule.orderTypes.includes(props.order.type) &&
+      rule.orderTypes.some((value) => value === props.order.type) &&
       (role === 'admin' || rule.roles.some((value) => value.toLowerCase() === role)) &&
       !props.order.billCharges?.some((charge) => charge.key === rule.key),
   );

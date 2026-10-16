@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
+import { billChargeInputSchema } from '@/schemas/billCharge.schema';
+import { MAX_BILL_CHARGE_AMOUNT, MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { ApiError, getErrorMessage } from '@/utils/apiClient';
 import { addOrderBillCharges } from '@/services/billChargeService';
@@ -12,9 +14,9 @@ const pendingSchema = z.object({
   expectedVersion: z.number().int().positive(),
   operationId: z.string().uuid(),
   charges: z
-    .array(z.object({ key: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/), amount: z.number().positive().max(10000) }))
+    .array(billChargeInputSchema.extend({ amount: z.number().positive().max(MAX_BILL_CHARGE_AMOUNT) }))
     .min(1)
-    .max(12),
+    .max(MAX_BILL_CHARGE_FIELDS),
 });
 type Pending = z.infer<typeof pendingSchema>;
 

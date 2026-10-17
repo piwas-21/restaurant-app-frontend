@@ -11,12 +11,12 @@ Restaurant management system frontend — Next.js 15 (App Router), React 19, Typ
 - **Next.js 15.5** (App Router with Turbopack dev server)
 - **React 19** + **TypeScript**
 - **CSS Modules** + design tokens (`src/app/globals.css`). See [ADR-002](docs/adr/ADR-002-css-modules-and-tokens.md).
-- **i18next** with 9 locales (en, de, tr, it, ar, fr, es, ru, zh). See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
+- **i18next** with 10 locales (en, de, tr, it, ar, fr, nl, es, ru, zh). See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
 - **State**: React Context API (Auth, Session, Cart, Table, Checkout, Theme). See [ADR-001](docs/adr/ADR-001-app-router-context-api.md).
 - **Forms**: Zod schemas + react-hook-form. See [ADR-004](docs/adr/ADR-004-zod-form-validation.md).
 - **Design system**: `BaseModal`, `FormField`, `StatusBadge` mandatory wrappers. See [ADR-005](docs/adr/ADR-005-design-system-primitives.md).
 - **Testing**: Jest + React Testing Library (unit), Playwright (E2E)
-- Hosted on GitLab; CI runs gitleaks, npm audit, njsscan, semgrep, retire.js, build, Trivy image scan per `.gitlab-ci.yml`.
+- Hosted on GitHub; current CI and security checks live in [.github/workflows/](.github/workflows/) and [CLAUDE.md §7](CLAUDE.md).
 
 ## Repository layout
 
@@ -32,7 +32,7 @@ src/
 ├── contexts/                     # React Context providers
 ├── hooks/                        # Custom hooks (page-level logic lives here)
 ├── lib/                          # apiClient, config, formatters
-├── locales/                      # i18next JSON files (9 locales)
+├── locales/                      # i18next JSON files (10 locales)
 ├── schemas/                      # Zod schemas (form validation)
 ├── services/                     # Backend API service files (one per resource)
 ├── styles/                       # Shared CSS Modules + globals
@@ -41,7 +41,7 @@ src/
 
 docs/                             # Design system, sprint plan, ADRs, security audit
 scripts/                          # Local dev orchestration
-.gitlab/                          # MR templates, CI templates
+.github/                          # Pull-request template and CI/deploy workflows
 __mocks__/                        # Jest mocks
 __tests__ / *.test.ts             # Unit tests colocated with source
 e2e/                              # Playwright E2E (see docs/E2E-STRATEGY.md)
@@ -85,26 +85,47 @@ npm run test:e2e:ui  # Playwright with UI mode
 ## Branch strategy
 
 ```
-main          ← production deployment (currently develop; cutover pending)
-└── develop   ← test environment (auto-deployed)
+main          ← production releases only
+└── develop   ← default integration branch; staging deployment
      ├── feature/<x>
      ├── fix/<x>
      ├── chore/<x>
      └── docs/<x>
 ```
 
-Pre-commit hook blocks direct commits to `main`, `develop`, and `master`. Branch off `develop`, open MR to `develop` using the [default MR template](.gitlab/merge_request_templates/Default.md). After test-env validation, `develop` is promoted to `main` for production.
+Pre-commit hooks block direct commits to `main` and `develop`. Branch off `develop` and open a pull request to `develop` using the [pull-request template](.github/pull_request_template.md). Production releases use a separate `develop` → `main` pull request; merging it builds and deploys the production image.
 
-### Branch protection (GitLab)
+### Branch protection and merge gates
 
-Configured in **Settings → Repository → Protected Branches**:
+Follow [CLAUDE.md §8](CLAUDE.md#8--git-workflow) for protected-branch requirements. Direct pushes and protection bypasses are prohibited; pull requests require green checks and resolved review threads.
 
-| Branch    | Allowed to push | Allowed to merge         | Force push |
-| --------- | --------------- | ------------------------ | ---------- |
-| `main`    | No one          | Maintainers              | Disabled   |
-| `develop` | No one          | Maintainers + Developers | Disabled   |
+Merge through the workspace `scripts/pr-merge-gate.sh piwas-21/restaurant-app-frontend <pr> --merge`. It also requires a populated passing Sonar PR quality gate and zero open Sonar issues. Feature flags, served tenant versions and behavioral acceptance require separate live verification.
 
-All MRs require the pipeline to pass before merge.
+### Preserve production ancestry
+
+A release adds a merge commit to `main`. Bring it back into `develop` through a reviewed PR
+before the next release; matching file contents alone do not satisfy strict branch freshness.
+
+1. Fetch `origin/main` and `origin/develop`. In an isolated worktree, create a `chore/` branch
+   from `origin/develop` and run `git merge --no-edit origin/main`.
+2. Verify `git merge-base --is-ancestor origin/main HEAD`, inspect both parents with
+   `git show --no-patch --format='%H %P' HEAD`, and review `git diff origin/develop HEAD`.
+   Preserve the reviewed runtime tree and explain any file changes.
+3. Obtain independent manual review, push through the installed review hook, and open the
+   completed PR template against `develop`. Use the workspace merge gate above; it detects
+   the backmerge and keeps a merge commit. Squashing discards the required ancestry.
+4. After merging, fetch again and run `git merge-base --is-ancestor origin/main origin/develop`.
+   Recheck the next release PR's diff, CI, review threads and Sonar issue count before merging.
+
+When a reviewed feature PR is still open, the same production merge may be included in its
+isolated branch: verify that the merge itself changes no feature files, review the assembled
+diff, and rerun normal push and PR gates. The merge gate must preserve the production ancestor.
+Keep shared clones untouched; never repair ancestry with direct protected-branch pushes or
+`gh pr update-branch`. Missing Sonar analysis, `NONE`, or zero populated conditions is not approval.
+
+Each frontend release also rebuilds active customer images through `release-tenant-images.yml`
+because `NEXT_PUBLIC_*` values are baked at build time. Verify each tenant's
+`/api/frontend/version`, health and relevant features after the rebuild and roll finish.
 
 ## Environment variables
 
@@ -125,9 +146,9 @@ Read variables via `src/lib/config.ts` (typed export), never `process.env.NEXT_P
 
 ## Pull requests
 
-Every MR uses [.gitlab/merge_request_templates/Default.md](.gitlab/merge_request_templates/Default.md). It auto-loads when you create an MR via the GitLab UI or `glab mr create`.
+Every pull request uses [.github/pull_request_template.md](.github/pull_request_template.md). Include acceptance coverage, validation and deployment notes before creating it through GitHub or the shared PR workflow script.
 
-Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification (for API-consumer changes), i18n parity (for string changes — all 9 locales must be touched), standard checklist, test plan.
+Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification (for API-consumer changes), i18n parity (for string changes — all 10 locales must be touched), standard checklist, test plan.
 
 ## Documentation
 

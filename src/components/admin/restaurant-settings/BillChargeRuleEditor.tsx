@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { BILL_CHARGE_LABEL_MAX_LENGTH } from '@/lib/billChargeLimits';
 import StaffButton from '@/components/design-system/StaffButton';
 import FormField from '@/components/design-system/FormField';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import BillChargeAmountInput from '@/components/bill-charges/BillChargeAmountInput';
 import BillChargeIcon from '@/components/bill-charges/BillChargeIcon';
 import type { BillChargeRule } from '@/types/billCharge';
@@ -47,7 +48,11 @@ export default function BillChargeRuleEditor({
         </span>
         <div>
           <h3 dir="auto">{rule.label}</h3>
-          <p>{t(rule.enabled ? 'billCharges.available' : 'billCharges.hidden')}</p>
+          <p>
+            <StatusBadge size="sm" tone={rule.enabled ? 'success' : 'neutral'}>
+              {t(rule.enabled ? 'billCharges.available' : 'billCharges.hidden')}
+            </StatusBadge>
+          </p>
         </div>
         <button
           type="button"

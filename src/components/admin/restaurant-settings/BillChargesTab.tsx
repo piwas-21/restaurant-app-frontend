@@ -6,13 +6,13 @@ import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import { useBillChargeEditor } from '@/hooks/admin/useBillChargeEditor';
 import StaffButton from '@/components/design-system/StaffButton';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import BillChargeConfigurationNotice from '@/components/bill-charges/BillChargeConfigurationNotice';
 import BillChargeIcon from '@/components/bill-charges/BillChargeIcon';
 import BillChargeRuleEditor from './BillChargeRuleEditor';
 import styles from './BillChargesTab.module.css';
 
-function chargeStatusKey(rule: BillChargeRule) {
-  if (!rule.enabled) return 'billCharges.disabled';
+function chargeModeKey(rule: BillChargeRule) {
   return rule.allowCustomAmount ? 'billCharges.staffAmount' : 'billCharges.fixedAmount';
 }
 
@@ -49,7 +49,13 @@ export default function BillChargesTab() {
               </span>
               <span>
                 <strong dir="auto">{rule.label}</strong>
-                <small>{t(chargeStatusKey(rule))}</small>
+                {rule.enabled ? (
+                  <small>{t(chargeModeKey(rule))}</small>
+                ) : (
+                  <StatusBadge tone="neutral" size="sm">
+                    {t('billCharges.disabled')}
+                  </StatusBadge>
+                )}
               </span>
             </button>
           ))}

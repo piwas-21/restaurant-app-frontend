@@ -1,9 +1,12 @@
 # Staff bill charges
 
 Admins configure **Restaurant settings → Bill charges**. Service fee and delivery fee start disabled;
-admins can define custom fields, choose a fixed/suggested amount, allow staff-entered amounts, and select
-order types and Cashier/Server access. Staff opt into each charge when placing an order or collecting
-payment. Disabled fields do not appear in staff flows. Only positive amounts are saved and printed.
+admins select a charge in the list, set its bill name and fixed/suggested amount, and use chips to choose
+order types and Cashier/Server access. Custom charges receive an internal key automatically; saved charge
+identities do not change when their names change. Staff opt into each charge when placing an order or collecting
+payment. Disabled fields do not appear in staff flows. A staff member taps a charge to reveal its amount; the
+amount can be cleared while typing, with either a decimal point or comma. Invalid amounts block order review.
+During collection, add the charge to the bill or remove the draft before recording payment. Only positive amounts are saved and printed.
 
 A saved charge keeps its label, currency and amount even after configuration changes. Each key can be
 added once per order. Original accepted order totals remain unchanged; payable totals, table balances,

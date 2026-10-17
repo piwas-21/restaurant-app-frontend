@@ -90,6 +90,17 @@ export default function CashierCollectionForm({
             onSetMaxAmount={onSetMaxAmount}
             t={t}
           />
+          <details className={entry.keypadDisclosure}>
+            <summary>{t('cashier.collection.keypad')}</summary>
+            <CashierNumericKeypad
+              value={amount}
+              disabled={isPending}
+              onChange={onAmountChange}
+              t={t}
+              className={entry.keypad}
+            />
+          </details>
+          <PaymentMethodField method={method} disabled={isPending} onChange={onMethodChange} t={t} />
           <small>{t('cashier.collection.staff_tip_description')}</small>
           <TipSelector
             key={order.id}
@@ -118,16 +129,8 @@ export default function CashierCollectionForm({
             />
           )}
         </div>
-        <CashierNumericKeypad
-          value={amount}
-          disabled={isPending}
-          onChange={onAmountChange}
-          t={t}
-          className={entry.keypad}
-        />
       </div>
       <div className={entry.stack}>
-        <PaymentMethodField method={method} disabled={isPending} onChange={onMethodChange} t={t} />
         <PaymentReferenceFields
           transactionId={transactionId}
           notes={notes}

@@ -1,11 +1,16 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CashierNewSaleWorkspace from './CashierNewSaleWorkspace';
+import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
 import { useCashierNewSale } from '@/hooks/cashier/useCashierNewSale';
 import { useCashierCatalog } from '@/hooks/cashier/useCashierCatalog';
 import { OrderType, type OrderDto } from '@/types/order';
 import type { CashierNewSaleDraftLine } from '@/lib/cashierNewSaleDraft';
 
+jest.mock('@/hooks/useBillChargeConfiguration', () => ({ useBillChargeConfiguration: jest.fn() }));
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: () => ({ user: { role: 'Cashier' } }),
+}));
 jest.mock('@/hooks/checkout/useEnabledOrderTypes', () => ({
   useEnabledOrderTypes: () => ({ enabled: ['DineIn', 'Takeaway', 'Delivery'], loading: false }),
 }));
@@ -117,6 +122,14 @@ const catalogState = (overrides: Record<string, unknown> = {}) => ({
 });
 
 beforeEach(() => {
+  jest.mocked(useBillChargeConfiguration).mockReturnValue({
+    configuration: { currency: 'CHF', rules: [] },
+    setConfiguration: jest.fn(),
+    failed: false,
+    loading: false,
+    message: null,
+    refresh: jest.fn(),
+  });
   mockSale.mockReturnValue(saleState());
   mockCatalog.mockReturnValue(catalogState());
 });
@@ -257,4 +270,64 @@ describe('CashierNewSaleWorkspace — the sheet interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'cashier.new_sale.add_product' }));
     await waitFor(() => expect(tapProduct).toHaveBeenCalledWith(expect.objectContaining({ id: 'product-1' })));
   });
+});
+
+it('blocks review for an invalid fee while keeping its amount editable, and recovers when cleared or corrected', () => {
+  jest.mocked(useBillChargeConfiguration).mockReturnValue({
+    configuration: {
+      currency: 'CHF',
+      rules: [
+        {
+          key: 'service_fee',
+          label: 'Service fee',
+          enabled: true,
+          defaultAmount: 0,
+          allowCustomAmount: true,
+          orderTypes: ['Takeaway'],
+          roles: ['Cashier'],
+        },
+      ],
+    },
+    setConfiguration: jest.fn(),
+    failed: false,
+    loading: false,
+    message: null,
+    refresh: jest.fn(),
+  });
+  const review = jest.fn();
+  const setBillCharges = jest.fn();
+  mockSale.mockReturnValue(
+    saleState({
+      lines: [line],
+      ticketTotal: 7,
+      review,
+      setBillCharges,
+      billCharges: [{ key: 'service_fee', amount: 0 }],
+    }),
+  );
+  render(<CashierNewSaleWorkspace />);
+  const amount = screen.getByRole('textbox', { name: 'Service fee (CHF)' });
+  const collect = screen.getByRole('button', { name: 'cashier.new_sale.review_and_collect' });
+
+  fireEvent.change(amount, { target: { value: '-1' } });
+  expect(collect).toBeDisabled();
+  expect(amount).toBeEnabled();
+  fireEvent.click(collect);
+  expect(review).not.toHaveBeenCalled();
+
+  fireEvent.change(amount, { target: { value: '' } });
+  expect(amount).toHaveValue('');
+  expect(collect).toBeEnabled();
+  fireEvent.change(amount, { target: { value: '3.50' } });
+  expect(setBillCharges).toHaveBeenLastCalledWith([{ key: 'service_fee', amount: 3.5 }]);
+  expect(collect).toBeEnabled();
+  fireEvent.click(collect);
+  expect(review).toHaveBeenCalledTimes(1);
+});
+
+it('warns when an incoming order cannot replace a ticket already in progress', () => {
+  mockSale.mockReturnValue(saleState({ entryConflict: true, lines: [line], ticketTotal: 7 }));
+  render(<CashierNewSaleWorkspace />);
+  expect(screen.getByRole('alert')).toHaveTextContent('cashier.new_sale.entry_draft_conflict');
+  expect(screen.getByText('Espresso')).toBeInTheDocument();
 });

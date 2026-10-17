@@ -32,6 +32,7 @@ function messageFor(error: string | null, t: (key: string) => string): string | 
  */
 export default function CashierNewSaleWorkspace() {
   const { t } = useTranslation();
+  const [chargesValid, setChargesValid] = useState(true);
   const route = useCashierOrderRoute();
   const catalog = useCashierCatalog();
   const sale = useCashierNewSale({ onCreated: route.navigateToCollection });
@@ -102,6 +103,7 @@ export default function CashierNewSaleWorkspace() {
                 values={sale.billCharges ?? []}
                 disabled={sale.phase !== 'idle'}
                 onChange={sale.setBillCharges}
+                onValidityChange={setChargesValid}
               />
             }
             onNotesChange={sale.setNotes}
@@ -109,8 +111,10 @@ export default function CashierNewSaleWorkspace() {
             onRemove={sale.removeLine}
             canUndo={sale.lastRemoved !== null}
             onUndo={sale.undoRemove}
-            onReview={() => void sale.review()}
-            disabled={reviewing}
+            onReview={() => {
+              if (chargesValid) void sale.review();
+            }}
+            disabled={reviewing || !chargesValid}
           />
         </div>
       </div>

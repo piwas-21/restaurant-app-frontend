@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { PaymentMethod, type TableServiceSessionDto } from '@/types/order';
+import type { TableServiceSessionDto } from '@/types/order';
 import CashierTablePaymentForm from './CashierTablePaymentForm';
 
 jest.mock('react-i18next', () => ({
@@ -111,7 +111,7 @@ describe('CashierTablePaymentForm', () => {
 
   it('rotates the operation key when transaction details change', async () => {
     const onSubmit = renderForm();
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: PaymentMethod.CreditCard } });
+    fireEvent.click(screen.getByRole('button', { name: 'payment_card_at_restaurant' }));
     const transaction = screen.getByRole('textbox', { name: 'cashier.transaction_id' });
     const notes = screen.getByRole('textbox', { name: 'cashier.notes' });
 
@@ -120,13 +120,13 @@ describe('CashierTablePaymentForm', () => {
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     const firstOperation = onSubmit.mock.calls[0][0].operationId;
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: PaymentMethod.CreditCard } });
+    fireEvent.click(screen.getByRole('button', { name: 'payment_card_at_restaurant' }));
     fireEvent.change(transaction, { target: { value: 'terminal-2' } });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
     const secondOperation = onSubmit.mock.calls[1][0].operationId;
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: PaymentMethod.CreditCard } });
+    fireEvent.click(screen.getByRole('button', { name: 'payment_card_at_restaurant' }));
     fireEvent.change(notes, { target: { value: 'manual confirmation' } });
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.payment_submit' }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(3));

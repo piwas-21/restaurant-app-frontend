@@ -1,15 +1,13 @@
 'use client';
 
-import { MAX_BILL_CHARGE_AMOUNT, BILL_CHARGE_AMOUNT_STEP } from '@/lib/billChargeLimits';
-import { useState } from 'react';
-import { billChargeInputSchema } from '@/schemas/billCharge.schema';
+import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useOptionalAuth } from '@/components/AuthContext';
-import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
+import { useBillChargeFields } from '@/hooks/useBillChargeFields';
 import BillChargeConfigurationNotice from './BillChargeConfigurationNotice';
-import FormField from '@/components/design-system/FormField';
-import CheckboxField from '@/components/design-system/CheckboxField';
+import BillChargeAmountInput from './BillChargeAmountInput';
+import BillChargeIcon from './BillChargeIcon';
 import type { BillChargeInput } from '@/types/billCharge';
+import controls from './BillChargeControls.module.css';
 import styles from './BillCharges.module.css';
 
 export interface BillChargeFieldsProps {
@@ -18,6 +16,7 @@ export interface BillChargeFieldsProps {
   readonly onChange: (values: BillChargeInput[]) => void;
   readonly disabled?: boolean;
   readonly existingKeys?: readonly string[];
+  readonly onValidityChange?: (valid: boolean) => void;
 }
 
 export default function BillChargeFields({
@@ -26,77 +25,86 @@ export default function BillChargeFields({
   onChange,
   disabled = false,
   existingKeys = [],
+  onValidityChange,
 }: BillChargeFieldsProps) {
   const { t } = useTranslation();
-  const auth = useOptionalAuth();
-  const role = auth?.user?.role;
-  const reader = useBillChargeConfiguration();
-  const [invalidKey, setInvalidKey] = useState<string | null>(null);
+  const { reader, rules, unavailable, setValid } = useBillChargeFields(
+    orderType,
+    values,
+    existingKeys,
+    onValidityChange,
+  );
   if (!reader.configuration) return <BillChargeConfigurationNotice reader={reader} />;
-  const rules =
-    reader.configuration?.rules.filter(
-      (rule) =>
-        rule.enabled &&
-        (rule.orderTypes as readonly string[]).includes(orderType) &&
-        (role?.toLowerCase() === 'admin' || rule.roles.some((r) => r.toLowerCase() === role?.toLowerCase())) &&
-        !existingKeys.includes(rule.key),
-    ) ?? [];
-  const unavailable = values.filter((value) => !rules.some((rule) => rule.key === value.key));
   if (!rules.length && !values.length) return <BillChargeConfigurationNotice reader={reader} />;
   const change = (key: string, amount: number | null) => {
-    const parsed = amount === null ? null : billChargeInputSchema.safeParse({ key, amount });
-    if (parsed && !parsed.success) {
-      setInvalidKey(key);
-      return;
-    }
-    setInvalidKey(null);
-    onChange([...values.filter((value) => value.key !== key), ...(parsed?.success ? [parsed.data] : [])]);
+    if (amount === null) setValid(key, true);
+    onChange([...values.filter((value) => value.key !== key), ...(amount === null ? [] : [{ key, amount }])]);
   };
   return (
-    <fieldset className={styles.fields} disabled={disabled}>
-      <legend>{t('billCharges.title')}</legend>
+    <section className={styles.fields} aria-label={t('billCharges.title')}>
+      <div className={styles.heading}>
+        <strong>{t('billCharges.title')}</strong>
+        <small>{t('billCharges.optional')}</small>
+      </div>
       <BillChargeConfigurationNotice reader={reader} />
       {unavailable.map((value) => (
-        <div key={value.key}>
-          <p>
-            {value.key}: {t('billCharges.unavailable')}
-          </p>
-          <button type="button" disabled={disabled} onClick={() => change(value.key, null)}>
+        <div className={styles.unavailable} key={value.key}>
+          <p>{t('billCharges.unavailable')}</p>
+          <button type="button" className={controls.chip} disabled={disabled} onClick={() => change(value.key, null)}>
             {t('remove')}
           </button>
         </div>
       ))}
-      {rules.map((rule) => {
-        const value = values.find((input) => input.key === rule.key);
-        return (
-          <div className={styles.charge} key={rule.key}>
-            <CheckboxField
-              label={rule.label}
-              checked={!!value}
-              onChange={(checked) => change(rule.key, checked ? rule.defaultAmount : null)}
-            />
-            {value && (
-              <FormField
+      <div className={controls.chips}>
+        {rules
+          .filter((rule) => !values.some((value) => value.key === rule.key))
+          .map((rule) => (
+            <button
+              type="button"
+              className={controls.chip}
+              key={rule.key}
+              disabled={disabled}
+              onClick={() => change(rule.key, rule.defaultAmount)}
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span dir="auto">{rule.label}</span>
+            </button>
+          ))}
+      </div>
+      {rules
+        .filter((rule) => values.some((value) => value.key === rule.key))
+        .map((rule) => {
+          const value = values.find((input) => input.key === rule.key)!;
+          return (
+            <div className={styles.charge} key={rule.key}>
+              <span className={styles.icon}>
+                <BillChargeIcon chargeKey={rule.key} />
+              </span>
+              <span className={styles.chargeName} dir="auto">
+                {rule.label}
+              </span>
+              <BillChargeAmountInput
                 label={`${rule.label} (${reader.configuration?.currency ?? ''})`}
-                error={
-                  invalidKey === rule.key ? t('billCharges.invalidAmount', { max: MAX_BILL_CHARGE_AMOUNT }) : undefined
-                }
+                currency={reader.configuration?.currency ?? ''}
+                value={value.amount}
+                compact
+                disabled={disabled}
+                readOnly={!rule.allowCustomAmount}
+                onChange={(amount) => change(rule.key, amount)}
+                onValidityChange={(valid) => setValid(rule.key, valid)}
+              />
+              <button
+                type="button"
+                className={controls.iconButton}
+                disabled={disabled}
+                aria-label={t('billCharges.removeNamed', { label: rule.label })}
+                onClick={() => change(rule.key, null)}
               >
-                <input
-                  type="number"
-                  min="0"
-                  max={MAX_BILL_CHARGE_AMOUNT}
-                  step={BILL_CHARGE_AMOUNT_STEP}
-                  inputMode="decimal"
-                  value={value.amount}
-                  readOnly={!rule.allowCustomAmount}
-                  onChange={(event) => change(rule.key, Number(event.target.value))}
-                />
-              </FormField>
-            )}
-          </div>
-        );
-      })}
-    </fieldset>
+                <X size={17} aria-hidden="true" />
+              </button>
+            </div>
+          );
+        })}
+    </section>
   );
 }

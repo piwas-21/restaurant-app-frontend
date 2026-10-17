@@ -1,0 +1,162 @@
+.editor {
+  min-inline-size: 0;
+  padding: 1.5rem;
+}
+.header {
+  align-items: center;
+  border-block-end: 1px solid var(--border-default);
+  display: flex;
+  gap: 0.75rem;
+  padding-block-end: 1.25rem;
+}
+.header > div {
+  min-inline-size: 0;
+  flex: 1;
+}
+.header h3 {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.header p {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin: 0.25rem 0 0;
+}
+.icon {
+  align-items: center;
+  background: var(--surface-secondary);
+  border-radius: 8px;
+  color: var(--brand-primary-elevated);
+  display: flex;
+  justify-content: center;
+  block-size: 2.5rem;
+  inline-size: 2.5rem;
+}
+.toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  min-block-size: 2.75rem;
+  min-inline-size: 3.25rem;
+  padding: 0.5rem 0.25rem;
+}
+.toggle > span {
+  background: var(--text-secondary);
+  border-radius: 1rem;
+  block-size: 1.5rem;
+  inline-size: 2.75rem;
+  padding: 3px;
+}
+.toggle > span::after {
+  background: var(--surface-primary);
+  border-radius: 50%;
+  content: '';
+  display: block;
+  block-size: 1.125rem;
+  inline-size: 1.125rem;
+}
+.toggle[aria-checked='true'] > span {
+  background: var(--brand-primary);
+}
+.toggle[aria-checked='true'] > span::after {
+  background: var(--text-on-primary);
+  margin-inline-start: auto;
+}
+.toggle:focus-visible,
+.nameInput:focus-visible,
+.segments button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.fields {
+  display: grid;
+  gap: 1.375rem;
+  padding-block-start: 1.375rem;
+}
+.nameAmount {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) 10rem;
+}
+.nameInput {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: inherit;
+  inline-size: 100%;
+  min-block-size: 3rem;
+  padding: 0.625rem 0.75rem;
+}
+.help {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin: 0.4rem 0 0;
+}
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.625rem;
+}
+.segments {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 9px;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+.segments button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex: 1;
+  font: inherit;
+  font-size: 0.8125rem;
+  gap: 0.5rem;
+  justify-content: center;
+  min-block-size: 2.75rem;
+  padding: 0.5rem;
+}
+.segments button[aria-pressed='true'] {
+  background: var(--surface-secondary);
+  border-color: var(--border-default);
+}
+.receipt {
+  align-items: center;
+  border-block-start: 1px dashed var(--border-default);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+  gap: 0.75rem;
+  padding-block-start: 1rem;
+}
+.receipt small {
+  color: var(--text-secondary);
+  flex: 1;
+}
+.receipt span {
+  overflow-wrap: anywhere;
+}
+.receipt strong {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 1100px) {
+  .nameAmount {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .editor {
+    padding: 1.25rem 1rem;
+  }
+}

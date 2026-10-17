@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useBillChargeConfiguration } from '@/hooks/useBillChargeConfiguration';
-import FormField from '@/components/design-system/FormField';
+import { ReceiptText } from 'lucide-react';
+import controls from './BillChargeControls.module.css';
+import styles from './BillCharges.module.css';
 import type { OrderDto } from '@/types/order';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 import BillChargeConfigurationNotice from './BillChargeConfigurationNotice';
@@ -14,11 +16,13 @@ export default function TableBillChargeAction({
   disabled,
   onUpdated,
   onBusyChange,
+  onDraftChange,
 }: Readonly<{
   orders: readonly OrderDto[];
   disabled: boolean;
   onUpdated: () => void | Promise<void>;
   onBusyChange: (busy: boolean) => void;
+  onDraftChange?: (blocked: boolean) => void;
 }>) {
   const { t } = useTranslation();
   const auth = useOptionalAuth();
@@ -53,15 +57,24 @@ export default function TableBillChargeAction({
   return (
     <div>
       {eligible.length > 1 && !pendingOrderId && (
-        <FormField label={t('billCharges.order')}>
-          <select value={order.id} disabled={disabled} onChange={(event) => setSelected(event.target.value)}>
+        <fieldset className={`${styles.form} ${controls.group}`}>
+          <legend className={styles.help}>{t('billCharges.order')}</legend>
+          <div className={controls.chips}>
             {eligible.map((value) => (
-              <option value={value.id} key={value.id}>
-                {getOrderDisplayNumber(value)}
-              </option>
+              <button
+                type="button"
+                className={controls.chip}
+                disabled={disabled}
+                aria-pressed={order.id === value.id}
+                key={value.id}
+                onClick={() => setSelected(value.id)}
+              >
+                <ReceiptText size={16} aria-hidden="true" />
+                {t('billCharges.orderNumber', { number: getOrderDisplayNumber(value) })}
+              </button>
             ))}
-          </select>
-        </FormField>
+          </div>
+        </fieldset>
       )}
       <OrderBillChargeAction
         key={order.id}
@@ -69,6 +82,7 @@ export default function TableBillChargeAction({
         disabled={disabled}
         onUpdated={onUpdated}
         onBusyChange={onBusyChange}
+        onDraftChange={onDraftChange}
       />
     </div>
   );

@@ -42,9 +42,11 @@ export function useBillChargeCollectionAmount({
     if ((order.billChargeAmount ?? 0) <= (prior.billChargeAmount ?? 0)) return;
     const currency = orderCurrency(order);
     if (currency !== orderCurrency(prior)) return;
-    const oldDue = Math.round(prior.remainingAmount * 100);
-    if (parseCurrencyAmountMinor(amount, currency, locale) === oldDue) {
-      const next = inputFromMinor(Math.round(order.remainingAmount * 100));
+    // Wire balances and entered amounts share the fixed-two-decimal ledger parser.
+    const oldDue = parseCurrencyAmountMinor(String(prior.remainingAmount), currency);
+    const newDue = parseCurrencyAmountMinor(String(order.remainingAmount), currency);
+    if (oldDue !== null && newDue !== null && parseCurrencyAmountMinor(amount, currency, locale) === oldDue) {
+      const next = inputFromMinor(newDue);
       setAmount(next);
       const oldTender = orderTenderTotalMinor(amount, tip, currency, locale);
       if (method === 'Cash' && parseCurrencyAmountMinor(received, currency, locale) === oldTender)

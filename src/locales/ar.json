@@ -4245,7 +4245,6 @@
   },
   "billCharges": {
     "title": "رسوم الفاتورة",
-    "staff": "متاح للموظفين",
     "serviceFee": "رسوم الخدمة",
     "deliveryFee": "رسوم التوصيل",
     "custom": "رسوم مخصصة",

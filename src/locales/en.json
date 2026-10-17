@@ -4193,7 +4193,6 @@
   },
   "billCharges": {
     "title": "Bill charges",
-    "staff": "Available to staff",
     "serviceFee": "Service fee",
     "deliveryFee": "Delivery fee",
     "custom": "Custom charge",

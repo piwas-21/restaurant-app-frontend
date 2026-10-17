@@ -4206,7 +4206,6 @@
   },
   "billCharges": {
     "title": "Supplementi sul conto",
-    "staff": "Disponibile per il personale",
     "serviceFee": "Costo del servizio",
     "deliveryFee": "Costo di consegna",
     "custom": "Supplemento personalizzato",

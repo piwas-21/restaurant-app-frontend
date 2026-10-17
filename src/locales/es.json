@@ -4206,7 +4206,6 @@
   },
   "billCharges": {
     "title": "Cargos de la cuenta",
-    "staff": "Disponible para el personal",
     "serviceFee": "Cargo de servicio",
     "deliveryFee": "Cargo de entrega",
     "custom": "Cargo personalizado",

@@ -4193,7 +4193,6 @@
   },
   "billCharges": {
     "title": "Kosten op de rekening",
-    "staff": "Beschikbaar voor medewerkers",
     "serviceFee": "Servicekosten",
     "deliveryFee": "Bezorgkosten",
     "custom": "Aangepaste kosten",

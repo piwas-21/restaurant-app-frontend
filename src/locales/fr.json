@@ -4206,7 +4206,6 @@
   },
   "billCharges": {
     "title": "Frais sur l’addition",
-    "staff": "Disponible pour le personnel",
     "serviceFee": "Frais de service",
     "deliveryFee": "Frais de livraison",
     "custom": "Frais personnalisés",

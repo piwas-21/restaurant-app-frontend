@@ -4180,7 +4180,6 @@
   },
   "billCharges": {
     "title": "账单附加费",
-    "staff": "可用员工角色",
     "serviceFee": "服务费",
     "deliveryFee": "配送费",
     "custom": "自定义费用",

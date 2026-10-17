@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { render, screen } from '@testing-library/react';
 import type { CashierCollectionState } from '@/hooks/cashier/useCashierCollection';
 import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 import CashierCollectionWorkspace from './CashierCollectionWorkspace';

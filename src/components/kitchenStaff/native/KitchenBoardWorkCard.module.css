@@ -1,8 +1,9 @@
 .card {
   display: grid;
   gap: var(--space-3, 0.75rem);
-  padding: var(--space-3, 0.75rem);
+  padding: 1rem;
   border: 1px solid var(--border-default);
+  border-block-start: 0.3rem solid var(--brand-primary);
   border-radius: 0.75rem;
   background: var(--surface-primary);
   color: var(--text-primary);
@@ -30,7 +31,8 @@
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
 }
 
 .meta,

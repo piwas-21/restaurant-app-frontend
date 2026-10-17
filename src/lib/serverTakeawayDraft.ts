@@ -1,3 +1,4 @@
+import { readBillChargeInputs } from './billChargeDraft';
 import type { OrderItem } from '@/components/catalog/orderItems';
 import type { StaffCustomerSelection } from '@/types/staffCustomer';
 import { readStaffCustomerSelection } from '@/types/staffCustomer';
@@ -8,6 +9,7 @@ const STORAGE_KEY = 'server.takeaway-draft';
 export interface ServerTakeawayDraft {
   readonly items: OrderItem[];
   readonly notes?: string;
+  readonly billCharges?: import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly clientOperationId?: string;
 }
@@ -16,6 +18,7 @@ interface StoredDraft {
   readonly version?: unknown;
   readonly items?: unknown;
   readonly notes?: unknown;
+  readonly billCharges?: unknown;
   readonly customer?: unknown;
   readonly clientOperationId?: unknown;
 }
@@ -115,6 +118,7 @@ export function readServerTakeawayDraft(): ServerTakeawayDraft | null {
     return {
       items,
       notes: optionalString(stored.notes),
+      billCharges: readBillChargeInputs(stored.billCharges),
       customer: readStaffCustomerSelection(stored.customer),
       clientOperationId: optionalString(stored.clientOperationId),
     };

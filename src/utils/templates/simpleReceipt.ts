@@ -125,6 +125,13 @@ export const generateSimpleReceiptHtml = (
             <span>${formatOrderCurrency(order.subTotal, order)}</span>
           </div>
           ${receiptTaxHtml(order, translate)}
+          ${(order.billCharges ?? [])
+            .filter((charge) => charge.amount > 0)
+            .map(
+              (charge) =>
+                `<div class="flex-row"><span>${escapeHtml(charge.label)}:</span><span>${formatOrderCurrency(charge.amount, order)}</span></div>`,
+            )
+            .join('')}
           ${
             order.deliveryFee && order.deliveryFee > 0
               ? `
@@ -161,7 +168,7 @@ export const generateSimpleReceiptHtml = (
 
         <div class="total-line flex-row" style="margin: 8px 0;">
           <span>${translate('total', 'TOTAL')}:</span>
-          <span>${formatOrderCurrency(order.total, order)}</span>
+          <span>${formatOrderCurrency(order.payableTotal ?? order.total, order)}</span>
         </div>
 
         ${paymentsHtml}

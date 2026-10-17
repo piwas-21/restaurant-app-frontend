@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
@@ -16,6 +17,7 @@ interface CashierNewSaleTicketProps {
   readonly customer?: StaffCustomerSelection;
   readonly phase: 'idle' | 'reviewing';
   readonly notes: string;
+  readonly chargeFields?: ReactNode;
   readonly onNotesChange: (value: string) => void;
   readonly onSetQuantity: (index: number, quantity: number) => void;
   readonly onRemove: (index: number) => void;
@@ -39,6 +41,7 @@ export default function CashierNewSaleTicket({
   phase,
   notes,
   onNotesChange,
+  chargeFields,
   onSetQuantity,
   onRemove,
   canUndo,
@@ -47,7 +50,7 @@ export default function CashierNewSaleTicket({
   disabled,
 }: CashierNewSaleTicketProps) {
   const { t } = useTranslation();
-  const total = quote ? quote.total : ticketTotal;
+  const total = quote ? (quote.payableTotal ?? quote.total) : ticketTotal;
   const lineCount = lines.reduce((sum, line) => sum + line.quantity, 0);
   // While a review is in flight the ticket is frozen: an edit mid-review would invalidate the
   // quoted price, drop the stored operation id and make the next retry mint a fresh one.
@@ -113,6 +116,7 @@ export default function CashierNewSaleTicket({
         </button>
       )}
 
+      {chargeFields}
       <FormField
         label={t('cashier.new_sale.notes_label')}
         htmlFor="cashier-new-sale-notes"

@@ -1,3 +1,4 @@
+import { readBillChargeInputs } from './billChargeDraft';
 import type { OrderItem } from '@/components/catalog/orderItems';
 import type { StaffCustomerSelection } from '@/types/staffCustomer';
 import { readStaffCustomerSelection } from '@/types/staffCustomer';
@@ -13,6 +14,7 @@ export interface ServerTableRoundDraft {
   readonly serviceSessionId: string;
   readonly items: OrderItem[];
   readonly notes: string;
+  readonly billCharges?: import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly clientOperationId?: string;
 }
@@ -133,6 +135,7 @@ export function restore(
       serviceSessionId: identity.serviceSessionId,
       items: decodeServerTableRoundItems(value.items as unknown[]),
       notes: typeof value.notes === 'string' ? value.notes : '',
+      billCharges: readBillChargeInputs(value.billCharges),
       customer: readStaffCustomerSelection(value.customer),
       clientOperationId,
     },

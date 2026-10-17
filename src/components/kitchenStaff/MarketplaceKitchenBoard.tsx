@@ -1,20 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useTenantLocaleRouter } from '@/hooks/useTenantLocaleRouter';
 import { useAuth } from '@/components/AuthContext';
 import { tenantLocaleHref } from '@/lib/tenantLocaleNavigation';
-import type { OrderDto } from '@/types/order';
 import OrderCard from '@/components/server/OrderCard';
 import { useMarketplaceKitchenOrders } from '@/hooks/useMarketplaceKitchenOrders';
 import styles from './MarketplaceKitchenBoard.module.css';
+import KitchenBoardTools from './native/KitchenBoardTools';
+import { useKitchenBoardView } from '@/hooks/kitchenBoard/useKitchenBoardView';
+import { useTenantToday } from '@/hooks/useTenantToday';
 
-type KitchenStatusFilter = 'all' | 'Confirmed' | 'Preparing' | 'Ready';
 type MarketplaceAudience = 'kitchen' | 'server';
-const STATUS_FILTERS: readonly KitchenStatusFilter[] = ['all', 'Confirmed', 'Preparing', 'Ready'];
-
 const noLocalStatusChange = (_orderId: string, _status: string) => undefined;
 
 function isMarketplaceStaffRole(orderRole: string | undefined, audience: MarketplaceAudience): boolean {
@@ -25,27 +24,44 @@ function isMarketplaceStaffRole(orderRole: string | undefined, audience: Marketp
 export default function MarketplaceKitchenBoard({
   audience = 'kitchen',
   workspace = false,
-}: Readonly<{ audience?: MarketplaceAudience; workspace?: boolean }>) {
+  navigation,
+}: Readonly<{ audience?: MarketplaceAudience; workspace?: boolean; navigation?: ReactNode }>) {
   const { t } = useTranslation();
   const router = useTenantLocaleRouter();
   const pathname = usePathname();
   const { user, isLoading: authLoading } = useAuth();
   const authorized = isMarketplaceStaffRole(user?.role, audience);
-  const { orders, isLoading, error, isStale, refresh } = useMarketplaceKitchenOrders(!authLoading && authorized);
-  const [filter, setFilter] = useState<KitchenStatusFilter>('all');
+  const today = useTenantToday();
+  const { orders, isLoading, error, isStale, refresh } = useMarketplaceKitchenOrders(
+    !authLoading && authorized && !!today,
+    today,
+  );
+  const workOrders = useMemo(
+    () =>
+      orders
+        .filter((order) => order.businessDate === today)
+        .map((order) => ({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          dailyOrderNumber: order.dailyOrderNumber,
+          tableLabel: order.tableLabel ?? null,
+          tableNumber: order.tableNumber ?? null,
+          status: order.status,
+          isCompleted: false,
+          type: order.type,
+          createdAt: order.orderDate,
+          items: order.items,
+          source: order,
+        })),
+    [orders, today],
+  );
+  const view = useKitchenBoardView(workOrders, [], !isLoading && !error);
 
   useEffect(() => {
     if (authLoading) return;
     if (!user) router.push(tenantLocaleHref(pathname, '/auth/login'));
     else if (!authorized) router.push(tenantLocaleHref(pathname, '/'));
   }, [authLoading, authorized, pathname, router, user]);
-
-  const visibleOrders = useMemo(
-    () => (filter === 'all' ? orders : orders.filter((order) => order.status === filter)),
-    [filter, orders],
-  );
-  const countFor = (status: KitchenStatusFilter) =>
-    status === 'all' ? orders.length : orders.filter((order) => order.status === status).length;
 
   if (authLoading || (user && !authorized)) {
     return (
@@ -59,35 +75,9 @@ export default function MarketplaceKitchenBoard({
   return (
     <section
       className={workspace ? `${styles.board} ${styles.workspace}` : styles.board}
-      aria-labelledby="marketplace-kitchen-title"
+      aria-label={t('marketplaceStaff.kitchen_title')}
     >
-      <header className={styles.header}>
-        <div>
-          <h1 id="marketplace-kitchen-title" className={styles.title}>
-            {t('marketplaceStaff.kitchen_title')}
-          </h1>
-          <p className={styles.description}>{t('marketplaceStaff.kitchen_description')}</p>
-        </div>
-        <button type="button" className={styles.refresh} onClick={() => void refresh()} disabled={isLoading}>
-          {t('marketplaceStaff.refresh')}
-        </button>
-      </header>
-
-      <fieldset className={styles.filters}>
-        <legend className="sr-only">{t('marketplaceStaff.kitchen_filter')}</legend>
-        {STATUS_FILTERS.map((status) => (
-          <button
-            key={status}
-            type="button"
-            className={styles.filter}
-            aria-pressed={filter === status}
-            onClick={() => setFilter(status)}
-          >
-            {t(`marketplaceStaff.status.${status}`)}
-            <span className={styles.count}>{countFor(status)}</span>
-          </button>
-        ))}
-      </fieldset>
+      <KitchenBoardTools view={view} navigation={navigation} loading={isLoading} refresh={() => void refresh()} />
 
       {isStale && (
         <div className={styles.state} role="alert">
@@ -98,10 +88,8 @@ export default function MarketplaceKitchenBoard({
         </div>
       )}
       {isLoading && orders.length === 0 && <p className={styles.state}>{t('loading')}</p>}
-      {!isLoading && !error && visibleOrders.length === 0 && (
-        <p className={styles.state}>
-          {t(filter === 'all' ? 'marketplaceStaff.kitchen_empty' : 'marketplaceStaff.kitchen_filter_empty')}
-        </p>
+      {!isLoading && !error && view.visibleOrders.length === 0 && (
+        <p className={styles.state}>{t('marketplaceStaff.kitchen_filter_empty')}</p>
       )}
       {error && orders.length === 0 && (
         <div className={styles.state} role="alert">
@@ -111,9 +99,9 @@ export default function MarketplaceKitchenBoard({
           </button>
         </div>
       )}
-      {visibleOrders.length > 0 && (
+      {view.visibleOrders.length > 0 && (
         <div className={styles.list}>
-          {visibleOrders.map((order: OrderDto) => (
+          {view.visibleOrders.map(({ source: order }) => (
             <OrderCard
               key={order.id}
               order={order}

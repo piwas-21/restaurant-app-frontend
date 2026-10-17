@@ -63,6 +63,7 @@ export async function reviewServerTableRound(input: {
   readonly serviceSessionId: string;
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly loyaltyEnabled?: boolean;
   readonly storedOperationId?: string;

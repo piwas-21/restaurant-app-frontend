@@ -1,0 +1,55 @@
+.fields,
+.action,
+.form {
+  display: grid;
+  gap: 0.75rem;
+  min-inline-size: 0;
+}
+.fields {
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+}
+.charge,
+.rule {
+  display: grid;
+  gap: 0.75rem;
+}
+.rule {
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  background: var(--surface-primary);
+}
+.fields input,
+.form input {
+  min-block-size: 3rem;
+  inline-size: 100%;
+  padding: 0.5rem;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 0.5rem;
+  font: inherit;
+}
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.summary {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.summary dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

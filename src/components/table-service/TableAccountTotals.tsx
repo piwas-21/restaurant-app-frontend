@@ -1,5 +1,6 @@
 'use client';
 
+import OrderBillCharges from '@/components/bill-charges/OrderBillCharges';
 import { useTranslation } from 'react-i18next';
 import type { OrderDto, TableServiceSessionDto } from '@/types/order';
 import { formatTableMoney } from '@/lib/cashierTableSession';
@@ -29,7 +30,7 @@ export default function TableAccountTotals({ session }: Readonly<{ session: Tabl
       [t('delivery_fee'), order.deliveryFee],
       [t('tax'), order.tax],
       [t('tip'), order.tip],
-      [t('total'), order.total],
+      [t('total'), order.payableTotal ?? order.total],
     ] as const;
 
   return (
@@ -47,7 +48,7 @@ export default function TableAccountTotals({ session }: Readonly<{ session: Tabl
           <summary>
             <span>{t('cashier.tables.account_order', { order: getOrderDisplayNumber(order) })}</span>
             <BusinessDateLabel businessDate={order.businessDate} />
-            <strong>{money(order.total)}</strong>
+            <strong>{money(order.payableTotal ?? order.total)}</strong>
           </summary>
           <dl className={styles.accountTotalsGrid}>
             {orderAmounts(order).map(([label, amount], index) => (
@@ -57,6 +58,7 @@ export default function TableAccountTotals({ session }: Readonly<{ session: Tabl
               </div>
             ))}
           </dl>
+          <OrderBillCharges charges={order.billCharges} />
         </details>
       ))}
     </section>

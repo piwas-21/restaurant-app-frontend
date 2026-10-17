@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -21,6 +22,7 @@ interface ServerTakeawayTicketProps {
   readonly onCustomerChange: (value: StaffCustomerSelection | undefined) => void;
   readonly phase: 'idle' | 'reviewing';
   readonly notes: string;
+  readonly chargeFields?: ReactNode;
   readonly onNotesChange: (value: string) => void;
   readonly onSetQuantity: (index: number, quantity: number) => void;
   readonly onRemove: (index: number) => void;
@@ -39,6 +41,7 @@ export default function ServerTakeawayTicket({
   phase,
   notes,
   onNotesChange,
+  chargeFields,
   onSetQuantity,
   onRemove,
   canUndo,
@@ -48,7 +51,7 @@ export default function ServerTakeawayTicket({
 }: ServerTakeawayTicketProps) {
   const { t } = useTranslation();
   const [customerOpen, setCustomerOpen] = useState(false);
-  const total = quote?.total ?? ticketTotal;
+  const total = quote?.payableTotal ?? quote?.total ?? ticketTotal;
   const locked = disabled || phase === 'reviewing';
 
   return (
@@ -88,6 +91,7 @@ export default function ServerTakeawayTicket({
           {t('server.takeaway.undo')}
         </button>
       )}
+      {chargeFields}
       <FormField label={t('server.takeaway.notes')} htmlFor="server-takeaway-notes" className={styles.notesField}>
         <textarea
           id="server-takeaway-notes"

@@ -1548,8 +1548,6 @@
   "selected_tables_not_available": "Geselecteerde tafel(s) {{tables}} zijn niet langer beschikbaar voor dit tijdslot. Kies andere tafels of een andere tijd.",
   "select_notification_sound": "Kies een meldingsgeluid",
   "repeat_until_mouse_moves": "Herhalen tot de muis beweegt",
-  "repeat_sound_desc": "Blijft afspelen tot je terug bent achter je scherm",
-  "click_to_select_or_test": "Klik op een geluid om te selecteren, of test eerst",
   "sound": "Geluid",
   "diagnostics": "Diagnostiek",
   "environment": "Omgeving",
@@ -3523,12 +3521,8 @@
     "review_confirmation": "Ik heb elk artikel en alle allergie- en bereidingsinstructies gecontroleerd.",
     "review_description": "Bevestig dit nadat je de bestelgegevens hebt gecontroleerd en vóór je beslissing verstuurt.",
     "kitchen_title": "Geaccepteerde Uber Eats-bestellingen",
-    "kitchen_description": "Alleen bestellingen die Uber Eats heeft geaccepteerd en aan de keuken heeft vrijgegeven, verschijnen hier.",
-    "refresh": "Vernieuwen",
-    "kitchen_filter": "Geaccepteerde bestellingen filteren op bereidingsstatus",
     "kitchen_stale": "De keukenbestellijst is mogelijk verouderd.",
     "retry": "Opnieuw proberen",
-    "kitchen_empty": "Geen geaccepteerde marktplaatsbestellingen wachten op keukenwerk.",
     "kitchen_filter_empty": "Geen bestellingen met deze bereidingsstatus.",
     "kitchen_error": "Marktplaatsbestellingen konden niet worden geladen.",
     "status": {
@@ -3997,8 +3991,6 @@
   "points_transaction_clawback": "Verdiende punten teruggedraaid",
   "points_transaction_restored": "Ingewisselde punten hersteld",
   "points_transaction_unknown": "Puntenaanpassing",
-  "nativeKitchenBoard.title": "Keukenwerk",
-  "nativeKitchenBoard.description": "Bereid bestellingen en bevestig keukenwerk wanneer het klaar is.",
   "nativeKitchenBoard.workspace": "Keukenwerkruimtes",
   "nativeKitchenBoard.nativeTab": "Keukenwerk",
   "nativeKitchenBoard.marketplaceTab": "Marketplacebestellingen",
@@ -4176,5 +4168,50 @@
   "staff_cancel_reason": "Reden (optioneel)",
   "staff_cancel_reason_too_long": "Gebruik maximaal {{max}} tekens voor de reden.",
   "staff_table_search": "Tafels zoeken",
-  "staff_order_updated": "Bijgewerkt"
+  "staff_order_updated": "Bijgewerkt",
+  "staffSound": {
+    "chime": "Klank",
+    "bell": "Bel",
+    "ping": "Pieptoon",
+    "alert": "Alarm",
+    "melody": "Melodie",
+    "test": "Testen",
+    "testNamed": "{{sound}} testen",
+    "repeatHint": "Herhaalt totdat u het scherm aanraakt, een toets indrukt of de muis beweegt."
+  },
+  "kitchenView": {
+    "active": "Actief",
+    "completed": "Voltooid",
+    "work": "Keukenwerk",
+    "enableAudio": "Meldingsgeluiden inschakelen"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Een betaling voor deze tafel wacht nog op een bevestigd resultaat. Open de tafelrekening en controleer de openstaande betaling. Neem de betaling niet opnieuw aan. Wijzigingen komen beschikbaar zodra het resultaat is bevestigd.",
+    "correctionPending": "Een eerdere bestelwijziging vereist nog controle van een betaling of terugbetaling. Open de wijzigingsgeschiedenis en rond die wijziging eerst af.",
+    "refundReview": "Een manager moet de terugbetalingen vergelijken met de betaling of de terminalbon. Wijzigingen blijven geblokkeerd totdat de gegevens overeenkomen.",
+    "balanceReview": "Het rekeningsaldo en een eerdere correctie komen niet overeen. Laat een manager de wijzigingsgeschiedenis vergelijken met de rekening en betaal- of terugbetalingsbewijzen. Is alles bevestigd, neem dan contact op met support met het bestelnummer. Vernieuwen alleen heft de blokkade niet op."
+  },
+  "billCharges": {
+    "title": "Kosten op de rekening",
+    "description": "Schakel alleen benodigde kosten in. Medewerkers kiezen of ze deze toevoegen. Alleen positieve bedragen verschijnen op de rekening. Bestaande kosten behouden hun opgeslagen naam en bedrag. Gebruik je de kassaprinter-app, installeer dan versie 1.0.37 of hoger voordat je toeslagen inschakelt.",
+    "enabled": "Ingeschakeld",
+    "key": "Veldsleutel",
+    "label": "Naam op rekening",
+    "defaultAmount": "Vast of voorgesteld bedrag",
+    "allowCustom": "Medewerkers mogen een eigen bedrag invoeren",
+    "staff": "Beschikbaar voor medewerkers",
+    "serviceFee": "Servicekosten",
+    "deliveryFee": "Bezorgkosten",
+    "custom": "Aangepaste kosten",
+    "addField": "Veld toevoegen",
+    "saved": "Kosteninstellingen opgeslagen.",
+    "add": "Aan rekening toevoegen",
+    "checkSave": "Dezelfde kosten controleren en opslaan",
+    "order": "Kosten toevoegen aan bestelling",
+    "loadFailed": "Kosteninstellingen konden niet worden geladen. Vernieuw en probeer opnieuw.",
+    "saveFailed": "De kosten konden niet worden bevestigd. Vernieuw de rekening en controleer bestaande kosten en openstaande betalingen voordat u opnieuw probeert.",
+    "unavailable": "Deze geselecteerde kosten zijn niet meer beschikbaar. Verwijder ze voordat u bestelt.",
+    "invalidSettings": "Gebruik per veld een unieke sleutel in kleine letters, een rekeninglabel, een geldig bedrag en minstens één besteltype en personeelsrol.",
+    "invalidAmount": "Voer een bedrag van 0 tot {{max}} in."
+  }
 }

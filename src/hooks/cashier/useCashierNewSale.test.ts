@@ -324,3 +324,32 @@ describe('useCashierNewSale — delivery contact', () => {
     expect(result.current.quote).toBeNull();
   });
 });
+
+it('includes a selected fee in the displayed ticket, invalidates its quote and persists it for review', async () => {
+  mockGetDetail.mockResolvedValueOnce(detail());
+  const { result } = await renderSale();
+  await act(() => result.current.tapProduct({ id: 'product-1', name: 'Espresso' } as never));
+  mockReview.mockResolvedValueOnce({ status: 'refused', quote, operationId: 'op-before-fee' });
+  await act(() => result.current.review());
+  expect(result.current.quote).toEqual(quote);
+  act(() => result.current.setBillCharges([{ key: 'service_fee', amount: 5 }]));
+  await waitFor(() => expect(result.current.quote).toBeNull());
+  expect(result.current.ticketTotal).toBe(8.5);
+  expect(readCashierNewSaleDraft()?.billCharges).toEqual([{ key: 'service_fee', amount: 5 }]);
+  await act(() => result.current.review());
+  expect(mockReview).toHaveBeenLastCalledWith(
+    expect.objectContaining({ billCharges: [{ key: 'service_fee', amount: 5 }] }),
+  );
+});
+
+it('dismisses customization without adding an unconfirmed item to the ticket', async () => {
+  mockGetDetail.mockResolvedValueOnce(
+    detail({ variations: [{ id: 'v1', name: 'Large', priceModifier: 1, isActive: true }] }),
+  );
+  const { result } = await renderSale();
+  await act(() => result.current.tapProduct({ id: 'product-1', name: 'Espresso' } as never));
+  expect(result.current.sheetProduct).not.toBeNull();
+  act(() => result.current.closeSheet());
+  expect(result.current.sheetProduct).toBeNull();
+  expect(result.current.lines).toHaveLength(0);
+});

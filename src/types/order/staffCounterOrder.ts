@@ -36,6 +36,7 @@ export interface StaffCounterOrderRequest {
   /** Loyalty points requested for redemption against this attributed customer. */
   pointsToRedeem?: number;
   tip?: number;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   notes?: string;
   paymentState?: StaffOrderPaymentState;
   items: CreateOrderItemDto[];

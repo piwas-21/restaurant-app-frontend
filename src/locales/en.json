@@ -1548,8 +1548,6 @@
   "selected_tables_not_available": "Selected table(s) {{tables}} are no longer available for this time slot. Please select different tables or time.",
   "select_notification_sound": "Select Notification Sound",
   "repeat_until_mouse_moves": "Repeat until mouse moves",
-  "repeat_sound_desc": "Keeps playing until you return to the desk",
-  "click_to_select_or_test": "Click a sound to select, or test before choosing",
   "sound": "Sound",
   "diagnostics": "Diagnostics",
   "environment": "Environment",
@@ -3523,12 +3521,8 @@
     "review_confirmation": "I reviewed every item and all allergy and preparation instructions.",
     "review_description": "Confirm after checking the order details before sending your decision.",
     "kitchen_title": "Accepted Uber Eats orders",
-    "kitchen_description": "Only orders Uber Eats has accepted and released to the kitchen appear here.",
-    "refresh": "Refresh",
-    "kitchen_filter": "Filter accepted orders by preparation status",
     "kitchen_stale": "The kitchen order list may be out of date.",
     "retry": "Try again",
-    "kitchen_empty": "No accepted marketplace orders are waiting for kitchen work.",
     "kitchen_filter_empty": "No orders match this preparation status.",
     "kitchen_error": "Marketplace orders could not be loaded.",
     "status": {
@@ -3997,8 +3991,6 @@
   "points_transaction_clawback": "Earned points reversed",
   "points_transaction_restored": "Redeemed points restored",
   "points_transaction_unknown": "Points adjustment",
-  "nativeKitchenBoard.title": "Kitchen work",
-  "nativeKitchenBoard.description": "Prepare orders and acknowledge kitchen work after it is complete.",
   "nativeKitchenBoard.workspace": "Kitchen workspaces",
   "nativeKitchenBoard.nativeTab": "Kitchen work",
   "nativeKitchenBoard.marketplaceTab": "Marketplace orders",
@@ -4176,5 +4168,50 @@
   "staff_cancel_reason": "Reason (optional)",
   "staff_cancel_reason_too_long": "Keep the reason to {{max}} characters or fewer.",
   "staff_table_search": "Search tables",
-  "staff_order_updated": "Updated"
+  "staff_order_updated": "Updated",
+  "staffSound": {
+    "chime": "Chime",
+    "bell": "Bell",
+    "ping": "Ping",
+    "alert": "Alert",
+    "melody": "Melody",
+    "test": "Test",
+    "testNamed": "Test {{sound}}",
+    "repeatHint": "Repeats until you touch the screen, press a key, or move the mouse."
+  },
+  "kitchenView": {
+    "active": "Active",
+    "completed": "Completed",
+    "work": "Kitchen work",
+    "enableAudio": "Enable notification sounds"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "A payment for this table is still waiting for a confirmed result. Open the table bill and check the pending payment. Do not take the payment again. Amendments unlock once the result is confirmed.",
+    "correctionPending": "A previous order correction still needs a payment or refund check. Open amendment history and finish that correction before starting another.",
+    "refundReview": "The refund records need a manager to check them against the payment or terminal receipt. Amendments stay unavailable until the records agree.",
+    "balanceReview": "The bill balance and a previous correction do not agree. Ask a manager to check amendment history against the bill and payment or refund receipts. If all entries are confirmed, contact support with the order number. Refreshing alone cannot clear this block."
+  },
+  "billCharges": {
+    "title": "Bill charges",
+    "description": "Enable only the charges your restaurant uses. Staff choose whether to add them; only positive amounts appear on the bill. Existing charges keep their saved label and amount. If you use the cashier printer app, install version 1.0.37 or later before enabling charges.",
+    "enabled": "Enabled",
+    "key": "Field key",
+    "label": "Bill label",
+    "defaultAmount": "Fixed or suggested amount",
+    "allowCustom": "Staff may enter a custom amount",
+    "staff": "Available to staff",
+    "serviceFee": "Service fee",
+    "deliveryFee": "Delivery fee",
+    "custom": "Custom charge",
+    "addField": "Add a field",
+    "saved": "Bill charge settings saved.",
+    "add": "Add to bill",
+    "checkSave": "Check and save the same charges",
+    "order": "Add charge to order",
+    "loadFailed": "Charge settings could not be loaded. Refresh and try again.",
+    "saveFailed": "The charges could not be confirmed. Refresh the bill and check existing charges and pending payments before retrying.",
+    "unavailable": "This selected charge is no longer available. Remove it before placing the order.",
+    "invalidSettings": "Use unique lowercase field keys, a bill label, a valid amount, and at least one order type and staff role for each field.",
+    "invalidAmount": "Enter an amount from 0 to {{max}}."
+  }
 }

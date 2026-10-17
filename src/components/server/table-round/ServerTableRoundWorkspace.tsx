@@ -2,6 +2,7 @@
 
 import Link from '@/components/TenantLink';
 import { useState } from 'react';
+import BillChargeFields from '@/components/bill-charges/BillChargeFields';
 import { useTranslation } from 'react-i18next';
 import ProductCustomization from '@/components/catalog/ProductCustomization';
 import DraftRecoveryBanner from '@/components/design-system/DraftRecoveryBanner';
@@ -177,6 +178,14 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
               phase={round.phase}
               operationState={round.operationState}
               notes={round.notes}
+              chargeFields={
+                <BillChargeFields
+                  orderType={'DineIn'}
+                  values={round.billCharges ?? []}
+                  disabled={round.phase !== 'idle'}
+                  onChange={round.setBillCharges}
+                />
+              }
               onNotesChange={round.setNotes}
               onSetQuantity={round.setItemQuantity}
               onRemove={round.removeItem}

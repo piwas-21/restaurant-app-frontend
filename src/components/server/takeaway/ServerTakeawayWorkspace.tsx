@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from '@/components/TenantLink';
+import BillChargeFields from '@/components/bill-charges/BillChargeFields';
 import { useTranslation } from 'react-i18next';
 import ProductCustomization from '@/components/catalog/ProductCustomization';
 import DraftRecoveryBanner from '@/components/design-system/DraftRecoveryBanner';
@@ -151,6 +152,14 @@ export default function ServerTakeawayWorkspace() {
               onCustomerChange={takeaway.setCustomer}
               phase={takeaway.phase}
               notes={takeaway.notes}
+              chargeFields={
+                <BillChargeFields
+                  orderType={'Takeaway'}
+                  values={takeaway.billCharges ?? []}
+                  disabled={takeaway.phase !== 'idle'}
+                  onChange={takeaway.setBillCharges}
+                />
+              }
               onNotesChange={takeaway.setNotes}
               onSetQuantity={takeaway.setItemQuantity}
               onRemove={takeaway.removeItem}

@@ -7,7 +7,7 @@ import { getErrorMessage } from '@/utils/apiClient';
 
 const REFRESH_MS = 5_000;
 
-export function useMarketplaceKitchenOrders(enabled: boolean) {
+export function useMarketplaceKitchenOrders(enabled: boolean, tenantDay?: string) {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export function useMarketplaceKitchenOrders(enabled: boolean) {
     if (!enabled) return;
     const generation = ++requestGeneration.current;
     try {
-      const result = await getMarketplaceOperationalOrders();
+      const result = await getMarketplaceOperationalOrders(tenantDay);
       if (generation !== requestGeneration.current) return;
       setOrders(result);
       setError(null);
@@ -27,7 +27,7 @@ export function useMarketplaceKitchenOrders(enabled: boolean) {
     } finally {
       if (generation === requestGeneration.current) setIsLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, tenantDay]);
 
   useEffect(() => {
     if (!enabled) return undefined;

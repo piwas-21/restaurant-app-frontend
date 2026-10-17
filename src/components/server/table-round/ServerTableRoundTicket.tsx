@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ interface Props {
   readonly phase: 'idle' | 'reviewing' | 'reconciling';
   readonly operationState: 'idle' | 'committed' | 'failed' | 'unknown';
   readonly notes: string;
+  readonly chargeFields?: ReactNode;
   readonly onNotesChange: (value: string) => void;
   readonly onSetQuantity: (index: number, quantity: number) => void;
   readonly onRemove: (index: number) => void;
@@ -75,6 +77,7 @@ export default function ServerTableRoundTicket({
   operationState,
   notes,
   onNotesChange,
+  chargeFields,
   onSetQuantity,
   onRemove,
   onReview,
@@ -83,7 +86,7 @@ export default function ServerTableRoundTicket({
   const { t } = useTranslation();
   const [customerOpen, setCustomerOpen] = useState(false);
   const locked = phase !== 'idle' || operationState === 'unknown' || !canCompose;
-  const total = quote?.total ?? ticketTotal;
+  const total = quote?.payableTotal ?? quote?.total ?? ticketTotal;
   const notesValid = serverTableRoundNotesSchema.safeParse(notes).success;
   const notesError = notesValid
     ? undefined
@@ -130,6 +133,7 @@ export default function ServerTableRoundTicket({
           ))}
         </ul>
       )}
+      {chargeFields}
       <FormField
         label={t('server.round.notes')}
         error={notesError}

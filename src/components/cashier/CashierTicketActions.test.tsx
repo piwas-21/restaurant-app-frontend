@@ -141,7 +141,9 @@ it('shows amendment controls and history with the tenant flag and current server
     </TenantFeaturesProvider>,
   );
 
-  expect(await screen.findByRole('button', { name: 'orderAmendments.open' })).toBeInTheDocument();
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'orderAmendments.open' })).not.toHaveAttribute('aria-disabled'),
+  );
   expect(getOrderAmendmentEligibility).toHaveBeenCalledWith(order.id);
   expect(await screen.findByText('0')).toBeInTheDocument();
   expect(getOrderAmendmentHistory).toHaveBeenCalledWith(order.id);

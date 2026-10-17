@@ -16,6 +16,14 @@ jest.mock('@/components/AuthContext', () => ({
   useAuth: () => ({ user: { role: mockUserRole }, isLoading: mockAuthLoading }),
 }));
 jest.mock('@/hooks/useMarketplaceKitchenOrders');
+jest.mock('@/hooks/useTenantToday', () => ({ useTenantToday: () => '2026-10-17' }));
+jest.mock('@/hooks/notification/useNotificationSound', () => ({
+  useNotificationSound: () => ({
+    audioEnabled: true,
+    audioBlockedByPolicy: false,
+    playNotificationSound: jest.fn(),
+  }),
+}));
 
 const mockKitchenOrders = jest.mocked(useMarketplaceKitchenOrders);
 
@@ -24,6 +32,7 @@ beforeEach(() => {
   mockUserRole = 'KitchenStaff';
   mockAuthLoading = false;
   const accepted = marketplaceOrder();
+  accepted.businessDate = '2026-10-17';
   accepted.status = 'Confirmed';
   accepted.isKitchenReleased = true;
   accepted.externalOrder!.externalState = 'ACCEPTED';
@@ -39,10 +48,10 @@ beforeEach(() => {
 it('renders the real accepted marketplace feed and filters by preparation status', () => {
   render(<MarketplaceKitchenBoard />);
 
-  expect(screen.getByRole('heading', { name: 'marketplaceStaff.kitchen_title' })).toBeInTheDocument();
-  expect(screen.getByRole('group', { name: 'marketplaceStaff.kitchen_filter' })).toBeInTheDocument();
+  expect(screen.getByRole('region', { name: 'marketplaceStaff.kitchen_title' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'filters' }));
   expect(screen.getByText('9116D')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /marketplaceStaff.status.Preparing/ }));
+  fireEvent.change(screen.getByRole('combobox', { name: 'status' }), { target: { value: 'Preparing' } });
   expect(screen.queryByText('9116D')).not.toBeInTheDocument();
   expect(screen.getByText('marketplaceStaff.kitchen_filter_empty')).toBeInTheDocument();
 });
@@ -64,6 +73,7 @@ it('provides a visible stale-feed warning with an explicit retry', () => {
 it('allows Server users on the Server audience route and shows permitted preparation actions', () => {
   mockUserRole = 'Server';
   const accepted = marketplaceOrder();
+  accepted.businessDate = '2026-10-17';
   accepted.status = 'Confirmed';
   accepted.isKitchenReleased = true;
   accepted.externalOrder!.externalState = 'ACCEPTED';
@@ -80,7 +90,7 @@ it('allows Server users on the Server audience route and shows permitted prepara
 
   expect(screen.getByText('9116D')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'mark_as_preparing_button' })).toBeInTheDocument();
-  expect(mockKitchenOrders).toHaveBeenCalledWith(true);
+  expect(mockKitchenOrders).toHaveBeenCalledWith(true, '2026-10-17');
 });
 
 it('keeps Server users out of the KitchenStaff route', () => {
@@ -88,7 +98,7 @@ it('keeps Server users out of the KitchenStaff route', () => {
 
   render(<MarketplaceKitchenBoard />);
 
-  expect(mockKitchenOrders).toHaveBeenCalledWith(false);
+  expect(mockKitchenOrders).toHaveBeenCalledWith(false, '2026-10-17');
   expect(screen.getByText('loading')).toBeInTheDocument();
 });
 
@@ -97,7 +107,7 @@ it('keeps non-Server roles out of the Server preparation route', () => {
 
   render(<MarketplaceKitchenBoard audience="server" />);
 
-  expect(mockKitchenOrders).toHaveBeenCalledWith(false);
+  expect(mockKitchenOrders).toHaveBeenCalledWith(false, '2026-10-17');
   expect(screen.getByText('loading')).toBeInTheDocument();
 });
 
@@ -107,6 +117,6 @@ it('waits for role resolution before requesting the Server feed', () => {
 
   render(<MarketplaceKitchenBoard audience="server" />);
 
-  expect(mockKitchenOrders).toHaveBeenCalledWith(false);
+  expect(mockKitchenOrders).toHaveBeenCalledWith(false, '2026-10-17');
   expect(screen.getByText('loading')).toBeInTheDocument();
 });

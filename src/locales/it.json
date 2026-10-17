@@ -1550,8 +1550,6 @@
   "selected_tables_not_available": "Il/i tavolo/i selezionato/i {{tables}} non è/sono più disponibile/i per questa fascia oraria. Seleziona tavoli o orari diversi.",
   "select_notification_sound": "Seleziona Suono di Notifica",
   "repeat_until_mouse_moves": "Ripeti finché il mouse non si muove",
-  "repeat_sound_desc": "Continua a suonare finché non torni alla scrivania",
-  "click_to_select_or_test": "Clicca su un suono per selezionarlo, o testalo prima di scegliere",
   "sound": "Suono",
   "diagnostics": "Diagnostica",
   "environment": "Ambiente",
@@ -3532,12 +3530,8 @@
     "review_confirmation": "Ho controllato ogni articolo e tutte le indicazioni su allergie e preparazione.",
     "review_description": "Conferma dopo aver controllato i dettagli dell’ordine e prima di inviare la decisione.",
     "kitchen_title": "Ordini Uber Eats accettati",
-    "kitchen_description": "Qui compaiono solo gli ordini accettati da Uber Eats e rilasciati alla cucina.",
-    "refresh": "Aggiorna",
-    "kitchen_filter": "Filtra gli ordini accettati per stato di preparazione",
     "kitchen_stale": "L’elenco degli ordini di cucina potrebbe non essere aggiornato.",
     "retry": "Riprova",
-    "kitchen_empty": "Nessun ordine marketplace accettato in attesa di lavorazione in cucina.",
     "kitchen_filter_empty": "Nessun ordine corrisponde a questo stato di preparazione.",
     "kitchen_error": "Impossibile caricare gli ordini marketplace.",
     "status": {
@@ -4010,8 +4004,6 @@
   "points_transaction_clawback": "Punti guadagnati stornati",
   "points_transaction_restored": "Punti utilizzati ripristinati",
   "points_transaction_unknown": "Rettifica dei punti",
-  "nativeKitchenBoard.title": "Lavoro in cucina",
-  "nativeKitchenBoard.description": "Prepara gli ordini e conferma il lavoro in cucina quando è terminato.",
   "nativeKitchenBoard.workspace": "Aree di lavoro cucina",
   "nativeKitchenBoard.nativeTab": "Lavoro in cucina",
   "nativeKitchenBoard.marketplaceTab": "Ordini marketplace",
@@ -4189,5 +4181,50 @@
   "staff_cancel_reason": "Motivo (facoltativo)",
   "staff_cancel_reason_too_long": "Il motivo deve contenere al massimo {{max}} caratteri.",
   "staff_table_search": "Cerca tavoli",
-  "staff_order_updated": "Aggiornato"
+  "staff_order_updated": "Aggiornato",
+  "staffSound": {
+    "chime": "Rintocco",
+    "bell": "Campana",
+    "ping": "Bip",
+    "alert": "Avviso",
+    "melody": "Melodia",
+    "test": "Prova",
+    "testNamed": "Prova {{sound}}",
+    "repeatHint": "Si ripete finché non tocchi lo schermo, premi un tasto o muovi il mouse."
+  },
+  "kitchenView": {
+    "active": "Attivi",
+    "completed": "Completati",
+    "work": "Lavoro in cucina",
+    "enableAudio": "Attiva i suoni di notifica"
+  },
+  "amendmentHelp": {
+    "paymentHeld": "Un pagamento di questo tavolo attende ancora un risultato confermato. Apri il conto e controlla il pagamento in sospeso. Non incassarlo di nuovo. Le modifiche saranno disponibili dopo la conferma.",
+    "correctionPending": "Una correzione precedente richiede ancora un controllo del pagamento o del rimborso. Apri la cronologia delle modifiche e completa prima quella correzione.",
+    "refundReview": "Un responsabile deve confrontare i rimborsi con il pagamento o la ricevuta del terminale. Le modifiche restano bloccate finché i dati non coincidono.",
+    "balanceReview": "Il saldo e una correzione precedente non coincidono. Chiedi a un responsabile di confrontare lo storico delle modifiche con il conto e le ricevute di pagamento o rimborso. Se tutto è confermato, contatta l’assistenza con il numero d’ordine. Aggiornare da solo non rimuove il blocco."
+  },
+  "billCharges": {
+    "title": "Supplementi sul conto",
+    "description": "Attiva solo i supplementi utilizzati dal ristorante. Il personale sceglie se aggiungerli; solo gli importi positivi compaiono sul conto. I supplementi esistenti mantengono nome e importo. Se usi l’app della stampante di cassa, installa la versione 1.0.37 o successiva prima di attivare gli addebiti.",
+    "enabled": "Attivo",
+    "key": "Chiave del campo",
+    "label": "Nome sul conto",
+    "defaultAmount": "Importo fisso o suggerito",
+    "allowCustom": "Il personale può inserire un importo personalizzato",
+    "staff": "Disponibile per il personale",
+    "serviceFee": "Costo del servizio",
+    "deliveryFee": "Costo di consegna",
+    "custom": "Supplemento personalizzato",
+    "addField": "Aggiungi un campo",
+    "saved": "Impostazioni dei supplementi salvate.",
+    "add": "Aggiungi al conto",
+    "checkSave": "Verifica e salva gli stessi supplementi",
+    "order": "Aggiungi il supplemento all’ordine",
+    "loadFailed": "Impossibile caricare le impostazioni. Aggiorna e riprova.",
+    "saveFailed": "Impossibile confermare i supplementi. Aggiorna il conto e controlla i supplementi esistenti e i pagamenti in sospeso prima di riprovare.",
+    "unavailable": "Questo supplemento selezionato non è più disponibile. Rimuovilo prima di inviare l’ordine.",
+    "invalidSettings": "Ogni campo richiede una chiave univoca in minuscolo, un’etichetta, un importo valido e almeno un tipo di ordine e un ruolo del personale.",
+    "invalidAmount": "Inserisci un importo da 0 a {{max}}."
+  }
 }

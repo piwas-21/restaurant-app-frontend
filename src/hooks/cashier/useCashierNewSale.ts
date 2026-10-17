@@ -85,12 +85,22 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
         state.channel,
         state.lines,
         state.notes,
+        state.billCharges,
         state.tableNumber,
         state.tableId,
         state.serviceSessionId,
         state.contact,
       ]),
-    [state.channel, state.lines, state.notes, state.tableNumber, state.tableId, state.serviceSessionId, state.contact],
+    [
+      state.billCharges,
+      state.channel,
+      state.lines,
+      state.notes,
+      state.tableNumber,
+      state.tableId,
+      state.serviceSessionId,
+      state.contact,
+    ],
   );
   const lastContentKeyRef = useRef(contentKey);
   useEffect(() => {
@@ -118,6 +128,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
       channel: state.channel,
       lines: state.lines,
       notes: state.notes,
+      billCharges: state.billCharges,
       tableNumber: state.tableNumber,
       tableId: state.tableId,
       serviceSessionId: state.serviceSessionId,
@@ -148,8 +159,10 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   }, [contentKey, draft, loyaltyEnabled, onCreated, phase, state]);
 
   const ticketTotal = useMemo(
-    () => state.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
-    [state.lines],
+    () =>
+      state.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0) +
+      (state.billCharges ?? []).reduce((sum, charge) => sum + charge.amount, 0),
+    [state.billCharges, state.lines],
   );
 
   return {
@@ -158,6 +171,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     channelsLoading,
     lines: state.lines,
     notes: state.notes,
+    billCharges: state.billCharges,
     tableNumber: state.tableNumber,
     contact: state.contact,
     ticketTotal,
@@ -170,6 +184,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
     lastRemoved: draft.lastRemoved,
     setChannel: draft.setChannel,
     setNotes: draft.setNotes,
+    setBillCharges: draft.setBillCharges,
     setTableNumber: draft.setTableNumber,
     setContact: draft.setContact,
     setLineQuantity: draft.setLineQuantity,

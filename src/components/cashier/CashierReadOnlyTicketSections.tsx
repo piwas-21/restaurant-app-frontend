@@ -1,3 +1,4 @@
+import OrderBillCharges from '@/components/bill-charges/OrderBillCharges';
 import type { TFunction } from 'i18next';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import type { OrderDto, OrderItemDto, OrderPaymentDto } from '@/types/order';
@@ -176,9 +177,10 @@ export function TicketMoneySummary({
   else if (due < 0) label = 'cashier.workspace.credit';
   return (
     <div className={styles.moneyRows}>
+      <OrderBillCharges charges={order.billCharges} />
       <div>
         <span>{t('cashier.workspace.order_total')}</span>
-        <strong>{formatOrderCurrency(order.total, order)}</strong>
+        <strong>{formatOrderCurrency(order.payableTotal ?? order.total, order)}</strong>
       </div>
       <div>
         <span>{t('cashier.workspace.total_paid')}</span>

@@ -32,7 +32,7 @@ export default function BillChargeRuleEditor({
   const toggle = (field: 'roles' | 'orderTypes', value: string) =>
     onChange({
       ...rule,
-      [field]: rule[field].some((item) => item === value)
+      [field]: (rule[field] as readonly string[]).includes(value)
         ? rule[field].filter((item) => item !== value)
         : [...rule[field], value],
     });
@@ -85,9 +85,9 @@ export default function BillChargeRuleEditor({
             onValidityChange={onAmountValidityChange}
           />
         </div>
-        <div>
-          <p className={styles.label}>{t('billCharges.amountMode')}</p>
-          <div className={styles.segments} role="group" aria-label={t('billCharges.amountMode')}>
+        <fieldset className={controls.group}>
+          <legend className={styles.label}>{t('billCharges.amountMode')}</legend>
+          <div className={styles.segments}>
             {[false, true].map((custom) => (
               <button
                 key={String(custom)}
@@ -101,10 +101,10 @@ export default function BillChargeRuleEditor({
               </button>
             ))}
           </div>
-        </div>
-        <div>
-          <p className={styles.label}>{t('billCharges.availableFor')}</p>
-          <div className={controls.chips} role="group" aria-label={t('order_types')}>
+        </fieldset>
+        <fieldset className={controls.group}>
+          <legend className={styles.label}>{t('billCharges.availableFor')}</legend>
+          <div className={controls.chips}>
             {(
               [
                 ['DineIn', 'order_type_dine_in', UtensilsCrossed],
@@ -129,10 +129,10 @@ export default function BillChargeRuleEditor({
               </button>
             ))}
           </div>
-        </div>
-        <div>
-          <p className={styles.label}>{t('billCharges.whoCanAdd')}</p>
-          <div className={controls.chips} role="group" aria-label={t('billCharges.staff')}>
+        </fieldset>
+        <fieldset className={controls.group}>
+          <legend className={styles.label}>{t('billCharges.whoCanAdd')}</legend>
+          <div className={controls.chips}>
             {(['Cashier', 'Server'] as const).map((role) => (
               <button
                 type="button"
@@ -151,7 +151,7 @@ export default function BillChargeRuleEditor({
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
         <div className={styles.receipt}>
           <small>{t('billCharges.receiptPreview')}</small>
           <span dir="auto">{rule.label}</span>

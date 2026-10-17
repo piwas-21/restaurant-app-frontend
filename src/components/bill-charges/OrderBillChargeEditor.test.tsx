@@ -65,7 +65,7 @@ it('saves one positive fee through the existing idempotent API and releases the 
     { key: 'service_fee', amount: 3.5 },
   ]);
   expect(draft).toHaveBeenLastCalledWith(false);
-  expect(sessionStorage.length).toBe(0);
+  expect(sessionStorage).toHaveLength(0);
 });
 
 it('keeps a saved pending charge recoverable after another actor cancels the order', async () => {

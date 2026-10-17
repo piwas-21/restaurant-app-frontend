@@ -57,9 +57,9 @@ export default function TableBillChargeAction({
   return (
     <div>
       {eligible.length > 1 && !pendingOrderId && (
-        <div className={styles.form}>
-          <span className={styles.help}>{t('billCharges.order')}</span>
-          <div className={controls.chips} role="group" aria-label={t('billCharges.order')}>
+        <fieldset className={`${styles.form} ${controls.group}`}>
+          <legend className={styles.help}>{t('billCharges.order')}</legend>
+          <div className={controls.chips}>
             {eligible.map((value) => (
               <button
                 type="button"
@@ -74,7 +74,7 @@ export default function TableBillChargeAction({
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
       )}
       <OrderBillChargeAction
         key={order.id}

@@ -82,6 +82,6 @@ it('generates hidden stable keys for new charges and keeps inactive editor amoun
   expect(rules.find((rule) => rule.label === 'Packaging')?.key).toMatch(/^charge_[a-f0-9]{32}$/);
   expect(new Set(rules.map((rule) => rule.key)).size).toBe(rules.length);
   expect(
-    within(screen.getByRole('group', { name: 'Available to staff' })).getByRole('button', { name: 'Cashier' }),
+    within(screen.getByRole('group', { name: 'Who can add it?' })).getByRole('button', { name: 'Cashier' }),
   ).toBeInTheDocument();
 });

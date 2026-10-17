@@ -1,6 +1,7 @@
 'use client';
 
 import { Plus } from 'lucide-react';
+import type { BillChargeRule } from '@/types/billCharge';
 import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useTranslation } from 'react-i18next';
 import { useBillChargeEditor } from '@/hooks/admin/useBillChargeEditor';
@@ -9,6 +10,11 @@ import BillChargeConfigurationNotice from '@/components/bill-charges/BillChargeC
 import BillChargeIcon from '@/components/bill-charges/BillChargeIcon';
 import BillChargeRuleEditor from './BillChargeRuleEditor';
 import styles from './BillChargesTab.module.css';
+
+function chargeStatusKey(rule: BillChargeRule) {
+  if (!rule.enabled) return 'billCharges.disabled';
+  return rule.allowCustomAmount ? 'billCharges.staffAmount' : 'billCharges.fixedAmount';
+}
 
 export default function BillChargesTab() {
   const { t } = useTranslation();
@@ -43,15 +49,7 @@ export default function BillChargesTab() {
               </span>
               <span>
                 <strong dir="auto">{rule.label}</strong>
-                <small>
-                  {t(
-                    !rule.enabled
-                      ? 'billCharges.disabled'
-                      : rule.allowCustomAmount
-                        ? 'billCharges.staffAmount'
-                        : 'billCharges.fixedAmount',
-                  )}
-                </small>
+                <small>{t(chargeStatusKey(rule))}</small>
               </span>
             </button>
           ))}

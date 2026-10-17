@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { NotificationSoundType, playToneSequence, playOrderUpdateTone } from '@/utils/notificationTones';
+import { useNotificationSoundRepeat } from './useNotificationSoundRepeat';
 import { useAudioContext } from './useAudioContext';
 
 /**
@@ -25,19 +26,21 @@ export function useNotificationSound() {
 
   const [soundType, setSoundType] = useState<NotificationSoundType>('chime');
   const [repeatUntilMouseMoves, setRepeatUntilMouseMoves] = useState(false);
-  const repeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load sound type preference from localStorage
   useEffect(() => {
-    const savedSoundType = localStorage.getItem('cashier_notification_sound');
-    if (savedSoundType && ['chime', 'bell', 'ping', 'alert', 'melody'].includes(savedSoundType)) {
-      setSoundType(savedSoundType as NotificationSoundType);
-    }
+    const loadPreferences = () => {
+      const savedSoundType = localStorage.getItem('cashier_notification_sound');
+      if (savedSoundType && ['chime', 'bell', 'ping', 'alert', 'melody'].includes(savedSoundType)) {
+        setSoundType(savedSoundType as NotificationSoundType);
+      }
 
-    const savedRepeatSetting = localStorage.getItem('cashier_repeat_sound');
-    if (savedRepeatSetting === 'true') {
-      setRepeatUntilMouseMoves(true);
-    }
+      const savedRepeatSetting = localStorage.getItem('cashier_repeat_sound');
+      setRepeatUntilMouseMoves(savedRepeatSetting === 'true');
+    };
+    loadPreferences();
+    window.addEventListener('staff-sound-preferences', loadPreferences);
+    return () => window.removeEventListener('staff-sound-preferences', loadPreferences);
   }, []);
 
   // Play notification sound
@@ -119,65 +122,25 @@ export function useNotificationSound() {
     }
   }, [audioEnabled, audioContextRef]);
 
-  const stopRepeating = useCallback(() => {
-    if (repeatIntervalRef.current) {
-      clearInterval(repeatIntervalRef.current);
-      repeatIntervalRef.current = null;
-    }
-  }, []);
-
-  // Start repeating sound until mouse moves
-  const startRepeatingUntilMouseMoves = useCallback(() => {
-    if (!repeatUntilMouseMoves || !audioEnabled) return;
-
-    stopRepeating();
-    playNotificationSound();
-
-    const getRepeatInterval = () => {
-      switch (soundType) {
-        case 'bell':
-          return 1500;
-        case 'melody':
-          return 2200;
-        case 'ping':
-          return 600;
-        case 'alert':
-          return 1000;
-        case 'chime':
-        default:
-          return 1200;
-      }
-    };
-
-    repeatIntervalRef.current = setInterval(() => {
-      playNotificationSound();
-    }, getRepeatInterval());
-
-    const handleMouseMove = () => {
-      stopRepeating();
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove, { once: true });
-  }, [repeatUntilMouseMoves, audioEnabled, playNotificationSound, stopRepeating, soundType]);
-
-  // Clean up repeat interval on unmount
-  useEffect(() => {
-    return () => {
-      stopRepeating();
-    };
-  }, [stopRepeating]);
+  const { stopRepeating, startRepeatingUntilMouseMoves } = useNotificationSoundRepeat(
+    audioEnabled,
+    repeatUntilMouseMoves,
+    soundType,
+    playNotificationSound,
+  );
 
   // Change notification sound type
   const changeSoundType = useCallback((newType: NotificationSoundType) => {
     setSoundType(newType);
     localStorage.setItem('cashier_notification_sound', newType);
+    window.dispatchEvent(new Event('staff-sound-preferences'));
   }, []);
 
   const toggleRepeatSound = useCallback(() => {
     const newValue = !repeatUntilMouseMoves;
     setRepeatUntilMouseMoves(newValue);
     localStorage.setItem('cashier_repeat_sound', newValue.toString());
+    window.dispatchEvent(new Event('staff-sound-preferences'));
   }, [repeatUntilMouseMoves]);
 
   return {

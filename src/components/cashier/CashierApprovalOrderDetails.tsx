@@ -23,7 +23,7 @@ export default function CashierApprovalOrderDetails({ order, preparationMinutes 
     { label: t('customer'), value: order.customerName || t('cashier.workspace.guest') },
     ...(order.customerPhone ? [{ label: t('phone'), value: order.customerPhone }] : []),
     ...(order.customerEmail ? [{ label: t('email'), value: order.customerEmail }] : []),
-    { label: t('cashier.workspace.order_total'), value: formatOrderCurrency(order.total, order) },
+    { label: t('cashier.workspace.order_total'), value: formatOrderCurrency(order.payableTotal ?? order.total, order) },
   ];
 
   return (
@@ -41,7 +41,7 @@ export default function CashierApprovalOrderDetails({ order, preparationMinutes 
         <TicketItems items={order.items ?? []} currency={order.currency} t={t} />
         <p className={styles.orderTotal}>
           <span>{t('cashier.workspace.order_total')}</span>
-          <strong>{formatOrderCurrency(order.total, order)}</strong>
+          <strong>{formatOrderCurrency(order.payableTotal ?? order.total, order)}</strong>
         </p>
       </section>
       {preparationMinutes !== null && (

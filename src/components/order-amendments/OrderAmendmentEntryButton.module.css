@@ -25,3 +25,25 @@
   color: var(--text-secondary);
   font-size: 0.875rem;
 }
+
+.blocked {
+  position: relative;
+}
+.action[aria-disabled='true'] {
+  color: var(--text-secondary);
+  cursor: help;
+  background: var(--surface-secondary);
+}
+.explanation {
+  display: none;
+  margin: 0.5rem 0 0;
+  max-inline-size: 32rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.blocked:hover .explanation,
+.blocked:focus-within .explanation,
+.explanation[data-expanded='true'] {
+  display: block;
+}

@@ -1,3 +1,4 @@
+import { readBillChargeInputs } from './billChargeDraft';
 import type { OrderType } from '@/types/order';
 import { isUuid } from '@/utils/uuid';
 import { readStoredContact, type CashierNewSaleContact } from './cashierNewSaleContact';
@@ -30,6 +31,7 @@ export interface CashierNewSaleDraftLine {
   variationId?: string;
   variationName?: string;
   notes?: string;
+  billCharges?: import('@/types/billCharge').BillChargeInput[];
   addedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
   removedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
   selectedIngredientIds?: string[];
@@ -44,6 +46,7 @@ export interface CashierNewSaleDraft {
   lines: CashierNewSaleDraftLine[];
   /** Order-level notes for the kitchen; line notes live on the lines themselves. */
   notes?: string;
+  billCharges?: import('@/types/billCharge').BillChargeInput[];
   /** Dine-in only: numeric compatibility identity and the configured display label. */
   tableNumber?: number;
   /** Exact display label and stable visit identity for lettered tables. */
@@ -65,6 +68,7 @@ interface StoredDraft {
   readonly channel?: unknown;
   readonly lines?: unknown;
   readonly notes?: unknown;
+  readonly billCharges?: unknown;
   readonly tableNumber?: unknown;
   readonly tableLabel?: unknown;
   readonly tableId?: unknown;
@@ -94,6 +98,7 @@ export function readCashierNewSaleDraft(): CashierNewSaleDraft | null {
       channel: stored.channel as CashierNewSaleDraft['channel'],
       lines,
       notes: asOptionalString(stored.notes),
+      billCharges: readBillChargeInputs(stored.billCharges),
       tableNumber:
         typeof stored.tableNumber === 'number' && Number.isInteger(stored.tableNumber) && stored.tableNumber > 0
           ? stored.tableNumber

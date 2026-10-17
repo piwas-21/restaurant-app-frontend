@@ -115,6 +115,8 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     mutate,
     setItems: guardRoundMutation(canMutateDraft, draft.setItems),
     setNotes: guardRoundMutation(canMutateDraft, draft.setNotes),
+    billCharges: draft.billCharges,
+    setBillCharges: guardRoundMutation(canMutateDraft, draft.setBillCharges),
     setCustomer: guardRoundMutation(canMutateDraft, draft.setCustomer),
     discardDraft: guardRoundMutation(canDiscardDraft, draft.discardDraft),
     catalogError: catalog.error,
@@ -123,7 +125,9 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     selectedProduct,
     selectedBundle,
     tapPendingId,
-    ticketTotal: draft.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+    ticketTotal:
+      draft.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) +
+      (draft.billCharges ?? []).reduce((sum, charge) => sum + charge.amount, 0),
     canCompose,
     canAddItems,
     tapProduct,

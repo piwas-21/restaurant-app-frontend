@@ -56,6 +56,7 @@ export function useServerTableRoundDraft(
         isReady: true,
         items: stored?.items ?? [],
         notes: stored?.notes ?? '',
+        billCharges: stored?.billCharges,
         customer: stored?.customer,
         operationId: stored?.clientOperationId,
         draftRecovered: Boolean(stored),
@@ -80,14 +81,14 @@ export function useServerTableRoundDraft(
 
   useEffect(() => {
     if (!draftScope || !sessionId || !sessionMatchesQuery || !isReady) return;
-    const { items, notes, customer, operationId } = visibleDraft;
+    const { items, notes, billCharges, customer, operationId } = visibleDraft;
     const identity = { tableId, serviceSessionId: sessionId, staffUserId };
     if (!items.length && !notes.trim() && !operationId && !customer) {
       clearServerTableRoundDraft(identity);
       return;
     }
     persistServerTableRoundDraft(
-      { tableId, serviceSessionId: sessionId, items, notes, customer, clientOperationId: operationId },
+      { tableId, serviceSessionId: sessionId, items, notes, billCharges, customer, clientOperationId: operationId },
       staffUserId,
     );
   }, [draftScope, isReady, sessionId, sessionMatchesQuery, staffUserId, tableId, visibleDraft]);
@@ -128,13 +129,9 @@ export function useServerTableRoundDraft(
       ),
     [draftScope, updateDraft],
   );
-  const setNotes = useCallback(
-    (notes: string) => updateDraft(draftScope, (current) => invalidateRound(current, { notes, draftRecovered: false })),
-    [draftScope, updateDraft],
-  );
-  const setCustomer = useCallback(
-    (customer: StaffCustomerSelection | undefined) =>
-      updateDraft(draftScope, (current) => invalidateRound(current, { customer, draftRecovered: false })),
+  const setContent = useCallback(
+    (change: Partial<ScopedDraftState>) =>
+      updateDraft(draftScope, (current) => invalidateRound(current, { ...change, draftRecovered: false })),
     [draftScope, updateDraft],
   );
   const setOperationId = useCallback(
@@ -190,8 +187,9 @@ export function useServerTableRoundDraft(
     setQuote,
     setOperationState,
     setDraftRecovered,
-    setNotes,
-    setCustomer,
+    setNotes: (notes: string) => setContent({ notes }),
+    setBillCharges: (billCharges: import('@/types/billCharge').BillChargeInput[]) => setContent({ billCharges }),
+    setCustomer: (customer: StaffCustomerSelection | undefined) => setContent({ customer }),
     mutate,
     discardDraft,
     markCommitted,

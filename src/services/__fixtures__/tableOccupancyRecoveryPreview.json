@@ -1,0 +1,38 @@
+{
+  "tableId": "17c70624-77c1-42ea-adcb-ac3411a7f202",
+  "tableNumber": "9000",
+  "serviceSessionId": "6284d630-018e-4bb6-86b3-bc0ef627e051",
+  "sessionVersion": 2,
+  "accountRevision": 2,
+  "readinessVersion": 12,
+  "currency": "CHF",
+  "previewFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "orderCount": 1,
+  "cancelableUnsentCount": 0,
+  "legacyUnassignedCount": 0,
+  "routedOrderCount": 1,
+  "preparingOrderCount": 0,
+  "readyOrderCount": 0,
+  "paidOrRefundedOrderCount": 0,
+  "activePaymentAttemptCount": 0,
+  "pendingPaymentHandoffCount": 0,
+  "checkoutAttemptCount": 0,
+  "preservedOutstandingAmount": 15.0,
+  "orders": [
+    {
+      "orderId": "fc2e0d5b-1722-44db-a9fb-fbd8dfb3b9b6",
+      "orderNumber": "202610170013",
+      "disposition": "RetainedInPriorVisit",
+      "originalStatus": "Confirmed",
+      "originalPaymentStatus": "Pending",
+      "originalTotal": 15.0,
+      "originalBillingCreditAmount": 0.0,
+      "originalTotalPaid": 0.0,
+      "originalRemainingAmount": 15.0,
+      "wasLegacyUnassigned": false,
+      "wasKitchenReleased": true,
+      "hadRoutingHistory": true,
+      "originalBillChargeAmount": 0.0
+    }
+  ]
+}

@@ -45,36 +45,38 @@ export default function KitchenStaffWorkspace() {
     return <MarketplaceKitchenBoard />;
   }
 
+  const navigation = (
+    <div className={styles.tabs} role="tablist" aria-label={t('nativeKitchenBoard.workspace')}>
+      <button
+        type="button"
+        role="tab"
+        id="kitchen-workspace-native-tab"
+        aria-controls="kitchen-workspace-panel"
+        aria-selected={tab === 'native'}
+        tabIndex={tab === 'native' ? 0 : -1}
+        data-kitchen-tab="native"
+        onKeyDown={(event) => onTabKeyDown('native', event)}
+        onClick={() => setTab('native')}
+      >
+        {t('nativeKitchenBoard.nativeTab')}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="kitchen-workspace-marketplace-tab"
+        aria-controls="kitchen-workspace-panel"
+        aria-selected={tab === 'marketplace'}
+        tabIndex={tab === 'marketplace' ? 0 : -1}
+        data-kitchen-tab="marketplace"
+        onKeyDown={(event) => onTabKeyDown('marketplace', event)}
+        onClick={() => setTab('marketplace')}
+      >
+        {t('nativeKitchenBoard.marketplaceTab')}
+      </button>
+    </div>
+  );
   return (
     <section className={styles.workspace} aria-label={t('nativeKitchenBoard.workspace')}>
-      <div className={styles.tabs} role="tablist" aria-label={t('nativeKitchenBoard.workspace')}>
-        <button
-          type="button"
-          role="tab"
-          id="kitchen-workspace-native-tab"
-          aria-controls="kitchen-workspace-panel"
-          aria-selected={tab === 'native'}
-          tabIndex={tab === 'native' ? 0 : -1}
-          data-kitchen-tab="native"
-          onKeyDown={(event) => onTabKeyDown('native', event)}
-          onClick={() => setTab('native')}
-        >
-          {t('nativeKitchenBoard.nativeTab')}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="kitchen-workspace-marketplace-tab"
-          aria-controls="kitchen-workspace-panel"
-          aria-selected={tab === 'marketplace'}
-          tabIndex={tab === 'marketplace' ? 0 : -1}
-          data-kitchen-tab="marketplace"
-          onKeyDown={(event) => onTabKeyDown('marketplace', event)}
-          onClick={() => setTab('marketplace')}
-        >
-          {t('nativeKitchenBoard.marketplaceTab')}
-        </button>
-      </div>
       <div
         className={styles.panel}
         id="kitchen-workspace-panel"
@@ -82,7 +84,11 @@ export default function KitchenStaffWorkspace() {
         aria-labelledby={tab === 'native' ? 'kitchen-workspace-native-tab' : 'kitchen-workspace-marketplace-tab'}
         tabIndex={0}
       >
-        {tab === 'native' ? <KitchenBoardNative /> : <MarketplaceKitchenBoard />}
+        {tab === 'native' ? (
+          <KitchenBoardNative navigation={navigation} />
+        ) : (
+          <MarketplaceKitchenBoard navigation={navigation} />
+        )}
       </div>
     </section>
   );

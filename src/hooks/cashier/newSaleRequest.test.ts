@@ -182,3 +182,12 @@ describe('buildCounterSaleRequest — customer and delivery contact', () => {
     expect(withLoyalty.pointsToRedeem).toBe(50);
   });
 });
+
+it('sends explicitly selected bill charges and leaves the field absent for an empty selection', () => {
+  const base = { channel: OrderType.Takeaway, lines: [], notes: '' };
+  expect(buildCounterSaleRequest({ ...base, billCharges: [{ key: 'service_fee', amount: 5 }] })).toMatchObject({
+    billCharges: [{ key: 'service_fee', amount: 5 }],
+    paymentState: 'Unpaid',
+  });
+  expect(buildCounterSaleRequest({ ...base, billCharges: [] })).not.toHaveProperty('billCharges');
+});

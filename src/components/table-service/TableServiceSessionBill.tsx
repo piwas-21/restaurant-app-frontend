@@ -1,5 +1,6 @@
 'use client';
 
+import OrderBillCharges from '@/components/bill-charges/OrderBillCharges';
 import { useTranslation } from 'react-i18next';
 import ReceiptItemDetails from '@/components/order/ReceiptItemDetails';
 import OrderStatusBadge from '@/components/design-system/OrderStatusBadge';
@@ -105,7 +106,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
                   {orderTime && <span className={styles.roundTime}>{orderTime}</span>}
                   <SettlementBadge round={round} t={t} />
                 </div>
-                <strong className={styles.lineTotal}>{money(order.total)}</strong>
+                <strong className={styles.lineTotal}>{money(order.payableTotal ?? order.total)}</strong>
               </header>
               <ul className={styles.lineList}>
                 {order.items.map((item, index) => (
@@ -122,6 +123,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
                   </li>
                 ))}
               </ul>
+              <OrderBillCharges charges={order.billCharges} />
             </article>
           );
         })}

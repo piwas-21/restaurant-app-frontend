@@ -7,14 +7,15 @@ function hasMorePages(result: PagedResult<OrderDto>, page: number): boolean {
 }
 
 /** Fetch all operational marketplace deliveries, then keep only orders Uber has released to kitchen. */
-export async function getMarketplaceOperationalOrders(): Promise<OrderDto[]> {
+export async function getMarketplaceOperationalOrders(tenantDay?: string): Promise<OrderDto[]> {
   const itemsById = new Map<string, OrderDto>();
   let page = 1;
   let hasNextPage = true;
 
   while (hasNextPage && page <= SERVER_ORDER_MAX_PAGES) {
     const params = new URLSearchParams({
-      scope: 'Operational',
+      scope: tenantDay ? 'All' : 'Operational',
+      ...(tenantDay ? { tenantDay } : {}),
       marketplaceOnly: 'true',
       orderType: 'Delivery',
       page: String(page),
@@ -41,6 +42,9 @@ export async function getMarketplaceOperationalOrders(): Promise<OrderDto[]> {
       order.externalOrder?.provider === 'uber-eats' &&
       order.externalOrder.externalState === 'ACCEPTED' &&
       order.isKitchenReleased &&
-      ['Confirmed', 'Preparing', 'Ready'].includes(order.status),
+      (tenantDay
+        ? ['Confirmed', 'Preparing', 'Ready', 'OutForDelivery', 'Delivered', 'Completed']
+        : ['Confirmed', 'Preparing', 'Ready']
+      ).includes(order.status),
   );
 }

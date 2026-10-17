@@ -18,6 +18,7 @@ export const TAB_IDS = [
   'logo',
   'landing',
   'tips',
+  'bill-charges',
   'payments',
 ] as const;
 

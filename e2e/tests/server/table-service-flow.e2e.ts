@@ -332,7 +332,11 @@ for (const { name, viewport } of VIEWPORTS) {
         isCompleted: true,
       });
       expect(completion.acknowledgedOrderVersion).toBe(ready.version);
+      await expect(kitchenOrder).toBeHidden();
+      await kitchen.page.getByRole('button', { name: /^Completed \(/ }).click();
       await expect(kitchenOrder).toContainText('Work complete');
+      await kitchen.page.getByRole('button', { name: /^Active \(/ }).click();
+      await expect(kitchenOrder).toBeHidden();
 
       await server.page.goto('/en/server/tasks');
       await server.page.getByRole('tab', { name: /Exception/ }).click();

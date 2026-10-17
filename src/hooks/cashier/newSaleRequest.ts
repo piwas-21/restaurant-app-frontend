@@ -27,6 +27,7 @@ export interface CounterSaleInput {
   channel: OrderType;
   lines: readonly CashierNewSaleDraftLine[];
   notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   tableNumber?: number;
   tableId?: string;
   serviceSessionId?: string;
@@ -41,6 +42,7 @@ export function buildCounterSaleRequest(input: CounterSaleInput): StaffCounterOr
     type: input.channel,
     items: buildOrderItems(input.lines),
     notes: input.notes.trim() || undefined,
+    ...(input.billCharges?.length ? { billCharges: input.billCharges } : {}),
     paymentState: 'Unpaid',
     customerName: input.contact?.customerName,
     customerUserId: input.contact?.customerUserId,

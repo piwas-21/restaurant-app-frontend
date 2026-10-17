@@ -5,6 +5,7 @@ import type { StaffCustomerSelection } from '@/types/staffCustomer';
 export interface ServerTakeawayInput {
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   readonly customer?: StaffCustomerSelection;
   readonly loyaltyEnabled?: boolean;
 }
@@ -15,6 +16,7 @@ export function buildServerTakeawayRequest(input: ServerTakeawayInput): StaffCou
     type: OrderType.Takeaway,
     items: buildOrderItems(input.items),
     notes: input.notes.trim() || undefined,
+    ...(input.billCharges?.length ? { billCharges: input.billCharges } : {}),
     ...(input.customer?.customerUserId ? { customerUserId: input.customer.customerUserId } : {}),
     ...(input.customer?.customerName ? { customerName: input.customer.customerName } : {}),
     ...(input.customer?.customerEmail ? { customerEmail: input.customer.customerEmail } : {}),

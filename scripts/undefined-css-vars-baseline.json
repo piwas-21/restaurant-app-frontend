@@ -37,7 +37,6 @@
     "src/components/admin/reservations/ReservationsHeader.module.css :: --primary",
     "src/components/admin/reservations/ReservationsHeader.module.css :: --primary-dark",
     "src/components/admin/reservations/ReservationsStats.module.css :: --primary",
-    "src/components/cashier/SoundSelector.module.css :: --card-border",
     "src/components/reservation/CustomerDetailsForm.module.css :: --background",
     "src/components/reservation/DateTimeSelector.module.css :: --background",
     "src/components/reservation/GuestSelector.module.css :: --background",

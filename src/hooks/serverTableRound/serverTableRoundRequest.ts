@@ -7,6 +7,7 @@ export interface ServerTableRoundInput {
   readonly serviceSessionId: string;
   readonly items: readonly OrderItem[];
   readonly notes: string;
+  billCharges?: readonly import('@/types/billCharge').BillChargeInput[];
   readonly clientOperationId: string;
   readonly customer?: StaffCustomerSelection;
   readonly loyaltyEnabled?: boolean;
@@ -23,6 +24,7 @@ export function buildServerTableRoundCommand(input: ServerTableRoundInput): Crea
     clientOperationId: input.clientOperationId,
     items: buildOrderItems(input.items),
     notes: input.notes.trim() || undefined,
+    ...(input.billCharges?.length ? { billCharges: input.billCharges } : {}),
     ...(input.customer?.customerUserId ? { customerUserId: input.customer.customerUserId } : {}),
     ...(input.customer?.customerName ? { customerName: input.customer.customerName } : {}),
     ...(input.customer?.customerEmail ? { customerEmail: input.customer.customerEmail } : {}),

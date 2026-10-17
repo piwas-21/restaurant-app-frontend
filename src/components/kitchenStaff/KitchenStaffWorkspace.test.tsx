@@ -15,8 +15,8 @@ jest.mock('next/dynamic', () => {
     default: () => {
       const current = slot;
       slot += 1;
-      return function DynamicKitchenSurface() {
-        return <div data-testid={current === 0 ? 'marketplace-surface' : 'native-kitchen-surface'} />;
+      return function DynamicKitchenSurface({ navigation }: { navigation?: React.ReactNode }) {
+        return <div data-testid={current === 0 ? 'marketplace-surface' : 'native-kitchen-surface'}>{navigation}</div>;
       };
     },
   };

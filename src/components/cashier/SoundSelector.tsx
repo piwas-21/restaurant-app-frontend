@@ -2,6 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { NotificationSoundType } from '@/hooks/useNotification';
 import styles from './SoundSelector.module.css';
+import BaseModal from '@/components/design-system/BaseModal';
+import CheckboxField from '@/components/design-system/CheckboxField';
 
 interface SoundSelectorProps {
   isOpen: boolean;
@@ -13,12 +15,12 @@ interface SoundSelectorProps {
   onToggleRepeat: () => void;
 }
 
-const SOUND_OPTIONS = [
-  { value: 'chime' as const, label: 'Chime', desc: 'Pleasant & Medium' },
-  { value: 'bell' as const, label: 'Bell', desc: 'Loud & Long' },
-  { value: 'ping' as const, label: 'Ping', desc: 'Soft & Short' },
-  { value: 'alert' as const, label: 'Alert', desc: 'Loud & Short' },
-  { value: 'melody' as const, label: 'Melody', desc: 'Soft & Long' },
+const SOUND_OPTIONS: readonly { value: NotificationSoundType; key: string }[] = [
+  { value: 'chime', key: 'staffSound.chime' },
+  { value: 'bell', key: 'staffSound.bell' },
+  { value: 'ping', key: 'staffSound.ping' },
+  { value: 'alert', key: 'staffSound.alert' },
+  { value: 'melody', key: 'staffSound.melody' },
 ];
 
 export default function SoundSelector({
@@ -32,63 +34,39 @@ export default function SoundSelector({
 }: SoundSelectorProps) {
   const { t } = useTranslation();
 
-  if (!isOpen) return null;
-
   return (
-    <div className={styles.dropdown}>
-      <div className={styles.header}>{t('select_notification_sound') || 'Select Notification Sound'}</div>
-
-      {SOUND_OPTIONS.map((sound) => (
-        <div
-          key={sound.value}
-          className={`${styles.soundOption} ${soundType === sound.value ? styles.soundOptionActive : ''}`}
-          onClick={() => {
-            onSoundTypeChange(sound.value);
-            onClose();
-          }}
-        >
-          <div>
-            <div className={styles.soundLabel}>{sound.label}</div>
-            <div className={styles.soundDesc}>{sound.desc}</div>
+    <BaseModal isOpen={isOpen} onClose={onClose} title={t('select_notification_sound')} size="sm">
+      <div className={styles.options}>
+        {SOUND_OPTIONS.map((sound) => (
+          <div className={styles.soundOption} key={sound.value}>
+            <button
+              type="button"
+              className={styles.choice}
+              aria-pressed={soundType === sound.value}
+              onClick={() => {
+                onSoundTypeChange(sound.value);
+                onClose();
+              }}
+            >
+              {t(sound.key)}
+            </button>
+            <button
+              type="button"
+              className={styles.testButton}
+              onClick={() => onTestSound(sound.value)}
+              aria-label={t('staffSound.testNamed', { sound: t(sound.key) })}
+            >
+              {t('staffSound.test')}
+            </button>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onTestSound(sound.value);
-            }}
-            className={styles.testButton}
-          >
-            🔊 Test
-          </button>
-        </div>
-      ))}
-
-      {/* Repeat Sound Toggle */}
-      <div className={styles.repeatSection}>
-        <div
-          onClick={onToggleRepeat}
-          className={`${styles.repeatToggle} ${repeatUntilMouseMoves ? styles.repeatToggleActive : ''}`}
-        >
-          <div className={styles.repeatContent}>
-            <div className={styles.repeatTitle}>
-              <span className={styles.repeatIcon}>🔁</span>
-              <span>{t('repeat_until_mouse_moves') || 'Repeat until mouse moves'}</span>
-            </div>
-            <div className={styles.repeatDesc}>
-              {t('repeat_sound_desc') || 'Keeps playing until you return to the desk'}
-            </div>
-          </div>
-
-          {/* Toggle Switch */}
-          <div className={`${styles.toggleSwitch} ${repeatUntilMouseMoves ? styles.toggleSwitchActive : ''}`}>
-            <div className={styles.toggleKnob} />
-          </div>
-        </div>
+        ))}
+        <CheckboxField
+          label={t('repeat_until_mouse_moves')}
+          checked={repeatUntilMouseMoves}
+          onChange={onToggleRepeat}
+        />
+        <p className={styles.hint}>{t('staffSound.repeatHint')}</p>
       </div>
-
-      <div className={styles.footer}>
-        💡 {t('click_to_select_or_test') || 'Click a sound to select, or test before choosing'}
-      </div>
-    </div>
+    </BaseModal>
   );
 }

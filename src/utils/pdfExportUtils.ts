@@ -177,14 +177,14 @@ export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): 
       <td>${formatDate(order.orderDate)}</td>
       <td>${escapeHtml(order.customerName || translate('guest', 'Guest'))}</td>
       <td style="text-align: center;">${order.items.length}</td>
-      <td style="text-align: right;">${formatCurrency(order.total)}</td>
+      <td style="text-align: right;">${formatCurrency(order.payableTotal ?? order.total)}</td>
       <td>${escapeHtml(getOrderStatusLabel(order.status, t))}</td>
     </tr>
   `,
     )
     .join('');
 
-  const totalAmount = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalAmount = orders.reduce((sum, order) => sum + (order.payableTotal ?? order.total), 0);
   const completedOrders = orders.filter((o) => o.status === 'Completed').length;
   const cancelledOrders = orders.filter((o) => o.status === 'Cancelled').length;
 

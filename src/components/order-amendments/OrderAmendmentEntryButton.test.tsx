@@ -127,7 +127,7 @@ describe('OrderAmendmentEntryButton', () => {
     });
     view.rerender(<OrderAmendmentEntryButton order={order('DineIn', { version: 2 })} operatorRole="Server" />);
 
-    expect(screen.getByText('orderAmendments.order_refund_activity')).toBeInTheDocument();
+    expect(screen.getByText('amendmentHelp.refundReview')).toBeInTheDocument();
     expect(await screen.findByRole('dialog', { name: 'Amendment modal' })).toHaveAttribute(
       'data-recovery-only',
       'true',
@@ -157,11 +157,11 @@ describe('OrderAmendmentEntryButton', () => {
       <OrderAmendmentEntryButton order={order('DineIn', { status: 'Cancelled' })} operatorRole="Server" />,
     );
     expect(screen.getByText('orderAmendments.cancelled_order')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toHaveAttribute('aria-disabled', 'true');
 
     rerender(<OrderAmendmentEntryButton order={order('DineIn', { status: 'Refunded' })} operatorRole="Cashier" />);
     expect(screen.getByText('orderAmendments.fully_refunded_order')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toHaveAttribute('aria-disabled', 'true');
 
     mockEligibility.mockReturnValue({
       reason: 'orderAmendments.order_refund_activity',
@@ -175,8 +175,8 @@ describe('OrderAmendmentEntryButton', () => {
         operatorRole="Cashier"
       />,
     );
-    expect(screen.getByText('orderAmendments.order_refund_activity')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+    expect(screen.getByText('amendmentHelp.refundReview')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toHaveAttribute('aria-disabled', 'true');
 
     rerender(
       <OrderAmendmentEntryButton
@@ -196,8 +196,8 @@ describe('OrderAmendmentEntryButton', () => {
         operatorRole="Cashier"
       />,
     );
-    expect(screen.getByText('orderAmendments.order_refund_activity')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
+    expect(screen.getByText('amendmentHelp.refundReview')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'orderAmendments.open' })).toHaveAttribute('aria-disabled', 'true');
 
     mockEligibility.mockReturnValue({ reason: null, ready: true, mode: 'Native', retry: jest.fn() });
     rerender(

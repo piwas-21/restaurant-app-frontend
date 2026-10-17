@@ -16,6 +16,7 @@ const order = z
     originalStatus: z.string(),
     originalPaymentStatus: z.string(),
     originalTotal: z.number().finite(),
+    originalBillChargeAmount: z.number().finite().nonnegative().optional(),
     originalBillingCreditAmount: z.number().finite(),
     originalTotalPaid: z.number().finite(),
     originalRemainingAmount: z.number().finite(),

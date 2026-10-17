@@ -8,13 +8,13 @@ import {
 } from '@/lib/billChargeLimits';
 
 const key = z.string().max(BILL_CHARGE_KEY_MAX_LENGTH).regex(BILL_CHARGE_KEY_PATTERN);
-const amount = z.number().finite().min(0).max(MAX_BILL_CHARGE_AMOUNT);
-export const billChargeInputSchema = z.object({ key, amount });
+export const billChargeAmountSchema = z.number().finite().min(0).max(MAX_BILL_CHARGE_AMOUNT);
+export const billChargeInputSchema = z.object({ key, amount: billChargeAmountSchema });
 export const billChargeRuleSchema = z.object({
   key,
   label: z.string().trim().min(1).max(BILL_CHARGE_LABEL_MAX_LENGTH),
   enabled: z.boolean(),
-  defaultAmount: amount,
+  defaultAmount: billChargeAmountSchema,
   allowCustomAmount: z.boolean(),
   orderTypes: z.array(z.enum(['DineIn', 'Takeaway', 'Delivery'])).min(1),
   roles: z.array(z.enum(['Cashier', 'Server'])).min(1),

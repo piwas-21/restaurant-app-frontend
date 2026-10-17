@@ -36,6 +36,7 @@ export default function CashierCollectionWorkspace() {
   const { t } = useTranslation();
   const route = useCashierOrderRoute();
   const [chargeBusy, setChargeBusy] = useState(false);
+  const [chargeDraft, setChargeDraft] = useState(false);
   const [sessionPaymentLocked, setSessionPaymentLocked] = useState(false);
   const collection = useCashierCollection(route.selectedSessionId ? null : route.selectedOrderId);
   const linkedSessionId = route.selectedSessionId || collection.order?.serviceSessionId || null;
@@ -74,6 +75,17 @@ export default function CashierCollectionWorkspace() {
     (canCollectPayment(collection.order) || hasOutcome),
   );
 
+  const chargeFields = collection.order ? (
+    <OrderBillChargeAction
+      key={collection.order.id}
+      order={collection.order}
+      disabled={navigationDisabled}
+      onBusyChange={setChargeBusy}
+      onDraftChange={setChargeDraft}
+      onUpdated={collection.refresh}
+    />
+  ) : null;
+
   return (
     <CashierWorkspaceShell activeDestination="orders" queueState={queueState} navigationDisabled={navigationDisabled}>
       {collection.isLoading && !route.selectedSessionId && (
@@ -105,15 +117,7 @@ export default function CashierCollectionWorkspace() {
           onNavigationLockChange={setSessionPaymentLocked}
         />
       )}
-      {!linkedSessionId && collection.order && (
-        <OrderBillChargeAction
-          key={collection.order.id}
-          order={collection.order}
-          disabled={navigationDisabled}
-          onBusyChange={setChargeBusy}
-          onUpdated={collection.refresh}
-        />
-      )}
+
       {!linkedSessionId &&
         !collection.isLoading &&
         collection.order &&
@@ -132,6 +136,7 @@ export default function CashierCollectionWorkspace() {
               </div>
               <CashierStatusBadges order={collection.order} />
             </header>
+            {chargeFields}
             {collection.order.externalOrder ? (
               <section aria-labelledby="cashier-marketplace-settlement-title">
                 <h2 id="cashier-marketplace-settlement-title">{t('marketplaceStaff.collection_settlement_title')}</h2>
@@ -157,7 +162,8 @@ export default function CashierCollectionWorkspace() {
       {!linkedSessionId && canShowCollection && collection.order && (
         <CashierCollectionPanel
           order={collection.order}
-          isPending={isPending || chargeBusy}
+          chargeFields={chargeFields}
+          isPending={isPending || chargeBusy || chargeDraft}
           isBusy={paymentBusy}
           isCheckingPayment={collection.isCheckingPayment}
           pendingPayment={collection.pendingPayment}

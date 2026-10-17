@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { AddPaymentRequest } from '@/services/cashierService';
@@ -17,6 +18,7 @@ import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 
 interface CashierCollectionPanelProps {
   readonly order: OrderDto;
+  readonly chargeFields?: ReactNode;
   readonly isPending: boolean;
   readonly isBusy?: boolean;
   readonly isCheckingPayment: boolean;
@@ -35,6 +37,7 @@ interface CashierCollectionPanelProps {
 
 export default function CashierCollectionPanel({
   order,
+  chargeFields,
   isPending,
   isBusy = false,
   isCheckingPayment,
@@ -78,6 +81,7 @@ export default function CashierCollectionPanel({
         </div>
         <CashierStatusBadges order={order} />
       </header>
+      {chargeFields}
       <div className={styles.balanceCard} aria-live="polite">
         <span>{t('cashier.workspace.amount_due')}</span>
         <strong>{formatOrderCurrency(due, order)}</strong>

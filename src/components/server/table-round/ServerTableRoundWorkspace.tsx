@@ -31,6 +31,7 @@ interface Props {
 
 export default function ServerTableRoundWorkspace({ tableId, requestedSessionId, state }: Props) {
   const { t } = useTranslation();
+  const [chargesValid, setChargesValid] = useState(true);
   const { orderAmendmentsV1 } = useTenantFeatures();
   const round = useServerTableRound(tableId, state, requestedSessionId);
   const [showCatalogOnPhone, setShowCatalogOnPhone] = useState(false);
@@ -184,13 +185,16 @@ export default function ServerTableRoundWorkspace({ tableId, requestedSessionId,
                   values={round.billCharges ?? []}
                   disabled={round.phase !== 'idle'}
                   onChange={round.setBillCharges}
+                  onValidityChange={setChargesValid}
                 />
               }
               onNotesChange={round.setNotes}
               onSetQuantity={round.setItemQuantity}
               onRemove={round.removeItem}
-              onReview={() => void round.review()}
-              canCompose={round.canCompose}
+              onReview={() => {
+                if (chargesValid) void round.review();
+              }}
+              canCompose={round.canCompose && chargesValid}
             />
           }
         />

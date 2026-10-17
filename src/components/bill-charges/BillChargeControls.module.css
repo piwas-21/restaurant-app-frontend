@@ -1,0 +1,83 @@
+.chip,
+.iconButton {
+  align-items: center;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+  justify-content: center;
+  min-block-size: 2.75rem;
+  padding: 0.625rem 0.875rem;
+}
+.chip[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-primary));
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+}
+.chip:hover:not(:disabled),
+.iconButton:hover:not(:disabled) {
+  background: var(--surface-secondary);
+}
+.chip:focus-visible,
+.iconButton:focus-visible,
+.amountInput:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.chip:disabled,
+.iconButton:disabled {
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+.iconButton {
+  border-color: transparent;
+  flex: 0 0 2.75rem;
+  inline-size: 2.75rem;
+  padding: 0.5rem;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+.amountField {
+  min-inline-size: 0;
+}
+.amountBox {
+  align-items: center;
+  display: flex;
+  position: relative;
+}
+.amountBox .amountInput {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  inline-size: 100%;
+  min-block-size: 3rem;
+  min-inline-size: 0;
+  padding-block: 0.625rem;
+  padding-inline: 0.75rem 3.5rem;
+}
+.amountInput[aria-invalid='true'] {
+  border-color: var(--feedback-error-text);
+}
+.amountInput:read-only {
+  background: var(--surface-secondary);
+}
+.currency {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  inset-inline-end: 0.75rem;
+  pointer-events: none;
+  position: absolute;
+}

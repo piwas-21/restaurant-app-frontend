@@ -29,6 +29,7 @@ function messageFor(error: string | null, translate: (key: string) => string): s
 
 export default function ServerTakeawayWorkspace() {
   const { t } = useTranslation();
+  const [chargesValid, setChargesValid] = useState(true);
   const { user } = useAuth();
   const { serverWorkspaceV2, orderAmendmentsV1 } = useTenantFeatures();
   const taskSummary = useServerTaskSummary();
@@ -158,6 +159,7 @@ export default function ServerTakeawayWorkspace() {
                   values={takeaway.billCharges ?? []}
                   disabled={takeaway.phase !== 'idle'}
                   onChange={takeaway.setBillCharges}
+                  onValidityChange={setChargesValid}
                 />
               }
               onNotesChange={takeaway.setNotes}
@@ -165,8 +167,10 @@ export default function ServerTakeawayWorkspace() {
               onRemove={takeaway.removeItem}
               canUndo={takeaway.lastRemoved !== null}
               onUndo={takeaway.undoRemove}
-              onReview={() => void takeaway.review()}
-              disabled={reviewing}
+              onReview={() => {
+                if (chargesValid) void takeaway.review();
+              }}
+              disabled={reviewing || !chargesValid}
             />
           }
         />

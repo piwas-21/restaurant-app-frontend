@@ -3,6 +3,7 @@ import type { OrderDto } from '@/types/order';
 import { PaymentMethod } from '@/types/order';
 import { inputFromMinor, orderTenderTotalMinor } from '@/lib/orderPaymentMoney';
 import { orderCurrency } from '@/lib/cashierMoney';
+import { useBillChargeCollectionAmount } from './useBillChargeCollectionAmount';
 import { usePaymentOperationKey } from './usePaymentOperationKey';
 import { useCashierCollectionSubmit } from './useCashierCollectionSubmit';
 import type {
@@ -119,6 +120,19 @@ export function useCashierCollectionForm({
     },
     [clearTransient],
   );
+
+  useBillChargeCollectionAmount({
+    order,
+    disabled: controlsDisabled,
+    amount,
+    received,
+    tip,
+    method,
+    locale,
+    setAmount,
+    setReceived,
+    clearTransient,
+  });
 
   const handleSubmit = useCashierCollectionSubmit({
     order,

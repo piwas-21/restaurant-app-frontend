@@ -35,6 +35,7 @@ export default function AccountPaymentCollection({
   onNavigationLockChange,
 }: Props) {
   const [chargeBusy, setChargeBusy] = useState(false);
+  const [chargeDraft, setChargeDraft] = useState(false);
   const { t, i18n } = useTranslation();
   const reader = useAccountPaymentAccount(session.serviceSessionId, enabled);
   const refreshAccount = reader.refresh;
@@ -101,6 +102,7 @@ export default function AccountPaymentCollection({
         disabled={writesLocked || payment.pending !== null}
         onUpdated={refresh}
         onBusyChange={setChargeBusy}
+        onDraftChange={setChargeDraft}
       />
       {!enabled && <p className={styles.warning}>{t('accountPayments.disabled_recovery')}</p>}
       {reader.loading && <output aria-live="polite">{t('accountPayments.loading')}</output>}
@@ -177,7 +179,9 @@ export default function AccountPaymentCollection({
           session={session}
           operation={payment.operation}
           pending={payment.pending}
-          disabled={disabled || visitCurrency === null || payment.busy || !enabled || payment.storageUnavailable}
+          disabled={
+            disabled || chargeDraft || visitCurrency === null || payment.busy || !enabled || payment.storageUnavailable
+          }
           recoveryReleaseEnabled={safeReleaseEnabled}
           recoveryCollectionEnabled={payment.canRetryCollection && pendingPayment?.stage === 'collecting'}
           onReserve={payment.reserve}
@@ -191,7 +195,7 @@ export default function AccountPaymentCollection({
           key={`${account.serviceSessionId}:${account.accountRevision}`}
           account={account}
           session={session}
-          disabled={writesLocked}
+          disabled={writesLocked || chargeDraft}
           onQuote={payment.quote}
           onPlan={payment.plan}
         />

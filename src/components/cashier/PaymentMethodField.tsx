@@ -1,6 +1,6 @@
-import FormField from '@/components/design-system/FormField';
+import { Banknote, CreditCard, WalletCards } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
-import styles from './PaymentModal.module.css';
+import styles from './PaymentMethodField.module.css';
 
 interface PaymentMethodFieldProps {
   readonly method: string;
@@ -10,22 +10,33 @@ interface PaymentMethodFieldProps {
 }
 
 export default function PaymentMethodField({ method, disabled, onChange, t }: PaymentMethodFieldProps) {
+  const options = [
+    [PaymentMethod.Cash, 'cashier.table_bill.method_cash', Banknote],
+    [PaymentMethod.CreditCard, 'payment_card_at_restaurant', CreditCard],
+    [PaymentMethod.DebitCard, 'cashier.table_bill.method_debit_card', WalletCards],
+  ] as const;
   return (
     <>
-      <FormField label={`${t('cashier.payment_method')} *`}>
-        <select
-          className={styles.select}
-          value={method}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled}
-        >
-          <option value={PaymentMethod.Cash}>{t('cashier.table_bill.method_cash')}</option>
-          <option value={PaymentMethod.CreditCard}>{t('payment_card_at_restaurant')}</option>
-          <option value={PaymentMethod.DebitCard}>{t('cashier.table_bill.method_debit_card')}</option>
-        </select>
-      </FormField>
+      <fieldset className={styles.group} disabled={disabled}>
+        <legend>{t('cashier.payment_method')}</legend>
+        <div className={styles.methods}>
+          {options.map(([value, label, Icon]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={method === value}
+              className={styles.method}
+              disabled={disabled}
+              onClick={() => onChange(value)}
+            >
+              <Icon size={21} aria-hidden="true" />
+              {t(label)}
+            </button>
+          ))}
+        </div>
+      </fieldset>
       {method !== PaymentMethod.Cash && (
-        <p role="note" className={styles.cardNotice}>
+        <p role="note" className={styles.note}>
           {t('cashier.standalone_card_instruction')}
         </p>
       )}

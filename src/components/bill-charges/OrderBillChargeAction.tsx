@@ -12,6 +12,7 @@ export default function OrderBillChargeAction(
     order: OrderDto;
     disabled: boolean;
     onBusyChange?: (busy: boolean) => void;
+    onDraftChange?: (blocked: boolean) => void;
     onUpdated: () => void | Promise<void>;
   }>,
 ) {

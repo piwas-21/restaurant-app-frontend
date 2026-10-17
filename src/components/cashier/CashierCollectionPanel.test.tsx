@@ -157,8 +157,7 @@ describe('CashierCollectionPanel', () => {
     const onSubmit = jest.fn().mockResolvedValue(order({ remainingAmount: 1.5, totalPaid: 18.5 }));
     renderPanel(onSubmit, { total: 20, remainingAmount: 20 });
 
-    const method = screen.getByRole('combobox', { name: /cashier.payment_method/ });
-    fireEvent.change(method, { target: { value: 'CreditCard' } });
+    fireEvent.click(screen.getByRole('button', { name: 'payment_card_at_restaurant' }));
     fireEvent.change(screen.getByRole('textbox', { name: /cashier.payment_amount/ }), {
       target: { value: '18.50' },
     });
@@ -166,7 +165,7 @@ describe('CashierCollectionPanel', () => {
       target: { value: '2.25' },
     });
 
-    fireEvent.change(method, { target: { value: 'Cash' } });
+    fireEvent.click(screen.getByRole('button', { name: 'cashier.table_bill.method_cash' }));
     const received = screen.getByRole('textbox', { name: 'cashier.cash_received' });
     expect(received).toHaveValue('20.75');
     fireEvent.click(screen.getByRole('button', { name: 'cashier.add_payment' }));
@@ -181,9 +180,7 @@ describe('CashierCollectionPanel', () => {
 
   it('labels card recording without offering an online capture method', () => {
     renderPanel();
-    fireEvent.change(screen.getByRole('combobox', { name: /cashier.payment_method/ }), {
-      target: { value: 'CreditCard' },
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'payment_card_at_restaurant' }));
 
     expect(screen.getByText('cashier.standalone_card_instruction')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'cashier.record_card_payment' })).toBeInTheDocument();
@@ -232,4 +229,36 @@ describe('CashierCollectionPanel', () => {
     expect(screen.getByRole('button', { name: 'cashier.collection.retry_payment_check' })).toBeEnabled();
     expect(screen.queryByRole('button', { name: 'cashier.collection.abandon_payment' })).not.toBeInTheDocument();
   });
+});
+
+it('follows the updated balance after saving a fee while preserving deliberate partial drafts', () => {
+  const submit = jest.fn();
+  const props = {
+    isPending: false,
+    isCheckingPayment: false,
+    onSubmit: submit,
+    onBack: jest.fn(),
+    onNextSale: jest.fn(),
+    onReturnToOrder: jest.fn(),
+  };
+  const original = order({ remainingAmount: 18.5, billChargeAmount: 0 });
+  const view = render(<CashierCollectionPanel {...props} order={original} />);
+  view.rerender(
+    <CashierCollectionPanel
+      {...props}
+      order={{ ...original, billChargeAmount: 5, remainingAmount: 23.5, payableTotal: 23.5 }}
+    />,
+  );
+  expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toHaveValue('23.50');
+  expect(screen.getByRole('textbox', { name: 'cashier.cash_received' })).toHaveValue('23.50');
+  fireEvent.change(screen.getByRole('textbox', { name: /cashier.payment_amount/ }), { target: { value: '10.00' } });
+  fireEvent.change(screen.getByRole('textbox', { name: 'cashier.cash_received' }), { target: { value: '50.00' } });
+  view.rerender(
+    <CashierCollectionPanel
+      {...props}
+      order={{ ...original, billChargeAmount: 8, remainingAmount: 26.5, payableTotal: 26.5 }}
+    />,
+  );
+  expect(screen.getByRole('textbox', { name: /cashier.payment_amount/ })).toHaveValue('10.00');
+  expect(screen.getByRole('textbox', { name: 'cashier.cash_received' })).toHaveValue('50.00');
 });

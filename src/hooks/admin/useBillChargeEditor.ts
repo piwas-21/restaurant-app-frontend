@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, type SetStateAction } from 'react';
+import { useCallback, useEffect, useState, type SetStateAction } from 'react';
 import { MAX_BILL_CHARGE_FIELDS } from '@/lib/billChargeLimits';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +25,14 @@ export function useBillChargeEditor() {
     setValue(`rules.${index}`, rule, { shouldValidate: true, shouldDirty: true });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [invalidAmounts, setInvalidAmounts] = useState<readonly string[]>([]);
+  const setAmountValid = useCallback((key: string, valid: boolean) => {
+    setInvalidAmounts((current) => {
+      if (current.includes(key) === !valid) return current;
+      return valid ? current.filter((value) => value !== key) : [...current, key];
+    });
+  }, []);
   useEffect(() => {
     if (!reader.configuration) return;
     const saved = [...reader.configuration.rules];
@@ -45,9 +53,27 @@ export function useBillChargeEditor() {
     }
     reset({ rules: saved });
   }, [reader.configuration, reset, t]);
-  const valid = formState.isValid;
+  const valid = formState.isValid && !rules.some((rule) => invalidAmounts.includes(rule.key));
+  const selectedIndex = Math.max(
+    0,
+    rules.findIndex((rule) => rule.key === selectedKey),
+  );
+  const addCustomRule = () => {
+    if (busy || rules.length >= MAX_BILL_CHARGE_FIELDS) return;
+    const key = `charge_${crypto.randomUUID().replaceAll('-', '')}`;
+    addRule({
+      key,
+      label: t('billCharges.custom'),
+      enabled: false,
+      defaultAmount: 0,
+      allowCustomAmount: true,
+      orderTypes: ['DineIn', 'Takeaway', 'Delivery'],
+      roles: ['Cashier', 'Server'],
+    });
+    setSelectedKey(key);
+  };
   const save = handleSubmit(async (data) => {
-    if (!reader.configuration || busy) return;
+    if (!reader.configuration || busy || !valid) return;
     setBusy(true);
     setMessage(null);
     try {
@@ -71,5 +97,9 @@ export function useBillChargeEditor() {
     message,
     valid,
     save,
+    selectedIndex,
+    selectRule: setSelectedKey,
+    addCustomRule,
+    setAmountValid,
   };
 }

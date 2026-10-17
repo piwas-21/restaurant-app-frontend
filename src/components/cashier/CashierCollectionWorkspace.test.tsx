@@ -47,7 +47,13 @@ jest.mock('./CashierWorkspaceShell', () => ({
 }));
 jest.mock('./CashierCollectionPanel', () => ({
   __esModule: true,
-  default: () => <div data-testid="cashier-collection-form" />,
+  default: ({ chargeFields }: { chargeFields?: ReactNode }) => (
+    <section data-testid="cashier-collection-form">{chargeFields}</section>
+  ),
+}));
+jest.mock('@/components/bill-charges/OrderBillChargeAction', () => ({
+  __esModule: true,
+  default: () => <div data-testid="bill-charge-action" />,
 }));
 jest.mock('@/utils/pdfExportUtils', () => ({ exportOrderToPDF: jest.fn() }));
 jest.mock('@/components/TenantLink', () => ({ __esModule: true, default: 'a' }));
@@ -60,4 +66,16 @@ it('shows provider settlement guidance on a direct marketplace collection route,
   expect(screen.queryByText('cashier.collection.no_due')).not.toBeInTheDocument();
   expect(screen.queryByText(/11\.47/)).not.toBeInTheDocument();
   expect(screen.queryByTestId('cashier-collection-form')).not.toBeInTheDocument();
+});
+
+it('keeps fee creation and recovery available on a loaded fully-paid standalone order', () => {
+  const previous = mockCollectionState.order;
+  mockCollectionState.order = { ...previous, externalOrder: undefined, remainingAmount: 0, status: 'Completed' };
+  mockCollectionState.outcomeOrderId = '';
+  const view = render(<CashierCollectionWorkspace />);
+  expect(screen.getByTestId('bill-charge-action').closest('section')).not.toBeNull();
+  expect(screen.getByText('cashier.collection.no_due')).toBeInTheDocument();
+  view.unmount();
+  mockCollectionState.order = previous;
+  mockCollectionState.outcomeOrderId = previous.id;
 });

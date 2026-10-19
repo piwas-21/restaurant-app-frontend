@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
 import { useCashierBillPrint } from '@/hooks/cashier/useCashierBillPrint';
@@ -49,7 +50,11 @@ export default function BillPrintButton({ label, target, onBrowserPrint, disable
               >
                 {t(printing.job ? 'billPrint.another' : 'billPrint.connected')}
               </StaffButton>
-              {printing.job && <p role="status">{t(STATUS_KEYS[printing.job.status])}</p>}
+              {printing.job && (
+                <div role="status">
+                  <StatusBadge>{t(STATUS_KEYS[printing.job.status])}</StatusBadge>
+                </div>
+              )}
               {printing.failed && <p role="alert">{printing.error ?? t('billPrint.failed')}</p>}
             </>
           )}

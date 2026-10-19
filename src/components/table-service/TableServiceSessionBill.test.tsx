@@ -53,19 +53,26 @@ it('prints split flow, guest allocations, and gratuity as separate bill details'
   expect(screen.getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
 });
 
-it('omits instructions at every depth from the combined bill while retaining items and charges', () => {
+it('omits ingredients and instructions at every depth from the combined bill while retaining items and charges', () => {
   const order = makeOrder([
     makeOrderItem({
       id: 'meal',
       productName: 'Meal',
       itemTotal: 20,
       specialInstructions: 'Root instruction',
+      ingredientCustomizations: [{ ingredientId: 'onion', ingredientName: 'No onion', quantity: 0, isRemoved: true }],
       sideItems: [
         makeOrderItem({
           id: 'side',
           productName: 'Side',
           specialInstructions: 'Child instruction',
-          sideItems: [makeOrderItem({ id: 'sauce', productName: 'Sauce', specialInstructions: 'Nested instruction' })],
+          ingredientCustomizations: [
+            { ingredientId: 'sugar', ingredientName: 'Extra sugar', quantity: 2, isRemoved: false },
+          ],
+          sideItems: [
+            makeOrderItem({ id: 'sauce', productName: 'Sauce', specialInstructions: 'Nested instruction' }),
+            makeOrderItem({ id: 'hidden', productName: 'Hidden sauce', compositionRole: 'Sauce' }),
+          ],
         }),
       ],
     }),
@@ -74,6 +81,9 @@ it('omits instructions at every depth from the combined bill while retaining ite
   expect(screen.getByText('Meal')).toBeInTheDocument();
   expect(screen.getByText('Side')).toBeInTheDocument();
   expect(screen.getByText('Sauce')).toBeInTheDocument();
+  expect(screen.queryByText('No onion')).not.toBeInTheDocument();
+  expect(screen.queryByText('Extra sugar')).not.toBeInTheDocument();
+  expect(screen.queryByText('Hidden sauce')).not.toBeInTheDocument();
   expect(screen.queryByText('Root instruction')).not.toBeInTheDocument();
   expect(screen.queryByText('Child instruction')).not.toBeInTheDocument();
   expect(screen.queryByText('Nested instruction')).not.toBeInTheDocument();

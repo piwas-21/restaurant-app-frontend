@@ -46,3 +46,14 @@ it('renders child extras and ordinary sides with default labels, parent scope an
   expect(html).not.toContain('Side dish (each)');
   expect(html).not.toContain('Extra sauce (each)');
 });
+
+it('omits frozen ingredient components from cashier bills and keeps them in kitchen tickets', () => {
+  const children = [
+    makeOrderItem({ id: 'sauce', productName: 'Harissa', compositionRole: 'Sauce' }),
+    makeOrderItem({ id: 'ingredient', productName: 'Sugar', compositionRole: 'Ingredient' }),
+  ];
+  expect(buildChildItemsHtml(children, { showPrices: false, withIngredients: false })).toBe('');
+  const kitchen = buildChildItemsHtml(children, { showPrices: false, withIngredients: true });
+  expect(kitchen).toContain('Harissa');
+  expect(kitchen).toContain('Sugar');
+});

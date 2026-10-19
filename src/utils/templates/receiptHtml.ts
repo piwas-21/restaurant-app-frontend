@@ -9,6 +9,7 @@
 import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import {
   receiptItems,
+  isIngredientComponent,
   receiptItemName,
   quantityScopeSuffix,
   receiptFallback,
@@ -92,38 +93,40 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
   let html = '';
 
   const translate = options.translate ?? receiptFallback;
-  receiptItems(children).forEach((child) => {
-    const childPrice = childPriceHtml(child, options);
-    const scope = escapeHtml(quantityScopeSuffix(child, options.parentQuantity ?? 1, translate));
-    const displayName = receiptItemName(child, translate('item', 'Item'));
-    const name = escapeHtml(displayName);
-    const extraPrefix = child.compositionRole === 'Extra' ? '+ ' : '';
-    const content =
-      child.compositionRole === 'Dish'
-        ? `<strong>${child.quantity}x ${name}${scope}</strong>${childPrice}`
-        : `${extraPrefix}${child.quantity}x ${name}${scope}${childPrice}`;
-    html += `<div class="receipt-child" dir="auto" style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth} + var(--receipt-child-offset, 8px)); font-size: var(--receipt-detail-size, 11pt);">${content}</div>`;
-    const descendants = child.sideItems ?? [];
-    const nextOptions = {
-      ...options,
-      parentQuantity: child.quantity,
-    };
-    html += buildChildItemsHtml(
-      descendants.filter((row) => row.compositionRole === 'RequiredChoice'),
-      nextOptions,
-      depth + 1,
-    );
-    if (options.withIngredients) {
-      customizedIngredientRows(child).forEach((ing) => {
-        html += ingredientRowHtml(ing, indent + 16, translate, child.quantity);
-      });
-    }
-    html += buildChildItemsHtml(
-      descendants.filter((row) => row.compositionRole !== 'RequiredChoice'),
-      nextOptions,
-      depth + 1,
-    );
-  });
+  receiptItems(children)
+    .filter((child) => options.withIngredients !== false || !isIngredientComponent(child))
+    .forEach((child) => {
+      const childPrice = childPriceHtml(child, options);
+      const scope = escapeHtml(quantityScopeSuffix(child, options.parentQuantity ?? 1, translate));
+      const displayName = receiptItemName(child, translate('item', 'Item'));
+      const name = escapeHtml(displayName);
+      const extraPrefix = child.compositionRole === 'Extra' ? '+ ' : '';
+      const content =
+        child.compositionRole === 'Dish'
+          ? `<strong>${child.quantity}x ${name}${scope}</strong>${childPrice}`
+          : `${extraPrefix}${child.quantity}x ${name}${scope}${childPrice}`;
+      html += `<div class="receipt-child" dir="auto" style="margin-inline-start: calc(var(--receipt-indent, 16px) * ${depth} + var(--receipt-child-offset, 8px)); font-size: var(--receipt-detail-size, 11pt);">${content}</div>`;
+      const descendants = child.sideItems ?? [];
+      const nextOptions = {
+        ...options,
+        parentQuantity: child.quantity,
+      };
+      html += buildChildItemsHtml(
+        descendants.filter((row) => row.compositionRole === 'RequiredChoice'),
+        nextOptions,
+        depth + 1,
+      );
+      if (options.withIngredients) {
+        customizedIngredientRows(child).forEach((ing) => {
+          html += ingredientRowHtml(ing, indent + 16, translate, child.quantity);
+        });
+      }
+      html += buildChildItemsHtml(
+        descendants.filter((row) => row.compositionRole !== 'RequiredChoice'),
+        nextOptions,
+        depth + 1,
+      );
+    });
 
   return html;
 };

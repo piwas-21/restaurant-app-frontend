@@ -1,3 +1,4 @@
+import { CASHIER_PRINT_STATUS_POLL_MS } from '@/config/printing';
 import { ApiError, getErrorMessage } from '@/utils/apiClient';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -26,10 +27,19 @@ export function useCashierBillPrint(target: CashierPrintTarget, open: boolean) {
     const timer = setInterval(() => {
       void getCashierPrintJob(job.jobId)
         .then((updated) => {
-          if (active) setJob(updated);
+          if (active) {
+            setJob(updated);
+            setFailed(false);
+            setError(null);
+          }
         })
-        .catch(() => undefined);
-    }, 3000);
+        .catch((reason: unknown) => {
+          if (active) {
+            setFailed(true);
+            setError(reason instanceof ApiError ? getErrorMessage(reason) : null);
+          }
+        });
+    }, CASHIER_PRINT_STATUS_POLL_MS);
     return () => {
       active = false;
       clearInterval(timer);

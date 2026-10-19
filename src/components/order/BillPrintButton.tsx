@@ -51,9 +51,9 @@ export default function BillPrintButton({ label, target, onBrowserPrint, disable
                 {t(printing.job ? 'billPrint.another' : 'billPrint.connected')}
               </StaffButton>
               {printing.job && (
-                <div role="status">
+                <output>
                   <StatusBadge>{t(STATUS_KEYS[printing.job.status])}</StatusBadge>
-                </div>
+                </output>
               )}
               {printing.failed && <p role="alert">{printing.error ?? t('billPrint.failed')}</p>}
             </>

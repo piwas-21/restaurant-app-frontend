@@ -2809,7 +2809,6 @@
   "cashier.workspace.customer_details": "Coordonnées du client",
   "cashier.workspace.technical_reference": "Identifiant technique de la commande",
   "cashier.workspace.mark_ready": "Marquer comme prête",
-  "cashier.workspace.mark_ready_failed": "Impossible de marquer cette commande comme prête. Actualisez la page et réessayez.",
   "cashier.workspace.prior_day_dismiss_failed": "Impossible d’ignorer le rappel. Réessayez.",
   "orders.preparation_estimate": "Préparation estimée : {{minutes}} min",
   "orders.expected_ready_now": "Le délai de préparation estimé est écoulé. En attente d’une mise à jour du restaurant.",
@@ -4245,5 +4244,29 @@
     "positiveOrRemove": "Saisissez un montant supérieur à zéro ou supprimez les frais pour continuer.",
     "orderNumber": "Commande {{number}}",
     "addAmount": "Ajouter {{amount}} à la facture"
+  },
+  "billPrint": {
+    "choose": "Choisissez comment imprimer cette addition.",
+    "browser": "Imprimer depuis ce navigateur",
+    "printerHint": "Envoyer à une imprimante de caisse connectée avec la dernière application. L’addition de table inclut toutes les commandes de cette visite.",
+    "connected": "Envoyer à l’imprimante de caisse",
+    "another": "Envoyer une autre copie",
+    "failed": "La demande n’a pas pu être confirmée. Réessayez pour vérifier la même demande avant d’envoyer une autre copie.",
+    "status": {
+      "Queued": "En attente d’une imprimante de caisse connectée.",
+      "Claimed": "Demande prise en charge. Une impression a pu avoir lieu : vérifiez l’imprimante avant de demander une autre copie.",
+      "Sent": "Envoyé à l’imprimante. Vous pouvez demander une autre copie.",
+      "Failed": "L’envoi a échoué. Vérifiez la connexion avant de demander une autre copie.",
+      "Unknown": "Résultat inconnu. Vérifiez l’imprimante avant de demander une autre copie.",
+      "Expired": "Cette demande a expiré sans être prise en charge. Demandez une autre copie si nécessaire."
+    }
+  },
+  "staffCompletion": {
+    "title": "Confirmer le travail terminé",
+    "status": "Statut actuel : {{current}}. Statut demandé : {{target}}.",
+    "work": "Le système n’a pas reçu de confirmation de fin du travail en cuisine.",
+    "correction": "Une correction en cuisine n’a pas été confirmée.",
+    "explanation": "Si les plats et les corrections sont déjà préparés et remis, confirmez pour enregistrer votre validation et continuer. Les paiements et l’historique d’impression restent inchangés.",
+    "confirm": "Confirmer le travail terminé et continuer"
   }
 }

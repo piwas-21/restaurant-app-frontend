@@ -54,7 +54,7 @@ interface BucketPanelProps {
   readonly bucket: ServerTaskBucket;
   readonly state: ServerTasksState;
   readonly busyOrderId: string | null;
-  readonly onDeliver: (orderId: string) => void;
+  readonly onDeliver: (orderId: string, acknowledgeCompletedWork?: boolean) => void;
 }
 
 function BucketPanel({ bucket, state, busyOrderId, onDeliver }: BucketPanelProps) {
@@ -121,11 +121,11 @@ export default function ServerTasksWorkspace() {
   const active = stateByBucket[selectedBucket];
   const total = states.reduce((sum, state) => sum + state.totalCount, 0);
 
-  const handleDeliver = async (orderId: string) => {
+  const handleDeliver = async (orderId: string, acknowledgeCompletedWork?: boolean) => {
     setBusyOrderId(orderId);
     setNotice(null);
     try {
-      await active.deliver(orderId);
+      await active.deliver(orderId, acknowledgeCompletedWork);
       setNotice({ state: 'committed', message: t('server.tasks.delivery_saved', 'Task updated.') });
     } catch (reason: unknown) {
       setNotice({ state: 'failed', message: serverTaskActionError(reason, t) });

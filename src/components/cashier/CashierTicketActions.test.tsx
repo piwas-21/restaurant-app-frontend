@@ -66,6 +66,7 @@ it('keeps ordinary approval and print controls available', () => {
   expect(screen.getByRole('button', { name: 'cashier.approve_order_action' })).toBeEnabled();
   expect(screen.queryByRole('button', { name: 'orderAmendments.open' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.print_bill' }));
+  fireEvent.click(screen.getByRole('button', { name: 'billPrint.browser' }));
   expect(exportOrderToPDF).toHaveBeenCalledWith(order, expect.any(Function));
 });
 

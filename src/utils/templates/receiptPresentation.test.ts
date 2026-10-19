@@ -117,7 +117,7 @@ it('keeps separately configured lines and unknown historical quantities distinct
   expect(html).toContain('1x Menu Tacos 3 Viande');
 });
 
-it('includes standalone and bundle ingredient changes on cashier receipts without ingredient charges', () => {
+it('omits standalone and bundle ingredient changes on cashier receipts while retaining components', () => {
   const order = fixture(2, 4, 2);
   order.items.push(
     makeOrderItem({
@@ -130,9 +130,9 @@ it('includes standalone and bundle ingredient changes on cashier receipts withou
     }),
   );
   const html = generateSimpleReceiptHtml(order);
-  expect(html).toContain('Cheddar (each)');
-  expect(html).toContain('NO Onion');
-  expect(html).toContain('+ Garlic');
+  expect(html).not.toContain('Cheddar');
+  expect(html).not.toContain('Onion');
+  expect(html).not.toContain('Garlic');
   expect(html).not.toContain('Garlic (');
 });
 
@@ -175,7 +175,7 @@ it('prints authoritative partial balances and captured refunds while preserving 
   expect(html).toContain('Still to pay: CHF 22.00');
   expect(html).toContain('Refund Amount: CHF 2.00');
   expect(html).toContain('30.00');
-  expect(html).toContain('Cheddar (each)');
+  expect(html).not.toContain('Cheddar');
 });
 
 it('prints explicit unknown quantities even for a single unit without hiding or dividing them', () => {

@@ -187,6 +187,7 @@ describe('ServerTableBillWorkspace', () => {
     render(<ServerTableBillWorkspace session={session} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'cashier.tables.print_bill' }));
+    fireEvent.click(screen.getByRole('button', { name: 'billPrint.browser' }));
     expect(print).toHaveBeenCalledTimes(1);
     expect(screen.getByText('server.bill.print_dialog_opened')).toBeInTheDocument();
     print.mockRestore();

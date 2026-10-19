@@ -1,7 +1,7 @@
 'use client';
 
 import Link from '@/components/TenantLink';
-import { Printer } from 'lucide-react';
+import BillPrintButton from '@/components/order/BillPrintButton';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import type { TableServiceSessionDto } from '@/types/order';
@@ -56,10 +56,12 @@ export default function CashierTableSessionActions({
             {t('cashier.tables.close')}
           </StaffButton>
         )}
-        <StaffButton onClick={() => window.print()} disabled={writesLocked}>
-          <Printer size={17} aria-hidden="true" />
-          {t('cashier.tables.print_bill')}
-        </StaffButton>
+        <BillPrintButton
+          label={t('cashier.tables.print_bill')}
+          disabled={writesLocked}
+          target={{ serviceSessionId: session.serviceSessionId, expectedVersion: session.version }}
+          onBrowserPrint={() => window.print()}
+        />
         {addRoundAllowed && addRoundHref ? (
           <Link className={`btn btn-secondary ${buttonStyles.touch}`} href={addRoundHref}>
             {t('cashier.tables.add_round')}

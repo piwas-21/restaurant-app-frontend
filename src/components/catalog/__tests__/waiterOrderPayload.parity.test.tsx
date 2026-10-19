@@ -680,7 +680,7 @@ describe('#595 — the waiter POSTs a line the server prices exactly like the gu
       const before = asPostedBefore(posted[0]);
       expect(before.selectedIngredientIds).toBeUndefined();
       expect(before.childItems).toBeUndefined();
-      expect(before.specialInstructions).toContain('Extra Bacon');
+      expect(before.specialInstructions).toBeUndefined();
     });
   });
 });

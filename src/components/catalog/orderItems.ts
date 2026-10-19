@@ -24,6 +24,7 @@ export interface OrderItem {
   variationId?: string;
   variationName?: string;
   notes?: string;
+  specialInstructions?: string;
   addedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
   /** What the waiter took OFF the base recipe. New with S7 — see `waiterSelection.ts`. */
   removedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
@@ -57,9 +58,11 @@ function dedupKey(result: {
   addedIngredients: ReadonlyArray<{ id: string; quantity: number }>;
   removedIngredients?: ReadonlyArray<{ id: string }>;
   sideItems: ReadonlyArray<{ id: string }>;
+  specialInstructions?: string;
 }): string {
   return JSON.stringify([
     result.variationId,
+    result.specialInstructions?.trim() ?? '',
     // The QUANTITY is part of the identity, not just the id: one extra rasher of bacon and two are
     // different lines at different prices, and merging them would charge for one of them.
     result.addedIngredients.map((i) => [i.id, i.quantity]),
@@ -86,6 +89,7 @@ export function addCustomizedItem(
       item.product.id === product.id &&
       dedupKey({
         variationId: item.variationId,
+        specialInstructions: item.specialInstructions,
         addedIngredients: item.addedIngredients ?? [],
         removedIngredients: item.removedIngredients ?? [],
         sideItems: item.sideItems ?? [],
@@ -124,6 +128,7 @@ export function addCustomizedItem(
       quantity: 1,
       variationId: result.variationId,
       variationName: result.variationName,
+      specialInstructions: result.specialInstructions?.trim() ?? '',
       notes: noteParts.join(' | ') || undefined,
       addedIngredients: result.addedIngredients,
       removedIngredients: result.removedIngredients,
@@ -172,7 +177,7 @@ export function buildOrderItems(items: readonly OrderItem[]): CreateOrderItemDto
         productId: item.product.id,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        specialInstructions: item.notes,
+        specialInstructions: (item.specialInstructions ?? item.notes) || undefined,
         childItems: children,
       };
     }
@@ -182,7 +187,7 @@ export function buildOrderItems(items: readonly OrderItem[]): CreateOrderItemDto
       productVariationId: item.variationId,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      specialInstructions: item.notes,
+      specialInstructions: (item.specialInstructions ?? item.notes) || undefined,
       selectedIngredientIds: item.selectedIngredientIds ?? [],
       ingredientQuantities: item.ingredientQuantities,
       // Omitted, not sent as `[]`, so a line with no sides posts exactly the body it always did.

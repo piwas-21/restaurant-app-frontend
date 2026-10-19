@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import CompletedWorkConfirmationModal from '@/components/order/CompletedWorkConfirmationModal';
 import Link from '@/components/TenantLink';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -16,7 +18,7 @@ import { getOrderDisplayNumber } from '@/utils/orderDisplay';
 interface ServerTaskCardProps {
   readonly task: ServerServiceTask;
   readonly isBusy: boolean;
-  readonly onDeliver: (orderId: string) => void;
+  readonly onDeliver: (orderId: string, acknowledgeCompletedWork?: boolean) => void;
 }
 
 const BUCKET_COPY: Readonly<Record<ServerServiceTask['bucket'], readonly [string, string]>> = {
@@ -78,8 +80,14 @@ function tableHref(task: ServerServiceTask): string | null {
 
 export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCardProps) {
   const { t } = useTranslation();
+  const [confirm, setConfirm] = useState(false);
   const action = task.permittedDeliveryActions.find((candidate) => candidate.action === 'HandOver');
   const deliverable = taskIsDeliverable(task);
+  const recoverable =
+    ['Ready', 'OutForDelivery'].includes(task.status) &&
+    ['KitchenWorkUnresolved', 'KitchenCorrectionUnresolved', 'RequiredRoutingUnresolved'].includes(
+      action?.reasonCode ?? '',
+    );
   const reason = serverTaskReasonCopy(action?.reasonCode, t);
   const destination = tableHref(task);
 
@@ -124,16 +132,29 @@ export default function ServerTaskCard({ task, isBusy, onDeliver }: ServerTaskCa
         </p>
       )}
 
+      {confirm && (
+        <CompletedWorkConfirmationModal
+          order={{ status: task.status }}
+          target={task.status === 'Ready' && task.orderType === 'Delivery' ? 'OutForDelivery' : 'Completed'}
+          reason={action?.reasonCode ?? ''}
+          busy={isBusy}
+          onClose={() => setConfirm(false)}
+          onConfirm={() => {
+            setConfirm(false);
+            onDeliver(task.orderId, true);
+          }}
+        />
+      )}
       <div className={styles.footer}>
         {!deliverable && reason && <span className={styles.reason}>{reason}</span>}
         <button
           type="button"
           className={styles.deliver}
-          onClick={() => onDeliver(task.orderId)}
-          disabled={!deliverable || isBusy}
+          onClick={() => (recoverable ? setConfirm(true) : onDeliver(task.orderId))}
+          disabled={(!deliverable && !recoverable) || isBusy}
           title={reason ?? undefined}
           aria-label={
-            deliverable
+            deliverable || recoverable
               ? t('server.tasks.deliver_order', 'Deliver {{order}}', { order: getOrderDisplayNumber(task) })
               : (reason ?? t('server.tasks.delivery_disabled', 'Delivery unavailable'))
           }

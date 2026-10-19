@@ -2802,7 +2802,6 @@
   "cashier.workspace.customer_details": "Klantgegevens",
   "cashier.workspace.technical_reference": "Technisch bestelnummer",
   "cashier.workspace.mark_ready": "Markeren als klaar",
-  "cashier.workspace.mark_ready_failed": "Deze bestelling kon niet als klaar worden gemarkeerd. Vernieuw en probeer opnieuw.",
   "cashier.workspace.prior_day_dismiss_failed": "De herinnering kon niet worden uitgezet. Probeer het opnieuw.",
   "orders.preparation_estimate": "Bereiding geschat: {{minutes}} min",
   "orders.expected_ready_now": "De geschatte bereidingstijd is verstreken. Wacht op een update van het restaurant.",
@@ -4232,5 +4231,29 @@
     "positiveOrRemove": "Voer een bedrag boven nul in of verwijder de kosten om door te gaan.",
     "orderNumber": "Bestelling {{number}}",
     "addAmount": "{{amount}} aan de rekening toevoegen"
+  },
+  "billPrint": {
+    "choose": "Kies hoe u deze rekening wilt afdrukken.",
+    "browser": "Afdrukken vanuit deze browser",
+    "printerHint": "Verstuur naar een verbonden kassaprinter met de nieuwste printer-app. Tafelrekeningen bevatten alle bestelrondes van dit bezoek.",
+    "connected": "Naar kassaprinter versturen",
+    "another": "Nog een kopie versturen",
+    "failed": "Het verzoek kon niet worden bevestigd. Probeer hetzelfde verzoek opnieuw voordat u nog een kopie verstuurt.",
+    "status": {
+      "Queued": "In de wachtrij voor een verbonden kassaprinter.",
+      "Claimed": "Opgehaald door de printer-app. Er kan al zijn afgedrukt; controleer de printer voordat u nog een kopie aanvraagt.",
+      "Sent": "Naar de printer verstuurd. U kunt nog een kopie aanvragen.",
+      "Failed": "Versturen mislukt. Controleer de verbinding voordat u nog een kopie aanvraagt.",
+      "Unknown": "Afdrukresultaat onbekend. Controleer de printer voordat u nog een kopie aanvraagt.",
+      "Expired": "Dit verzoek is verlopen zonder te zijn opgehaald. Vraag indien nodig nog een kopie aan."
+    }
+  },
+  "staffCompletion": {
+    "title": "Afgerond werk bevestigen",
+    "status": "Huidige status: {{current}}. Gevraagde status: {{target}}.",
+    "work": "Het systeem heeft nog geen bevestiging dat het keukenwerk klaar is.",
+    "correction": "Een keukencorrectie is nog niet bevestigd.",
+    "explanation": "Als het eten en eventuele correcties al zijn bereid en overhandigd, bevestig dit om uw erkenning vast te leggen en door te gaan. Betalingen en afdrukgeschiedenis blijven ongewijzigd.",
+    "confirm": "Werk als afgerond bevestigen en doorgaan"
   }
 }

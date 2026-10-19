@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Printer, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import BillPrintButton from '@/components/order/BillPrintButton';
 import BaseModal from '@/components/design-system/BaseModal';
 import OperationResultNotice from '@/components/design-system/OperationResultNotice';
 import StaffButton from '@/components/design-system/StaffButton';
@@ -139,16 +140,15 @@ export default function ServerTableBillWorkspace({
             {t('server.bill.cancel_handoff')}
           </StaffButton>
         )}
-        <StaffButton
-          onClick={() => {
+        <BillPrintButton
+          label={t('cashier.tables.print_bill')}
+          disabled={writesLocked}
+          target={{ serviceSessionId: session.serviceSessionId, expectedVersion: session.version }}
+          onBrowserPrint={() => {
             window.print();
             setPrintNotice(true);
           }}
-          disabled={writesLocked}
-        >
-          <Printer size={17} aria-hidden="true" />
-          {t('cashier.tables.print_bill')}
-        </StaffButton>
+        />
         {session.canClose && (
           <StaffButton variant="secondary" onClick={() => setShowClose(true)} disabled={writesLocked}>
             {t('server.bill.close_visit')}

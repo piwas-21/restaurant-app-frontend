@@ -117,7 +117,7 @@ export default function TableServiceSessionBill({ session, timeZone }: TableServ
                         {item.productName || item.menuName || t('cashier.tables.unknown_item')}
                         {item.variationName ? ` — ${item.variationName}` : ''}
                       </span>
-                      <ReceiptItemDetails item={item} hideInstructions />
+                      <ReceiptItemDetails item={item} hideInstructions hideIngredients />
                     </div>
                     <span className={styles.lineTotal}>{money(item.itemTotal)}</span>
                   </li>

@@ -18,7 +18,7 @@ const CURSOR_ERRORS = new Set(['InvalidOperationalQueueCursor', 'ExpiredOperatio
 export interface ServerTasksState extends ServerTaskFeedState {
   readonly refresh: () => Promise<void>;
   readonly loadMore: () => Promise<void>;
-  readonly deliver: (orderId: string) => Promise<void>;
+  readonly deliver: (orderId: string, acknowledgeCompletedWork?: boolean) => Promise<void>;
 }
 
 function isInvalidCursor(reason: unknown): boolean {
@@ -71,13 +71,22 @@ export function useServerTasks(bucket: ServerTaskBucket): ServerTasksState {
   }, [loadPage]);
 
   const deliver = useCallback(
-    async (orderId: string) => {
+    async (orderId: string, acknowledgeCompletedWork = false) => {
       const task = stateRef.current.items.find((item) => item.orderId === orderId);
       if (!task) throw new Error('server.tasks.task_missing');
       const action = task.permittedDeliveryActions.find((candidate) => candidate.action === 'HandOver');
-      if (!action?.allowed) throw new ApiError(200, '', undefined, action?.reasonCode ?? 'DeliveryNotPermitted');
+      const recoverable = [
+        'KitchenWorkUnresolved',
+        'KitchenCorrectionUnresolved',
+        'RequiredRoutingUnresolved',
+      ].includes(action?.reasonCode ?? '');
+      if (!action?.allowed && !(acknowledgeCompletedWork && recoverable))
+        throw new ApiError(200, '', undefined, action?.reasonCode ?? 'DeliveryNotPermitted');
       try {
-        await deliverServerTask(orderId, { expectedVersion: task.version });
+        await deliverServerTask(orderId, {
+          expectedVersion: task.version,
+          ...(acknowledgeCompletedWork ? { acknowledgeCompletedWork } : {}),
+        });
       } catch (reason: unknown) {
         if (reason instanceof ApiError && reason.errorCode === 'OrderVersionConflict') await refresh();
         throw reason;

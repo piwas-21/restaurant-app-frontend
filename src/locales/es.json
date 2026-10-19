@@ -2809,7 +2809,6 @@
   "cashier.workspace.customer_details": "Datos del cliente",
   "cashier.workspace.technical_reference": "ID técnico del pedido",
   "cashier.workspace.mark_ready": "Marcar como listo",
-  "cashier.workspace.mark_ready_failed": "No se pudo marcar el pedido como listo. Actualiza e inténtalo de nuevo.",
   "cashier.workspace.prior_day_dismiss_failed": "No se pudo descartar el aviso. Inténtalo de nuevo.",
   "orders.preparation_estimate": "Preparación estimada: {{minutes}} min",
   "orders.expected_ready_now": "El tiempo de preparación estimado ha transcurrido. Esperando una actualización del restaurante.",
@@ -4245,5 +4244,29 @@
     "positiveOrRemove": "Introduce un importe superior a cero o elimina el cargo para continuar.",
     "orderNumber": "Pedido {{number}}",
     "addAmount": "Añadir {{amount}} a la cuenta"
+  },
+  "billPrint": {
+    "choose": "Elige cómo imprimir esta cuenta.",
+    "browser": "Imprimir desde este navegador",
+    "printerHint": "Envía a una impresora de caja conectada con la última aplicación. La cuenta de mesa incluye todos los pedidos de esta visita.",
+    "connected": "Enviar a la impresora de caja",
+    "another": "Enviar otra copia",
+    "failed": "No se pudo confirmar la solicitud. Reintenta la misma solicitud antes de enviar otra copia.",
+    "status": {
+      "Queued": "En espera de una impresora de caja conectada.",
+      "Claimed": "La aplicación recibió la solicitud. Puede haberse impreso: comprueba la impresora antes de pedir otra copia.",
+      "Sent": "Enviado a la impresora. Puedes solicitar otra copia.",
+      "Failed": "El envío falló. Comprueba la conexión antes de pedir otra copia.",
+      "Unknown": "Resultado desconocido. Comprueba la impresora antes de pedir otra copia.",
+      "Expired": "La solicitud caducó sin ser recibida. Solicita otra copia si es necesario."
+    }
+  },
+  "staffCompletion": {
+    "title": "Confirmar trabajo terminado",
+    "status": "Estado actual: {{current}}. Estado solicitado: {{target}}.",
+    "work": "El sistema no ha recibido confirmación de que el trabajo de cocina haya terminado.",
+    "correction": "Una corrección de cocina no se ha confirmado.",
+    "explanation": "Si la comida y las correcciones ya están preparadas y entregadas, confirma para registrar tu validación y continuar. Los pagos y el historial de impresión no cambian.",
+    "confirm": "Confirmar trabajo terminado y continuar"
   }
 }

@@ -1,12 +1,12 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ServerServiceTask } from '@/types/serverTasks';
 import ServerTaskCard from './ServerTaskCard';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string, options?: { count?: number; table?: string; order?: string }) => {
-      let value = fallback ?? key;
+      let value = typeof fallback === 'string' ? fallback : key;
       if (options?.count !== undefined) value = value.replace('{{count}}', String(options.count));
       if (options?.table) value = value.replace('{{table}}', options.table);
       if (options?.order) value = value.replace('{{order}}', options.order);
@@ -80,8 +80,12 @@ describe('ServerTaskCard', () => {
       ...baseTask,
       permittedDeliveryActions: [{ action: 'HandOver', allowed: false, reasonCode, targetStatus: null }],
     };
-    render(<ServerTaskCard task={task} isBusy={false} onDeliver={jest.fn()} />);
-
-    expect(screen.getByRole('button', { name: expectedMessage })).toBeDisabled();
+    const deliver = jest.fn();
+    render(<ServerTaskCard task={task} isBusy={false} onDeliver={deliver} />);
+    expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Deliver A-01' }));
+    expect(deliver).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'staffCompletion.confirm' }));
+    expect(deliver).toHaveBeenCalledWith(task.orderId, true);
   });
 });

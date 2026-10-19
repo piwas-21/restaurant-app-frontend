@@ -188,3 +188,9 @@ export const TENANT_BRANDING_CONFIG = resolveTenantBrandingConfig({
   maxStaleMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_MAX_STALE_MS,
   requestTimeoutMs: process.env.NEXT_PUBLIC_TENANT_BRANDING_REQUEST_TIMEOUT_MS,
 });
+
+/** Build-time connected cashier-printer status cadence, bounded to 1–60 seconds. */
+export const CASHIER_PRINT_STATUS_POLL_MS = Math.min(
+  60_000,
+  Math.max(1_000, positiveIntegerConfig(process.env.NEXT_PUBLIC_CASHIER_PRINT_STATUS_POLL_MS, 3_000)),
+);

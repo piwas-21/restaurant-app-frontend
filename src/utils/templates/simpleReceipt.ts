@@ -7,7 +7,7 @@ import { receiptStyles, receiptDate, receiptDocumentAttributes, type ReceiptOpti
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { RESTAURANT_NAME } from '@/lib/config';
-import { buildChildItemsHtml, customizedIngredientRows, ingredientRowHtml, escapeHtml } from './receiptHtml';
+import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 import { receiptPaymentHtml } from './receiptPayment';
 import { receiptOrderTypeLabel } from './receiptPresentation';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
@@ -36,13 +36,10 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto, translate: Translati
   // the parent line carries the whole amount, so each component would otherwise print a bare 0.00.
   const childItemsHtml = buildChildItemsHtml(item.sideItems ?? [], {
     showPrices: false,
-    withIngredients: true,
+    withIngredients: false,
     translate,
     parentQuantity: item.quantity,
   });
-  const ingredientsHtml = customizedIngredientRows(item)
-    .map((ingredient) => ingredientRowHtml(ingredient, 16, translate, item.quantity))
-    .join('');
 
   return `
     <div style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #aaa;">
@@ -50,7 +47,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto, translate: Translati
         <span dir="auto"><strong>${item.quantity}x</strong> ${escapeHtml(itemName)}${escapeHtml(variation)}</span>
         <span dir="ltr"><strong>${totalPrice}</strong></span>
       </div>
-      ${ingredientsHtml}${childItemsHtml}
+      ${childItemsHtml}
     </div>`;
 };
 

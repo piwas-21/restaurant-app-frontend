@@ -2802,7 +2802,6 @@
   "cashier.workspace.customer_details": "Customer details",
   "cashier.workspace.technical_reference": "Technical order ID",
   "cashier.workspace.mark_ready": "Mark ready",
-  "cashier.workspace.mark_ready_failed": "Could not mark this order ready. Refresh and try again.",
   "cashier.workspace.prior_day_dismiss_failed": "The reminder could not be dismissed. Try again.",
   "orders.preparation_estimate": "Preparation estimate: {{minutes}} min",
   "orders.expected_ready_now": "Estimated preparation time has elapsed. Awaiting a restaurant update.",
@@ -4232,5 +4231,29 @@
     "positiveOrRemove": "Enter an amount above zero, or remove the charge to continue.",
     "orderNumber": "Order {{number}}",
     "addAmount": "Add {{amount}} to the bill"
+  },
+  "billPrint": {
+    "choose": "Choose how to print this bill.",
+    "browser": "Print from this browser",
+    "printerHint": "Send to a connected cashier printer using the latest printer app. Table bills include every round in this visit.",
+    "connected": "Send to cashier printer",
+    "another": "Send another copy",
+    "failed": "We could not confirm the request. Retry to check the same request before sending another copy.",
+    "status": {
+      "Queued": "Queued. Waiting for a connected cashier printer.",
+      "Claimed": "Claimed by the printer app. Output may have occurred; check the printer before requesting another copy.",
+      "Sent": "Sent to the printer. You can request another copy.",
+      "Failed": "The printer could not send this bill. Check its connection before requesting another copy.",
+      "Unknown": "The print outcome is unknown. Check the printer before requesting another copy.",
+      "Expired": "This request expired without being claimed. Request another copy if it is still needed."
+    }
+  },
+  "staffCompletion": {
+    "title": "Confirm completed work",
+    "status": "Current status: {{current}}. Requested status: {{target}}.",
+    "work": "The system has not received confirmation that the kitchen work is complete.",
+    "correction": "A kitchen correction has not been acknowledged.",
+    "explanation": "If the food and any corrections are already prepared and handed over, confirm to record your acknowledgement and continue. Payment records and printer delivery history stay unchanged.",
+    "confirm": "Confirm work completed and continue"
   }
 }

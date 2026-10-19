@@ -60,5 +60,6 @@ export interface ServerTaskFeed {
 export type ServerTaskFeedApiResponse = ApiResponse<ServerTaskFeed>;
 
 export interface DeliverServerTaskRequest {
+  acknowledgeCompletedWork?: boolean;
   expectedVersion: number;
 }

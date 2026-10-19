@@ -2795,7 +2795,6 @@
   "cashier.workspace.customer_details": "顾客信息",
   "cashier.workspace.technical_reference": "订单技术编号",
   "cashier.workspace.mark_ready": "标记为已备好",
-  "cashier.workspace.mark_ready_failed": "无法将此订单标记为已备好。请刷新后重试。",
   "cashier.workspace.prior_day_dismiss_failed": "无法关闭提醒，请重试。",
   "orders.preparation_estimate": "预计准备时间：{{minutes}} 分钟",
   "orders.expected_ready_now": "预计准备时间已过，正在等待餐厅更新。",
@@ -4219,5 +4218,29 @@
     "positiveOrRemove": "请输入大于零的金额，或移除费用以继续。",
     "orderNumber": "订单{{number}}",
     "addAmount": "将{{amount}}添加到账单"
+  },
+  "billPrint": {
+    "choose": "选择账单打印方式。",
+    "browser": "从此浏览器打印",
+    "printerHint": "使用最新版打印应用发送至已连接的收银打印机。餐桌账单包含本次用餐的所有订单。",
+    "connected": "发送至收银打印机",
+    "another": "再发送一份",
+    "failed": "无法确认请求。请重试检查同一请求，再发送另一份。",
+    "status": {
+      "Queued": "已排队，等待收银打印机连接。",
+      "Claimed": "打印应用已接收。可能已经打印，请检查打印机后再申请一份。",
+      "Sent": "已发送至打印机，可再申请一份。",
+      "Failed": "发送失败。请检查连接后再申请一份。",
+      "Unknown": "打印结果未知。请检查打印机后再申请一份。",
+      "Expired": "请求未被接收，现已过期。如仍需要，请再申请一份。"
+    }
+  },
+  "staffCompletion": {
+    "title": "确认工作已完成",
+    "status": "当前状态：{{current}}。请求状态：{{target}}。",
+    "work": "系统尚未收到厨房工作完成确认。",
+    "correction": "厨房更正尚未确认。",
+    "explanation": "如果餐品和更正已准备并交付，请确认以记录您的确认并继续。付款记录和打印历史保持不变。",
+    "confirm": "确认工作已完成并继续"
   }
 }

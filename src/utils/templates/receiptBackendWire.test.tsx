@@ -43,12 +43,20 @@ it.each([
   for (const html of [kitchen, cashier]) {
     expect(html).toContain(`${beef}x Beef`);
     expect(html).toContain(`${steak}x Steak`);
-    expect(html).toContain('NO Cheese');
-    expect(html).toContain('+ 2x Chili');
+    if (html === kitchen) {
+      expect(html).toContain('NO Cheese');
+      expect(html).toContain('+ 2x Chili');
+    } else {
+      expect(html).not.toContain('Cheese');
+      expect(html).not.toContain('Chili');
+    }
     expect(html).not.toContain('Total for this line');
     expect(html).not.toContain('Recorded quantity');
-    expect(html.indexOf('Steak')).toBeLessThan(html.indexOf('Chili'));
-    expect(html.indexOf('Chili')).toBeLessThan(html.indexOf('Side One'));
+    expect(html.indexOf('Steak')).toBeLessThan(html.indexOf('Side One'));
+    if (html === kitchen) {
+      expect(html.indexOf('Steak')).toBeLessThan(html.indexOf('Chili'));
+      expect(html.indexOf('Chili')).toBeLessThan(html.indexOf('Side One'));
+    }
     expect(html.indexOf('Side Two')).toBeLessThan(html.indexOf('Side Three'));
   }
   expect(kitchen).not.toContain('CHF');

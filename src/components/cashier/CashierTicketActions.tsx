@@ -3,7 +3,7 @@
 import { permitsChannelLocalAction } from '@/lib/externalOrder';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { BellRing, Printer, ChefHat, CheckCircle } from 'lucide-react';
+import { BellRing, ChefHat, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { OrderType } from '@/types/order';
 import type { OrderDto } from '@/types/order';
@@ -16,6 +16,7 @@ import FocusOrderDialog from './FocusOrderDialog';
 import OrderDetailsNotesSection from './order-details/OrderDetailsNotesSection';
 import OrderAmendmentEntryButton from '@/components/order-amendments/OrderAmendmentEntryButton';
 import OrderAmendmentHistorySection from '@/components/order-amendments/OrderAmendmentHistorySection';
+import BillPrintButton from '@/components/order/BillPrintButton';
 import OrderCancelAction from '@/components/order/OrderCancelAction';
 import styles from './CashierTicketActions.module.css';
 
@@ -117,15 +118,12 @@ export default function CashierTicketActions({
           <ChefHat size={17} aria-hidden="true" />
           {t('cashier.workspace.print_kitchen')}
         </button>
-        <button
-          type="button"
-          className={styles.actionButton}
-          onClick={printBill}
+        <BillPrintButton
+          label={t('cashier.workspace.print_bill')}
+          target={{ orderId: order.id, expectedVersion: order.version }}
+          onBrowserPrint={printBill}
           disabled={!permitsChannelLocalAction(order, 'PrintReceipt')}
-        >
-          <Printer size={17} aria-hidden="true" />
-          {t('cashier.workspace.print_bill')}
-        </button>
+        />
         <button
           type="button"
           className={styles.actionButton}

@@ -72,6 +72,7 @@ export function toLine(value: unknown): CashierNewSaleDraftLine | null {
     variationId: asOptionalString(line.variationId),
     variationName: asOptionalString(line.variationName),
     notes: asOptionalString(line.notes),
+    specialInstructions: typeof line.specialInstructions === 'string' ? line.specialInstructions : undefined,
     selectedIngredientIds: Array.isArray(line.selectedIngredientIds)
       ? line.selectedIngredientIds.filter((id): id is string => typeof id === 'string')
       : undefined,

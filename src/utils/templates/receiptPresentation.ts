@@ -91,3 +91,8 @@ export function quantityScopeSuffix(
   }
   return '';
 }
+
+/** Frozen ingredient roles are kitchen details, already included in the parent charge. */
+export function isIngredientComponent(item: OrderItemDto): boolean {
+  return item.compositionRole === 'Ingredient' || item.compositionRole === 'Sauce';
+}

@@ -182,13 +182,19 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
 /**
  * Update order status
  */
-export async function updateOrderStatus(orderId: string, status: string, expectedVersion?: number): Promise<OrderDto> {
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  expectedVersion?: number,
+  acknowledgeCompletedWork?: boolean,
+): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
-    { orderId, newStatus: status, expectedVersion },
+    { orderId, newStatus: status, expectedVersion, ...(acknowledgeCompletedWork ? { acknowledgeCompletedWork } : {}) },
     { requireAuth: true },
   );
 
+  if (!response.success) throwServerRefusal(response);
   if (!response.data) {
     throw new Error('Failed to update order status');
   }

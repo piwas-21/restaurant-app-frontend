@@ -2,7 +2,12 @@
 
 import { useTranslation } from 'react-i18next';
 import type { OrderItemDto } from '@/types/order';
-import { receiptItems, receiptItemName, quantityScopeSuffix } from '@/utils/templates/receiptPresentation';
+import {
+  receiptItems,
+  receiptItemName,
+  quantityScopeSuffix,
+  isIngredientComponent,
+} from '@/utils/templates/receiptPresentation';
 import { customizedIngredientRows } from '@/utils/templates/receiptHtml';
 import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
 import styles from './ReceiptItemDetails.module.css';
@@ -11,14 +16,17 @@ import styles from './ReceiptItemDetails.module.css';
 export default function ReceiptItemDetails({
   item,
   hideInstructions = false,
-}: Readonly<{ item: OrderItemDto; hideInstructions?: boolean }>) {
+  hideIngredients = false,
+}: Readonly<{ item: OrderItemDto; hideInstructions?: boolean; hideIngredients?: boolean }>) {
   const { t } = useTranslation();
   const translate = (key: string, fallback: string) => t(key, { defaultValue: fallback });
   const instructions = hideInstructions ? undefined : displaySpecialInstructions(item);
-  const children = receiptItems(item.sideItems ?? []);
+  const children = receiptItems(item.sideItems ?? []).filter(
+    (child) => !hideIngredients || !isIngredientComponent(child),
+  );
   const required = children.filter((child) => child.compositionRole === 'RequiredChoice');
   const remaining = children.filter((child) => child.compositionRole !== 'RequiredChoice');
-  const ingredients = customizedIngredientRows(item);
+  const ingredients = hideIngredients ? [] : customizedIngredientRows(item);
   const renderChildren = (rows: OrderItemDto[]) =>
     rows.length > 0 && (
       <ul className={styles.children}>
@@ -35,7 +43,7 @@ export default function ReceiptItemDetails({
                 {quantityScopeSuffix(child, item.quantity, translate)}
               </span>
             )}
-            <ReceiptItemDetails item={child} hideInstructions={hideInstructions} />
+            <ReceiptItemDetails item={child} hideInstructions={hideInstructions} hideIngredients={hideIngredients} />
           </li>
         ))}
       </ul>

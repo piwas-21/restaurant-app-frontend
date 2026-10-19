@@ -2802,7 +2802,6 @@
   "cashier.workspace.customer_details": "Müşteri bilgileri",
   "cashier.workspace.technical_reference": "Teknik sipariş kimliği",
   "cashier.workspace.mark_ready": "Hazır olarak işaretle",
-  "cashier.workspace.mark_ready_failed": "Sipariş hazır olarak işaretlenemedi. Yenileyip tekrar deneyin.",
   "cashier.workspace.prior_day_dismiss_failed": "Hatırlatma kapatılamadı. Tekrar deneyin.",
   "orders.preparation_estimate": "Hazırlık tahmini: {{minutes}} dk",
   "orders.expected_ready_now": "Tahmini hazırlık süresi doldu. Restorandan güncelleme bekleniyor.",
@@ -4232,5 +4231,29 @@
     "positiveOrRemove": "Devam etmek için sıfırdan büyük bir tutar girin veya ücreti kaldırın.",
     "orderNumber": "Sipariş {{number}}",
     "addAmount": "Hesaba {{amount}} ekle"
+  },
+  "billPrint": {
+    "choose": "Bu hesabın nasıl yazdırılacağını seçin.",
+    "browser": "Bu tarayıcıdan yazdır",
+    "printerHint": "En güncel yazıcı uygulamasıyla bağlı kasa yazıcısına gönderin. Masa hesabı, bu ziyaretin tüm siparişlerini içerir.",
+    "connected": "Kasa yazıcısına gönder",
+    "another": "Bir kopya daha gönder",
+    "failed": "İstek doğrulanamadı. Başka bir kopya göndermeden önce aynı isteği kontrol etmek için tekrar deneyin.",
+    "status": {
+      "Queued": "Bağlı kasa yazıcısı bekleniyor.",
+      "Claimed": "Yazıcı uygulaması isteği aldı. Yazdırılmış olabilir; başka kopya istemeden önce yazıcıyı kontrol edin.",
+      "Sent": "Yazıcıya gönderildi. Bir kopya daha isteyebilirsiniz.",
+      "Failed": "Gönderilemedi. Başka kopya istemeden önce bağlantıyı kontrol edin.",
+      "Unknown": "Yazdırma sonucu bilinmiyor. Başka kopya istemeden önce yazıcıyı kontrol edin.",
+      "Expired": "Bu istek alınmadan süresi doldu. Gerekirse bir kopya daha isteyin."
+    }
+  },
+  "staffCompletion": {
+    "title": "Tamamlanan işi onayla",
+    "status": "Mevcut durum: {{current}}. İstenen durum: {{target}}.",
+    "work": "Sistem mutfak işinin tamamlandığına dair onay almadı.",
+    "correction": "Bir mutfak düzeltmesi henüz onaylanmadı.",
+    "explanation": "Yemek ve düzeltmeler zaten hazırlanıp teslim edildiyse onayınızı kaydetmek ve devam etmek için onaylayın. Ödeme kayıtları ve yazdırma geçmişi değişmez.",
+    "confirm": "İşin tamamlandığını onayla ve devam et"
   }
 }

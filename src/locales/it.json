@@ -2809,7 +2809,6 @@
   "cashier.workspace.customer_details": "Dati del cliente",
   "cashier.workspace.technical_reference": "ID tecnico dell’ordine",
   "cashier.workspace.mark_ready": "Segna come pronto",
-  "cashier.workspace.mark_ready_failed": "Impossibile segnare l’ordine come pronto. Aggiorna e riprova.",
   "cashier.workspace.prior_day_dismiss_failed": "Impossibile ignorare il promemoria. Riprova.",
   "orders.preparation_estimate": "Tempo di preparazione stimato: {{minutes}} min",
   "orders.expected_ready_now": "Il tempo di preparazione stimato è trascorso. In attesa di un aggiornamento dal ristorante.",
@@ -4245,5 +4244,29 @@
     "positiveOrRemove": "Inserisci un importo superiore a zero o rimuovi l’addebito per continuare.",
     "orderNumber": "Ordine {{number}}",
     "addAmount": "Aggiungi {{amount}} al conto"
+  },
+  "billPrint": {
+    "choose": "Scegli come stampare questo conto.",
+    "browser": "Stampa da questo browser",
+    "printerHint": "Invia a una stampante di cassa collegata con l’ultima app. Il conto del tavolo include tutti gli ordini di questa visita.",
+    "connected": "Invia alla stampante di cassa",
+    "another": "Invia un’altra copia",
+    "failed": "Impossibile confermare la richiesta. Riprova la stessa richiesta prima di inviare un’altra copia.",
+    "status": {
+      "Queued": "In attesa di una stampante di cassa collegata.",
+      "Claimed": "Richiesta presa in carico. La stampa potrebbe essere avvenuta: controlla la stampante prima di richiedere un’altra copia.",
+      "Sent": "Inviato alla stampante. Puoi richiedere un’altra copia.",
+      "Failed": "Invio non riuscito. Controlla la connessione prima di richiedere un’altra copia.",
+      "Unknown": "Esito di stampa sconosciuto. Controlla la stampante prima di richiedere un’altra copia.",
+      "Expired": "La richiesta è scaduta senza essere presa in carico. Richiedi un’altra copia se necessario."
+    }
+  },
+  "staffCompletion": {
+    "title": "Conferma il lavoro completato",
+    "status": "Stato attuale: {{current}}. Stato richiesto: {{target}}.",
+    "work": "Il sistema non ha ricevuto conferma del completamento del lavoro in cucina.",
+    "correction": "Una correzione in cucina non è stata confermata.",
+    "explanation": "Se il cibo e le correzioni sono già pronti e consegnati, conferma per registrare il tuo riconoscimento e continuare. Pagamenti e cronologia di stampa restano invariati.",
+    "confirm": "Conferma il completamento e continua"
   }
 }

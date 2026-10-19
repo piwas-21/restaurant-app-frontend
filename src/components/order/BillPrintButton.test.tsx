@@ -23,19 +23,21 @@ it('offers browser or connected printing and retries an uncertain request using 
   });
   const browser = jest.fn();
   const target = { serviceSessionId: 'visit-1', expectedVersion: 4 };
-  render(<BillPrintButton label="Print bill" target={target} onBrowserPrint={browser} />);
+  const { rerender } = render(<BillPrintButton label="Print bill" target={target} onBrowserPrint={browser} />);
   fireEvent.click(screen.getByRole('button', { name: 'Print bill' }));
   fireEvent.click(screen.getByRole('button', { name: 'billPrint.browser' }));
   expect(browser).toHaveBeenCalledTimes(1);
   expect(queue).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'billPrint.connected' }));
   await screen.findByRole('alert');
+  const refreshedTarget = { ...target, expectedVersion: 5 };
+  rerender(<BillPrintButton label="Print bill" target={refreshedTarget} onBrowserPrint={browser} />);
   fireEvent.click(screen.getByRole('button', { name: 'billPrint.connected' }));
   await screen.findByText('billPrint.status.Sent');
   expect(queue).toHaveBeenNthCalledWith(1, target, 'first-operation');
-  expect(queue).toHaveBeenNthCalledWith(2, target, 'first-operation');
+  expect(queue).toHaveBeenNthCalledWith(2, refreshedTarget, 'first-operation');
   fireEvent.click(screen.getByRole('button', { name: 'billPrint.another' }));
-  await waitFor(() => expect(queue).toHaveBeenLastCalledWith(target, 'next-operation'));
+  await waitFor(() => expect(queue).toHaveBeenLastCalledWith(refreshedTarget, 'next-operation'));
 });
 
 it('keeps browser printing available without the printing module', () => {

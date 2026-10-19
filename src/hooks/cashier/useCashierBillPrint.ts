@@ -15,7 +15,7 @@ export function useCashierBillPrint(target: CashierPrintTarget, open: boolean) {
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
   const operation = useRef<{ identity: string; id: string } | null>(null);
-  const identity = JSON.stringify(target);
+  const identity = JSON.stringify({ orderId: target.orderId, serviceSessionId: target.serviceSessionId });
   useEffect(() => {
     setJob(null);
     setFailed(false);

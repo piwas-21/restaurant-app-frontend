@@ -1,4 +1,4 @@
-import { CASHIER_PRINT_STATUS_POLL_MS } from '@/config/printing';
+import { CASHIER_PRINT_STATUS_POLL_MS } from '@/lib/config';
 import { ApiError, getErrorMessage } from '@/utils/apiClient';
 import { useEffect, useRef, useState } from 'react';
 import {

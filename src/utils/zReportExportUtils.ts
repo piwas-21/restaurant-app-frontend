@@ -142,6 +142,7 @@ export const exportZReportToPDF = (report: ZReportDto, t?: PaymentTranslationFun
             <tr><td>Promo Code</td><td>${formatCurrency(report.discounts.promoCodeDiscounts)}</td></tr>
             <tr><td>Customer Discounts</td><td>${formatCurrency(report.discounts.customerDiscounts)}</td></tr>
             <tr><td>Fidelity Points</td><td>${formatCurrency(report.discounts.fidelityPointsDiscounts)}</td></tr>
+            <tr><td>${translationEN.billCharges.staffDiscounts}</td><td>${formatCurrency(report.discounts.staffDiscounts ?? 0)}</td></tr>
             <tr class="total-row"><td>Total Discounts</td><td>${formatCurrency(report.discounts.totalDiscounts)}</td></tr>
           </tbody>
         </table>

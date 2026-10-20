@@ -39,7 +39,7 @@ export function useBillChargeCollectionAmount({
     }
     if (disabled) return;
     previous.current = order;
-    if ((order.billChargeAmount ?? 0) <= (prior.billChargeAmount ?? 0)) return;
+    if ((order.billChargeAmount ?? 0) === (prior.billChargeAmount ?? 0)) return;
     const currency = orderCurrency(order);
     if (currency !== orderCurrency(prior)) return;
     // Wire balances and entered amounts share the fixed-two-decimal ledger parser.

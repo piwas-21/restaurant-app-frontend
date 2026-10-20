@@ -1,5 +1,6 @@
 'use client';
 
+import { billChargeTicketTotal } from '@/lib/billChargePreview';
 import { useCallback, useRef } from 'react';
 import type { CustomizationResult } from '@/components/catalog/productCustomizationTypes';
 import { addCustomizedItem } from '@/components/catalog/orderItems';
@@ -125,9 +126,7 @@ export function useServerTableRound(tableId: string, state: ServerTableSessionSt
     selectedProduct,
     selectedBundle,
     tapPendingId,
-    ticketTotal:
-      draft.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) +
-      (draft.billCharges ?? []).reduce((sum, charge) => sum + charge.amount, 0),
+    ticketTotal: billChargeTicketTotal(draft.items, draft.billCharges ?? []),
     canCompose,
     canAddItems,
     tapProduct,

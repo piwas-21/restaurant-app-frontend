@@ -90,16 +90,19 @@ export default function OrderAmendmentHistoryRecord({
         {record.changes.map((change, index) => (
           <li key={`${change.orderItemId}-${change.kind}-${change.startOrdinal}-${index}`}>
             <strong>{changeLabel(change, t)}</strong>
-            <div className={styles.snapshot}>
-              <span>{t('orderAmendments.history_before', { defaultValue: 'Before' })}</span>
-              <OrderLineSummary line={orderItemToLineSummary(change.previous)} />
-            </div>
-            {change.current && (
+            <details>
+              <summary>{t('cashier.workspace.order_details')}</summary>
               <div className={styles.snapshot}>
-                <span>{t('orderAmendments.history_after', { defaultValue: 'After' })}</span>
-                <OrderLineSummary line={orderItemToLineSummary(change.current)} />
+                <span>{t('orderAmendments.history_before', { defaultValue: 'Before' })}</span>
+                <OrderLineSummary line={orderItemToLineSummary(change.previous)} />
               </div>
-            )}
+              {change.current && (
+                <div className={styles.snapshot}>
+                  <span>{t('orderAmendments.history_after', { defaultValue: 'After' })}</span>
+                  <OrderLineSummary line={orderItemToLineSummary(change.current)} />
+                </div>
+              )}
+            </details>
             {change.replacementDispatchedOrderNumber && (
               <p className={styles.linkedOrder}>
                 {t('orderAmendments.history_replacement_dispatch', {
@@ -126,7 +129,6 @@ export default function OrderAmendmentHistoryRecord({
                 <strong>
                   {item.quantity}× {itemTitle(item, t)}
                 </strong>
-                <OrderLineSummary line={orderItemToLineSummary(item)} />
               </li>
             ))}
           </ul>
@@ -154,11 +156,13 @@ export default function OrderAmendmentHistoryRecord({
           })}
         </p>
       )}
-      <section
+      <details
         className={styles.financial}
         aria-label={t('orderAmendments.history_financial_effect', { defaultValue: 'Recorded financial effect' })}
       >
-        <h4>{t('orderAmendments.history_financial_effect', { defaultValue: 'Recorded financial effect' })}</h4>
+        <summary>
+          {t('orderAmendments.history_financial_effect', { defaultValue: 'Recorded financial effect' })}
+        </summary>
         <dl>
           <div>
             <dt>{t('orderAmendments.added_amount', { defaultValue: 'Added' })}</dt>
@@ -199,7 +203,7 @@ export default function OrderAmendmentHistoryRecord({
               'These are recorded adjustment values and statuses. This amendment did not collect or refund money; use a separate authorized payment or refund flow to move money.',
           })}
         </p>
-      </section>
+      </details>
       <AmendmentResolutionLoyalty value={financial.loyalty} />
       <AmendmentResolutionEntry record={record} />
     </li>

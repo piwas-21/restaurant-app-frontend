@@ -326,7 +326,7 @@ interface BaseModalProps {
 }
 ```
 
-Features: `createPortal`, focus trap, Escape key, scroll lock, `aria-modal`, `role="dialog"`, fade+slide animation.
+Features: `createPortal`, focus trap, Escape key, scroll lock, `aria-modal`, `role="dialog"`, fade+slide animation. The shared footer wraps actions and long labels within the panel; feature modals should supply footer content through `BaseModal`.
 
 ### AlertDialog
 
@@ -431,6 +431,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
 }
+```
+
+### StaffButton
+
+Staff actions use `StaffButton` from `components/design-system`. Its optional
+`disabledReason` keeps the action natively disabled and adds a visible, associated
+explanation plus a hover title on a focusable wrapper. Use a translated instruction
+that tells staff what they need to do before the action becomes available.
+
+```tsx
+<StaffButton disabledReason={blockedReason ? t(blockedReason) : undefined} onClick={requestQuote}>
+  {t('orderAmendments.prepare_quote')}
+</StaffButton>
 ```
 
 ### EmptyState

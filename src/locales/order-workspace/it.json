@@ -43,7 +43,6 @@
     "draft_additions": "Nuovi articoli da inviare",
     "catalog_item": "Articolo del catalogo",
     "remove_draft_item": "Rimuovi",
-    "reason": "Motivo della modifica",
     "preparing_override": "Confermo che l’ordine è già in preparazione e richiede una correzione in cucina.",
     "release_to_kitchen": "Invia in cucina gli aggiunti quotati dopo la revisione.",
     "provider_consent": "Acconsento a un supplemento locale; qui l’ordine marketplace non verrà modificato.",
@@ -190,7 +189,11 @@
     "resolution_earning_retired": "Punti ritirati dopo la rimozione completa",
     "resolution_earning_retirement_required": "Questo ordine precedente non ha una valutazione dei punti. Prepara il ritiro prima di esaminare il rimborso.",
     "resolution_prepare_earning_retirement": "Prepara il ritiro dei punti fedeltà",
-    "resolution_earning_retirement_failed": "Impossibile preparare il ritiro dei punti. Aggiorna i dettagli e riprova."
+    "resolution_earning_retirement_failed": "Impossibile preparare il ritiro dei punti. Aggiorna i dettagli e riprova.",
+    "quote_no_changes": "Scegli un articolo da aggiungere, rimuovere o modificare prima di richiedere un preventivo.",
+    "quote_complete_replacement": "Scegli l’articolo sostitutivo prima di richiedere un preventivo.",
+    "quote_provider_consent": "Conferma il consenso per il supplemento locale e inserisci una nota di seguito.",
+    "quote_acknowledge_kitchen": "Conferma la correzione in cucina prima di richiedere un preventivo."
   },
   "serverOrders": {
     "title": "Ordini",

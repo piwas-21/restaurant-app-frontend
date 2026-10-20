@@ -22,7 +22,15 @@ export function useBillChargeFields(
         (role === 'admin' || rule.roles.some((r) => r.toLowerCase() === role)) &&
         !existingKeys.includes(rule.key),
     ) ?? [];
-  const unavailable = values.filter((value) => !rules.some((rule) => rule.key === value.key));
+  const unavailable = values.filter(
+    (value) =>
+      !rules.some(
+        (rule) =>
+          rule.key === value.key &&
+          (value.effect ?? 'Increase') === (rule.effect ?? 'Increase') &&
+          (value.calculation ?? 'Fixed') === (rule.calculation ?? 'Fixed'),
+      ),
+  );
   const valid = unavailable.length === 0 && !values.some((value) => invalidKeys.includes(value.key));
   const setValid = useCallback(
     (key: string, isValid: boolean) =>
@@ -35,5 +43,5 @@ export function useBillChargeFields(
   useEffect(() => {
     onValidityChange?.(valid);
   }, [onValidityChange, valid]);
-  return { reader, rules, unavailable, setValid };
+  return { reader, rules, unavailable, setValid, valid };
 }

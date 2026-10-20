@@ -4,7 +4,7 @@ import styles from './BillCharges.module.css';
 
 export default function OrderBillCharges({ charges }: Readonly<{ charges?: readonly BillCharge[] }>) {
   const { i18n } = useTranslation();
-  const positive = charges?.filter((charge) => charge.amount > 0) ?? [];
+  const positive = charges?.filter((charge) => charge.amount !== 0) ?? [];
   if (!positive.length) return null;
   return (
     <dl className={styles.summary}>

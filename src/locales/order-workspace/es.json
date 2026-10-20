@@ -43,7 +43,6 @@
     "draft_additions": "Nuevos artículos por enviar",
     "catalog_item": "Artículo del catálogo",
     "remove_draft_item": "Quitar",
-    "reason": "Motivo del cambio",
     "preparing_override": "Confirmo que este pedido ya está en preparación y necesita una corrección de cocina.",
     "release_to_kitchen": "Enviar los suplementos cotizados a cocina después de revisarlos.",
     "provider_consent": "Acepto un suplemento local; aquí no se modificará el pedido de la plataforma.",
@@ -190,7 +189,11 @@
     "resolution_earning_retired": "Puntos retirados tras la eliminación completa",
     "resolution_earning_retirement_required": "Este pedido antiguo no tiene una evaluación de puntos. Prepare su retirada antes de revisar el reembolso.",
     "resolution_prepare_earning_retirement": "Preparar la retirada de puntos de fidelidad",
-    "resolution_earning_retirement_failed": "No se pudo preparar la retirada de puntos. Actualice los datos e inténtelo de nuevo."
+    "resolution_earning_retirement_failed": "No se pudo preparar la retirada de puntos. Actualice los datos e inténtelo de nuevo.",
+    "quote_no_changes": "Elija un artículo para añadir, quitar o cambiar antes de solicitar un presupuesto.",
+    "quote_complete_replacement": "Elija el artículo de sustitución antes de solicitar un presupuesto.",
+    "quote_provider_consent": "Confirme el consentimiento para el suplemento local y añada una nota de seguimiento.",
+    "quote_acknowledge_kitchen": "Confirme la corrección en cocina antes de solicitar un presupuesto."
   },
   "serverOrders": {
     "title": "Pedidos",

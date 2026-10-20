@@ -63,3 +63,24 @@ it.each([
 ])('parses %s without silently accepting invalid amounts', (text, amount) => {
   expect(parseBillChargeAmount(String(text))).toBe(amount);
 });
+
+it('accepts percentage values through one hundred and rejects larger values', () => {
+  const changed = jest.fn();
+  const validity = jest.fn();
+  render(
+    <BillChargeAmountInput
+      label="Percentage"
+      currency="EUR"
+      value={10}
+      percentage
+      onChange={changed}
+      onValidityChange={validity}
+    />,
+  );
+  const field = screen.getByRole('textbox', { name: 'Percentage' });
+  fireEvent.change(field, { target: { value: '100' } });
+  expect(changed).toHaveBeenLastCalledWith(100);
+  fireEvent.change(field, { target: { value: '100.01' } });
+  expect(validity).toHaveBeenLastCalledWith(false);
+  expect(changed).toHaveBeenCalledTimes(1);
+});

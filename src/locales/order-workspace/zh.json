@@ -43,7 +43,6 @@
     "draft_additions": "待发送的新项目",
     "catalog_item": "菜单项目",
     "remove_draft_item": "移除",
-    "reason": "修改原因",
     "preparing_override": "我确认此订单已开始制作，需要厨房更正。",
     "release_to_kitchen": "审核后将报价的新增项目发送至厨房。",
     "provider_consent": "我同意添加本地补充订单；此处不会修改平台订单。",
@@ -190,7 +189,11 @@
     "resolution_earning_retired": "订单全部移除后已撤销积分资格",
     "resolution_earning_retirement_required": "此旧订单没有积分评估。请先准备撤销，再审核退款。",
     "resolution_prepare_earning_retirement": "准备撤销积分资格",
-    "resolution_earning_retirement_failed": "无法准备撤销积分资格。请刷新详情后重试。"
+    "resolution_earning_retirement_failed": "无法准备撤销积分资格。请刷新详情后重试。",
+    "quote_no_changes": "获取报价前，请选择要添加、移除或修改的商品。",
+    "quote_complete_replacement": "获取报价前，请选择替换商品。",
+    "quote_provider_consent": "请确认本地加单的同意并填写跟进备注。",
+    "quote_acknowledge_kitchen": "获取报价前，请确认厨房更正。"
   },
   "serverOrders": {
     "title": "订单",

@@ -8,6 +8,7 @@ import { ZReportAccountCashMovements } from './zReportAccountCash';
 
 export interface ZReportDiscounts {
   totalDiscounts: number;
+  staffDiscounts?: number;
   promoCodeDiscounts: number;
   customerDiscounts: number;
   fidelityPointsDiscounts: number;

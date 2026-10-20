@@ -43,7 +43,6 @@
     "draft_additions": "Gönderilecek yeni ürünler",
     "catalog_item": "Katalog ürünü",
     "remove_draft_item": "Kaldır",
-    "reason": "Değişiklik nedeni",
     "preparing_override": "Bu siparişin hazırlanmaya başladığını ve mutfak düzeltmesi gerektiğini kabul ediyorum.",
     "release_to_kitchen": "Teklif edilen ekleri incelemeden sonra mutfağa gönder.",
     "provider_consent": "Yerel ek siparişi kabul ediyorum; pazaryeri siparişi burada değiştirilmeyecek.",
@@ -190,7 +189,11 @@
     "resolution_earning_retired": "Tam kaldırma sonrası puan kazanımı kapatıldı",
     "resolution_earning_retirement_required": "Bu eski siparişte puan değerlendirmesi bulunmuyor. İadeyi incelemeden önce puan kazanımını kapatın.",
     "resolution_prepare_earning_retirement": "Eski puan kaydını kapat",
-    "resolution_earning_retirement_failed": "Puan kaydı kapatılamadı. Ayrıntıları yenileyip tekrar deneyin."
+    "resolution_earning_retirement_failed": "Puan kaydı kapatılamadı. Ayrıntıları yenileyip tekrar deneyin.",
+    "quote_no_changes": "Teklif almadan önce eklenecek, çıkarılacak veya değiştirilecek bir ürün seçin.",
+    "quote_complete_replacement": "Teklif almadan önce yeni ürünü seçin.",
+    "quote_provider_consent": "Yerel ek sipariş için onayı doğrulayın ve bir takip notu girin.",
+    "quote_acknowledge_kitchen": "Teklif almadan önce mutfak düzeltmesini onaylayın."
   },
   "serverOrders": {
     "title": "Siparişler",

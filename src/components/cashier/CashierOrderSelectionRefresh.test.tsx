@@ -1,10 +1,12 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CashierReadOnlyTicket from './CashierReadOnlyTicket';
 import { useCashierOrderSelection } from '@/hooks/cashier/useCashierOrderSelection';
+import { getCurrentStaffTicket } from '@/services/currentStaffTicketService';
 import { getOrderById } from '@/services/cashierService';
 import { marketplaceOrder } from '@/utils/__fixtures__/marketplaceOrderFixture';
 import type { OrderDto } from '@/types/order';
 
+jest.mock('@/services/currentStaffTicketService', () => ({ getCurrentStaffTicket: jest.fn() }));
 jest.mock('@/services/cashierService', () => ({ getOrderById: jest.fn() }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
 jest.mock('next/dynamic', () => {
@@ -42,7 +44,10 @@ function SelectedTicket({ orders }: { readonly orders: readonly OrderDto[] }) {
   );
 }
 
-beforeEach(() => mockGetOrderById.mockReset());
+beforeEach(() => {
+  mockGetOrderById.mockReset();
+  jest.mocked(getCurrentStaffTicket).mockResolvedValue([baseOrder()]);
+});
 
 it('keeps the mounted decision draft through queue refresh and blocks it until detail recovers', async () => {
   const queued = { ...baseOrder(), updatedAt: '2026-10-02T17:00:00Z' };

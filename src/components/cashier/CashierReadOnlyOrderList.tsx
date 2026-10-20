@@ -4,6 +4,7 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
+import { orderChannelLabel, orderTableLabel } from '@/lib/currentOrderTicket';
 import { paymentStatusLabel } from '@/lib/paymentStatus';
 import type { OrderDto } from '@/types/order';
 import { getOrderDisplayNumber } from '@/utils/orderDisplay';
@@ -19,13 +20,6 @@ interface CashierReadOnlyOrderListProps {
   readonly timeZone?: string;
   readonly onSelectOrder: (orderId: string) => void;
   readonly onOrderRowRef?: (orderId: string, node: HTMLButtonElement | null) => void;
-}
-
-function orderTypeLabel(type: string, t: TFunction): string {
-  if (type === 'DineIn') return t('cashier.workspace.channel_dine_in');
-  if (type === 'Takeaway') return t('cashier.workspace.channel_takeaway');
-  if (type === 'Delivery') return t('cashier.workspace.channel_delivery');
-  return type;
 }
 
 function orderTime(orderDate: string, language: string, timeZone: string | undefined, t: TFunction): string {
@@ -99,9 +93,9 @@ export default function CashierReadOnlyOrderList({
               </span>
               {order.externalOrder && <MarketplaceOrderQueueSource order={order} />}
               <span className={styles.orderRowMeta}>
-                <span>{orderTypeLabel(order.type, t)}</span>
-                {order.tableNumber !== undefined && (
-                  <span>{t('cashier.workspace.table_value', { table: order.tableNumber })}</span>
+                <span>{orderChannelLabel(order.type, t)}</span>
+                {orderTableLabel(order) !== null && (
+                  <span>{t('cashier.workspace.table_value', { table: orderTableLabel(order) })}</span>
                 )}
                 <time dateTime={order.orderDate}>{orderTime(order.orderDate, i18n.language, timeZone, t)}</time>
               </span>

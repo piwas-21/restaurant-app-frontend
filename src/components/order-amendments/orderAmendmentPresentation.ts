@@ -34,6 +34,23 @@ export function orderNeedsPreparingOverride(order: OrderDto, hasExistingChanges:
   return hasExistingChanges && ['Preparing', 'Ready'].includes(order.status);
 }
 
+export function amendmentQuoteDisabledReason(
+  state: Readonly<{
+    recoveryReady: boolean;
+    hasWork: boolean;
+    incompleteReplacement: boolean;
+    missingProviderConsent: boolean;
+    missingKitchenAcknowledgement: boolean;
+  }>,
+): string | null {
+  if (!state.recoveryReady) return 'orderAmendments.resolution_checking';
+  if (!state.hasWork) return 'orderAmendments.quote_no_changes';
+  if (state.incompleteReplacement) return 'orderAmendments.quote_complete_replacement';
+  if (state.missingProviderConsent) return 'orderAmendments.quote_provider_consent';
+  if (state.missingKitchenAcknowledgement) return 'orderAmendments.quote_acknowledge_kitchen';
+  return null;
+}
+
 export function formatAmendmentMinorAmount(
   amount: number,
   currency: string | null | undefined,

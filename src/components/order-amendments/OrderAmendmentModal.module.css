@@ -57,9 +57,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-2, 0.5rem);
-}
-
-.sectionHeader {
   justify-content: space-between;
   flex-wrap: wrap;
 }

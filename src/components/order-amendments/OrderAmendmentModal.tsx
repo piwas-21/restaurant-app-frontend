@@ -7,7 +7,7 @@ import type { OrderDto } from '@/types/order';
 import { useOrderAmendment } from '@/hooks/orderAmendments/useOrderAmendment';
 import type { OrderAmendmentDraft } from '@/hooks/orderAmendments/orderAmendmentTypes';
 import { amendmentExpiryPassed } from '@/hooks/orderAmendments/orderAmendmentOperationState';
-import { orderNeedsPreparingOverride } from './orderAmendmentPresentation';
+import { amendmentQuoteDisabledReason, orderNeedsPreparingOverride } from './orderAmendmentPresentation';
 import OrderAmendmentEditStage from './OrderAmendmentEditStage';
 import OrderAmendmentModalFooter from './OrderAmendmentModalFooter';
 import OrderAmendmentReviewStage from './OrderAmendmentReviewStage';
@@ -51,20 +51,19 @@ export default function OrderAmendmentModal({
   const amendment = useOrderAmendment(order, onCommitted, resolvedActorId);
   const hasWork = draft.additions.length + draft.changes.length > 0;
   const hasIncompleteReplacement = draft.changes.some((change) => change.kind === 'Replace' && !change.current);
-  const requiresReason = draft.changes.length > 0 && !draft.reason.trim();
   const requiresPreparingOverride = orderNeedsPreparingOverride(order, draft.changes.length > 0);
   const missingProviderConsent =
     Boolean(order.externalOrder) &&
     draft.additions.length > 0 &&
     (!draft.localProviderSupplementConsent || !draft.providerConsentNote.trim());
-  const canQuote =
-    !recoveryOnly &&
-    amendment.recoveryReady &&
-    hasWork &&
-    !hasIncompleteReplacement &&
-    !requiresReason &&
-    !missingProviderConsent &&
-    (!requiresPreparingOverride || draft.preparingOverrideAcknowledged);
+  const quoteBlockedReason = amendmentQuoteDisabledReason({
+    recoveryReady: amendment.recoveryReady,
+    hasWork,
+    incompleteReplacement: hasIncompleteReplacement,
+    missingProviderConsent,
+    missingKitchenAcknowledgement: requiresPreparingOverride && !draft.preparingOverrideAcknowledged,
+  });
+  const canQuote = !recoveryOnly && quoteBlockedReason === null;
   const isPending = !recoveryOnly && ['quoting', 'committing', 'uncertain'].includes(amendment.phase);
   const quoteExpired = !recoveryOnly && Boolean(amendment.quote && amendmentExpiryPassed(amendment.quote.expiresAt));
   const canRequote = !recoveryOnly && amendment.phase === 'uncertain' && amendment.canRequote;
@@ -90,6 +89,8 @@ export default function OrderAmendmentModal({
           amendment={amendment}
           draft={draft}
           canQuote={canQuote}
+          quoteBlockedReason={quoteBlockedReason ? t(quoteBlockedReason) : undefined}
+          onReasonChange={(reason) => setDraft((current) => ({ ...current, reason }))}
           quoteExpired={quoteExpired}
           canRequote={canRequote}
           readOnlyRecovery={recoveryOnly}

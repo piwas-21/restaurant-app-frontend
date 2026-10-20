@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { OrderDto } from '@/types/order';
 import type { OrderAmendmentDraft } from '@/hooks/orderAmendments/orderAmendmentTypes';
 import OrderAmendmentModal from './OrderAmendmentModal';
@@ -14,7 +14,7 @@ jest.mock('@/components/design-system/BaseModal', () => ({
   default: ({ children, footer }: { children: ReactNode; footer?: ReactNode }) => (
     <section>
       {children}
-      {footer}
+      <footer data-testid="modal-footer">{footer}</footer>
     </section>
   ),
 }));
@@ -37,7 +37,6 @@ jest.mock('./OrderAmendmentEditStage', () => ({
           onDraftChange({
             ...draft,
             changes: [{ orderItemId: 'root-line', kind: 'Void', startOrdinal: 1, quantity: 1 }],
-            reason: 'Guest correction',
           })
         }
       >
@@ -95,14 +94,33 @@ describe('OrderAmendmentModal', () => {
       render(<OrderAmendmentModal order={order} operatorRole={operatorRole} onClose={jest.fn()} />);
       const quoteButton = screen.getByRole('button', { name: 'Get a quote' });
       expect(quoteButton).toBeDisabled();
+      expect(quoteButton).toHaveAccessibleDescription('orderAmendments.quote_no_changes');
 
       fireEvent.click(screen.getByRole('button', { name: 'Make correction' }));
       const acknowledgement = screen.getByRole('checkbox', { name: 'Kitchen override acknowledgement' });
       expect(quoteButton).toBeDisabled();
+      expect(quoteButton).toHaveAccessibleDescription('orderAmendments.quote_acknowledge_kitchen');
       fireEvent.click(acknowledgement);
-      expect(quoteButton).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Get a quote' })).toBeEnabled();
     },
   );
+
+  it('quotes a removal with an empty optional reason and keeps the reason next to the footer actions', () => {
+    const prepareQuote = jest.fn();
+    mockUseAmendment.mockReturnValue(hookState({ prepareQuote }));
+    render(
+      <OrderAmendmentModal order={{ ...order, status: 'Confirmed' }} operatorRole="Cashier" onClose={jest.fn()} />,
+    );
+    const reason = within(screen.getByTestId('modal-footer')).getByRole('textbox', { name: 'Reason (optional)' });
+    expect(reason).toHaveValue('');
+    fireEvent.click(screen.getByRole('button', { name: 'Make correction' }));
+    const quote = screen.getByRole('button', { name: 'Get a quote' });
+    expect(quote).toBeEnabled();
+    fireEvent.click(quote);
+    expect(prepareQuote).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: '', changes: [expect.objectContaining({ kind: 'Void' })] }),
+    );
+  });
 
   it('only returns an expired, verified-unknown operation to edits for a fresh quote', () => {
     const reset = jest.fn();

@@ -190,7 +190,11 @@
     "resolution_earning_retired": "Earning retired after full removal",
     "resolution_earning_retirement_required": "This legacy order has no earning evaluation. Prepare retirement before reviewing its refund.",
     "resolution_prepare_earning_retirement": "Prepare loyalty retirement",
-    "resolution_earning_retirement_failed": "Earning retirement could not be prepared. Refresh the details and try again."
+    "resolution_earning_retirement_failed": "Earning retirement could not be prepared. Refresh the details and try again.",
+    "quote_no_changes": "Choose an item to add, remove or change before getting a quote.",
+    "quote_complete_replacement": "Choose the replacement item before getting a quote.",
+    "quote_provider_consent": "Confirm consent for the local supplement and enter a follow-up note.",
+    "quote_acknowledge_kitchen": "Acknowledge the kitchen correction before getting a quote."
   },
   "serverOrders": {
     "title": "Orders",

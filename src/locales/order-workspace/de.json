@@ -190,7 +190,11 @@
     "resolution_earning_retired": "Punktevergabe nach vollständiger Stornierung zurückgezogen",
     "resolution_earning_retirement_required": "Für diese ältere Bestellung liegt keine Punkteauswertung vor. Bereiten Sie die Zurückziehung vor, bevor Sie die Erstattung prüfen.",
     "resolution_prepare_earning_retirement": "Punkte-Rücknahme vorbereiten",
-    "resolution_earning_retirement_failed": "Die Punkte-Rücknahme konnte nicht vorbereitet werden. Aktualisieren Sie die Details und versuchen Sie es erneut."
+    "resolution_earning_retirement_failed": "Die Punkte-Rücknahme konnte nicht vorbereitet werden. Aktualisieren Sie die Details und versuchen Sie es erneut.",
+    "quote_no_changes": "Wählen Sie vor dem Angebot einen Artikel zum Hinzufügen, Entfernen oder Ändern.",
+    "quote_complete_replacement": "Wählen Sie vor dem Angebot den Ersatzartikel.",
+    "quote_provider_consent": "Bestätigen Sie die Zustimmung zum lokalen Zusatz und geben Sie eine Notiz ein.",
+    "quote_acknowledge_kitchen": "Bestätigen Sie vor dem Angebot die Küchenkorrektur."
   },
   "serverOrders": {
     "title": "Bestellungen",

@@ -22,3 +22,34 @@ html[data-theme='dark'] .touch:global(.btn-primary):hover:not(:disabled) {
   opacity: 1;
   cursor: not-allowed;
 }
+
+.disabledExplanation {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  max-inline-size: min(100%, 24rem);
+  min-inline-size: 0;
+}
+
+.disabledExplanation:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.disabledExplanation > button {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.disabledExplanation > button:disabled {
+  pointer-events: none;
+}
+
+.reason {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+}

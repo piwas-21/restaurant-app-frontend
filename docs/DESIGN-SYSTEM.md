@@ -433,6 +433,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 ```
 
+### StaffButton
+
+Staff actions use `StaffButton` from `components/design-system`. Its optional
+`disabledReason` keeps the action natively disabled and adds a visible, associated
+explanation plus a hover title on a focusable wrapper. Use a translated instruction
+that tells staff what they need to do before the action becomes available.
+
+```tsx
+<StaffButton disabledReason={blockedReason ? t(blockedReason) : undefined} onClick={requestQuote}>
+  {t('orderAmendments.prepare_quote')}
+</StaffButton>
+```
+
 ### EmptyState
 
 ```tsx

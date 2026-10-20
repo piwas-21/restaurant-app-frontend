@@ -1,14 +1,18 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import FormField from '@/components/design-system/FormField';
+import StaffButton from '@/components/design-system/StaffButton';
 import type { OrderAmendmentDraft } from '@/hooks/orderAmendments/orderAmendmentTypes';
 import type { useOrderAmendment } from '@/hooks/orderAmendments/useOrderAmendment';
-import styles from './OrderAmendmentModal.module.css';
+import styles from './OrderAmendmentModalFooter.module.css';
 
 interface OrderAmendmentModalFooterProps {
   readonly amendment: ReturnType<typeof useOrderAmendment>;
   readonly draft: OrderAmendmentDraft;
   readonly canQuote: boolean;
+  readonly quoteBlockedReason?: string;
+  readonly onReasonChange: (reason: string) => void;
   readonly quoteExpired: boolean;
   readonly canRequote: boolean;
   readonly readOnlyRecovery?: boolean;
@@ -19,6 +23,8 @@ export default function OrderAmendmentModalFooter({
   amendment,
   draft,
   canQuote,
+  quoteBlockedReason,
+  onReasonChange,
   quoteExpired,
   canRequote,
   readOnlyRecovery = false,
@@ -45,23 +51,37 @@ export default function OrderAmendmentModalFooter({
     <div className={styles.footer}>
       {amendment.phase === 'editing' && (
         <>
+          <FormField className={styles.note} label={t('reason_optional', 'Reason (optional)')}>
+            <textarea
+              value={draft.reason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              maxLength={500}
+              rows={1}
+            />
+          </FormField>
           <button type="button" onClick={onClose}>
             {t('orderAmendments.close', 'Close')}
           </button>
           <div className={styles.footerGroup}>
-            <button
-              type="button"
+            <StaffButton
+              variant="primary"
               className={styles.primary}
               disabled={!canQuote}
+              disabledReason={quoteBlockedReason}
               onClick={() => void amendment.prepareQuote(draft)}
             >
               {t('orderAmendments.prepare_quote', 'Get a quote')}
-            </button>
+            </StaffButton>
           </div>
         </>
       )}
       {amendment.phase === 'quoting' && (
-        <button type="button" className={styles.primary} disabled>
+        <button
+          type="button"
+          className={styles.primary}
+          disabled
+          title={t('orderAmendments.quoting', 'Preparing quote…')}
+        >
           {t('orderAmendments.quoting', 'Preparing quote…')}
         </button>
       )}
@@ -71,19 +91,29 @@ export default function OrderAmendmentModalFooter({
             {t('orderAmendments.back_to_changes', 'Back to changes')}
           </button>
           <div className={styles.footerGroup}>
-            <button
-              type="button"
+            <StaffButton
+              variant="primary"
               className={styles.primary}
               disabled={quoteExpired}
+              disabledReason={
+                quoteExpired
+                  ? t('orderAmendments.quote_expired', 'This quote expired. Review a fresh quote before committing.')
+                  : undefined
+              }
               onClick={() => void amendment.commit()}
             >
               {t('orderAmendments.commit', 'Confirm amendment')}
-            </button>
+            </StaffButton>
           </div>
         </>
       )}
       {amendment.phase === 'committing' && (
-        <button type="button" className={styles.primary} disabled>
+        <button
+          type="button"
+          className={styles.primary}
+          disabled
+          title={t('orderAmendments.committing', 'Saving amendment…')}
+        >
           {t('orderAmendments.committing', 'Saving amendment…')}
         </button>
       )}

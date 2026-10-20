@@ -155,16 +155,6 @@ export default function OrderAmendmentEditStage({
       <OrderAmendmentCatalogComposer order={order} draft={draft} onDraftChange={onDraftChange} />
 
       <section className={styles.formSection}>
-        {hasExistingChanges && (
-          <FormField label={t('orderAmendments.reason', 'Reason for this change')}>
-            <textarea
-              value={draft.reason}
-              onChange={(event) => onDraftChange({ ...draft, reason: event.target.value })}
-              maxLength={500}
-              rows={2}
-            />
-          </FormField>
-        )}
         {preparingOverrideRequired && (
           <CheckboxField
             label={t(

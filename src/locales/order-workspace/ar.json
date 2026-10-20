@@ -190,7 +190,11 @@
     "resolution_earning_retired": "تم إلغاء استحقاق النقاط بعد الإزالة الكاملة",
     "resolution_earning_retirement_required": "هذا الطلب القديم لا يتضمن تقييماً للنقاط. أعدّ الإلغاء قبل مراجعة المبلغ المسترد.",
     "resolution_prepare_earning_retirement": "إعداد إلغاء نقاط الولاء",
-    "resolution_earning_retirement_failed": "تعذر إعداد إلغاء النقاط. حدّث التفاصيل ثم حاول مجدداً."
+    "resolution_earning_retirement_failed": "تعذر إعداد إلغاء النقاط. حدّث التفاصيل ثم حاول مجدداً.",
+    "quote_no_changes": "اختر صنفًا لإضافته أو إزالته أو تعديله قبل طلب عرض السعر.",
+    "quote_complete_replacement": "اختر الصنف البديل قبل طلب عرض السعر.",
+    "quote_provider_consent": "أكّد الموافقة على الإضافة المحلية وأدخل ملاحظة للمتابعة.",
+    "quote_acknowledge_kitchen": "أكّد تصحيح المطبخ قبل طلب عرض السعر."
   },
   "serverOrders": {
     "title": "الطلبات",

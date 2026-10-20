@@ -190,7 +190,11 @@
     "resolution_earning_retired": "Puntentoekenning ingetrokken na volledige verwijdering",
     "resolution_earning_retirement_required": "Deze oude bestelling heeft geen puntenevaluatie. Bereid de intrekking voor voordat u de terugbetaling beoordeelt.",
     "resolution_prepare_earning_retirement": "Intrekking van punten voorbereiden",
-    "resolution_earning_retirement_failed": "Intrekking van punten kon niet worden voorbereid. Vernieuw de gegevens en probeer opnieuw."
+    "resolution_earning_retirement_failed": "Intrekking van punten kon niet worden voorbereid. Vernieuw de gegevens en probeer opnieuw.",
+    "quote_no_changes": "Kies een artikel om toe te voegen, te verwijderen of te wijzigen voordat u een prijsopgave aanvraagt.",
+    "quote_complete_replacement": "Kies het vervangende artikel voordat u een prijsopgave aanvraagt.",
+    "quote_provider_consent": "Bevestig de toestemming voor de lokale aanvulling en voeg een notitie toe.",
+    "quote_acknowledge_kitchen": "Bevestig de keukencorrectie voordat u een prijsopgave aanvraagt."
   },
   "serverOrders": {
     "title": "Bestellingen",

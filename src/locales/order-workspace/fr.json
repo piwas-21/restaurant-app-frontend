@@ -43,7 +43,6 @@
     "draft_additions": "Nouveaux articles à envoyer",
     "catalog_item": "Article du catalogue",
     "remove_draft_item": "Retirer",
-    "reason": "Motif de cette modification",
     "preparing_override": "Je confirme que cette commande est en préparation et nécessite une correction en cuisine.",
     "release_to_kitchen": "Envoyer les ajouts chiffrés en cuisine après vérification.",
     "provider_consent": "J’accepte un supplément local ; la commande de la plateforme ne sera pas modifiée ici.",

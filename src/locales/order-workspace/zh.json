@@ -43,7 +43,6 @@
     "draft_additions": "待发送的新项目",
     "catalog_item": "菜单项目",
     "remove_draft_item": "移除",
-    "reason": "修改原因",
     "preparing_override": "我确认此订单已开始制作，需要厨房更正。",
     "release_to_kitchen": "审核后将报价的新增项目发送至厨房。",
     "provider_consent": "我同意添加本地补充订单；此处不会修改平台订单。",

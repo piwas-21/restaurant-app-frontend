@@ -43,7 +43,6 @@
     "draft_additions": "Gönderilecek yeni ürünler",
     "catalog_item": "Katalog ürünü",
     "remove_draft_item": "Kaldır",
-    "reason": "Değişiklik nedeni",
     "preparing_override": "Bu siparişin hazırlanmaya başladığını ve mutfak düzeltmesi gerektiğini kabul ediyorum.",
     "release_to_kitchen": "Teklif edilen ekleri incelemeden sonra mutfağa gönder.",
     "provider_consent": "Yerel ek siparişi kabul ediyorum; pazaryeri siparişi burada değiştirilmeyecek.",

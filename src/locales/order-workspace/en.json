@@ -43,7 +43,6 @@
     "draft_additions": "New items to send",
     "catalog_item": "Catalog item",
     "remove_draft_item": "Remove",
-    "reason": "Reason for this change",
     "preparing_override": "I acknowledge this order has entered preparation and needs a kitchen correction.",
     "release_to_kitchen": "Release quoted additions to the kitchen after review.",
     "provider_consent": "I consent to a local supplement; the marketplace order will not be edited here.",

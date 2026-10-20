@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
-import { MAX_BILL_CHARGE_AMOUNT } from '@/lib/billChargeLimits';
+import { MAX_BILL_CHARGE_AMOUNT, MAX_BILL_CHARGE_PERCENTAGE } from '@/lib/billChargeLimits';
 import { parseBillChargeAmount } from '@/lib/billChargeAmount';
 import styles from './BillChargeControls.module.css';
 
@@ -35,7 +35,7 @@ export default function BillChargeAmountInput({
   const [text, setText] = useState(value === 0 ? '' : String(value));
   const lastSent = useRef(value);
   const parsed = parseBillChargeAmount(text);
-  const max = percentage ? 100 : MAX_BILL_CHARGE_AMOUNT;
+  const max = percentage ? MAX_BILL_CHARGE_PERCENTAGE : MAX_BILL_CHARGE_AMOUNT;
   const valid = parsed !== null && parsed <= max;
   useEffect(() => {
     if (value !== lastSent.current) setText(value === 0 ? '' : String(value));

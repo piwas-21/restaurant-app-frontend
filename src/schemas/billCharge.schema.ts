@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   MAX_BILL_CHARGE_AMOUNT,
+  MAX_BILL_CHARGE_PERCENTAGE,
   MAX_BILL_CHARGE_FIELDS,
   BILL_CHARGE_KEY_MAX_LENGTH,
   BILL_CHARGE_LABEL_MAX_LENGTH,
@@ -26,7 +27,7 @@ export const billChargeRuleSchema = z
     orderTypes: z.array(z.enum(['DineIn', 'Takeaway', 'Delivery'])).min(1),
     roles: z.array(z.enum(['Cashier', 'Server'])).min(1),
   })
-  .refine((rule) => rule.calculation !== 'Percentage' || rule.defaultAmount <= 100);
+  .refine((rule) => rule.calculation !== 'Percentage' || rule.defaultAmount <= MAX_BILL_CHARGE_PERCENTAGE);
 export const billChargeSettingsSchema = z.object({
   rules: z
     .array(billChargeRuleSchema)

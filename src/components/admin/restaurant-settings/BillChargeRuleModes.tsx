@@ -1,5 +1,6 @@
 'use client';
 import { useTranslation } from 'react-i18next';
+import { MAX_BILL_CHARGE_PERCENTAGE } from '@/lib/billChargeLimits';
 import type { BillChargeRule } from '@/types/billCharge';
 import controls from '@/components/bill-charges/BillChargeControls.module.css';
 import styles from './BillChargeRuleEditor.module.css';
@@ -45,7 +46,10 @@ export default function BillChargeRuleModes({
                 onChange({
                   ...rule,
                   calculation,
-                  defaultAmount: calculation === 'Percentage' ? Math.min(100, rule.defaultAmount) : rule.defaultAmount,
+                  defaultAmount:
+                    calculation === 'Percentage'
+                      ? Math.min(MAX_BILL_CHARGE_PERCENTAGE, rule.defaultAmount)
+                      : rule.defaultAmount,
                 })
               }
             >

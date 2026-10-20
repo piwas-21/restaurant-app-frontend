@@ -1,14 +1,22 @@
+import {
+  BILL_CHARGE_DECIMAL_SCALE,
+  BILL_CHARGE_PERCENTAGE_DIVISOR,
+  BILL_CHARGE_PERCENTAGE_ROUNDING_OFFSET,
+} from './billChargeLimits';
 import type { BillChargeInput, BillChargeRule } from '@/types/billCharge';
 import type { OrderDto } from '@/types/order';
 
 /** Advisory draft amounts. Accepted rule, currency rounding and allocation always belong to the server. */
 export function billChargePreview(itemTotal: number, inputs: readonly BillChargeInput[]): number {
   return inputs.reduce((sum, input) => {
-    const minor = BigInt(Math.round(itemTotal * 100));
-    const basisPoints = BigInt(Math.round(input.amount * 100));
+    const minor = BigInt(Math.round(itemTotal * BILL_CHARGE_DECIMAL_SCALE));
+    const basisPoints = BigInt(Math.round(input.amount * BILL_CHARGE_DECIMAL_SCALE));
     const amount =
       input.calculation === 'Percentage'
-        ? Number((minor * basisPoints + BigInt(5000)) / BigInt(10000)) / 100
+        ? Number(
+            (minor * basisPoints + BigInt(BILL_CHARGE_PERCENTAGE_ROUNDING_OFFSET)) /
+              BigInt(BILL_CHARGE_PERCENTAGE_DIVISOR),
+          ) / BILL_CHARGE_DECIMAL_SCALE
         : input.amount;
     return sum + amount * (input.effect === 'Reduce' ? -1 : 1);
   }, 0);

@@ -39,13 +39,15 @@ export default function BillPrintButton({ label, target, onBrowserPrint, disable
       <BaseModal isOpen={open} onClose={() => setOpen(false)} title={label} size="sm" isPending={printing.busy}>
         <div className={styles.options}>
           <p>{t('billPrint.choose')}</p>
-          <StaffButton onClick={onBrowserPrint}>{t('billPrint.browser')}</StaffButton>
+          <StaffButton onClick={onBrowserPrint} disabled={disabled}>
+            {t('billPrint.browser')}
+          </StaffButton>
           {enabled && (
             <>
               <p>{t('billPrint.printerHint')}</p>
               <StaffButton
                 variant="primary"
-                disabled={printing.busy}
+                disabled={disabled || printing.busy}
                 onClick={() => void printing.send(Boolean(printing.job))}
               >
                 {t(printing.job ? 'billPrint.another' : 'billPrint.connected')}

@@ -326,7 +326,7 @@ interface BaseModalProps {
 }
 ```
 
-Features: `createPortal`, focus trap, Escape key, scroll lock, `aria-modal`, `role="dialog"`, fade+slide animation.
+Features: `createPortal`, focus trap, Escape key, scroll lock, `aria-modal`, `role="dialog"`, fade+slide animation. The shared footer wraps actions and long labels within the panel; feature modals should supply footer content through `BaseModal`.
 
 ### AlertDialog
 

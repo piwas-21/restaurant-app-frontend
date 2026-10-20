@@ -29,6 +29,8 @@ const CashierConfirmModal = dynamic(() => import('./CashierConfirmModal'), { ssr
 
 interface CashierTicketActionsProps {
   readonly order: OrderDto;
+  readonly billOrder?: OrderDto;
+  readonly billUnavailable?: boolean;
   readonly historyOrders?: readonly OrderDto[];
   readonly onSelectHistoryOrder?: (orderId: string) => void;
   readonly isOrderSnapshotFresh?: boolean;
@@ -43,6 +45,8 @@ interface CashierTicketActionsProps {
  */
 export default function CashierTicketActions({
   order,
+  billOrder = order,
+  billUnavailable = false,
   historyOrders,
   onSelectHistoryOrder,
   isOrderSnapshotFresh = true,
@@ -63,7 +67,9 @@ export default function CashierTicketActions({
     onOrderChanged?.();
   };
 
-  const printBill = () => exportOrderToPDF(order, (key, fallback) => t(key, { defaultValue: fallback }));
+  const printBill = () => {
+    if (!billUnavailable) exportOrderToPDF(billOrder, (key, fallback) => t(key, { defaultValue: fallback }));
+  };
   const printKitchen = () =>
     exportKitchenItemsToPDF(order, 'GeneralKitchen', (key, fallback) => t(key, { defaultValue: fallback }));
 
@@ -122,7 +128,7 @@ export default function CashierTicketActions({
           label={t('cashier.workspace.print_bill')}
           target={{ orderId: order.id, expectedVersion: order.version }}
           onBrowserPrint={printBill}
-          disabled={!permitsChannelLocalAction(order, 'PrintReceipt')}
+          disabled={billUnavailable || !permitsChannelLocalAction(order, 'PrintReceipt')}
         />
         <button
           type="button"

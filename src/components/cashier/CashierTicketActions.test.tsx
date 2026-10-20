@@ -150,3 +150,32 @@ it('shows amendment controls and history with the tenant flag and current server
   expect(getOrderAmendmentHistory).toHaveBeenCalledWith(order.id);
   expect(screen.getByText('orderAmendments.history_title')).toBeInTheDocument();
 });
+
+it('prints the current combined bill while keeping the kitchen action on its source order', () => {
+  const order = { ...marketplaceOrder(), externalOrder: null };
+  const billOrder = {
+    ...order,
+    total: 14.5,
+    items: [...order.items, { ...order.items[0], id: 'extra', productName: 'Ayran' }],
+  };
+  render(<CashierTicketActions order={order} billOrder={billOrder} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.print_bill' }));
+  fireEvent.click(screen.getByRole('button', { name: 'billPrint.browser' }));
+  expect(exportOrderToPDF).toHaveBeenCalledWith(billOrder, expect.any(Function));
+});
+
+it('blocks bill printing while current amendment details are unavailable', () => {
+  render(<CashierTicketActions order={{ ...marketplaceOrder(), externalOrder: null }} billUnavailable />);
+  expect(screen.getByRole('button', { name: 'cashier.workspace.print_bill' })).toBeDisabled();
+});
+
+it('blocks an already open browser print chooser when its ticket becomes stale', () => {
+  const order = { ...marketplaceOrder(), externalOrder: null };
+  const { rerender } = render(<CashierTicketActions order={order} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.print_bill' }));
+  rerender(<CashierTicketActions order={order} billUnavailable />);
+  const browserPrint = screen.getByRole('button', { name: 'billPrint.browser' });
+  expect(browserPrint).toBeDisabled();
+  fireEvent.click(browserPrint);
+  expect(exportOrderToPDF).not.toHaveBeenCalled();
+});

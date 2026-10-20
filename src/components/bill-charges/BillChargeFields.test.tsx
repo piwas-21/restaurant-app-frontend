@@ -151,7 +151,8 @@ it('explains a paid-bill discount block while retaining ordinary fee actions', (
   });
   render(<BillChargeFields orderType="Takeaway" values={[]} hasCapturedPayment onChange={change} />);
   expect(screen.getByRole('button', { name: 'Discount' })).toBeDisabled();
-  expect(screen.getByTitle('billCharges.beforePayment')).toHaveAttribute('tabindex', '0');
+  expect(screen.getByRole('button', { name: 'Discount' })).toHaveAccessibleDescription('billCharges.beforePayment');
+  expect(screen.getByText('billCharges.beforePayment')).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Discount' }));
   expect(change).not.toHaveBeenCalled();
 });

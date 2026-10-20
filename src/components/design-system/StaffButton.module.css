@@ -31,11 +31,6 @@ html[data-theme='dark'] .touch:global(.btn-primary):hover:not(:disabled) {
   min-inline-size: 0;
 }
 
-.disabledExplanation:focus-visible {
-  outline: 3px solid var(--brand-primary);
-  outline-offset: 2px;
-}
-
 .disabledExplanation > button {
   min-inline-size: 0;
   max-inline-size: 100%;

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import StaffButton from './StaffButton';
 
-it('keeps a blocked action disabled and explains it on hover, focus and alongside the action', () => {
+it('keeps a blocked action disabled and explains it on hover and alongside the action', () => {
   const onClick = jest.fn();
   render(
     <StaffButton disabledReason="Choose a replacement item first." onClick={onClick}>
@@ -14,7 +14,7 @@ it('keeps a blocked action disabled and explains it on hover, focus and alongsid
   expect(screen.getByText('Choose a replacement item first.')).toBeVisible();
   const wrapper = button.parentElement;
   expect(wrapper).toHaveAttribute('title', 'Choose a replacement item first.');
-  expect(wrapper).toHaveAttribute('tabindex', '0');
+  expect(wrapper).not.toHaveAttribute('tabindex');
   fireEvent.click(button);
   expect(onClick).not.toHaveBeenCalled();
 });

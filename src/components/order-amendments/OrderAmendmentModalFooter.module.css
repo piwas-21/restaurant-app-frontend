@@ -9,16 +9,13 @@
 
 .footer {
   inline-size: 100%;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .footer button:focus-visible {
   outline: 3px solid var(--brand-primary);
   outline-offset: 2px;
-}
-
-.footer {
-  justify-content: space-between;
-  flex-wrap: wrap;
 }
 
 .footerGroup {

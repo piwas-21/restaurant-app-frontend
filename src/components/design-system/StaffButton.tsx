@@ -34,7 +34,7 @@ export default function StaffButton({
   );
   if (!disabledReason) return button;
   return (
-    <span className={styles.disabledExplanation} title={disabledReason} tabIndex={0}>
+    <span className={styles.disabledExplanation} title={disabledReason}>
       {button}
       <span id={reasonId} className={styles.reason}>
         {disabledReason}

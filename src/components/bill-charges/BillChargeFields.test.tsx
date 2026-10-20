@@ -91,3 +91,96 @@ it('filters chips by role, order type and existing saved charge identity', () =>
   view.rerender(<BillChargeFields orderType="DineIn" values={[]} onChange={change} />);
   expect(view.container).toBeEmptyDOMElement();
 });
+
+it('sends the reviewed percentage and reduction semantics with the numeric value', () => {
+  Object.assign(mockReader, {
+    loading: false,
+    configuration: {
+      currency: 'EUR',
+      rules: [
+        {
+          key: 'discount',
+          label: 'Discount',
+          enabled: true,
+          defaultAmount: 10,
+          allowCustomAmount: true,
+          effect: 'Reduce',
+          calculation: 'Percentage',
+          orderTypes: ['Takeaway'],
+          roles: ['Cashier'],
+        },
+      ],
+    },
+  });
+  const view = render(<BillChargeFields orderType="Takeaway" values={[]} onChange={change} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Discount' }));
+  expect(change).toHaveBeenLastCalledWith([
+    { key: 'discount', amount: 10, effect: 'Reduce', calculation: 'Percentage' },
+  ]);
+  view.rerender(
+    <BillChargeFields
+      orderType="Takeaway"
+      values={[{ key: 'discount', amount: 10, effect: 'Reduce', calculation: 'Percentage' }]}
+      onChange={change}
+    />,
+  );
+  fireEvent.change(screen.getByRole('textbox', { name: 'Discount (%)' }), { target: { value: '25' } });
+  expect(change).toHaveBeenLastCalledWith([
+    { key: 'discount', amount: 25, effect: 'Reduce', calculation: 'Percentage' },
+  ]);
+});
+
+it('explains a paid-bill discount block while retaining ordinary fee actions', () => {
+  Object.assign(mockReader, {
+    loading: false,
+    configuration: {
+      currency: 'EUR',
+      rules: [
+        {
+          key: 'discount',
+          label: 'Discount',
+          enabled: true,
+          defaultAmount: 2,
+          allowCustomAmount: true,
+          effect: 'Reduce',
+          orderTypes: ['Takeaway'],
+          roles: ['Cashier'],
+        },
+      ],
+    },
+  });
+  render(<BillChargeFields orderType="Takeaway" values={[]} hasCapturedPayment onChange={change} />);
+  expect(screen.getByRole('button', { name: 'Discount' })).toBeDisabled();
+  expect(screen.getByTitle('billCharges.beforePayment')).toHaveAttribute('tabindex', '0');
+  fireEvent.click(screen.getByRole('button', { name: 'Discount' }));
+  expect(change).not.toHaveBeenCalled();
+});
+
+it('holds an existing draft when admin changes its calculation instead of reinterpreting it', () => {
+  const rule = {
+    key: 'discount',
+    label: 'Discount',
+    enabled: true,
+    defaultAmount: 10,
+    allowCustomAmount: true,
+    effect: 'Reduce',
+    calculation: 'Fixed',
+    orderTypes: ['Takeaway'],
+    roles: ['Cashier'],
+  };
+  Object.assign(mockReader, { loading: false, configuration: { currency: 'EUR', rules: [rule] } });
+  const validity = jest.fn();
+  const values = [{ key: 'discount', amount: 10, effect: 'Reduce' as const, calculation: 'Fixed' as const }];
+  const view = render(
+    <BillChargeFields orderType="Takeaway" values={values} onChange={change} onValidityChange={validity} />,
+  );
+  expect(screen.getByRole('textbox', { name: 'Discount (EUR)' })).toBeInTheDocument();
+  Object.assign(mockReader, { configuration: { currency: 'EUR', rules: [{ ...rule, calculation: 'Percentage' }] } });
+  view.rerender(
+    <BillChargeFields orderType="Takeaway" values={values} onChange={change} onValidityChange={validity} />,
+  );
+  expect(screen.getByText('billCharges.unavailable')).toBeInTheDocument();
+  expect(screen.queryByRole('textbox', { name: 'Discount (%)' })).not.toBeInTheDocument();
+  expect(validity).toHaveBeenLastCalledWith(false);
+  expect(change).not.toHaveBeenCalled();
+});

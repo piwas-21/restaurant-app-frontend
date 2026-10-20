@@ -29,6 +29,7 @@ export function currentOrderTicket(source: OrderDto, related: readonly OrderDto[
     billingCreditAmount: sum((order) => order.billingCreditAmount ?? 0),
     billChargeAmount: sum((order) => order.billChargeAmount ?? 0),
     billCharges: orders.flatMap((order) => order.billCharges ?? []),
+    hasPendingBillingCorrection: [...members.values()].some((order) => order.hasPendingBillingCorrection),
     paymentTipMinor: sum(netPaymentTipMinor),
     totalPaid,
     remainingAmount: due,

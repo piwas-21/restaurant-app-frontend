@@ -179,3 +179,15 @@ it('blocks an already open browser print chooser when its ticket becomes stale',
   fireEvent.click(browserPrint);
   expect(exportOrderToPDF).not.toHaveBeenCalled();
 });
+
+it('blocks an already open bill chooser while a paid item correction awaits resolution', () => {
+  const order = { ...marketplaceOrder(), externalOrder: null };
+  const view = render(<CashierTicketActions order={order} />);
+  fireEvent.click(screen.getByRole('button', { name: 'cashier.workspace.print_bill' }));
+  view.rerender(<CashierTicketActions order={order} billOrder={{ ...order, hasPendingBillingCorrection: true }} />);
+  const browser = screen.getByRole('button', { name: 'billPrint.browser' });
+  expect(browser).toBeDisabled();
+  expect(screen.getAllByText('billCharges.pendingCorrection').length).toBeGreaterThan(0);
+  fireEvent.click(browser);
+  expect(exportOrderToPDF).not.toHaveBeenCalled();
+});

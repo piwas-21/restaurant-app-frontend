@@ -163,3 +163,17 @@ describe('generateSimpleReceiptHtml — table identity', () => {
     expect(html).not.toContain('undefined');
   });
 });
+
+it('prints a signed staff discount next to the authoritative reduced bill total', () => {
+  const order = singleKitchenBundleOrder();
+  order.currency = 'EUR';
+  order.subTotal = 20;
+  order.total = 20;
+  order.payableTotal = 16;
+  order.billChargeAmount = -4;
+  order.billCharges = [{ key: 'discount', label: 'Staff discount', amount: -4, currency: 'EUR' }];
+  const html = generateSimpleReceiptHtml(order);
+  expect(html).toContain('Staff discount');
+  expect(html).toContain('-4.00');
+  expect(html).toContain('16.00');
+});

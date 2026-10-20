@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import StaffButton from '@/components/design-system/StaffButton';
 import { useOrderBillChargeAction } from '@/hooks/useOrderBillChargeAction';
+import { billChargeItemBasis, billChargePreview } from '@/lib/billChargePreview';
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import type { OrderDto } from '@/types/order';
 import BillChargeFields from './BillChargeFields';
@@ -36,9 +37,17 @@ export default function OrderBillChargeEditor({
   return (
     <div className={styles.action}>
       <OrderBillCharges charges={order.billCharges} />
+      <p className={styles.help}>
+        {t('billCharges.selectedItemBasis', { amount: formatOrderCurrency(billChargeItemBasis(order), order) })}
+      </p>
       {!terminal && (
         <BillChargeFields
           orderType={order.type}
+          hasCapturedPayment={
+            order.totalPaid > 0 ||
+            order.payments?.some((payment) => ['Completed', 'PartiallyRefunded', 'Refunded'].includes(payment.status))
+          }
+          hasFrozenTax={order.tax !== 0}
           values={values}
           disabled={disabled || busy || pending !== null || !hydrated || storageBlocked}
           existingKeys={order.billCharges?.map((charge) => charge.key)}
@@ -58,11 +67,8 @@ export default function OrderBillChargeEditor({
         >
           {pending
             ? t('billCharges.checkSave')
-            : t('billCharges.addAmount', {
-                amount: formatOrderCurrency(
-                  positive.reduce((sum, value) => sum + value.amount, 0),
-                  order,
-                ),
+            : t('billCharges.applyAmount', {
+                amount: formatOrderCurrency(billChargePreview(billChargeItemBasis(order), positive), order),
               })}
         </StaffButton>
       )}

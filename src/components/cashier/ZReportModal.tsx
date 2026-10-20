@@ -1,5 +1,6 @@
 'use client';
 
+import ZReportDiscountRows from './ZReportDiscountRows';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, FileBarChart, Printer, Loader2 } from 'lucide-react';
@@ -285,22 +286,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                     <div className={styles.sectionTitle}>{t('cashier.zreport.discounts') || 'Discounts'}</div>
                     <table className={styles.table}>
                       <tbody>
-                        <tr>
-                          <td>{t('cashier.zreport.promo_code_discounts') || 'Promo Code'}</td>
-                          <td>{formatCurrency(reportData.discounts.promoCodeDiscounts)}</td>
-                        </tr>
-                        <tr>
-                          <td>{t('cashier.zreport.customer_discounts') || 'Customer Discounts'}</td>
-                          <td>{formatCurrency(reportData.discounts.customerDiscounts)}</td>
-                        </tr>
-                        <tr>
-                          <td>{t('cashier.zreport.fidelity_discounts') || 'Fidelity Points'}</td>
-                          <td>{formatCurrency(reportData.discounts.fidelityPointsDiscounts)}</td>
-                        </tr>
-                        <tr className={styles.totalRow}>
-                          <td>{t('cashier.zreport.total_discounts') || 'Total Discounts'}</td>
-                          <td>{formatCurrency(reportData.discounts.totalDiscounts)}</td>
-                        </tr>
+                        <ZReportDiscountRows discounts={reportData.discounts} />
                       </tbody>
                     </table>
                   </div>

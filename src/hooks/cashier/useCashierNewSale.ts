@@ -1,5 +1,6 @@
 'use client';
 
+import { billChargeTicketTotal } from '@/lib/billChargePreview';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OrderType, type OrderDto } from '@/types/order';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
@@ -159,9 +160,7 @@ export function useCashierNewSale({ onCreated }: UseCashierNewSaleOptions) {
   }, [contentKey, draft, loyaltyEnabled, onCreated, phase, state]);
 
   const ticketTotal = useMemo(
-    () =>
-      state.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0) +
-      (state.billCharges ?? []).reduce((sum, charge) => sum + charge.amount, 0),
+    () => billChargeTicketTotal(state.lines, state.billCharges ?? []),
     [state.billCharges, state.lines],
   );
 

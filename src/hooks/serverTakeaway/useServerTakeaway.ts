@@ -1,4 +1,5 @@
 'use client';
+import { billChargeTicketTotal } from '@/lib/billChargePreview';
 import { useCallback, useEffect, useState } from 'react';
 import type { OrderDto } from '@/types/order';
 import { useServerTakeawayProduct } from './useServerTakeawayProduct';
@@ -137,9 +138,7 @@ export function useServerTakeaway() {
     }
     setPhase('idle');
   }, [billCharges, clientOperationId, customer, items, loyaltyEnabled, notes, phase]);
-  const ticketTotal =
-    items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) +
-    billCharges.reduce((sum, charge) => sum + charge.amount, 0);
+  const ticketTotal = billChargeTicketTotal(items, billCharges);
   return {
     ...catalog,
     catalogError: catalog.error,

@@ -23,23 +23,24 @@ interface Props {
   readonly target: CashierPrintTarget;
   readonly onBrowserPrint: () => void;
   readonly disabled?: boolean;
+  readonly disabledReason?: string;
 }
 
-export default function BillPrintButton({ label, target, onBrowserPrint, disabled }: Props) {
+export default function BillPrintButton({ label, target, onBrowserPrint, disabled, disabledReason }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const printing = useCashierBillPrint(target, open);
   const enabled = useModuleEnabled('printing');
   return (
     <>
-      <StaffButton onClick={() => setOpen(true)} disabled={disabled}>
+      <StaffButton onClick={() => setOpen(true)} disabled={disabled} disabledReason={disabledReason}>
         <Printer size={17} aria-hidden="true" />
         {label}
       </StaffButton>
       <BaseModal isOpen={open} onClose={() => setOpen(false)} title={label} size="sm" isPending={printing.busy}>
         <div className={styles.options}>
           <p>{t('billPrint.choose')}</p>
-          <StaffButton onClick={onBrowserPrint} disabled={disabled}>
+          <StaffButton onClick={onBrowserPrint} disabled={disabled} disabledReason={disabledReason}>
             {t('billPrint.browser')}
           </StaffButton>
           {enabled && (
@@ -48,6 +49,7 @@ export default function BillPrintButton({ label, target, onBrowserPrint, disable
               <StaffButton
                 variant="primary"
                 disabled={disabled || printing.busy}
+                disabledReason={disabledReason}
                 onClick={() => void printing.send(Boolean(printing.job))}
               >
                 {t(printing.job ? 'billPrint.another' : 'billPrint.connected')}

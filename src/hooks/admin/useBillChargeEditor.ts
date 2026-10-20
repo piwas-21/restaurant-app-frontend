@@ -39,11 +39,14 @@ export function useBillChargeEditor() {
     for (const [key, label] of [
       ['service_fee', t('billCharges.serviceFee')],
       ['delivery_fee', t('billCharges.deliveryFee')],
+      ['discount', t('billCharges.discount')],
     ]) {
       if (saved.length < MAX_BILL_CHARGE_FIELDS && !saved.some((rule) => rule.key === key))
         saved.push({
           key,
           label,
+          effect: key === 'discount' ? 'Reduce' : 'Increase',
+          calculation: 'Fixed',
           enabled: false,
           defaultAmount: 0,
           allowCustomAmount: true,

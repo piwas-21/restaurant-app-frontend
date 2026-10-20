@@ -59,6 +59,8 @@ export const generateSimpleReceiptHtml = (
   t?: TranslationFunction,
   options: ReceiptOptions = {},
 ): string => {
+  const saleDiscount =
+    (order.discount ?? 0) + (order.customerDiscountAmount ?? 0) + (order.fidelityPointsDiscount ?? 0);
   const translate = t || ((key: string, fallback: string) => fallback);
 
   // Build items HTML
@@ -123,7 +125,7 @@ export const generateSimpleReceiptHtml = (
           </div>
           ${receiptTaxHtml(order, translate)}
           ${(order.billCharges ?? [])
-            .filter((charge) => charge.amount > 0)
+            .filter((charge) => charge.amount !== 0)
             .map(
               (charge) =>
                 `<div class="flex-row"><span>${escapeHtml(charge.label)}:</span><span>${formatOrderCurrency(charge.amount, order)}</span></div>`,
@@ -140,11 +142,11 @@ export const generateSimpleReceiptHtml = (
               : ''
           }
           ${
-            order.discount && order.discount > 0
+            saleDiscount > 0
               ? `
             <div class="flex-row">
               <span>${translate('discount', 'Discount')}:</span>
-              <span>-${formatOrderCurrency(order.discount, order)}</span>
+              <span>-${formatOrderCurrency(saleDiscount, order)}</span>
             </div>
           `
               : ''

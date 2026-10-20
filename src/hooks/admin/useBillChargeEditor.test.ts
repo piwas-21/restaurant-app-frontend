@@ -16,7 +16,11 @@ it('keeps all charge presets disabled until an administrator opts in', async () 
   expect(view.result.current.rules.map((rule) => [rule.key, rule.enabled])).toEqual([
     ['service_fee', false],
     ['delivery_fee', false],
+    ['discount', false],
   ]);
+  expect(view.result.current.rules.find((rule) => rule.key === 'discount')).toEqual(
+    expect.objectContaining({ effect: 'Reduce', calculation: 'Fixed' }),
+  );
 });
 
 it('refuses duplicate keys through form submission and saves the schema-validated selection', async () => {
@@ -46,6 +50,6 @@ it('preserves editor row identity when a key changes or an earlier field is remo
   expect(view.result.current.rowIds).toEqual(originalIds);
   act(() => view.result.current.removeRule(0));
   expect(view.result.current.rules[0].key).toBe('custom_fee');
-  expect(view.result.current.rowIds).toEqual([originalIds[1]]);
+  expect(view.result.current.rowIds).toEqual(originalIds.slice(1));
   await waitFor(() => expect(view.result.current.valid).toBe(true));
 });

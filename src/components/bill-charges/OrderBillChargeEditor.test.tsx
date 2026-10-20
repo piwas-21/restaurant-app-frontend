@@ -46,7 +46,7 @@ it('blocks collection while a zero, invalid or positive draft is selected withou
   fireEvent.change(input, { target: { value: '3.50' } });
   expect(input).toBeEnabled();
   fireEvent.change(input, { target: { value: '-1' } });
-  expect(screen.getByRole('button', { name: 'billCharges.addAmount' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'billCharges.applyAmount' })).toBeDisabled();
   expect(addOrderBillCharges).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'billCharges.removeNamed' }));
   expect(draft).toHaveBeenLastCalledWith(false);
@@ -59,7 +59,7 @@ it('saves one positive fee through the existing idempotent API and releases the 
   render(<OrderBillChargeEditor order={order} disabled={false} onUpdated={refresh} onDraftChange={draft} />);
   fireEvent.click(await screen.findByRole('button', { name: 'Service fee' }));
   fireEvent.change(screen.getByRole('textbox', { name: 'Service fee (CHF)' }), { target: { value: '3,50' } });
-  fireEvent.click(screen.getByRole('button', { name: 'billCharges.addAmount' }));
+  fireEvent.click(screen.getByRole('button', { name: 'billCharges.applyAmount' }));
   await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   expect(addOrderBillCharges).toHaveBeenCalledWith(order.id, 1, expect.any(String), [
     { key: 'service_fee', amount: 3.5 },

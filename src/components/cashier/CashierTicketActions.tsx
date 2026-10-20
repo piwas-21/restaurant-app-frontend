@@ -67,8 +67,9 @@ export default function CashierTicketActions({
     onOrderChanged?.();
   };
 
+  const billBlocked = billUnavailable || billOrder.hasPendingBillingCorrection;
   const printBill = () => {
-    if (!billUnavailable) exportOrderToPDF(billOrder, (key, fallback) => t(key, { defaultValue: fallback }));
+    if (!billBlocked) exportOrderToPDF(billOrder, (key, fallback) => t(key, { defaultValue: fallback }));
   };
   const printKitchen = () =>
     exportKitchenItemsToPDF(order, 'GeneralKitchen', (key, fallback) => t(key, { defaultValue: fallback }));
@@ -128,7 +129,8 @@ export default function CashierTicketActions({
           label={t('cashier.workspace.print_bill')}
           target={{ orderId: order.id, expectedVersion: order.version }}
           onBrowserPrint={printBill}
-          disabled={billUnavailable || !permitsChannelLocalAction(order, 'PrintReceipt')}
+          disabled={billBlocked || !permitsChannelLocalAction(order, 'PrintReceipt')}
+          disabledReason={billOrder.hasPendingBillingCorrection ? t('billCharges.pendingCorrection') : undefined}
         />
         <button
           type="button"

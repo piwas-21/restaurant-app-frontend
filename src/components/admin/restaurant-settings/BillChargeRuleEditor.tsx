@@ -3,6 +3,7 @@
 import { Check, CreditCard, ShoppingBag, Truck, UserRound, UtensilsCrossed } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BILL_CHARGE_LABEL_MAX_LENGTH } from '@/lib/billChargeLimits';
+import BillChargeRuleModes from './BillChargeRuleModes';
 import StaffButton from '@/components/design-system/StaffButton';
 import FormField from '@/components/design-system/FormField';
 import StatusBadge from '@/components/design-system/StatusBadge';
@@ -37,9 +38,10 @@ export default function BillChargeRuleEditor({
         ? rule[field].filter((item) => item !== value)
         : [...rule[field], value],
     });
-  const amount = currency
+  const fixedAmount = currency
     ? new Intl.NumberFormat(i18n.language || 'en', { style: 'currency', currency }).format(rule.defaultAmount)
     : rule.defaultAmount;
+  const amount = rule.calculation === 'Percentage' ? `${rule.defaultAmount}%` : fixedAmount;
   return (
     <section className={styles.editor} aria-label={rule.label}>
       <header className={styles.header}>
@@ -67,6 +69,7 @@ export default function BillChargeRuleEditor({
         </button>
       </header>
       <div className={styles.fields}>
+        <BillChargeRuleModes rule={rule} onChange={onChange} disabled={disabled} />
         <div className={styles.nameAmount}>
           <div>
             <FormField label={t('billCharges.billName')}>
@@ -84,6 +87,7 @@ export default function BillChargeRuleEditor({
           <BillChargeAmountInput
             label={t(rule.allowCustomAmount ? 'billCharges.suggestedAmount' : 'billCharges.fixedAmount')}
             currency={currency}
+            percentage={rule.calculation === 'Percentage'}
             value={rule.defaultAmount}
             disabled={disabled}
             onChange={(defaultAmount) => onChange({ ...rule, defaultAmount })}
@@ -160,7 +164,10 @@ export default function BillChargeRuleEditor({
         <div className={styles.receipt}>
           <small>{t('billCharges.receiptPreview')}</small>
           <span dir="auto">{rule.label}</span>
-          <strong>{amount}</strong>
+          <strong>
+            {rule.effect === 'Reduce' ? '−' : '+'}
+            {amount}
+          </strong>
         </div>
         {onRemove && (
           <StaffButton onClick={onRemove} disabled={disabled}>

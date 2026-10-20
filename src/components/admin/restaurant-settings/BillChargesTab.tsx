@@ -76,7 +76,9 @@ export default function BillChargesTab() {
                 currency={editor.reader.configuration?.currency ?? ''}
                 disabled={editor.busy}
                 onRemove={
-                  ['service_fee', 'delivery_fee'].includes(rule.key) ? undefined : () => editor.removeRule(position)
+                  ['service_fee', 'delivery_fee', 'discount'].includes(rule.key)
+                    ? undefined
+                    : () => editor.removeRule(position)
                 }
                 onChange={(next) => editor.changeRule(position, next)}
                 onAmountValidityChange={(valid) => editor.setAmountValid(rule.key, valid)}

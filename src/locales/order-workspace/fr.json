@@ -43,7 +43,6 @@
     "draft_additions": "Nouveaux articles à envoyer",
     "catalog_item": "Article du catalogue",
     "remove_draft_item": "Retirer",
-    "reason": "Motif de cette modification",
     "preparing_override": "Je confirme que cette commande est en préparation et nécessite une correction en cuisine.",
     "release_to_kitchen": "Envoyer les ajouts chiffrés en cuisine après vérification.",
     "provider_consent": "J’accepte un supplément local ; la commande de la plateforme ne sera pas modifiée ici.",
@@ -190,7 +189,11 @@
     "resolution_earning_retired": "Points retirés après la suppression complète",
     "resolution_earning_retirement_required": "Cette ancienne commande ne contient aucune évaluation des points. Préparez leur retrait avant d’examiner le remboursement.",
     "resolution_prepare_earning_retirement": "Préparer le retrait des points de fidélité",
-    "resolution_earning_retirement_failed": "Impossible de préparer le retrait des points. Actualisez les détails et réessayez."
+    "resolution_earning_retirement_failed": "Impossible de préparer le retrait des points. Actualisez les détails et réessayez.",
+    "quote_no_changes": "Choisissez un article à ajouter, retirer ou modifier avant de demander un devis.",
+    "quote_complete_replacement": "Choisissez l’article de remplacement avant de demander un devis.",
+    "quote_provider_consent": "Confirmez l’accord pour le supplément local et ajoutez une note de suivi.",
+    "quote_acknowledge_kitchen": "Confirmez la correction en cuisine avant de demander un devis."
   },
   "serverOrders": {
     "title": "Commandes",

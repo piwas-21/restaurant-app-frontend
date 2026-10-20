@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormField from '@/components/design-system/FormField';
-import { MAX_BILL_CHARGE_AMOUNT } from '@/lib/billChargeLimits';
+import { MAX_BILL_CHARGE_AMOUNT, MAX_BILL_CHARGE_PERCENTAGE } from '@/lib/billChargeLimits';
 import { parseBillChargeAmount } from '@/lib/billChargeAmount';
 import styles from './BillChargeControls.module.css';
 
@@ -16,6 +16,7 @@ interface Props {
   readonly disabled?: boolean;
   readonly readOnly?: boolean;
   readonly compact?: boolean;
+  readonly percentage?: boolean;
 }
 
 export default function BillChargeAmountInput({
@@ -27,12 +28,15 @@ export default function BillChargeAmountInput({
   disabled,
   readOnly,
   compact,
+  percentage = false,
 }: Props) {
   const { t } = useTranslation();
   const id = useId();
   const [text, setText] = useState(value === 0 ? '' : String(value));
   const lastSent = useRef(value);
-  const valid = parseBillChargeAmount(text) !== null;
+  const parsed = parseBillChargeAmount(text);
+  const max = percentage ? MAX_BILL_CHARGE_PERCENTAGE : MAX_BILL_CHARGE_AMOUNT;
+  const valid = parsed !== null && parsed <= max;
   useEffect(() => {
     if (value !== lastSent.current) setText(value === 0 ? '' : String(value));
     lastSent.current = value;
@@ -40,7 +44,7 @@ export default function BillChargeAmountInput({
   useEffect(() => {
     onValidityChange?.(valid);
   }, [onValidityChange, valid]);
-  const error = valid ? undefined : t('billCharges.invalidAmount', { max: MAX_BILL_CHARGE_AMOUNT });
+  const error = valid ? undefined : t('billCharges.invalidAmount', { max });
   return (
     <FormField label={label} htmlFor={id} srOnlyLabel={compact} error={error} className={styles.amountField}>
       <span className={styles.amountBox}>
@@ -60,14 +64,14 @@ export default function BillChargeAmountInput({
             const next = event.target.value;
             setText(next);
             const amount = parseBillChargeAmount(next);
-            if (amount !== null) {
+            if (amount !== null && amount <= max) {
               lastSent.current = amount;
               onChange(amount);
             }
           }}
         />
         <span className={styles.currency} aria-hidden="true">
-          {currency}
+          {percentage ? '%' : currency}
         </span>
         {error && (
           <span id={`${id}-amount-error`} className="sr-only" aria-hidden="true">

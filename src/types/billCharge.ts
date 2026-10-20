@@ -8,6 +8,8 @@ export interface BillChargeConfiguration {
 export interface BillChargeInput {
   readonly key: string;
   readonly amount: number;
+  readonly effect?: 'Increase' | 'Reduce';
+  readonly calculation?: 'Fixed' | 'Percentage';
 }
 export interface BillCharge {
   readonly key: string;
@@ -20,5 +22,7 @@ export interface OrderBillingFields {
   payableTotal?: number | null;
   billingCreditAmount?: number;
   billChargeAmount?: number;
+  billChargeItemBasis?: number | null;
+  hasPendingBillingCorrection?: boolean;
   billCharges?: readonly BillCharge[];
 }

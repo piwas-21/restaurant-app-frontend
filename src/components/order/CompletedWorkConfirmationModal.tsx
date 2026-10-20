@@ -28,7 +28,7 @@ export default function CompletedWorkConfirmationModal({
     <BaseModal
       isOpen
       title={t('staffCompletion.title')}
-      size="sm"
+      size="md"
       onClose={onClose}
       isPending={busy}
       footer={

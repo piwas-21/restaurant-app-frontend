@@ -6,6 +6,8 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CreditCard, FileText, MapPin, RefreshCw, ShoppingBag, User } from 'lucide-react';
 import MarketplaceOrderSource from '@/components/order/MarketplaceOrderSource';
+import { orderChannelLabel, orderTableLabel } from '@/lib/currentOrderTicket';
+import { useCurrentOrderTicket } from '@/hooks/cashier/useCurrentOrderTicket';
 import { orderCurrency } from '@/lib/cashierMoney';
 import { canCollectPayment } from '@/lib/settlementEligibility';
 import { formatCashierDateTime } from '@/lib/cashierDateTime';
@@ -32,7 +34,6 @@ interface CashierReadOnlyTicketProps {
   readonly onRefresh?: () => void;
   readonly onBack?: () => void;
   readonly onCollect?: (orderId: string) => void;
-  /** Notifies the host that a ticket action mutated the order, so it can refresh its data. */
   readonly onOrderChanged?: () => void;
   readonly timeZone?: string;
   readonly backButtonRef?: Ref<HTMLButtonElement>;
@@ -41,19 +42,11 @@ interface CashierReadOnlyTicketProps {
 }
 
 function amountDue(order: OrderDto): number {
-  if (typeof order.remainingAmount === 'number') return order.remainingAmount;
-  return order.total - order.totalPaid;
+  return order.remainingAmount ?? (order.payableTotal ?? order.total) - order.totalPaid;
 }
 
 function formatDate(value: string, language: string, timeZone: string | undefined, t: TFunction): string {
   return formatCashierDateTime(value, language, timeZone, 'medium', t('cashier.workspace.unknown_time'));
-}
-
-function channelLabel(type: string, t: TFunction): string {
-  if (type === 'DineIn') return t('cashier.workspace.channel_dine_in');
-  if (type === 'Takeaway') return t('cashier.workspace.channel_takeaway');
-  if (type === 'Delivery') return t('cashier.workspace.channel_delivery');
-  return t('cashier.workspace.channel_unknown');
 }
 
 export default function CashierReadOnlyTicket({
@@ -73,6 +66,11 @@ export default function CashierReadOnlyTicket({
   stateRef,
 }: CashierReadOnlyTicketProps) {
   const { t, i18n } = useTranslation();
+  const current = useCurrentOrderTicket(order, historyOrders);
+  const changed = () => {
+    current.refresh();
+    onOrderChanged?.();
+  };
   const backButton = onBack ? (
     <button
       type="button"
@@ -120,7 +118,8 @@ export default function CashierReadOnlyTicket({
     );
   }
 
-  const due = amountDue(order);
+  const ticket = current.ticket ?? order;
+  const due = amountDue(ticket);
   const isSnapshotFresh = !isLoading && !isRefreshing && !error;
   return (
     <article className={styles.ticket} aria-labelledby="cashier-ticket-title">
@@ -145,9 +144,8 @@ export default function CashierReadOnlyTicket({
             timeZone={order.businessTimeZoneId ?? timeZone}
           />
         </div>
-        <CashierStatusBadges order={order} />
+        <CashierStatusBadges order={ticket} />
       </header>
-
       <details className={technicalReferenceStyles.details}>
         <summary>{t('cashier.workspace.technical_reference')}</summary>
         <p>
@@ -157,7 +155,6 @@ export default function CashierReadOnlyTicket({
           {t('cashier.workspace.technical_reference')}: <code>{order.id}</code>
         </p>
       </details>
-
       <MarketplaceOrderSource source={order.externalOrder} />
       <dl className={styles.ticketMeta}>
         <div>
@@ -169,12 +166,12 @@ export default function CashierReadOnlyTicket({
         </div>
         <div>
           <dt>{t('cashier.workspace.channel')}</dt>
-          <dd>{channelLabel(order.type, t)}</dd>
+          <dd>{orderChannelLabel(order.type, t)}</dd>
         </div>
-        {order.tableNumber !== undefined && (
+        {orderTableLabel(order) !== null && (
           <div>
             <dt>{t('cashier.workspace.table')}</dt>
-            <dd>{t('cashier.workspace.table_value', { table: order.tableNumber })}</dd>
+            <dd>{t('cashier.workspace.table_value', { table: orderTableLabel(order) })}</dd>
           </div>
         )}
         {order.deliveryAddress && (
@@ -193,7 +190,16 @@ export default function CashierReadOnlyTicket({
           <ShoppingBag size={18} aria-hidden="true" />
           {t('cashier.workspace.items')}
         </h3>
-        <TicketItems items={order.items ?? []} currency={orderCurrency(order)} t={t} />
+        {current.loading && <output>{t('loading')}</output>}
+        {current.error && !error && (
+          <p role="alert">
+            {t('cashier.workspace.order_unavailable')}{' '}
+            <button type="button" onClick={current.refresh}>
+              {t('retry')}
+            </button>
+          </p>
+        )}
+        <TicketItems items={ticket.items ?? []} currency={orderCurrency(ticket)} t={t} />
       </section>
 
       {order.notes && (
@@ -210,7 +216,9 @@ export default function CashierReadOnlyTicket({
 
       <CashierTicketActions
         order={order}
-        onOrderChanged={onOrderChanged}
+        billOrder={ticket}
+        billUnavailable={current.loading || current.error || !isSnapshotFresh}
+        onOrderChanged={changed}
         isOrderSnapshotFresh={isSnapshotFresh}
         historyOrders={historyOrders}
         onSelectHistoryOrder={onSelectHistoryOrder}
@@ -220,8 +228,8 @@ export default function CashierReadOnlyTicket({
           <CreditCard size={18} aria-hidden="true" />
           {t('cashier.workspace.payment')}
         </h3>
-        <TicketMoneySummary order={order} due={due} t={t} />
-        <PaymentRows payments={order.payments ?? []} currency={orderCurrency(order)} t={t} />
+        <TicketMoneySummary order={ticket} due={due} t={t} />
+        <PaymentRows payments={ticket.payments ?? []} currency={orderCurrency(ticket)} t={t} />
         {onCollect &&
           (canCollectPayment(order) || (order.serviceSessionId && historyOrders?.some(canCollectPayment))) && (
             <button type="button" className={styles.collectButton} onClick={() => onCollect(order.id)}>

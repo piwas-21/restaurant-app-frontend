@@ -33,9 +33,15 @@ export function currentOrderTicket(source: OrderDto, related: readonly OrderDto[
     totalPaid,
     remainingAmount: due,
     isFullyPaid: due <= 0,
-    paymentStatus: due < 0 ? 'Overpaid' : due === 0 ? 'Completed' : totalPaid > 0 ? 'PartiallyPaid' : 'Pending',
+    paymentStatus: currentPaymentStatus(due, totalPaid),
     payments: orders.flatMap((order) => order.payments ?? []),
   };
+}
+
+function currentPaymentStatus(due: number, totalPaid: number): OrderDto['paymentStatus'] {
+  if (due < 0) return 'Overpaid';
+  if (due === 0) return 'Completed';
+  return totalPaid > 0 ? 'PartiallyPaid' : 'Pending';
 }
 
 function netPaymentTipMinor(order: OrderDto): number {

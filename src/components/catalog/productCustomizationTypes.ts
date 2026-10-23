@@ -71,6 +71,8 @@ export interface SuggestedSideItem {
 }
 
 export interface CustomizationResult {
+  /** Units confirmed together; omitted by legacy single-unit callers. */
+  quantity?: number;
   productId: string;
   variationId?: string;
   variationName?: string;

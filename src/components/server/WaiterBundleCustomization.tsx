@@ -29,6 +29,7 @@ interface WaiterBundleCustomizationProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (result: WaiterBundleCustomizationResult) => void;
+  fixedQuantity?: number;
 }
 
 /**
@@ -40,12 +41,14 @@ export default function WaiterBundleCustomization({
   isOpen,
   onClose,
   onConfirm,
+  fixedQuantity,
 }: Readonly<WaiterBundleCustomizationProps>) {
   const { t, i18n } = useTranslation();
   const [selectedOptions, setSelectedOptions] = useState(() =>
     buildWaiterBundleDefaultSelection(bundle.menuDefinition.sections),
   );
-  const [quantity, setQuantity] = useState(1);
+  const [requestedQuantity, setRequestedQuantity] = useState(1);
+  const quantity = fixedQuantity ?? requestedQuantity;
   const [specialInstructions, setSpecialInstructions] = useState('');
   /** The option whose editing panel is expanded inline — the staff shape; the guest sheet's
    * Customize navigates to a guided screen instead. */
@@ -77,11 +80,21 @@ export default function WaiterBundleCustomization({
   const footer = (
     <div className={styles.footerRow}>
       <div className={styles.quantityControl}>
-        <button type="button" className={styles.qtyButton} onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+        <button
+          type="button"
+          className={styles.qtyButton}
+          disabled={fixedQuantity !== undefined}
+          onClick={() => setRequestedQuantity(Math.max(1, quantity - 1))}
+        >
           −
         </button>
         <span className={styles.qtyValue}>{quantity}</span>
-        <button type="button" className={styles.qtyButton} onClick={() => setQuantity(quantity + 1)}>
+        <button
+          type="button"
+          className={styles.qtyButton}
+          disabled={fixedQuantity !== undefined}
+          onClick={() => setRequestedQuantity(quantity + 1)}
+        >
           +
         </button>
       </div>

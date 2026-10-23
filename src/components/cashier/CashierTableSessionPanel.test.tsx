@@ -355,3 +355,15 @@ it('shows a presentable API refusal inside the open release confirmation', async
     ),
   );
 });
+
+it.each([false, true])('offers closure only for a released bill (released=%s)', (isTableReleased) => {
+  renderPanel({
+    ...session,
+    hasUnassignedActiveOrders: false,
+    canClose: true,
+    canReleaseTable: !isTableReleased,
+    isTableReleased,
+  });
+  expect(screen.queryByRole('button', { name: 'cashier.tables.close' }) !== null).toBe(isTableReleased);
+  expect(screen.queryByRole('button', { name: 'cashier.tables.release_table' }) !== null).toBe(!isTableReleased);
+});

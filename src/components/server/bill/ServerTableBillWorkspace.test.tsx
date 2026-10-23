@@ -255,3 +255,11 @@ it('clears a previous release error when retrying successfully in the same confi
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   expect(screen.queryByText('cashier.tables.release_failed')).not.toBeInTheDocument();
 });
+
+it.each([false, true])('offers closure only for released visits (released=%s)', (isTableReleased) => {
+  const current = { ...session, canClose: true, isTableReleased, canReleaseTable: !isTableReleased };
+  mockState(current);
+  render(<ServerTableBillWorkspace session={current} actionsBlocked={false} refreshWorkspace={jest.fn()} />);
+  expect(screen.queryByRole('button', { name: 'server.bill.close_visit' }) !== null).toBe(isTableReleased);
+  expect(screen.queryByRole('button', { name: 'cashier.tables.release_table' }) !== null).toBe(!isTableReleased);
+});

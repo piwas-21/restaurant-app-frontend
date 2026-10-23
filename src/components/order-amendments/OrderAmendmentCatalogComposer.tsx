@@ -124,11 +124,13 @@ export default function OrderAmendmentCatalogComposer({
           onClose={() => menu.setSelectedProductForCustomization(null)}
           onConfirm={(result) => confirmProduct(productForCustomization, result)}
           requestedOrderType={currentOrderType}
+          fixedQuantity={pendingReplacement?.quantity}
         />
       )}
       {bundleForCustomization && (
         <WaiterBundleCustomization
           bundle={bundleForCustomization}
+          fixedQuantity={pendingReplacement?.quantity}
           isOpen
           onClose={() => menu.setSelectedBundleForCustomization(null)}
           onConfirm={confirmBundle}

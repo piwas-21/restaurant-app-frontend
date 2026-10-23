@@ -16,7 +16,7 @@ it.each(['simple', 'all'])(
     expect(html).toContain('5.00');
     expect(html).not.toContain('11.47');
     if (kind === 'simple') {
-      expect(html).not.toContain('ALLERGY: no peanuts');
+      expect(html).toContain('ALLERGY: no peanuts &lt;script&gt;unsafe()&lt;/script&gt;');
       expect(html).not.toContain('no food, no courier');
     } else {
       expect(html).toContain('ALLERGY: no peanuts &lt;script&gt;unsafe()&lt;/script&gt;');

@@ -381,3 +381,18 @@ Key rules:
 - Use `renderWithProviders()` utility for tests needing context
 - Create test factories in `test-utils/factories.ts` for common mock objects
 - CI/CD: Tests MUST pass in the owning repository's GitHub Actions checks before merge.
+
+### Staff quantities, table reuse, and receipts
+
+Product customization confirms once with the chosen quantity. Shared order helpers preserve that
+quantity and the per-unit price in Cashier, Server, and amendment requests. Replacements retain
+the source-unit range selected for the correction.
+
+Free table readies the physical table immediately, then attempts to finalize a settled visit
+through the server's existing close guards. Unpaid or unfinished released visits remain accessible
+for reconciliation; closing one must not change the readiness of a later visit. Active visits
+show Free table as the lifecycle action; financial closure remains on released visits.
+
+Cashier/browser bills retain genuine item instructions at every component depth independently
+of structured ingredient visibility. Suppress a duplicate variation note only when the variation
+is actually printed, and HTML-escape instruction text in generated receipts.

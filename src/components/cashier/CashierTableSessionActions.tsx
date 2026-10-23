@@ -27,7 +27,7 @@ export default function CashierTableSessionActions({
 }: Props) {
   const { t } = useTranslation();
   const actions = tableSessionActions(session);
-  const closeAllowed = actions.has('close');
+  const closeAllowed = session.isTableReleased && actions.has('close');
   const addRoundHref = tableSessionAddRoundPath(session);
   const addRoundIdentityUnavailable = session.status === 'Open' && !addRoundHref;
   const addRoundAllowed =

@@ -7,7 +7,7 @@ import { receiptStyles, receiptDate, receiptDocumentAttributes, type ReceiptOpti
 import { formatOrderCurrency } from '@/lib/cashierMoney';
 import { marketplaceReceiptHtml, receiptTaxHtml } from './marketplaceReceipt';
 import { RESTAURANT_NAME } from '@/lib/config';
-import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
+import { buildChildItemsHtml, escapeHtml, receiptInstructionsHtml } from './receiptHtml';
 import { receiptPaymentHtml } from './receiptPayment';
 import { receiptOrderTypeLabel } from './receiptPresentation';
 import { getOrderTableLabel } from '@/utils/orderTableLabel';
@@ -48,6 +48,7 @@ const buildItemHtml = (item: OrderItemDto, order: OrderDto, translate: Translati
         <span dir="ltr"><strong>${totalPrice}</strong></span>
       </div>
       ${childItemsHtml}
+      ${receiptInstructionsHtml(item, Boolean(item.variationName), translate)}
     </div>`;
 };
 

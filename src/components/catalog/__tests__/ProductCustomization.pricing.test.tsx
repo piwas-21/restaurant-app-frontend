@@ -262,14 +262,15 @@ describe('S7 — waiter sheet totals', () => {
     expect(result.finalPrice).toBe(13.5);
   });
 
-  it('confirms once per line quantity, at the per-unit price', async () => {
+  it('confirms the selected quantity atomically, at the per-unit price', async () => {
     const onConfirm = openSheet();
     await waitFor(() => expect(totalText()).toContain('CHF 14.00'));
 
     fireEvent.click(screen.getByRole('button', { name: 'Increase quantity' }));
     fireEvent.click(addButton());
 
-    expect(onConfirm).toHaveBeenCalledTimes(2);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onConfirm.mock.calls[0][0].quantity).toBe(2);
     expect(onConfirm.mock.calls[0][0].finalPrice).toBe(14);
   });
 });

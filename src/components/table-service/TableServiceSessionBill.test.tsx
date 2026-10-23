@@ -53,7 +53,7 @@ it('prints split flow, guest allocations, and gratuity as separate bill details'
   expect(screen.getByText('cashier.tables.tip_food_refund_notice')).toBeInTheDocument();
 });
 
-it('omits ingredients and instructions at every depth from the combined bill while retaining items and charges', () => {
+it('retains item instructions at every depth while hiding structured ingredients from the combined bill', () => {
   const order = makeOrder([
     makeOrderItem({
       id: 'meal',
@@ -84,9 +84,9 @@ it('omits ingredients and instructions at every depth from the combined bill whi
   expect(screen.queryByText('No onion')).not.toBeInTheDocument();
   expect(screen.queryByText('Extra sugar')).not.toBeInTheDocument();
   expect(screen.queryByText('Hidden sauce')).not.toBeInTheDocument();
-  expect(screen.queryByText('Root instruction')).not.toBeInTheDocument();
-  expect(screen.queryByText('Child instruction')).not.toBeInTheDocument();
-  expect(screen.queryByText('Nested instruction')).not.toBeInTheDocument();
+  expect(screen.getByText('Root instruction')).toBeInTheDocument();
+  expect(screen.getByText('Child instruction')).toBeInTheDocument();
+  expect(screen.getByText('Nested instruction')).toBeInTheDocument();
   expect(screen.getAllByText(/EUR\s20\.00/)).toHaveLength(2);
 });
 

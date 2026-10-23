@@ -149,7 +149,7 @@ export default function ServerTableBillWorkspace({
             setPrintNotice(true);
           }}
         />
-        {session.canClose && (
+        {session.isTableReleased && session.canClose && (
           <StaffButton variant="secondary" onClick={() => setShowClose(true)} disabled={writesLocked}>
             {t('server.bill.close_visit')}
           </StaffButton>

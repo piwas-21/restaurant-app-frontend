@@ -57,3 +57,28 @@ it('omits frozen ingredient components from cashier bills and keeps them in kitc
   expect(kitchen).toContain('Harissa');
   expect(kitchen).toContain('Sugar');
 });
+
+it('prints escaped nested instructions independently of ingredient visibility without losing hidden variations', () => {
+  const children = [
+    makeOrderItem({
+      id: 'dish',
+      productName: 'Plate',
+      compositionRole: 'Dish',
+      presentationLabel: 'Assiette',
+      variationName: 'Pain',
+      specialInstructions: 'Pain',
+      sideItems: [
+        makeOrderItem({
+          id: 'sauce',
+          productName: 'Sauce',
+          compositionRole: 'Sauce',
+          specialInstructions: 'À part <b>bread</b>',
+        }),
+      ],
+    }),
+  ];
+  const html = buildChildItemsHtml(children, { showPrices: false, withIngredients: false });
+  expect(html).toContain('Pain');
+  expect(html).toContain('À part &lt;b&gt;bread&lt;/b&gt;');
+  expect(html).not.toContain('<b>bread</b>');
+});

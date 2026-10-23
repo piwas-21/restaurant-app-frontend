@@ -99,7 +99,10 @@ export function addCustomizedItem(
   if (existingIndex >= 0) {
     // Increment quantity
     const updated = [...prev];
-    updated[existingIndex].quantity += 1;
+    updated[existingIndex] = {
+      ...updated[existingIndex],
+      quantity: updated[existingIndex].quantity + (result.quantity ?? 1),
+    };
     return updated;
   }
 
@@ -125,7 +128,7 @@ export function addCustomizedItem(
     ...prev,
     {
       product,
-      quantity: 1,
+      quantity: result.quantity ?? 1,
       variationId: result.variationId,
       variationName: result.variationName,
       specialInstructions: result.specialInstructions?.trim() ?? '',

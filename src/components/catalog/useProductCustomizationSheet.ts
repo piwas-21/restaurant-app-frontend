@@ -162,7 +162,7 @@ export function useProductCustomizationSheet({
       nameOf: getLocalizedName,
     });
 
-    for (let i = 0; i < quantity; i++) onConfirm(result);
+    onConfirm({ ...result, quantity });
     onClose();
   };
 

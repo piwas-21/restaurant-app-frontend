@@ -63,7 +63,7 @@ describe('generateSimpleReceiptHtml — bundle components on the customer bill',
     expect(cola).toBeGreaterThan(fries);
   });
 
-  it('prints a variation-only legacy note once and omits preparation instructions', () => {
+  it('prints a variation-only note once and retains genuine item preparation instructions', () => {
     const order = singleKitchenBundleOrder();
     order.items[0].variationName = 'French Fries';
     order.items[0].specialInstructions = ' French Fries ';
@@ -74,7 +74,7 @@ describe('generateSimpleReceiptHtml — bundle components on the customer bill',
     order.items[0].specialInstructions = 'No salt';
     order.notes = 'Ring the doorbell';
     const html = generateSimpleReceiptHtml(order);
-    expect(html).not.toContain('No salt');
+    expect(html).toContain('No salt');
     expect(html).not.toContain('Ring the doorbell');
   });
 });

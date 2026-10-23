@@ -6,7 +6,6 @@ import {
   clearPendingTableServiceSessionOrders,
   closeTableServiceSession,
   getTableServiceSession,
-  releaseTableServiceSession,
 } from '@/services/tableServiceSessionService';
 import {
   clearPendingTableOperation,
@@ -20,6 +19,7 @@ import {
   finishTableSessionMutation,
   isCurrentTableSessionMutation,
 } from '@/hooks/cashier/tableSessionMutation';
+import { freeTableVisit } from './freeTableVisit';
 import { tableServiceCloseErrorMessage } from './tableServiceSessionErrors';
 
 type SessionLifecycleAction = (serviceSessionId: string, expectedVersion: number) => Promise<TableServiceSessionDto>;
@@ -154,11 +154,7 @@ export function useTableServiceSessionLifecycleActions({
   ]);
 
   const executeRelease = useCallback(
-    () =>
-      executeLifecycleAction(
-        (id, expectedVersion) => releaseTableServiceSession(id, { expectedVersion, markReady: true }),
-        'cashier.tables.release_failed',
-      ),
+    () => executeLifecycleAction(freeTableVisit, 'cashier.tables.release_failed'),
     [executeLifecycleAction],
   );
 

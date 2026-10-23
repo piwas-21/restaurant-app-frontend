@@ -6,6 +6,7 @@
  * appearing as top-level entries, so a template that prints only the top level silently omits
  * everything inside a combo. It recurses because the backend builds the tree to arbitrary depth.
  */
+import { displaySpecialInstructions, hasItemSpecialInstructions } from '@/utils/orderItemDisplay';
 import { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
 import {
   receiptItems,
@@ -85,6 +86,18 @@ function childPriceHtml(child: OrderItemDto, options: ChildItemsOptions): string
     : formatCurrency(child.itemTotal);
   return ` (${money})`;
 }
+/** Escaped genuine instructions, independent of the ingredient-display preference. */
+export function receiptInstructionsHtml(
+  item: OrderItemDto,
+  variationPrinted: boolean,
+  translate: ReceiptTranslate = receiptFallback,
+): string {
+  const instructions = displaySpecialInstructions(item, variationPrinted);
+  return instructions
+    ? `<div class="receipt-note" dir="auto"><strong>${escapeHtml(translate('note', 'NOTE'))}:</strong> ${escapeHtml(instructions)}</div>`
+    : '';
+}
+
 /** Render an item's child rows (bundle components + add-on sides), indented one level per depth. */
 export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItemsOptions, depth = 1): string => {
   if (children.length === 0) return '';
@@ -94,7 +107,10 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
 
   const translate = options.translate ?? receiptFallback;
   receiptItems(children)
-    .filter((child) => options.withIngredients !== false || !isIngredientComponent(child))
+    .filter(
+      (child) =>
+        options.withIngredients !== false || !isIngredientComponent(child) || hasItemSpecialInstructions(child),
+    )
     .forEach((child) => {
       const childPrice = childPriceHtml(child, options);
       const scope = escapeHtml(quantityScopeSuffix(child, options.parentQuantity ?? 1, translate));
@@ -126,6 +142,7 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
         nextOptions,
         depth + 1,
       );
+      html += receiptInstructionsHtml(child, false, translate);
     });
 
   return html;

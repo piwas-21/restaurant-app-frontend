@@ -29,12 +29,13 @@ export function orderItemsForDisplay<T extends { sectionId?: string | null }>(it
 /** Hide a legacy note only when it repeats the selected variation verbatim. */
 export function displaySpecialInstructions(
   item: Pick<OrderItemDto, 'specialInstructions' | 'variationName'>,
+  variationPrinted = true,
 ): string | undefined {
   const instructions = item.specialInstructions?.trim();
   if (!instructions) return undefined;
 
   const variation = item.variationName?.trim();
-  if (variation && normalizeDisplayText(instructions) === normalizeDisplayText(variation)) {
+  if (variationPrinted && variation && normalizeDisplayText(instructions) === normalizeDisplayText(variation)) {
     return undefined;
   }
 
@@ -43,4 +44,9 @@ export function displaySpecialInstructions(
 
 function normalizeDisplayText(value: string): string {
   return value.replace(/\s+/g, ' ').toLowerCase();
+}
+
+/** Keep preparation-bearing component subtrees even when structured ingredients are hidden. */
+export function hasItemSpecialInstructions(item: OrderItemDto): boolean {
+  return Boolean(item.specialInstructions?.trim()) || (item.sideItems ?? []).some(hasItemSpecialInstructions);
 }

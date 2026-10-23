@@ -9,7 +9,7 @@ import {
   isIngredientComponent,
 } from '@/utils/templates/receiptPresentation';
 import { customizedIngredientRows } from '@/utils/templates/receiptHtml';
-import { displaySpecialInstructions } from '@/utils/orderItemDisplay';
+import { displaySpecialInstructions, hasItemSpecialInstructions } from '@/utils/orderItemDisplay';
 import styles from './ReceiptItemDetails.module.css';
 
 /** Receipt details use frozen ownership and counts, and never create component charges. */
@@ -17,12 +17,19 @@ export default function ReceiptItemDetails({
   item,
   hideInstructions = false,
   hideIngredients = false,
-}: Readonly<{ item: OrderItemDto; hideInstructions?: boolean; hideIngredients?: boolean }>) {
+  variationPrinted = false,
+}: Readonly<{
+  item: OrderItemDto;
+  hideInstructions?: boolean;
+  hideIngredients?: boolean;
+  variationPrinted?: boolean;
+}>) {
   const { t } = useTranslation();
   const translate = (key: string, fallback: string) => t(key, { defaultValue: fallback });
-  const instructions = hideInstructions ? undefined : displaySpecialInstructions(item);
+  const instructions = hideInstructions ? undefined : displaySpecialInstructions(item, variationPrinted);
   const children = receiptItems(item.sideItems ?? []).filter(
-    (child) => !hideIngredients || !isIngredientComponent(child),
+    (child) =>
+      !hideIngredients || !isIngredientComponent(child) || (!hideInstructions && hasItemSpecialInstructions(child)),
   );
   const required = children.filter((child) => child.compositionRole === 'RequiredChoice');
   const remaining = children.filter((child) => child.compositionRole !== 'RequiredChoice');

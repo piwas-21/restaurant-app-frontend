@@ -173,7 +173,8 @@
   border-color: var(--primary-color);
 }
 
-.sideItemButton:disabled {
+.sideItemButton:disabled,
+.qtyButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -236,7 +237,7 @@
   transition: all 0.2s ease;
 }
 
-.qtyButton:hover {
+.qtyButton:hover:not(:disabled) {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
   color: var(--button-text-color, #fff);

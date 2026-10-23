@@ -82,3 +82,29 @@ it('prints unknown child counts exactly and leaves line totals unlabelled', () =
   expect(text).not.toContain('Recorded quantity');
   expect(text).not.toContain('Total for this line');
 });
+
+it('retains genuine instructions on filtered sauce subtrees and named dishes without printed variations', () => {
+  const item = makeOrderItem({
+    id: 'menu',
+    productName: 'Menu',
+    sideItems: [
+      makeOrderItem({
+        id: 'dish',
+        productName: 'Plate',
+        compositionRole: 'Dish',
+        presentationLabel: 'Assiette',
+        variationName: 'Pain',
+        specialInstructions: 'Pain',
+      }),
+      makeOrderItem({
+        id: 'sauce',
+        productName: 'Sauce',
+        compositionRole: 'Sauce',
+        sideItems: [makeOrderItem({ id: 'bread', productName: 'Bread', specialInstructions: 'À part' })],
+      }),
+    ],
+  });
+  render(<ReceiptItemDetails item={item} hideIngredients />);
+  expect(screen.getByText('Pain')).toBeInTheDocument();
+  expect(screen.getByText('À part')).toBeInTheDocument();
+});

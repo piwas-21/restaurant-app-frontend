@@ -182,3 +182,18 @@ describe('addCustomizedItem', () => {
     });
   });
 });
+
+describe('atomic product quantities', () => {
+  it('carries three confirmed units to the outgoing order payload at the unit price', () => {
+    const items = addCustomizedItem([], baseProduct, makeResult({ quantity: 3, specialInstructions: 'Extra bread' }));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ quantity: 3, unitPrice: 12, specialInstructions: 'Extra bread' });
+  });
+
+  it('adds the confirmed quantity without mutating the previous draft', () => {
+    const previous = addCustomizedItem([], baseProduct, makeResult({ quantity: 2 }));
+    const next = addCustomizedItem(previous, baseProduct, makeResult({ quantity: 3 }));
+    expect(next[0].quantity).toBe(5);
+    expect(previous[0].quantity).toBe(2);
+  });
+});

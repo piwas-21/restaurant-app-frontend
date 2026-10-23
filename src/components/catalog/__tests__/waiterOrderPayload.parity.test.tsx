@@ -388,9 +388,8 @@ async function waiterPayload(spec: LineSpec): Promise<CreateOrderItemDto[]> {
   act(() => result.current.setQuantity(spec.quantity));
   act(() => result.current.handleConfirm());
 
-  // `handleConfirm` fires once per unit; `addCustomizedItem` merges them into ONE line of that
-  // quantity. Folding them here rather than asserting on the raw results is the point — the
-  // quantity the server multiplies by is produced by that merge, not by the sheet.
+  // The sheet confirms once with the selected quantity. The order helper carries those units
+  // through the shared staff payload so pricing and amendment flows consume the same contract.
   let lines: OrderItem[] = [];
   for (const line of confirmed) lines = addCustomizedItem(lines, product, line);
   expect(lines).toHaveLength(1);

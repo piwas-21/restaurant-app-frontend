@@ -64,7 +64,7 @@ export function useProductCustomizationSheet({
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedSideItems, setSelectedSideItems] = useState<Map<string, number>>(new Map());
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const [requestedQuantity, setQuantity] = useState(1);
+  const [requestedQuantity, setRequestedQuantity] = useState(1);
   const quantity = fixedQuantity ?? requestedQuantity;
 
   const variations: ProductVariation[] = useMemo(() => (detail?.variations ?? []).filter((v) => v.isActive), [detail]);
@@ -84,7 +84,7 @@ export function useProductCustomizationSheet({
   useEffect(() => {
     seedFromBaseRecipe(allIngredients, detail?.sauceMax);
     setSpecialInstructions('');
-    setQuantity(1);
+    setRequestedQuantity(1);
     // Required side items are pre-ticked: the guest is getting them either way.
     setSelectedSideItems(new Map(sideItems.filter((s) => s.isRequired).map((s) => [s.id, 1])));
     // The base ("no variation") line is not orderable for this product, and this screen has no base
@@ -188,7 +188,7 @@ export function useProductCustomizationSheet({
     specialInstructions,
     setSpecialInstructions,
     quantity,
-    setQuantity,
+    setQuantity: setRequestedQuantity,
     totalPrice: linePrice.total,
     unitPrice: linePrice.unitPrice,
     getLocalizedName,

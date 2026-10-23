@@ -47,7 +47,7 @@ export default function WaiterBundleCustomization({
   const [selectedOptions, setSelectedOptions] = useState(() =>
     buildWaiterBundleDefaultSelection(bundle.menuDefinition.sections),
   );
-  const [requestedQuantity, setQuantity] = useState(1);
+  const [requestedQuantity, setRequestedQuantity] = useState(1);
   const quantity = fixedQuantity ?? requestedQuantity;
   const [specialInstructions, setSpecialInstructions] = useState('');
   /** The option whose editing panel is expanded inline — the staff shape; the guest sheet's
@@ -84,7 +84,7 @@ export default function WaiterBundleCustomization({
           type="button"
           className={styles.qtyButton}
           disabled={fixedQuantity !== undefined}
-          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+          onClick={() => setRequestedQuantity(Math.max(1, quantity - 1))}
         >
           −
         </button>
@@ -93,7 +93,7 @@ export default function WaiterBundleCustomization({
           type="button"
           className={styles.qtyButton}
           disabled={fixedQuantity !== undefined}
-          onClick={() => setQuantity(quantity + 1)}
+          onClick={() => setRequestedQuantity(quantity + 1)}
         >
           +
         </button>

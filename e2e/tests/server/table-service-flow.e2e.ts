@@ -18,6 +18,7 @@ import { deleteUserByEmail, promoteE2EUser } from '../../helpers/db';
 import { writeAuthStorageState } from '../../helpers/storageState';
 import type { AccountPaymentAccount } from '../../../src/types/accountPaymentAccount';
 import type { AccountPaymentOperation } from '../../../src/types/accountPayments';
+import type { TableServiceSessionDto } from '../../../src/types/order';
 import type { ServerFloorSnapshot } from '../../../src/types/serverWorkspace';
 import {
   cleanupServerTableFixture,
@@ -140,11 +141,6 @@ interface KitchenBoardCompletion {
 }
 
 interface OpenedSession {
-  serviceSessionId: string;
-  status: string;
-}
-
-interface ClosedSession {
   serviceSessionId: string;
   status: string;
 }
@@ -448,43 +444,69 @@ for (const { name, viewport } of VIEWPORTS) {
 
       await server.page.goto(`/en/server/tables/${table.tableId}?serviceSessionId=${opened.serviceSessionId}`);
       await server.page.getByRole('button', { name: 'Refresh', exact: true }).click();
-      const closeVisit = server.page.getByRole('button', { name: 'Close visit' }).first();
-      await closeVisit.waitFor();
-      await closeVisit.click();
+      await expect(server.page.getByRole('button', { name: 'Close visit', exact: true })).toHaveCount(0);
+      await server.page.getByRole('button', { name: 'Free table', exact: true }).click();
       const modal = server.page.getByRole('dialog');
-      const closed = await requireResponseData<ClosedSession>(
+      let released: TableServiceSessionDto | undefined;
+      const closed = await requireResponseData<TableServiceSessionDto>(
         server.page,
         new RegExp(`^/api/table-service-sessions/${opened.serviceSessionId}/close$`),
         async () => {
-          await modal.getByRole('button', { name: 'Close visit' }).click();
+          released = await requireResponseData<TableServiceSessionDto>(
+            server.page,
+            new RegExp(`^/api/table-service-sessions/${opened.serviceSessionId}/release$`),
+            async () => {
+              await modal.getByRole('button', { name: 'Free table', exact: true }).click();
+            },
+          );
         },
       );
+      expect(released).toMatchObject({
+        serviceSessionId: opened.serviceSessionId,
+        status: 'Open',
+        isTableReleased: true,
+        canClose: true,
+      });
       expect(closed).toMatchObject({ serviceSessionId: opened.serviceSessionId, status: 'Closed' });
+      await expect(modal).toBeHidden();
       await server.page.goto('/en/server/floor');
       await server.page.getByTestId('server-floor-workspace').waitFor();
-      const floorAfterClose = await requireAuthenticatedData<ServerFloorSnapshot>(
+      const floorAfterFree = await requireAuthenticatedData<ServerFloorSnapshot>(
         serverUser.accessToken,
         '/api/staff/server-workspace/floor',
       );
-      const closedTableId = table.tableId;
-      const physicalTableAfterClose = floorAfterClose.tables.find((entry) => entry.tableId === closedTableId);
-      expect(physicalTableAfterClose).toMatchObject({ state: 'NeedsReset', readinessState: 'NeedsReset' });
+      const freedTableId = table.tableId;
+      const physicalTableAfterFree = floorAfterFree.tables.find((entry) => entry.tableId === freedTableId);
+      expect(physicalTableAfterFree).toMatchObject({
+        state: 'Available',
+        readinessState: 'ReadyForGuests',
+        session: null,
+        permittedActions: expect.arrayContaining(['StartTable']),
+      });
+      expect(physicalTableAfterFree?.readinessVersion).toBeGreaterThan(readiness.readinessVersion);
       await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       await server.page.getByRole('button', { name: 'List', exact: true }).click();
       await server.page.getByRole('button', { name: 'Table tools', exact: true }).click();
       const nextVisitCard = server.page.locator('article').filter({ hasText: table.tableNumber });
-      await nextVisitCard.getByRole('link', { name: /Open Table/i }).click();
-      await server.page.getByRole('heading', { level: 1, name: table.tableNumber }).waitFor();
-      const nextReadiness = await requireResponseData<TableReadinessOutcome>(
+      const nextVisit = await requireResponseData<TableServiceSessionDto>(
         server.page,
-        new RegExp(`^/api/Tables/${table.tableId}/ready$`),
+        /^\/api\/table-service-sessions$/,
         async () => {
-          await server.page.getByRole('button', { name: 'Ready for next guests', exact: true }).click();
+          await nextVisitCard.getByRole('button', { name: /Add order/i }).click();
         },
       );
-      expect(nextReadiness).toMatchObject({ tableId: table.tableId, readinessState: 'ReadyForGuests' });
-      expect(nextReadiness.readinessVersion).toBeGreaterThan(readiness.readinessVersion);
-      await expect(server.page.getByRole('button', { name: 'Add order', exact: true })).toBeEnabled();
+      expect(nextVisit).toMatchObject({
+        status: 'Open',
+        isTableReleased: false,
+        roundCount: 0,
+        outstanding: 0,
+        bill: { orders: [], orderCount: 0 },
+      });
+      expect(nextVisit.serviceSessionId).not.toBe(opened.serviceSessionId);
+      await expect(server.page).toHaveURL(
+        new RegExp(`/server/tables/${table.tableId}/order\\?serviceSessionId=${nextVisit.serviceSessionId}$`),
+      );
+      await expect(server.page.getByRole('button', { name: 'Ready for next guests', exact: true })).toHaveCount(0);
       await expectNoA11yViolations(server.page);
     } finally {
       await Promise.allSettled(contexts.map((context) => context.close()));

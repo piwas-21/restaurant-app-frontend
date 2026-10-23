@@ -127,6 +127,11 @@ Each frontend release also rebuilds active customer images through `release-tena
 because `NEXT_PUBLIC_*` values are baked at build time. Verify each tenant's
 `/api/frontend/version`, health and relevant features after the rebuild and roll finish.
 
+If the release plan cannot read the private deploy repository, the tenant rebuilds never start.
+Use the deploy runbook's registry selection script to derive and DNS-check every eligible tenant,
+then dispatch their `build-tenant-image.yml` builds and roll them under the shared deploy lock.
+Verify every served revision; a successful RUMI deploy does not update those tenant images.
+
 ## Environment variables
 
 | Variable                                                     | Purpose                               | Notes                                                                                                                                        |

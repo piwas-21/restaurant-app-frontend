@@ -386,7 +386,8 @@ Key rules:
 
 Product customization confirms once with the chosen quantity. Shared order helpers preserve that
 quantity and the per-unit price in Cashier, Server, and amendment requests. Replacements retain
-the source-unit range selected for the correction.
+the source-unit range selected for the correction; their customizers show that fixed count and
+disable quantity controls instead of silently discarding quantity edits.
 
 Free table readies the physical table immediately, then attempts to finalize a settled visit
 through the server's existing close guards. Unpaid or unfinished released visits remain accessible

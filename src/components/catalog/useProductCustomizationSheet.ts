@@ -33,14 +33,13 @@ interface UseProductCustomizationSheetOptions {
   onClose: () => void;
   onConfirm: (result: CustomizationResult) => void;
   requestedOrderType?: OrderType | null;
+  fixedQuantity?: number;
 }
 
 /**
  * Everything the waiter's customization sheet knows: what the product offers, what has been picked,
  * what it costs, and — since the load failure stopped being a `console.error` — why the options are
- * missing when they are.
- *
- * Since S7 it costs what the GUEST sheet costs. The `totalPrice` memo that used to live here summed
+ * missing when they are. Since S7 it costs what the GUEST sheet costs. The `totalPrice` memo that used to live here summed
  * `variation.finalPrice + Σ selected optional price + Σ side price × quantity`: a second price
  * policy, blind to `isIncludedInBasePrice` and to `maxQuantity`, which charged CHF 2 for cheese the
  * base price had already bought. It is gone. The sheet seeds from the base recipe
@@ -53,6 +52,7 @@ export function useProductCustomizationSheet({
   onClose,
   onConfirm,
   requestedOrderType,
+  fixedQuantity,
 }: UseProductCustomizationSheetOptions) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language.split('-')[0] || 'en';
@@ -64,7 +64,8 @@ export function useProductCustomizationSheet({
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedSideItems, setSelectedSideItems] = useState<Map<string, number>>(new Map());
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [requestedQuantity, setQuantity] = useState(1);
+  const quantity = fixedQuantity ?? requestedQuantity;
 
   const variations: ProductVariation[] = useMemo(() => (detail?.variations ?? []).filter((v) => v.isActive), [detail]);
   const allIngredients: DetailedIngredient[] = useMemo(() => detail?.detailedIngredients ?? [], [detail]);
@@ -156,8 +157,6 @@ export function useProductCustomizationSheet({
       sideItems,
       selectedSideItems,
       specialInstructions,
-      // Straight from the shared math — this function does not re-derive a unit price, or there
-      // would be two writers again.
       unitPrice: linePrice.unitPrice,
       nameOf: getLocalizedName,
     });

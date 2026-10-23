@@ -68,11 +68,11 @@ it('adds three units through the actual quantity control in one amendment draft 
   ]);
 });
 
-it('retains the selected source-unit range when choosing a replacement', async () => {
+it('shows the fixed source-unit quantity while choosing a replacement', async () => {
   render(<Harness replacement />);
   await screen.findByText('This product has no customization options');
-  fireEvent.click(screen.getByRole('button', { name: 'Increase quantity' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Increase quantity' }));
+  expect(screen.getByRole('button', { name: 'Increase quantity' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Decrease quantity' })).toBeDisabled();
   fireEvent.click(screen.getByRole('button', { name: /Add to Order/ }));
   const request = JSON.parse(screen.getByTestId('request').textContent ?? '{}');
   expect(request.additions).toEqual([]);

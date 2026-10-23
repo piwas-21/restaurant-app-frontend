@@ -32,6 +32,7 @@ interface ProductCustomizationProps {
   readonly onClose: () => void;
   readonly onConfirm: (result: CustomizationResult) => void;
   readonly requestedOrderType?: OrderType | null;
+  readonly fixedQuantity?: number;
 }
 
 /**
@@ -48,9 +49,17 @@ export default function ProductCustomization({
   onClose,
   onConfirm,
   requestedOrderType,
+  fixedQuantity,
 }: ProductCustomizationProps) {
   const { t } = useTranslation();
-  const sheet = useProductCustomizationSheet({ product, isOpen, onClose, onConfirm, requestedOrderType });
+  const sheet = useProductCustomizationSheet({
+    product,
+    isOpen,
+    onClose,
+    onConfirm,
+    requestedOrderType,
+    fixedQuantity,
+  });
 
   // Four flat branches rather than a ternary chain: the failure one is the point of the block, and
   // burying it two levels into a nested `?:` is how it stayed unwritten for as long as it did.
@@ -64,6 +73,7 @@ export default function ProductCustomization({
           type="button"
           className={styles.qtyButton}
           aria-label={t('decrease_quantity', 'Decrease quantity')}
+          disabled={fixedQuantity !== undefined}
           onClick={() => sheet.setQuantity(Math.max(1, sheet.quantity - 1))}
         >
           −
@@ -73,6 +83,7 @@ export default function ProductCustomization({
           type="button"
           className={styles.qtyButton}
           aria-label={t('increase_quantity', 'Increase quantity')}
+          disabled={fixedQuantity !== undefined}
           onClick={() => sheet.setQuantity(sheet.quantity + 1)}
         >
           +
